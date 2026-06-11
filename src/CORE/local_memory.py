@@ -29,6 +29,7 @@ import json
 import os
 import sys
 import time
+import hashlib
 import threading
 from pathlib import Path
 from datetime import datetime, timezone
@@ -76,9 +77,10 @@ CREATE TABLE IF NOT EXISTS memories (
     -- CD1 schema migration (June 11 2026): Cross-domain correlation fields
     -- See azazael/research/CROSS_DOMAIN.md §CD1 for unified event schema
     event_uuid      TEXT,
+    trace_id        TEXT,
     correlation_id  TEXT,
     audit_hash      TEXT,
-    schema_version  INTEGER NOT NULL DEFAULT 1
+    schema_version  INTEGER NOT NULL DEFAULT 2
 );
 
 CREATE INDEX IF NOT EXISTS idx_memories_session ON memories(session_id);
@@ -210,9 +212,10 @@ class LocalMemoryStore:
         )
         migrations = [
             ("event_uuid", "TEXT"),
+            ("trace_id", "TEXT"),
             ("correlation_id", "TEXT"),
             ("audit_hash", "TEXT"),
-            ("schema_version", "INTEGER NOT NULL DEFAULT 1"),
+            ("schema_version", "INTEGER NOT NULL DEFAULT 2"),
         ]
         for col_name, col_type in migrations:
             if col_name not in existing_cols:
@@ -228,8 +231,15 @@ class LocalMemoryStore:
             "CREATE INDEX IF NOT EXISTS idx_memories_correlation "
             "ON memories(correlation_id)"
         )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_memories_trace_id "
+            "ON memories(trace_id)"
+        )
         # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
         # Batched in chunks of 1000 to avoid large transactions under 3.14t.
+        # Schema_version bumped to 2 for all existing rows.
+        conn.execute("UPDATE memories SET schema_version = 2 WHERE schema_version = 1")
+        conn.commit()
         while True:
             batch = conn.execute(
                 "SELECT id FROM memories WHERE event_uuid IS NULL LIMIT 1000"
@@ -483,11 +493,16 @@ class LocalMemoryStore:
                 # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
                 ev_uuid = uuid7().hex
                 corr_id = correlation_id or ""
+                trace_id_val = corr_id or uuid7().hex  # trace_id defaults to correlation_id
+                # BLAKE2b-256 audit hash of full event for cross-referencing
+                # Covers source + event_type + timestamp + data + severity per CD1 spec
+                canonical = f"{source}|{event_type}|{ts}|{data_str}|{severity}"
+                audit_val = hashlib.blake2b(canonical.encode(), digest_size=32).hexdigest()
                 cursor = conn.execute(
                     "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
-                    "event_uuid, correlation_id) "
-                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, corr_id)
+                    "event_uuid, trace_id, correlation_id, audit_hash) "
+                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, trace_id_val, corr_id, audit_val)
                 )
                 mem_id = cursor.lastrowid or 0
 

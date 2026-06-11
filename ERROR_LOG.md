@@ -6386,3 +6386,44 @@ This rule is now in force for all Codebuff/Azazael sessions.
 3. If implementation complexity is prohibitive, ASK THE USER before deviating
 4. Every implementation commit should reference the research section it fulfills
 5. RULE_0Z applies to ALL research-based implementations, not just UUID formats
+
+## Error #182 — CD1 Audit: 5 Shortcuts Discovered + Corrected (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** 🔴 Critical
+**File(s):** `local_memory.py`, `direct_memory.py`, `MemoryBus.py`, `PamsRecorder.py`
+
+**Cause:** Cross-reference audit of CROSS_DOMAIN.md CD1 research spec against
+the 5 modified CORE files revealed 5 implementation shortcuts that deviated
+from the research specification:
+
+1. **trace_id column missing** — Spec requires `trace_id` (UUID7, TEXT) per OTel
+   Semantic Conventions. Not in any schema. FIXED: added to all 3 schemas + migration.
+
+2. **audit_hash never populated** — Column existed but no BLAKE2b-256 hash generation.
+   FIXED: hashlib.blake2b() of canonical event string (source|event_type|timestamp|data|severity).
+
+3. **schema_version stuck at DEFAULT 1** — Spec says Phase 2 must bump schema_version.
+   FIXED: DEFAULT now 2 in schemas, migration UPDATEs existing rows to 2.
+
+4. **MemoryBus _MEMORYBUS_QUEUE_SCHEMA had idx_mbqueue_correlation inline** — Same class
+   bug as direct_memory.py: index on correlation_id failed on existing DBs without CD1
+   columns. Silently swallowed by try/except, preventing migration from running.
+   FIXED: moved to _migrate_queue_schema() after ALTER TABLE.
+
+5. **Dead `import uuid` in PamsRecorder.py** — uuid.uuid4() was replaced by uuid7()
+   but the import remained. FIXED: removed.
+
+Also fixed in this correction:
+- Signal handler INSERT in direct_memory.py now includes event_uuid, trace_id, correlation_id
+- audit_hash now hashes the full canonical event, not just data_str
+- `import hashlib` moved to module level (was in function body — anti-pattern)
+- idx_memories_trace_id and idx_mbqueue_trace_id indexes added
+- Dead `import uuid` also removed from MemoryBus.py
+
+**Root cause of shortcuts:** Implementation proceeded incrementally without
+comprehensive cross-reference against the research specification. Each shortcut
+was individually minor but collectively represented significant deviation.
+
+**Prevention:** RULE 0Z (Research Fidelity Mandate — Error #181) enforced.
+Before declaring any CD completed, perform line-by-line cross-reference of
+implementation against the research record.

@@ -23,7 +23,6 @@ import sys
 import json
 import time
 import threading
-import uuid
 from CORE.uuid7 import uuid7
 from datetime import datetime
 from pathlib import Path

@@ -27,7 +27,6 @@ Usage:
 import sys
 import os
 import threading
-import uuid
 import json
 import re
 import sqlite3
@@ -97,10 +96,11 @@ CREATE TABLE IF NOT EXISTS memorybus_queue (
     -- CD1 schema migration (June 11 2026): Cross-domain correlation fields
     -- See azazael/research/CROSS_DOMAIN.md §CD1 for unified event schema
     event_uuid      TEXT,
+    trace_id        TEXT,
     correlation_id  TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_mbqueue_flushed ON memorybus_queue(flushed, id);
-CREATE INDEX IF NOT EXISTS idx_mbqueue_correlation ON memorybus_queue(correlation_id);
+-- idx_mbqueue_correlation created in _migrate_queue_schema() after ALTER TABLE
 """
 
 
@@ -216,6 +216,7 @@ class MemoryBus:
         )
         migrations = [
             ("event_uuid", "TEXT"),
+            ("trace_id", "TEXT"),
             ("correlation_id", "TEXT"),
         ]
         for col_name, col_type in migrations:
@@ -226,6 +227,10 @@ class MemoryBus:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_mbqueue_correlation "
             "ON memorybus_queue(correlation_id)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_mbqueue_trace_id "
+            "ON memorybus_queue(trace_id)"
         )
         # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
         # Batched in chunks of 1000 to avoid large transactions under 3.14t.
@@ -253,12 +258,12 @@ class MemoryBus:
             corr_id = self._correlation_id
             cursor = conn.execute(
                 "INSERT INTO memorybus_queue(topic,content,metadata,source,session_id,timestamp,"
-                "event_uuid,correlation_id) "
-                "VALUES(?,?,?,?,?,?,?,?)",
+                "event_uuid,trace_id,correlation_id) "
+                "VALUES(?,?,?,?,?,?,?,?,?)",
                 (topic, json.dumps(content, default=str),
                  json.dumps(metadata, default=str), source,
                  self.session_id, datetime.now().isoformat(),
-                 event_uuid or uuid7().hex, corr_id)
+                 event_uuid or uuid7().hex, corr_id, corr_id)
             )
             row_id = cursor.lastrowid or 0
             conn.commit()

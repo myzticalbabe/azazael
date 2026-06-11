@@ -30,6 +30,7 @@ import sqlite3
 import json
 import os
 import signal
+import hashlib
 import threading
 import atexit
 import uuid
@@ -85,9 +86,10 @@ CREATE TABLE IF NOT EXISTS memories (
     -- CD1 schema migration (June 11 2026): Cross-domain correlation fields
     -- See azazael/research/CROSS_DOMAIN.md §CD1 for unified event schema
     event_uuid      TEXT,
+    trace_id        TEXT,
     correlation_id  TEXT,
     audit_hash      TEXT,
-    schema_version  INTEGER NOT NULL DEFAULT 1
+    schema_version  INTEGER NOT NULL DEFAULT 2
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -181,15 +183,18 @@ class DirectMemory:
                     "UPDATE sessions SET ended_at=? WHERE session_id=? AND ended_at IS NULL",
                     (now, self._session_id)
                 )
+                # CD1: signal handler includes event_uuid and correlation_id
+                sig_ev_uuid = _uuid7()
                 conn.execute(
-                    "INSERT INTO memories(session_id,source,event_type,data,severity,tags,timestamp) "
-                    "VALUES(?,?,?,?,?,?,?)",
+                    "INSERT INTO memories(session_id,source,event_type,data,severity,tags,timestamp,"
+                    "event_uuid,trace_id,correlation_id) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?)",
                     (self._session_id, "Codebuff", "session_end",
                      json.dumps({"auto_recorded_by": f"signal_handler_{sig_name}",
                                 "note": f"Session ended via {sig_name}",
                                 "signal_number": signum}, ensure_ascii=False),
                      "warning", json.dumps(["session","session-lifecycle","shutdown","signal"]),
-                     now)
+                     now, sig_ev_uuid, self._correlation_id, self._correlation_id)
                 )
                 conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
                 conn.commit()
@@ -256,9 +261,10 @@ class DirectMemory:
         )
         migrations = [
             ("event_uuid", "TEXT"),
+            ("trace_id", "TEXT"),
             ("correlation_id", "TEXT"),
             ("audit_hash", "TEXT"),
-            ("schema_version", "INTEGER NOT NULL DEFAULT 1"),
+            ("schema_version", "INTEGER NOT NULL DEFAULT 2"),
         ]
         for col_name, col_type in migrations:
             if col_name not in existing_cols:
@@ -273,8 +279,15 @@ class DirectMemory:
             "CREATE INDEX IF NOT EXISTS idx_memories_correlation "
             "ON memories(correlation_id)"
         )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_memories_trace_id "
+            "ON memories(trace_id)"
+        )
         # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
         # Batched in chunks of 1000 to avoid large transactions under 3.14t.
+        # Schema_version bumped to 2 for all existing rows.
+        conn.execute("UPDATE memories SET schema_version = 2 WHERE schema_version = 1")
+        conn.commit()
         while True:
             batch = conn.execute(
                 "SELECT id FROM memories WHERE event_uuid IS NULL LIMIT 1000"
@@ -369,14 +382,19 @@ class DirectMemory:
         ev_uuid = _uuid7()
         corr_id = self._correlation_id  # Use instance correlation_id
 
+        # BLAKE2b-256 audit hash of full event for cross-referencing
+        # Covers source + event_type + timestamp + data + severity per CD1 spec
+        canonical = f"{source}|{event_type}|{now}|{data_str}|{severity}"
+        audit_val = hashlib.blake2b(canonical.encode(), digest_size=32).hexdigest()
+
         with self._lock:
             conn = self._get_conn()
             cursor = conn.execute(
                 "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
-                "event_uuid, correlation_id) "
-                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "event_uuid, trace_id, correlation_id, audit_hash) "
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (self._session_id, source, event_type, data_str, severity, tags_str, now,
-                 ev_uuid, corr_id)
+                 ev_uuid, corr_id, corr_id, audit_val)
             )
             mem_id = cursor.lastrowid or 0
             conn.execute(
