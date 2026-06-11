@@ -86,8 +86,6 @@ CREATE INDEX IF NOT EXISTS idx_memories_source ON memories(source);
 CREATE INDEX IF NOT EXISTS idx_memories_event_type ON memories(event_type);
 CREATE INDEX IF NOT EXISTS idx_memories_timestamp ON memories(timestamp);
 CREATE INDEX IF NOT EXISTS idx_memories_severity ON memories(severity);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_memories_event_uuid ON memories(event_uuid);
-CREATE INDEX IF NOT EXISTS idx_memories_correlation ON memories(correlation_id);
 
 -- Composite indexes for common query patterns — quantitative performance improvement
 CREATE INDEX IF NOT EXISTS idx_memories_source_event_severity ON memories(source, event_type, severity);

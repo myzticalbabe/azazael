@@ -24,7 +24,6 @@ Features:
 import uuid
 import time
 import os
-import threading
 
 # Monotonic counter for sub-millisecond ordering.
 # Under 3.14t free-threading, itertools.count() is used for lock-free atomicity.
@@ -90,11 +89,6 @@ def uuid7() -> uuid.UUID:
     buf[15] = random_bytes[7]
 
     return uuid.UUID(bytes=bytes(buf))
-
-
-def uuid7_str() -> str:
-    """Generate a UUID7 as a canonical hex string (no dashes)."""
-    return uuid7().hex
 
 
 # Self-test

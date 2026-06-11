@@ -90,9 +90,6 @@ CREATE TABLE IF NOT EXISTS memories (
     schema_version  INTEGER NOT NULL DEFAULT 1
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_memories_event_uuid ON memories(event_uuid);
-CREATE INDEX IF NOT EXISTS idx_memories_correlation ON memories(correlation_id);
-
 CREATE TABLE IF NOT EXISTS sessions (
     session_id  TEXT PRIMARY KEY,
     started_at  TEXT NOT NULL,
