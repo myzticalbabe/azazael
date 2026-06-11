@@ -6427,3 +6427,47 @@ was individually minor but collectively represented significant deviation.
 **Prevention:** RULE 0Z (Research Fidelity Mandate — Error #181) enforced.
 Before declaring any CD completed, perform line-by-line cross-reference of
 implementation against the research record.
+
+## Error #183 — All-Projects Audit: 21 uuid4 shortcuts migrated to uuid7 (RFC 9562) (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** P1 — Technical Debt Remediation
+**File(s):** 10 files across 3 projects
+
+**Cause:** Cross-project audit of all Python projects under C:/Users/clint found
+158+ uuid.uuid4() calls that had not been migrated to uuid7 (RFC 9562),
+despite the CD1 research specification requiring time-sortable UUID7 for
+all event/correlation identifiers.
+
+**Files fixed (azazael — 5 files):**
+- src/CORE/worm_registry.py: correlation_id generation (inline uuid4)
+- src/CORE/PamsBusBridge.py: session_id
+- src/CORE/audit_trail.py: 5 entry UUIDs + session suffix
+- src/CORE/AgentPool.py: 2 task_id generations
+- src/CORE/Agent.py: 4 uses (agent_id, task_id, child agent_id)
+
+**Files fixed (Ultimate_Agent_Selector — 2 files):**
+- launcher/agent_orchestrator.py: selector_id
+- agents/memory_bridge/__init__.py: agent_id
+
+**Files fixed (EveUnleashed_Selector — 3 files):**
+- agents/adversarial/agent.py: agent_id + thought_id
+- agents/adversarial/orchestrator.py: campaign_id
+- agents/adversarial/vision_agent.py: agent_id + test_id
+
+**Conscious omissions (standalone agents without azazael CORE dependency):**
+- Desktop/Ultimate_Agent_Selector agents: vl_vision, rl_learner, research,
+  orchestrator, npu_orchestrator, file_manager, env_adapter,
+  code_generation, artifact_admin (~15 uuid4 calls)
+- azazael/src/CODEX/VIDEOS/compress_video.py: temp passlog filename
+  Rationale: These modules generate local unique IDs, not event/correlation
+  identifiers for the memory/audit system. uuid4 is appropriate here.
+
+**Fix applied:** Replaced import uuid with from CORE.uuid7 import uuid7
+(azazael files) or placed import after azazael sys.path setup (Desktop files).
+Changed all str(uuid.uuid4())[:N] to uuid7().hex[:N] and
+str(uuid.uuid4()) to str(uuid7()).
+
+**Import ordering bug fixed:** Initial Desktop file changes placed
+from CORE.uuid7 import uuid7 before sys.path.insert, causing ImportError.
+Corrected by moving import after path setup (agent_orchestrator, memory_bridge,
+vision_agent) or inside try/except block (Eve orchestrator, Eve agent).
