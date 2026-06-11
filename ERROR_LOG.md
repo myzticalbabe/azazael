@@ -6471,3 +6471,29 @@ str(uuid.uuid4()) to str(uuid7()).
 from CORE.uuid7 import uuid7 before sys.path.insert, causing ImportError.
 Corrected by moving import after path setup (agent_orchestrator, memory_bridge,
 vision_agent) or inside try/except block (Eve orchestrator, Eve agent).
+
+## Error #184 — All-Projects Shortcut Audit: EveUnleashed Imported, Desktop Projects Git-Initialized (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** P1
+**File(s):** azazael/src/EveUnleashed/ (imported), Desktop/Ultimate_Agent_Selector/ (git init), Desktop/EveUnleashed_Selector/ (git init)
+
+**Cause:** Followup from Error #183 all-projects audit. All 3 projects now integrated:
+- EveUnleashed (RANI-VL framework) imported into azazael/src/EveUnleashed from Desktop
+- Ultimate_Agent_Selector git-initialized (commit f85c6ee)
+- EveUnleashed_Selector git-initialized (commit 6d1d2e3)
+
+**EveUnleashed RANI-VL:**
+- Multi-modal vision-language agent framework
+- Features: recursive reasoning, adversarial self-play, multi-backend VL inference
+- Provides: vl_bridge, vision_agent, agent (recursive reasoning), engine, orchestrator
+- UUID4 to UUID7 migration completed (3 files)
+
+**Free API Endpoints Available (as of June 2026):**
+- 23 providers, 136 free models across PROVIDER_REGISTRY
+- 16 OpenAI-compat (needs API key), 6 local (Ollama/LMStudio/LlamaCpp), 1 anonymous (OVHcloud)
+- Top: OpenRouter (31), NVIDIA NIM (25), Ollama (9), Groq (6), SiliconFlow (6)
+
+**Cross-project git status:**
+- azazael: f30cce6 + 747568c (Errors #182-#183)
+- Ultimate_Agent_Selector: f85c6ee (initial)
+- EveUnleashed_Selector: 6d1d2e3 (initial)
