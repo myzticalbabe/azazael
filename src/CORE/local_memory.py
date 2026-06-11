@@ -71,7 +71,13 @@ CREATE TABLE IF NOT EXISTS memories (
     severity    TEXT NOT NULL DEFAULT 'info',
     tags        TEXT NOT NULL DEFAULT '[]',
     timestamp   TEXT NOT NULL,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    -- CD1 schema migration (June 11 2026): Cross-domain correlation fields
+    -- See azazael/research/CROSS_DOMAIN.md §CD1 for unified event schema
+    event_uuid      TEXT,
+    correlation_id  TEXT,
+    audit_hash      TEXT,
+    schema_version  INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE INDEX IF NOT EXISTS idx_memories_session ON memories(session_id);
@@ -79,6 +85,8 @@ CREATE INDEX IF NOT EXISTS idx_memories_source ON memories(source);
 CREATE INDEX IF NOT EXISTS idx_memories_event_type ON memories(event_type);
 CREATE INDEX IF NOT EXISTS idx_memories_timestamp ON memories(timestamp);
 CREATE INDEX IF NOT EXISTS idx_memories_severity ON memories(severity);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_memories_event_uuid ON memories(event_uuid);
+CREATE INDEX IF NOT EXISTS idx_memories_correlation ON memories(correlation_id);
 
 -- Composite indexes for common query patterns — quantitative performance improvement
 CREATE INDEX IF NOT EXISTS idx_memories_source_event_severity ON memories(source, event_type, severity);
@@ -179,12 +187,49 @@ class LocalMemoryStore:
         self._config_applied = False
 
     def _init_db(self):
-        """Initialize database schema."""
+        """Initialize database schema and run migrations."""
         with self._lock:
             conn = sqlite3.connect(self.db_path, timeout=2)
             conn.executescript(SCHEMA_SQL)
             conn.commit()
+            # CD1 schema migration (June 11 2026): Add cross-domain columns
+            # to existing databases that were created before these columns existed.
+            self._migrate_schema(conn)
             conn.close()
+
+    def _migrate_schema(self, conn: sqlite3.Connection):
+        """Run additive schema migrations for existing databases.
+
+        CD1 (June 11 2026): Adds event_uuid, correlation_id, audit_hash,
+        and schema_version columns to the memories table if they don't exist
+        on databases created before this migration.
+
+        Uses ALTER TABLE ADD COLUMN which is non-destructive and backward-compatible.
+        """
+        existing_cols = set(
+            r[1] for r in conn.execute("PRAGMA table_info('memories')").fetchall()
+        )
+        migrations = [
+            ("event_uuid", "TEXT"),
+            ("correlation_id", "TEXT"),
+            ("audit_hash", "TEXT"),
+            ("schema_version", "INTEGER NOT NULL DEFAULT 1"),
+        ]
+        for col_name, col_type in migrations:
+            if col_name not in existing_cols:
+                conn.execute(
+                    f"ALTER TABLE memories ADD COLUMN {col_name} {col_type}"
+                )
+        # Create indexes if they don't exist (idempotent via IF NOT EXISTS)
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_memories_event_uuid "
+            "ON memories(event_uuid)"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_memories_correlation "
+            "ON memories(correlation_id)"
+        )
+        conn.commit()
 
     def _apply_config(self):
         """Apply configuration from CORE.config (call explicitly after construction).

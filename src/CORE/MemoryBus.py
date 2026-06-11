@@ -92,9 +92,14 @@ CREATE TABLE IF NOT EXISTS memorybus_queue (
     source      TEXT NOT NULL DEFAULT 'memorybus',
     session_id  TEXT NOT NULL,
     timestamp   TEXT NOT NULL,
-    flushed     INTEGER NOT NULL DEFAULT 0
+    flushed     INTEGER NOT NULL DEFAULT 0,
+    -- CD1 schema migration (June 11 2026): Cross-domain correlation fields
+    -- See azazael/research/CROSS_DOMAIN.md §CD1 for unified event schema
+    event_uuid      TEXT,
+    correlation_id  TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_mbqueue_flushed ON memorybus_queue(flushed, id);
+CREATE INDEX IF NOT EXISTS idx_mbqueue_correlation ON memorybus_queue(correlation_id);
 """
 
 
@@ -194,10 +199,32 @@ class MemoryBus:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.executescript(_MEMORYBUS_QUEUE_SCHEMA)
             conn.commit()
+            # CD1 schema migration (June 11 2026): Add cross-domain columns
+            self._migrate_queue_schema(conn)
             conn.close()
             self._persistent_queue_initialized = True
         except Exception:
             pass
+
+    def _migrate_queue_schema(self, conn: sqlite3.Connection):
+        """Run additive schema migrations for existing queue tables.
+
+        CD1 (June 11 2026): Adds event_uuid and correlation_id columns
+        to memorybus_queue if they don't exist.
+        """
+        existing_cols = set(
+            r[1] for r in conn.execute("PRAGMA table_info('memorybus_queue')").fetchall()
+        )
+        migrations = [
+            ("event_uuid", "TEXT"),
+            ("correlation_id", "TEXT"),
+        ]
+        for col_name, col_type in migrations:
+            if col_name not in existing_cols:
+                conn.execute(
+                    f"ALTER TABLE memorybus_queue ADD COLUMN {col_name} {col_type}"
+                )
+        conn.commit()
 
     def _persist_to_queue(self, topic: str, content: Any, metadata: Dict,
                           source: str) -> int:
