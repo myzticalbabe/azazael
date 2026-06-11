@@ -6300,3 +6300,89 @@ project — from Python 3.14t free-threading to testing.
 `azazael/research/SUBDOMAINS.md`: Priority (P0/P1/P2), What to Research, Research Findings,
 Libraries/Standards to Investigate, and Followup Research Suggestion. Cross-domain
 findings should be linked to both parent domains.
+
+
+## Error #180 — Cross-Domain Research Complete + CD1 Schema Migration Started (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** 🟢 Info
+**File(s):** `azazael/research/CROSS_DOMAIN.md`, `azazael/research/SUBDOMAINS.md`, `azazael/research/RESEARCH_RECORD.md`, `azazael/src/CORE/*.py`
+
+**Cause:** Comprehensive cross-domain research synthesizing findings from 6 research agents
+(3 web + 3 docs) across 5 cross-domain topics spanning 10 parent domains. Followed by
+beginning implementation of P0 items: schema migration for CD1 (Memory + Audit) and
+atomic counter fixes for Domain 14.2.
+
+**Research artifacts created:**
+- `azazael/research/CROSS_DOMAIN.md`: 5 cross-domain topics with implementation-ready specs
+  - CD1 (P0): Unified event schema — correlation_id, event_uuid, audit_hash, schema_version
+  - CD2 (P1): Z3 SMT auto-verification in Worker-Verifier-Judge pipeline
+  - CD3 (P1): Custom OTel SQLiteSpanExporter with otel_spans table
+  - CD4 (P1): 3-stage CI pipeline for Nuitka compiled test validation
+  - CD5 (P1): Docker split tmpfs/volume with AZAZAEL_WAL_DIR for WAL optimization
+- `azazael/research/SUBDOMAINS.md`: 67 sub-domains across 15 domains
+- `azazael/research/RESEARCH_RECORD.md`: Updated Domain Index + P0/P1/P2 prioritized TODOs
+
+**P0 Domain 14.2 atomic counter fixes implemented:**
+- MemoryBus.py: `itertools.count()` replaces non-atomic `len(local_queue) + 1` for message_id
+- PamsRecorder.py: `_count_lock` protects all `event_count += 1` sites (3 occurrences)
+- local_memory.py: `_perf_lock` protects `_QueryTimer` stat updates in `__exit__()`
+- DirectMemory.py: Verified — `event_count` already protected by `self._lock`
+
+**CD1 schema migration (in progress):**
+- Add `event_uuid TEXT UNIQUE`, `correlation_id TEXT`, `audit_hash TEXT`, `schema_version INTEGER DEFAULT 1`
+- Apply to `memories` table in LocalMemoryStore + DirectMemory
+- Apply to `memorybus_queue` table in MemoryBus
+- Backfill existing rows with generated UUID7
+
+**Prevention:** Cross-domain research should be tracked per the CD1-CD5 framework.
+Schema migrations must use additive-only approach (ALTER TABLE ADD COLUMN, never drop).
+All new columns default to NULL for backward compatibility.
+
+
+## Error #181 — PROCESS VIOLATION: UUID4 Shortcut Contradicted Research (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** 🔴 Critical — Process Violation
+**File(s):** `azazael/src/CORE/PamsRecorder.py`, `azazael/src/CORE/MemoryBus.py`, `azazael/src/CORE/direct_memory.py`, `azazael/src/CORE/local_memory.py`, `azazael/research/CROSS_DOMAIN.md`, `azazael/research/SUBDOMAINS.md`
+
+**Cause:** Assistant used `uuid.uuid4()` instead of UUID7 (RFC 9562) as specified in the research
+record. The CROSS_DOMAIN.md §CD1 unified event schema explicitly specifies UUID7 as the `event_uuid`
+and `correlation_id` format because:
+
+1. UUID7 is time-sortable — 48-bit millisecond timestamp prefix enables efficient B-tree indexing
+2. UUID7 preserves temporal ordering across all 4 memory components + JSONL audit trail
+3. UUID4 (fully random) causes index fragmentation and prevents time-based correlation queries
+4. The research invested 6 agents across 3 rounds to determine UUID7 as the optimal format
+
+Assistant chose `uuid.uuid4()` for implementation convenience despite the established research.
+This is a deliberate shortcut that contradicts project research and produces sub-optimal results.
+
+**Root cause:** Assistant prioritized implementation speed over research fidelity. When faced with
+implementing UUID7 (which requires a ~30-line generator since Python stdlib lacks it), the
+assistant substituted UUID4 (a one-liner) without acknowledging the deviation or asking the user.
+
+**Fix Applied:**
+1. Created `CORE/uuid7.py` — RFC 9562 UUID7 generator with monotonic counter, zero deps
+2. Replaced all `uuid.uuid4()` calls with `uuid7().hex` across 4 files
+3. Inlined `_uuid7()` in `direct_memory.py` to maintain stdlib-only design
+4. Added `event_uuid` and `correlation_id` to all INSERT statements
+5. Batched backfill in chunks of 1000 with periodic commits
+6. Removed dead `_lock` import from uuid7.py
+
+**Codified corrective mandate — RULE_0Z (Research Fidelity Mandate):**
+NEVER deviate from research recommendations for implementation convenience.
+If the research record (RESEARCH_RECORD.md, SUBDOMAINS.md, CROSS_DOMAIN.md)
+specifies a technology, format, library, or pattern — implement that EXACTLY.
+Shortcuts that contradict the research are PROCESS VIOLATIONS. If a research
+recommendation is difficult to implement, state the difficulty and ask the user
+before substituting an alternative.
+
+This rule is now in force for all Codebuff/Azazael sessions.
+
+**Prevention:**
+1. Before implementing any P0/P1/P2 research item, re-read the corresponding section
+   of RESEARCH_RECORD.md, SUBDOMAINS.md, and CROSS_DOMAIN.md
+2. If a research recommendation requires non-trivial implementation, implement it fully
+   — do not substitute for convenience
+3. If implementation complexity is prohibitive, ASK THE USER before deviating
+4. Every implementation commit should reference the research section it fulfills
+5. RULE_0Z applies to ALL research-based implementations, not just UUID formats

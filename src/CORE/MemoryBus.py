@@ -32,6 +32,7 @@ import json
 import re
 import sqlite3
 import itertools
+from CORE.uuid7 import uuid7
 from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -144,7 +145,7 @@ class MemoryBus:
     def __init__(self, pams_url: Optional[str] = None, session_id: Optional[str] = None,
                  poll_interval_sec: float = 1.0, use_local_fallback: bool = True):
         self.pams_url = (pams_url or PAMS_URL).rstrip('/')
-        self.session_id = session_id or str(uuid.uuid4())[:8]
+        self.session_id = session_id or uuid7().hex[:8]
         self.poll_interval_sec = poll_interval_sec
         self.use_local_fallback = use_local_fallback
 
@@ -166,11 +167,9 @@ class MemoryBus:
         self._persisted_ids: set = set()  # Track which messages were already persisted
         self._persistent_queue_initialized = False
         # P0 fix (June 11 2026): Atomic message_id counter using itertools.count
-        # replaces non-atomic len(self._local_queue) + 1. Under 3.14t
-        # free-threading, two threads calling publish() simultaneously could
-        # both see the same queue length, producing duplicate message_ids.
-        # itertools.count is thread-safe even without the GIL.
         self._message_counter = itertools.count(1)
+        # CD1 correlation (June 11 2026): Cross-domain correlation ID
+        self._correlation_id = uuid7().hex
         self._init_persistent_queue()
 
         # -- Stats (thread-safe: backing dict + dedicated lock) ----------
@@ -224,22 +223,42 @@ class MemoryBus:
                 conn.execute(
                     f"ALTER TABLE memorybus_queue ADD COLUMN {col_name} {col_type}"
                 )
-        conn.commit()
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_mbqueue_correlation "
+            "ON memorybus_queue(correlation_id)"
+        )
+        # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
+        # Batched in chunks of 1000 to avoid large transactions under 3.14t.
+        while True:
+            batch = conn.execute(
+                "SELECT id FROM memorybus_queue WHERE event_uuid IS NULL LIMIT 1000"
+            ).fetchall()
+            if not batch:
+                break
+            for (row_id,) in batch:
+                conn.execute(
+                    "UPDATE memorybus_queue SET event_uuid = ? WHERE id = ?",
+                    (uuid7().hex, row_id)
+                )
+            conn.commit()
 
     def _persist_to_queue(self, topic: str, content: Any, metadata: Dict,
-                          source: str) -> int:
+                          source: str, event_uuid: str = "") -> int:
         """Persist a message to the SQLite fallback queue. Returns row ID."""
         if not self._persistent_queue_initialized:
             return 0
         try:
             conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
             conn.execute("PRAGMA journal_mode=WAL")
+            corr_id = self._correlation_id
             cursor = conn.execute(
-                "INSERT INTO memorybus_queue(topic,content,metadata,source,session_id,timestamp) "
-                "VALUES(?,?,?,?,?,?)",
+                "INSERT INTO memorybus_queue(topic,content,metadata,source,session_id,timestamp,"
+                "event_uuid,correlation_id) "
+                "VALUES(?,?,?,?,?,?,?,?)",
                 (topic, json.dumps(content, default=str),
                  json.dumps(metadata, default=str), source,
-                 self.session_id, datetime.now().isoformat())
+                 self.session_id, datetime.now().isoformat(),
+                 event_uuid or uuid7().hex, corr_id)
             )
             row_id = cursor.lastrowid or 0
             conn.commit()
@@ -292,6 +311,8 @@ class MemoryBus:
         # -- Fallback: store locally + persist to SQLite -----------------
         if self.use_local_fallback:
             self._increment('local_fallback_used')
+            # CD1 correlation (June 11 2026): UUID7 for cross-ledger linking
+            ev_uuid = uuid7().hex
             msg = BusMessage(
                 message_id=next(self._message_counter),
                 topic=topic,
@@ -306,7 +327,7 @@ class MemoryBus:
                 if len(self._local_queue) > 1000:
                     self._local_queue = self._local_queue[-1000:]
             # F07 fix: Persist to SQLite for durability
-            pid = self._persist_to_queue(topic, payload, metadata, source)
+            pid = self._persist_to_queue(topic, payload, metadata, source, ev_uuid)
             if pid:
                 self._increment('persistent_fallback_used')
                 self._persisted_ids.add(msg.message_id)

@@ -33,6 +33,7 @@ import threading
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from CORE.uuid7 import uuid7
 
 # -- Storage location ------------------------------------------------------
 def _get_store_path() -> Path:
@@ -229,7 +230,20 @@ class LocalMemoryStore:
             "CREATE INDEX IF NOT EXISTS idx_memories_correlation "
             "ON memories(correlation_id)"
         )
-        conn.commit()
+        # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
+        # Batched in chunks of 1000 to avoid large transactions under 3.14t.
+        while True:
+            batch = conn.execute(
+                "SELECT id FROM memories WHERE event_uuid IS NULL LIMIT 1000"
+            ).fetchall()
+            if not batch:
+                break
+            for (row_id,) in batch:
+                conn.execute(
+                    "UPDATE memories SET event_uuid = ? WHERE id = ?",
+                    (uuid7().hex, row_id)
+                )
+            conn.commit()
 
     def _apply_config(self):
         """Apply configuration from CORE.config (call explicitly after construction).
@@ -438,7 +452,8 @@ class LocalMemoryStore:
 
     def record_event(self, source: str, event_type: str, data: Any = None,
                      severity: str = "info", tags: Optional[List[str]] = None,
-                     session_id: Optional[str] = None) -> int:
+                     session_id: Optional[str] = None,
+                     correlation_id: Optional[str] = None) -> int:
         """
         Record an event to memory.
 
@@ -449,6 +464,7 @@ class LocalMemoryStore:
             severity: "info", "warning", "error", or "critical".
             tags: Optional list of string tags for categorization.
             session_id: Optional session override.
+            correlation_id: Optional CD1 cross-ledger correlation ID.
 
         Returns:
             The memory ID (rowid).
@@ -466,10 +482,14 @@ class LocalMemoryStore:
         with self._lock:
             with self._QueryTimer(self, "record_event"):
                 conn = self._get_conn()
+                # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
+                ev_uuid = uuid7().hex
+                corr_id = correlation_id or ""
                 cursor = conn.execute(
-                    "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp) "
-                    "VALUES(?, ?, ?, ?, ?, ?, ?)",
-                    (sid, source, event_type, data_str, severity, tags_str, ts)
+                    "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
+                    "event_uuid, correlation_id) "
+                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, corr_id)
                 )
                 mem_id = cursor.lastrowid or 0
 

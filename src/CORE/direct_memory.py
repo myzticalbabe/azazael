@@ -32,9 +32,29 @@ import os
 import signal
 import threading
 import atexit
+import uuid
+import time
+import itertools
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+
+# Stdlib-only UUID7 generator (RFC 9562) — inlined to maintain zero-CORE-imports design.
+# Produces time-sortable UUIDs for event_uuid and correlation_id columns.
+_counter_uuid7 = itertools.count(0)
+def _uuid7() -> str:
+    ts = int(time.time() * 1000)
+    rand = bytearray(os.urandom(10))
+    buf = bytearray(16)
+    buf[0] = (ts >> 40) & 0xFF; buf[1] = (ts >> 32) & 0xFF
+    buf[2] = (ts >> 24) & 0xFF; buf[3] = (ts >> 16) & 0xFF
+    buf[4] = (ts >> 8) & 0xFF;  buf[5] = ts & 0xFF
+    c = next(_counter_uuid7) & 0xFFF
+    buf[6] = 0x70 | ((c >> 8) & 0x0F); buf[7] = c & 0xFF
+    buf[8] = 0x80 | (rand[0] & 0x3F)
+    buf[9] = rand[1]; buf[10] = rand[2]; buf[11] = rand[3]
+    buf[12] = rand[4]; buf[13] = rand[5]; buf[14] = rand[6]; buf[15] = rand[7]
+    return uuid.UUID(bytes=bytes(buf)).hex
 
 __version__ = "1.0.0"
 
@@ -113,6 +133,9 @@ class DirectMemory:
         self._event_count = 0
         self._files_changed: List[str] = []
         self._ended = False
+        # CD1 correlation (June 11 2026): Per-instance correlation ID for
+        # cross-ledger linking. Uses inlined UUID7 for zero-CORE-imports.
+        self._correlation_id = _uuid7()
         # Validate session_id before proceeding
         if not self._session_id or not isinstance(self._session_id, str):
             self._session_id = datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
@@ -253,7 +276,20 @@ class DirectMemory:
             "CREATE INDEX IF NOT EXISTS idx_memories_correlation "
             "ON memories(correlation_id)"
         )
-        conn.commit()
+        # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
+        # Batched in chunks of 1000 to avoid large transactions under 3.14t.
+        while True:
+            batch = conn.execute(
+                "SELECT id FROM memories WHERE event_uuid IS NULL LIMIT 1000"
+            ).fetchall()
+            if not batch:
+                break
+            for (row_id,) in batch:
+                conn.execute(
+                    "UPDATE memories SET event_uuid = ? WHERE id = ?",
+                    (_uuid7(), row_id)
+                )
+            conn.commit()
 
     def _start_session(self):
         """Insert or verify session record.
@@ -332,12 +368,18 @@ class DirectMemory:
             all_tags.append("session-recording")
         tags_str = json.dumps(all_tags, ensure_ascii=False, default=str)
 
+        # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
+        ev_uuid = _uuid7()
+        corr_id = self._correlation_id  # Use instance correlation_id
+
         with self._lock:
             conn = self._get_conn()
             cursor = conn.execute(
-                "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp) "
-                "VALUES(?, ?, ?, ?, ?, ?, ?)",
-                (self._session_id, source, event_type, data_str, severity, tags_str, now)
+                "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
+                "event_uuid, correlation_id) "
+                "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (self._session_id, source, event_type, data_str, severity, tags_str, now,
+                 ev_uuid, corr_id)
             )
             mem_id = cursor.lastrowid or 0
             conn.execute(

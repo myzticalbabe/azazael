@@ -24,6 +24,7 @@ import json
 import time
 import threading
 import uuid
+from CORE.uuid7 import uuid7
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
@@ -71,21 +72,24 @@ class PamsRecorder:
     unreachable. Provides full query/recall/search capability.
     """
     
-    VERSION = "2.0.0"
+    VERSION = "2.0.1"
     _instance = None
+    _instance_lock = threading.Lock()
     _lock = threading.Lock()
     _pams_unreachable = False
     _pams_retry_interval = 60.0
     _pams_last_attempt = 0.0
 
     def __init__(self):
-        self.session_id = str(uuid.uuid4())[:8]
+        self.session_id = uuid7().hex[:8]
         self.event_count = 0
         # P0 fix (June 11 2026): Dedicated lock for event_count increments.
-        # Under 3.14t free-threading, self.event_count += 1 is not atomic —
-        # two threads can read the same value, increment independently, and
-        # lose one increment. This lock protects the read-modify-write.
         self._count_lock = threading.Lock()
+        # CD1 correlation (June 11 2026): Cross-domain correlation ID
+        # Links PamsRecorder events to DirectMemory/MemoryBus events
+        # across the unified event schema. Uses UUID7 (RFC 9562) for
+        # time-sortable, index-friendly identifiers.
+        self._correlation_id = uuid7().hex
         self.fallback_path = os.path.join(_AZAZAEL_ROOT, "data", "pams_fallback_records.json")
         os.makedirs(os.path.dirname(self.fallback_path), exist_ok=True)
         self._fallback_buffer: List[Dict] = self._load_fallback()
@@ -195,6 +199,8 @@ class PamsRecorder:
                 self._local_store.record_event(
                     source=source, event_type=event_type,
                     data=data, severity=severity, tags=tags,
+                    session_id=self.session_id,
+                    correlation_id=self._correlation_id,
                 )
                 with self._count_lock:
                     self.event_count += 1
@@ -345,10 +351,20 @@ class PamsRecorder:
             cls._pams_last_attempt = 0.0
 
 
-# Singleton access
+# Singleton access (P0 fix June 11 2026: double-checked locking)
 def get_recorder() -> PamsRecorder:
-    """Get the global PamsRecorder singleton."""
-    return PamsRecorder()
+    """Get the global PamsRecorder singleton.
+
+    P0 fix (June 11 2026): Previously created a new PamsRecorder() on every
+    call, making get_recorder() NOT a singleton. Under 3.14t free-threading,
+    concurrent calls created multiple instances writing to the same JSON
+    buffer file without coordination. Now uses double-checked locking.
+    """
+    if PamsRecorder._instance is None:
+        with PamsRecorder._instance_lock:
+            if PamsRecorder._instance is None:
+                PamsRecorder._instance = PamsRecorder()
+    return PamsRecorder._instance
 
 
 if __name__ == "__main__":
