@@ -123,7 +123,12 @@ class PamsRecorder:
         """Migrate old JSON fallback buffer to local SQLite store."""
         if not self._local_ok or not self._fallback_buffer:
             return
-        for event in self._fallback_buffer:
+        with self._lock:
+            buffer_copy = list(self._fallback_buffer)
+            self._fallback_buffer = []
+            # P2 fix (Jun 2026): Immediately persist empty state to disk
+            self._save_fallback()
+        for event in buffer_copy:
             try:
                 self._local_store.record_event(
                     source=event.get("source", "unknown"),
@@ -134,7 +139,6 @@ class PamsRecorder:
                 )
             except Exception:
                 pass
-        self._fallback_buffer = []
         self._save_fallback()
     
     def record_event(self, event_type: str, data: Optional[Dict[str, Any]] = None,

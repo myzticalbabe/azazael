@@ -97,10 +97,13 @@ CREATE TABLE IF NOT EXISTS memorybus_queue (
     -- See azazael/research/CROSS_DOMAIN.md §CD1 for unified event schema
     event_uuid      TEXT,
     trace_id        TEXT,
-    correlation_id  TEXT
+    correlation_id  TEXT,
+    audit_hash      TEXT,
+    schema_version  INTEGER DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS idx_mbqueue_flushed ON memorybus_queue(flushed, id);
--- idx_mbqueue_correlation created in _migrate_queue_schema() after ALTER TABLE
+-- idx_mbqueue_correlation + idx_mbqueue_audit created in _migrate_queue_schema()
+-- after ALTER TABLE
 """
 
 
@@ -218,6 +221,9 @@ class MemoryBus:
             ("event_uuid", "TEXT"),
             ("trace_id", "TEXT"),
             ("correlation_id", "TEXT"),
+            # CD1 Phase 2 (Jun 2026): Integrity + version tracking (P1 fix)
+            ("audit_hash", "TEXT"),
+            ("schema_version", "INTEGER"),
         ]
         for col_name, col_type in migrations:
             if col_name not in existing_cols:
@@ -232,8 +238,12 @@ class MemoryBus:
             "CREATE INDEX IF NOT EXISTS idx_mbqueue_trace_id "
             "ON memorybus_queue(trace_id)"
         )
-        # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
-        # Batched in chunks of 1000 to avoid large transactions under 3.14t.
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_mbqueue_audit "
+            "ON memorybus_queue(audit_hash)"
+        )
+        # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7
+        # + audit_hash + schema_version. Batched in chunks of 1000.
         while True:
             batch = conn.execute(
                 "SELECT id FROM memorybus_queue WHERE event_uuid IS NULL LIMIT 1000"
@@ -241,9 +251,11 @@ class MemoryBus:
             if not batch:
                 break
             for (row_id,) in batch:
+                ev_uuid = uuid7().hex
                 conn.execute(
-                    "UPDATE memorybus_queue SET event_uuid = ? WHERE id = ?",
-                    (uuid7().hex, row_id)
+                    "UPDATE memorybus_queue SET event_uuid = ?, audit_hash = ?,"
+                    " schema_version = 1 WHERE id = ?",
+                    (ev_uuid, ev_uuid, row_id)
                 )
             conn.commit()
 

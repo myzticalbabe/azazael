@@ -6516,3 +6516,44 @@ jeffgreen311/eve-v2-unleashed-qwen3.5-8b-liberated-4k-4b-merged via huggingface_
 
 **Prevention:** The 5 Eve-V2 variants and 3 HERETIC variants should be tracked
 in a model catalog with expected paths and checksums for integrity verification.
+
+
+## Error #186 — Gemini Shortcut Audit: 5 P0/P1 Fixes Applied (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** P0 (3 thread-safety) + P1 (2 CD1 schema)
+**File(s):** providers.py, PamsRecorder.py, MemoryBus.py
+
+**Cause:** thinker-with-files-gemini performed comprehensive shortcut audit across
+azazael codebase and identified 10 findings across 3 severity levels.
+5 actionable fixes applied:
+
+### P0 — Thread-Safety (would crash under 3.14t free-threading):
+- **providers.py LlamaCppDirectProvider.chat()**: Model init (Llama() constructor)
+  was unprotected. Two concurrent first-call threads would create two Llama instances,
+  both loading the same GGUF into memory, causing crash or memory leak.
+  Fixed: double-checked locking with self._lock.
+- **providers.py HuggingFaceDirectProvider.chat()**: Same issue —
+  AutoModelForCausalLM.from_pretrained() unprotected. Fixed: double-checked locking.
+- **providers.py OpenVINOProvider._chat_genai()**: LLMPipeline() constructor
+  unprotected. Fixed: double-checked locking.
+
+### P0 — Data Race (JSON corruption under 3.14t):
+- **PamsRecorder.py _migrate_fallback_to_local()**: Iterated self._fallback_buffer
+  without holding self._lock while record_event() appended under the same lock.
+  Fixed: snapshot copy under lock before iteration.
+
+### P1 — CD1 Schema Incomplete:
+- **MemoryBus.py**: memorybus_queue table missing audit_hash and schema_version
+  columns required by CD1 unified event schema (CROSS_DOMAIN.md).
+  Fixed: added columns to CREATE TABLE, _migrate_queue_schema(), and
+  idx_mbqueue_audit index.
+
+### Verified False Alarms:
+- _global_breaker: defined at line 2660, used at lines 748, 2784 — valid.
+- PamsRecorder.get_recorder() singleton: already fixed with double-checked locking.
+- MemoryBus CD1 event_uuid/correlation_id: already implemented in prior session.
+
+### Remaining (non-actionable):
+- Hardcoded paths in KNOWN_BLOBS (providers.py): by design for local Ollama models.
+- Hardcoded path in PAMS_DB_DIR: by design, env-configurable via PAMS_DB_DIR.
+
