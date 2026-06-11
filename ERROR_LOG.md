@@ -6497,3 +6497,22 @@ vision_agent) or inside try/except block (Eve orchestrator, Eve agent).
 - azazael: f30cce6 + 747568c (Errors #182-#183)
 - Ultimate_Agent_Selector: f85c6ee (initial)
 - EveUnleashed_Selector: 6d1d2e3 (initial)
+
+## Error #185 — Eve-V2-Unleashed Model Missing From Disk, Redownloaded (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** P1
+**File(s):** C:/Users/clint/Desktop/eve_rebuild_test/Eve-V2-Unleashed-Qwen3.5-8B-Liberated-4K-4B-Merged-Q4_K_M.gguf
+
+**Cause:** Both eve_rebuild_test/ and eve_rebuild/ directories were absent from disk.
+The Eve-V2-Unleashed GGUF model (3.16 GB, base Q4_K_M variant) was gone along with
+the directories. Model was redownloaded from HuggingFace repo
+jeffgreen311/eve-v2-unleashed-qwen3.5-8b-liberated-4k-4b-merged via huggingface_hub.
+
+**Download details:**
+- Repo: jeffgreen311/eve-v2-unleashed-qwen3.5-8b-liberated-4k-4b-merged
+- File: Eve-V2-Unleashed-Qwen3.5-8B-Liberated-4K-4B-Merged-Q4_K_M.gguf
+- Size: 3.16 GB
+- Tool: huggingface_hub.hf_hub_download
+
+**Prevention:** The 5 Eve-V2 variants and 3 HERETIC variants should be tracked
+in a model catalog with expected paths and checksums for integrity verification.
