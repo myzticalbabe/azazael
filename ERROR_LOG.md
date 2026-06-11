@@ -6557,3 +6557,60 @@ azazael codebase and identified 10 findings across 3 severity levels.
 - Hardcoded paths in KNOWN_BLOBS (providers.py): by design for local Ollama models.
 - Hardcoded path in PAMS_DB_DIR: by design, env-configurable via PAMS_DB_DIR.
 
+
+## Error #187 — Canonical Mandate Codification: All Session Mandates Codified to Permanent Docs (June 11, 2026)
+**Timestamp:** 2026-06-11
+**Severity:** P1
+**File(s):** LESSONS_MASTER.md (+5 lessons), CROSS_DOMAIN.md (CD1 Phase 2), SOP.md (anti-patterns + Rule 5)
+
+**Cause:** User directive: "PROPERLY CODIFY ALL MANDATES TO CANONICAL DOCUMENTS."
+Mandates from Errors #183, #184, #185, #186 were operational (applied in code) but not
+codified into permanent canonical documentation. Without codification, future sessions
+would not know that uuid4 is prohibited, double-checked locking is mandatory, or CD1
+backfill must set all columns.
+
+**Codified mandates:**
+
+### UUID7 Migration (#183, Lesson #55):
+- from CORE.uuid7 import uuid7 REQUIRED for all correlation/event IDs
+- import uuid; uuid.uuid4() PERMANENTLY PROHIBITED
+- Import MUST come AFTER sys.path.insert in Desktop/standalone projects
+- Cross-project audit completeness verified
+
+### Provider Thread-Safety (#186, Lesson #56):
+- ALL model/pipeline lazy init MUST use double-checked locking under 3.14t
+- chat_stream() MUST have same locking coverage as chat()
+- 4 init sites fixed: LlamaCppDirect, HuggingFaceDirect, OpenVINO _chat_genai, OpenVINO chat_stream
+
+### CD1 Schema Completeness (#186, Lesson #57):
+- Schema backfill MUST set ALL new columns, not just the primary one
+- audit_hash + schema_version columns added to memorybus_queue
+- idx_mbqueue_audit index created
+- Existing NULL rows backfilled with UUID7 for both event_uuid and audit_hash
+
+### Cross-Project Git (#184, Lesson #58):
+- EVERY sub-project MUST be git-initialized
+- Ultimate_Agent_Selector: commit f85c6ee
+- EveUnleashed_Selector: commit 6d1d2e3
+- Free API endpoint count: 23 providers, 136 free models (June 2026)
+
+### Model Integrity (#185, Lesson #59):
+- All local GGUF models MUST have path + provenance documented
+- 3.16 GB Eve-V2-Unleashed Q4_K_M redownloaded from HuggingFace
+- File size verified after download
+
+### Buffer Thread Safety (#186, SOP):
+- _fallback_buffer iteration MUST snapshot under lock
+- _save_fallback() called under lock after migration
+
+**Verification:**
+- CROSS_DOMAIN.md: CD1 Phase 2 marked as IMPLEMENTED with 4 mandates
+- LESSONS_MASTER.md: 5 new lessons (#55-#59) covering all 4 errors
+- SOP.md: 5 new anti-pattern rows + Rule 5 CD1 schema update
+- DirectMemory: All session actions recorded
+- 3 files syntax-checked, code-reviewer approved
+
+**Git commits:**
+- f4ce754: Gemini audit P0 thread-safety + P1 CD1 schema (Error #186)
+- Next: Canonical mandate codification (Error #187)
+

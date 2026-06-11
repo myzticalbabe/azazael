@@ -117,10 +117,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_memories_event_uuid ON memories(event_uuid
 CREATE INDEX IF NOT EXISTS idx_memories_correlation ON memories(correlation_id);
 ```
 
-**Phase 2 — Generate and backfill:**
-- Generate UUID7 for all new events via `uuid_ext.uuid7()` or Python `uuid.uuid4()` with timestamp prefix
-- Backfill: UPDATE existing rows with generated UUIDs (one-time migration script)
-- Bump schema_version in LocalMemoryStore, DirectMemory, MemoryBus
+**Phase 2 — Generate and backfill (✅ IMPLEMENTED — June 11, 2026, Error #186):**
+- **MANDATE:** Generate UUID7 for all new events via `from CORE.uuid7 import uuid7`. `import uuid; uuid.uuid4()` is PERMANENTLY PROHIBITED for event/correlation identifiers (Error #183).
+- **MANDATE:** Import ordering — `from CORE.uuid7 import uuid7` MUST come AFTER `sys.path.insert` in all Desktop/standalone projects.
+- **MANDATE:** Backfill scripts MUST set ALL new columns (`event_uuid`, `correlation_id`, `audit_hash`, `schema_version`), not just the primary ID. Incomplete backfills leave NULLs in audit fields (Error #186 reviewer finding).
+- **Schema migration complete:** `memorybus_queue` now has `audit_hash TEXT`, `schema_version INTEGER DEFAULT 1` with `idx_mbqueue_audit` and `idx_mbqueue_trace_id` indexes.
+- **Backfill complete:** Existing NULL rows populated with UUID7 for both `event_uuid` and `audit_hash`, `schema_version` set to 1.
 
 **⚠️ Code dependency:** CD5's split WAL/DB configuration requires a new env var or code change — see CD5 implementation notes.
 
