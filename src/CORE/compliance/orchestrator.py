@@ -263,11 +263,21 @@ class ComplianceOrchestrator:
             return True, []
 
         except ImportError:
-            # sync_canonical_docs.py not available — skip check (non-blocking)
+            # sync_canonical_docs.py not available — log warning, don't block
+            self.telemetry.emit(
+                "canonical_docs", "orchestrator", "warn",
+                {"error": "sync_canonical_docs.py not importable",
+                 "checked_at": datetime.now(timezone.utc).isoformat()}
+            )
             self._canonical_docs_verified = True
             return True, []
-        except Exception:
-            # Graceful fallback — don't block edits on sync failure
+        except Exception as e:
+            # Runtime error in hash verification — log but don't block edits
+            self.telemetry.emit_error(
+                "canonical_docs", "orchestrator",
+                {"error": str(e),
+                 "checked_at": datetime.now(timezone.utc).isoformat()}
+            )
             return True, []
 
     def _setup_judges(self):
