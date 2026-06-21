@@ -50,9 +50,25 @@ def _get_correlation_id() -> str:
     return _thread_local.correlation_id
 
 
+_LOG_RECORD_RESERVED = frozenset({
+    'name', 'msg', 'args', 'levelname', 'levelno', 'pathname',
+    'filename', 'module', 'exc_info', 'exc_text', 'stack_info',
+    'lineno', 'funcName', 'created', 'msecs', 'relativeCreated',
+    'thread', 'threadName', 'process', 'processName',
+})
+
+
 def _log_event(event: str, **context: Any):
-    """Log a structured event with correlation ID and context."""
-    extra = {"cid": _get_correlation_id(), **context}
+    """Log a structured event with correlation ID and context.
+
+    Automatically filters out keys that conflict with Python's
+    reserved LogRecord attributes (e.g. 'name', 'msg', 'args')
+    to prevent "Attempt to overwrite 'name' in LogRecord" crashes
+    when worm module imports fire @register_worm decorators.
+    """
+    safe_context = {k: v for k, v in context.items()
+                    if k not in _LOG_RECORD_RESERVED}
+    extra = {"cid": _get_correlation_id(), **safe_context}
     _log.info(f"[registry] {event}", extra=extra)
 
 
@@ -193,7 +209,7 @@ def register_worm(
                 "version": getattr(cls, "VERSION", "0.0.0"),
             }
 
-        _log_event("worm_registered", name=name, category=category, priority=priority)
+        _log_event("worm_registered", worm_name=name, category=category, priority=priority)
         return cls
 
     return decorator
@@ -326,17 +342,22 @@ def discover_worms(
             pass
 
     # --- VF (Vermillion LightFury) worm auto-discovery ---
+    # vermillion_lightfury uses package-style imports (worms.nmap_scanner),
+    # so we need the PARENT directory on sys.path (vermillion_lightfury/)
+    # and a package prefix (worms.) for module names.
     global _vf_already_discovered
     if _vf_worms_dir and os.path.isdir(_vf_worms_dir) and not _vf_already_discovered:
-        if _vf_worms_dir not in sys.path:
-            sys.path.insert(0, _vf_worms_dir)
+        _vf_root = os.path.dirname(_vf_worms_dir)  # vermillion_lightfury/
+        _vf_pkg = os.path.basename(_vf_worms_dir)   # "worms"
+        if _vf_root not in sys.path:
+            sys.path.insert(0, _vf_root)
         try:
             _vf_py_files = sorted(
                 f for f in os.listdir(_vf_worms_dir)
                 if f.endswith('.py') and not f.startswith('_') and not f.startswith('.')
             )
             for _vf_filename in _vf_py_files:
-                _vf_mod_name = _vf_filename[:-3]
+                _vf_mod_name = f"{_vf_pkg}.{_vf_filename[:-3]}"
                 try:
                     importlib.import_module(_vf_mod_name)
                 except Exception:
