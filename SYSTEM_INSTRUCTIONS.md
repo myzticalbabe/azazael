@@ -2415,3 +2415,26 @@ This rule exists because the assistant was told "HALT ALL ACTIONS" and continued
 - RULE 0B — Follow Instructions Literally (HALT is an instruction)
 - RULE 0P — Rule Priority Chain (Level 1 user directive is absolute)
 - Error #199 — Original HALT violation
+
+---
+
+## 🚨 RULE 0Z-J: CANONICAL DOCUMENT SYNC MANDATE — MULTI-PILLAR TRUTH ENFORCEMENT (CRITICAL — Jun 21, 2026)
+
+**"WHY DO THE RULES NO LONGER WORK. WHY AREN'T THEY MANDATORILY BEING FOLLOWED?" — User directive, Jun 21, 2026**
+
+**Root cause (Gemini analysis, Jun 21):** Reliance on distributed, un-synced text files as the
+sole source of truth for runtime policy enforcement. The compliance infrastructure validates
+against LOCAL canonical documents — stale local docs = stale enforcement.
+
+**The Rule:** W11 is the SOLE authoritative source. Every session MUST verify pillar sync via
+`python src/scripts/sync_canonical_docs.py --verify`. Any drift = HALT and sync immediately.
+
+**Sync script:** `src/scripts/sync_canonical_docs.py` — SHA-256 hash verification, master-to-pillar
+propagation, drift reporting across W11, KALI, UBUNTU, and G:.
+
+**Enforcement:** Modifying canonical docs on non-W11 pillars = CRITICAL violation. Proceeding
+with code changes when pillars out of sync = CRITICAL violation. Failing to sync after W11
+canonical doc changes = CRITICAL violation.
+
+**Related:** RULE 0K (Reading Order), RULE 0R (Skills Sync), RULE 0X (Auto-Compliance),
+Error #227 (Quartet pillar drift), Gemini Jun 21 architectural analysis.
