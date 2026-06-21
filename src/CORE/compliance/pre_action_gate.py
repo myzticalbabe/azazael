@@ -1450,6 +1450,19 @@ def get_pre_action_gate() -> PreActionGate:
 def self_test() -> bool:
     """Run a quick self-test of the PreActionGate."""
     import tempfile
+    from CORE.sentinel_enforcer import _GATED_CALL
+    # Authorize all disk writes for the duration of this self-test.
+    # sys.addaudithook blocks unauthorized tempfile writes otherwise.
+    _GATED_CALL.is_active = True
+    try:
+        return _self_test_impl()
+    finally:
+        _GATED_CALL.is_active = False
+
+
+def _self_test_impl() -> bool:
+    """Internal implementation — called from self_test() under gate authorization."""
+    import tempfile
 
     print("=" * 60)
     print("  PRE-ACTION GATE SELF-TEST")
