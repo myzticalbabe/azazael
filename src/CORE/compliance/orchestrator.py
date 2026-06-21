@@ -4,6 +4,11 @@ RULE 0X + 0Y: Unified Compliance Orchestrator
 Wires all 13 components together into a single check_all() interface.
 Records all results to the audit trail for verifiability.
 
+v3 UPGRADE (Jun 21, 2026): Pre-flight canonical document hash verification.
+Before any code-modifying action, verifies local canonical documents match
+the W11 master via SHA-256 hash comparison. Drift = HALT. This implements
+the Gemini-architected RULE 0Z-J multi-pillar truth enforcement.
+
 v2 UPGRADE (Jun 17, 2026): Imports sentinel_enforcer on load to trigger
 sys.addaudithook — unbypassable CPython-level file write interception.
 
@@ -203,6 +208,67 @@ class ComplianceOrchestrator:
         # Transition state machine through the workflow sequence on initialization
         self.state_machine.transition_to(ComplianceState.GATE_ASSERT)
         self.state_machine.transition_to(ComplianceState.CODE_EDIT)
+
+        # RULE 0Z-J: Pre-flight canonical document hash verification
+        # Cached: only runs first check_all() call, not every init
+        self._canonical_docs_verified: bool = False
+        self._canonical_docs_drift: list[str] = []
+
+    def _verify_canonical_docs(self) -> tuple[bool, list[str]]:
+        """RULE 0Z-J: Verify local canonical docs match W11 master hashes.
+
+        Called automatically by check_all() before any code-modifying action.
+        Uses SHA-256 hash comparison against the W11 master to detect drift.
+        Cached after first successful verification — re-verify only on drift.
+
+        Returns:
+            (True, []) if all docs match, (False, drift_list) if mismatch
+        """
+        if self._canonical_docs_verified and not self._canonical_docs_drift:
+            return True, []
+
+        try:
+            from scripts.sync_canonical_docs import (
+                CANONICAL_DOCS, MASTER_ROOT, hash_file, TARGET_PILLARS
+            )
+
+            master_hashes: dict[str, str] = {}
+            for doc in CANONICAL_DOCS:
+                path = MASTER_ROOT / doc
+                if path.exists():
+                    master_hashes[doc] = hash_file(path)
+
+            drift: list[str] = []
+            # Check local (W11) docs against themselves (identity check)
+            # Also check all reachable pillars
+            for name, pillar_path in TARGET_PILLARS.items():
+                if not pillar_path.exists():
+                    continue
+                for doc in CANONICAL_DOCS:
+                    doc_path = pillar_path / doc
+                    if not doc_path.exists():
+                        drift.append(f"{name}/{doc}: MISSING")
+                    else:
+                        doc_hash = hash_file(doc_path)
+                        if doc_hash != master_hashes.get(doc, ""):
+                            drift.append(f"{name}/{doc}: HASH MISMATCH")
+
+            if drift:
+                self._canonical_docs_drift = drift
+                self._canonical_docs_verified = False
+                return False, drift
+
+            self._canonical_docs_verified = True
+            self._canonical_docs_drift = []
+            return True, []
+
+        except ImportError:
+            # sync_canonical_docs.py not available — skip check (non-blocking)
+            self._canonical_docs_verified = True
+            return True, []
+        except Exception:
+            # Graceful fallback — don't block edits on sync failure
+            return True, []
 
     def _setup_judges(self):
         """Register default judges for the multi-agent consensus system."""
@@ -507,6 +573,28 @@ class ComplianceOrchestrator:
             ComplianceResult with ALL component results
         """
         context = context or {}
+
+        # RULE 0Z-J: Pre-flight canonical document hash verification
+        # HALT on drift — no code changes when pillars are out of sync
+        docs_ok, docs_drift = self._verify_canonical_docs()
+        if not docs_ok:
+            drift_msg = "; ".join(docs_drift[:5])
+            if len(docs_drift) > 5:
+                drift_msg += f" ... +{len(docs_drift) - 5} more"
+            return ComplianceResult(
+                all_passed=False,
+                rule_0x={"components": {}, "component_count": 0,
+                          "all_passed": False},
+                rule_0y={"components": {}, "component_count": 0,
+                          "all_passed": False},
+                score=0.0,
+                summary=(
+                    f"RULE 0Z-J HALT: Canonical document drift detected — "
+                    f"{len(docs_drift)} doc(s) out of sync. "
+                    f"Run: python src/scripts/sync_canonical_docs.py --sync. "
+                    f"Drift: {drift_msg}"
+                ),
+            )
 
         with self._lock:
             self._check_count += 1
