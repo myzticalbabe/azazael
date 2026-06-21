@@ -1320,6 +1320,76 @@ def deduplicate_entries(audit_filepath: str, entry_type: str) -> list:
     return unique
 
 
+def audit_code_review(subject: str, issues_found: int = 0,
+                      issues_fixed: int = 0, summary: str = "") -> str:
+    """Record a code review event.
+
+    Args:
+        subject: What was reviewed (e.g., file path, module name).
+        issues_found: Number of issues identified during review.
+        issues_fixed: Number of issues resolved.
+        summary: Optional summary of the review outcome.
+
+    Returns:
+        Citation string for the audit entry.
+    """
+    _ensure_session()
+    return _append_line({
+        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+        "type": "code_review",
+        "subject": subject,
+        "issues_found": issues_found,
+        "issues_fixed": issues_fixed,
+        "summary": summary[:500] if summary else "",
+    })
+
+
+def audit_tooling_verify(tools_found: int, tools_missing: int,
+                         details: dict = None) -> str:
+    """Record a tooling verification event.
+
+    Args:
+        tools_found: Number of required tools found.
+        tools_missing: Number of required tools missing.
+        details: Optional dict with per-tool status (e.g., {'npm': True, 'pip': False}).
+
+    Returns:
+        Citation string for the audit entry.
+    """
+    _ensure_session()
+    return _append_line({
+        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+        "type": "tooling_verify",
+        "tools_found": tools_found,
+        "tools_missing": tools_missing,
+        "details": details or {},
+    })
+
+
+def audit_error_occurrence(error_id: int, title: str, file_path: str,
+                           details: dict = None) -> str:
+    """Record an error occurrence for cross-reference in ERROR_LOG.md.
+
+    Args:
+        error_id: Error number matching an entry in ERROR_LOG.md.
+        title: Short error title.
+        file_path: Path to the affected file.
+        details: Optional context dict (e.g., traceback summary, fix applied).
+
+    Returns:
+        Citation string for the audit entry.
+    """
+    _ensure_session()
+    return _append_line({
+        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+        "type": "error_occurrence",
+        "error_id": error_id,
+        "title": title,
+        "file": file_path,
+        "details": details or {},
+    })
+
+
 # ---------------------------------------------------------------------------
 # Self-test
 # ---------------------------------------------------------------------------

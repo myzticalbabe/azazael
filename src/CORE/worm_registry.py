@@ -77,6 +77,28 @@ Value: {
 _registry_lock = threading.RLock()
 _discovery_done = False
 
+# --- VF (Vermillion LightFury) worm discovery — cross-platform Quartet paths ---
+_vf_worms_dir = None
+_vf_candidates = []
+# Env var override for Quartet cross-environment flexibility
+_env_vf = os.environ.get('VERMILLION_LIGHTFURY_DIR', '')
+if _env_vf:
+    _vf_candidates.append(os.path.join(_env_vf, 'worms'))
+# Sibling directory: azazael/../vermillion_lightfury/worms
+_azazael_root = Path(__file__).resolve().parent.parent.parent
+_vf_candidates.append(str(_azazael_root / 'vermillion_lightfury' / 'worms'))
+# Platform-specific canonical paths
+if os.name == 'nt':
+    _vf_candidates.append(str(Path.home() / 'vermillion_lightfury' / 'worms'))
+else:
+    _vf_candidates.append('/root/vermillion_lightfury/worms')
+# Find first existing candidate
+for _candidate in _vf_candidates:
+    if os.path.isdir(_candidate):
+        _vf_worms_dir = _candidate
+        break
+_vf_already_discovered = False
+
 
 # --- Decorator ------------------------------------------------------
 
@@ -301,6 +323,26 @@ def discover_worms(
 
         except Exception:
             # Module might have import issues or psutil segfaults
+            pass
+
+    # --- VF (Vermillion LightFury) worm auto-discovery ---
+    global _vf_already_discovered
+    if _vf_worms_dir and os.path.isdir(_vf_worms_dir) and not _vf_already_discovered:
+        if _vf_worms_dir not in sys.path:
+            sys.path.insert(0, _vf_worms_dir)
+        try:
+            _vf_py_files = sorted(
+                f for f in os.listdir(_vf_worms_dir)
+                if f.endswith('.py') and not f.startswith('_') and not f.startswith('.')
+            )
+            for _vf_filename in _vf_py_files:
+                _vf_mod_name = _vf_filename[:-3]
+                try:
+                    importlib.import_module(_vf_mod_name)
+                except Exception:
+                    pass
+            _vf_already_discovered = True
+        except Exception:
             pass
 
     _discovery_done = True
