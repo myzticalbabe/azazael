@@ -1,0 +1,149 @@
+================================================================================
+AZAZAEL INFORMATION GENERATION INSTRUCTIONS
+================================================================================
+
+CHAIN-OF-INFORMATION FLOW:
+═══════════════════════════════════════════════════════════════════════════════
+
+NEW INFORMATION ENTERS
+         │
+    ┌────┴────┬────────────┬────────────┐
+    ▼         ▼            ▼            ▼
+  .whl     FIXES      NEW DOCS      VERIFY
+    │       │            │            │
+    └───────┴─────┬──────┴────┬─────┘
+                  ▼
+        ┌─────────────────────┐
+        │   AUTO-APPEND       │
+        │   SEQUENCE          │
+        └──────────┬──────────┘
+                   │
+    ┌──────────────┼──────────────┐
+    ▼              ▼              ▼
+.txt          .html          .xml
+                   │              │
+                   └──────┬───────┘
+                          ▼
+               ┌─────────────────┐
+               │  update_log.txt  │
+               └────────┬────────┘
+                        ▼
+               ┌─────────────────┐
+               │verification_log │
+               └────────┬────────┘
+                        ▼
+               ┌─────────────────┐
+               │  EXTERNAL BACKUP │
+               │  (My Passport)   │
+               └─────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP-BY-STEP INSTRUCTIONS:
+═══════════════════════════════════════════════════════════════════════════════
+
+1. NEW PACKAGE (.whl)
+   ───────────────────
+   a. Copy .whl to: AZAZAEL_BOOT/linux-wheels/
+   b. Update INSTALL_GUIDE_LINUX.md (add to Installed Packages table)
+   c. Update python_modules.txt (add package entry)
+   d. Update python_modules.html (add table row)
+   e. Update azazael_environment.xml (add <package> element)
+   f. Run verification test
+   g. Update verification_log.txt
+   h. AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt (flow diagram)
+   i. AUTO-GENERATE: Update INFORMATION_GENERATION.txt (if steps changed)
+   j. Sync to backup
+
+2. NEW FIX/WORKAROUND
+   ───────────────────
+   a. Update INSTALL_GUIDE_LINUX.md (add to Troubleshooting section)
+   b. Update update_log.txt (describe fix)
+   c. AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt (add fix path)
+   d. Sync to backup
+
+3. NEW DOCUMENTATION (.txt/.md/.html/.tex/.xml)
+   ─────────────────────────────────────────────
+   a. Copy new file to: AZAZAEL_BOOT/docs/
+   b. Update CHAIN_OF_INFORMATION.txt (if diagram changes)
+   c. Update update_log.txt (list new file)
+   d. Update azazael_environment.xml (if adding new file type)
+   e. AUTO-GENERATE: Update INFORMATION_GENERATION.txt (file structure)
+   f. Sync to backup
+
+4. NEW VISUAL DIAGRAM/DIAGRAM-OF-STRUCTURES
+   ─────────────────────────────────────────
+   a. Create/update ASCII diagram in CHAIN_OF_INFORMATION.txt
+   b. Add to INFORMATION_GENERATION.txt (if new section)
+   c. Update azazael_environment.xml (if diagram config changed)
+   d. Update update_log.txt (note diagram change)
+   e. Sync to backup
+
+5. VERIFICATION/TEST RESULTS
+   ──────────────────────────
+   a. Run test imports
+   b. Update verification_log.txt
+   c. Update python_modules.html (if results changed)
+   d. AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt (verify path)
+   e. Sync to backup
+
+6. BACKUP SYNC
+   ────────────
+   a. Run: rsync -av ~/Documents/AZAZAEL/AZAZAEL_BOOT/ "/media/myzticalbabe/My Passport/AZAZAEL_BOOT/"
+   b. Verify integrity with checksums
+   c. Update update_log.txt (note backup date/size)
+   d. AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt (backup node)
+
+7. DEPENDENCY TREE ANALYSIS
+   ─────────────────────────
+   a. Run: pipdeptree > docs/DEPENDENCY_TREE.txt
+   b. Analyze missing dependencies
+   c. Install missing sub-packages
+   d. Update python_modules.txt (add sub-packages)
+   e. Update python_modules.html (add to dependency table)
+   f. Update azazael_environment.xml (add <dependency> element)
+   g. Update update_log.txt (note dependency changes)
+   h. Sync to backup
+
+═══════════════════════════════════════════════════════════════════════════════
+
+FILE TYPES AND LOCATIONS:
+═══════════════════════════════════════════════════════════════════════════════
+
+AZAZAEL_BOOT/
+├── docs/                          (Documentation)
+│   ├── INSTALL_GUIDE_LINUX.md    (Install instructions)
+│   ├── CHAIN_OF_INFORMATION.txt  (This diagram)
+│   ├── update_log.txt            (Change history)
+│   ├── verification_log.txt      (Test results)
+│   ├── python_modules.txt        (Package list)
+│   ├── python_modules.html       (Styled report)
+│   ├── azazael_environment.xml   (GNOME config)
+│   ├── azazael_paper.tex         (LaTeX template)
+│   └── *.txt/*.md/*.html         (Other docs)
+│
+├── linux-wheels/                  (Python packages)
+│   └── *.whl                     (Wheel files)
+│
+├── python-wheels/                 (Windows wheels)
+│   └── *.whl                     (Windows wheel files)
+│
+├── scripts/                       (Post-install scripts)
+│   └── post_install.sh
+│
+├── drivers/                       (Hardware drivers)
+│   └── download_drivers.sh
+│
+└── iso/                          (OS images)
+    └── ubuntu-26.04-desktop-amd64.iso
+
+═══════════════════════════════════════════════════════════════════════════════
+
+BACKUP LOCATION:
+═══════════════════════════════════════════════════════════════════════════════
+
+/media/myzticalbabe/My Passport/AZAZAEL_BOOT/
+
+================================================================================
+UPDATED: 2026-02-17
+================================================================================

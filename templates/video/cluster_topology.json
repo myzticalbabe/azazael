@@ -1,0 +1,51 @@
+{
+  "name": "Cluster Topology",
+  "duration": 18,
+  "resolution": [1280, 720],
+  "fps": 30,
+  "bg_color": "0x0a0a1a",
+  "sections": [
+    {
+      "time": 0, "duration": 4,
+      "title": "CLUSTER ORCHESTRATION",
+      "subtitle": "7 Specialized Worm Clusters | Parallel Execution | Free-Threaded",
+      "title_color": "white", "subtitle_color": "0x00f5ff",
+      "title_size": 34, "subtitle_size": 17,
+      "effect": "fade_in"
+    },
+    {
+      "time": 4, "duration": 3,
+      "title": "BIBL CLUSTER",
+      "subtitle": "WORMZ + TRIMZ = Content Crawling & Trimming",
+      "title_color": "0x00ffff", "subtitle_color": "0xaaddff",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 7, "duration": 3,
+      "title": "SYSTEM CLUSTER",
+      "subtitle": "SYSTEMZ + PROCESSZ + DISKZ = Full System Monitoring",
+      "title_color": "0xff00ff", "subtitle_color": "0xffaadd",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 10, "duration": 3,
+      "title": "SECURITY CLUSTER",
+      "subtitle": "PROCESSZ + NETWORXZ = Security Auditing & Scanning",
+      "title_color": "0xffff00", "subtitle_color": "0xffffaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 13, "duration": 5,
+      "title": "COORDINATION LAYER",
+      "subtitle": "HYDRA Bridge | METACLUSTER | CONCURRENCY Engine | Circuit Breaker",
+      "title_color": "0xff8800", "subtitle_color": "0xffddaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    }
+  ],
+  "footer": "7 Clusters | Dead Letter Queue | Exponential Backoff | Health Scoring",
+  "footer_color": "0x666666"
+}

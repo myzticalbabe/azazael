@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Module Distribution — Mermaid Pie Chart</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #040410; color: #e0e0e8; font-family: Consolas,monospace;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 30px;
+  background-image: radial-gradient(ellipse at 60% 40%, rgba(255,221,0,0.04) 0%, transparent 60%);
+}
+h1 {
+  font-size: 2.2em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffdd00, #ff8800, #ff0044);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: #888; font-size: 0.95em; margin-bottom: 30px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1100px; width: 100%; }
+.card {
+  background: #0a0a20; border: 1px solid #1a1a35; border-radius: 16px;
+  padding: 24px; text-align: center;
+}
+.card h3 { color: #00f5ff; margin-bottom: 16px; font-size: 1.1em; }
+.mermaid { display: flex; justify-content: center; }
+.note { color: #555; margin-top: 20px; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>AZAZAEL Module Distribution</h1>
+<p class="subtitle">90+ Source Modules | Analytical Breakdown</p>
+<div class="grid">
+  <div class="card">
+    <h3>By Tier</h3>
+    <div class="mermaid">
+pie showData
+    title Module Distribution by Tier
+    "Tier 1 - Core Worms" : 25
+    "Tier 2 - Clusters" : 20
+    "Tier 3 - Metaworms" : 25
+    "Tier 4 - Coordination" : 15
+    "Infrastructure" : 15
+    </div>
+  </div>
+  <div class="card">
+    <h3>By Function</h3>
+    <div class="mermaid">
+pie showData
+    title Module Distribution by Function
+    "System Monitoring" : 20
+    "Analysis & Metrics" : 18
+    "Orchestration" : 12
+    "GUI & Visualization" : 10
+    "Networking" : 8
+    "Build & Deploy" : 12
+    "ML & Optimization" : 10
+    "Documentation" : 10
+    </div>
+  </div>
+  <div class="card">
+    <h3>Test Results</h3>
+    <div class="mermaid">
+pie showData
+    title Test Results (19 Total)
+    "Passed (14)" : 14
+    "Cluster Passed (5)" : 5
+    </div>
+  </div>
+  <div class="card">
+    <h3>Build Output</h3>
+    <div class="mermaid">
+pie showData
+    title 38 Production .exe Files
+    "Core Worms (6)" : 6
+    "Cluster Worms (5)" : 5
+    "Analysis Tools (8)" : 8
+    "GUI & Studio (5)" : 5
+    "System Tools (7)" : 7
+    "ML Tools (7)" : 7
+    </div>
+  </div>
+</div>
+<p class="note">Mermaid Pie Charts — AZAZAEL 3.14t | 90+ Modules | 19 Tests @ 100% | 38 .exe Files</p>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose'});</script>
+</body>
+</html>

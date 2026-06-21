@@ -1,0 +1,57 @@
+Loading worm registry...
+Registry loaded: 93 worms in 2.36s
+
+Executing 93 worms (mode=concurrent, timeout=90s)...
+----------------------------------------------------------------------
+  [utility] 4 worms (parallel, 4 workers)...
+  [utility] done.
+  [  5/93  5%] CLOCKZ (sync)                                  [diagnostic] 5 worms (parallel, 5 workers)...
+  [diagnostic] done.
+  [ 11/93 11%] ABTestRunner (learning)                        [ 12/93 12%] AlertEscalator (telemetry)                     [ 13/93 13%] BinaryAnalysis (analysis)                      [ 14/93 15%] CPUFlameProfiler (profiling)                   [ 15/93 16%] CainWorm (analysis)                            [ 16/93 17%] CertMonitor (security)                         [ 17/93 18%] CheckpointWorm (backup)                        [ 18/93 19%] ClusterInspector (analysis)                    [ 19/93 20%] ClusterWORMZ (orchestrat)                      [ 20/93 21%] CodeMigrator (migration)                       [ 21/93 22%] CodeProfiler (profiling)                       [ 22/93 23%] ColdArchivist (backup)                         [ 23/93 24%] ComposeValidator (container)                   [ 24/93 25%] ConcurrencyManager (orchestrat)                [ 25/93 26%] ConfigLinter (config)                          [ 26/93 27%] ContainerOrch (container)                      [ 27/93 29%] DEPENDZ (analysis)                             [ 28/93 30%] DISKZ (monitor)                                [ 29/93 31%] DashboardGen (visualizat)                      [ 30/93 32%] DataPipelineWorm (learning)                    [ 31/93 33%] DatabaseMonitorWorm (monitor)                  [ 32/93 34%] DepUpgrader (migration)                        [ 33/93 35%] DotfileSync (config)                           [ 34/93 36%] DreamingModule (learning)                      [ 35/93 37%] EnvValidator (config)                          [ 36/93 38%] ErrorRecoveryOrchestrator (orchestrat)         [ 37/93 39%] EventRouter (telemetry)                        [learning] 2 worms (parallel, 2 workers)...
+  [learning] done.
+  [ 40/93 43%] FeatureFlagCtrl (config)                       [ 41/93 44%] FirewallAudit (security)                       [ 42/93 45%] GILContentionProbe (profiling)                 [ 43/93 46%] GeneticOptimizer (learning)                    [visualization] 2 worms (parallel, 2 workers)...
+  [visualization] done.
+  [ 46/93 49%] HypnagogicSynthesizer (learning)               [ 47/93 50%] IOBottleneckFinder (profiling)                 [ 48/93 51%] IPCBridge (communicat)                         [ 49/93 52%] ImageAuditor (container)                       [ 50/93 53%] ImportPathFixWorm (migration)                  [ 51/93 54%] IncrementalBackupWorm (backup)                 [analysis] 2 worms (parallel, 2 workers)...
+  [analysis] done.
+  [ 54/93 58%] LegacyShimGen (migration)                      [ 55/93 59%] LogStreamer (telemetry)                        [ 56/93 60%] METAZ (analysis)                               [ 57/93 61%] MemoryLeakDetector (profiling)                 [ 58/93 62%] MessageBroker (communicat)                     [ 59/93 63%] MetaCluster (orchestrat)                       [ 60/93 64%] MetaCognitionWorm (learning)                   [ 61/93 65%] MetricAggregator (telemetry)                   [ 62/93 66%] ModelVersioner (learning)                      [ 63/93 67%] NETWORXZ (monitor)                             [ 64/93 68%] NatureClusterManager (orchestrat)              [ 65/93 69%] NimInferenceWorm (analysis)                    [ 66/93 70%] PROCESSZ (monitor)                             [ 67/93 72%] ParallelInferenceWorm (analysis)               [security] 2 worms (parallel, 2 workers)...
+  [security] done.
+  [ 70/93 75%] ProtocolNegotiator (communicat)                [ 71/93 76%] RLTrainLoop (learning)                         [ 72/93 77%] RPCEndpoint (communicat)                       [ 73/93 78%] RaceConditionDetector (security)               [ 74/93 79%] RecoveryTester (backup)                        [ 75/93 80%] RegistryPoller (container)                     [ 76/93 81%] ReportCompiler (visualizat)                    [ 77/93 82%] ResourceQuotaWatch (container)                 [ 78/93 83%] ReverseTools (analysis)                        [ 79/93 84%] SMARTDISK (monitor)                            [ 80/93 86%] SYSTEMZ_ML (ml)                                [ 81/93 87%] ScheduledDbMonitorWorm (monitor)               [ 82/93 88%] ScheduledTrainingWorm (learning)               [ 83/93 89%] SchemaVersioner (migration)                    [ 84/93 90%] SecretRotator (config)                         [ 85/93 91%] SpanTracer (telemetry)                         [ 86/93 92%] StateSnapshotter (backup)                      [ 87/93 93%] SystemZ (monitor)                              [ 88/93 94%] TimelineViz (visualizat)                       [ 89/93 95%] TrainingOrchestrator (learning)                [ 90/93 96%] VulnScanner (security)                         [ 91/93 97%] WORMZ_ML (ml)                                  [ 92/93 98%] WebhookRelay (communicat)                      [ 93/93 100%] WormFleet (orchestrat)                       
+{
+  "summary": {
+    "total_worms": 93,
+    "execute_ok": 49,
+    "failed": 44,
+    "pass_rate_pct": 52.7,
+    "needs_constructor_args": 0,
+    "timed_out": 0,
+    "crashed": 0,
+    "import_errors": 0,
+    "not_found": 42,
+    "runtime_errors": 2,
+    "elapsed_seconds": 76.1,
+    "timeout_seconds": 90,
+    "category_order": [
+      "utility",
+      "sync",
+      "diagnostic",
+      "learning",
+      "telemetry",
+      "analysis",
+      "profiling",
+      "security",
+      "backup",
+      "orchestration",
+      "migration",
+      "container",
+      "config",
+      "monitor",
+      "visualization",
+      "communication",
+      "ml"
+    ],
+    "retry_count": 0,
+    "retry_attempts": 0,
+    "passed_on_retry": 0,
+    "persistent_fail": 0
+  }
+}

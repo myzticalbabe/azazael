@@ -1,0 +1,442 @@
+{
+  "audit_type": "VLP_15_LAYER_FULL",
+  "timestamp": "2026-06-13T07:14:09+00:00",
+  "total_sessions": 31,
+  "total_events": 246,
+  "total_elapsed_s": 0.0,
+  "passed": 24,
+  "failed": 7,
+  "layer_pass_rates": {
+    "1": {
+      "name": "File existence",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "2": {
+      "name": "Line existence (chain integrity)",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "3": {
+      "name": "Type match (entry types valid)",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "4": {
+      "name": "Agent match (hash chain valid)",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "5": {
+      "name": "Per-entry hash",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "6": {
+      "name": "Full chain",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "7": {
+      "name": "Ed25519 signature",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "8": {
+      "name": "Merkle inclusion proof",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "9": {
+      "name": "Proof of omission",
+      "passed": 26,
+      "failed": 5,
+      "total": 31,
+      "rate_pct": 83.9
+    },
+    "10": {
+      "name": "Anomaly detection",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "11": {
+      "name": "Non-canonical signature check",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "12": {
+      "name": "Replay prevention (monotonic)",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "13": {
+      "name": "Cross-session hash chaining",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    },
+    "14": {
+      "name": "Truncation defense (anchor)",
+      "passed": 29,
+      "failed": 2,
+      "total": 31,
+      "rate_pct": 93.5
+    },
+    "15": {
+      "name": "Quantum-resistant hybrid backup",
+      "passed": 31,
+      "failed": 0,
+      "total": 31,
+      "rate_pct": 100.0
+    }
+  },
+  "sessions": [
+    {
+      "session": "session_20260611_080124_86c9.jsonl",
+      "path": ".audit\\session_20260611_080124_86c9.jsonl",
+      "events": 6,
+      "elapsed_s": 0.01,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_080404_64c2.jsonl",
+      "path": ".audit\\session_20260611_080404_64c2.jsonl",
+      "events": 6,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_082555_3c02.jsonl",
+      "path": ".audit\\session_20260611_082555_3c02.jsonl",
+      "events": 17,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        9
+      ]
+    },
+    {
+      "session": "session_20260611_082613_db39.jsonl",
+      "path": ".audit\\session_20260611_082613_db39.jsonl",
+      "events": 17,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        9
+      ]
+    },
+    {
+      "session": "session_20260611_082720_050b.jsonl",
+      "path": ".audit\\session_20260611_082720_050b.jsonl",
+      "events": 2,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_082743_1cec.jsonl",
+      "path": ".audit\\session_20260611_082743_1cec.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_082744_e338.jsonl",
+      "path": ".audit\\session_20260611_082744_e338.jsonl",
+      "events": 2,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_082902_b473.jsonl",
+      "path": ".audit\\session_20260611_082902_b473.jsonl",
+      "events": 15,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        9
+      ]
+    },
+    {
+      "session": "session_20260611_082932_237e.jsonl",
+      "path": ".audit\\session_20260611_082932_237e.jsonl",
+      "events": 15,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        9
+      ]
+    },
+    {
+      "session": "session_20260611_083000_e7b5.jsonl",
+      "path": ".audit\\session_20260611_083000_e7b5.jsonl",
+      "events": 15,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        9
+      ]
+    },
+    {
+      "session": "session_20260611_131319_019e.jsonl",
+      "path": ".audit\\session_20260611_131319_019e.jsonl",
+      "events": 11,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_131350_019e.jsonl",
+      "path": ".audit\\session_20260611_131350_019e.jsonl",
+      "events": 10,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_131919_019e.jsonl",
+      "path": ".audit\\session_20260611_131919_019e.jsonl",
+      "events": 6,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_132136_019e.jsonl",
+      "path": ".audit\\session_20260611_132136_019e.jsonl",
+      "events": 6,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_132434_019e.jsonl",
+      "path": ".audit\\session_20260611_132434_019e.jsonl",
+      "events": 6,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_135125_019e.jsonl",
+      "path": ".audit\\session_20260611_135125_019e.jsonl",
+      "events": 8,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_135644_019e.jsonl",
+      "path": ".audit\\session_20260611_135644_019e.jsonl",
+      "events": 11,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_143213_019e.jsonl",
+      "path": ".audit\\session_20260611_143213_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_143321_019e.jsonl",
+      "path": ".audit\\session_20260611_143321_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_143345_019e.jsonl",
+      "path": ".audit\\session_20260611_143345_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_143507_019e.jsonl",
+      "path": ".audit\\session_20260611_143507_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260611_160454_019e.jsonl",
+      "path": ".audit\\session_20260611_160454_019e.jsonl",
+      "events": 6,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_200939_019e.jsonl",
+      "path": ".audit\\session_20260612_200939_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_201001_019e.jsonl",
+      "path": ".audit\\session_20260612_201001_019e.jsonl",
+      "events": 12,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_201022_019e.jsonl",
+      "path": ".audit\\session_20260612_201022_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_211836_019e.jsonl",
+      "path": ".audit\\session_20260612_211836_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_211856_019e.jsonl",
+      "path": ".audit\\session_20260612_211856_019e.jsonl",
+      "events": 12,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_212029_019e.jsonl",
+      "path": ".audit\\session_20260612_212029_019e.jsonl",
+      "events": 3,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_212037_019e.jsonl",
+      "path": ".audit\\session_20260612_212037_019e.jsonl",
+      "events": 12,
+      "elapsed_s": 0.0,
+      "all_passed": true,
+      "passed_count": 15,
+      "total_layers": 15,
+      "failed_layers": []
+    },
+    {
+      "session": "session_20260612_201134_019e.jsonl",
+      "path": "src\\.audit\\session_20260612_201134_019e.jsonl",
+      "events": 12,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        14
+      ]
+    },
+    {
+      "session": "session_20260612_201206_019e.jsonl",
+      "path": "src\\.audit\\session_20260612_201206_019e.jsonl",
+      "events": 12,
+      "elapsed_s": 0.0,
+      "all_passed": false,
+      "passed_count": 14,
+      "total_layers": 15,
+      "failed_layers": [
+        14
+      ]
+    }
+  ]
+}

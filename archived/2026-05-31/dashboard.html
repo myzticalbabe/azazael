@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session Memory Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+  // Hide loading indicators after charts render
+  setTimeout(() => {
+    document.querySelectorAll('canvas').forEach(c => { 
+      c.classList.add('loaded');
+      const loader = document.getElementById('loading-' + c.id);
+      if (loader) loader.style.display = 'none';
+    });
+  }, 500);
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+.dashboard { max-width: 1400px; margin: 0 auto; }
+h1 { font-size: 2rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, #818cf8, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.9rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.card { background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; }
+.card h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.5rem; }
+.card .value { font-size: 2.5rem; font-weight: 700; color: #38bdf8; }
+.card .label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; }
+.chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.chart-card { background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; }
+.chart-card h3 { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; }
+canvas { max-height: 300px; }
+.wide { grid-column: 1 / -1; }
+.chart-loading { color: #64748b; font-size: 0.9rem; text-align: center; padding: 4rem 0; }
+canvas { display: none; }
+canvas.loaded { display: block; }
+.status-ok { color: #22c55e; }
+.status-warn { color: #eab308; }
+.status-crit { color: #ef4444; }
+@media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="dashboard">
+<h1>Session Memory Dashboard</h1>
+<p class="subtitle">Generated from workspace/session_memory.db &mdash; 126 sessions, 274 lessons, 129 decisions</p>
+<div class="grid">
+  <div class="card"><h2>Sessions</h2><div class="value" style="color:#818cf8">126</div></div>
+  <div class="card"><h2>Lessons</h2><div class="value" style="color:#38bdf8">274</div></div>
+  <div class="card"><h2>Decisions</h2><div class="value" style="color:#a78bfa">129</div></div>
+  <div class="card"><h2>Goals (deduped)</h2><div class="value" style="color:#f472b6">72</div></div>
+  <div class="card"><h2>Avg Confidence</h2><div class="value" style="color:#22c55e">84.0%</div></div>
+  <div class="card"><h2>File Changes</h2><div class="value" style="color:#f59e0b">32</div></div>
+  <div class="card"><h2>Completed</h2><div class="value status-ok">29</div><div class="label">of 72 total</div></div>
+  <div class="card"><h2>In Progress</h2><div class="value status-warn">15</div></div>
+  <div class="card"><h2>Pending</h2><div class="value status-crit">28</div></div>
+</div>
+<div class="chart-row">
+  <div class="chart-card"><h3>Knowledge Distribution</h3><div class="chart-loading" id="loading-catChart">Loading chart...</div><canvas id="catChart"></canvas></div>
+  <div class="chart-card"><h3>System Health Over Time</h3><div class="chart-loading" id="loading-healthChart">Loading chart...</div><canvas id="healthChart"></canvas></div>
+</div>
+<div class="chart-row">
+  <div class="chart-card"><h3>Goal Completion per Session</h3><div class="chart-loading" id="loading-goalChart">Loading chart...</div><canvas id="goalChart"></canvas></div>
+  <div class="chart-card"><h3>Decision Outcomes</h3><div class="chart-loading" id="loading-decisionChart">Loading chart...</div><canvas id="decisionChart"></canvas></div>
+</div>
+<script>
+const COLORS = ['#818cf8','#38bdf8','#a78bfa','#f472b6','#22c55e','#f59e0b','#ef4444','#14b8a6','#f97316','#6366f1','#ec4899','#8b5cf6','#06b6d4','#84cc16','#fbbf24','#fb7185','#a78bfa','#2dd4bf','#f472b6','#e879f9','#22d3ee','#fde047','#818cf8','#34d399','#f87171','#c084fc','#e0f2fe'];
+
+// Knowledge Categories
+new Chart(document.getElementById('catChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ["architecture", "convention", "meta_cognition", "bug_fix", "runtime", "Binary Patching", "Environment Setup", "adversarial_synthesis", "continual_evolution", "proactive_agents", "documentation", "mixture_of_recursions", "python_314t", "adversarial_training", "capabilities_dashboard", "doctoral_thesis_engine", "gossamer_oxford_parser", "production_pipeline", "gui_patterns", "implementation", "test", "python_314t_free_threading", "Python ABI", "artifact_creation", "code-quality", "infrastructure", "recursive_learning"],
+    datasets: [{
+      data: [82, 27, 19, 18, 18, 16, 8, 8, 8, 8, 7, 7, 7, 5, 5, 5, 5, 5, 3, 3, 3, 2, 1, 1, 1, 1, 1],
+      backgroundColor: COLORS,
+      borderColor: '#1e293b',
+      borderWidth: 2
+    }]
+  },
+  options: { plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } } } }
+});
+
+// System Health
+new Chart(document.getElementById('healthChart'), {
+  type: 'line',
+  data: {
+    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42],
+    datasets: [
+      { label: 'OK', data: [6, 5, 5, 5, 4, 3, 3, 3, 3, 3, 3, 5, 5, 5, 6, 6, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 6], borderColor: '#22c55e', tension: 0.3, fill: false },
+      { label: 'WARN', data: [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], borderColor: '#eab308', tension: 0.3, fill: false },
+      { label: 'CRIT', data: [0, 0, 0, 0, 2, 3, 3, 3, 3, 3, 3, 1, 1, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 0], borderColor: '#ef4444', tension: 0.3, fill: false }
+    ]
+  },
+  options: {
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#64748b' } }, x: { ticks: { color: '#64748b' } } },
+    plugins: { legend: { labels: { color: '#94a3b8' } } }
+  }
+});
+
+// Goal completion
+new Chart(document.getElementById('goalChart'), {
+  type: 'bar',
+  data: {
+    labels: ["S1", "S2", "S28", "S29", "S31", "S32", "S33", "S35", "S72", "S75", "S77", "S80", "S82", "S83", "S84", "S85", "S86", "S87", "S88", "S89", "S105"],
+    datasets: [
+      { label: 'Completed', data: [5, 2, 2, 1, 0, 2, 1, 25, 4, 4, 4, 4, 3, 2, 19, 19, 3, 3, 3, 7, 2], backgroundColor: '#22c55e' },
+      { label: 'Total', data: [5, 2, 2, 1, 14, 14, 1, 25, 6, 4, 4, 4, 3, 2, 19, 19, 3, 3, 3, 7, 2], backgroundColor: '#475569' }
+    ]
+  },
+  options: {
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, color: '#64748b' } }, x: { ticks: { color: '#64748b' } } },
+    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    responsive: true
+  }
+});
+
+// Decision outcomes
+new Chart(document.getElementById('decisionChart'), {
+  type: 'polarArea',
+  data: {
+    labels: ["Correct \u2014 all changes verified: Eve tests pass (30/30), ARCHITECTURE.md enhanced, Rust lesson recording added, llama-server binary validated", "docs", "Correct \u2014 stale lesson validation and lesson linking completed successfully in session #71. All 204 stale lessons validated, 21 lessons linked.", "Complete - stub", "Table format is correct \u2014 scales to 46+ lessons across 14 projects, conventions now only contain behavioral rules", "Correct \u2014 session_memory.py provides persistent cross-session learning", "Correct \u2014 migration system prevents schema drift and is production-ready", "Correct \u2014 matrix box now fits 7 action columns properly", "Correct \u2014 graph.db only stores code structure, separate DB needed for sessions", "Correct \u2014 generate_report() was indeed never called, now fixed", "Correct \u2014 full awareness report and session review methods provide comprehensive DB health visibility", "Correct \u2014 eve_unleashed inference engine structure established", "Correct \u2014 embedding memory context in AGENTS.md is more reliable than startup commands", "Correct \u2014 each advanced capability lesson maps cleanly to its implementing source file in doctoral-thesis-engine/src/capabilities/. All 21 lessons now have appropriate related_files.", "Correct \u2014 consolidated clutter from root into docs/ and scripts/", "Correct \u2014 bootstrap.py removal was necessary for clean project scope", "Correct \u2014 batch validation of stale lessons with validate_lesson() works as intended. All lessons are now current. Recommend periodic follow-up for the 22 oldest (sessions 37-39) if they prove outdated.", "Correct \u2014 all 5 improvements work together: file-awareness, outcomes, priorities, staleness, traceability", "Correct \u2014 SHELL_ALIAS was missing from the hardcoded actions list", "Correct \u2014 AGENTS.md now provides mandatory behavioral mandates", "Complete \u2014 all 12 decisions closed, 11 sessions auto-closed, auto-close feature works correctly", "Complete \u2014 Go bridge and Rust bindings lessons added with accurate file paths from go-bridge/main.go and rust-bindings/src/main.rs", "Complete \u2014 19 project lessons created covering all ecosystem projects with accurate related_files, tags, and confidence scores", "Complete - root cause identified and fixed", "Complete"],
+    datasets: [{
+      data: [4, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      backgroundColor: COLORS.slice(0, 25),
+      borderColor: '#1e293b',
+      borderWidth: 2
+    }]
+  },
+  options: { plugins: { legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11 } } } } }
+});
+</script>
+</div>
+</body>
+</html>

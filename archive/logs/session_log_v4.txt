@@ -1,0 +1,34 @@
+Session started: model_audit_v4
+======================================================================
+MODEL AUDIT V4 ? 0/0 models responded
+======================================================================
+
+[groq] FAIL: no key
+
+[openrouter] FAIL: no key
+
+[gemini] FAIL: no key
+
+[cloudflare] FAIL: no key
+
+[cohere] FAIL: no key
+
+[fireworks] FAIL: no key
+
+[nvidia_nim] FAIL: no key
+
+[mistral] FAIL: no key
+
+[github] FAIL: no key
+
+[xai] FAIL: no key
+
+[ovhcloud] FAIL: no key
+
+[huggingface] FAIL: no key
+
+[deepseek] FAIL: no key
+
+[together] FAIL: no key
+
+[+] Saved to azazael/model_audit_v4_results.json

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Python Module Verification Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .fail { background-color: #ffcccc; }
+        .skip { background-color: #ffffcc; }
+        .summary { background-color: #e7f3fe; padding: 15px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Python Module Verification Report</h1>
+    <p><strong>Generated:</strong> 2026-02-15 10:46:41</p>
+    
+    <div class="summary">
+        <h2>Summary</h2>
+        <p>Total: 894 | OK: <strong>511</strong> | FAIL: <strong>359</strong> | SKIP: <strong>24</strong></p>
+    </div>
+    
+    <h2>Working Modules (511)</h2>
+    <table>
+        <tr><th>Module</th><th>Fixed Name</th><th>Python Path</th></tr><tr><td>abc</td><td>abc</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>absl</td><td>absl</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>accelerate</td><td>accelerate</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>adodbapi</td><td>adodbapi</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>aext_environments_server</td><td>aext_environments_server</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-assistant</td><td>aext_assistant</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-assistant-server</td><td>aext_assistant_server</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-core</td><td>aext_core</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-core-server</td><td>aext_core_server</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-panels</td><td>aext_panels</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-panels-server</td><td>aext_panels_server</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-project-filebrowser-server</td><td>aext_project_filebrowser_server</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-shared</td><td>aext_shared</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-share-notebook</td><td>aext_share_notebook</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-share-notebook-server</td><td>aext_share_notebook_server</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aext-toolbox</td><td>aext_toolbox</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aiobotocore</td><td>aiobotocore</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aiodns</td><td>aiodns</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aiohappyeyeballs</td><td>aiohappyeyeballs</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>aiohttp</td><td>aiohttp</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>aioitertools</td><td>aioitertools</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>aiosignal</td><td>aiosignal</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>alabaster</td><td>alabaster</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>alembic</td><td>alembic</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>altair</td><td>altair</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>altgraph</td><td>altgraph</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>anaconda-anon-usage</td><td>anaconda_anon_usage</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>anaconda-auth</td><td>anaconda_auth</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>anaconda-catalogs</td><td>anaconda_catalogs</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>anaconda-cli-base</td><td>anaconda_cli_base</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>anaconda-navigator</td><td>anaconda_navigator</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>anaconda-project</td><td>anaconda_project</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>annotated_doc</td><td>annotated_doc</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>annotated_types</td><td>annotated_types</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>annotated-doc</td><td>annotated_doc</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>annotated-types</td><td>annotated_types</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ansicon</td><td>ansicon</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>anthropic</td><td>anthropic</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>anyio</td><td>anyio</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>appdirs</td><td>appdirs</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>archspec</td><td>archspec</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>argon2</td><td>argon2</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>array_serialization</td><td>array</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>arrow</td><td>arrow</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>astor</td><td>astor</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>astroid</td><td>astroid</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>astropy</td><td>astropy</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>astropy-iers-data</td><td>astropy_iers_data</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>asttokens</td><td>asttokens</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>astunparse</td><td>astunparse</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>async_lru</td><td>async_lru</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>async-generator</td><td>async_generator</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>async-lru</td><td>async_lru</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>asyncssh</td><td>asyncssh</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>async-timeout</td><td>async_timeout</td><td>C:\Users\clint\anaconda3\envs\df-env\python.exe</td></tr>
+<tr><td>atomicwrites</td><td>atomicwrites</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>attr</td><td>attr</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>attrs</td><td>attrs</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>autopep8</td><td>autopep8</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>babel</td><td>babel</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>bcrypt</td><td>bcrypt</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>binaryornot</td><td>binaryornot</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>black</td><td>black</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>bleach</td><td>bleach</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>blessed</td><td>blessed</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>blinker</td><td>blinker</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>blis</td><td>blis</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>bokeh</td><td>bokeh</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>boltons</td><td>boltons</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>botocore</td><td>botocore</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>brotlicffi</td><td>brotlicffi</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>bs4</td><td>bs4</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cachetools</td><td>cachetools</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>catalogue</td><td>catalogue</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>cattrs</td><td>cattrs</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>certifi</td><td>certifi</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cffi</td><td>cffi</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>chardet</td><td>chardet</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>charset_normalizer</td><td>charset_normalizer</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>charset-normalizer</td><td>charset_normalizer</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>clang</td><td>clang</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>click</td><td>click</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cloudpathlib</td><td>cloudpathlib</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>cloudpickle</td><td>cloudpickle</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>colorama</td><td>colorama</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>colorcet</td><td>colorcet</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>colorlog</td><td>colorlog</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>comm</td><td>comm</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>conda</td><td>conda</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda_index</td><td>conda_index</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda_package_streaming</td><td>conda_package_streaming</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-anaconda-telemetry</td><td>conda_anaconda_telemetry</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-anaconda-tos</td><td>conda_anaconda_tos</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-build</td><td>conda_build</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-content-trust</td><td>conda_content_trust</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-libmamba-solver</td><td>conda_libmamba_solver</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-pack</td><td>conda_pack</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>conda-package-handling</td><td>conda_package_handling</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>confection</td><td>confection</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>constantly</td><td>constantly</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>contourpy</td><td>contourpy</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cookiecutter</td><td>cookiecutter</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>cryptography</td><td>cryptography</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cssselect</td><td>cssselect</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>csv</td><td>csv</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cycler</td><td>cycler</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>cymem</td><td>cymem</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>dask</td><td>dask</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>databricks</td><td>databricks</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>dataclasses</td><td>dataclasses</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>datasets</td><td>datasets</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>datashader</td><td>datashader</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>dateutil</td><td>dateutil</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>debugpy</td><td>debugpy</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>decorator</td><td>decorator</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>defusedxml</td><td>defusedxml</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>diff-match-patch</td><td>diff_match_patch</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>dill</td><td>dill</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>distributed</td><td>distributed</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>distro</td><td>distro</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>docker</td><td>docker</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>docstring_parser</td><td>docstring_parser</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>docstring-to-markdown</td><td>docstring_to_markdown</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>docutils</td><td>docutils</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>dotenv</td><td>dotenv</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>easyocr</td><td>easyocr</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>editor</td><td>editor</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>einops</td><td>einops</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>encodings</td><td>encodings</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>et_xmlfile</td><td>et_xmlfile</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>evalidate</td><td>evalidate</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>exceptiongroup</td><td>exceptiongroup</td><td>C:\Users\clint\anaconda3\envs\df-env\python.exe</td></tr>
+<tr><td>executing</td><td>executing</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>fastapi</td><td>fastapi</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>fastjsonschema</td><td>fastjsonschema</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>fastuuid</td><td>fastuuid</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>filelock</td><td>filelock</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>flake8</td><td>flake8</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>flask_cors</td><td>flask_cors</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>flask-cors</td><td>flask_cors</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>flatbuffers</td><td>flatbuffers</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>formatter</td><td>formatter</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>fqdn</td><td>fqdn</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>frozendict</td><td>frozendict</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>frozenlist</td><td>frozenlist</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>fsspec</td><td>fsspec</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>functorch</td><td>functorch</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>future</td><td>future</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>gast</td><td>gast</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>git</td><td>git</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>gitdb</td><td>gitdb</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>google-auth-httplib2</td><td>google_auth_httplib2</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>graphene</td><td>graphene</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>graphql</td><td>graphql</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>graphql_relay</td><td>graphql_relay</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>graphql-relay</td><td>graphql_relay</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>greenlet</td><td>greenlet</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>grpc</td><td>grpc</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>h11</td><td>h11</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>h5py</td><td>h5py</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>hf_xet</td><td>hf_xet</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>hf-xet</td><td>hf_xet</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>holoviews</td><td>holoviews</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>html2image</td><td>html2image</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>html2text</td><td>html2text</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>html5lib</td><td>html5lib</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>httpcore</td><td>httpcore</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>httplib2</td><td>httplib2</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>httpx</td><td>httpx</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>huey</td><td>huey</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>huggingface_hub</td><td>huggingface_hub</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>huggingface-hub</td><td>huggingface_hub</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>hvplot</td><td>hvplot</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>hyperlink</td><td>hyperlink</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>idna</td><td>idna</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>imagesize</td><td>imagesize</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>importlib_metadata</td><td>importlib_metadata</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>importlib-metadata</td><td>importlib_metadata</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>incremental</td><td>incremental</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>inflection</td><td>inflection</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>iniconfig</td><td>iniconfig</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>inquirer</td><td>inquirer</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>intake</td><td>intake</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>intervaltree</td><td>intervaltree</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>io</td><td>io</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ipykernel</td><td>ipykernel</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ipympl</td><td>ipympl</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>ipython_pygments_lexers</td><td>ipython_pygments_lexers</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ipywidgets</td><td>ipywidgets</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>isapi</td><td>isapi</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>isoduration</td><td>isoduration</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>isort</td><td>isort</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>itemadapter</td><td>itemadapter</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>itemloaders</td><td>itemloaders</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>itsdangerous</td><td>itsdangerous</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jaraco.classes</td><td>jaraco.classes</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>jaraco.context</td><td>jaraco.context</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>jaraco.functools</td><td>jaraco.functools</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>jax</td><td>jax</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jaxlib</td><td>jaxlib</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jedi</td><td>jedi</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jellyfish</td><td>jellyfish</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>jinxed</td><td>jinxed</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>jiter</td><td>jiter</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>jmespath</td><td>jmespath</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>joblib</td><td>joblib</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>json</td><td>json</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>json5</td><td>json5</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jsonpatch</td><td>jsonpatch</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>jsonpointer</td><td>jsonpointer</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jsonschema</td><td>jsonschema</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jsonschema_specifications</td><td>jsonschema_specifications</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jsonschema-specifications</td><td>jsonschema_specifications</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter</td><td>jupyter</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_client</td><td>jupyter_client</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_console</td><td>jupyter_console</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_core</td><td>jupyter_core</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_events</td><td>jupyter_events</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_lsp</td><td>jupyter_lsp</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_server</td><td>jupyter_server</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter_server_terminals</td><td>jupyter_server_terminals</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter-console</td><td>jupyter_console</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter-events</td><td>jupyter_events</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyterlab</td><td>jupyterlab</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyterlab_pygments</td><td>jupyterlab_pygments</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyterlab_server</td><td>jupyterlab_server</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyterlab_widgets</td><td>jupyterlab_widgets</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>jupyter-lsp</td><td>jupyter_lsp</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>keras</td><td>keras</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>keyring</td><td>keyring</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>kiwisolver</td><td>kiwisolver</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>lark</td><td>lark</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>lazy_loader</td><td>lazy_loader</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>lckr_jupyterlab_variableinspector</td><td>lckr_jupyterlab_variableinspector</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>lib</td><td>lib</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>libmambapy</td><td>libmambapy</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>lief</td><td>lief</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>lightgbm</td><td>lightgbm</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>litellm</td><td>litellm</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>llvmlite</td><td>llvmlite</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>lmdb</td><td>lmdb</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>locket</td><td>locket</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>logging</td><td>logging</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>lsprotocol</td><td>lsprotocol</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>lxml</td><td>lxml</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>lz4</td><td>lz4</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>matplotlib</td><td>matplotlib</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>matplotlib-inline</td><td>matplotlib_inline</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>mccabe</td><td>mccabe</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mdit-py-plugins</td><td>mdit_py_plugins</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mdurl</td><td>mdurl</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>menuinst</td><td>menuinst</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mistune</td><td>mistune</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>mkl</td><td>mkl</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mkl_fft</td><td>mkl_fft</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mkl_random</td><td>mkl_random</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>ml_dtypes</td><td>ml_dtypes</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>mlflow</td><td>mlflow</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>more-itertools</td><td>more_itertools</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mpi4py</td><td>mpi4py</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mpmath</td><td>mpmath</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>msgpack</td><td>msgpack</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>multidict</td><td>multidict</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>multipledispatch</td><td>multipledispatch</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>multiprocess</td><td>multiprocess</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>murmurhash</td><td>murmurhash</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>mypy</td><td>mypy</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>mypy_extensions</td><td>mypy_extensions</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>namex</td><td>namex</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>narwhals</td><td>narwhals</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>navigator-updater</td><td>navigator_updater</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>nb_conda_kernels</td><td>nb_conda_kernels</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>nbclient</td><td>nbclient</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>nbconvert</td><td>nbconvert</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>nbformat</td><td>nbformat</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>nest_asyncio</td><td>nest_asyncio</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>nest-asyncio</td><td>nest_asyncio</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>networkx</td><td>networkx</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ninja</td><td>ninja</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>nltk</td><td>nltk</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>notebook</td><td>notebook</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>notebook_shim</td><td>notebook_shim</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>numba</td><td>numba</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>numexpr</td><td>numexpr</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>numpy</td><td>numpy</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>numpydoc</td><td>numpydoc</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>onnx</td><td>onnx</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>onnxruntime</td><td>onnxruntime</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>openai</td><td>openai</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>openpyxl</td><td>openpyxl</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>opt_einsum</td><td>opt_einsum</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>opt-einsum</td><td>opt_einsum</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>optree</td><td>optree</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>optuna</td><td>optuna</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>outcome</td><td>outcome</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>overrides</td><td>overrides</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>packaging</td><td>packaging</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pandas</td><td>pandas</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pandocfilters</td><td>pandocfilters</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>panel</td><td>panel</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>param</td><td>param</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>parsel</td><td>parsel</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>parser</td><td>parser</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>parso</td><td>parso</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>partd</td><td>partd</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pathspec</td><td>pathspec</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>patsy</td><td>patsy</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pefile</td><td>pefile</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>peft</td><td>peft</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>pexpect</td><td>pexpect</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pickleshare</td><td>pickleshare</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pip</td><td>pip</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pkce</td><td>pkce</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pkginfo</td><td>pkginfo</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>platform</td><td>platform</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>platformdirs</td><td>platformdirs</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>plistlib</td><td>plistlib</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>plotly</td><td>plotly</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pluggy</td><td>pluggy</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>preshed</td><td>preshed</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>prettytable</td><td>prettytable</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>prometheus_client</td><td>prometheus_client</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>prompt_toolkit</td><td>prompt_toolkit</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>propcache</td><td>propcache</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>psutil</td><td>psutil</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pure_eval</td><td>pure_eval</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pyarrow</td><td>pyarrow</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pyasn1</td><td>pyasn1</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pyasn1_modules</td><td>pyasn1_modules</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pycares</td><td>pycares</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pyclipper</td><td>pyclipper</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>pycodestyle</td><td>pycodestyle</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pycosat</td><td>pycosat</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pycparser</td><td>pycparser</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pyct</td><td>pyct</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pycurl</td><td>pycurl</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pydantic</td><td>pydantic</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pydantic_core</td><td>pydantic_core</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pydantic-settings</td><td>pydantic_settings</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pydocstyle</td><td>pydocstyle</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pyflakes</td><td>pyflakes</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pylab</td><td>pylab</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pylint</td><td>pylint</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pylint-venv</td><td>pylint_venv</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pyls-spyder</td><td>pyls_spyder</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pyodbc</td><td>pyodbc</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pyparsing</td><td>pyparsing</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pyperclip</td><td>pyperclip</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>PyQt5</td><td>PyQt5</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>PyQt5_sip</td><td>PyQt5</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>pyreadline3</td><td>pyreadline3</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>PySide6</td><td>PySide6</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pytesseract</td><td>pytesseract</td><td>C:\Users\clint\anaconda3\envs\df-env\python.exe</td></tr>
+<tr><td>pytest</td><td>pytest</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>pytokens</td><td>pytokens</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pytoolconfig</td><td>pytoolconfig</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pytz</td><td>pytz</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>pyuca</td><td>pyuca</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>pyviz_comms</td><td>pyviz_comms</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>qstylizer</td><td>qstylizer</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>qtconsole</td><td>qtconsole</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>queuelib</td><td>queuelib</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>random</td><td>random</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ray</td><td>ray</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>readchar</td><td>readchar</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>referencing</td><td>referencing</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>regex</td><td>regex</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>requests</td><td>requests</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>requests-file</td><td>requests_file</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>requests-toolbelt</td><td>requests_toolbelt</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>rfc3339_validator</td><td>rfc3339_validator</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rfc3339-validator</td><td>rfc3339_validator</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rfc3986_validator</td><td>rfc3986_validator</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rfc3986-validator</td><td>rfc3986_validator</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rfc3987-syntax</td><td>rfc3987_syntax</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rich</td><td>rich</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rope</td><td>rope</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>rsa</td><td>rsa</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>rtree</td><td>rtree</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>ruamel.yaml</td><td>ruamel.yaml</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>ruamel.yaml.clib</td><td>ruamel</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>ruamel_yaml_conda</td><td>ruamel</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>ruff</td><td>ruff</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>runs</td><td>runs</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>s3fs</td><td>s3fs</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>safetensors</td><td>safetensors</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>scipy</td><td>scipy</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>scripts</td><td>scripts</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>seaborn</td><td>seaborn</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>selenium</td><td>selenium</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>semver</td><td>semver</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>sentence-transformers</td><td>sentence_transformers</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>sentry-sdk</td><td>sentry_sdk</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>service-identity</td><td>service_identity</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>setuptools</td><td>setuptools</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>shapely</td><td>shapely</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>shellingham</td><td>shellingham</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>shiboken6</td><td>shiboken6</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>shortuuid</td><td>shortuuid</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>six</td><td>six</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>skops</td><td>skops</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>smart_open</td><td>smart_open</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>smmap</td><td>smmap</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>sniffio</td><td>sniffio</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>snowballstemmer</td><td>snowballstemmer</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>sortedcontainers</td><td>sortedcontainers</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>soupsieve</td><td>soupsieve</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>spacy-legacy</td><td>spacy_legacy</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>spacy-loggers</td><td>spacy_loggers</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>spyder</td><td>spyder</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>spyder-kernels</td><td>spyder_kernels</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>sqlparse</td><td>sqlparse</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>srsly</td><td>srsly</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>stack_data</td><td>stack_data</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>stack-data</td><td>stack_data</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>starlette</td><td>starlette</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>statsmodels</td><td>statsmodels</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>streamlit</td><td>streamlit</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>subprocess</td><td>subprocess</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>superqt</td><td>superqt</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>sympy</td><td>sympy</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tables</td><td>tables</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tabulate</td><td>tabulate</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tblib</td><td>tblib</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tenacity</td><td>tenacity</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tensorboard</td><td>tensorboard</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tensorboard-data-server</td><td>tensorboard_data_server</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tensorflow</td><td>tensorflow</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tensorflow-estimator</td><td>tensorflow_estimator</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>termcolor</td><td>termcolor</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>terminado</td><td>terminado</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>test</td><td>test</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>test_hyphens</td><td>test</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>test_hyphens_underscore</td><td>test</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>test_no_hyphens</td><td>test</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>test_utils</td><td>test</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>test_vds</td><td>test</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tests</td><td>tests</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>textdistance</td><td>textdistance</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>text-unidecode</td><td>text_unidecode</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tf2onnx</td><td>tf2onnx</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>thinc</td><td>thinc</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>threadpoolctl</td><td>threadpoolctl</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>three-merge</td><td>three_merge</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tifffile</td><td>tifffile</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>tiktoken</td><td>tiktoken</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>tinycss2</td><td>tinycss2</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tldextract</td><td>tldextract</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tokenizers</td><td>tokenizers</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tokentrim</td><td>tokentrim</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>toml</td><td>toml</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>tomli</td><td>tomli</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>tomlkit</td><td>tomlkit</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>toolz</td><td>toolz</td><td>C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe</td></tr>
+<tr><td>torch</td><td>torch</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>torchaudio</td><td>torchaudio</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>torchvision</td><td>torchvision</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tornado</td><td>tornado</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tqdm</td><td>tqdm</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>traitlets</td><td>traitlets</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>transformers</td><td>transformers</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>trio</td><td>trio</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>trio-typing</td><td>trio_typing</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>trio-websocket</td><td>trio_websocket</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>truststore</td><td>truststore</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>twisted-iocpsupport</td><td>twisted_iocpsupport</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>typer</td><td>typer</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>types</td><td>types</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>typing</td><td>typing</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>typing_extensions</td><td>typing_extensions</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>typing-inspection</td><td>typing_inspection</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>tzdata</td><td>tzdata</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>ujson</td><td>ujson</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>unicodedata</td><td>unicodedata</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>uritemplate</td><td>uritemplate</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>uri-template</td><td>uri_template</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>urllib3</td><td>urllib3</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>uv</td><td>uv</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>uvicorn</td><td>uvicorn</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>w3lib</td><td>w3lib</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>waitress</td><td>waitress</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>wasabi</td><td>wasabi</td><td>C:\Python314\python.exe</td></tr>
+<tr><td>watchdog</td><td>watchdog</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>wcwidth</td><td>wcwidth</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>webcolors</td><td>webcolors</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>webdriver-manager</td><td>webdriver_manager</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>webencodings</td><td>webencodings</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>wget</td><td>wget</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>whatthepatch</td><td>whatthepatch</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>wheel</td><td>wheel</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>widgetsnbextension</td><td>widgetsnbextension</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>win_inet_pton</td><td>win_inet_pton</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>win32</td><td>win32</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>winloop</td><td>winloop</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>wrapt</td><td>wrapt</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>wsproto</td><td>wsproto</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>xarray</td><td>xarray</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>xgboost</td><td>xgboost</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>xlwings</td><td>xlwings</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>xml</td><td>xml</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>xmod</td><td>xmod</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>xxhash</td><td>xxhash</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>xyzservices</td><td>xyzservices</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>yapf</td><td>yapf</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>yarl</td><td>yarl</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>yaspin</td><td>yaspin</td><td>C:\Program Files\Python311\python.exe</td></tr>
+<tr><td>zict</td><td>zict</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>zipp</td><td>zipp</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>zoneinfo</td><td>zoneinfo</td><td>C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe</td></tr>
+<tr><td>zope.interface</td><td>zope.interface</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+<tr><td>zstandard</td><td>zstandard</td><td>C:\Users\clint\anaconda3\python.exe</td></tr>
+    </table>
+    
+    <h2>Failed Modules (359)</h2>
+    <table>
+        <tr><th>Module</th></tr><tr class='fail'><td>absl-py</td></tr>
+<tr class='fail'><td>abstract</td></tr>
+<tr class='fail'><td>adapter</td></tr>
+<tr class='fail'><td>aio</td></tr>
+<tr class='fail'><td>anaconda-client</td></tr>
+<tr class='fail'><td>aot_autograd</td></tr>
+<tr class='fail'><td>api</td></tr>
+<tr class='fail'><td>argon2-cffi</td></tr>
+<tr class='fail'><td>argon2-cffi-bindings</td></tr>
+<tr class='fail'><td>asn1</td></tr>
+<tr class='fail'><td>asymmetric</td></tr>
+<tr class='fail'><td>asynchronous</td></tr>
+<tr class='fail'><td>audiofolder</td></tr>
+<tr class='fail'><td>auth</td></tr>
+<tr class='fail'><td>autogenerate</td></tr>
+<tr class='fail'><td>Automat</td></tr>
+<tr class='fail'><td>avar</td></tr>
+<tr class='fail'><td>backend</td></tr>
+<tr class='fail'><td>backends</td></tr>
+<tr class='fail'><td>base</td></tr>
+<tr class='fail'><td>beautifulsoup4</td></tr>
+<tr class='fail'><td>benchmarks</td></tr>
+<tr class='fail'><td>beta</td></tr>
+<tr class='fail'><td>bin</td></tr>
+<tr class='fail'><td>bindings</td></tr>
+<tr class='fail'><td>blocking</td></tr>
+<tr class='fail'><td>Bottleneck</td></tr>
+<tr class='fail'><td>builder</td></tr>
+<tr class='fail'><td>bytecode</td></tr>
+<tr class='fail'><td>cache</td></tr>
+<tr class='fail'><td>cffLib</td></tr>
+<tr class='fail'><td>ciphers</td></tr>
+<tr class='fail'><td>cli</td></tr>
+<tr class='fail'><td>cluster</td></tr>
+<tr class='fail'><td>clusters</td></tr>
+<tr class='fail'><td>colocated_python</td></tr>
+<tr class='fail'><td>colorLib</td></tr>
+<tr class='fail'><td>commands</td></tr>
+<tr class='fail'><td>common</td></tr>
+<tr class='fail'><td>compare</td></tr>
+<tr class='fail'><td>compat</td></tr>
+<tr class='fail'><td>compilation_cache</td></tr>
+<tr class='fail'><td>compile</td></tr>
+<tr class='fail'><td>compiled</td></tr>
+<tr class='fail'><td>compiler</td></tr>
+<tr class='fail'><td>compute_engine</td></tr>
+<tr class='fail'><td>conda-repo-cli</td></tr>
+<tr class='fail'><td>config</td></tr>
+<tr class='fail'><td>connection</td></tr>
+<tr class='fail'><td>context</td></tr>
+<tr class='fail'><td>contrib</td></tr>
+<tr class='fail'><td>control_flow</td></tr>
+<tr class='fail'><td>core</td></tr>
+<tr class='fail'><td>credentials</td></tr>
+<tr class='fail'><td>crypt</td></tr>
+<tr class='fail'><td>cu2qu</td></tr>
+<tr class='fail'><td>cudnn</td></tr>
+<tr class='fail'><td>custom</td></tr>
+<tr class='fail'><td>data</td></tr>
+<tr class='fail'><td>data_files</td></tr>
+<tr class='fail'><td>databricks-sdk</td></tr>
+<tr class='fail'><td>db</td></tr>
+<tr class='fail'><td>ddl</td></tr>
+<tr class='fail'><td>debugger</td></tr>
+<tr class='fail'><td>decrepit</td></tr>
+<tr class='fail'><td>deduperreload</td></tr>
+<tr class='fail'><td>dependencies</td></tr>
+<tr class='fail'><td>designspaceLib</td></tr>
+<tr class='fail'><td>dialects</td></tr>
+<tr class='fail'><td>dim</td></tr>
+<tr class='fail'><td>djhuey</td></tr>
+<tr class='fail'><td>download</td></tr>
+<tr class='fail'><td>eager_transforms</td></tr>
+<tr class='fail'><td>error</td></tr>
+<tr class='fail'><td>errors</td></tr>
+<tr class='fail'><td>eval</td></tr>
+<tr class='fail'><td>example_libraries</td></tr>
+<tr class='fail'><td>execution</td></tr>
+<tr class='fail'><td>experimental</td></tr>
+<tr class='fail'><td>export</td></tr>
+<tr class='fail'><td>export_back_compat_test_data</td></tr>
+<tr class='fail'><td>extend</td></tr>
+<tr class='fail'><td>extension</td></tr>
+<tr class='fail'><td>extensions</td></tr>
+<tr class='fail'><td>external</td></tr>
+<tr class='fail'><td>external_deps</td></tr>
+<tr class='fail'><td>externals</td></tr>
+<tr class='fail'><td>face</td></tr>
+<tr class='fail'><td>feaLib</td></tr>
+<tr class='fail'><td>features</td></tr>
+<tr class='fail'><td>ffmpeg-python</td></tr>
+<tr class='fail'><td>files</td></tr>
+<tr class='fail'><td>filesystem</td></tr>
+<tr class='fail'><td>filesystems</td></tr>
+<tr class='fail'><td>filters</td></tr>
+<tr class='fail'><td>flags</td></tr>
+<tr class='fail'><td>Flask</td></tr>
+<tr class='fail'><td>folder_based_builder</td></tr>
+<tr class='fail'><td>fonttools</td></tr>
+<tr class='fail'><td>formatting</td></tr>
+<tr class='fail'><td>foundation</td></tr>
+<tr class='fail'><td>framework</td></tr>
+<tr class='fail'><td>fsnotify</td></tr>
+<tr class='fail'><td>fuser</td></tr>
+<tr class='fail'><td>galata</td></tr>
+<tr class='fail'><td>gateway</td></tr>
+<tr class='fail'><td>generator</td></tr>
+<tr class='fail'><td>GitPython</td></tr>
+<tr class='fail'><td>git-python</td></tr>
+<tr class='fail'><td>gmpy2</td></tr>
+<tr class='fail'><td>google-ai-generativelanguage</td></tr>
+<tr class='fail'><td>google-api-core</td></tr>
+<tr class='fail'><td>google-api-python-client</td></tr>
+<tr class='fail'><td>googleapis-common-protos</td></tr>
+<tr class='fail'><td>google-auth</td></tr>
+<tr class='fail'><td>google-generativeai</td></tr>
+<tr class='fail'><td>google-pasta</td></tr>
+<tr class='fail'><td>gpu</td></tr>
+<tr class='fail'><td>gradual</td></tr>
+<tr class='fail'><td>graphql-core</td></tr>
+<tr class='fail'><td>grpcio</td></tr>
+<tr class='fail'><td>grpcio-status</td></tr>
+<tr class='fail'><td>gui</td></tr>
+<tr class='fail'><td>handlers</td></tr>
+<tr class='fail'><td>hazmat</td></tr>
+<tr class='fail'><td>hdf5</td></tr>
+<tr class='fail'><td>HeapDict</td></tr>
+<tr class='fail'><td>i18n</td></tr>
+<tr class='fail'><td>image</td></tr>
+<tr class='fail'><td>imagefolder</td></tr>
+<tr class='fail'><td>ImageIO</td></tr>
+<tr class='fail'><td>imbalanced-learn</td></tr>
+<tr class='fail'><td>implementations</td></tr>
+<tr class='fail'><td>index</td></tr>
+<tr class='fail'><td>inference</td></tr>
+<tr class='fail'><td>inprocess</td></tr>
+<tr class='fail'><td>instancer</td></tr>
+<tr class='fail'><td>intel-openmp</td></tr>
+<tr class='fail'><td>interfaces</td></tr>
+<tr class='fail'><td>internal</td></tr>
+<tr class='fail'><td>internal_test_util</td></tr>
+<tr class='fail'><td>interpolate</td></tr>
+<tr class='fail'><td>interpret</td></tr>
+<tr class='fail'><td>interpreters</td></tr>
+<tr class='fail'><td>ioloop</td></tr>
+<tr class='fail'><td>ipython</td></tr>
+<tr class='fail'><td>issues</td></tr>
+<tr class='fail'><td>jax2tf</td></tr>
+<tr class='fail'><td>Jinja2</td></tr>
+<tr class='fail'><td>kdf</td></tr>
+<tr class='fail'><td>Keras-Applications</td></tr>
+<tr class='fail'><td>Keras-Preprocessing</td></tr>
+<tr class='fail'><td>kernelspecs</td></tr>
+<tr class='fail'><td>key_reuse</td></tr>
+<tr class='fail'><td>lance</td></tr>
+<tr class='fail'><td>language</td></tr>
+<tr class='fail'><td>launcher</td></tr>
+<tr class='fail'><td>lax</td></tr>
+<tr class='fail'><td>lazy_loader_module</td></tr>
+<tr class='fail'><td>libarchive-c</td></tr>
+<tr class='fail'><td>libclang</td></tr>
+<tr class='fail'><td>linalg</td></tr>
+<tr class='fail'><td>linkify-it-py</td></tr>
+<tr class='fail'><td>localtime</td></tr>
+<tr class='fail'><td>logger</td></tr>
+<tr class='fail'><td>loky</td></tr>
+<tr class='fail'><td>magics</td></tr>
+<tr class='fail'><td>make_functional</td></tr>
+<tr class='fail'><td>Mako</td></tr>
+<tr class='fail'><td>management</td></tr>
+<tr class='fail'><td>Markdown</td></tr>
+<tr class='fail'><td>markdown-it-py</td></tr>
+<tr class='fail'><td>MarkupSafe</td></tr>
+<tr class='fail'><td>megablox</td></tr>
+<tr class='fail'><td>menu</td></tr>
+<tr class='fail'><td>merge</td></tr>
+<tr class='fail'><td>messages</td></tr>
+<tr class='fail'><td>middleware</td></tr>
+<tr class='fail'><td>misc</td></tr>
+<tr class='fail'><td>mixins</td></tr>
+<tr class='fail'><td>mkl-service</td></tr>
+<tr class='fail'><td>mlflow-skinny</td></tr>
+<tr class='fail'><td>mlflow-tracing</td></tr>
+<tr class='fail'><td>mlir</td></tr>
+<tr class='fail'><td>models</td></tr>
+<tr class='fail'><td>mosaic</td></tr>
+<tr class='fail'><td>mosaic_gpu</td></tr>
+<tr class='fail'><td>mtiLib</td></tr>
+<tr class='fail'><td>mutation</td></tr>
+<tr class='fail'><td>native</td></tr>
+<tr class='fail'><td>niftifolder</td></tr>
+<tr class='fail'><td>nn</td></tr>
+<tr class='fail'><td>node</td></tr>
+<tr class='fail'><td>oauth2</td></tr>
+<tr class='fail'><td>objects</td></tr>
+<tr class='fail'><td>openapi</td></tr>
+<tr class='fail'><td>opencv-python</td></tr>
+<tr class='fail'><td>opencv-python-headless</td></tr>
+<tr class='fail'><td>open-interpreter</td></tr>
+<tr class='fail'><td>openssl</td></tr>
+<tr class='fail'><td>opentelemetry-api</td></tr>
+<tr class='fail'><td>opentelemetry-proto</td></tr>
+<tr class='fail'><td>opentelemetry-sdk</td></tr>
+<tr class='fail'><td>opentelemetry-semantic-conventions</td></tr>
+<tr class='fail'><td>operations</td></tr>
+<tr class='fail'><td>ops</td></tr>
+<tr class='fail'><td>optimize</td></tr>
+<tr class='fail'><td>otlLib</td></tr>
+<tr class='fail'><td>packaged_modules</td></tr>
+<tr class='fail'><td>paged_attention</td></tr>
+<tr class='fail'><td>pallas</td></tr>
+<tr class='fail'><td>parallel</td></tr>
+<tr class='fail'><td>parquet</td></tr>
+<tr class='fail'><td>passes</td></tr>
+<tr class='fail'><td>path</td></tr>
+<tr class='fail'><td>pdffolder</td></tr>
+<tr class='fail'><td>pens</td></tr>
+<tr class='fail'><td>pillow</td></tr>
+<tr class='fail'><td>plugin</td></tr>
+<tr class='fail'><td>plugins</td></tr>
+<tr class='fail'><td>primitives</td></tr>
+<tr class='fail'><td>Protego</td></tr>
+<tr class='fail'><td>protobuf</td></tr>
+<tr class='fail'><td>proto-plus</td></tr>
+<tr class='fail'><td>provisioning</td></tr>
+<tr class='fail'><td>pt_inputhooks</td></tr>
+<tr class='fail'><td>ptyprocess</td></tr>
+<tr class='fail'><td>py-cpuinfo</td></tr>
+<tr class='fail'><td>pydev_ipython</td></tr>
+<tr class='fail'><td>pydevd_concurrency_analyser</td></tr>
+<tr class='fail'><td>pydevd_plugins</td></tr>
+<tr class='fail'><td>PyDispatcher</td></tr>
+<tr class='fail'><td>pyerfa</td></tr>
+<tr class='fail'><td>pyext</td></tr>
+<tr class='fail'><td>PyGithub</td></tr>
+<tr class='fail'><td>Pygments</td></tr>
+<tr class='fail'><td>pyinstaller</td></tr>
+<tr class='fail'><td>pyinstaller-hooks-contrib</td></tr>
+<tr class='fail'><td>PyJWT</td></tr>
+<tr class='fail'><td>PyNaCl</td></tr>
+<tr class='fail'><td>pyOpenSSL</td></tr>
+<tr class='fail'><td>PyQt5-Qt5</td></tr>
+<tr class='fail'><td>PyQt5-sip</td></tr>
+<tr class='fail'><td>PyQtWebEngine</td></tr>
+<tr class='fail'><td>PySocks</td></tr>
+<tr class='fail'><td>python-bidi</td></tr>
+<tr class='fail'><td>python-dateutil</td></tr>
+<tr class='fail'><td>python-dotenv</td></tr>
+<tr class='fail'><td>python-json-logger</td></tr>
+<tr class='fail'><td>python-lsp-black</td></tr>
+<tr class='fail'><td>python-lsp-jsonrpc</td></tr>
+<tr class='fail'><td>python-lsp-ruff</td></tr>
+<tr class='fail'><td>python-lsp-server</td></tr>
+<tr class='fail'><td>python-slugify</td></tr>
+<tr class='fail'><td>pyutils</td></tr>
+<tr class='fail'><td>PyWavelets</td></tr>
+<tr class='fail'><td>pywin32</td></tr>
+<tr class='fail'><td>pywin32-ctypes</td></tr>
+<tr class='fail'><td>pywinpty</td></tr>
+<tr class='fail'><td>PyYAML</td></tr>
+<tr class='fail'><td>pyzmq</td></tr>
+<tr class='fail'><td>QDarkStyle</td></tr>
+<tr class='fail'><td>QtAwesome</td></tr>
+<tr class='fail'><td>QtPy</td></tr>
+<tr class='fail'><td>qu2cu</td></tr>
+<tr class='fail'><td>ragged_paged_attention</td></tr>
+<tr class='fail'><td>refactoring</td></tr>
+<tr class='fail'><td>refs</td></tr>
+<tr class='fail'><td>relay</td></tr>
+<tr class='fail'><td>repo</td></tr>
+<tr class='fail'><td>resources</td></tr>
+<tr class='fail'><td>roman-numerals-py</td></tr>
+<tr class='fail'><td>roofline</td></tr>
+<tr class='fail'><td>rpds-py</td></tr>
+<tr class='fail'><td>rules</td></tr>
+<tr class='fail'><td>runtime</td></tr>
+<tr class='fail'><td>schema</td></tr>
+<tr class='fail'><td>scikit-image</td></tr>
+<tr class='fail'><td>scikit-learn</td></tr>
+<tr class='fail'><td>Scrapy</td></tr>
+<tr class='fail'><td>script</td></tr>
+<tr class='fail'><td>sdk</td></tr>
+<tr class='fail'><td>security</td></tr>
+<tr class='fail'><td>Send2Trash</td></tr>
+<tr class='fail'><td>serialization</td></tr>
+<tr class='fail'><td>server</td></tr>
+<tr class='fail'><td>service</td></tr>
+<tr class='fail'><td>shortcuts</td></tr>
+<tr class='fail'><td>sip</td></tr>
+<tr class='fail'><td>source_mapper</td></tr>
+<tr class='fail'><td>spacy</td></tr>
+<tr class='fail'><td>spark</td></tr>
+<tr class='fail'><td>sparse</td></tr>
+<tr class='fail'><td>spatial</td></tr>
+<tr class='fail'><td>specs</td></tr>
+<tr class='fail'><td>Sphinx</td></tr>
+<tr class='fail'><td>sphinxcontrib-applehelp</td></tr>
+<tr class='fail'><td>sphinxcontrib-devhelp</td></tr>
+<tr class='fail'><td>sphinxcontrib-htmlhelp</td></tr>
+<tr class='fail'><td>sphinxcontrib-jsmath</td></tr>
+<tr class='fail'><td>sphinxcontrib-qthelp</td></tr>
+<tr class='fail'><td>sphinxcontrib-serializinghtml</td></tr>
+<tr class='fail'><td>sphinxext</td></tr>
+<tr class='fail'><td>splash_attention</td></tr>
+<tr class='fail'><td>sql</td></tr>
+<tr class='fail'><td>SQLAlchemy</td></tr>
+<tr class='fail'><td>ssh</td></tr>
+<tr class='fail'><td>state</td></tr>
+<tr class='fail'><td>stats</td></tr>
+<tr class='fail'><td>streams</td></tr>
+<tr class='fail'><td>submodule</td></tr>
+<tr class='fail'><td>subscription</td></tr>
+<tr class='fail'><td>subset</td></tr>
+<tr class='fail'><td>suite</td></tr>
+<tr class='fail'><td>svgLib</td></tr>
+<tr class='fail'><td>System.Management.Automation.RemoteException</td></tr>
+<tr class='fail'><td>t1Lib</td></tr>
+<tr class='fail'><td>tbb</td></tr>
+<tr class='fail'><td>tensorflow-directml</td></tr>
+<tr class='fail'><td>TERENCE</td></tr>
+<tr class='fail'><td>terminal</td></tr>
+<tr class='fail'><td>testdata</td></tr>
+<tr class='fail'><td>testing</td></tr>
+<tr class='fail'><td>text</td></tr>
+<tr class='fail'><td>third_party</td></tr>
+<tr class='fail'><td>tools</td></tr>
+<tr class='fail'><td>tpu</td></tr>
+<tr class='fail'><td>transport</td></tr>
+<tr class='fail'><td>treeadapters</td></tr>
+<tr class='fail'><td>treebuilders</td></tr>
+<tr class='fail'><td>treewalkers</td></tr>
+<tr class='fail'><td>triton</td></tr>
+<tr class='fail'><td>ttLib</td></tr>
+<tr class='fail'><td>Twisted</td></tr>
+<tr class='fail'><td>twofactor</td></tr>
+<tr class='fail'><td>type</td></tr>
+<tr class='fail'><td>typer-slim</td></tr>
+<tr class='fail'><td>types-certifi</td></tr>
+<tr class='fail'><td>types-urllib3</td></tr>
+<tr class='fail'><td>tz</td></tr>
+<tr class='fail'><td>uc-micro-py</td></tr>
+<tr class='fail'><td>ufoLib</td></tr>
+<tr class='fail'><td>util</td></tr>
+<tr class='fail'><td>utilities</td></tr>
+<tr class='fail'><td>utils</td></tr>
+<tr class='fail'><td>validation</td></tr>
+<tr class='fail'><td>value</td></tr>
+<tr class='fail'><td>varLib</td></tr>
+<tr class='fail'><td>vendored</td></tr>
+<tr class='fail'><td>videofolder</td></tr>
+<tr class='fail'><td>vmap</td></tr>
+<tr class='fail'><td>voltLib</td></tr>
+<tr class='fail'><td>weasel</td></tr>
+<tr class='fail'><td>webdataset</td></tr>
+<tr class='fail'><td>websocket-client</td></tr>
+<tr class='fail'><td>Werkzeug</td></tr>
+<tr class='fail'><td>widgets</td></tr>
+<tr class='fail'><td>winappdbg</td></tr>
+<tr class='fail'><td>x509</td></tr>
+    </table>
+    
+    <h2>Skipped Modules (24)</h2>
+    <table>
+        <tr><th>Module</th></tr><tr class='skip'><td>_async</td></tr>
+<tr class='skip'><td>_backends</td></tr>
+<tr class='skip'><td>_compat</td></tr>
+<tr class='skip'><td>_core</td></tr>
+<tr class='skip'><td>_cygrpc</td></tr>
+<tr class='skip'><td>_cython</td></tr>
+<tr class='skip'><td>_debug_adapter</td></tr>
+<tr class='skip'><td>_generated</td></tr>
+<tr class='skip'><td>_hl</td></tr>
+<tr class='skip'><td>_mcp</td></tr>
+<tr class='skip'><td>_mlir_libs</td></tr>
+<tr class='skip'><td>_providers</td></tr>
+<tr class='skip'><td>_pydev_bundle</td></tr>
+<tr class='skip'><td>_pydev_runfiles</td></tr>
+<tr class='skip'><td>_pydevd_bundle</td></tr>
+<tr class='skip'><td>_pydevd_frame_eval</td></tr>
+<tr class='skip'><td>_src</td></tr>
+<tr class='skip'><td>_sync</td></tr>
+<tr class='skip'><td>_transports</td></tr>
+<tr class='skip'><td>_trie</td></tr>
+<tr class='skip'><td>_vendor</td></tr>
+<tr class='skip'><td>_vendored</td></tr>
+<tr class='skip'><td>_websocket</td></tr>
+<tr class='skip'><td>_widgets</td></tr>
+    </table>
+    
+    <h2>Linux Migration - Ubuntu 25.10</h2>
+    <div class="summary">
+        <h3>2026-02-17</h3>
+        <p>Python: 3.13.7 | Status: <strong>VERIFIED WORKING</strong></p>
+        <p>Source: Windows Azazael → Ubuntu 25.10</p>
+    </div>
+    
+    <table>
+        <tr><th>Module</th><th>Version</th><th>Status</th></tr>
+        <tr><td>torch</td><td>2.10.0+cpu</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>numpy</td><td>2.3.5</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>transformers</td><td>5.1.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>openvino</td><td>2025.4.1</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>tokenizers</td><td>0.22.2</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>safetensors</td><td>0.7.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>sympy</td><td>1.14.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>networkx</td><td>3.6.1</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>nltk</td><td>3.9.2</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>huggingface_hub</td><td>1.4.1</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>rich</td><td>14.3.2</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>typer</td><td>0.23.1</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>scipy</td><td>1.17.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>pandas</td><td>3.0.1</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>matplotlib</td><td>3.10.8</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>scikit-learn</td><td>1.8.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>pillow</td><td>12.1.1</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>xgboost</td><td>3.2.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>lightgbm</td><td>4.6.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>catboost</td><td>1.2.8</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>fasteners</td><td>0.20</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>cffi</td><td>2.0.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>charset-normalizer</td><td>3.4.4</td><td style="background-color:#ccffcc">OK</td></tr>
+<tr><td>python-gettext</td><td>5.0</td><td style="background-color:#ccffcc">OK</td></tr>
+    </table>
+    
+    <h2>Full Stack Additions</h2>
+    <table>
+        <tr><th>Category</th><th>Package</th><th>Version</th><th>Status</th></tr>
+        <tr><td>Web</td><td>flask</td><td>3.1.2</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>Web</td><td>fastapi</td><td>0.129.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>Web</td><td>streamlit</td><td>1.54.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>Web</td><td>gradio</td><td>6.6.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>CV</td><td>opencv-python-headless</td><td>4.13.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>CV</td><td>albumentations</td><td>2.0.8</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>CV</td><td>scikit-image</td><td>0.26.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>Viz</td><td>seaborn</td><td>0.13.2</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>Viz</td><td>plotly</td><td>6.0.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>Viz</td><td>bokeh</td><td>3.8.2</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>MLOps</td><td>mlflow</td><td>3.9.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>MLOps</td><td>optuna</td><td>4.7.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>MLOps</td><td>ray</td><td>2.53.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>NLP</td><td>spacy</td><td>3.8.11</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>NLP</td><td>textblob</td><td>0.19.0</td><td style="background-color:#ccffcc">OK</td></tr>
+        <tr><td>NLP</td><td>gensim</td><td>4.4.0</td><td style="background-color:#ccffcc">OK</td></tr>
+    </table>
+</body>
+</html>

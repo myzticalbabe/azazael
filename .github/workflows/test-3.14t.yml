@@ -1,0 +1,79 @@
+# Azazael CI — Python 3.14t Free-Threading Tests
+#
+# Runs the standalone test suite on Python 3.14t (free-threading).
+# Uses run_tests.py with --skip-slow for quick CI feedback (~3 min).
+# The full suite (including MetaCluster orchestration) takes ~6 min.
+#
+# Note: pytest is incompatible with Python 3.14t (Error #48).
+# All tests run via standalone python tests/test_*.py execution.
+#
+# Note on 3.14t CI availability:
+# GitHub Actions setup-python may not yet support "3.14t" (free-threading)
+# builds on Windows. If standard 3.14 is used instead, test results will
+# differ (e.g., psutil won't have the cp314t segfault, pytest may work).
+# Run `python -c "import sys; print('GIL:', sys._is_gil_enabled())"` to
+# verify whether free-threading is active.
+
+name: Test (3.14+)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          allow-prereleases: true
+
+      - name: Check free-threading status
+        shell: pwsh
+        run: |
+          python --version
+          python -c "import sys; print('GIL enabled:', sys._is_gil_enabled() if hasattr(sys, '_is_gil_enabled') else 'unknown')"
+          python -c "import sysconfig; print('SOABI:', sysconfig.get_config_var('SOABI') or 'none')"
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          # Force psutil cp314t wheel for free-threading compatibility
+          pip install --force-reinstall --no-deps psutil
+          python -c "import psutil; print(f'psutil {psutil.__version__}: OK (cpu={psutil.cpu_count()})')"
+
+      - name: Static type checking (mypy)
+        shell: pwsh
+        run: |
+          pip install mypy
+          python -m mypy src/CORE/ --ignore-missing-imports --check-untyped-defs
+        continue-on-error: true
+
+      - name: Quick test suite (--skip-slow)
+        shell: pwsh
+        run: |
+          python run_tests.py --skip-slow
+
+      - name: Full test suite (incl. metacluster)
+        shell: pwsh
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python run_tests.py --timeout 420
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: *.log
+          retention-days: 7

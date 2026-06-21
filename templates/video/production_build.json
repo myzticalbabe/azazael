@@ -1,0 +1,59 @@
+{
+  "name": "Production Build System",
+  "duration": 20,
+  "resolution": [1280, 720],
+  "fps": 30,
+  "bg_color": "0x0a0a1a",
+  "sections": [
+    {
+      "time": 0, "duration": 5,
+      "title": "PRODUCTION BUILD SYSTEM",
+      "subtitle": "38 Standalone .exe Files | Python 3.14t Free-Threading | PyInstaller",
+      "title_color": "white", "subtitle_color": "0x00f5ff",
+      "title_size": 32, "subtitle_size": 16,
+      "effect": "fade_in"
+    },
+    {
+      "time": 5, "duration": 3,
+      "title": "Core Worms (6 .exe)",
+      "subtitle": "CLOCKZ | DISKZ | CONCURRENCY | ERROR_Scan | NETWORXZ | PROCESSZ",
+      "title_color": "0x00ff88", "subtitle_color": "0xaaffcc",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 8, "duration": 3,
+      "title": "Cluster Worms (5 .exe)",
+      "subtitle": "CLUSTERWORMS | METACLUSTER | NATURE_Clusters | OMNI_WORM | HEALING_WORM",
+      "title_color": "0xbf00ff", "subtitle_color": "0xddaaff",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 11, "duration": 3,
+      "title": "Analysis Tools (8 .exe)",
+      "subtitle": "BINARY_Analysis | QL_Analysis | QL_Optimizer | File_Manifest | Comprehensive_Fix",
+      "title_color": "0xff8800", "subtitle_color": "0xffddaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 14, "duration": 3,
+      "title": "GUI & Studio (5 .exe)",
+      "subtitle": "Inference_Studio | CODEX_Studio | Animation_Protocols | Emoji_Maker | POPUP Suite",
+      "title_color": "0xff00aa", "subtitle_color": "0xffaadd",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 17, "duration": 3,
+      "title": "System (7 .exe) & ML (7 .exe)",
+      "subtitle": "HYDRA Suite | AZAZAEL_CLI | Auto_Downloader | Ecosystem_Expansion | NODE | SMARTDISK",
+      "title_color": "0xffdd00", "subtitle_color": "0xffeeaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    }
+  ],
+  "footer": "Total: 38 .exe (406 MB) | 52 .bat launchers | Zero Build Artifacts",
+  "footer_color": "0x666666"
+}

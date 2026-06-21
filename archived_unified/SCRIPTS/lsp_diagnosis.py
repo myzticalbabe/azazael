@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""
+LSP & Environment Diagnosis for Azazael
+"""
+import sys
+import os
+import subprocess
+from pathlib import Path
+
+def run_cmd(cmd, timeout=30):
+    try:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+        return result.stdout + result.stderr
+    except Exception as e:
+        return str(e)
+
+print("=" * 60)
+print("AZAZAEL LSP & PERMISSION DIAGNOSIS")
+print("=" * 60)
+
+# Python versions
+print("\n[1] Python Installations:")
+print(run_cmd("where python python3 2>&1"))
+
+# venv check
+print("\n[2] Virtual Environment:")
+venv_python = Path.home() / "Desktop" / "Azazael_UNIFIED" / ".venv" / "Scripts" / "python.exe"
+print(f"Expected venv: {venv_python}")
+print(f"Exists: {venv_python.exists()}")
+
+# Installed LSP tools
+print("\n[3] LSP Tools:")
+for tool in ["pyright", "pylint", "mypy", "pylance"]:
+    result = run_cmd(f'pip show {tool} 2>&1')
+    found = "INSTALLED" if "Name:" in result else "NOT FOUND"
+    print(f"  {tool}: {found}")
+
+# Check imports
+print("\n[4] Common Import Failures:")
+for module in ["tkinter", "pygame", "torch", "tensorflow"]:
+    result = run_cmd(f'python -c "import {module}; print(f\'{module}: OK\')" 2>&1')
+    print(f"  {result.strip()}")
+
+# Permissions
+print("\n[5] Azazael Directory:")
+azazael = Path.home() / "Desktop" / "Azazael_UNIFIED"
+print(f"Path: {azazael}")
+print(f"Exists: {azazael.exists()}")
+if azazael.exists():
+    files = list(azazael.glob("*.py"))[:5]
+    print(f"Sample .py files: {[f.name for f in files]}")
+
+# Log directory
+print("\n[6] Logs Directory:")
+log_dir = azazael / "UTILITIES" / "logs"
+print(f"Log dir: {log_dir}")
+print(f"Exists: {log_dir.exists()}")
+
+print("\n" + "=" * 60)
+print("DIAGNOSIS COMPLETE")
+print("=" * 60)

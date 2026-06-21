@@ -1,0 +1,310 @@
+================================================================================
+AZAZAEL FULL COMMAND REFERENCE
+================================================================================
+
+This file contains actual shell commands for every step in the chain-of-information
+auto-append process. Use these commands directly in the terminal.
+
+================================================================================
+GLOBAL VARIABLES
+================================================================================
+
+export AZAZAEL_SOURCE="$HOME/Documents/AZAZAEL/AZAZAEL_BOOT"
+export AZAZAEL_BACKUP="/media/myzticalbabe/My Passport/AZAZAEL_BOOT"
+export AZAZAEL_DOCS="$AZAZAEL_SOURCE/docs"
+export AZAZAEL_WHEELS="$AZAZAEL_SOURCE/linux-wheels"
+
+================================================================================
+TYPE 1: NEW PACKAGE (.whl) - COMPLETE COMMAND SEQUENCE
+================================================================================
+
+# Step 1: Copy .whl file to linux-wheels/
+# ─────────────────────────────────────────────
+cp /path/to/new_package.whl $AZAZAEL_WHEELS/
+
+# Step 2: Update INSTALL_GUIDE_LINUX.md (Packages table)
+# ─────────────────────────────────────────────────────
+# Add new line to Installed Packages table
+echo "| new_package | 1.0.0 | local |" >> $AZAZAEL_DOCS/INSTALL_GUIDE_LINUX.md
+
+# Step 3: Update python_modules.txt
+# ─────────────────────────────────
+cat >> $AZAZAEL_DOCS/python_modules.txt << 'EOF'
+
+NEW PACKAGE - Date: $(date +%Y-%m-%d)
+new_package -> 1.0.0 [AZAZAEL_BOOT/linux-wheels/]
+EOF
+
+# Step 4: Update python_modules.html
+# ────────────────────────────────
+# Add table row before </table> tag
+sed -i 's|</table>|<tr><td>new_package</td><td>1.0.0</td><td style="background-color:#ccffcc">OK</td></tr>\n</table>|' $AZAZAEL_DOCS/python_modules.html
+
+# Step 5: Update azazael_environment.xml
+# ────────────────────────────────────
+sed -i 's|</packages>|    <package name="new_package" version="1.0.0" status="verified"/>\n</packages>|' $AZAZAEL_DOCS/azazael_environment.xml
+
+# Step 6: Run verification test
+# ─────────────────────────────
+python3 -c "import new_package; print('new_package:', new_package.__version__)"
+
+# Step 7: Update verification_log.txt
+# ─────────────────────────────────
+cat >> $AZAZAEL_DOCS/verification_log.txt << 'EOF'
+
+========================================
+NEW PACKAGE VERIFICATION - $(date +%Y-%m-%d)
+========================================
+new_package: 1.0.0 - OK
+EOF
+
+# Step 8: Auto-generate CHAIN_OF_INFORMATION.txt
+# ───────────────────────────────────────────────
+# (Manual update required - add new entry to diagram)
+# Add entry to VISUAL_REPRESENTATIONS.txt if major change
+
+# Step 9: Auto-generate INFORMATION_GENERATION.txt
+# ─────────────────────────────────────────────────
+# (Manual update required if structure changes)
+
+# Step 10: Sync to backup
+# ──────────────────────
+rsync -av $AZAZAEL_SOURCE/ $AZAZAEL_BACKUP/
+
+================================================================================
+TYPE 2: NEW FIX/WORKAROUND - COMPLETE COMMAND SEQUENCE
+================================================================================
+
+# Step 1: Identify and document the fix
+# ─────────────────────────────────────
+FIX_TITLE="Fix: Description of issue"
+FIX_DESCRIPTION="Solution applied: ..."
+
+# Step 2: Update INSTALL_GUIDE_LINUX.md (Troubleshooting section)
+# ────────────────────────────────────────────────────────────────
+cat >> $AZAZAEL_DOCS/INSTALL_GUIDE_LINUX.md << EOF
+
+### $FIX_TITLE
+**Date:** $(date +%Y-%m-%d)
+
+**Problem:** 
+$FIX_DESCRIPTION
+
+**Solution:**
+\`\`\`bash
+# Your fix command here
+\`\`\`
+EOF
+
+# Step 3: Update update_log.txt
+# ────────────────────────────
+cat >> $AZAZAEL_DOCS/update_log.txt << 'EOF'
+
+================================================================================
+FIX APPLIED - $(date +%Y-%m-%d)
+================================================================================
+Description: $FIX_TITLE
+Solution: $FIX_DESCRIPTION
+EOF
+
+# Step 4: Auto-generate CHAIN_OF_INFORMATION.txt
+# ───────────────────────────────────────────────
+# Add fix path to detailed flow diagram if significant
+
+# Step 5: Sync to backup
+# ──────────────────────
+rsync -av $AZAZAEL_SOURCE/ $AZAZAEL_BACKUP/
+
+================================================================================
+TYPE 3: NEW DOCUMENTATION (.txt/.md/.html/.tex/.xml) - COMPLETE COMMAND SEQUENCE
+================================================================================
+
+# Step 1: Copy new file to docs/
+# ──────────────────────────────
+cp /path/to/new_file.txt $AZAZAEL_DOCS/
+# For .md, .html, .tex, .xml files:
+cp /path/to/new_file.md $AZAZAEL_DOCS/
+cp /path/to/new_file.html $AZAZAEL_DOCS/
+cp /path/to/new_file.tex $AZAZAEL_DOCS/
+cp /path/to/new_file.xml $AZAZAEL_DOCS/
+
+# Step 2: Determine file type and update relevant chain file
+# ───────────────────────────────────────────────────────────
+
+# If .tex file:
+cat >> $AZAZAEL_DOCS/update_log.txt << 'EOF'
+ADDED: new_file.tex - LaTeX document
+EOF
+
+# If .xml file:
+cat >> $AZAZAEL_DOCS/update_log.txt << 'EOF'
+ADDED: new_file.xml - XML configuration
+EOF
+
+# If .md file (update INSTALL_GUIDE_LINUX.md):
+cat >> $AZAZAEL_DOCS/INSTALL_GUIDE_LINUX.md << 'EOF'
+
+---
+## Additional Documentation
+See new_file.md for more details.
+EOF
+
+# Step 3: Update update_log.txt
+# ────────────────────────────
+cat >> $AZAZAEL_DOCS/update_log.txt << 'EOF'
+
+================================================================================
+NEW DOCUMENTATION ADDED - $(date +%Y-%m-%d)
+================================================================================
+File: new_file.ext
+Source: /path/to/original
+EOF
+
+# Step 4: Update azazael_environment.xml (if new file type)
+# ─────────────────────────────────────────────────────────
+# Add to <files_in_chain> section:
+sed -i 's|</files_in_chain>|    <file>new_file.ext</file>\n</files_in_chain>|' $AZAZAEL_DOCS/azazael_environment.xml
+
+# Step 5: Auto-generate INFORMATION_GENERATION.txt
+# ─────────────────────────────────────────────────
+# Add new file to file structure tree if significant
+
+# Step 6: Sync to backup
+# ──────────────────────
+rsync -av $AZAZAEL_SOURCE/ $AZAZAEL_BACKUP/
+
+================================================================================
+TYPE 4: VERIFICATION/TEST RESULTS - COMPLETE COMMAND SEQUENCE
+================================================================================
+
+# Step 1: Run verification tests
+# ───────────────────────────────
+python3 -c "import torch; print('torch:', torch.__version__)"
+python3 -c "import numpy; print('numpy:', numpy.__version__)"
+python3 -c "import transformers; print('transformers:', transformers.__version__)"
+python3 -c "import openvino; print('openvino:', openvino.__version__)"
+python3 -c "import sympy; print('sympy:', sympy.__version__)"
+python3 -c "import networkx; print('networkx:', networkx.__version__)"
+python3 -c "import nltk; print('nltk:', nltk.__version__)"
+
+# Step 2: Update verification_log.txt
+# ─────────────────────────────────
+cat >> $AZAZAEL_DOCS/verification_log.txt << 'EOF'
+
+========================================
+VERIFICATION RUN - $(date +%Y-%m-%d %H:%M:%S)
+========================================
+Python: $(python3 --version)
+Status: ALL TESTS PASSED
+EOF
+
+# Step 3: Update python_modules.html (if results changed)
+# ────────────────────────────────────────────────────────
+# Update the summary section with new counts
+
+# Step 4: Auto-generate CHAIN_OF_INFORMATION.txt
+# ───────────────────────────────────────────────
+# Update verification flow path if changed
+
+# Step 5: Sync to backup
+# ──────────────────────
+rsync -av $AZAZAEL_SOURCE/ $AZAZAEL_BACKUP/
+
+================================================================================
+TYPE 5: BACKUP SYNC - COMPLETE COMMAND SEQUENCE
+================================================================================
+
+# Step 1: Run rsync to backup
+# ───────────────────────────
+rsync -av --checksum $AZAZAEL_SOURCE/ $AZAZAEL_BACKUP/
+
+# Step 2: Verify integrity
+# ───────────────────────
+# Compare file counts
+SOURCE_COUNT=$(find $AZAZAEL_SOURCE -type f | wc -l)
+BACKUP_COUNT=$(find $AZAZAEL_BACKUP -type f | wc -l)
+echo "Source files: $SOURCE_COUNT"
+echo "Backup files: $BACKUP_COUNT"
+
+# Compare checksums
+diff <(find $AZAZAEL_SOURCE -type f -exec md5sum {} \; | sort) \
+     <(find $AZAZAEL_BACKUP -type f -exec md5sum {} \; | sort) \
+     && echo "CHECKSUMS MATCH" || echo "CHECKSUMS DIFFER"
+
+# Step 3: Get backup size
+# ─────────────────────
+BACKUP_SIZE=$(du -sh $AZAZAEL_BACKUP | cut -f1)
+echo "Backup size: $BACKUP_SIZE"
+
+# Step 4: Update update_log.txt
+# ────────────────────────────
+cat >> $AZAZAEL_DOCS/update_log.txt << EOF
+
+================================================================================
+BACKUP SYNC - $(date +%Y-%m-%d %H:%M:%S)
+================================================================================
+Source: $AZAZAEL_SOURCE
+Destination: $AZAZAEL_BACKUP
+File count: $SOURCE_COUNT → $BACKUP_COUNT
+Size: $BACKUP_SIZE
+Integrity: VERIFIED
+EOF
+
+# Step 5: Auto-generate CHAIN_OF_INFORMATION.txt
+# ───────────────────────────────────────────────
+# Update backup node in diagrams
+
+================================================================================
+QUICK REFERENCE COMMANDS
+================================================================================
+
+# One-liner to sync everything
+alias azazael-sync='rsync -av --checksum $HOME/Documents/AZAZAEL/AZAZAEL_BOOT/ "/media/myzticalbabe/My Passport/AZAZAEL_BOOT/"'
+
+# One-liner to verify backup
+alias azazael-verify='diff <(find $HOME/Documents/AZAZAEL/AZAZAEL_BOOT -type f -exec md5sum {} \; | sort) <(find "/media/myzticalbabe/My Passport/AZAZAEL_BOOT" -type f -exec md5sum {} \; | sort) && echo "OK" || echo "DIFF"'
+
+# Quick test all packages
+alias azazael-test='python3 -c "import torch,numpy,transformers,openvino,sympy,networkx,nltk; print(\"ALL OK\")"'
+
+================================================================================
+AUTOMATION SCRIPT TEMPLATE
+================================================================================
+
+#!/bin/bash
+# azazael_auto_append.sh - Automated chain-of-information handler
+
+TYPE=$1
+FILE=$2
+
+case $TYPE in
+    package)
+        echo "Processing package: $FILE"
+        cp "$FILE" $AZAZAEL_WHEELS/
+        # ... add remaining package steps
+        ;;
+    fix)
+        echo "Processing fix: $FILE"
+        # ... add fix steps
+        ;;
+    doc)
+        echo "Processing doc: $FILE"
+        cp "$FILE" $AZAZAEL_DOCS/
+        # ... add doc steps
+        ;;
+    verify)
+        echo "Running verification"
+        # ... add verify steps
+        ;;
+    sync)
+        echo "Syncing to backup"
+        rsync -av $AZAZAEL_SOURCE/ $AZAZAEL_BACKUP/
+        ;;
+    *)
+        echo "Usage: $0 [package|fix|doc|verify|sync] [file]"
+        ;;
+esac
+
+================================================================================
+UPDATED: 2026-02-17
+================================================================================

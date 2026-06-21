@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Worm Lifecycle — Mermaid State Diagram</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #040410; color: #e0e0e8; font-family: Consolas,monospace;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 30px;
+  background-image: radial-gradient(ellipse at 20% 80%, rgba(0,255,136,0.04) 0%, transparent 60%);
+}
+h1 {
+  font-size: 2.2em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #00ff88, #00f5ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: #888; font-size: 0.95em; margin-bottom: 30px; }
+.mermaid {
+  background: #0a0a20; border: 1px solid #1a1a35; border-radius: 16px;
+  padding: 30px; max-width: 1100px; width: 100%;
+  overflow-x: auto;
+}
+.note { color: #555; margin-top: 20px; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>AZAZAEL Worm Lifecycle</h1>
+<p class="subtitle">State Machine | Circuit Breaker Integration | Health Transitions</p>
+<div class="mermaid">
+stateDiagram-v2
+    [*] --> Initialized: spawn()
+    
+    Initialized --> Scanning: start_scan()
+    Initialized --> Idle: pause()
+    
+    Scanning --> Processing: data_collected
+    Scanning --> Error: scan_failure
+    
+    Processing --> Reporting: analysis_complete
+    Processing --> Error: processing_failure
+    Processing --> Scanning: re_scan
+    
+    Reporting --> Idle: report_generated
+    Reporting --> Scanning: continuous_mode
+    
+    Idle --> Scanning: resume()
+    Idle --> Terminated: shutdown()
+    
+    Error --> Recovering: auto_heal()
+    Error --> DeadLetter: max_retries_exceeded
+    
+    Recovering --> Scanning: recovered
+    Recovering --> Error: recovery_failed
+    
+    DeadLetter --> Recovering: replay()
+    DeadLetter --> Terminated: force_kill()
+    
+    Terminated --> [*]
+    
+    note right of Error
+        Circuit Breaker: OPEN
+        Exponential Backoff
+    end note
+    
+    note right of Recovering
+        Circuit Breaker: HALF-OPEN
+        Probe Requests
+    end note
+    
+    note left of Scanning
+        Circuit Breaker: CLOSED
+        Normal Operation
+    end note
+</div>
+<p class="note">Mermaid State Diagram — AZAZAEL Worm Lifecycle | 8 States | Circuit Breaker Integration | Dead Letter Recovery</p>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose'});</script>
+</body>
+</html>

@@ -1,0 +1,988 @@
+PYTHON MODULE VERIFICATION REPORT
+Generated: 2026-02-15 10:46:41
+=====================================
+
+SUMMARY
+-------
+Total Modules: 894
+OK (Working): 511
+FAIL: 359
+SKIP (Private): 24
+
+WORKING MODULES (511)
+-------------------------------
+abc -> abc [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+absl -> absl [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+accelerate -> accelerate [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+adodbapi -> adodbapi [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+aext_environments_server -> aext_environments_server [C:\Users\clint\anaconda3\python.exe]
+aext-assistant -> aext_assistant [C:\Users\clint\anaconda3\python.exe]
+aext-assistant-server -> aext_assistant_server [C:\Users\clint\anaconda3\python.exe]
+aext-core -> aext_core [C:\Users\clint\anaconda3\python.exe]
+aext-core-server -> aext_core_server [C:\Users\clint\anaconda3\python.exe]
+aext-panels -> aext_panels [C:\Users\clint\anaconda3\python.exe]
+aext-panels-server -> aext_panels_server [C:\Users\clint\anaconda3\python.exe]
+aext-project-filebrowser-server -> aext_project_filebrowser_server [C:\Users\clint\anaconda3\python.exe]
+aext-shared -> aext_shared [C:\Users\clint\anaconda3\python.exe]
+aext-share-notebook -> aext_share_notebook [C:\Users\clint\anaconda3\python.exe]
+aext-share-notebook-server -> aext_share_notebook_server [C:\Users\clint\anaconda3\python.exe]
+aext-toolbox -> aext_toolbox [C:\Users\clint\anaconda3\python.exe]
+aiobotocore -> aiobotocore [C:\Users\clint\anaconda3\python.exe]
+aiodns -> aiodns [C:\Users\clint\anaconda3\python.exe]
+aiohappyeyeballs -> aiohappyeyeballs [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+aiohttp -> aiohttp [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+aioitertools -> aioitertools [C:\Users\clint\anaconda3\python.exe]
+aiosignal -> aiosignal [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+alabaster -> alabaster [C:\Users\clint\anaconda3\python.exe]
+alembic -> alembic [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+altair -> altair [C:\Users\clint\anaconda3\python.exe]
+altgraph -> altgraph [C:\Program Files\Python311\python.exe]
+anaconda-anon-usage -> anaconda_anon_usage [C:\Users\clint\anaconda3\python.exe]
+anaconda-auth -> anaconda_auth [C:\Users\clint\anaconda3\python.exe]
+anaconda-catalogs -> anaconda_catalogs [C:\Users\clint\anaconda3\python.exe]
+anaconda-cli-base -> anaconda_cli_base [C:\Users\clint\anaconda3\python.exe]
+anaconda-navigator -> anaconda_navigator [C:\Users\clint\anaconda3\python.exe]
+anaconda-project -> anaconda_project [C:\Users\clint\anaconda3\python.exe]
+annotated_doc -> annotated_doc [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+annotated_types -> annotated_types [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+annotated-doc -> annotated_doc [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+annotated-types -> annotated_types [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ansicon -> ansicon [C:\Program Files\Python311\python.exe]
+anthropic -> anthropic [C:\Program Files\Python311\python.exe]
+anyio -> anyio [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+appdirs -> appdirs [C:\Users\clint\anaconda3\python.exe]
+archspec -> archspec [C:\Users\clint\anaconda3\python.exe]
+argon2 -> argon2 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+array_serialization -> array [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+arrow -> arrow [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+astor -> astor [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+astroid -> astroid [C:\Users\clint\anaconda3\python.exe]
+astropy -> astropy [C:\Users\clint\anaconda3\python.exe]
+astropy-iers-data -> astropy_iers_data [C:\Users\clint\anaconda3\python.exe]
+asttokens -> asttokens [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+astunparse -> astunparse [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+async_lru -> async_lru [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+async-generator -> async_generator [C:\Program Files\Python311\python.exe]
+async-lru -> async_lru [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+asyncssh -> asyncssh [C:\Users\clint\anaconda3\python.exe]
+async-timeout -> async_timeout [C:\Users\clint\anaconda3\envs\df-env\python.exe]
+atomicwrites -> atomicwrites [C:\Users\clint\anaconda3\python.exe]
+attr -> attr [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+attrs -> attrs [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+autopep8 -> autopep8 [C:\Users\clint\anaconda3\python.exe]
+babel -> babel [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+bcrypt -> bcrypt [C:\Users\clint\anaconda3\python.exe]
+binaryornot -> binaryornot [C:\Users\clint\anaconda3\python.exe]
+black -> black [C:\Users\clint\anaconda3\python.exe]
+bleach -> bleach [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+blessed -> blessed [C:\Program Files\Python311\python.exe]
+blinker -> blinker [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+blis -> blis [C:\Python314\python.exe]
+bokeh -> bokeh [C:\Users\clint\anaconda3\python.exe]
+boltons -> boltons [C:\Users\clint\anaconda3\python.exe]
+botocore -> botocore [C:\Users\clint\anaconda3\python.exe]
+brotlicffi -> brotlicffi [C:\Users\clint\anaconda3\python.exe]
+bs4 -> bs4 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cachetools -> cachetools [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+catalogue -> catalogue [C:\Python314\python.exe]
+cattrs -> cattrs [C:\Users\clint\anaconda3\python.exe]
+certifi -> certifi [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cffi -> cffi [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+chardet -> chardet [C:\Users\clint\anaconda3\python.exe]
+charset_normalizer -> charset_normalizer [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+charset-normalizer -> charset_normalizer [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+clang -> clang [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+click -> click [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cloudpathlib -> cloudpathlib [C:\Python314\python.exe]
+cloudpickle -> cloudpickle [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+colorama -> colorama [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+colorcet -> colorcet [C:\Users\clint\anaconda3\python.exe]
+colorlog -> colorlog [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+comm -> comm [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+conda -> conda [C:\Users\clint\anaconda3\python.exe]
+conda_index -> conda_index [C:\Users\clint\anaconda3\python.exe]
+conda_package_streaming -> conda_package_streaming [C:\Users\clint\anaconda3\python.exe]
+conda-anaconda-telemetry -> conda_anaconda_telemetry [C:\Users\clint\anaconda3\python.exe]
+conda-anaconda-tos -> conda_anaconda_tos [C:\Users\clint\anaconda3\python.exe]
+conda-build -> conda_build [C:\Users\clint\anaconda3\python.exe]
+conda-content-trust -> conda_content_trust [C:\Users\clint\anaconda3\python.exe]
+conda-libmamba-solver -> conda_libmamba_solver [C:\Users\clint\anaconda3\python.exe]
+conda-pack -> conda_pack [C:\Users\clint\anaconda3\python.exe]
+conda-package-handling -> conda_package_handling [C:\Users\clint\anaconda3\python.exe]
+confection -> confection [C:\Python314\python.exe]
+constantly -> constantly [C:\Users\clint\anaconda3\python.exe]
+contourpy -> contourpy [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cookiecutter -> cookiecutter [C:\Users\clint\anaconda3\python.exe]
+cryptography -> cryptography [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cssselect -> cssselect [C:\Users\clint\anaconda3\python.exe]
+csv -> csv [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cycler -> cycler [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+cymem -> cymem [C:\Python314\python.exe]
+dask -> dask [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+databricks -> databricks [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+dataclasses -> dataclasses [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+datasets -> datasets [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+datashader -> datashader [C:\Users\clint\anaconda3\python.exe]
+dateutil -> dateutil [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+debugpy -> debugpy [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+decorator -> decorator [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+defusedxml -> defusedxml [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+diff-match-patch -> diff_match_patch [C:\Users\clint\anaconda3\python.exe]
+dill -> dill [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+distributed -> distributed [C:\Users\clint\anaconda3\python.exe]
+distro -> distro [C:\Program Files\Python311\python.exe]
+docker -> docker [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+docstring_parser -> docstring_parser [C:\Python314\python.exe]
+docstring-to-markdown -> docstring_to_markdown [C:\Users\clint\anaconda3\python.exe]
+docutils -> docutils [C:\Users\clint\anaconda3\python.exe]
+dotenv -> dotenv [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+easyocr -> easyocr [C:\Program Files\Python311\python.exe]
+editor -> editor [C:\Program Files\Python311\python.exe]
+einops -> einops [C:\Program Files\Python311\python.exe]
+encodings -> encodings [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+et_xmlfile -> et_xmlfile [C:\Users\clint\anaconda3\python.exe]
+evalidate -> evalidate [C:\Users\clint\anaconda3\python.exe]
+exceptiongroup -> exceptiongroup [C:\Users\clint\anaconda3\envs\df-env\python.exe]
+executing -> executing [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+fastapi -> fastapi [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+fastjsonschema -> fastjsonschema [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+fastuuid -> fastuuid [C:\Program Files\Python311\python.exe]
+filelock -> filelock [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+flake8 -> flake8 [C:\Users\clint\anaconda3\python.exe]
+flask_cors -> flask_cors [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+flask-cors -> flask_cors [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+flatbuffers -> flatbuffers [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+formatter -> formatter [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+fqdn -> fqdn [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+frozendict -> frozendict [C:\Users\clint\anaconda3\python.exe]
+frozenlist -> frozenlist [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+fsspec -> fsspec [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+functorch -> functorch [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+future -> future [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+gast -> gast [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+git -> git [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+gitdb -> gitdb [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+google-auth-httplib2 -> google_auth_httplib2 [C:\Program Files\Python311\python.exe]
+graphene -> graphene [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+graphql -> graphql [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+graphql_relay -> graphql_relay [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+graphql-relay -> graphql_relay [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+greenlet -> greenlet [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+grpc -> grpc [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+h11 -> h11 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+h5py -> h5py [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+hf_xet -> hf_xet [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+hf-xet -> hf_xet [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+holoviews -> holoviews [C:\Users\clint\anaconda3\python.exe]
+html2image -> html2image [C:\Program Files\Python311\python.exe]
+html2text -> html2text [C:\Program Files\Python311\python.exe]
+html5lib -> html5lib [C:\Users\clint\anaconda3\python.exe]
+httpcore -> httpcore [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+httplib2 -> httplib2 [C:\Program Files\Python311\python.exe]
+httpx -> httpx [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+huey -> huey [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+huggingface_hub -> huggingface_hub [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+huggingface-hub -> huggingface_hub [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+hvplot -> hvplot [C:\Users\clint\anaconda3\python.exe]
+hyperlink -> hyperlink [C:\Users\clint\anaconda3\python.exe]
+idna -> idna [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+imagesize -> imagesize [C:\Users\clint\anaconda3\python.exe]
+importlib_metadata -> importlib_metadata [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+importlib-metadata -> importlib_metadata [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+incremental -> incremental [C:\Users\clint\anaconda3\python.exe]
+inflection -> inflection [C:\Users\clint\anaconda3\python.exe]
+iniconfig -> iniconfig [C:\Program Files\Python311\python.exe]
+inquirer -> inquirer [C:\Program Files\Python311\python.exe]
+intake -> intake [C:\Users\clint\anaconda3\python.exe]
+intervaltree -> intervaltree [C:\Users\clint\anaconda3\python.exe]
+io -> io [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ipykernel -> ipykernel [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ipympl -> ipympl [C:\Users\clint\anaconda3\python.exe]
+ipython_pygments_lexers -> ipython_pygments_lexers [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ipywidgets -> ipywidgets [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+isapi -> isapi [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+isoduration -> isoduration [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+isort -> isort [C:\Users\clint\anaconda3\python.exe]
+itemadapter -> itemadapter [C:\Users\clint\anaconda3\python.exe]
+itemloaders -> itemloaders [C:\Users\clint\anaconda3\python.exe]
+itsdangerous -> itsdangerous [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jaraco.classes -> jaraco.classes [C:\Users\clint\anaconda3\python.exe]
+jaraco.context -> jaraco.context [C:\Users\clint\anaconda3\python.exe]
+jaraco.functools -> jaraco.functools [C:\Users\clint\anaconda3\python.exe]
+jax -> jax [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jaxlib -> jaxlib [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jedi -> jedi [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jellyfish -> jellyfish [C:\Users\clint\anaconda3\python.exe]
+jinxed -> jinxed [C:\Program Files\Python311\python.exe]
+jiter -> jiter [C:\Program Files\Python311\python.exe]
+jmespath -> jmespath [C:\Users\clint\anaconda3\python.exe]
+joblib -> joblib [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+json -> json [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+json5 -> json5 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jsonpatch -> jsonpatch [C:\Users\clint\anaconda3\python.exe]
+jsonpointer -> jsonpointer [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jsonschema -> jsonschema [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jsonschema_specifications -> jsonschema_specifications [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jsonschema-specifications -> jsonschema_specifications [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter -> jupyter [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_client -> jupyter_client [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_console -> jupyter_console [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_core -> jupyter_core [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_events -> jupyter_events [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_lsp -> jupyter_lsp [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_server -> jupyter_server [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter_server_terminals -> jupyter_server_terminals [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter-console -> jupyter_console [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter-events -> jupyter_events [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyterlab -> jupyterlab [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyterlab_pygments -> jupyterlab_pygments [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyterlab_server -> jupyterlab_server [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyterlab_widgets -> jupyterlab_widgets [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+jupyter-lsp -> jupyter_lsp [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+keras -> keras [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+keyring -> keyring [C:\Users\clint\anaconda3\python.exe]
+kiwisolver -> kiwisolver [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+lark -> lark [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+lazy_loader -> lazy_loader [C:\Program Files\Python311\python.exe]
+lckr_jupyterlab_variableinspector -> lckr_jupyterlab_variableinspector [C:\Users\clint\anaconda3\python.exe]
+lib -> lib [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+libmambapy -> libmambapy [C:\Users\clint\anaconda3\python.exe]
+lief -> lief [C:\Users\clint\anaconda3\python.exe]
+lightgbm -> lightgbm [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+litellm -> litellm [C:\Program Files\Python311\python.exe]
+llvmlite -> llvmlite [C:\Users\clint\anaconda3\python.exe]
+lmdb -> lmdb [C:\Users\clint\anaconda3\python.exe]
+locket -> locket [C:\Users\clint\anaconda3\python.exe]
+logging -> logging [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+lsprotocol -> lsprotocol [C:\Users\clint\anaconda3\python.exe]
+lxml -> lxml [C:\Program Files\Python311\python.exe]
+lz4 -> lz4 [C:\Users\clint\anaconda3\python.exe]
+matplotlib -> matplotlib [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+matplotlib-inline -> matplotlib_inline [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+mccabe -> mccabe [C:\Users\clint\anaconda3\python.exe]
+mdit-py-plugins -> mdit_py_plugins [C:\Users\clint\anaconda3\python.exe]
+mdurl -> mdurl [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+menuinst -> menuinst [C:\Users\clint\anaconda3\python.exe]
+mistune -> mistune [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+mkl -> mkl [C:\Users\clint\anaconda3\python.exe]
+mkl_fft -> mkl_fft [C:\Users\clint\anaconda3\python.exe]
+mkl_random -> mkl_random [C:\Users\clint\anaconda3\python.exe]
+ml_dtypes -> ml_dtypes [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+mlflow -> mlflow [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+more-itertools -> more_itertools [C:\Users\clint\anaconda3\python.exe]
+mpi4py -> mpi4py [C:\Users\clint\anaconda3\python.exe]
+mpmath -> mpmath [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+msgpack -> msgpack [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+multidict -> multidict [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+multipledispatch -> multipledispatch [C:\Users\clint\anaconda3\python.exe]
+multiprocess -> multiprocess [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+murmurhash -> murmurhash [C:\Python314\python.exe]
+mypy -> mypy [C:\Users\clint\anaconda3\python.exe]
+mypy_extensions -> mypy_extensions [C:\Program Files\Python311\python.exe]
+namex -> namex [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+narwhals -> narwhals [C:\Users\clint\anaconda3\python.exe]
+navigator-updater -> navigator_updater [C:\Users\clint\anaconda3\python.exe]
+nb_conda_kernels -> nb_conda_kernels [C:\Users\clint\anaconda3\python.exe]
+nbclient -> nbclient [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+nbconvert -> nbconvert [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+nbformat -> nbformat [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+nest_asyncio -> nest_asyncio [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+nest-asyncio -> nest_asyncio [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+networkx -> networkx [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ninja -> ninja [C:\Program Files\Python311\python.exe]
+nltk -> nltk [C:\Program Files\Python311\python.exe]
+notebook -> notebook [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+notebook_shim -> notebook_shim [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+numba -> numba [C:\Users\clint\anaconda3\python.exe]
+numexpr -> numexpr [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+numpy -> numpy [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+numpydoc -> numpydoc [C:\Users\clint\anaconda3\python.exe]
+onnx -> onnx [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+onnxruntime -> onnxruntime [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+openai -> openai [C:\Program Files\Python311\python.exe]
+openpyxl -> openpyxl [C:\Users\clint\anaconda3\python.exe]
+opt_einsum -> opt_einsum [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+opt-einsum -> opt_einsum [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+optree -> optree [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+optuna -> optuna [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+outcome -> outcome [C:\Program Files\Python311\python.exe]
+overrides -> overrides [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+packaging -> packaging [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pandas -> pandas [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pandocfilters -> pandocfilters [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+panel -> panel [C:\Users\clint\anaconda3\python.exe]
+param -> param [C:\Users\clint\anaconda3\python.exe]
+parsel -> parsel [C:\Users\clint\anaconda3\python.exe]
+parser -> parser [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+parso -> parso [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+partd -> partd [C:\Users\clint\anaconda3\python.exe]
+pathspec -> pathspec [C:\Users\clint\anaconda3\python.exe]
+patsy -> patsy [C:\Users\clint\anaconda3\python.exe]
+pefile -> pefile [C:\Program Files\Python311\python.exe]
+peft -> peft [C:\Python314\python.exe]
+pexpect -> pexpect [C:\Users\clint\anaconda3\python.exe]
+pickleshare -> pickleshare [C:\Users\clint\anaconda3\python.exe]
+pip -> pip [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pkce -> pkce [C:\Users\clint\anaconda3\python.exe]
+pkginfo -> pkginfo [C:\Users\clint\anaconda3\python.exe]
+platform -> platform [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+platformdirs -> platformdirs [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+plistlib -> plistlib [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+plotly -> plotly [C:\Users\clint\anaconda3\python.exe]
+pluggy -> pluggy [C:\Program Files\Python311\python.exe]
+preshed -> preshed [C:\Python314\python.exe]
+prettytable -> prettytable [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+prometheus_client -> prometheus_client [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+prompt_toolkit -> prompt_toolkit [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+propcache -> propcache [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+psutil -> psutil [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pure_eval -> pure_eval [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pyarrow -> pyarrow [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pyasn1 -> pyasn1 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pyasn1_modules -> pyasn1_modules [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pycares -> pycares [C:\Users\clint\anaconda3\python.exe]
+pyclipper -> pyclipper [C:\Program Files\Python311\python.exe]
+pycodestyle -> pycodestyle [C:\Users\clint\anaconda3\python.exe]
+pycosat -> pycosat [C:\Users\clint\anaconda3\python.exe]
+pycparser -> pycparser [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pyct -> pyct [C:\Users\clint\anaconda3\python.exe]
+pycurl -> pycurl [C:\Users\clint\anaconda3\python.exe]
+pydantic -> pydantic [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pydantic_core -> pydantic_core [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pydantic-settings -> pydantic_settings [C:\Users\clint\anaconda3\python.exe]
+pydocstyle -> pydocstyle [C:\Users\clint\anaconda3\python.exe]
+pyflakes -> pyflakes [C:\Users\clint\anaconda3\python.exe]
+pylab -> pylab [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pylint -> pylint [C:\Users\clint\anaconda3\python.exe]
+pylint-venv -> pylint_venv [C:\Users\clint\anaconda3\python.exe]
+pyls-spyder -> pyls_spyder [C:\Users\clint\anaconda3\python.exe]
+pyodbc -> pyodbc [C:\Users\clint\anaconda3\python.exe]
+pyparsing -> pyparsing [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pyperclip -> pyperclip [C:\Program Files\Python311\python.exe]
+PyQt5 -> PyQt5 [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+PyQt5_sip -> PyQt5 [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+pyreadline3 -> pyreadline3 [C:\Program Files\Python311\python.exe]
+PySide6 -> PySide6 [C:\Users\clint\anaconda3\python.exe]
+pytesseract -> pytesseract [C:\Users\clint\anaconda3\envs\df-env\python.exe]
+pytest -> pytest [C:\Program Files\Python311\python.exe]
+pytokens -> pytokens [C:\Users\clint\anaconda3\python.exe]
+pytoolconfig -> pytoolconfig [C:\Users\clint\anaconda3\python.exe]
+pytz -> pytz [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+pyuca -> pyuca [C:\Users\clint\anaconda3\python.exe]
+pyviz_comms -> pyviz_comms [C:\Users\clint\anaconda3\python.exe]
+qstylizer -> qstylizer [C:\Users\clint\anaconda3\python.exe]
+qtconsole -> qtconsole [C:\Users\clint\anaconda3\python.exe]
+queuelib -> queuelib [C:\Users\clint\anaconda3\python.exe]
+random -> random [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ray -> ray [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+readchar -> readchar [C:\Program Files\Python311\python.exe]
+referencing -> referencing [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+regex -> regex [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+requests -> requests [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+requests-file -> requests_file [C:\Users\clint\anaconda3\python.exe]
+requests-toolbelt -> requests_toolbelt [C:\Users\clint\anaconda3\python.exe]
+rfc3339_validator -> rfc3339_validator [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rfc3339-validator -> rfc3339_validator [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rfc3986_validator -> rfc3986_validator [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rfc3986-validator -> rfc3986_validator [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rfc3987-syntax -> rfc3987_syntax [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rich -> rich [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rope -> rope [C:\Users\clint\anaconda3\python.exe]
+rsa -> rsa [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+rtree -> rtree [C:\Users\clint\anaconda3\python.exe]
+ruamel.yaml -> ruamel.yaml [C:\Users\clint\anaconda3\python.exe]
+ruamel.yaml.clib -> ruamel [C:\Users\clint\anaconda3\python.exe]
+ruamel_yaml_conda -> ruamel [C:\Users\clint\anaconda3\python.exe]
+ruff -> ruff [C:\Users\clint\anaconda3\python.exe]
+runs -> runs [C:\Program Files\Python311\python.exe]
+s3fs -> s3fs [C:\Users\clint\anaconda3\python.exe]
+safetensors -> safetensors [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+scipy -> scipy [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+scripts -> scripts [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+seaborn -> seaborn [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+selenium -> selenium [C:\Program Files\Python311\python.exe]
+semver -> semver [C:\Users\clint\anaconda3\python.exe]
+sentence-transformers -> sentence_transformers [C:\Python314\python.exe]
+sentry-sdk -> sentry_sdk [C:\Users\clint\anaconda3\python.exe]
+service-identity -> service_identity [C:\Users\clint\anaconda3\python.exe]
+setuptools -> setuptools [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+shapely -> shapely [C:\Program Files\Python311\python.exe]
+shellingham -> shellingham [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+shiboken6 -> shiboken6 [C:\Users\clint\anaconda3\python.exe]
+shortuuid -> shortuuid [C:\Program Files\Python311\python.exe]
+six -> six [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+skops -> skops [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+smart_open -> smart_open [C:\Python314\python.exe]
+smmap -> smmap [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+sniffio -> sniffio [C:\Program Files\Python311\python.exe]
+snowballstemmer -> snowballstemmer [C:\Users\clint\anaconda3\python.exe]
+sortedcontainers -> sortedcontainers [C:\Program Files\Python311\python.exe]
+soupsieve -> soupsieve [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+spacy-legacy -> spacy_legacy [C:\Python314\python.exe]
+spacy-loggers -> spacy_loggers [C:\Python314\python.exe]
+spyder -> spyder [C:\Users\clint\anaconda3\python.exe]
+spyder-kernels -> spyder_kernels [C:\Users\clint\anaconda3\python.exe]
+sqlparse -> sqlparse [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+srsly -> srsly [C:\Python314\python.exe]
+stack_data -> stack_data [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+stack-data -> stack_data [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+starlette -> starlette [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+statsmodels -> statsmodels [C:\Users\clint\anaconda3\python.exe]
+streamlit -> streamlit [C:\Users\clint\anaconda3\python.exe]
+subprocess -> subprocess [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+superqt -> superqt [C:\Users\clint\anaconda3\python.exe]
+sympy -> sympy [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tables -> tables [C:\Users\clint\anaconda3\python.exe]
+tabulate -> tabulate [C:\Users\clint\anaconda3\python.exe]
+tblib -> tblib [C:\Users\clint\anaconda3\python.exe]
+tenacity -> tenacity [C:\Users\clint\anaconda3\python.exe]
+tensorboard -> tensorboard [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tensorboard-data-server -> tensorboard_data_server [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tensorflow -> tensorflow [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tensorflow-estimator -> tensorflow_estimator [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+termcolor -> termcolor [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+terminado -> terminado [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+test -> test [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+test_hyphens -> test [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+test_hyphens_underscore -> test [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+test_no_hyphens -> test [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+test_utils -> test [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+test_vds -> test [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tests -> tests [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+textdistance -> textdistance [C:\Users\clint\anaconda3\python.exe]
+text-unidecode -> text_unidecode [C:\Users\clint\anaconda3\python.exe]
+tf2onnx -> tf2onnx [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+thinc -> thinc [C:\Python314\python.exe]
+threadpoolctl -> threadpoolctl [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+three-merge -> three_merge [C:\Users\clint\anaconda3\python.exe]
+tifffile -> tifffile [C:\Program Files\Python311\python.exe]
+tiktoken -> tiktoken [C:\Program Files\Python311\python.exe]
+tinycss2 -> tinycss2 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tldextract -> tldextract [C:\Users\clint\anaconda3\python.exe]
+tokenizers -> tokenizers [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tokentrim -> tokentrim [C:\Program Files\Python311\python.exe]
+toml -> toml [C:\Program Files\Python311\python.exe]
+tomli -> tomli [C:\Users\clint\anaconda3\python.exe]
+tomlkit -> tomlkit [C:\Users\clint\anaconda3\python.exe]
+toolz -> toolz [C:\Program Files\DeepFaceLab\_internal\python-3.6.8\python.exe]
+torch -> torch [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+torchaudio -> torchaudio [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+torchvision -> torchvision [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tornado -> tornado [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tqdm -> tqdm [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+traitlets -> traitlets [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+transformers -> transformers [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+trio -> trio [C:\Program Files\Python311\python.exe]
+trio-typing -> trio_typing [C:\Program Files\Python311\python.exe]
+trio-websocket -> trio_websocket [C:\Program Files\Python311\python.exe]
+truststore -> truststore [C:\Users\clint\anaconda3\python.exe]
+twisted-iocpsupport -> twisted_iocpsupport [C:\Users\clint\anaconda3\python.exe]
+typer -> typer [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+types -> types [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+typing -> typing [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+typing_extensions -> typing_extensions [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+typing-inspection -> typing_inspection [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+tzdata -> tzdata [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+ujson -> ujson [C:\Users\clint\anaconda3\python.exe]
+unicodedata -> unicodedata [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+uritemplate -> uritemplate [C:\Program Files\Python311\python.exe]
+uri-template -> uri_template [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+urllib3 -> urllib3 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+uv -> uv [C:\Program Files\Python311\python.exe]
+uvicorn -> uvicorn [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+w3lib -> w3lib [C:\Users\clint\anaconda3\python.exe]
+waitress -> waitress [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+wasabi -> wasabi [C:\Python314\python.exe]
+watchdog -> watchdog [C:\Program Files\Python311\python.exe]
+wcwidth -> wcwidth [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+webcolors -> webcolors [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+webdriver-manager -> webdriver_manager [C:\Program Files\Python311\python.exe]
+webencodings -> webencodings [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+wget -> wget [C:\Program Files\Python311\python.exe]
+whatthepatch -> whatthepatch [C:\Users\clint\anaconda3\python.exe]
+wheel -> wheel [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+widgetsnbextension -> widgetsnbextension [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+win_inet_pton -> win_inet_pton [C:\Users\clint\anaconda3\python.exe]
+win32 -> win32 [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+winloop -> winloop [C:\Users\clint\anaconda3\python.exe]
+wrapt -> wrapt [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+wsproto -> wsproto [C:\Program Files\Python311\python.exe]
+xarray -> xarray [C:\Users\clint\anaconda3\python.exe]
+xgboost -> xgboost [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+xlwings -> xlwings [C:\Users\clint\anaconda3\python.exe]
+xml -> xml [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+xmod -> xmod [C:\Program Files\Python311\python.exe]
+xxhash -> xxhash [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+xyzservices -> xyzservices [C:\Users\clint\anaconda3\python.exe]
+yapf -> yapf [C:\Users\clint\anaconda3\python.exe]
+yarl -> yarl [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+yaspin -> yaspin [C:\Program Files\Python311\python.exe]
+zict -> zict [C:\Users\clint\anaconda3\python.exe]
+zipp -> zipp [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+zoneinfo -> zoneinfo [C:\Azazael\Azazael_UNIFIED\.venv\Scripts\python.exe]
+zope.interface -> zope.interface [C:\Users\clint\anaconda3\python.exe]
+zstandard -> zstandard [C:\Users\clint\anaconda3\python.exe]
+
+FAILED MODULES (359)
+-------------------------------
+
+absl-py
+abstract
+adapter
+aio
+anaconda-client
+aot_autograd
+api
+argon2-cffi
+argon2-cffi-bindings
+asn1
+asymmetric
+asynchronous
+audiofolder
+auth
+autogenerate
+Automat
+avar
+backend
+backends
+base
+beautifulsoup4
+benchmarks
+beta
+bin
+bindings
+blocking
+Bottleneck
+builder
+bytecode
+cache
+cffLib
+ciphers
+cli
+cluster
+clusters
+colocated_python
+colorLib
+commands
+common
+compare
+compat
+compilation_cache
+compile
+compiled
+compiler
+compute_engine
+conda-repo-cli
+config
+connection
+context
+contrib
+control_flow
+core
+credentials
+crypt
+cu2qu
+cudnn
+custom
+data
+data_files
+databricks-sdk
+db
+ddl
+debugger
+decrepit
+deduperreload
+dependencies
+designspaceLib
+dialects
+dim
+djhuey
+download
+eager_transforms
+error
+errors
+eval
+example_libraries
+execution
+experimental
+export
+export_back_compat_test_data
+extend
+extension
+extensions
+external
+external_deps
+externals
+face
+feaLib
+features
+ffmpeg-python
+files
+filesystem
+filesystems
+filters
+flags
+Flask
+folder_based_builder
+fonttools
+formatting
+foundation
+framework
+fsnotify
+fuser
+galata
+gateway
+generator
+GitPython
+git-python
+gmpy2
+google-ai-generativelanguage
+google-api-core
+google-api-python-client
+googleapis-common-protos
+google-auth
+google-generativeai
+google-pasta
+gpu
+gradual
+graphql-core
+grpcio
+grpcio-status
+gui
+handlers
+hazmat
+hdf5
+HeapDict
+i18n
+image
+imagefolder
+ImageIO
+imbalanced-learn
+implementations
+index
+inference
+inprocess
+instancer
+intel-openmp
+interfaces
+internal
+internal_test_util
+interpolate
+interpret
+interpreters
+ioloop
+ipython
+issues
+jax2tf
+Jinja2
+kdf
+Keras-Applications
+Keras-Preprocessing
+kernelspecs
+key_reuse
+lance
+language
+launcher
+lax
+lazy_loader_module
+libarchive-c
+libclang
+linalg
+linkify-it-py
+localtime
+logger
+loky
+magics
+make_functional
+Mako
+management
+Markdown
+markdown-it-py
+MarkupSafe
+megablox
+menu
+merge
+messages
+middleware
+misc
+mixins
+mkl-service
+mlflow-skinny
+mlflow-tracing
+mlir
+models
+mosaic
+mosaic_gpu
+mtiLib
+mutation
+native
+niftifolder
+nn
+node
+oauth2
+objects
+openapi
+opencv-python
+opencv-python-headless
+open-interpreter
+openssl
+opentelemetry-api
+opentelemetry-proto
+opentelemetry-sdk
+opentelemetry-semantic-conventions
+operations
+ops
+optimize
+otlLib
+packaged_modules
+paged_attention
+pallas
+parallel
+parquet
+passes
+path
+pdffolder
+pens
+pillow
+plugin
+plugins
+primitives
+Protego
+protobuf
+proto-plus
+provisioning
+pt_inputhooks
+ptyprocess
+py-cpuinfo
+pydev_ipython
+pydevd_concurrency_analyser
+pydevd_plugins
+PyDispatcher
+pyerfa
+pyext
+PyGithub
+Pygments
+pyinstaller
+pyinstaller-hooks-contrib
+PyJWT
+PyNaCl
+pyOpenSSL
+PyQt5-Qt5
+PyQt5-sip
+PyQtWebEngine
+PySocks
+python-bidi
+python-dateutil
+python-dotenv
+python-json-logger
+python-lsp-black
+python-lsp-jsonrpc
+python-lsp-ruff
+python-lsp-server
+python-slugify
+pyutils
+PyWavelets
+pywin32
+pywin32-ctypes
+pywinpty
+PyYAML
+pyzmq
+QDarkStyle
+QtAwesome
+QtPy
+qu2cu
+ragged_paged_attention
+refactoring
+refs
+relay
+repo
+resources
+roman-numerals-py
+roofline
+rpds-py
+rules
+runtime
+schema
+scikit-image
+scikit-learn
+Scrapy
+script
+sdk
+security
+Send2Trash
+serialization
+server
+service
+shortcuts
+sip
+source_mapper
+spacy
+spark
+sparse
+spatial
+specs
+Sphinx
+sphinxcontrib-applehelp
+sphinxcontrib-devhelp
+sphinxcontrib-htmlhelp
+sphinxcontrib-jsmath
+sphinxcontrib-qthelp
+sphinxcontrib-serializinghtml
+sphinxext
+splash_attention
+sql
+SQLAlchemy
+ssh
+state
+stats
+streams
+submodule
+subscription
+subset
+suite
+svgLib
+System.Management.Automation.RemoteException
+t1Lib
+tbb
+tensorflow-directml
+TERENCE
+terminal
+testdata
+testing
+text
+third_party
+tools
+tpu
+transport
+treeadapters
+treebuilders
+treewalkers
+triton
+ttLib
+Twisted
+twofactor
+type
+typer-slim
+types-certifi
+types-urllib3
+tz
+uc-micro-py
+ufoLib
+util
+utilities
+utils
+validation
+value
+varLib
+vendored
+videofolder
+vmap
+voltLib
+weasel
+webdataset
+websocket-client
+Werkzeug
+widgets
+winappdbg
+x509
+
+SKIPPED MODULES (24)
+-------------------------------
+
+_async
+_backends
+_compat
+_core
+_cygrpc
+_cython
+_debug_adapter
+_generated
+_hl
+_mcp
+_mlir_libs
+_providers
+_pydev_bundle
+_pydev_runfiles
+_pydevd_bundle
+_pydevd_frame_eval
+_src
+_sync
+_transports
+_trie
+_vendor
+_vendored
+_websocket
+_widgets
+
+========================================
+LINUX MIGRATION - UBUNTU 25.10
+========================================
+Date: 2026-02-17
+Python: 3.13.7
+Status: VERIFIED WORKING
+
+WORKING MODULES (Linux):
+torch -> 2.10.0+cpu [OK]
+numpy -> 2.3.5 [OK]
+transformers -> 5.1.0 [OK]
+openvino -> 2025.4.1 [OK]
+tokenizers -> 0.22.2 [OK]
+safetensors -> 0.7.0 [OK]
+sympy -> 1.14.0 [OK]
+networkx -> 3.6.1 [OK]
+nltk -> 3.9.2 [OK]
+huggingface_hub -> 1.4.1 [OK]
+rich -> 14.3.2 [OK]
+typer -> 0.23.1 [OK]
+scipy -> 1.17.0 [OK]
+pandas -> 3.0.1 [OK]
+matplotlib -> 3.10.8 [OK]
+scikit-learn -> 1.8.0 [OK]
+pillow -> 12.1.1 [OK]
+xgboost -> 3.2.0 [OK]
+lightgbm -> 4.6.0 [OK]
+catboost -> 1.2.8 [OK]
+fasteners -> 0.20 [OK]
+cffi -> 2.0.0 [OK]
+charset-normalizer -> 3.4.4 [OK]
+python-gettext -> 5.0 [OK]
+
+========================================
+FULL STACK ADDITIONS - Date: 2026-02-17
+========================================
+WEB SERVING:
+flask -> 3.1.2 [OK]
+fastapi -> 0.129.0 [OK]
+streamlit -> 1.54.0 [OK]
+gradio -> 6.6.0 [OK]
+
+COMPUTER VISION:
+opencv-python-headless -> 4.13.0 [OK]
+albumentations -> 2.0.8 [OK]
+scikit-image -> 0.26.0 [OK]
+
+VISUALIZATION:
+seaborn -> 0.13.2 [OK]
+plotly -> 6.0.0 [OK]
+bokeh -> 3.8.2 [OK]
+
+MLOPS:
+mlflow -> 3.9.0 [OK]
+optuna -> 4.7.0 [OK]
+ray -> 2.53.0 [OK]
+
+NLP:
+spacy -> 3.8.11 [OK]
+textblob -> 0.19.0 [OK]
+gensim -> 4.4.0 [OK]
+
+========================================
+CHAIN FILES AUTO-POPULATED
+========================================
+azazael_paper.tex -> LaTeX template [docs/]
+azazael_environment.xml -> GNOME config [docs/]
+VISUAL_REPRESENTATIONS.txt -> 12 diagram types [docs/]
+FULL_COMMAND_REFERENCE.txt -> Shell commands [docs/]
+CHAIN_OF_INFORMATION.txt -> Flow diagrams [docs/]
+INFORMATION_GENERATION.txt -> Step-by-step [docs/]
+COMPLIANCE_CHECK.txt -> Verification [docs/]

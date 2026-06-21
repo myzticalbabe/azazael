@@ -1,0 +1,10 @@
+AZAZAEL Archive Manifest
+Session: 20260526_192459
+Time: 2026-05-26T19:24:59.117005
+Mode: DRY RUN
+Root: /root/azazael
+
+  1350 files                         9.7 GB
+  13 dirs                            1.0 MB
+  2 files                          132.5 MB
+  TOTAL                              9.8 GB

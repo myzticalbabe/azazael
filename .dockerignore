@@ -1,0 +1,104 @@
+# =============================================================================
+# .dockerignore - Prevent bloat in Azazael Docker images
+# =============================================================================
+# Excludes build artifacts, caches, data files, documentation, and
+# platform-specific directories from the Docker build context.
+# =============================================================================
+
+# --- Version control ---
+.git/
+.gitattributes
+.gitignore
+.gitmodules
+
+# --- Python caches and build artifacts ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# --- IDE and editor files ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Data and output directories ---
+data/
+output/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.jsonl
+
+# --- Build artifacts ---
+nuitka_build_backup/
+*.dist/
+*.build/
+*.exe
+*.spec
+standalone/
+
+# --- Large platform directories ---
+tf-build/
+tools/
+pocs/
+tests/
+examples/
+_miniforge3_archive/
+miniforge3/
+Desktop/
+Documents/
+Downloads/
+Music/
+Pictures/
+Videos/
+Favorites/
+Links/
+Searches/
+OneDrive/
+AppData/
+
+# --- Models and large assets ---
+ggml/
+llama-supervisor/
+llama-server/
+llama-detect/
+llama.cpp/
+gguf/
+models/
+*.bin
+*.gguf
+*.safetensors
+
+# --- Bazel build artifacts ---
+_bazel_*/
+bazel-*/
+.bazelcache/
+
+# --- Node.js (if any) ---
+node_modules/
+package-lock.json
+bun.lock
+bunfig.toml
+
+# --- Conda/Miniconda ---
+miniforge3/
+conda/
+
+# --- Environment files ---
+.env
+*.env.local

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "azazael"
+version = "1.0.0"
+description = "Azazael — self-replicating AI worm ecosystem for autonomous system administration"
+readme = "README.md"
+# REQUIRES Python 3.14t (free-threaded build). The GIL-disabled build is
+# mandatory for concurrent worm execution (CLUSTERWORMS, CONCURRENCY).
+# Standard Python 3.14 (non-free-threaded) will also work but with
+# degraded parallel performance.
+requires-python = ">=3.14"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = [
+    "psutil>=7.2.2,<8",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/META/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.mypy]
+exclude = [
+    # Thin backward-compat wrappers that import from AZAZAEL_TOOLKIT/
+    "src/azazael_toolkit.py",
+    "src/COMPREHENSIVE_FIX.py",
+    "src/environment_manager.py",
+    "src/math_certainty.py",
+    "src/QL_ANALYSIS.py",
+    "src/REAL_FRAMEWORK_TEST.py",
+    "src/update_docs_paths.py",
+]
+
+[project.scripts]
+azazael-ctl = "CORE.azazael_ctl:main"
+azazael-doctor = "CORE.doctor:cmd_doctor"
+azazael-maintain = "CORE.data_retention:cmd_maintain"
+azazael-observability = "CORE.metrics:cmd_metrics"
+azazael-backup = "CORE.backup:incremental_backup"
+azazael-doctor-full = "CORE.doctor:run_all"
+
+[tool.setuptools.packages.find]
+where = ["src"]

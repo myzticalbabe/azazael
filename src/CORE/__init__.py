@@ -1,0 +1,90 @@
+"""CORE — Azazael Core Package
+
+Core infrastructure: DirectMemory, AuditTrail, InferencePool, FreeThreadPool.
+
+Export:
+    DirectMemory
+    InferencePool, InferenceTask
+    FreeThreadPool
+    verify_on_startup, close_session, verify_chain
+    EVENT_VOCAB, EVENT_VOCAB_REVERSE
+"""
+
+from CORE.direct_memory import DirectMemory, get_dm, record, end
+from CORE.freethreading import FreeThreadPool
+from CORE.audit_trail import (
+    verify_on_startup,
+    close_session,
+    verify_chain,
+    verify_head_hash,
+    get_head_hash,
+    audit_file_read,
+    audit_file_edit,
+    audit_file_create,
+    audit_file_delete,
+    audit_skill_loaded,
+    audit_inference_spawn,
+    audit_test_run,
+    audit_code_review,
+    audit_scan_run,
+    audit_gate_passed,
+    audit_sentinel_run,
+    audit_sync_run,
+    audit_tooling_verify,
+    audit_error_occurrence,
+    audit_expect_action,
+    read_audit_lines,
+    get_anchored_files,
+    verify_completeness,
+)
+
+# EVENT_VOCAB / EVENT_VOCAB_REVERSE — not yet defined in audit_trail.py.
+# Fall back to empty dicts to avoid blocking all CORE imports.
+try:
+    from CORE.audit_trail import EVENT_VOCAB, EVENT_VOCAB_REVERSE
+except ImportError:
+    EVENT_VOCAB: dict = {}
+    EVENT_VOCAB_REVERSE: dict = {}
+
+# InferencePool is optional (requires CORE.freethreading)
+try:
+    from CORE.inference_pool import InferencePool
+    _has_inference_pool = True
+except ImportError:
+    _has_inference_pool = False
+    InferencePool = None  # type: ignore
+
+__all__ = [
+    "DirectMemory",
+    "get_dm",
+    "record",
+    "end",
+    "FreeThreadPool",
+    "InferencePool",
+    "EVENT_VOCAB",
+    "EVENT_VOCAB_REVERSE",
+    "verify_on_startup",
+    "close_session",
+    "verify_chain",
+    "verify_head_hash",
+    "get_head_hash",
+    "audit_file_read",
+    "audit_file_edit",
+    "audit_file_create",
+    "audit_file_delete",
+    "audit_skill_loaded",
+    "audit_inference_spawn",
+    "audit_test_run",
+    "audit_code_review",
+    "audit_scan_run",
+    "audit_gate_passed",
+    "audit_sentinel_run",
+    "audit_sync_run",
+    "audit_tooling_verify",
+    "audit_error_occurrence",
+    "audit_expect_action",
+    "read_audit_lines",
+    "get_anchored_files",
+    "verify_completeness",
+    "_has_inference_pool",
+]

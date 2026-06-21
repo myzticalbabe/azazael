@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worm Execution Matrix</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#0d1117;color:#c9d1d9;padding:20px}
+h1{color:#58a6ff;margin-bottom:8px}
+.summary{display:flex;gap:16px;flex-wrap:wrap;margin:16px 0}
+.stat{background:#161b22;border-radius:8px;padding:12px 20px;border:1px solid #30363d}
+.stat .label{font-size:12px;color:#8b949e;text-transform:uppercase}
+.stat .value{font-size:24px;font-weight:700}
+.pass{color:#3fb950}.fail{color:#f85149}.timeout{color:#d29922}.args{color:#58a6ff}
+.controls{display:flex;gap:12px;margin:16px 0;flex-wrap:wrap;align-items:center}
+.controls select,.controls input{padding:8px 12px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;font-size:14px}
+.controls select:focus,.controls input:focus{outline:none;border-color:#58a6ff}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th{background:#161b22;padding:10px 14px;text-align:left;font-size:13px;font-weight:600;color:#8b949e;cursor:pointer;user-select:none;position:sticky;top:0;border-bottom:2px solid #30363d}
+th:hover{color:#58a6ff}
+th .sort-arrow{font-size:10px;margin-left:4px;opacity:.4}
+th.sorted .sort-arrow{opacity:1;color:#58a6ff}
+td{padding:8px 14px;font-size:13px;border-bottom:1px solid #21262d}
+tr:hover{background:#1c2128}
+tr.pass-row{border-left:3px solid #3fb950}tr.pass-row td:first-child{padding-left:11px}
+tr.fail-row{border-left:3px solid #f85149}tr.fail-row td:first-child{padding-left:11px}
+tr.timeout-row{border-left:3px solid #d29922}tr.timeout-row td:first-child{padding-left:11px}
+tr.args-row{border-left:3px solid #58a6ff}tr.args-row td:first-child{padding-left:11px}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge-ok{background:#1b3a1b;color:#3fb950}
+.badge-fail{background:#3a1b1b;color:#f85149}
+.badge-timeout{background:#3a301b;color:#d29922}
+.badge-args{background:#1b2b3a;color:#58a6ff}
+.error-cell{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.error-cell:hover{white-space:normal;overflow:visible}
+.filter-count{font-size:12px;color:#8b949e}
+</style>
+</head>
+<body>
+<h1>🐛 Worm Execution Matrix</h1>
+<div id="summary"></div>
+<div class="controls">
+  <label>Filter category:
+    <select id="catFilter"><option value="all">All Categories</option></select>
+  </label>
+  <label>Filter result:
+    <select id="resultFilter">
+      <option value="all">All Results</option>
+      <option value="ok">✅ Pass</option>
+      <option value="fail">❌ Fail</option>
+      <option value="timeout">⏱ Timeout</option>
+      <option value="args">🔧 Needs Args</option>
+    </select>
+  </label>
+  <label>Search:
+    <input id="searchBox" type="text" placeholder="Filter worms...">
+  </label>
+  <span class="filter-count" id="filterCount"></span>
+</div>
+<table>
+<thead>
+<tr>
+  <th onclick="sortTable(0)"># <span class="sort-arrow">⇅</span></th>
+  <th onclick="sortTable(1)">Worm <span class="sort-arrow">⇅</span></th>
+  <th onclick="sortTable(2)">Category <span class="sort-arrow">⇅</span></th>
+  <th onclick="sortTable(3)">Result <span class="sort-arrow">⇅</span></th>
+  <th onclick="sortTable(4)">Method <span class="sort-arrow">⇅</span></th>
+  <th onclick="sortTable(5)">Dur(ms) <span class="sort-arrow">⇅</span></th>
+  <th onclick="sortTable(6)">Version <span class="sort-arrow">⇅</span></th>
+  <th>Error</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+<script>
+const DATA = [
+  {
+    "worm": "DeadLetterQueue",
+    "module": "dead_letter_queue",
+    "resolved_module": "CORE.WORMS.dead_letter_queue",
+    "method_called": "get_summary",
+    "execute_ok": true,
+    "runtime_output": "{\"status\": \"ok\", \"worm\": \"DeadLetterQueue\", \"method\": \"count_pending\"}",
+    "error": null,
+    "error_type": null,
+    "version": "1.0.0",
+    "duration_ms": 288,
+    "category": "utility"
+  },
+  {
+    "worm": "MorphingWorm",
+    "module": "MORPHING_WORM",
+    "resolved_module": "CORE.WORMS.MORPHING_WORM",
+    "method_called": "get_status",
+    "execute_ok": false,
+    "runtime_output": null,
+    "error": "Method not found or not callable: get_status",
+    "error_type": "MethodNotFound",
+    "version": "1.0.0",
+    "duration_ms": 296,
+    "category": "utility"
+  },
+  {
+    "worm": "OMNIV2",
+    "module": "OMNI_WORM_V2",
+    "category": "utility",
+    "method_called": "?",
+    "execute_ok": false,
+    "runtime_output": null,
+    "error": "Expecting value: line 1 column 1 (char 0)",
+    "error_type": "JSONDecodeError",
+    "version": "2.0.0",
+    "duration_ms": 0
+  },
+  {
+    "worm": "WORMZ",
+    "module": "WORMZ",
+    "resolved_module": "CORE.WORMS.WORMZ",
+    "method_called": "get_status",
+    "execute_ok": true,
+    "runtime_output": "{\"version\": \"1.0.0\", \"running\": false, \"entries_count\": 0, \"files_crawled\": 0, \"last_crawl\": null, \"bibl_path\": \"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\ORCHESTRATION\\\\BIBL\", \"target_folders\": [\"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\ORCHESTRATION\", \"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\HYDRA\", \"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\CORE\\\\WORMS\", \"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\META\", \"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\UTILITIES\\\\TARBABY\", \"C:\\\\Users\\\\clint\\\\azazael\\\\src\\\\UTILITIES\\\\POINDEXTER\", \"C:\\\\Users\\\\clint\\\\azazael",
+    "error": null,
+    "error_type": null,
+    "version": "1.0.0",
+    "duration_ms": 306,
+    "category": "utility"
+  },
+  {
+    "worm": "CLOCKZ",
+    "module": "CLOCKZ",
+    "resolved_module": "CORE.WORMS.CLOCKZ",
+    "method_called": "get_status",
+    "execute_ok": false,
+    "runtime_output": null,
+    "error": "Method not found or not callable: get_status",
+    "error_type": "MethodNotFound",
+    "version": "1.0.0",
+    "duration_ms": 300,
+    "category": "sync"
+  },
+  {
+    "worm": "DiagnosticWorm",
+    "module": "DIAGNOSTIC_WORM",
+    "resolved_module": "CORE.WORMS.DIAGNOSTIC_WORM",
+    "method_called": "get_status",
+    "execute_ok": false,
+    "runtime_output": null,
+    "error": "Method not found or not callable: get_status",
+    "error_type": "MethodNotFound",
+    "version": "?",
+    "duration_ms": 296,
+    "category": "diagnostic"
+  },
+  {
+    "worm": "FastErrorScanner",
+    "module": "ERROR_SCAN_WORM",
+    "resolved_module": "CORE.WORMS.ERROR_SCAN_WORM",
+    "method_called": "get_status",
+    "execute_ok": false,
+    "runtime_output": null,
+    "error": "Method not found or not callable: get_status",
+    "error_type": "MethodNotFound",
+    "version": "?",
+    "duration_ms": 288,
+    "category": "diagnostic"
+  },
+  {
+    "worm": "MorphingWormV2",
+    "module": "MORPHING_WORM_V2",
+    "resolved_module": "CORE.WORMS.MORPHING_WORM_V2",
+    "method_called": "get_status",
+    "execute_ok": false,
+    "runtime_output": null,
+    "error": "Method not found or not callable: get_status",
+    "error_type": "MethodNotFound",
+    "version": "2.0.0",
+    "duration_ms": 298,
+    "category": "diagnostic"
+  },
+  {
+    "worm": "NetworkDiag",
+    "module": "NETWORK_DIAG",
+    "resolved_module": "CORE.WORMS.NETWORK_DIAG",
+    "method_called": "get_summary",
+    "execute_ok": true,
+    "runtime_output": "{\"version\": \"1.0.0\", \"platform\": \"win32\", \"tools\": [\"ping\", \"traceroute\", \"mtr\", \"tracepath\", \"netstat\", \"lsof\", \"strace\", \"ltrace\"], \"tool_count\": 8, \"session_id\": \"20260613_020638\", \"pams_connected\": true}",
+    "error": null,
+    "error_type": null,
+    "version": "1.0.0",
+    "duration_ms": 303,
+    "category": "diagnostic"
+  },
+  {
+    "worm": "VideoAnalyzerWorm",
+    "module": "VIDEO_ANALYZER_WORM",
+    "resolved_module": "CORE.WORMS.VIDEO_ANALYZER_WORM",
+    "method_called": "execute",
+    "execute_ok": true,
+    "runtime_output": "{\"success\": true, \"report\": \"====================================================================\\n  [ANALYZER] VIDEO ANALYSIS REPORT [ANALYZER]\\n====================================================================\\n  Date: 2026-06-13T02:06:40.047669\\n  Videos analyzed: 32\\n\\n  [1] Azazael_MATRIX_CASCADE.mp4\\n       Size: 106.99 MB  |  Duration: 45.0s  |  Status: NEEDS WORK\\n       Res: 1280x720  |  FPS: 30.0  |  Codec: h264/High\\n       B-frames: 2  |  Bitrate: 19943 kbps\\n       Current: 106.9",
+    "error": null,
+    "error_type": null,
+    "version": "1.0.0",
+    "duration_ms": 1543,
+    "category": "diagnostic"
+  }
+];
+const SUMMARY = {
+  "total_worms": 10,
+  "execute_ok": 4,
+  "failed": 6,
+  "pass_rate_pct": 40.0,
+  "needs_constructor_args": 0,
+  "timed_out": 0,
+  "crashed": 0,
+  "import_errors": 0,
+  "not_found": 5,
+  "runtime_errors": 1,
+  "elapsed_seconds": 5.5,
+  "timeout_seconds": 60,
+  "category_order": [
+    "utility",
+    "sync",
+    "diagnostic"
+  ]
+};
+const CAT_ORDER = ["utility", "sync", "diagnostic"];
+
+let sortCol = 0, sortAsc = true;
+
+function rowClass(r) {
+  if (r.execute_ok) return 'pass-row';
+  if (r.error_type === 'Timeout') return 'timeout-row';
+  if (r.error_type === 'NeedsArgs') return 'args-row';
+  return 'fail-row';
+}
+
+function resultBadge(r) {
+  if (r.execute_ok) return '<span class="badge badge-ok">OK</span>';
+  if (r.error_type === 'Timeout') return '<span class="badge badge-timeout">TIMEOUT</span>';
+  if (r.error_type === 'NeedsArgs') return '<span class="badge badge-args">ARGS</span>';
+  return '<span class="badge badge-fail">FAIL</span>';
+}
+
+function resultKey(r) {
+  if (r.execute_ok) return 'ok';
+  if (r.error_type === 'Timeout') return 'timeout';
+  if (r.error_type === 'NeedsArgs') return 'args';
+  return 'fail';
+}
+
+function escape(s) { const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+
+function renderSummary() {
+  const s = SUMMARY;
+  document.getElementById('summary').innerHTML =
+    '<div class="summary">' +
+    '<div class="stat"><div class="label">Total</div><div class="value">' + s.total_worms + '</div></div>' +
+    '<div class="stat"><div class="label">Pass</div><div class="value pass">' + s.execute_ok + ' (' + s.pass_rate_pct + '%)</div></div>' +
+    '<div class="stat"><div class="label">Failed</div><div class="value fail">' + s.failed + '</div></div>' +
+    '<div class="stat"><div class="label">Timeouts</div><div class="value timeout">' + (s.timed_out||0) + '</div></div>' +
+    '<div class="stat"><div class="label">Needs Args</div><div class="value args">' + (s.needs_constructor_args||0) + '</div></div>' +
+    '<div class="stat"><div class="label">Elapsed</div><div class="value">' + (s.elapsed_seconds||0).toFixed(1) + 's</div></div>' +
+    '</div>';
+
+  const sel = document.getElementById('catFilter');
+  CAT_ORDER.forEach(c => { const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o); });
+}
+
+function renderTable() {
+  const cf = document.getElementById('catFilter').value;
+  const rf = document.getElementById('resultFilter').value;
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const tbody = document.getElementById('tbody');
+
+  let rows = DATA.map((r,i) => ({...r,_idx:i}));
+
+  if (cf !== 'all') rows = rows.filter(r => r.category === cf);
+  if (rf !== 'all') rows = rows.filter(r => resultKey(r) === rf);
+  if (q) rows = rows.filter(r => r.worm.toLowerCase().includes(q) || (r.error||'').toLowerCase().includes(q));
+
+  // sort
+  const cols = ['_idx','worm','category','_result','method_called','duration_ms','version'];
+  const col = cols[sortCol];
+  rows.sort((a,b) => {
+    let va = col==='_result' ? resultKey(a) : (a[col]??'');
+    let vb = col==='_result' ? resultKey(b) : (b[col]??'');
+    if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va-vb : vb-va;
+    va=String(va).toLowerCase(); vb=String(vb).toLowerCase();
+    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
+  tbody.innerHTML = rows.map((r,i) =>
+    '<tr class="' + rowClass(r) + '">' +
+    '<td>' + (r._idx+1) + '</td>' +
+    '<td><strong>' + escape(r.worm) + '</strong></td>' +
+    '<td>' + escape(r.category||'?') + '</td>' +
+    '<td>' + resultBadge(r) + '</td>' +
+    '<td>' + escape(r.method_called||'?') + '</td>' +
+    '<td>' + (r.duration_ms||0) + '</td>' +
+    '<td>' + escape(r.version||'?') + '</td>' +
+    '<td class="error-cell" title="' + escape(r.error||'') + '">' + escape((r.error||'').substring(0,80)) + '</td>' +
+    '</tr>'
+  ).join('');
+
+  document.getElementById('filterCount').textContent = 'Showing ' + rows.length + ' of ' + DATA.length + ' worms';
+}
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+  document.querySelectorAll('th').forEach((th,i) => th.classList.toggle('sorted', i===col));
+  renderTable();
+}
+
+document.getElementById('catFilter').addEventListener('change', renderTable);
+document.getElementById('resultFilter').addEventListener('change', renderTable);
+document.getElementById('searchBox').addEventListener('input', renderTable);
+
+renderSummary();
+renderTable();
+</script>
+</body>
+</html>

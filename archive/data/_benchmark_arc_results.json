@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-06-15 01:20:44",
+  "gpu": "Intel Arc 140T (8GB)",
+  "backend": "Ollama v0.20.2",
+  "results": [
+    {
+      "model": "llama3.2:1b",
+      "total_ms": 5948.1,
+      "eval_count": 132,
+      "eval_duration_s": 3.52,
+      "tokens_per_sec": 37.5,
+      "prompt_eval_count": 36,
+      "prompt_eval_duration_s": 0.08,
+      "prompt_tokens_per_sec": 432.1,
+      "response_preview": "A neural network is a computer system inspired by the structure and function of the human brain, des",
+      "prompt_label": "SHORT PROMPT (20 tok)",
+      "model_size": "1.2B",
+      "quant": "Q8_0"
+    },
+    {
+      "model": "llama3.2:1b",
+      "total_ms": 9668.9,
+      "eval_count": 256,
+      "eval_duration_s": 7.09,
+      "tokens_per_sec": 36.1,
+      "prompt_eval_count": 116,
+      "prompt_eval_duration_s": 0.03,
+      "prompt_tokens_per_sec": 4268.6,
+      "response_preview": "**Transformer Attention Mechanism Technical Analysis**\n\nThe Transformer attention mechanism is a cru",
+      "prompt_label": "LONG PROMPT  (120 tok)",
+      "model_size": "1.2B",
+      "quant": "Q8_0"
+    },
+    {
+      "model": "gemma2:2b",
+      "total_ms": 6665.4,
+      "eval_count": 112,
+      "eval_duration_s": 4.26,
+      "tokens_per_sec": 26.3,
+      "prompt_eval_count": 19,
+      "prompt_eval_duration_s": 0.04,
+      "prompt_tokens_per_sec": 520.5,
+      "response_preview": "A neural network is a computational model inspired by the structure and function of the human brain.",
+      "prompt_label": "SHORT PROMPT (20 tok)",
+      "model_size": "2.6B",
+      "quant": "Q4_0"
+    },
+    {
+      "model": "gemma2:2b",
+      "total_ms": 13958.6,
+      "eval_count": 256,
+      "eval_duration_s": 10.21,
+      "tokens_per_sec": 25.1,
+      "prompt_eval_count": 104,
+      "prompt_eval_duration_s": 1.05,
+      "prompt_tokens_per_sec": 98.8,
+      "response_preview": "## Transformer Attention Mechanism: A Technical Deep Dive\n\nThe transformer attention mechanism has r",
+      "prompt_label": "LONG PROMPT  (120 tok)",
+      "model_size": "2.6B",
+      "quant": "Q4_0"
+    },
+    {
+      "model": "gemma3:4b",
+      "total_ms": 7646.7,
+      "eval_count": 101,
+      "eval_duration_s": 5.34,
+      "tokens_per_sec": 18.9,
+      "prompt_eval_count": 19,
+      "prompt_eval_duration_s": 0.05,
+      "prompt_tokens_per_sec": 366.9,
+      "response_preview": "A neural network is a type of machine learning model inspired by the structure and function of the h",
+      "prompt_label": "SHORT PROMPT (20 tok)",
+      "model_size": "4.3B",
+      "quant": "Q4_K_M"
+    },
+    {
+      "model": "gemma3:4b",
+      "total_ms": 16717.0,
+      "eval_count": 256,
+      "eval_duration_s": 14.25,
+      "tokens_per_sec": 18.0,
+      "prompt_eval_count": 102,
+      "prompt_eval_duration_s": 0.05,
+      "prompt_tokens_per_sec": 1862.2,
+      "response_preview": "## A Deep Dive into the Transformer Attention Mechanism\n\nThe transformer architecture, popularized b",
+      "prompt_label": "LONG PROMPT  (120 tok)",
+      "model_size": "4.3B",
+      "quant": "Q4_K_M"
+    }
+  ]
+}

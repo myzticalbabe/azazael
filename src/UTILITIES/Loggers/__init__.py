@@ -1,0 +1,7 @@
+# Import from canonical root AzazaelDynamicLogger
+import sys
+from pathlib import Path
+_root_src = str(Path(__file__).resolve().parent.parent.parent)  # src/
+if _root_src not in sys.path:
+    sys.path.insert(0, _root_src)
+

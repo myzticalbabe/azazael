@@ -1,0 +1,65 @@
+# Scanner ignore patterns
+# Files and directories matching these patterns are excluded from scanning
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv*
+venv*
+.env*
+
+# Git directories
+.git
+.gitattributes
+.gitignore
+
+# Build artifacts
+build/
+dist/
+*.egg-info
+eggs/
+
+# Node.js
+node_modules
+
+# IDE/Editor config
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test files
+*test*
+*_test.py
+conftest.py
+
+# Generated files
+*_pb2.py
+*_pb2.pyi
+
+# Configuration
+*.yaml
+*.yml
+*.json
+*.toml
+*.cfg
+*.ini
+
+# Scripts
+scripts/
+backup/
+archive/
+temp/
+
+# Logs
+*.log
+logs/
+
+# Data files
+*.db
+*.sqlite
+*.csv
+*.tsv

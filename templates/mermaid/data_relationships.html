@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Data Relationships — Mermaid ER Diagram</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #040410; color: #e0e0e8; font-family: Consolas,monospace;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 30px;
+  background-image: radial-gradient(ellipse at 30% 70%, rgba(191,0,255,0.04) 0%, transparent 60%);
+}
+h1 {
+  font-size: 2.2em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #bf00ff, #ff00aa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: #888; font-size: 0.95em; margin-bottom: 30px; }
+.mermaid {
+  background: #0a0a20; border: 1px solid #1a1a35; border-radius: 16px;
+  padding: 30px; max-width: 1100px; width: 100%;
+  overflow-x: auto;
+}
+.note { color: #555; margin-top: 20px; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>AZAZAEL Data Relationships</h1>
+<p class="subtitle">Entity-Relationship Model | Worm Registry | Execution History</p>
+<div class="mermaid">
+erDiagram
+    WORM_REGISTRY ||--o{ WORM_INSTANCE : contains
+    WORM_INSTANCE ||--o{ EXECUTION_LOG : generates
+    WORM_INSTANCE ||--o{ SCAN_RESULT : produces
+    WORM_INSTANCE }o--|| CIRCUIT_BREAKER : protected_by
+    CIRCUIT_BREAKER ||--o{ DEAD_LETTER : routes_to
+    CLUSTER ||--|{ WORM_INSTANCE : orchestrates
+    INFERENCE_STUDIO ||--|{ FRAMEWORK : manages
+    INFERENCE_STUDIO ||--|{ MODEL_CATALOG : indexes
+    EMOTION_ENGINE ||--|| ANIMATION_PROTOCOL : drives
+    CONFIG_STORE ||--|{ WORM_INSTANCE : configures
+    
+    WORM_REGISTRY {
+        string worm_id PK
+        string worm_type
+        string version
+        datetime registered_at
+        string status
+    }
+    
+    WORM_INSTANCE {
+        string instance_id PK
+        string worm_id FK
+        string state
+        float health_score
+        datetime last_scan
+        json config
+    }
+    
+    EXECUTION_LOG {
+        int log_id PK
+        string instance_id FK
+        string action
+        string result
+        float duration_ms
+        datetime timestamp
+    }
+    
+    SCAN_RESULT {
+        int scan_id PK
+        string instance_id FK
+        string target
+        json data
+        bool success
+        datetime scanned_at
+    }
+    
+    CIRCUIT_BREAKER {
+        string breaker_id PK
+        string instance_id FK
+        string state
+        int failure_count
+        float health_score
+        datetime last_checked
+    }
+    
+    DEAD_LETTER {
+        int entry_id PK
+        string breaker_id FK
+        string payload
+        string error_message
+        int retry_count
+        datetime created_at
+    }
+    
+    CLUSTER {
+        string cluster_id PK
+        string cluster_type
+        string[] worm_ids
+        string schedule
+        string status
+    }
+</div>
+<p class="note">Mermaid ER Diagram — AZAZAEL 3.14t | 7 Core Entities | PK/FK Relationships | Worm Registry & Circuit Breaker</p>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose'});</script>
+</body>
+</html>

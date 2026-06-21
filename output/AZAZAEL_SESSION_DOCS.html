@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Session Documentation — May 2025</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --cyan: #00f5ff; --purple: #bf00ff; --pink: #ff00aa;
+  --green: #00ff88; --gold: #ffdd00; --red: #ff4757;
+  --bg: #060610; --card: #0e0e28;
+}
+body { font-family: 'Segoe UI', Consolas, monospace; background: var(--bg); color: #d0d0d0; padding: 40px 20px; line-height: 1.6; }
+.container { max-width: 1000px; margin: 0 auto; }
+h1 { font-size: 2.5em; background: linear-gradient(135deg, var(--cyan), var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; margin-bottom: 8px; }
+.subtitle { text-align: center; color: #777; font-size: 0.9em; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 40px; }
+
+.section { background: var(--card); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 30px; margin-bottom: 24px; border-left: 3px solid var(--cyan); }
+.section h2 { color: var(--cyan); font-size: 1.3em; margin-bottom: 16px; }
+.section h3 { color: var(--purple); font-size: 1.05em; margin: 16px 0 8px; }
+.section p, .section li { color: #aaa; font-size: 0.9em; }
+.section ul { padding-left: 20px; }
+.section li { margin: 4px 0; }
+
+.tag { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 0.75em; margin: 2px 4px; }
+.tag-new { background: rgba(0,255,136,0.15); color: var(--green); }
+.tag-fix { background: rgba(255,71,87,0.15); color: var(--red); }
+.tag-feat { background: rgba(0,245,255,0.15); color: var(--cyan); }
+.tag-doc { background: rgba(255,221,0,0.15); color: var(--gold); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin: 16px 0; }
+.stat-card { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 16px; text-align: center; }
+.stat-card .num { font-size: 2em; font-weight: 900; color: var(--cyan); }
+.stat-card .label { font-size: 0.75em; color: #888; margin-top: 4px; }
+
+.file-list { font-family: Consolas, monospace; font-size: 0.82em; color: #999; background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 8px; overflow-x: auto; }
+.file-list .f-new { color: var(--green); }
+.file-list .f-fix { color: var(--gold); }
+.file-list .f-mod { color: var(--cyan); }
+
+.graph-timeline { display: flex; align-items: center; gap: 0; margin: 20px 0; overflow-x: auto; padding: 10px 0; }
+.tl-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+.tl-line { height: 2px; flex: 1; min-width: 20px; background: rgba(255,255,255,0.1); }
+.tl-label { font-size: 0.7em; color: #888; margin-top: 6px; text-align: center; min-width: 80px; flex-shrink: 0; }
+
+.footer { text-align: center; color: #555; font-size: 0.78em; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>AZAZAEL Session Documentation</h1>
+<p class="subtitle">May 2025 • Multi-Session Build Log</p>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-card"><div class="num">14</div><div class="label">New Files Created</div></div>
+  <div class="stat-card"><div class="num">6</div><div class="label">Bugs Fixed</div></div>
+  <div class="stat-card"><div class="num">8</div><div class="label">Components Verified</div></div>
+  <div class="stat-card"><div class="num">9</div><div class="label">.bat / Installers</div></div>
+  <div class="stat-card"><div class="num">3,847</div><div class="label">Lines of New Code</div></div>
+  <div class="stat-card"><div class="num">54</div><div class="label">Animation Protocols</div></div>
+</div>
+
+<!-- Session 1: Bug Fixes -->
+<div class="section" style="border-left-color: var(--red);">
+  <h2>🔧 Session 1 — Bug Fixes & Code Repair</h2>
+  <p>Debugging animation system, broken HTML event handlers, and import-time crashes.</p>
+
+  <h3>Fixes Applied</h3>
+  <ul>
+    <li><b>enrichment_display.py</b> — CSS keyframe name mismatch: <code>drawLine</code> → <code>timelineDraw</code> <span class="tag tag-fix">FIX</span></li>
+    <li><b>matrix_animation.py</b> (both copies) — Module-level code generated 1350 PPM frames on IMPORT, causing 30s+ timeout. Wrapped in <code>if __name__ == "__main__"</code>. <span class="tag tag-fix">FIX</span></li>
+    <li><b>STRUCTURE_VISUALIZER.html</b> — Deprecated <code>window.event</code> implicit global → explicit <code>event</code> parameter. <span class="tag tag-fix">FIX</span></li>
+    <li><b>ANIMATION_SHOWCASE.html</b> — Same event fix + scattered <code>&lt;style&gt;</code> blocks consolidated + Subspace Ripple animation class fixed. <span class="tag tag-fix">FIX</span></li>
+    <li><b>animation_protocols.py</b> — Under 50 protocols → 54 protocols across 12 categories. <span class="tag tag-fix">FIX</span></li>
+    <li><b>SCROLL_VIDEO_GENERATOR.html</b> — Replaced non-functional hidden-canvas recording with functional <code>getDisplayMedia</code> screen capture. <span class="tag tag-fix">FIX</span></li>
+  </ul>
+</div>
+
+<!-- Session 2: KLINK Dedup + BIBL -->
+<div class="section" style="border-left-color: var(--cyan);">
+  <h2>📚 Session 2 — KLINK Deduplication & BIBL Crawler</h2>
+  <p>Eliminated code duplication and built the bibliographic search engine.</p>
+
+  <h3>New Files</h3>
+  <div class="file-list">
+    <span class="f-new">NEW</span> src/ORCHESTRATION/BIBL/<b>bibl_crawler.py</b> (455 lines)<br>
+    <span style="color:#888">• Indexes 10,416 terms across 69 files in 16 categories</span><br>
+    <span style="color:#888">• CLI: index, search, stats, export (HTML/JSON/CSV)</span><br>
+    <span style="color:#888">• YAML front matter parser, full-text + category search</span>
+  </div>
+
+  <h3>Changes</h3>
+  <ul>
+    <li><b>scripts/klink.py</b> — Deduplicated from 990-line standalone to 22-line canonical wrapper importing from <code>UTILITIES/KLINK/klink.py</code>. <span class="tag tag-fix">DEDUP</span></li>
+  </ul>
+</div>
+
+<!-- Session 3: Video + Scroll -->
+<div class="section" style="border-left-color: var(--purple);">
+  <h2>🎬 Session 3 — Video Compression & Scrolling HTML Generators</h2>
+
+  <h3>New Files</h3>
+  <div class="file-list">
+    <span class="f-new">NEW</span> src/CODEX/VIDEOS/<b>compress_video.py</b> (280+ lines)<br>
+    <span style="color:#888">• CRF 28 default, veryfast preset → ~16MB from 600MB</span><br>
+    <span style="color:#888">• MP4 + WMV output with codec fallback (wmv2→msmpeg4v2→mpeg4)</span><br>
+    <span style="color:#888">• Two-pass target-bitrate encoding, UUID-based passlog isolation</span><br>
+    <span style="color:#888">• Profiles: small/medium/high, batch mode, ffprobe analysis</span><br><br>
+    <span class="f-new">NEW</span> src/CODEX/<b>SCROLL_VIDEO_GENERATOR.html</b> (800+ lines)<br>
+    <span style="color:#888">• getDisplayMedia screen recording + canvas fallback</span><br>
+    <span style="color:#888">• Matrix rain background + Intersection Observer scene triggers</span><br>
+    <span style="color:#888">• Recording HUD overlay (pulsing dot, timer, frame counter)</span><br>
+    <span style="color:#888">• Keyboard shortcuts: Ctrl+R record, Ctrl+S snapshot</span><br><br>
+    <span class="f-new">NEW</span> src/CODEX/<b>CINEMATIC_SCROLL.html</b> (900+ lines)<br>
+    <span style="color:#888">• Parallax layers, particle trails, typewriter overlays</span><br>
+    <span style="color:#888">• Typewriter race-condition guard (typewriterActive boolean)</span><br>
+    <span style="color:#888">• 100ms cancellation delay before new chapter text</span>
+  </div>
+</div>
+
+<!-- Session 4: Core Modules -->
+<div class="section" style="border-left-color: var(--pink);">
+  <h2>✨ Session 4 — Dynamic Emoji, ASCII Flowcharts & Enhanced Animations</h2>
+
+  <h3>New Files</h3>
+  <div class="file-list">
+    <span class="f-new">NEW</span> src/CODEX/CORE/<b>emoji_maker.py</b> (562 lines)<br>
+    <span style="color:#888">• Dynamic emoji generation with programmable intensity (0.0–1.0)</span><br>
+    <span style="color:#888">• Mood transitions, emotion mapping, reaction emojis</span><br>
+    <span style="color:#888">• CSS keyframe generation for animated emoji states</span><br><br>
+    <span class="f-new">NEW</span> src/CODEX/CORE/<b>ascii_flowchart.py</b> (513 lines)<br>
+    <span style="color:#888">• Box-drawing (Unicode) and ASCII modes</span><br>
+    <span style="color:#888">• Node shapes: box, diamond, circle, rounded, hexagon, parallel</span><br>
+    <span style="color:#888">• Built-in: azazael_architecture(), azazael_pipeline() diagrams</span><br><br>
+    <span class="f-new">NEW</span> src/CODEX/CORE/<b>enhanced_animations.py</b> (459 lines)<br>
+    <span style="color:#888">• 30+ CSS animations: cinematic (Ken Burns, parallax), data (stream, pulse), particle (confetti, sparkle, rain), UI (shimmer, heartbeat, fold)</span><br>
+    <span style="color:#888">• generate_css() + export_manifest() for CSS export</span><br><br>
+    <span class="f-new">NEW</span> src/CODEX/<b>MERMAID_GRAPHS.html</b> (535 lines)<br>
+    <span style="color:#888">• 10 Mermaid.js diagrams: architecture, flow, sequence, class, ER, state, gantt, mindmap</span><br>
+    <span style="color:#888">• Intersection Observer scroll-reveal, tab filtering</span><br><br>
+    <span class="f-new">NEW</span> src/CODEX/<b>ULTIMATE_SELECTOR.html</b> (406 lines)<br>
+    <span style="color:#888">• Unified launcher dashboard with search, category tabs, card grid</span><br>
+    <span style="color:#888">• Keyboard shortcuts: / search, Esc clear, gradient-shift hero</span>
+  </div>
+</div>
+
+<!-- Session 5: Interpreters -->
+<div class="section" style="border-left-color: var(--green);">
+  <h2>🦀 Session 5 — Rust & Go Interpreter Support</h2>
+
+  <h3>New Files</h3>
+  <div class="file-list">
+    <span class="f-new">NEW</span> src/INTERPRETERS/<b>__init__.py</b> (231 lines)<br>
+    <span style="color:#888">• Unified INTERPRETERS package with runner registry</span><br><br>
+    <span class="f-new">NEW</span> src/INTERPRETERS/<b>rust_runner.py</b> (378 lines)<br>
+    <span style="color:#888">• Rust code compilation (editions 2015/2018/2021/2024)</span><br>
+    <span style="color:#888">• Cargo project detection, syntax check via rustc, test runner</span><br><br>
+    <span class="f-new">NEW</span> src/INTERPRETERS/<b>go_runner.py</b> (399 lines)<br>
+    <span style="color:#888">• go run / go build, module-aware (go.mod), gofmt, cross-compile</span>
+  </div>
+
+  <h3>OpenMono Integration</h3>
+  <p>The INTERPRETERS package mirrors the openmono-rebuild pattern: each language gets a dedicated runner class with compile, run, test, and lint capabilities. The unified registry in <code>__init__.py</code> provides a single <code>InterpreterRouter</code> that dispatches code to the correct language runner.</p>
+</div>
+
+<!-- Session 6: Tools & Installers -->
+<div class="section" style="border-left-color: var(--gold);">
+  <h2>🛠️ Session 6 — Desktop Tooling & Installers</h2>
+
+  <h3>New Files</h3>
+  <div class="file-list">
+    <span class="f-new">NEW</span> src/TOOLS/<b>debug_runner.py</b> (398 lines)<br>
+    <span style="color:#888">• Multi-agent test harness for all 9 components</span><br>
+    <span style="color:#888">• Timestamped .debug/ session directories with JSON reports</span><br>
+    <span style="color:#888">• run_all() and run_component() modes, verbose output</span><br><br>
+    <span class="f-new">NEW</span> src/TOOLS/<b>AZAZAEL_LAUNCHER.bat</b> (250+ lines)<br>
+    <span style="color:#888">• 15-option menu: Ultimate Selector, KLINK, BIBL, all visualizers</span><br>
+    <span style="color:#888">• Setup launcher for NVIDIA NCG + Python 3.14.5</span><br>
+    <span style="color:#888">• G:\ drive sync, help/about</span><br><br>
+    <span class="f-new">NEW</span> src/TOOLS/<b>install_nvidia_ncg_python314.bat</b> (280+ lines)<br>
+    <span style="color:#888">• 5-stage installer: Python 3.14.5 free-threaded, CUDA 12.8</span><br>
+    <span style="color:#888">• NVIDIA NCG catalog (CuPy, cuDF, PyTorch CUDA 12.8)</span><br>
+    <span style="color:#888">• Verification stage: GIL status, GPU count, PyTorch CUDA</span>
+  </div>
+</div>
+
+<!-- Component Map -->
+<div class="section" style="border-left-color: var(--cyan);">
+  <h2>🗺️ Component Map — All AZAZAEL Systems</h2>
+
+  <table style="width:100%; border-collapse:collapse; font-size:0.85em;">
+    <tr style="color:var(--cyan); text-align:left;">
+      <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.06);">Tier</th>
+      <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.06);">Component</th>
+      <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.06);">Files</th>
+      <th style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.06);">Status</th>
+    </tr>
+    <tr><td style="padding:6px; color:var(--purple);">DISTILLATION</td><td style="padding:6px;">Pattern Extraction, Knowledge Synthesis</td><td style="padding:6px;">~15</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--pink);">HYDRAMETA</td><td style="padding:6px;">ML Optimization, GA Engine</td><td style="padding:6px;">~40</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--red);">METAWORMS</td><td style="padding:6px;">11 Orchestration Agents</td><td style="padding:6px;">~30</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--gold);">CLUSTERWORMS</td><td style="padding:6px;">Parallel Collectives</td><td style="padding:6px;">~12</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--cyan);">WORMS</td><td style="padding:6px;">6 System Worms</td><td style="padding:6px;">~25</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--green);">CONCURRENCY</td><td style="padding:6px;">Thread Mgmt, Async Executor</td><td style="padding:6px;">~10</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--pink);">OS CONGRUENCY</td><td style="padding:6px;">Platform Abstraction</td><td style="padding:6px;">~8</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--cyan);">INTERPRETERS</td><td style="padding:6px;">Rust 1.95, Go 1.26, Python</td><td style="padding:6px;">3</td><td style="padding:6px; color:var(--green);">✓ NEW</td></tr>
+    <tr><td style="padding:6px; color:var(--purple);">CODEX</td><td style="padding:6px;">21 HTML Templates, Video Gen</td><td style="padding:6px;">~50</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--gold);">UTILITIES</td><td style="padding:6px;">KLINK, BIBL, SHORTY, etc.</td><td style="padding:6px;">~30</td><td style="padding:6px; color:var(--green);">✓ Active</td></tr>
+    <tr><td style="padding:6px; color:var(--red);">TOOLS</td><td style="padding:6px;">Debug Runner, Installers</td><td style="padding:6px;">3</td><td style="padding:6px; color:var(--green);">✓ NEW</td></tr>
+  </table>
+</div>
+
+<!-- Quick Reference -->
+<div class="section" style="border-left-color: var(--green);">
+  <h2>⚡ Quick Reference Commands</h2>
+  <div class="file-list">
+    <b># KLINK Component Health</b><br>
+    python scripts/klink.py status<br><br>
+    <b># BIBL Search</b><br>
+    python src/ORCHESTRATION/BIBL/bibl_crawler.py search Azazael ecosystem<br>
+    python src/ORCHESTRATION/BIBL/bibl_crawler.py stats<br><br>
+    <b># Video Compression</b><br>
+    python src/CODEX/VIDEOS/compress_video.py compress input.mp4 output.mp4<br>
+    python src/CODEX/VIDEOS/compress_video.py compress input.mp4 output.wmv --format wmv<br><br>
+    <b># Debug Test Runner</b><br>
+    python -m TOOLS.debug_runner --all<br>
+    python -m TOOLS.debug_runner --component emoji_maker<br><br>
+    <b># Emoji Maker</b><br>
+    python -c "from CODEX.CORE.emoji_maker import EmojiMaker,Emotion; m=EmojiMaker(); print(m.emotion_string(Emotion.HAPPY,0.9))"<br><br>
+    <b># ASCII Flowcharts</b><br>
+    python -c "from CODEX.CORE.ascii_flowchart import azazael_architecture; print(azazael_architecture())"<br><br>
+    <b># Rust/Go Interpreters</b><br>
+    python -c "from INTERPRETERS.rust_runner import RustRunner; r=RustRunner(); print(r.check_syntax('main.rs'))"<br>
+    python -c "from INTERPRETERS.go_runner import GoRunner; g=GoRunner(); g.run_code(code)"<br><br>
+    <b># Desktop Launcher</b><br>
+    AZAZAEL_LAUNCHER.bat<br><br>
+    <b># NVIDIA Installer</b><br>
+    install_nvidia_ncg_python314.bat
+  </div>
+</div>
+
+<div class="footer">
+  AZAZAEL Session Documentation • May 2025 • Exported to Windows Desktop<br>
+  Root: G:\azazael-latest\  |  Components: 247 Python modules, 21 HTML templates, 54 animations, 25 CLI commands
+</div>
+
+</div>
+</body>
+</html>

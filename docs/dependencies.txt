@@ -1,0 +1,9 @@
+﻿accelerate|huggingface_hub,numpy,packaging,psutil,pyyaml,safetensors,torch
+anthropic|anyio,distro,docstring-parser,httpx,jiter,pydantic,sniffio,typing-extensions
+alembic|Mako,SQLAlchemy,typing-extensions
+blis|numpy
+anyio|idna
+aiosignal|frozenlist
+cffi|pycparser
+blessed|jinxed,wcwidth
+aiohttp|aiohappyeyeballs,aiosignal,attrs,frozenlist,multidict,propcache,yarl
