@@ -31,6 +31,13 @@ from typing import Dict, List, Set, Optional, Any, Callable
 from dataclasses import dataclass
 import threading
 
+from CORE.uuid7 import uuid7
+from CORE.worm_registry_cache import _load_cache_readonly, save_cache
+try:
+    from CORE.PamsRecorder import PamsRecorder
+except ImportError:
+    PamsRecorder = None  # graceful: worm_registry functions without PAMS
+
 # --- Global Registry -----------------------------------------------
 
 # Structured logger with correlation IDs (per ALL 5 inference models' finding)
@@ -45,7 +52,6 @@ _thread_local.correlation_id: Optional[str] = None
 def _get_correlation_id() -> str:
     """Get the current thread's correlation ID, generating one if needed."""
     if not hasattr(_thread_local, "correlation_id") or _thread_local.correlation_id is None:
-        from CORE.uuid7 import uuid7
         _thread_local.correlation_id = uuid7().hex[:12]
     return _thread_local.correlation_id
 
@@ -254,7 +260,6 @@ def discover_worms(
     #   discover_worms -> load_registry -> discover_worms -> ...
     if not WORM_REGISTRY:
         try:
-            from CORE.worm_registry_cache import _load_cache_readonly
             registry = _load_cache_readonly(worms_dir)
             if registry:
                 with _registry_lock:
@@ -372,7 +377,6 @@ def discover_worms(
     new_count = len(WORM_REGISTRY) - before_count
     if new_count > 0:
         try:
-            from CORE.worm_registry_cache import save_cache
             save_cache(WORM_REGISTRY, worms_dir)
         except Exception:
             pass  # Non-fatal — cache save failed, but discovery succeeded
@@ -448,10 +452,12 @@ def _get_pams_recorder():
     if _pams_instance is None:
         with _pams_instance_lock:
             if _pams_instance is None:
-                try:
-                    from CORE.PamsRecorder import PamsRecorder
-                    _pams_instance = PamsRecorder()
-                except ImportError:
+                if PamsRecorder is not None:
+                    try:
+                        _pams_instance = PamsRecorder()
+                    except ImportError:
+                        _pams_instance = False
+                else:
                     _pams_instance = False
     return _pams_instance if _pams_instance else None
 
