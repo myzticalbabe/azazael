@@ -1,0 +1,51 @@
+{
+  "name": "Animation Protocols",
+  "duration": 20,
+  "resolution": [1280, 720],
+  "fps": 30,
+  "bg_color": "0x0a0a1a",
+  "sections": [
+    {
+      "time": 0, "duration": 4,
+      "title": "24 ANIMATION PROTOCOLS",
+      "subtitle": "8 Categories | CSS & Canvas-Based | Production-Ready",
+      "title_color": "white", "subtitle_color": "0x00f5ff",
+      "title_size": 36, "subtitle_size": 18,
+      "effect": "fade_in"
+    },
+    {
+      "time": 4, "duration": 4,
+      "title": "Status & Progress Animations",
+      "subtitle": "Glitch Status | Neon Pulse | Ring Pulse | Shimmer Bar | Bounce Dots",
+      "title_color": "0x00ff88", "subtitle_color": "0xaaffcc",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 8, "duration": 4,
+      "title": "Data Visualization & Entry",
+      "subtitle": "Bar Growth | Pie Fill | Line Draw | Slide In Up | Typewriter | Fade Scale",
+      "title_color": "0xbf00ff", "subtitle_color": "0xddaaff",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 12, "duration": 4,
+      "title": "Transformation & Decorative",
+      "subtitle": "Flip 3D | Morph | Elastic Scale | Particle Float | Matrix Rain | Hex Grid",
+      "title_color": "0xff8800", "subtitle_color": "0xffddaa",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 16, "duration": 4,
+      "title": "Text & Interactive Feedback",
+      "subtitle": "Rainbow Wave | Gradient Flow | Blur Reveal | Hover Expand | Click Ripple | Success Check",
+      "title_color": "0xff00aa", "subtitle_color": "0xffaadd",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    }
+  ],
+  "footer": "CSS Properties: transform opacity filter clip-path animation @keyframes",
+  "footer_color": "0x666666"
+}

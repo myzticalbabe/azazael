@@ -1,0 +1,146 @@
+"""
+Unit tests for scanner.py — ASTAntiPatternScanner and CLI.
+
+Tests:
+1. Clean code passes
+2. Emoji detection
+3. os.system() detection
+4. Hardcoded Windows path detection
+5. Import inside function detection
+6. scan_directory exclude_dirs filtering
+7. get_summary() after scans
+8. reset() clears state
+9. to_dict() format
+10. CLI --format json produces valid output
+"""
+
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import shutil
+
+import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+
+
+# ---------------------------------------------------------------------------
+# Test helpers
+# ---------------------------------------------------------------------------
+
+def _scanner():
+    from CORE.compliance.scanner import ASTAntiPatternScanner
+    return ASTAntiPatternScanner()
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+class TestASTAntiPatternScanner:
+
+    def test_clean_code_passes(self):
+        """UT1: Clean code should have zero findings."""
+        s = _scanner()
+        r = s.scan_source("test.py", "x = 1\nprint(x)")
+        assert r.passed is True
+        assert r.finding_count == 0
+
+    def test_emoji_detected(self):
+        """UT2: Unicode emoji in code should be flagged."""
+        s = _scanner()
+        r = s.scan_source("test_emoji.py", 'result = "hello \U0001F600 world"')
+        assert r.passed is False
+        categories = [cat for _, cat, _ in r.findings]
+        assert "unicode_emoji" in categories
+
+    def test_os_system_detected(self):
+        """UT3: os.system() calls should be flagged."""
+        s = _scanner()
+        r = s.scan_source("test_os.py", "import os\nos.system(\"ls\")")
+        assert r.passed is False
+        categories = [cat for _, cat, _ in r.findings]
+        assert "os_system" in categories
+
+    def test_hardcoded_win_path_detected(self):
+        """UT4: Hardcoded C:\\... paths should be flagged.
+        Note: .py files contain Windows paths with escaped backslashes
+        (e.g., C:\\Users\\test), so the scan_source input must use \\
+        as the literal file content would."""
+        s = _scanner()
+        # Source line as it would appear in a .py file:  path = "C:\\Users\\test"
+        r = s.scan_source("test_win.py", 'path = "C:\\\\Users\\\\test"')
+        assert r.passed is False
+        categories = [cat for _, cat, _ in r.findings]
+        assert "hardcoded_win_path" in categories
+
+    def test_import_inside_function_detected(self):
+        """UT5: Import inside function body should be flagged."""
+        s = _scanner()
+        r = s.scan_source("test_import_fn.py", "def foo():\n    import os\n    return os.path")
+        assert r.passed is False
+        categories = [cat for _, cat, _ in r.findings]
+        assert "import_inside_function" in categories
+
+    def test_exclude_dirs_filters_correctly(self):
+        """UT6: scan_directory with exclude_dirs should skip excluded dirs."""
+        s = _scanner()
+        td = tempfile.mkdtemp()
+        try:
+            os.makedirs(os.path.join(td, "excluded"), exist_ok=True)
+            with open(os.path.join(td, "excluded", "bad.py"), "w") as f:
+                f.write("import os\ndef main():\n    os.system(\"ls\")")
+            with open(os.path.join(td, "good.py"), "w") as f:
+                f.write("x = 1")
+
+            results_all = s.scan_directory(td, "*.py")
+            results_filtered = s.scan_directory(td, "*.py", exclude_dirs=["excluded"])
+
+            assert len(results_all) == 2
+            assert len(results_filtered) == 1
+        finally:
+            shutil.rmtree(td, ignore_errors=True)
+
+    def test_get_summary_after_scan(self):
+        """UT7: get_summary should reflect scanned files."""
+        s = _scanner()
+        s.scan_source("a.py", "import os\ndef foo():\n    os.system(\"ls\")")
+        summary = s.get_summary()
+        assert summary["total_files_scanned"] == 1
+        assert summary["total_findings"] > 0
+
+    def test_reset_clears_state(self):
+        """UT8: reset() should zero out counters."""
+        s = _scanner()
+        s.scan_source("a.py", "import os\ndef foo():\n    os.system(\"ls\")")
+        s.reset()
+        assert s.total_findings == 0
+        assert s.total_scanned == 0
+
+    def test_to_dict_format(self):
+        """UT9: to_dict() should produce correct structure."""
+        from CORE.compliance.scanner import AntiPatternResult
+        ap = AntiPatternResult(
+            filepath="test.py",
+            lines_scanned=10,
+            findings=[(3, "os_system", 'os.system("ls")')],
+        )
+        d = ap.to_dict()
+        assert d["filepath"] == "test.py"
+        assert d["finding_count"] == 1
+        assert d["findings"][0]["category"] == "os_system"
+
+    def test_cli_format_json(self):
+        """UT10: CLI --format json should produce valid JSON output."""
+        result = subprocess.run(
+            [sys.executable, "src/CORE/compliance/scanner.py",
+             "--report", "--dir", "src/CORE/compliance",
+             "--format", "json"],
+            capture_output=True, text=True, cwd=os.path.join(os.path.dirname(__file__), ".."),
+        )
+        data = json.loads(result.stdout)
+        assert "total_files" in data
+        assert "total_findings" in data
+        assert data["total_files"] >= 1

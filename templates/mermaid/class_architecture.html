@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Class Architecture — Mermaid Class Diagram</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #040410; color: #e0e0e8; font-family: Consolas,monospace;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 30px;
+  background-image: radial-gradient(ellipse at 50% 80%, rgba(255,0,170,0.04) 0%, transparent 60%);
+}
+h1 {
+  font-size: 2.2em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #ff00aa, #bf00ff, #00f5ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: #888; font-size: 0.95em; margin-bottom: 30px; }
+.mermaid {
+  background: #0a0a20; border: 1px solid #1a1a35; border-radius: 16px;
+  padding: 30px; max-width: 1100px; width: 100%;
+  overflow-x: auto;
+}
+.note { color: #555; margin-top: 20px; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>AZAZAEL Class Architecture</h1>
+<p class="subtitle">Object-Oriented Design | Inheritance | Composition</p>
+<div class="mermaid">
+classDiagram
+    class BaseWorm {
+        +String name
+        +String status
+        +Dict config
+        +scan() Dict
+        +report() String
+        +heal() Bool
+    }
+    
+    class SystemWorm {
+        +cpu_percent: Float
+        +memory_info: Dict
+        +disk_usage: Dict
+        +processes: List
+        +get_cpu() Float
+        +get_memory() Dict
+        +get_processes() List
+    }
+    
+    class NetworkWorm {
+        +interfaces: List
+        +connections: List
+        +latency: Float
+        +scan_ports() List
+        +ping(host) Float
+        +trace_route() List
+    }
+    
+    class MetaWorm {
+        +target_file: Path
+        +metadata: Dict
+        +dependencies: List
+        +extract_metadata() Dict
+        +map_dependencies() Graph
+        +validate_syntax() List
+    }
+    
+    class CircuitBreaker {
+        +state: CircuitState
+        +failure_count: Int
+        +health_score: Float
+        +dead_letter_queue: List
+        +execute(fn) Any
+        +record_success()
+        +record_failure()
+        +stats() Dict
+    }
+    
+    class EmotionEngine {
+        +current_emotion: String
+        +intensity: Float
+        +observers: List
+        +morph_next()
+        +on_change(callback)
+        +get_emoji() String
+    }
+    
+    class InferenceStudio {
+        +hardware_profile: Dict
+        +frameworks: List
+        +models: List
+        +animation_engine: EmotionEngine
+        +circuit_breaker: CircuitBreaker
+        +detect_hardware() Dict
+        +scan_models() List
+        +run_inference(model, prompt) String
+    }
+    
+    BaseWorm <|-- SystemWorm
+    BaseWorm <|-- NetworkWorm
+    BaseWorm <|-- MetaWorm
+    
+    InferenceStudio *-- EmotionEngine
+    InferenceStudio *-- CircuitBreaker
+    
+    CircuitBreaker --> DeadLetterQueue
+    
+    class DeadLetterQueue {
+        +entries: List
+        +max_size: Int
+        +push(entry)
+        +replay() List
+        +clear()
+    }
+</div>
+<p class="note">Mermaid Class Diagram — AZAZAEL OOP Architecture | Inheritance | Composition | Circuit Breaker Pattern</p>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose'});</script>
+</body>
+</html>

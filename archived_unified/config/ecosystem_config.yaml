@@ -1,0 +1,70 @@
+# Azazael Unified Ecosystem Configuration
+# Generated: 2026-02-12
+# Version: 7.0.0
+
+ECOSYSTEM:
+  name: "Azazael Unified"
+  version: "7.0.0"
+  root: "C:/Users/clint/Desktop/Azazael_UNIFIED"
+
+PATHS:
+  AZAAZEL_ROOT: "C:/Users/clint/Desktop/Azazael_UNIFIED"
+  CORE: "C:/Users/clint/Desktop/Azazael_UNIFIED/CORE"
+  WORMS: "C:/Users/clint/Desktop/Azazael_UNIFIED/CORE/WORMS"
+  CONCURRENCY: "C:/Users/clint/Desktop/Azazael_UNIFIED/CORE/CONCURRENCY"
+  CLUSTERS: "C:/Users/clint/Desktop/Azazael_UNIFIED/CLUSTERS"
+  META: "C:/Users/clint/Desktop/Azazael_UNIFIED/META"
+  HYDRA: "C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA"
+  HYDRA_ML: "C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA/ml_platforms"
+  ORCHESTRATION: "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION"
+  OUTPUT: "C:/Users/clint/Desktop/Azazael_UNIFIED/OUTPUT"
+  UTILITIES: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES"
+  TERENCE: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/TERENCE"
+  PERSEPHONE: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/PERSEPHONE"
+  POINDEXTER: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/POINDEXTER"
+  TARBABY: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/TARBABY"
+  KLINK: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/KLINK"
+  BIBL: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/BIBL"
+  SHORTCUTS: "C:/Users/clint/Desktop/Azazael_UNIFIED/SHORTCUTS"
+  DOCS: "C:/Users/clint/Desktop/Azazael_UNIFIED/DOCS"
+  CODEX: "C:/Users/clint/Desktop/Azazael_UNIFIED/CODEX"
+  SCRIPTS: "C:/Users/clint/Desktop/Azazael_UNIFIED/SCRIPTS"
+
+WINDOWS_PATHS:
+  AZAAZEL: "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION"
+
+WSL_PATHS:
+  AZAAZEL: "/mnt/c/Users/clint/Desktop/Azazael_UNIFIED"
+  CORE: "/mnt/c/Users/clint/Desktop/Azazael_UNIFIED/CORE"
+  PERSEPHONE: "/mnt/c/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/PERSEPHONE"
+
+PERSEPHONE:
+  WINDOWS: "C:/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/PERSEPHONE"
+  WSL: "/mnt/c/Users/clint/Desktop/Azazael_UNIFIED/UTILITIES/PERSEPHONE"
+
+ENVIRONMENT:
+  env_file: "C:/Users/clint/Azazael_ENV.bat"
+  auto_update: true
+
+INTEROPERABILITY:
+  cross_platform: true
+  wsl_enabled: true
+  wsa_enabled: true
+  persephone_sync: true
+
+COMPONENTS:
+  - "CORE/WORMS"
+  - "CORE/CONCURRENCY"
+  - "META/METAWORMS"
+  - "HYDRA"
+  - "ORCHESTRATION"
+  - "UTILITIES/TERENCE"
+  - "UTILITIES/PERSEPHONE"
+  - "UTILITIES/POINDEXTER"
+  - "UTILITIES/TARBABY"
+  - "UTILITIES/KLINK"
+  - "UTILITIES/BIBL"
+  - "SHORTCUTS"
+  - "DOCS"
+  - "CODEX"
+  - "SCRIPTS"

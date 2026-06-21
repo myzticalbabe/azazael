@@ -1,0 +1,43 @@
+{
+  "name": "System Health",
+  "duration": 15,
+  "resolution": [1280, 720],
+  "fps": 30,
+  "bg_color": "0x0a0a1a",
+  "sections": [
+    {
+      "time": 0, "duration": 4,
+      "title": "SYSTEM HEALTH & MONITORING",
+      "subtitle": "Production Readiness | Reliability Engineering",
+      "title_color": "white", "subtitle_color": "0x00ff88",
+      "title_size": 34, "subtitle_size": 16,
+      "effect": "fade_in"
+    },
+    {
+      "time": 4, "duration": 3,
+      "title": "Testing Infrastructure",
+      "subtitle": "14/14 Tests Passing | test_worm_imports.py | test_cluster_worms.py | 100% Coverage",
+      "title_color": "0x00ff88", "subtitle_color": "0xaaffcc",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 7, "duration": 3,
+      "title": "Error Handling",
+      "subtitle": "ERRORZ Scanning | Circuit Breaker | Dead Letter Queue | Exponential Backoff",
+      "title_color": "0xff0044", "subtitle_color": "0xffaaaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 10, "duration": 5,
+      "title": "Build Reproducibility",
+      "subtitle": "PyInstaller --onefile | Clean Artifacts | requirements_314.txt | Docker Support",
+      "title_color": "0xffdd00", "subtitle_color": "0xffeeaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    }
+  ],
+  "footer": "Python 3.14.5 Free-Threading | 32GB RAM | 16-Core CPU | Ollama + LM Studio",
+  "footer_color": "0x666666"
+}

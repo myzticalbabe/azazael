@@ -1,0 +1,59 @@
+{
+  "name": "Metaworms Analysis",
+  "duration": 20,
+  "resolution": [1280, 720],
+  "fps": 30,
+  "bg_color": "0x0a0a1a",
+  "sections": [
+    {
+      "time": 0, "duration": 5,
+      "title": "METAWORMS - Tier 3 Analysis Suite",
+      "subtitle": "10 Specialized Analysis & Transformation Worms",
+      "title_color": "white", "subtitle_color": "0xff8800",
+      "title_size": 32, "subtitle_size": 16,
+      "effect": "fade_in"
+    },
+    {
+      "time": 5, "duration": 3,
+      "title": "METAZ - Metadata Extraction",
+      "subtitle": "File Properties | Module Signatures | Version Tracking | JSON Output",
+      "title_color": "0xff00ff", "subtitle_color": "0xffaadd",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 8, "duration": 3,
+      "title": "DEPENDZ - Dependency Mapping",
+      "subtitle": "Import Graphs | Tree Visualization | Circular Detection | Impact Analysis",
+      "title_color": "0xffff00", "subtitle_color": "0xffffaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 11, "duration": 3,
+      "title": "VALIDZ + DEADZ - Quality Gates",
+      "subtitle": "Syntax Validation | Dead Code Detection | Unused Import Scanning",
+      "title_color": "0x00ff88", "subtitle_color": "0xaaffcc",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 14, "duration": 3,
+      "title": "METRICZ + ERRORZ - Intelligence",
+      "subtitle": "Cyclomatic Complexity | Error Crawling | Auto-Fix Suggestions | Log Analysis",
+      "title_color": "0x00ffff", "subtitle_color": "0xaaddff",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 17, "duration": 3,
+      "title": "OPTIMIZ + HEALTHZ - Performance",
+      "subtitle": "Code Optimization | System Health Scoring | Resource Profiling",
+      "title_color": "0xff0044", "subtitle_color": "0xffaaaa",
+      "title_size": 22, "subtitle_size": 14,
+      "effect": "slide_up"
+    }
+  ],
+  "footer": "TRIMZ Content Trimming | LOGZ Analysis | CHANGEZ Tracking | 10 Meta-Worms Total",
+  "footer_color": "0x666666"
+}

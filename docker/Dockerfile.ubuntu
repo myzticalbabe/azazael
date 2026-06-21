@@ -1,0 +1,29 @@
+# Azazael Environment — Dockerfile
+FROM python:3.14-slim-bookworm
+
+LABEL description="Azazael Adaptive Sequential ML Cluster"
+LABEL version="4.0.0"
+
+# Install system deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /azazael
+
+# Copy requirements
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY azazael-project-e/ .
+
+# Set Keras backend
+ENV KERAS_BACKEND=torch
+ENV PYTHONPATH=/azazael
+
+# Default command
+CMD ["python3", "HYDRA.py", "--discover", "--run", "--status"]

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Standalone Suite — 52 Executables</title>
+<style>
+  :root { --bg: #0a0a14; --card: #111122; --accent: #00f5ff; --text: #ccd; --dim: #667; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  header { padding:2rem; text-align:center; border-bottom:1px solid #1a1a3a; }
+  header h1 { font-size:1.8rem; color:var(--accent); }
+  header p { color:var(--dim); margin-top:0.5rem; }
+  .stats { display:flex; justify-content:center; gap:2rem; padding:1rem; flex-wrap:wrap; }
+  .stat { text-align:center; }
+  .stat .num { font-size:2rem; color:var(--accent); }
+  .stat .lbl { font-size:0.8rem; color:var(--dim); }
+  .tiers { display:flex; gap:0.5rem; justify-content:center; padding:1rem; flex-wrap:wrap; }
+  .tier-btn { background:#111122; border:1px solid #1a1a3a; color:var(--text); padding:0.4rem 1rem; border-radius:4px; cursor:pointer; font-size:0.85rem; }
+  .tier-btn:hover,.tier-btn.active { border-color:var(--accent); color:var(--accent); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; padding:1.5rem; max-width:1400px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid #1a1a3a; border-radius:8px; padding:1.2rem; transition:all 0.2s; cursor:pointer; }
+  .card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 4px 20px rgba(0,245,255,0.1); }
+  .card h3 { font-size:1rem; color:var(--accent); margin-bottom:0.4rem; word-break:break-all; }
+  .card .tier { display:inline-block; background:#1a1a3a; padding:0.1rem 0.5rem; border-radius:3px; font-size:0.7rem; color:var(--dim); margin-bottom:0.4rem; }
+  .card .size { color:var(--dim); font-size:0.75rem; }
+  .card .desc { color:var(--dim); font-size:0.8rem; margin-top:0.4rem; line-height:1.4; }
+  .card .launch { display:inline-block; margin-top:0.6rem; color:var(--accent); font-size:0.8rem; text-decoration:none; border:1px solid var(--accent); padding:0.2rem 0.6rem; border-radius:3px; }
+  .card .launch:hover { background:var(--accent); color:var(--bg); }
+  .card.hidden { display:none; }
+  footer { text-align:center; padding:2rem; color:var(--dim); font-size:0.75rem; border-top:1px solid #1a1a3a; }
+  footer a { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <h1>AZAZAEL Standalone Suite</h1>
+  <p>52 compiled executables | Nuitka 4.1.2 | Python 3.14t | Windows 11</p>
+</header>
+<div class="stats">
+  <div class="stat"><div class="num">52</div><div class="lbl">Total Apps</div></div>
+  <div class="stat"><div class="num">6</div><div class="lbl">Tiers</div></div>
+  <div class="stat"><div class="num">10/10</div><div class="lbl">Tested OK</div></div>
+</div>
+<div class="tiers">
+  <button class="tier-btn active" onclick="filter('all')">All</button>
+  <button class="tier-btn" onclick="filter('core')">Core</button>
+  <button class="tier-btn" onclick="filter('monitor')">Monitor</button>
+  <button class="tier-btn" onclick="filter('security')">Security</button>
+  <button class="tier-btn" onclick="filter('ml')">ML/AI</button>
+  <button class="tier-btn" onclick="filter('expansion')">Expansion</button>
+  <button class="tier-btn" onclick="filter('tool')">Tools</button>
+</div>
+<div class="grid" id="grid"></div>
+<footer>
+  AZAZAEL Standalone Suite &mdash; Generated June 4, 2026 | <a href="docs/ENVIRONMENT_ALIGNMENT.md">Docs</a>
+</footer>
+<script>
+const apps = [
+  {name:"AZAZAEL_314t_Launcher.exe",tier:"core",size:"8.0 MB",desc:"Main launcher with 8 integrated modules, system bootstrap"},
+  {name:"AZAZAEL_CLI_314t.exe",tier:"core",size:"8.2 MB",desc:"CLI interface: bootstrap, worm, interpreter, kilo commands"},
+  {name:"AZAZAEL_Toolkit_314t.exe",tier:"tool",size:"8.0 MB",desc:"10-option toolkit menu: build, debug, archive, git"},
+  {name:"CLUSTERWORMS_314t.exe",tier:"core",size:"9.3 MB",desc:"ClusterWORMZ orchestration engine, parallel worm execution"},
+  {name:"METACLUSTER_314t.exe",tier:"core",size:"6.6 MB",desc:"MetaCluster routing: 46 routes, 264 paths, cross-nature"},
+  {name:"CONCURRENCY_314t.exe",tier:"core",size:"12.0 MB",desc:"Free-threaded parallel execution, work-stealing pool"},
+  {name:"HYDRA_314t.exe",tier:"core",size:"7.7 MB",desc:"HYDRA system manager, multi-headed orchestration"},
+  {name:"HYDRA_Bridge_314t.exe",tier:"core",size:"7.2 MB",desc:"HYDRA Bridge, cross-system communication layer"},
+  {name:"HYDRA_Container_314t.exe",tier:"core",size:"8.5 MB",desc:"HYDRA Container, Docker/container management"},
+  {name:"HYDRA_Analyzer_314t.exe",tier:"core",size:"8.0 MB",desc:"HYDRA Analyzer, system performance analysis"},
+  {name:"NODE_314t.exe",tier:"core",size:"8.0 MB",desc:"NODE runtime, JavaScript/Node.js integration bridge"},
+  {name:"NATURE_Clusters_314t.exe",tier:"core",size:"7.2 MB",desc:"NatureClusters, domain-specific worm clustering"},
+  {name:"PROCESSZ_314t.exe",tier:"monitor",size:"8.0 MB",desc:"ProcessZ, process-level monitoring and management"},
+  {name:"DISKZ_314t.exe",tier:"monitor",size:"8.0 MB",desc:"DiskZ, disk I/O and storage monitoring"},
+  {name:"NETWORXZ_314t.exe",tier:"monitor",size:"8.0 MB",desc:"NetworXZ, network diagnostics and monitoring"},
+  {name:"CLOCKZ_314t.exe",tier:"monitor",size:"8.0 MB",desc:"ClockZ, time synchronization and NTP monitoring"},
+  {name:"SMARTDISK_314t.exe",tier:"monitor",size:"7.8 MB",desc:"SmartDisk, intelligent disk health and SMART monitor"},
+  {name:"NETWORK_Diag_314t.exe",tier:"monitor",size:"16.6 MB",desc:"Network Diagnostics, comprehensive analysis"},
+  {name:"ERROR_Scan_314t.exe",tier:"security",size:"8.0 MB",desc:"Error Scanner, automated error detection and reporting"},
+  {name:"HEALING_WORM_314t.exe",tier:"security",size:"8.0 MB",desc:"Healing Worm, automated system recovery operations"},
+  {name:"BINARY_Analysis_314t.exe",tier:"security",size:"16.6 MB",desc:"Binary Analysis, PE/ELF binary inspection engine"},
+  {name:"AZAZAEL_Inference_Studio_314t.exe",tier:"ml",size:"11.2 MB",desc:"Inference Studio, AI model inference and analysis GUI"},
+  {name:"Eve_Unleashed_314t.exe",tier:"ml",size:"10.9 MB",desc:"Eve Unleashed, advanced AI capability framework"},
+  {name:"OMNI_WORM_314t.exe",tier:"ml",size:"8.0 MB",desc:"Omni Worm, multi-purpose AI analysis worm"},
+  {name:"QL_Optimizer_314t.exe",tier:"ml",size:"14.1 MB",desc:"QL Optimizer, Q-learning optimization engine"},
+  {name:"QL_Analysis_314t.exe",tier:"ml",size:"8.0 MB",desc:"QL Analysis, reinforcement learning analysis tool"},
+  {name:"Math_Certainty_314t.exe",tier:"ml",size:"22.5 MB",desc:"Math Certainty, mathematical proof verification engine"},
+  {name:"Environment_Manager_314t.exe",tier:"expansion",size:"8.0 MB",desc:"Environment Manager, Python env & dependency mgmt"},
+  {name:"CODEX_Studio_314t.exe",tier:"expansion",size:"6.1 MB",desc:"CODEX Studio, video generation and template management"},
+  {name:"OS_Congruency_314t.exe",tier:"expansion",size:"8.3 MB",desc:"OS Congruency, cross-platform compatibility check"},
+  {name:"Comprehensive_Fix_314t.exe",tier:"expansion",size:"8.0 MB",desc:"Comprehensive Fix, automated code repair engine"},
+  {name:"Azazael_Logger_314t.exe",tier:"expansion",size:"8.0 MB",desc:"Logger, centralized logging and event tracking"},
+  {name:"Complete_Systems_314t.exe",tier:"expansion",size:"4.0 MB",desc:"Complete Systems, system integrity verification"},
+  {name:"Twitler_Analysis_314t.exe",tier:"expansion",size:"3.8 MB",desc:"Twitler Analysis, social media pattern analysis"},
+  {name:"Changelog_Generator_314t.exe",tier:"tool",size:"4.1 MB",desc:"Changelog Generator, auto changelog from git history"},
+  {name:"Changelog_Gen_314t.exe",tier:"tool",size:"8.0 MB",desc:"Changelog Gen, alternative changelog generation"},
+  {name:"Auto_Doc_Gen_314t.exe",tier:"tool",size:"4.1 MB",desc:"Auto Doc Gen, automated documentation generation"},
+  {name:"File_Manifest_314t.exe",tier:"tool",size:"5.6 MB",desc:"File Manifest, file inventory and checksum verification"},
+  {name:"Auto_Downloader_314t.exe",tier:"tool",size:"8.0 MB",desc:"Auto Downloader, ML framework detection and install"},
+  {name:"ASCII_Flowchart_314t.exe",tier:"tool",size:"8.0 MB",desc:"ASCII Flowchart, 8 diagram types, terminal-native"},
+  {name:"Emoji_Maker_314t.exe",tier:"tool",size:"8.0 MB",desc:"Emoji Maker, emoji/emotion generation and classification"},
+  {name:"Animation_Protocols_314t.exe",tier:"tool",size:"8.0 MB",desc:"Animation Protocols, animation library extensions"},
+  {name:"Enhanced_Animations_314t.exe",tier:"tool",size:"8.0 MB",desc:"Enhanced Animations, advanced animation capabilities"},
+  {name:"Create_Video_314t.exe",tier:"tool",size:"14.1 MB",desc:"Create Video, PIL+ffmpeg video generation pipeline"},
+  {name:"Compress_Video_314t.exe",tier:"tool",size:"5.8 MB",desc:"Compress Video, H.264 compression with CAIN profile"},
+  {name:"Matrix_Video_314t.exe",tier:"tool",size:"5.8 MB",desc:"Matrix Video, matrix-themed video generation"},
+  {name:"Matrix_Animation_314t.exe",tier:"tool",size:"5.8 MB",desc:"Matrix Animation, matrix-style animation renderer"},
+  {name:"Video_Popup_314t.exe",tier:"tool",size:"6.0 MB",desc:"Video Popup, popup-based video player"},
+  {name:"POPUP_Immersive_314t.exe",tier:"tool",size:"6.0 MB",desc:"POPUP Immersive, immersive popup interface"},
+  {name:"POPUP_Simple_314t.exe",tier:"tool",size:"10.9 MB",desc:"POPUP Simple, lightweight popup utility"},
+  {name:"POPUP_Bugfree_314t.exe",tier:"tool",size:"10.9 MB",desc:"POPUP Bugfree, tested popup implementation"},
+  {name:"POPUP_Clickable_314t.exe",tier:"tool",size:"10.9 MB",desc:"POPUP Clickable, interactive popup with event handling"},
+];
+
+function render(filterTier) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  apps.forEach(a => {
+    if (filterTier !== 'all' && a.tier !== filterTier) return;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = '<span class="tier">' + a.tier + '</span>' +
+      '<h3>' + a.name + '</h3>' +
+      '<span class="size">' + a.size + '</span>' +
+      '<p class="desc">' + a.desc + '</p>' +
+      '<a class="launch" href="' + a.name + '">Launch</a>';
+    card.addEventListener('click', function(e) {
+      if (e.target.tagName !== 'A') { window.location.href = a.name; }
+    });
+    grid.appendChild(card);
+  });
+  document.querySelectorAll('.tier-btn').forEach(function(b) { b.classList.remove('active'); });
+  var buttons = document.querySelectorAll('.tier-btn');
+  for (var i = 0; i < buttons.length; i++) {
+    if (buttons[i].getAttribute('onclick') === "filter('" + filterTier + "')") {
+      buttons[i].classList.add('active');
+      break;
+    }
+  }
+}
+function filter(t) { render(t); }
+render('all');
+</script>
+</body>
+</html>

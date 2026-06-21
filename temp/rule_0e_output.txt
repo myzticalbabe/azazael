@@ -1,0 +1,98 @@
+======================================================================
+SYSTEM_INSTRUCTIONS.md — RULE 0E
+======================================================================
+  (2397 chars, 38 lines)
+  Content:
+    ## 🚨 RULE 0E: 10-PHASE PROTOCOL AUTOMATION — PHASE ACKNOWLEDGMENT (CRITICAL — June 7, 2026)
+    **Inference from Mistral/GitHub compliance review: "Automate enforcement of the 10-phase
+    protocol to remove reliance on manual compliance."**
+    Each phase of the 10-Phase Multi-Tier Protocol MUST be explicitly acknowledged and
+    recorded via DirectMemory before proceeding to the next phase.
+    ### Phase Automation Rules
+    1. **ACKNOWLEDGE** — Before executing each phase, state: "Executing Phase [N]: [Name]"
+    2. **COMPLETE** — After executing, state: "Phase [N] complete"
+    3. **RECORD** — Record phase completion via DirectMemory:
+       ```python
+       dm.record("phase_complete", {"phase": 1, "name": "Pre-Analysis", "status": "completed"})
+       ```
+    4. **SKIP PROTOCOL** — If a phase cannot be executed (ALL inference models unavailable/errored), record:
+       ```python
+       dm.record("phase_blocked", {"phase": 1, "name": "Pre-Analysis", "reason": "All models unavailable"})
+       ```
+       **The Gemini-unavailable fallback (query ALL inference models) must be attempted first before recording a phase as blocked.**
+    5. **VIOLATION** — Skipping without recording = CRITICAL process violation
+    ### Default Fallback for Unavailable Phases
+    **CRITICAL: When thinker-with-files-gemini is NOT available, the assistant MUST query ALL available inference models via `providers.py` (NVIDIA NIM, Groq, Cerebras, OpenRouter, Gemini, GitHub, Mistral, HuggingFace, Cloudflare, SiliconFlow, Zhipu AI, 
+    | Phase | Primary | Fallback (Gemini unavailable) |
+    |-------|---------|----------|
+    | 1 (Gemini) | thinker-with-files-gemini | **Query ALL inference models** to architect context-gathering strategy |
+    | 3 (Gemini) | thinker-with-files-gemini | **Query ALL inference models** to synthesize context into master prompt |
+    | 5 (Gemini) | thinker-with-files-gemini | **Query ALL inference models** to cross-validate and converge on plan |
+    | 6 (Gemini) | thinker-with-files-gemini | **Query ALL inference models** to vet plan against ERROR_LOG.md anti-patterns |
+    | 8 (Gemini) | thinker-with-files-gemini | **Query ALL inference models** to audit implementation vs plan |
+    | 10 (Gemini) | thinker-with-files-gemini | **Query ALL inference models** to draft SOP/memory updates |
+    ---
+
+--- SYSTEM_INSTRUCTIONS.md — RULE 0E-1 ---
+  (1799 chars, 21 lines)
+  Content:
+    ## 🚨 RULE 0E-1: MANDATORY 10-PHASE MULTI-TIER PROTOCOL (4X GEMINI MANDATE — SECONDARY SECTION)
+    **The user directive is absolute: Gemini must be spawned OFTEN, FREQUENTLY, CONSISTENTLY. A minimum of 4 Gemini spawns per complex task is heavily enforced.**
+    **ALL complex tasks or system changes MUST follow this exact lifecycle protocol:**
+    1. **Pre-Analysis (Gemini)**: Spawn `thinker-with-files-gemini` BEFORE any other agents/tools to architect the context-gathering strategy.
+    2. **Context Gathering**: Dispatch research agents and fast-search tools to acquire raw data.
+    3. **Post-Context Synthesis (Gemini)**: Spawn `thinker-with-files-gemini` to process the file context and construct the exact prompt for the 6 APIs.
+    4. **6 API Analysis**: Send the Gemini-derived prompt through ALL 6 inference APIs via `providers.py`.
+    5. **Cross-Validation Synthesis (Gemini)**: Spawn `thinker-with-files-gemini` AFTER all analysis agents to force convergence on a concrete implementation plan.
+    6. **Plan Review (Gemini)**: Spawn `thinker-with-files-gemini` strictly to vet the chosen plan against `ERROR_LOG.md` and `MEMORIES.md` anti-patterns before making edits.
+    7. **Implement**: Make the actual code changes, applying the synthesized plan precisely.
+    8. **Post-Implementation Audit (Gemini)**: Spawn `thinker-with-files-gemini` to review the applied edits and detect architectural drift.
+    9. **6 API Verification**: Run the updated code/tests back through the 6 APIs for final cross-validation.
+    10. **Final Synthesis (Gemini)**: Spawn `thinker-with-files-gemini` to draft the final SOP/Memory updates reflecting the session's insights.
+    Execution of this 10-phase multi-tier protocol is a **strict requirement** and skipping any phase (or missing the 4x Gemini quota) is a CRITICAL process violation.
+    ---
+
+======================================================================
+SOP.md — RULE 0E
+======================================================================
+  (379 chars, 10 lines)
+  Content:
+    ## 🔴 RULE 0E: 10-PHASE MULTI-TIER PROTOCOL — 6 GEMINI INJECTION POINTS (CRITICAL — June 7, 2026)
+    **Minimum 4 Gemini spawns per complex task. 6 Gemini injection points across 10 phases.**
+    Each phase MUST be acknowledged before execution and recorded after. Skipping any phase or missing the 4x Gemini quota = CRITICAL process violation.
+    **Related:** Canonical source: , .
+    ---
+
+--- SOP.md — RULE 0E-1 ---
+  ❌ NOT FOUND
+
+======================================================================
+MANDATES.md — RULE 0E
+======================================================================
+  (1374 chars, 27 lines)
+  Content:
+    ### RULE 0E: 10-PHASE MULTI-TIER PROTOCOL — 6 GEMINI INJECTION POINTS (CRITICAL — Jun 7)
+    **Minimum 4 Gemini spawns per complex task. 6 Gemini injection points across 10 phases.**
+    | Phase | Name | Primary Agent | Fallback |
+    |-------|------|---------------|----------|
+    | 1 | Pre-Analysis | thinker-with-files-gemini | Query ALL inference models |
+    | 2 | Context Gathering | file-picker, code-searcher, basher | — |
+    | 3 | Post-Context Synthesis | thinker-with-files-gemini | Query ALL inference models |
+    | 4 | 6 API Analysis | providers.py (all 6 APIs) | — |
+    | 5 | Cross-Validation Synthesis | thinker-with-files-gemini | Query ALL inference models |
+    | 6 | Plan Review (Anti-Pattern Vet) | thinker-with-files-gemini | Query ALL inference models |
+    | 7 | Implement | str_replace / write_file | — |
+    | 8 | Post-Implementation Audit | thinker-with-files-gemini | Query ALL inference models |
+    | 9 | 6 API Verification | providers.py (all 6 APIs) | — |
+    | 10 | Final Synthesis | thinker-with-files-gemini | Query ALL inference models |
+    Each phase MUST be acknowledged before execution and recorded after:
+    ```python
+    dm.record("phase_complete", {"phase": N, "name": "...", "status": "completed"})
+    ```
+    Skipping any phase or missing the 4x Gemini quota = CRITICAL process violation.
+    **Related:** Error #74 (protocol incomplete). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
+    ---
+
+--- MANDATES.md — RULE 0E-1 ---
+  ❌ NOT FOUND
+

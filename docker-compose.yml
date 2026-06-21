@@ -1,0 +1,48 @@
+# =============================================================================
+# docker-compose.yml — AZAZAEL Local Production Stack
+# =============================================================================
+# Start:  docker-compose up -d
+# Stop:   docker-compose down
+# Logs:   docker-compose logs -f
+# =============================================================================
+
+version: "3.8"
+
+services:
+  azazael:
+    build: .
+    container_name: azazael-core
+    restart: unless-stopped
+    ports:
+      - "18420:18420"   # Health JSON endpoint
+      - "18421:18421"   # Prometheus metrics endpoint
+    volumes:
+      - G:/:/archive:ro           # G: drive archive (read-only)
+      - ./azazael/data:/app/data  # Persistent data
+      - ./azazael/output:/app/output
+      - azazael_data:/home/azazael/.azazael  # SQLite session database
+volumes:
+  azazael_data:
+
+    environment:
+      - AZAZAEL_ROOT=/app
+      - AZAZAEL_ARCHIVE=/archive
+      - AZAZAEL_OUTPUT_DIR=/app/output
+      - PYTHONIOENCODING=utf-8
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(3); s.connect(('localhost',18420)); print(s.recv(8192).decode()); s.close()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Prometheus for metrics collection
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: azazael-prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'

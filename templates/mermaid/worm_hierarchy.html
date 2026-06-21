@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Worm Hierarchy — Mermaid Flowchart</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #040410; color: #e0e0e8; font-family: Consolas,monospace;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 30px;
+  background-image: radial-gradient(ellipse at 20% 20%, rgba(0,245,255,0.04) 0%, transparent 60%);
+}
+h1 {
+  font-size: 2.2em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #00f5ff, #bf00ff, #ff00aa);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: #888; font-size: 0.95em; margin-bottom: 30px; }
+.mermaid {
+  background: #0a0a20; border: 1px solid #1a1a35; border-radius: 16px;
+  padding: 30px; max-width: 1100px; width: 100%;
+  overflow-x: auto;
+}
+.note { color: #555; margin-top: 20px; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>AZAZAEL Worm Hierarchy</h1>
+<p class="subtitle">Tier 1-4 Architecture | Free-Threaded Agent Ecosystem</p>
+<div class="mermaid">
+graph TB
+    subgraph TIER4["TIER 4 — HYDRAMETA & COORDINATION"]
+        HYDRA["HYDRAMETA<br/>ML Optimization"]
+        TERENCE["TERENCE<br/>Error Resolution"]
+        HORUS["HORUS<br/>24 Visualization Protocols"]
+        CB["Circuit Breaker<br/>Open/Half-Open/Closed"]
+        DLQ["Dead Letter Queue<br/>Failed Execution Storage"]
+    end
+
+    subgraph TIER3["TIER 3 — METAWORMS"]
+        METAZ["METAZ<br/>Metadata Extraction"]
+        DEPENDZ["DEPENDZ<br/>Dependency Mapping"]
+        VALIDZ["VALIDZ<br/>Syntax Validation"]
+        DEADZ["DEADZ<br/>Dead Code Detection"]
+        METRICZ["METRICZ<br/>Code Metrics"]
+        ERRORZ["ERRORZ<br/>Error Crawling"]
+        OPTIMIZ["OPTIMIZ<br/>Performance Optimization"]
+        HEALTHZ["HEALTHZ<br/>System Health"]
+        TRIMZ["TRIMZ<br/>Content Trimming"]
+        LOGZ["LOGZ<br/>Log Analysis"]
+    end
+
+    subgraph TIER2["TIER 2 — CLUSTER WORMS"]
+        BIBL["BIBL CLUSTER<br/>WORMZ+TRIMZ"]
+        SYSTEM_C["SYSTEM CLUSTER<br/>SYSTEMZ+PROCESSZ+DISKZ"]
+        NETWORK_C["NETWORK CLUSTER<br/>NETWORXZ+CLOCKZ"]
+        SECURITY["SECURITY CLUSTER<br/>PROCESSZ+NETWORXZ"]
+        ANALYSIS["ANALYSIS CLUSTER<br/>METAZ+METRICZ+DEPENDZ"]
+        VALIDATION["VALIDATION CLUSTER<br/>VALIDZ+DEADZ+ERRORZ"]
+        HEALTH_C["HEALTH CLUSTER<br/>HEALTHZ+OPTIMIZ+SYSTEMZ"]
+    end
+
+    subgraph TIER1["TIER 1 — CORE WORMS"]
+        SYSTEMZ["SYSTEMZ<br/>System Monitoring"]
+        PROCESSZ["PROCESSZ<br/>Process Management"]
+        DISKZ["DISKZ<br/>Disk Analysis"]
+        NETWORXZ["NETWORXZ<br/>Network Diagnostics"]
+        CLOCKZ["CLOCKZ<br/>Time & Scheduling"]
+        WORMZ["WORMZ<br/>BIBL Crawling"]
+    end
+
+    TIER4 --> TIER3
+    TIER3 --> TIER2
+    TIER2 --> TIER1
+
+    HYDRA --> METRICZ
+    HYDRA --> OPTIMIZ
+    TERENCE --> ERRORZ
+    TERENCE --> CB
+    HORUS --> METAZ
+    CB --> DLQ
+
+    style TIER4 fill:#1a0020,stroke:#ff0044,color:#ffaaaa
+    style TIER3 fill:#201000,stroke:#ff8800,color:#ffddaa
+    style TIER2 fill:#100020,stroke:#bf00ff,color:#ddaaff
+    style TIER1 fill:#001020,stroke:#00f5ff,color:#aaddff
+    style HYDRA fill:#0a0a20,stroke:#ff0044,color:#ff8888
+    style TERENCE fill:#0a0a20,stroke:#ff8800,color:#ffcc88
+    style HORUS fill:#0a0a20,stroke:#ff00aa,color:#ff88cc
+    style CB fill:#0a0a20,stroke:#ffff00,color:#ffff88
+    style DLQ fill:#0a0a20,stroke:#ff0044,color:#ff8888
+</div>
+<p class="note">Mermaid Flowchart — AZAZAEL 3.14t Free-Threaded Architecture | 4 Tiers | 35+ Specialized Agents</p>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose'});</script>
+</body>
+</html>

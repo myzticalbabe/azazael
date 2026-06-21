@@ -1,0 +1,54 @@
+{
+  "pipeline_version": "1.0.0",
+  "curative_version": "1.0.0",
+  "timestamp": "2026-06-04T13:43:39.304138",
+  "knowledge_base": {
+    "path": null,
+    "total_files": 100,
+    "total_size_kb": 488.28125
+  },
+  "training": {
+    "epochs_completed": 3,
+    "final_loss": 0.3645,
+    "final_accuracy": 0.8,
+    "epoch_history": [
+      {
+        "epoch": 1,
+        "loss": 0.45,
+        "accuracy": 0.6,
+        "tag_vocab_size": 17
+      },
+      {
+        "epoch": 2,
+        "loss": 0.405,
+        "accuracy": 0.7,
+        "tag_vocab_size": 17
+      },
+      {
+        "epoch": 3,
+        "loss": 0.3645,
+        "accuracy": 0.8,
+        "tag_vocab_size": 17
+      }
+    ]
+  },
+  "curative_governance": {
+    "status": "curative_pools_active",
+    "metrics": {
+      "total_actions": 6,
+      "scope_violations": 0,
+      "unnecessary_actions": 0,
+      "frustration_triggers": 0,
+      "avg_deviation_pct": 0.0
+    },
+    "cost_projection": {
+      "unnecessary_actions": 0,
+      "wasted_output_kb": 0.0,
+      "user_time_wasted_s": 0.0,
+      "trust_erosion_score": 0.0,
+      "compute_cost_usd": 0.0
+    },
+    "audit_log_entries": 0,
+    "curative_version": "1.0.0"
+  }
+}

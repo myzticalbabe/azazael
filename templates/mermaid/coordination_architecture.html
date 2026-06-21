@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AZAZAEL Coordination Architecture — Mermaid C4 Context</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: #040410; color: #e0e0e8; font-family: Consolas,monospace;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  padding: 30px;
+  background-image: radial-gradient(ellipse at 60% 40%, rgba(255,0,170,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 70%, rgba(0,245,255,0.04) 0%, transparent 60%);
+}
+h1 {
+  font-size: 2.2em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #ff00aa, #bf00ff, #00f5ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.subtitle { color: #888; font-size: 0.95em; margin-bottom: 30px; }
+.mermaid {
+  background: #0a0a20; border: 1px solid #1a1a35; border-radius: 16px;
+  padding: 30px; max-width: 1100px; width: 100%;
+  overflow-x: auto;
+}
+.note { color: #555; margin-top: 20px; font-size: 0.8em; }
+</style>
+</head>
+<body>
+<h1>AZAZAEL Coordination Architecture</h1>
+<p class="subtitle">C4 Context Diagram | System Interactions | Free-Threaded Runtime</p>
+<div class="mermaid">
+graph TB
+    User["👤 Human Operator<br/>CLI / GUI / Scripts"]
+    
+    subgraph AZAZAEL["AZAZAEL 3.14t Free-Threaded Runtime"]
+        direction TB
+        
+        subgraph API["External API Layer"]
+            OllamaAPI["Ollama Server<br/>localhost:11434"]
+            LMS_API["LM Studio<br/>Local GGUF Models"]
+            Ffmpeg["FFmpeg 8.1.1<br/>Video Generation"]
+        end
+        
+        subgraph CORE["Core Runtime"]
+            IS["Inference Studio v5.0<br/>7-Panel GUI | CLI Mode"]
+            CB["Circuit Breaker<br/>State Machine | DLQ"]
+            EE["Emotion Engine<br/>10-State Morphing"]
+        end
+        
+        subgraph WORMS["Worm Ecosystem"]
+            direction LR
+            T1["Tier 1<br/>6 Core Worms"]
+            T2["Tier 2<br/>7 Clusters"]
+            T3["Tier 3<br/>10 Metaworms"]
+            T4["Tier 4<br/>Coordination"]
+        end
+        
+        subgraph STORAGE["Persistence"]
+            Registry["Worm Registry<br/>JSON Config Store"]
+            Logs["Execution Logs<br/>Health History"]
+            DLQ["Dead Letter Queue<br/>Failed Executions"]
+            Models["Model Repository<br/>GGUF | ONNX | PT"]
+        end
+    end
+    
+    subgraph OUTPUT["Output & Deliverables"]
+        direction LR
+        Exe["38 .exe Files<br/>406 MB Total"]
+        Video["11 .mp4 + .wmv<br/>Video Deliverables"]
+        HTML["10 Mermaid HTML<br/>Interactive Diagrams"]
+        Docs["Comprehensive<br/>Documentation"]
+    end
+    
+    User --> IS
+    User --> CB
+    
+    IS --> API
+    IS --> EE
+    IS --> WORMS
+    
+    CB --> WORMS
+    CB --> DLQ
+    
+    EE --> IS
+    
+    WORMS --> Registry
+    WORMS --> Logs
+    WORMS --> STORAGE
+    
+    API --> Models
+    API --> OUTPUT
+    
+    IS --> OUTPUT
+    
+    style AZAZAEL fill:#0a0a20,stroke:#bf00ff,color:#e0e0e8
+    style API fill:#001020,stroke:#00f5ff,color:#aaddff
+    style CORE fill:#100020,stroke:#bf00ff,color:#ddaaff
+    style WORMS fill:#201000,stroke:#ff8800,color:#ffddaa
+    style STORAGE fill:#002010,stroke:#00ff88,color:#aaffcc
+    style OUTPUT fill:#200010,stroke:#ff00aa,color:#ffaadd
+</div>
+<p class="note">Mermaid C4 Context — AZAZAEL 3.14t | Free-Threaded Runtime | Ollama + LM Studio | 38 .exe Output</p>
+<script>mermaid.initialize({startOnLoad:true,theme:'dark',securityLevel:'loose'});</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+# azazael-core smoke tests

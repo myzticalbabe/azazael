@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-06-16 23:39:45.806468",
+  "python_modules": {
+    "total": 5125,
+    "passed": 5121,
+    "failed": 4,
+    "details": [
+      {
+        "path": "C:\\Users\\clint\\azazael\\src\\CORE\\threading_utils.py",
+        "error": "Syntax: invalid syntax"
+      },
+      {
+        "path": "C:\\Users\\clint\\azazael\\src\\ORCHESTRATION\\ECOSYSTEM_OPTIMIZER.py",
+        "error": "Syntax: 'return' outside function"
+      },
+      {
+        "path": "C:\\Users\\clint\\azazael\\src\\ORCHESTRATION\\INTEROPERABILITY_ANALYSIS.py",
+        "error": "Syntax: 'return' outside function"
+      },
+      {
+        "path": "C:\\Users\\clint\\azazael\\src\\UTILITIES\\POINDEXTER\\POINDEXTER.py",
+        "error": "Syntax: 'return' outside function"
+      }
+    ]
+  },
+  "bat_files": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0,
+    "details": []
+  },
+  "documentation": {
+    "total": 5125,
+    "has_docstring": 3427,
+    "missing_docstring": 1698
+  }
+}

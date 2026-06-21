@@ -1,0 +1,286 @@
+{
+  "results": {
+    "mistral/mistral-large-latest": {
+      "file_changes": [
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "1-1",
+          "old_code": "#!/usr/bin/env python3\n\"\"\"\nExternal Compliance Auditor (ECA) - Independent watchdog for agent compliance.\n\"\"\"",
+          "new_code": "#!/usr/bin/env python3\n\"\"\"\nExternal Compliance Auditor (ECA) - Independent watchdog for agent compliance.\nEnforces mandatory compliance gates via signal interception and HTTP health checks.\n\"\"\"",
+          "reason": "Update module docstring to reflect enforcement capabilities"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "20-25",
+          "old_code": "import sqlite3\nimport threading\nimport time\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nfrom pathlib import Path",
+          "new_code": "import sqlite3\nimport threading\nimport time\nimport signal\nimport os\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nfrom pathlib import Path\nfrom functools import partial",
+          "reason": "Add signal and os imports for enforcement mechanisms"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "45-50",
+          "old_code": "    def __init__(self, halt_flag_path: str = \"/tmp/eca_halt.flag\"):\n        self.halt_flag_path = Path(halt_flag_path)\n        self.db_path = \"/var/lib/eca/compliance.db\"\n        self.server_port = 18423\n        self._init_db()",
+          "new_code": "    def __init__(self, halt_flag_path: str = \"/tmp/eca_halt.flag\", agent_pid: int = None):\n        self.halt_flag_path = Path(halt_flag_path)\n        self.db_path = \"/var/lib/eca/compliance.db\"\n        self.server_port = 18423\n        self.agent_pid = agent_pid\n        self._init_db()\n        self._setup_signal_handlers()",
+          "reason": "Add agent_pid parameter and signal handler setup"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "60-65",
+          "old_code": "    def _init_db(self):\n        \"\"\"Initialize SQLite database for compliance records.\"\"\"\n        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)\n        with sqlite3.connect(self.db_path) as conn:\n            conn.execute(\"\"\"CREATE TABLE IF NOT EXISTS compliance_records (...)",
+          "new_code": "    def _init_db(self):\n        \"\"\"Initialize SQLite database for compliance records.\"\"\"\n        Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)\n        with sqlite3.connect(self.db_path) as conn:\n            conn.execute(\"\"\"CREATE TABLE IF NOT EXISTS compliance_records (\n                id INTEGER PRIMARY KEY,\n                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,\n                action TEXT,\n                status TEXT,\n                details TEXT\n            )\"\"\")\n            conn.execute(\"\"\"CREATE TABLE IF NOT EXISTS enforcement_actions (\n                id INTEGER PRIMARY KEY,\n                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,\n                action TEXT,\n                target_pid INTEGER,\n                result TEXT\n            )\"\"\")",
+          "reason": "Add enforcement_actions table to track signal-based enforcement"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "80-85",
+          "old_code": "    def compliance_gate(self) -> bool:\n        \"\"\"Check if agent should proceed. Returns False when halted.\"\"\"\n        return not self.is_agent_halted()",
+          "new_code": "    def compliance_gate(self) -> bool:\n        \"\"\"Check if agent should proceed. Returns False when halted.\n        \n        Raises:\n            SystemExit: If agent is halted and enforcement is active\n        \"\"\"\n        if self.is_agent_halted():\n            self._enforce_halt()\n            return False\n        return True",
+          "reason": "Make compliance_gate enforce halt via signal when possible"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "120-125",
+          "old_code": "    def halt_agent(self):\n        \"\"\"Set halt flag to stop agent operations.\"\"\"\n        self.halt_flag_path.touch()",
+          "new_code": "    def halt_agent(self):\n        \"\"\"Set halt flag and attempt signal-based enforcement.\"\"\"\n        self.halt_flag_path.touch()\n        if self.agent_pid:\n            self._enforce_halt()",
+          "reason": "Add signal-based enforcement to halt_agent"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "140-140",
+          "old_code": "",
+          "new_code": "    def _setup_signal_handlers(self):\n        \"\"\"Configure signal handlers for enforcement.\"\"\"\n        if self.agent_pid:\n            signal.signal(signal.SIGUSR1, self._handle_enforcement_signal)\n            \n    def _handle_enforcement_signal(self, signum, frame):\n        \"\"\"Handle enforcement signals from the ECA.\"\"\"\n        if signum == signal.SIGUSR1:\n            self._log_enforcement_action(\"signal_received\", self.agent_pid, \"SIGUSR1\")\n            raise SystemExit(\"Agent halted by ECA enforcement\")\n            \n    def _enforce_halt(self):\n        \"\"\"Attempt to enforce halt via signal if agent PID is known.\"\"\"\n        if self.agent_pid and self._is_pid_running(self.agent_pid):\n            try:\n                os.kill(self.agent_pid, signal.SIGUSR1)\n                self._log_enforcement_action(\"signal_sent\", self.agent_pid, \"SIGUSR1\")\n            except ProcessLookupError:\n                self._log_enforcement_action(\"signal_failed\", self.agent_pid, \"PID not found\")\n            except PermissionError:\n                self._log_enforcement_action(\"signal_failed\", self.agent_pid, \"Permission denied\")\n                \n    def _is_pid_running(self, pid: int) -> bool:\n        \"\"\"Check if a process with the given PID is running.\"\"\"\n        try:\n            os.kill(pid, 0)\n        except OSError:\n            return False\n        return True\n        \n    def _log_enforcement_action(self, action: str, target_pid: int, result: str):\n        \"\"\"Log enforcement actions to the database.\"\"\"\n        with sqlite3.connect(self.db_path) as conn:\n            conn.execute(\n                \"INSERT INTO enforcement_actions (action, target_pid, result) VALUES (?, ?, ?)\",\n                (action, target_pid, result)\n            )",
+          "reason": "Add signal-based enforcement mechanisms and tracking"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "180-185",
+          "old_code": "class EcaHttpServer(BaseHTTPRequestHandler):\n    def __init__(self, *args, auditor: ComplianceAuditor, **kwargs):\n        self.auditor = auditor\n        super().__init__(*args, **kwargs)",
+          "new_code": "class EcaHttpServer(BaseHTTPRequestHandler):\n    def __init__(self, *args, auditor: ComplianceAuditor, **kwargs):\n        self.auditor = auditor\n        super().__init__(*args, **kwargs)\n        \n    def _enforce_compliance(self):\n        \"\"\"Enforce compliance via signal if agent PID is registered.\"\"\"\n        if self.auditor.agent_pid:\n            self.auditor._enforce_halt()",
+          "reason": "Add enforcement method to HTTP server"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "200-205",
+          "old_code": "    def do_GET(self):\n        if self.path == \"/status\":\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({\n                'halted': self.auditor.is_agent_halted()\n            }).encode())",
+          "new_code": "    def do_GET(self):\n        if self.path == \"/status\":\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({\n                'halted': self.auditor.is_agent_halted(),\n                'enforcement_active': self.auditor.agent_pid is not None\n            }).encode())\n        elif self.path == \"/enforce\":\n            self._enforce_compliance()\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({\n                'enforced': True,\n                'target_pid': self.auditor.agent_pid\n            }).encode())",
+          "reason": "Add enforcement endpoint and status information"
+        }
+      ],
+      "new_files": [
+        {
+          "file": "src/CORE/enforcement_monitor.py",
+          "content": "#!/usr/bin/env python3\n\"\"\"\nEnforcement Monitor - Watches for agent processes that bypass compliance gates.\nIntegrates with health_server and web_dashboard for monitoring.\n\"\"\"\n\nimport os\nimport time\nimport signal\nimport sqlite3\nfrom pathlib import Path\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nimport json\nimport threading\n\nclass EnforcementMonitor:\n    def __init__(self, compliance_db: str = \"/var/lib/eca/compliance.db\",\n                 health_port: int = 18420,\n                 dashboard_port: int = 18422):\n        self.compliance_db = compliance_db\n        self.health_port = health_port\n        self.dashboard_port = dashboard_port\n        self.running = False\n        self.monitor_thread = None\n        \n    def start(self):\n        \"\"\"Start the enforcement monitor.\"\"\"\n        self.running = True\n        self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)\n        self.monitor_thread.start()\n        \n        # Start health server\n        health_server = HTTPServer(('localhost', self.health_port), \n                                 lambda *args: HealthHandler(*args, monitor=self))\n        threading.Thread(target=health_server.serve_forever, daemon=True).start()\n        \n    def stop(self):\n        \"\"\"Stop the enforcement monitor.\"\"\"\n        self.running = False\n        if self.monitor_thread:\n            self.monitor_thread.join()\n            \n    def _monitor_loop(self):\n        \"\"\"Main monitoring loop that checks for compliance violations.\"\"\"\n        while self.running:\n            self._check_compliance_violations()\n            time.sleep(5)\n            \n    def _check_compliance_violations(self):\n        \"\"\"Check for processes that bypassed compliance gates.\"\"\"\n        with sqlite3.connect(self.compliance_db) as conn:\n            # Get all enforcement actions\n            cursor = conn.execute(\"\"\"\n                SELECT target_pid, timestamp FROM enforcement_actions\n                WHERE action = 'signal_sent' AND result = 'SIGUSR1'\n                ORDER BY timestamp DESC\n            \"\"\")\n            \n            for pid, timestamp in cursor.fetchall():\n                if self._is_pid_running(pid):\n                    # Process ignored the signal - take stronger action\n                    self._terminate_process(pid)\n                    \n    def _is_pid_running(self, pid: int) -> bool:\n        \"\"\"Check if a process with the given PID is running.\"\"\"\n        try:\n            os.kill(pid, 0)\n        except OSError:\n            return False\n        return True\n        \n    def _terminate_process(self, pid: int):\n        \"\"\"Terminate a process that ignored enforcement signals.\"\"\"\n        try:\n            os.kill(pid, signal.SIGKILL)\n            self._log_enforcement(pid, \"terminated\", \"SIGKILL\")\n        except ProcessLookupError:\n            self._log_enforcement(pid, \"termination_failed\", \"PID not found\")\n        except PermissionError:\n            self._log_enforcement(pid, \"termination_failed\", \"Permission denied\")\n            \n    def _log_enforcement(self, pid: int, action: str, result: str):\n        \"\"\"Log enforcement actions to the database.\"\"\"\n        with sqlite3.connect(self.compliance_db) as conn:\n            conn.execute(\n                \"INSERT INTO enforcement_actions (action, target_pid, result) VALUES (?, ?, ?)\",\n                (action, pid, result)\n            )\n\nclass HealthHandler(BaseHTTPRequestHandler):\n    def __init__(self, *args, monitor: EnforcementMonitor, **kwargs):\n        self.monitor = monitor\n        super().__init__(*args, **kwargs)\n        \n    def do_GET(self):\n        if self.path == \"/health\":\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            \n            # Get enforcement stats\n            with sqlite3.connect(self.monitor.compliance_db) as conn:\n                cursor = conn.execute(\"\"\"\n                    SELECT\n                        COUNT(*) as total_enforcements,\n                        SUM(CASE WHEN result = 'SIGUSR1' THEN 1 ELSE 0 END) as signals_sent,\n                        SUM(CASE WHEN result = 'SIGKILL' THEN 1 ELSE 0 END) as terminations\n                    FROM enforcement_actions\n                \"\"\")\n                stats = cursor.fetchone()\n                \n            self.wfile.write(json.dumps({\n                'status': 'healthy',\n                'enforcement_stats': {\n                    'total_enforcements': stats[0],\n                    'signals_sent': stats[1],\n                    'terminations': stats[2]\n                }\n            }).encode())\n\nif __name__ == \"__main__\":\n    monitor = EnforcementMonitor()\n    monitor.start()\n    try:\n        while True:\n            time.sleep(1)\n    except KeyboardInterrupt:\n        monitor.stop()",
+          "reason": "Add dedicated enforcement monitor to watch for and terminate non-compliant processes"
+        }
+      ],
+      "test_changes": [
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "1-1",
+          "old_code": "import unittest\nfrom src.CORE.compliance_auditor import ComplianceAuditor",
+          "new_code": "import unittest\nimport os\nimport signal\nimport time\nfrom multiprocessing import Process\nfrom src.CORE.compliance_auditor import ComplianceAuditor",
+          "reason": "Add imports for signal and process testing"
+        },
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "50-55",
+          "old_code": "    def test_compliance_gate(self):\n        auditor = ComplianceAuditor()\n        self.assertTrue(auditor.compliance_gate())\n        auditor.halt_agent()\n        self.assertFalse(auditor.compliance_gate())",
+          "new_code": "    def test_compliance_gate(self):\n        auditor = ComplianceAuditor()\n        self.assertTrue(auditor.compliance_gate())\n        auditor.halt_agent()\n        self.assertFalse(auditor.compliance_gate())\n        \n    def test_compliance_gate_enforcement(self):\n        \"\"\"Test that compliance_gate enforces halt via signal when possible.\"\"\"\n        def agent_process():\n            auditor = ComplianceAuditor(agent_pid=os.getpid())\n            # This should trigger enforcement\n            auditor.halt_agent()\n            try:\n                auditor.compliance_gate()\n                # Should not reach here\n                os._exit(1)\n            except SystemExit:\n                os._exit(0)\n        \n        p = Process(target=agent_process)\n        p.start()\n        p.join(timeout=2)\n        self.assertEqual(p.exitcode, 0)\n        p.terminate()",
+          "reason": "Add test for signal-based enforcement in compliance_gate"
+        },
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "100-105",
+          "old_code": "    def test_halt_agent(self):\n        auditor = ComplianceAuditor()\n        auditor.halt_agent()\n        self.assertTrue(auditor.is_agent_halted())",
+          "new_code": "    def test_halt_agent(self):\n        auditor = ComplianceAuditor()\n        auditor.halt_agent()\n        self.assertTrue(auditor.is_agent_halted())\n        \n    def test_halt_agent_enforcement(self):\n        \"\"\"Test that halt_agent attempts signal-based enforcement.\"\"\"\n        def agent_process():\n            auditor = ComplianceAuditor(agent_pid=os.getpid())\n            # This should trigger enforcement\n            auditor.halt_agent()\n            time.sleep(1)  # Give time for signal\n            os._exit(0)\n        \n        p = Process(target=agent_process)\n        p.start()\n        p.join(timeout=2)\n        self.assertEqual(p.exitcode, 0)\n        p.terminate()",
+          "reason": "Add test for signal-based enforcement in halt_agent"
+        },
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "150-150",
+          "old_code": "",
+          "new_code": "    def test_enforcement_endpoint(self):\n        \"\"\"Test the HTTP enforcement endpoint.\"\"\"\n        def agent_process():\n            auditor = ComplianceAuditor(agent_pid=os.getpid())\n            auditor.start_server()\n            # This should be terminated by the enforcement endpoint\n            time.sleep(10)\n            os._exit(1)\n        \n        p = Process(target=agent_process)\n        p.start()\n        time.sleep(1)  # Give server time to start\n        \n        # Call enforcement endpoint\n        import requests\n        response = requests.get('http://localhost:18423/enforce')\n        self.assertEqual(response.status_code, 200)\n        self.assertTrue(response.json()['enforced'])\n        \n        p.join(timeout=2)\n        self.assertEqual(p.exitcode, 0)\n        p.terminate()\n        \n    def test_enforcement_logging(self):\n        \"\"\"Test that enforcement actions are properly logged.\"\"\"\n        auditor = ComplianceAuditor(agent_pid=os.getpid())\n        auditor._enforce_halt()\n        \n        with sqlite3.connect(auditor.db_path) as conn:\n            cursor = conn.execute(\"SELECT COUNT(*) FROM enforcement_actions\")\n            self.assertGreater(cursor.fetchone()[0], 0)",
+          "reason": "Add tests for HTTP enforcement endpoint and logging"
+        }
+      ],
+      "summary": "Added signal-based enforcement to compliance gates with monitoring and termination capabilities for non-compliant processes"
+    },
+    "mistral/mistral-small-latest": {
+      "file_changes": [
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "1-50",
+          "old_code": "import os\nimport sqlite3\nimport threading\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\nfrom socketserver import ThreadingMixIn\n\nclass ComplianceAuditor:\n    def __init__(self, db_path=':memory:'):\n        self.db_path = db_path\n        self.halt_flag_path = os.path.join(os.path.dirname(db_path), 'halt.flag')\n        self._init_db()\n        self.http_server = None\n        self.server_thread = None\n        self.lock = threading.Lock()\n\n    def _init_db(self):\n        conn = sqlite3.connect(self.db_path)\n        cursor = conn.cursor()\n        cursor.execute('''\n            CREATE TABLE IF NOT EXISTS compliance_logs (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,\n                model_name TEXT,\n                result TEXT,\n                score REAL\n            )\n        ''')\n        conn.commit()\n        conn.close()",
+          "new_code": "import os\nimport sqlite3\nimport threading\nimport ctypes\nimport sys\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\nfrom socketserver import ThreadingMixIn\nfrom typing import Optional\n\nclass ComplianceAuditor:\n    def __init__(self, db_path=':memory:'):\n        self.db_path = db_path\n        self.halt_flag_path = os.path.join(os.path.dirname(db_path), 'halt.flag')\n        self._init_db()\n        self.http_server = None\n        self.server_thread = None\n        self.lock = threading.Lock()\n        self._interpreter_lock = threading.Lock()\n        self._halt_check_interval = 0.1  # seconds\n        self._halt_thread: Optional[threading.Thread] = None\n        self._halted = False\n        self._halt_reason = \"\"\n\n    def _init_db(self):\n        conn = sqlite3.connect(self.db_path)\n        cursor = conn.cursor()\n        cursor.execute('''\n            CREATE TABLE IF NOT EXISTS compliance_logs (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,\n                model_name TEXT,\n                result TEXT,\n                score REAL\n            )\n        ''')\n        conn.commit()\n        conn.close()",
+          "reason": "Added interpreter-level halt mechanism and threading safety for Python 3.14t free-threading. Introduced _halted flag and _halt_reason for state tracking."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "51-120",
+          "old_code": "    def compliance_gate(self, model_name: str, result: str, score: float) -> bool:\n        '''Check compliance gate before proceeding with model inference.\n        Returns False if agent should halt, True if allowed to proceed.\n        '''\n        with self.lock:\n            if os.path.exists(self.halt_flag_path):\n                return False\n            \n            conn = sqlite3.connect(self.db_path)\n            cursor = conn.cursor()\n            cursor.execute('''\n                INSERT INTO compliance_logs (model_name, result, score)\n                VALUES (?, ?, ?)\n            ''', (model_name, result, score))\n            conn.commit()\n            conn.close()\n            return True\n\n    def halt_agent(self, reason: str = \"Manual halt\"):\n        '''Create halt flag to signal agent to stop.'''\n        with open(self.halt_flag_path, 'w') as f:\n            f.write(reason)\n        if self.http_server:\n            self.http_server.shutdown()\n\n    def resume_agent(self):\n        '''Remove halt flag to allow agent to proceed.'''\n        if os.path.exists(self.halt_flag_path):\n            os.remove(self.halt_flag_path)\n        if self.http_server:\n            self.http_server = None\n\n    def is_agent_halted(self) -> bool:\n        '''Check if halt flag exists.'''\n        return os.path.exists(self.halt_flag_path)",
+          "new_code": "    def compliance_gate(self, model_name: str, result: str, score: float) -> bool:\n        '''Check compliance gate before proceeding with model inference.\n        Returns False if agent should halt, True if allowed to proceed.\n        This is the ONLY safe entry point for model inference.\n        '''\n        with self._interpreter_lock:\n            if self._halted:\n                self._halt_reason = f\"Agent halted externally: {self._halt_reason}\"\n                return False\n            \n            with self.lock:\n                conn = sqlite3.connect(self.db_path)\n                cursor = conn.cursor()\n                cursor.execute('''\n                    INSERT INTO compliance_logs (model_name, result, score)\n                    VALUES (?, ?, ?)\n                ''', (model_name, result, score))\n                conn.commit()\n                conn.close()\n                return True\n\n    def halt_agent(self, reason: str = \"Manual halt\"):\n        '''Create halt flag and set interpreter-level halt state to FORCE compliance.'''\n        with self._interpreter_lock:\n            self._halted = True\n            self._halt_reason = reason\n            \n        with open(self.halt_flag_path, 'w') as f:\n            f.write(reason)\n            \n        if self.http_server:\n            self.http_server.shutdown()\n\n    def resume_agent(self):\n        '''Remove halt flag and clear interpreter-level halt state.'''\n        with self._interpreter_lock:\n            self._halted = False\n            self._halt_reason = \"\"\n            \n        if os.path.exists(self.halt_flag_path):\n            os.remove(self.halt_flag_path)\n        if self.http_server:\n            self.http_server = None\n\n    def is_agent_halted(self) -> bool:\n        '''Check both filesystem flag and interpreter-level state.'''\n        with self._interpreter_lock:\n            return self._halted or os.path.exists(self.halt_flag_path)\n        \n    def _enforce_halt_via_interpreter(self):\n        '''Periodically check halt state and raise SystemExit if halted.\n        This is the enforcement mechanism that makes compliance mandatory.\n        '''\n        while True:\n            if self.is_agent_halted():\n                with self._interpreter_lock:\n                    reason = self._halt_reason if self._halt_reason else \"Compliance gate triggered\"\n                ctypes.pythonapi.Py_FatalError(f\"COMPLIANCE HALT: {reason}\")\n            threading.Event().wait(self._halt_check_interval)",
+          "reason": "Made compliance_gate() the mandatory entry point by adding interpreter-level enforcement via _enforce_halt_via_interpreter(). This thread periodically checks halt state and forces termination via Py_FatalError if halted, making bypass impossible. Added _halted flag and _halt_reason for state management."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "121-180",
+          "old_code": "class EcaHttpServer(ThreadingMixIn, HTTPServer):\n    '''Threaded HTTP server for ECA.'''\n    daemon_threads = True\n\nclass ComplianceAuditor:\n    def start_http_server(self, port: int = 18423):\n        '''Start HTTP server for external control.'''\n        handler = EcaHttpServer(('', port), EcaRequestHandler)\n        self.http_server = handler\n        self.server_thread = threading.Thread(target=handler.serve_forever)\n        self.server_thread.daemon = True\n        self.server_thread.start()",
+          "new_code": "class EcaHttpServer(ThreadingMixIn, HTTPServer):\n    '''Threaded HTTP server for ECA.'''\n    daemon_threads = True\n\nclass ComplianceAuditor:\n    def start_http_server(self, port: int = 18423):\n        '''Start HTTP server for external control and enforcement thread.'''\n        handler = EcaHttpServer(('', port), EcaRequestHandler)\n        self.http_server = handler\n        self.server_thread = threading.Thread(target=handler.serve_forever)\n        self.server_thread.daemon = True\n        self.server_thread.start()\n        \n        # Start enforcement thread that makes compliance mandatory\n        self._halt_thread = threading.Thread(target=self._enforce_halt_via_interpreter, daemon=True)\n        self._halt_thread.start()",
+          "reason": "Added enforcement thread startup in start_http_server() to ensure the interpreter-level halt mechanism is active whenever the HTTP server is running."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "181-250",
+          "old_code": "class EcaRequestHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/plain')\n            self.end_headers()\n            self.wfile.write(b'OK')\n        elif self.path == '/halt':\n            self.compliance_auditor.halt_agent('External halt request')\n            self.send_response(200)\n            self.send_header('Content-type', 'text/plain')\n            self.end_headers()\n            self.wfile.write(b'Halted')\n        elif self.path == '/resume':\n            self.compliance_auditor.resume_agent()\n            self.send_response(200)\n            self.send_header('Content-type', 'text/plain')\n            self.end_headers()\n            self.wfile.write(b'Resumed')\n        elif self.path == '/status':\n            halted = self.compliance_auditor.is_agent_halted()\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'halted': halted}).encode())",
+          "new_code": "import json\n\nclass EcaRequestHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/plain')\n            self.end_headers()\n            self.wfile.write(b'OK')\n        elif self.path == '/halt':\n            reason = self.headers.get('X-Halt-Reason', 'External halt request')\n            self.compliance_auditor.halt_agent(reason)\n            self.send_response(200)\n            self.send_header('Content-type', 'text/plain')\n            self.end_headers()\n            self.wfile.write(b'Halted')\n        elif self.path == '/resume':\n            self.compliance_auditor.resume_agent()\n            self.send_response(200)\n            self.send_header('Content-type', 'text/plain')\n            self.end_headers()\n            self.wfile.write(b'Resumed')\n        elif self.path == '/status':\n            with self.compliance_auditor._interpreter_lock:\n                status = {\n                    'halted': self.compliance_auditor._halted,\n                    'reason': self.compliance_auditor._halt_reason,\n                    'filesystem_flag': os.path.exists(self.compliance_auditor.halt_flag_path)\n                }\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps(status).encode())",
+          "reason": "Enhanced EcaRequestHandler to include halt reason in headers and provide detailed status including interpreter-level halt state. Added json import for status endpoint."
+        }
+      ],
+      "new_files": [
+        {
+          "file": "src/CORE/compliance_enforcer.py",
+          "content": "import ctypes\nimport threading\nimport time\nfrom typing import Optional\n\nclass ComplianceEnforcer:\n    \"\"\"\n    External enforcement mechanism that forces agent compliance by monitoring\n    the ComplianceAuditor and triggering interpreter-level halts.\n    \n    This is the external controller that makes the halt mechanism enforceable.\n    \"\"\"\n    \n    def __init__(self, auditor, check_interval: float = 0.5):\n        self.auditor = auditor\n        self.check_interval = check_interval\n        self._monitor_thread: Optional[threading.Thread] = None\n        self._running = False\n        \n    def start(self):\n        \"\"\"Start monitoring and enforcement.\"\"\"\n        if self._monitor_thread and self._monitor_thread.is_alive():\n            return\n            \n        self._running = True\n        self._monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)\n        self._monitor_thread.start()\n        \n    def stop(self):\n        \"\"\"Stop monitoring and enforcement.\"\"\"\n        self._running = False\n        if self._monitor_thread:\n            self._monitor_thread.join(timeout=1.0)\n            \n    def _monitor_loop(self):\n        \"\"\"Continuously check auditor state and enforce compliance.\"\"\"\n        while self._running:\n            if self.auditor.is_agent_halted():\n                with self.auditor._interpreter_lock:\n                    reason = self.auditor._halt_reason if self.auditor._halt_reason else \"External enforcement\"\n                # Force immediate termination\n                ctypes.pythonapi.Py_FatalError(f\"COMPLIANCE ENFORCEMENT: {reason}\")\n            time.sleep(self.check_interval)\n            \n    def trigger_halt(self, reason: str = \"Enforcement trigger\"):\n        \"\"\"Externally trigger a halt via the auditor.\"\"\"\n        self.auditor.halt_agent(reason)\n        # Ensure immediate enforcement\n        if self.auditor.is_agent_halted():\n            ctypes.pythonapi.Py_FatalError(f\"COMPLIANCE ENFORCEMENT: {reason}\")\n\n# Example usage:\n# enforcer = ComplianceEnforcer(compliance_auditor)\n# enforcer.start()\n# ... later ...\n# enforcer.trigger_halt(\"Model drift detected\")\n# enforcer.stop()\n",
+          "reason": "New external enforcement module that actively monitors ComplianceAuditor and forces interpreter-level halts via Py_FatalError. This provides external enforceability beyond just the filesystem flag."
+        }
+      ],
+      "test_changes": [
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "1-100",
+          "old_code": "import os\nimport tempfile\nimport unittest\nfrom src.CORE.compliance_auditor import ComplianceAuditor\n\nclass TestComplianceAuditor(unittest.TestCase):\n    def setUp(self):\n        self.db_path = tempfile.NamedTemporaryFile(delete=False).name\n        self.auditor = ComplianceAuditor(self.db_path)\n        self.auditor.start_http_server(18423)\n    \n    def tearDown(self):\n        self.auditor.resume_agent()\n        if os.path.exists(self.auditor.halt_flag_path):\n            os.remove(self.auditor.halt_flag_path)\n        if self.auditor.http_server:\n            self.auditor.http_server.shutdown()\n        os.unlink(self.db_path)",
+          "new_code": "import os\nimport tempfile\nimport unittest\nimport threading\nimport time\nimport json\nimport requests\nfrom src.CORE.compliance_auditor import ComplianceAuditor\nfrom src.CORE.compliance_enforcer import ComplianceEnforcer\n\nclass TestComplianceAuditor(unittest.TestCase):\n    def setUp(self):\n        self.db_path = tempfile.NamedTemporaryFile(delete=False).name\n        self.auditor = ComplianceAuditor(self.db_path)\n        self.auditor.start_http_server(18423)\n        self.enforcer = ComplianceEnforcer(self.auditor, check_interval=0.1)\n        self.enforcer.start()\n        time.sleep(0.2)  # Allow threads to start\n    \n    def tearDown(self):\n        self.enforcer.stop()\n        self.auditor.resume_agent()\n        if os.path.exists(self.auditor.halt_flag_path):\n            os.remove(self.auditor.halt_flag_path)\n        if self.auditor.http_server:\n            self.auditor.http_server.shutdown()\n        os.unlink(self.db_path)",
+          "reason": "Updated test setup to include ComplianceEnforcer for external enforcement testing. Added cleanup for enforcer in tearDown."
+        },
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "101-200",
+          "old_code": "    def test_compliance_gate_halts_on_flag(self):\n        with open(self.auditor.halt_flag_path, 'w') as f:\n            f.write('Test halt')\n        result = self.auditor.compliance_gate('model1', 'pass', 95.0)\n        self.assertFalse(result)\n        \n    def test_halt_agent_creates_flag(self):\n        self.auditor.halt_agent('Manual test')\n        self.assertTrue(os.path.exists(self.auditor.halt_flag_path))\n        \n    def test_resume_agent_removes_flag(self):\n        self.auditor.halt_agent('Manual test')\n        self.auditor.resume_agent()\n        self.assertFalse(os.path.exists(self.auditor.halt_flag_path))",
+          "new_code": "    def test_compliance_gate_halts_on_flag(self):\n        with open(self.auditor.halt_flag_path, 'w') as f:\n            f.write('Test halt')\n        result = self.auditor.compliance_gate('model1', 'pass', 95.0)\n        self.assertFalse(result)\n        \n    def test_compliance_gate_halts_on_interpreter_state(self):\n        # Test interpreter-level halt enforcement\n        self.auditor.halt_agent('Interpreter test')\n        # Give time for enforcement thread to act\n        time.sleep(0.3)\n        # If we get here, the test failed (should have been terminated)\n        self.fail(\"Agent should have been terminated by interpreter enforcement\")\n        \n    def test_halt_agent_creates_flag(self):\n        self.auditor.halt_agent('Manual test')\n        self.assertTrue(os.path.exists(self.auditor.halt_flag_path))\n        \n    def test_resume_agent_removes_flag(self):\n        self.auditor.halt_agent('Manual test')\n        self.auditor.resume_agent()\n        self.assertFalse(os.path.exists(self.auditor.halt_flag_path))\n        \n    def test_external_enforcement_via_http(self):\n        # Test external enforcement via HTTP endpoint\n        response = requests.get('http://localhost:18423/halt', headers={'X-Halt-Reason': 'HTTP test'})\n        self.assertEqual(response.status_code, 200)\n        self.assertEqual(response.text, 'Halted')\n        \n        # Verify enforcement occurred\n        time.sleep(0.3)\n        # If we get here, the test failed (should have been terminated)\n        self.fail(\"Agent should have been terminated by external enforcement\")\n        \n    def test_status_endpoint_includes_interpreter_state(self):\n        response = requests.get('http://localhost:18423/status')\n        self.assertEqual(response.status_code, 200)\n        data = json.loads(response.text)\n        self.assertIn('halted', data)\n        self.assertIn('reason', data)\n        self.assertIn('filesystem_flag', data)",
+          "reason": "Added tests for interpreter-level enforcement and external HTTP enforcement. Enhanced status endpoint test to verify interpreter state is included. These tests verify that compliance is now mandatory and cannot be bypassed."
+        }
+      ],
+      "summary": "Made ECA compliance mandatory by adding interpreter-level enforcement via Py_FatalError in a dedicated thread, ensuring agents cannot bypass the compliance_gate() function regardless of filesystem flag checks."
+    },
+    "github/gpt-4o-mini": {
+      "file_changes": [
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "30-35",
+          "old_code": "def compliance_gate(self):\n    return not self.is_agent_halted()",
+          "new_code": "def compliance_gate(self):\n    if self.is_agent_halted():\n        raise RuntimeError('Agent is halted, cannot proceed.')\n    return True",
+          "reason": "To enforce the compliance gate, it should raise an exception if the agent is halted, preventing any further execution."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "10-15",
+          "old_code": "self.halt_flag = False",
+          "new_code": "self.halt_flag = False\nself.halt_event = threading.Event()",
+          "reason": "Introduce a threading event to manage halting more effectively."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "20-25",
+          "old_code": "def halt_agent(self):\n    self.halt_flag = True",
+          "new_code": "def halt_agent(self):\n    self.halt_flag = True\n    self.halt_event.set()",
+          "reason": "Set the halt event when halting the agent to notify any waiting threads."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "25-30",
+          "old_code": "def resume_agent(self):\n    self.halt_flag = False",
+          "new_code": "def resume_agent(self):\n    self.halt_flag = False\n    self.halt_event.clear()",
+          "reason": "Clear the halt event when resuming the agent to allow it to proceed."
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "60-65",
+          "old_code": "# Check halt flag in the main loop\nif self.halt_flag:\n    break",
+          "new_code": "# Check halt event in the main loop\nif self.halt_event.is_set():\n    break",
+          "reason": "Change the main loop to check the halt event instead of the flag for better thread safety."
+        }
+      ],
+      "new_files": [
+        {
+          "file": "src/CORE/halt_listener.py",
+          "content": "import threading\n\nclass HaltListener:\n    def __init__(self, auditor):\n        self.auditor = auditor\n        self.listener_thread = threading.Thread(target=self.listen)\n        self.listener_thread.start()\n\n    def listen(self):\n        while True:\n            if self.auditor.halt_event.is_set():\n                print('Agent is halted.');\n                break;\n            time.sleep(1);",
+          "reason": "This new file introduces a listener that can monitor the halt state and take appropriate actions, ensuring the agent cannot bypass the halt mechanism."
+        }
+      ],
+      "test_changes": [
+        {
+          "file": "tests/test_compliance_auditor.py",
+          "line_range": "1-5",
+          "old_code": "# Existing test cases\n",
+          "new_code": "import pytest\nfrom src.CORE.compliance_auditor import ComplianceAuditor\n\n\ndef test_compliance_gate_halted():\n    auditor = ComplianceAuditor()\n    auditor.halt_agent()\n    with pytest.raises(RuntimeError):\n        auditor.compliance_gate()",
+          "reason": "Add a test to ensure that the compliance gate raises an exception when the agent is halted."
+        }
+      ],
+      "summary": "Implemented a mandatory compliance gate that raises an exception if the agent is halted, ensuring it cannot be bypassed."
+    },
+    "groq/meta-llama/llama-4-scout-17b-16e-instruct": {
+      "file_changes": [
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "1-10",
+          "old_code": "import http.server",
+          "new_code": "import http.server\nimport threading\nimport asyncio",
+          "reason": "Add necessary imports for async support and threading"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "20-30",
+          "old_code": "class ComplianceAuditor:",
+          "new_code": "class ComplianceAuditor:\n    def __init__(self):\n        super().__init__()\n        self.halt_event = threading.Event()\n        self.halt_event.clear()",
+          "reason": "Initialize halt event for thread-safe halt mechanism"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "40-50",
+          "old_code": "def compliance_gate(self):",
+          "new_code": "def compliance_gate(self):\n    if self.halt_event.is_set():\n        return False\n    return True",
+          "reason": "Modify compliance gate to use halt event"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "60-70",
+          "old_code": "def halt_agent(self):",
+          "new_code": "def halt_agent(self):\n    self.halt_event.set()",
+          "reason": "Modify halt agent to set halt event"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "80-90",
+          "old_code": "def resume_agent(self):",
+          "new_code": "def resume_agent(self):\n    self.halt_event.clear()",
+          "reason": "Modify resume agent to clear halt event"
+        },
+        {
+          "file": "src/CORE/compliance_auditor.py",
+          "line_range": "100-110",
+          "old_code": "class EcaHttpServer(http.server.HTTPServer):",
+          "new_code": "class EcaHttpServer(http.server.HTTPServer):\n    def __init__(self, server_address, RequestHandlerClass):\n        super().__init__(server_address, RequestHandlerClass)\n        self.socket.settimeout(1)",
+          "reason": "Modify HTTP server to use non-blocking socket"
+        }
+      ],
+      "new_files": [
+        {
+          "file": "src/CORE/compliance_auditor_interceptor.py",
+          "content": "import sys\nimport threading\nfrom src.CORE.compliance_auditor import ComplianceAuditor\n\nclass AgentInterceptor:\n    def __init__(self, auditor):\n        self.auditor = auditor\n        self.original_execute = sys.executable\n\n    def intercept_execute(self, *args, **kwargs):\n        if not self.auditor.compliance_gate():\n            raise Exception('Agent halted by ECA')\n        return self.original_execute(*args, **kwargs)\n\ndef install_interceptor(auditor):\n    interceptor = AgentInterceptor(auditor)\n    sys.executable = interceptor.intercept_execute",
+          "reason": "Create interceptor to force agent to call compliance gate"
+        }
+      ],
+      "test_changes": [
+        {
+          "test": "tests/test_compliance_auditor.py",
+          "line_range": "10-20",
+          "old_code": "def test_compliance_gate():",
+          "new_code": "def test_compliance_gate():\n    auditor = ComplianceAuditor()\n    assert auditor.compliance_gate()\n    auditor.halt_agent()\n    assert not auditor.compliance_gate()",
+          "reason": "Add test for compliance gate with halt mechanism"
+        }
+      ],
+      "summary": "Enforce ECA compliance gate using thread-safe halt event and interceptor"
+    }
+  },
+  "total_changes": 24,
+  "total_new_files": 4
+}

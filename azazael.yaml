@@ -1,0 +1,109 @@
+# =============================================================================
+# azazael.yaml — Centralized Configuration for Azazael Ecosystem
+# =============================================================================
+# Loaded by CORE/config.py -> AzazaelConfig dataclass
+# Environment variables override values below (see config.py for full list)
+# =============================================================================
+
+version: "1.0.0"
+
+# ── Paths ────────────────────────────────────────────────────────────────────
+paths:
+  project_root: ~/azazael
+  output_dir: ~/azazael/output
+  archive_dir: ~/azazael/archive
+  desktop_dir: ~/Desktop
+
+# ── PAMS Memory System ───────────────────────────────────────────────────────
+pams:
+  url: "http://localhost:8420"
+  session_prefix: "azazael"
+  poll_interval_sec: 1.0
+  use_local_fallback: true
+
+# ── MemoryBus ────────────────────────────────────────────────────────────────
+memory_bus:
+  enabled: true
+  default_topic_prefix: "azazael"
+
+# ── Circuit Breaker ──────────────────────────────────────────────────────────
+circuit_breaker:
+  enabled: true
+  failure_threshold: 5
+  recovery_timeout: 30.0
+  half_open_max_requests: 3
+  retry_base_delay: 0.1
+  retry_max_delay: 60.0
+  retry_backoff: 2.0
+  dead_letter_max: 1000
+
+# ── Cluster Execution ────────────────────────────────────────────────────────
+clusters:
+  default_timeout: 60
+  max_parallel_worms: 8
+  retry_enabled: true
+  max_retries: 3
+  record_to_pams: true
+  # Partial failure threshold: fraction of worms that must succeed
+  # for overall cluster execution to be considered "successful" (0.0 = all, 1.0 = any)
+  partial_failure_threshold: 0.0
+
+# ── Per-Nature Overrides ─────────────────────────────────────────────────────
+natures:
+  monitor:
+    enabled: true
+    timeout: 30
+    max_retries: 2
+    parallel: true
+    feeds_into: ["orchestration"]
+  security:
+    enabled: true
+    timeout: 45
+    max_retries: 3
+    parallel: false
+    feeds_into: ["defense"]
+  diagnostic:
+    enabled: true
+    timeout: 60
+    max_retries: 2
+    parallel: true
+    feeds_into: ["analysis"]
+
+# ── Free-Threading (Python 3.14t) ────────────────────────────────────────────
+free_threading:
+  enabled: "auto"
+  max_workers: null
+
+# ── Observability ────────────────────────────────────────────────────────────
+observability:
+  logging:
+    level: "INFO"
+    format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  metrics:
+    enabled: true
+    history_size: 1000
+
+# ── Security ─────────────────────────────────────────────────────────────────
+security:
+  secret_rotation_days: 30
+  audit_enabled: true
+
+# ── Memory Store (SQLite) ────────────────────────────────────────────────────
+memory_store:
+  auto_vacuum: true
+  vacuum_interval_hours: 24.0
+  max_size_mb_warn: 100
+
+# ── Backup ───────────────────────────────────────────────────────────────────
+backup:
+  interval_hours: 24
+  keep_count: 7
+
+# ── Build (Nuitka Packaging) ─────────────────────────────────────────────────
+build:
+  python_version: "3.14"
+  output_dir: "G:/AZAZAEL_Standalone"
+  nofollow_imports:
+    - torch
+    - optree
+    - openvino

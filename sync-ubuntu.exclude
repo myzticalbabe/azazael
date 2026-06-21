@@ -1,0 +1,23 @@
+# Azazael Ubuntu Sync Exclusion File
+# Keeps Ubuntu-26.04 lean by excluding non-ML archives and build artifacts.
+# Usage: rsync -av --exclude-from=sync-ubuntu.exclude /root/azazael/ root@ubuntu:/root/azazael/
+#
+# Kali (canonical): 462 MB | Ubuntu (before trim): 1.3 GB | Target: ~400 MB
+
+# Heavy archives — not needed for ML workloads
+/archive/
+/archived_unified/
+
+# Build artifacts — regenerable
+/build/
+
+# Python cache — architecture-specific
+/__pycache__/
+**/__pycache__/
+
+# Desktop-only directories
+/output/
+/logs/
+
+# Large test/output artifacts
+/coverage_inference_html/

@@ -1,0 +1,219 @@
+# coding: utf-8
+"""
+ECOSYSTEM EXPANSION — Category: CONTAINER (5 worms)
+ContainerOrch, ComposeValidator, ImageAuditor, RegistryPoller, ResourceQuotaWatch
+"""
+
+import os
+import sys
+import json
+import time
+import hashlib
+import threading
+import subprocess
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Callable, Set, Tuple
+from dataclasses import dataclass, field
+from collections import defaultdict, deque
+
+# ── Worm Registry Import ─────────────────────────────────────────────
+try:
+    from azazael_core.worm_registry import register_worm
+    _REGISTRY = True
+except ImportError:
+    _REGISTRY = False
+    def register_worm(**kw):
+        return lambda cls: cls
+
+# ── Python 3.14t Free-Threading Awareness ────────────────────────────
+try:
+    from azazael_core.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
+    _FREETHREAD = True
+except ImportError:
+    _FREETHREAD = False
+    FreeThreadPool = None
+    ThreadSafeDict = dict
+    ThreadSafeList = list
+    def is_free_threaded() -> bool:
+        import sysconfig
+        try:
+            return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
+        except Exception:
+            return False
+
+
+@register_worm(category="container", priority=6, cooldown_seconds=60.0,
+    description="Container orchestrator — multi-container lifecycle, health checks, restart policies")
+class ContainerOrch:
+    """Multi-container orchestrator with health checks and restart management."""
+
+    VERSION = "1.0.0"
+
+    def __init__(self):
+        self._containers: Dict[str, Dict] = {}
+        self._lock = threading.Lock()
+
+    def launch(self, name: str, image: str, ports: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
+        """Launch a container via docker CLI."""
+        cmd = ["docker", "run", "-d", "--name", name]
+        if ports:
+            for hp, cp in ports.items():
+                cmd.extend(["-p", f"{hp}:{cp}"])
+        cmd.append(image)
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+            cid = r.stdout.strip()
+            with self._lock:
+                self._containers[name] = {"id": cid, "image": image, "status": "running", "launched": time.time()}
+            return {"success": True, "container_id": cid}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def health_check(self, name: str) -> Dict[str, Any]:
+        """Check container health via docker inspect."""
+        try:
+            r = subprocess.run(["docker", "inspect", name], capture_output=True, text=True, timeout=10)
+            if r.returncode == 0:
+                data = json.loads(r.stdout)
+                state = data[0].get("State", {}) if data else {}
+                return {"name": name, "running": state.get("Running", False), "status": state.get("Status", "unknown")}
+        except Exception:
+            pass
+        return {"name": name, "running": False, "status": "error"}
+
+    def stop(self, name: str) -> Dict[str, Any]:
+        """Stop and remove a container."""
+        try:
+            r = subprocess.run(["docker", "stop", name], capture_output=True, text=True, timeout=30)
+            subprocess.run(["docker", "rm", name], capture_output=True, text=True, timeout=15)
+            with self._lock:
+                if name in self._containers:
+                    self._containers[name]["status"] = "stopped"
+            return {"success": True, "container": name, "output": r.stdout.strip()}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def list_all(self) -> List[Dict]:
+        with self._lock:
+            return [{"name": n, **c} for n, c in self._containers.items()]
+
+
+@register_worm(category="container", priority=5, cooldown_seconds=120.0,
+    description="Compose validator — docker-compose.yml syntax and schema validation")
+class ComposeValidator:
+    """Validates docker-compose.yml files for syntax and best practices."""
+
+    VERSION = "1.0.0"
+
+    def __init__(self):
+        self._issues: List[Dict] = []
+
+    def validate(self, compose_path: str) -> Dict[str, Any]:
+        """Validate a docker-compose.yml file."""
+        path = Path(compose_path)
+        if not path.exists():
+            return {"valid": False, "issues": [{"msg": "File not found"}]}
+        issues = []
+        try:
+            import yaml
+            with open(path, "r") as f:
+                data = yaml.safe_load(f)
+            if "services" not in data:
+                issues.append({"msg": "Missing 'services' key"})
+            else:
+                for svc_name, svc in (data.get("services") or {}).items():
+                    if "image" not in svc and "build" not in svc:
+                        issues.append({"msg": f"Service '{svc_name}' missing image or build"})
+        except ImportError:
+            content = path.read_text(encoding="utf-8")
+            if "services:" not in content:
+                issues.append({"msg": "Missing 'services:' section"})
+        except Exception as e:
+            issues.append({"msg": str(e)})
+        self._issues = issues
+        return {"valid": len(issues) == 0, "issues": issues}
+
+
+@register_worm(category="container", priority=5, cooldown_seconds=90.0,
+    description="Image auditor — scan container images for size, layers, and base-image freshness")
+class ImageAuditor:
+    """Audits container images for size, layer count, and base image freshness."""
+
+    VERSION = "1.0.0"
+
+    def __init__(self):
+        self._audits: Dict[str, Dict] = {}
+
+    def audit_image(self, image: str) -> Dict[str, Any]:
+        """Audit a single image."""
+        try:
+            r = subprocess.run(["docker", "image", "inspect", image], capture_output=True, text=True, timeout=30)
+            if r.returncode == 0:
+                data = json.loads(r.stdout)[0]
+                audit = {
+                    "image": image, "size_mb": round(data.get("Size", 0) / (1024**2), 2),
+                    "layers": len(data.get("RootFS", {}).get("Layers", [])),
+                    "created": data.get("Created", ""), "os": data.get("Os", ""),
+                }
+                self._audits[image] = audit
+                return audit
+        except Exception as e:
+            return {"image": image, "error": str(e)}
+        return {"image": image, "error": "Not found"}
+
+
+@register_worm(category="container", priority=4, cooldown_seconds=180.0,
+    description="Registry poller — poll container registries for new tags and digest changes")
+class RegistryPoller:
+    """Polls container registries for version updates."""
+
+    VERSION = "1.0.0"
+
+    def __init__(self):
+        self._tags: Dict[str, List[str]] = {}
+        self._lock = threading.Lock()
+
+    def check_latest(self, image: str) -> Dict[str, Any]:
+        """Check for latest tag via docker pull dry-run."""
+        try:
+            r = subprocess.run(["docker", "pull", image], capture_output=True, text=True, timeout=120)
+            status = "updated" if "Downloaded newer" in r.stdout else ("unchanged" if "Image is up to date" in r.stdout else "unknown")
+            with self._lock:
+                self._tags[image] = {"status": status, "checked": time.time()}
+            return {"image": image, "status": status}
+        except Exception as e:
+            return {"image": image, "error": str(e)}
+
+
+@register_worm(category="container", priority=5, cooldown_seconds=30.0,
+    description="Resource quota watch — monitor container CPU/memory usage against limits")
+class ResourceQuotaWatch:
+    """Watches container resource usage against defined quotas."""
+
+    VERSION = "1.0.0"
+
+    def __init__(self):
+        self._quotas: Dict[str, Dict] = {}
+        self._lock = threading.Lock()
+
+    def set_quota(self, container: str, cpu_limit: float, mem_mb: int):
+        with self._lock:
+            self._quotas[container] = {"cpu_limit": cpu_limit, "mem_mb": mem_mb, "alerts": []}
+
+    def check_usage(self, container: str) -> Dict[str, Any]:
+        """Check container resource usage via docker stats."""
+        try:
+            r = subprocess.run(["docker", "stats", "--no-stream", "--format", "{{.CPUPerc}}|{{.MemUsage}}", container],
+                             capture_output=True, text=True, timeout=10)
+            if r.returncode == 0 and "|" in r.stdout:
+                cpu_str, mem_str = r.stdout.strip().split("|", 1)
+                cpu = float(cpu_str.replace("%", ""))
+                mem_mb = float(mem_str.split("/")[0].replace("MiB", "").strip() or 0)
+                quota = self._quotas.get(container, {})
+                return {"container": container, "cpu_pct": cpu, "mem_mb": mem_mb,
+                        "over_cpu": cpu > quota.get("cpu_limit", 100),
+                        "over_mem": mem_mb > quota.get("mem_mb", 1024)}
+        except Exception:
+            pass
+        return {"container": container, "error": "Could not read stats"}

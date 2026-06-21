@@ -1,0 +1,31 @@
+# Azazael requirements for Python 3.14t free-threading
+#
+# Usage:
+#   pip install -r requirements-3.14t.txt
+#
+# IMPORTANT: On Python 3.14t, pip must select cp314t wheels for C extension
+# packages. If you see segfaults on import, reinstall with:
+#   pip install --force-reinstall --no-deps <package>
+#
+# Verified working on Python 3.14.5t (2026-06-01)
+
+# Core system monitoring (C extension, needs cp314t wheel)
+# psutil 7.2.2+ has official free-threading support via cp314t wheels.
+# If import segfaults, reinstall: pip install --force-reinstall --no-deps psutil
+psutil>=7.2.2,<8
+
+# Dev tools and utilities
+nuitka>=2.5
+plyer>=2.1
+r2pipe>=1.9.0
+
+# Testing (standalone only - pytest does NOT work on 3.14t, see Error #48)
+# pytest>=9.0.3  # BROKEN on 3.14t - segfaults during collection
+
+# Standard library only for most Azazael functionality.
+# No additional C extension packages should be added without verifying
+# they have cp314t wheels available on PyPI.
+
+# To verify a package has a free-threading wheel:
+#   pip download --no-deps <package> --platform win_amd64 --python-version 314
+# Then check the .whl filename for "cp314t" (not "cp314")

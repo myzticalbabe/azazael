@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2026-05-27T21:42:14.465610",
+  "duration_seconds": 0.0009300708770751953,
+  "total_insights": 5,
+  "source_stats": {
+    "BIBL": 0,
+    "PAMS": 3,
+    "Fleet": 0,
+    "Heuristic": 2
+  },
+  "insights": [
+    {
+      "category": "sessions",
+      "insight": "PAMS contains 2 recorded sessions",
+      "confidence": 0.9,
+      "source": "PAMS",
+      "timestamp": "2026-05-27T21:42:14.466140"
+    },
+    {
+      "category": "conversations",
+      "insight": "1 conversations stored in PAMS memory",
+      "confidence": 0.9,
+      "source": "PAMS",
+      "timestamp": "2026-05-27T21:42:14.466170"
+    },
+    {
+      "category": "activity",
+      "insight": "Most recent session: azazael_overhaul_20260527 (2026-05-27T21:26:06)",
+      "confidence": 0.7,
+      "source": "PAMS",
+      "timestamp": "2026-05-27T21:42:14.466245"
+    },
+    {
+      "category": "ecosystem_health",
+      "insight": "Ecosystem spans 3 knowledge sources: BIBL, Fleet, PAMS",
+      "confidence": 0.9,
+      "source": "Heuristic",
+      "timestamp": "2026-05-27T21:42:14.466524"
+    },
+    {
+      "category": "recommendations",
+      "insight": "Cross-source patterns detected: 1 patterns across the ecosystem",
+      "confidence": 0.7,
+      "source": "Heuristic",
+      "timestamp": "2026-05-27T21:42:14.466529"
+    }
+  ],
+  "patterns": [
+    {
+      "type": "high_confidence_cluster",
+      "description": "3 high-confidence insights, strongest in 'sessions' (1)",
+      "confidence": 0.7
+    }
+  ],
+  "recommendations": [
+    "PAMS memory active \u2014 run regular distillation to prevent memory decay",
+    "Multi-source distillation achieved \u2014 enable continuous FleetZ daemon for real-time insights"
+  ]
+}

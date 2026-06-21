@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<azazael_environment>
+    <metadata>
+        <name>Azazael ML Environment</name>
+        <version>1.0</version>
+        <created>2026-02-17</created>
+        <platform>Ubuntu 25.10</platform>
+    </metadata>
+    
+    <system>
+        <python_version>3.13.7</python_version>
+        <desktop_environment>GNOME</desktop_environment>
+    </system>
+    
+    <packages>
+        <package name="torch" version="2.10.0+cpu" status="verified"/>
+        <package name="numpy" version="2.3.5" status="verified"/>
+        <package name="transformers" version="5.1.0" status="verified"/>
+        <package name="openvino" version="2025.4.1" status="verified"/>
+        <package name="tokenizers" version="0.22.2" status="verified"/>
+        <package name="safetensors" version="0.7.0" status="verified"/>
+        <package name="sympy" version="1.14.0" status="verified"/>
+        <package name="networkx" version="3.6.1" status="verified"/>
+        <package name="nltk" version="3.9.2" status="verified"/>
+        <package name="huggingface_hub" version="1.4.1" status="verified"/>
+        <package name="scipy" version="1.17.0" status="verified"/>
+        <package name="pandas" version="3.0.1" status="verified"/>
+        <package name="matplotlib" version="3.10.8" status="verified"/>
+        <package name="scikit-learn" version="1.8.0" status="verified"/>
+        <package name="pillow" version="12.1.1" status="verified"/>
+        <package name="xgboost" version="3.2.0" status="verified"/>
+        <package name="lightgbm" version="4.6.0" status="verified"/>
+        <package name="catboost" version="1.2.8" status="verified"/>
+    </packages>
+    
+    <backup>
+        <location>/media/myzticalbabe/My Passport/AZAZAEL_BOOT/</location>
+        <size>7.1GB</size>
+        <integrity>verified</integrity>
+    </backup>
+    
+    <chain_of_actions>
+        <action name="new_package">
+            <step>.whl to linux-wheels/</step>
+            <step>Update .md table (INSTALLED PACKAGES)</step>
+            <step>Update .txt (python_modules.txt)</step>
+            <step>Update .html (python_modules.html)</step>
+            <step>Update .xml (this file)</step>
+            <step>AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt</step>
+            <step>AUTO-GENERATE: Update INFORMATION_GENERATION.txt</step>
+            <step>Sync to backup</step>
+        </action>
+        <action name="new_fix">
+            <step>Update .md (troubleshooting section)</step>
+            <step>Update .txt (update_log.txt)</step>
+            <step>AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt</step>
+            <step>Sync to backup</step>
+        </action>
+        <action name="new_docs">
+            <step>Copy .txt/.md/.html/.tex/.xml to docs/</step>
+            <step>Update CHAIN_OF_INFORMATION.txt</step>
+            <step>Append to update_log.txt</step>
+            <step>AUTO-GENERATE: Update INFORMATION_GENERATION.txt</step>
+            <step>Sync to backup</step>
+        </action>
+        <action name="visual_diagram">
+            <step>Create/update ASCII diagram in CHAIN_OF_INFORMATION.txt</step>
+            <step>Add to INFORMATION_GENERATION.txt</step>
+            <step>Update this file (.xml)</step>
+            <step>Update update_log.txt</step>
+            <step>Sync to backup</step>
+        </action>
+        <action name="verification">
+            <step>Run test imports</step>
+            <step>Update .txt (verification_log.txt)</step>
+            <step>AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt</step>
+            <step>Sync to backup</step>
+        </action>
+        <action name="backup_sync">
+            <step>rsync to /My Passport/AZAZAEL_BOOT/</step>
+            <step>Verify integrity</step>
+            <step>Update update_log.txt</step>
+            <step>AUTO-GENERATE: Update CHAIN_OF_INFORMATION.txt</step>
+        </action>
+        <action name="dependency_tree">
+            <step>Run pipdeptree</step>
+            <step>Analyze missing dependencies</step>
+            <step>Install sub-packages</step>
+            <step>Update python_modules.txt</step>
+            <step>Update python_modules.html</step>
+            <step>Update this file (.xml)</step>
+            <step>Update update_log.txt</step>
+            <step>Sync to backup</step>
+        </action>
+    </chain_of_actions>
+    
+    <reason>
+        <item>.tex - Scientific paper writing with LaTeX</item>
+        <item>.xml - GNOME Ubuntu compatibility</item>
+    </reason>
+    
+    <chain_of_information>
+        <flow>
+            <input>.whl, .tex, .xml, .md, .txt, .html</input>
+            <process>AUTO-APPEND</process>
+            <output>.txt, .html, .xml</output>
+            <auto_generate>CHAIN_OF_INFORMATION.txt, INFORMATION_GENERATION.txt</auto_generate>
+            <backup>/My Passport/AZAZAEL_BOOT/</backup>
+        </flow>
+        <files_in_chain>
+            <file>python_modules.txt</file>
+            <file>python_modules.html</file>
+            <file>azazael_environment.xml</file>
+            <file>update_log.txt</file>
+            <file>verification_log.txt</file>
+            <file>INSTALL_GUIDE_LINUX.md</file>
+            <file>CHAIN_OF_INFORMATION.txt</file>
+            <file>INFORMATION_GENERATION.txt</file>
+            <file>VISUAL_REPRESENTATIONS.txt</file>
+            <file>FULL_COMMAND_REFERENCE.txt</file>
+            <file>COMPLIANCE_CHECK.txt</file>
+            <file>azazael_paper.tex</file>
+            <file>DEPENDENCY_TREE.txt</file>
+        </files_in_chain>
+    </chain_of_information>
+    
+    <auto_populate>
+        <entry file="azazael_paper.tex">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, azazael_environment.xml, CHAIN_OF_INFORMATION.txt, INFORMATION_GENERATION.txt</appended_to>
+        </entry>
+        <entry file="azazael_environment.xml">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, CHAIN_OF_INFORMATION.txt, INFORMATION_GENERATION.txt</appended_to>
+        </entry>
+        <entry file="VISUAL_REPRESENTATIONS.txt">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, azazael_environment.xml, CHAIN_OF_INFORMATION.txt, INFORMATION_GENERATION.txt</appended_to>
+        </entry>
+        <entry file="FULL_COMMAND_REFERENCE.txt">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, azazael_environment.xml, CHAIN_OF_INFORMATION.txt, INFORMATION_GENERATION.txt, VISUAL_REPRESENTATIONS.txt</appended_to>
+        </entry>
+        <entry file="CHAIN_OF_INFORMATION.txt">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, azazael_environment.xml, INFORMATION_GENERATION.txt</appended_to>
+        </entry>
+        <entry file="INFORMATION_GENERATION.txt">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, azazael_environment.xml, CHAIN_OF_INFORMATION.txt</appended_to>
+        </entry>
+        <entry file="COMPLIANCE_CHECK.txt">
+            <appended_to>update_log.txt, python_modules.txt, python_modules.html, azazael_environment.xml</appended_to>
+        </entry>
+    </auto_populate>
+</azazael_environment>

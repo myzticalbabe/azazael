@@ -1,0 +1,119 @@
+# coding: utf-8
+"""
+CORE/paths/internal.py — Core internal directory resolution.
+
+Resolves paths within the Azazael project tree:
+  - get_project_root()    -> azazael/
+  - get_src_dir()         -> azazael/src/
+  - get_core_dir()        -> azazael/src/CORE/
+  - get_worms_dir()       -> azazael/src/CORE/WORMS/
+  - get_meta_dir()        -> azazael/src/META/
+  - get_codex_dir()       -> azazael/src/CODEX/
+  - get_codex_videos_dir()-> azazael/src/CODEX/VIDEOS/
+  - resolve_path(path)    -> resolve relative/absolute paths
+  - ensure_dir(path)      -> mkdir -p
+
+All functions cache results in the shared _cache dict from .state.
+"""
+
+import os
+from pathlib import Path
+
+from .state import _cache
+
+
+def _resolve_project_root() -> Path:
+    """Determine the project root (azazael/) from this file's location.
+
+    IMPORTANT: The parent chain depth depends on the file's location in
+    the tree. This file is at azazael/src/CORE/paths/internal.py, so
+    project root is 4 levels up. If this file is moved, update the count.
+    """
+    root = Path(__file__).resolve().parent.parent.parent.parent
+    # Sentinel: verify the resolved path actually contains the expected structure
+    if not (root / "src" / "CORE").is_dir():
+        raise RuntimeError(
+            f"Project root detection failed from {__file__}: "
+            f"resolved to {root} but src/CORE/ not found there"
+        )
+    return root
+
+
+def get_project_root() -> Path:
+    """Get the Azazael project root directory.
+
+    Resolution order:
+    1. AZAZAEL_ROOT environment variable
+    2. Computed from this file's location
+
+    Returns: Path to azazael/
+    """
+    if "project_root" not in _cache:
+        env_root = os.environ.get("AZAZAEL_ROOT")
+        _cache["project_root"] = Path(env_root) if env_root else _resolve_project_root()
+    return _cache["project_root"]
+
+
+def get_src_dir() -> Path:
+    """Get the azazael/src/ directory."""
+    if "src_dir" not in _cache:
+        _cache["src_dir"] = get_project_root() / "src"
+    return _cache["src_dir"]
+
+
+def get_core_dir() -> Path:
+    """Get the azazael/src/CORE/ directory."""
+    if "core_dir" not in _cache:
+        _cache["core_dir"] = get_src_dir() / "CORE"
+    return _cache["core_dir"]
+
+
+def get_worms_dir() -> Path:
+    """Get the azazael/src/CORE/WORMS/ directory."""
+    if "worms_dir" not in _cache:
+        _cache["worms_dir"] = get_core_dir() / "WORMS"
+    return _cache["worms_dir"]
+
+
+def get_meta_dir() -> Path:
+    """Get the azazael/src/META/ directory."""
+    if "meta_dir" not in _cache:
+        _cache["meta_dir"] = get_src_dir() / "META"
+    return _cache["meta_dir"]
+
+
+def get_codex_dir() -> Path:
+    """Get the azazael/src/CODEX/ directory."""
+    if "codex_dir" not in _cache:
+        _cache["codex_dir"] = get_src_dir() / "CODEX"
+    return _cache["codex_dir"]
+
+
+def get_codex_videos_dir() -> Path:
+    """Get the azazael/src/CODEX/VIDEOS/ directory."""
+    if "codex_videos_dir" not in _cache:
+        _cache["codex_videos_dir"] = get_codex_dir() / "VIDEOS"
+    return _cache["codex_videos_dir"]
+
+
+def resolve_path(path: str) -> Path:
+    """Resolve a possibly-relative path against the project root.
+
+    If the path is absolute, return it as-is.
+    If it starts with ~, expand it.
+    Otherwise, resolve relative to the project root.
+    """
+    p = Path(path)
+    if p.is_absolute():
+        return p
+    if str(path).startswith("~"):
+        return p.expanduser()
+    if str(path).startswith("G:"):
+        return p
+    return get_project_root() / p
+
+
+def ensure_dir(path: Path) -> Path:
+    """Ensure a directory exists, creating it if needed. Returns the path."""
+    path.mkdir(parents=True, exist_ok=True)
+    return path

@@ -1,0 +1,59 @@
+{
+  "name": "Data Flow Architecture",
+  "duration": 20,
+  "resolution": [1280, 720],
+  "fps": 30,
+  "bg_color": "0x0a0a1a",
+  "sections": [
+    {
+      "time": 0, "duration": 5,
+      "title": "DATA FLOW ARCHITECTURE",
+      "subtitle": "How Information Moves Through the AZAZAEL Ecosystem",
+      "title_color": "white", "subtitle_color": "0x00f5ff",
+      "title_size": 34, "subtitle_size": 16,
+      "effect": "fade_in"
+    },
+    {
+      "time": 5, "duration": 3,
+      "title": "INPUT LAYER",
+      "subtitle": ".whl Packages | .tex Papers | .xml Configs | .md Guides | .py Sources",
+      "title_color": "0x00ff88", "subtitle_color": "0xaaffcc",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 8, "duration": 3,
+      "title": "PROCESSING LAYER",
+      "subtitle": "Auto-Append | Verification | Validation | Dependency Mapping | Optimization",
+      "title_color": "0xbf00ff", "subtitle_color": "0xddaaff",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 11, "duration": 3,
+      "title": "GENERATION LAYER",
+      "subtitle": "CHAIN_OF_INFORMATION | INFORMATION_GENERATION | Auto-Diagrams | Reports",
+      "title_color": "0xff8800", "subtitle_color": "0xffddaa",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 14, "duration": 3,
+      "title": "SYNC LAYER",
+      "subtitle": "rsync to Backup | Integrity Verification | Incremental Updates",
+      "title_color": "0xffdd00", "subtitle_color": "0xffeeaa",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    },
+    {
+      "time": 17, "duration": 3,
+      "title": "OUTPUT LAYER",
+      "subtitle": ".txt Logs | .html Reports | Generated Diagrams | .mp4 Videos | .wmv Deliverables",
+      "title_color": "0xff0044", "subtitle_color": "0xffaaaa",
+      "title_size": 24, "subtitle_size": 14,
+      "effect": "slide_up"
+    }
+  ],
+  "footer": "5 Processing Layers | Automated Pipeline | 7.1 GB Data Flow",
+  "footer_color": "0x666666"
+}

@@ -1,0 +1,157 @@
+version: "3.8"
+
+# =============================================================================
+# Azazael Core - Docker Compose with Split tmpfs/Volume WAL Optimization
+# =============================================================================
+# CD5: Cross-Domain 5 - Docker + SQLite tmpfs WAL Optimization
+# Source: research/CROSS_DOMAIN.md sec.CD5 (June 11, 2026)
+#
+# Architecture:
+#   Persistent volume (azazael-db:/persistent)  ->  memory_store.db  (main DB)
+#   tmpfs            (/data:uid=1000,size=256M) ->  -wal, -shm files (ephemeral)
+#
+# Write flow:
+#   1. SQLite WAL (-wal) and shared memory (-shm) written to /data (tmpfs, RAM)
+#   2. Main database (.db) written to /persistent (Docker volume, host filesystem)
+#   3. Shared memory lock file in /dev/shm (already tmpfs in Docker)
+#
+# Expected improvement: ~6x over overlay2 default (~2,000 -> ~12,000 TPS)
+#
+# Usage:
+#   docker compose -f docker/docker-compose.yml up -d              # Start service
+#   docker compose -f docker/docker-compose.yml logs -f            # Follow logs
+#   docker compose -f docker/docker-compose.yml down               # Stop service
+#   docker compose -f docker/docker-compose.yml run --rm azazael-benchmark  # Benchmark
+# =============================================================================
+
+services:
+
+  # --- Main Azazael Core Service (Split WAL Configuration) ---
+  azazael-core:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: azazael/core:latest
+    container_name: azazael-core
+    hostname: azazael-core
+    user: "1000:1000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    # ------------------------------------------------------------------
+    # Environment - CD5 Split Config
+    #   AZAZAEL_MEMORY_DIR:  Main .db file (persistent Docker volume)
+    #   AZAZAEL_WAL_DIR:     WAL/SHM files (tmpfs, RAM-backed)
+    #   PYTHON_GIL=0:        Enable free-threading
+    # ------------------------------------------------------------------
+    environment:
+      - AZAZAEL_MEMORY_DIR=/persistent
+      - AZAZAEL_WAL_DIR=/data
+      - PYTHONPATH=/app/azazael/src
+      - PYTHON_GIL=0
+      - AZAZAEL_WORKSPACE=/app
+      - AZAZAEL_OUTPUT_PATH=/app/output
+      - TZ=UTC
+
+    # ------------------------------------------------------------------
+    # Volumes - Split design
+    #   Persistent: .db file on azazael-db volume at /persistent
+    #   Bind mount: Source code at /app (read-write for development;
+    #               production uses COPY in Dockerfile instead)
+    #   Note: No separate /app/output mount — the entire /app is
+    #         writable, which is acceptable for development and avoids
+    #         Docker's overlapping-mount restriction.
+    # ------------------------------------------------------------------
+    volumes:
+      - azazael-db:/persistent
+      - type: bind
+        source: ..
+        target: /app
+
+    # ------------------------------------------------------------------
+    # tmpfs - RAM-backed filesystem for WAL/SHM files
+    #   256MB max, uid=1000,gid=1000 for azazael user
+    #   WAL files are recoverable from main .db via checkpoint
+    # ------------------------------------------------------------------
+    tmpfs:
+      - /data:uid=1000,gid=1000,size=256M
+
+    # ------------------------------------------------------------------
+    # Healthcheck - SQLite connectivity via PRAGMA quick_check
+    # ------------------------------------------------------------------
+    healthcheck:
+      test: >
+        python -c "
+        import sqlite3, os;
+        conn = sqlite3.connect(os.path.join(
+          os.environ.get('AZAZAEL_MEMORY_DIR', '/persistent'),
+          'memory_store.db'), timeout=2);
+        conn.execute('PRAGMA quick_check');
+        conn.close()
+        "
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    restart: unless-stopped
+
+    # ------------------------------------------------------------------
+    # Command - Entrypoint script (extracted for maintainability)
+    # ------------------------------------------------------------------
+    command:
+      - python
+      - /app/azazael/docker/entrypoint.py
+
+
+  # --- Benchmark Service (ephemeral, runs once with --profile bench) ---
+  azazael-benchmark:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: azazael/core:latest
+    container_name: azazael-benchmark
+    user: "1000:1000"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - AZAZAEL_MEMORY_DIR=/persistent
+      - AZAZAEL_WAL_DIR=/data
+      - PYTHONPATH=/app/azazael/src
+      - PYTHON_GIL=0
+      - BENCHMARK_INSERTS=10000
+    volumes:
+      - azazael-db:/persistent
+      - type: bind
+        source: ..
+        target: /app
+        read_only: false
+    tmpfs:
+      - /data:uid=1000,gid=1000,size=256M
+    profiles:
+      - bench
+    command:
+      - python
+      - /app/azazael/scripts/benchmark_wal_docker.py
+      - --output
+      - /app/output
+    restart: "no"
+
+
+# =============================================================================
+# Volumes - Persistent database storage
+# =============================================================================
+volumes:
+  azazael-db:
+    name: azazael-db
+    driver: local
+    driver_opts:
+      type: none
+      device: ${AZAZAEL_DB_VOLUME_PATH:-../data/db}
+      o: bind

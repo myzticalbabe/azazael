@@ -1,0 +1,142 @@
+{
+  "session": ".audit/session_20260611_083000_e7b5.jsonl",
+  "p": 27,
+  "f": 0,
+  "tests": [
+    [
+      "Session initialized",
+      true,
+      ".audit/session_20260611_083000_e7b5.jsonl"
+    ],
+    [
+      "Session UUID in filename",
+      true,
+      ""
+    ],
+    [
+      "10 entries recorded",
+      true,
+      "got 11"
+    ],
+    [
+      "expect+fulfill recorded",
+      true,
+      ""
+    ],
+    [
+      "Session closed",
+      true,
+      ""
+    ],
+    [
+      "verify_chain",
+      true,
+      "line 0"
+    ],
+    [
+      "verify_monotonicity",
+      true,
+      "line 0"
+    ],
+    [
+      "verify_head_hash",
+      true,
+      "stored=aa610a63... cur=aa610a63..."
+    ],
+    [
+      "merkle_root computed",
+      true,
+      "e41a5a79794eb50d"
+    ],
+    [
+      "inclusion proof",
+      true,
+      ""
+    ],
+    [
+      "proof verified",
+      true,
+      ""
+    ],
+    [
+      "crypto not installed (graceful)",
+      true,
+      ""
+    ],
+    [
+      "detected unfulfilled",
+      true,
+      ""
+    ],
+    [
+      "correct missing type",
+      true,
+      "[(14, 'test_run', 'WILL NOT BE FULFILLED')]"
+    ],
+    [
+      "no anomalies",
+      true,
+      ""
+    ],
+    [
+      "citation line 1",
+      true,
+      ""
+    ],
+    [
+      "citation line 5",
+      true,
+      ""
+    ],
+    [
+      "invalid rejected",
+      true,
+      ""
+    ],
+    [
+      "get_line works",
+      true,
+      ""
+    ],
+    [
+      "entry_hash valid",
+      true,
+      ""
+    ],
+    [
+      "find_entries",
+      true,
+      "got 1"
+    ],
+    [
+      "session clean",
+      true,
+      "broken:0"
+    ],
+    [
+      "AUDIT_AVAILABLE",
+      true,
+      ""
+    ],
+    [
+      "verify_signature",
+      true,
+      ""
+    ],
+    [
+      "verify_completeness",
+      true,
+      ""
+    ],
+    [
+      "audit_anomaly_scan",
+      true,
+      ""
+    ],
+    [
+      "audit_expect_action",
+      true,
+      ""
+    ]
+  ]
+}

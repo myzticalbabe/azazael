@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@kilocode/cli-windows-x64": "^7.0.39",
+    "puppeteer": "^19.0.0",
+    "puppeteer-screen-recorder": "^3.0.6"
+  }
+}

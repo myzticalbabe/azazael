@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+*.spec
+
+# Virtual environments
+.venv*/
+venv/
+
+# Archives (build artifacts, not source)
+.archive/
+archive/build_artifacts/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Media outputs
+*.mp4
+*.wmv
+*.avi
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Temp files
+*.bak
+*.tmp
+*~
+
+# Mypy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# Nuitka
+*.build/
+# Aider history
+.aider*
+
+# Coverage
+.coverage
+coverage_inference_html/
+
+# Inference cache
+.inference_cache/
+
+# Debug
+.debug/
+
+# Audit
+.audit/
+
+# Agent state
+.agent/
+
+# Githooks (local)
+.githooks/
