@@ -26,6 +26,7 @@ OR in worm_registry.py:
     if not WORM_REGISTRY:
         load_registry()
 """
+import os
 import sys
 import pickle
 from pathlib import Path
@@ -36,6 +37,43 @@ __version__ = "1.1.0"
 
 CACHE_DIR = Path.home() / ".azazael"
 CACHE_FILE = CACHE_DIR / "worm_registry_cache.pkl"
+
+
+def _ensure_import_paths():
+    """Put all worm import roots on sys.path before unpickling.
+
+    The registry pickle stores live class objects. Worms are imported
+    either as bare module names (WORMS dir prepended to sys.path) or as
+    ``worms.*`` package-style modules (Vermillion LightFury). Unpickling
+    therefore needs both the CORE/WORMS dir and the VF package parent
+    importable. Mirrors the resolution in worm_registry.py so the cache
+    loads in fresh processes.
+    """
+    # CORE/WORMS — bare module refs (e.g. BENCHMARK_WORM) go on as-is;
+    # src root covers CORE.WORMS.* style refs.
+    core_dir = Path(__file__).resolve().parent
+    for root in (str(core_dir / "WORMS"), str(core_dir.parent)):
+        if root not in sys.path:
+            sys.path.insert(0, root)
+    # Vermillion LightFury — ``worms.*`` package refs: the worms/ dir is a
+    # package, so its PARENT goes on path to make `import worms.x` resolve.
+    vf_candidates = []
+    env_vf = os.environ.get("VERMILLION_LIGHTFURY_DIR", "")
+    if env_vf:
+        vf_candidates.append(os.path.join(env_vf, "worms"))
+    azazael_root = Path(__file__).resolve().parent.parent.parent
+    vf_candidates.append(str(azazael_root / "vermillion_lightfury" / "worms"))
+    if os.name == "nt":
+        vf_candidates.append(str(Path.home() / "vermillion_lightfury" / "worms"))
+    else:
+        vf_candidates.append("/root/vermillion_lightfury/worms")
+
+    for cand in vf_candidates:
+        worms_dir = Path(cand)
+        if worms_dir.is_dir():
+            insert = str(worms_dir.parent)
+            if insert not in sys.path:
+                sys.path.insert(0, insert)
 
 
 def _get_module_mtimes(worms_dir: str) -> dict:
@@ -59,6 +97,7 @@ def _is_cache_fresh(worms_dir: str) -> bool:
     if not CACHE_FILE.exists():
         return False
     try:
+        _ensure_import_paths()
         with open(CACHE_FILE, "rb") as fh:
             cache = pickle.load(fh)
         cached_mtimes = cache.get("_mtimes", {})
@@ -84,6 +123,7 @@ def _load_cache_readonly(worms_dir: str) -> (dict[str, Any] | None):
     if not _is_cache_fresh(worms_dir):
         return None
     try:
+        _ensure_import_paths()
         with open(CACHE_FILE, "rb") as fh:
             cache = pickle.load(fh)
         return {k: v for k, v in cache.items() if not k.startswith("_")}
@@ -138,11 +178,15 @@ def load_registry(worms_dir: (str | None) = None, force_rebuild: bool = False) -
     if not force_rebuild:
         registry = _load_cache_readonly(worms_dir)
         if registry is not None:
-            # Populate the in-memory WORM_REGISTRY
+            # Populate the in-memory WORM_REGISTRY. Unpickling re-imports
+            # worm modules, whose @register_worm decorators partially
+            # repopulate WORM_REGISTRY as a side effect — so merge only
+            # missing keys rather than skipping on non-empty.
             try:
                 from CORE.worm_registry import WORM_REGISTRY
-                if not WORM_REGISTRY:
-                    WORM_REGISTRY.update(registry)
+                for name, info in registry.items():
+                    if name not in WORM_REGISTRY:
+                        WORM_REGISTRY[name] = info
             except ImportError:
                 pass
             return registry
@@ -174,13 +218,14 @@ def cache_status() -> dict:
     if not CACHE_FILE.exists():
         return {"exists": False, "reason": "No cache file"}
     try:
+        _ensure_import_paths()
         with open(CACHE_FILE, "rb") as fh:
             data = pickle.load(fh)
         built_at = data.get("_built_at", "unknown")
         return {
             "exists": True,
             "built_at": built_at,
-            "worm_count": data.get("_worm_count", 0),
+            "worm_count": data.get("_total_registered", 0),
             "total_registered": data.get("_total_registered", 0),
             "categories": data.get("_categories", []),
             "cache_size_kb": round(CACHE_FILE.stat().st_size / 1024, 1),

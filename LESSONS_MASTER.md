@@ -497,7 +497,7 @@ class MetricsCollector:
 
 ## #19 Rust .pyd segfault on 3.14t — reinstall wheel, never patch site-packages
 
-**Context:** pydantic-core 2.46.4 and uuid-utils had broken/corrupted `cp314t` wheels on Python 3.14.5t. Loading `_pydantic_core.cp314t-win_amd64.pyd` caused an immediate segfault (exit 139), breaking the entire LangChain stack.
+**Context:** pydantic-core 2.46.4 and uuid-utils had broken/corrupted `cp314t` wheels on Python 3.14.6t. Loading `_pydantic_core.cp314t-win_amd64.pyd` caused an immediate segfault (exit 139), breaking the entire LangChain stack.
 
 **Wrong approach (tried first):**
 - Patched `uuid_utils/__init__.py` with stdlib uuid fallback
@@ -1375,7 +1375,7 @@ methodology was a 3-pass approach:
 1. Load all architecture skills (azazael-architecture, azazael-files, azazael-production)
 2. Read all existing analysis docs (AZAZAEL_ARCHITECTURE_ANALYSIS.md, PROJECT_MAP.md, PATH_FORWARD.md)
 3. Read directory trees (read_subtree) for all major directories
-4. Read each TODO file to understand current plans (CODEBASE_AUDIT_TODO.md, PRODUCTION_TODO.md, REWRITE_TODO.md, PHASE_6_TODO.md)
+4. Read each TODO file to understand current plans (CODEBASE_AUDIT_TODO.md, PRODUCTION_TODO.md (archived), REWRITE_TODO.md (legacy), PHASE_6_TODO.md (legacy))
 5. Cross-reference: does inventory match existing docs? Flag discrepancies.
 ```
 
@@ -1502,7 +1502,7 @@ exist on disk.
 | Document | Scope | Status |
 |----------|-------|--------|
 | `CODEBASE_AUDIT_TODO.md` | Living production plan (12 Steps) | ✅ Primary — updated all sections |
-| `PRODUCTION_TODO.md` | Original gaps (superseded) | ⚠️ Still referenced — should be archived |
+| `PRODUCTION_TODO.md` | Original gaps (superseded) | ✅ Archived July 6, 2026 — use CODEBASE_AUDIT_TODO.md |
 | `REWRITE_TODO.md` | Original rewrite plan | 🔴 Legacy — not updated since Phase 2 |
 | `PHASE_6_TODO.md` | Phase-specific tasks | 🔴 Legacy — incorporated into CODEBASE_AUDIT_TODO.md |
 
@@ -1522,7 +1522,7 @@ archived with a clear "superseded by" reference.
 - The Effort Estimates table and Phase labels (23+, 24, 25, 26) provide a shared vocabulary
   across all documents — keep these consistent
 
-**Recommendation:** Move PRODUCTION_TODO.md, REWRITE_TODO.md, and PHASE_6_TODO.md to a
+**Recommendation:** PRODUCTION_TODO.md was deleted (July 6). Move REWRITE_TODO.md and PHASE_6_TODO.md to a
 `archive/` directory, with a summary file listing what each contained and where the
 current content lives in CODEBASE_AUDIT_TODO.md.
 
@@ -2843,3 +2843,112 @@ cd Desktop/EveUnleashed_Selector && git init && git add -A && git commit -m "ini
 ---
 
 *Lessons #55-#58: June 11, 2026 — Error #183-#186 codification session*
+
+---
+
+## #59 Graphify-Assisted Debugging — Use the Code Atlas to Resolve Module-Path Failures (August 28, 2026)
+
+**Discovered:** August 28, 2026 — during the 37-worm import-failure diagnosis
+
+**Scenario:** `_worm_health_check.py` reported 37/105 worms failing with `ModuleNotFoundError`. The failing names (`CAIN_WORM`, `WORMZ`, `CODEX_TOOLS`, `worms.*`, ...) looked like missing files, but every source file existed on disk. The real problem: the registry stores the module name exactly as `cls.__module__` at registration time, and bare names (e.g. `WORMZ`) only import when the module's own directory happens to be on `sys.path` — which subprocess workers don't have.
+
+**The workflow that solved it (repeat this pattern):**
+
+1. **Load the Graphify atlas, not the filesystem.** The Desktop atlas
+   (`~/Desktop/Graphify_Codebase_Atlas_2026-08-27/<repo>/graph.json`) is a
+   precomputed 400k-node graph with `label` -> `source_file` mappings.
+   Indexing `{label: [source_file]}` from `graph.get("nodes")` resolves any
+   symbol name to its real file location in one pass — no grep needed.
+2. **Cross-check atlas paths against the failing module names.** 17/37 failing
+   names matched atlas labels directly (`CLAWBOT` -> `src/CORE/WORMS/CLAWBOT.py`).
+   The remaining misses were the signal: those modules were imported under
+   package-qualified names (`CORE.WORMS.X`) or package-style names (`worms.x`).
+3. **Derive the resolution rule from `source_file`, then verify empirically.**
+   Bare name + file under `.../CORE/WORMS/` -> prefix `CORE.WORMS.`; under
+   `.../CORE/` -> prefix `CORE.`; dotted `worms.*` -> put the package's parent
+   dir on `sys.path`. Verified: 32/32 prefix-fixed imports OK, 5/5 vermillion
+   imports OK with parent on path.
+4. **Fix the consumer (worker), not the data.** The registry legitimately
+   stores `cls.__module__`; the worker that imports by that name must resolve
+   it. Same rule the archived `_worm_execution_matrix.py` already had.
+
+**Result:** 105/105 FILE/IMPORT/INSTANTIATE, zero timeouts, zero crashes.
+
+**Permanent mandate:**
+- When a name-resolution failure looks like "missing module" but the file
+  exists, consult the Graphify atlas `graph.json` BEFORE grepping — it maps
+  labels to source files across the whole corpus at once.
+- Any worker that imports by a registry string field MUST resolve bare names
+  against the entry's `source_file` directory (package prefix or parent-path
+  insertion) before `importlib.import_module()`.
+- Node format in atlas `graph.json`: `{label, source_file, source_location, ...}`
+  — index on `label`, not `id`.
+
+**Related:** Lesson #36 (tooling), `tests/test_worm_registry_modules.py` (regression test), `azazael-worm-registry-fixes` skill
+
+---
+
+*Lesson #59: August 28, 2026 — Graphify-assisted module-path resolution session*
+
+---
+
+## #83 Stale-Pickle force_rebuild Gotcha — force_rebuild=True Can Silently No-Op (August 29, 2026)
+
+**Discovered:** August 29, 2026 — while fixing the 34 bare module names at the
+registry source (`worm_registry.py` `register_worm()` normalization).
+
+**Scenario:** After adding the `CORE.WORMS.`/`CORE.` prefix normalization to
+`register_worm()`, the cache was rebuilt via
+`load_registry(force_rebuild=True)`. The call returned instantly and the
+registry STILL had 34 bare names. `force_rebuild=True` appeared broken.
+
+**Root cause — two-layer freshness short-circuit:**
+
+1. `load_registry(force_rebuild=True)` correctly skips the cache read and
+   calls `discover_worms(worms_dir=...)`.
+2. BUT `discover_worms()` has its OWN cache layer: it first tries
+   `_load_cache_readonly(worms_dir)`, which calls `_is_cache_fresh()`. The
+   old pickle was still on disk and its `_mtimes` matched the current worm
+   source files (no worm file had changed — only `worm_registry.py` did,
+   and that file is NOT in the mtime set). So the stale pickle was loaded
+   as a "fresh cache hit" and full discovery never ran.
+
+`force_rebuild` busts layer 1 but not layer 2. Any cache whose validity is
+checked against SOURCE FILE mtimes will consider itself fresh even when the
+CODE THAT BUILT IT changed.
+
+**The fix that worked:** delete the pickle file first, then run discovery:
+
+```python
+from CORE.worm_registry_cache import CACHE_FILE
+if CACHE_FILE.exists():
+    CACHE_FILE.unlink()          # bust layer 2
+from CORE.worm_registry import discover_worms, WORM_REGISTRY
+discover_worms()                 # full discovery, rebuilds pickle with new code
+```
+
+Result: 105/105 registered, 0 bare modules, fresh cache written.
+
+**Verification trap to avoid:** `cache_status()["built_at"]` after a
+supposed rebuild will show the OLD timestamp if the rebuild no-oped. Always
+check `built_at` moved forward AND the actual data changed (e.g. bare-name
+count dropped to 0). A "rebuild" that returns in <1s for a 38-45s cold start
+is the loudest possible smell.
+
+**Permanent mandate:**
+- When changing how the registry builds entries (or ANY cache-building code),
+  NEVER trust `force_rebuild=True` alone — delete the cache file first, or
+  include the builder's own mtime in the freshness key.
+- mtime-based cache freshness cannot detect changes to the BUILDING code.
+  If the builder changes, the cache is definitionally stale regardless of
+  source mtimes.
+- After any forced rebuild, assert on the DATA (e.g. `len(bare) == 0`), not
+  just on the call returning successfully.
+
+**Related:** Lesson #59 (module-path resolution), `src/CORE/worm_registry.py`
+(`register_worm` normalization), `src/CORE/worm_registry_cache.py`
+(`_is_cache_fresh`, `_load_cache_readonly`), `tests/test_worm_registry_modules.py`
+
+---
+
+*Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*

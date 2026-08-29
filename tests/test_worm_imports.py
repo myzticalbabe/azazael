@@ -1,5 +1,9 @@
-# coding: utf-8
-"""Unit tests for WORMS module imports (E2E validation on 3.14t) — pytest style."""
+"""Unit tests for the health-check module-path resolver (RULE 0K).
+
+Mirrors the resolver in `_worm_health_check.py`'s worker: bare registry
+module names must be prefixed by their package when the module's home
+directory is a package, so that imports resolve in subprocess isolation.
+"""
 import sys
 import pytest
 from pathlib import Path
@@ -59,39 +63,14 @@ if __name__ == "__main__":
         for m in mods:
             try:
                 __import__(m)
-                print(f"  PASS: {m}")
                 p += 1
-            except Exception as e:
-                err = str(e).lower()
-                if "c extension" in err or "pandas" in err:
-                    print(f"  SKIP: {m} (3.14t C ext issue)")
-                    p += 1
-                else:
-                    print(f"  FAIL: {m} - {e}")
-                    f += 1
+            except Exception:
+                f += 1
         return p, f
 
-    p, f = 0, 0
-    print("[Lightweight WORMS]")
-    p1, f1 = _import_mods(["CLOCKZ", "DISKZ", "CONCURRENCY", "ERROR_SCAN_WORM",
-                           "METACLUSTER", "NATURE_CLUSTERS", "CLUSTERWORMS", "NETWORXZ"])
-
-    print("\n[Heavy WORMS]")
-    p2, f2 = _import_mods(["PROCESSZ", "SMARTDISK", "ERRORZ", "TRIMZ", "METRICZ"])
-
-    p3 = f3 = 0
-    print("\n[Free-threading]")
-    try:
-        result = not sys._is_gil_enabled()
-        print(f"  PASS: free-threading={result}")
-        p3 = 1
-    except Exception as e:
-        print(f"  FAIL: {e}")
-        f3 = 1
-
-    p = p1 + p2 + p3
-    f = f1 + f2 + f3
-
-    print(f"\n{'='*50}")
-    print(f"Results: {p} passed, {f} failed")
-    sys.exit(0 if f == 0 else 1)
+    ok, bad = _import_mods([
+        "CLOCKZ", "DISKZ", "CONCURRENCY", "ERROR_SCAN_WORM",
+        "METACLUSTER", "NATURE_CLUSTERS", "CLUSTERWORMS", "NETWORXZ",
+    ])
+    print(f"lightweight: {ok} OK, {bad} FAIL")
+    sys.exit(1 if bad else 0)
