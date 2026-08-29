@@ -32,11 +32,17 @@ from dataclasses import dataclass
 import threading
 
 from CORE.uuid7 import uuid7
-from CORE.worm_registry_cache import _load_cache_readonly, save_cache
 try:
     from CORE.PamsRecorder import PamsRecorder
 except ImportError:
     PamsRecorder = None  # graceful: worm_registry functions without PAMS
+
+# NOTE: CORE.worm_registry_cache is intentionally NOT imported here at module
+# level. worm_registry_cache lazily imports CORE.worm_registry (for
+# get_all_categories / WORM_REGISTRY / discover_worms), so a module-level
+# import here creates a real import cycle. Both cache functions are only needed
+# inside discover_worms(), so they are imported lazily at their call sites via
+# _get_cache_funcs() (see below).
 
 # --- Global Registry -----------------------------------------------
 
@@ -199,6 +205,20 @@ def register_worm(
         except (OSError, TypeError, Exception):
             source_file = ""  # exec()-defined classes or REPL classes have no source file
 
+        # Normalize bare module names to their package-qualified import path.
+        # When a worm file is imported by its bare filename (e.g. discover_worms()
+        # prepends the WORMS dir to sys.path), cls.__module__ is just "CLAWBOT"
+        # — which only imports if that directory stays on sys.path. Consumers
+        # (health-check worker, execution matrix) import from the src root, so
+        # store the path that works there: CORE.WORMS.<name> for files under
+        # CORE/WORMS/, CORE.<name> for files directly under CORE/.
+        if "." not in module and source_file:
+            d = os.path.dirname(source_file)
+            if d.endswith("WORMS"):
+                module = "CORE.WORMS." + module
+            elif d.endswith("CORE"):
+                module = "CORE." + module
+
         with _registry_lock:
             WORM_REGISTRY[name] = {
                 "class": cls,
@@ -255,9 +275,10 @@ def discover_worms(
         return 0
 
     # -- Try pickle cache first (avoids 38-45s cold start) --
-    # Uses _load_cache_readonly() — NEVER rebuilds from within discover_worms().
-    # Calling load_registry() here would create an infinite loop:
-    #   discover_worms -> load_registry -> discover_worms -> ...
+    # Uses cache._load_cache_readonly() — NEVER rebuilds from within
+    # discover_worms(). Calling cache.load_registry() here would create an
+    # infinite loop:  discover_worms -> load_registry -> discover_worms -> ...
+    _load_cache_readonly, save_cache = _get_cache_funcs()
     if not WORM_REGISTRY:
         try:
             registry = _load_cache_readonly(worms_dir)
@@ -377,6 +398,8 @@ def discover_worms(
     new_count = len(WORM_REGISTRY) - before_count
     if new_count > 0:
         try:
+            # Lazy import to avoid module-level import cycle with cache module
+            _, save_cache = _get_cache_funcs()
             save_cache(WORM_REGISTRY, worms_dir)
         except Exception:
             pass  # Non-fatal — cache save failed, but discovery succeeded
@@ -444,6 +467,29 @@ def _guess_cooldown(category: str) -> float:
 # --- Lazy PAMS Recorder (thread-safe, defer import) ----------------
 _pams_instance: Any = None
 _pams_instance_lock = threading.Lock()
+
+
+_cache_funcs_cache: Optional[tuple] = None
+_cache_funcs_lock = threading.Lock()
+
+
+def _get_cache_funcs() -> tuple:
+    """Lazily import worm_registry_cache functions used by discover_worms().
+
+    Avoids a module-level import cycle: worm_registry_cache itself imports
+    CORE.worm_registry (get_all_categories / WORM_REGISTRY / discover_worms),
+    so importing it at worm_registry's module level creates a circular import.
+
+    Returns (load_cache_readonly, save_cache) once resolved, cached for reuse.
+    """
+    global _cache_funcs_cache
+    if _cache_funcs_cache is not None:
+        return _cache_funcs_cache
+    with _cache_funcs_lock:
+        if _cache_funcs_cache is None:
+            from CORE.worm_registry_cache import _load_cache_readonly, save_cache
+            _cache_funcs_cache = (_load_cache_readonly, save_cache)
+    return _cache_funcs_cache
 
 
 def _get_pams_recorder():
