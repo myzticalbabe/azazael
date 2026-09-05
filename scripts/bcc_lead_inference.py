@@ -33,6 +33,7 @@ Run:  python3 bcc_lead_inference.py [--out leads.json]
 import argparse
 import json
 import os
+import re
 import sys
 
 PYIO = sys.stdout.reconfigure(encoding="utf-8", errors="replace") if hasattr(sys.stdout, "reconfigure") else None
@@ -97,10 +98,12 @@ def main():
                            "BCC_FINANCIAL_ANOMALY.html"],
                 "gap_refs": ["41", "11", "39"],
                 "action": ("Pull the FY2017 990 Part VII / Schedule J officer rows "
-                           "(on-disk _990_FY2017.html) to name the officers whose comp "
-                           "changed and the signatory chair; backfill the temporal-KG "
-                           "chair coverage hole for FY2014-FY2024 from the _990_FY*.html "
-                           "roster pages."),
+                           "(live IRS XML; the on-disk capture shows comp totals only, "
+                           "not per-person name-comp rows) to name the officers whose "
+                           "comp changed and the signatory chair; the FY2016-18 captures "
+                           "prove board membership + CEO signatory (Malley) per year. "
+                           "Chair-title attribution for FY2014-FY2024 needs the full Part "
+                           "VII title rows (see LEAD-03)."),
                 "integrity_note": "Both figures are from the IRS 990 summary series; the "
                                   "chair attribution requires the roster page, not inference.",
             })
@@ -132,24 +135,70 @@ def main():
                                   "temporal-KG evidence (documented, as-of banner).",
             })
 
-    # ---- Lead 3: temporal KG point-in-time chair queries return [] for the whole
-    # pre-2025 era (chair_2024_01_01 -> []), so the governance layer cannot answer
-    # 'who chaired during the FY2018 break'. This is a resolvable data hole. ----
+    # ---- Lead 3: temporal KG chair coverage for the pre-2025 era. The Sep-5 pass
+    # fixed a real corruption here (KG facts named 'Christopher Plageman Jr' while
+    # the corpus is unanimous on 'Joseph Plageman Jr' — FY2025 990 = Chairperson,
+    # CRD #5964768; 'Christopher' existed only in the KG layer). After the fix,
+    # point-in-time chair queries for 2014-2024 STILL return [] because the on-disk
+    # _990_FY20*.html captures render rosters + the CEO signatory but NOT per-person
+    # Part VII titles — so chair attribution for the break era needs the full 990
+    # XML officer-title rows (a records item), not inference. ----
     kq = kuzu.get("point_in_time_queries", {})
-    if kq.get("chair_2024_01_01") == []:
+    kg_names = [f.get("subject", "") for f in (graphiti.get("facts") or [])]
+    kg_has_joseph = any("Joseph Plageman" in n for n in kg_names)
+    kg_has_christopher = any("Christopher Plageman" in n for n in kg_names)
+    if kg_has_christopher:
+        leads.append({
+            "id": "LEAD-03a",
+            "class": "CORRUPTION-FOUND-AND-FIXED",
+            "title": ("KG fact layer named the chair 'Christopher Plageman Jr' while the "
+                      "corpus is unanimous on 'Joseph Plageman Jr' (FY2025 990 = "
+                      "Chairperson, CRD #5964768, Edward Jones 918 Penn Ave). 'Christopher' "
+                      "appeared ONLY in the KG artifacts, not in the human corpus."),
+            "basis": ["bcc_graphiti_temporal.json", "BCC_KUZU_TEMPORAL_evidence.json",
+                       "BCC_KUZU_TIMELINE_evidence.json", "BCC_TEMPORAL_KG.html",
+                       "COI_REQUEST_LETTER.html", "PEOPLE_DOSSIER.html"],
+            "gap_refs": ["10", "39"],
+            "action": ("Fixed in bcc_graphiti_temporal.py facts + regenerated all four "
+                       "KG artifacts (Sep-5). Re-run this pass to confirm the corruption "
+                       "is gone."),
+            "integrity_note": "Name-consistency check across machine artifacts vs the "
+                              "human corpus; the fix cites the FY2025-990 + CRD records.",
+        })
+    if kq.get("chair_2024_01_01") == [] and not kg_has_christopher:
         leads.append({
             "id": "LEAD-03",
             "class": "NEW",
-            "title": "Temporal KG has NO chair record for 2014-2024 (chair_2024_01_01 -> []): "
-                     "the governance identity behind the FY2017 comp break and FY2018 "
-                     "revenue break is unattributed in the machine layer.",
+            "title": ("Temporal KG chair query for 2024-01-01 still returns [] after the "
+                      "Joseph-name fix: the on-disk _990_FY20*.html captures render board "
+                      "rosters + CEO signatory (Malley, thru FY2018) but not per-person "
+                      "Part VII titles, so 'who chaired during the FY2018 break' is not "
+                      "mechanically resolvable from the captures alone. Corpus asserts "
+                      "Plageman Jr = Board Chair 14+ yrs (COI tables)."),
+            "basis": ["BCC_KUZU_TEMPORAL_evidence.json", "bcc_graphiti_temporal.json",
+                       "_990_FY2016.html", "_990_FY2017.html", "_990_FY2018.html",
+                       "COI_REQUEST_LETTER.html"],
+            "gap_refs": ["10", "39"],
+            "action": ("Residual: pull the FY2016-FY2018 (and FY2019-FY2024) 990 Part VII "
+                       "officer-title rows from the live IRS XML (the static captures do "
+                       "not carry per-person titles) to date Plageman Jr's chair tenure "
+                       "precisely; until then the KG holds the documented 2025-07-01 -> "
+                       "2026-05-15 chair interval only."),
+            "integrity_note": "The captures prove roster membership + CEO signatory per "
+                              "FY; chair-title attribution is a records item, not inference.",
+        })
+    elif kg_has_joseph and not kg_has_christopher:
+        leads.append({
+            "id": "LEAD-03",
+            "class": "RESOLVED",
+            "title": ("KG chair facts now name Joseph Plageman Jr consistently with the "
+                      "corpus; chair query coverage for the 2014-2024 window remains a "
+                      "records-limited data hole (full Part VII titles needed)."),
             "basis": ["BCC_KUZU_TEMPORAL_evidence.json", "bcc_graphiti_temporal.json"],
             "gap_refs": ["10", "39"],
-            "action": ("Extract officer/chair rows from the on-disk _990_FY20*.html roster "
-                       "pages (FY2014-FY2024) and re-run the temporal KG so 'who chaired "
-                       "in FY2018' resolves mechanically."),
-            "integrity_note": "Absence of a fact in the KG is a coverage gap, not an "
-                              "affirmative finding about any person.",
+            "action": ("Pull full Part VII officer-title rows (live IRS XML) to extend "
+                       "chair valid_from before 2025-07-01."),
+            "integrity_note": "Coverage gap, not an affirmative finding about any person.",
         })
 
     # ---- Lead 4: 6-degrees result -- the longest documented path (4) runs between
@@ -198,7 +247,12 @@ def main():
 
     # ---- Lead 6: persons present in the SNA but absent from ALL record-linkage
     # clusters = the identity-corroboration gaps. The clusters only contain matched
-    # names, so the shallow set is whoever is in the network but in no cluster. ----
+    # names, so the shallow set is whoever is in the network but in no cluster.
+    # Sep-5 refinement: (a) org nodes are not persons — they are excluded from the
+    # "uncorroborated person" framing; (b) the on-disk _990_FY20*.html roster
+    # captures are a corroboration layer the linkage pass never consulted — a person
+    # listed on an on-disk 990 Part VII roster is corroborated by a primary record.
+    # ----
     cl = linkage.get("clusters") or []
     if cl:
         linked_names = set()
@@ -219,22 +273,70 @@ def main():
                 if sep in n:
                     return n.split(sep)[0].lower()
             return n.lower()
-        unlinked = [p for p in sna_persons
-                    if not any(core_token(p) in ln for ln in linked_names)]
+        unlinked_all = [p for p in sna_persons
+                        if not any(core_token(p) in ln for ln in linked_names)]
+        # ---- orgs vs persons in the unlinked set (person = has a name + role marker)
+        ORG_MARKERS = ("COCA", "SAMHSA", "TPUC", "PA AG", "Herbein", "Edward Jones",
+                       "BCC", "United Way", "IRS", "CCBH", "GSK", "Alvernia",
+                       "Greater Reading", "Central Tire", "Furniture Soup", "OIG")
+        unlinked_orgs = [p for p in unlinked_all
+                         if p.split(" — ")[0].strip().upper() in ORG_MARKERS
+                         or not any(ch.isalpha() for ch in p.split(" — ")[0])]
+        unlinked_persons = [p for p in unlinked_all if p not in unlinked_orgs]
+        # ---- on-disk 990 roster corroboration (primary records)
+        roster_hits = {}
+        for p in unlinked_persons:
+            tok = p.split(" — ")[0].strip()
+            fam = tok.split()[-1].upper()
+            yrs = []
+            for fy in ("2016", "2017", "2018"):
+                try:
+                    s = open(f"_990_FY{fy}.html", encoding="utf-8", errors="replace").read()
+                except OSError:
+                    continue
+                names = re.findall(r'PersonNm\[1\]">([^<]+)', s)
+                if any(fam in n.upper() for n in names):
+                    yrs.append(fy)
+            roster_hits[p] = yrs
+        # FY2025-990 roster corroboration comes from the corpus text (INVESTIGATION_GAPS
+        # Sep-3 corrected list: Seitz=Chairperson, Ralph=Treasurer, Orlando=Director as
+        # of Aug 2026, then absent from the post-reorg live roster). Check that too.
+        fy25_roster = {"SEITZ": "FY2025 990 roster (Chairperson)",
+                       "RALPH": "FY2025 990 roster (Treasurer)",
+                       "ORLANDO": "FY2025 990 roster (Director as of Aug 2026; absent post-reorg)"}
+        uncorroborated = []
+        where = {}
+        for p in unlinked_persons:
+            fam = p.split(" — ")[0].strip().split()[-1].upper()
+            src = roster_hits.get(p) or (fy25_roster.get(fam) and "corpus FY2025-990 roster")
+            if src:
+                where[p] = src
+            else:
+                uncorroborated.append(p)
+        n_corr_ondisk = len([p for p in unlinked_persons if roster_hits.get(p)])
+        n_corr_fy25 = len([p for p in unlinked_persons
+                           if not roster_hits.get(p) and p not in uncorroborated])
         leads.append({
             "id": "LEAD-06",
             "class": "NEW",
             "title": (f"{len(cl)} identity clusters formed across core/sna/dossier; "
-                      f"{len(unlinked)} SNA members appear in NO linkage cluster "
-                      "(the uncorroborated / shallow-documentation set)."),
-            "basis": ["bcc_record_linkage.json", "bcc_network_sna_results_v3.json"],
+                      f"{len(unlinked_persons)} unlinked SNA PERSONS ({len(unlinked_orgs)} "
+                      f"unlinked orgs excluded — PA AG/SAMHSA/TPUC/COCA are not persons). "
+                      f"Corroboration after roster cross-check: {n_corr_ondisk} on on-disk "
+                      f"FY2016-18 990 Part VII rosters + {n_corr_fy25} on the FY2025-990 "
+                      f"roster (corpus), leaving {len(uncorroborated)} with no roster hit: "
+                      f"{'; '.join(p.split(' — ')[0] for p in uncorroborated) or 'none'}."),
+            "basis": ["bcc_record_linkage.json", "bcc_network_sna_results_v3.json",
+                      "_990_FY2016.html", "_990_FY2017.html", "_990_FY2018.html",
+                      "INVESTIGATION_GAPS.html"],
             "gap_refs": ["25", "34"],
-            "action": ("For each unlinked SNA member, the next public-record step is a "
-                       "DOS/court/campaign-finance existence check (same channel already "
+            "action": ("For any person with no roster hit, the next public-record step is "
+                       "a DOS/court/campaign-finance existence check (same channel already "
                        "used for the corroborated set) — no new inference, only "
-                       "corroboration."),
-            "integrity_note": "Strictly corroboration depth; no person is asserted as "
-                              "involved beyond what the cited layer documents.",
+                       "corroboration. Persons on the on-disk FY2016-18 990 rosters or the "
+                       "FY2025-990 roster (corpus) are already primary-record corroborated."),
+            "integrity_note": "Strictly corroboration depth; orgs are not persons; no person "
+                              "is asserted as involved beyond what the cited layer documents.",
         })
 
     # ---- Lead 7: executive tenure vs the deficit era -- Axford/Little in post since
