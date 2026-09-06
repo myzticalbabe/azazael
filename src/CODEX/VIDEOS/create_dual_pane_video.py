@@ -575,7 +575,7 @@ def generate_html_preview():
         }
 
         function exportFrames() {
-            alert('Frame export would generate ' + scenes.length + ' frames as PNG sequence.\n\nTo create video:\n1. Install: pip install opencv-python pillow\n2. Run: python generate_video_from_frames.py');
+            alert(`Frame export would generate ${scenes.length} frames as PNG sequence.\n\nTo create video:\n1. Install: pip install opencv-python pillow\n2. Run: python generate_video_from_frames.py`);
         }
 
         // Auto-play on load

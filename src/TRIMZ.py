@@ -46,10 +46,16 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext
 
 try:
-    from CORE.paths import get_trim_targets
+    from CORE.paths import get_trim_targets, DESKTOP_TARGET_NAMES, LOCAL_TARGET_SUBDIRS
     _HAS_PATHS = True
 except ImportError:
     _HAS_PATHS = False
+    # Standalone mirror of CORE/paths.py (kept in sync manually)
+    DESKTOP_TARGET_NAMES = [
+        "Azazael", "HYDRA.py", "HORUS.py", "TARBABY.py",
+        "POINDEXTER", "PERSEPHONE", "WORMZ", "METAWORMS",
+    ]
+    LOCAL_TARGET_SUBDIRS = ["", "CORE/WORMS", "META"]
 
 # Portability: use env vars with local fallbacks
 _PROJECT_ROOT = str(Path(__file__).resolve().parent)
@@ -83,16 +89,11 @@ class BiblEntryRef:
 
 
 def _get_default_trim_targets():
-    """Compute default target folders for TRIMZ (uses centralized paths when available)."""
+    """Compute default target folders (canonical names live in CORE.paths)."""
     if _HAS_PATHS:
         return get_trim_targets()
-    # Fallback: standalone definitions
-    _DESKTOP_TARGETS = [
-        str(Path.home() / "Desktop" / d) for d in [
-            "Azazael", "HYDRA.py", "HORUS.py", "TARBABY.py",
-            "POINDEXTER", "PERSEPHONE", "WORMZ", "METAWORMS", "TERENCE",
-        ]
-    ]
+    # Fallback: standalone definitions (CORE.paths unavailable)
+    _DESKTOP_TARGETS = [str(Path.home() / "Desktop" / d) for d in DESKTOP_TARGET_NAMES]
     _LOCAL_TARGETS = [_PROJECT_ROOT]
     return [p for p in _DESKTOP_TARGETS + _LOCAL_TARGETS if Path(p).exists() or p in _LOCAL_TARGETS]
 

@@ -113,7 +113,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
     try:
         from CORE.metrics import health_check
         report["health"] = health_check.report()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
         report["health"] = {"overall": "down", "error": str(e)}
 
     try:
@@ -136,7 +136,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
                     }
             snap = filtered
         report["metrics"] = snap
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
         report["metrics"] = {"error": str(e)}
 
     try:
@@ -147,13 +147,13 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             issues = issues[:max(0, len(issues))]
         report["drift"] = [{"type": i.issue_type, "severity": i.severity, "message": i.message}
                           for i in issues]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
         report["drift"] = {"error": str(e)}
 
     try:
         from CORE.circuit_breaker import breaker_registry
         report["dead_letters"] = breaker_registry.get_dead_letter_summary()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
         report["dead_letters"] = {"error": str(e)}
 
     try:
@@ -166,7 +166,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "clusters": {"timeout": cfg.clusters.default_timeout, "max_parallel": cfg.clusters.max_parallel_worms, "retries": cfg.clusters.max_retries},
             "log_level": cfg.observability.logging.level,
         }
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     try:
@@ -180,7 +180,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "top_sources": dict(sorted(mem_stats.get("sources", {}).items(), key=lambda x: -x[1])[:5]),
             "top_events": dict(sorted(mem_stats.get("event_types", {}).items(), key=lambda x: -x[1])[:5]),
         }
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     try:
@@ -194,7 +194,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "cross_nature_routes": mc_state.get("cross_nature_routes", 0),
             "orchestration_history": mc_state.get("orchestration_history", 0),
         }
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     try:
@@ -206,7 +206,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "total_executions": wf_status["history_count"],
             "last_execution": wf_status["last_execution"],
         }
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     try:
@@ -227,7 +227,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
                     "model_version": data.get("model_version", "?"),
                 })
         report["scheduling"] = {"recent_runs": training_runs, "total_runs": len(training_runs)}
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     try:
@@ -248,7 +248,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
                     "duration_ms": data.get("duration_ms", 0),
                 })
         report["sb3_training"] = {"recent_runs": sb3_runs, "total_runs": len(sb3_runs)}
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     try:
@@ -256,7 +256,7 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
         monitor = DatabaseMonitorWorm()
         report["db_monitor"] = monitor.get_db_summary()
         report["db_monitor_full"] = monitor.get_report()
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
     return report
@@ -343,7 +343,7 @@ def render_workflows():
         from CORE.workflow import get_workflow_engine
         engine = get_workflow_engine()
         status = engine.get_status()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal render isolation
         print(f"  [DOWN] WorkflowEngine: {e}")
         return
 
@@ -377,7 +377,7 @@ def render_workflows():
                 icon = "[OK]" if h.success else "[!!]"
                 print(f"  {icon} {h.workflow_name}  ({h.success_count} ok / {h.failure_count} fail / {h.skipped_count} skipped)  {h.duration_ms:.0f}ms")
             print()
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         pass
 
 
@@ -389,7 +389,7 @@ def render_scheduling():
         # Query recent training runs from LocalMemoryStore
         results = store.search_memories("ScheduledTrainingWorm", limit=5)
         stats = store.get_stats()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal render isolation
         print(f"  [DOWN] ScheduledTrainingWorm: {e}")
         return
 
@@ -462,7 +462,7 @@ def render_db_health():
         trends = store.get_error_trends(days=30)
         growth = store.get_db_growth(days=30)
         vacuum_status = store.auto_vacuum_status
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal render isolation
         print(f"  [DOWN] DB Health: {e}")
         return
 
@@ -521,7 +521,7 @@ def render_db_health():
         from CORE.config import get_config
         cfg = get_config()
         max_size_warn = cfg.memory_store.max_size_mb_warn
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
         max_size_warn = 100
 
     if db_size_mb > max_size_warn:
@@ -543,7 +543,7 @@ def render_db_monitor():
         monitor = DatabaseMonitorWorm()
         summary = monitor.get_db_summary()
         report = monitor.get_report()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal render isolation
         print(f"  [DOWN] DatabaseMonitorWorm: {e}")
         return
 
@@ -595,7 +595,7 @@ def render_session():
         from CORE.local_memory import LocalMemoryStore
         store = LocalMemoryStore()
         stats = store.get_stats()
-    except Exception:
+    except Exception:  # noqa: BLE001 — non-fatal render isolation
         print("  [DOWN] LocalMemoryStore not available")
         return
 
@@ -625,7 +625,7 @@ def render_meta():
         from CORE.WORMS.METACLUSTER import MetaCluster
         mc = MetaCluster()
         status = mc.get_status()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal render isolation
         print(f"  [DOWN] MetaCluster: {e}")
         return
 
@@ -649,7 +649,7 @@ def render_config():
         from CORE.config import get_config, get_warnings
         cfg = get_config()
         warnings = get_warnings()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — non-fatal render isolation
         print(f"  [DOWN] Config: {e}")
         return
 
@@ -759,7 +759,7 @@ def main():
             from CORE.web_dashboard import export_html
             path = export_html(args.export_html, since=getattr(args, 'since', None))
             print(f"  HTML report exported to {path}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — CLI export must not crash main
             print(f"  [ERROR] Export failed: {e}")
         return
 
@@ -773,7 +773,7 @@ def main():
             print(f"  Health server started on port {args.health_server_port}")
             if not args.watch:
                 time.sleep(0.5)  # Let server bind before dashboard renders
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — optional server; warn, keep going
             print(f"  [WARN] Could not start health server: {e}")
 
     # Start Prometheus server in background if requested
@@ -786,7 +786,7 @@ def main():
             print(f"  Prometheus endpoint started on port {args.prometheus_server_port}")
             if not args.watch:
                 time.sleep(0.3)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — optional server; warn, keep going
             print(f"  [WARN] Could not start Prometheus server: {e}")
 
     # Start background DB monitor if --db-monitor or full overview
@@ -796,7 +796,7 @@ def main():
             from CORE.WORMS.expansion.db_monitor import DatabaseMonitorWorm
             _db_monitor_instance = DatabaseMonitorWorm()
             _db_monitor_instance.start_monitor(interval_seconds=args.interval * 2)
-        except Exception:
+        except Exception:  # noqa: BLE001 — optional background monitor; skip
             pass
 
     # Start background SB3 TrainingOrchestrator alongside DB monitor
@@ -812,7 +812,7 @@ def main():
             )
             _training_orchestrator.start_scheduler(interval_hours=24.0)
             print("  TrainingOrchestrator scheduler started (interval=24h)")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — optional scheduler; warn, keep going
             print(f"  [WARN] Could not start TrainingOrchestrator: {e}")
 
     try:

@@ -138,7 +138,7 @@ class ReverseTools:
                     event_type=f"retools.{event_type}",
                     data=data, source="ReverseTools", severity=severity,
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — best-effort boundary
                 pass
 
     # ── Tool Status ───────────────────────────────────────────────────────────
@@ -192,7 +192,7 @@ class ReverseTools:
                                     if "application.version" in line:
                                         status.version = line.split("=")[-1].strip()
                                         break
-                        except Exception:
+                        except Exception:  # noqa: BLE001 — best-effort boundary
                             pass
                     break
 
@@ -269,7 +269,7 @@ class ReverseTools:
                 result["version"] = "r2pipe installed"
                 self._record("install_radare2", result)
                 return result
-        except Exception:
+        except Exception:  # noqa: BLE001 — best-effort boundary
             pass
 
         # Method 2: Platform package manager
@@ -285,7 +285,7 @@ class ReverseTools:
                     result["version"] = "latest (choco)"
                     self._record("install_radare2", result)
                     return result
-            except Exception:
+            except Exception:  # noqa: BLE001 — best-effort boundary
                 pass
 
             # Try winget
@@ -300,7 +300,7 @@ class ReverseTools:
                     result["version"] = "latest (winget)"
                     self._record("install_radare2", result)
                     return result
-            except Exception:
+            except Exception:  # noqa: BLE001 — best-effort boundary
                 pass
 
         elif IS_LINUX:
@@ -313,7 +313,7 @@ class ReverseTools:
                         result["version"] = "latest (system)"
                         self._record("install_radare2", result)
                         return result
-                except Exception:
+                except Exception:  # noqa: BLE001 — best-effort boundary
                     pass
 
         # Method 3: pip install radare2-binary wheels
@@ -328,7 +328,7 @@ class ReverseTools:
                 result["version"] = "binary installed"
                 self._record("install_radare2", result)
                 return result
-        except Exception:
+        except Exception:  # noqa: BLE001 — best-effort boundary
             pass
 
         result["error"] = "Could not install radare2. Install manually: https://github.com/radareorg/radare2"
@@ -365,7 +365,7 @@ class ReverseTools:
                     if java_version >= 17:
                         java_ok = True
                         break
-            except Exception:
+            except Exception:  # noqa: BLE001 — best-effort boundary
                 pass
 
         if not java_ok:
@@ -394,7 +394,7 @@ class ReverseTools:
 
             self._record("install_ghidra", result)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — best-effort boundary
             result["error"] = str(e)
             self._record("install_ghidra_error", result, severity="error")
 
@@ -503,7 +503,7 @@ class ReverseTools:
         except ImportError:
             # Fallback: try r2 command line directly
             analysis = self._radare2_cli(str(full_path), auto_analysis)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — best-effort boundary
             self._record("radare2_error", {"path": str(full_path), "error": str(e)}, severity="error")
 
         self._record("radare2_analysis", {
@@ -563,7 +563,7 @@ class ReverseTools:
                 break  # Success
             except FileNotFoundError:
                 continue
-            except Exception:
+            except Exception:  # noqa: BLE001 — best-effort boundary
                 break
 
         return analysis
@@ -626,7 +626,7 @@ class ReverseTools:
                             })
                     if len(instructions) >= max_ins:
                         break
-            except Exception:
+            except Exception:  # noqa: BLE001 — best-effort boundary
                 pass
 
         return instructions
@@ -713,7 +713,7 @@ class ReverseTools:
             self._record("ghidra_headless_error", {
                 "path": str(full_path), "error": "analyzeHeadless not found",
             }, severity="error")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — best-effort boundary
             self._record("ghidra_headless_error", {
                 "path": str(full_path), "error": str(e),
             }, severity="error")
@@ -746,7 +746,7 @@ class ReverseTools:
                 "strings_count": len(r2_result.strings),
                 "hashes": r2_result.hashes,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — best-effort boundary
             report["r2"] = {"error": str(e)}
 
         # Ghidra analysis
@@ -757,7 +757,7 @@ class ReverseTools:
                 "data_types": ghidra_result.data_types_count,
                 "output_dir": ghidra_result.output_dir,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — best-effort boundary
             report["ghidra"] = {"error": str(e)}
 
         # Cross-reference

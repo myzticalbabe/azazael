@@ -25,6 +25,14 @@ Usage:
 __all__ = [
     "MetricsHandler",
     "MetricsRegistry",
+    "MetricsCollector",
+    "HealthCheck",
+    "DriftAlert",
+    "metrics_collector",
+    "health_check",
+    "drift_alert",
+    "record_worm_execution",
+    "get_worm_metrics",
     "cmd_metrics",
     "get_registry",
     "start_metrics_server",
@@ -33,6 +41,7 @@ __all__ = [
 
 import json
 import threading
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from typing import Any
@@ -319,6 +328,234 @@ def start_metrics_server(port: int = 9090, host: str = "127.0.0.1",
                               name="metrics-server")
     thread.start()
     return thread
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# LEGACY API — backward-compatible layer
+#
+# The metrics module was refactored to MetricsRegistry (Prometheus-style).
+# Many consumers (health_server, dashboard, notifier, workflow, NATURE_CLUSTERS,
+# worm_health) still import the original in-memory collector / health check /
+# drift alert API. These classes restore that contract so those modules keep
+# working without edits.
+# ═══════════════════════════════════════════════════════════════════════
+
+
+class _MetricPoint:
+    """A single recorded metric data point (legacy API)."""
+
+    def __init__(self, value: float, tags: dict, timestamp: float):
+        self.value = value
+        self.tags = dict(tags or {})
+        self.timestamp = timestamp
+
+
+class MetricsCollector:
+    """In-memory metrics collector with bounded history (legacy API)."""
+
+    def __init__(self, history_size: int = 1000):
+        self._history_size = max(1, history_size)
+        self._data: dict[str, list[_MetricPoint]] = defaultdict(list)
+        self._lock = threading.Lock()
+
+    def record(self, name: str, value: float, tags: (dict | None) = None):
+        """Record a metric data point, keeping at most history_size per name."""
+        with self._lock:
+            pts = self._data[name]
+            pts.append(_MetricPoint(float(value), tags or {}, time.time()))
+            if len(pts) > self._history_size:
+                del pts[: len(pts) - self._history_size]
+
+    def list_metrics(self) -> list:
+        """Return names of all metrics with at least one point."""
+        with self._lock:
+            return [n for n, pts in self._data.items() if pts]
+
+    def query(self, name: str, tags: (dict | None) = None) -> list:
+        """Return recorded points, optionally filtered by exact tag match."""
+        with self._lock:
+            pts = list(self._data.get(name, []))
+        if tags:
+            pts = [p for p in pts if all(p.tags.get(k) == v for k, v in tags.items())]
+        return pts
+
+    def aggregate(self, name: str) -> dict:
+        """Aggregate stats for a metric: count, sum, avg, min, max."""
+        pts = self.query(name)
+        if not pts:
+            return {"count": 0, "sum": 0.0, "avg": 0.0, "min": 0.0, "max": 0.0}
+        values = [p.value for p in pts]
+        total = sum(values)
+        return {
+            "count": len(values),
+            "sum": total,
+            "avg": total / len(values),
+            "min": min(values),
+            "max": max(values),
+        }
+
+    def clear(self, name: (str | None) = None):
+        """Clear one metric, or all metrics if name is None."""
+        with self._lock:
+            if name is None:
+                self._data.clear()
+            else:
+                self._data.pop(name, None)
+
+    def snapshot(self) -> dict:
+        """Return aggregate stats for every metric."""
+        with self._lock:
+            names = list(self._data.keys())
+        return {n: self.aggregate(n) for n in names}
+
+
+class _ComponentResult:
+    """Result of a single health check component (legacy API)."""
+
+    def __init__(self, name: str, status: str, message: str,
+                 details: (dict | None) = None, last_check: str = ""):
+        self.name = name
+        self.status = status
+        self.message = message
+        self.details = details or {}
+        self.last_check = last_check
+
+
+class HealthCheck:
+    """Registry of health check callables (legacy API)."""
+
+    def __init__(self):
+        self._checks: dict[str, callable] = {}
+        self._lock = threading.Lock()
+
+    def register(self, name: str, fn: callable):
+        """Register a health check callable returning a component-like object."""
+        with self._lock:
+            self._checks[name] = fn
+
+    def unregister(self, name: str):
+        """Remove a registered health check."""
+        with self._lock:
+            self._checks.pop(name, None)
+
+    def check_component(self, name: str):
+        """Run one check; unregistered or throwing checks report 'down'."""
+        with self._lock:
+            fn = self._checks.get(name)
+        if fn is None:
+            return _ComponentResult(name, "down", "Not registered")
+        try:
+            return fn()
+        except Exception as e:
+            return _ComponentResult(name, "down", str(e))
+
+    def report(self) -> dict:
+        """Aggregate all checks into {overall, counts}."""
+        with self._lock:
+            names = list(self._checks.keys())
+        counts = {"ok": 0, "down": 0}
+        for n in names:
+            comp = self.check_component(n)
+            status = "ok" if comp.status == "ok" else "down"
+            counts[status] += 1
+        overall = "ok" if counts["down"] == 0 else "down"
+        return {"overall": overall, "counts": counts}
+
+    def is_healthy(self) -> bool:
+        """True when every registered check reports ok."""
+        return self.report()["overall"] == "ok"
+
+
+class _DriftIssue:
+    """A single drift alert finding (legacy API)."""
+
+    def __init__(self, issue_type: str, severity: str, message: str):
+        self.issue_type = issue_type
+        self.severity = severity
+        self.message = message
+
+
+class DriftAlert:
+    """Tracks known worm versions to detect drift (legacy API)."""
+
+    def __init__(self):
+        self._known_worms: dict[str, str] = {}
+        self._lock = threading.Lock()
+
+    def reset(self):
+        """Clear tracked worm versions."""
+        with self._lock:
+            self._known_worms.clear()
+
+    def check(self) -> list:
+        """Return a list of drift issues (empty when nothing is tracked)."""
+        with self._lock:
+            known = dict(self._known_worms)
+        issues = []
+        for worm, version in known.items():
+            issues.append(_DriftIssue(
+                "version_drift", "info",
+                f"{worm} at version {version}",
+            ))
+        return issues
+
+
+# Legacy module-level singletons (consumers import these names directly)
+metrics_collector = MetricsCollector()
+health_check = HealthCheck()
+drift_alert = DriftAlert()
+
+
+# ── Legacy worm execution metrics (NATURE_CLUSTERS / worm_health) ───────
+
+
+class _WormMetrics:
+    """Per-worm execution tracking backing record_worm_execution()."""
+
+    def __init__(self):
+        self._runs: dict[str, list[bool]] = defaultdict(list)
+        self._durations: dict[str, list[float]] = defaultdict(list)
+        self._lock = threading.Lock()
+
+    def record(self, name: str, success: bool, duration_ms: float):
+        with self._lock:
+            self._runs[name].append(bool(success))
+            self._durations[name].append(float(duration_ms))
+
+    def snapshot(self) -> dict:
+        """Return {per_worm: [{name, success_rate, avg_duration_ms, execution_count}]}."""
+        with self._lock:
+            names = set(self._runs.keys()) | set(self._durations.keys())
+        per_worm = []
+        for name in sorted(names):
+            runs = self._runs.get(name, [])
+            durations = self._durations.get(name, [])
+            execution_count = len(runs)
+            success_rate = 0.0
+            if execution_count:
+                success_rate = (sum(1 for s in runs if s) / execution_count) * 100.0
+            avg_duration_ms = sum(durations) / len(durations) if durations else 0.0
+            per_worm.append({
+                "name": name,
+                "success_rate": success_rate,
+                "avg_duration_ms": avg_duration_ms,
+                "execution_count": execution_count,
+            })
+        return {"per_worm": per_worm}
+
+
+_worm_metrics = _WormMetrics()
+
+
+def record_worm_execution(name: str, success: bool, duration_ms: float,
+                          error: (str | None) = None):
+    """Record a single worm execution (legacy API used by NATURE_CLUSTERS)."""
+    _worm_metrics.record(name, success, duration_ms)
+
+
+def get_worm_metrics() -> _WormMetrics:
+    """Return the shared worm metrics tracker (legacy API)."""
+    return _worm_metrics
 
 
 # ── CLI Display ──────────────────────────────────────────────────────

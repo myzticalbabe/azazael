@@ -16,6 +16,7 @@ __all__ = [
     "check_env_vars",
     "check_file_permissions",
     "check_index_usage",
+    "check_registry_importable",
     "cmd_doctor",
     "cmd_verify",
     "get_db_size",
@@ -133,6 +134,82 @@ def check_disk_space() -> dict:
     return result
 
 
+def check_registry_importable() -> dict:
+    """Validate every registered worm's module is importable.
+
+    Prefers the result warmed by CORE.startup_warm at boot (avoids re-running
+    cold discovery / validation). Falls back to a direct call if the warm
+    pipeline hasn't populated it yet. Non-fatal: a broken worm is reported,
+    never raised.
+
+    Returns:
+        dict with:
+            valid: bool              — True if no broken entries
+            total: int               — registry entries checked
+            checked: int             — entries confirmed importable
+            broken_count: int        — broken entries
+            broken: list             — of {name, module, error}
+            source: str              — "warm" or "direct"
+            error: optional str      — set if validation itself failed
+    """
+    # Prefer the startup_warm cached result (validated right after discovery).
+    try:
+        from CORE.startup_warm import get_registry_validation
+        cached = get_registry_validation()
+        if cached is not None:
+            out = dict(cached)
+            out["broken_count"] = len(cached.get("broken") or [])
+            out["source"] = "warm"
+            out["ok"] = bool(cached.get("valid"))
+            return out
+    except Exception:
+        pass
+
+    try:
+        # Ensure the registry is populated so validation isn't vacuous.
+        try:
+            from CORE.startup_warm import ensure_registry_warm
+            ensure_registry_warm()
+        except Exception:
+            pass
+        from CORE.worm_registry import validate_registry_importable
+        res = validate_registry_importable()
+        out = dict(res)
+        out["broken_count"] = len(res.get("broken") or [])
+        # Auto-repair: if broken entries remain, re-run discovery to rebuild
+        # the registry from current source, then re-validate.
+        if not res.get("valid") and (res.get("broken") or []):
+            try:
+                from CORE.worm_registry import repair_registry
+                repair = repair_registry()
+                out["repaired"] = repair.get("repaired", 0)
+                out["repair_attempted"] = repair.get("attempt", False)
+                out["repair_valid"] = repair.get("valid")
+                out["repair_still_broken"] = repair.get("still_broken") or []
+                if repair.get("valid"):
+                    out["valid"] = True
+                    out["broken"] = []
+                    out["broken_count"] = 0
+                    out["checked"] = repair.get("checked", out.get("checked", 0))
+                    out["total"] = repair.get("total", out.get("total", 0))
+            except Exception as re:
+                out["repair_error"] = str(re)
+        out["source"] = "direct"
+        out["ok"] = bool(out.get("valid"))
+        return out
+    except Exception as e:
+        return {
+            "valid": False,
+            "total": 0,
+            "checked": 0,
+            "broken_count": 0,
+            "broken": [],
+            "source": "direct",
+            "ok": False,
+            "error": str(e),
+        }
+
+
 def run_all(quick: bool = False) -> dict:
     """Run all diagnostic checks and return report."""
     report = {"timestamp": datetime.now(timezone.utc).isoformat(), "checks": {}}
@@ -169,6 +246,9 @@ def run_all(quick: bool = False) -> dict:
         report["checks"]["audit"] = {"broken_files": len(broken), "broken": [b.get("file", "")[-40:] for b in broken]}
     except Exception as e:
         report["checks"]["audit"] = {"error": str(e)}
+
+    # Registry importability (every registered worm must resolve)
+    report["checks"]["registry_importable"] = check_registry_importable()
 
     # Session stats
     try:

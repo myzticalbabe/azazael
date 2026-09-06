@@ -131,8 +131,8 @@ class HYDRA_CONTAINER:
                 timeout=10,
             )
             return result.returncode == 0
-        except Exception:
-            return False
+        except (OSError, subprocess.TimeoutExpired):
+            return False  # docker missing or unreachable
 
     def _run_docker(self, args: list[str], timeout: int = 300) -> tuple[bool, str, str]:
         """Run docker command."""
@@ -149,7 +149,7 @@ class HYDRA_CONTAINER:
             return False, "", "Command timed out"
         except FileNotFoundError:
             return False, "", "Docker not found"
-        except Exception as e:
+        except OSError as e:
             return False, "", str(e)
 
     def _generate_dockerfile(self, worm_name: str) -> str:
@@ -222,7 +222,7 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
                     if "ms" in output
                     else 0
                 )
-            except Exception:
+            except (ValueError, IndexError):
                 pass
 
         execution = ContainerExecution(
@@ -514,8 +514,8 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
             try:
                 with open(state_file) as f:
                     self.state = json.load(f)
-            except Exception:
-                self.state = {}
+            except (OSError, ValueError):
+                self.state = {}  # unreadable or corrupt state file
 
     def get_status(self) -> dict[str, Any]:
         """Get HYDRA_CONTAINER status."""

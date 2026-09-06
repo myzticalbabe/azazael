@@ -56,6 +56,11 @@
       <div class="value ratio" id="compliance-ratio">--</div>
       <div class="label">parallel / total spawns</div>
     </div>
+    <div class="card">
+      <h3>Edits Through Gate</h3>
+      <div class="value" id="edit-count">--</div>
+      <div class="label">validated file edits</div>
+    </div>
   </div>
 
   <div class="bars">
@@ -85,35 +90,31 @@
   </div>
 
   <script>
-    function getDemoData() {
-      const parallel = Math.floor(Math.random() * 20) + 5;
-      const sequential = Math.floor(Math.random() * 3);
+    // __TELEMETRY_EMBED_START__
+    const EMBEDDED_TELEMETRY = {"parallel_batches": 3, "sequential_violations": 1, "edit_count": 2, "compliance_ratio": 75.0, "total_spawns": 4, "timestamp": "2026-09-06T19:16:57+00:00", "status": "ok"};
+    // __TELEMETRY_EMBED_END__
+
+    function normalizeTelemetry(data) {
+      const parallel = data.parallel_batches !== undefined ? data.parallel_batches : 0;
+      const sequential = data.sequential_violations !== undefined ? data.sequential_violations : 0;
+      const editCount = data.edit_count !== undefined ? data.edit_count : 0;
       const total = parallel + sequential;
-      const ratio = total > 0 ? (parallel / total * 100) : 100;
-      return { parallel: parallel, sequential: sequential, ratio: Math.round(ratio), isDemo: true };
+      const ratio = total > 0 ? Math.round((parallel / total) * 100) : 100;
+      return { parallel, sequential, editCount, ratio, timestamp: data.timestamp || null };
     }
 
     async function loadTelemetryData() {
+      // 1. Real data stamped into the HTML by generate_telemetry.py (works on file://)
+      if (EMBEDDED_TELEMETRY && EMBEDDED_TELEMETRY.parallel_batches !== undefined) {
+        return normalizeTelemetry(EMBEDDED_TELEMETRY);
+      }
+      // 2. Live fetch from telemetry.json (fresher when served over HTTP)
       try {
         const resp = await fetch('telemetry.json');
         if (!resp.ok) return null;
         const data = await resp.json();
-        if (data.parallel_batches !== undefined && data.sequential_violations !== undefined) {
-          const parallel = data.parallel_batches;
-          const sequential = data.sequential_violations;
-          const total = parallel + sequential;
-          const ratio = total > 0 ? Math.round((parallel / total) * 100) : 100;
-          return { parallel: parallel, sequential: sequential, ratio: ratio, isDemo: false };
-        }
-        if (data.skill_files !== undefined) {
-          return {
-            parallel: data.total_syncs > 0 ? data.total_syncs : 0,
-            sequential: 0,
-            ratio: data.total_syncs > 0 ? 100 : 0,
-            isDemo: false,
-            skillFiles: data.skill_files,
-            lastSync: data.last_sync,
-          };
+        if (data.parallel_batches !== undefined) {
+          return normalizeTelemetry(data);
         }
         return null;
       } catch {
@@ -122,14 +123,28 @@
     }
 
     async function updateDashboard() {
-      let data = await loadTelemetryData();
+      const data = await loadTelemetryData();
       if (!data) {
-        data = getDemoData();
+        document.getElementById('parallel-count').textContent = '--';
+        document.getElementById('sequential-count').textContent = '--';
+        document.getElementById('compliance-ratio').textContent = '--';
+        document.getElementById('edit-count').textContent = '--';
+        document.getElementById('parallel-bar').style.width = '0%';
+        document.getElementById('sequential-bar').style.width = '0%';
+        document.getElementById('parallel-bar-count').textContent = '0';
+        document.getElementById('sequential-bar-count').textContent = '0';
+        const meter = document.getElementById('compliance-meter');
+        meter.textContent = 'NO DATA';
+        meter.className = 'needle-label bad';
+        document.getElementById('compliance-detail').textContent = 'Run generate_telemetry.py to populate telemetry';
+        document.getElementById('timestamp').textContent = '--';
+        return;
       }
 
       document.getElementById('parallel-count').textContent = data.parallel;
       document.getElementById('sequential-count').textContent = data.sequential;
       document.getElementById('compliance-ratio').textContent = data.ratio + '%';
+      document.getElementById('edit-count').textContent = data.editCount;
 
       const maxVal = Math.max(data.parallel, data.sequential, 1);
       const pctP = (data.parallel / maxVal) * 100;
@@ -144,9 +159,7 @@
       if (data.sequential === 0 && data.parallel > 0) {
         meter.textContent = 'PERFECT';
         meter.className = 'needle-label good';
-        detail.textContent = data.isDemo
-          ? 'DEMO DATA -- serve via HTTP (python -m http.server) for real data'
-          : 'All spawn_agents calls are parallel (RULE 0Z-F compliant)';
+        detail.textContent = 'All spawn_agents calls are parallel (RULE 0Z-F compliant)';
       } else if (data.sequential <= 2) {
         meter.textContent = data.ratio + '%';
         meter.className = 'needle-label warn';
@@ -157,7 +170,9 @@
         detail.textContent = 'CRITICAL: ' + data.sequential + ' sequential spawns detected';
       }
 
-      document.getElementById('timestamp').textContent = new Date().toLocaleTimeString();
+      document.getElementById('timestamp').textContent = data.timestamp
+        ? new Date(data.timestamp).toLocaleTimeString()
+        : new Date().toLocaleTimeString();
     }
 
     updateDashboard();

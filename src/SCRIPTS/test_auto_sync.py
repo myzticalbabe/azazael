@@ -16,16 +16,17 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 
-# Add src/scripts to path
+# auto_sync.py lives in the same directory as this test file
 TEST_DIR = os.path.dirname(__file__)
-SCRIPTS_DIR = os.path.join(TEST_DIR, '..', 'src', 'scripts')
-sys.path.insert(0, os.path.abspath(SCRIPTS_DIR))
+SCRIPTS_DIR = os.path.abspath(TEST_DIR)
+sys.path.insert(0, SCRIPTS_DIR)
 
 from auto_sync import (
     compute_hashes,
     detect_changes,
     run_sync,
     _ensure_hashes_warmed,
+    _last_hashes,
 )
 
 

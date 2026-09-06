@@ -5,6 +5,8 @@
 __all__ = [
     "cache_status",
     "ensure_registry_warm",
+    "get_registry_validation",
+    "registry_importability_by_category",
     "warm_caches_background",
     "warm_caches_blocking",
     "warm_caches_now",
@@ -50,6 +52,70 @@ _warm_thread: (threading.Thread | None) = None
 _warm_lock = threading.Lock()  # Guard for thread creation race
 _last_warm_time: (float | None) = None  # time.monotonic() when warm completed
 
+# Registry importability validation result (filled once after warm).
+_registry_validation: (dict | None) = None
+_validation_lock = threading.Lock()
+
+
+def _run_registry_validation():
+    """Validate all registered worms are importable, auto-repairing failures.
+
+    Runs after registry warm so that every module is already imported in this
+    process (imports resolve via sys.modules — no cold-start cost). If broken
+    entries are found (typically a stale pickle cache after module renames),
+    re-runs discover_worms() to rebuild from current source, then re-validates.
+    Always non-fatal: startup must not block on a broken worm.
+
+    Stored result keys:
+        repair_attempted: bool       — whether a repair was attempted
+        repaired: int                — broken entries fixed by re-discovery
+        repair_still_broken: list    — broken entries that remain after repair
+    """
+    global _registry_validation
+    try:
+        from CORE.worm_registry import repair_registry, validate_registry_importable
+        try:
+            result = validate_registry_importable()
+        except Exception:
+            result = {"valid": True, "total": 0, "checked": 0, "broken": []}
+
+        if result.get("broken"):
+            _log.warning(
+                "Registry validation: %d/%d worms not importable; attempting repair",
+                len(result.get("broken") or []), result.get("total", 0),
+            )
+            try:
+                repair = repair_registry()
+                result["repair_attempted"] = repair.get("attempt", False)
+                result["repaired"] = repair.get("repaired", 0)
+                result["repair_still_broken"] = repair.get("still_broken") or []
+                if repair.get("valid"):
+                    result["valid"] = True
+                    result["broken"] = []
+                    for k in ("total", "checked"):
+                        if k in repair:
+                            result[k] = repair[k]
+                    _log.info("...re-discovery repaired %d broken registry entries",
+                              repair.get("repaired", 0))
+                else:
+                    _log.warning(
+                        "...%d registry entries still not importable after repair",
+                        len(repair.get("still_broken") or []),
+                    )
+            except Exception as rexc:
+                _log.warning("Registry auto-repair failed (non-fatal): %s", rexc)
+
+        with _validation_lock:
+            _registry_validation = result
+    except Exception as exc:
+        _log.warning("Registry validation failed (non-fatal): %s", exc)
+
+
+def get_registry_validation() -> (dict | None):
+    """Return the last registry importability validation result (or None)."""
+    with _validation_lock:
+        return _registry_validation
+
 
 def _warm_worker(on_complete: (Callable | None) = None):
     """Background worker: pre-warms the worm registry cache.
@@ -85,6 +151,7 @@ def _warm_worker(on_complete: (Callable | None) = None):
         global _last_warm_time
         _last_warm_time = time.monotonic()
         _warmed.set()
+        _run_registry_validation()
         if on_complete:
             try:
                 on_complete()
@@ -214,12 +281,77 @@ def cache_status() -> dict:
 
     thread_alive = _warm_thread is not None and _warm_thread.is_alive()
 
+    validation = get_registry_validation()
+    by_category = registry_importability_by_category(validation)
+
     return {
         "ready": ready,
         "registry_size": registry_size,
         "last_warm_time_ago": last_warm_ago,
         "thread_alive": thread_alive,
+        "registry_valid": bool(validation and validation.get("valid")),
+        "registry_validation": validation,
+        "registry_by_category": by_category,
     }
+
+
+def registry_importability_by_category(
+    validation: (dict | None) = None,
+) -> dict:
+    """Per-category importability breakdown of registered worms.
+
+    Groups WORM_REGISTRY entries by category and reports, for each category:
+        - total: number of registered worms in this category
+        - checked: number confirmed importable
+        - broken: number that failed import validation
+    Broken worms are matched by name so a stale registry entry with a removed
+    source still lands in the right category. Empty-safe: returns {} when the
+    registry or categories are unavailable.
+
+    Args:
+        validation: Optional result from validate_registry_importable()
+            (or the cached registry_validation). If None, derives broken names
+            by running a fresh importability check lazily.
+
+    Returns:
+        dict mapping lowercase category -> {total, checked, broken}.
+    """
+    try:
+        from CORE.worm_registry import WORM_REGISTRY, validate_registry_importable
+    except (ImportError, AttributeError):
+        return {}
+
+    if not WORM_REGISTRY:
+        return {}
+
+    # Name -> category lookup from the registry itself.
+    name_to_cat: dict = {}
+    per_cat_total: dict = {}
+    for name, info in list(WORM_REGISTRY.items()):
+        cat = str(info.get("category", "utility")).lower()
+        name_to_cat[name] = cat
+        per_cat_total[cat] = per_cat_total.get(cat, 0) + 1
+
+    # Broken names: prefer the provided validation report, else compute it.
+    broken_names = set()
+    if validation and isinstance(validation.get("broken"), list):
+        broken_names = {b.get("name") for b in validation["broken"] if b.get("name")}
+    else:
+        try:
+            res = validate_registry_importable()
+            broken_names = {b.get("name") for b in (res.get("broken") or []) if b.get("name")}
+        except Exception:
+            broken_names = set()
+
+    breakdown: dict = {}
+    for cat, total in sorted(per_cat_total.items()):
+        broken_in_cat = sum(1 for name, c in name_to_cat.items() if c == cat and name in broken_names)
+        breakdown[cat] = {
+            "total": total,
+            "broken": broken_in_cat,
+            "checked": total - broken_in_cat,
+        }
+    return breakdown
 
 
 def ensure_registry_warm() -> bool:
@@ -237,6 +369,7 @@ def ensure_registry_warm() -> bool:
         from CORE.worm_registry import WORM_REGISTRY
         if WORM_REGISTRY:
             _warmed.set()
+            _run_registry_validation()
             return True
     except ImportError:
         pass

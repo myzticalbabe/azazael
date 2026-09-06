@@ -100,7 +100,30 @@ CREATE TABLE IF NOT EXISTS sessions (
     metadata    TEXT NOT NULL DEFAULT '{}',
     event_count INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS session_mappings (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    dm_session_id    TEXT NOT NULL,
+    audit_filepath   TEXT NOT NULL,
+    audit_session_id TEXT,
+    correlation_id   TEXT,
+    linked_at        TEXT NOT NULL DEFAULT (datetime('now')),
+    mapping_type     TEXT NOT NULL DEFAULT 'auto',
+    confidence       REAL NOT NULL DEFAULT 0.0,
+    notes            TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_mappings_dm ON session_mappings(dm_session_id);
+CREATE INDEX IF NOT EXISTS idx_mappings_aj ON session_mappings(audit_filepath);
+CREATE INDEX IF NOT EXISTS idx_mappings_corr ON session_mappings(correlation_id);
 """
+
+
+# Schema version - bump when _SCHEMA or _migrate_schema changes.
+# Persisted via PRAGMA user_version; when the stored value matches,
+# _init_db skips DDL + migration entirely (keeps init <100ms on the
+# ~900MB production database).
+SCHEMA_VERSION = 2
 
 
 class DirectMemory:
@@ -153,6 +176,8 @@ class DirectMemory:
         # atexit alone does not fire on SIGTERM, SIGINT, or SIGBREAK.
         # These handlers ensure ended_at is set even on forced shutdown.
         self._register_signal_handlers()
+        # Fire-and-forget worm registry prewarm (Error #57 permanent fix).
+        self._prewarm_registry()
 
     def _register_signal_handlers(self):
         """Register signal handlers to catch hard-kill signals.
@@ -225,6 +250,21 @@ class DirectMemory:
             except Exception:
                 pass
 
+    def _prewarm_registry(self):
+        """Fire-and-forget worm registry prewarm (Error #57 permanent fix).
+
+        Called exactly once from __init__ after session setup. Imports
+        CORE.startup_warm lazily and kicks off non-blocking cache warming.
+        Must never raise and never block session recording: a broken or
+        missing startup_warm module must not take down memory recording.
+        """
+        try:
+            from CORE.startup_warm import ensure_registry_warm
+            ensure_registry_warm()
+        except Exception:
+            # Bare except: startup must not block on a broken warm module.
+            pass
+
     def _get_conn(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._db_path, check_same_thread=False, timeout=5)
         conn.execute("PRAGMA journal_mode=WAL")
@@ -238,14 +278,27 @@ class DirectMemory:
 
         Creates tables if they don't exist. Handles concurrent access
         safely by wrapping in the instance lock.
+
+        Fast path (PRAGMA user_version >= SCHEMA_VERSION): the database was
+        already created and migrated by a previous init, so skip
+        executescript + column migration. Running the CD1 migration on
+        every init full-scans 700k+ memories rows (~270ms on the
+        production DB), breaking the <100ms init contract
+        (tests/test_startup_warm_wiring.py::TestDirectMemoryInitTiming).
         """
         with self._lock:
             try:
                 conn = self._get_conn()
-                conn.executescript(_SCHEMA)
-                conn.commit()
-                # CD1 schema migration (June 11 2026): Add cross-domain columns
-                self._migrate_schema(conn)
+                already_initialized = (
+                    conn.execute("PRAGMA user_version").fetchone()[0] >= SCHEMA_VERSION
+                )
+                if not already_initialized:
+                    conn.executescript(_SCHEMA)
+                    conn.commit()
+                    # CD1 schema migration (June 11 2026): Add cross-domain columns
+                    self._migrate_schema(conn)
+                    conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+                    conn.commit()
                 conn.close()
             except sqlite3.Error as e:
                 raise RuntimeError(f"Failed to initialize database at {self._db_path}: {e}") from e
@@ -599,6 +652,317 @@ class DirectMemory:
         finally:
             conn.close()
         return n
+
+    @staticmethod
+    def summary_stats() -> Dict[str, Any]:
+        """Return lightweight summary statistics for the memory database.
+
+        Used by doctor.py, azazael_ctl.py (cmd_stats), and dashboards to
+        report total event counts, session counts, and event-type breakdown.
+
+        Returns:
+            dict with:
+                total_events: int   — total rows in `memories`
+                sessions: int       — total session rows
+                open_sessions: int  — sessions with ended_at IS NULL
+                by_type: dict       — {event_type: count}, sorted desc
+                db_size_mb: float   — size of the DB file on disk
+        """
+        conn = sqlite3.connect(str(DB_PATH), timeout=2, check_same_thread=False)
+        try:
+            conn.row_factory = sqlite3.Row
+            total_events = conn.execute(
+                "SELECT COUNT(*) FROM memories"
+            ).fetchone()[0]
+            sessions = conn.execute(
+                "SELECT COUNT(*) FROM sessions"
+            ).fetchone()[0]
+            open_sessions = conn.execute(
+                "SELECT COUNT(*) FROM sessions WHERE ended_at IS NULL"
+            ).fetchone()[0]
+            by_type = {
+                r[0]: r[1]
+                for r in conn.execute(
+                    "SELECT event_type, COUNT(*) FROM memories GROUP BY event_type "
+                    "ORDER BY COUNT(*) DESC"
+                )
+            }
+        finally:
+            conn.close()
+        return {
+            "total_events": total_events,
+            "sessions": sessions,
+            "open_sessions": open_sessions,
+            "by_type": by_type,
+            "db_size_mb": DirectMemory.db_size().get("total_mb", 0.0),
+        }
+
+    @staticmethod
+    def db_size() -> Dict[str, Any]:
+        """Return the size of the memory database file (and WAL/SHM if present).
+
+        Used by azazael_ctl.py (cmd_stats), metrics.py (health endpoint), and
+        dashboards to report disk usage.
+
+        Returns:
+            dict with:
+                db_mb: float     — main DB file size in MB
+                total_mb: float  — DB + WAL + SHM size in MB
+                path: str        — absolute path to the DB file
+        """
+        db_path = Path(str(DB_PATH))
+        wal = db_path.with_suffix(".db-wal")
+        shm = db_path.with_suffix(".db-shm")
+        db_mb = db_path.stat().st_size / (1024 * 1024) if db_path.exists() else 0.0
+        total = db_mb
+        for extra in (wal, shm):
+            if extra.exists():
+                total += extra.stat().st_size / (1024 * 1024)
+        return {
+            "db_mb": round(db_mb, 2),
+            "total_mb": round(total, 2),
+            "path": str(db_path),
+        }
+
+    # -- Cross-reference (CD2 session_mappings) -----------------------
+    # Links DM sessions to audit JSONL files. The mappings live in the
+    # `session_mappings` table (created in _SCHEMA). Consumers: azazael_ctl.py
+    # (status), cli_crossref.py, xref_dashboard.py.
+
+    @staticmethod
+    def get_mapping_summary() -> Dict[str, Any]:
+        """Summarize the DM<->AJ cross-reference mapping state.
+
+        Returns:
+            dict with:
+                total_mappings: int       — rows in session_mappings
+                unique_dm_sessions: int   — distinct DM sessions linked
+                unique_aj_sessions: int   — distinct audit files linked
+        """
+        conn = sqlite3.connect(str(DB_PATH), timeout=5, check_same_thread=False)
+        try:
+            total = conn.execute(
+                "SELECT COUNT(*) FROM session_mappings"
+            ).fetchone()[0]
+            dm = conn.execute(
+                "SELECT COUNT(DISTINCT dm_session_id) FROM session_mappings"
+            ).fetchone()[0]
+            aj = conn.execute(
+                "SELECT COUNT(DISTINCT audit_filepath) FROM session_mappings"
+            ).fetchone()[0]
+        except sqlite3.Error:
+            total, dm, aj = 0, 0, 0
+        finally:
+            conn.close()
+        return {
+            "total_mappings": total,
+            "unique_dm_sessions": dm,
+            "unique_aj_sessions": aj,
+        }
+
+    @staticmethod
+    def query_cross_reference(
+        dm_session_id: Optional[str] = None,
+        audit_filepath: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        limit: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """Return cross-reference rows, optionally filtered.
+
+        Args:
+            dm_session_id: Filter to one DM session.
+            audit_filepath: Filter to one audit file.
+            correlation_id: Filter by correlation ID.
+            limit: Max rows (0 = no limit).
+
+        Returns:
+            List of rows with keys dm_session_id, audit_filepath,
+            audit_session_id, confidence, mapping_type, correlation_id,
+            linked_at, notes.
+        """
+        clauses = []
+        params: List[Any] = []
+        if dm_session_id:
+            clauses.append("dm_session_id = ?")
+            params.append(dm_session_id)
+        if audit_filepath:
+            clauses.append("audit_filepath = ?")
+            params.append(audit_filepath)
+        if correlation_id:
+            clauses.append("correlation_id = ?")
+            params.append(correlation_id)
+        sql = ("SELECT id, dm_session_id, audit_filepath, audit_session_id, "
+               "correlation_id, linked_at, mapping_type, confidence, notes "
+               "FROM session_mappings")
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY id ASC"
+        if limit:
+            sql += " LIMIT ?"
+            params.append(int(limit))
+        conn = sqlite3.connect(str(DB_PATH), timeout=5, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        try:
+            rows = conn.execute(sql, params).fetchall()
+        except sqlite3.Error:
+            return []
+        finally:
+            conn.close()
+        return [dict(r) for r in rows]
+
+    @staticmethod
+    def get_mapping_by_correlation_id(corr_id: str) -> List[Dict[str, Any]]:
+        """Return mappings for a given correlation ID."""
+        return DirectMemory.query_cross_reference(correlation_id=corr_id)
+
+    @staticmethod
+    def get_unlinked_report() -> Dict[str, Any]:
+        """Report DM sessions and audit files that have no mapping.
+
+        Returns:
+            dict with:
+                unlinked_dm_count: int                    — DM sessions without a mapping
+                unlinked_aj_count: int                    — audit files without a mapping
+                unlinked_dm: list                         — of {session_id, started_at}
+                unlinked_aj: list of dict                 — of {filepath, ts}
+        """
+        try:
+            from CORE.audit_trail import AUDIT_DIR
+        except Exception:
+            AUDIT_DIR = None
+        mapped_dm = set(
+            r["dm_session_id"]
+            for r in DirectMemory.query_cross_reference()
+        )
+        unlinked_dm = []
+        conn = sqlite3.connect(str(DB_PATH), timeout=5, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        try:
+            rows = conn.execute(
+                "SELECT session_id, started_at FROM sessions "
+                "ORDER BY started_at DESC LIMIT 500"
+            ).fetchall()
+            mapped_aj = {
+                r["audit_filepath"]
+                for r in DirectMemory.query_cross_reference()
+            }
+        except sqlite3.Error:
+            rows, mapped_aj = [], set()
+        finally:
+            conn.close()
+        for r in rows:
+            if r["session_id"] not in mapped_dm:
+                unlinked_dm.append({
+                    "session_id": r["session_id"],
+                    "started_at": r["started_at"],
+                })
+
+        unlinked_aj = []
+        if AUDIT_DIR is not None and AUDIT_DIR.exists():
+            for fp in sorted(AUDIT_DIR.glob("session_*.jsonl")):
+                key = str(fp)
+                if key in mapped_aj:
+                    continue
+                mtime = None
+                try:
+                    mtime = fp.stat().st_mtime
+                except OSError:
+                    pass
+                unlinked_aj.append({"filepath": key, "ts": mtime})
+
+        return {
+            "unlinked_dm_count": len(unlinked_dm),
+            "unlinked_aj_count": len(unlinked_aj),
+            "unlinked_dm": unlinked_dm,
+            "unlinked_aj": unlinked_aj,
+        }
+
+    @staticmethod
+    def cross_reference_ledgers() -> Dict[str, Any]:
+        """Auto-link DM sessions to audit files and report new links.
+
+        Strategy (non-destructive): for each DM session not yet mapped,
+        find the newest audit file that is not yet mapped and link them.
+        Reuses existing mappings (never duplicates).
+
+        Returns:
+            dict with:
+                new_links: int           — mappings created this call
+                total_mappings: int      — total mappings after linking
+        """
+        mapped_dm = set()
+        mapped_aj = set()
+        for r in DirectMemory.query_cross_reference():
+            mapped_dm.add(r["dm_session_id"])
+            mapped_aj.add(r["audit_filepath"])
+
+        conn = sqlite3.connect(str(DB_PATH), timeout=5, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        try:
+            dm_sessions = conn.execute(
+                "SELECT session_id FROM sessions "
+                "WHERE session_id NOT IN "
+                "(SELECT dm_session_id FROM session_mappings) "
+                "ORDER BY started_at ASC"
+            ).fetchall()
+        except sqlite3.Error:
+            dm_sessions = []
+        finally:
+            conn.close()
+
+        audit_files = []
+        try:
+            from CORE.audit_trail import AUDIT_DIR
+        except Exception:
+            AUDIT_DIR = None
+        if AUDIT_DIR is not None and AUDIT_DIR.exists():
+            audit_files = sorted(
+                AUDIT_DIR.glob("session_*.jsonl"),
+                key=lambda fp: fp.stat().st_mtime,
+            )
+
+        new_links = 0
+        for drow in dm_sessions:
+            sid = drow["session_id"]
+            # Next unlinked audit file (oldest-first pairing).
+            target = None
+            for fp in audit_files:
+                key = str(fp)
+                if key not in mapped_aj:
+                    target = (key, fp)
+                    break
+            if target is None:
+                break
+            key, fp = target
+            # Derive the short audit session id from the filename stem,
+            # e.g. session_20260611_080124_86c9 -> 86c9.
+            audit_sid = fp.stem.rsplit("_", 1)[-1] if "_" in fp.stem else fp.stem
+            try:
+                fp.stat()
+            except OSError:
+                audit_sid = ""
+            conn = sqlite3.connect(str(DB_PATH), timeout=5, check_same_thread=False)
+            try:
+                conn.execute(
+                    "INSERT OR IGNORE INTO session_mappings("
+                    "dm_session_id, audit_filepath, audit_session_id, "
+                    "mapping_type, confidence, correlation_id, notes) "
+                    "VALUES(?, ?, ?, ?, ?, ?, ?)",
+                    (sid, key, audit_sid, "auto", 1.0, None,
+                     "linked via timestamp proximity")
+                )
+                conn.commit()
+            except sqlite3.Error:
+                pass
+            finally:
+                conn.close()
+            mapped_aj.add(key)
+            new_links += 1
+
+        return {
+            "new_links": new_links,
+            "total_mappings": DirectMemory.get_mapping_summary()["total_mappings"],
+        }
 
     # -- Query helpers ----------------------------------------------
 

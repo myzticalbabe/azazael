@@ -6,6 +6,8 @@ __all__ = [
     "cmd_backup",
     "cmd_config",
     "cmd_inference",
+    "cmd_graph",
+    "cmd_atlas",
     "cmd_stats",
     "cmd_status",
     "cmd_status_json",
@@ -29,6 +31,7 @@ import json
 import time
 import shutil
 from pathlib import Path
+from typing import Any, Dict
 
 # Lock file — prevent concurrent writes
 _LOCK_FILE = Path.home() / ".azazael" / "ctl.lock"
@@ -134,18 +137,55 @@ def cmd_status(json_output: bool = False):
     open_clr = "yellow" if open_cnt > 0 else "green"
     print(f"  Open sessions:    {_color(str(open_cnt), open_clr)}")
 
+    print(f"\n  {_color('Worm Registry:', 'green')}")
+    try:
+        from CORE.worm_registry import validate_registry_importable
+        reg = validate_registry_importable()
+        reg_clr = "green" if reg.get("valid") else "red"
+        print(f"    Import valid:    {_color(str(reg.get('valid')), reg_clr)}")
+        print(f"    Total entries:   {reg.get('total', 0)}")
+        print(f"    Confirmed:       {reg.get('checked', 0)}")
+        broken = reg.get("broken") or []
+        print(f"    Broken imports:  {_color(str(len(broken)), 'red' if broken else 'green')}")
+        for b in broken[:20]:
+            print(f"      {b.get('name', '?')} ({b.get('module', '?')})")
+            print(f"        {b.get('error', '?')}")
+        if len(broken) > 20:
+            print(f"      ... and {len(broken) - 20} more")
+    except Exception as e:
+        print(f"    Not available: {e}")
+
 
 def cmd_status_json():
     """JSON status output for programmatic consumption."""
     from CORE.direct_memory import DirectMemory
     from CORE.audit_trail import verify_on_startup
-    s = DirectMemory.get_mapping_summary()
     broken = verify_on_startup()
-    report = {
-        "crossref": {"total": s.get("total_mappings",0), "dm": s.get("unique_dm_sessions",0), "aj": s.get("unique_aj_sessions",0)},
+    report: Dict[str, Any] = {
         "audit": {"broken": len(broken), "files": [b.get("file","") for b in broken]},
         "sessions": {"open": DirectMemory.get_open_sessions_count()},
     }
+    try:
+        s = DirectMemory.get_mapping_summary()
+        report["crossref"] = {
+            "total": s.get("total_mappings", 0),
+            "dm": s.get("unique_dm_sessions", 0),
+            "aj": s.get("unique_aj_sessions", 0),
+        }
+    except Exception as e:
+        report["crossref"] = {"error": str(e)}
+    try:
+        from CORE.worm_registry import validate_registry_importable
+        reg = validate_registry_importable()
+        report["registry"] = {
+            "valid": reg.get("valid"),
+            "total": reg.get("total", 0),
+            "checked": reg.get("checked", 0),
+            "broken": reg.get("broken") or [],
+            "validated_at": reg.get("validated_at"),
+        }
+    except Exception as e:
+        report["registry"] = {"valid": False, "error": str(e)}
     print(json.dumps(report, indent=2))
 
 
@@ -192,6 +232,111 @@ def cmd_config():
     print(f"  Platform:         {platform.system()} {platform.release()}")
     print(f"  Free-threading:   {'yes' if __import__('CORE.freethreading', fromlist=['is_free_threaded']).is_free_threaded() else 'no'}")
     print(f"  AZAZAEL_MEMORY_DIR: {os.environ.get('AZAZAEL_MEMORY_DIR', '(not set)')}")
+
+
+def cmd_graph(args: list[str]):
+    """Extract and export a static or runtime-enriched codebase graph."""
+    from CORE.codebase_graph import build_graph
+
+    commands = {"artifacts", "gaps"}
+    root_arg = next((arg for arg in args if not arg.startswith("--") and arg not in commands), None)
+    root = Path(root_arg).resolve() if root_arg else Path(__file__).resolve().parent.parent
+    output = None
+    fmt = "json"
+    include_tests = "--no-tests" not in args
+    previous = None
+    runtime = "--runtime" in args
+    if "artifacts" in args or "gaps" in args:
+        from CORE.graph_artifacts import generate_artifacts, determine_gaps
+        artifact_dir = Path(args[args.index("--output") + 1]) if "--output" in args else root / "output" / "graph"
+        if "artifacts" in args:
+            result = generate_artifacts(root, artifact_dir, include_runtime=runtime, include_tests=include_tests)
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            graph = build_graph(root, include_tests=include_tests)
+            if runtime:
+                from CORE.graph_artifacts import runtime_overlay
+                nodes, edges, warnings = runtime_overlay()
+                graph.add_overlay(nodes, edges)
+            print(json.dumps(determine_gaps(graph), indent=2, sort_keys=True))
+        return
+    idx = 0
+    while idx < len(args):
+        arg = args[idx]
+        if arg == "--format" and idx + 1 < len(args):
+            fmt = args[idx + 1]
+            idx += 1
+        elif arg == "--output" and idx + 1 < len(args):
+            output = Path(args[idx + 1])
+            idx += 1
+        elif arg == "--diff" and idx + 1 < len(args):
+            previous = json.loads(Path(args[idx + 1]).read_text(encoding="utf-8"))
+            idx += 1
+        idx += 1
+
+    graph = build_graph(root, include_tests=include_tests)
+    if runtime:
+        from CORE.graph_artifacts import runtime_overlay
+        nodes, edges, _warnings = runtime_overlay()
+        graph.add_overlay(nodes, edges)
+    if previous is not None:
+        rendered = json.dumps(graph.snapshot_diff(previous), indent=2, sort_keys=True)
+    elif fmt == "json":
+        rendered = graph.to_json()
+    elif fmt == "mermaid":
+        rendered = graph.to_mermaid()
+    elif fmt == "dot":
+        rendered = graph.to_dot()
+    elif fmt == "html":
+        rendered = graph.to_html()
+    elif fmt == "mindmap":
+        rendered = graph.to_mermaid_mindmap()
+    elif fmt == "graphml":
+        rendered = graph.to_graphml()
+    elif fmt == "gexf":
+        rendered = graph.to_gexf()
+    elif fmt in ("cytoscape", "cytoscape-json"):
+        rendered = graph.to_cytoscape_json()
+    elif fmt == "csv":
+        rendered = graph.to_csv()
+    elif fmt == "svg":
+        rendered = graph.to_svg()
+    else:
+        raise ValueError(f"Unsupported graph format: {fmt}")
+
+    if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(rendered, encoding="utf-8")
+        print(f"  Graph written to: {output}")
+    else:
+        print(rendered)
+
+
+def cmd_atlas(args: list[str]):
+    """Inventory explicitly supplied project roots and export provenance atlas."""
+    from CORE.project_atlas import scan_projects
+    roots = {
+        "azazael": Path("C:/Users/clint/azazael"),
+        "vermillion_lightfury": Path("C:/Users/clint/vermillion_lightfury"),
+        "tigger": Path("C:/Users/clint/tigger"),
+        "aoa_g_archive": Path("G:/AZAZAEL/AOA"),
+        "aoa_source_truth": Path("G:/AZAZAEL_SOURCE_OF_TRUTH/AOA"),
+        "g_source_truth_azazael": Path("G:/source-of-truth/azazael"),
+        "gosp": Path("G:/source-of-truth/GOSP"),
+        "pams": Path("G:/source-of-truth/PAMS"),
+        "kali_e_rootfs": Path("E:/Kali_build/rootfs"),
+    }
+    output = Path("azazael/output/project_atlas")
+    if "--output" in args:
+        index = args.index("--output")
+        if index + 1 < len(args):
+            output = Path(args[index + 1])
+    atlas = scan_projects(roots)
+    output.mkdir(parents=True, exist_ok=True)
+    (output / "project_atlas.json").write_text(atlas.to_json(), encoding="utf-8")
+    (output / "project_atlas.csv").write_text(atlas.to_csv(), encoding="utf-8")
+    (output / "project_atlas.html").write_text(atlas.to_html(), encoding="utf-8")
+    print(json.dumps(atlas.to_dict()["coverage"], indent=2, sort_keys=True))
 
 
 def cmd_stats():
@@ -317,6 +462,10 @@ def main():
         mem_main()
     elif section == "inference":
         cmd_inference(rest_args)
+    elif section == "graph":
+        cmd_graph(rest_args)
+    elif section == "atlas":
+        cmd_atlas(rest_args)
     elif section in ("help", "--help", "-h"):
         print(__doc__)
     else:

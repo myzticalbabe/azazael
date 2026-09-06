@@ -69,30 +69,32 @@ class HYDRAMETA_UVConfig:
 
     _DESKTOP = str(Path.home() / "Desktop")
     try:
-        from CORE.paths import get_src_dir, get_desktop_targets, get_desktop_dir
+        from CORE.paths import get_src_dir, get_desktop_dir, DESKTOP_TARGET_NAMES
         _PROJECT_ROOT = str(get_src_dir())
         _HAS_PATHS = True
     except ImportError:
         _HAS_PATHS = False
         _PROJECT_ROOT = str(Path(__file__).resolve().parent)
-
-    # Default targets: scan azazael/src (portable) + Desktop projects (if they exist)
-    if _HAS_PATHS:
-        _DESKTOP_TARGETS = get_desktop_targets() + [str(get_desktop_dir() / "TERENCE")]
-        _DEFAULT_TARGETS = [_PROJECT_ROOT] + [t for t in _DESKTOP_TARGETS if Path(t).exists()]
-    else:
-        _DESKTOP_TARGETS = [
-            f"{_DESKTOP}/Azazael",
-            f"{_DESKTOP}/HYDRA.py",
-            f"{_DESKTOP}/HORUS.py",
-            f"{_DESKTOP}/TARBABY.py",
-            f"{_DESKTOP}/POINDEXTER",
-            f"{_DESKTOP}/PERSEPHONE",
-            f"{_DESKTOP}/WORMZ",
-            f"{_DESKTOP}/METAWORMS",
-            f"{_DESKTOP}/TERENCE",
+        # Standalone mirror of CORE/paths/targets.py (kept in sync manually)
+        DESKTOP_TARGET_NAMES = [
+            "Azazael", "HYDRA.py", "HORUS.py", "TARBABY.py",
+            "POINDEXTER", "PERSEPHONE", "WORMZ", "METAWORMS",
         ]
-        _DEFAULT_TARGETS = [_PROJECT_ROOT] + [t for t in _DESKTOP_TARGETS if Path(t).exists()]
+
+    # Default targets: scan azazael/src (portable) + Desktop projects (if they exist).
+    # Desktop folder names come from DESKTOP_TARGET_NAMES (canonical in CORE.paths),
+    # never re-listed here. (Built with plain statements, not comprehensions: class-body
+    # comprehensions can't see class-scope names like get_desktop_dir/DESKTOP_TARGET_NAMES.)
+    _DESKTOP_TARGETS = []
+    if _HAS_PATHS:
+        for _name in DESKTOP_TARGET_NAMES:
+            _DESKTOP_TARGETS.append(str(get_desktop_dir() / _name))
+        _DESKTOP_TARGETS.append(str(get_desktop_dir() / "TERENCE"))
+    else:
+        for _name in DESKTOP_TARGET_NAMES:
+            _DESKTOP_TARGETS.append(f"{_DESKTOP}/{_name}")
+        _DESKTOP_TARGETS.append(f"{_DESKTOP}/TERENCE")
+    _DEFAULT_TARGETS = [_PROJECT_ROOT] + [t for t in _DESKTOP_TARGETS if Path(t).exists()]
 
     TARGET_FOLDERS = (
         os.environ.get("AZAZAEL_TARGET_FOLDERS", "").split(os.pathsep)

@@ -14,7 +14,6 @@ Creates a static scrolling video presentation
 import os
 
 import subprocess
-from pathlib import Path
 
 
 

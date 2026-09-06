@@ -216,7 +216,7 @@ class FreeThreadedAgent:
         if self.config.record_to_pams and HAS_PAMS:
             try:
                 self._pams = get_recorder()
-            except Exception:
+            except Exception:  # noqa: BLE001 — optional telemetry; init must not fail
                 pass
 
         # -- Sub-agents registry -------------------------------------------
@@ -238,7 +238,7 @@ class FreeThreadedAgent:
                     self.__class__._health_reporter = reporter
                 reporter.register_instance(self)
                 self._health_reporter = reporter
-            except Exception:
+            except Exception:  # noqa: BLE001 — optional registry; init must not fail
                 pass
 
         # -- Initialization record (deferred — PAMS first-call overhead ~2s) --
@@ -275,7 +275,7 @@ class FreeThreadedAgent:
                          "free_threaded": IS_FREE_THREADED, "max_workers": self.config.max_workers},
                         source=self.config.pams_source, severity="info",
                     )
-                except Exception:
+                except Exception:  # noqa: BLE001 — telemetry best-effort
                     pass
 
         self._record_start(task)
@@ -288,7 +288,7 @@ class FreeThreadedAgent:
             task.success = True
             self._increment_stat('tasks_completed')
             self._record_end(task)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — task boundary must record, never crash
             task.error = str(e)
             task.success = False
             self._increment_stat('tasks_failed')
@@ -362,7 +362,7 @@ class FreeThreadedAgent:
                 task.success = True
                 self._increment_stat('tasks_completed')
                 self._record_end(task)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — task boundary must record, never crash
                 task.error = str(e)
                 task.success = False
                 self._increment_stat('tasks_failed')
@@ -392,7 +392,7 @@ class FreeThreadedAgent:
             for f in futures:
                 try:
                     f.result(timeout=self.config.timeout_seconds)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 — future boundary records, never crashes
                     with _errors_lock:
                         errors_list.append({'error': f"Future timeout/unhandled: {e}"})
 
@@ -492,7 +492,7 @@ class FreeThreadedAgent:
                 return {k: self._state.get(k) for k in self._state.keys_safe()}
             # Fallback: plain dict access (best-effort, no lock guarantee)
             return dict(self._state) if hasattr(self._state, 'items') else {}
-        except Exception:
+        except Exception:  # noqa: BLE001 — state snapshot best-effort
             return {}
 
     # -- Stats -----------------------------------------------------------------
@@ -526,7 +526,7 @@ class FreeThreadedAgent:
                 for k in ['tasks_submitted', 'tasks_completed', 'tasks_failed',
                           'sub_agents_spawned']:
                     stats[k] = stats.get(k, 0) + sub_stats.get(k, 0)
-            except Exception:
+            except Exception:  # noqa: BLE001 — sub-agent stats best-effort
                 pass
 
         # Compute derived stats
@@ -569,7 +569,7 @@ class FreeThreadedAgent:
                 self._bus_subscriptions.append(cmd_topic)
                 self._bus.subscribe("agent.all.command", self._handle_bus_command)
                 self._bus_subscriptions.append("agent.all.command")
-            except Exception:
+            except Exception:  # noqa: BLE001 — bus init best-effort, degrade to None
                 self._bus = None
         return self._bus
 
@@ -619,7 +619,7 @@ class FreeThreadedAgent:
             try:
                 self._bus.publish(topic, data, source=self.config.pams_source)
                 self._increment_stat('messages_sent')
-            except Exception:
+            except Exception:  # noqa: BLE001 — bus publish best-effort
                 pass
 
     def _ensure_bus_for_send(self):
@@ -651,7 +651,7 @@ class FreeThreadedAgent:
             )
             self._increment_stat('messages_sent')
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001 — message send best-effort
             return False
 
     def broadcast_message(self, action: str, payload: dict = None) -> bool:
@@ -677,7 +677,7 @@ class FreeThreadedAgent:
             )
             self._increment_stat('messages_sent')
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001 — broadcast best-effort
             return False
 
     def poll_messages(self, topic: str = None) -> List[Any]:
@@ -697,7 +697,7 @@ class FreeThreadedAgent:
         try:
             messages = self._bus.poll(topic=topic)
             return [m.content for m in messages]
-        except Exception:
+        except Exception:  # noqa: BLE001 — message poll best-effort
             return []
 
     def close(self) -> None:
@@ -706,7 +706,7 @@ class FreeThreadedAgent:
         if self._health_reporter:
             try:
                 self._health_reporter.unregister_instance(self.agent_id)
-            except Exception:
+            except Exception:  # noqa: BLE001 — cleanup best-effort
                 pass
         # Close bus subscriptions (no-op if bus is None)
         if self._bus is not None:
@@ -714,7 +714,7 @@ class FreeThreadedAgent:
                 for topic in self._bus_subscriptions:
                     self._bus.unsubscribe(topic)
                 self._bus.close()
-            except Exception:
+            except Exception:  # noqa: BLE001 — cleanup best-effort
                 pass
             self._bus = None
 
@@ -738,7 +738,7 @@ class FreeThreadedAgent:
                      "agent_id": self.agent_id},
                     source=self.config.pams_source, severity="info",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — telemetry best-effort
                 pass
 
     def _record_end(self, task: AgentTask) -> None:
@@ -754,7 +754,7 @@ class FreeThreadedAgent:
                     source=self.config.pams_source,
                     severity="info" if task.success else "warning",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — telemetry best-effort
                 pass
 
     def _record_error(self, task: AgentTask, error: Exception) -> None:
@@ -768,7 +768,7 @@ class FreeThreadedAgent:
                      "traceback": traceback.format_exc()[:500]},
                     source=self.config.pams_source, severity="error",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — telemetry best-effort
                 pass
 
     def __repr__(self) -> str:

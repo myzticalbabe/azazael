@@ -963,7 +963,7 @@ def browser_visual_mode(html_path, output_path, fps, duration, width, height,
         '\n'
         'def scroll_down():\n'
         '    ps_cmd = (\n'
-        '        "powershell -Command \\"\n'
+        '        "powershell -Command \\""\n'
         '        "Add-Type -AssemblyName System.Windows.Forms; "\n'
         '        "[System.Windows.Forms.SendKeys]::SendWait(\\"{DOWN}\\")"\n'
         '        "\\""\n'

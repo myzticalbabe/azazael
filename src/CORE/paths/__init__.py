@@ -37,6 +37,8 @@ from .internal import (
 )
 from .external import get_desktop_dir, get_g_drive, get_output_dir
 from .targets import (
+    DESKTOP_TARGET_NAMES,
+    LOCAL_TARGET_SUBDIRS,
     get_desktop_targets,
     get_local_targets,
     get_trim_targets,
@@ -58,6 +60,8 @@ __all__ = [
     "get_desktop_dir",
     "get_g_drive",
     "get_output_dir",
+    "DESKTOP_TARGET_NAMES",
+    "LOCAL_TARGET_SUBDIRS",
     "get_desktop_targets",
     "get_local_targets",
     "get_trim_targets",

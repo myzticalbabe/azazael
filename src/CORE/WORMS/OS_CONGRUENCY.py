@@ -111,7 +111,7 @@ class OSCongruency:
         try:
             import psutil
             self.boot_time = datetime.fromtimestamp(psutil.boot_time())
-        except Exception:
+        except Exception:  # noqa: BLE001 — psutil unavailable; fall back to now
             self.boot_time = datetime.now()
         self.lock = threading.Lock()
 
@@ -125,7 +125,7 @@ class OSCongruency:
                 timeout=30,
             )
             return result.stdout.strip()
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError) as e:
             return f"Error: {e}"
 
     def _get_cpu_info(self) -> dict[str, Any]:
@@ -140,7 +140,7 @@ class OSCongruency:
                 "freq_max_mhz": cpu_freq.max if cpu_freq else 0,
                 "percent_per_core": psutil.cpu_percent(interval=None, percpu=True),
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 — psutil read failed; return neutral defaults
             return {"percent": 0, "count": 4, "freq_mhz": 0}
 
     def _get_memory_info(self) -> dict[str, Any]:
@@ -157,7 +157,7 @@ class OSCongruency:
                 "swap_used_gb": round(swap.used / (1024**3), 2),
                 "swap_total_gb": round(swap.total / (1024**3), 2),
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 — psutil memory read failed; neutral defaults
             return {"percent": 0, "used_gb": 0, "total_gb": 0}
 
     def _get_disk_info(self) -> dict[str, Any]:
@@ -180,7 +180,7 @@ class OSCongruency:
                             "percent": usage.percent,
                         }
                     )
-                except Exception:
+                except Exception:  # noqa: BLE001 — per-partition probe best-effort
                     pass
 
             io = psutil.disk_io_counters()
@@ -192,7 +192,7 @@ class OSCongruency:
                 "io_read_mb": round(io.read_bytes / (1024**2), 2),
                 "io_write_mb": round(io.write_bytes / (1024**2), 2),
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 — psutil disk read failed; neutral defaults
             return {"root_percent": 0, "partitions": []}
 
     def _get_network_info(self) -> dict[str, Any]:
@@ -216,7 +216,7 @@ class OSCongruency:
                     for name, stat in stats.items()
                 ],
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 — psutil network read failed; neutral defaults
             return {"bytes_sent_mb": 0, "bytes_recv_mb": 0, "interfaces": 0}
 
     def _get_process_info(self) -> dict[str, Any]:
@@ -232,7 +232,7 @@ class OSCongruency:
                 try:
                     proc_info = proc.info
                     total_threads += proc_info.get("num_threads", 0)
-                except Exception:
+                except Exception:  # noqa: BLE001 — per-process probe best-effort
                     pass
 
             return {
@@ -242,7 +242,7 @@ class OSCongruency:
                     [p for p in processes if p.info.get("status") == "running"]
                 ),
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 — psutil process read failed; neutral defaults
             return {"count": 0, "threads": 0}
 
     def get_system_status(self) -> SystemStatus:
@@ -290,9 +290,9 @@ class OSCongruency:
                         "running": int(parts[1]),
                         "stopped": int(parts[2]),
                     }
-                except Exception:
+                except ValueError:
                     pass
-        except Exception:
+        except (OSError, subprocess.SubprocessError):  # noqa: BLE001 — PS unavailable / no services
             pass
         return {"total": 0, "running": 0, "stopped": 0}
 
@@ -327,7 +327,7 @@ class OSCongruency:
                             )
                 except json_module.JSONDecodeError:
                     pass
-        except Exception:
+        except Exception:  # noqa: BLE001 — service query best-effort; return what we have
             pass
         return services
 
@@ -336,7 +336,7 @@ class OSCongruency:
         try:
             result = self._run_powershell(f"Start-Service -Name '{service_name}'")
             return "Error" not in result
-        except Exception:
+        except (OSError, subprocess.SubprocessError):  # noqa: BLE001 — service operation failure
             return False
 
     def stop_service(self, service_name: str) -> bool:
@@ -344,7 +344,7 @@ class OSCongruency:
         try:
             result = self._run_powershell(f"Stop-Service -Name '{service_name}'")
             return "Error" not in result
-        except Exception:
+        except (OSError, subprocess.SubprocessError):  # noqa: BLE001 — service operation failure
             return False
 
     def get_startup_programs(self) -> list[StartupItem]:
@@ -389,9 +389,9 @@ class OSCongruency:
                                     registry_key=f"{hive}:{key_path}",
                                 )
                             )
-                        except Exception:
+                        except OSError:  # individual registry value unusable — skip
                             pass
-            except Exception:
+            except OSError:  # registry key missing/inaccessible — skip this hive
                 pass
 
         startup_folders = [
@@ -415,7 +415,7 @@ class OSCongruency:
                                     registry_key="StartupFolder",
                                 )
                             )
-            except Exception:
+            except Exception:  # noqa: BLE001 — startup folder unreadable; best-effort
                 pass
 
         return startup_items
@@ -447,7 +447,7 @@ class OSCongruency:
                             )
                 except json_module.JSONDecodeError:
                     pass
-        except Exception:
+        except Exception:  # noqa: BLE001 — event log query failed; return what we have
             pass
         return events
 
@@ -458,7 +458,7 @@ class OSCongruency:
                 "Get-WindowsUpdate -UpdatesOnly | ConvertTo-Json -Depth 2; (Get-Wulog -Newest 10 | Select-Object Time,Status,Message | ConvertTo-Json -Depth 2)"
             )
             return {"status": "checked", "output": result[:500]}
-        except Exception:
+        except Exception:  # noqa: BLE001 — update check failed; report error state
             return {"status": "error", "output": ""}
 
     def get_users(self) -> list[dict[str, Any]]:
@@ -471,7 +471,7 @@ class OSCongruency:
             for line in result.split("\n"):
                 if line.strip():
                     users.append({"username": line.strip()})
-        except Exception:
+        except Exception:  # noqa: BLE001 — user enumeration best-effort
             pass
 
         try:
@@ -479,7 +479,7 @@ class OSCongruency:
             for line in result.split("\n"):
                 if "ACTIVE" in line.upper() or "DISCONNECTED" in line.upper():
                     users.append({"session": line.strip()})
-        except Exception:
+        except Exception:  # noqa: BLE001 — session query best-effort
             pass
 
         return users
@@ -503,9 +503,9 @@ class OSCongruency:
                             filesystem=part.fstype,
                         )
                     )
-                except Exception:
+                except Exception:  # noqa: BLE001 — per-partition probe best-effort
                     pass
-        except Exception:
+        except Exception:  # noqa: BLE001 — partition enumeration best-effort
             pass
         return partitions
 
@@ -533,7 +533,7 @@ class OSCongruency:
                             )
                 except json_module.JSONDecodeError:
                     pass
-        except Exception:
+        except Exception:  # noqa: BLE001 — driver query best-effort
             pass
         return drivers
 
@@ -550,7 +550,7 @@ class OSCongruency:
         try:
             result = self.get_comprehensive_status()
             return {"success": True, "data": result}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — worm boundary must report, never raise
             return {"success": False, "error": str(e)}
 
     def get_comprehensive_status(self) -> dict[str, Any]:

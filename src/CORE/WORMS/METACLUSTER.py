@@ -352,8 +352,11 @@ class MetaCluster:
             sorted_natures = sorted(scores, key=scores.get, reverse=True)
             natures = [n for n in sorted_natures if n in natures][:max_natures]
         
-        # Compute routing order
+        # Compute routing order (topological sort may append all remaining
+        # Natures; honor the requested/capped set)
         execution_order = self.router.compute_routing_order(natures)
+        requested = set(natures)
+        execution_order = [n for n in execution_order if n in requested]
         
         self.state.phase = "executing"
         self.state.active_natures = set(execution_order)

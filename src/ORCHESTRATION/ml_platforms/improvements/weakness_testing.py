@@ -321,7 +321,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="cold_start_empty",
@@ -362,7 +362,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="cold_start_minimal_data",
@@ -404,7 +404,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="cold_start_no_relevant_history",
@@ -449,7 +449,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="concept_drift_gradual",
@@ -501,7 +501,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="concept_drift_sudden",
@@ -543,7 +543,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="performance_degradation",
@@ -573,14 +573,14 @@ class WeaknessTester:
                     duration=1.0,
                     success=True,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
                 passed = False
                 errors.append(f"Empty action: {e}")
 
             # Test empty task_type
             try:
                 ai.get_framework_recommendation("")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
                 passed = False
                 errors.append(f"Empty task_type: {e}")
 
@@ -593,7 +593,7 @@ class WeaknessTester:
                     details={"errors": errors},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_empty_inputs",
@@ -621,14 +621,14 @@ class WeaknessTester:
                     duration=1.0,
                     success=True,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
                 passed = False
                 errors.append(f"None action: {e}")
 
             # Test None task_type
             try:
                 ai.get_framework_recommendation(None)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
                 passed = False
                 errors.append(f"None task_type: {e}")
 
@@ -640,7 +640,7 @@ class WeaknessTester:
                     error="; ".join(errors) if errors else None,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_null_handling",
@@ -681,7 +681,7 @@ class WeaknessTester:
                     else:
                         event_kwargs["metrics"] = {attr: value}
                     ai.record_event(**event_kwargs)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 — harness verifies extreme input does not raise
                     passed = False
                     errors.append(f"Extreme {attr}={value}: {e}")
 
@@ -693,7 +693,7 @@ class WeaknessTester:
                     error="; ".join(errors) if errors else None,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_extreme_values",
@@ -721,7 +721,7 @@ class WeaknessTester:
             for task in invalid_tasks:
                 try:
                     ai.get_framework_recommendation(task)
-                except Exception:
+                except Exception:  # noqa: BLE001 — harness verifies invalid task does not raise
                     passed = False
                     break
 
@@ -734,7 +734,7 @@ class WeaknessTester:
                     details={"test_cases": len(invalid_tasks)},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_invalid_task_types",
@@ -779,7 +779,7 @@ class WeaknessTester:
                     details={"expected": num_calls, "actual": history_len},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_rapid_successive_calls",
@@ -820,7 +820,7 @@ class WeaknessTester:
                     details={"original": len(events), "compressed": len(compressed)},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_memory_pressure",
@@ -861,7 +861,7 @@ class WeaknessTester:
                     details={"events": len(ai.workflow_history)},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_thread_safety",
@@ -888,7 +888,7 @@ class WeaknessTester:
                     duration=1.0,
                     success=True,
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — harness verifies target does not raise
                 passed = False
 
             self.suite.add(
@@ -899,7 +899,7 @@ class WeaknessTester:
                     error=None if passed else "Core functionality should work",
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_import_failures",
@@ -952,7 +952,7 @@ class WeaknessTester:
                     error=None if passed else "Integration failed",
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_component_integration",
@@ -992,7 +992,7 @@ class WeaknessTester:
                     details={"confidence": confidence},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_confidence_calibration",
@@ -1026,7 +1026,7 @@ class WeaknessTester:
                     details={"score1": score1, "score2": score2},
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_prediction_variance",
@@ -1060,7 +1060,7 @@ class WeaknessTester:
             try:
                 ai.get_framework_recommendation("test")
                 recovered = True
-            except Exception:
+            except Exception:  # noqa: BLE001 — recovery test expects no exception
                 recovered = False
 
             passed = recovered
@@ -1073,7 +1073,7 @@ class WeaknessTester:
                     error=None if passed else "Should recover from corrupted data",
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_partial_data_recovery",
@@ -1105,7 +1105,7 @@ class WeaknessTester:
                     details=details,
                 )
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
             self.suite.add(
                 TestResult(
                     test_name="test_graceful_degradation",

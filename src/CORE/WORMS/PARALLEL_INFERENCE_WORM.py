@@ -810,6 +810,22 @@ class ParallelInferenceWorm:
             "engine_summary": self._engine.summary,
         }
 
+    def get_status(self) -> dict[str, Any]:
+        """Status entry point for the NatureCluster generic dispatcher.
+
+        NatureCluster._run_worm_method prefers get_status() over execute().
+        Without this method, the dispatcher fell through to execute() with no
+        prompt, producing a tight 'No prompt' error loop (and memory spam).
+
+        Returns a non-empty dict regardless of state so the dispatcher
+        classifies this worm as healthy without triggering an inference.
+        """
+        return {
+            "success": True,
+            "method": "get_status",
+            "status": self.get_stats(),
+        }
+
     def __repr__(self) -> str:
         return (f"ParallelInferenceWorm(v{self.VERSION}, "
                 f"execs={self._exec_count}, tokens={self._total_tokens}, "

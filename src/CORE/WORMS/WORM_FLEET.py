@@ -179,11 +179,16 @@ class WormFleet:
 
         return all_results
 
+    def get_summary(self):
+        """Static summary — do NOT auto-discover run_all as __summary_method__.
+
+        Without this override, BaseWormMixin.__init_subclass__ matches
+        "run_all" in _DISCOVERY_CANDIDATES and every get_summary() call
+        triggers the full multi-thousand-file fleet scan.
+        """
+        return {"status": "ok", "worm": "WormFleet", "method": "run_all"}
+
 
 if __name__ == "__main__":
     fleet = WormFleet()
     fleet.run_all()
-
-
-    def get_summary(self):
-        return {"status":"ok","worm":"WormFleet","method":"run_all"}

@@ -185,12 +185,16 @@ class CircuitBreaker:
     def stats(self) -> dict:
         """Return circuit breaker statistics. Thread-safe via _lock."""
         with self._lock:
+            # Compute health inline — calling self.health_score here would
+            # re-acquire the non-reentrant _lock and self-deadlock.
+            total = self.failure_count + self.success_count
+            health = 1.0 if total == 0 else self.success_count / total
             return {
                 "name": self.name,
                 "state": self.state.value,
                 "failures": self.failure_count,
                 "successes": self.success_count,
-                "health": round(self.health_score, 3),
+                "health": round(health, 3),
                 "dead_letters": len(self.dead_letters),
                 "last_failure": self.last_failure_time,
                 "cancelled": self._cancelled.is_set(),
