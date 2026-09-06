@@ -329,7 +329,7 @@ class DreamingModule:
         # -- 3. Creative strategy exploration (only if creativity_factor is high) --
         if creativity_factor > 0.2:
             strategies = ["conservative", "adaptive", "aggressive", "batched", "staged"]
-            if suggestions:
+            if True:  # explore even with no mined suggestions yet
                 # Bias toward strategies that worked in data
                 used_strategies = {s.get("recovery_action", "") for s in suggestions}
                 novel_strategies = [s for s in strategies if s not in used_strategies]
