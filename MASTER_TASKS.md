@@ -1,7 +1,9 @@
 # MASTER_TASKS.md — Azazael Task Registry
 
-> **Canonical registry of all active and completed tasks.** Updated June 14, 2026 (Session 2, providers.py fix).
-> Cross-reference: LESSONS_MASTER.md, CODEBASE_AUDIT_TODO.md, STANDALONE_BUILDS.md
+> **Canonical registry of all active and completed tasks.** Updated July 8, 2026 (Session 8 — CLOSED).
+> Cross-reference: LESSONS_MASTER.md, CODEBASE_AUDIT_TODO.md, SESSION_STARTUP.md
+> **Mypy:** 261 errors / 84 files (down from 416, −155, 10 files graduated)
+> **sync_all.py:** 6-environment bidirectional sync (Windows 11 + WSL2 Ubuntu + Desktop + G: source + G: AZAZAEL + Kali WSL2)
 
 ---
 
@@ -61,15 +63,16 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 
 ---
 
-## Environment Status (as of June 4, 2026)
+## Environment Status (as of July 8, 2026 — Session 8 Closed)
 
-| Environment | Status | .py files | .exe files | Docs |
-|-------------|--------|-----------|------------|------|
-| Windows 11 (primary) | OK | 313 | 0 | 39 |
-| WSL2 Ubuntu-26.04 | OK (synced) | 313 | 0 | 39 |
-| Desktop AZAZAEL_Standalone | OK | 0 | 52 | 39 |
-| G: source-of-truth | Unavailable | - | - | - |
-| G: AZAZAEL_ROOT | OK | - | - | 39 |
+| Environment | Status | .py files | Skills | Docs |
+|-------------|--------|-----------|--------|------|
+| Windows 11 (primary) | OK | 486 | 132 | 47 |
+| WSL2 Ubuntu-26.04 | OK (synced) | 481 | 132 | 47 |
+| Desktop AZAZAEL_Standalone | OK | 0 | — | 47 |
+| G: source-of-truth | OK (synced) | 479 | 132 | 47 |
+| G: AZAZAEL_ROOT | OK (synced) | 635 | 132 | 47 |
+| Kali WSL2 | ⚠️ Not initialized | 0 | — | 0 |
 
 ---
 
@@ -77,8 +80,8 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 
 | Platform | Python | Nuitka | Build Status |
 |----------|--------|--------|-------------|
-| Windows 11 | 3.14.5t | 4.1.2 | Builds progress to linking, fails with LNK2001 |
-| WSL2 | 3.14.5t | 4.1.2 | Verified, not yet tested for build |
+| Windows 11 | 3.14.6t | 4.1.2 | Builds progress to linking, fails with LNK2001 |
+| WSL2 | 3.14.6t | 4.1.2 | Verified, not yet tested for build |
 
 **Root cause of build failure:** Python 3.14 free-threading is only "experimentally supported" by Nuitka 4.1.2. C code generation cannot resolve certain module-level variables for free-threaded builds.
 
@@ -101,13 +104,52 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 
 ## Path Forward
 
-1. **Immediate:** Resolve Nuitka 3.14t LNK2001 (contact Nuitka upstream or apply C-level patches)
-2. **Short-term:** Run full syntax audit (256 files), worm registry test (77 worms)
-3. **Short-term:** Record all session actions to LocalMemoryStore
-4. **Medium-term:** Build all 39 targets concurrently once Nuitka is fixed
-5. **Medium-term:** Merge 23 new lessons into LESSONS_MASTER.md
-6. **Ongoing:** Run sync_all.py --sync-all after every session
-7. **Ongoing:** Pre-commit hook verifies environment sync
+1. **Mypy burndown:** Continue fixing CORE/ errors (261 remaining, 84 files). Next: pick top file from leaderboard.
+2. **Immediate:** Resolve Nuitka 3.14t LNK2001 (contact Nuitka upstream or apply C-level patches)
+3. **Short-term:** Run full syntax audit (256 files), worm registry test (77 worms)
+4. **Short-term:** Record all session actions via DirectMemory (canonical)
+5. **Medium-term:** Build all 39 targets concurrently once Nuitka is fixed
+6. **Medium-term:** Merge 23 new lessons into LESSONS_MASTER.md
+7. **Ongoing:** Run sync_all.py --sync-all after every session
+
+---
+
+## Session 5 (July 8, 2026) — Full Audit + Mypy Burndown
+
+### Completed
+- **C17**: Audit DISCLOSURE_WHITEPAPER_TODO.md — whitepaper corruption recovered (37MB→146K), 8 stale facts fixed
+- **C18**: Mypy: learning_pipeline.py 51→0
+- **C19**: Mypy: providers.py 43→0 (instance vars + dict typing)
+- **C20**: Mypy: threading_utils.py 33→0 (type: ignore override/type-var)
+- **C21**: sync_all.py bidirectional — added sync_wsl_to_windows(), sync_wsl_to_g(), --sync-to windows/g
+- **C22**: Monitor worms re-audited — 4/6 pass WSL, 2 Windows-only confirmed
+- **C23**: All docs synced to Windows + G: archives
+
+### Mypy: 416→322 (−94, 6 files graduated, 94→89 files)
+
+## Session 6 (July 8, 2026) — Mypy Burndown + sync_all.py WSL Fixes
+
+### Completed
+- **C24**: Mypy: audit_trail.py 22→0 (Optional annotations, dict typing, _uuid7 fix)
+- **C25**: sync_all.py WSL fixes — get_env_status() + verify_integrity() work from WSL (IS_WSL detection, _resolve_path(), wsl_files())
+- **C26**: sync_all.py --sync-all from WSL — 347 files to Windows + G: archives
+- **C27**: All TODO docs updated: stale mypy counts, session numbers, sync features
+- **C28**: Session milestone recorded in DirectMemory + session end
+
+### Mypy: 354→344 (−10, 4th file graduated, −72 total from 416)
+
+## Session 8 (July 8, 2026) — Mypy Burndown + Kali Integration + TODO Audit
+
+### Completed
+- **C29**: Mypy: REVERSE_TOOLS.py 19→0 (_pams no-redef, instructions + report annotations)
+- **C30**: Mypy: doctor.py 17→0 (issues/report/sizes type annotations)
+- **C31**: Mypy: WORM_FLEET.py 15→0 (typing imports, Optional[str] for root)
+- **C32**: Mypy: learning.py 17→0 (no-redef, float() casts, .items() ignores) + NETWORK_DIAG.py 15→0 (_pams no-redef, dict annotations, rtts typing)
+- **C33**: Kali added to sync_all.py — run_wsl_kali(), sync_wsl_to_kali(), get_env_status() probe, --sync-to kali, 5→6 environments
+- **C34**: TODO audit — 22 stale references fixed across 6 docs
+- **C35**: All changes synced to Windows + G: archives
+
+### Mypy: 322→261 (−61, 5 files graduated, 10 total from 416)
 
 ---
 
@@ -120,7 +162,7 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 - **3 test files**: `test_autodiff_skills.py` (34/35 pass), `test_optimizers_convergence.py` (46/46 pass), `benchmark_autodiff_modes.py` (4 benchmarks)
 - **SKILLS_CATALOG.md**: entries #55-58 with `auto_load: true`
 
-### Mygrad 2.3.0 on 3.14.5t Free-Threading
+### Mygrad 2.3.0 on 3.14.6t Free-Threading
 - 4 limitations diagnosed: `.backward(seed)` on vectors, `.grad` property (no setter), `null_grad()` → None, `mg.tensor()` no kwarg
 - Workarounds: auto-fallback to finite differences in `jacobian()`, slice assignment `p.grad[:] *= x` in `clip_gradients()`, None.grad guard in `jvp()`
 

@@ -6614,3 +6614,105 @@ backfill must set all columns.
 - f4ce754: Gemini audit P0 thread-safety + P1 CD1 schema (Error #186)
 - Next: Canonical mandate codification (Error #187)
 
+
+## Error #188 — Interpreter -y --local: 9 Cascading Failures Across Dependency Chain (July 7, 2026)
+**Timestamp:** 2026-07-07
+**Severity:** 🔴 Critical
+**File(s):** `C:/Users/clint/.env`, `interpreter/terminal_interface/local_setup.py`, 7 C-extension packages
+
+**Cause:** A single corrupted `.env` byte (Windows-1252 em dash at position 0x97) cascaded into 9 sequential failures. Every process that touched `.env` failed silently. Then each C-extension package in the open-interpreter dependency chain was installed pre-3.14t without `cp314t` wheels, causing segfaults and import errors. Finally, Open Interpreter 0.4.3's `local_setup.py` passed Jan model names to litellm without the required `openai/` prefix. Investigation of `interpreter -y --local` revealed all 9 failures and fixed them across 3 categories: environment corruption, 3.14t C-extension wheels, and a code bug.
+
+### 9 Failures Diagnosed & Fixed
+
+| # | Category | Issue | Fix |
+|---|----------|-------|-----|
+| 1 | Environment | `.env` file corrupted (byte 0x97 Windows-1252 em dash) | Binary read/replace -> UTF-8 |
+| 2 | Installation | Open Interpreter not installed | `pip install open-interpreter` -> 0.4.3 |
+| 3 | 3.14t C-ext | `regex` circular import | Force-reinstall -> 2026.6.28 |
+| 4 | 3.14t C-ext | `Pillow._imaging` broken | Force-reinstall -> 12.3.0 |
+| 5 | 3.14t C-ext | `matplotlib._c_internal_utils` circular import | Force-reinstall -> 3.11.0 |
+| 6 | 3.14t C-ext | `kiwisolver._cext` missing | Force-reinstall kiwisolver |
+| 7 | 3.14t C-ext | `tokenizers.tokenizers` missing | Force-reinstall -> 0.23.1 |
+| 8 | 3.14t C-ext | `jiter.jiter` missing | Force-reinstall -> 0.16.0 |
+| 9 | Code bug | litellm `BadRequestError: LLM Provider NOT provided` | Patched `local_setup.py` to add `openai/` prefix |
+
+### Secondary: Jan provider litellm crash
+
+After fixing all C-extension issues, selecting Jan in Open Interpreter crashed with:
+```
+BadRequestError: LLM Provider NOT provided. You passed model=Jan-v3.5-4B-Q4_K_XL
+```
+
+**Root cause:** Open Interpreter 0.4.3's `local_setup.py` doesn't prefix Jan model names with `openai/` that litellm requires. One-line fix:
+```python
+# Before: interpreter.llm.model = jan_model_name
+# After:  interpreter.llm.model = f"openai/{jan_model_name}"
+```
+
+Verified: `litellm.completion()` with Jan model -> `"OK: Chill."`
+
+### Dependency Tree Scan
+- Scanned all 141 packages in open-interpreter dependency tree (22 with C extensions)
+- Found 1 remaining issue: `contourpy._contourpy` -- fixed by force-reinstall
+- All other C-extension packages clean on 3.14.6t
+
+### Additional Work
+- TODO Audit: Audited `CODEBASE_AUDIT_TODO.md` v11 and `MASTER_TASKS.md` -- 13/22 AR items done, 8/12 production steps not started
+- T5 Syntax Audit: **486/486 .py files pass** syntax check (2 minor SyntaxWarnings, non-blocking)
+- T6 Worm Registry Integration Test: **104 worms, 18 categories, 1.0s discovery** -- PASS (was 91 worms at 38s, improvement from warm-path optimization)
+
+### Key Lessons
+1. **`.env` corruption is silent and catastrophic** -- a single Windows-1252 byte blocks ALL processes that touch `.env`. Always validate UTF-8 after any file write.
+2. **The `pip install --force-reinstall --no-deps` pattern works for all 3.14t C-extension issues** -- 7 packages fixed this session, all same pattern.
+3. **Watch for version mismatches when force-reinstalling** -- pydantic-core 2.47.0 broke pydantic 2.13.4; `pip install --upgrade pydantic` auto-resolved.
+4. **The 3.14t C-extension issue is well-documented now** -- Errors #49, #54, #188 all follow the same pattern. Future sessions can reference these.
+
+**Prevention:**
+1. After any file write that touches `.env`, validate UTF-8 encoding: `python -c "open('.env', 'rb').read().decode('utf-8')"`
+2. When a C-extension package fails on 3.14t, immediately try `pip install --force-reinstall --no-deps <package>` -- this pattern works for all known cases (Errors #49, #54, #188)
+3. When force-reinstalling packages, check for cascading version mismatches and let pip auto-resolve via `pip install --upgrade <parent-package>`
+4. The dependency tree scan should be run proactively when installing large packages on 3.14t -- catch C-extension issues before they cascade
+
+**Files Modified:**
+- `C:/Users/clint/.env` -- fixed corrupted byte
+- `interpreter/terminal_interface/local_setup.py` -- added `openai/` prefix
+
+**Related:** Error #49 (psutil cp314t), Error #54 (pydantic-core/uuid-utils cp314t), SESSION_INSIGHTS_2026-07-07.md
+
+
+
+## Error #189 — Ubuntu-26.04 WSL: /usr/bin/python3 Overwritten by Custom 3.14.5t Build, Breaking apt (July 7, 2026)
+**Timestamp:** 2026-07-07
+**Severity:** 🔴 Critical
+**File(s):** `/usr/bin/python3`, `/etc/alternatives/python3`, `/usr/local/python314t/bin/python3.14t`
+
+**Cause:** The custom Python 3.14.5t free-threading build was installed via `make install` (not `make altinstall`), which overwrote `/usr/bin/python3` with the custom 3.14.5t binary. System tools that depend on the OS default Python — including `apt-get update` Post-Invoke hooks (`/usr/lib/cnf-update-db`) and `python3-apt`'s `apt_pkg` C-extension — failed because they were compiled for the system Python 3.14 but received the custom 3.14.5t build instead. This manifested as `ModuleNotFoundError: No module named 'apt_pkg'` on every apt operation.
+
+Additionally, root's `.bashrc` contained `alias python3='python3.14t'` which compounded the issue in interactive shells.
+
+### Fix Chain
+1. **Removed bashrc alias** — deleted `alias python3='python3.14t'` from `/root/.bashrc`
+2. **Restored system Python** — used `update-alternatives` to point `/usr/bin/python3` → `/usr/bin/python3.14` (system Python) instead of `/usr/local/python314t/bin/python3.14t`
+   ```bash
+   update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.14 100
+   update-alternatives --set python3 /usr/bin/python3.14
+   ```
+3. **Reinstalled python3-apt** — `apt-get install --reinstall -y python3-apt` (with `-o APT::Update::Post-Invoke-Success=""` for initial bootstrap)
+4. **Verified** — `python3 -c "import apt_pkg"` succeeds, `apt-get update` runs clean
+
+### Verification
+- `/usr/bin/python3` → `/usr/bin/python3.14` (system) ✅
+- `apt_pkg` imports correctly ✅
+- `apt-get update` succeeds ✅
+- Custom 3.14.5t at `/usr/local/python314t/bin/python3.14t` still works with free-threading ✅
+
+### Notes
+- The custom 3.14t build lives at `/usr/local/python314t/` and is **unaffected** by the alternatives change — it has its own binary and is not symlinked from `/usr/bin/python3`
+- An unrelated apt issue persists: `libze-intel-gpu1` has unmet dependency `intel-igc-core-2` — this is a pre-existing Intel GPU packaging problem, not caused by this fix
+
+### Prevention
+1. **Always use `make altinstall`** instead of `make install` when building custom Python versions — this installs as `python3.14t` and does NOT overwrite `/usr/bin/python3`
+2. **Never alias `python3` in root `.bashrc`** — system package tools rely on `/usr/bin/python3` being the OS default
+3. **After building a custom Python, verify** `/usr/bin/python3` still points to the system version: `readlink -f /usr/bin/python3`
+
+**Related:** Error #52 (original python3-apt fix), Error #188 (9 cascading interpreter failures)

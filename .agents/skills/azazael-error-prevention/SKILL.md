@@ -5,6 +5,7 @@ metadata:
   category: process
   project: azazael
   version: 1.0.0
+  auto_load: true
 ---
 
 # Azazael Error Prevention
@@ -116,22 +117,81 @@ with many files (Azazael: ~450+ .py files).
 
 ---
 
+## Anti-Pattern #5: Algorithmic Code Destruction — Batch Scripts Without Gemini (CRITICAL SEVERITY)
+
+**Incident Reference:** `ERROR_LOG.md #87`, `azazael/algorithms/algorithm_log.md`
+
+**Symptom:** Writing automated batch Python scripts that modify multiple files
+without Gemini pre-analysis, per-file validation, or rollback plans. These scripts
+make incorrect assumptions about code structure and create cascading errors.
+
+**Real Damage (June 8, 2026):**
+- 16 batch scripts written in one session
+- 14 failed; 41 files damaged with indentation errors
+- 5,000+ iterations of oscillation with zero net progress
+- Root cause: wrong algorithms, underutilizing Gemini
+
+**Prevention Checklist (BEFORE writing any batch modification script):**
+
+```
+□ Spawn thinker-with-files-gemini to architect the approach (MANDATORY)
+□ If thinker-with-files-gemini unavailable: query ALL inference models via providers.py instead — NEVER skip, NEVER substitute own analysis
+□ Test on EXACTLY ONE file first
+□ Validate syntax AND logic after the one-file test
+□ Prepare backups before batch execution
+□ Validate syntax after EVERY file during batch
+□ Have a rollback plan ready
+□ Record the algorithm in azazael/algorithms/algorithm_log.md BEFORE running
+□ Never modify indentation/whitespace/control flow with regex or string replace
+```
+
+**Halt-on-Damage Protocol:**
+```
+□ If ANY file fails validation → IMMEDIATELY HALT
+□ Rollback damaged files from backups
+□ Record failure in algorithm_failures/
+□ **If thinker-with-files-gemini unavailable**: query ALL configured inference providers (Groq, OpenRouter, NVIDIA NIM, Mistral, GitHub, HuggingFace) via providers.py — the collective models replace Gemini as architectural authority
+□ Respawn Gemini to architect remediation
+□ Remediate one file at a time
+□ Mark the failed algorithm as FAILED — NEVER REUSE
+```
+
+**Related Mandate:** `azazael/skills/azazael-algorithmic-respawn.md` — complete rules
+**Related Log:** `azazael/algorithms/algorithm_log.md` — all 16 algorithms recorded
+**RULE 0I:** `SYSTEM_INSTRUCTIONS.md` — Algorithmic Respawn Mandate
+
+---
+
 ## Anti-Pattern #4: Missing Session-End Recording (LOW SEVERITY)
 
-**Incident Reference:** SOP Rule 5, CodebuffTracker pattern
+**Incident Reference:** SOP Rule 5, DirectMemory pattern (CodebuffTracker/SessionRecorder deprecated)
 
 **Symptom:** Session ends without calling `tracker.record_session_end()`,
 leaving incomplete audit trails in PAMS/MemoryBus.
 
 **Prevention:**
 ```
-□ Before ending a session: record milestone via CodebuffTracker
+□ Before ending a session: record milestone via DirectMemory (`dm.milestone(...)`)
 □ Log errors to ERROR_LOG.md with severity classification
 □ Update MEMORIES.md with session metrics
 □ Add lessons to LESSONS_MASTER.md
 ```
 
 ---
+
+---
+
+## Anti-Pattern #6: False Verification Passes (CRITICAL SEVERITY)
+
+**Incident Reference:** `SYSTEM_INSTRUCTIONS.md`, June 11 Updates (Errors #157, #158, #159)
+
+**Symptom:** Claiming a test passed or anti-patterns are clean based on "mental assertions" rather than citing explicit tool output or inference results.
+
+**Prevention Checklist:**
+```
+□ Apply RULE 0H-A: Anti-pattern verification requires RUNTIME verification via actual scans. "Passed" without citing scan method + results = FALSE PASS = CRITICAL.
+□ Apply RULE 0Q-A: Inference Verification Sub-Mandate. "Yes" is invalid. Every inference claim MUST CITE specific agent names + 3-word verdict summaries. Mental assertion = FALSE PASS = CRITICAL.
+```
 
 ## Related Skills
 

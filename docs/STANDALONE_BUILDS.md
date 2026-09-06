@@ -43,8 +43,8 @@ python3.14t scripts/sync_all.py --status
 
 | Platform | Python | Nuitka | Status |
 |----------|--------|--------|--------|
-| Windows 11 | 3.14.5t | 4.1.2 | Verified |
-| WSL2 Ubuntu-26.04 | 3.14.5t | 4.1.2 | Verified |
+| Windows 11 | 3.14.6t | 4.1.2 | Verified |
+| WSL2 Ubuntu-26.04 | 3.14.6t | 4.1.2 | Verified |
 
 **Patch script:** `docs/scripts/patch_nuitka_314t.py` — run `--verify` before any build.
 

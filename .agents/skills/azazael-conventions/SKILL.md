@@ -4,6 +4,7 @@ description: Azazael Python coding conventions — patterns, style rules, import
 metadata:
   category: conventions
   project: azazael
+  auto_load: true
 ---
 # Azazael Coding Conventions
 

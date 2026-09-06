@@ -1,6 +1,6 @@
 # SESSION_STARTUP.md — Next Session Congruency Marker
 
-> *Updated: June 14, 2026 (Session 2) — Autodiff Suite complete; Mypy+Pyright skills created; 7 files fixed (indentation + providers.py 51→0 type annotations); project mypy: 1,466→997 (−469, −32.0%)*
+> *Updated: August 8, 2026 — Session: startup complete, anti-pattern scan, os_system fix (see session entry below)*
 > *For: The next Codebuff assistant that opens this project*
 
 ## 🚨 RESTART_PROTOCOL_REQUIRED: FALSE — RESOLVED (June 9, 2026)
@@ -207,5 +207,22 @@ dm = DirectMemory()  # Auto-starts session, stdlib-only, <0.1s
 - Mypy: 2,843 errors baseline
 - Ruff: 922 remaining (400 auto-fixed)
 - Shell=True: 11 fixed, 5 intentional
-- Bare excepts: 68 remaining
+- Bare excepts: 0 remaining in live project (src/ + scripts/, AST-verified; was 68 in src/CORE)
+- Over-broad catch-alls (`except Exception`/`except BaseException`): 1241 in src/ + scripts/, budget-capped by `scripts/check_no_catch_alls.py` and CI `catchall-guard.yml` (can never regress)
 - Test failures: 1 (test_cancellation_integration)
+
+### Session 2026-08-08 — Startup + Anti-Pattern Scan + os_system Fix (WSL)
+
+**Status:** ✅ Active — session `codebuff_20260808_073807`
+
+**Changes this session:**
+- Session startup complete: 12 skills loaded, RULE 0K canonical docs read in order, 132 skills synced (RULE 0R/0R-A), DirectMemory recording verified, compliance state machine healthy at CODE_EDIT, worm registry pre-warmed
+- FreeBuff verified v0.0.142 (npm) — bun NOT installed per user directive
+- Anti-pattern scan (ASTAntiPatternScanner, 680 files): 2,439 findings — 1,178 import_inside_function (known-intentional lazy pattern), 1,154 unicode_emoji (backlog, concentrated in CODEX video generators), 79 hardcoded_win_path, 11 os_system, 16 t_string (ALL false positives), 1 fstring_backslash (false positive), 0 cls_new_factory
+- Fixed the only real os.system: `scripts/db_health.py` → ANSI escape + removed unused `import os` — tree os_system 11 → 10 (remaining = scanner test fixtures)
+- Temp cleanup: removed sentinel_gate.py.tmp x2 + _test_run.log (full-depth .tmp sweep now empty)
+- RULE 0R demo: skill edit → sync propagation verified (canonical ↔ .agents byte-identical) → reverted clean
+- Standing directives armed: sync after canonical/skill edit; RULE 0V/0W gate before next code change
+
+**Pending:**
+- 79 hardcoded_win_path findings · 1,154 emoji backlog · telemetry generation (sentinel_enforcer block) · t_string scanner false positives

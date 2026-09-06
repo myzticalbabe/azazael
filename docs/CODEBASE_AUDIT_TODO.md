@@ -1,7 +1,11 @@
 # CODEBASE AUDIT — Gap Analysis & TODO
 
+> ⚠️ **SUPERSEDED as of July 6, 2026 — see [`../CODEBASE_AUDIT_TODO.md`](../CODEBASE_AUDIT_TODO.md) for the canonical production plan.**
+> This document is frozen at its June 2, 2026 state. All metrics below are stale (claimed 0 tests, 45 CORE modules, 76 worms — actual is ~415+ tests, 69 CORE files, 104 worms).
+>
 > *Generated: June 2, 2026 — Full ecosystem scan completed*
 > *Phase: Post-Project-Map Audit*
+> *Status: 🔴 SUPERSEDED — Do not update.*
 
 ---
 

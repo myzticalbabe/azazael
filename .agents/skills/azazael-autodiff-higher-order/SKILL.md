@@ -138,9 +138,11 @@ For `f: R^n -> R^m`, compute J with m seeded backward passes:
 
 ```python
 def jacobian(f, x):
-    """Full Jacobian via m seeded backward passes. O(m*n) total.
+    """Full Jacobian via seeded backward, with finite-diff fallback.
 
-    f: R^n -> R^m. Each backward with seed e_i gives row i of J.
+    Fast path: m seeded backward passes (O(m) evaluations).
+    Fallback: central finite differences on f directly (O(2n) evaluations)
+    when mygrad 2.3.0 seeded backward returns None.grad on vector outputs.
     """
     x = np.asarray(x).astype(float)
 
@@ -150,6 +152,7 @@ def jacobian(f, x):
     n = len(x)
     J = np.zeros((m, n))
 
+    # Try seeded backward first (fast path)
     for i in range(m):
         xt = mg.tensor(x)
         xt.requires_grad = True
@@ -159,8 +162,17 @@ def jacobian(f, x):
         seed[i] = 1.0
         y.backward(mg.tensor(seed))
 
-        J[i, :] = np.array(xt.grad)
+        if xt.grad is None:
+            # Fallback to finite differences — always works
+            h = 1e-6
+            for j in range(n):
+                e_j = np.zeros(n); e_j[j] = h
+                y_plus = np.array(f(mg.tensor(x + e_j)).data)
+                y_minus = np.array(f(mg.tensor(x - e_j)).data)
+                J[:, j] = (y_plus - y_minus) / (2 * h)
+            return J
 
+        J[i, :] = np.array(xt.grad)
     return J
 ```
 

@@ -4,6 +4,7 @@ description: Azazael testing conventions — syntax check, integration test, wor
 metadata:
   category: testing
   project: azazael
+  auto_load: true
 ---
 # Azazael Testing Conventions
 

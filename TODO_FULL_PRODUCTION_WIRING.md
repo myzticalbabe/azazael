@@ -1,5 +1,7 @@
 # AZAZAEL — Full Production Wiring TODO
 
+> **SUPERSEDED as of Sep 2, 2026 — see `CODEBASE_AUDIT_TODO.md` (primary living production plan).** Legacy 15-area roadmap, kept for reference only.
+
 > **Created:** May 29, 2026 — Codebuff Session Phase 12
 > **Status:** Comprehensive roadmap for production readiness
 > **Companion:** azazael/skills/azazael-production.md, azazael/MEMORIES.md

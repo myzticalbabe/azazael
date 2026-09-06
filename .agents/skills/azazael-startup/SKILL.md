@@ -1,88 +1,45 @@
 ---
 name: azazael-startup
-description: Load this first in every Azazael session. Mandatory startup procedure, file-reading order, and complete 24-skill loading sequence. Start here before making any code changes.
+description: Reference catalog for Azazael sessions. 24-skill catalog, environment setup, project numbers. Delegates startup execution to `skill("azazael-system-startup")`. Load first before any code changes.
 metadata:
   category: workflow
   project: azazael
   priority: critical
 ---
-# Azazael Startup — Mandatory Session Initiation
+# Azazael Startup — Reference Catalog
 
 ## 🔴 THIS SKILL MUST BE LOADED FIRST
 
-Before writing any code, spawning any agent, or reading any file, execute the following in exact order:
+## 🛑 PRE-ACTION GATE — PERMANENTLY ACTIVE
 
-### Step 1: Read the Three Canonical Files
-```
-read_files(["azazael/MEMORIES.md", "azazael/ERROR_LOG.md", "azazael/SYSTEM_INSTRUCTIONS.md"])
-```
+**THE PRE-ACTION GATE (RULE 0J) IS NOW ACTIVE.** Before EVERY `str_replace`, `write_file`, or `spawn_agents` call, you MUST print in your response text (NOT in a thinking/reasoning block):
 
-### Step 2: Verify External CLI Tools + Auto-Record Session Events (Mandatory)
-```
-# Records session_start + tooling_verify events in LocalMemoryStore (azazael-sop Rule 5)
-python scripts/check_tooling.py
-```
-
-The checker (`scripts/check_tooling.py`) verifies:
-- CLI tools: Python, Git, Node.js, npm, FreeBuff
-- pip packages: Pillow, psutil, psycopg2, numpy
-- npm globals: freebuff, pnpm, node-gyp
-- Python 3.14t paths
-- `freebuff_ready` events in LocalMemoryStore
-- **Auto-records** `session_start` + `tooling_verify` events via CodebuffTracker
-
-**Every Codebuff session MUST record in LocalMemoryStore:**
-- `session_start` — auto-done by check_tooling.py
-- `tooling_verify` — auto-done by check_tooling.py
-- `session_end` — call at session completion using `CodebuffTracker.record_session_end()`
-- **ALL file edits, creates, deletes, code reviews, test runs, milestones** — via CodebuffTracker dedicated methods
-
-See **azazael-sop Rule 5** for the complete session recording mandate.
-
-### Step 3: Load Core Skills (in order)
-```
-skill("azazael-error-prevention")  # Anti-patterns, DO-NOT-REPEAT list
-skill("azazael-sop")               # Error recording SOP, pre-commit checklist
-skill("azazael-environment")       # Python 3.10+/3.14t, deps, path setup
-skill("azazael-architecture")      # Project layout, key numbers
-skill("azazael-testing")           # Validation commands, canonical checklist
+```text
+🛑 **[PRE-ACTION GATE ASSERTION]**
+- **AP-1 (Scope Check):** Did the user explicitly ask for this EXACT change? (Explain)
+- **RULE 0G (Gemini Phase):** Is this complex? Was thinker-with-files-gemini spawned for THIS phase? (Explain)
+- **RULE 0H (Anti-Pattern Scan):** Scanned for emoji, backslash f-strings, t-strings, os.system, C:\ paths? (Passed/Found)
+- **RULE 0I (Algorithms/Batch):** If batch script: Gemini designed? One-file test? Backup? (Yes/No/N/A)
+- **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 
-### Step 4: Load Architecture Skills
+**FAILURE = 🔴 CRITICAL process violation (Error #146 precedent).**
+
+---
+
+## 🚀 Startup Execution — Delegates to `azazael-system-startup`
+
+**The canonical startup procedure is executed by `azazael-system-startup`.** Load it now:
+
 ```
-skill("azazael-registry")          # Worm registry API, @register_worm
-skill("azazael-paths")             # Path resolution, get_project_root
-skill("azazael-files")             # File index, import resolution
-skill("azazael-threading")         # 3.14t threading patterns
-skill("azazael-mermaid")           # Mermaid graph generation
+skill("azazael-system-startup")
 ```
 
-### Step 5: Load Domain Skills (Decision Table)
+This handles: RULE 0K 7-file reading, guardrail skills, FreeBuff/Bun check, DirectMemory init, domain skill guidance.
 
-**Load only what's relevant to your task. Don't load all 12.**
+> **Note:** `azazael-system-startup` and `azazael-startup` were consolidated June 9, 2026. This skill is now a reference catalog; execution lives in `azazael-system-startup`.
 
-| If you're working on... | Load... |
-|--------------------------|---------|
-| Any worm code | `azazael-worms` (parent overview), then the specific sub-skill below |
-| orchestration, utility, diagnostic worms | `azazael-worms-core` (15 worms) |
-| monitor, profiling, telemetry worms | `azazael-worms-monitor` (16 worms) |
-| security, config, backup worms | `azazael-worms-security` (15 worms) |
-| container, communication, migration worms | `azazael-worms-devops` (15 worms) |
-| learning, ml, analysis, visualization, sync | `azazael-worms-data` (16 worms) |
-| ClusterWORMZ, NatureClusters, MetaCluster | `azazael-clusters` |
-| Parallel execution, 3.14t optimization | `azazael-parallel` |
-| CODEX video, PAMS/MemoryBus | `azazael-codex` |
-| Python coding style, patterns | `azazael-conventions` |
-
-### Step 6: Load Planning Skills (Decision Table)
-
-| If you're working on... | Load... |
-|--------------------------|---------|
-| Production gaps, roadmap | `azazael-production` |
-| Committing or branching | `azazael-git` |
-| Docker, CLI packaging, deployment | `azazael-deploy` |
-
-## Complete Skill Catalog (24 Skills)
+## Complete Skill Catalog (25 Skills)
 
 | # | Skill | Category | Purpose |
 |---|-------|----------|---------|
@@ -110,6 +67,7 @@ skill("azazael-mermaid")           # Mermaid graph generation
 | 22 | azazael-git | conventions | Commit conventions, branching |
 | 23 | azazael-deploy | planning | Docker, CLI packaging, scheduling |
 | 24 | azazael-production | planning | 12-section production roadmap |
+| 25 | azazael-eleven-followups | workflow | RULE 0Z-B: 11 followups mandate |
 
 ## Environment
 
@@ -143,7 +101,7 @@ skill("azazael-mermaid")           # Mermaid graph generation
 npm list -g freebuff 2>&1 && freebuff --version
 ```
 
-`freebuff_ready` events are recorded in LocalMemoryStore for cross-session continuity. Query them dynamically:
+`freebuff_ready` events are recorded via DirectMemory for cross-session continuity. Query them dynamically:
 ```
 # In Python:
 store.search_memories("freebuff_ready", source="Codebuff")
@@ -195,7 +153,7 @@ Previous sessions repeatedly made 15+ preventable mistakes:
 | MetaCluster routes | 46 |
 | MetaCluster paths | 264 |
 | Worms from ECOSYSTEM_EXPANSION.py | 48 (62%) |
-| Skills available | 24 |
+| Skills available | 25 |
 
 ## Error Recording SOP
 

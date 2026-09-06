@@ -28,6 +28,7 @@
 - **RULE 0W (Agent Utilization):** Are ALL applicable agents being spawned at 100% capacity for this task type? (Count spawned: [N] / Required minimum [M] — [PASS / UNDERUTILIZED — HALT and spawn more])
 - **RULE 0X (Auto-Compliance):** Has the plan passed Z3 SMT formal verification, Casbin gate policies, and transitions state-machine sequence? (Explain: [Yes, VERIFIED / N/A infrastructure not yet implemented])
 - **RULE 0Y (Multi-Agent Governance):** Has 2/3 Judge consensus been achieved, confidence thresholds met, and dual-ledger --cross-ref executed automatically? (Explain: [Yes, VERIFIED / N/A infrastructure not yet implemented])
+- **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
 - **GATE DECISION:** [PROCEED / HALT and ask user / HALT and spawn Gemini]
 ```
 
@@ -851,6 +852,48 @@ Every re-interpretation MUST be recorded as CRITICAL in ERROR_LOG.md.
 
 ---
 
+## 🔴 RULE 0Z-F: PARALLEL AGENT EXECUTION MANDATE — MAXIMUM CONCURRENCY AT ALL TIMES (CRITICAL — Jun 14, 2026)
+
+**"PARALLEL AGENT BEHAVIOR IS MANDATORY AND MUST BE CODIFIED INTO FUTURE AGENT BEHAVIOR. IMPLEMENT ALL SUGGESTED FOLLOWUPS IN PARALLEL." — User directive, Jun 14, 2026**
+
+**TRIGGER:** Every spawn_agents call, every multi-step task, every group of independent followups.
+
+**ACTION:** ALL independent work items MUST be executed in parallel within a SINGLE spawn_agents call. Never sequentialize tasks that can run in parallel. The assistant MUST:
+1. **Identify ALL independent sub-tasks** before spawning any agent
+2. **Batch ALL parallel work into ONE spawn_agents call** — never spawn one agent, wait, then spawn another
+3. **Maximum concurrency** — spawn as many agents as there are independent work items, up to the platform limit
+4. **Never "serialize by default"** — the default assumption is parallel; only sequentialize when there is a hard dependency
+
+**The Anti-Pattern Being Prevented:**
+| ❌ Violation (Sequential by Default) | ✅ RULE 0Z-F Compliant (Parallel by Default) |
+|--------------------------------------|---------------------------------------------|
+| Spawn agent A -> wait -> spawn agent B -> wait | Spawn agents A, B, C, D in ONE call |
+| "I'll gather context first, then implement" | Gather context AND implement concurrently via parallel agents |
+| "Let me finish this task before starting the next" | Batch all independent tasks into a single parallel spawn |
+| Run test -> see result -> run another test | Run ALL tests in parallel via separate basher agents |
+
+**Enforcement:**
+- Spawning agents sequentially when they could run in parallel = **CRITICAL process violation**
+- Creating artificial dependencies between independent work items = **CRITICAL process violation**
+- "I need to see the output of X before starting Y" is NOT valid unless Y genuinely depends on X's output
+- This extends RULE 0M (Concurrent Inference) to ALL agent types, not just inference agents
+- Must be recorded in ERROR_LOG.md when violated
+
+**Quick Reference:**
+| Situation | Action |
+|-----------|--------|
+| 5 independent followups | Spawn ALL 5 in ONE parallel call |
+| Context + implementation | Gather AND implement in parallel |
+| Tests + typecheck + lint | Run ALL 3 in parallel |
+| Code review + test verification | Spawn both in ONE call |
+
+**Check line (PRE-ACTION GATE / COMPLIANCE SENTINEL):**
+- **RULE 0Z-F (Parallel Execution):** Are ALL independent work items being executed in parallel in a SINGLE spawn_agents call? Or are they being unnecessarily sequentialized? (Explain: [Yes, single parallel call / No, sequential - CRITICAL / N/A])
+
+**Related:** RULE 0M, RULE 0W, RULE 0Z. Canonical source: SYSTEM_INSTRUCTIONS.md, MANDATES.md
+
+---
+
 ## ## 🧠 AGENT CLASSIFICATION — FULL UTILIZATION REFERENCE (June 11, 2026)
 
 **"BENCHMARK ALL AGENTS FOR CLASSIFICATION." — User directive, June 11, 2026**
@@ -911,6 +954,7 @@ returns HALT, the action is NOT authorized and MUST NOT be taken.
    [ ] RULE 0W: Confirm ALL applicable agents were spawned at 100% capacity for this task type
    [ ] RULE 0X: Confirm strict State Machine execution, Z3 verification checks, and auto-telemetry scoring are tracked.
    [ ] RULE 0Y: Confirm a multi-agent Judge consensus (≥2/3) and auto dual-ledger verification occurred before proposing file changes. (minimums per framework: complex=6, code change=3, web=1, CLI=1, terminal=1). Underutilization = CRITICAL.
+   [ ] RULE 0Z-F (Parallel Execution): Confirm ALL independent work items were executed in parallel in a SINGLE spawn_agents call -- never sequentialized without hard dependency.
    [ ] RULE 0R: Confirm `sync_skills.py` has been run to propagate canonical skill changes to `.agents/skills/`. If skills were modified and sync was not run, HALT and run sync BEFORE authorizing any session-end action.
    [ ] RULE 0P: Verify the user's Level 1 directives are followed EXACTLY.
    [ ] Rule 0: Ensure instructions are followed literally without re-interpretation.

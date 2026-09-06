@@ -19,7 +19,7 @@ Patched all 5 files with 7 targeted fixes (see NUITKA_3_14T_SKILL.md for details
 Upstream Nuitka 4.2+ may include proper 3.14t support. Monitor https://nuitka.net/changelog/Changelog.html for free-threading fixes. Python 3.13 is not used — all builds are on 3.14t with patches applied via `patch_nuitka_314t.py`.
 
 ---
-## Error #48 — pytest 9.0.3 Segfaults on Python 3.14.5t Free-Threading
+## Error #48 — pytest 9.0.3 Segfaults on Python 3.14.6t Free-Threading
 **Symptom:** pytest 9.
 **Fix Solution:**
 Requires a pytest release compatible with Python 3.14t free-threading (pytest 10.0+ or patched 9.0.x). Not fixable at the project level.
@@ -31,10 +31,10 @@ Run tests standalone on 3.14t via `python tests/test_*.py` or `python run_tests.
 The original Error #48 entry incorrectly attributed the 3.14t segfault to module-level `sys.exit()` in test files. That was a *separate* bug on Python 3.13 producing a clean `INTERNALERROR> SystemExit`. The two issues were conflated. The 3.14t segfault is a fundamental
 
 ---
-## Error #49 — psutil C Extension Segfaults on Python 3.14.5t Free-Threading
+## Error #49 — psutil C Extension Segfaults on Python 3.14.6t Free-Threading
 **Symptom:** The `psutil` library (Python system/process monitoring) uses C extensions that are incompatible with Python 3.
 **Fix Solution:**
-`pip install --force-reinstall --no-deps psutil` — pip had installed a non-free-threading wheel. Reinstalling selected the correct `cp314t` wheel (`psutil-7.2.2-cp314-cp314t-win_amd64.whl`), which works on 3.14.5t. After reinstall:
+`pip install --force-reinstall --no-deps psutil` — pip had installed a non-free-threading wheel. Reinstalling selected the correct `cp314t` wheel (`psutil-7.2.2-cp314-cp314t-win_amd64.whl`), which works on 3.14.6t. After reinstall:
 - `import psutil` → OK
 - `psutil.cpu_count()` → 16
 - `psutil.virtual_memory()` → 15.4 GB
@@ -58,7 +58,7 @@ with zipfile.ZipFile('wheel.whl') as z:
 ```
 
 ---
-## Error #54 — pydantic-core / uuid-utils cp314t Wheel Segfault on Python 3.14.5t
+## Error #54 — pydantic-core / uuid-utils cp314t Wheel Segfault on Python 3.14.6t
 **Symptom:** The installed wheels for `pydantic-core` and `uuid-utils` had broken/incorrect `cp314t` compiled `.
 **Fix Solution:**
 See ERROR_LOG.md

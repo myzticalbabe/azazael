@@ -4,6 +4,7 @@ description: Azazael threading patterns — Python 3.14t free-threading design, 
 metadata:
   category: conventions
   project: azazael
+  auto_load: true
 ---
 # Azazael Threading — 3.14t Free-Threading Patterns
 

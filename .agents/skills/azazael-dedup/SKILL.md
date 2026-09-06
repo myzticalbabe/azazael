@@ -1,139 +1,124 @@
 ---
 name: azazael-dedup
-description: Azazael deduplication procedures — find and eliminate duplicate files using MD5 hash comparison, established patterns for deprecation shims.
+description: Deduplication procedures — MD5 hash comparison, duplicate file detection, deprecation shim creation, cleanup patterns
 metadata:
-  category: maintenance
+  category: process
   project: azazael
+  priority: high
+  auto_load: false
+  version: 1.0.0
+  created: 2026-06-14
 ---
 
-# Azazael Deduplication Skill
+# Azazael Deduplication Procedures
 
-## Overview
-
-This skill documents the procedures for finding and eliminating duplicate files in the Azazael codebase. As of May 29, 2026, **13 deprecation shims** have been created across 3 directories, eliminating ~3,500+ lines of duplicate code.
+> **Purpose:** Find and eliminate duplicate files using MD5 hash comparison, establish deprecation shims for moved code.
+> **Context:** The Azazael codebase has accumulated duplicate modules across `azazael/src/`, `azazael/packages/`, and `Desktop/` directories.
 
 ---
 
-## Dedup Audit Procedure
+## Detection Pattern
 
-### Step 1: Find All .py Files
-```bash
-find azazael/src -name "*.py" | sort > /tmp/all_py_files.txt
-```
+### Find Duplicates by MD5 Hash
 
-### Step 2: Compute MD5 Hashes
 ```python
 import hashlib
 from pathlib import Path
 
-def md5(path):
-    return hashlib.md5(Path(path).read_bytes()).hexdigest()
+def find_duplicates(directory: str = ".") -> dict:
+    """Find files with identical MD5 hashes across the codebase."""
+    hash_map = {}
+    for f in Path(directory).rglob("*.py"):
+        if f.stat().st_size == 0:
+            continue
+        md5 = hashlib.md5(f.read_bytes()).hexdigest()
+        hash_map.setdefault(md5, []).append(f)
+    
+    duplicates = {h: files for h, files in hash_map.items() if len(files) > 1}
+    return duplicates
 
-hashes = {}
-for line in Path('/tmp/all_py_files.txt').read_text().splitlines():
-    h = md5(line)
-    if h not in hashes:
-        hashes[h] = []
-    hashes[h].append(line)
-
-duplicates = {h: files for h, files in hashes.items() if len(files) > 1}
+# Usage
+dups = find_duplicates("azazael/src")
+for md5, files in sorted(dups.items(), key=lambda x: -len(x[1])):
+    sizes = [f.stat().st_size for f in files]
+    print(f"[{len(files)} copies] {sizes[0]} bytes")
+    for f in files:
+        print(f"  {f}")
 ```
 
-### Step 3: Compare Line Counts
-For files with same hash: they're exact duplicates.
-For files with same name but different hash: compare line counts and first 5 diffs.
+### Find Near-Duplicates by Filename + Size
 
 ```python
-import difflib
-for hash_val, files in duplicates.items():
-    print(f"IDENTICAL: {files}")
+def find_same_name_same_size(directory: str = ".") -> dict:
+    """Find files with same name AND same size (likely identical content)."""
+    from collections import defaultdict
+    by_name = defaultdict(list)
+    for f in Path(directory).rglob("*.py"):
+        by_name[f.name].append(f)
     
-# For same-named files with different hashes
-def show_diffs(file1, file2, max_diffs=5):
-    lines1 = Path(file1).read_text().splitlines()
-    lines2 = Path(file2).read_text().splitlines()
-    for i, (a, b) in enumerate(zip(lines1, lines2)):
-        if a != b:
-            print(f"  Line {i+1}: {a[:100]} -> {b[:100]}")
+    near_dups = {}
+    for name, files in by_name.items():
+        size_groups = defaultdict(list)
+        for f in files:
+            size_groups[f.stat().st_size].append(f)
+        for size, same_size_files in size_groups.items():
+            if len(same_size_files) > 1:
+                near_dups[f"{name} ({size}b)"] = same_size_files
+    return near_dups
 ```
 
-### Step 4: Determine Canonical Source
-- If one version has `from CORE.paths import ...` → that's canonical (dynamic paths)
-- If one version has hardcoded `C:/Users/clint/Desktop/...` → that's stale
-- If both identical → either can be canonical, prefer root-level
+---
 
-### Step 5: Check Import References
-```bash
-rg "from <DIR>\.<MODULE>|import <DIR>\.<MODULE>" azazael/src/
+## Deprecation Shim Pattern
+
+When a module is relocated, DO NOT delete the original file. Instead, create a shim:
+
+```python
+# deprecation_shim.py — Original location, now in AZAZAEL_TOOLKIT/
+# DEPRECATED: Use from AZAZAEL_TOOLKIT.foo import bar instead
+
+import warnings
+warnings.warn(
+    "azazael/src/TOOLS/foo.py is deprecated. "
+    "Use 'from AZAZAEL_TOOLKIT.foo import bar' instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from AZAZAEL_TOOLKIT.foo import bar  # noqa: E402, F401
+
+__all__ = ["bar"]
 ```
-If 0 results → safe to replace with deprecation shim.
+
+### Shim Requirements
+
+| Element | Required | Purpose |
+|---------|----------|---------|
+| `FutureWarning` | ✅ | Ensures warning is always visible (not filtered by default) |
+| `stacklevel=2` | ✅ | Points to the caller, not the shim |
+| Source file path in message | ✅ | Helps locate the deprecated import |
+| Destination path in message | ✅ | Tells the developer where to find the replacement |
+| `# noqa: E402, F401` | ✅ | Suppresses linter warnings for late import / unused import |
+| `__all__` re-export | ✅ | Maintains API compatibility |
+| Docstring | ✅ | Quick reference without reading warning message |
 
 ---
 
-## Dedup Results (Historical Record)
+## Cleanup Procedure
 
-### Phase 1-2: META/ Directory (6 shims)
-| File | Canonical | Type | Lines |
-|------|----------|------|-------|
-| META/TRIMZ.py | TRIMZ.py | Identical | ~200 |
-| META/DOCKERZ.py | DOCKERZ.py | Identical | ~200 |
-| META/HEALTHZ.py | HEALTHZ.py | Identical | ~200 |
-| META/UVZ.py | UVZ.py | Identical | ~200 |
-| META/OPTIMIZ.py | OPTIMIZ.py | Near-duplicate (missing @register_worm) | ~300 |
-| META/METAWORMS_POPUP.py | METAWORMS_POPUP.py | Identical | ~200 |
-
-### Phase 5: HYDRA/ml_platforms/ (3 shims)
-| File | Canonical | Type | Lines |
-|------|----------|------|-------|
-| HYDRA/ml_platforms/config.py | ORCHESTRATION/ml_platforms/config.py | Identical | ~200 |
-| HYDRA/ml_platforms/launcher.py | ORCHESTRATION/ml_platforms/launcher.py | Identical | ~50 |
-| HYDRA/ml_platforms/__init__.py | ORCHESTRATION/ml_platforms | Fixed broken import | ~30 |
-
-### Phase 6: CODEX/CORE/ (8 shims)
-| File | Canonical | Type | Lines |
-|------|----------|------|-------|
-| CODEX/CORE/ANIMATION_PROTOCOLS.py | ANIMATION_PROTOCOLS.py | Identical | 313 |
-| CODEX/CORE/CHANGELOG_GENERATOR.py | CHANGELOG_GENERATOR.py | Stale (hardcoded paths) | 144→149 |
-| CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py | ECOSYSTEM_HEALTH_CHECK.py | Stale (hardcoded base_path) | 127→134 |
-| CODEX/CORE/enrichment_display.py | enrichment_display.py | Near-duplicate (CSS typo) | 476 |
-| CODEX/CORE/FILE_MANIFEST_GENERATOR.py | FILE_MANIFEST_GENERATOR.py | Stale (hardcoded paths) | 145→154 |
-| CODEX/CORE/HORUS_INTEGRATION.py | HORUS_INTEGRATION.py | Stale (hardcoded+broken paths) | 202→206 |
-| CODEX/CORE/matrix_animation.py | matrix_animation.py | Identical | 242 |
-| CODEX/CORE/QL_FILE_OPTIMIZER.py | QL_FILE_OPTIMIZER.py | Identical | 537 |
-
----
-
-## Remaining Known Duplicates (Not Yet Shimmed)
-
-| Location | Pairs | Reason Left |
-|----------|-------|-------------|
-| AZAZAEL_TOOLKIT/ | 4 | Likely intentional packaging copies |
-| CODEX/SESSION_TEMPLATE/ | 4 | Nested directory structure |
-| ORCHESTRATION/HYDRA/ | 1 | harness.py cross-location |
-
----
-
-## When NOT to Dedup
-
-1. **Intentional packaging copies**: Files in standalone distribution directories
-2. **Testing fixtures**: Test-specific copies with different configurations
-3. **Documentation metadata paths**: Paths in docstrings/examples that describe, not execute
-4. **Template directories**: Session templates meant to be copied
-
----
-
-## Anti-Patterns
-
-| ❌ Never | ✅ Always |
-|----------|----------|
-| Copy-paste files between directories | Use imports or deprecation shims |
-| Leave duplicates as-is | At minimum, document them |
-| Delete canonical before shim creation | Create shim first, verify, then archive canonical |
-| Assume all duplicates are bad | Check if intentional (packaging, templates) |
+1. **Scan** — Run MD5 hash scan across all source directories
+2. **Verify** — Confirm duplicates are truly identical (not just same name)
+3. **Identify canonical source** — Which copy is the authoritative one?
+4. **Create shim** — At the duplicate location pointing to the canonical source
+5. **Import shim test** — Verify `from old_location import X` still works via shim
+6. **Remove duplicate** — Delete the duplicate file (not the shim, not the canonical)
+7. **Clean up shims later** — After all references are updated, remove shims
 
 ---
 
 ## Related Skills
-- `azazael-shims` — Deprecation shim pattern and testing
-- `azazael-separation` — Project extraction playbooks
-- `azazael-architecture` — Project structure and module organization
+
+- `azazael-shims` — Deprecation shim pattern details
+- `azazael-paths` — Dynamic path resolution for module relocation
+- `azazael-separation` — Monolith separation plan (6 layers, 27 programs)
+- `azazael-files` — Complete file index and module map

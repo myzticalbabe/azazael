@@ -5,6 +5,7 @@ metadata:
   category: memory
   project: azazael
   priority: high
+  auto_load: true
 ---
 
 # Azazael PAMS Memory — Persistent AI Memory System

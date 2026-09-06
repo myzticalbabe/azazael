@@ -4,6 +4,7 @@ description: Sequential error resolution decision tree for systematic troublesho
 metadata:
   category: quality
   project: azazael
+  auto_load: true
 ---
 # Sequential Error Resolution — Decision Tree
 

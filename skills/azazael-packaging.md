@@ -6,7 +6,7 @@ description: Python packaging insight — Nuitka builds on Python 3.14t free-thr
 # Python Packaging for Free-Threading Environments
 
 ## Overview
-All builds use **Python 3.14.5t** (free-threading) exclusively. Python 3.13 is not used.
+All builds use **Python 3.14.6t** (free-threading) exclusively. Python 3.13 is not used.
 
 ### Current Status
 | Tool | Python 3.14t |

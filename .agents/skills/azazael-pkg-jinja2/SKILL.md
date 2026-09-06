@@ -1,0 +1,35 @@
+---
+name: azazael-pkg-jinja2
+description: Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine.
+metadata:
+  category: packages
+  project: azazael
+  priority: low
+---
+
+# Jinja2 3.1.6
+
+> A very fast and expressive template engine.
+
+## Identity
+
+| Field | Value |
+|-------|-------|
+| Distribution | `Jinja2` |
+| Version | `3.1.6` |
+| Interpreter | Python 3.13.12 (`/usr/bin/python3.13`) |
+
+## Notes
+
+No console entry points or detectable top-level modules; treat as a library dependency.
+
+## Verify
+
+```bash
+/usr/bin/python3.13 -m pip show Jinja2
+```
+
+## Related
+
+- Environment: Kali Python 3.13.12 system packages (969 total)
+- See `azazael-skill-catalog` / SKILLS_CATALOG.md for the full skill inventory

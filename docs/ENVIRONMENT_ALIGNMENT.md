@@ -88,8 +88,8 @@ python3.14t scripts/build_all_concurrent.py --verify
 
 | Platform | Python | Nuitka | Status |
 |----------|--------|--------|--------|
-| Windows 11 | 3.14.5t | 4.1.2 | Working |
-| WSL2 | 3.14.5t | 4.1.2 | Working (reinstalled June 4) |
+| Windows 11 | 3.14.6t | 4.1.2 | Working |
+| WSL2 | 3.14.6t | 4.1.2 | Working (reinstalled June 4) |
 
 **Patch script:** `docs/scripts/patch_nuitka_314t.py`
 Run `--verify` before any build. Apply `--apply` if Nuitka is reinstalled.

@@ -1,29 +1,37 @@
 ---
 name: azazael-session-recording
-description: Session recording — stdlib-only utilities, CodebuffTracker v2.2, timeout avoidance patterns.
+description: Session recording — DEPRECATED: CodebuffTracker and SessionRecorder are hard-blocked. Use DirectMemory (CORE/direct_memory.py) for ALL session recording.
 metadata:
   category: quality
   project: azazael
+  status: deprecated
 ---
 
 # Azazael Session Recording — Reliable Patterns
 
-## Quick Start (Always Works)
+> ⚠️ **DEPRECATED (June 9, 2026):** CodebuffTracker and SessionRecorder are hard-blocked (raise ImportError per F03 fix).
+> **Use DirectMemory (`CORE/direct_memory.py`) for ALL session recording.**
+> See `azazael/DIRECT_MEMORY_INSTRUCTIONS.md` for the complete mandate.
+> This skill is preserved for historical reference only.
+
+## Quick Start (CANONICAL — DirectMemory)
 
 ```python
 import sys; sys.path.insert(0, 'azazael/src')
-from CORE.record_session import SessionRecorder
+from CORE.direct_memory import DirectMemory
 
-rec = SessionRecorder()
-rec.skill_loaded("azazael-startup")
-rec.file_read(["MEMORIES.md", "ERROR_LOG.md"], "canonical files")
-rec.milestone("startup complete")
-rec.end({"tasks": 5})
+dm = DirectMemory()  # Auto-starts session, stdlib-only, <0.1s
+dm.skill_loaded("azazael-startup")
+dm.file_read(["MEMORIES.md", "ERROR_LOG.md"], "canonical files")
+dm.milestone("startup complete")
+dm.end({"tasks": 5})
 ```
 
-Completes in **<0.1s**. Zero CORE imports. Zero worm registry discovery.
+Completes in **<0.1s**. Zero worm registry discovery.
 
-## Three Recording Methods (Pick One)
+> ⚠️ **SessionRecorder and CodebuffTracker are DEPRECATED and hard-blocked (raise ImportError).** The sections below are preserved for historical reference only.
+
+## Three Recording Methods (HISTORICAL — Pick One)
 
 ### 1. `CORE.record_session.SessionRecorder` (preferred)
 - **Location:** `azazael/src/CORE/record_session.py`

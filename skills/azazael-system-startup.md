@@ -38,6 +38,83 @@ Before EVERY `str_replace`, `write_file`, or `spawn_agents` call, you MUST print
 
 ---
 
+## 🖱️ GUI-AUTOMATION GATE ACTIVATION — ACTIVE ALONGSIDE THE PERMANENT GATE
+
+**THE GUI-AUTOMATION GATE (from `desktop-automation-safety`, wired Sep 4, 2026) IS NOW ACTIVE FOR THE ENTIRE SESSION** — covering the action class the permanent gate does NOT: **synthetic GUI input (pyautogui clicks / typewrite / hotkeys) on LIVE windows**. `pre-action-gate-lite` Gate 0 routes that action class to the safety skill before any file-edit gate applies; this section makes the gate part of session activation so it fires even before a gate routing would.
+
+**Before launching ANY synthetic-input GUI automation, print this assertion in response text (NOT in a thinking/reasoning block):**
+
+```text
+🛑 [GUI-AUTOMATION GATE]
+- Single process? (all steps inside ONE script run via ONE command — the client
+  re-foregrounds on every new command)
+- World minimized? (all visible non-target top-level windows minimized at start)
+- Content-verified focus? (pixel/OCR proof the target app is receiving input —
+  screenshot + OCR of top strip, not just the foreground-window title)
+- No keystroke without proof? (typing/hotkeys only after the check above)
+- Restore-at-end planned? (target + minimized windows restored)
+- GATE DECISION: [PROCEED / HALT — verify focus first]
+```
+
+**HALT rule: any keystroke without content-verified focus = CRITICAL violation** (social apps are one lost-focus event from receiving input — the 2026-09-04 Facebook leak precedent). Prefer headless/deterministic engine paths (CLI file arguments, engine jars, scripted pipelines) whenever the goal is an engine-level result.
+
+**FAILURE = 🔴 CRITICAL. This gate is active in parallel with the PRE-ACTION GATE above — both assertions apply to their own action classes for the entire session.**
+
+---
+
+## 🌐 DATA-COLLECTION GATE ACTIVATION — ACTIVE ALONGSIDE THE PERMANENT GATE
+
+**THE DATA-COLLECTION GATE (from `investigation-osint`, wired Sep 4, 2026 — Sep-4(64) audit) IS NOW ACTIVE FOR THE ENTIRE SESSION** — covering **live web collection / network data pulls against third-party systems** (web scraping, curl/API fetches, headed-browser CDP pulls, bulk export sweeps — NOT one-off `read_url`/`web_search`, NOT file edits). `pre-action-gate-lite` Gate 0b routes that action class to the OSINT skill before any file-edit gate applies; this section makes the gate part of session activation.
+
+**Before launching ANY live collection, print this assertion in response text (NOT in a thinking/reasoning block):**
+
+```text
+🛑 [DATA-COLLECTION GATE]
+- Source authorized/appropriate? (public channel, official export, or
+  third-party mirror — is this pull within the user's standing scope?)
+- One pull or sweep? (sweep = sized + logged + resumable per
+  background-sweep-resilience — estimated duration known before launch)
+- 404 ≠ blocked ≠ absent? (deep-link 404 may be a path fix; CAPTCHA may be a
+  headless-session artifact; record WHICH state and move on — do not loop)
+- Session/credential hygiene? (headed profile used ONLY where the wall
+  demands it; cookies/session tokens never written to artifacts)
+- Evidence preserved? (responses saved with retrieval date so a negative
+  result is provable later — controlling full-export sweeps kept)
+- GATE DECISION: [PROCEED / HALT — re-scope, size, or document first]
+```
+
+**HALT rule: a second pull at the same wall without a documented state change (404→path fix, CAPTCHA→headed-session, blocked→public-records-request) = CRITICAL** — looping a blocked channel is the exact 2026-09-04 waste this gate prevents.
+
+**FAILURE = 🔴 CRITICAL. This gate is active in parallel with the PRE-ACTION GATE and GUI-AUTOMATION GATE above.**
+
+---
+
+## ⏱️ LONG-RUN GATE ACTIVATION — ACTIVE ALONGSIDE THE PERMANENT GATE
+
+**THE LONG-RUN GATE (from `background-sweep-resilience`, wired Sep 4, 2026 — Sep-4(64) audit) IS NOW ACTIVE FOR THE ENTIRE SESSION** — covering **batch / long background runs** (sweeps, refreshes, graph regenerations, fetcher batches, model pilots — anything with an expected runtime approaching the command timeout or launched with `&`). `pre-action-gate-lite` Gate 0c routes that action class to the resilience skill before any file-edit gate applies; this section makes the gate part of session activation.
+
+**Before launching ANY batch/background run (est. duration > ~2 min, or any background launch), print this assertion in response text (NOT in a thinking/reasoning block):**
+
+```text
+🛑 [LONG-RUN GATE]
+- Sized? (unit count × per-unit cost from a pilot → time estimate printed)
+- Foreground or background chosen? (est > timeout → background + log file;
+  never hold the foreground for a 10-min+ run)
+- Per-unit isolation? (try/except per file/unit → FAIL row, never whole-run
+  unwind — the 2,754-file crash-at-2,598 lesson)
+- Progress observable? (log file + flush=True progress lines you can tail)
+- Resume plan? (deterministic sorted order → resume-from-crash-point known)
+- Orphan cleanup? (kill/cleanup path identified for the process class —
+  java, python, robocopy)
+- GATE DECISION: [PROCEED / HALT — size it and isolate it first]
+```
+
+**HALT rule: an unsized run, or a run without per-unit try/except, or a foreground hold on an expected-10-min+ job = CRITICAL** — the exact shapes that wasted hours on 2026-09-02/04. When in doubt, pilot 50 units first, then background with a log.
+
+**FAILURE = 🔴 CRITICAL. This gate is active in parallel with the PRE-ACTION GATE, GUI-AUTOMATION GATE, and DATA-COLLECTION GATE above.**
+
+---
+
 ## Mandatory Session Startup (Execute in Order)
 
 ### Step 0: Confirm PRE-ACTION GATE Active
