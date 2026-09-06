@@ -37,7 +37,7 @@ import uuid
 import time
 import itertools
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
 # Stdlib-only UUID7 generator (RFC 9562) — inlined to maintain zero-CORE-imports design.
@@ -430,6 +430,26 @@ class DirectMemory:
         if "session-recording" not in all_tags:
             all_tags.append("session-recording")
         tags_str = json.dumps(all_tags, ensure_ascii=False, default=str)
+
+        # Noise gate (lossless): skip identical auto events re-recorded
+        # within 30 min (reconnect/startup storms). Distinct payloads pass.
+        # Fails open: any error proceeds to record. Returns 0 when skipped.
+        if event_type in ("session_start", "milestone_reached", "skill_loaded"):
+            try:
+                action = data.get("action", "") if isinstance(data, dict) else ""
+                cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+                conn0 = self._get_conn()
+                rows = conn0.execute(
+                    "SELECT timestamp FROM memories WHERE source = ? AND event_type = ? "
+                    "AND json_extract(data, '$.action') = ? "
+                    "AND id > (SELECT COALESCE(MAX(id), 0) - 5000 FROM memories)",
+                    (source, event_type, action)).fetchall()
+                conn0.close()
+                for (ts,) in rows:
+                    if "T" in ts and ts > cutoff:
+                        return 0
+            except Exception:
+                pass
 
         # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
         ev_uuid = _uuid7()
