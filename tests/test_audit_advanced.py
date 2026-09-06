@@ -4,6 +4,33 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from pathlib import Path
 from CORE.audit_trail import verify_chain, read_audit_lines
 
+class TestAuditSessionStart:
+    def test_audit_session_start_creates_and_is_idempotent(self):
+        from CORE.audit_trail import audit_session_start, verify_chain
+        p = audit_session_start()
+        assert p
+        assert os.path.exists(p)
+        # Idempotent: second call returns the same active session file
+        assert audit_session_start() == p
+        # Chain must be at least internally consistent (genesis exists)
+        ok, _err = verify_chain(p)
+        assert ok
+
+    def test_audit_session_start_exported_from_package(self):
+        import CORE
+        assert hasattr(CORE, "audit_session_start")
+        assert callable(CORE.audit_session_start)
+
+    def test_audit_session_start_writes_session_start_entry(self):
+        from CORE.audit_trail import audit_session_start, read_audit_lines
+        p = audit_session_start()
+        lines = read_audit_lines(p)
+        if lines:
+            _ln, first = lines[0]
+            assert first.get("type") == "session_start"
+            assert first.get("audit_trail_version") == "3.0.0"
+
+
 class TestAuditAdvanced:
     def test_read_audit_lines(self):
         from CORE.audit_trail import AUDIT_DIR

@@ -207,5 +207,50 @@ def main():
         print("\nTip: Use --demo for a quick demonstration.")
 
 
+def run_gosp_learner_pass(kb_path: str = "gosp_knowledge.json") -> None:
+    """Optional post-training pass using the FIXED RecursiveLearner (Sep-5).
+
+    Gossamer lives in WSL2 (/root/workspace/projects/gossamer-oxford-parser); on
+    Windows this is skipped with a notice. When runnable, feeds the KB entries
+    through GossamerOxfordParser.parse(learn=True) so the 8 native-intelligence
+    dimension weights adjust (convergence-before-application ordering bug fixed).
+    """
+    import json
+    from pathlib import Path
+
+    if not Path(kb_path).exists():
+        print("[gosp-learner] KB not found; skipping")
+        return
+    try:
+        with open(kb_path, encoding="utf-8") as f:
+            entries = json.load(f).get("entries", [])
+    except Exception:  # noqa: BLE001
+        entries = []
+    if not entries:
+        print("[gosp-learner] no entries; skipping")
+        return
+
+    sys.path.insert(0, "/root/workspace/projects/gossamer-oxford-parser")
+    try:
+        from semantical_main import GossamerOxfordParser
+    except ImportError:
+        print("[gosp-learner] gossamer engine not reachable from this environment; skipping (WSL-only)")
+        return
+
+    parser = GossamerOxfordParser(max_workers=4)
+    for entry in entries[:40]:
+        text = entry.get("content") or entry.get("summary") or ""
+        if len(text) > 40:
+            parser.parse(text[:900], learn=True)
+    w = parser.native_intel.get_dimension_weights()
+    print("[gosp-learner] dimension weights after pass:")
+    for k, v in sorted(w.items()):
+        print(f"  {k}: {v:.4f}")
+
+
 if __name__ == "__main__":
     main()
+    # Optional learner pass when --use-gosp was requested
+    if "--use-gosp" in sys.argv:
+        kb = sys.argv[sys.argv.index("--use-gosp") + 1] if len(sys.argv) > sys.argv.index("--use-gosp") + 1 else "gosp_knowledge.json"
+        run_gosp_learner_pass(kb)

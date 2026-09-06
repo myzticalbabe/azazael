@@ -58,21 +58,90 @@ def check_linux_paths(content: str, filepath: str) -> list[str]:
     return issues
 
 
+def _strip_js_code(code: str) -> str:
+    """Strip string literals, template literals, comments, and regex literals
+    from a JS block so the paren/brace balance checks only count structural code.
+
+    Otherwise literal content (HTML in strings, markdown in template renders,
+    `desc` fields with parentheses) produces false "unbalanced" flags.
+    Note: this is a heuristic; `node --check` on the extracted block is ground truth.
+    """
+    out = []
+    i, n = 0, len(code)
+    while i < n:
+        c = code[i]
+        nxt = code[i + 1] if i + 1 < n else ''
+        # line comment
+        if c == '/' and nxt == '/':
+            j = code.find('\n', i)
+            i = n if j == -1 else j
+            continue
+        # block comment
+        if c == '/' and nxt == '*':
+            j = code.find('*/', i + 2)
+            i = n if j == -1 else j + 2
+            continue
+        # string / template literal
+        if c in ('"', "'", '`'):
+            quote = c
+            j = i + 1
+            while j < n:
+                if code[j] == '\\':
+                    j += 2
+                    continue
+                if code[j] == quote:
+                    break
+                j += 1
+            out.append(' ')
+            i = n if j >= n else j + 1
+            continue
+        # regex literal (division-vs-regex heuristic)
+        if c == '/':
+            k = i - 1
+            while k >= 0 and code[k] in ' \t\r\n':
+                k -= 1
+            prev = code[k] if k >= 0 else ''
+            if prev == '' or prev in '([{=,:;!&|?+-*%^~<>':
+                j = i + 1
+                in_class = False
+                while j < n:
+                    if code[j] == '\\':
+                        j += 2
+                        continue
+                    if code[j] == '[':
+                        in_class = True
+                    elif code[j] == ']':
+                        in_class = False
+                    elif code[j] == '/' and not in_class:
+                        break
+                    j += 1
+                k = j + 1  # skip regex flags (dgimsuvy)
+                while k < n and code[k] in 'dgimsuvy':
+                    k += 1
+                out.append(' ')
+                i = k
+                continue
+        out.append(c)
+        i += 1
+    return ''.join(out)
+
+
 def check_js_syntax(content: str, filepath: str) -> list[str]:
     """Detect known JavaScript syntax error patterns."""
     issues = []
     # Pattern 1: Broken querySelector with nested escaped quotes
     if re.search(r"querySelector\s*\(\s*['\"]\[onclick.*\\\\", content):
         issues.append("Broken querySelector with nested backslash escapes — use getAttribute('onclick') instead")
-    # Pattern 2: Unbalanced parentheses in inline scripts
+    # Pattern 2: Unbalanced parentheses/braces in inline scripts (literal-aware)
     script_blocks = re.findall(r'<script[^>]*>(.*?)</script>', content, re.DOTALL | re.IGNORECASE)
     for i, block in enumerate(script_blocks):
-        open_parens = block.count('(') - block.count('\\(')
-        close_parens = block.count(')') - block.count('\\)')
+        code = _strip_js_code(block)
+        open_parens = code.count('(')
+        close_parens = code.count(')')
         if open_parens != close_parens:
             issues.append(f"Script block #{i+1}: unbalanced parentheses ({open_parens} open vs {close_parens} close)")
-        open_braces = block.count('{')
-        close_braces = block.count('}')
+        open_braces = code.count('{')
+        close_braces = code.count('}')
         if open_braces != close_braces:
             issues.append(f"Script block #{i+1}: unbalanced braces ({open_braces} open vs {close_braces} close)")
     return issues

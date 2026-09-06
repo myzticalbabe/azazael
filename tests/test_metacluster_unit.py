@@ -270,7 +270,8 @@ class TestMetaClusterConstruction:
         assert status["version"] == "1.0.0"
         assert "routing_paths" in status
         assert "cross_nature_routes" in status
-        assert len(status["cross_nature_routes"]) > 0
+        # get_status returns a count (int), not a list
+        assert status["cross_nature_routes"] > 0
         assert status["state_phase"] == "idle"
 
     def test_get_last_result_empty(self):
@@ -437,6 +438,124 @@ class TestMetaClusterExport:
             assert "version" in data
             assert "free_threaded" in data
             assert "orchestration_history" in data
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+    def _synthetic_mc(self):
+        """Build a MetaCluster with fully synthetic NCM/history (fast, no
+        live discovery/orchestration) so export round-trips are deterministic.
+        """
+        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager, NatureCluster
+        mc = MetaCluster()
+        # Synthetic NCM with one known cluster
+        ncm = NatureClusterManager()
+        ncm._diversity = None
+        cluster = NatureCluster("security")
+        cluster.worms["SAMPLE_WORM"] = type("SAMPLE_WORM", (), {})
+        ncm.clusters["security"] = cluster
+        ncm._record = lambda *a, **kw: None
+        mc.ncm = ncm
+        # Synthetic orchestration history
+        mc._history = [
+            MetaClusterResult(
+                orchestration_id="run-1", natures_executed=2,
+                total_worms_ok=5, total_worms_fail=1, duration_ms=123.5,
+                insights=["insight-a"], recommendations=["rec-a"],
+            ),
+            MetaClusterResult(
+                orchestration_id="run-2", natures_executed=3,
+                total_worms_ok=8, total_worms_fail=2, duration_ms=456.0,
+                insights=["insight-b", "insight-c"], recommendations=["rec-b"],
+            ),
+        ]
+        return mc
+
+    def _tmp_json(self):
+        """Return a path to a fresh temp .json file."""
+        import tempfile
+        f = tempfile.NamedTemporaryFile(suffix=".json", delete=False, mode="w")
+        f.close()
+        return f.name
+
+    def test_export_state_round_trip(self):
+        """Exported JSON should faithfully round-trip the MC's live state."""
+        import json
+        import os
+        mc = self._synthetic_mc()
+        temp_path = self._tmp_json()
+        try:
+            path = mc.export_state(filepath=temp_path)
+            with open(path, "r") as fh:
+                data = json.load(fh)
+
+            # Metadata
+            assert data["version"] == mc.VERSION
+            assert data["free_threaded"] == mc.ncm.get_status()["free_threaded"]
+
+            # Routes round-trip: every route's from/to preserved
+            expected_routes = [
+                {"from": r.from_nature, "to": r.to_nature}
+                for r in mc.router.routes
+            ]
+            assert data["routes"] == expected_routes
+            assert len(data["routes"]) == len(mc.router.routes)
+
+            # NCM status captures the discovered nature
+            assert data["ncm_status"]["natures"] == 1
+
+            # History round-trips every field used by the exporter
+            hist = data["orchestration_history"]
+            assert len(hist) == 2
+            assert hist[0] == {
+                "id": "run-1", "natures": 2, "ok": 5, "fail": 1,
+                "duration_ms": 123.5, "insights": ["insight-a"],
+                "recommendations": ["rec-a"],
+            }
+            assert hist[1]["id"] == "run-2"
+            assert hist[1]["insights"] == ["insight-b", "insight-c"]
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    def test_export_creates_parent_dirs(self):
+        """Export should create missing parent directories."""
+        import os
+        import tempfile
+        mc = self._synthetic_mc()
+        base_dir = tempfile.mkdtemp()
+        target = os.path.join(base_dir, "nested", "deep", "mc.json")
+        try:
+            path = mc.export_state(filepath=target)
+            assert os.path.isdir(os.path.dirname(target))
+            assert os.path.isfile(path)
+            assert os.path.getsize(path) > 0
+        finally:
+            import shutil
+            shutil.rmtree(base_dir, ignore_errors=True)
+
+    def test_export_history_capped_at_20(self):
+        """Export should only include the most recent 20 runs."""
+        import json
+        import os
+        mc = self._synthetic_mc()
+        # Expand history to 25 runs; only the newest 20 should survive export
+        mc._history = [
+            MetaClusterResult(
+                orchestration_id="run-%d" % i, natures_executed=1,
+                total_worms_ok=0, total_worms_fail=0, duration_ms=1.0,
+            )
+            for i in range(25)
+        ]
+        temp_path = self._tmp_json()
+        try:
+            mc.export_state(filepath=temp_path)
+            with open(temp_path, "r") as fh:
+                data = json.load(fh)
+            hist = data["orchestration_history"]
+            assert len(hist) == 20
+            # Oldest exported is run-5 (runs 0..4 were dropped)
+            assert hist[0]["id"] == "run-5"
+            assert hist[-1]["id"] == "run-24"
         finally:
             if os.path.exists(temp_path):
                 os.remove(temp_path)

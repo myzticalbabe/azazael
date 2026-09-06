@@ -12,7 +12,6 @@ Usage:
     python scripts/db_health.py --vacuum          # Run VACUUM
 """
 import sys
-import os
 import json
 import time
 from pathlib import Path
@@ -361,7 +360,7 @@ def cmd_failed(args):
         last_notify_count = 0
         try:
             while True:
-                os.system("cls" if os.name == "nt" else "clear")
+                print("\033[H\033[J", end="", flush=True)
                 timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
                 print(f"DLQ Watch Mode — refreshing every {watch_interval}s ({timestamp})")
                 print(f"Press Ctrl+C to stop")

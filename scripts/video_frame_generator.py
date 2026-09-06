@@ -385,8 +385,8 @@ def generate_template_video(template_path, output_path):
     # Clean up PPM
     try:
         os.remove(ppm_path)
-    except:
-        pass
+    except OSError:
+        pass  # best-effort cleanup: file may already be gone or locked
     
     if os.path.exists(output_path):
         sz = os.path.getsize(output_path) / (1024 * 1024)

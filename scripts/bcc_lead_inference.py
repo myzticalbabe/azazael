@@ -39,6 +39,153 @@ import sys
 PYIO = sys.stdout.reconfigure(encoding="utf-8", errors="replace") if hasattr(sys.stdout, "reconfigure") else None
 
 
+# ---------------------------------------------------------------------------
+# NAME-CONSISTENCY WATCHDOG (LEAD-08)
+#
+# Generalizes LEAD-03a: LEAD-03a checks ONLY the temporal-KG fact layer for the
+# known "Christopher Plageman Jr" corruption. This watchdog scans EVERY derived
+# machine layer (SNA v3 labels/rankings/communities/core/persons, record-linkage
+# cluster members, person_edges, and the KG fact subjects) for any person named
+# with a first-name token the human corpus never attests for that surname.
+#
+# Canonical first names are derived from the HUMAN corpus (root *.html authored
+# docs) — e.g. 76x "John Robinson", 68x "Linda Krause", 61x "Missy Orlando",
+# 51x "Christine Axford" — counted 2026-09-05. Surnames shared by two
+# documented people (Brooks: James + Sen. Michele) list both. A machine-layer
+# string naming surname S with a first token NOT in S's documented set is the
+# corruption class LEAD-03a caught; anything else passes.
+# ---------------------------------------------------------------------------
+
+# surname -> canonical given-name tokens attested in the human corpus
+CANONICAL_NAMES = {
+    "Axford": {"Christine"},
+    "Baez": {"Jaime"},
+    "Boyer": {"Mahlon"},
+    "Brooks": {"James", "Michele"},          # James (board) + Sen. Michele
+    "Butler": {"Wesley"},
+    "Campos": {"Vanessa"},
+    "Del Collo": {"Jonathan"},
+    "Fees": {"Sandra"},                        # Rev Sandra
+    "Gaul": {"Brenda"},
+    "Goodman-Hinnershitz": {"Marcia"},
+    "Himeback": {"Linda"},
+    "Kramer": {"Karen"},
+    "Krause": {"Linda"},
+    "Leinbach": {"Christian"},
+    "Little": {"Greg"},
+    "Malley": {"Frances"},
+    "Miller": {"Christopher"},                 # O. Christopher
+    "Morrison": {"Regina"},
+    "Nunez": {"Rafael"},
+    "Orlando": {"Missy"},
+    "Plageman": {"Joseph"},
+    "Ralph": {"Jeffrey"},
+    "Reed": {"Donna"},
+    "Rivera": {"Michael"},
+    "Robinson": {"John"},
+    "Santoni": {"Dante"},
+    "Scull": {"Deborah"},
+    "Seitz": {"Crystal"},
+    "Sellers": {"John"},
+    "Vella-gatt": {"Franco"},
+    "Vellagatt": {"Franco"},
+}
+
+# middle-initial tokens ("Joseph Jr", "Mahlon J.", "Christian Y.", "O.", "Rev")
+_SKIP_TOKENS = {"Jr", "J", "Y", "M", "S", "O", "K", "Rev", "Dr", "Esq", "CPA"}
+
+
+def _first_token_before(text, surname):
+    """Return the given-name token immediately preceding a surname occurrence.
+
+    Only counts a surname as person-named when the character directly before it
+    is a letter or a period ("John Robinson", "Christian Y. Leinbach", "Mahlon
+    J. Boyer"). Org-context mentions — "The Vanguard Group (Robinson prior
+    employer)", "Alvernia University (Orlando employer)" — have a paren/dash
+    before the surname, so they are skipped (no given name present). Walks back
+    over middle initials / titles (Jr, Esq, Y., J.) to the given-name token.
+    """
+    import re as _re
+    found = []
+    for m in _re.finditer(_re.escape(surname), text):
+        before = text[:m.start()]
+        stripped = before.rstrip()
+        # surname must be immediately preceded by a letter or period (a name
+        # context), NOT a paren / dash / slash / colon (org or prose context)
+        if not stripped or not (stripped[-1].isalpha() or stripped[-1] == "."):
+            continue
+        toks = _re.findall(r"[A-Za-z][A-Za-z\-']*", stripped)
+        if not toks:
+            continue
+        # walk back from the surname. A lowercase word between the surname and
+        # a candidate token BREAKS the name phrase ("…President and Little CFO"
+        # → "and" is prose, so no given name precedes); only middle initials /
+        # titles ("Christian Y.", "Mahlon J.", "Jr") may be skipped. The first
+        # capitalized non-title token reached is the given name.
+        for tok in reversed(toks):
+            if tok in _SKIP_TOKENS or (len(tok) == 1 and tok.isupper()):
+                continue
+            if tok[0].islower():
+                break  # prose connector — the phrase ended; no given name
+            found.append(tok)
+            break
+    return found
+
+
+def collect_name_strings(obj, out):
+    """Recursively collect every string leaf from a JSON structure."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            collect_name_strings(k, out)
+            collect_name_strings(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            collect_name_strings(v, out)
+    elif isinstance(obj, str):
+        out.append(obj)
+
+
+def scan_layer(label, obj, hits):
+    """Scan one derived layer; append (layer, string, surname, got, expected) hits."""
+    strings = []
+    collect_name_strings(obj, strings)
+    for s in strings:
+        for surname, allowed in CANONICAL_NAMES.items():
+            if surname not in s:
+                continue
+            for tok in _first_token_before(s, surname):
+                if tok not in allowed:
+                    hits.append({
+                        "layer": label, "string": s[:200], "surname": surname,
+                        "got": tok, "expected": sorted(allowed),
+                    })
+
+
+def watchdog(sna, linkage, pedges, graphiti, kuzu):
+    """Run the name-consistency watchdog over every derived machine layer.
+
+    Returns (hits, n_strings). Empty hits = all machine layers consistent with
+    the human corpus's canonical names.
+    """
+    hits = []
+    layers = [
+        ("sna_v3_centrality+rankings+communities+core+persons", sna),
+        ("record_linkage_clusters", linkage),
+        ("person_edges", pedges),
+        ("kg_graphiti_facts", graphiti),
+        ("kg_kuzu_evidence", kuzu),
+    ]
+    n_strings = 0
+    for label, obj in layers:
+        if not obj:
+            continue
+        strings = []
+        collect_name_strings(obj, strings)
+        n_strings += len(strings)
+        scan_layer(label, obj, hits)
+    return hits, n_strings
+
+
 def load(path):
     try:
         with open(path, encoding="utf-8") as fh:
@@ -362,6 +509,73 @@ def main():
             "integrity_note": "Tenure facts from the documented temporal KG.",
         })
 
+    # ---- Lead 8: name-consistency watchdog across ALL derived machine layers
+    # (generalizes LEAD-03a, which only checked the temporal-KG facts). Scans SNA
+    # v3 labels/rankings/communities/core/persons, record-linkage cluster members,
+    # person_edges, and the KG fact subjects for any surname named with a first-name
+    # token the human corpus never attests (the 'Christopher Plageman Jr' corruption
+    # class). Emits LEAD-08 when a mismatch exists; emits the CLEAN confirmation
+    # otherwise (mirrors LEAD-03's RESOLVED branch). ----
+    wd_hits, wd_strings = watchdog(sna, linkage, pedges, graphiti, kuzu)
+    if wd_hits:
+        detail = "; ".join(
+            f"{h['layer']}: '{h['got']} {h['surname']}' (corpus attests {', '.join(h['expected'])})"
+            for h in wd_hits[:6])
+        leads.append({
+            "id": "LEAD-08",
+            "class": "CORRUPTION-FOUND",
+            "title": (f"Name-consistency watchdog found {len(wd_hits)} corruption "
+                      f"candidate(s) across derived machine layers: {detail}"),
+            "basis": ["bcc_network_sna_results_v3.json", "bcc_record_linkage.json",
+                       "bcc_person_edges.json", "bcc_graphiti_temporal.json",
+                       "BCC_KUZU_TEMPORAL_evidence.json"],
+            "gap_refs": [],
+            "action": ("Fix the source facts (same method as the Joseph/Christopher "
+                       "LEAD-03a correction) and regenerate the affected layer; "
+                       "re-run this pass to confirm the corruption is gone."),
+            "integrity_note": "Name-consistency check across machine artifacts vs the "
+                              "human corpus's canonical given names (counted from "
+                              "root HTML docs, Sep-5).",
+        })
+    else:
+        leads.append({
+            "id": "LEAD-08",
+            "class": "RESOLVED",
+            "title": (f"Name-consistency watchdog CLEAN: {wd_strings} name-bearing strings "
+                      f"across SNA v3 labels/centrality/communities, record-linkage "
+                      f"clusters, person_edges, and the temporal KG all use corpus-"
+                      f"attested given names (Joseph Plageman Jr / John Robinson / "
+                      f"Christine Axford / Missy Orlando / …). No 'Christopher "
+                      f"Plageman'-class corruption remains in any machine layer."),
+            "basis": ["bcc_network_sna_results_v3.json", "bcc_record_linkage.json",
+                       "bcc_person_edges.json", "bcc_graphiti_temporal.json",
+                       "BCC_KUZU_TEMPORAL_evidence.json"],
+            "gap_refs": [],
+            "action": ("No action. Re-run after any regeneration of the SNA, linkage, "
+                       "person-edge, or KG layers to keep the machine layers honest."),
+            "integrity_note": "Name-consistency check across machine artifacts vs the "
+                              "human corpus's canonical given names.",
+        })
+
+    # ---- per-lead triage status (OPEN / IN-PROGRESS / RESOLVED) ----
+    # Assigned here at the source so BCC_LEAD_FINDINGS.html can track follow-up
+    # state per lead. Tri-state per the corpus send-matrix convention.
+    STATUS_MAP = {
+        "LEAD-01": "OPEN",       # records action pending: FY2017 Part VII/Schedule J rows
+        "LEAD-02": "OPEN",       # audited statements (gap #31) + FY2026 990 never requested
+        "LEAD-03a": "RESOLVED",  # corruption fixed + all four KG artifacts regenerated (Sep-5)
+        "LEAD-03": "OPEN",       # records-limited chair-coverage hole (full Part VII titles needed)
+        "LEAD-04": "RESOLVED",   # 6-degrees baseline computed (auditor <-> oversight farthest pair)
+        "LEAD-05": "OPEN",       # negative documented; COCA annual detail + county channel pending
+        "LEAD-06": "OPEN",       # corroboration depth reported; residual set re-checked w/ new records
+        "LEAD-07": "OPEN",       # minutes (gap #9) + CEO eval (gap #61) never requested
+    }
+    for L in leads:
+        if L["id"] == "LEAD-08":
+            L["status"] = "IN-PROGRESS" if L["class"] == "CORRUPTION-FOUND" else "RESOLVED"
+        else:
+            L["status"] = STATUS_MAP.get(L["id"], "OPEN")
+
     # ---- summary ----
     print(f"BCC lead-inference pass — {len(leads)} candidate leads (evidence-grounded, "
           f"documented-edges only)\n")
@@ -376,7 +590,9 @@ def main():
         "generated": "2026-09-05",
         "method": ("Cross-layer pass over already-collected public-record artifacts. "
                    "No new data collection; no inferred/name-matched private-person "
-                   "edges (corpus rule, bcc_person_edges.json)."),
+                   "edges (corpus rule, bcc_person_edges.json). Per-lead status is "
+                   "triage state only (OPEN / IN-PROGRESS / RESOLVED) — it does not "
+                   "change what any lead asserts."),
         "layers_loaded": [os.path.basename(p) for p in (
             "bcc_990_series.json", "bcc_bai_perron_results.json",
             "BCC_KUZU_TEMPORAL_evidence.json", "bcc_graphiti_temporal.json",
