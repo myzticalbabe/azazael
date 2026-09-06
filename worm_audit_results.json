@@ -1,0 +1,169 @@
+{
+  "hung": [],
+  "failed": [],
+  "ok": [
+    {
+      "name": "BinaryAnalysis",
+      "cat": "analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "CainAnalyzerWorm",
+      "cat": "analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "ClusterInspector",
+      "cat": "analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "DEPENDZ",
+      "cat": "analysis",
+      "elapsed": 0.06
+    },
+    {
+      "name": "InferenceSubscriberWorm",
+      "cat": "analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "InferenceWorm",
+      "cat": "analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "METAZ",
+      "cat": "analysis",
+      "elapsed": 0.69
+    },
+    {
+      "name": "NimInferenceWorm",
+      "cat": "analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "ReverseTools",
+      "cat": "analysis",
+      "elapsed": 0.06
+    },
+    {
+      "name": "NetworkDiag",
+      "cat": "diagnostic",
+      "elapsed": 0.0
+    },
+    {
+      "name": "VideoAnalyzerWorm",
+      "cat": "diagnostic",
+      "elapsed": 0.0
+    },
+    {
+      "name": "SYSTEMZ_ML",
+      "cat": "ml",
+      "elapsed": 2.01
+    },
+    {
+      "name": "WORMZ_ML",
+      "cat": "ml",
+      "elapsed": 0.0
+    },
+    {
+      "name": "DISKZ",
+      "cat": "monitor",
+      "elapsed": 0.02
+    },
+    {
+      "name": "NETWORXZ",
+      "cat": "monitor",
+      "elapsed": 0.02
+    },
+    {
+      "name": "PROCESSZ",
+      "cat": "monitor",
+      "elapsed": 0.21
+    },
+    {
+      "name": "SMARTDISK",
+      "cat": "monitor",
+      "elapsed": 0.0
+    },
+    {
+      "name": "SystemZ",
+      "cat": "monitor",
+      "elapsed": 2.01
+    },
+    {
+      "name": "ClusterWORMZ",
+      "cat": "orchestration",
+      "elapsed": 0.01
+    },
+    {
+      "name": "ConcurrencyManager",
+      "cat": "orchestration",
+      "elapsed": 0.03
+    },
+    {
+      "name": "MetaCluster",
+      "cat": "orchestration",
+      "elapsed": 0.0
+    },
+    {
+      "name": "NatureClusterManager",
+      "cat": "orchestration",
+      "elapsed": 0.0
+    },
+    {
+      "name": "DeadLetterQueue",
+      "cat": "utility",
+      "elapsed": 0.0
+    },
+    {
+      "name": "OMNIV2",
+      "cat": "utility",
+      "elapsed": 0.07
+    },
+    {
+      "name": "WORMZ",
+      "cat": "utility",
+      "elapsed": 0.0
+    }
+  ],
+  "skipped": [
+    {
+      "name": "CainWorm",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "DiagnosticWorm",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "FastErrorScanner",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "MorphingWormV2",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "OSCongruency",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "WormFleet",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "VulnScanner",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "CLOCKZ",
+      "reason": "no standard methods"
+    },
+    {
+      "name": "MorphingWorm",
+      "reason": "no standard methods"
+    }
+  ]
+}

@@ -1,0 +1,537 @@
+Loading worm registry...
+Registry loaded: 93 worms in 2.27s
+NatureClusterManager: 17 natures discovered
+
+Executing 93 worms (mode=cluster, timeout=90s)...
+----------------------------------------------------------------------
+  [utility] 4 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:42.459533+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MorphingWorm", "error": "No standard method found on MorphingWorm"}, "thread_id": 4044, "pid": 22336}
+======================================================================
+OMNI WORM V2 - 2.0.0
+Root: C:\Users\clint\azazael
+======================================================================
+
+[02:28:42] Phase 1: Spawning worm fleet...
+[02:28:42] SPAWNING DIAGNOSTIC WORMS...
+[02:28:42]   [+] BOM_DETECTOR_WORM launched
+[02:28:42]   [+] SYNTAX_SCANNER_WORM launched
+[02:28:42]   [+] IMPORT_AUDITOR_WORM launched
+[02:28:42]   [+] ENCODING_WORM launched
+[02:28:42]   [+] PATTERN_MATCHER_WORM launched
+
+[02:28:42] Phase 2: Scanning files for BOM...
+  BOM fixes: 0
+  Syntax errors found: 0
+
+[02:28:42] Phase 3: Auditing files...
+  Files checked: 51
+
+======================================================================
+SUMMARY
+======================================================================
+Files scanned: 51
+BOM fixes: 0
+Syntax errors: 0
+Duration: 0.08s
+
+[OK] No errors detected!
+  [utility] done.
+  [sync] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:42.469776+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CLOCKZ", "error": "No standard method found on CLOCKZ"}, "thread_id": 4044, "pid": 22336}
+  [sync] done.
+  [diagnostic] 5 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:42.476412+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DiagnosticWorm", "error": "No standard method found on DiagnosticWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.809208+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FastErrorScanner", "error": "No standard method found on FastErrorScanner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.809403+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MorphingWormV2", "error": "No standard method found on MorphingWormV2"}, "thread_id": 4044, "pid": 22336}
+  [diagnostic] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:44.844970+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.845182+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.859652+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [telemetry] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:44.995728+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SpanTracer", "error": "No standard method found on SpanTracer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.995840+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MetricAggregator", "error": "No standard method found on MetricAggregator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.995895+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EventRouter", "error": "No standard method found on EventRouter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:44.995969+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LogStreamer", "error": "No standard method found on LogStreamer"}, "thread_id": 4044, "pid": 22336}
+  [telemetry] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:45.031869+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+C:\Users\clint\azazael\src\ORCHESTRATION\scripts\complete_module_analysis.py:3: SyntaxWarning: "\ " is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\ "? A raw string is also an option.
+  Comprehensive Analysis of ALL Python Modules on C:\ Drive
+C:\Users\clint\azazael\src\ORCHESTRATION\scripts\comprehensive_analysis.py:43: SyntaxWarning: "\ " is an invalid escape sequence. Such sequences will not work in the future. Did you mean "\\ "? A raw string is also an option.
+  - Find all Python modules on C:\ drive
+  [analysis] done.
+  [profiling] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:46.036321+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GILContentionProbe", "error": "No standard method found on GILContentionProbe"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:46.038023+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MemoryLeakDetector", "error": "No standard method found on MemoryLeakDetector"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:46.038275+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IOBottleneckFinder", "error": "No standard method found on IOBottleneckFinder"}, "thread_id": 4044, "pid": 22336}
+  [profiling] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:46.049734+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [security] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:46.141770+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "VulnScanner", "error": "No standard method found on VulnScanner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:46.142021+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "PortAuditor", "error": "No standard method found on PortAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:46.142187+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FirewallAudit", "error": "No standard method found on FirewallAudit"}, "thread_id": 4044, "pid": 22336}
+  [security] done.
+  [backup] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:46.149187+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "StateSnapshotter", "error": "No standard method found on StateSnapshotter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:46.149368+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IncrementalBackupWorm", "error": "No standard method found on IncrementalBackupWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:46.149509+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RecoveryTester", "error": "No standard method found on RecoveryTester"}, "thread_id": 4044, "pid": 22336}
+  [backup] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:46.162754+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [orchestration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.234830+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WormFleet", "error": "No standard method found on WormFleet"}, "thread_id": 4044, "pid": 22336}
+  [orchestration] done.
+  [migration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.240948+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DepUpgrader", "error": "No standard method found on DepUpgrader"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.241180+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SchemaVersioner", "error": "No standard method found on SchemaVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.241301+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImportPathFixWorm", "error": "No standard method found on ImportPathFixWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.241407+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LegacyShimGen", "error": "No standard method found on LegacyShimGen"}, "thread_id": 4044, "pid": 22336}
+  [migration] done.
+  [profiling] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.247824+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GILContentionProbe", "error": "No standard method found on GILContentionProbe"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.248017+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MemoryLeakDetector", "error": "No standard method found on MemoryLeakDetector"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.248142+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IOBottleneckFinder", "error": "No standard method found on IOBottleneckFinder"}, "thread_id": 4044, "pid": 22336}
+  [profiling] done.
+  [backup] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.253417+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "StateSnapshotter", "error": "No standard method found on StateSnapshotter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.253595+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IncrementalBackupWorm", "error": "No standard method found on IncrementalBackupWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.253714+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RecoveryTester", "error": "No standard method found on RecoveryTester"}, "thread_id": 4044, "pid": 22336}
+  [backup] done.
+  [container] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.259621+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImageAuditor", "error": "No standard method found on ImageAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.259797+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ResourceQuotaWatch", "error": "No standard method found on ResourceQuotaWatch"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.259909+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RegistryPoller", "error": "No standard method found on RegistryPoller"}, "thread_id": 4044, "pid": 22336}
+  [container] done.
+  [orchestration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.268745+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WormFleet", "error": "No standard method found on WormFleet"}, "thread_id": 4044, "pid": 22336}
+  [orchestration] done.
+  [config] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.274916+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SecretRotator", "error": "No standard method found on SecretRotator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.275181+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EnvValidator", "error": "No standard method found on EnvValidator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.275727+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DotfileSync", "error": "No standard method found on DotfileSync"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.275870+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureFlagCtrl", "error": "No standard method found on FeatureFlagCtrl"}, "thread_id": 4044, "pid": 22336}
+  [config] done.
+  [container] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.282115+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImageAuditor", "error": "No standard method found on ImageAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.282333+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ResourceQuotaWatch", "error": "No standard method found on ResourceQuotaWatch"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:48.282444+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RegistryPoller", "error": "No standard method found on RegistryPoller"}, "thread_id": 4044, "pid": 22336}
+  [container] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:48.293227+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [visualization] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:52.098249+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GraphRenderer", "error": "No standard method found on GraphRenderer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:52.098499+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ReportCompiler", "error": "No standard method found on ReportCompiler"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:52.098625+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "HeatmapBuilder", "error": "No standard method found on HeatmapBuilder"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:52.098752+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "TimelineViz", "error": "No standard method found on TimelineViz"}, "thread_id": 4044, "pid": 22336}
+  [visualization] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:52.114703+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:52.114976+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:52.115975+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [migration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.347906+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DepUpgrader", "error": "No standard method found on DepUpgrader"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.348131+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SchemaVersioner", "error": "No standard method found on SchemaVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.348244+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImportPathFixWorm", "error": "No standard method found on ImportPathFixWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.348351+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LegacyShimGen", "error": "No standard method found on LegacyShimGen"}, "thread_id": 4044, "pid": 22336}
+  [migration] done.
+  [config] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.354238+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SecretRotator", "error": "No standard method found on SecretRotator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.354448+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EnvValidator", "error": "No standard method found on EnvValidator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.354569+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DotfileSync", "error": "No standard method found on DotfileSync"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.354677+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureFlagCtrl", "error": "No standard method found on FeatureFlagCtrl"}, "thread_id": 4044, "pid": 22336}
+  [config] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.372155+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.372501+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.373469+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [config] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.532898+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SecretRotator", "error": "No standard method found on SecretRotator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.533087+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EnvValidator", "error": "No standard method found on EnvValidator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.533190+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DotfileSync", "error": "No standard method found on DotfileSync"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.533296+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureFlagCtrl", "error": "No standard method found on FeatureFlagCtrl"}, "thread_id": 4044, "pid": 22336}
+  [config] done.
+  [orchestration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.541799+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WormFleet", "error": "No standard method found on WormFleet"}, "thread_id": 4044, "pid": 22336}
+  [orchestration] done.
+  [telemetry] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.549146+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SpanTracer", "error": "No standard method found on SpanTracer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.549391+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MetricAggregator", "error": "No standard method found on MetricAggregator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.549524+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EventRouter", "error": "No standard method found on EventRouter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.549636+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LogStreamer", "error": "No standard method found on LogStreamer"}, "thread_id": 4044, "pid": 22336}
+  [telemetry] done.
+  [learning] 2 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.569720+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.569999+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.570944+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [config] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.728104+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SecretRotator", "error": "No standard method found on SecretRotator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.728311+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EnvValidator", "error": "No standard method found on EnvValidator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.728437+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DotfileSync", "error": "No standard method found on DotfileSync"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.728553+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureFlagCtrl", "error": "No standard method found on FeatureFlagCtrl"}, "thread_id": 4044, "pid": 22336}
+  [config] done.
+  [security] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.806286+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "VulnScanner", "error": "No standard method found on VulnScanner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.806517+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "PortAuditor", "error": "No standard method found on PortAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.806643+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FirewallAudit", "error": "No standard method found on FirewallAudit"}, "thread_id": 4044, "pid": 22336}
+  [security] done.
+  [profiling] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.813022+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GILContentionProbe", "error": "No standard method found on GILContentionProbe"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.813207+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MemoryLeakDetector", "error": "No standard method found on MemoryLeakDetector"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.813321+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IOBottleneckFinder", "error": "No standard method found on IOBottleneckFinder"}, "thread_id": 4044, "pid": 22336}
+  [profiling] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.831424+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.831749+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.832734+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [visualization] 2 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:56.989831+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GraphRenderer", "error": "No standard method found on GraphRenderer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.990025+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ReportCompiler", "error": "No standard method found on ReportCompiler"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.990132+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "HeatmapBuilder", "error": "No standard method found on HeatmapBuilder"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:56.990231+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "TimelineViz", "error": "No standard method found on TimelineViz"}, "thread_id": 4044, "pid": 22336}
+  [visualization] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.007935+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.008196+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.009060+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [profiling] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.176923+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GILContentionProbe", "error": "No standard method found on GILContentionProbe"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.177127+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MemoryLeakDetector", "error": "No standard method found on MemoryLeakDetector"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.177255+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IOBottleneckFinder", "error": "No standard method found on IOBottleneckFinder"}, "thread_id": 4044, "pid": 22336}
+  [profiling] done.
+  [communication] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.183291+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MessageBroker", "error": "No standard method found on MessageBroker"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.183476+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RPCEndpoint", "error": "No standard method found on RPCEndpoint"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.183609+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WebhookRelay", "error": "No standard method found on WebhookRelay"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.183744+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ProtocolNegotiator", "error": "No standard method found on ProtocolNegotiator"}, "thread_id": 4044, "pid": 22336}
+  [communication] done.
+  [container] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.189372+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImageAuditor", "error": "No standard method found on ImageAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.189543+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ResourceQuotaWatch", "error": "No standard method found on ResourceQuotaWatch"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.189663+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RegistryPoller", "error": "No standard method found on RegistryPoller"}, "thread_id": 4044, "pid": 22336}
+  [container] done.
+  [migration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.196048+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DepUpgrader", "error": "No standard method found on DepUpgrader"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.196264+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SchemaVersioner", "error": "No standard method found on SchemaVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.196379+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImportPathFixWorm", "error": "No standard method found on ImportPathFixWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.196486+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LegacyShimGen", "error": "No standard method found on LegacyShimGen"}, "thread_id": 4044, "pid": 22336}
+  [migration] done.
+  [backup] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.202430+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "StateSnapshotter", "error": "No standard method found on StateSnapshotter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.202637+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IncrementalBackupWorm", "error": "No standard method found on IncrementalBackupWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.202790+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RecoveryTester", "error": "No standard method found on RecoveryTester"}, "thread_id": 4044, "pid": 22336}
+  [backup] done.
+  [analysis] 2 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.214508+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [migration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.242235+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DepUpgrader", "error": "No standard method found on DepUpgrader"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.242399+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SchemaVersioner", "error": "No standard method found on SchemaVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.242511+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImportPathFixWorm", "error": "No standard method found on ImportPathFixWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.242614+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LegacyShimGen", "error": "No standard method found on LegacyShimGen"}, "thread_id": 4044, "pid": 22336}
+  [migration] done.
+  [telemetry] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.248352+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SpanTracer", "error": "No standard method found on SpanTracer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.248529+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MetricAggregator", "error": "No standard method found on MetricAggregator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.248633+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EventRouter", "error": "No standard method found on EventRouter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.248736+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LogStreamer", "error": "No standard method found on LogStreamer"}, "thread_id": 4044, "pid": 22336}
+  [telemetry] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.260551+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [profiling] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.287955+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GILContentionProbe", "error": "No standard method found on GILContentionProbe"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.288175+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MemoryLeakDetector", "error": "No standard method found on MemoryLeakDetector"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.288289+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IOBottleneckFinder", "error": "No standard method found on IOBottleneckFinder"}, "thread_id": 4044, "pid": 22336}
+  [profiling] done.
+  [communication] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.293795+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MessageBroker", "error": "No standard method found on MessageBroker"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.293971+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RPCEndpoint", "error": "No standard method found on RPCEndpoint"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.294100+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WebhookRelay", "error": "No standard method found on WebhookRelay"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.294235+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ProtocolNegotiator", "error": "No standard method found on ProtocolNegotiator"}, "thread_id": 4044, "pid": 22336}
+  [communication] done.
+  [orchestration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.304947+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WormFleet", "error": "No standard method found on WormFleet"}, "thread_id": 4044, "pid": 22336}
+  [orchestration] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.326078+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.326306+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.327229+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [telemetry] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.487784+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SpanTracer", "error": "No standard method found on SpanTracer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.487988+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MetricAggregator", "error": "No standard method found on MetricAggregator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.488114+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EventRouter", "error": "No standard method found on EventRouter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.488229+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LogStreamer", "error": "No standard method found on LogStreamer"}, "thread_id": 4044, "pid": 22336}
+  [telemetry] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:28:57.507478+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.507749+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:28:57.508704+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [orchestration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:01.745968+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WormFleet", "error": "No standard method found on WormFleet"}, "thread_id": 4044, "pid": 22336}
+  [orchestration] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:01.759754+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:05.852638+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [security] 2 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:05.950993+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "VulnScanner", "error": "No standard method found on VulnScanner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.951272+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "PortAuditor", "error": "No standard method found on PortAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.951423+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FirewallAudit", "error": "No standard method found on FirewallAudit"}, "thread_id": 4044, "pid": 22336}
+  [security] done.
+  [communication] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:05.957250+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MessageBroker", "error": "No standard method found on MessageBroker"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.957395+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RPCEndpoint", "error": "No standard method found on RPCEndpoint"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.957500+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WebhookRelay", "error": "No standard method found on WebhookRelay"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.957612+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ProtocolNegotiator", "error": "No standard method found on ProtocolNegotiator"}, "thread_id": 4044, "pid": 22336}
+  [communication] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:05.975106+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.975354+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:05.976382+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [communication] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.135457+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MessageBroker", "error": "No standard method found on MessageBroker"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.135664+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RPCEndpoint", "error": "No standard method found on RPCEndpoint"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.135782+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WebhookRelay", "error": "No standard method found on WebhookRelay"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.135904+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ProtocolNegotiator", "error": "No standard method found on ProtocolNegotiator"}, "thread_id": 4044, "pid": 22336}
+  [communication] done.
+  [security] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.211004+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "VulnScanner", "error": "No standard method found on VulnScanner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.211240+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "PortAuditor", "error": "No standard method found on PortAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.211376+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FirewallAudit", "error": "No standard method found on FirewallAudit"}, "thread_id": 4044, "pid": 22336}
+  [security] done.
+  [backup] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.218184+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "StateSnapshotter", "error": "No standard method found on StateSnapshotter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.218339+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IncrementalBackupWorm", "error": "No standard method found on IncrementalBackupWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.218460+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RecoveryTester", "error": "No standard method found on RecoveryTester"}, "thread_id": 4044, "pid": 22336}
+  [backup] done.
+  [container] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.224744+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImageAuditor", "error": "No standard method found on ImageAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.224918+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ResourceQuotaWatch", "error": "No standard method found on ResourceQuotaWatch"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.225044+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RegistryPoller", "error": "No standard method found on RegistryPoller"}, "thread_id": 4044, "pid": 22336}
+  [container] done.
+  [visualization] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.230529+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GraphRenderer", "error": "No standard method found on GraphRenderer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.230722+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ReportCompiler", "error": "No standard method found on ReportCompiler"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.230853+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "HeatmapBuilder", "error": "No standard method found on HeatmapBuilder"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.230960+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "TimelineViz", "error": "No standard method found on TimelineViz"}, "thread_id": 4044, "pid": 22336}
+  [visualization] done.
+  [container] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.237135+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImageAuditor", "error": "No standard method found on ImageAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.237323+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ResourceQuotaWatch", "error": "No standard method found on ResourceQuotaWatch"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:06.237425+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RegistryPoller", "error": "No standard method found on RegistryPoller"}, "thread_id": 4044, "pid": 22336}
+  [container] done.
+  [analysis] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:06.249178+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "CainWorm", "error": "No standard method found on CainWorm"}, "thread_id": 4044, "pid": 22336}
+  [analysis] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [ml] 1 worms (cluster, parallel=False)...
+  [ml] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:15.745603+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.745865+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.746899+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [migration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:15.910540+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DepUpgrader", "error": "No standard method found on DepUpgrader"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.910803+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SchemaVersioner", "error": "No standard method found on SchemaVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.910940+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ImportPathFixWorm", "error": "No standard method found on ImportPathFixWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.911064+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LegacyShimGen", "error": "No standard method found on LegacyShimGen"}, "thread_id": 4044, "pid": 22336}
+  [migration] done.
+  [config] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:15.918236+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SecretRotator", "error": "No standard method found on SecretRotator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.918454+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EnvValidator", "error": "No standard method found on EnvValidator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.918565+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "DotfileSync", "error": "No standard method found on DotfileSync"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.918669+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureFlagCtrl", "error": "No standard method found on FeatureFlagCtrl"}, "thread_id": 4044, "pid": 22336}
+  [config] done.
+  [telemetry] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:15.926044+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "SpanTracer", "error": "No standard method found on SpanTracer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.926261+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MetricAggregator", "error": "No standard method found on MetricAggregator"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.926392+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "EventRouter", "error": "No standard method found on EventRouter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.926509+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "LogStreamer", "error": "No standard method found on LogStreamer"}, "thread_id": 4044, "pid": 22336}
+  [telemetry] done.
+  [backup] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:15.933710+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "StateSnapshotter", "error": "No standard method found on StateSnapshotter"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.933909+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "IncrementalBackupWorm", "error": "No standard method found on IncrementalBackupWorm"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:15.934033+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RecoveryTester", "error": "No standard method found on RecoveryTester"}, "thread_id": 4044, "pid": 22336}
+  [backup] done.
+  [monitor] 1 worms (cluster, parallel=False)...
+  [monitor] done.
+  [visualization] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:19.519077+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "GraphRenderer", "error": "No standard method found on GraphRenderer"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.519275+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ReportCompiler", "error": "No standard method found on ReportCompiler"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.519389+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "HeatmapBuilder", "error": "No standard method found on HeatmapBuilder"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.519485+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "TimelineViz", "error": "No standard method found on TimelineViz"}, "thread_id": 4044, "pid": 22336}
+  [visualization] done.
+  [learning] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:19.539569+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RLTrainLoop", "error": "No standard method found on RLTrainLoop"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.539850+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ModelVersioner", "error": "No standard method found on ModelVersioner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.540997+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FeatureEngineer", "error": "No standard method found on FeatureEngineer"}, "thread_id": 4044, "pid": 22336}
+  [learning] done.
+  [security] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:19.768993+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "VulnScanner", "error": "No standard method found on VulnScanner"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.769269+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "PortAuditor", "error": "No standard method found on PortAuditor"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:19.769418+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "FirewallAudit", "error": "No standard method found on FirewallAudit"}, "thread_id": 4044, "pid": 22336}
+  [security] done.
+  [ml] 1 worms (cluster, parallel=False)...
+  [ml] done.
+  [communication] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:21.799462+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "MessageBroker", "error": "No standard method found on MessageBroker"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:21.799660+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "RPCEndpoint", "error": "No standard method found on RPCEndpoint"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:21.799783+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WebhookRelay", "error": "No standard method found on WebhookRelay"}, "thread_id": 4044, "pid": 22336}
+{"timestamp": "2026-06-13T06:29:21.799902+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "ProtocolNegotiator", "error": "No standard method found on ProtocolNegotiator"}, "thread_id": 4044, "pid": 22336}
+  [communication] done.
+  [orchestration] 1 worms (cluster, parallel=False)...
+{"timestamp": "2026-06-13T06:29:21.809253+00:00", "level": "WARNING", "source": "NatureCluster", "message": "worm_failed", "data": {"worm": "WormFleet", "error": "No standard method found on WormFleet"}, "thread_id": 4044, "pid": 22336}
+  [orchestration] done.
+
+
+==============================================================================================================
+  AZAZAEL WORM EXECUTION MATRIX — 93 worms  |  41.6s  |  timeout=90s
+==============================================================================================================
+   # Worm                             Category         Result Method          Dur(ms) Version   Error
+--------------------------------------------------------------------------------------------------------------
+   1 DeadLetterQueue                  utility              OK get_summary           0 1.0.0    
+   2 MorphingWorm                     utility            FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+   3 OMNIV2                           utility              OK run                   0 2.0.0    
+   4 WORMZ                            utility              OK get_status            0 1.0.0    
+   5 CLOCKZ                           sync               FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+   6 DiagnosticWorm                   diagnostic         FAIL ?                     0 0.0.0    No standard method found o !! ClusterFailed
+   7 FastErrorScanner                 diagnostic         FAIL ?                     0 0.0.0    No standard method found o !! ClusterFailed
+   8 MorphingWormV2                   diagnostic         FAIL ?                     0 2.0.0    No standard method found o !! ClusterFailed
+   9 NetworkDiag                      diagnostic           OK get_summary           0 1.0.0    
+  10 VideoAnalyzerWorm                diagnostic           OK execute               0 1.0.0    
+  11 ABTestRunner                     learning             OK get_summary           0 1.0.0    
+  12 AlertEscalator                   telemetry            OK get_summary           0 1.0.0    
+  13 BinaryAnalysis                   analysis             OK get_summary           0 1.0.0    
+  14 CPUFlameProfiler                 profiling            OK get_summary           0 1.0.0    
+  15 CainWorm                         analysis           FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  16 CertMonitor                      security             OK get_summary           0 1.0.0    
+  17 CheckpointWorm                   backup               OK get_summary           0 1.0.0    
+  18 ClusterInspector                 analysis             OK get_summary           0 1.0.0    
+  19 ClusterWORMZ                     orchestration        OK get_status            0 2.2.0    
+  20 CodeMigrator                     migration            OK get_summary           0 1.0.0    
+  21 CodeProfiler                     profiling            OK get_summary           0 1.0.0    
+  22 ColdArchivist                    backup               OK get_summary           0 1.0.0    
+  23 ComposeValidator                 container            OK get_summary           0 1.0.0    
+  24 ConcurrencyManager               orchestration        OK get_status            0 1.0.0    
+  25 ConfigLinter                     config               OK get_summary           0 1.0.0    
+  26 ContainerOrch                    container            OK get_summary           0 1.0.0    
+  27 DEPENDZ                          analysis             OK get_summary           0 2.2.0    
+  28 DISKZ                            monitor              OK get_summary           0 1.0.0    
+  29 DashboardGen                     visualization        OK get_summary           0 1.0.0    
+  30 DataPipelineWorm                 learning             OK execute               0 2.0.0    
+  31 DatabaseMonitorWorm              monitor              OK execute               0 1.0.0    
+  32 DepUpgrader                      migration          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  33 DotfileSync                      config             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  34 DreamingModule                   learning             OK execute               0 1.0.0    
+  35 EnvValidator                     config             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  36 ErrorRecoveryOrchestrator        orchestration        OK execute               0 1.0.0    
+  37 EventRouter                      telemetry          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  38 EvolutionEngine                  learning             OK execute               0 1.0.0    
+  39 FeatureEngineer                  learning           FAIL ?                     0 2.0.0    No standard method found o !! ClusterFailed
+  40 FeatureFlagCtrl                  config             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  41 FirewallAudit                    security           FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  42 GILContentionProbe               profiling          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  43 GeneticOptimizer                 learning             OK execute               0 1.0.0    
+  44 GraphRenderer                    visualization      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  45 HeatmapBuilder                   visualization      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  46 HypnagogicSynthesizer            learning             OK execute               0 1.0.0    
+  47 IOBottleneckFinder               profiling          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  48 IPCBridge                        communication        OK get_summary           0 1.0.0    
+  49 ImageAuditor                     container          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  50 ImportPathFixWorm                migration          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  51 IncrementalBackupWorm            backup             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  52 InferenceSubscriberWorm          analysis             OK execute               0 1.0.0    
+  53 InferenceWorm                    analysis             OK execute               0 1.0.0    
+  54 LegacyShimGen                    migration          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  55 LogStreamer                      telemetry          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  56 METAZ                            analysis             OK get_summary           0 2.0.0    
+  57 MemoryLeakDetector               profiling          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  58 MessageBroker                    communication      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  59 MetaCluster                      orchestration        OK get_status            0 1.0.0    
+  60 MetaCognitionWorm                learning             OK execute               0 1.0.0    
+  61 MetricAggregator                 telemetry          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  62 ModelVersioner                   learning           FAIL ?                     0 2.0.0    No standard method found o !! ClusterFailed
+  63 NETWORXZ                         monitor              OK get_summary           0 1.0.0    
+  64 NatureClusterManager             orchestration        OK get_status            0 1.0.0    
+  65 NimInferenceWorm                 analysis             OK execute               0 1.2.0    
+  66 PROCESSZ                         monitor              OK get_summary           0 1.0.0    
+  67 ParallelInferenceWorm            analysis             OK execute               0 1.0.0    
+  68 PermissionScanner                security             OK get_summary           0 1.0.0    
+  69 PortAuditor                      security           FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  70 ProtocolNegotiator               communication      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  71 RLTrainLoop                      learning           FAIL ?                     0 2.0.0    No standard method found o !! ClusterFailed
+  72 RPCEndpoint                      communication      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  73 RaceConditionDetector            security             OK execute               0 1.0.0    
+  74 RecoveryTester                   backup             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  75 RegistryPoller                   container          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  76 ReportCompiler                   visualization      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  77 ResourceQuotaWatch               container          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  78 ReverseTools                     analysis             OK get_summary           0 1.0.0    
+  79 SMARTDISK                        monitor              OK get_status            0 1.0.0    
+  80 SYSTEMZ_ML                       ml                   OK get_status            0 1.0.0    
+  81 ScheduledDbMonitorWorm           monitor              OK get_status            0 1.0.0    
+  82 ScheduledTrainingWorm            learning             OK get_status            0 1.0.0    
+  83 SchemaVersioner                  migration          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  84 SecretRotator                    config             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  85 SpanTracer                       telemetry          FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  86 StateSnapshotter                 backup             FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  87 SystemZ                          monitor              OK get_summary           0 1.0.0    
+  88 TimelineViz                      visualization      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  89 TrainingOrchestrator             learning             OK get_status            0 1.0.0    
+  90 VulnScanner                      security           FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  91 WORMZ_ML                         ml                   OK get_status            0 1.0.0    
+  92 WebhookRelay                     communication      FAIL ?                     0 1.0.0    No standard method found o !! ClusterFailed
+  93 WormFleet                        orchestration      FAIL ?                     0 0.0.0    No standard method found o !! ClusterFailed
+--------------------------------------------------------------------------------------------------------------
+  PASS: 51/93 (54.8%)
+  NEEDS_ARGS: 0  |  TIMEOUT: 0  |  CRASHED: 0
+  IMPORT_ERR: 0  |  NOT_FOUND: 0  |  RUNTIME_ERR: 42
+  JSON: C:\Users\clint\azazael\worm_execution_matrix.json
+==============================================================================================================
+
+  Category Breakdown:
+    utility            3/4    (75.0%)
+    sync               0/1    (0.0%)
+    diagnostic         2/5    (40.0%)
+    learning           9/12   (75.0%)
+    telemetry          1/5    (20.0%)
+    analysis           9/10   (90.0%)
+    profiling          2/5    (40.0%)
+    security           3/6    (50.0%)
+    backup             2/5    (40.0%)
+    orchestration      5/6    (83.3%)
+    migration          1/5    (20.0%)
+    container          2/5    (40.0%)
+    config             1/5    (20.0%)
+    monitor            7/7    (100.0%)
+    visualization      1/5    (20.0%)
+    communication      1/5    (20.0%)
+    ml                 2/2    (100.0%)
