@@ -1,6 +1,8 @@
 """Stress test: 50 concurrent DirectMemory instances under 3.14t free-threading."""
-import sys, os, threading, time
+import sys, os, threading, time, tempfile
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+# Stress traffic must not pollute the production memory store.
+os.environ.setdefault("AZAZAEL_MEMORY_DIR", tempfile.mkdtemp(prefix="dm_stress_"))
 from CORE.direct_memory import DirectMemory
 
 def worker(results: list, idx: int):
