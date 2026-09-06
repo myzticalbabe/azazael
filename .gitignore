@@ -80,4 +80,14 @@ coverage_inference_html/
 # Githooks (local)
 .githooks/
 nul
+
+# Generated diagnostics (pyright/mypy dumps, session logs)
+pyright_*.txt
+_pyright_*.txt
+_mypy_*.txt
+pyright*.txt
+session_log*.txt
+output/
+skills.win-backup/
+graphify-out/
 nul
