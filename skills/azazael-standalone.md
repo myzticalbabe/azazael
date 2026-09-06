@@ -33,8 +33,8 @@ python build_all.py CODEX_Studio
 
 ### Packaging Approach
 - **Compiler:** Nuitka 4.1.2 (patched for 3.14t, --standalone --onefile)
-- **Build Python:** CPython 3.14.5t (free-threading)
-- **Runtime:** 3.14.5t (same Python, free-threading)
+- **Build Python:** CPython 3.14.6t (free-threading)
+- **Runtime:** 3.14.6t (same Python, free-threading)
 - **Note:** Nuitka requires 9 C-level patches for 3.14t support. Run `docs/scripts/patch_nuitka_314t.py --apply` before building.
 
 ## Module Inventory

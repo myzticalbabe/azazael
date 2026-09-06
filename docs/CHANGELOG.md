@@ -56,7 +56,7 @@
 - **3 test files**: `tests/test_autodiff_skills.py` (34/35 pass), `tests/test_optimizers_convergence.py` (46/46 pass), `tests/benchmark_autodiff_modes.py` (4 benchmarks)
 - **SKILLS_CATALOG.md**: entries #55-58 with `auto_load: true`
 
-### Mygrad 2.3.0 Limitations Diagnosed (Python 3.14.5t free-threading)
+### Mygrad 2.3.0 Limitations Diagnosed (Python 3.14.6t free-threading)
 - `.backward(seed)` on vector outputs → `.grad` stays `None` (workaround: auto-fallback to finite differences)
 - `.grad` has no setter → `AttributeError` on assignment (workaround: `p.grad[:] *= x` slice assignment)
 - `null_grad()` sets `.grad` to `None` (not zero)

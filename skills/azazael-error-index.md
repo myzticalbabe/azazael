@@ -14,7 +14,7 @@ metadata:
 ## Skill Files
 
 ### `azazael-fix-python-314t.md` — Python 3.14t Free-Threading (8 errors)
-**Symptoms include:** pytest 9.0.3 Segfaults on Python 3.14.5t Free-Thre / psutil C Extension Segfaults on Python 3.14.5t Fre
+**Symptoms include:** pytest 9.0.3 Segfaults on Python 3.14.6t Free-Thre / psutil C Extension Segfaults on Python 3.14.6t Fre
 **Load:** `skill("azazael-fix-python-314t")` or `read_files(["azazael/skills/azazael-fix-python-314t.md"])`
 
 ### `azazael-fix-gitbash-paths.md` — Environment & Path Handling (7 errors)
@@ -38,10 +38,10 @@ metadata:
 | Error # | Domain | Title (truncated) |
 |---------|--------|-------------------|
 | #16 | Python 3.14t Free-Threading | Nuitka 4.1.2 C-backend failures on Python 3.14t free-threading build |
-| #48 | Python 3.14t Free-Threading | pytest 9.0.3 Segfaults on Python 3.14.5t Free-Threading |
-| #49 | Python 3.14t Free-Threading | psutil C Extension Segfaults on Python 3.14.5t Free-Threading |
+| #48 | Python 3.14t Free-Threading | pytest 9.0.3 Segfaults on Python 3.14.6t Free-Threading |
+| #49 | Python 3.14t Free-Threading | psutil C Extension Segfaults on Python 3.14.6t Free-Threading |
 | #50 | Python 3.14t Free-Threading | psycopg2-binary cp314t Wheel Missing Bundled DLLs |
-| #54 | Python 3.14t Free-Threading | pydantic-core / uuid-utils cp314t Wheel Segfault on Python 3.14.5t |
+| #54 | Python 3.14t Free-Threading | pydantic-core / uuid-utils cp314t Wheel Segfault on Python 3.14.6t |
 | #61 | Python 3.14t Free-Threading | f-string Backslash SyntaxError in hydra_bridge.py |
 | #62 | Python 3.14t Free-Threading | Generator-vs-List Bug in TARBABY discover_python_files() |
 | #68 | Python 3.14t Free-Threading | 3.14t Lazy-Load Deadlock in PamsRecorder._ensure_local_store() |

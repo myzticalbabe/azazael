@@ -1,186 +1,126 @@
 ---
 name: azazael-shims
-description: Azazael deprecation shim pattern — when to use, how to create, how to test, examples from all 13 shims created.
+description: Deprecation shim pattern — when to create shims, how to use FutureWarning, re-export patterns, testing procedures, and cleanup
 metadata:
-  category: maintenance
+  category: process
   project: azazael
+  priority: high
+  auto_load: false
+  version: 1.0.0
+  created: 2026-06-14
 ---
 
-# Azazael Deprecation Shim Skill
+# Azazael Deprecation Shims
 
-## Overview
-
-A **deprecation shim** is a thin replacement file that re-exports symbols from a canonical source while emitting a `UserWarning` directing developers to update their imports. As of May 29, 2026, **13 shims** have been created across 3 directories.
+> **Purpose:** Safe module relocation without breaking imports. Shims maintain backward compatibility while directing developers to the new location.
+> **Context:** As Azazael refactors its monolith into sub-projects, many modules move. Shims prevent runtime breakage.
 
 ---
 
 ## When to Create a Shim
 
-| Situation | Action |
-|-----------|--------|
-| Byte-for-byte duplicate in two locations | Shim the non-canonical copy |
-| Stale copy with hardcoded paths (canonical has dynamic paths) | Shim the stale copy |
-| Near-duplicate with minor bugs (CSS typos, missing decorators) | Shim the buggy copy |
-| File with broken imports that never worked | Fix the canonical, shim the broken copy |
-| Directory restructuring (canonical moved) | Shim old location → new location |
+Create a deprecation shim when:
+- A module is **relocated** to a different package/directory
+- A module is **renamed** but callers still use the old name
+- A module is **split** into multiple files and the old import path should still work
+- A class/function is **moved** to a different module but the old import should redirect
+
+## When NOT to Create a Shim
+
+- **Internal implementation details** — Only public API modules need shims
+- **Temporary files** — If nothing imports it, just delete it
+- **Generated files** — Auto-generated code should be regenerated, not shimmed
+- **During active development** — Wait until the new location is stable
 
 ---
 
 ## Shim Template
 
-### Pattern A: Explicit Imports (preferred for small modules)
-
 ```python
 # coding: utf-8
 """
-DIR/SUBDIR/MODULE.py — DEPRECATION SHIM
+DEPRECATED — Use new location instead.
 
-This file was [a duplicate | stale copy | etc].
-It now re-exports from the canonical source: MODULE.py
-
-Update your imports from:
-    from DIR.SUBDIR.MODULE import Something
-to:
-    from MODULE import Something
-
-This shim will be removed in a future release.
+This file is a backward-compatibility shim.
+All functionality has been moved to:
+    from NEW_LOCATION import NEW_NAME
 """
 
-import sys
 import warnings
-from pathlib import Path
-
 warnings.warn(
-    "DIR.SUBDIR.MODULE is deprecated. "
-    "Use 'from MODULE import ...' instead. "
-    "This shim will be removed in a future release.",
-    UserWarning,
+    "azazael/src/OLD_LOCATION.py is deprecated. "
+    "Use 'from NEW_LOCATION import NEW_NAME' instead.",
+    FutureWarning,
     stacklevel=2,
 )
 
-_src_dir = Path(__file__).resolve().parent.parent.parent  # Adjust depth as needed
-if str(_src_dir) not in sys.path:
-    sys.path.insert(0, str(_src_dir))
+from NEW_LOCATION import NEW_NAME  # noqa: E402, F401
 
-from MODULE import ExportedClass1, ExportedClass2, public_function  # noqa: E402, F401
-
-__all__ = ["ExportedClass1", "ExportedClass2", "public_function"]
+__all__ = ["NEW_NAME"]
 ```
 
-### Pattern B: `from X import *` (for large modules with many exports)
+### Critical Elements
 
-```python
-# Use same boilerplate as Pattern A, but replace the import line with:
-
-from MODULE import *  # noqa: E402, F401
-# No __all__ needed — defers to canonical module's __all__
-
-# WHEN TO USE:
-# - Module has 15+ public exports (tedious to list)
-# - Module is large (300+ lines)
-# - Shim will be removed soon (< 3 months)
-# - No namespace pollution concerns (deprecation warning tells users to update anyway)
-```
-
-### Path Resolution by Directory
-
-| Shim Location | `parent.parent...` Chain | Resolves To |
-|--------------|--------------------------|-------------|
-| `META/X.py` | `.parent.parent` (META → src) | `azazael/src/` |
-| `HYDRA/ml_platforms/X.py` | `.parent.parent.parent` (ml_platforms → HYDRA → src) | `azazael/src/` |
-| `CODEX/CORE/X.py` | `.parent.parent.parent` (CORE → CODEX → src) | `azazael/src/` |
-| `META/METAWORMS_POPUP.py` | `.parent.parent` (META → src) | `azazael/src/` |
+| Element | Why |
+|---------|-----|
+| `FutureWarning` | Always visible (not filtered by default in Python 3.14) |
+| `stacklevel=2` | Error message points to the REAL caller, not the shim |
+| Old path in message | `grep`-able, lets devs find all deprecated imports |
+| New path in message | Tells devs exactly where to update their import |
+| `# noqa: E402` | Suppresses "import not at top of file" linter warning |
+| `# noqa: F401` | Suppresses "imported but unused" linter warning |
+| `__all__` | Explicit re-export maintains API contract |
+| Docstring | Tells devs what's happening without running code |
 
 ---
 
-## Testing a Shim
+## Shim Testing Procedure
 
-### Test 1: Import Verification
 ```python
-import sys; sys.path.insert(0, 'azazael/src')
-import warnings
+# Test that the shim works (syntax + import)
+python -c "from OLD_MODULE import NAME; print('Shim OK')"
 
-with warnings.catch_warnings(record=True) as w:
-    warnings.simplefilter('always')
-    from DIR.SUBDIR.MODULE import ExportedName
-    assert len(w) == 1, f"Expected 1 warning, got {len(w)}"
-    assert "deprecated" in str(w[0].message).lower()
+# Test that the warning fires
+python -W all -c "import OLD_MODULE"
 
-print("OK: Warning fires correctly")
-```
+# Test that the new location also works
+python -c "from NEW_MODULE import NAME; print('New location OK')"
 
-### Test 2: Symbol Identity (shim and canonical match)
-```python
-from DIR.SUBDIR.MODULE import ExportedName as Shimmed
-from MODULE import ExportedName as Canonical
-assert Shimmed is Canonical, "Shim and canonical should reference same object"
-print("OK: Symbols match")
-```
-
-### Test 3: No Import Reference Check
-```bash
-rg "from DIR\.SUBDIR\.MODULE|import DIR\.SUBDIR\.MODULE" azazael/src/
-# Should return 0 results
-```
-
----
-
-## Warning Category Decision
-
-| Category | Visible by Default? | When to Use |
-|----------|---------------------|-------------|
-| `UserWarning` | ✅ Yes | **Shims** — developers should see this immediately |
-| `DeprecationWarning` | ❌ No (filtered) | Library deprecations for end-users |
-| `FutureWarning` | ✅ Yes | Upcoming behavior changes |
-| `PendingDeprecationWarning` | ❌ No (filtered) | Very early heads-up |
-
-**All 13 Azazael shims use `UserWarning`** — this is the correct choice for in-project deprecation notices.
-
----
-
-## Real Examples
-
-### Small Module (3 exports) — META/UVZ.py
-```python
-from UVZ import UVResult, UVZ, main
-__all__ = ["UVResult", "UVZ", "main"]
-```
-
-### Medium Module (3 exports) — META/OPTIMIZ.py
-```python
-from OPTIMIZ import OptimizationResult, OPTIMIZ, main
-__all__ = ["OptimizationResult", "OPTIMIZ", "main"]
-```
-
-### Large Module (many exports) — CODEX/CORE/ANIMATION_PROTOCOLS.py
-```python
-from ANIMATION_PROTOCOLS import *  # 313 lines, ~15+ animation classes
-```
-
-### Package Shim — HYDRA/ml_platforms/__init__.py
-```python
-from ORCHESTRATION.ml_platforms.config import (
-    LexiconUpdater, MLPlatformConfig, load_config, discover_modules
-)
-from ORCHESTRATION.ml_platforms.diagnostics import (
-    print_platform_status, list_workflows
-)
-__all__ = [...]  # 10+ names
+# Test that both return the same type
+python -c "
+from OLD_MODULE import NAME as OldName
+from NEW_MODULE import NAME as NewName
+assert type(OldName) is type(NewName), 'Type mismatch!'
+print('Type compatibility OK')
+"
 ```
 
 ---
 
 ## Shim Lifecycle
 
-1. **Create shim** — Duplicate identified, canonical determined
-2. **Add deprecation warning** — `UserWarning` fires on import
-3. **Document in MEMORIES.md** — Add to shims table
-4. **Wait (1-3 months)** — Allow importers to update
-5. **Remove shim** — Delete the shim file, clean up MEMORIES.md
+1. **Create** — Write shim at old location pointing to new location
+2. **Verify** — Run the testing procedure above
+3. **Propagate** — Update all internal references to use new import
+4. **Wait** — Let downstream consumers update their imports
+5. **Remove** — After verification period (recommended: 2 weeks or 2 sessions), delete the shim
+6. **Clean up** — Run `sync_skills.py` if any skill references changed
+
+---
+
+## Known Shim Examples in Azazael
+
+| Shim Path | Destination | Status |
+|-----------|-------------|--------|
+| `TOOLS/azazael_toolkit.py` | `AZAZAEL_TOOLKIT/` | Active |
+| `CORE/codebuff_tracker.py` | `CORE/direct_memory.py` | Deprecated (raises ImportError) |
+| `CORE/record_session.py` | `CORE/direct_memory.py` | Deprecated (raises ImportError) |
 
 ---
 
 ## Related Skills
-- `azazael-dedup` — Finding and comparing duplicates
-- `azazael-separation` — Project extraction and deprecation timelines
-- `azazael-architecture` — Project structure and canonical locations
+
+- `azazael-dedup` — Deduplication procedures (MD5 hash comparison)
+- `azazael-files` — Complete file index, import resolution
+- `azazael-architecture` — Project layout, module organization
+- `azazael-separation` — Monolith separation plan

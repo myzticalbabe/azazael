@@ -1,10 +1,41 @@
 # AZAZAEL — Codebase Audit & Production Wiring TODO
 
 > **Created:** May 29, 2026 — Consolidated from Phase 12-14 sessions
-> **Updated:** June 19, 2026 (v11) — Audit fix marathon: 3 shell=True fixed (P0), requirements-3.14t.txt created, sync-ubuntu.exclude created, tools/READMe.md catalog created, pyproject.toml Python >=3.13→3.14.
+> **Updated:** Sep 3, 2026 (Session 28 cont.) — BCC corpus qualifiers (37 bannered docs + 3 .md/skill files), FINAL_STATUS_REPORT inventory reconciled (TOTAL 64), G: archive gap filled (40 html), filing-source dating probe, mirror check closed. Prior: June 19, 2026 (v11) — Audit fix marathon.
 > **Replaces:** TODO_FULL_PRODUCTION_WIRING.md, PHASE_6_TODO.md (incorporated)
 > **Status:** Living document — update with each phase
 > **Companions:** azazael/memories.md, azazael/ERROR_LOG.md, SESSION_INSIGHTS_*.md
+
+---
+
+## Session Completion — Sep 2, 2026 (Session 28 — Graphify Refresh + CODEX Sweep + BCC Re-verify)
+
+| ID | Item | Status |
+|----|------|--------|
+| S28-1 | Regenerated ALL graphify graphs — azazael (591.7 MB), vermillion_lightfury, aoa_g, aoa_source (14:34), Kali (41,530 nodes, 14:37) via `graphify_refresh_all.sh` | ✅ **DONE** |
+| S28-2 | CODEX generator sweep — 46 HTML/JS producers scanned (AST `\n` scan + join byte-scan + py_compile + emit-and-CDP-verify); **1 real defect fixed**: `generate_dashboard_video.py:966` unterminated `\"` → `\""`; all other producers emit clean (incl. unified_generator 11 styles, 3,622x-`\n` cain template); fixed generator propagated 3/3 hash-identical | ✅ **DONE** |
+| S28-3 | BCC 53-gap sweep — 62 gaps/53 open baseline extracted; live Sep-2026 re-verification annex added to INVESTIGATION_GAPS.html (FY2025 990 public May 8, 2026: revenue $12,494,569 / deficit −$796,924 / contributions $204,333; OIG SRS-A-26-025 still active est. FY2028; federal awards $1,965,700 UEI VC1XNFDJTV33; board now disclosed on /about-us; G-56 archive.org obtainable) | ✅ **DONE** |
+| S28-4 | AOA Kali toolchain arm — 9 arms/71 caps; real `kali_arm.py` (40 caps), WSL bridge, dry-run-safe; both test suites PASS; real-payload nmap verification | ✅ **DONE** |
+| S28-5 | Skills catalog reconciled — **1,253 rows / 165 core** (33 session skills #1221–#1253), header=summary=rows bucket-verified; 7 new skills registered; cross-ref web 6/6 mirrors | ✅ **DONE** |
+| S28-6 | G: archive recovery + cleanups — MBR repaired, 850,507 files inventoried, 4.86→18.04→35.30 GB; node_modules cluster-slack cleanup; historical archive catalog + README; Phase 9 generation diffs; AOA wired in-repo | ✅ **DONE** |
+| S28-7 | FINAL_STATUS_REPORT.html — 4 missing Session 28 rows added, stale 1,240/152 audit row corrected → 1,253/165 | ✅ **DONE** |
+| S28-8 | All artifacts synced to G: mirrors (hash-verified) + session milestone + NEXT_SESSION_PLAN.md handoff written | ✅ **DONE** |
+
+**Nothing sent. BCC excluded from all recipient lists.**
+
+---
+
+## Session Completion — Sep 3, 2026 (Session 28 cont. — BCC corpus qualifiers + archive fill + dating probe)
+
+| ID | Item | Status |
+|----|------|--------|
+| S28-9 | FINAL_STATUS_REPORT.html Document Inventory reconciled against live corpus — **TOTAL 63 → 64** (62 html + README + COMPLAINT_AGENCY_LETTER.txt); G_ARCHIVE_CATALOG reclassified Session Artifacts → Audit & Reference (5→6); category sum = live corpus bucket-verified; NEXT_SESSION_PLAN.md stale-63 line annotated | ✅ **DONE** |
+| S28-10 | As-of board-role qualifiers extended — 37 bannered docs (real `id="board-role-asof-sep2026"` added, CDP banner-visibility sweep **37/37 visible**), 3 .md/bcc-* skill files qualified, INVESTIGATION_GAPS.html Sep-3 annex | ✅ **DONE** |
+| S28-11 | G: BCC_Investigation archive gap filled — **25 local-only docs copied hash-identical (40 html in archive)**; 22 non-bannered docs remain local-only (flagged) | ✅ **DONE** |
+| S28-12 | Filing-source dating probe — DDAP/BCO/IRS-e-file all checked; **reorg bracket stands ~May 8 → Sep 2, 2026**; PA BCO cert #3306 public (FY2025 renewal filed ~May 15, 2026); DOS corporate record Cloudflare-walled (gap #26/#27 action stands) | ✅ **DONE** |
+| S28-13 | Mirror check closed-no-action — FINAL_STATUS_REPORT/SESSION_MILESTONE are root-level corpus docs (not azazael-repo files); canonical mirror G:/source-of-truth/azazael hash-current; azazael-dev/Kali never carried them | ✅ **DONE** |
+
+**Nothing sent. BCC excluded from all recipient lists.**
 
 ---
 
@@ -21,14 +52,42 @@
 
 ---
 
+## State Snapshot (Sep 2, 2026 — Session 28 Refresh)
+
+| Metric | Value | Change |
+|--------|-------|--------|
+| Python version | **3.14.7t** | ✅ Unchanged (3.14t family) |
+| Skills catalog | **1,253 rows / 165 core** | ⬆️ Reconciled (was 1,220 base; 33 session skills #1221–#1253) |
+| AOA arms / caps | **9 arms / 71 caps** | ⬆️ Kali toolchain arm added (40 caps, real payloads verified) |
+| HTML generator defects | **0 remaining** | 🟢 CODEX sweep: 1 found+fixed (dashboard capture script), all 46 producers emit-verified |
+| Graphify graphs | **5/5 regenerated Sep 2** (azazael 591.7 MB, kali 41,530 nodes) | ✅ All current |
+| BCC investigation | **62 gaps / 53 open / 9 resolved** | 🟢 Live re-verify annex added; FY2025 990 public (net loss −$796,924) |
+| G: drive | **35.30 GB free post-cleanup** | ⬆️ From 4.86 GB (MBR repair + node_modules cluster-slack recovery) |
+| Session handoff | NEXT_SESSION_PLAN.md (8 sections, thread scoring) | ✅ Written + mirrored |
+
+## State Snapshot — Live Reconcile (Sep 3, 2026 — worm/file/EXE counts verified)
+
+| Metric | Live value (2026-09-03) | vs prior snapshot |
+|--------|-------|--------|
+| Worms in registry | **108 across 19 categories** (live `discover_worms` + cache rebuild agree; all have category, 1 missing desc) | ⬆️ June 5 said 91/17; **skills say 77/17 (12 files — stale, doc-consistency only)**; Aug 29 health matrix said 105 |
+| Python source files (src/) | **526 .py files** (excl. `__pycache__`; 25 Python-bearing top dirs: CORE 185, ORCHESTRATION 83, CODEX 74, SCRIPTS 26, AOA 24, UTILITIES 23, META 16…) | ⬆️ June 5 said 322 .py / 18 subdirs |
+| Standalone EXEs | **52 EXEs + 52 BATs @ `G:\AZAZAEL_Standalone`** (51 `_314t.exe` + `AZAZAEL_314t_Launcher.exe`; 1.97 GB, 9,024 files) | ✅ Count matches June 5 (52/52) but **location moved Desktop→G:** — Desktop/AZAZAEL_Standalone is docs-only now |
+| Skills catalog rows | **1,253 numbered rows** | ✅ Matches Sep 2 snapshot |
+| FINAL_STATUS_REPORT inventory | **TOTAL 64 docs** = 62 root html (5 documented exclusions) + README.md + COMPLAINT_AGENCY_LETTER.txt; 8 categories bucket-verified | ⬆️ Corrected from 63 (G_ARCHIVE_CATALOG.html was miscounted as Session Artifact → reclassified Audit & Reference) |
+| BCC corpus as-of qualifiers | **37/37 bannered docs** carry `id="board-role-asof-sep2026"`, CDP-verified visible; 3 .md/skill files qualified (bcc-investigation, bcc-owl-framework, README.md) | 🟢 Sweep complete — banner real-id added (was comment-only marker) |
+| G: BCC_Investigation archive | **42 files / 40 html** (25 docs added hash-identical) | ⬆️ Was 15 html — all 37 bannered docs now mirrored; **22 non-bannered html remain local-only** (open item) |
+| BCC reorg dating bracket | **~May 8 → Sep 2, 2026** (990 signing floor; new slate live) | 🟢 Filing probe: PA BCO cert #3306 APPROVED, FYE 06/30/2025, expires 05/15/2027 → FY2025 renewal filed ~May 15, 2026 (inside window, roster not public); DOS record Cloudflare-walled |
+
+---
+
 ## State Snapshot (June 5, 2026 — Comprehensive Project Audit)
 
 | Metric | Value | Change |
 |--------|-------|--------|
 | Python version | **3.14.5t ONLY** | ✅ Unchanged |
-| Python source files (src/) | **322 .py files** across **18 subdirectories** | ⬆️ Was 305 (17 new) |
-| Worms in registry | **91** across **17 categories** | ⬆️ Was ~79 (improved discovery) |
-| Desktop standalone EXEs | **52** (operational) | ✅ 52 EXEs + 52 BATs |
+| Python source files (src/) | **322 .py files** across **18 subdirectories** | ⬆️ Was 305 (17 new) — ⚠️ **SUPERSEDED Sep 3: live = 526 .py** (see Live Reconcile snapshot) |
+| Worms in registry | **91** across **17 categories** | ⬆️ Was ~79 (improved discovery) — ⚠️ **SUPERSEDED Sep 3: live = 108 / 19** (see Live Reconcile snapshot) |
+| Desktop standalone EXEs | **52** (operational) | ✅ 52 EXEs + 52 BATs — ⚠️ **SUPERSEDED Sep 3: count holds (52/52) but suite now lives at `G:\AZAZAEL_Standalone`** (Desktop folder docs-only; see Live Reconcile snapshot) |
 | Desktop projects inventoried | **17** (was 14) | ⚠️ 3 undocumented: AZAZAEL_Vault, AZAZAEL_ARCHIVE, scripts_archive |
 | G: AZAZAEL_ROOT | **6,567 files, 14.7 GB** | Most complete G: copy |
 | G: source-of-truth | **5,296+ files** | ✅ Synced June 7 (was 5,075 file gap) |

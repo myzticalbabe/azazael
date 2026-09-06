@@ -153,7 +153,8 @@ def clip_gradients(params, max_norm=1.0):
     if clip_coef < 1.0:
         for p in params:
             if p.grad is not None:
-                p.grad *= clip_coef
+                # Use slice assignment to modify in-place (mygrad 2.3.0 .grad has no setter)
+                p.grad[:] *= clip_coef
 ```
 
 ## Common Pitfalls & Debugging

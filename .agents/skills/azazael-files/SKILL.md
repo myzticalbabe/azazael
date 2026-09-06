@@ -28,25 +28,11 @@ azazael/
 │   ├── PamsRecorder.py               # Session audit trail (p=3)
 │   ├── MemoryBus.py                  # Pub/sub event bus (p=3)
 │   ├── CODEX/
-│   │   ├── VIDEOS/                   # 22 active video generation scripts
-│   │   ├── TESTING/                  # Test files (unit, integration, performance)
-│   │   ├── CORE/                     # 12 CODEX core utilities (8 restored from G:)
-│   │   ├── comprehensive/           # System analysis scripts (6)
-│   │   ├── POPUPS/                   # Popup generation scripts (9)
-│   │   ├── SESSION_TEMPLATE/         # Session templates (24 HTML + 5 generators)
-│   │   └── CODEX_Studio.py           # Standalone GUI + CLI video app (v3.1)
+│   │   ├── VIDEOS/                   # 6 active video generation scripts
+│   │   ├── TESTING/                  # Test files
+│   │   └── CORE/                     # CODEX core utilities
 │   ├── ORCHESTRATION/                # Orchestration scripts and tests
-│   ├── META/                         # 12 meta-level utilities (3 restored from G:)
-│   ├── HYDRA/                        # ML pipeline subsystem
-│   ├── HORUS/                        # Monitoring subsystem
-│   ├── AZAZAEL_TOOLKIT/              # Toolkit scripts
-│   ├── CLI/                          # CLI entry points
-│   ├── UTILITIES/                    # Utility modules (PamsRecorder, etc.)
-│   └── ANIMATION_PROTOCOLS.py        # Canonical source (CODEX CORE shim re-exports)
-├── .agents/
-│   └── skills/                       # 29 skill files (restored from G:)
-├── dashboard/
-│   └── index.html                    # SB3 training dashboard
+│   └── META/                         # Meta-level utilities (DebugZ, InferenceBridge)
 ├── worm_config_trace.json            # Machine-readable worm config dump
 ├── MEMORIES.md                       # Canonical anti-pattern catalog
 ├── ERROR_LOG.md                      # 15+ errors with cause/fix/prevention

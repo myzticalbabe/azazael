@@ -53,6 +53,8 @@ def jvp(f, x, v):
         return float(np.dot(xt.grad, v))
 
     # Vector-valued f: compute each output's sensitivity to v
+    # NOTE: mygrad 2.3.0 limitation — .backward(seed) on vector outputs
+    # may leave .grad as None. If so, fall back to finite differences.
     result = np.zeros(m)
     for i in range(m):
         xt = mg.tensor(x)
@@ -61,7 +63,14 @@ def jvp(f, x, v):
         seed = np.zeros(m)
         seed[i] = 1.0
         yt.backward(mg.tensor(seed))
-        result[i] = float(np.dot(xt.grad, v))
+        if xt.grad is None:
+            # Fallback: finite-diff directional derivative for output i
+            h = 1e-6
+            y_plus = float(f(mg.tensor(x + h * v)).data[i])
+            y_minus = float(f(mg.tensor(x - h * v)).data[i])
+            result[i] = (y_plus - y_minus) / (2 * h)
+        else:
+            result[i] = float(np.dot(xt.grad, v))
 
     return result
 ```

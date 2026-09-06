@@ -51,7 +51,7 @@ Every major update should include an updated State Snapshot at the top of the do
 
 | Metric | Value | Change |
 |--------|-------|--------|
-| Python version | **3.14.5t ONLY** | ✅ Unchanged |
+| Python version | **3.14.6t ONLY** | ✅ Unchanged |
 | Source files | **305+ .py** | ✅ Stable |
 | Worms in registry | **~79** | ✅ Stable |
 | Lessons catalog | **45 lessons** | 🟢 Updated |
@@ -148,7 +148,7 @@ Each new item needs a priority level:
 
 **Rule 1: ONE primary, ALL others marked as superseded**
 - `CODEBASE_AUDIT_TODO.md` = primary
-- `PRODUCTION_TODO.md` = add header: "SUPERSEDED — see CODEBASE_AUDIT_TODO.md"
+- `PRODUCTION_TODO.md` = ✅ ARCHIVED July 6, 2026 — file deleted, references migrated
 - `REWRITE_TODO.md` = add header: "LEGACY — do not update"
 - `PHASE_6_TODO.md` = add header: "LEGACY — incorporated into CODEBASE_AUDIT_TODO.md"
 

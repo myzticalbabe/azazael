@@ -4,6 +4,7 @@ description: Azazael git conventions — commit messages, branching strategy, pr
 metadata:
   category: conventions
   project: azazael
+  auto_load: true
 ---
 # Azazael Git Conventions
 

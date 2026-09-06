@@ -32,12 +32,12 @@ The free-threading ABI changes are incompatible with some compiled packages.
 ## Workaround Strategy
 
 ### For Development
-All development uses Python 3.14.5t only. For ML code, use packages that are compatible:
+All development uses Python 3.14.6t only. For ML code, use packages that are compatible:
 - **numpy**, **torch (CPU)**, **gymnasium**, **langchain** — all work
 - For incompatible packages, seek pure-Python alternatives or use containerized environments
 
 ### For .exe Builds
-Build directly with Python 3.14.5t + Nuitka 4.1.2 (patched):
+Build directly with Python 3.14.6t + Nuitka 4.1.2 (patched):
 ```bash
 python -m nuitka --standalone --onefile --assume-yes-for-downloads module.py
 ```

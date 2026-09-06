@@ -4,6 +4,7 @@ description: Azazael environment setup — Python 3.10+/3.14t requirements, depe
 metadata:
   category: workflow
   project: azazael
+  auto_load: true
 ---
 # Azazael Environment
 

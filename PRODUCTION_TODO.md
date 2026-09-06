@@ -1,7 +1,24 @@
 # PRODUCTION_TODO — Azazael Ecosystem Production Roadmap
 
-> *Generated: May 28, 2026 — Last updated: June 2, 2026 — **Phase 5 + Desktop Standalone + Disk Cleanup + DB Integration session***
-> *Current state: 300+ syntax-clean files, 79 registered worms, 188+ tests passed (3.14t), 17 categories, 52 Desktop EXEs, 14/14 Desktop projects standalone, PostgreSQL adapter available, DB monitoring live*
+> **SUPERSEDED as of Sep 2, 2026 — see `CODEBASE_AUDIT_TODO.md` (primary living production plan, Phase 23+, Session 28 refresh).** Keep in place for reference only; do not add new items here.
+
+> *Generated: May 28, 2026 — Last updated: July 2, 2026 — **AOA Architecture Disclosure Rebuild session***
+> *Current state: 300+ syntax-clean files, 129 registered worms, 188+ tests passed (3.14t), 23 categories, 52 Desktop EXEs, 14/14 Desktop projects standalone, PostgreSQL adapter available, DB monitoring live, AOA whitepaper published (14 diagrams, 2 MP4s)*
+
+---
+
+## 🚨 Lessons Learned — July 2, 2026 Session (AOA Architecture Disclosure Rebuild)
+
+Lessons: #38, #39, #40, #41, #42, #43 — see LESSONS_MASTER.md for details.
+
+| # | Lesson | Category |
+|---|--------|----------|
+| #38 | Mermaid classDef must appear AFTER graph TB/LR — before causes Syntax error | Mermaid |
+| #39 | Professional disclosure docs = single scrollable whitepaper, not tabbed UI | Design |
+| #40 | Red strikethrough corrections tables are unprofessional — use Verified Specs | Design |
+| #41 | Semantic color palettes need global classDef per diagram mapped to function | Design |
+| #42 | Heredoc with single-quoted delimiter prevents shell expansion on Windows bash | Tooling |
+| #43 | Puppeteer needs 5-8s wait for 14 Mermaid diagrams before scroll capture | Tooling |
 
 ---
 
@@ -121,6 +138,21 @@ Lessons from this session: **#1, #17, #25, #28, #27, #26** — see [`LESSONS_MAS
 - [x] Support multiple output formats (mp4, webm, gif) — **DONE**
 - [x] Batch video generation for all CODEX HTML files — **DONE**
 
+### 10. AOA Architecture Disclosure *(NEW — July 2, 2026)*
+> Lessons: #38, #39, #40, #41, #42, #43
+- [x] Color audit: find/fix duplicate classDef (ph, ev) — DONE
+- [x] 12-classDef WCAG AA semantic palette — DONE
+- [x] 14 Mermaid diagrams, 7-section whitepaper — DONE
+- [x] Arm Capability Matrix (8 arms, source-verified) — DONE
+- [x] Verified Architecture Specifications (14 specs) — DONE
+- [x] 7-anchor Table of Contents — DONE
+- [x] Render 1080p HEVC MP4 via Puppeteer (85s, 2,125 frames) — DONE
+- [x] 2.5x speed version (34s, 850 frames) — DONE
+- [x] Distribute HTML + MP4s to WSL, Kali, G: — DONE
+- [x] Create aoa-disclosure-build skill (4.4 KB) — DONE
+- [ ] Automated rebuild pipeline (benchmark_data.json -> HTML -> MP4 -> distribute)
+- [ ] CI/CD trigger on worm registry changes
+
 ---
 
 ## 🔵 LOW PRIORITY (Nice to Have)
@@ -192,7 +224,7 @@ Lessons from this session: **#1, #17, #25, #28, #27, #26** — see [`LESSONS_MAS
 
 ## 📝 Notes
 
-- **256 files, 77 worms** — manageable scope for a solo developer
+- **300+ files, 129 worms, 23 categories** — manageable scope. Worm count: 77→129 after live @register_worm scan found 6 unreported categories. for a solo developer
 - **Test baseline updated**: 188+ standalone tests pass on 3.14t (8 files). MetaCluster orchestration takes ~5 min (1 file). pytest still unavailable on 3.14t (Error #48).
 - **Phase 5** (GPU Passthrough) completed 2026-06-01 — Level Zero + D3D12 system-level working, SYCL/ggml bridge blocked by Intel compiler bug
 - **Disk cleanup**: `azazael/scripts/wsl2_cleanup.sh` created — ~72 GB freed across WSL2 + Windows. Scheduled via Windows Task Scheduler (weekly Mon 6 AM). WSL2 disk: 25% → 20%.
@@ -207,3 +239,4 @@ Lessons from this session: **#1, #17, #25, #28, #27, #26** — see [`LESSONS_MAS
 - **6 bugs fixed this session**: HAS_PYNVML undefined, TOML \U escape, PS1 broken paths, missing status command, urllib function imports (2x).
 - **Code hygiene**: Removed unused `PurePosixPath` import from `WORMZ.py` (was listed under TRIMZ.py in TODO).
 - **Hardcoded paths fixed**: All hardcoded `C:\Users\clint\Desktop\...` paths in `ORCHESTRATION/scripts/` replaced with dynamic resolution using `CORE.paths` (get_project_root, get_src_dir, get_desktop_dir) or `Path.home()`. 8 files fixed: fix_syntax_errors.py, generate_docstrings.py, improve_bat_files.py, consistency_checker.py (including regex patterns), run_tests.py, bat_analysis.py, comprehensive_analysis.py, azazael_wsa.py. 0 remaining hardcoded Desktop paths. BAT templates now use `%USERPROFILE%`.
+- **AOA Architecture Disclosure**: 7-section whitepaper built July 2, 2026. 14 Mermaid diagrams with 12-color WCAG AA semantic palette. 2 videos (85s + 34s HEVC 1080p). Distributed to WSL Ubuntu, Kali Linux, G:, Windows Desktop. New skill: aoa-disclosure-build.md. Key numbers: 129 worms, 23 cats, 8 arms, 13 compliance components, 49 EXEs, 25 skills, 4 Quartet pillars, 8 canonical docs, 46 routes, 264 paths.

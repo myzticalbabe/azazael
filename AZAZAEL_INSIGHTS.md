@@ -1,6 +1,6 @@
 # AZAZAEL INSIGHTS — Session Memories & Architectural Reflections
 
-> *Generated: May 28, 2026 — Codebuff Session*
+> *Generated: May 28, 2026 — Last updated: July 6, 2026 (DirectMemory v1.1.0)*
 
 ---
 
@@ -55,9 +55,15 @@ NATURE_CLUSTERS.py          METACLUSTER.py
 - `METACLUSTER.py` orchestrates cross-nature workflows
 - Enables parallel execution of independent nature groups
 
-### PAMS/MemoryBus Integration
+### PAMS/MemoryBus/DirectMemory Integration
 - Every cluster action records to `PamsRecorder` (44 events, 44 pams recorded)
 - `MemoryBus` publishes cluster lifecycle events (start, complete, error)
+- **DirectMemory v1.1.0** (July 6, 2026) now handles cross-session learning:
+  - `record_decision()` / `record_lesson()` / `set_goal()` for agent knowledge
+  - `get_context_for_new_session()` feeds past learnings back at session start
+  - 37-event `_V` canonical vocabulary with `validate_event_type()`
+  - 14 static query/maintenance methods (summary_stats, db_size, integrity_check, purge, merge, replay, session_gc, import_events, filtered_query, session_search, mapping, crossref)
+  - Replaces SessionMemory — `workspace/session_memory.db` has 0 sessions, never populated
 - Session-level persistence for post-mortem analysis
 
 ### Thread Safety Design
@@ -178,8 +184,10 @@ G:\AZAZAEL\
 | Metric | Value |
 |--------|-------|
 | Total Python files (syntax-clean) | 256 |
-| Worms in registry | 77 |
-| Categories | 17 |
+| Worms in registry | 104 (runtime verified July 6, 2026) |
+| Categories | 18 (runtime verified) |
+| DirectMemory version | **v1.1.0** (37 _V types, learning loop, 14 static methods) |
+| DirectMemory DB | 1,116 MB, 79,189 sessions, 646,755 events |
 | Cross-nature routes | 46 |
 | Cross-nature paths | 264 |
 | PAMS events recorded | 44 |
@@ -209,13 +217,14 @@ G:\AZAZAEL\
 
 ## 9. Reflection
 
-The Azazael ecosystem has evolved from a collection of standalone worm scripts into a cohesive, registry-driven architecture. The three-tier cluster system (CLUSTERWORMS → NATURE_CLUSTERS → METACLUSTER) enables both targeted single-nature operations and cross-nature orchestration. Memory persistence through PAMS/MemoryBus provides audit trails and session recovery.
+The Azazael ecosystem has evolved from a collection of standalone worm scripts into a cohesive, registry-driven architecture. The three-tier cluster system (CLUSTERWORMS → NATURE_CLUSTERS → METACLUSTER) enables both targeted single-nature operations and cross-nature orchestration. **DirectMemory v1.1.0 (July 6, 2026) is now fully self-sufficient** — the canonical session recorder handles all cross-session learning (decisions, lessons, goals) via event-based recording in its existing `memories` table, eliminating the need for a separate SessionMemory database.
 
 Key architectural strengths:
 - **Registry as single source of truth** for worm discovery
 - **Nature-based grouping** maps naturally to operational domains
 - **Mermaid graph generation** enables visual documentation at all levels
 - **Backward compatibility** maintained via deprecation shims and fallback dispatch
+- **DirectMemory self-sufficiency** — stdlib-only, <0.1s, 37-event vocabulary, agent learning loop, no external DB dependencies
 
 Areas for continued investment:
 - Test coverage (currently minimal)
