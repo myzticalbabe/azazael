@@ -51,15 +51,6 @@ import os
 sys.path.insert(0, {str(file_path.parent)!r})
 sys.path.insert(0, {str(file_path.parent.parent / 'src')!r})
 
-# Pre-warm worm registry to avoid cold-start delay in test execution
-# Each subprocess starts fresh, so discover_worms() pays the cold-start
-# cost once before tests run rather than during the first execute_all().
-try:
-    from CORE.worm_registry import discover_worms
-    discover_worms(progress_callback=None)
-except Exception:
-    pass
-
 import importlib.util
 spec = importlib.util.spec_from_file_location('_test_module', {str(file_path)!r})
 mod = importlib.util.module_from_spec(spec)

@@ -11,7 +11,7 @@ import os
 from typing import Any
 from pathlib import Path
 
-_QUICK_MODE = os.environ.get("AZAZAEL_TEST_QUICK", "1") == "1"
+_QUICK_MODE = os.environ.get("AZAZAEL_TEST_QUICK") == "1"
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
@@ -329,6 +329,202 @@ class TestNatureClusterManagerMermaid:
         assert "graph TB" in mermaid or "graph" in mermaid
 
 
+# ═══════════════════════════════════════════════════════════════════
+# NatureClusterManager._score_natures() Scoring Tests
+# ═══════════════════════════════════════════════════════════════════
+
+
+class TestNatureScoring:
+    """Verify NatureClusterManager._score_natures() priority scoring.
+
+    Uses synthetic clusters and a stubbed psutil so every branch is
+    deterministic — no live system state, no registry dependency.
+    """
+
+    # -- helpers (not collected as tests) -------------------------
+    def _make_manager(self, worm_counts):
+        """Build a manager with empty synthetic clusters by worm count."""
+        ncm = NatureClusterManager()
+        ncm._diversity = None
+        ncm.clusters = {}
+        for nature, count in worm_counts.items():
+            cluster = NatureCluster(nature)
+            for i in range(count):
+                cluster.worms["WORM_%d" % i] = type("WORM_%d" % i, (), {})
+            ncm.clusters[nature] = cluster
+        return ncm
+
+    def _patch_psutil(self, cpu=50.0, mem=50.0):
+        """Stub psutil CPU/mem so scoring is independent of live state."""
+        import psutil
+        self._real_cpu = psutil.cpu_percent
+        self._real_mem = psutil.virtual_memory
+
+        class _Mem:
+            percent = mem
+
+        psutil.cpu_percent = lambda interval=0.5: cpu
+        psutil.virtual_memory = lambda: _Mem()
+        return self._restore_psutil
+
+    def _restore_psutil(self):
+        """Restore the real psutil functions after a test."""
+        import psutil
+        psutil.cpu_percent = self._real_cpu
+        psutil.virtual_memory = self._real_mem
+
+    def _append_history(self, ncm, nature, failures, when_ago):
+        """Append an execution-history entry at a fixed relative age."""
+        from datetime import datetime, timedelta
+        ncm._execution_history.append({
+            "nature": nature,
+            "success": 0,
+            "failures": failures,
+            "duration_ms": 0.0,
+            "timestamp": (datetime.now() - timedelta(seconds=when_ago)).isoformat(),
+        })
+
+    # -- tests -----------------------------------------------------
+    def test_basic_scores_worm_bonus(self):
+        """Score = base 5 + capped worm-count bonus at nominal load."""
+        ncm = self._make_manager({
+            "security": 4,
+            "monitor": 2,
+            "optimization": 1,
+        })
+        restore = self._patch_psutil(cpu=50.0, mem=50.0)
+        try:
+            scores = ncm._score_natures()
+        finally:
+            restore()
+        # base 5.0 + min(count * 0.5, 3.0)
+        assert scores["security"] == 7.0
+        assert scores["monitor"] == 6.0
+        assert scores["optimization"] == 5.5
+
+    def test_cpu_boost(self):
+        """High CPU boosts monitor/profiling (+15) and optimization (+8)."""
+        ncm = self._make_manager({
+            "monitor": 0, "profiling": 0,
+            "optimization": 0, "security": 0,
+        })
+        restore = self._patch_psutil(cpu=90.0, mem=50.0)
+        try:
+            scores = ncm._score_natures()
+        finally:
+            restore()
+        assert scores["monitor"] == 20.0
+        assert scores["profiling"] == 20.0
+        assert scores["optimization"] == 13.0
+        assert scores["security"] == 5.0
+
+    def test_mem_boost(self):
+        """High memory boosts monitor and optimization (+10)."""
+        ncm = self._make_manager({"monitor": 0, "optimization": 0, "security": 0})
+        restore = self._patch_psutil(cpu=50.0, mem=90.0)
+        try:
+            scores = ncm._score_natures()
+        finally:
+            restore()
+        assert scores["monitor"] == 15.0
+        assert scores["optimization"] == 15.0
+        assert scores["security"] == 5.0
+
+    def test_error_driven_boost(self):
+        """3+ recent failures add +12; stale adds +5; defense adds +5 more."""
+        ncm = self._make_manager({"security": 0, "defense": 0})
+        # 7 filler rows then 3 security + 3 defense rows, so the last-10
+        # window contains all 6 failure rows for both natures.
+        for _ in range(7):
+            self._append_history(ncm, "monitor", failures=0, when_ago=7200)
+        for _ in range(3):
+            self._append_history(ncm, "security", failures=1, when_ago=3600)
+        for _ in range(3):
+            self._append_history(ncm, "defense", failures=1, when_ago=3600)
+        restore = self._patch_psutil(cpu=50.0, mem=50.0)
+        try:
+            scores = ncm._score_natures()
+        finally:
+            restore()
+        # security: 5 + 12 (errors) + 5 (stale)
+        assert scores["security"] == 22.0
+        # defense: ... + 5 defensive-attention bonus
+        assert scores["defense"] == 27.0
+
+    def test_recency_penalty(self):
+        """Recent execution (<60s) subtracts 5."""
+        ncm = self._make_manager({"security": 0})
+        restore = self._patch_psutil(cpu=50.0, mem=50.0)
+        try:
+            self._append_history(ncm, "security", failures=0, when_ago=10)
+            scores = ncm._score_natures()
+        finally:
+            restore()
+        assert scores["security"] == 0.0
+
+    def test_staleness_boost(self):
+        """Long-unexecuted nature (>600s) adds 5."""
+        ncm = self._make_manager({"security": 0})
+        restore = self._patch_psutil(cpu=50.0, mem=50.0)
+        try:
+            self._append_history(ncm, "security", failures=0, when_ago=3600)
+            scores = ncm._score_natures()
+        finally:
+            restore()
+        assert scores["security"] == 10.0
+
+
+# ═══════════════════════════════════════════════════════════════════
+# NatureClusterManager.execute_priority_natures() Tests
+# ═══════════════════════════════════════════════════════════════════
+
+
+class TestNaturePriorityExecution:
+    """Verify execute_priority_natures() top-N selection logic.
+
+    Scoring and worm execution are stubbed so only the selection /
+    iteration contract is exercised deterministically.
+    """
+
+    def _make_manager(self):
+        ncm = NatureClusterManager()
+        ncm._diversity = None
+        ncm.clusters = {}
+        return ncm
+
+    def test_selects_top_scores(self):
+        """Should execute natures in descending score order, capped at max."""
+        ncm = self._make_manager()
+        ncm._score_natures = lambda: {"a": 10.0, "b": 7.5, "c": 3.0, "d": 1.0}
+        executed = []
+        ncm.execute_nature = lambda n: executed.append(n) or NatureResult(nature=n)
+        results = ncm.execute_priority_natures(max_natures=2)
+        assert executed == ["a", "b"]
+        assert set(results) == {"a", "b"}
+
+    def test_max_natures_caps(self):
+        """max_natures limits how many natures run."""
+        ncm = self._make_manager()
+        ncm._score_natures = lambda: {"a": 5.0, "b": 4.0, "c": 3.0}
+        ncm.execute_nature = lambda n: NatureResult(nature=n)
+        results = ncm.execute_priority_natures(max_natures=1)
+        assert list(results) == ["a"]
+
+    def test_skips_none_results(self):
+        """Natures whose execution returns None are omitted."""
+        ncm = self._make_manager()
+        ncm._score_natures = lambda: {"a": 9.0, "b": 8.0}
+        ncm.execute_nature = lambda n: None
+        assert ncm.execute_priority_natures(max_natures=3) == {}
+
+    def test_empty_scores(self):
+        """Empty scoring returns an empty result dict."""
+        ncm = self._make_manager()
+        ncm._score_natures = lambda: {}
+        ncm.execute_nature = lambda n: NatureResult(nature=n)
+        assert ncm.execute_priority_natures() == {}
+
+
 # ── Quick-mode skips: worm execution tests that time out under 3.14t ──
 _QUICK_SKIPS = {
     "TestNatureClusterConstruction.test_execute_discovered_worms",
@@ -340,78 +536,23 @@ _QUICK_SKIPS = {
     "TestNatureDiscoveryEdgeCases.test_manager_status_after_execution",
 }
 
-# Subprocess timeouts for slow classes (seconds) — used when QUICK=0
-_SUBPROCESS_TIMEOUTS = {
-    "TestNatureClusterConstruction": 120,
-    "TestNatureClusterManager": 180,
-    "TestNatureClusterManagerStatus": 180,
-    "TestNatureDiscoveryEdgeCases": 120,
-}
-
 if __name__ == "__main__":
-    import subprocess
-    sys.path.insert(0, os.path.dirname(__file__))
-    from _timer_utils import run_class_with_timeout
-
     p = f = s = 0
-    errors = []
-
     for name, obj in list(globals().items()):
         if isinstance(obj, type) and name.startswith("Test"):
-            method_count = len([mn for mn in dir(obj) if mn.startswith("test_")])
-
-            if _QUICK_MODE:
-                # Quick mode: skip specific slow tests (existing behavior)
-                inst = obj()
-                for mn in sorted(dir(inst)):
-                    if mn.startswith("test_"):
-                        test_key = f"{name}.{mn}"
-                        if test_key in _QUICK_SKIPS:
-                            print(f"  [SKIP] {test_key} (quick mode)")
-                            s += 1
-                            continue
-                        try:
-                            getattr(inst, mn)()
-                            print(f"  [OK] {test_key}")
-                            p += 1
-                        except Exception as e:
-                            print(f"  [FAIL] {test_key}: {e}")
-                            f += 1
-                            errors.append(f"{test_key}: {e}")
-            else:
-                # Full mode: run slow classes in subprocess with timeout
-                if name in _SUBPROCESS_TIMEOUTS:
-                    timeout = _SUBPROCESS_TIMEOUTS[name]
-                    print(f"[{name}] (subprocess, timeout={timeout}s)")
+            inst = obj()
+            for mn in dir(inst):
+                if mn.startswith("test_"):
+                    test_key = f"{name}.{mn}"
+                    if _QUICK_MODE and test_key in _QUICK_SKIPS:
+                        print(f"  [SKIP] {test_key} (quick mode)")
+                        s += 1
+                        continue
                     try:
-                        sp, sf, sk = run_class_with_timeout(obj, timeout_sec=timeout)
-                        p += sp; f += sf; s += sk
-                    except subprocess.TimeoutExpired:
-                        print(f"  [FAIL] {name}.* — subprocess timed out after {timeout}s")
-                        f += method_count
-                        errors.append(f"{name}: TIMEOUT (subprocess killed at {timeout}s)")
+                        getattr(inst, mn)()
+                        print(f"  [OK] {test_key}")
+                        p += 1
                     except Exception as e:
-                        print(f"  [FAIL] {name}.* — subprocess error: {e}")
-                        f += method_count
-                        errors.append(f"{name}: SUBPROCESS ERROR: {e}")
-                else:
-                    print(f"[{name}]")
-                    inst = obj()
-                    for mn in sorted(dir(inst)):
-                        if mn.startswith("test_"):
-                            try:
-                                getattr(inst, mn)()
-                                print(f"  [OK] {name}.{mn}")
-                                p += 1
-                            except Exception as e:
-                                print(f"  [FAIL] {name}.{mn}: {e}")
-                                f += 1
-                                errors.append(f"{name}.{mn}: {e}")
-
+                        print(f"  [FAIL] {test_key}: {e}")
+                        f += 1
     print(f"  Passed: {p}, Failed: {f}, Skipped: {s}")
-    if errors:
-        print("  Errors:")
-        for e in errors[:10]:
-            print(f"    {e}")
-        if len(errors) > 10:
-            print(f"    ... and {len(errors) - 10} more")

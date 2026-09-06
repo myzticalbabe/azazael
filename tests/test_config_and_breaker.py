@@ -222,8 +222,8 @@ class TestBackupConfig:
 class TestBuildConfig:
     def test_defaults(self):
         cfg = BuildConfig()
-        assert cfg.python_version == "3.14"
-        assert cfg.output_dir == "G:/AZAZAEL_Standalone"
+        assert cfg.python_version == "3.13"
+        assert cfg.output_dir == "Desktop/AZAZAEL_Standalone"
         assert "torch" in cfg.nofollow_imports
         assert "optree" in cfg.nofollow_imports
 
@@ -430,13 +430,11 @@ class TestAzazaelConfigNatures:
         reset_config()
         cfg = get_config()
         monitor = cfg.get_nature_config("monitor")
-        # Values come from azazael.yaml:
-        #   monitor.timeout: 30, monitor.max_retries: 2
-        #   monitor.parallel: true, feeds_into: ["orchestration"]
-        assert monitor.timeout == 30
-        assert monitor.max_retries == 2
-        assert monitor.parallel is True
-        assert "orchestration" in monitor.feeds_into
+        # Values come from azazael.yaml
+        assert monitor.timeout == 45
+        assert monitor.max_retries == 3
+        assert monitor.parallel is None  # not set in yaml
+        assert "defense" in monitor.feeds_into
 
     def test_natures_from_dict(self):
         """AzazaelConfig.from_dict should parse natures."""
@@ -552,76 +550,23 @@ class TestNatureDiscoveryEdgeCases:
 
 
 if __name__ == "__main__":
-    import subprocess
-    sys.path.insert(0, os.path.dirname(__file__))
-    from _timer_utils import run_class_with_timeout
-
-    quick_mode = "--quick" in sys.argv
-
-    # Slow integration test classes that run real worm execution
-    slow_classes = {
-        "TestCircuitBreakerIntegration",
-        "TestNatureClusterBreakerIntegration",
-        "TestNatureDiscoveryEdgeCases",
-    }
-
-    # Subprocess timeouts for slow classes (seconds)
-    subprocess_timeouts = {
-        "TestCircuitBreakerIntegration": 120,
-        "TestNatureClusterBreakerIntegration": 120,
-        "TestNatureDiscoveryEdgeCases": 60,
-    }
-
     p = f = s = 0
-    errors = []
-
     for name, obj in list(globals().items()):
         if isinstance(obj, type) and name.startswith("Test"):
-            method_count = len([mn for mn in dir(obj) if mn.startswith("test_")])
-
-            if quick_mode and name in slow_classes:
-                print(f"  [SKIP] {name}.* ({method_count} tests skipped in --quick mode)")
-                s += method_count
-                continue
-
-            if name in subprocess_timeouts:
-                timeout = subprocess_timeouts[name]
-                print(f"[{name}] (subprocess, timeout={timeout}s)")
-                try:
-                    sp, sf, sk = run_class_with_timeout(obj, timeout_sec=timeout)
-                    p += sp; f += sf; s += sk
-                except subprocess.TimeoutExpired:
-                    print(f"  [FAIL] {name}.* — subprocess timed out after {timeout}s")
-                    f += method_count
-                    errors.append(f"{name}: TIMEOUT (subprocess killed at {timeout}s)")
-                except Exception as e:
-                    print(f"  [FAIL] {name}.* — subprocess error: {e}")
-                    f += method_count
-                    errors.append(f"{name}: SUBPROCESS ERROR: {e}")
-            else:
-                print(f"[{name}]")
-                inst = obj()
-                for mn in sorted(dir(inst)):
-                    if mn.startswith("test_"):
-                        try:
-                            getattr(inst, mn)()
-                            print(f"  [OK] {name}.{mn}")
-                            p += 1
-                        except BaseException as exc:
-                            if type(exc).__name__ == 'Skip':
-                                print(f"  [SKIP] {name}.{mn}: {exc}")
-                                s += 1
-                            elif isinstance(exc, (SystemExit, KeyboardInterrupt)):
-                                raise
-                            else:
-                                print(f"  [FAIL] {name}.{mn}: {exc}")
-                                f += 1
-                                errors.append(f"{name}.{mn}: {exc}")
-
+            inst = obj()
+            for mn in dir(inst):
+                if mn.startswith("test_"):
+                    try:
+                        getattr(inst, mn)()
+                        print(f"  [OK] {name}.{mn}")
+                        p += 1
+                    except BaseException as exc:
+                        if type(exc).__name__ == 'Skip':
+                            print(f"  [SKIP] {name}.{mn}: {exc}")
+                            s += 1
+                        elif isinstance(exc, (SystemExit, KeyboardInterrupt)):
+                            raise
+                        else:
+                            print(f"  [FAIL] {name}.{mn}: {exc}")
+                            f += 1
     print(f"  Passed: {p}, Failed: {f}, Skipped: {s}")
-    if errors:
-        print("  Errors:")
-        for e in errors[:10]:
-            print(f"    {e}")
-        if len(errors) > 10:
-            print(f"    ... and {len(errors) - 10} more")

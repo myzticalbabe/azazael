@@ -81,6 +81,15 @@ NEW_NODES = [
     ("org_house_stategov", "PA House State Government Committee", "org", "LEGISLATIVE_COMMITTEES.html"),
     ("org_house_approp", "PA House Appropriations Committee", "org", "LEGISLATIVE_COMMITTEES.html"),
     ("org_us_help", "US Senate HELP Committee", "org", "LEGISLATIVE_COMMITTEES.html"),
+    # ---- open records / evidence channels (the datapoint venues the gaps seek) ----
+    ("rec_county_openrecords", "Berks County Open Records Officer — RTKL records channel (county contracts / MOUs / payments w/ BCC + OMHSAS-audit variant)", "org", "BERKS_RTK_REQUEST.txt (gaps #13/#18)"),
+    ("rec_county_minutes", "Berks County Commissioners' public meeting minutes — contract-award / funding-approval record", "org", "INVESTIGATION_GAPS.html gap #13 (RTK seeks meeting minutes on award/renewal/amendment)"),
+    ("rec_coca_detail", "COCA grant-detail records — annual amounts of the 5 pass-through grants (2019-2023, $3.3M cumulative)", "org", "INVESTIGATION_GAPS.html gap #22"),
+    # ---- approval-layer datapoints from COUNTY_APPROVAL_MINING (Sep 5, 2026) ----
+    ("rec_consent_docket", "Berks Commissioners' consent-agenda approval docket — Dec 4, 2025: block-grant INE attestation + 15-agreement contract packet + ~$5.5M procurement, voice vote, no per-item roll calls", "org", "COUNTY_APPROVAL_MINING.html Layer 1 (Citizen Portal transcript Dec 4, 2025)"),
+    ("rec_hs_budget_acclaim", "Berks Commissioners' human-services budget authorization — Jun 25/Jul 2, 2026: $16,239,797 block grant approved by acclamation, no provider-level scrutiny on record", "org", "COUNTY_APPROVAL_MINING.html Layer 1 (Reading Eagle Jun 25, 2026)"),
+    ("rec_hs_plan_entrench", "Berks DHS Human Services Block Grant Plans FY18-19→FY22-23 — designate BCC as Forensic Housing (15-17 units) / High Risk Team / ICWC hub / Tower PES operator; county purchased BCC's forensic housing with retained earnings after the 17-lease landlord exits", "org", "COUNTY_APPROVAL_MINING.html Layer 2 (pa.gov DHS plan library)"),
+    ("rec_osf_ledger", "Berks Opioid Settlement Fund expenditures ledger — Mar 2026: COCA-administered disbursements itemized by recipient; BCC direct rows $172,220 budgeted (Treatment/Counseling $100,000 + Contingency Mgmt $60,000 + Harm Reduction $12,220)", "org", "BERKS_OSF_ITEMIZATION.html (COCA Mar 2026 PDF)"),
 ]
 
 
@@ -124,6 +133,47 @@ NEW_EDGES = [
     # ---- court / litigation (public docket facts) ----
     ("court_morrison", "bcc", "litigant", "Morrison v. BCC — MDJ MJ-23103-CV-0000160-2025 (judgment for defendant 2025-09-24) + CP appeal filed 2025-10-15", "PACOURTS_CP_RECORDS_REQUEST.html"),
     ("court_prothonotary", "bcc", "record_keeper", "Berks CP civil index — BCC matters incl. No. 15-14644 (underlying 898 MDA 2017)", "PACOURTS_CP_RECORDS_REQUEST.html"),
+    # ---- records channels hold the datapoints the open gaps seek ----
+    ("rec_county_openrecords", "funder_county", "record_keeper", "holds county HS contracts/MOUs/payment records involving BCC (gap #13)", "BERKS_RTK_REQUEST.txt"),
+    ("rec_county_openrecords", "bcc", "records_sought", "RTKL request items 1-5: contracts, MOUs, payments, audit docs, correspondence", "BERKS_RTK_REQUEST.txt"),
+    ("rec_county_minutes", "funder_county", "records_venue", "commissioner approvals of county HS pass-through contracts w/ BCC", "INVESTIGATION_GAPS.html gap #13"),
+    ("rec_coca_detail", "org_coca", "records_holder", "annual detail of the 5 COCA grants to BCC (cumulative $3.3M, 2019-2023)", "INVESTIGATION_GAPS.html gap #22"),
+    # ---- approval-layer edges from COUNTY_APPROVAL_MINING / BERKS_OSF_ITEMIZATION (Sep 5, 2026) ----
+    ("rec_consent_docket", "funder_county", "records_venue", "consent-agenda approval record for HS block-grant INE attestation + retained-earnings housing purchase + contract packet (Dec 4, 2025 voice vote)", "COUNTY_APPROVAL_MINING.html Layer 1"),
+    ("rec_osf_ledger", "org_coca", "records_holder", "COCA-administered OSF disbursement ledger (Mar 2026) — BCC direct rows $172,220 budgeted; TASC $267,752 current cycle", "BERKS_OSF_ITEMIZATION.html"),
+    ("org_coca", "funder_county", "funds", "county D&A pass-through to COCA; COCA board (SCA-appointed) allocates opioid-settlement funds — county bought BCC's housing with retained earnings (FY22-23 plan)", "COUNTY_APPROVAL_MINING.html Layer 2/3"),
+    # ---- settlement-fund edge (OSF ledger cross-check vs Layer 3, Sep 5, 2026) ----
+    ("org_coca", "bcc", "funds", "direct OSF settlement recipient — Mar 2026 ledger names BCC on 3 rows: Treatment/Counseling $100,000 (current cycle, shared row w/ Jail) + Contingency Mgmt $60,000 + Harm Reduction $12,220 (2023/24) = $172,220 budgeted, $0 expended on the 2023/24 rows as of ledger date", "BERKS_OSF_ITEMIZATION.html (COCA Mar 2026 PDF)"),
+]
+
+
+DATAPOINTS = [
+    # (id, label, holds, gap, evidence, next_action)
+    ("rec_county_openrecords",
+     "County RTK records channel (Berks Open Records Officer)",
+     "BCC county contracts/MOUs/payments; OMHSAS-audit variant",
+     "#13/#18", "BERKS_RTK_REQUEST.txt",
+     "FILE the RTK (draft complete Aug 2) — county + OMHSAS package"),
+    ("rec_county_minutes",
+     "County commissioners' public meeting minutes",
+     "Contract-award / funding-approval record for county HS pass-through",
+     "#13", "INVESTIGATION_GAPS.html gap #13",
+     "Sub-contract allocations to BCC within the ~$16.2M county HS budget"),
+    ("rec_coca_detail",
+     "COCA grant-detail records",
+     "Annual amounts of the 5 pass-through grants (cumulative $3.3M, 2019-2023)",
+     "#22", "INVESTIGATION_GAPS.html gap #22",
+     "Annual breakdown — COCA is a PA DHS/D&A pass-through; Goodman-Hinnershitz planning nexus"),
+    ("rec_consent_docket",
+     "Berks commissioners' consent-agenda approval docket",
+     "Dec 4, 2025: block-grant INE attestation + 15-agreement packet + ~$5.5M procurement (voice vote, no per-item roll calls)",
+     "#13", "COUNTY_APPROVAL_MINING.html Layer 1",
+     "Pull per-resolution transcripts from Citizen Portal for HS pass-through items"),
+    ("rec_osf_ledger",
+     "Berks Opioid Settlement Fund expenditure ledger (COCA)",
+     "Mar 2026: recipient-itemized disbursements; BCC direct rows $172,220 budgeted (Treatment/Counseling $100K + Contingency $60K + Harm Reduction $12,220)",
+     "#22", "BERKS_OSF_ITEMIZATION.html",
+     "Re-pull each ledger update to track BCC/TASC rows across cycles; cross-check vs COCA annual detail"),
 ]
 
 
@@ -233,6 +283,10 @@ def render_html(G, nodes, paths, out):
                       f"<td>{label_of.get(e['target'], e['target'])}</td>"
                       f"<td>{e['type']}</td><td>{e['detail']}</td>"
                       f"<td>{e['evidence']}</td></tr>")
+    dp_rows = ""
+    for _id, lbl, holds, gap, ev, action in DATAPOINTS:
+        dp_rows += (f"<tr><td>{lbl}</td><td>{holds}</td><td>{gap}</td>"
+                    f"<td>{ev}</td><td>{action}</td></tr>")
 
     html = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8">
@@ -294,6 +348,10 @@ more.</div>
 <h2>New Documented Edges ({len(out['added_edges_list'])})</h2>
 <table><thead><tr><th>Source</th><th>Target</th><th>Type</th><th>Detail</th><th>Evidence</th></tr></thead>
 <tbody>{edge_rows}</tbody></table>
+
+<h2>Open Records Datapoints the Map Tracks (gaps #13 / #18 / #22)</h2>
+<table><thead><tr><th>Channel</th><th>Holds</th><th>Gap</th><th>Evidence</th><th>Next action</th></tr></thead>
+<tbody>{dp_rows}</tbody></table>
 </main></body></html>"""
     with open(OUT_HTML, "w", encoding="utf-8") as fh:
         fh.write(html)

@@ -15,21 +15,21 @@ class TestStructuredLogger(unittest.TestCase):
 
     def test_get_logger(self):
         """Getting a logger should return a StructuredLogger."""
-        from CORE.azazael_logging import get_logger
+        from CORE.logging import get_logger
         log = get_logger("test_logger")
         self.assertIsNotNone(log)
         self.assertEqual(log.name, "test_logger")
 
     def test_logger_cached(self):
         """Getting the same logger twice should return the same instance."""
-        from CORE.azazael_logging import get_logger
+        from CORE.logging import get_logger
         log1 = get_logger("cached_test")
         log2 = get_logger("cached_test")
         self.assertIs(log1, log2)
 
     def test_configure_logging(self):
         """Configuring logging should not raise."""
-        from CORE.azazael_logging import configure_logging
+        from CORE.logging import configure_logging
         try:
             configure_logging(level="DEBUG")
         except Exception as e:
@@ -37,7 +37,7 @@ class TestStructuredLogger(unittest.TestCase):
 
     def test_log_levels(self):
         """All log level methods should work without error."""
-        from CORE.azazael_logging import get_logger
+        from CORE.logging import get_logger
         log = get_logger("level_test")
         try:
             log.debug("debug_msg", {"key": "val"})
@@ -50,7 +50,7 @@ class TestStructuredLogger(unittest.TestCase):
 
     def test_log_with_kwargs(self):
         """Logging with **kwargs should work."""
-        from CORE.azazael_logging import get_logger
+        from CORE.logging import get_logger
         log = get_logger("kwargs_test")
         try:
             log.info("kwargs_msg", worm="SystemZ", duration_ms=150)
@@ -59,7 +59,7 @@ class TestStructuredLogger(unittest.TestCase):
 
     def test_log_with_no_data(self):
         """Logging without data should work."""
-        from CORE.azazael_logging import get_logger
+        from CORE.logging import get_logger
         log = get_logger("no_data_test")
         try:
             log.info("no_data_msg")
@@ -72,7 +72,7 @@ class TestJsonFormatter(unittest.TestCase):
 
     def test_formatter_creates_valid_json(self):
         """The formatter should produce valid JSON."""
-        from CORE.azazael_logging import StructuredLogger
+        from CORE.logging import StructuredLogger
         import io
         log = StructuredLogger("json_test")
         # Capture log output

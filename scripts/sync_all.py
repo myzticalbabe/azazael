@@ -8,11 +8,13 @@ Environments:
   3. Desktop      : C:/Users/clint/Desktop/AZAZAEL_Standalone (release)
   4. G: source    : G:/source-of-truth/azazael      (canonical archive)
   5. G: AZAZAEL   : G:/AZAZAEL/AZAZAEL_ROOT          (primary archive)
+  6. Kali WSL2    : E:/Kali/azazael                 (Kali Linux security distro)
 
 Usage:
     python3.14t sync_all.py --status          Show sync status
     python3.14t sync_all.py --sync-all        Sync all environments
     python3.14t sync_all.py --sync-to wsl2    Sync Windows to WSL2
+    python3.14t sync_all.py --sync-to kali    Sync WSL2 to Kali
     python3.14t sync_all.py --verify          Verify integrity across all
 
 Created: June 4, 2026 - Environment realignment session
@@ -81,6 +83,15 @@ ENVIRONMENTS: Dict[str, Dict] = {
         "tests": None,
         "type": "archive",
     },
+    "kali": {
+        "label": "Kali Linux (WSL2)",
+        "root": Path("E:/Kali/azazael"),
+        "src": Path("E:/Kali/azazael/src"),
+        "docs": Path("E:/Kali/azazael/docs"),
+        "tests": Path("E:/Kali/azazael/tests"),
+        "type": "wsl",
+        "wsl_distro": "kali-linux",
+    },
 }
 
 SYNC_CODE_PATTERNS = [
@@ -106,12 +117,31 @@ SYNC_SCRIPT_PATTERNS = [
     "scripts/*.py",
 ]
 
+SYNC_SKILL_PATTERNS = [
+    "skills/*.md",
+]
+
+# WSL environment detection
+IS_WSL = Path("/root/azazael").exists()
+
+
+def _resolve_path(p: Path, env_type: str) -> Path:
+    """Resolve a path for the current runtime. Converts C:/G:/ -> /mnt/ on WSL."""
+    if IS_WSL and env_type != "wsl":
+        return Path(wsl_path(p))
+    return p
+
 
 def run_wsl(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
-    """Run a command inside WSL2."""
+    """Run a command inside WSL2 (Ubuntu-26.04).
+    
+    Uses shell=True because wsl.exe is a Windows PE binary.
+    """
     try:
+        escaped = cmd.replace("'", "'\\''")
+        wsl_cmd = f"wsl.exe -d Ubuntu-26.04 -e bash -c '{escaped}'"
         result = subprocess.run(
-            ["wsl", "-d", "Ubuntu-26.04", "-e", "bash", "-c", cmd],
+            wsl_cmd, shell=True,
             capture_output=True, text=True, timeout=timeout,
         )
         return result.returncode, result.stdout, result.stderr
@@ -128,6 +158,8 @@ def wsl_path(win_path: Path) -> str:
         return "/mnt/c" + s[2:]
     if s.startswith("G:"):
         return "/mnt/g" + s[2:]
+    if s.startswith("E:"):
+        return "/mnt/e" + s[2:]
     return s
 
 
@@ -142,7 +174,7 @@ def sync_windows_to_wsl2(dry_run: bool = False) -> Dict[str, Any]:
     Destination: WSL2 native filesystem at /root/azazael/...
     """
     windows_root = ENVIRONMENTS["windows"]["root"]
-    all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS
+    all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS + SYNC_SKILL_PATTERNS
     synced = []
     errors = []
 
@@ -170,6 +202,165 @@ def sync_windows_to_wsl2(dry_run: bool = False) -> Dict[str, Any]:
             "target": "wsl2"}
 
 
+def sync_wsl_to_windows(dry_run: bool = False) -> Dict[str, Any]:
+    """Sync WSL2 -> Windows 11 (code + docs + skills + scripts).
+    
+    Source: WSL2 native filesystem at /root/azazael/...
+    Destination: Windows files via /mnt/c/Users/clint/azazael/...
+    Runs from WSL2 directly — no wsl.exe needed.
+    """
+    wsl_root = Path("/root/azazael")
+    windows_root = Path("/mnt/c/Users/clint/azazael")
+    
+    if not wsl_root.exists():
+        return {"synced": [], "errors": ["WSL root /root/azazael not found"], "count": 0, "target": "windows"}
+    if not windows_root.exists():
+        return {"synced": [], "errors": ["Windows root /mnt/c/Users/clint/azazael not found"], "count": 0, "target": "windows"}
+    
+    all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS + SYNC_SKILL_PATTERNS
+    synced = []
+    errors = []
+    
+    for pattern in all_patterns:
+        for src_file in sorted(wsl_root.glob(pattern)):
+            rel_path = src_file.relative_to(wsl_root)
+            dest = windows_root / rel_path
+            
+            if dry_run:
+                synced.append(str(rel_path))
+                continue
+            
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.copy2(src_file, dest)
+                synced.append(str(rel_path))
+            except OSError as e:
+                errors.append(f"{rel_path}: {e}")
+    
+    return {"synced": synced, "errors": errors, "count": len(synced), "target": "windows"}
+
+
+def sync_wsl_to_g(dry_run: bool = False) -> Dict[str, Any]:
+    """Sync WSL2 -> G: archives (both source-of-truth and AZAZAEL_SOURCE_OF_TRUTH).
+    
+    Runs from WSL2 directly — copies to /mnt/g/ paths.
+    """
+    wsl_root = Path("/root/azazael")
+    g_targets = [
+        Path("/mnt/g/source-of-truth/azazael"),
+        Path("/mnt/g/AZAZAEL_SOURCE_OF_TRUTH"),
+    ]
+    
+    all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS + SYNC_SKILL_PATTERNS
+    total_synced = []
+    total_errors = []
+    
+    for g_root in g_targets:
+        if not g_root.exists():
+            total_errors.append(f"G: target {g_root} not found")
+            continue
+        
+        for pattern in all_patterns:
+            for src_file in sorted(wsl_root.glob(pattern)):
+                rel_path = src_file.relative_to(wsl_root)
+                dest = g_root / rel_path
+                
+                if dry_run:
+                    total_synced.append(f"{g_root.name}:{rel_path}")
+                    continue
+                
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    shutil.copy2(src_file, dest)
+                    total_synced.append(f"{g_root.name}:{rel_path}")
+                except OSError as e:
+                    total_errors.append(f"{g_root.name}:{rel_path}: {e}")
+    
+    return {"synced": total_synced, "errors": total_errors, "count": len(total_synced), "target": "g"}
+
+
+def sync_wsl_to_kali(dry_run: bool = False) -> Dict[str, Any]:
+    """Sync WSL2 Ubuntu -> Kali WSL2 via E: drive bridge.
+    
+    Strategy (batched for performance):
+    1. Copy all files from /root/azazael to /mnt/e/kali_sync_temp/ (Windows filesystem bridge)
+    2. Run single wsl.exe command to rsync the bridge into Kali's /root/azazael/
+    3. Clean up bridge temp files
+    """
+    wsl_root = Path("/root/azazael")
+    e_bridge = Path("/mnt/e/kali_sync_temp")
+    kali_root = "/root/azazael"
+    
+    if not wsl_root.exists():
+        return {"synced": [], "errors": ["WSL root /root/azazael not found"], "count": 0, "target": "kali"}
+    
+    all_patterns = SYNC_CODE_PATTERNS + SYNC_DOC_PATTERNS + SYNC_SCRIPT_PATTERNS + SYNC_SKILL_PATTERNS
+    
+    # Stage 1: Batch copy all files to E: bridge
+    staged = []
+    errors = []
+    for pattern in all_patterns:
+        for src_file in sorted(wsl_root.glob(pattern)):
+            rel_path = src_file.relative_to(wsl_root)
+            bridge_dest = e_bridge / rel_path
+            
+            if dry_run:
+                staged.append(rel_path)
+                continue
+            
+            bridge_dest.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.copy2(src_file, bridge_dest)
+                staged.append(rel_path)
+            except OSError as e:
+                errors.append(f"bridge:{rel_path}: {e}")
+    
+    if dry_run:
+        return {"synced": [str(r) for r in staged], "errors": errors, "count": len(staged), "target": "kali"}
+    
+    # Stage 2: Single batch copy from E: bridge into Kali
+    rc, stdout, stderr = run_wsl_kali(
+        f"mkdir -p {kali_root} && cp -r /mnt/e/kali_sync_temp/* {kali_root}/"
+    )
+    
+    if rc != 0:
+        errors.append(f"kali batch copy failed: {stderr.strip()}")
+        errors.append("Files staged at /mnt/e/kali_sync_temp/ — run manually in Kali:")
+        errors.append(f"  cp -r /mnt/e/kali_sync_temp/* {kali_root}/")
+        # Don't clean up bridge on failure — user may need the files
+        return {"synced": [str(r) for r in staged], "errors": errors, "count": len(staged), "target": "kali"}
+    
+    # Stage 3: Clean up bridge temp files (only on success)
+    try:
+        shutil.rmtree(e_bridge, ignore_errors=True)
+    except OSError:
+        pass
+    
+    return {"synced": [str(r) for r in staged], "errors": errors, "count": len(staged), "target": "kali"}
+
+
+def run_wsl_kali(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
+    """Run a command inside Kali WSL2 distro.
+    
+    Uses shell=True because wsl.exe is a Windows PE binary — subprocess
+    must route through the shell (which uses binfmt_misc) rather than
+    attempting to exec the Windows binary directly.
+    """
+    try:
+        # Single-escape: bash -c gets the cmd string as its argument
+        escaped = cmd.replace("'", "'\\''")
+        wsl_cmd = f"wsl.exe -d kali-linux -u root -e bash -c '{escaped}'"
+        result = subprocess.run(
+            wsl_cmd, shell=True,
+            capture_output=True, text=True, timeout=timeout,
+        )
+        return result.returncode, result.stdout, result.stderr
+    except subprocess.TimeoutExpired:
+        return -1, "", "TIMEOUT"
+    except FileNotFoundError:
+        return -1, "", "WSL/kali-linux not available"
+
+
 def sync_docs_to_target(windows_root: Path, target_root: Path,
                         dry_run: bool = False) -> Dict[str, Any]:
     """Sync documentation to any target environment."""
@@ -194,91 +385,112 @@ def sync_docs_to_target(windows_root: Path, target_root: Path,
 # Status & Verification
 # ═══════════════════════════════════════════════════════════════════════
 
-def get_env_status(env_name: str, env_info: Dict) -> Dict[str, Any]:
-    """Get status of an environment."""
-    env_type = env_info["type"]
 
-    if env_type == "wsl":
-        # WSL2 paths are Linux-native — use run_wsl() instead of Path.exists()
-        rc, _, _ = run_wsl("test -d /root/azazael")
+def get_env_status(env_name: str, env_info: Dict) -> Dict[str, Any]:
+    """Get status of an environment — works from both Windows and WSL."""
+    env_type = env_info["type"]
+    
+    # Kali WSL2 uses wsl.exe to probe its filesystem (ext4.vhdx, not directly mounted)
+    if env_name == "kali" and IS_WSL:
+        rc, _, _ = run_wsl_kali("test -d /root/azazael")
         available = (rc == 0)
-        status = {
+        status: dict[str, Any] = {
             "name": env_name,
             "label": env_info["label"],
             "type": env_type,
             "available": available,
         }
-        if not status["available"]:
-            status["warning"] = "WSL2 root not accessible"
+        if not available:
+            status["warning"] = "Kali /root/azazael not accessible via wsl.exe"
             return status
-        # Count .py files via WSL
-        rc_py, out_py, _ = run_wsl("find /root/azazael/src -name '*.py' 2>/dev/null | wc -l")
-        if rc_py == 0 and out_py.strip().isdigit():
-            status["py_files"] = int(out_py.strip())
-        else:
-            status["py_files"] = 0
-        # Count .md files via WSL
-        rc_docs, out_docs, _ = run_wsl("ls /root/azazael/docs/*.md 2>/dev/null | wc -l")
-        if rc_docs == 0 and out_docs.strip().isdigit():
-            status["docs"] = int(out_docs.strip())
-        else:
-            status["docs"] = 0
+        # Count via wsl.exe
+        rc_py, out_py, _ = run_wsl_kali("find /root/azazael/src -name '*.py' 2>/dev/null | wc -l")
+        status["py_files"] = int(out_py.strip()) if rc_py == 0 and out_py.strip().isdigit() else 0
+        rc_docs, out_docs, _ = run_wsl_kali("ls /root/azazael/docs/*.md 2>/dev/null | wc -l")
+        status["docs"] = int(out_docs.strip()) if rc_docs == 0 and out_docs.strip().isdigit() else 0
         return status
+    
+    root = _resolve_path(env_info["root"], env_type)
 
-    # Non-WSL environments: use Path.exists() directly
     status = {
         "name": env_name,
         "label": env_info["label"],
         "type": env_type,
-        "available": env_info["root"].exists(),
+        "available": root.exists(),
     }
     if not status["available"]:
         status["warning"] = "Environment root not accessible"
         return status
-    if env_info.get("src") and env_info["src"].exists():
-        status["py_files"] = len(list(env_info["src"].rglob("*.py")))
+
+    # Count .py files
+    src = env_info.get("src")
+    if src:
+        src_path = _resolve_path(src, env_type)
+        if src_path.exists():
+            status["py_files"] = len(list(src_path.rglob("*.py")))
+        else:
+            status["py_files"] = 0
     else:
         status["py_files"] = 0
-    if env_info.get("docs") and env_info["docs"].exists():
-        status["docs"] = len(list(env_info["docs"].glob("*.md")))
+
+    # Count .md docs
+    docs = env_info.get("docs")
+    if docs:
+        docs_path = _resolve_path(docs, env_type)
+        if docs_path.exists():
+            status["docs"] = len(list(docs_path.glob("*.md")))
+        else:
+            status["docs"] = 0
     else:
         status["docs"] = 0
+
     if env_info.get("exe_only"):
-        status["exe_files"] = len(list(env_info["root"].glob("*.exe")))
+        status["exe_files"] = len(list(root.glob("*.exe")))
     return status
 
 
 def verify_integrity() -> Dict[str, bool]:
-    """Verify file integrity across all 5 environments."""
-    results = {}
-    win_root = ENVIRONMENTS["windows"]["root"]
+    """Verify file integrity across environments — works from both Windows and WSL."""
+    results: dict[str, bool] = {}
+
+    # Resolve environment roots for current runtime
+    win_type = ENVIRONMENTS["windows"]["type"]
+    g_source_type = ENVIRONMENTS["g_source"]["type"]
+    win_root = _resolve_path(ENVIRONMENTS["windows"]["root"], win_type)
+    g_source = _resolve_path(ENVIRONMENTS["g_source"]["root"], g_source_type)
+    wsl_root = Path("/root/azazael") if IS_WSL else None
+
+    # Helper: get filenames from WSL (direct Path when on WSL, run_wsl otherwise)
+    def wsl_files(subpath: str, ext: str = "*.py") -> set[str]:
+        if IS_WSL and wsl_root:
+            p = wsl_root / subpath
+            return set(f.name for f in p.glob(ext)) if p.exists() else set()
+        rc, stdout, _ = run_wsl(f"ls /root/azazael/{subpath}/{ext} 2>/dev/null")
+        return set(Path(f).name for f in stdout.strip().split("\n") if f) if rc == 0 else set()
 
     # 1. Code: expansion/ parity Windows vs WSL2
-    win_exp = set(f.name for f in (win_root / "src/CORE/WORMS/expansion").glob("*.py"))
-    rc, stdout, _ = run_wsl("ls /root/azazael/src/CORE/WORMS/expansion/*.py 2>/dev/null")
-    wsl_exp = set(Path(f).name for f in stdout.strip().split("\n") if f) if rc == 0 else set()
+    win_exp_path = win_root / "src/CORE/WORMS/expansion"
+    win_exp = set(f.name for f in win_exp_path.glob("*.py")) if win_exp_path.exists() else set()
+    wsl_exp = wsl_files("src/CORE/WORMS/expansion", "*.py")
     results["expansion"] = win_exp == wsl_exp
 
-    # 2. Docs: Windows vs G: source-of-truth (graceful if G: unavailable)
-    win_docs = set(f.name for f in (win_root / "docs").glob("*.md"))
-    g_source = ENVIRONMENTS["g_source"]["root"]
-    if g_source.exists():
-        g_docs_path = g_source / "docs"
-        g_docs = set(f.name for f in g_docs_path.glob("*.md")) if g_docs_path.exists() else set()
-        results["docs_g"] = win_docs.issubset(g_docs)
-    else:
-        results["docs_g"] = True  # G: not available, skip check
+    # 2. Docs: Windows vs G: source-of-truth
+    win_docs_path = win_root / "docs"
+    win_docs = set(f.name for f in win_docs_path.glob("*.md")) if win_docs_path.exists() else set()
+    g_docs_path = g_source / "docs"
+    g_docs = set(f.name for f in g_docs_path.glob("*.md")) if g_docs_path.exists() else set()
+    results["docs_g"] = win_docs.issubset(g_docs) if g_docs else True  # skip if G: unavailable
 
-    # 3. Tests: Windows vs WSL2 (subset check — WSL2 may have extra legacy files)
-    win_tests = set(f.name for f in (win_root / "tests").glob("*.py"))
-    rc, stdout, _ = run_wsl("ls /root/azazael/tests/*.py 2>/dev/null")
-    wsl_tests = set(Path(f).name for f in stdout.strip().split("\n") if f) if rc == 0 else set()
+    # 3. Tests: Windows vs WSL2 (subset check)
+    win_tests_path = win_root / "tests"
+    win_tests = set(f.name for f in win_tests_path.glob("*.py")) if win_tests_path.exists() else set()
+    wsl_tests = wsl_files("tests", "*.py")
     results["tests"] = win_tests.issubset(wsl_tests) if wsl_tests else False
 
-    # 4. Scripts: Windows vs WSL2 (subset check — WSL2 may have extra legacy files)
-    win_scripts = set(f.name for f in (win_root / "scripts").glob("*.py"))
-    rc, stdout, _ = run_wsl("ls /root/azazael/scripts/*.py 2>/dev/null")
-    wsl_scripts = set(Path(f).name for f in stdout.strip().split("\n") if f) if rc == 0 else set()
+    # 4. Scripts: Windows vs WSL2 (subset check)
+    win_scripts_path = win_root / "scripts"
+    win_scripts = set(f.name for f in win_scripts_path.glob("*.py")) if win_scripts_path.exists() else set()
+    wsl_scripts = wsl_files("scripts", "*.py")
     results["scripts"] = win_scripts.issubset(wsl_scripts) if wsl_scripts else False
 
     results["all_ok"] = all(results.values())
@@ -296,7 +508,7 @@ def main():
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--verify", action="store_true")
     parser.add_argument("--sync-all", action="store_true")
-    parser.add_argument("--sync-to", choices=["wsl2", "g", "desktop"])
+    parser.add_argument("--sync-to", choices=["wsl2", "windows", "g", "desktop", "kali"])
     parser.add_argument("--dry-run", action="store_true")
 
     args = parser.parse_args()
@@ -339,19 +551,39 @@ def main():
                     print(f"  {k}: out of sync")
 
     if args.sync_to == "wsl2" or args.sync_all:
-        print("Syncing Windows -> WSL2...")
-        r = sync_windows_to_wsl2(dry_run=args.dry_run)
+        # Skip Windows→WSL direction when already on WSL
+        if Path("/root/azazael").exists():
+            print("Skipping Windows -> WSL2 (already on WSL)")
+        else:
+            print("Syncing Windows -> WSL2...")
+            r = sync_windows_to_wsl2(dry_run=args.dry_run)
+            print(f"  {r['count']} files synced")
+            for e in r.get("errors", []):
+                print(f"  ERROR: {e}")
+
+    if args.sync_to == "windows" or args.sync_all:
+        print("Syncing WSL2 -> Windows 11...")
+        r = sync_wsl_to_windows(dry_run=args.dry_run)
         print(f"  {r['count']} files synced")
         for e in r.get("errors", []):
             print(f"  ERROR: {e}")
 
     if args.sync_to == "g" or args.sync_all:
-        for gk in ["g_source", "g_root"]:
-            gi = ENVIRONMENTS[gk]
-            if gi["root"].exists():
-                print(f"Syncing docs -> {gi['label']}...")
-                r = sync_docs_to_target(windows_root, gi["root"], dry_run=args.dry_run)
-                print(f"  {r['count']} files synced")
+        # Try G: via /mnt/g/ (WSL2) first, then fall back to Windows paths
+        g_wsl = Path("/mnt/g/source-of-truth/azazael")
+        if g_wsl.exists() or Path("/mnt/g/AZAZAEL_SOURCE_OF_TRUTH").exists():
+            print("Syncing WSL2 -> G: archives...")
+            r = sync_wsl_to_g(dry_run=args.dry_run)
+            print(f"  {r['count']} files synced")
+            for e in r.get("errors", []):
+                print(f"  ERROR: {e}")
+        else:
+            for gk in ["g_source", "g_root"]:
+                gi = ENVIRONMENTS[gk]
+                if gi["root"].exists():
+                    print(f"Syncing docs -> {gi['label']}...")
+                    r = sync_docs_to_target(windows_root, gi["root"], dry_run=args.dry_run)
+                    print(f"  {r['count']} files synced")
 
     if args.sync_to == "desktop" or args.sync_all:
         dr = ENVIRONMENTS["desktop"]["root"]
@@ -359,6 +591,13 @@ def main():
             print("Syncing docs -> Desktop...")
             r = sync_docs_to_target(windows_root, dr, dry_run=args.dry_run)
             print(f"  {r['count']} files synced")
+
+    if args.sync_to == "kali" or args.sync_all:
+        print("Syncing WSL2 -> Kali Linux via E: bridge...")
+        r = sync_wsl_to_kali(dry_run=args.dry_run)
+        print(f"  {r['count']} files synced")
+        for e in r.get("errors", []):
+            print(f"  ERROR: {e}")
 
     if args.sync_all:
         print(f"\nFull sync complete - {ts}")

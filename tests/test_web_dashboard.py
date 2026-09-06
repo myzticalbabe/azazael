@@ -126,7 +126,16 @@ class TestWebDashboardServer(unittest.TestCase):
             s.connect(("127.0.0.1", self.PORT))
             req = f"GET {path} HTTP/1.0\r\nHost: localhost\r\n\r\n"
             s.sendall(req.encode("utf-8"))
-            data = s.recv(65535)
+            # Read until EOF (HTTP/1.0 closes after the response). A single
+            # recv() can return only part of the response depending on TCP
+            # segmentation, making assertions flaky.
+            chunks = []
+            while True:
+                chunk = s.recv(65535)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+            data = b"".join(chunks)
             # Strip HTTP headers
             body = data.decode("utf-8").split("\r\n\r\n", 1)[-1]
             return body
