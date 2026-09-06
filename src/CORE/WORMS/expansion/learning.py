@@ -36,7 +36,7 @@ def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
+        except Exception:  # noqa: BLE001 — 314t detection is best-effort
             return False
 @register_worm(category="learning", priority=6, cooldown_seconds=120.0,
     description="RL train loop v2 — trains from DataPipelineWorm output with Q-learning policy optimization")
@@ -142,14 +142,16 @@ class RLTrainLoop:
                 "registered_at": result.get("registered_at", datetime.now().isoformat()),
                 "metrics": _metrics,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — registration failure returns signed error
             return {"error": str(e)}
 
     def _save_q_table_to_store(self, model_name: str, version: str) -> bool:
         """Persist the Q-table to LocalMemoryStore for durable storage."""
         try:
-            from CORE.local_memory import LocalMemoryStore
-            store = LocalMemoryStore()
+            # Singleton — creating a fresh LocalMemoryStore per call re-runs
+            # schema migration on every use (slow on large DBs).
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
             # Convert Q-table to serializable format
             q_serializable = {}
             with self._lock:
@@ -168,7 +170,7 @@ class RLTrainLoop:
                 severity="info", tags=["rl", "q_table", "persist"],
             )
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001 — persistence best-effort
             return False
     def load_q_table_from_store(self, model_name: Optional[str] = None, version: Optional[str] = None) -> bool:
         """Load a persisted Q-table from LocalMemoryStore.
@@ -181,8 +183,8 @@ class RLTrainLoop:
             True if Q-table was loaded successfully.
         """
         try:
-            from CORE.local_memory import LocalMemoryStore
-            store = LocalMemoryStore()
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
 
             if model_name:
                 query = f"q_table_persisted {model_name}"
@@ -198,7 +200,7 @@ class RLTrainLoop:
                 if isinstance(data, str):
                     try:
                         data = json.loads(data)
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — skip malformed serialized payload
                         continue
                 if not isinstance(data, dict):
                     continue
@@ -222,7 +224,7 @@ class RLTrainLoop:
                 return True
 
             return False
-        except Exception:
+        except Exception:  # noqa: BLE001 — load best-effort
             return False
     def train_from_memory(self, source: Optional[str] = None, event_type: Optional[str] = None,
                           n_episodes: int = 100, max_steps: int = 50,
@@ -296,7 +298,7 @@ class RLTrainLoop:
             try:
                 _schema_extractor = SchemaAwareFeatureExtractor()
                 _schema_extractor.fit(records)
-            except Exception:
+            except Exception:  # noqa: BLE001 — schema extraction best-effort
                 _schema_extractor = None
 
         def _get_state_key(record: Dict) -> str:
@@ -427,8 +429,8 @@ class RLTrainLoop:
 
         # Persist learned policy to LocalMemoryStore + ModelVersioner
         try:
-            from CORE.local_memory import LocalMemoryStore
-            store = LocalMemoryStore()
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
             save_data = {
                 "n_episodes": n_episodes,
                 "total_duration_ms": round(duration_ms, 2),
@@ -464,7 +466,7 @@ class RLTrainLoop:
                 if "error" not in reg_result:
                     result["registered_model"] = reg_result.get("model_name")
                     result["registered_version"] = reg_result.get("version")
-        except Exception:
+        except Exception:  # noqa: BLE001 — model registration best-effort
             pass
 
         return result
@@ -596,8 +598,8 @@ class RLTrainLoop:
         registered_version = None
         if register_tune_model and best_params:
             try:
-                from CORE.local_memory import LocalMemoryStore
-                store = LocalMemoryStore()
+                from CORE.local_memory import get_memory_store
+                store = get_memory_store()
                 version = datetime.now().strftime("%Y%m%d_%H%M%S")
                 store.record_event(
                     source="RLTrainLoop", event_type="tune_config_registered",
@@ -612,7 +614,7 @@ class RLTrainLoop:
                     severity="info", tags=["rl", "tune", "v2"],
                 )
                 registered_version = version
-            except Exception:
+            except Exception:  # noqa: BLE001 — tune-run persistence best-effort
                 pass
 
         return {
@@ -688,7 +690,7 @@ class RLTrainLoop:
             action = getattr(agent, "act", lambda s: 0)(state)
             try:
                 next_state, reward, done, *_ = getattr(env, "step", lambda a: (0, 0, True, {}))(action)
-            except Exception:
+            except Exception:  # noqa: BLE001 — broken env stops episode
                 break
             total_reward += reward
             state = next_state
@@ -721,8 +723,8 @@ class RLTrainLoop:
             Dict with history list and summary stats.
         """
         try:
-            from CORE.local_memory import LocalMemoryStore
-            store = LocalMemoryStore()
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
             events = store.search_memories(
                 "tune_config_registered", source="RLTrainLoop", limit=limit
             )
@@ -733,7 +735,7 @@ class RLTrainLoop:
                 if isinstance(raw_data, str):
                     try:
                         data = json.loads(raw_data)
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — skip malformed serialized payload
                         continue
                 else:
                     data = raw_data
@@ -760,7 +762,7 @@ class RLTrainLoop:
                     "n_tune_runs": len(history),
                 } if scores else {},
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — tuning failure returns signed error
             return {"error": str(e), "history": []}
 
 
@@ -800,8 +802,8 @@ class ModelVersioner:
             with self._lock:
                 if self._store is None:
                     try:
-                        from CORE.local_memory import LocalMemoryStore
-                        self._store = LocalMemoryStore()
+                        from CORE.local_memory import get_memory_store
+                        self._store = get_memory_store()
                     except ImportError:
                         self._store = False
         return self._store if self._store else None
@@ -833,7 +835,7 @@ class ModelVersioner:
                     },
                     severity="info", tags=["model", "versioner"]
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — version-clone telemetry best-effort
                 pass
 
         return entry
@@ -971,8 +973,8 @@ class DataPipelineWorm:
             with self._lock:
                 if self._store is None:
                     try:
-                        from CORE.local_memory import LocalMemoryStore
-                        self._store = LocalMemoryStore()
+                        from CORE.local_memory import get_memory_store
+                        self._store = get_memory_store()
                     except ImportError:
                         self._store = False
         return self._store if self._store else None
@@ -1053,7 +1055,7 @@ class DataPipelineWorm:
         for tf in transformations:
             try:
                 result = tf(result)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — record fallback then re-raise
                 self._record_fallback("transform", {"error": str(e)})
                 raise
         return result
@@ -1139,7 +1141,7 @@ class DataPipelineWorm:
             try:
                 result = processor(batch)
                 results.append(result)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — record failed batch, continue
                 self._record_fallback("batch", {"batch": i, "error": str(e)})
         return results
 
@@ -1369,10 +1371,10 @@ class DataPipelineWorm:
                                     if r_dt >= gap_end_dt:
                                         gap_end = i
                                         break
-                                except Exception:
+                                except Exception:  # noqa: BLE001 — timestamp parse best-effort
                                     pass
                         train_end = gap_end
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — gap-detection best-effort
                         pass
 
             test_start = train_end
@@ -1452,7 +1454,7 @@ class DataPipelineWorm:
                     severity="info",
                     tags=["shapes", "dynamic", "refresh"],
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — shape-refresh telemetry best-effort
                 pass
 
         return {
@@ -1615,7 +1617,7 @@ def refresh_dynamic_shapes(pipeline=None, sample_limit: int = 100) -> Dict[str, 
     if pipeline is None:
         try:
             pipeline = DataPipelineWorm()
-        except Exception:
+        except Exception:  # noqa: BLE001 — pipeline creation failure is a signed error
             return {"error": "Cannot create DataPipelineWorm"}
 
     result = pipeline.auto_discover_shapes(sample_limit=sample_limit)
@@ -2071,3 +2073,21 @@ class FeatureEngineer:
             "labels": labels,
             "source_categories": source_list,
         }
+
+
+# ─────────────────────────────────────────────────────────────────────────
+# Backward-compatibility re-exports
+#
+# PrioritizedReplayBuffer and GRPOTrainer were extracted into focused
+# modules (learning_replay.py / learning_grpo.py) to avoid loading the
+# 100K+ learning.py monolith. These re-exports keep the original import
+# path working for existing callers and tests.
+# ─────────────────────────────────────────────────────────────────────────
+try:
+    from CORE.WORMS.expansion.learning_replay import PrioritizedReplayBuffer  # noqa: E402, F401
+except ImportError:
+    pass
+try:
+    from CORE.WORMS.expansion.learning_grpo import GRPOTrainer  # noqa: E402, F401
+except ImportError:
+    pass

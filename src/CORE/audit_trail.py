@@ -300,6 +300,25 @@ def _ensure_session():
         _init_session()
 
 
+def audit_session_start() -> str:
+    """Explicitly start the JSONL audit session. Idempotent.
+
+    Guarantees a session_<ts>_<uuid4>.jsonl audit file exists for the current
+    process regardless of whether any specific audit_<event>() call happens.
+    Combined with the atexit anchor, every Codebuff session ends up with both a
+    DirectMemory record AND a hash-chained, Merkle-proved JSONL audit trail.
+
+    Returns:
+        Filepath of the active audit session (for citation) or "" if the
+        session could not be started.
+    """
+    try:
+        _ensure_session()
+        return str(_session_filepath) if _session_filepath else ""
+    except Exception:
+        return ""
+
+
 # ---------------------------------------------------------------------------
 # Session lifecycle — close + anchor
 # ---------------------------------------------------------------------------
@@ -389,7 +408,8 @@ def verify_head_hash(audit_filepath: str) -> tuple:
                 continue
             try:
                 data = json.loads(line)
-                if data.get("audit_file") == audit_filepath:
+                # Normalize both sides (Windows backslashes vs POSIX forward slashes)
+                if os.path.normpath(str(data.get("audit_file", ""))) == os.path.normpath(audit_filepath):
                     stored_hash = data.get("head_hash", "")
                     break
             except json.JSONDecodeError:

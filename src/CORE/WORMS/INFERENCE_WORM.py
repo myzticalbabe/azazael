@@ -157,6 +157,18 @@ class InferenceWorm:
             "total_tokens": self._total_tokens,
         }
 
+    def get_status(self) -> dict[str, Any]:
+        """Side-effect free status probe (safe for cluster dispatch).
+
+        Returned by NatureCluster dispatcher instead of falling through to
+        an argument-less execute() call, which would error on an empty prompt.
+        """
+        return {
+            "success": True,
+            "exec_count": self._exec_count,
+            "total_tokens": self._total_tokens,
+        }
+
     def __repr__(self) -> str:
         return f"InferenceWorm(v{InferenceWorm.VERSION}, execs={self._exec_count}, tokens={self._total_tokens})"
 

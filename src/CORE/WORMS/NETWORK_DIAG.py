@@ -181,8 +181,8 @@ class NetworkDiag:
                     source="NetworkDiag",
                     severity=severity,
                 )
-            except Exception:
-                pass
+            except (OSError, TypeError, ValueError):
+                pass  # best-effort memory recording
 
     # ── traceroute ────────────────────────────────────────────────────────────
 
@@ -264,7 +264,7 @@ class NetworkDiag:
                 if ip and ip != "Request timed out":
                     try:
                         hostname = socket.gethostbyaddr(ip)[0]
-                    except Exception:
+                    except OSError:
                         hostname = ip
 
                 hops.append(TracerouteHop(
@@ -274,7 +274,7 @@ class NetworkDiag:
                     rtt_ms=[r for r in rtts if r > 0] if rtts else [],
                     loss=ip == "Request timed out" or not rtts,
                 ))
-        except Exception as e:
+        except (OSError, subprocess.TimeoutExpired, ValueError) as e:
             self._record("traceroute_error", {"host": host, "error": str(e)}, severity="error")
 
         return hops
@@ -312,14 +312,14 @@ class NetworkDiag:
                 if ip != "timeout":
                     try:
                         hostname = socket.gethostbyaddr(ip)[0]
-                    except Exception:
+                    except OSError:
                         hostname = ip
 
                 hops.append(TracerouteHop(
                     hop=hop_num, ip=ip, hostname=hostname,
                     rtt_ms=rtts, loss=(ip == "timeout"),
                 ))
-        except Exception as e:
+        except (OSError, subprocess.TimeoutExpired, ValueError) as e:
             self._record("traceroute_error", {"host": host, "error": str(e)}, severity="error")
 
         return hops
@@ -431,7 +431,7 @@ class NetworkDiag:
                     except (ValueError, IndexError):
                         pass
 
-        except Exception as e:
+        except (OSError, subprocess.TimeoutExpired, ValueError) as e:
             self._record("ping_error", {"host": host, "error": str(e)}, severity="error")
 
         return ip, rtts, received, ttl
@@ -470,7 +470,7 @@ class NetworkDiag:
                     except (ValueError, IndexError):
                         pass
 
-        except Exception as e:
+        except (OSError, subprocess.TimeoutExpired, ValueError) as e:
             self._record("ping_error", {"host": host, "error": str(e)}, severity="error")
 
         return ip, rtts, received, ttl
@@ -528,7 +528,7 @@ class NetworkDiag:
             ip = hop_ips[hop_num]
             try:
                 hostname = socket.gethostbyaddr(ip)[0] if ip and ip != "Request timed out" else ip
-            except Exception:
+            except (OSError, UnicodeError):
                 hostname = ip
 
             mtr_hops.append(MtrHop(
@@ -614,7 +614,7 @@ class NetworkDiag:
                             result["hops"].append(hop_data)
                         except (ValueError, IndexError):
                             pass
-            except Exception as e:
+            except (OSError, subprocess.TimeoutExpired, ValueError) as e:
                 result["error"] = str(e)
         else:
             # Windows: fallback to traceroute with MTU notes
@@ -669,10 +669,10 @@ class NetworkDiag:
             for proc in _psutil.process_iter(["pid", "name"]):
                 try:
                     pid_names[proc.info["pid"]] = proc.info["name"] or ""
-                except Exception:
+                except (_psutil.NoSuchProcess, _psutil.AccessDenied):
                     pass
-        except Exception:
-            pass
+        except ImportError:
+            pass  # psutil unavailable
 
         try:
             args = ["netstat", "-ano"]
@@ -731,7 +731,7 @@ class NetworkDiag:
                     process_name=process_name,
                 ))
 
-        except Exception as e:
+        except (OSError, subprocess.TimeoutExpired, ValueError) as e:
             self._record("netstat_error", {"error": str(e)}, severity="error")
 
         return entries
@@ -744,10 +744,10 @@ class NetworkDiag:
             for proc in _psutil.process_iter(["pid", "name"]):
                 try:
                     pid_names[proc.info["pid"]] = proc.info["name"] or ""
-                except Exception:
+                except (_psutil.NoSuchProcess, _psutil.AccessDenied):
                     pass
-        except Exception:
-            pass
+        except ImportError:
+            pass  # psutil unavailable
 
         # Try `ss` first (faster), fall back to netstat
         cmd = ["ss", "-tunlp"] if listening else ["ss", "-tuna"]
@@ -785,8 +785,8 @@ class NetworkDiag:
                     state=state if "tcp" in state.lower() else "",
                     pid=pid, process_name=process_name,
                 ))
-        except Exception:
-            pass
+        except (OSError, subprocess.TimeoutExpired, ValueError):
+            pass  # ss uninstalled or unreachable
 
         return entries
 
@@ -865,7 +865,7 @@ class NetworkDiag:
                             pass
             except FileNotFoundError:
                 result["error"] = "strace not installed. Install: apt install strace"
-            except Exception as e:
+            except (OSError, subprocess.TimeoutExpired, ValueError) as e:
                 result["error"] = str(e)
         else:
             # Windows: resource-monitored subprocess execution
@@ -899,9 +899,9 @@ class NetworkDiag:
                             })
                     except (_psutil.NoSuchProcess, _psutil.AccessDenied):
                         pass
-                except Exception:
-                    pass
-            except Exception as e:
+                except ImportError:
+                    pass  # psutil unavailable
+            except (OSError, subprocess.TimeoutExpired, ValueError) as e:
                 result["error"] = str(e)
 
         self._record("strace", {
@@ -940,7 +940,7 @@ class NetworkDiag:
                 try:
                     if process_name.lower() in (proc.info["name"] or "").lower():
                         processes_to_check.append(proc)
-                except Exception:
+                except (_psutil.AccessDenied, _psutil.NoSuchProcess):
                     pass
         else:
             # All processes (bounded for safety)
@@ -1036,7 +1036,7 @@ class NetworkDiag:
                             pass
             except FileNotFoundError:
                 result["error"] = "ltrace not installed. Install: apt install ltrace"
-            except Exception as e:
+            except (OSError, subprocess.TimeoutExpired, ValueError) as e:
                 result["error"] = str(e)
         else:
             # Windows: DLL loading analysis
@@ -1061,12 +1061,12 @@ class NetworkDiag:
                                 })
                     except (_psutil.NoSuchProcess, _psutil.AccessDenied):
                         pass
-                except Exception:
-                    pass
+                except ImportError:
+                    pass  # psutil unavailable
 
                 result["note"] = "Windows ltrace limited; DLL enumeration from memory maps"
 
-            except Exception as e:
+            except (OSError, subprocess.TimeoutExpired, ValueError) as e:
                 result["error"] = str(e)
 
         self._record("ltrace", {
@@ -1135,7 +1135,7 @@ class NetworkDiag:
                             "pmtu": result.get("pmtu"),
                             "hops": len(result.get("hops", [])),
                         }
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 — future.result re-raises any diagnostic error; per-diagnostic capture required
                     report[name] = {"error": str(e)}
 
         # PAMS memory

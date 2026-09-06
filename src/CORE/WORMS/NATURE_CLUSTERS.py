@@ -798,7 +798,13 @@ class NatureClusterManager:
         nature_counts = {}
         with self._lock:
             for cat in sorted(categories):
-                cluster = NatureCluster(cat)
+                # Reuse an existing cluster so its populated `worms` dict
+                # persists, making the `name not in self.worms` dedup effective
+                # across manager runs. Fresh instances would re-see every worm
+                # as "new" each time, flooding nature_cluster_discovery events.
+                cluster = self.clusters.get(cat)
+                if cluster is None:
+                    cluster = NatureCluster(cat)
                 count = cluster.discover_worms()
                 if count > 0:
                     self.clusters[cat] = cluster

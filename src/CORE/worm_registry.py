@@ -56,9 +56,16 @@ _thread_local.correlation_id: Optional[str] = None
 
 
 def _get_correlation_id() -> str:
-    """Get the current thread's correlation ID, generating one if needed."""
+    """Get the current thread's correlation ID, generating one if needed.
+
+    Uses the full `uuid7().hex` (32 chars). Slicing to the first 12 hex chars
+    would keep only the 48-bit millisecond timestamp — identical across threads
+    created within the same millisecond under 3.14t free-threading. The full
+    hex includes the monotonic counter and random bits, guaranteeing uniqueness
+    per thread/event.
+    """
     if not hasattr(_thread_local, "correlation_id") or _thread_local.correlation_id is None:
-        _thread_local.correlation_id = uuid7().hex[:12]
+        _thread_local.correlation_id = uuid7().hex
     return _thread_local.correlation_id
 
 
@@ -1025,6 +1032,151 @@ def mark_spawned(worm_type: str):
         if worm_type in WORM_REGISTRY:
             WORM_REGISTRY[worm_type]["spawn_count"] += 1
             WORM_REGISTRY[worm_type]["last_spawned"] = datetime.now().isoformat()
+
+
+# --- Importability Validation --------------------------------------
+
+
+def _resolve_worm_import_module(info: Dict[str, Any]) -> str:
+    """Resolve the importable module path for a registry entry.
+
+    Mirrors the module-path normalization in register_worm() and the
+    health-check worker: bare module names (e.g. "TRIMZ" for files at the
+    src root, or "CLUSTERWORMS" for files under CORE/WORMS) are prefixed
+    with their package so the import resolves from the src root in fresh
+    processes. Package-style refs (CORE.WORMS.X, worms.*) pass through.
+
+    Returns an empty string if no module path can be determined.
+    """
+    module = info.get("module") or ""
+    if module and "." in module:
+        return module  # Already package-qualified (CORE.WORMS.X, worms.X)
+
+    # Bare name — infer the package from the source file location.
+    src = info.get("source_file") or ""
+    norm = src.replace("\\", "/")
+    if "/CORE/WORMS/" in norm:
+        return f"CORE.WORMS.{module or Path(src).stem}"
+    if "/CORE/" in norm:
+        return f"CORE.{module or Path(src).stem}"
+    # src-root module (TRIMZ.py, ERRORZ.py, ...) or unknown — import as-is.
+    return module or (Path(src).stem if src else "")
+
+
+def validate_registry_importable() -> Dict[str, Any]:
+    """Confirm every registered worm's module is importable and exposes its class.
+
+    Iterates WORM_REGISTRY and, for each entry, imports the resolved module
+    and verifies the registered class is present. Detects stale cache entries,
+    moved/renamed modules, and broken imports before they surface at spawn time.
+
+    Returns:
+        dict with:
+          - valid: bool — True if all worms confirmed importable
+          - total: int — number of registry entries checked
+          - checked: int — number successfully confirmed
+          - broken: list of {name, module, error} for worms that failed
+          - validated_at: ISO timestamp
+    """
+    with _registry_lock:
+        entries = list(WORM_REGISTRY.items())
+
+    broken: List[Dict[str, Any]] = []
+    checked = 0
+
+    for name, info in entries:
+        module = _resolve_worm_import_module(info)
+        try:
+            if not module:
+                raise ImportError("no module or source_file recorded")
+            mod = importlib.import_module(module)
+            cls = getattr(mod, name, None)
+            if cls is None or not isinstance(cls, type):
+                raise ImportError(f"class {name!r} not found in module {module!r}")
+            checked += 1
+        except Exception as exc:
+            broken.append({
+                "name": name,
+                "module": module,
+                "error": f"{type(exc).__name__}: {exc}",
+            })
+
+    return {
+        "valid": len(broken) == 0,
+        "total": len(entries),
+        "checked": checked,
+        "broken": broken,
+        "validated_at": datetime.now().isoformat(),
+    }
+
+
+def repair_registry() -> Dict[str, Any]:
+    """Attempt to auto-repair broken registry entries by re-running discovery.
+
+    Broken entries usually come from a stale pickle cache (modules renamed,
+    moved, or removed since the cache was saved). This function:
+      1. Validates the current registry.
+      2. If no broken entries, returns immediately (no-op).
+      3. Otherwise invalidates the pickle cache and resets discovery state,
+         forcing discover_worms() to re-import every worm module fresh and
+         rebuild the registry from current source.
+      4. Re-validates and reports what was fixed.
+
+    Returns:
+        dict with:
+            attempt: bool          — True if a repair was needed (broken entries found)
+            repaired: int          — count of previously-broken entries now importable
+            still_broken: list     — of {name, module, error} remaining after repair
+            valid: bool            — registry importable after repair
+            total: int             — registry entries after repair
+            checked: int           — entries confirmed after repair
+            repaired_at: str       — ISO timestamp
+    """
+    before = validate_registry_importable()
+    broken_in = {b.get("name") for b in (before.get("broken") or [])}
+    if not broken_in:
+        return {
+            "attempt": False,
+            "repaired": 0,
+            "still_broken": [],
+            "valid": bool(before.get("valid")),
+            "total": before.get("total", 0),
+            "checked": before.get("checked", 0),
+            "repaired_at": datetime.now().isoformat(),
+        }
+
+    # Force a fresh rebuild: drop the stale pickle cache and clear discovery
+    # state so discover_worms() re-imports every module from source.
+    try:
+        from CORE.worm_registry_cache import invalidate_cache
+        invalidate_cache()
+    except Exception:
+        pass
+
+    importlib.invalidate_caches()  # clear importlib metadata caches too
+
+    with _registry_lock:
+        WORM_REGISTRY.clear()
+        global _discovery_done
+        _discovery_done = False
+
+    try:
+        discover_worms()
+    except Exception:
+        pass
+
+    after = validate_registry_importable()
+    broken_out = set(b.get("name") for b in (after.get("broken") or []))
+    repaired = len(broken_in - broken_out)
+    return {
+        "attempt": True,
+        "repaired": repaired,
+        "still_broken": after.get("broken") or [],
+        "valid": bool(after.get("valid")),
+        "total": after.get("total", 0),
+        "checked": after.get("checked", 0),
+        "repaired_at": datetime.now().isoformat(),
+    }
 
 
 def reset_registry():

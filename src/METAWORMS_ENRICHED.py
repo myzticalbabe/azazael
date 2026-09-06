@@ -42,7 +42,7 @@ import ast
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 from dataclasses import dataclass, field
 from collections import defaultdict
 import tkinter as tk
@@ -89,9 +89,9 @@ class WormResult:
     files_processed: int = 0
     items_found: int = 0
     duration_ms: float = 0.0
-    output: Dict[str, Any] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    output: dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 class MetaWormConfig:
@@ -206,7 +206,7 @@ class RichOutput:
         )
 
     @staticmethod
-    def print_table(headers: List[str], rows: List[List[str]]):
+    def print_table(headers: list[str], rows: list[list[str]]):
         """Print formatted table."""
         col_widths = [len(h) for h in headers]
         for row in rows:
@@ -241,10 +241,10 @@ class METAZ:
         start = time.time()
         files = 0
         items = 0
-        errors: List[str] = []
-        warnings: List[str] = []
+        errors: list[str] = []
+        warnings: list[str] = []
 
-        metadata: Dict[str, Any] = {
+        metadata: dict[str, Any] = {
             "total_size_bytes": 0,
             "file_counts": defaultdict(int),
             "recent_files": [],
@@ -322,7 +322,7 @@ class DEPENDZ:
         items = 0
         errors = []
 
-        dependencies: Dict[str, Dict[str, Any]] = defaultdict(lambda: {"files": set(), "imports": []})
+        dependencies: dict[str, dict[str, Any]] = defaultdict(lambda: {"files": set(), "imports": []})
 
         for folder in MetaWormConfig.TARGET_FOLDERS:
             p = Path(folder)
@@ -437,7 +437,7 @@ class DEADZ:
         items = 0
         warnings = []
 
-        issues: Dict[str, List[Dict[str, Any]]] = {
+        issues: dict[str, list[dict[str, Any]]] = {
             "debug_prints": [],
             "pycache_refs": [],
             "TODO_comments": [],
@@ -502,7 +502,7 @@ class METRICZ:
         start = time.time()
         files = 0
         items = 0
-        metrics: Dict[str, Any] = {
+        metrics: dict[str, Any] = {
             "totals": {
                 "lines": 0,
                 "code_lines": 0,
@@ -519,8 +519,8 @@ class METRICZ:
             },
         }
 
-        classes_by_file: List[tuple[str, str]] = []
-        functions_by_file: List[tuple[str, str]] = []
+        classes_by_file: list[tuple[str, str]] = []
+        functions_by_file: list[tuple[str, str]] = []
 
         for folder in MetaWormConfig.TARGET_FOLDERS:
             p = Path(folder)
@@ -537,7 +537,7 @@ class METRICZ:
                         content = fp.read()
 
                     lines = content.split("\n")
-                    file_metrics: Dict[str, Any] = {
+                    file_metrics: dict[str, Any] = {
                         "file": str(f),
                         "lines": len(lines),
                         "code_lines": 0,
@@ -601,7 +601,7 @@ class LOGZ:
         start = time.time()
         files = 0
         items = 0
-        logs: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        logs: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
         for folder in MetaWormConfig.TARGET_FOLDERS:
             p = Path(folder)
@@ -650,7 +650,7 @@ class CHANGEZ:
         start = time.time()
         files = 0
         items = 0
-        changes: Dict[str, Any] = {
+        changes: dict[str, Any] = {
             "recent": [],
             "by_day": defaultdict(int),
             "by_size": {
@@ -722,7 +722,7 @@ class METAWORMS:
     """Main meta worms management system."""
 
     VERSION = "3.1.0"
-    WORMS: Dict[str, Any] = {
+    WORMS: dict[str, Any] = {
         "METAZ": METAZ,
         "DEPENDZ": DEPENDZ,
         "VALIDZ": VALIDZ,
@@ -732,7 +732,7 @@ class METAWORMS:
         "CHANGEZ": CHANGEZ,
     }
 
-    EXTENDED_WORMS: Dict[str, Any] = {}
+    EXTENDED_WORMS: dict[str, Any] = {}
 
     @classmethod
     def register_worm(cls, name: str, worm_class):
@@ -740,10 +740,10 @@ class METAWORMS:
         cls.EXTENDED_WORMS[name] = worm_class
 
     def __init__(self):
-        self.results: Dict[str, WormResult] = {}
-        self.start_time: Optional[datetime] = None
+        self.results: dict[str, WormResult] = {}
+        self.start_time: datetime | None = None
 
-    def run(self, name: str) -> Optional[WormResult]:
+    def run(self, name: str) -> WormResult | None:
         """Run a single meta worm by name."""
         if name not in self.WORMS:
             print(f"Unknown worm: {name}")
@@ -753,7 +753,7 @@ class METAWORMS:
         self.results[name] = worm.run()
         return self.results[name]
 
-    def run_all(self) -> Dict[str, WormResult]:
+    def run_all(self) -> dict[str, WormResult]:
         """Run all meta worms with rich output."""
         self.start_time = datetime.now()
 
@@ -941,7 +941,7 @@ class METAWORMS:
             f.write(html)
 
         print(f"{Colors.CYAN}HTML Report:{Colors.ENDC} {report_file}")
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get meta worms status."""
         return {
             "version": self.VERSION,

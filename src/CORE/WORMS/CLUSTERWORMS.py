@@ -93,7 +93,7 @@ def _get_pams():
             if _pams is None:
                 try:
                     _pams = _PamsRecorderCls()
-                except Exception:
+                except Exception:  # noqa: BLE001 — optional recorder; fall back to None
                     _pams = False
     return _pams if _pams else None
 def _get_mem_bus():
@@ -107,7 +107,7 @@ def _get_mem_bus():
             if _mem_bus is None:
                 try:
                     _mem_bus = _MemoryBusCls()
-                except Exception:
+                except Exception:  # noqa: BLE001 — optional bus; fall back to None
                     _mem_bus = False
     return _mem_bus if _mem_bus else None
 
@@ -126,7 +126,7 @@ except ImportError:
     def is_free_threaded() -> bool:
         try:
             return not sys._is_gil_enabled()
-        except Exception:
+        except Exception:  # noqa: BLE001 — 314t detection best-effort
             return False
 
     def as_completed(fs, timeout=None):
@@ -161,7 +161,7 @@ def _get_breaker_registry():
                 try:
                     _cfg = _get_config()
                     _breaker_registry = _BreakerRegistryCls()
-                except Exception:
+                except Exception:  # noqa: BLE001 — optional breaker; fall back to None
                     _breaker_registry = False
     return _breaker_registry if _breaker_registry else None
 
@@ -418,7 +418,7 @@ def _resolve_worm_dynamic(module_name: str) -> Optional[Dict[str, Any]]:
         try:
             result = _LEGACY_DISPATCH[module_name]()
             return {"success": True, "method": "legacy_dispatch", "result": result}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — dispatch failure reports, never raises
             return {"success": False, "error": str(e), "method": "legacy_dispatch"}
     
     # Strategy 3: Try to import and find the class by convention
@@ -432,7 +432,7 @@ def _resolve_worm_dynamic(module_name: str) -> Optional[Dict[str, Any]]:
             mod = sys.modules.get(mod_name) or __import__(mod_name, fromlist=[cls_name])
             cls = getattr(mod, cls_name)
             return _execute_worm_class(module_name, cls)
-        except Exception:
+        except Exception:  # noqa: BLE001 — fall through to next resolution strategy
             pass
     
     return None
@@ -447,7 +447,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
     """
     try:
         instance = cls()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 — instantiation failure reports, never raises
         return {"success": False, "error": f"Instantiation failed: {str(e)}"}
 
     last_error = None
@@ -476,7 +476,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
                 if hasattr(result, "__dict__") and not isinstance(result, dict):
                     result = result.__dict__
                 return {"success": True, "method": method_name, "result": result}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — method failure reports, tries fallback
                 return {"success": False, "error": str(e), "method": method_name}
 
     # Step 2: Fallback to ANY parameterless public method
@@ -499,7 +499,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
             if hasattr(result, "__dict__") and not isinstance(result, dict):
                 result = result.__dict__
             return {"success": True, "method": method_name, "result": result}
-        except Exception:
+        except Exception:  # noqa: BLE001 — try next standard method
             continue
 
     if last_error:
@@ -651,7 +651,8 @@ class WormExecutor:
                 "error": str(e),
                 "breaker_state": breaker.state.value,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — breaker execution boundary
+            
             output = {
                 "name": self.name,
                 "success": False,
@@ -686,7 +687,7 @@ class WormExecutor:
                 error = f"Unknown module: {self.config.module}"
                 result = {"error": error}
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — worm execution reports, never raises
             error = str(e)
             result = {"error": error}
             success = False
@@ -802,7 +803,7 @@ class ClusterWORMZ:
             })
         except ImportError:
             warnings.warn(f"PyYAML not installed — per-nature config for '{nature}' skipped. Install: pip install pyyaml")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — config failure degrades to cluster defaults
             warnings.warn(f"Failed to apply per-nature config for '{nature}': {e} — using cluster defaults")
         
         mem_bus = _get_mem_bus()
@@ -813,7 +814,7 @@ class ClusterWORMZ:
                     {"nature": nature, "worm_count": len(cat_worms)},
                     source="ClusterWORMZ",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — bus publish best-effort
                 pass
         
         return cluster
@@ -900,7 +901,7 @@ class ClusterWORMZ:
                     {"cluster_id": self.cluster_id, "worm_count": len(self.configs)},
                     source="ClusterWORMZ",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — bus publish best-effort
                 pass
         
         results = []
@@ -954,7 +955,7 @@ class ClusterWORMZ:
                                 "error": f"Timed out after {self.timeout}s",
                                 "timed_out": True,
                             })
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001 — per-worm boundary reports
                             results.append({
                                 "name": name,
                                 "success": False,
@@ -1092,7 +1093,7 @@ class ClusterWORMZ:
                     "breaker_ok": True,
                     "breaker_stats": breaker_reg.all_stats(),
                 }
-            except Exception:
+            except Exception:  # noqa: BLE001 — breaker stats best-effort
                 pass
         
         return {
@@ -1202,7 +1203,7 @@ class ClusterWORMZ:
                     source=f"ClusterWORMZ.{self.cluster_type}",
                     severity="info",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — telemetry best-effort
                 pass
 
     def __repr__(self):

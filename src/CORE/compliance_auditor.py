@@ -509,15 +509,16 @@ class EcaHttpServer:
 
         except socket.timeout:
             pass
-        except Exception as e:
+        except (OSError, ValueError, sqlite3.Error) as e:
+            # Request-error boundary: socket I/O, body parsing, or audit DB access.
             try:
                 self._send_json(conn, {"error": str(e)}, status=500)
-            except Exception:
-                pass
+            except OSError:
+                pass  # client already gone / connection reset
         finally:
             try:
                 conn.close()
-            except Exception:
+            except OSError:
                 pass
 
     def _send_json(self, conn: socket.socket, data: Any, status: int = 200):
@@ -639,7 +640,7 @@ _DM_RECORD = None
 try:
     from CORE.direct_memory import record as _dm_record
     _DM_RECORD = _dm_record
-except Exception:
+except ImportError:
     pass
 
 
@@ -693,8 +694,8 @@ def compliance_gate(action: str, rule_id: str = "COMPLIANCE_GATE",
                     "rule_id": rule_id,
                     "reason": result["reason"],
                 }, severity="error", tags=["compliance", "eca", "halt"])
-            except Exception:
-                pass
+            except (OSError, ValueError, sqlite3.Error):
+                pass  # best-effort audit record — never block the gate
         raise ComplianceError(
             f"ECA HALT: {result['reason']} "
             f"(action={action}, rule={rule_id})"

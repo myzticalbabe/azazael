@@ -24,7 +24,7 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 from dataclasses import dataclass, field
 
 _AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
@@ -228,7 +228,7 @@ What went well? What can be improved? Respond concisely (2-3 sentences)."""
 
         return recs
 
-    def _record_stage(self, stage_name: str, data: dict, severity: str = "info"):
+    def _record_stage(self, stage_name: str, data: Dict, severity: str = "info"):
         """Record a pipeline stage to PAMS memory."""
         if self._recorder:
             self._recorder.record_event(
@@ -238,7 +238,7 @@ What went well? What can be improved? Respond concisely (2-3 sentences)."""
                 severity=severity,
             )
 
-    def _record_event(self, event_type: str, data: dict):
+    def _record_event(self, event_type: str, data: Dict):
         """Record a pipeline event to PAMS memory."""
         if self._recorder:
             self._recorder.record_event(

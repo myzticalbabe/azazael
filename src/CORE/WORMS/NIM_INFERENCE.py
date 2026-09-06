@@ -172,6 +172,19 @@ class NimInferenceWorm:
             "model": self._client.config.model if self._client else "not initialized",
         }
 
+    def get_status(self) -> dict[str, Any]:
+        """Side-effect free status probe (safe for cluster dispatch).
+
+        Returned by NatureCluster dispatcher instead of falling through to
+        an argument-less execute() call, which would error on an empty prompt.
+        Avoids lazy client creation so probing never triggers network.
+        """
+        return {
+            "success": True,
+            "exec_count": self._exec_count,
+            "total_tokens": self._total_tokens,
+        }
+
     def list_all_providers(self) -> list[dict[str, Any]]:
         """list all available inference providers (not just NIM)."""
         return list_providers()

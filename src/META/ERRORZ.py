@@ -30,11 +30,25 @@ import ast
 import re
 import json
 import time
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from dataclasses import dataclass, field
 from collections import defaultdict
+
+# Resolve CORE.paths so ERRORZ uses centralized, machine-portable paths
+# instead of hardcoded C:/Users/clint/Desktop absolute paths. This file lives
+# at azazael/src/META/ERRORZ.py, so the parent of the parent is azazael/src/.
+try:
+    from CORE.paths import get_desktop_dir
+except ImportError:
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from CORE.paths import get_desktop_dir
+
+
+# Desktop root rebuilt from CORE.paths (portable across machines).
+_DESKTOP = get_desktop_dir()
 
 
 @dataclass
@@ -69,14 +83,14 @@ class ERRORZConfig:
     """ERRORZ configuration."""
 
     TARGET_FOLDERS = [
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION",
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/HYDRA",
-        "C:/Users/clint/Desktop/HORUS.py",
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UTILITIES/TARBABY.py",
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UTILITIES/POINDEXTER",
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/UTILITIES/PERSEPHONE",
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/CORE/WORMS",
-        "C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/META",
+        str(_DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION"),
+        str(_DESKTOP / "Azazael_UNIFIED" / "HYDRA"),
+        str(_DESKTOP / "HORUS.py"),
+        str(_DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "UTILITIES" / "TARBABY.py"),
+        str(_DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "UTILITIES" / "POINDEXTER"),
+        str(_DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "UTILITIES" / "PERSEPHONE"),
+        str(_DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "CORE" / "WORMS"),
+        str(_DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "META"),
     ]
 
     skip_patterns = {
@@ -500,7 +514,7 @@ class ERRORZ:
 
     def _save_report(self, report: ErrorReport):
         """Save error report to JSON."""
-        output_path = Path("C:/Users/clint/Desktop/Azazael_UNIFIED/ORCHESTRATION_UNIFIED/META/output")
+        output_path = _DESKTOP / "Azazael_UNIFIED" / "ORCHESTRATION_UNIFIED" / "META" / "output"
         output_path.mkdir(parents=True, exist_ok=True)
 
         report_data = {

@@ -185,3 +185,7 @@ def error(message: str, tag: str = ""):
 
 def success(message: str, tag: str = ""):
     logger.success(message, tag)
+
+
+def section(title: str):
+    logger.section(title)

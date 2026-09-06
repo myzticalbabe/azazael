@@ -13,6 +13,7 @@ CORE.compliance.orchestrator.
 
 import ast
 import inspect
+import json
 import os
 import py_compile
 import re
@@ -80,6 +81,62 @@ def _lazy_import_orchestrator():
     return _ORCHESTRATOR_AVAILABLE
 
 
+# ---------------------------------------------------------------------------
+# RULE 0Z-F telemetry state persistence — counters survive across processes
+# ---------------------------------------------------------------------------
+
+_TELEMETRY_STATE_PATH = Path.home() / ".azazael" / "pre_action_gate_state.json"
+
+
+def _load_telemetry_state() -> dict:
+    """Load persisted RULE 0Z-F counters (cumulative across processes).
+
+    Returns dict with parallel_batch_count / sequential_spawn_count / edit_count.
+    Never raises — missing or corrupt state falls back to zeros.
+    """
+    try:
+        data = json.loads(_TELEMETRY_STATE_PATH.read_text(encoding="utf-8"))
+        return {
+            "parallel_batch_count": int(data.get("parallel_batch_count", 0)),
+            "sequential_spawn_count": int(data.get("sequential_spawn_count", 0)),
+            "edit_count": int(data.get("edit_count", 0)),
+        }
+    except Exception:
+        return {"parallel_batch_count": 0, "sequential_spawn_count": 0, "edit_count": 0}
+
+
+def _save_telemetry_state(gate: "PreActionGate") -> None:
+    """Persist current counters so other processes see cumulative totals.
+
+    Caller must hold gate._lock. Failure is advisory-only (never blocks the gate).
+    """
+    try:
+        _TELEMETRY_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "parallel_batch_count": gate._parallel_batch_count,
+            "sequential_spawn_count": gate._sequential_spawn_count,
+            "edit_count": gate._edit_count,
+            "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        _TELEMETRY_STATE_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    except Exception:
+        pass  # Persistence is advisory — never block the gate
+
+
+def reset_telemetry_state() -> None:
+    """Reset persisted and in-memory RULE 0Z-F counters (test/admin use)."""
+    try:
+        _TELEMETRY_STATE_PATH.unlink(missing_ok=True)
+    except Exception:
+        pass
+    inst = _pre_action_gate_instance
+    if inst is not None:
+        with inst._lock:
+            inst._parallel_batch_count = 0
+            inst._sequential_spawn_count = 0
+            inst._edit_count = 0
+
+
 class PreActionGate:
     """Gatekeeper for file mutations to prevent catastrophic indentation loss.
 
@@ -100,9 +157,12 @@ class PreActionGate:
         self.telemetry = ComplianceTelemetry() if _TELEMETRY_AVAILABLE else None
         self.memory = DirectMemory() if _MEMORY_AVAILABLE else None
         self.orchestrator = None  # Lazy-init on first _check_rule_0x_0y call
-        self._edit_count = 0
-        self._parallel_batch_count = 0  # RULE 0Z-F telemetry
-        self._sequential_spawn_count = 0  # RULE 0Z-F violations
+        # RULE 0Z-F telemetry — load persisted cumulative counters so
+        # generate_telemetry.py in a fresh process sees real values.
+        _state = _load_telemetry_state()
+        self._edit_count = _state["edit_count"]
+        self._parallel_batch_count = _state["parallel_batch_count"]
+        self._sequential_spawn_count = _state["sequential_spawn_count"]
 
     # ------------------------------------------------------------------
     # Call-stack validation (v2 — Jun 17, 2026)
@@ -1178,6 +1238,7 @@ class PreActionGate:
                         shutil.copy2(backup_path, path)
                         restored = path.read_text(encoding="utf-8")
                         self._edit_count += 1
+                        _save_telemetry_state(self)
                         self._emit("post_edit_validate", "reverted", {
                             "error": error_msg,
                             "filepath": filepath,
@@ -1188,6 +1249,7 @@ class PreActionGate:
                         return False, f"POST-GATE FAILED (revert ALSO failed: {revert_err}): {error_msg}"
                 return False, f"POST-GATE FAILED (no backup available): {error_msg}"
             self._edit_count += 1
+            _save_telemetry_state(self)
             self._emit("post_edit_validate", "pass", {"filepath": filepath})
             return True, "Valid"
 
@@ -1412,11 +1474,15 @@ class PreActionGate:
         return self._sequential_spawn_count
 
     def record_parallel_batch(self):
-        self._parallel_batch_count += 1
+        with self._lock:
+            self._parallel_batch_count += 1
+            _save_telemetry_state(self)
         self._emit("rule_0zf", "parallel_batch", {"count": self._parallel_batch_count})
 
     def record_sequential_violation(self):
-        self._sequential_spawn_count += 1
+        with self._lock:
+            self._sequential_spawn_count += 1
+            _save_telemetry_state(self)
         self._emit("rule_0zf", "sequential_violation", {"count": self._sequential_spawn_count})
 
     @property

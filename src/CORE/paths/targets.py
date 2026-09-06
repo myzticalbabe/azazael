@@ -14,14 +14,27 @@ from .external import get_desktop_dir
 from .internal import get_src_dir, get_worms_dir, get_meta_dir
 
 
+# Canonical target folder names (single source of truth for TRIMZ, ERRORZ, etc.).
+# Consumers import these directly instead of re-declaring their own lists.
+DESKTOP_TARGET_NAMES = [
+    "Azazael", "HYDRA.py", "HORUS.py", "TARBABY.py",
+    "POINDEXTER", "PERSEPHONE", "WORMZ", "METAWORMS",
+]
+
+# Canonical local target subdirectories (relative to the src/ dir).
+# "" == the src/ dir itself (matches _PROJECT_ROOT in TRIMZ.py / ERRORZ.py).
+LOCAL_TARGET_SUBDIRS = [
+    "",           # src/ itself
+    "CORE/WORMS",
+    "META",
+]
+
+
 def get_desktop_targets() -> list:
     """Get standard Desktop target folders used by TRIMZ, ERRORZ, etc."""
     if "desktop_targets" not in _cache:
         _cache["desktop_targets"] = [
-            str(get_desktop_dir() / d) for d in [
-                "Azazael", "HYDRA.py", "HORUS.py", "TARBABY.py",
-                "POINDEXTER", "PERSEPHONE", "WORMZ", "METAWORMS",
-            ]
+            str(get_desktop_dir() / d) for d in DESKTOP_TARGET_NAMES
         ]
     return list(_cache["desktop_targets"])
 
@@ -30,9 +43,8 @@ def get_local_targets() -> list:
     """Get standard local project target folders (matches _PROJECT_ROOT from TRIMZ/ERRORZ)."""
     if "local_targets" not in _cache:
         _cache["local_targets"] = [
-            str(get_src_dir()),        # azazael/src/ (matches _PROJECT_ROOT in TRIMZ.py, ERRORZ.py)
-            str(get_worms_dir()),      # azazael/src/CORE/WORMS/
-            str(get_meta_dir()),       # azazael/src/META/
+            str(get_src_dir() / s) if s else str(get_src_dir())
+            for s in LOCAL_TARGET_SUBDIRS
         ]
     return list(_cache["local_targets"])
 

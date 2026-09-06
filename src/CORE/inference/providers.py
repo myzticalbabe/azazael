@@ -817,12 +817,12 @@ class OpenAIProvider:
                             "elapsed_ms": result.get("elapsed_ms", 0),
                         },
                     )
-            except Exception:
-                pass  # Graceful degradation - never crash chat()
+            except Exception:  # noqa: BLE001 — graceful degradation, never crash chat()
+                pass
 
             return result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — provider call must degrade, never crash
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
 
@@ -870,7 +870,7 @@ class OpenAIProvider:
             with self._lock:
                 self._total_requests += 1
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — stream must degrade, never crash
             self._last_error = str(e)
             yield f"\n[ERROR] {e}"
 
@@ -1160,7 +1160,7 @@ class NativeAPIProvider(ABC):
             
             return parsed
             
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {'error': str(e), 'elapsed_ms': elapsed_ms, 'provider': self.provider_name}
@@ -1217,7 +1217,7 @@ class NativeAPIProvider(ABC):
             with self._lock:
                 self._total_requests += 1
                 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — stream must degrade, never crash
             self._last_error = str(e)
             yield '\n[ERROR] ' + str(e)
     
@@ -1630,7 +1630,7 @@ class LlamaCppDirectProvider:
                     "usage": usage, "finish_reason": choice.get("finish_reason", "stop"),
                     "elapsed_ms": elapsed_ms, "provider": self.provider_name,
                     "native_api": True, "backend": "llama-cpp-python"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms, "provider": self.provider_name}
@@ -1710,7 +1710,7 @@ class HuggingFaceDirectProvider:
             return {"content": response_text, "model": model_name, "usage": usage,
                     "finish_reason": "stop", "elapsed_ms": elapsed_ms,
                     "provider": self.provider_name, "native_api": True, "backend": "transformers"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms, "provider": self.provider_name}
@@ -1790,7 +1790,7 @@ class OpenVINOProvider:
             if importlib.util.find_spec(module_name) is None:
                 cls._BACKEND_PROBE[module_name] = False
                 return False
-        except Exception:
+        except Exception:  # noqa: BLE001 — backend probe must never crash discovery
             cls._BACKEND_PROBE[module_name] = False
             return False
 
@@ -1821,7 +1821,7 @@ class OpenVINOProvider:
         except subprocess.TimeoutExpired:
             cls._BACKEND_PROBE[module_name] = None
             return None
-        except Exception:
+        except Exception:  # noqa: BLE001 — child-process probe crashed; cache as unavailable
             cls._BACKEND_PROBE[module_name] = None
             return None
 
@@ -1831,7 +1831,7 @@ class OpenVINOProvider:
         try:
             import sysconfig
             return sysconfig.get_config_var("Py_GIL_DISABLED") == 1
-        except Exception:
+        except Exception:  # noqa: BLE001 — 314t detection is best-effort
             return False
 
     def __init__(self, provider: str = "openvino"):
@@ -1902,7 +1902,7 @@ class OpenVINOProvider:
             for d in devices:
                 try:
                     name = core.get_property(d, "FULL_DEVICE_NAME")
-                except Exception:
+                except Exception:  # noqa: BLE001 — per-device name probe best-effort
                     name = d
                 result.append({"id": d, "name": name})
             return result
@@ -1938,7 +1938,7 @@ class OpenVINOProvider:
                                  "OPTIMAL_NUMBER_OF_INFER_REQUESTS"]:
                         try:
                             dev_info[prop.lower()] = core.get_property(d, prop)
-                        except Exception:
+                        except Exception:  # noqa: BLE001 — per-device prop probe best-effort
                             pass
                     info["devices"].append(dev_info)
                 info["available"] = len(devices) > 0
@@ -2017,7 +2017,7 @@ class OpenVINOProvider:
         except ImportError as e:
             # openvino_genai not available — fall through
             pass
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {
@@ -2056,7 +2056,7 @@ class OpenVINOProvider:
             self._last_error = error_msg
             return {"error": error_msg, "elapsed_ms": elapsed_ms,
                     "provider": self.provider_name, "device": device}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — openvino_genai call degrades to signed error
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms,
@@ -2120,7 +2120,7 @@ class OpenVINOProvider:
                 pm = result.perf_metrics
                 if hasattr(pm, "get_throughput"):
                     tokens_info["throughput"] = pm.get_throughput()
-        except Exception:
+        except Exception:  # noqa: BLE001 — throughput metric best-effort
             pass
 
         return {
@@ -2261,7 +2261,7 @@ class OpenVINOProvider:
             with self._lock:
                 self._total_requests += 1
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — stream must degrade, never crash
             self._last_error = str(e)
             yield f"\n[ERROR] {e}"
 
@@ -2301,7 +2301,7 @@ class OpenVINOProvider:
                 results["devices_found"] = len(results["device_list"])
             except ImportError:
                 results["issues"].append("openvino package not installed")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — diagnose, don't fail the audit
                 results["issues"].append(f"OpenVINO init error: {e}")
         elif ov_probe is None:
             results["issues"].append("openvino CRASHES on this Python version (3.14t segfault). Use PYTHON_GIL=1 or standard Python")
@@ -2359,9 +2359,9 @@ class OpenVINOProvider:
                     try:
                         name = core.get_property(d, "FULL_DEVICE_NAME")
                         print(f"    {d}: {name}")
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — per-device name best-effort
                         print(f"    {d}")
-            except Exception:
+            except Exception:  # noqa: BLE001 — device-name listing best-effort
                 for d in results["device_list"]:
                     print(f"    {d}")
 
@@ -2489,7 +2489,7 @@ class OllamaNativeProvider:
                 "usage": usage, "finish_reason": result.get("done_reason", "stop"),
                 "elapsed_ms": elapsed_ms, "provider": self.provider_name, "native_api": True,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms, "provider": self.provider_name}
@@ -2830,7 +2830,7 @@ if __name__ == "__main__":
         try:
             provider = get_provider(name)
             provider.self_test(verbose=True)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 — self-test best-effort, continue
             print(f"  [{name}] ERROR: {e}")
 
     # Try best available

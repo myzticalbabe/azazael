@@ -44,9 +44,13 @@ if __name__ == "__main__":
     ]
 
     # Test ordering: Step 4.8 must be after Step 4.7
-    pos_47 = content.find("Step 4.7")
-    pos_48 = content.find("Step 4.8")
-    tests.append(("Step 4.8 after Step 4.7", pos_47 >= 0 and pos_48 > pos_47))
+    # Match step HEADERS ("### Step 4.X") only, so body cross-references
+    # like "(Step 4.8)" in earlier steps cannot cause a false ordering failure.
+    import re
+    headers = [m for m in re.finditer(r"^#{2,4} Step (4\.[0-9]+)", content, re.MULTILINE)]
+    pos_47 = next((m.start() for m in headers if m.group(1) == "4.7"), -1)
+    pos_48 = next((m.start() for m in headers if m.group(1) == "4.8"), -1)
+    tests.append(("Step 4.8 header after Step 4.7 header", pos_47 >= 0 and pos_48 > pos_47))
 
     passed = 0
     for name, result in tests:

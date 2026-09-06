@@ -6,14 +6,20 @@ Export:
     DirectMemory
     InferencePool, InferenceTask
     FreeThreadPool
-    verify_on_startup, close_session, verify_chain
+    audit_session_start, verify_on_startup, close_session, verify_chain
     EVENT_VOCAB, EVENT_VOCAB_REVERSE
 """
 
 from CORE.direct_memory import DirectMemory, get_dm, record, end
 from CORE.freethreading import FreeThreadPool
+
+# Backward-compat alias: formerly CORE/logging.py (renamed to _logging_shim.py
+# so it no longer shadows stdlib 'logging' during package-tree script runs).
+import CORE._logging_shim as logging  # noqa: E402  (package attribute, not stdlib)
+
 from CORE.audit_trail import (
     verify_on_startup,
+    audit_session_start,
     close_session,
     verify_chain,
     verify_head_hash,
@@ -64,6 +70,7 @@ __all__ = [
     "EVENT_VOCAB",
     "EVENT_VOCAB_REVERSE",
     "verify_on_startup",
+    "audit_session_start",
     "close_session",
     "verify_chain",
     "verify_head_hash",

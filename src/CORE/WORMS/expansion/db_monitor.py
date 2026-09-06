@@ -28,6 +28,15 @@ from pathlib import Path
 from typing import Any
 from dataclasses import dataclass
 
+# -- Module-level integrity cache -------------------------------------
+# PRAGMA integrity_check on a large SQLite DB takes seconds; check_health()
+# runs it on every call and dashboard/health endpoints construct a fresh
+# DatabaseMonitorWorm per request, so the cache lives at module scope.
+_INTEGRITY_CACHE: (dict | None) = None
+_INTEGRITY_CACHE_TIME: float = 0.0
+_INTEGRITY_CACHE_TTL: float = 60.0
+
+
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
@@ -161,8 +170,22 @@ class DatabaseMonitorWorm:
         if not check_fn:
             return {"passed": True, "ok": True, "errors": [], "note": "Store does not support integrity_check"}
 
+        # Serve from module-level cache while fresh. PRAGMA integrity_check on
+        # a large SQLite DB (e.g. 1+ GB) takes seconds, and check_health() runs
+        # it on every call — the dashboard/health endpoints construct a fresh
+        # DatabaseMonitorWorm per request, so the cache must be shared at
+        # module scope. TTL matches the worm's 60s cooldown.
+        global _INTEGRITY_CACHE, _INTEGRITY_CACHE_TIME
+        now = time.time()
+        if (_INTEGRITY_CACHE is not None
+                and now - _INTEGRITY_CACHE_TIME < _INTEGRITY_CACHE_TTL):
+            return dict(_INTEGRITY_CACHE)
+
         try:
-            return check_fn()
+            result = check_fn()
+            _INTEGRITY_CACHE = dict(result)
+            _INTEGRITY_CACHE_TIME = now
+            return dict(result)
         except Exception as e:
             return {"passed": False, "ok": False, "errors": [str(e)]}
 
