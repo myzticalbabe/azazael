@@ -169,6 +169,23 @@ def wsl_path(win_path: Path) -> str:
 # Sync Operations
 # ═══════════════════════════════════════════════════════════════════════
 
+def _copy_to_wsl(src_file: Path, dest_wsl: str) -> tuple:
+    """Copy a file into WSL2 via the \\\\wsl$ UNC path (no shell quoting).
+
+    Falls back to `cp` over wsl.exe when the UNC path is unavailable.
+    Returns (ok, error_message).
+    """
+    unc = "\\\\wsl$\\Ubuntu-26.04" + dest_wsl.replace("/", "\\")
+    try:
+        Path(unc).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_file, unc)
+        return True, ""
+    except OSError as e:
+        cmd = f"mkdir -p $(dirname {dest_wsl}) && cp {wsl_path(src_file)} {dest_wsl}"
+        rc, _out, err = run_wsl(cmd)
+        return (rc == 0), err.strip()
+
+
 def sync_windows_to_wsl2(dry_run: bool = False) -> Dict[str, Any]:
     """Sync Windows 11 -> WSL2 (code + docs + tests + scripts).
     
@@ -192,13 +209,12 @@ def sync_windows_to_wsl2(dry_run: bool = False) -> Dict[str, Any]:
                 synced.append(str(rel_path))
                 continue
 
-            cmd = f"mkdir -p $(dirname {dest_wsl}) && cp {src_wsl} {dest_wsl}"
-            rc, stdout, stderr = run_wsl(cmd)
+            ok, err_msg = _copy_to_wsl(src_file, dest_wsl)
 
-            if rc == 0:
+            if ok:
                 synced.append(str(rel_path))
             else:
-                errors.append(f"{rel_path}: {stderr.strip()}")
+                errors.append(f"{rel_path}: {err_msg}")
 
     return {"synced": synced, "errors": errors, "count": len(synced),
             "target": "wsl2"}
