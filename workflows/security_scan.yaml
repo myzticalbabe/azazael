@@ -1,0 +1,18 @@
+# Security Scan — Conditional Workflow
+# Escalates to defense if security worms find failures
+description: "Security audit with conditional defense escalation"
+steps:
+  - natures: ["security"]
+    label: "audit"
+  - natures: ["defense"]
+    label: "escalate"
+    condition:
+      security:
+        failure_count:
+          gt: 0
+    on_match: "deep_check"
+    on_skip: "wrap_up"
+  - natures: ["diagnostic", "monitor"]
+    label: "deep_check"
+  - natures: ["monitor"]
+    label: "wrap_up"

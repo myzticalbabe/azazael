@@ -1,0 +1,113 @@
+{
+  "ok": 12,
+  "fail": 6,
+  "skipped": 1,
+  "details": [
+    {
+      "name": "CainWorm",
+      "status": "OK",
+      "method": "run_complete_analysis",
+      "elapsed": 0.0
+    },
+    {
+      "name": "CLOCKZ",
+      "status": "OK",
+      "method": "get_tasks",
+      "elapsed": 0.0
+    },
+    {
+      "name": "PortAuditor",
+      "status": "OK",
+      "method": "scan_local_ports",
+      "elapsed": 0.0
+    },
+    {
+      "name": "VulnScanner",
+      "status": "OK",
+      "method": "get_report",
+      "elapsed": 0.0
+    },
+    {
+      "name": "DiagnosticWorm",
+      "status": "OK",
+      "method": "scan_all_modules",
+      "elapsed": 0.12
+    },
+    {
+      "name": "MetricAggregator",
+      "status": "OK",
+      "method": "get_snapshot",
+      "elapsed": 0.0
+    },
+    {
+      "name": "WormFleet",
+      "status": "OK",
+      "method": "get_python_files",
+      "elapsed": 0.06
+    },
+    {
+      "name": "CheckpointWorm",
+      "status": "FAIL",
+      "error": "No standard method found on CheckpointWorm"
+    },
+    {
+      "name": "ContainerOrch",
+      "status": "FAIL",
+      "error": "ContainerOrch.launch() missing 2 required positional arguments: 'name' and 'imag"
+    },
+    {
+      "name": "DeadLetterQueue",
+      "status": "OK",
+      "method": "get_all",
+      "elapsed": 0.0
+    },
+    {
+      "name": "ConfigLinter",
+      "status": "FAIL",
+      "error": "No standard method found on ConfigLinter"
+    },
+    {
+      "name": "EnvValidator",
+      "status": "OK",
+      "method": "scan_env_files",
+      "elapsed": 0.0
+    },
+    {
+      "name": "SecretRotator",
+      "status": "FAIL",
+      "error": "No standard method found on SecretRotator"
+    },
+    {
+      "name": "CertMonitor",
+      "status": "OK",
+      "method": "get_expiring_soon",
+      "elapsed": 0.0
+    },
+    {
+      "name": "FirewallAudit",
+      "status": "OK",
+      "method": "get_firewall_rules",
+      "elapsed": 0.33
+    },
+    {
+      "name": "DLQArchivist",
+      "status": "not_in_registry"
+    },
+    {
+      "name": "IPCBridge",
+      "status": "FAIL",
+      "error": "IPCBridge.send() missing 2 required positional arguments: 'channel' and 'data'"
+    },
+    {
+      "name": "MessageBroker",
+      "status": "FAIL",
+      "error": "MessageBroker.publish() missing 2 required positional arguments: 'topic' and 'pa"
+    },
+    {
+      "name": "SpanTracer",
+      "status": "OK",
+      "method": "get_trace_tree",
+      "elapsed": 0.0
+    }
+  ]
+}

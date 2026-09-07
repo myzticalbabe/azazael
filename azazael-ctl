@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""
+azazael-ctl — Unified Azazael Command-Line Interface
+
+Single entry point for all Azazael operations. Routes to CORE.azazael_ctl.main().
+
+Usage:
+    azazael-ctl status                Show system health
+    azazael-ctl cluster status        Cluster ecosystem health
+    azazael-ctl cluster list          List all clusters
+    azazael-ctl cluster natures       List all Nature categories
+    azazael-ctl cluster dead-letter   Show dead letter queue
+    azazael-ctl registry validate     Validate worm registry
+    azazael-ctl registry health       Quick registry health check
+    azazael-ctl registry stats        Per-category worm counts
+    azazael-ctl crossref <cmd>        Cross-reference operations
+    azazael-ctl audit <cmd>           Audit trail operations
+    azazael-ctl memory <cmd>          Memory system operations
+    azazael-ctl inference <cmd>       Inference pool operations
+    azazael-ctl config                Show current configuration
+    azazael-ctl stats                 Show system statistics
+    azazael-ctl backup [dir]          Backup memory store and audit trail
+    azazael-ctl help                  Show this help
+
+Author: Azazael CLI
+Version: 1.0.0
+"""
+
+import sys
+import os
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parent
+_SRC = _PROJECT_ROOT / "src"
+
+if str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+if __name__ == "__main__":
+    from CORE.azazael_ctl import main
+
+    # Route --help / -h at top level
+    if len(sys.argv) <= 1 or sys.argv[1] in ("--help", "-h", "help"):
+        if len(sys.argv) <= 1:
+            print(__doc__)
+            sys.exit(1)
+        else:
+            print(__doc__)
+            sys.exit(0)
+
+    main()

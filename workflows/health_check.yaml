@@ -1,0 +1,18 @@
+# Health Check — Conditional Workflow
+# Runs profiling → escalates to diagnostic if slow → always runs monitor
+description: "Health check with conditional deep-dive on slowness"
+steps:
+  - natures: ["monitor", "profiling"]
+    label: "check"
+  - natures: ["diagnostic"]
+    label: "deep_dive"
+    condition:
+      profiling:
+        duration_ms:
+          gt: 2000
+    on_match: "analysis"
+    on_skip: "wrap_up"
+  - natures: ["analysis", "diagnostic"]
+    label: "analysis"
+  - natures: ["monitor"]
+    label: "wrap_up"

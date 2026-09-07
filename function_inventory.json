@@ -1,0 +1,5100 @@
+{
+  "total_py_files": 344,
+  "total_functions": 4224,
+  "modules_with_code": 288,
+  "by_module": {
+    "ANIMATION_PROTOCOLS.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "generate_animation_protocol",
+        "get_best_animation_for_result",
+        "create_animation_system"
+      ]
+    },
+    "AUTO_DOC_GENERATOR.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "extract_docstrings",
+        "_extract_imports",
+        "_get_args",
+        "generate_markdown",
+        "generate_json",
+        "run"
+      ]
+    },
+    "AZAZAEL_Inference_Studio.py": {
+      "functions": 72,
+      "classes": 10,
+      "func_names": [
+        "detect_hardware",
+        "detect_frameworks",
+        "cli_mode",
+        "main",
+        "__init__",
+        "state",
+        "state",
+        "emoji",
+        "morph_next",
+        "reaction",
+        "on_change",
+        "_notify",
+        "__init__",
+        "_setup_styles",
+        "_build_ui",
+        "_build_header",
+        "_build_notebook",
+        "_build_inference_tab",
+        "_build_artifacts_tab",
+        "_build_wiring_tab"
+      ]
+    },
+    "azazael_pygame.py": {
+      "functions": 21,
+      "classes": 9,
+      "func_names": [
+        "__post_init__",
+        "__init__",
+        "add_field",
+        "add_badge",
+        "add_tag",
+        "add_timeline_event",
+        "update_enrichment_animations",
+        "start_hierarchical",
+        "update_hierarchical",
+        "__init__",
+        "setup_enrichment",
+        "setup_systems",
+        "create_particle",
+        "update",
+        "draw_badges",
+        "draw_tags",
+        "draw_timeline",
+        "draw_enrichment_status",
+        "draw",
+        "handle_events"
+      ]
+    },
+    "AZAZAEL_TOOLKIT\\azazael_toolkit.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "main"
+      ]
+    },
+    "AZAZAEL_TOOLKIT\\COMPREHENSIVE_FIX.py": {
+      "functions": 9,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "log",
+        "detect_platform",
+        "diagnose_lsp_errors",
+        "fix_python_files",
+        "fix_desktop_shortcuts",
+        "fix_gui_functionality",
+        "create_cross_platform_wrapper",
+        "apply"
+      ]
+    },
+    "AZAZAEL_TOOLKIT\\environment_manager.py": {
+      "functions": 6,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "create_venv_if_missing",
+        "install_dependencies",
+        "create_shell_integration",
+        "create_vscode_config",
+        "apply"
+      ]
+    },
+    "AZAZAEL_TOOLKIT\\math_certainty.py": {
+      "functions": 16,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "exact_match",
+        "hamming_distance",
+        "byte_similarity",
+        "jaccard_similarity",
+        "dice_coefficient",
+        "longest_common_subsequence",
+        "shannon_entropy",
+        "rolling_hash_similarity",
+        "structural_similarity",
+        "cryptographic_hash",
+        "analyze",
+        "entropy",
+        "kgram_hashes",
+        "run_length_encoding"
+      ]
+    },
+    "AZAZAEL_TOOLKIT\\QL_ANALYSIS.py": {
+      "functions": 14,
+      "classes": 1,
+      "func_names": [
+        "print_q_table_analysis",
+        "print_state_action_matrix",
+        "print_best_practices",
+        "main",
+        "__init__",
+        "define_states",
+        "define_actions",
+        "calculate_reward",
+        "choose_action",
+        "train",
+        "generate_q_table",
+        "analyze_solution_quality",
+        "recommend_solutions",
+        "generate_report"
+      ]
+    },
+    "AZAZAEL_TOOLKIT\\REAL_FRAMEWORK_TEST.py": {
+      "functions": 16,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "log",
+        "detect_platform_real",
+        "test_venv_packages",
+        "test_core_python",
+        "test_gui_frameworks",
+        "test_ml_frameworks",
+        "test_data_frameworks",
+        "test_web_frameworks",
+        "test_ipython",
+        "test_other_frameworks",
+        "test_system_info",
+        "test_azazael_modules",
+        "run_quick_operations",
+        "generate_report",
+        "run_all"
+      ]
+    },
+    "azazael_toolkit.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "main"
+      ]
+    },
+    "AzazaelDynamicLogger.py": {
+      "functions": 27,
+      "classes": 2,
+      "func_names": [
+        "get_logger",
+        "log",
+        "info",
+        "warn",
+        "error",
+        "success",
+        "__new__",
+        "__init__",
+        "_setup_logging",
+        "_start_background_writer",
+        "_background_write_loop",
+        "_write_to_file",
+        "set_level",
+        "enable_quiet",
+        "disable_output",
+        "enable_output",
+        "_format_message",
+        "log",
+        "debug",
+        "info"
+      ]
+    },
+    "chain_of_action.py": {
+      "functions": 9,
+      "classes": 0,
+      "func_names": [
+        "update_log",
+        "verification_log",
+        "sync_backup",
+        "add_package",
+        "add_fix",
+        "add_doc",
+        "add_verification",
+        "run_backup_sync",
+        "main"
+      ]
+    },
+    "CHANGELOG_GENERATOR.py": {
+      "functions": 4,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "get_version_info",
+        "generate_changelog",
+        "write_changelog"
+      ]
+    },
+    "CLI\\azazael_cli.py": {
+      "functions": 12,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "log",
+        "run_bootstrap",
+        "run_worm",
+        "run_open_interpreter",
+        "run_kilo_local",
+        "run_python_manager",
+        "run_syntax_check",
+        "print_menu",
+        "run_health_check",
+        "run_all_checks",
+        "main"
+      ]
+    },
+    "CODEX\\CODEX_Studio.py": {
+      "functions": 46,
+      "classes": 3,
+      "func_names": [
+        "find_ffmpeg",
+        "_safe_rmtree",
+        "_validate_ffmpeg",
+        "find_ffprobe",
+        "render_scenes_to_png",
+        "_render_crossfade_transition",
+        "render_frames_to_png",
+        "_load_fonts",
+        "_calc_line_heights",
+        "_blend_color",
+        "_pick_text_style",
+        "cli_mode",
+        "main",
+        "__init__",
+        "handle_starttag",
+        "handle_endtag",
+        "handle_data",
+        "get_text",
+        "__init__",
+        "handle_starttag"
+      ]
+    },
+    "CODEX\\comprehensive\\COMPLETE_SYSTEMS_ANALYSIS.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "print_complete_analysis",
+        "save_complete_report"
+      ]
+    },
+    "CODEX\\comprehensive\\FULL_ECOSYSTEM_ANALYSIS.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_folder_reports",
+        "save_comprehensive_report"
+      ]
+    },
+    "CODEX\\comprehensive\\GENERATE_ALL_11.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_rich_html",
+        "main"
+      ]
+    },
+    "CODEX\\comprehensive\\GENERATE_HTML.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_html",
+        "main"
+      ]
+    },
+    "CODEX\\comprehensive\\GENERATE_RICH_HTML.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_rich_html",
+        "main"
+      ]
+    },
+    "CODEX\\comprehensive\\TWITLER_ANALYSIS.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "print_twitler_info"
+      ]
+    },
+    "CODEX\\CORE\\ascii_flowchart.py": {
+      "functions": 17,
+      "classes": 2,
+      "func_names": [
+        "azazael_architecture",
+        "azazael_pipeline",
+        "azazael_worm_diagram",
+        "main",
+        "__init__",
+        "_pad_text",
+        "draw_box",
+        "connect_boxes",
+        "process_flow",
+        "decision_tree",
+        "decision_flowchart",
+        "architecture_diagram",
+        "mind_map",
+        "pipeline_diagram",
+        "comparison_table",
+        "worm_diagram",
+        "draw_row"
+      ]
+    },
+    "CODEX\\CORE\\AUTO_DOWNLOADER.py": {
+      "functions": 39,
+      "classes": 9,
+      "func_names": [
+        "main",
+        "__init__",
+        "_load_state",
+        "save_state",
+        "update_framework_state",
+        "add_completed_installation",
+        "add_failed_installation",
+        "get_statistics",
+        "get",
+        "__init__",
+        "get_install_command",
+        "get_verify_command",
+        "get_version",
+        "is_installed",
+        "get_install_command",
+        "get_verify_command",
+        "get_version",
+        "is_installed",
+        "__init__",
+        "_register_default_frameworks"
+      ]
+    },
+    "CODEX\\CORE\\CAIN_ANALYZER.py": {
+      "functions": 5,
+      "classes": 0,
+      "func_names": [
+        "run_complete_analysis",
+        "format_text_report",
+        "generate_html_report",
+        "print_help",
+        "main"
+      ]
+    },
+    "CODEX\\CORE\\emoji_maker.py": {
+      "functions": 17,
+      "classes": 5,
+      "func_names": [
+        "main",
+        "to_dict",
+        "__init__",
+        "_build_indexes",
+        "get_by_emotion",
+        "get_by_mood",
+        "get_by_category",
+        "get_mood_faces",
+        "random_emoji",
+        "emotion_blend",
+        "intensity_scale",
+        "emotion_string",
+        "mood_palette",
+        "reaction_emoji",
+        "generate_css",
+        "generate_html_preview",
+        "export_library"
+      ]
+    },
+    "CODEX\\CORE\\enhanced_animations.py": {
+      "functions": 3,
+      "classes": 1,
+      "func_names": [
+        "generate_css",
+        "export_manifest",
+        "main"
+      ]
+    },
+    "CODEX\\generate_session_cain.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "generate_css",
+        "generate_html",
+        "main"
+      ]
+    },
+    "CODEX\\inject_session_cain.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "inject",
+        "main"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_ALL_11.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "create_popup"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_BUGFREE.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "main",
+        "close_win",
+        "on_enter",
+        "on_leave"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_CLICKABLE.py": {
+      "functions": 8,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "setup_ui",
+        "create_card",
+        "create_tier_card",
+        "on_enter",
+        "on_leave",
+        "show_details",
+        "show_tier_details"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_DETAILED.py": {
+      "functions": 13,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "setup_ui",
+        "create_system_card",
+        "create_tier_card",
+        "get_color",
+        "show_system_details",
+        "show_tier_details",
+        "on_enter",
+        "on_leave",
+        "on_click",
+        "on_enter",
+        "on_leave",
+        "on_click"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_DISPLAY.py": {
+      "functions": 8,
+      "classes": 0,
+      "func_names": [
+        "create_animation_popup",
+        "animate_status",
+        "create_progress",
+        "cycle_status",
+        "on_close",
+        "on_hover",
+        "on_leave",
+        "animate_fill"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_IMMERSIVE.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "create_immersive_popup",
+        "close"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_RICH.py": {
+      "functions": 5,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "setup_ui",
+        "animate",
+        "close",
+        "cycle_color"
+      ]
+    },
+    "CODEX\\POPUPS\\POPUP_WORKING.py": {
+      "functions": 20,
+      "classes": 3,
+      "func_names": [
+        "__init__",
+        "create_widget",
+        "on_enter",
+        "on_leave",
+        "on_click",
+        "animate_color",
+        "start_pulse",
+        "stop_pulse",
+        "pulse",
+        "__init__",
+        "setup_ui",
+        "create_stats_bar",
+        "create_tier_card",
+        "animate_header",
+        "show_details",
+        "show_tier_details",
+        "on_enter",
+        "on_leave",
+        "on_click",
+        "cycle_stats"
+      ]
+    },
+    "CODEX\\SESSION_TEMPLATE\\generators\\batch_generator.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "list_styles",
+        "generate_single",
+        "generate_all",
+        "main"
+      ]
+    },
+    "CODEX\\SESSION_TEMPLATE\\generators\\batch_recorder.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "list_templates",
+        "record_single",
+        "record_all",
+        "main"
+      ]
+    },
+    "CODEX\\SESSION_TEMPLATE\\generators\\generate_failure_report.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_report",
+        "main"
+      ]
+    },
+    "CODEX\\SESSION_TEMPLATE\\generators\\generate_session_report.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_session_report",
+        "main"
+      ]
+    },
+    "CODEX\\SESSION_TEMPLATE\\generators\\unified_generator.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "generate_body_content",
+        "get_style_css",
+        "main"
+      ]
+    },
+    "CODEX\\TESTING\\conftest.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "pytest_configure"
+      ]
+    },
+    "CODEX\\TESTING\\INTEGRATION\\test_ecosystem_integration.py": {
+      "functions": 3,
+      "classes": 3,
+      "func_names": [
+        "test_wormz_produces_bibl_for_hydra",
+        "test_metaworms_can_analyze_wormz_output",
+        "test_klink_has_all_commands"
+      ]
+    },
+    "CODEX\\TESTING\\PERFORMANCE\\test_performance.py": {
+      "functions": 6,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "benchmark_wormz_crawl",
+        "benchmark_metaworms",
+        "benchmark_hydra_pipeline",
+        "run_all_benchmarks",
+        "generate_report"
+      ]
+    },
+    "CODEX\\TESTING\\UNIT\\test_hydra.py": {
+      "functions": 5,
+      "classes": 2,
+      "func_names": [
+        "test_cluster_initialization",
+        "test_cluster_has_run_discover",
+        "test_cluster_has_run_all",
+        "test_cluster_has_stages",
+        "test_processing_stage_creation"
+      ]
+    },
+    "CODEX\\TESTING\\UNIT\\test_metaworms.py": {
+      "functions": 4,
+      "classes": 3,
+      "func_names": [
+        "test_worm_result_creation",
+        "test_config_defaults",
+        "test_hydrometa_initialization",
+        "test_hydrometa_has_optimize_method"
+      ]
+    },
+    "CODEX\\TESTING\\UNIT\\test_wormz.py": {
+      "functions": 7,
+      "classes": 2,
+      "func_names": [
+        "test_bibl_entry_creation",
+        "test_crawl_result_creation",
+        "test_wormz_crawl_single_file",
+        "test_wormz_run_all_returns_list",
+        "test_systemz_import",
+        "test_processz_import",
+        "test_diskz_import"
+      ]
+    },
+    "CODEX\\VIDEOS\\compress_video.py": {
+      "functions": 10,
+      "classes": 0,
+      "func_names": [
+        "_codec_available",
+        "check_ffmpeg",
+        "probe_video",
+        "calculate_target_bitrate",
+        "compress_video",
+        "cmd_compress",
+        "cmd_batch",
+        "cmd_analyze",
+        "cmd_formats",
+        "main"
+      ]
+    },
+    "CODEX\\VIDEOS\\create_azazael_educational_video.py": {
+      "functions": 11,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "generate_intro_section",
+        "generate_architecture_section",
+        "generate_python_section",
+        "generate_worms_section",
+        "generate_ml_section",
+        "generate_llm_section",
+        "generate_outro_section",
+        "generate_complete_video",
+        "create_concat_file"
+      ]
+    },
+    "CODEX\\VIDEOS\\create_dual_pane_popup.py": {
+      "functions": 14,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "load_scenes",
+        "create_widgets",
+        "create_panel",
+        "create_stats",
+        "update_scene",
+        "animate_value",
+        "toggle_animation",
+        "reset_animation",
+        "start_animation",
+        "run",
+        "update",
+        "animate"
+      ]
+    },
+    "CODEX\\VIDEOS\\create_dual_pane_video.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "generate_html_preview",
+        "generate_frame_sequence"
+      ]
+    },
+    "CODEX\\VIDEOS\\create_reference_video.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\create_scrolling_video.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "generate_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\create_video.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "create_frame",
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\generate_dashboard_video.py": {
+      "functions": 21,
+      "classes": 1,
+      "func_names": [
+        "_find_theme",
+        "_blend_color",
+        "render_vibrant_dashboard_frames",
+        "_render_single_card_frame",
+        "_render_crossfade_frame",
+        "generate_vibrant_video",
+        "browser_visual_mode",
+        "preview_mode",
+        "ensure_dashboard_html",
+        "main",
+        "__init__",
+        "handle_starttag",
+        "handle_endtag",
+        "handle_data",
+        "handle_entityref",
+        "handle_charref",
+        "_append_to_current",
+        "_flush_card",
+        "get_cards",
+        "_try_load_font"
+      ]
+    },
+    "CODEX\\VIDEOS\\generate_matrix_video.py": {
+      "functions": 5,
+      "classes": 0,
+      "func_names": [
+        "generate_matrix_frames",
+        "compile_video",
+        "create_overlay_video",
+        "create_morie_effect",
+        "create_fluorescent_waterfall"
+      ]
+    },
+    "CODEX\\VIDEOS\\generate_video.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "run_ffmpeg",
+        "generate_kinetic_typography",
+        "generate_data_flow",
+        "generate_pulse"
+      ]
+    },
+    "CODEX\\VIDEOS\\generate_video_v2.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "run_ffmpeg",
+        "generate_comprehensive"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_docs.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_quad.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_vibrant_color",
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_v2.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "pulse_color",
+        "get_text_color",
+        "create_video",
+        "wrap_text"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_v3.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_pulsing_color",
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_vibrant.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_vibrant_color",
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_zip.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_pulse_color",
+        "create_video"
+      ]
+    },
+    "CODEX\\VIDEOS\\make_video_zipper.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_color",
+        "create_video"
+      ]
+    },
+    "CORE\\Agent.py": {
+      "functions": 36,
+      "classes": 5,
+      "func_names": [
+        "status",
+        "__init__",
+        "execute",
+        "execute_many",
+        "spawn_sub_agent",
+        "_run",
+        "set_state",
+        "get_state",
+        "get_all_state",
+        "get_stats",
+        "get_task_history",
+        "_ensure_bus",
+        "_handle_bus_command",
+        "_publish_bus_event",
+        "_ensure_bus_for_send",
+        "send_message",
+        "broadcast_message",
+        "poll_messages",
+        "close",
+        "_increment_stat"
+      ]
+    },
+    "CORE\\agent_registry.py": {
+      "functions": 17,
+      "classes": 2,
+      "func_names": [
+        "register_agent",
+        "discover_agents",
+        "_guess_agent_category",
+        "_guess_agent_priority",
+        "get_agents_by_category",
+        "get_all_agent_categories",
+        "get_agent_class",
+        "create_agent",
+        "reset_agent_registry",
+        "_auto_discover",
+        "decorator",
+        "__init__",
+        "register_instance",
+        "unregister_instance",
+        "check_agent",
+        "check_all_agents",
+        "get_summary"
+      ]
+    },
+    "CORE\\AgentPool.py": {
+      "functions": 37,
+      "classes": 4,
+      "func_names": [
+        "status",
+        "success_rate",
+        "avg_duration_ms",
+        "throughput_per_sec",
+        "to_dict",
+        "__init__",
+        "__enter__",
+        "__exit__",
+        "close",
+        "_ensure_executor",
+        "is_active",
+        "submit",
+        "map",
+        "benchmark",
+        "benchmark_print",
+        "get_stats",
+        "get_task_history",
+        "print_stats",
+        "_update_stats",
+        "_record_complete"
+      ]
+    },
+    "CORE\\azazael_logging.py": {
+      "functions": 10,
+      "classes": 3,
+      "func_names": [
+        "configure_logging",
+        "get_logger",
+        "format",
+        "__init__",
+        "_log",
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ]
+    },
+    "CORE\\circuit_breaker.py": {
+      "functions": 17,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "health_score",
+        "is_open",
+        "cancel_all",
+        "reset",
+        "execute",
+        "retry_with_backoff",
+        "stats",
+        "__init__",
+        "get",
+        "all_stats",
+        "cancel_all",
+        "reset_all",
+        "get_dead_letters",
+        "get_dead_letter_summary",
+        "purge_dead_letters",
+        "flaky_func"
+      ]
+    },
+    "CORE\\config.py": {
+      "functions": 24,
+      "classes": 15,
+      "func_names": [
+        "_find_config_file",
+        "_load_yaml",
+        "get_config",
+        "get_warnings",
+        "reset_config",
+        "from_dict",
+        "from_dict",
+        "from_dict",
+        "from_dict",
+        "to_circuit_config",
+        "from_dict",
+        "from_dict",
+        "merge_with_cluster",
+        "from_dict",
+        "from_dict",
+        "from_dict",
+        "from_dict",
+        "from_dict",
+        "from_dict",
+        "from_dict"
+      ]
+    },
+    "CORE\\dashboard.py": {
+      "functions": 18,
+      "classes": 0,
+      "func_names": [
+        "_ensure_imports",
+        "render_header",
+        "render_subheader",
+        "_parse_since",
+        "get_report",
+        "render_health",
+        "render_metrics",
+        "render_drift",
+        "render_workflows",
+        "render_scheduling",
+        "render_dead_letters",
+        "render_db_health",
+        "render_db_monitor",
+        "render_session",
+        "render_meta",
+        "render_config",
+        "run_dashboard",
+        "main"
+      ]
+    },
+    "CORE\\direct_memory.py": {
+      "functions": 30,
+      "classes": 1,
+      "func_names": [
+        "_get_db_path",
+        "get_dm",
+        "record",
+        "end",
+        "__init__",
+        "_register_signal_handlers",
+        "_atexit_handler",
+        "_get_conn",
+        "_init_db",
+        "_start_session",
+        "session_id",
+        "_validate",
+        "record",
+        "file_read",
+        "file_edit",
+        "file_create",
+        "file_delete",
+        "skill_loaded",
+        "code_review",
+        "test_run"
+      ]
+    },
+    "CORE\\FREETHREAD_UPGRADE.py": {
+      "functions": 22,
+      "classes": 6,
+      "func_names": [
+        "upgrade_worm_executor",
+        "batch_upgrade_worms",
+        "print_upgrade_info",
+        "__post_init__",
+        "__enter__",
+        "__exit__",
+        "submit",
+        "map",
+        "get_stats",
+        "__enter__",
+        "__exit__",
+        "add_worm_tasks",
+        "execute",
+        "is_free_threaded",
+        "worker",
+        "__init__",
+        "__enter__",
+        "__exit__",
+        "submit",
+        "map"
+      ]
+    },
+    "CORE\\FreeThreadedAgent.py": {
+      "functions": 16,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "name",
+        "config",
+        "memory_bus",
+        "pool",
+        "is_running",
+        "log",
+        "tlog",
+        "start",
+        "stop",
+        "wait",
+        "_run_wrapper",
+        "run",
+        "on_start",
+        "on_stop",
+        "on_error"
+      ]
+    },
+    "CORE\\freethreading.py": {
+      "functions": 84,
+      "classes": 10,
+      "func_names": [
+        "is_free_threaded",
+        "get_thread_info",
+        "print_thread_info",
+        "detect_devices",
+        "benchmark_parallel",
+        "print_benchmark_table",
+        "set_thread_affinity",
+        "set_current_thread_affinity",
+        "main",
+        "__init__",
+        "increment",
+        "decrement",
+        "value",
+        "reset",
+        "__repr__",
+        "__init__",
+        "__setitem__",
+        "__getitem__",
+        "__delitem__",
+        "__contains__"
+      ]
+    },
+    "CORE\\health_server.py": {
+      "functions": 13,
+      "classes": 2,
+      "func_names": [
+        "get_health_json",
+        "get_prometheus_metrics",
+        "main",
+        "__init__",
+        "handle_client",
+        "start",
+        "stop",
+        "start_background",
+        "__init__",
+        "handle_client",
+        "start",
+        "stop",
+        "start_background"
+      ]
+    },
+    "CORE\\inference\\api_client.py": {
+      "functions": 16,
+      "classes": 6,
+      "func_names": [
+        "mask_key",
+        "safe_error_message",
+        "__init__",
+        "__init__",
+        "__init__",
+        "__init__",
+        "__init__",
+        "record_success",
+        "record_error",
+        "stats",
+        "__init__",
+        "_classify_error",
+        "_request_with_retry",
+        "_safe_call",
+        "get_stats",
+        "__repr__"
+      ]
+    },
+    "CORE\\inference\\bus_utils.py": {
+      "functions": 3,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "publish",
+        "__repr__"
+      ]
+    },
+    "CORE\\inference\\cloud_tab.py": {
+      "functions": 11,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "_build_ui",
+        "get_prompt",
+        "_on_provider_select",
+        "_refresh_providers_async",
+        "_on_refreshed",
+        "launch",
+        "_finish",
+        "set_prompt",
+        "do_refresh",
+        "run_cloud"
+      ]
+    },
+    "CORE\\inference\\hyper_optimizer.py": {
+      "functions": 20,
+      "classes": 5,
+      "func_names": [
+        "classify_query",
+        "record_success",
+        "record_failure",
+        "_update_weight",
+        "__init__",
+        "_key",
+        "get",
+        "set",
+        "clear",
+        "__init__",
+        "_log",
+        "_get_provider_cached",
+        "_get_metrics",
+        "_build_full_pipeline",
+        "_execute_single",
+        "_execute_batch",
+        "_compute_weighted_consensus",
+        "resolve",
+        "get_health_report",
+        "_steps_in_tier"
+      ]
+    },
+    "CORE\\inference\\nim_client.py": {
+      "functions": 14,
+      "classes": 3,
+      "func_names": [
+        "get_client",
+        "chat",
+        "validate",
+        "__init__",
+        "_load_config",
+        "save_config",
+        "set_api_key",
+        "has_valid_key",
+        "list_models",
+        "list_remote_models",
+        "self_test",
+        "_print_test_results",
+        "get_stats",
+        "__repr__"
+      ]
+    },
+    "CORE\\inference\\providers.py": {
+      "functions": 30,
+      "classes": 5,
+      "func_names": [
+        "get_circuit_breaker",
+        "health_check_providers",
+        "get_provider",
+        "_read_config_key",
+        "list_providers",
+        "get_best_provider",
+        "validate",
+        "__init__",
+        "_load_provider_config",
+        "save_config",
+        "set_api_key",
+        "has_valid_key",
+        "_get_client",
+        "_check_rate_limit",
+        "list_models",
+        "chat",
+        "chat_stream",
+        "get_stats",
+        "self_test",
+        "_print_test_results"
+      ]
+    },
+    "CORE\\inference\\query_loop.py": {
+      "functions": 7,
+      "classes": 3,
+      "func_names": [
+        "_get_cached_provider",
+        "_build_available_pipeline",
+        "__init__",
+        "_log",
+        "_build_loop_prompt",
+        "resolve",
+        "resolve_until_convergence"
+      ]
+    },
+    "CORE\\inference\\sequential_analyzer.py": {
+      "functions": 12,
+      "classes": 4,
+      "func_names": [
+        "compute_similarity",
+        "estimate_confidence",
+        "check_convergence",
+        "__post_init__",
+        "__init__",
+        "_log",
+        "_build_exhaustive_chain",
+        "_fetch_nvidia_models",
+        "run",
+        "run_with_feedback",
+        "compare_strategies",
+        "sort_key"
+      ]
+    },
+    "CORE\\LOCAL_DEV.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_version",
+        "check_availability"
+      ]
+    },
+    "CORE\\local_memory.py": {
+      "functions": 44,
+      "classes": 2,
+      "func_names": [
+        "_get_store_path",
+        "get_memory_store",
+        "__init__",
+        "_init_db",
+        "_apply_config",
+        "_get_conn",
+        "get_performance_stats",
+        "start_session",
+        "current_session_id",
+        "end_session",
+        "list_sessions",
+        "get_session",
+        "_validate_event_args",
+        "record_event",
+        "query_memories",
+        "search_memories",
+        "recall_recent",
+        "get_index_usage",
+        "health_check",
+        "_health_grade"
+      ]
+    },
+    "CORE\\MemoryBus.py": {
+      "functions": 25,
+      "classes": 2,
+      "func_names": [
+        "_get_memorybus_db_path",
+        "to_dict",
+        "__init__",
+        "_init_persistent_queue",
+        "_persist_to_queue",
+        "publish",
+        "subscribe",
+        "unsubscribe",
+        "poll",
+        "poll_and_deliver",
+        "get_last_seen",
+        "get_stats",
+        "flush_local_queue",
+        "_check_pams",
+        "_post_to_pams",
+        "_query_pams",
+        "_deliver_to_subscribers",
+        "close",
+        "_matches_topic",
+        "_compile_pattern"
+      ]
+    },
+    "CORE\\metrics.py": {
+      "functions": 22,
+      "classes": 6,
+      "func_names": [
+        "_check_pams",
+        "_check_breaker",
+        "_check_local_memory",
+        "_check_registry",
+        "__init__",
+        "record",
+        "query",
+        "aggregate",
+        "list_metrics",
+        "snapshot",
+        "clear",
+        "export_to_memory",
+        "__init__",
+        "register",
+        "unregister",
+        "check_component",
+        "report",
+        "is_healthy",
+        "__init__",
+        "check"
+      ]
+    },
+    "CORE\\NeuralPipeline.py": {
+      "functions": 15,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "_init_providers",
+        "run_end_to_end",
+        "_train_agent",
+        "_train_sb3",
+        "_train_grpo",
+        "_train_qlearning",
+        "_train_all_parallel",
+        "_llm_evaluate_worm",
+        "_augment_rewards",
+        "run_cross_api_analysis",
+        "_persist_run",
+        "get_stats",
+        "replay_failed",
+        "__repr__"
+      ]
+    },
+    "CORE\\NODE.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "scan_deficiencies",
+        "fix_bom",
+        "fix_bad_syspath",
+        "activate_ml",
+        "run"
+      ]
+    },
+    "CORE\\notifier.py": {
+      "functions": 8,
+      "classes": 0,
+      "func_names": [
+        "get_webhook_url",
+        "send_slack_alert",
+        "check_health_and_alert",
+        "check_drift_and_alert",
+        "check_breakers_and_alert",
+        "run_check",
+        "start_watcher",
+        "main"
+      ]
+    },
+    "CORE\\PamsBusBridge.py": {
+      "functions": 8,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "subscribe_topic",
+        "subscribe_all",
+        "_register_session_with_pams",
+        "_on_memory_message",
+        "run",
+        "on_stop",
+        "bridge_stats"
+      ]
+    },
+    "CORE\\PamsRecorder.py": {
+      "functions": 14,
+      "classes": 1,
+      "func_names": [
+        "get_recorder",
+        "__new__",
+        "__init__",
+        "_load_fallback",
+        "_save_fallback",
+        "_migrate_fallback_to_local",
+        "record_event",
+        "record_batch",
+        "_ensure_local_store",
+        "query_memories",
+        "search_memories",
+        "recall_recent",
+        "get_stats",
+        "reset_for_testing"
+      ]
+    },
+    "CORE\\paths.py": {
+      "functions": 18,
+      "classes": 0,
+      "func_names": [
+        "_resolve_project_root",
+        "get_project_root",
+        "get_src_dir",
+        "get_output_dir",
+        "get_desktop_dir",
+        "get_g_drive",
+        "get_core_dir",
+        "get_worms_dir",
+        "get_meta_dir",
+        "get_codex_dir",
+        "get_codex_videos_dir",
+        "resolve_path",
+        "ensure_dir",
+        "get_desktop_targets",
+        "get_local_targets",
+        "get_trim_targets",
+        "get_error_targets",
+        "clear_cache"
+      ]
+    },
+    "CORE\\postgres_memory.py": {
+      "functions": 32,
+      "classes": 2,
+      "func_names": [
+        "_get_dsn",
+        "__init__",
+        "_init_pool",
+        "_get_conn",
+        "_put_conn",
+        "_init_db",
+        "start_session",
+        "current_session_id",
+        "end_session",
+        "list_sessions",
+        "get_session",
+        "record_event",
+        "query_memories",
+        "search_memories",
+        "recall_recent",
+        "get_stats",
+        "export_json",
+        "_validate_event_args",
+        "_is_test_artifact",
+        "vacuum"
+      ]
+    },
+    "CORE\\PYTHON_MANAGER.py": {
+      "functions": 12,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_parse_version",
+        "_discover_installations",
+        "get_default",
+        "get_azazael_venv",
+        "get_by_version",
+        "get_by_category",
+        "get_all_categories",
+        "configure_environment",
+        "print_inventory",
+        "save_inventory"
+      ]
+    },
+    "CORE\\safe_sql.py": {
+      "functions": 9,
+      "classes": 4,
+      "func_names": [
+        "sql",
+        "_tokenize",
+        "_quote_ident",
+        "_escape_literal",
+        "__init__",
+        "__repr__",
+        "__str__",
+        "_finalize",
+        "build"
+      ]
+    },
+    "CORE\\sb3_agent.py": {
+      "functions": 29,
+      "classes": 4,
+      "func_names": [
+        "__init__",
+        "is_trained",
+        "algo_class",
+        "train",
+        "predict",
+        "predict_batch",
+        "save",
+        "load",
+        "get_training_history",
+        "_create_env_from_records",
+        "_create_vector_env",
+        "_create_default_env",
+        "_get_pipeline",
+        "_get_versioner",
+        "_run",
+        "__repr__",
+        "__init__",
+        "_init_agents",
+        "train_parallel",
+        "predict_parallel"
+      ]
+    },
+    "CORE\\secrets_manager.py": {
+      "functions": 13,
+      "classes": 1,
+      "func_names": [
+        "get_secret",
+        "audit_secrets",
+        "__new__",
+        "__init__",
+        "_refresh",
+        "get",
+        "has",
+        "audit",
+        "status_summary",
+        "_mask_key",
+        "add_to_env",
+        "reload",
+        "__repr__"
+      ]
+    },
+    "CORE\\STRESS_TEST.py": {
+      "functions": 12,
+      "classes": 2,
+      "func_names": [
+        "__init__",
+        "log",
+        "test_python_installation",
+        "test_syntax_validation",
+        "test_file_io",
+        "test_memory_ops",
+        "test_concurrent",
+        "test_network",
+        "test_worm_operations",
+        "test_module_imports",
+        "run_all_tests",
+        "task"
+      ]
+    },
+    "CORE\\STRUCTURE.py": {
+      "functions": 5,
+      "classes": 4,
+      "func_names": [
+        "create_structure",
+        "get_module",
+        "list_by_tier",
+        "list_by_category",
+        "get_dependency_graph"
+      ]
+    },
+    "CORE\\tstrings.py": {
+      "functions": 10,
+      "classes": 0,
+      "func_names": [
+        "fmt",
+        "safe_log",
+        "safe_record",
+        "safe_sql",
+        "safe_html",
+        "structured",
+        "_is_variable_ref",
+        "_is_identifier",
+        "_sanitize_for_log",
+        "_sanitize_for_storage"
+      ]
+    },
+    "CORE\\web_dashboard.py": {
+      "functions": 24,
+      "classes": 2,
+      "func_names": [
+        "_section_html",
+        "_render_health_card",
+        "_render_metrics_card",
+        "_render_drift_card",
+        "_render_dead_letters_card",
+        "_render_session_card",
+        "_render_metacluster_card",
+        "_render_workflows_card",
+        "_render_scheduling_card",
+        "_render_sb3_training_card",
+        "_render_db_monitor_card",
+        "_render_config_card",
+        "build_html_page",
+        "export_html",
+        "main",
+        "do_GET",
+        "_send_html",
+        "_send_json",
+        "_send_prometheus",
+        "log_message"
+      ]
+    },
+    "CORE\\Widgets\\BasePopupMonitor.py": {
+      "functions": 17,
+      "classes": 3,
+      "func_names": [
+        "__init__",
+        "create_window",
+        "_build_header",
+        "_build_body",
+        "_build_footer",
+        "enqueue",
+        "_safe_log",
+        "_safe_status",
+        "_process_queue_internal",
+        "handle_message",
+        "_handle_log",
+        "_handle_status",
+        "_handle_error",
+        "_close_internal",
+        "close",
+        "run_loop",
+        "__repr__"
+      ]
+    },
+    "CORE\\workflow.py": {
+      "functions": 26,
+      "classes": 8,
+      "func_names": [
+        "_get_config",
+        "get_workflow_engine",
+        "evaluate",
+        "_evaluate_simple",
+        "__init__",
+        "build",
+        "get_execution_order",
+        "detect_cycles",
+        "get_dependents",
+        "to_mermaid",
+        "__init__",
+        "register_template",
+        "list_templates",
+        "get_template",
+        "parse_dsl",
+        "create_from_template",
+        "_execute_step",
+        "_run_execute_worm",
+        "_run_execute_nature",
+        "_run_pipeline"
+      ]
+    },
+    "CORE\\worm_registry.py": {
+      "functions": 29,
+      "classes": 3,
+      "func_names": [
+        "_get_correlation_id",
+        "_log_event",
+        "_validate_registry_params",
+        "register_worm",
+        "discover_worms",
+        "_guess_category",
+        "_guess_priority",
+        "_guess_cooldown",
+        "_get_pams_recorder",
+        "get_worms_by_category",
+        "get_all_categories",
+        "get_unspawned_worms",
+        "mark_spawned",
+        "reset_registry",
+        "_auto_discover",
+        "decorator",
+        "__init_subclass__",
+        "get_summary",
+        "get_status",
+        "__init__"
+      ]
+    },
+    "CORE\\worm_registry_cache.py": {
+      "functions": 7,
+      "classes": 0,
+      "func_names": [
+        "_get_module_mtimes",
+        "_is_cache_fresh",
+        "_load_cache_readonly",
+        "save_cache",
+        "load_registry",
+        "invalidate_cache",
+        "cache_status"
+      ]
+    },
+    "CORE\\WORMS\\BINARY_ANALYSIS.py": {
+      "functions": 16,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "_record",
+        "nm",
+        "objdump",
+        "pe_headers",
+        "elf_headers",
+        "strings",
+        "entropy",
+        "mapfile",
+        "hexdump",
+        "sed",
+        "awk",
+        "get_summary",
+        "analyze_binary",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\BINARY_ANALYSIS_CLI.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "main"
+      ]
+    },
+    "CORE\\WORMS\\BINARY_ANALYSIS_PARSE.py": {
+      "functions": 13,
+      "classes": 0,
+      "func_names": [
+        "_record",
+        "_shannon_entropy",
+        "is_pe_file",
+        "is_elf_file",
+        "_rva_to_offset",
+        "_parse_exports",
+        "_parse_imports",
+        "_nm_pe",
+        "_nm_linux",
+        "_nm_external",
+        "extract_symbols",
+        "parse_pe_headers",
+        "parse_elf_headers"
+      ]
+    },
+    "CORE\\WORMS\\BINARY_ANALYSIS_TOOLS.py": {
+      "functions": 11,
+      "classes": 0,
+      "func_names": [
+        "_record",
+        "disassemble_binary",
+        "_objdump_windows",
+        "_objdump_linux",
+        "extract_strings",
+        "_shannon_entropy",
+        "analyze_entropy",
+        "analyze_memory_maps",
+        "generate_hexdump",
+        "run_sed",
+        "run_awk"
+      ]
+    },
+    "CORE\\WORMS\\BINARY_ANALYSIS_TYPES.py": {
+      "functions": 2,
+      "classes": 5,
+      "func_names": [
+        "_get_pams",
+        "is_exported"
+      ]
+    },
+    "CORE\\WORMS\\CAIN_DATA.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "compute_total_damage"
+      ]
+    },
+    "CORE\\WORMS\\CAIN_WORM.py": {
+      "functions": 11,
+      "classes": 1,
+      "func_names": [
+        "analyze_sins",
+        "analyze_archetypes",
+        "analyze_psychoanalysis",
+        "analyze_emotions",
+        "analyze_obfuscation",
+        "analyze_stakeholders",
+        "run_complete_analysis",
+        "format_report",
+        "get_summary",
+        "register_worm",
+        "decorator"
+      ]
+    },
+    "CORE\\WORMS\\CLOCKZ.py": {
+      "functions": 15,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "get_time",
+        "get_utc",
+        "get_uptime",
+        "format_duration",
+        "schedule_interval",
+        "schedule_once",
+        "cancel_task",
+        "get_tasks",
+        "run_scheduler",
+        "stop_scheduler",
+        "get_summary",
+        "run_task",
+        "run_task"
+      ]
+    },
+    "CORE\\WORMS\\CLUSTER_INSPECTOR.py": {
+      "functions": 26,
+      "classes": 8,
+      "func_names": [
+        "__init__",
+        "check_path_exists",
+        "check_drive_exists",
+        "validate_windows_path",
+        "extract_and_validate_paths",
+        "__init__",
+        "check_required_vars",
+        "check_path_directories",
+        "validate_python_installation",
+        "run_inspection",
+        "__init__",
+        "inspect",
+        "__init__",
+        "inspect",
+        "__init__",
+        "inspect",
+        "__init__",
+        "inspect",
+        "__init__",
+        "find_files_by_type"
+      ]
+    },
+    "CORE\\WORMS\\CLUSTERWORMS.py": {
+      "functions": 62,
+      "classes": 7,
+      "func_names": [
+        "_get_pams",
+        "_get_mem_bus",
+        "_get_breaker_registry",
+        "_ensure_legacy_modules",
+        "_legacy_execute",
+        "_discover_progress",
+        "_resolve_worm_dynamic",
+        "_execute_worm_class",
+        "run_popup",
+        "main",
+        "__init__",
+        "close",
+        "set_attribute",
+        "to_dict",
+        "__new__",
+        "start_span",
+        "end_span",
+        "get_recent_spans",
+        "clear_spans",
+        "__init__"
+      ]
+    },
+    "CORE\\WORMS\\CODEX_TOOLS.py": {
+      "functions": 10,
+      "classes": 4,
+      "func_names": [
+        "__init__",
+        "execute",
+        "get_summary",
+        "__init__",
+        "execute",
+        "get_summary",
+        "__init__",
+        "execute",
+        "__init__",
+        "execute"
+      ]
+    },
+    "CORE\\WORMS\\CONCURRENCY.py": {
+      "functions": 25,
+      "classes": 6,
+      "func_names": [
+        "run_popup",
+        "main",
+        "__init__",
+        "submit_task",
+        "execute_parallel",
+        "get_results",
+        "__init__",
+        "load_worm",
+        "execute_worm",
+        "execute_all_parallel",
+        "__init__",
+        "load_clusters",
+        "execute_cluster",
+        "execute_all_parallel",
+        "__init__",
+        "execute_system_scan",
+        "execute_full_ecosystem",
+        "get_status",
+        "get_summary",
+        "log"
+      ]
+    },
+    "CORE\\WORMS\\CROSS_NATURE_ROUTER.py": {
+      "functions": 19,
+      "classes": 2,
+      "func_names": [
+        "_get_mem_bus",
+        "_get_pams",
+        "_record_event",
+        "_get_inference",
+        "__init__",
+        "_build_routes",
+        "get_routes_from",
+        "get_routes_to",
+        "route_nature_output",
+        "compute_routing_order",
+        "detect_cycles",
+        "shortest_path",
+        "optimize_pipeline",
+        "analyze_routing",
+        "get_all_paths",
+        "visit",
+        "dfs",
+        "dfs",
+        "__post_init__"
+      ]
+    },
+    "CORE\\WORMS\\dead_letter_queue.py": {
+      "functions": 25,
+      "classes": 2,
+      "func_names": [
+        "can_retry",
+        "backoff_delay",
+        "mark_resolved",
+        "__init__",
+        "_load",
+        "_save",
+        "enqueue",
+        "enqueue_result",
+        "replay",
+        "replay_all",
+        "discard",
+        "discard_all",
+        "get_pending",
+        "get_by_worm",
+        "get_all",
+        "count_pending",
+        "count_total",
+        "analytics",
+        "summary",
+        "clear"
+      ]
+    },
+    "CORE\\WORMS\\DEPENDZ.py": {
+      "functions": 15,
+      "classes": 1,
+      "func_names": [
+        "_is_nuitka",
+        "__init__",
+        "run",
+        "_parse_dep_line",
+        "_parse_requirements",
+        "_parse_pyproject",
+        "_scan_imports",
+        "_detect_unused",
+        "_detect_missing",
+        "_detect_local_modules",
+        "_detect_version_drift",
+        "_check_outdated",
+        "get_summary",
+        "execute",
+        "__repr__"
+      ]
+    },
+    "CORE\\WORMS\\DIAGNOSTIC_WORM.py": {
+      "functions": 12,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "scan_all_modules",
+        "fix_bom",
+        "scan_bad_syspath",
+        "fix_bad_syspath",
+        "test_import",
+        "check_circular_deps",
+        "apply_healing",
+        "heal_module",
+        "save_report",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\DISKZ.py": {
+      "functions": 10,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "get_usage",
+        "get_partitions",
+        "get_io_stats",
+        "get_io_counters",
+        "analyze_directory",
+        "find_large_files",
+        "get_summary",
+        "scan_directory"
+      ]
+    },
+    "CORE\\WORMS\\ERROR_SCAN_WORM.py": {
+      "functions": 10,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "find_python_files",
+        "check_bom",
+        "remove_bom",
+        "check_syntax",
+        "check_imports",
+        "scan_file",
+        "scan_all",
+        "save_report",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\__init__.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "get_all_expansion_worms",
+        "main"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\backup.py": {
+      "functions": 18,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "create_snapshot",
+        "list_snapshots",
+        "__init__",
+        "compute_manifest",
+        "find_changes",
+        "__init__",
+        "verify_archive",
+        "test_restore",
+        "__init__",
+        "archive",
+        "get_summary",
+        "__init__",
+        "save_checkpoint",
+        "restore_checkpoint",
+        "get_summary",
+        "register_worm",
+        "is_free_threaded"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\communication.py": {
+      "functions": 24,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "subscribe",
+        "publish",
+        "replay",
+        "__init__",
+        "register_method",
+        "handle_request",
+        "list_methods",
+        "__init__",
+        "register_webhook",
+        "deliver",
+        "__init__",
+        "create_channel",
+        "send",
+        "receive",
+        "get_summary",
+        "__init__",
+        "register_peer",
+        "negotiate",
+        "_available_protocols"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\config.py": {
+      "functions": 16,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "lint_json",
+        "lint_yaml",
+        "get_summary",
+        "__init__",
+        "scan_env_files",
+        "__init__",
+        "get_checksums",
+        "__init__",
+        "rotate_secret",
+        "generate_password",
+        "__init__",
+        "set_flag",
+        "is_enabled",
+        "register_worm",
+        "is_free_threaded"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\container.py": {
+      "functions": 18,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "launch",
+        "health_check",
+        "stop",
+        "list_all",
+        "get_summary",
+        "__init__",
+        "validate",
+        "get_summary",
+        "__init__",
+        "audit_image",
+        "__init__",
+        "check_latest",
+        "__init__",
+        "set_quota",
+        "check_usage",
+        "register_worm",
+        "is_free_threaded"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\db_monitor.py": {
+      "functions": 19,
+      "classes": 3,
+      "func_names": [
+        "__init__",
+        "_get_store",
+        "_get_store_backend",
+        "check_integrity",
+        "create_backup",
+        "_record_backup_event",
+        "check_health",
+        "_add_alert",
+        "_record_snapshot",
+        "_record_alert",
+        "execute",
+        "start_monitor",
+        "stop_monitor",
+        "is_monitor_running",
+        "get_report",
+        "get_db_summary",
+        "register_worm",
+        "is_free_threaded",
+        "_monitor_loop"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\dreaming.py": {
+      "functions": 29,
+      "classes": 3,
+      "func_names": [
+        "__init__",
+        "recall_scenarios",
+        "dream",
+        "_build_state_sequence",
+        "_extract_state_vector",
+        "_generate_policy_suggestions",
+        "_mine_error_recovery_patterns",
+        "_mine_historical_recovery_patterns",
+        "_detect_novel_patterns",
+        "_score_dream_quality",
+        "_score_dream_creativity",
+        "_score_dream_coherence",
+        "_extract_tags",
+        "evaluate_dreams",
+        "integrate_best",
+        "run_dreaming_pipeline",
+        "_govern_dreaming_gate",
+        "_persist_dreaming_session",
+        "_persist_integration",
+        "get_dream_stats"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\error_recovery.py": {
+      "functions": 13,
+      "classes": 2,
+      "func_names": [
+        "__init__",
+        "execute_with_recovery",
+        "_execute_fallback",
+        "_is_circuit_open",
+        "_count_recent_failures",
+        "_cleanup_failure_windows",
+        "_periodic_cleanup",
+        "_record_recovery",
+        "get_circuit_breaker_status",
+        "reset_circuit",
+        "get_stats",
+        "execute",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\evolution.py": {
+      "functions": 27,
+      "classes": 3,
+      "func_names": [
+        "__init__",
+        "initialize_population",
+        "evaluate_population",
+        "evolve",
+        "_tournament_select",
+        "_crossover",
+        "_mutate",
+        "_govern_evolution_gate",
+        "_get_store",
+        "_persist_generation",
+        "_compute_population_diversity",
+        "_adapt_mutation_rate",
+        "save_checkpoint",
+        "load_checkpoint",
+        "has_converged",
+        "_non_dominated_sort",
+        "_compute_crowding_distance",
+        "optimize_multi_objective",
+        "get_best_genome",
+        "get_generation_history"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\learning.py": {
+      "functions": 68,
+      "classes": 6,
+      "func_names": [
+        "refresh_dynamic_shapes",
+        "__init__",
+        "_get_pipeline",
+        "_get_versioner",
+        "register_to_versioner",
+        "_save_q_table_to_store",
+        "load_q_table_from_store",
+        "train_from_memory",
+        "hyperparameter_tune",
+        "tune_and_train",
+        "train_episode",
+        "get_training_stats",
+        "tune_history",
+        "__init__",
+        "_get_store",
+        "register_model",
+        "compare_versions",
+        "list_versions",
+        "get_latest_version",
+        "rollback"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\learning_features.py": {
+      "functions": 6,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "normalize",
+        "one_hot_encode",
+        "impute_missing",
+        "extract_worm_features",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\learning_grpo.py": {
+      "functions": 19,
+      "classes": 2,
+      "func_names": [
+        "__init__",
+        "generate_group",
+        "compute_group_rewards",
+        "compute_advantages",
+        "update_policy",
+        "select_best",
+        "get_policy",
+        "save_policy",
+        "load_policy",
+        "get_stats",
+        "__init__",
+        "create_experiment",
+        "track",
+        "record_preference",
+        "get_preference_pairs",
+        "compute_preference_scores",
+        "compute_dpo_loss",
+        "get_results",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\learning_pipeline.py": {
+      "functions": 29,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "_get_store",
+        "extract_from_memory",
+        "search_memory",
+        "extract_recent",
+        "get_memory_stats",
+        "extract",
+        "transform",
+        "extract_field",
+        "filter_by_severity",
+        "filter_by_source",
+        "flatten_data",
+        "deduplicate",
+        "load",
+        "load_to_memory",
+        "batch",
+        "process_batches",
+        "run_pipeline",
+        "split_memories",
+        "temporal_cross_validation"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\learning_replay.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "size",
+        "add",
+        "sample",
+        "update_priorities",
+        "add_from_memories",
+        "get_stats"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\meta_cognition.py": {
+      "functions": 19,
+      "classes": 2,
+      "func_names": [
+        "__init__",
+        "observe",
+        "_get_store",
+        "_persist_observation",
+        "analyze_patterns",
+        "_compute_confidence",
+        "adapt_strategy",
+        "_persist_adaptation",
+        "validate_adaptation",
+        "generate_introspection_report",
+        "execute",
+        "save_state",
+        "load_state",
+        "detect_anomalies",
+        "compute_cross_worm_correlation",
+        "register_worm",
+        "pearson_r",
+        "__init__",
+        "_run"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\migration.py": {
+      "functions": 18,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "detect_python2_patterns",
+        "run_2to3",
+        "get_summary",
+        "__init__",
+        "parse_requirements",
+        "check_outdated",
+        "__init__",
+        "register_schema",
+        "detect_breaking_changes",
+        "__init__",
+        "add_mapping",
+        "fix_file",
+        "__init__",
+        "generate_shim",
+        "write_shim",
+        "register_worm",
+        "is_free_threaded"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\profiling.py": {
+      "functions": 19,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "profile_function",
+        "detect_hotspots",
+        "get_summary",
+        "__init__",
+        "take_snapshot",
+        "compare_snapshots",
+        "__init__",
+        "measure_io",
+        "detect_bottleneck",
+        "__init__",
+        "measure_contention",
+        "__init__",
+        "sample",
+        "to_flamegraph_data",
+        "get_summary",
+        "register_worm",
+        "is_free_threaded",
+        "cpu_burn"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\race_detector.py": {
+      "functions": 13,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "instrument_worm",
+        "_install_class_tracer",
+        "uninstrument_worm",
+        "_detect_shared_attrs",
+        "_record_access",
+        "detect_data_races",
+        "detect_thread_imports",
+        "generate_safety_report",
+        "execute",
+        "register_worm",
+        "traced_class_setattr",
+        "traced_acquire"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\scheduling.py": {
+      "functions": 35,
+      "classes": 9,
+      "func_names": [
+        "__init__",
+        "_get_pipeline",
+        "_get_engineer",
+        "_get_rl",
+        "_get_versioner",
+        "_get_ab",
+        "_get_store",
+        "_get_logger",
+        "execute",
+        "start_scheduler",
+        "stop_scheduler",
+        "get_status",
+        "__init__",
+        "_get_monitor",
+        "_get_store",
+        "_get_logger",
+        "execute",
+        "start_scheduler",
+        "stop_scheduler",
+        "get_status"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\security.py": {
+      "functions": 19,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "scan_requirements",
+        "check_package",
+        "get_report",
+        "__init__",
+        "scan_local_ports",
+        "audit_exposure",
+        "__init__",
+        "check_cert",
+        "get_expiring_soon",
+        "get_summary",
+        "__init__",
+        "get_firewall_rules",
+        "find_overly_permissive",
+        "__init__",
+        "scan_directory",
+        "get_summary",
+        "register_worm",
+        "is_free_threaded"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\telemetry.py": {
+      "functions": 22,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "start_span",
+        "end_span",
+        "get_trace_tree",
+        "__init__",
+        "inc_counter",
+        "set_gauge",
+        "observe",
+        "get_snapshot",
+        "__init__",
+        "watch_file",
+        "read_new_lines",
+        "__init__",
+        "subscribe",
+        "publish",
+        "get_recent_events",
+        "__init__",
+        "check_threshold",
+        "clear_alert",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\expansion\\visualization.py": {
+      "functions": 21,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "add_panel",
+        "render_html",
+        "get_summary",
+        "__init__",
+        "add_node",
+        "add_edge",
+        "to_dot",
+        "render_svg",
+        "__init__",
+        "add_section",
+        "compile_html",
+        "__init__",
+        "record_event",
+        "build_hourly_heatmap",
+        "get_busiest_hours",
+        "__init__",
+        "add_span",
+        "to_timeline_html",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\HEALING_WORM.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "_is_nuitka",
+        "_find_python",
+        "run_healing"
+      ]
+    },
+    "CORE\\WORMS\\INFERENCE_SUBSCRIBER.py": {
+      "functions": 16,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "start",
+        "stop",
+        "_on_cluster_event",
+        "_on_nature_event",
+        "_on_inference_event",
+        "_buffer_event",
+        "analyze",
+        "_quick_checks",
+        "_llm_analyze",
+        "_get_inference",
+        "_publish_alert",
+        "get_alerts",
+        "get_stats",
+        "execute",
+        "__repr__"
+      ]
+    },
+    "CORE\\WORMS\\INFERENCE_WORM.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "execute",
+        "analyze",
+        "summarize",
+        "list_providers",
+        "get_stats",
+        "__repr__"
+      ]
+    },
+    "CORE\\WORMS\\METACLUSTER.py": {
+      "functions": 33,
+      "classes": 4,
+      "func_names": [
+        "_get_pams",
+        "_get_mem_bus",
+        "_get_config",
+        "_get_breakers",
+        "_get_log",
+        "_record_event",
+        "main",
+        "__init__",
+        "discover_all",
+        "on",
+        "_run_hooks",
+        "orchestrate",
+        "orchestrate_nature",
+        "orchestrate_adaptive",
+        "orchestrate_full_pipeline",
+        "_get_inference",
+        "_llm_analyze_results",
+        "_generate_insights",
+        "_generate_recommendations",
+        "get_status"
+      ]
+    },
+    "CORE\\WORMS\\METAZ.py": {
+      "functions": 10,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "run",
+        "_analyze_ast",
+        "_extract_imports",
+        "_compute_coupling",
+        "find_circular_imports",
+        "get_summary",
+        "execute",
+        "__repr__",
+        "dfs"
+      ]
+    },
+    "CORE\\WORMS\\MORPHING_WORM.py": {
+      "functions": 16,
+      "classes": 2,
+      "func_names": [
+        "__init__",
+        "register_genome",
+        "morph_worm",
+        "spawn_variant",
+        "detect_bom",
+        "detect_syntax",
+        "detect_imports",
+        "detect_escape_sequences",
+        "detect_malformed_patterns",
+        "auto_fix_bom",
+        "auto_fix_syntax_known",
+        "scan_file",
+        "evolve_from_errors",
+        "run_comprehensive_scan",
+        "save_state",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\MORPHING_WORM_V2.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "is_in_multiline_context",
+        "check_bom",
+        "check_syntax",
+        "check_actual_patterns",
+        "run_scan",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\NATURE_CLUSTERS.py": {
+      "functions": 63,
+      "classes": 5,
+      "func_names": [
+        "_get_pams",
+        "_get_config",
+        "_get_breakers",
+        "_get_log",
+        "_get_correlation_id",
+        "_log_event",
+        "main",
+        "__init__",
+        "_from_config",
+        "_get_env_fallback",
+        "register_worker",
+        "heartbeat",
+        "unregister_worker",
+        "_monitor",
+        "stop",
+        "get_metrics",
+        "active_count",
+        "killed_count",
+        "__repr__",
+        "__init__"
+      ]
+    },
+    "CORE\\WORMS\\NETWORK_DIAG.py": {
+      "functions": 25,
+      "classes": 7,
+      "func_names": [
+        "main",
+        "avg_rtt",
+        "min_rtt",
+        "max_rtt",
+        "success",
+        "__init__",
+        "_record",
+        "traceroute",
+        "_traceroute_windows",
+        "_traceroute_linux",
+        "ping",
+        "_ping_windows",
+        "_ping_linux",
+        "mtr",
+        "tracepath",
+        "netstat",
+        "_netstat_windows",
+        "_netstat_linux",
+        "_parse_addr",
+        "strace"
+      ]
+    },
+    "CORE\\WORMS\\NETWORXZ.py": {
+      "functions": 9,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "get_interfaces",
+        "get_connections",
+        "get_stats",
+        "ping",
+        "check_port",
+        "resolve",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\NIM_INFERENCE.py": {
+      "functions": 9,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "execute",
+        "analyze",
+        "summarize",
+        "list_available_models",
+        "get_stats",
+        "list_all_providers",
+        "_get_client",
+        "__repr__"
+      ]
+    },
+    "CORE\\WORMS\\OMNI_WORM.py": {
+      "functions": 8,
+      "classes": 0,
+      "func_names": [
+        "_is_nuitka",
+        "fix_bom_files",
+        "fix_syspath_imports",
+        "create_init_files",
+        "test_imports",
+        "verify_ml",
+        "create_bootstrap",
+        "main"
+      ]
+    },
+    "CORE\\WORMS\\OMNI_WORM_V2.py": {
+      "functions": 4,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "log",
+        "spawn_diagnostic_worms",
+        "run"
+      ]
+    },
+    "CORE\\WORMS\\OS_CONGRUENCY.py": {
+      "functions": 29,
+      "classes": 5,
+      "func_names": [
+        "run_popup",
+        "main",
+        "__init__",
+        "_run_powershell",
+        "_get_cpu_info",
+        "_get_memory_info",
+        "_get_disk_info",
+        "_get_network_info",
+        "_get_process_info",
+        "get_system_status",
+        "_get_services_status",
+        "get_services",
+        "start_service",
+        "stop_service",
+        "get_startup_programs",
+        "get_event_logs",
+        "get_windows_updates",
+        "get_users",
+        "get_disk_partitions",
+        "get_driver_list"
+      ]
+    },
+    "CORE\\WORMS\\PROCESSZ.py": {
+      "functions": 9,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_get_process_info",
+        "list_processes",
+        "find_process",
+        "get_process",
+        "kill_process",
+        "kill_by_name",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\REVERSE_TOOLS.py": {
+      "functions": 15,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "_record",
+        "check_all",
+        "check_ghidra",
+        "check_radare2",
+        "install_radare2",
+        "install_ghidra",
+        "radare2_analyze",
+        "_radare2_cli",
+        "radare2_disasm",
+        "ghidra_headless",
+        "cross_analyze",
+        "get_summary",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\SMARTDISK.py": {
+      "functions": 21,
+      "classes": 5,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "_run_smartctl",
+        "_parse_smart_output",
+        "_parse_attributes",
+        "get_disks",
+        "get_disk_info",
+        "get_disk_health",
+        "predict_failure",
+        "get_alerts",
+        "record_history",
+        "_train_failure_model",
+        "analyze_trends",
+        "_save_history",
+        "_load_history",
+        "_save_model",
+        "_load_model",
+        "get_status",
+        "run_popup"
+      ]
+    },
+    "CORE\\WORMS\\SYSTEMZ.py": {
+      "functions": 10,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "get_cpu",
+        "get_memory",
+        "get_disk",
+        "get_processes",
+        "get_boot_time",
+        "get_status",
+        "get_summary",
+        "register_worm"
+      ]
+    },
+    "CORE\\WORMS\\SYSTEMZ_ML.py": {
+      "functions": 21,
+      "classes": 5,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "_get_snapshot",
+        "_features_to_array",
+        "_calculate_baseline",
+        "_train_anomaly_model",
+        "detect_anomalies",
+        "predict_usage",
+        "capture_sample",
+        "get_status",
+        "get_cpu",
+        "get_memory",
+        "get_disk",
+        "_save_history",
+        "_load_history",
+        "_save_model",
+        "_load_model",
+        "analyze_trends",
+        "run_popup"
+      ]
+    },
+    "CORE\\WORMS\\VIDEO_ANALYZER_WORM.py": {
+      "functions": 11,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "_check_ffprobe",
+        "probe_video",
+        "check_compliance",
+        "estimate_savings",
+        "analyze_video",
+        "scan_directory",
+        "format_report",
+        "execute",
+        "register_worm",
+        "decorator"
+      ]
+    },
+    "CORE\\WORMS\\WORM_FLEET.py": {
+      "functions": 9,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "get_python_files",
+        "worm_bom_hunter",
+        "worm_syntax_guard",
+        "worm_import_watcher",
+        "worm_string_escape_hunter",
+        "run_worm",
+        "run_all",
+        "get_summary"
+      ]
+    },
+    "CORE\\WORMS\\WORMZ.py": {
+      "functions": 24,
+      "classes": 4,
+      "func_names": [
+        "run_with_popup",
+        "main",
+        "__init__",
+        "_should_skip",
+        "_should_crawl",
+        "_compute_checksum",
+        "_parse_python",
+        "_parse_markdown",
+        "_parse_json",
+        "crawl_file",
+        "crawl_folder",
+        "crawl_all",
+        "crawl_delta",
+        "_file_changed",
+        "_merge_results",
+        "_update_bibl",
+        "_generate_bibl_index",
+        "_generate_bibl_alphabetic",
+        "_write_alphabetic_file",
+        "get_status"
+      ]
+    },
+    "CORE\\WORMS\\WORMZ_ML.py": {
+      "functions": 20,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "_extract_features",
+        "_calculate_pattern_score",
+        "_predict_category",
+        "_prioritize_files",
+        "_extract_terms",
+        "_learn_patterns",
+        "scan_file",
+        "predictive_crawl",
+        "train_model",
+        "_save_model",
+        "_load_model",
+        "_save_patterns",
+        "_load_patterns",
+        "update_learned_patterns",
+        "get_status",
+        "run_popup",
+        "run_crawl"
+      ]
+    },
+    "CORE\\WORMS\\WORMZ_POPUP.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "run_wormz_popup",
+        "log",
+        "execute_crawl"
+      ]
+    },
+    "DOCKERZ.py": {
+      "functions": 25,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "_run_docker",
+        "is_available",
+        "list_containers",
+        "list_images",
+        "run_container",
+        "stop_container",
+        "start_container",
+        "remove_container",
+        "get_container_logs",
+        "get_container_stats",
+        "build_image",
+        "pull_image",
+        "push_image",
+        "remove_image",
+        "generate_dockerfile",
+        "generate_compose",
+        "run_compose"
+      ]
+    },
+    "ECOSYSTEM_HEALTH_CHECK.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "check_syntax",
+        "check_file_exists",
+        "check_imports",
+        "run_health_check",
+        "print_results"
+      ]
+    },
+    "enrichment_display.py": {
+      "functions": 16,
+      "classes": 5,
+      "func_names": [
+        "create_enrichment_display",
+        "__init__",
+        "add_field",
+        "_setup_animation",
+        "cascade_reveal",
+        "data_pulse",
+        "connect_lines",
+        "expand_card",
+        "counter_increment",
+        "badge_pop",
+        "tag_cloud",
+        "timeline_draw",
+        "get_status_protocol",
+        "hierarchical_enrichment",
+        "generate_css",
+        "get_all_protocols"
+      ]
+    },
+    "ERRORZ.py": {
+      "functions": 16,
+      "classes": 4,
+      "func_names": [
+        "_get_default_targets",
+        "run_with_popup",
+        "main",
+        "__init__",
+        "_get_code_context",
+        "_check_syntax_errors",
+        "_check_pattern_errors",
+        "_check_circular_imports",
+        "_check_unreachable_code",
+        "_check_missing_docstrings",
+        "run",
+        "_save_report",
+        "get_report",
+        "log",
+        "run_scan",
+        "register_worm"
+      ]
+    },
+    "FILE_MANIFEST_GENERATOR.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "generate_manifest"
+      ]
+    },
+    "HEALTHZ.py": {
+      "functions": 13,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_load_state",
+        "_save_state",
+        "_check_cpu",
+        "_check_memory",
+        "_check_disk",
+        "_check_network",
+        "_check_processes",
+        "check",
+        "get_status",
+        "history",
+        "register_worm"
+      ]
+    },
+    "HORUS_INTEGRATION.py": {
+      "functions": 7,
+      "classes": 1,
+      "func_names": [
+        "share_with_horus",
+        "__init__",
+        "_load_animation_protocols",
+        "get_animation",
+        "animate_result",
+        "generate_horus_widget",
+        "export_to_horus"
+      ]
+    },
+    "HYDRA\\hydra_launcher.py": {
+      "functions": 14,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_find_python",
+        "run_spelling_fix",
+        "run_path_fix",
+        "run_python_resolution",
+        "run_terence_analysis",
+        "run_tarbaby_analysis",
+        "run_ml_framework_check",
+        "run_ml_optimization",
+        "run_all_protocols",
+        "analyze_only",
+        "get_status",
+        "export_report"
+      ]
+    },
+    "HYDRA\\hydra_protocols.py": {
+      "functions": 12,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "resolve_python_conflict",
+        "sync_venv_packages",
+        "fix_old_paths",
+        "fix_spelling_errors",
+        "resolve_import_conflicts",
+        "_fix_sys_path",
+        "_fix_importlib",
+        "sync_environment",
+        "run_all_protocols",
+        "get_status"
+      ]
+    },
+    "HYDRA\\ml_platforms\\harness.py": {
+      "functions": 9,
+      "classes": 0,
+      "func_names": [
+        "get_version",
+        "cmd_analyze",
+        "cmd_convert",
+        "cmd_recommend",
+        "cmd_monitor",
+        "cmd_status",
+        "cmd_models",
+        "cmd_verify",
+        "main"
+      ]
+    },
+    "HYDRA\\ml_platforms\\health_monitor.py": {
+      "functions": 18,
+      "classes": 4,
+      "func_names": [
+        "default_alert_handler",
+        "__init__",
+        "_check_package_versions",
+        "_check_gpu",
+        "_check_memory",
+        "_check_cpu",
+        "_check_disk",
+        "_check_imports",
+        "_check_cuda_compat",
+        "run_health_check",
+        "_process_alerts",
+        "get_health_summary",
+        "print_status",
+        "start_monitoring",
+        "stop_monitoring",
+        "export_history",
+        "get_recommendations",
+        "monitor_loop"
+      ]
+    },
+    "HYDRA\\ml_platforms\\PERMANENT_LOAD.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "debug_all_errors",
+        "excepthook"
+      ]
+    },
+    "HYDRA\\ml_test.py": {
+      "functions": 6,
+      "classes": 0,
+      "func_names": [
+        "test_numpy",
+        "test_scipy",
+        "test_torch",
+        "test_tensorflow",
+        "test_sklearn",
+        "main"
+      ]
+    },
+    "HYDRA\\pipeline_specs.py": {
+      "functions": 5,
+      "classes": 4,
+      "func_names": [
+        "run_pipeline",
+        "get_pipeline",
+        "get_all_pipelines",
+        "to_dict",
+        "save_to_json"
+      ]
+    },
+    "HYDRA_CONTAINER.py": {
+      "functions": 27,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "_check_docker",
+        "_run_docker",
+        "_generate_dockerfile",
+        "_create_container_config",
+        "run_worm_container",
+        "run_cluster_container",
+        "run_parallel_cluster",
+        "run_hydra_trial",
+        "run_hydra_trials",
+        "_update_best",
+        "analyze_trials",
+        "get_optimized_sequence",
+        "build_worm_image",
+        "run_container_image",
+        "get_container_stats",
+        "cleanup_containers",
+        "_save_trials"
+      ]
+    },
+    "HYDRAMETA_UV.py": {
+      "functions": 20,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "_find_uv",
+        "_ensure_directories",
+        "_load_state",
+        "_save_state",
+        "_run_uv_command",
+        "_create_trial_venv",
+        "_install_worm_deps",
+        "_execute_worm",
+        "run_trial",
+        "_calculate_efficiency",
+        "run_trials",
+        "_save_trials",
+        "_update_best",
+        "analyze_performance",
+        "optimize_sequence",
+        "benchmark_uv_speed",
+        "run_popup",
+        "run_trials_async"
+      ]
+    },
+    "INTERPRETERS\\__init__.py": {
+      "functions": 8,
+      "classes": 1,
+      "func_names": [
+        "run_python",
+        "run_rust",
+        "run_go",
+        "run_bash",
+        "run_javascript",
+        "run_code",
+        "supported_languages",
+        "main"
+      ]
+    },
+    "INTERPRETERS\\go_runner.py": {
+      "functions": 14,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_verify_toolchain",
+        "_go_env",
+        "_find_module_root",
+        "run_file",
+        "run_code",
+        "build_binary",
+        "_parse_errors",
+        "test",
+        "format_code",
+        "vet",
+        "mod_init",
+        "cross_compile"
+      ]
+    },
+    "INTERPRETERS\\rust_runner.py": {
+      "functions": 13,
+      "classes": 3,
+      "func_names": [
+        "main",
+        "__init__",
+        "_verify_toolchain",
+        "_compile",
+        "_parse_errors",
+        "_run_binary",
+        "run_code",
+        "run_file",
+        "check_syntax",
+        "cargo_build",
+        "cargo_test",
+        "new_project",
+        "format_code"
+      ]
+    },
+    "matrix_animation.py": {
+      "functions": 5,
+      "classes": 1,
+      "func_names": [
+        "get_random_color",
+        "generate_frame",
+        "__init__",
+        "reset",
+        "update"
+      ]
+    },
+    "META\\MetaWormSpawner.py": {
+      "functions": 17,
+      "classes": 10,
+      "func_names": [
+        "main",
+        "__init__",
+        "evaluate_action",
+        "get_fleet_report",
+        "run_pool2",
+        "run_pool3",
+        "validate",
+        "judge",
+        "analyze",
+        "route",
+        "__init__",
+        "record_action",
+        "report",
+        "update",
+        "calculate",
+        "record",
+        "publish"
+      ]
+    },
+    "METAWORMS_ENRICHED.py": {
+      "functions": 27,
+      "classes": 12,
+      "func_names": [
+        "run_popup",
+        "main",
+        "print_header",
+        "print_section",
+        "print_success",
+        "print_fail",
+        "print_warning",
+        "print_info",
+        "print_metric",
+        "print_table",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "run",
+        "register_worm",
+        "__init__",
+        "run"
+      ]
+    },
+    "METAWORMS_POPUP.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "run_metaworms_popup",
+        "log",
+        "execute_worms"
+      ]
+    },
+    "METRICZ.py": {
+      "functions": 24,
+      "classes": 5,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "record_metric",
+        "record_execution",
+        "timer",
+        "start_timer",
+        "stop_timer",
+        "_check_thresholds",
+        "_create_alert",
+        "get_metrics",
+        "get_performance_summary",
+        "get_recent_executions",
+        "get_alerts",
+        "get_summary",
+        "generate_report",
+        "export_metrics",
+        "_save_metrics",
+        "_save_executions",
+        "_save_alerts"
+      ]
+    },
+    "MISSING_TOOLS.py": {
+      "functions": 29,
+      "classes": 9,
+      "func_names": [
+        "main",
+        "__init__",
+        "scan_requirements",
+        "check_conflicts",
+        "get_audit_report",
+        "__init__",
+        "build_graph",
+        "find_cycles",
+        "to_dot",
+        "__init__",
+        "scan_project",
+        "__init__",
+        "check_module",
+        "check_project",
+        "__init__",
+        "check_file",
+        "__init__",
+        "analyze_file",
+        "__init__",
+        "check_all"
+      ]
+    },
+    "OPTIMIZ.py": {
+      "functions": 12,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_get_cpu_efficiency",
+        "_get_memory_efficiency",
+        "_get_disk_efficiency",
+        "_get_network_efficiency",
+        "_detect_bottlenecks",
+        "_generate_recommendations",
+        "analyze",
+        "get_score",
+        "recommend",
+        "register_worm"
+      ]
+    },
+    "ORCHESTRATION\\BIBL\\bibl_crawler.py": {
+      "functions": 18,
+      "classes": 0,
+      "func_names": [
+        "parse_yaml_header",
+        "parse_entries",
+        "crawl_all",
+        "build_index",
+        "load_index",
+        "search_term",
+        "search_fulltext",
+        "list_category",
+        "display_entry",
+        "cmd_index",
+        "cmd_search",
+        "cmd_term",
+        "cmd_category",
+        "cmd_stats",
+        "cmd_export",
+        "_export_html",
+        "_export_csv",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\ECOSYSTEM_CRAWLER_LAUNCHER.py": {
+      "functions": 9,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "update_environment",
+        "run_all_crawlers",
+        "run_worm_scan",
+        "run_metaworm_scan",
+        "run_terence_scan",
+        "run_ecosystem_scan",
+        "print_summary"
+      ]
+    },
+    "ORCHESTRATION\\ECOSYSTEM_OPTIMIZER.py": {
+      "functions": 12,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_log",
+        "_run_python_script",
+        "_run_batch_script",
+        "run_script",
+        "run_all",
+        "_save_report",
+        "list_scripts",
+        "get_status",
+        "print_status",
+        "optimize_ecosystem"
+      ]
+    },
+    "ORCHESTRATION\\HORUS.py": {
+      "functions": 45,
+      "classes": 11,
+      "func_names": [
+        "show_console",
+        "_group_entries",
+        "show_popup",
+        "run_with_popup",
+        "update_popup_live",
+        "run_ml_analysis",
+        "config_output",
+        "display_results",
+        "watch_for_updates",
+        "launcher",
+        "export_ecosystem_info",
+        "get_ecosystem_json",
+        "launch_live_monitor",
+        "to_dict",
+        "from_dict",
+        "to_dict",
+        "to_json",
+        "__init__",
+        "generate_html",
+        "save_html"
+      ]
+    },
+    "ORCHESTRATION\\HORUS_LIVE_MONITOR.py": {
+      "functions": 9,
+      "classes": 2,
+      "func_names": [
+        "launch_monitor",
+        "__init__",
+        "_init_components",
+        "run_component",
+        "run_all",
+        "get_status",
+        "export_status",
+        "log",
+        "run_all"
+      ]
+    },
+    "ORCHESTRATION\\HYDRA.py": {
+      "functions": 23,
+      "classes": 5,
+      "func_names": [
+        "run_hydra",
+        "get_hydra_status",
+        "launcher",
+        "__init__",
+        "discover_nodes",
+        "_get_dependencies",
+        "run_stage",
+        "_optimize_modules",
+        "_validate_modules",
+        "_deploy_modules",
+        "_collect_feedback",
+        "run_with_popup",
+        "run_sequential",
+        "_apply_priority_scheduling",
+        "get_cluster_status",
+        "_count_by_group",
+        "_save_state",
+        "load_state",
+        "print_status",
+        "_log"
+      ]
+    },
+    "ORCHESTRATION\\HYDRA_ANALYZER.py": {
+      "functions": 8,
+      "classes": 0,
+      "func_names": [
+        "get_cluster_data",
+        "get_hydra_status",
+        "load_json",
+        "discover_modules",
+        "analyze_ml_platforms",
+        "generate_rich_report",
+        "generate_html_report",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\HYDRA_ANALYZER_V2.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "get_cluster_data",
+        "generate_html_v2",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\hydra_bridge.py": {
+      "functions": 13,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_govern_stage",
+        "_apply_metacognition",
+        "_run_evolution_optimization",
+        "_run_dreaming_cycle",
+        "run_full_pipeline",
+        "_run_feedback_analysis",
+        "_generate_recommendations",
+        "_record_stage",
+        "_record_event",
+        "_print_summary",
+        "get_status"
+      ]
+    },
+    "ORCHESTRATION\\INTEROPERABILITY_ANALYSIS.py": {
+      "functions": 13,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "add_system",
+        "define_interfaces",
+        "build_interface_matrix",
+        "compute_interoperability_index",
+        "compute_centrality_scores",
+        "compute_coupling_coefficients",
+        "analyze_data_flows",
+        "compute_entropy",
+        "compute_redundancy_index",
+        "compute_fan_in_fan_out",
+        "generate_report"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\__init__.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "list_platforms",
+        "debug",
+        "get_recommendation",
+        "monitor_health"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\auto_install.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "check_package",
+        "install_package",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\changelog.py": {
+      "functions": 9,
+      "classes": 0,
+      "func_names": [
+        "log_change",
+        "log_new_file",
+        "log_deleted_file",
+        "log_refactor",
+        "log_fix",
+        "log_info",
+        "show_log",
+        "clear_log",
+        "initialize_log"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\config.py": {
+      "functions": 30,
+      "classes": 3,
+      "func_names": [
+        "_get_config",
+        "load_config",
+        "list_platforms",
+        "get_env_path",
+        "list_workflows",
+        "discover_modules",
+        "update_lexicon",
+        "watch_changes",
+        "__init__",
+        "compute_file_hash",
+        "get_module_info",
+        "scan_modules",
+        "generate_term_entry",
+        "update_bibl_index",
+        "update_all_bibl_files",
+        "check_for_changes",
+        "update_lexicon",
+        "watch",
+        "_poll_watch",
+        "__init__"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\cross_platform_analysis.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "generate_critique",
+        "run_cross_platform_analysis",
+        "print_analysis"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\diagnostics.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "check_platform_status",
+        "print_platform_status",
+        "list_workflows"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\framework_activator.py": {
+      "functions": 27,
+      "classes": 5,
+      "func_names": [
+        "interactive_mode",
+        "main",
+        "__init__",
+        "load_q_table",
+        "_initialize_q_table",
+        "save_q_table",
+        "build_doc_index",
+        "_extract_keywords",
+        "_detect_frameworks",
+        "_extract_title",
+        "map_framework_capabilities",
+        "parse_question",
+        "_detect_primary_framework",
+        "_extract_question_keywords",
+        "_estimate_complexity",
+        "get_q_value",
+        "select_framework",
+        "find_relevant_docs",
+        "generate_answer",
+        "_extract_solution"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\harness.py": {
+      "functions": 9,
+      "classes": 0,
+      "func_names": [
+        "get_version",
+        "cmd_analyze",
+        "cmd_convert",
+        "cmd_recommend",
+        "cmd_monitor",
+        "cmd_status",
+        "cmd_models",
+        "cmd_verify",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\deep_learning_qlearning.py": {
+      "functions": 28,
+      "classes": 7,
+      "func_names": [
+        "benchmark_framework",
+        "__post_init__",
+        "__init__",
+        "get_q_values",
+        "get_best_action",
+        "update",
+        "update_target",
+        "hard_update_target",
+        "save",
+        "load",
+        "__init__",
+        "push",
+        "_get_max_priority",
+        "sample",
+        "update_priorities",
+        "__len__",
+        "__init__",
+        "compute_state",
+        "select_action",
+        "update"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\enhanced_qlearning.py": {
+      "functions": 41,
+      "classes": 7,
+      "func_names": [
+        "__init__",
+        "_propagate",
+        "_retrieve",
+        "total",
+        "add",
+        "update",
+        "get",
+        "__init__",
+        "push",
+        "sample",
+        "update_priorities",
+        "__len__",
+        "fast_q_update",
+        "fast_q_update",
+        "__init__",
+        "select_action",
+        "train",
+        "_train_agent",
+        "_update_coordination",
+        "get_consensus"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\metrics_tracker.py": {
+      "functions": 19,
+      "classes": 5,
+      "func_names": [
+        "generate_quality_report",
+        "__init__",
+        "record_run",
+        "_save_metrics",
+        "get_all_runs",
+        "get_success_rate",
+        "get_average_duration",
+        "get_average_stage_times",
+        "get_performance_summary",
+        "__init__",
+        "record_module_result",
+        "get_module_success_rate",
+        "get_module_avg_duration",
+        "get_overall_success_rate",
+        "get_report",
+        "benchmark_discovery",
+        "benchmark_qlearning",
+        "benchmark_integration",
+        "run_full_benchmark"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\ml_integration.py": {
+      "functions": 9,
+      "classes": 7,
+      "func_names": [
+        "initialize",
+        "get_by_type",
+        "get_by_capability",
+        "get_recommendation",
+        "get_pathway",
+        "get_pathways_for_task",
+        "execute_pipeline",
+        "get_execution_order",
+        "recommend_integration"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\mlflow_integration.py": {
+      "functions": 14,
+      "classes": 2,
+      "func_names": [
+        "log_params",
+        "log_metrics",
+        "__init__",
+        "start_run",
+        "end_run",
+        "log_params",
+        "log_metrics",
+        "log_model",
+        "log_artifact",
+        "log_dict",
+        "set_tag",
+        "_detect_framework",
+        "__init__",
+        "predict"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\onnx_integration.py": {
+      "functions": 18,
+      "classes": 2,
+      "func_names": [
+        "_ensure_openvino_path",
+        "_detect_openvino",
+        "_detect_ov_native",
+        "export_to_onnx",
+        "load_onnx_model",
+        "get_openvino_info",
+        "__init__",
+        "available_devices",
+        "get_default_device",
+        "load_model",
+        "infer",
+        "infer_array",
+        "detect_framework",
+        "export_to_onnx",
+        "get_optimal_providers",
+        "load_onnx_model",
+        "run_inference",
+        "optimize_onnx"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\qlearning_table.py": {
+      "functions": 51,
+      "classes": 11,
+      "func_names": [
+        "benchmark_framework",
+        "__init__",
+        "push",
+        "sample",
+        "update_priorities",
+        "__len__",
+        "__init__",
+        "update",
+        "hard_update",
+        "get_q_values",
+        "__init__",
+        "_init_q_table",
+        "_get_action_index",
+        "_get_framework_by_index",
+        "select_action",
+        "update",
+        "add_experience",
+        "replay",
+        "get_q_values",
+        "save"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\qualitative_improvements.py": {
+      "functions": 19,
+      "classes": 6,
+      "func_names": [
+        "__init__",
+        "_encode_task",
+        "_encode_framework",
+        "predict_score",
+        "train",
+        "get_confidence",
+        "__init__",
+        "recommend",
+        "__init__",
+        "update_baseline",
+        "detect",
+        "get_alerts",
+        "__init__",
+        "update_hardware_state",
+        "get_optimal_config",
+        "should_alert",
+        "__init__",
+        "compress_history",
+        "cleanup_old_data"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\ray_integration.py": {
+      "functions": 17,
+      "classes": 3,
+      "func_names": [
+        "parallel_map",
+        "distributed_train",
+        "__init__",
+        "remote",
+        "parallel_map",
+        "parallel_map_unordered",
+        "shutdown",
+        "__init__",
+        "train",
+        "compute",
+        "decorator",
+        "remote_func",
+        "remote_func",
+        "wrapper",
+        "__init__",
+        "train_epoch",
+        "get_model"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\strategic_intelligence.py": {
+      "functions": 16,
+      "classes": 5,
+      "func_names": [
+        "__init__",
+        "load_history",
+        "save_history",
+        "record_event",
+        "_update_framework_scores",
+        "get_framework_recommendation",
+        "analyze_workflow",
+        "predict_optimal_resources",
+        "__init__",
+        "record_access",
+        "get_preload_suggestions",
+        "preload",
+        "__init__",
+        "record_metrics",
+        "get_benchmark",
+        "analyze_module"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\tensor_utils.py": {
+      "functions": 8,
+      "classes": 1,
+      "func_names": [
+        "to_tensor",
+        "from_tensor",
+        "detect_framework",
+        "detect_framework",
+        "to_tensor",
+        "from_tensor",
+        "get_device",
+        "to_device"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\vectorize_utils.py": {
+      "functions": 9,
+      "classes": 1,
+      "func_names": [
+        "vmap",
+        "jit",
+        "grad",
+        "double",
+        "add",
+        "mse_loss",
+        "vectorized_func",
+        "cached_func",
+        "gradient"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\improvements\\weakness_testing.py": {
+      "functions": 31,
+      "classes": 4,
+      "func_names": [
+        "sanitize_input",
+        "validate_metric",
+        "normalize_task",
+        "run_comprehensive_test",
+        "add",
+        "summary",
+        "__init__",
+        "record_event",
+        "get_framework_recommendation",
+        "detect_drift",
+        "__init__",
+        "run_all_tests",
+        "test_cold_start_empty",
+        "test_cold_start_minimal_data",
+        "test_cold_start_no_relevant_history",
+        "test_concept_drift_gradual",
+        "test_concept_drift_sudden",
+        "test_performance_degradation",
+        "test_empty_inputs",
+        "test_null_handling"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\install_improvements.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "run_pip_install",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\install_light.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "install",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\install_manager.py": {
+      "functions": 12,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "_run_command",
+        "pip_install",
+        "check_version",
+        "check_compatibility",
+        "detect_conflicts",
+        "install_category",
+        "install_all",
+        "rollback",
+        "generate_report",
+        "health_check"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\installation_debug.py": {
+      "functions": 13,
+      "classes": 4,
+      "func_names": [
+        "diagnose_and_fix",
+        "__init__",
+        "check_package",
+        "check_all",
+        "check_cuda",
+        "check_tensorboard",
+        "install_package",
+        "fix_tensorboard",
+        "fix_cuda",
+        "get_missing_packages",
+        "get_critical_missing",
+        "print_status",
+        "check_conflicts"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\jax_analysis.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "jax_score",
+        "jax_critique",
+        "functional_composition_score",
+        "run_jax_analysis"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\launcher.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\lm_studio_autoload.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "auto_load"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\lm_studio_client.py": {
+      "functions": 11,
+      "classes": 4,
+      "func_names": [
+        "detect_local_llm",
+        "__init__",
+        "list_models",
+        "chat_complete",
+        "complete",
+        "stream_chat",
+        "embeddings",
+        "__init__",
+        "list_models",
+        "generate",
+        "chat"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\lm_studio_integration.py": {
+      "functions": 5,
+      "classes": 0,
+      "func_names": [
+        "list_platforms",
+        "convert",
+        "debug",
+        "tensor_info",
+        "benchmark"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\lm_studio_server.py": {
+      "functions": 8,
+      "classes": 0,
+      "func_names": [
+        "list_platforms",
+        "convert_tensor",
+        "optimize_code",
+        "debug_error",
+        "export_model",
+        "distributed_train",
+        "execute_code",
+        "health"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\openinterpreter_startup.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "load_ml_platforms"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\run_qanalysis_full.py": {
+      "functions": 1,
+      "classes": 0,
+      "func_names": [
+        "run_full_iteration"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\run_qanalysis_multi.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "load_frameworks",
+        "run_iteration"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\unified_analysis.py": {
+      "functions": 13,
+      "classes": 0,
+      "func_names": [
+        "register_framework",
+        "jax_analysis",
+        "numpy_analysis",
+        "sklearn_analysis",
+        "pytorch_analysis",
+        "tensorflow_analysis",
+        "optuna_analysis",
+        "ray_analysis",
+        "onnx_analysis",
+        "mlflow_analysis",
+        "shap_analysis",
+        "run_full_analysis",
+        "decorator"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\universal_converter.py": {
+      "functions": 37,
+      "classes": 12,
+      "func_names": [
+        "debug_conversion",
+        "__init__",
+        "setup_logging",
+        "log_step",
+        "log_exception",
+        "save_json_report",
+        "get_logger",
+        "__init__",
+        "analyze",
+        "_read_metadata",
+        "_detect_architecture",
+        "_detect_quantization",
+        "_compute_sha256",
+        "_basic_analyze",
+        "__init__",
+        "convert",
+        "_create_config",
+        "_direct_gguf_to_numpy",
+        "_save_numpy_weights",
+        "__init__"
+      ]
+    },
+    "ORCHESTRATION\\ml_platforms\\verify_moe.py": {
+      "functions": 13,
+      "classes": 2,
+      "func_names": [
+        "verify_system",
+        "run_deep_learning_q_analysis",
+        "__init__",
+        "analyze_framework",
+        "run_successive_analysis",
+        "get_current_q_table",
+        "suggest_best_framework",
+        "_get_reasoning",
+        "export_analysis",
+        "__init__",
+        "compute_compatibility",
+        "get_best_for_task",
+        "export_matrix"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\azazael_cli.py": {
+      "functions": 60,
+      "classes": 4,
+      "func_names": [
+        "main",
+        "__init__",
+        "ok",
+        "warn",
+        "error",
+        "info",
+        "header",
+        "__init__",
+        "load",
+        "save",
+        "get_aliases",
+        "add_alias",
+        "remove_alias",
+        "__init__",
+        "load_plugins",
+        "register_command",
+        "get_commands",
+        "__init__",
+        "setup_environment",
+        "load_modules"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\azazael_wsa.py": {
+      "functions": 43,
+      "classes": 5,
+      "func_names": [
+        "create_wsa_shortcuts",
+        "demo",
+        "__init__",
+        "_find_adb",
+        "_run_adb_command",
+        "connect",
+        "disconnect",
+        "is_connected",
+        "get_device_info",
+        "shell",
+        "install_app",
+        "uninstall_app",
+        "list_apps",
+        "get_app_info",
+        "run_app",
+        "stop_app",
+        "_get_main_activity",
+        "push_file",
+        "pull_file",
+        "get_performance"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\bat_analysis.py": {
+      "functions": 30,
+      "classes": 8,
+      "func_names": [
+        "main",
+        "to_dict",
+        "parse_file",
+        "parse_directory",
+        "_extract_params",
+        "__init__",
+        "build_from_bat_files",
+        "get_centrality",
+        "get_dependencies",
+        "get_interdependencies",
+        "detect_cycles",
+        "detect_orphans",
+        "__init__",
+        "state_from_bat",
+        "get_available_actions",
+        "select_action",
+        "train",
+        "replay",
+        "analyze_bat_files",
+        "_calculate_reward"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\check_links.py": {
+      "functions": 5,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "check_file",
+        "check_all",
+        "print_report"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\complete_module_analysis.py": {
+      "functions": 16,
+      "classes": 8,
+      "func_names": [
+        "main",
+        "__init__",
+        "find_all_modules",
+        "__init__",
+        "analyze_module",
+        "analyze_all",
+        "__init__",
+        "test_module",
+        "test_all",
+        "__init__",
+        "build_complete_graph",
+        "__init__",
+        "get_directory_stats",
+        "generate_complete_report",
+        "__init__",
+        "check_all"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\comprehensive_analysis.py": {
+      "functions": 25,
+      "classes": 10,
+      "func_names": [
+        "main",
+        "__init__",
+        "find_all_modules",
+        "__init__",
+        "analyze_module",
+        "analyze_all",
+        "__init__",
+        "test_module",
+        "test_all",
+        "__init__",
+        "diagnose_and_fix",
+        "fix_all",
+        "__init__",
+        "build_dependency_graph",
+        "find_circular_deps",
+        "find_orphans",
+        "get_critical_path",
+        "__init__",
+        "check_prerequisites",
+        "check_all"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\consistency_checker.py": {
+      "functions": 11,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "log",
+        "check_versions",
+        "check_paths",
+        "check_links",
+        "check_yaml_headers",
+        "check_cross_references",
+        "check_file",
+        "run",
+        "generate_report"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\fix_syntax_errors.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "find_syntax_errors",
+        "fix_syntax_errors",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\generate_docs_index.py": {
+      "functions": 6,
+      "classes": 0,
+      "func_names": [
+        "get_module_name",
+        "get_description",
+        "get_links_table",
+        "generate_index",
+        "main",
+        "generate_root_index"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\generate_docstrings.py": {
+      "functions": 4,
+      "classes": 0,
+      "func_names": [
+        "generate_docstring",
+        "add_docstring_to_module",
+        "process_directory",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\improve_bat_files.py": {
+      "functions": 3,
+      "classes": 0,
+      "func_names": [
+        "improve_bat_file",
+        "improve_all_bat_files",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\run_tests.py": {
+      "functions": 5,
+      "classes": 0,
+      "func_names": [
+        "test_module_syntax",
+        "test_module_import",
+        "test_documentation",
+        "test_bat_file",
+        "run_all_tests"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\test_enhancements.py": {
+      "functions": 15,
+      "classes": 5,
+      "func_names": [
+        "run_property_tests",
+        "basic_tests",
+        "test_sum_tree",
+        "test_multi_agent",
+        "test_q_table_initialization",
+        "test_q_learning_update",
+        "test_epsilon_greedy_policy",
+        "test_discounted_returns",
+        "test_transition_creation",
+        "test_priority_normalization",
+        "test_cli_input_fuzz",
+        "test_path_fuzz",
+        "test_json_fuzz",
+        "test_thread_safe_counter",
+        "increment"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\validate_docs.py": {
+      "functions": 30,
+      "classes": 6,
+      "func_names": [
+        "main",
+        "__init__",
+        "validate_file",
+        "validate_all",
+        "_check_header",
+        "_check_sections",
+        "_check_links",
+        "_check_external_links",
+        "_validate_code_examples",
+        "_check_naming",
+        "_calculate_score",
+        "_get_action",
+        "auto_fix_header",
+        "generate_report",
+        "__init__",
+        "generate_from_module",
+        "_generate_doc_content",
+        "__init__",
+        "generate",
+        "_extract_title"
+      ]
+    },
+    "ORCHESTRATION\\scripts\\web_dashboard.py": {
+      "functions": 12,
+      "classes": 0,
+      "func_names": [
+        "setup_page",
+        "load_qlearning_history",
+        "load_test_results",
+        "load_module_stats",
+        "sidebar_navigation",
+        "page_overview",
+        "page_qlearning",
+        "page_modules",
+        "page_documentation",
+        "page_tests",
+        "page_settings",
+        "main"
+      ]
+    },
+    "ORCHESTRATION\\TARBABY.py": {
+      "functions": 23,
+      "classes": 6,
+      "func_names": [
+        "tarbaby_cli",
+        "__init__",
+        "_build_header",
+        "_build_footer",
+        "log",
+        "update_status",
+        "handle_message",
+        "_handle_log",
+        "_handle_status",
+        "__init__",
+        "discover_python_files",
+        "_should_skip",
+        "create_build_task",
+        "_generate_output_path",
+        "_compile_with_pyinstaller",
+        "_create_zip_archive",
+        "_calculate_checksum",
+        "execute_task",
+        "run_full_test",
+        "save_results"
+      ]
+    },
+    "ORCHESTRATION\\TEST\\ECOSYSTEM_TEST.py": {
+      "functions": 12,
+      "classes": 0,
+      "func_names": [
+        "print_header",
+        "print_section",
+        "test_terence",
+        "test_systemz",
+        "test_processz",
+        "test_diskz",
+        "test_networxz",
+        "test_clusterworms",
+        "test_metaworms",
+        "test_hydrometa",
+        "activate_hydra_cluster",
+        "main"
+      ]
+    },
+    "QL_FILE_OPTIMIZER.py": {
+      "functions": 17,
+      "classes": 4,
+      "func_names": [
+        "create_environment_info",
+        "save_environment_report",
+        "generate_markdown_report",
+        "main",
+        "to_vector",
+        "__init__",
+        "get_state_key",
+        "choose_action",
+        "update_q_table",
+        "get_action_reward",
+        "train",
+        "evaluate",
+        "save_q_table",
+        "load_q_table",
+        "__init__",
+        "scan",
+        "get_ecosystem_info"
+      ]
+    },
+    "REAL_FRAMEWORK_TEST.py": {
+      "functions": 16,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "log",
+        "detect_platform_real",
+        "test_venv_packages",
+        "test_core_python",
+        "test_gui_frameworks",
+        "test_ml_frameworks",
+        "test_data_frameworks",
+        "test_web_frameworks",
+        "test_ipython",
+        "test_other_frameworks",
+        "test_system_info",
+        "test_azazael_modules",
+        "run_quick_operations",
+        "generate_report",
+        "run_all"
+      ]
+    },
+    "SCRIPTS\\environ_updater.py": {
+      "functions": 15,
+      "classes": 6,
+      "func_names": [
+        "main",
+        "__init__",
+        "detect",
+        "__init__",
+        "_detect_python",
+        "scan_all",
+        "_scan_file",
+        "_print_results",
+        "fix_all",
+        "spawn",
+        "_spawn_safe",
+        "spawn_crawler",
+        "spawn_protocol",
+        "spawn_all",
+        "full_cycle"
+      ]
+    },
+    "SCRIPTS\\lsp_diagnosis.py": {
+      "functions": 2,
+      "classes": 0,
+      "func_names": [
+        "run_cmd",
+        "run_cmd_shell"
+      ]
+    },
+    "TELEMETRYZ.py": {
+      "functions": 25,
+      "classes": 5,
+      "func_names": [
+        "main",
+        "__init__",
+        "_ensure_directories",
+        "trace_function",
+        "_traced_call",
+        "start_trace",
+        "stop_trace",
+        "clear_trace",
+        "get_function_stats",
+        "get_hot_paths",
+        "identify_bottlenecks",
+        "generate_flamegraph",
+        "trace_decorator",
+        "trace_module",
+        "analyze_execution_flow",
+        "save_trace",
+        "load_trace",
+        "get_status",
+        "run_popup",
+        "register_worm"
+      ]
+    },
+    "tests\\test_ecosystem.py": {
+      "functions": 33,
+      "classes": 8,
+      "func_names": [
+        "test_import",
+        "test_config_paths",
+        "test_instantiate",
+        "test_import",
+        "test_worm_executor_instantiate",
+        "test_load_worms",
+        "test_import",
+        "test_instantiate",
+        "test_start_stop",
+        "test_spawn_worm",
+        "test_fleet_status",
+        "test_morph_engine",
+        "test_worm_details",
+        "test_export_json",
+        "test_import",
+        "test_instantiate",
+        "test_full_diagnostic",
+        "test_save_report",
+        "test_import",
+        "test_instantiate"
+      ]
+    },
+    "tests\\test_worm_registry.py": {
+      "functions": 32,
+      "classes": 21,
+      "func_names": [
+        "setUp",
+        "tearDown",
+        "test_register_worm_adds_to_registry",
+        "test_register_worm_defaults",
+        "test_register_worm_with_tags",
+        "test_register_worm_no_version",
+        "test_register_worm_uses_docstring_as_description",
+        "test_multiple_registrations",
+        "setUp",
+        "tearDown",
+        "test_get_all_categories",
+        "test_get_worms_by_category",
+        "test_get_unspawned_worms_all_unspawned",
+        "test_mark_spawned",
+        "test_mark_spawned_nonexistent",
+        "test_reset_registry",
+        "setUp",
+        "tearDown",
+        "test_pick_next_spawn_returns_valid_pick",
+        "test_category_rotation_no_consecutive_same_category"
+      ]
+    },
+    "TOOLS\\archive_system.py": {
+      "functions": 10,
+      "classes": 1,
+      "func_names": [
+        "main",
+        "__init__",
+        "_size_str",
+        "archive_ppms",
+        "archive_pycache",
+        "_is_protected",
+        "archive_large_videos",
+        "archive_backup_files",
+        "archive_pyc_files",
+        "run_all"
+      ]
+    },
+    "TOOLS\\COMPREHENSIVE_FIX.py": {
+      "functions": 8,
+      "classes": 1,
+      "func_names": [
+        "__init__",
+        "log",
+        "detect_platform",
+        "diagnose_lsp_errors",
+        "fix_python_files",
+        "fix_desktop_shortcuts",
+        "fix_gui_functionality",
+        "create_cross_platform_wrapper"
+      ]
+    },
+    "TOOLS\\debug_runner.py": {
+      "functions": 16,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_run_python",
+        "_run_module",
+        "test_klink",
+        "test_bibl",
+        "test_emoji_maker",
+        "test_ascii_flowchart",
+        "test_enhanced_animations",
+        "test_rust_runner",
+        "test_go_runner",
+        "test_video_compress",
+        "test_html_templates",
+        "run_all",
+        "run_component",
+        "save_report"
+      ]
+    },
+    "TRIMZ.py": {
+      "functions": 34,
+      "classes": 5,
+      "func_names": [
+        "_get_default_trim_targets",
+        "run_popup",
+        "main",
+        "__init__",
+        "load_bibl",
+        "_parse_index",
+        "_parse_alphabetic",
+        "find_term_in_file",
+        "get_stale_terms",
+        "__init__",
+        "_should_skip",
+        "_should_process",
+        "_compute_checksum",
+        "_create_backup",
+        "_scan_file",
+        "_trim_file",
+        "_trim_long_sections",
+        "_normalize_whitespace",
+        "_sync_with_bibl",
+        "scan_all"
+      ]
+    },
+    "UTILITIES\\KLINK\\klink.py": {
+      "functions": 37,
+      "classes": 0,
+      "func_names": [
+        "log",
+        "run_python",
+        "cmd_status",
+        "cmd_version",
+        "cmd_list",
+        "cmd_worms",
+        "cmd_systemz",
+        "cmd_processz",
+        "cmd_diskz",
+        "cmd_networkz",
+        "cmd_clockz",
+        "cmd_metaworms",
+        "cmd_errorz",
+        "cmd_trimz",
+        "cmd_healthz",
+        "cmd_hydrometa",
+        "cmd_hydra",
+        "cmd_terence",
+        "cmd_horus",
+        "cmd_tarbaby"
+      ]
+    },
+    "UTILITIES\\PERSEPHONE\\bin\\persephone_cli.py": {
+      "functions": 7,
+      "classes": 0,
+      "func_names": [
+        "print_help",
+        "cmd_paths",
+        "cmd_sync",
+        "cmd_env",
+        "cmd_detect",
+        "cmd_setup",
+        "main"
+      ]
+    },
+    "UTILITIES\\PERSEPHONE\\bin\\setup_wizard.py": {
+      "functions": 5,
+      "classes": 0,
+      "func_names": [
+        "check_prerequisites",
+        "setup_environment",
+        "create_directories",
+        "setup_wsl_aliases",
+        "main"
+      ]
+    },
+    "UTILITIES\\PERSEPHONE\\lib\\environment.py": {
+      "functions": 9,
+      "classes": 2,
+      "func_names": [
+        "apply",
+        "__init__",
+        "_register_defaults",
+        "set",
+        "get",
+        "_current_platform",
+        "apply_all",
+        "get_bashrc_snippet",
+        "get_powershell_snippet"
+      ]
+    },
+    "UTILITIES\\PERSEPHONE\\lib\\path_manager.py": {
+      "functions": 9,
+      "classes": 2,
+      "func_names": [
+        "__init__",
+        "_register_default_paths",
+        "register",
+        "get",
+        "to_wsl",
+        "to_windows",
+        "detect",
+        "list_all",
+        "sync_paths"
+      ]
+    },
+    "UTILITIES\\PERSEPHONE\\lib\\sync_manager.py": {
+      "functions": 14,
+      "classes": 3,
+      "func_names": [
+        "__post_init__",
+        "to_dict",
+        "__init__",
+        "_rsync_command",
+        "_robocopy_command",
+        "sync_windows_to_wsl",
+        "sync_wsl_to_windows",
+        "sync_windows_to_wsa",
+        "sync_bidirectional",
+        "sync_azazael_to_persephone",
+        "sync_ecosystem",
+        "get_sync_preview",
+        "save_sync_log",
+        "get_sync_history"
+      ]
+    },
+    "UTILITIES\\PERSEPHONE\\persephone.py": {
+      "functions": 22,
+      "classes": 5,
+      "func_names": [
+        "detect_platform",
+        "wsl_to_wsl",
+        "windows_to_wsl",
+        "demo",
+        "wsl_to_windows",
+        "windows_to_wsl",
+        "windows_to_wsa",
+        "detect_azazael",
+        "detect_persephone",
+        "__init__",
+        "pythonpath_extensions",
+        "sync_to_wsl",
+        "run_in_wsl",
+        "setup_environment",
+        "create_shortcuts",
+        "get_azazael_scripts",
+        "get_persephone_libs",
+        "__init__",
+        "_load_config",
+        "save"
+      ]
+    },
+    "UTILITIES\\POINDEXTER\\POINDEXTER.py": {
+      "functions": 10,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "add_system",
+        "build_matrix",
+        "compute_interoperability_index",
+        "compute_centrality",
+        "compute_coupling",
+        "compute_entropy",
+        "compute_fan_in_out",
+        "analyze"
+      ]
+    },
+    "UTILITIES\\TARBABY\\TARBABY.py": {
+      "functions": 24,
+      "classes": 7,
+      "func_names": [
+        "main",
+        "__init__",
+        "add_version",
+        "_scan_modules",
+        "get_compatible_versions",
+        "convert",
+        "detect_format",
+        "_default_root",
+        "__init__",
+        "migrate",
+        "_convert_for_version",
+        "_remove_pattern_matching",
+        "pack",
+        "unpack",
+        "convert_format",
+        "_read_file",
+        "_create_archive_metadata",
+        "_save_metadata",
+        "_calculate_checksum",
+        "_list_contents"
+      ]
+    },
+    "UTILITIES\\TARBABY\\tarbaby_enhanced.py": {
+      "functions": 23,
+      "classes": 7,
+      "func_names": [
+        "main",
+        "__init__",
+        "__init__",
+        "_init_compatibility_matrix",
+        "analyze_binary_conflicts",
+        "_analyze_file_conflicts",
+        "_analyze_json_conflicts",
+        "_analyze_yaml_conflicts",
+        "_analyze_pickle_conflicts",
+        "_analyze_python_conflicts",
+        "_calculate_compatibility_score",
+        "_print_compatibility_report",
+        "resolve_conflicts",
+        "_resolve_conflict",
+        "_resolve_version_mismatch",
+        "_resolve_schema_mismatch",
+        "_resolve_encoding_error",
+        "_resolve_python_version",
+        "_create_backup",
+        "convert_format"
+      ]
+    },
+    "UTILITIES\\TERENCE\\TERENCE.py": {
+      "functions": 10,
+      "classes": 3,
+      "func_names": [
+        "main",
+        "__init__",
+        "scan",
+        "_scan_file",
+        "_print_summary",
+        "preview",
+        "fix_all",
+        "status",
+        "fix_syntax_error",
+        "run_quick_fix"
+      ]
+    },
+    "UTILITIES\\TERENCE\\terence_enhanced.py": {
+      "functions": 24,
+      "classes": 7,
+      "func_names": [
+        "main",
+        "__init__",
+        "add_node",
+        "add_edge",
+        "find_conflict_chain",
+        "__init__",
+        "_load_known_conflicts",
+        "_init_resolution_strategies",
+        "analyze_conflicts",
+        "_scan_file_conflicts",
+        "_print_conflict_report",
+        "resolve_incompatabilities",
+        "reverse_engineer_resolution",
+        "_extract_context",
+        "_create_pattern_signature",
+        "_find_matching_resolution",
+        "_generate_resolution",
+        "_resolve_replace_text",
+        "_resolve_regex_replace",
+        "_resolve_append_context"
+      ]
+    },
+    "UVZ.py": {
+      "functions": 18,
+      "classes": 2,
+      "func_names": [
+        "main",
+        "__init__",
+        "_find_uv",
+        "_detect_venv",
+        "_run_uv",
+        "create_venv",
+        "install",
+        "add",
+        "remove",
+        "sync",
+        "lock",
+        "list_packages",
+        "export_requirements",
+        "run_script",
+        "check_updates",
+        "upgrade_all",
+        "create_requirements_from_venv",
+        "benchmark_install"
+      ]
+    }
+  }
+}
