@@ -718,7 +718,8 @@ class DreamingModule:
                                scenario_count: int = 20,
                                creativity_factor: float = 0.3,
                                auto_integrate: bool = True,
-                               policy_fn=None) -> dict[str, Any]:
+                               policy_fn=None,
+                               steer_by_strategy: bool = True) -> dict[str, Any]:
         """Run the complete RECALL->DREAM->EVALUATE->INTEGRATE pipeline.
 
         Args:
@@ -733,6 +734,25 @@ class DreamingModule:
             dict with full pipeline results
         """
         start = time.perf_counter()
+
+        # STEER: apply the active strategy to dream intensity so recorded
+        # policy (adapt_strategy) changes real behavior even when callers
+        # invoke the pipeline directly with fixed parameters.
+        steering = None
+        if steer_by_strategy:
+            try:
+                from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
+                tuning, active_strategy = MetaCognitionWorm().dream_tuning_for(source or "global")
+            except Exception:
+                tuning, active_strategy = {}, None
+            if tuning:
+                num_episodes = tuning.get("num_episodes", num_episodes)
+                scenario_count = tuning.get("scenario_count", scenario_count)
+                creativity_factor = tuning.get("creativity_factor", creativity_factor)
+                steering = {"worm": source or "global",
+                            "strategy": active_strategy,
+                            "params": dict(tuning)}
+                self._record_steering(steering)
 
         # RECALL
         recall_result = self.recall_scenarios(
@@ -754,6 +774,15 @@ class DreamingModule:
         # EVALUATE
         eval_result = self.evaluate_dreams(dreams)
 
+        # Default policy channel: route suggestions through the dream
+        # policy bridge unless the caller supplied one.
+        if policy_fn is None:
+            try:
+                from CORE.dream_policy_bridge import apply_dream_policy
+                policy_fn = apply_dream_policy
+            except Exception:
+                policy_fn = None
+
         # INTEGRATE
         integration = None
         if auto_integrate and eval_result.get("best"):
@@ -774,6 +803,7 @@ class DreamingModule:
             "dream_count": len(dreams),
             "evaluation": eval_result,
             "integration": integration,
+            "steering": steering,
             "errors": ([dream_error] if dream_error else []),
             "duration_ms": round(duration_ms, 2),
             "timestamp": datetime.now().isoformat(),
@@ -858,8 +888,23 @@ class DreamingModule:
             return dict(self._dream_stats)
 
     def execute(self) -> dict[str, Any]:
-        """Standard worm execute — runs dreaming pipeline with defaults."""
+        """Standard worm execute — runs the dreaming pipeline; the
+        pipeline itself applies active-strategy steering."""
         return self.run_dreaming_pipeline(num_episodes=3, scenario_count=10)
+
+    def _record_steering(self, steering: dict) -> None:
+        """Persist a strategy_steered event for observability."""
+        try:
+            from CORE.local_memory import get_memory_store
+            get_memory_store().record_event(
+                source="DreamingModule",
+                event_type="strategy_steered",
+                data=steering,
+                severity="info",
+                tags=["dream", "steering", steering.get("strategy", "")],
+            )
+        except Exception:
+            pass
 
 
 @register_worm(
