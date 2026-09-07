@@ -1,0 +1,2570 @@
+{
+ "n_communities": 327,
+ "communities": [
+  {
+   "index": 0,
+   "n": 52,
+   "members": [
+    "scripts/generate_dashboard.py",
+    "scripts/pre_build_check.py",
+    "scripts/profile_clusterworms_parallel.py",
+    "scripts/run_training_orchestrator.py",
+    "src/CODEX/CORE/CAIN_ANALYZER.py",
+    "src/CODEX/VIDEOS/generate_dashboard_video.py",
+    "src/CORE/AgentPool.py",
+    "src/CORE/FREETHREAD_UPGRADE.py",
+    "src/CORE/FreeThreadedAgent.py",
+    "src/CORE/MemoryBus.py",
+    "src/CORE/PamsBusBridge.py",
+    "src/CORE/PamsRecorder.py",
+    "src/CORE/WORMS/CAIN_DATA.py",
+    "src/CORE/WORMS/CAIN_WORM.py",
+    "src/CORE/WORMS/CLOCKZ.py",
+    "src/CORE/WORMS/CODEX_TOOLS.py",
+    "src/CORE/WORMS/CONCURRENCY.py",
+    "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
+    "src/CORE/WORMS/DEPENDZ.py",
+    "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+    "src/CORE/WORMS/DISKZ.py",
+    "src/CORE/WORMS/ERROR_SCAN_WORM.py",
+    "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+    "src/CORE/WORMS/INFERENCE_WORM.py",
+    "src/CORE/WORMS/METAZ.py",
+    "src/CORE/WORMS/NETWORK_DIAG.py",
+    "src/CORE/WORMS/NETWORXZ.py",
+    "src/CORE/WORMS/OS_CONGRUENCY.py",
+    "src/CORE/WORMS/PROCESSZ.py",
+    "src/CORE/WORMS/REVERSE_TOOLS.py",
+    "src/CORE/WORMS/SYSTEMZ.py",
+    "src/CORE/WORMS/SYSTEMZ_ML.py",
+    "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py",
+    "src/CORE/WORMS/expansion/backup.py",
+    "src/CORE/WORMS/expansion/communication.py",
+    "src/CORE/WORMS/expansion/config.py",
+    "src/CORE/WORMS/expansion/container.py",
+    "src/CORE/WORMS/expansion/migration.py",
+    "src/CORE/WORMS/expansion/profiling.py",
+    "src/CORE/WORMS/expansion/security.py",
+    "src/CORE/WORMS/expansion/telemetry.py",
+    "src/CORE/WORMS/expansion/visualization.py",
+    "src/CORE/freethreading.py",
+    "src/CORE/inference/bus_utils.py",
+    "src/CORE/startup_warm.py",
+    "src/CORE/uuid7.py",
+    "src/CORE/worm_governance.py",
+    "src/CORE/worm_registry.py",
+    "src/CORE/worm_registry_cache.py",
+    "src/DOCKERZ.py",
+    "src/MISSING_TOOLS.py",
+    "src/tests/test_worm_registry.py"
+   ]
+  },
+  {
+   "index": 1,
+   "n": 45,
+   "members": [
+    "src/AUTO_DOC_GENERATOR.py",
+    "src/CHANGELOG_GENERATOR.py",
+    "src/CLI/azazael_cli.py",
+    "src/CODEX/CORE/CHANGELOG_GENERATOR.py",
+    "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py",
+    "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py",
+    "src/CODEX/CORE/HORUS_INTEGRATION.py",
+    "src/CODEX/TESTING/UNIT/test_metaworms.py",
+    "src/CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py",
+    "src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py",
+    "src/CODEX/comprehensive/GENERATE_ALL_11.py",
+    "src/CODEX/comprehensive/GENERATE_HTML.py",
+    "src/CODEX/comprehensive/GENERATE_RICH_HTML.py",
+    "src/CORE/NODE.py",
+    "src/CORE/WORMS/CLUSTER_INSPECTOR.py",
+    "src/CORE/WORMS/MORPHING_WORM.py",
+    "src/CORE/WORMS/MORPHING_WORM_V2.py",
+    "src/CORE/WORMS/OMNI_WORM_V2.py",
+    "src/CORE/WORMS/SMARTDISK.py",
+    "src/CORE/WORMS/WORMZ_ML.py",
+    "src/CORE/WORMS/WORM_FLEET.py",
+    "src/CORE/Widgets/BasePopupMonitor.py",
+    "src/CORE/Widgets/__init__.py",
+    "src/CORE/paths.py",
+    "src/CORE/paths/__main__.py",
+    "src/ECOSYSTEM_HEALTH_CHECK.py",
+    "src/ERRORZ.py",
+    "src/FILE_MANIFEST_GENERATOR.py",
+    "src/HORUS_INTEGRATION.py",
+    "src/HYDRA/hydra_protocols.py",
+    "src/HYDRA/ml_platforms/harness.py",
+    "src/HYDRAMETA_UV.py",
+    "src/METAWORMS_POPUP.py",
+    "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py",
+    "src/ORCHESTRATION/ECOSYSTEM_OPTIMIZER.py",
+    "src/ORCHESTRATION/HORUS.py",
+    "src/ORCHESTRATION/HORUS_LIVE_MONITOR.py",
+    "src/ORCHESTRATION/HYDRA_ANALYZER.py",
+    "src/ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py",
+    "src/ORCHESTRATION/TARBABY.py",
+    "src/ORCHESTRATION/scripts/fix_syntax_errors.py",
+    "src/ORCHESTRATION/scripts/generate_docstrings.py",
+    "src/ORCHESTRATION/scripts/run_tests.py",
+    "src/TRIMZ.py",
+    "src/UTILITIES/TARBABY/TARBABY.py"
+   ]
+  },
+  {
+   "index": 2,
+   "n": 36,
+   "members": [
+    "scripts/check_tooling.py",
+    "scripts/db_health.py",
+    "scripts/scenario_a_full_pipeline.py",
+    "scripts/scenario_b_compressed_pipeline.py",
+    "scripts/scenario_c_distillation_pipeline.py",
+    "scripts/scenario_d_nas_pipeline.py",
+    "scripts/train_gosp_curative.py",
+    "src/CORE/Agent.py",
+    "src/CORE/NeuralPipeline.py",
+    "src/CORE/WORMS/WORM_SELECTOR.py",
+    "src/CORE/WORMS/dead_letter_queue.py",
+    "src/CORE/WORMS/expansion/dreaming.py",
+    "src/CORE/WORMS/expansion/error_recovery.py",
+    "src/CORE/WORMS/expansion/evolution.py",
+    "src/CORE/WORMS/expansion/learning.py",
+    "src/CORE/WORMS/expansion/learning_ab.py",
+    "src/CORE/WORMS/expansion/learning_features.py",
+    "src/CORE/WORMS/expansion/learning_grpo.py",
+    "src/CORE/WORMS/expansion/learning_pipeline.py",
+    "src/CORE/WORMS/expansion/learning_replay.py",
+    "src/CORE/WORMS/expansion/learning_rl.py",
+    "src/CORE/WORMS/expansion/learning_versioner.py",
+    "src/CORE/WORMS/expansion/meta_cognition.py",
+    "src/CORE/WORMS/expansion/race_detector.py",
+    "src/CORE/WORMS/expansion/scheduling.py",
+    "src/CORE/agent_registry.py",
+    "src/CORE/azazael_logging.py",
+    "src/CORE/codebuff_tracker.py",
+    "src/CORE/dream_policy_bridge.py",
+    "src/CORE/local_memory.py",
+    "src/CORE/sb3_agent.py",
+    "src/META/MetaWormSpawner.py",
+    "src/ORCHESTRATION/ml_platforms/__init__.py",
+    "src/ORCHESTRATION/ml_platforms/lm_studio_server.py",
+    "src/tests/test_ecosystem.py",
+    "src/tests/test_learning_loop.py"
+   ]
+  },
+  {
+   "index": 3,
+   "n": 35,
+   "members": [
+    "scripts/update_header_and_render.py",
+    "src/CORE/compliance/broker.py",
+    "src/CORE/compliance/dashboard_api.py",
+    "src/CORE/compliance/governance.py",
+    "src/CORE/compliance/heuristic_recorder.py",
+    "src/CORE/compliance/orchestrator.py",
+    "src/CORE/compliance/policy.py",
+    "src/CORE/compliance/pre_action_gate.py",
+    "src/CORE/compliance/run_self_test.py",
+    "src/CORE/compliance/scanner.py",
+    "src/CORE/compliance/scanner_db.py",
+    "src/CORE/compliance/state_machine.py",
+    "src/CORE/compliance/telemetry.py",
+    "src/CORE/compliance/validating.py",
+    "src/CORE/compliance_auditor.py",
+    "src/CORE/sentinel_enforcer.py",
+    "src/SCRIPTS/_reconstruct_error214.py",
+    "src/SCRIPTS/enforce_pre_action_gate.py",
+    "src/SCRIPTS/gate_bash.py",
+    "src/SCRIPTS/gate_str_replace.py",
+    "src/SCRIPTS/gate_write_file.py",
+    "src/SCRIPTS/generate_telemetry.py",
+    "src/SCRIPTS/request_auth.py",
+    "src/SCRIPTS/sentinel_gate.py",
+    "src/SCRIPTS/test_rule_0zf_integration.py",
+    "src/SCRIPTS/test_rule_0zf_telemetry.py",
+    "src/scripts/_reconstruct_error214.py",
+    "src/scripts/enforce_pre_action_gate.py",
+    "src/scripts/gate_bash.py",
+    "src/scripts/gate_str_replace.py",
+    "src/scripts/gate_write_file.py",
+    "src/scripts/generate_telemetry.py",
+    "src/scripts/sentinel_gate.py",
+    "src/scripts/test_rule_0zf_integration.py",
+    "src/scripts/test_rule_0zf_telemetry.py"
+   ]
+  },
+  {
+   "index": 4,
+   "n": 25,
+   "members": [
+    "scripts/close_audit_sessions.py",
+    "src/CORE/LOCAL_DEV.py",
+    "src/CORE/WORMS/expansion/session_state.py",
+    "src/CORE/__init__.py",
+    "src/CORE/audit_compress.py",
+    "src/CORE/audit_merge.py",
+    "src/CORE/audit_repair.py",
+    "src/CORE/audit_trail.py",
+    "src/CORE/audit_watch.py",
+    "src/CORE/azazael_ctl.py",
+    "src/CORE/backup.py",
+    "src/CORE/cd2_verifier.py",
+    "src/CORE/cli_audit.py",
+    "src/CORE/cli_crossref.py",
+    "src/CORE/cli_memory.py",
+    "src/CORE/data_retention.py",
+    "src/CORE/direct_memory.py",
+    "src/CORE/doctor.py",
+    "src/CORE/inference_pool.py",
+    "src/CORE/paths/__init__.py",
+    "src/CORE/rollback.py",
+    "src/CORE/vocab_migration.py",
+    "src/CORE/xref_auto_link.py",
+    "src/CORE/xref_dashboard.py",
+    "src/DAEMONS/parallax_validator.py"
+   ]
+  },
+  {
+   "index": 5,
+   "n": 22,
+   "members": [
+    "src/AzazaelDynamicLogger.py",
+    "src/CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py",
+    "src/CODEX/TESTING/PERFORMANCE/test_performance.py",
+    "src/CODEX/TESTING/UNIT/test_hydra.py",
+    "src/HEALTHZ.py",
+    "src/HYDRA/__init__.py",
+    "src/HYDRAMETA.py",
+    "src/META/HYDRAMETA.py",
+    "src/METAWORMS.py",
+    "src/METAWORMS_ENRICHED.py",
+    "src/METRICZ.py",
+    "src/OPTIMIZ.py",
+    "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py",
+    "src/ORCHESTRATION/hydra_bridge.py",
+    "src/SCRIPTS/bootstrap.py",
+    "src/SCRIPTS/test_dynamic_logging.py",
+    "src/TELEMETRYZ.py",
+    "src/memory_status.py",
+    "src/performance_monitor.py",
+    "src/scripts/bootstrap.py",
+    "src/scripts/test_dynamic_logging.py",
+    "src/session_memory.py"
+   ]
+  },
+  {
+   "index": 6,
+   "n": 16,
+   "members": [
+    "scripts/dlq_burndown.py",
+    "scripts/dlq_watch.py",
+    "src/CORE/WORMS/CLUSTERWORMS.py",
+    "src/CORE/WORMS/METACLUSTER.py",
+    "src/CORE/WORMS/NATURE_CLUSTERS.py",
+    "src/CORE/WORMS/expansion/db_monitor.py",
+    "src/CORE/circuit_breaker.py",
+    "src/CORE/config.py",
+    "src/CORE/dashboard.py",
+    "src/CORE/health_server.py",
+    "src/CORE/metrics.py",
+    "src/CORE/notifier.py",
+    "src/CORE/postgres_memory.py",
+    "src/CORE/safe_sql.py",
+    "src/CORE/web_dashboard.py",
+    "src/CORE/workflow.py"
+   ]
+  },
+  {
+   "index": 7,
+   "n": 12,
+   "members": [
+    "src/CORE/WORMS/NIM_INFERENCE.py",
+    "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+    "src/CORE/inference/__init__.py",
+    "src/CORE/inference/cloud_tab.py",
+    "src/CORE/inference/hyper_optimizer.py",
+    "src/CORE/inference/inference_cache.py",
+    "src/CORE/inference/nim_client.py",
+    "src/CORE/inference/parallel.py",
+    "src/CORE/inference/providers.py",
+    "src/CORE/inference/query_loop.py",
+    "src/CORE/inference/sequential_analyzer.py",
+    "src/CORE/inference/threaded.py"
+   ]
+  },
+  {
+   "index": 8,
+   "n": 8,
+   "members": [
+    "src/eve_unleashed/cache.py",
+    "src/eve_unleashed/cli.py",
+    "src/eve_unleashed/config.py",
+    "src/eve_unleashed/core.py",
+    "src/eve_unleashed/engine.py",
+    "src/eve_unleashed/model_registry.py",
+    "src/eve_unleashed/streaming.py",
+    "src/eve_unleashed/utils.py"
+   ]
+  },
+  {
+   "index": 9,
+   "n": 5,
+   "members": [
+    "scripts/bcc_network_sna.py",
+    "scripts/bcc_political_court_layer.py",
+    "scripts/bcc_pyvis_network.py",
+    "scripts/ecosystem_graph.py",
+    "scripts/learning_loop_graph.py"
+   ]
+  },
+  {
+   "index": 10,
+   "n": 5,
+   "members": [
+    "src/CORE/WORMS/BINARY_ANALYSIS.py",
+    "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py",
+    "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+    "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+    "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py"
+   ]
+  },
+  {
+   "index": 11,
+   "n": 4,
+   "members": [
+    "src/CORE/paths/external.py",
+    "src/CORE/paths/internal.py",
+    "src/CORE/paths/state.py",
+    "src/CORE/paths/targets.py"
+   ]
+  },
+  {
+   "index": 12,
+   "n": 4,
+   "members": [
+    "src/HYDRA/ml_platforms/__init__.py",
+    "src/ORCHESTRATION/ml_platforms/config.py",
+    "src/ORCHESTRATION/ml_platforms/diagnostics.py",
+    "src/ORCHESTRATION/ml_platforms/launcher.py"
+   ]
+  },
+  {
+   "index": 13,
+   "n": 3,
+   "members": [
+    "scripts/bitmap_font.py",
+    "scripts/master_generate.py",
+    "scripts/video_frame_generator.py"
+   ]
+  },
+  {
+   "index": 14,
+   "n": 3,
+   "members": [
+    "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py",
+    "src/CORE/WORMS/__init__.py",
+    "src/CORE/WORMS/expansion/__init__.py"
+   ]
+  },
+  {
+   "index": 15,
+   "n": 3,
+   "members": [
+    "src/INTERPRETERS/__init__.py",
+    "src/INTERPRETERS/go_runner.py",
+    "src/INTERPRETERS/rust_runner.py"
+   ]
+  },
+  {
+   "index": 16,
+   "n": 2,
+   "members": [
+    "scripts/ascii_demo.py",
+    "src/CODEX/CORE/ascii_flowchart.py"
+   ]
+  },
+  {
+   "index": 17,
+   "n": 2,
+   "members": [
+    "scripts/bcc_graphiti_temporal.py",
+    "scripts/bcc_kuzu_temporal_persist.py"
+   ]
+  },
+  {
+   "index": 18,
+   "n": 2,
+   "members": [
+    "scripts/sna_communities_410k.py",
+    "scripts/sna_scale_azazael.py"
+   ]
+  },
+  {
+   "index": 19,
+   "n": 2,
+   "members": [
+    "src/ANIMATION_PROTOCOLS.py",
+    "src/CODEX/CORE/ANIMATION_PROTOCOLS.py"
+   ]
+  },
+  {
+   "index": 20,
+   "n": 2,
+   "members": [
+    "src/CODEX/CORE/QL_FILE_OPTIMIZER.py",
+    "src/QL_FILE_OPTIMIZER.py"
+   ]
+  },
+  {
+   "index": 21,
+   "n": 2,
+   "members": [
+    "scripts/emoji_demo.py",
+    "src/CODEX/CORE/emoji_maker.py"
+   ]
+  },
+  {
+   "index": 22,
+   "n": 2,
+   "members": [
+    "src/CORE/safe_file_ops.py",
+    "src/HYDRA_CONTAINER.py"
+   ]
+  },
+  {
+   "index": 23,
+   "n": 2,
+   "members": [
+    "src/CODEX/TESTING/UNIT/test_wormz.py",
+    "src/CORE/WORMS/WORMZ.py"
+   ]
+  },
+  {
+   "index": 24,
+   "n": 2,
+   "members": [
+    "src/TOOLS/azazael_toolkit.py",
+    "src/azazael_toolkit.py"
+   ]
+  },
+  {
+   "index": 25,
+   "n": 2,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/__init__.py",
+    "src/UTILITIES/PERSEPHONE/lib/__init__.py"
+   ]
+  },
+  {
+   "index": 26,
+   "n": 2,
+   "members": [
+    "src/CODEX/CORE/enrichment_display.py",
+    "src/enrichment_display.py"
+   ]
+  },
+  {
+   "index": 27,
+   "n": 2,
+   "members": [
+    "src/eve_unleashed/__init__.py",
+    "src/eve_unleashed/models/__init__.py"
+   ]
+  },
+  {
+   "index": 28,
+   "n": 2,
+   "members": [
+    "src/CODEX/CORE/matrix_animation.py",
+    "src/matrix_animation.py"
+   ]
+  },
+  {
+   "index": 29,
+   "n": 2,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+    "src/scripts/__init__.py"
+   ]
+  },
+  {
+   "index": 30,
+   "n": 1,
+   "members": [
+    "scripts/__init__.py"
+   ]
+  },
+  {
+   "index": 31,
+   "n": 1,
+   "members": [
+    "scripts/audit_html.py"
+   ]
+  },
+  {
+   "index": 32,
+   "n": 1,
+   "members": [
+    "scripts/audit_links_refined.py"
+   ]
+  },
+  {
+   "index": 33,
+   "n": 1,
+   "members": [
+    "scripts/autoflake_314t.py"
+   ]
+  },
+  {
+   "index": 34,
+   "n": 1,
+   "members": [
+    "scripts/bai_perron_breakpoints.py"
+   ]
+  },
+  {
+   "index": 35,
+   "n": 1,
+   "members": [
+    "scripts/batch_render.py"
+   ]
+  },
+  {
+   "index": 36,
+   "n": 1,
+   "members": [
+    "scripts/bcc_chroma_index.py"
+   ]
+  },
+  {
+   "index": 37,
+   "n": 1,
+   "members": [
+    "scripts/bcc_embed_link_sna.py"
+   ]
+  },
+  {
+   "index": 38,
+   "n": 1,
+   "members": [
+    "scripts/bcc_embed_tfidf_diff.py"
+   ]
+  },
+  {
+   "index": 39,
+   "n": 1,
+   "members": [
+    "scripts/bcc_gephi_launcher.py"
+   ]
+  },
+  {
+   "index": 40,
+   "n": 1,
+   "members": [
+    "scripts/bcc_kuzu_timeline.py"
+   ]
+  },
+  {
+   "index": 41,
+   "n": 1,
+   "members": [
+    "scripts/bcc_lead_inference.py"
+   ]
+  },
+  {
+   "index": 42,
+   "n": 1,
+   "members": [
+    "scripts/bcc_pdfplumber_extract.py"
+   ]
+  },
+  {
+   "index": 43,
+   "n": 1,
+   "members": [
+    "scripts/bcc_record_linkage.py"
+   ]
+  },
+  {
+   "index": 44,
+   "n": 1,
+   "members": [
+    "scripts/bcc_semantic_index.py"
+   ]
+  },
+  {
+   "index": 45,
+   "n": 1,
+   "members": [
+    "scripts/bcc_splink_linkage.py"
+   ]
+  },
+  {
+   "index": 46,
+   "n": 1,
+   "members": [
+    "scripts/bcc_vault_sna.py"
+   ]
+  },
+  {
+   "index": 47,
+   "n": 1,
+   "members": [
+    "scripts/bench_rustworkx_vs_networkx.py"
+   ]
+  },
+  {
+   "index": 48,
+   "n": 1,
+   "members": [
+    "scripts/benchmark_wal_docker.py"
+   ]
+  },
+  {
+   "index": 49,
+   "n": 1,
+   "members": [
+    "scripts/build_all_concurrent.py"
+   ]
+  },
+  {
+   "index": 50,
+   "n": 1,
+   "members": [
+    "scripts/build_gap_index.py"
+   ]
+  },
+  {
+   "index": 51,
+   "n": 1,
+   "members": [
+    "scripts/build_obsidian_vault.py"
+   ]
+  },
+  {
+   "index": 52,
+   "n": 1,
+   "members": [
+    "scripts/build_progress_governance_graph.py"
+   ]
+  },
+  {
+   "index": 53,
+   "n": 1,
+   "members": [
+    "scripts/cain_video_pipeline_demo.py"
+   ]
+  },
+  {
+   "index": 54,
+   "n": 1,
+   "members": [
+    "scripts/check_314t_compat.py"
+   ]
+  },
+  {
+   "index": 55,
+   "n": 1,
+   "members": [
+    "scripts/check_no_catch_alls.py"
+   ]
+  },
+  {
+   "index": 56,
+   "n": 1,
+   "members": [
+    "scripts/convert_to_wmv.py"
+   ]
+  },
+  {
+   "index": 57,
+   "n": 1,
+   "members": [
+    "scripts/cosmos_export.py"
+   ]
+  },
+  {
+   "index": 58,
+   "n": 1,
+   "members": [
+    "scripts/cosmos_inline_viewer.py"
+   ]
+  },
+  {
+   "index": 59,
+   "n": 1,
+   "members": [
+    "scripts/cosmos_singlefile.py"
+   ]
+  },
+  {
+   "index": 60,
+   "n": 1,
+   "members": [
+    "scripts/desktop_projects_reference_check.py"
+   ]
+  },
+  {
+   "index": 61,
+   "n": 1,
+   "members": [
+    "scripts/ecosystem_gephi_launcher.py"
+   ]
+  },
+  {
+   "index": 62,
+   "n": 1,
+   "members": [
+    "scripts/export_graph_formats.py"
+   ]
+  },
+  {
+   "index": 63,
+   "n": 1,
+   "members": [
+    "scripts/fetch_990_series.py"
+   ]
+  },
+  {
+   "index": 64,
+   "n": 1,
+   "members": [
+    "scripts/finalize_whitepaper.py"
+   ]
+  },
+  {
+   "index": 65,
+   "n": 1,
+   "members": [
+    "scripts/generate_capability_templates.py"
+   ]
+  },
+  {
+   "index": 66,
+   "n": 1,
+   "members": [
+    "scripts/gosp_learner_divergence.py"
+   ]
+  },
+  {
+   "index": 67,
+   "n": 1,
+   "members": [
+    "scripts/gosp_learner_train.py"
+   ]
+  },
+  {
+   "index": 68,
+   "n": 1,
+   "members": [
+    "scripts/gosp_parity_check.py"
+   ]
+  },
+  {
+   "index": 69,
+   "n": 1,
+   "members": [
+    "scripts/gosp_rani_integration.py"
+   ]
+  },
+  {
+   "index": 70,
+   "n": 1,
+   "members": [
+    "scripts/graphify_huge_mode.py"
+   ]
+  },
+  {
+   "index": 71,
+   "n": 1,
+   "members": [
+    "scripts/graphify_node_limit_patch.py"
+   ]
+  },
+  {
+   "index": 72,
+   "n": 1,
+   "members": [
+    "scripts/klink.py"
+   ]
+  },
+  {
+   "index": 73,
+   "n": 1,
+   "members": [
+    "scripts/learning_loop_gephi_launcher.py"
+   ]
+  },
+  {
+   "index": 74,
+   "n": 1,
+   "members": [
+    "scripts/learning_loop_temporal.py"
+   ]
+  },
+  {
+   "index": 75,
+   "n": 1,
+   "members": [
+    "scripts/make_launcher_icons.py"
+   ]
+  },
+  {
+   "index": 76,
+   "n": 1,
+   "members": [
+    "scripts/modernize_types.py"
+   ]
+  },
+  {
+   "index": 77,
+   "n": 1,
+   "members": [
+    "scripts/quick_test.py"
+   ]
+  },
+  {
+   "index": 78,
+   "n": 1,
+   "members": [
+    "scripts/reencode_large_videos.py"
+   ]
+  },
+  {
+   "index": 79,
+   "n": 1,
+   "members": [
+    "scripts/render_bcc_lead_findings.py"
+   ]
+  },
+  {
+   "index": 80,
+   "n": 1,
+   "members": [
+    "scripts/render_graph_svg.py"
+   ]
+  },
+  {
+   "index": 81,
+   "n": 1,
+   "members": [
+    "scripts/scan_secrets.py"
+   ]
+  },
+  {
+   "index": 82,
+   "n": 1,
+   "members": [
+    "scripts/spec_audit.py"
+   ]
+  },
+  {
+   "index": 83,
+   "n": 1,
+   "members": [
+    "scripts/sync_all.py"
+   ]
+  },
+  {
+   "index": 84,
+   "n": 1,
+   "members": [
+    "scripts/sync_g_drive.py"
+   ]
+  },
+  {
+   "index": 85,
+   "n": 1,
+   "members": [
+    "scripts/timesfm_pilot_314t.py"
+   ]
+  },
+  {
+   "index": 86,
+   "n": 1,
+   "members": [
+    "scripts/verify_aoa_cdp.py"
+   ]
+  },
+  {
+   "index": 87,
+   "n": 1,
+   "members": [
+    "scripts/verify_lead_links_cdp.py"
+   ]
+  },
+  {
+   "index": 88,
+   "n": 1,
+   "members": [
+    "scripts/watch_training_day.py"
+   ]
+  },
+  {
+   "index": 89,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_Inference_Studio.py"
+   ]
+  },
+  {
+   "index": 90,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py"
+   ]
+  },
+  {
+   "index": 91,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py"
+   ]
+  },
+  {
+   "index": 92,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/QL_ANALYSIS.py"
+   ]
+  },
+  {
+   "index": 93,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py"
+   ]
+  },
+  {
+   "index": 94,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/__init__.py"
+   ]
+  },
+  {
+   "index": 95,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/azazael_toolkit.py"
+   ]
+  },
+  {
+   "index": 96,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/environment_manager.py"
+   ]
+  },
+  {
+   "index": 97,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/math_certainty.py"
+   ]
+  },
+  {
+   "index": 98,
+   "n": 1,
+   "members": [
+    "src/AZAZAEL_TOOLKIT/update_docs_paths.py"
+   ]
+  },
+  {
+   "index": 99,
+   "n": 1,
+   "members": [
+    "src/CLI/__init__.py"
+   ]
+  },
+  {
+   "index": 100,
+   "n": 1,
+   "members": [
+    "src/CODEX/CODEX_Studio.py"
+   ]
+  },
+  {
+   "index": 101,
+   "n": 1,
+   "members": [
+    "src/CODEX/CORE/AUTO_DOC_GENERATOR.py"
+   ]
+  },
+  {
+   "index": 102,
+   "n": 1,
+   "members": [
+    "src/CODEX/CORE/AUTO_DOWNLOADER.py"
+   ]
+  },
+  {
+   "index": 103,
+   "n": 1,
+   "members": [
+    "src/CODEX/CORE/__init__.py"
+   ]
+  },
+  {
+   "index": 104,
+   "n": 1,
+   "members": [
+    "src/CODEX/CORE/azazael_pygame.py"
+   ]
+  },
+  {
+   "index": 105,
+   "n": 1,
+   "members": [
+    "src/CODEX/CORE/enhanced_animations.py"
+   ]
+  },
+  {
+   "index": 106,
+   "n": 1,
+   "members": [
+    "src/CODEX/DOCUMENTATION/__init__.py"
+   ]
+  },
+  {
+   "index": 107,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_ALL_11.py"
+   ]
+  },
+  {
+   "index": 108,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_BUGFREE.py"
+   ]
+  },
+  {
+   "index": 109,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_CLICKABLE.py"
+   ]
+  },
+  {
+   "index": 110,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_DETAILED.py"
+   ]
+  },
+  {
+   "index": 111,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_DISPLAY.py"
+   ]
+  },
+  {
+   "index": 112,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_IMMERSIVE.py"
+   ]
+  },
+  {
+   "index": 113,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_RICH.py"
+   ]
+  },
+  {
+   "index": 114,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_SIMPLE.py"
+   ]
+  },
+  {
+   "index": 115,
+   "n": 1,
+   "members": [
+    "src/CODEX/POPUPS/POPUP_WORKING.py"
+   ]
+  },
+  {
+   "index": 116,
+   "n": 1,
+   "members": [
+    "src/CODEX/SESSION_TEMPLATE/generators/batch_generator.py"
+   ]
+  },
+  {
+   "index": 117,
+   "n": 1,
+   "members": [
+    "src/CODEX/SESSION_TEMPLATE/generators/batch_recorder.py"
+   ]
+  },
+  {
+   "index": 118,
+   "n": 1,
+   "members": [
+    "src/CODEX/SESSION_TEMPLATE/generators/generate_failure_report.py"
+   ]
+  },
+  {
+   "index": 119,
+   "n": 1,
+   "members": [
+    "src/CODEX/SESSION_TEMPLATE/generators/generate_session_report.py"
+   ]
+  },
+  {
+   "index": 120,
+   "n": 1,
+   "members": [
+    "src/CODEX/SESSION_TEMPLATE/generators/unified_generator.py"
+   ]
+  },
+  {
+   "index": 121,
+   "n": 1,
+   "members": [
+    "src/CODEX/TESTING/INTEGRATION/__init__.py"
+   ]
+  },
+  {
+   "index": 122,
+   "n": 1,
+   "members": [
+    "src/CODEX/TESTING/PERFORMANCE/__init__.py"
+   ]
+  },
+  {
+   "index": 123,
+   "n": 1,
+   "members": [
+    "src/CODEX/TESTING/UNIT/__init__.py"
+   ]
+  },
+  {
+   "index": 124,
+   "n": 1,
+   "members": [
+    "src/CODEX/TESTING/__init__.py"
+   ]
+  },
+  {
+   "index": 125,
+   "n": 1,
+   "members": [
+    "src/CODEX/TESTING/conftest.py"
+   ]
+  },
+  {
+   "index": 126,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/__init__.py"
+   ]
+  },
+  {
+   "index": 127,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/compress_video.py"
+   ]
+  },
+  {
+   "index": 128,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/create_azazael_educational_video.py"
+   ]
+  },
+  {
+   "index": 129,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/create_dual_pane_popup.py"
+   ]
+  },
+  {
+   "index": 130,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/create_dual_pane_video.py"
+   ]
+  },
+  {
+   "index": 131,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/create_reference_video.py"
+   ]
+  },
+  {
+   "index": 132,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/create_scrolling_video.py"
+   ]
+  },
+  {
+   "index": 133,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/create_video.py"
+   ]
+  },
+  {
+   "index": 134,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/generate_matrix_video.py"
+   ]
+  },
+  {
+   "index": 135,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/generate_video.py"
+   ]
+  },
+  {
+   "index": 136,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/generate_video_v2.py"
+   ]
+  },
+  {
+   "index": 137,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video.py"
+   ]
+  },
+  {
+   "index": 138,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_docs.py"
+   ]
+  },
+  {
+   "index": 139,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_quad.py"
+   ]
+  },
+  {
+   "index": 140,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_v2.py"
+   ]
+  },
+  {
+   "index": 141,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_v3.py"
+   ]
+  },
+  {
+   "index": 142,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_vibrant.py"
+   ]
+  },
+  {
+   "index": 143,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_zip.py"
+   ]
+  },
+  {
+   "index": 144,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/make_video_zipper.py"
+   ]
+  },
+  {
+   "index": 145,
+   "n": 1,
+   "members": [
+    "src/CODEX/VIDEOS/video_popup.py"
+   ]
+  },
+  {
+   "index": 146,
+   "n": 1,
+   "members": [
+    "src/CODEX/__init__.py"
+   ]
+  },
+  {
+   "index": 147,
+   "n": 1,
+   "members": [
+    "src/CODEX/comprehensive/TWITLER_ANALYSIS.py"
+   ]
+  },
+  {
+   "index": 148,
+   "n": 1,
+   "members": [
+    "src/CODEX/generate_session_cain.py"
+   ]
+  },
+  {
+   "index": 149,
+   "n": 1,
+   "members": [
+    "src/CODEX/inject_session_cain.py"
+   ]
+  },
+  {
+   "index": 150,
+   "n": 1,
+   "members": [
+    "src/COMPREHENSIVE_FIX.py"
+   ]
+  },
+  {
+   "index": 151,
+   "n": 1,
+   "members": [
+    "src/CORE/PYTHON_MANAGER.py"
+   ]
+  },
+  {
+   "index": 152,
+   "n": 1,
+   "members": [
+    "src/CORE/STRESS_TEST.py"
+   ]
+  },
+  {
+   "index": 153,
+   "n": 1,
+   "members": [
+    "src/CORE/STRUCTURE.py"
+   ]
+  },
+  {
+   "index": 154,
+   "n": 1,
+   "members": [
+    "src/CORE/WORMS/CAIN_ANALYZER.py"
+   ]
+  },
+  {
+   "index": 155,
+   "n": 1,
+   "members": [
+    "src/CORE/WORMS/HEALING_WORM.py"
+   ]
+  },
+  {
+   "index": 156,
+   "n": 1,
+   "members": [
+    "src/CORE/WORMS/OMNI_WORM.py"
+   ]
+  },
+  {
+   "index": 157,
+   "n": 1,
+   "members": [
+    "src/CORE/WORMS/WORMZ_POPUP.py"
+   ]
+  },
+  {
+   "index": 158,
+   "n": 1,
+   "members": [
+    "src/CORE/audit_export_html.py"
+   ]
+  },
+  {
+   "index": 159,
+   "n": 1,
+   "members": [
+    "src/CORE/cd3_exporter.py"
+   ]
+  },
+  {
+   "index": 160,
+   "n": 1,
+   "members": [
+    "src/CORE/cd4_pipeline.py"
+   ]
+  },
+  {
+   "index": 161,
+   "n": 1,
+   "members": [
+    "src/CORE/cli_completion.py"
+   ]
+  },
+  {
+   "index": 162,
+   "n": 1,
+   "members": [
+    "src/CORE/compliance/__init__.py"
+   ]
+  },
+  {
+   "index": 163,
+   "n": 1,
+   "members": [
+    "src/CORE/enforcement_harness.py"
+   ]
+  },
+  {
+   "index": 164,
+   "n": 1,
+   "members": [
+    "src/CORE/error_triage.py"
+   ]
+  },
+  {
+   "index": 165,
+   "n": 1,
+   "members": [
+    "src/CORE/inference/api_client.py"
+   ]
+  },
+  {
+   "index": 166,
+   "n": 1,
+   "members": [
+    "src/CORE/logging_config.py"
+   ]
+  },
+  {
+   "index": 167,
+   "n": 1,
+   "members": [
+    "src/CORE/record_session.py"
+   ]
+  },
+  {
+   "index": 168,
+   "n": 1,
+   "members": [
+    "src/CORE/secrets_manager.py"
+   ]
+  },
+  {
+   "index": 169,
+   "n": 1,
+   "members": [
+    "src/CORE/threading_utils.py"
+   ]
+  },
+  {
+   "index": 170,
+   "n": 1,
+   "members": [
+    "src/CORE/tstrings.py"
+   ]
+  },
+  {
+   "index": 171,
+   "n": 1,
+   "members": [
+    "src/CORE/xref_webhook.py"
+   ]
+  },
+  {
+   "index": 172,
+   "n": 1,
+   "members": [
+    "src/DAEMONS/check_parallax.py"
+   ]
+  },
+  {
+   "index": 173,
+   "n": 1,
+   "members": [
+    "src/DAEMONS/install_parallax_startup.py"
+   ]
+  },
+  {
+   "index": 174,
+   "n": 1,
+   "members": [
+    "src/HYDRA/hydra_launcher.py"
+   ]
+  },
+  {
+   "index": 175,
+   "n": 1,
+   "members": [
+    "src/HYDRA/ml_platforms/PERMANENT_LOAD.py"
+   ]
+  },
+  {
+   "index": 176,
+   "n": 1,
+   "members": [
+    "src/HYDRA/ml_platforms/config.py"
+   ]
+  },
+  {
+   "index": 177,
+   "n": 1,
+   "members": [
+    "src/HYDRA/ml_platforms/health_monitor.py"
+   ]
+  },
+  {
+   "index": 178,
+   "n": 1,
+   "members": [
+    "src/HYDRA/ml_platforms/launcher.py"
+   ]
+  },
+  {
+   "index": 179,
+   "n": 1,
+   "members": [
+    "src/HYDRA/ml_test.py"
+   ]
+  },
+  {
+   "index": 180,
+   "n": 1,
+   "members": [
+    "src/HYDRA/pipeline_specs.py"
+   ]
+  },
+  {
+   "index": 181,
+   "n": 1,
+   "members": [
+    "src/META/DOCKERZ.py"
+   ]
+  },
+  {
+   "index": 182,
+   "n": 1,
+   "members": [
+    "src/META/ERRORZ.py"
+   ]
+  },
+  {
+   "index": 183,
+   "n": 1,
+   "members": [
+    "src/META/HEALTHZ.py"
+   ]
+  },
+  {
+   "index": 184,
+   "n": 1,
+   "members": [
+    "src/META/HYDRAMETA_UV.py"
+   ]
+  },
+  {
+   "index": 185,
+   "n": 1,
+   "members": [
+    "src/META/HYDRA_CONTAINER.py"
+   ]
+  },
+  {
+   "index": 186,
+   "n": 1,
+   "members": [
+    "src/META/METAWORMS.py"
+   ]
+  },
+  {
+   "index": 187,
+   "n": 1,
+   "members": [
+    "src/META/METAWORMS_ENRICHED.py"
+   ]
+  },
+  {
+   "index": 188,
+   "n": 1,
+   "members": [
+    "src/META/METAWORMS_POPUP.py"
+   ]
+  },
+  {
+   "index": 189,
+   "n": 1,
+   "members": [
+    "src/META/METRICZ.py"
+   ]
+  },
+  {
+   "index": 190,
+   "n": 1,
+   "members": [
+    "src/META/OPTIMIZ.py"
+   ]
+  },
+  {
+   "index": 191,
+   "n": 1,
+   "members": [
+    "src/META/TELEMETRYZ.py"
+   ]
+  },
+  {
+   "index": 192,
+   "n": 1,
+   "members": [
+    "src/META/TRIMZ.py"
+   ]
+  },
+  {
+   "index": 193,
+   "n": 1,
+   "members": [
+    "src/META/UVZ.py"
+   ]
+  },
+  {
+   "index": 194,
+   "n": 1,
+   "members": [
+    "src/META/__init__.py"
+   ]
+  },
+  {
+   "index": 195,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ADLP_FusionCore.py"
+   ]
+  },
+  {
+   "index": 196,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ADLP_MLOrchestrator.py"
+   ]
+  },
+  {
+   "index": 197,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ADLP_SystemTools.py"
+   ]
+  },
+  {
+   "index": 198,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/AssistantLogProtocol.py"
+   ]
+  },
+  {
+   "index": 199,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py"
+   ]
+  },
+  {
+   "index": 200,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/BIBL/__init__.py"
+   ]
+  },
+  {
+   "index": 201,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/BIBL/bibl_crawler.py"
+   ]
+  },
+  {
+   "index": 202,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/FusionHealer.py"
+   ]
+  },
+  {
+   "index": 203,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/HYDRA.py"
+   ]
+  },
+  {
+   "index": 204,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py"
+   ]
+  },
+  {
+   "index": 205,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/MathCertainty.py"
+   ]
+  },
+  {
+   "index": 206,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/SelfImprovingGUI.py"
+   ]
+  },
+  {
+   "index": 207,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/SystemManager.py"
+   ]
+  },
+  {
+   "index": 208,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/SystemManagerGUI.py"
+   ]
+  },
+  {
+   "index": 209,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/TEST/__init__.py"
+   ]
+  },
+  {
+   "index": 210,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/TotalFusion.py"
+   ]
+  },
+  {
+   "index": 211,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/__init__.py"
+   ]
+  },
+  {
+   "index": 212,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/auto_install.py"
+   ]
+  },
+  {
+   "index": 213,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/autoload.py"
+   ]
+  },
+  {
+   "index": 214,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/changelog.py"
+   ]
+  },
+  {
+   "index": 215,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/cross_platform_analysis.py"
+   ]
+  },
+  {
+   "index": 216,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/framework_activator.py"
+   ]
+  },
+  {
+   "index": 217,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/harness.py"
+   ]
+  },
+  {
+   "index": 218,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/health_monitor.py"
+   ]
+  },
+  {
+   "index": 219,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/__init__.py"
+   ]
+  },
+  {
+   "index": 220,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py"
+   ]
+  },
+  {
+   "index": 221,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py"
+   ]
+  },
+  {
+   "index": 222,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/metrics_tracker.py"
+   ]
+  },
+  {
+   "index": 223,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/ml_integration.py"
+   ]
+  },
+  {
+   "index": 224,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/mlflow_integration.py"
+   ]
+  },
+  {
+   "index": 225,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py"
+   ]
+  },
+  {
+   "index": 226,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py"
+   ]
+  },
+  {
+   "index": 227,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/ray_integration.py"
+   ]
+  },
+  {
+   "index": 228,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py"
+   ]
+  },
+  {
+   "index": 229,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/tensor_utils.py"
+   ]
+  },
+  {
+   "index": 230,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/vectorize_utils.py"
+   ]
+  },
+  {
+   "index": 231,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/improvements/weakness_testing.py"
+   ]
+  },
+  {
+   "index": 232,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/install_improvements.py"
+   ]
+  },
+  {
+   "index": 233,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/install_light.py"
+   ]
+  },
+  {
+   "index": 234,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/install_manager.py"
+   ]
+  },
+  {
+   "index": 235,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/installation_debug.py"
+   ]
+  },
+  {
+   "index": 236,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/jax_analysis.py"
+   ]
+  },
+  {
+   "index": 237,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/lm_studio_autoload.py"
+   ]
+  },
+  {
+   "index": 238,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/lm_studio_client.py"
+   ]
+  },
+  {
+   "index": 239,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/lm_studio_integration.py"
+   ]
+  },
+  {
+   "index": 240,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/openinterpreter_startup.py"
+   ]
+  },
+  {
+   "index": 241,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/run_qanalysis.py"
+   ]
+  },
+  {
+   "index": 242,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py"
+   ]
+  },
+  {
+   "index": 243,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py"
+   ]
+  },
+  {
+   "index": 244,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/unified_analysis.py"
+   ]
+  },
+  {
+   "index": 245,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/universal_converter.py"
+   ]
+  },
+  {
+   "index": 246,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/ml_platforms/verify_moe.py"
+   ]
+  },
+  {
+   "index": 247,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/__init__.py"
+   ]
+  },
+  {
+   "index": 248,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/azazael_cli.py"
+   ]
+  },
+  {
+   "index": 249,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/azazael_wsa.py"
+   ]
+  },
+  {
+   "index": 250,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/bat_analysis.py"
+   ]
+  },
+  {
+   "index": 251,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/check_links.py"
+   ]
+  },
+  {
+   "index": 252,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/complete_module_analysis.py"
+   ]
+  },
+  {
+   "index": 253,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/comprehensive_analysis.py"
+   ]
+  },
+  {
+   "index": 254,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/consistency_checker.py"
+   ]
+  },
+  {
+   "index": 255,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/generate_docs_index.py"
+   ]
+  },
+  {
+   "index": 256,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/improve_bat_files.py"
+   ]
+  },
+  {
+   "index": 257,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/test_enhancements.py"
+   ]
+  },
+  {
+   "index": 258,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/validate_docs.py"
+   ]
+  },
+  {
+   "index": 259,
+   "n": 1,
+   "members": [
+    "src/ORCHESTRATION/scripts/web_dashboard.py"
+   ]
+  },
+  {
+   "index": 260,
+   "n": 1,
+   "members": [
+    "src/QL_ANALYSIS.py"
+   ]
+  },
+  {
+   "index": 261,
+   "n": 1,
+   "members": [
+    "src/REAL_FRAMEWORK_TEST.py"
+   ]
+  },
+  {
+   "index": 262,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/__init__.py"
+   ]
+  },
+  {
+   "index": 263,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/auto_sync.py"
+   ]
+  },
+  {
+   "index": 264,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/environ_updater.py"
+   ]
+  },
+  {
+   "index": 265,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/fix_bare_excepts.py"
+   ]
+  },
+  {
+   "index": 266,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/gated_edit.py"
+   ]
+  },
+  {
+   "index": 267,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/lsp_diagnosis.py"
+   ]
+  },
+  {
+   "index": 268,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/parallel_compliance_scanner.py"
+   ]
+  },
+  {
+   "index": 269,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/run_test_generate_telemetry.py"
+   ]
+  },
+  {
+   "index": 270,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/sync_skills.py"
+   ]
+  },
+  {
+   "index": 271,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/test_auto_sync.py"
+   ]
+  },
+  {
+   "index": 272,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/test_generate_telemetry.py"
+   ]
+  },
+  {
+   "index": 273,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/test_rule_0zf_consistency.py"
+   ]
+  },
+  {
+   "index": 274,
+   "n": 1,
+   "members": [
+    "src/SCRIPTS/test_startup_step4_8.py"
+   ]
+  },
+  {
+   "index": 275,
+   "n": 1,
+   "members": [
+    "src/SHORTCUTS/__init__.py"
+   ]
+  },
+  {
+   "index": 276,
+   "n": 1,
+   "members": [
+    "src/TOOLS/AzazaelDynamicLogger.py"
+   ]
+  },
+  {
+   "index": 277,
+   "n": 1,
+   "members": [
+    "src/TOOLS/COMPREHENSIVE_FIX.py"
+   ]
+  },
+  {
+   "index": 278,
+   "n": 1,
+   "members": [
+    "src/TOOLS/PythonMapper_Quick.py"
+   ]
+  },
+  {
+   "index": 279,
+   "n": 1,
+   "members": [
+    "src/TOOLS/PythonSystemMapper.py"
+   ]
+  },
+  {
+   "index": 280,
+   "n": 1,
+   "members": [
+    "src/TOOLS/PythonSystemMapper_Full.py"
+   ]
+  },
+  {
+   "index": 281,
+   "n": 1,
+   "members": [
+    "src/TOOLS/__init__.py"
+   ]
+  },
+  {
+   "index": 282,
+   "n": 1,
+   "members": [
+    "src/TOOLS/archive_system.py"
+   ]
+  },
+  {
+   "index": 283,
+   "n": 1,
+   "members": [
+    "src/TOOLS/debug_runner.py"
+   ]
+  },
+  {
+   "index": 284,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/AzazaelDynamicLogger.py"
+   ]
+  },
+  {
+   "index": 285,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/KLINK/__init__.py"
+   ]
+  },
+  {
+   "index": 286,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/KLINK/klink.py"
+   ]
+  },
+  {
+   "index": 287,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/Loggers/__init__.py"
+   ]
+  },
+  {
+   "index": 288,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/bin/__init__.py"
+   ]
+  },
+  {
+   "index": 289,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py"
+   ]
+  },
+  {
+   "index": 290,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py"
+   ]
+  },
+  {
+   "index": 291,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/lib/environment.py"
+   ]
+  },
+  {
+   "index": 292,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/lib/path_manager.py"
+   ]
+  },
+  {
+   "index": 293,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/lib/sync_manager.py"
+   ]
+  },
+  {
+   "index": 294,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/persephone.py"
+   ]
+  },
+  {
+   "index": 295,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/PERSEPHONE/version.py"
+   ]
+  },
+  {
+   "index": 296,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/POINDEXTER/POINDEXTER.py"
+   ]
+  },
+  {
+   "index": 297,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/POINDEXTER/__init__.py"
+   ]
+  },
+  {
+   "index": 298,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/TARBABY/__init__.py"
+   ]
+  },
+  {
+   "index": 299,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/TARBABY/tarbaby_enhanced.py"
+   ]
+  },
+  {
+   "index": 300,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/TERENCE/TERENCE.py"
+   ]
+  },
+  {
+   "index": 301,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/TERENCE/__init__.py"
+   ]
+  },
+  {
+   "index": 302,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/TERENCE/terence_enhanced.py"
+   ]
+  },
+  {
+   "index": 303,
+   "n": 1,
+   "members": [
+    "src/UTILITIES/__init__.py"
+   ]
+  },
+  {
+   "index": 304,
+   "n": 1,
+   "members": [
+    "src/UVZ.py"
+   ]
+  },
+  {
+   "index": 305,
+   "n": 1,
+   "members": [
+    "src/__init__.py"
+   ]
+  },
+  {
+   "index": 306,
+   "n": 1,
+   "members": [
+    "src/azazael_pygame.py"
+   ]
+  },
+  {
+   "index": 307,
+   "n": 1,
+   "members": [
+    "src/chain_of_action.py"
+   ]
+  },
+  {
+   "index": 308,
+   "n": 1,
+   "members": [
+    "src/environment_manager.py"
+   ]
+  },
+  {
+   "index": 309,
+   "n": 1,
+   "members": [
+    "src/eve_unleashed/models/qwen35_ssm.py"
+   ]
+  },
+  {
+   "index": 310,
+   "n": 1,
+   "members": [
+    "src/math_certainty.py"
+   ]
+  },
+  {
+   "index": 311,
+   "n": 1,
+   "members": [
+    "src/persistent_memory.py"
+   ]
+  },
+  {
+   "index": 312,
+   "n": 1,
+   "members": [
+    "src/scripts/auto_sync.py"
+   ]
+  },
+  {
+   "index": 313,
+   "n": 1,
+   "members": [
+    "src/scripts/environ_updater.py"
+   ]
+  },
+  {
+   "index": 314,
+   "n": 1,
+   "members": [
+    "src/scripts/fix_bare_excepts.py"
+   ]
+  },
+  {
+   "index": 315,
+   "n": 1,
+   "members": [
+    "src/scripts/gated_edit.py"
+   ]
+  },
+  {
+   "index": 316,
+   "n": 1,
+   "members": [
+    "src/scripts/lsp_diagnosis.py"
+   ]
+  },
+  {
+   "index": 317,
+   "n": 1,
+   "members": [
+    "src/scripts/monitor_learning.py"
+   ]
+  },
+  {
+   "index": 318,
+   "n": 1,
+   "members": [
+    "src/scripts/parallel_compliance_scanner.py"
+   ]
+  },
+  {
+   "index": 319,
+   "n": 1,
+   "members": [
+    "src/scripts/run_test_generate_telemetry.py"
+   ]
+  },
+  {
+   "index": 320,
+   "n": 1,
+   "members": [
+    "src/scripts/sync_skills.py"
+   ]
+  },
+  {
+   "index": 321,
+   "n": 1,
+   "members": [
+    "src/scripts/test_auto_sync.py"
+   ]
+  },
+  {
+   "index": 322,
+   "n": 1,
+   "members": [
+    "src/scripts/test_generate_telemetry.py"
+   ]
+  },
+  {
+   "index": 323,
+   "n": 1,
+   "members": [
+    "src/scripts/test_rule_0zf_consistency.py"
+   ]
+  },
+  {
+   "index": 324,
+   "n": 1,
+   "members": [
+    "src/scripts/test_startup_step4_8.py"
+   ]
+  },
+  {
+   "index": 325,
+   "n": 1,
+   "members": [
+    "src/tests/__init__.py"
+   ]
+  },
+  {
+   "index": 326,
+   "n": 1,
+   "members": [
+    "src/update_docs_paths.py"
+   ]
+  }
+ ]
+}
