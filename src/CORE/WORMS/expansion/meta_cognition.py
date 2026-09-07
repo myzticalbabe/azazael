@@ -338,6 +338,13 @@ class MetaCognitionWorm:
 
         return adaptation
 
+    def get_confidence(self, worm_type: str) -> float:
+        """Overall confidence for a worm type (0.0-1.0, 0.5 = unknown)."""
+        try:
+            return float(self._confidence_models.get(worm_type, {}).get("overall", 0.5))
+        except (TypeError, ValueError, AttributeError):
+            return 0.5
+
     def _persist_adaptation(self, adaptation: dict) -> None:
         """Persist strategy adaptation to LocalMemoryStore."""
         store = self._get_store()
