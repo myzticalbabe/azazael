@@ -148,6 +148,29 @@ class DreamingModule:
 
     # -- DREAM Phase: Run offline simulations --------------------------
 
+    def _anchor_error_neighbors(self, scenarios: list[dict], limit: int = 5) -> list[dict]:
+        """Fetch chronological neighbors of sampled errors (stratified recall).
+
+        For each error in scenarios, pulls the next same-source event so the
+        miner sees genuine error->success adjacencies. Read-only, fails open.
+        """
+        anchored: list[dict] = list(scenarios)
+        try:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+            errors = [s for s in scenarios if s.get("severity") == "error"][:limit]
+            for err in errors:
+                nxt = store.query_memories(
+                    source=err.get("source"), limit=5, max_age_days=90,
+                )
+                for cand in nxt:
+                    if cand.get("timestamp", "") > err.get("timestamp", "") and cand not in anchored:
+                        anchored.append(cand)
+                        break
+        except Exception:
+            pass
+        return anchored
+
     def dream(self, num_episodes: int = 5,
               scenario_count: int = 20,
               creativity_factor: float = 0.3,
@@ -185,6 +208,7 @@ class DreamingModule:
                         self._scenario_memory,
                         min(scenario_count, len(self._scenario_memory)),
                     )
+                    scenarios = self._anchor_error_neighbors(scenarios)
 
             # Build state sequence from scenarios
             state_sequence = self._build_state_sequence(scenarios, creativity_factor)
