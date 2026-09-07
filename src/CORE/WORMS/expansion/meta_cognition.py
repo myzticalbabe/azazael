@@ -75,6 +75,11 @@ class MetaCognitionWorm:
 
     # Maps an active strategy to dreaming-loop parameter tuning so
     # recorded policy (adapt_strategy) steers real dream behavior.
+    # Minimum confidence a recommendation must carry before it flips the
+    # active strategy. Exploration suggestions (0.05-0.45 band) get recorded
+    # but cannot churn the strategy without stronger evidence.
+    ADOPT_CONFIDENCE = 0.5
+
     DREAM_STRATEGY_TUNING: dict[str, dict[str, Any]] = {
         "default": {},
         "conservative": {"num_episodes": 2, "scenario_count": 10, "creativity_factor": 0.15},
@@ -367,16 +372,27 @@ class MetaCognitionWorm:
         best_score = current_score
 
         if recommended and recommended != current_strategy and recommended in available_strategies:
-            # Policy channel: governed recommendation -- adopt it.
-            rec_score = max(scores.get(recommended, 0.5), confidence)
-            scores[recommended] = max(scores.get(recommended, 0.5), rec_score)
-            should_adapt = True
-            best_strategy = recommended
-            best_score = scores[recommended]
-            rationale = (
-                f"Apply recommended {recommended}: policy suggestion "
-                f"(confidence {confidence:.3f})"
-            )
+            # Policy channel: governed recommendation -- adopt only with real
+            # evidence (confidence >= ADOPT_CONFIDENCE). Low-confidence dream
+            # exploration suggestions are recorded but do NOT flip the active
+            # strategy, which prevents a random walk where each cycle adopts
+            # whichever strategy the latest dream happened to name.
+            if confidence >= self.ADOPT_CONFIDENCE:
+                rec_score = max(scores.get(recommended, 0.5), confidence)
+                scores[recommended] = max(scores.get(recommended, 0.5), rec_score)
+                should_adapt = True
+                best_strategy = recommended
+                best_score = scores[recommended]
+                rationale = (
+                    f"Apply recommended {recommended}: policy suggestion "
+                    f"(confidence {confidence:.3f})"
+                )
+            else:
+                rationale = (
+                    f"Hold {current_strategy}: recommendation for "
+                    f"{recommended} below adoption bar "
+                    f"(confidence {confidence:.3f} < {self.ADOPT_CONFIDENCE})"
+                )
         else:
             # Observation channel: 15% improvement threshold.
             best_strategy = max(scores, key=scores.get)
