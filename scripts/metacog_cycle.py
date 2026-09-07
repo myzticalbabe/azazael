@@ -34,19 +34,29 @@ for r in recent:
 
 adapted = None
 adapted_worm = None
+evidence = None
 if fed:
     for wt in seen:
         mc.analyze_patterns(worm_type=wt)
     worst = max(seen, key=lambda w: seen[w]['err'] / max(1, seen[w]['err'] + seen[w]['ok']))
-    if seen[worst]['err']:
-        adapted_worm = worst
+    adapted_worm = worst
+    # Real-outcome evidence channel: analyze_patterns builds a confidence
+    # model from observed cluster outcomes; recommend_from_evidence turns it
+    # into a strategy recommendation whose confidence clears the
+    # ADOPT_CONFIDENCE bar only when the evidence is strong.
+    rec = mc.recommend_from_evidence(worst)
+    evidence = rec.get('evidence')
+    if rec.get('recommended'):
         # Full strategy space so metacog can recommend any strategy the
-        # dreamer/bridge can apply. current 'default' marker resolves to the
-        # tracked strategy when one exists (see adapt_strategy).
+        # dreamer/bridge can apply. Target 'global' -- the worm the dream
+        # pipeline actually steers -- so a metacog-driven switch reaches
+        # the dreamer instead of only recording per-cluster scores.
         adapted = mc.adapt_strategy(
-            worst, 'default',
+            'global', 'default',
             available_strategies=['default', 'conservative', 'defensive',
-                                  'aggressive', 'adaptive', 'batched', 'staged'])
+                                  'aggressive', 'adaptive', 'batched', 'staged'],
+            recommended=rec['recommended'],
+            confidence=rec['confidence'])
 
 # Persist learned state (confidence models, observations, any strategy
 # switch) so the next cycle resumes instead of restarting from empty.
@@ -60,7 +70,8 @@ if store is not None:
         store.record_event(source='MetaCognitionWorm', event_type='mc_cycle',
                            data={'fed': fed, 'worm': adapted_worm,
                                  'adapted': bool(adapted and adapted.get('should_adapt')),
-                                 'recommendation': (adapted or {}).get('recommended_strategy', 'none')},
+                                 'recommendation': (adapted or {}).get('recommended_strategy', 'none'),
+                                 'evidence': evidence},
                            severity='info', tags=['metacognition', 'cycle'])
     except Exception as e:
         print('cycle record failed:', e)
