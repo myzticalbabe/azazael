@@ -28,11 +28,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="dreaming.py" />
           <attvalue for="4" value="module" />
-          <attvalue for="5" value="0.2769" />
-          <attvalue for="6" value="0.4624" />
+          <attvalue for="5" value="0.2939" />
+          <attvalue for="6" value="0.5002" />
           <attvalue for="7" value="0.4921" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="meta_cognition" label="meta_cognition.py">
@@ -42,11 +42,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="meta_cognition.py" />
           <attvalue for="4" value="module" />
-          <attvalue for="5" value="0.2998" />
-          <attvalue for="6" value="0.4879" />
+          <attvalue for="5" value="0.3197" />
+          <attvalue for="6" value="0.5119" />
           <attvalue for="7" value="0.5167" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="learning" label="learning.py">
@@ -57,7 +57,7 @@
           <attvalue for="3" value="learning.py" />
           <attvalue for="4" value="module" />
           <attvalue for="5" value="0.3889" />
-          <attvalue for="6" value="0.0511" />
+          <attvalue for="6" value="0.0746" />
           <attvalue for="7" value="0.4306" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="2" />
@@ -71,7 +71,7 @@
           <attvalue for="3" value="evolution.py" />
           <attvalue for="4" value="module" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0022" />
+          <attvalue for="6" value="0.0039" />
           <attvalue for="7" value="0.252" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="1" />
@@ -85,7 +85,7 @@
           <attvalue for="3" value="dream_policy_bridge.py" />
           <attvalue for="4" value="module" />
           <attvalue for="5" value="0.028" />
-          <attvalue for="6" value="0.1728" />
+          <attvalue for="6" value="0.2043" />
           <attvalue for="7" value="0.3827" />
           <attvalue for="8" value="2" />
           <attvalue for="9" value="2" />
@@ -98,8 +98,8 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="local_memory.py" />
           <attvalue for="4" value="module" />
-          <attvalue for="5" value="0.3826" />
-          <attvalue for="6" value="0.2128" />
+          <attvalue for="5" value="0.3846" />
+          <attvalue for="6" value="0.2624" />
           <attvalue for="7" value="0.5254" />
           <attvalue for="8" value="3" />
           <attvalue for="9" value="2" />
@@ -112,8 +112,8 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="monitor_learning.py" />
           <attvalue for="4" value="module" />
-          <attvalue for="5" value="0.1677" />
-          <attvalue for="6" value="0.0934" />
+          <attvalue for="5" value="0.1681" />
+          <attvalue for="6" value="0.1315" />
           <attvalue for="7" value="0.4189" />
           <attvalue for="8" value="2" />
           <attvalue for="9" value="2" />
@@ -127,7 +127,7 @@
           <attvalue for="3" value="dream_cycle.py" />
           <attvalue for="4" value="module" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0802" />
+          <attvalue for="6" value="0.095" />
           <attvalue for="7" value="0.3333" />
           <attvalue for="8" value="0" />
           <attvalue for="9" value="1" />
@@ -140,8 +140,8 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="metacog_cycle.py" />
           <attvalue for="4" value="module" />
-          <attvalue for="5" value="0.1541" />
-          <attvalue for="6" value="0.1324" />
+          <attvalue for="5" value="0.1538" />
+          <attvalue for="6" value="0.1638" />
           <attvalue for="7" value="0.4306" />
           <attvalue for="8" value="3" />
           <attvalue for="9" value="2" />
@@ -155,7 +155,7 @@
           <attvalue for="3" value="evolution_cycle.py" />
           <attvalue for="4" value="module" />
           <attvalue for="5" value="0.0774" />
-          <attvalue for="6" value="0.0124" />
+          <attvalue for="6" value="0.0204" />
           <attvalue for="7" value="0.3333" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="2" />
@@ -169,7 +169,7 @@
           <attvalue for="3" value="CLUSTERWORMS.py" />
           <attvalue for="4" value="external" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0041" />
+          <attvalue for="6" value="0.0061" />
           <attvalue for="7" value="0.2385" />
           <attvalue for="8" value="3" />
           <attvalue for="9" value="1" />
@@ -179,11 +179,11 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="710" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="dream_generated" />
           <attvalue for="4" value="event" />
-          <attvalue for="5" value="0.0201" />
-          <attvalue for="6" value="0.0964" />
+          <attvalue for="5" value="0.0203" />
+          <attvalue for="6" value="0.12" />
           <attvalue for="7" value="0.3827" />
           <attvalue for="8" value="2" />
           <attvalue for="9" value="2" />
@@ -193,25 +193,25 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="15" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="strategy_steered" />
           <attvalue for="4" value="event" />
-          <attvalue for="5" value="0.0005" />
-          <attvalue for="6" value="0.164" />
-          <attvalue for="7" value="0.3444" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.095" />
+          <attvalue for="7" value="0.3333" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="1" />
         </attvalues>
       </node>
       <node id="ev_policy" label="policy_applied">
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="66" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="policy_applied" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.009" />
-          <attvalue for="6" value="0.0462" />
+          <attvalue for="6" value="0.0638" />
           <attvalue for="7" value="0.3444" />
           <attvalue for="8" value="2" />
           <attvalue for="9" value="2" />
@@ -221,25 +221,25 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="67" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="strategy_adaptation" />
           <attvalue for="4" value="event" />
-          <attvalue for="5" value="0.007" />
-          <attvalue for="6" value="0.2794" />
-          <attvalue for="7" value="0.369" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0972" />
+          <attvalue for="7" value="0.3444" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="1" />
         </attvalues>
       </node>
       <node id="ev_state" label="state_saved">
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="49" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="state_saved" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.0158" />
-          <attvalue for="6" value="0.1008" />
+          <attvalue for="6" value="0.1222" />
           <attvalue for="7" value="0.3924" />
           <attvalue for="8" value="2" />
           <attvalue for="9" value="2" />
@@ -249,11 +249,11 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="5" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="mc_cycle" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.0124" />
-          <attvalue for="6" value="0.0392" />
+          <attvalue for="6" value="0.0561" />
           <attvalue for="7" value="0.3483" />
           <attvalue for="8" value="3" />
           <attvalue for="9" value="2" />
@@ -263,11 +263,11 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="3" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="evolution_result" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.0229" />
-          <attvalue for="6" value="0.0184" />
+          <attvalue for="6" value="0.0288" />
           <attvalue for="7" value="0.3298" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="2" />
@@ -277,11 +277,11 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="205" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="training_complete" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.0258" />
-          <attvalue for="6" value="0.0251" />
+          <attvalue for="6" value="0.0391" />
           <attvalue for="7" value="0.3444" />
           <attvalue for="8" value="2" />
           <attvalue for="9" value="2" />
@@ -291,11 +291,11 @@
         <attvalues>
           <attvalue for="0" value="event" />
           <attvalue for="1" value="" />
-          <attvalue for="2" value="210" />
+          <attvalue for="2" value="0" />
           <attvalue for="3" value="q_table_persisted" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0089" />
+          <attvalue for="6" value="0.0142" />
           <attvalue for="7" value="0.3039" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="1" />
@@ -309,7 +309,7 @@
           <attvalue for="3" value="clusterwormz_execute_complete" />
           <attvalue for="4" value="event" />
           <attvalue for="5" value="0.0645" />
-          <attvalue for="6" value="0.0237" />
+          <attvalue for="6" value="0.0323" />
           <attvalue for="7" value="0.31" />
           <attvalue for="8" value="3" />
           <attvalue for="9" value="1" />
@@ -323,7 +323,7 @@
           <attvalue for="3" value="default" />
           <attvalue for="4" value="strategy" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.1648" />
+          <attvalue for="6" value="0.1922" />
           <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
           <attvalue for="9" value="2" />
@@ -336,11 +336,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="conservative" />
           <attvalue for="4" value="strategy" />
-          <attvalue for="5" value="0.0056" />
-          <attvalue for="6" value="0.2417" />
-          <attvalue for="7" value="0.369" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1922" />
+          <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="st_defensive" label="defensive">
@@ -351,7 +351,7 @@
           <attvalue for="3" value="defensive" />
           <attvalue for="4" value="strategy" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.1648" />
+          <attvalue for="6" value="0.1922" />
           <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
           <attvalue for="9" value="2" />
@@ -364,11 +364,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="aggressive" />
           <attvalue for="4" value="strategy" />
-          <attvalue for="5" value="0.0056" />
-          <attvalue for="6" value="0.2417" />
-          <attvalue for="7" value="0.369" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1922" />
+          <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="st_adaptive" label="adaptive">
@@ -378,11 +378,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="adaptive" />
           <attvalue for="4" value="strategy" />
-          <attvalue for="5" value="0.0011" />
-          <attvalue for="6" value="0.2132" />
-          <attvalue for="7" value="0.3647" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1922" />
+          <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="st_batched" label="batched">
@@ -392,11 +392,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="batched" />
           <attvalue for="4" value="strategy" />
-          <attvalue for="5" value="0.0011" />
-          <attvalue for="6" value="0.2132" />
-          <attvalue for="7" value="0.3647" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1922" />
+          <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="st_staged" label="staged">
@@ -406,11 +406,11 @@
           <attvalue for="2" value="0" />
           <attvalue for="3" value="staged" />
           <attvalue for="4" value="strategy" />
-          <attvalue for="5" value="0.0011" />
-          <attvalue for="6" value="0.2132" />
-          <attvalue for="7" value="0.3647" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1922" />
+          <attvalue for="7" value="0.3605" />
           <attvalue for="8" value="0" />
-          <attvalue for="9" value="3" />
+          <attvalue for="9" value="2" />
         </attvalues>
       </node>
       <node id="ac_ignore" label="ignore">
@@ -421,7 +421,7 @@
           <attvalue for="3" value="ignore" />
           <attvalue for="4" value="action" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0089" />
+          <attvalue for="6" value="0.0142" />
           <attvalue for="7" value="0.3039" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="1" />
@@ -435,7 +435,7 @@
           <attvalue for="3" value="log" />
           <attvalue for="4" value="action" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0089" />
+          <attvalue for="6" value="0.0142" />
           <attvalue for="7" value="0.3039" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="1" />
@@ -449,7 +449,7 @@
           <attvalue for="3" value="alert" />
           <attvalue for="4" value="action" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0089" />
+          <attvalue for="6" value="0.0142" />
           <attvalue for="7" value="0.3039" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="1" />
@@ -463,7 +463,7 @@
           <attvalue for="3" value="remediate" />
           <attvalue for="4" value="action" />
           <attvalue for="5" value="0.0" />
-          <attvalue for="6" value="0.0089" />
+          <attvalue for="6" value="0.0142" />
           <attvalue for="7" value="0.3039" />
           <attvalue for="8" value="1" />
           <attvalue for="9" value="1" />
@@ -751,48 +751,6 @@
         <attvalues>
           <attvalue for="10" value="produces" />
           <attvalue for="11" value="produces" />
-        </attvalues>
-      </edge>
-      <edge source="ev_steered" target="st_conservative" id="47">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
-        </attvalues>
-      </edge>
-      <edge source="ev_steered" target="st_aggressive" id="48">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
-        </attvalues>
-      </edge>
-      <edge source="ev_adapt" target="st_aggressive" id="49">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
-        </attvalues>
-      </edge>
-      <edge source="ev_adapt" target="st_staged" id="50">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
-        </attvalues>
-      </edge>
-      <edge source="ev_adapt" target="st_batched" id="51">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
-        </attvalues>
-      </edge>
-      <edge source="ev_adapt" target="st_adaptive" id="52">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
-        </attvalues>
-      </edge>
-      <edge source="ev_adapt" target="st_conservative" id="53">
-        <attvalues>
-          <attvalue for="10" value="leads_to" />
-          <attvalue for="11" value="leads_to" />
         </attvalues>
       </edge>
     </edges>

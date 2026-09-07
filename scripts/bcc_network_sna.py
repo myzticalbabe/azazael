@@ -119,7 +119,19 @@ def merge_person_edges(G: nx.Graph, nodes: list, person_edges_path: str) -> list
 def analyze(G: nx.Graph, seed: int = 42) -> dict:
     deg = nx.degree_centrality(G)
     bet = nx.betweenness_centrality(G)
-    eig = nx.eigenvector_centrality(G, max_iter=1000)
+    try:
+        eig = nx.eigenvector_centrality(G, max_iter=1000)
+    except (nx.PowerIterationFailedConvergence, ZeroDivisionError):
+        # large / disconnected graphs can fail to converge; fall back to
+        # per-component eigenvector centrality (zero where undefined)
+        eig = {}
+        for comp in nx.connected_components(G):
+            sub = G.subgraph(comp)
+            try:
+                eig.update(nx.eigenvector_centrality(sub, max_iter=1000))
+            except (nx.PowerIterationFailedConvergence, ZeroDivisionError):
+                for n in comp:
+                    eig[n] = 0.0
     close = nx.closeness_centrality(G)
     comms = sorted(louvain_communities(G, seed=seed), key=len, reverse=True)
 
@@ -137,7 +149,7 @@ def analyze(G: nx.Graph, seed: int = 42) -> dict:
     # disconnected-safe diameter / path stats (largest component only)
     components = sorted(nx.connected_components(G), key=len, reverse=True)
     giant = G.subgraph(components[0]) if components else G
-    diam = nx.diameter(giant)
+    diam = nx.diameter(giant) if giant.number_of_nodes() > 1 else 0
     avg_path = round(nx.average_shortest_path_length(giant), 3) if giant.number_of_nodes() > 1 else 0.0
     return {
         "network": {
