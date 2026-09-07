@@ -36,11 +36,15 @@ STANDALONE_OK = [
     "test_binary_analysis_tools.py",    # 28 tests (2s)
     "test_memorybus.py",                # 32 tests (2s)
     "test_pool.py",                     # 19 tests (2s)
+    "test_verify_head_hash_normalization.py",  # 3 tests (<1s, anchor path normalization)
     "test_worm_imports.py",             # 14 tests (3s)
     "test_cluster_worms.py",            # 5 tests (3s)
     "test_clusterworms_unit.py",        # 39 tests (30s, worm execution)
     "test_config_and_breaker.py",       # 36 tests (90s, config + breaker integration)
-    "test_nature_clusters_unit.py",     # 27 tests (120s, nature cluster execution)
+    "test_nature_clusters_unit.py",     # 37 tests (120s, nature cluster execution)
+    "test_worm_registry_integration.py", # 10 tests (10s, real worm registry end-to-end, no mocks)
+    "test_worm_execute_all_integration.py", # 5 tests (15s, real worms through ClusterWORMZ.execute_all, no mocks)
+    "test_worm_governance_integration.py",  # 6 tests (5s, real worm-governance audit path, no mocks)
     "test_ncm_integration.py",          # 8 tests (60s, full NCM discovery workflow)
     "test_logging.py",                  # 12 tests (2s, structured JSON logging)
     "test_metrics.py",                  # 19 tests (2s, metrics, health, drift)
@@ -50,6 +54,8 @@ STANDALONE_OK = [
     "test_health_server.py",              # 16+ tests (5s, health endpoint JSON, server lifecycle)
     "test_cli_observability.py",           # 11 tests (30s, cli_observability subprocess tests)
     "test_dashboard_filters.py",          # 19 tests (2s, _parse_since, since-filtered get_report)
+    "test_collectors_roundtrip.py",       # 9 tests (<1s, config/dashboard/sync-manifest round-trips)
+    "test_paths_targets.py",              # 18 tests (<1s, get_*_targets canonical-name + cache semantics)
     "test_scheduling.py",                  # 20+ tests (10s, ScheduledTrainingWorm execute, scheduler, config)
     "test_web_dashboard.py",               # 20+ tests (5s, web dashboard, HTML export, notifier, CLI export)
 ]
@@ -66,6 +72,9 @@ TIMEOUT_OVERRIDES = {
     "test_nature_clusters_unit.py": 360,   # 6 min for nature cluster execution
     "test_config_and_breaker.py": 180,     # 3 min for config + breaker tests
     "test_clusterworms_unit.py": 120,      # 2 min for worm execution integration
+    "test_worm_registry_integration.py": 120,  # 2 min: cold-cache full real discovery (~45s) or cache-backed (~3s)
+    "test_worm_execute_all_integration.py": 180,  # 3 min: real discovery + sequential/parallel execute_all
+    "test_worm_governance_integration.py": 120,  # 2 min: cold-cache full real discovery or cache-backed
 }
 
 
