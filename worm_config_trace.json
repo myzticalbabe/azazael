@@ -1,0 +1,803 @@
+{
+  "total": 91,
+  "categories": [
+    {
+      "name": "analysis",
+      "count": 11
+    },
+    {
+      "name": "backup",
+      "count": 5
+    },
+    {
+      "name": "communication",
+      "count": 5
+    },
+    {
+      "name": "config",
+      "count": 5
+    },
+    {
+      "name": "container",
+      "count": 5
+    },
+    {
+      "name": "diagnostic",
+      "count": 5
+    },
+    {
+      "name": "learning",
+      "count": 8
+    },
+    {
+      "name": "migration",
+      "count": 5
+    },
+    {
+      "name": "ml",
+      "count": 2
+    },
+    {
+      "name": "monitor",
+      "count": 7
+    },
+    {
+      "name": "orchestration",
+      "count": 6
+    },
+    {
+      "name": "profiling",
+      "count": 5
+    },
+    {
+      "name": "security",
+      "count": 6
+    },
+    {
+      "name": "sync",
+      "count": 1
+    },
+    {
+      "name": "telemetry",
+      "count": 5
+    },
+    {
+      "name": "utility",
+      "count": 5
+    },
+    {
+      "name": "visualization",
+      "count": 5
+    }
+  ],
+  "worms": [
+    {
+      "name": "ABTestRunner",
+      "category": "learning",
+      "priority": 4,
+      "cooldown": 120.0,
+      "version": "2.0.0",
+      "source": "learning_grpo.py"
+    },
+    {
+      "name": "AlertEscalator",
+      "category": "telemetry",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "telemetry.py"
+    },
+    {
+      "name": "BinaryAnalysis",
+      "category": "analysis",
+      "priority": 6,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "BINARY_ANALYSIS.py"
+    },
+    {
+      "name": "CLOCKZ",
+      "category": "sync",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "CLOCKZ.py"
+    },
+    {
+      "name": "CPUFlameProfiler",
+      "category": "profiling",
+      "priority": 6,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "profiling.py"
+    },
+    {
+      "name": "CainAnalyzerWorm",
+      "category": "analysis",
+      "priority": 5,
+      "cooldown": 120,
+      "version": "1.0.0",
+      "source": "CODEX_TOOLS.py"
+    },
+    {
+      "name": "CainWorm",
+      "category": "analysis",
+      "priority": 6,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "CAIN_WORM.py"
+    },
+    {
+      "name": "CertMonitor",
+      "category": "security",
+      "priority": 6,
+      "cooldown": 120.0,
+      "version": "1.0.0",
+      "source": "security.py"
+    },
+    {
+      "name": "CheckpointWorm",
+      "category": "backup",
+      "priority": 6,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "backup.py"
+    },
+    {
+      "name": "ClusterInspector",
+      "category": "analysis",
+      "priority": 5,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "CLUSTER_INSPECTOR.py"
+    },
+    {
+      "name": "ClusterWORMZ",
+      "category": "orchestration",
+      "priority": 8,
+      "cooldown": 20.0,
+      "version": "2.2.0",
+      "source": "CLUSTERWORMS.py"
+    },
+    {
+      "name": "CodeMigrator",
+      "category": "migration",
+      "priority": 6,
+      "cooldown": 120.0,
+      "version": "1.0.0",
+      "source": "migration.py"
+    },
+    {
+      "name": "CodeProfiler",
+      "category": "profiling",
+      "priority": 7,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "profiling.py"
+    },
+    {
+      "name": "ColdArchivist",
+      "category": "backup",
+      "priority": 4,
+      "cooldown": 300.0,
+      "version": "1.0.0",
+      "source": "backup.py"
+    },
+    {
+      "name": "ComposeValidator",
+      "category": "container",
+      "priority": 5,
+      "cooldown": 120.0,
+      "version": "1.0.0",
+      "source": "container.py"
+    },
+    {
+      "name": "ConcurrencyManager",
+      "category": "orchestration",
+      "priority": 7,
+      "cooldown": 20.0,
+      "version": "1.0.0",
+      "source": "CONCURRENCY.py"
+    },
+    {
+      "name": "ConfigLinter",
+      "category": "config",
+      "priority": 5,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "config.py"
+    },
+    {
+      "name": "ContainerOrch",
+      "category": "container",
+      "priority": 6,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "container.py"
+    },
+    {
+      "name": "DEPENDZ",
+      "category": "analysis",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "2.2.0",
+      "source": "DEPENDZ.py"
+    },
+    {
+      "name": "DISKZ",
+      "category": "monitor",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "DISKZ.py"
+    },
+    {
+      "name": "DashboardGen",
+      "category": "visualization",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "visualization.py"
+    },
+    {
+      "name": "DataPipelineWorm",
+      "category": "utility",
+      "priority": 3,
+      "cooldown": 30.0,
+      "version": "2.0.0",
+      "source": "learning.py"
+    },
+    {
+      "name": "DatabaseMonitorWorm",
+      "category": "monitor",
+      "priority": 6,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "db_monitor.py"
+    },
+    {
+      "name": "DeadLetterQueue",
+      "category": "utility",
+      "priority": 3,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "dead_letter_queue.py"
+    },
+    {
+      "name": "DepUpgrader",
+      "category": "migration",
+      "priority": 5,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "migration.py"
+    },
+    {
+      "name": "DiagnosticWorm",
+      "category": "diagnostic",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "0.0.0",
+      "source": "DIAGNOSTIC_WORM.py"
+    },
+    {
+      "name": "DotfileSync",
+      "category": "config",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "config.py"
+    },
+    {
+      "name": "DreamingModule",
+      "category": "learning",
+      "priority": 5,
+      "cooldown": 180.0,
+      "version": "1.0.0",
+      "source": "dreaming.py"
+    },
+    {
+      "name": "EnvValidator",
+      "category": "config",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "config.py"
+    },
+    {
+      "name": "ErrorRecoveryOrchestrator",
+      "category": "orchestration",
+      "priority": 9,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "error_recovery.py"
+    },
+    {
+      "name": "EventRouter",
+      "category": "telemetry",
+      "priority": 6,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "telemetry.py"
+    },
+    {
+      "name": "EvolutionEngine",
+      "category": "learning",
+      "priority": 6,
+      "cooldown": 120.0,
+      "version": "1.0.0",
+      "source": "evolution.py"
+    },
+    {
+      "name": "FastErrorScanner",
+      "category": "diagnostic",
+      "priority": 4,
+      "cooldown": 45.0,
+      "version": "0.0.0",
+      "source": "ERROR_SCAN_WORM.py"
+    },
+    {
+      "name": "FeatureFlagCtrl",
+      "category": "config",
+      "priority": 4,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "config.py"
+    },
+    {
+      "name": "FirewallAudit",
+      "category": "security",
+      "priority": 5,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "security.py"
+    },
+    {
+      "name": "GILContentionProbe",
+      "category": "profiling",
+      "priority": 7,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "profiling.py"
+    },
+    {
+      "name": "GeneticOptimizer",
+      "category": "learning",
+      "priority": 5,
+      "cooldown": 180.0,
+      "version": "1.0.0",
+      "source": "evolution.py"
+    },
+    {
+      "name": "GraphRenderer",
+      "category": "visualization",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "visualization.py"
+    },
+    {
+      "name": "HeatmapBuilder",
+      "category": "visualization",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "visualization.py"
+    },
+    {
+      "name": "HypnagogicSynthesizer",
+      "category": "learning",
+      "priority": 4,
+      "cooldown": 300.0,
+      "version": "1.0.0",
+      "source": "dreaming.py"
+    },
+    {
+      "name": "IOBottleneckFinder",
+      "category": "profiling",
+      "priority": 6,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "profiling.py"
+    },
+    {
+      "name": "IPCBridge",
+      "category": "communication",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "communication.py"
+    },
+    {
+      "name": "ImageAuditor",
+      "category": "container",
+      "priority": 5,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "container.py"
+    },
+    {
+      "name": "ImportPathFixWorm",
+      "category": "migration",
+      "priority": 4,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "migration.py"
+    },
+    {
+      "name": "IncrementalBackupWorm",
+      "category": "backup",
+      "priority": 6,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "backup.py"
+    },
+    {
+      "name": "InferenceSubscriberWorm",
+      "category": "analysis",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "INFERENCE_SUBSCRIBER.py"
+    },
+    {
+      "name": "InferenceWorm",
+      "category": "analysis",
+      "priority": 7,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "INFERENCE_WORM.py"
+    },
+    {
+      "name": "LegacyShimGen",
+      "category": "migration",
+      "priority": 3,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "migration.py"
+    },
+    {
+      "name": "LogStreamer",
+      "category": "telemetry",
+      "priority": 5,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "telemetry.py"
+    },
+    {
+      "name": "METAZ",
+      "category": "analysis",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "2.0.0",
+      "source": "METAZ.py"
+    },
+    {
+      "name": "MemoryLeakDetector",
+      "category": "profiling",
+      "priority": 6,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "profiling.py"
+    },
+    {
+      "name": "MessageBroker",
+      "category": "communication",
+      "priority": 7,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "communication.py"
+    },
+    {
+      "name": "MetaCluster",
+      "category": "orchestration",
+      "priority": 10,
+      "cooldown": 5.0,
+      "version": "1.0.0",
+      "source": "METACLUSTER.py"
+    },
+    {
+      "name": "MetaCognitionWorm",
+      "category": "learning",
+      "priority": 7,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "meta_cognition.py"
+    },
+    {
+      "name": "MetricAggregator",
+      "category": "telemetry",
+      "priority": 6,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "telemetry.py"
+    },
+    {
+      "name": "MorphingWorm",
+      "category": "utility",
+      "priority": 3,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "MORPHING_WORM.py"
+    },
+    {
+      "name": "MorphingWormV2",
+      "category": "diagnostic",
+      "priority": 4,
+      "cooldown": 45.0,
+      "version": "2.0.0",
+      "source": "MORPHING_WORM_V2.py"
+    },
+    {
+      "name": "NETWORXZ",
+      "category": "monitor",
+      "priority": 7,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "NETWORXZ.py"
+    },
+    {
+      "name": "NatureClusterManager",
+      "category": "orchestration",
+      "priority": 9,
+      "cooldown": 10.0,
+      "version": "1.0.0",
+      "source": "NATURE_CLUSTERS.py"
+    },
+    {
+      "name": "NetworkDiag",
+      "category": "diagnostic",
+      "priority": 7,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "NETWORK_DIAG.py"
+    },
+    {
+      "name": "NimInferenceWorm",
+      "category": "analysis",
+      "priority": 6,
+      "cooldown": 30.0,
+      "version": "1.2.0",
+      "source": "NIM_INFERENCE.py"
+    },
+    {
+      "name": "OMNIV2",
+      "category": "utility",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "2.0.0",
+      "source": "OMNI_WORM_V2.py"
+    },
+    {
+      "name": "PROCESSZ",
+      "category": "monitor",
+      "priority": 7,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "PROCESSZ.py"
+    },
+    {
+      "name": "ParallelInferenceWorm",
+      "category": "analysis",
+      "priority": 8,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "PARALLEL_INFERENCE_WORM.py"
+    },
+    {
+      "name": "PermissionScanner",
+      "category": "security",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "security.py"
+    },
+    {
+      "name": "PortAuditor",
+      "category": "security",
+      "priority": 7,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "security.py"
+    },
+    {
+      "name": "ProtocolNegotiator",
+      "category": "communication",
+      "priority": 4,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "communication.py"
+    },
+    {
+      "name": "RPCEndpoint",
+      "category": "communication",
+      "priority": 6,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "communication.py"
+    },
+    {
+      "name": "RaceConditionDetector",
+      "category": "security",
+      "priority": 9,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "race_detector.py"
+    },
+    {
+      "name": "RecoveryTester",
+      "category": "backup",
+      "priority": 5,
+      "cooldown": 180.0,
+      "version": "1.0.0",
+      "source": "backup.py"
+    },
+    {
+      "name": "RegistryPoller",
+      "category": "container",
+      "priority": 4,
+      "cooldown": 180.0,
+      "version": "1.0.0",
+      "source": "container.py"
+    },
+    {
+      "name": "ReportCompiler",
+      "category": "visualization",
+      "priority": 4,
+      "cooldown": 90.0,
+      "version": "1.0.0",
+      "source": "visualization.py"
+    },
+    {
+      "name": "ResourceQuotaWatch",
+      "category": "container",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "container.py"
+    },
+    {
+      "name": "ReverseTools",
+      "category": "analysis",
+      "priority": 6,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "REVERSE_TOOLS.py"
+    },
+    {
+      "name": "SMARTDISK",
+      "category": "monitor",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "SMARTDISK.py"
+    },
+    {
+      "name": "SYSTEMZ_ML",
+      "category": "ml",
+      "priority": 6,
+      "cooldown": 45.0,
+      "version": "1.0.0",
+      "source": "SYSTEMZ_ML.py"
+    },
+    {
+      "name": "ScheduledDbMonitorWorm",
+      "category": "monitor",
+      "priority": 6,
+      "cooldown": 120.0,
+      "version": "1.0.0",
+      "source": "scheduling.py"
+    },
+    {
+      "name": "ScheduledTrainingWorm",
+      "category": "learning",
+      "priority": 4,
+      "cooldown": 300.0,
+      "version": "1.0.0",
+      "source": "scheduling.py"
+    },
+    {
+      "name": "SchemaVersioner",
+      "category": "migration",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "migration.py"
+    },
+    {
+      "name": "SecretRotator",
+      "category": "config",
+      "priority": 6,
+      "cooldown": 120.0,
+      "version": "1.0.0",
+      "source": "config.py"
+    },
+    {
+      "name": "SpanTracer",
+      "category": "telemetry",
+      "priority": 7,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "telemetry.py"
+    },
+    {
+      "name": "StateSnapshotter",
+      "category": "backup",
+      "priority": 7,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "backup.py"
+    },
+    {
+      "name": "SystemZ",
+      "category": "monitor",
+      "priority": 8,
+      "cooldown": 15.0,
+      "version": "1.0.0",
+      "source": "SYSTEMZ.py"
+    },
+    {
+      "name": "TimelineViz",
+      "category": "visualization",
+      "priority": 4,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "visualization.py"
+    },
+    {
+      "name": "TrainingOrchestrator",
+      "category": "learning",
+      "priority": 5,
+      "cooldown": 300.0,
+      "version": "1.0.0",
+      "source": "scheduling.py"
+    },
+    {
+      "name": "VideoAnalyzerWorm",
+      "category": "diagnostic",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "VIDEO_ANALYZER_WORM.py"
+    },
+    {
+      "name": "VulnScanner",
+      "category": "security",
+      "priority": 8,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "security.py"
+    },
+    {
+      "name": "WORMZ",
+      "category": "utility",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "WORMZ.py"
+    },
+    {
+      "name": "WORMZ_ML",
+      "category": "ml",
+      "priority": 5,
+      "cooldown": 60.0,
+      "version": "1.0.0",
+      "source": "WORMZ_ML.py"
+    },
+    {
+      "name": "WebhookRelay",
+      "category": "communication",
+      "priority": 5,
+      "cooldown": 30.0,
+      "version": "1.0.0",
+      "source": "communication.py"
+    },
+    {
+      "name": "WormFleet",
+      "category": "orchestration",
+      "priority": 6,
+      "cooldown": 30.0,
+      "version": "0.0.0",
+      "source": "WORM_FLEET.py"
+    }
+  ]
+}

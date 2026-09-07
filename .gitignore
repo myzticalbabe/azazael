@@ -90,4 +90,24 @@ session_log*.txt
 output/
 skills.win-backup/
 graphify-out/
+
+# Rust/cargo build output (regenerable)
+native/*/target/
+target/
+
+# Diagnostic dumps (regenerable, keep on disk)
+pyright_*.txt
+_pyright_*.txt
+_mypy_*.txt
+pyright_output.json
+pyright_full*.txt
+pyright_errs*.txt
+pyright_now.txt
+_debug_*.json
+_benchmark_*.json
+_e2e_*.json
+_all_providers_*.json
+_instruct_*.json
+_eca_*.json
+session_log*.txt
 nul

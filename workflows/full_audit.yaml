@@ -1,0 +1,24 @@
+# Full Audit — Conditional Workflow
+# Runs all natures with conditional defense escalation on security failures
+description: "Complete ecosystem audit with adaptive defense escalation"
+steps:
+  - natures: ["monitor", "profiling", "security", "telemetry"]
+    label: "scan"
+  - natures: ["defense", "diagnostic"]
+    label: "defense_check"
+    condition:
+      security:
+        failure_count:
+          gt: 0
+    on_match: "deep_remediation"
+  - natures: ["config", "backup", "container"]
+    label: "infra"
+  - natures: ["communication", "migration"]
+    label: "devops"
+  - natures: ["learning", "ml", "analysis", "visualization"]
+    label: "data"
+  - natures: ["sync"]
+    label: "finalize"
+  - natures: []
+    label: "deep_remediation"
+    description: "Full remediation — defense + diagnostic + analysis"

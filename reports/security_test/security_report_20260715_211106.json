@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-07-15T21:11:06.959888+00:00",
+  "workflow": "security_scan_fix",
+  "security": {
+    "worm_scan": [
+      {
+        "source": "Worm Security Scan",
+        "worms_ok": 5,
+        "worms_fail": 0,
+        "duration_ms": 120
+      },
+      {
+        "source": "VulnScanner",
+        "scanned_deps": 0,
+        "vulnerabilities_found": 0,
+        "findings": []
+      }
+    ],
+    "port_audit": {
+      "exposed_services": 0,
+      "findings": []
+    }
+  },
+  "compliance": {
+    "total_files": 173,
+    "total_findings": 366,
+    "files_with_findings": 96,
+    "findings_by_category": {
+      "import_inside_function": 311,
+      "unicode_emoji": 25,
+      "hardcoded_win_path": 17,
+      "fstring_backslash": 1,
+      "os_system": 4,
+      "t_string": 8
+    },
+    "compliance_score": 0
+  },
+  "summary": {
+    "total_issues": 366,
+    "verdict": "ISSUES FOUND"
+  }
+}
