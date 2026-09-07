@@ -1,0 +1,125 @@
+graph TD
+    classDef module fill:#1a3a1a,stroke:#00ff88,color:#00ff88
+    classDef external fill:#3a3a1a,stroke:#ffd700,color:#ffd700
+    classDef event fill:#1a1a3a,stroke:#4488ff,color:#4488ff
+    classDef strategy fill:#3a1a1a,stroke:#ff8844,color:#ff8844
+    classDef action fill:#2a1a3a,stroke:#aa66ff,color:#aa66ff
+    subgraph MODULES[MODULE]
+      dreaming["dreaming.py"]
+      meta_cognition["meta_cognition.py"]
+      learning["learning.py"]
+      evolution["evolution.py"]
+      bridge["dream_policy_bridge.py"]
+      local_memory["local_memory.py"]
+      monitor["monitor_learning.py"]
+      dream_cycle["dream_cycle.py"]
+      metacog_cycle["metacog_cycle.py"]
+      evolution_cycle["evolution_cycle.py"]
+    end
+      CLUSTERWORMS["CLUSTERWORMS.py"]
+    subgraph EVENTS[EVENT]
+      ev_dream["dream_generated (710)"]
+      ev_steered["strategy_steered (15)"]
+      ev_policy["policy_applied (66)"]
+      ev_adapt["strategy_adaptation (67)"]
+      ev_state["state_saved (49)"]
+      ev_mccycle["mc_cycle (5)"]
+      ev_evoresult["evolution_result (3)"]
+      ev_train["training_complete (205)"]
+      ev_qtbl["q_table_persisted (210)"]
+      ev_cluster["clusterwormz_execute_complete"]
+    end
+    subgraph STRATEGYS[STRATEGY]
+      st_default["default"]
+      st_conservative["conservative"]
+      st_defensive["defensive"]
+      st_aggressive["aggressive"]
+      st_adaptive["adaptive"]
+      st_batched["batched"]
+      st_staged["staged"]
+    end
+    subgraph ACTIONS[ACTION]
+      ac_ignore["ignore"]
+      ac_log["log"]
+      ac_alert["alert"]
+      ac_remediate["remediate"]
+    end
+    dreaming --> local_memory
+    dreaming --> bridge
+    dreaming --> meta_cognition
+    dreaming --> dream_cycle
+    dreaming --> ev_dream
+    dreaming --> ev_steered
+    dreaming --> st_default
+    dreaming --> st_conservative
+    dreaming --> st_defensive
+    dreaming --> st_aggressive
+    dreaming --> st_adaptive
+    dreaming --> st_batched
+    dreaming --> st_staged
+    meta_cognition --> local_memory
+    meta_cognition --> bridge
+    meta_cognition --> metacog_cycle
+    meta_cognition --> ev_adapt
+    meta_cognition --> ev_state
+    meta_cognition --> st_default
+    meta_cognition --> st_conservative
+    meta_cognition --> st_defensive
+    meta_cognition --> st_aggressive
+    meta_cognition --> st_adaptive
+    meta_cognition --> st_batched
+    meta_cognition --> st_staged
+    learning --> local_memory
+    learning --> evolution_cycle
+    learning --> ev_train
+    learning --> ev_qtbl
+    learning --> ac_ignore
+    learning --> ac_log
+    learning --> ac_alert
+    learning --> ac_remediate
+    evolution --> evolution_cycle
+    bridge --> ev_policy
+    local_memory --> monitor
+    local_memory --> metacog_cycle
+    monitor --> ev_dream
+    monitor --> ev_policy
+    monitor --> ev_state
+    monitor --> ev_mccycle
+    monitor --> ev_evoresult
+    monitor --> ev_train
+    metacog_cycle --> ev_mccycle
+    metacog_cycle --> ev_cluster
+    evolution_cycle --> ev_evoresult
+    CLUSTERWORMS --> ev_cluster
+    ev_steered --> st_conservative
+    ev_steered --> st_aggressive
+    ev_adapt --> st_aggressive
+    ev_adapt --> st_staged
+    ev_adapt --> st_batched
+    ev_adapt --> st_adaptive
+    ev_adapt --> st_conservative
+    class dreaming,meta_cognition,learning,evolution,bridge,local_memory,monitor,dream_cycle,metacog_cycle,evolution_cycle module
+    class CLUSTERWORMS external
+    class ev_dream,ev_steered,ev_policy,ev_adapt,ev_state,ev_mccycle,ev_evoresult,ev_train,ev_qtbl,ev_cluster event
+    class st_default,st_conservative,st_defensive,st_aggressive,st_adaptive,st_batched,st_staged strategy
+    class ac_ignore,ac_log,ac_alert,ac_remediate action
+
+sequenceDiagram
+    participant CYC as dream_cycle (5 min)
+    participant D as dreaming
+    participant B as dream_policy_bridge
+    participant M as meta_cognition
+    participant MC as metacog_cycle (5 min)
+    participant E as evolution_cycle
+    participant L as local_memory
+    CYC->>D: run_dreaming_pipeline(8 eps)
+    D->>M: dream_tuning_for(global)
+    M-->>D: tuned params (steered)
+    D->>L: dream + strategy_steered
+    D->>B: apply_dream_policy
+    B->>M: adapt_strategy(recommended, confidence)
+    M-->>B: adopted/held (0.5 bar)
+    MC->>M: observe(cluster outcomes)
+    M-->>MC: recommend_from_evidence
+    MC->>M: adapt_strategy(global, evidence)
+    E->>L: train_from_memory(avg_reward)

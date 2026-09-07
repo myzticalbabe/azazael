@@ -1,0 +1,418 @@
+{
+ "network": {
+  "nodes": 32,
+  "edges": 54,
+  "components": 1,
+  "density": 0.1089,
+  "avg_degree": 3.375,
+  "diameter": 6,
+  "avg_shortest_path": 2.845
+ },
+ "persons": {
+  "n_persons": 0,
+  "connected": 0,
+  "note": "<2 persons"
+ },
+ "centrality": {
+  "degree": {
+   "dreaming.py": 0.4194,
+   "meta_cognition.py": 0.4194,
+   "learning.py": 0.2581,
+   "evolution.py": 0.0323,
+   "dream_policy_bridge.py": 0.0968,
+   "local_memory.py": 0.1613,
+   "monitor_learning.py": 0.2258,
+   "dream_cycle.py": 0.0323,
+   "metacog_cycle.py": 0.129,
+   "evolution_cycle.py": 0.0968,
+   "CLUSTERWORMS.py": 0.0323,
+   "dream_generated": 0.0645,
+   "strategy_steered": 0.0968,
+   "policy_applied": 0.0645,
+   "strategy_adaptation": 0.1935,
+   "state_saved": 0.0645,
+   "mc_cycle": 0.0645,
+   "evolution_result": 0.0645,
+   "training_complete": 0.0645,
+   "q_table_persisted": 0.0323,
+   "clusterwormz_execute_complete": 0.0645,
+   "default": 0.0645,
+   "conservative": 0.129,
+   "defensive": 0.0645,
+   "aggressive": 0.129,
+   "adaptive": 0.0968,
+   "batched": 0.0968,
+   "staged": 0.0968,
+   "ignore": 0.0323,
+   "log": 0.0323,
+   "alert": 0.0323,
+   "remediate": 0.0323
+  },
+  "betweenness": {
+   "dreaming.py": 0.2769,
+   "meta_cognition.py": 0.2998,
+   "learning.py": 0.3889,
+   "evolution.py": 0.0,
+   "dream_policy_bridge.py": 0.028,
+   "local_memory.py": 0.3826,
+   "monitor_learning.py": 0.1677,
+   "dream_cycle.py": 0.0,
+   "metacog_cycle.py": 0.1541,
+   "evolution_cycle.py": 0.0774,
+   "CLUSTERWORMS.py": 0.0,
+   "dream_generated": 0.0201,
+   "strategy_steered": 0.0005,
+   "policy_applied": 0.009,
+   "strategy_adaptation": 0.007,
+   "state_saved": 0.0158,
+   "mc_cycle": 0.0124,
+   "evolution_result": 0.0229,
+   "training_complete": 0.0258,
+   "q_table_persisted": 0.0,
+   "clusterwormz_execute_complete": 0.0645,
+   "default": 0.0,
+   "conservative": 0.0056,
+   "defensive": 0.0,
+   "aggressive": 0.0056,
+   "adaptive": 0.0011,
+   "batched": 0.0011,
+   "staged": 0.0011,
+   "ignore": 0.0,
+   "log": 0.0,
+   "alert": 0.0,
+   "remediate": 0.0
+  },
+  "eigenvector": {
+   "dreaming.py": 0.4624,
+   "meta_cognition.py": 0.4879,
+   "learning.py": 0.0511,
+   "evolution.py": 0.0022,
+   "dream_policy_bridge.py": 0.1728,
+   "local_memory.py": 0.2128,
+   "monitor_learning.py": 0.0934,
+   "dream_cycle.py": 0.0802,
+   "metacog_cycle.py": 0.1324,
+   "evolution_cycle.py": 0.0124,
+   "CLUSTERWORMS.py": 0.0041,
+   "dream_generated": 0.0964,
+   "strategy_steered": 0.164,
+   "policy_applied": 0.0462,
+   "strategy_adaptation": 0.2794,
+   "state_saved": 0.1008,
+   "mc_cycle": 0.0392,
+   "evolution_result": 0.0184,
+   "training_complete": 0.0251,
+   "q_table_persisted": 0.0089,
+   "clusterwormz_execute_complete": 0.0237,
+   "default": 0.1648,
+   "conservative": 0.2417,
+   "defensive": 0.1648,
+   "aggressive": 0.2417,
+   "adaptive": 0.2132,
+   "batched": 0.2132,
+   "staged": 0.2132,
+   "ignore": 0.0089,
+   "log": 0.0089,
+   "alert": 0.0089,
+   "remediate": 0.0089
+  },
+  "closeness": {
+   "dreaming.py": 0.4921,
+   "meta_cognition.py": 0.5167,
+   "learning.py": 0.4306,
+   "evolution.py": 0.252,
+   "dream_policy_bridge.py": 0.3827,
+   "local_memory.py": 0.5254,
+   "monitor_learning.py": 0.4189,
+   "dream_cycle.py": 0.3333,
+   "metacog_cycle.py": 0.4306,
+   "evolution_cycle.py": 0.3333,
+   "CLUSTERWORMS.py": 0.2385,
+   "dream_generated": 0.3827,
+   "strategy_steered": 0.3444,
+   "policy_applied": 0.3444,
+   "strategy_adaptation": 0.369,
+   "state_saved": 0.3924,
+   "mc_cycle": 0.3483,
+   "evolution_result": 0.3298,
+   "training_complete": 0.3444,
+   "q_table_persisted": 0.3039,
+   "clusterwormz_execute_complete": 0.31,
+   "default": 0.3605,
+   "conservative": 0.369,
+   "defensive": 0.3605,
+   "aggressive": 0.369,
+   "adaptive": 0.3647,
+   "batched": 0.3647,
+   "staged": 0.3647,
+   "ignore": 0.3039,
+   "log": 0.3039,
+   "alert": 0.3039,
+   "remediate": 0.3039
+  }
+ },
+ "rankings": {
+  "top_degree": [
+   "dreaming.py",
+   "meta_cognition.py",
+   "learning.py",
+   "monitor_learning.py",
+   "strategy_adaptation",
+   "local_memory.py",
+   "metacog_cycle.py",
+   "conservative",
+   "aggressive",
+   "dream_policy_bridge.py"
+  ],
+  "top_betweenness": [
+   "learning.py",
+   "local_memory.py",
+   "meta_cognition.py",
+   "dreaming.py",
+   "monitor_learning.py",
+   "metacog_cycle.py",
+   "evolution_cycle.py",
+   "clusterwormz_execute_complete"
+  ],
+  "top_eigenvector": [
+   "meta_cognition.py",
+   "dreaming.py",
+   "strategy_adaptation",
+   "conservative",
+   "aggressive",
+   "adaptive",
+   "batched",
+   "staged"
+  ]
+ },
+ "communities": [
+  {
+   "index": 0,
+   "n": 12,
+   "types": {
+    "module": 3,
+    "event": 2,
+    "strategy": 7
+   },
+   "members": [
+    "adaptive",
+    "aggressive",
+    "batched",
+    "conservative",
+    "default",
+    "defensive",
+    "dream_cycle.py",
+    "dreaming.py",
+    "meta_cognition.py",
+    "staged",
+    "strategy_adaptation",
+    "strategy_steered"
+   ]
+  },
+  {
+   "index": 1,
+   "n": 9,
+   "types": {
+    "module": 3,
+    "event": 2,
+    "action": 4
+   },
+   "members": [
+    "alert",
+    "evolution.py",
+    "evolution_cycle.py",
+    "evolution_result",
+    "ignore",
+    "learning.py",
+    "log",
+    "q_table_persisted",
+    "remediate"
+   ]
+  },
+  {
+   "index": 2,
+   "n": 6,
+   "types": {
+    "event": 4,
+    "module": 2
+   },
+   "members": [
+    "dream_generated",
+    "dream_policy_bridge.py",
+    "monitor_learning.py",
+    "policy_applied",
+    "state_saved",
+    "training_complete"
+   ]
+  },
+  {
+   "index": 3,
+   "n": 5,
+   "types": {
+    "event": 2,
+    "module": 2,
+    "external": 1
+   },
+   "members": [
+    "CLUSTERWORMS.py",
+    "clusterwormz_execute_complete",
+    "local_memory.py",
+    "mc_cycle",
+    "metacog_cycle.py"
+   ]
+  }
+ ],
+ "core_clique": {
+  "core_max_k": 3,
+  "core_shells": {
+   "1": {
+    "n": 9,
+    "types": {
+     "module": 2,
+     "external": 1,
+     "event": 2,
+     "action": 4
+    },
+    "members": [
+     "CLUSTERWORMS.py",
+     "alert",
+     "clusterwormz_execute_complete",
+     "dream_cycle.py",
+     "evolution.py",
+     "ignore",
+     "log",
+     "q_table_persisted",
+     "remediate"
+    ]
+   },
+   "2": {
+    "n": 14,
+    "types": {
+     "module": 6,
+     "event": 6,
+     "strategy": 2
+    },
+    "members": [
+     "default",
+     "defensive",
+     "dream_generated",
+     "dream_policy_bridge.py",
+     "evolution_cycle.py",
+     "evolution_result",
+     "learning.py",
+     "local_memory.py",
+     "mc_cycle",
+     "metacog_cycle.py",
+     "monitor_learning.py",
+     "policy_applied",
+     "state_saved",
+     "training_complete"
+    ]
+   },
+   "3": {
+    "n": 9,
+    "types": {
+     "module": 2,
+     "event": 2,
+     "strategy": 5
+    },
+    "members": [
+     "adaptive",
+     "aggressive",
+     "batched",
+     "conservative",
+     "dreaming.py",
+     "meta_cognition.py",
+     "staged",
+     "strategy_adaptation",
+     "strategy_steered"
+    ]
+   }
+  },
+  "innermost_core": {
+   "k": 3,
+   "n": 9,
+   "types": {
+    "module": 2,
+    "event": 2,
+    "strategy": 5
+   },
+   "members": [
+    "adaptive",
+    "aggressive",
+    "batched",
+    "conservative",
+    "dreaming.py",
+    "meta_cognition.py",
+    "staged",
+    "strategy_adaptation",
+    "strategy_steered"
+   ]
+  },
+  "clique_number": 3,
+  "largest_cliques": [
+   {
+    "n": 3,
+    "types": {
+     "module": 2,
+     "strategy": 1
+    },
+    "members": [
+     "adaptive",
+     "dreaming.py",
+     "meta_cognition.py"
+    ]
+   },
+   {
+    "n": 3,
+    "types": {
+     "module": 2,
+     "strategy": 1
+    },
+    "members": [
+     "aggressive",
+     "dreaming.py",
+     "meta_cognition.py"
+    ]
+   },
+   {
+    "n": 3,
+    "types": {
+     "module": 2,
+     "strategy": 1
+    },
+    "members": [
+     "batched",
+     "dreaming.py",
+     "meta_cognition.py"
+    ]
+   },
+   {
+    "n": 3,
+    "types": {
+     "module": 2,
+     "strategy": 1
+    },
+    "members": [
+     "conservative",
+     "dreaming.py",
+     "meta_cognition.py"
+    ]
+   },
+   {
+    "n": 3,
+    "types": {
+     "module": 2,
+     "strategy": 1
+    },
+    "members": [
+     "default",
+     "dreaming.py",
+     "meta_cognition.py"
+    ]
+   }
+  ],
+  "maximal_cliques_count": 41,
+  "person": {}
+ }
+}
