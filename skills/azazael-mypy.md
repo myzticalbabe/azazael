@@ -1,3 +1,13 @@
+---
+name: azazael-mypy
+description: Documents mypy static type checking usage for the Azazael codebase — configuration, error patterns, free-threading considerations, canonical type-check command.
+metadata:
+  category: quality
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-mypy
 **Category:** Quality / Type Checking
 **Priority:** HIGH
