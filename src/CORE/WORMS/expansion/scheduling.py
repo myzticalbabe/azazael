@@ -44,9 +44,9 @@ class ScheduleConfig:
     max_duration_minutes: float = 30.0   # Max training duration
     n_episodes: int = 50                 # RL episodes per run
     data_limit: int = 200                # Records to extract
-    learning_rate: float = 0.1
-    discount_factor: float = 0.9
-    epsilon: float = 0.2
+    learning_rate: float = 0.29      # Evolved 2026-09-07 (was 0.1)
+    discount_factor: float = 0.91    # Evolved 2026-09-07 (was 0.9)
+    epsilon: float = 0.11            # Evolved 2026-09-07 (was 0.2)
     source_filter: (str | None) = None  # None = all sources
     record_to_memory: bool = True        # Persist results
 
