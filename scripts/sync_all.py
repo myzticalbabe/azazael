@@ -111,6 +111,8 @@ SYNC_DOC_PATTERNS = [
     "LESSONS_*.md",
     "MEMORIES*.md",
     "MASTER_TASKS.md",
+    "SYSTEM_INSTRUCTIONS.md",
+    "HAT_TAXONOMY.md",
 ]
 
 SYNC_SCRIPT_PATTERNS = [
