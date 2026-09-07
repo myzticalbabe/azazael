@@ -280,7 +280,27 @@ class GRPOTrainer:
             policy = self._policy.get(context_key, {})
         if not policy:
             return None
-        return max(policy, key=policy.get)
+        best = max(policy, key=policy.get)
+        # Evolution joint: blend metacognition confidence into selection.
+        # Unknown worms score neutral (0.5x2 = unchanged order). Any failure
+        # keeps GRPO order. See MetaCognitionWorm.get_confidence.
+        try:
+            from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
+            mc = MetaCognitionWorm()
+
+            def _blended(w):
+                try:
+                    conf = mc.get_confidence(w)
+                except Exception:
+                    conf = 0.5
+                return policy[w] * (0.5 + conf)
+
+            ranked = sorted(policy, key=_blended, reverse=True)
+            if ranked:
+                return ranked[0]
+        except Exception:
+            pass
+        return best
 
     def get_policy(self, context_key: str = None) -> dict[str, Any]:
         """Get the current policy.
