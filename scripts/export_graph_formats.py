@@ -5,6 +5,14 @@ import networkx as nx
 import os
 import sys
 
+# numpy 2.x removed np.float_ (networkx 2.8.8 GEXF/GraphML writers still use it)
+try:
+    import numpy as _np
+    if not hasattr(_np, "float_"):
+        _np.float_ = _np.float64
+except ImportError:
+    pass
+
 graph_path = sys.argv[1] if len(sys.argv) > 1 else "/mnt/c/Users/clint/azazael/graphify-out/graph.json"
 out_dir = sys.argv[2] if len(sys.argv) > 2 else "/mnt/c/Users/clint/azazael/graphify-out"
 

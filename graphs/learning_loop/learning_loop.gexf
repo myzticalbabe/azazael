@@ -1,0 +1,800 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gexf xmlns="http://www.gexf.net/1.2draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.2draft http://www.gexf.net/1.2draft/gexf.xsd" version="1.2">
+  <meta lastmodifieddate="2026-09-07">
+    <creator>NetworkX 2.8.8</creator>
+  </meta>
+  <graph defaultedgetype="undirected" mode="static" name="">
+    <attributes mode="static" class="edge">
+      <attribute id="10" title="etype" type="string" />
+      <attribute id="11" title="EdgeType" type="string" />
+    </attributes>
+    <attributes mode="static" class="node">
+      <attribute id="0" title="type" type="string" />
+      <attribute id="1" title="file" type="string" />
+      <attribute id="2" title="count" type="long" />
+      <attribute id="3" title="Label" type="string" />
+      <attribute id="4" title="Type" type="string" />
+      <attribute id="5" title="Betweenness" type="double" />
+      <attribute id="6" title="Eigenvector" type="double" />
+      <attribute id="7" title="Closeness" type="double" />
+      <attribute id="8" title="Community" type="long" />
+      <attribute id="9" title="KCore" type="long" />
+    </attributes>
+    <nodes>
+      <node id="dreaming" label="dreaming.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/CORE/WORMS/expansion/dreaming.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="dreaming.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.2769" />
+          <attvalue for="6" value="0.4624" />
+          <attvalue for="7" value="0.4921" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="meta_cognition" label="meta_cognition.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/CORE/WORMS/expansion/meta_cognition.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="meta_cognition.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.2998" />
+          <attvalue for="6" value="0.4879" />
+          <attvalue for="7" value="0.5167" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="learning" label="learning.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/CORE/WORMS/expansion/learning.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="learning.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.3889" />
+          <attvalue for="6" value="0.0511" />
+          <attvalue for="7" value="0.4306" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="evolution" label="evolution.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/CORE/WORMS/expansion/evolution.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="evolution.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0022" />
+          <attvalue for="7" value="0.252" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="bridge" label="dream_policy_bridge.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/CORE/dream_policy_bridge.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="dream_policy_bridge.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.028" />
+          <attvalue for="6" value="0.1728" />
+          <attvalue for="7" value="0.3827" />
+          <attvalue for="8" value="2" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="local_memory" label="local_memory.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/CORE/local_memory.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="local_memory.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.3826" />
+          <attvalue for="6" value="0.2128" />
+          <attvalue for="7" value="0.5254" />
+          <attvalue for="8" value="3" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="monitor" label="monitor_learning.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="src/scripts/monitor_learning.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="monitor_learning.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.1677" />
+          <attvalue for="6" value="0.0934" />
+          <attvalue for="7" value="0.4189" />
+          <attvalue for="8" value="2" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="dream_cycle" label="dream_cycle.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="scripts/dream_cycle.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="dream_cycle.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0802" />
+          <attvalue for="7" value="0.3333" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="metacog_cycle" label="metacog_cycle.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="scripts/metacog_cycle.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="metacog_cycle.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.1541" />
+          <attvalue for="6" value="0.1324" />
+          <attvalue for="7" value="0.4306" />
+          <attvalue for="8" value="3" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="evolution_cycle" label="evolution_cycle.py">
+        <attvalues>
+          <attvalue for="0" value="module" />
+          <attvalue for="1" value="scripts/evolution_cycle.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="evolution_cycle.py" />
+          <attvalue for="4" value="module" />
+          <attvalue for="5" value="0.0774" />
+          <attvalue for="6" value="0.0124" />
+          <attvalue for="7" value="0.3333" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="CLUSTERWORMS" label="CLUSTERWORMS.py">
+        <attvalues>
+          <attvalue for="0" value="external" />
+          <attvalue for="1" value="src/CORE/WORMS/CLUSTERWORMS.py" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="CLUSTERWORMS.py" />
+          <attvalue for="4" value="external" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0041" />
+          <attvalue for="7" value="0.2385" />
+          <attvalue for="8" value="3" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="ev_dream" label="dream_generated">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="710" />
+          <attvalue for="3" value="dream_generated" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0201" />
+          <attvalue for="6" value="0.0964" />
+          <attvalue for="7" value="0.3827" />
+          <attvalue for="8" value="2" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="ev_steered" label="strategy_steered">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="15" />
+          <attvalue for="3" value="strategy_steered" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0005" />
+          <attvalue for="6" value="0.164" />
+          <attvalue for="7" value="0.3444" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="ev_policy" label="policy_applied">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="66" />
+          <attvalue for="3" value="policy_applied" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.009" />
+          <attvalue for="6" value="0.0462" />
+          <attvalue for="7" value="0.3444" />
+          <attvalue for="8" value="2" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="ev_adapt" label="strategy_adaptation">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="67" />
+          <attvalue for="3" value="strategy_adaptation" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.007" />
+          <attvalue for="6" value="0.2794" />
+          <attvalue for="7" value="0.369" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="ev_state" label="state_saved">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="49" />
+          <attvalue for="3" value="state_saved" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0158" />
+          <attvalue for="6" value="0.1008" />
+          <attvalue for="7" value="0.3924" />
+          <attvalue for="8" value="2" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="ev_mccycle" label="mc_cycle">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="5" />
+          <attvalue for="3" value="mc_cycle" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0124" />
+          <attvalue for="6" value="0.0392" />
+          <attvalue for="7" value="0.3483" />
+          <attvalue for="8" value="3" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="ev_evoresult" label="evolution_result">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="3" />
+          <attvalue for="3" value="evolution_result" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0229" />
+          <attvalue for="6" value="0.0184" />
+          <attvalue for="7" value="0.3298" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="ev_train" label="training_complete">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="205" />
+          <attvalue for="3" value="training_complete" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0258" />
+          <attvalue for="6" value="0.0251" />
+          <attvalue for="7" value="0.3444" />
+          <attvalue for="8" value="2" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="ev_qtbl" label="q_table_persisted">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="210" />
+          <attvalue for="3" value="q_table_persisted" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0089" />
+          <attvalue for="7" value="0.3039" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="ev_cluster" label="clusterwormz_execute_complete">
+        <attvalues>
+          <attvalue for="0" value="event" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="clusterwormz_execute_complete" />
+          <attvalue for="4" value="event" />
+          <attvalue for="5" value="0.0645" />
+          <attvalue for="6" value="0.0237" />
+          <attvalue for="7" value="0.31" />
+          <attvalue for="8" value="3" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="st_default" label="default">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="default" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1648" />
+          <attvalue for="7" value="0.3605" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="st_conservative" label="conservative">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="conservative" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0056" />
+          <attvalue for="6" value="0.2417" />
+          <attvalue for="7" value="0.369" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="st_defensive" label="defensive">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="defensive" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.1648" />
+          <attvalue for="7" value="0.3605" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="2" />
+        </attvalues>
+      </node>
+      <node id="st_aggressive" label="aggressive">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="aggressive" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0056" />
+          <attvalue for="6" value="0.2417" />
+          <attvalue for="7" value="0.369" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="st_adaptive" label="adaptive">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="adaptive" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0011" />
+          <attvalue for="6" value="0.2132" />
+          <attvalue for="7" value="0.3647" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="st_batched" label="batched">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="batched" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0011" />
+          <attvalue for="6" value="0.2132" />
+          <attvalue for="7" value="0.3647" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="st_staged" label="staged">
+        <attvalues>
+          <attvalue for="0" value="strategy" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="staged" />
+          <attvalue for="4" value="strategy" />
+          <attvalue for="5" value="0.0011" />
+          <attvalue for="6" value="0.2132" />
+          <attvalue for="7" value="0.3647" />
+          <attvalue for="8" value="0" />
+          <attvalue for="9" value="3" />
+        </attvalues>
+      </node>
+      <node id="ac_ignore" label="ignore">
+        <attvalues>
+          <attvalue for="0" value="action" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="ignore" />
+          <attvalue for="4" value="action" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0089" />
+          <attvalue for="7" value="0.3039" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="ac_log" label="log">
+        <attvalues>
+          <attvalue for="0" value="action" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="log" />
+          <attvalue for="4" value="action" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0089" />
+          <attvalue for="7" value="0.3039" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="ac_alert" label="alert">
+        <attvalues>
+          <attvalue for="0" value="action" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="alert" />
+          <attvalue for="4" value="action" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0089" />
+          <attvalue for="7" value="0.3039" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+      <node id="ac_remediate" label="remediate">
+        <attvalues>
+          <attvalue for="0" value="action" />
+          <attvalue for="1" value="" />
+          <attvalue for="2" value="0" />
+          <attvalue for="3" value="remediate" />
+          <attvalue for="4" value="action" />
+          <attvalue for="5" value="0.0" />
+          <attvalue for="6" value="0.0089" />
+          <attvalue for="7" value="0.3039" />
+          <attvalue for="8" value="1" />
+          <attvalue for="9" value="1" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge source="dreaming" target="local_memory" id="0">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="bridge" id="1">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="meta_cognition" id="2">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="dream_cycle" id="3">
+        <attvalues>
+          <attvalue for="10" value="calls" />
+          <attvalue for="11" value="calls" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="ev_dream" id="4">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="ev_steered" id="5">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_default" id="6">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_conservative" id="7">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_defensive" id="8">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_aggressive" id="9">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_adaptive" id="10">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_batched" id="11">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="dreaming" target="st_staged" id="12">
+        <attvalues>
+          <attvalue for="10" value="steers" />
+          <attvalue for="11" value="steers" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="local_memory" id="13">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="bridge" id="14">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="metacog_cycle" id="15">
+        <attvalues>
+          <attvalue for="10" value="calls" />
+          <attvalue for="11" value="calls" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="ev_adapt" id="16">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="ev_state" id="17">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_default" id="18">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_conservative" id="19">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_defensive" id="20">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_aggressive" id="21">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_adaptive" id="22">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_batched" id="23">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="meta_cognition" target="st_staged" id="24">
+        <attvalues>
+          <attvalue for="10" value="applies" />
+          <attvalue for="11" value="applies" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="local_memory" id="25">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="evolution_cycle" id="26">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="ev_train" id="27">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="ev_qtbl" id="28">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="ac_ignore" id="29">
+        <attvalues>
+          <attvalue for="10" value="chooses" />
+          <attvalue for="11" value="chooses" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="ac_log" id="30">
+        <attvalues>
+          <attvalue for="10" value="chooses" />
+          <attvalue for="11" value="chooses" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="ac_alert" id="31">
+        <attvalues>
+          <attvalue for="10" value="chooses" />
+          <attvalue for="11" value="chooses" />
+        </attvalues>
+      </edge>
+      <edge source="learning" target="ac_remediate" id="32">
+        <attvalues>
+          <attvalue for="10" value="chooses" />
+          <attvalue for="11" value="chooses" />
+        </attvalues>
+      </edge>
+      <edge source="evolution" target="evolution_cycle" id="33">
+        <attvalues>
+          <attvalue for="10" value="calls" />
+          <attvalue for="11" value="calls" />
+        </attvalues>
+      </edge>
+      <edge source="bridge" target="ev_policy" id="34">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="local_memory" target="monitor" id="35">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="local_memory" target="metacog_cycle" id="36">
+        <attvalues>
+          <attvalue for="10" value="import" />
+          <attvalue for="11" value="import" />
+        </attvalues>
+      </edge>
+      <edge source="monitor" target="ev_dream" id="37">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="monitor" target="ev_policy" id="38">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="monitor" target="ev_state" id="39">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="monitor" target="ev_mccycle" id="40">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="monitor" target="ev_evoresult" id="41">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="monitor" target="ev_train" id="42">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="metacog_cycle" target="ev_mccycle" id="43">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="metacog_cycle" target="ev_cluster" id="44">
+        <attvalues>
+          <attvalue for="10" value="consumes" />
+          <attvalue for="11" value="consumes" />
+        </attvalues>
+      </edge>
+      <edge source="evolution_cycle" target="ev_evoresult" id="45">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="CLUSTERWORMS" target="ev_cluster" id="46">
+        <attvalues>
+          <attvalue for="10" value="produces" />
+          <attvalue for="11" value="produces" />
+        </attvalues>
+      </edge>
+      <edge source="ev_steered" target="st_conservative" id="47">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+      <edge source="ev_steered" target="st_aggressive" id="48">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+      <edge source="ev_adapt" target="st_aggressive" id="49">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+      <edge source="ev_adapt" target="st_staged" id="50">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+      <edge source="ev_adapt" target="st_batched" id="51">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+      <edge source="ev_adapt" target="st_adaptive" id="52">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+      <edge source="ev_adapt" target="st_conservative" id="53">
+        <attvalues>
+          <attvalue for="10" value="leads_to" />
+          <attvalue for="11" value="leads_to" />
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>

@@ -1,0 +1,683 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d13" for="edge" attr.name="EdgeType" attr.type="string" />
+  <key id="d12" for="edge" attr.name="etype" attr.type="string" />
+  <key id="d11" for="node" attr.name="KCore" attr.type="long" />
+  <key id="d10" for="node" attr.name="Community" attr.type="long" />
+  <key id="d9" for="node" attr.name="Closeness" attr.type="double" />
+  <key id="d8" for="node" attr.name="Eigenvector" attr.type="double" />
+  <key id="d7" for="node" attr.name="Betweenness" attr.type="double" />
+  <key id="d6" for="node" attr.name="Type" attr.type="string" />
+  <key id="d5" for="node" attr.name="Label" attr.type="string" />
+  <key id="d4" for="node" attr.name="count" attr.type="long" />
+  <key id="d3" for="node" attr.name="file" attr.type="string" />
+  <key id="d2" for="node" attr.name="type" attr.type="string" />
+  <key id="d1" for="node" attr.name="label" attr.type="string" />
+  <key id="d0" for="node" attr.name="id" attr.type="string" />
+  <graph edgedefault="undirected">
+    <node id="0">
+      <data key="d0">dreaming</data>
+      <data key="d1">dreaming.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/CORE/WORMS/expansion/dreaming.py</data>
+      <data key="d4">0</data>
+      <data key="d5">dreaming.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.2769</data>
+      <data key="d8">0.4624</data>
+      <data key="d9">0.4921</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="1">
+      <data key="d0">meta_cognition</data>
+      <data key="d1">meta_cognition.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/CORE/WORMS/expansion/meta_cognition.py</data>
+      <data key="d4">0</data>
+      <data key="d5">meta_cognition.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.2998</data>
+      <data key="d8">0.4879</data>
+      <data key="d9">0.5167</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="2">
+      <data key="d0">learning</data>
+      <data key="d1">learning.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/CORE/WORMS/expansion/learning.py</data>
+      <data key="d4">0</data>
+      <data key="d5">learning.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.3889</data>
+      <data key="d8">0.0511</data>
+      <data key="d9">0.4306</data>
+      <data key="d10">1</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="3">
+      <data key="d0">evolution</data>
+      <data key="d1">evolution.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/CORE/WORMS/expansion/evolution.py</data>
+      <data key="d4">0</data>
+      <data key="d5">evolution.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0022</data>
+      <data key="d9">0.252</data>
+      <data key="d10">1</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="4">
+      <data key="d0">bridge</data>
+      <data key="d1">dream_policy_bridge.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/CORE/dream_policy_bridge.py</data>
+      <data key="d4">0</data>
+      <data key="d5">dream_policy_bridge.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.028</data>
+      <data key="d8">0.1728</data>
+      <data key="d9">0.3827</data>
+      <data key="d10">2</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="5">
+      <data key="d0">local_memory</data>
+      <data key="d1">local_memory.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/CORE/local_memory.py</data>
+      <data key="d4">0</data>
+      <data key="d5">local_memory.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.3826</data>
+      <data key="d8">0.2128</data>
+      <data key="d9">0.5254</data>
+      <data key="d10">3</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="6">
+      <data key="d0">monitor</data>
+      <data key="d1">monitor_learning.py</data>
+      <data key="d2">module</data>
+      <data key="d3">src/scripts/monitor_learning.py</data>
+      <data key="d4">0</data>
+      <data key="d5">monitor_learning.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.1677</data>
+      <data key="d8">0.0934</data>
+      <data key="d9">0.4189</data>
+      <data key="d10">2</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="7">
+      <data key="d0">dream_cycle</data>
+      <data key="d1">dream_cycle.py</data>
+      <data key="d2">module</data>
+      <data key="d3">scripts/dream_cycle.py</data>
+      <data key="d4">0</data>
+      <data key="d5">dream_cycle.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0802</data>
+      <data key="d9">0.3333</data>
+      <data key="d10">0</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="8">
+      <data key="d0">metacog_cycle</data>
+      <data key="d1">metacog_cycle.py</data>
+      <data key="d2">module</data>
+      <data key="d3">scripts/metacog_cycle.py</data>
+      <data key="d4">0</data>
+      <data key="d5">metacog_cycle.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.1541</data>
+      <data key="d8">0.1324</data>
+      <data key="d9">0.4306</data>
+      <data key="d10">3</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="9">
+      <data key="d0">evolution_cycle</data>
+      <data key="d1">evolution_cycle.py</data>
+      <data key="d2">module</data>
+      <data key="d3">scripts/evolution_cycle.py</data>
+      <data key="d4">0</data>
+      <data key="d5">evolution_cycle.py</data>
+      <data key="d6">module</data>
+      <data key="d7">0.0774</data>
+      <data key="d8">0.0124</data>
+      <data key="d9">0.3333</data>
+      <data key="d10">1</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="10">
+      <data key="d0">CLUSTERWORMS</data>
+      <data key="d1">CLUSTERWORMS.py</data>
+      <data key="d2">external</data>
+      <data key="d3">src/CORE/WORMS/CLUSTERWORMS.py</data>
+      <data key="d4">0</data>
+      <data key="d5">CLUSTERWORMS.py</data>
+      <data key="d6">external</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0041</data>
+      <data key="d9">0.2385</data>
+      <data key="d10">3</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="11">
+      <data key="d0">ev_dream</data>
+      <data key="d1">dream_generated</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">710</data>
+      <data key="d5">dream_generated</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0201</data>
+      <data key="d8">0.0964</data>
+      <data key="d9">0.3827</data>
+      <data key="d10">2</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="12">
+      <data key="d0">ev_steered</data>
+      <data key="d1">strategy_steered</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">15</data>
+      <data key="d5">strategy_steered</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0005</data>
+      <data key="d8">0.164</data>
+      <data key="d9">0.3444</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="13">
+      <data key="d0">ev_policy</data>
+      <data key="d1">policy_applied</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">66</data>
+      <data key="d5">policy_applied</data>
+      <data key="d6">event</data>
+      <data key="d7">0.009</data>
+      <data key="d8">0.0462</data>
+      <data key="d9">0.3444</data>
+      <data key="d10">2</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="14">
+      <data key="d0">ev_adapt</data>
+      <data key="d1">strategy_adaptation</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">67</data>
+      <data key="d5">strategy_adaptation</data>
+      <data key="d6">event</data>
+      <data key="d7">0.007</data>
+      <data key="d8">0.2794</data>
+      <data key="d9">0.369</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="15">
+      <data key="d0">ev_state</data>
+      <data key="d1">state_saved</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">49</data>
+      <data key="d5">state_saved</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0158</data>
+      <data key="d8">0.1008</data>
+      <data key="d9">0.3924</data>
+      <data key="d10">2</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="16">
+      <data key="d0">ev_mccycle</data>
+      <data key="d1">mc_cycle</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">5</data>
+      <data key="d5">mc_cycle</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0124</data>
+      <data key="d8">0.0392</data>
+      <data key="d9">0.3483</data>
+      <data key="d10">3</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="17">
+      <data key="d0">ev_evoresult</data>
+      <data key="d1">evolution_result</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">3</data>
+      <data key="d5">evolution_result</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0229</data>
+      <data key="d8">0.0184</data>
+      <data key="d9">0.3298</data>
+      <data key="d10">1</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="18">
+      <data key="d0">ev_train</data>
+      <data key="d1">training_complete</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">205</data>
+      <data key="d5">training_complete</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0258</data>
+      <data key="d8">0.0251</data>
+      <data key="d9">0.3444</data>
+      <data key="d10">2</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="19">
+      <data key="d0">ev_qtbl</data>
+      <data key="d1">q_table_persisted</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">210</data>
+      <data key="d5">q_table_persisted</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0089</data>
+      <data key="d9">0.3039</data>
+      <data key="d10">1</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="20">
+      <data key="d0">ev_cluster</data>
+      <data key="d1">clusterwormz_execute_complete</data>
+      <data key="d2">event</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">clusterwormz_execute_complete</data>
+      <data key="d6">event</data>
+      <data key="d7">0.0645</data>
+      <data key="d8">0.0237</data>
+      <data key="d9">0.31</data>
+      <data key="d10">3</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="21">
+      <data key="d0">st_default</data>
+      <data key="d1">default</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">default</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.1648</data>
+      <data key="d9">0.3605</data>
+      <data key="d10">0</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="22">
+      <data key="d0">st_conservative</data>
+      <data key="d1">conservative</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">conservative</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0056</data>
+      <data key="d8">0.2417</data>
+      <data key="d9">0.369</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="23">
+      <data key="d0">st_defensive</data>
+      <data key="d1">defensive</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">defensive</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.1648</data>
+      <data key="d9">0.3605</data>
+      <data key="d10">0</data>
+      <data key="d11">2</data>
+    </node>
+    <node id="24">
+      <data key="d0">st_aggressive</data>
+      <data key="d1">aggressive</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">aggressive</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0056</data>
+      <data key="d8">0.2417</data>
+      <data key="d9">0.369</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="25">
+      <data key="d0">st_adaptive</data>
+      <data key="d1">adaptive</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">adaptive</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0011</data>
+      <data key="d8">0.2132</data>
+      <data key="d9">0.3647</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="26">
+      <data key="d0">st_batched</data>
+      <data key="d1">batched</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">batched</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0011</data>
+      <data key="d8">0.2132</data>
+      <data key="d9">0.3647</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="27">
+      <data key="d0">st_staged</data>
+      <data key="d1">staged</data>
+      <data key="d2">strategy</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">staged</data>
+      <data key="d6">strategy</data>
+      <data key="d7">0.0011</data>
+      <data key="d8">0.2132</data>
+      <data key="d9">0.3647</data>
+      <data key="d10">0</data>
+      <data key="d11">3</data>
+    </node>
+    <node id="28">
+      <data key="d0">ac_ignore</data>
+      <data key="d1">ignore</data>
+      <data key="d2">action</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">ignore</data>
+      <data key="d6">action</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0089</data>
+      <data key="d9">0.3039</data>
+      <data key="d10">1</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="29">
+      <data key="d0">ac_log</data>
+      <data key="d1">log</data>
+      <data key="d2">action</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">log</data>
+      <data key="d6">action</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0089</data>
+      <data key="d9">0.3039</data>
+      <data key="d10">1</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="30">
+      <data key="d0">ac_alert</data>
+      <data key="d1">alert</data>
+      <data key="d2">action</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">alert</data>
+      <data key="d6">action</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0089</data>
+      <data key="d9">0.3039</data>
+      <data key="d10">1</data>
+      <data key="d11">1</data>
+    </node>
+    <node id="31">
+      <data key="d0">ac_remediate</data>
+      <data key="d1">remediate</data>
+      <data key="d2">action</data>
+      <data key="d3" />
+      <data key="d4">0</data>
+      <data key="d5">remediate</data>
+      <data key="d6">action</data>
+      <data key="d7">0.0</data>
+      <data key="d8">0.0089</data>
+      <data key="d9">0.3039</data>
+      <data key="d10">1</data>
+      <data key="d11">1</data>
+    </node>
+    <edge source="0" target="5">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="0" target="4">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="0" target="1">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="0" target="7">
+      <data key="d12">calls</data>
+      <data key="d13">calls</data>
+    </edge>
+    <edge source="0" target="11">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="0" target="12">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="0" target="21">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="0" target="22">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="0" target="23">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="0" target="24">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="0" target="25">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="0" target="26">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="0" target="27">
+      <data key="d12">steers</data>
+      <data key="d13">steers</data>
+    </edge>
+    <edge source="1" target="5">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="1" target="4">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="1" target="8">
+      <data key="d12">calls</data>
+      <data key="d13">calls</data>
+    </edge>
+    <edge source="1" target="14">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="1" target="15">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="1" target="21">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="1" target="22">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="1" target="23">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="1" target="24">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="1" target="25">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="1" target="26">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="1" target="27">
+      <data key="d12">applies</data>
+      <data key="d13">applies</data>
+    </edge>
+    <edge source="2" target="5">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="2" target="9">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="2" target="18">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="2" target="19">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="2" target="28">
+      <data key="d12">chooses</data>
+      <data key="d13">chooses</data>
+    </edge>
+    <edge source="2" target="29">
+      <data key="d12">chooses</data>
+      <data key="d13">chooses</data>
+    </edge>
+    <edge source="2" target="30">
+      <data key="d12">chooses</data>
+      <data key="d13">chooses</data>
+    </edge>
+    <edge source="2" target="31">
+      <data key="d12">chooses</data>
+      <data key="d13">chooses</data>
+    </edge>
+    <edge source="3" target="9">
+      <data key="d12">calls</data>
+      <data key="d13">calls</data>
+    </edge>
+    <edge source="4" target="13">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="5" target="6">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="5" target="8">
+      <data key="d12">import</data>
+      <data key="d13">import</data>
+    </edge>
+    <edge source="6" target="11">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="6" target="13">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="6" target="15">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="6" target="16">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="6" target="17">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="6" target="18">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="8" target="16">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="8" target="20">
+      <data key="d12">consumes</data>
+      <data key="d13">consumes</data>
+    </edge>
+    <edge source="9" target="17">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="10" target="20">
+      <data key="d12">produces</data>
+      <data key="d13">produces</data>
+    </edge>
+    <edge source="12" target="22">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+    <edge source="12" target="24">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+    <edge source="14" target="24">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+    <edge source="14" target="27">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+    <edge source="14" target="26">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+    <edge source="14" target="25">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+    <edge source="14" target="22">
+      <data key="d12">leads_to</data>
+      <data key="d13">leads_to</data>
+    </edge>
+  </graph>
+</graphml>
