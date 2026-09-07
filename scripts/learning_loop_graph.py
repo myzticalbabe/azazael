@@ -144,6 +144,9 @@ STRAT_ID_BY_NAME = {name: sid for sid, name, _ in STRATEGIES}
 def live_edges(db_path: str) -> dict:
     """Read-only DB enrichment: event counts + steering/adaptation weights."""
     import sqlite3
+    import os
+    import shutil
+    import tempfile
     out = {"counts": {}, "edges": []}
     try:
         con = None
@@ -160,6 +163,25 @@ def live_edges(db_path: str) -> dict:
                 except sqlite3.OperationalError:
                     import time
                     time.sleep(1)
+        if con is None and os.path.exists(db_path):
+            # sqlite locking over drvfs is unreliable right after a cycle
+            # write; copy to local ext4 and read the copy instead, retrying
+            # until a readable snapshot lands (torn copy = open but bad query)
+            tmp = os.path.join(tempfile.gettempdir(), "ms_loop_copy.db")
+            for _ in range(5):
+                try:
+                    shutil.copy2(db_path, tmp)
+                    con = sqlite3.connect(f"file:{tmp}?mode=ro", uri=True)
+                    con.execute("SELECT COUNT(*) FROM memories").fetchone()
+                    break
+                except Exception as e:
+                    sys.stderr.write(f"[learning_loop_graph] copy fallback retry: {e}\n")
+                    try:
+                        con.close()
+                    except Exception:
+                        pass
+                    con = None
+                    time.sleep(2)
         if con is None:
             raise sqlite3.OperationalError(f"cannot open {db_path}")
         cur = con.cursor()
@@ -291,9 +313,17 @@ def write_mermaid(G, nodes, outdir: str) -> None:
             lines.append(f"      {n['id']}[\"{lab}\"]")
         if len(members) > 1:
             lines.append("    end")
-    for a, b in G.edges():
+    edge_style = {"import": "#8b949e", "calls": "#a371f7", "produces": "#3fb950",
+                  "consumes": "#58a6ff", "steers": "#ff8844", "applies": "#d29922",
+                  "chooses": "#aa66ff", "leads_to": "#f778ba"}
+    for li, (a, b) in enumerate(G.edges()):
         na, nb = nodes[a], nodes[b]
         lines.append(f"    {na['id']} --> {nb['id']}")
+        et = G.edges[a, b].get("etype", ["import"])
+        if isinstance(et, list):
+            et = et[0] if et else "import"
+        base = et.split("+")[0] if "+" in et else et
+        lines.append(f"    linkStyle {li} stroke:{edge_style.get(base, '#666')}")
     cls = {"module": [], "external": [], "event": [], "strategy": [], "action": []}
     for t, members in type_node.items():
         cls[t] = [nodes[i]["id"] for i in members]
@@ -420,6 +450,9 @@ def main() -> int:
         from pyvis.network import Network
         COLOR = {"module": "#3fb950", "external": "#ffd700", "event": "#58a6ff",
                  "strategy": "#ff8844", "action": "#aa66ff"}
+        EDGE_COLOR = {"import": "#8b949e", "calls": "#a371f7", "produces": "#3fb950",
+                      "consumes": "#58a6ff", "steers": "#ff8844", "applies": "#d29922",
+                      "chooses": "#aa66ff", "leads_to": "#f778ba"}
         deg = dict(G.degree())
         max_deg = max(deg.values()) or 1
         comm_of = results["_internal"]["comm_of"]
@@ -433,7 +466,11 @@ def main() -> int:
                                "square" if n["type"] == "event" else "dot",
                          title=f"{n['label']}<br>type {n['type']} · community C{comm_of.get(i, '?')} · degree {deg.get(i, 0)}")
         for a, b in G.edges():
-            net.add_edge(a, b, color="#30363d", width=1.2)
+            et = G.edges[a, b].get("etype", ["import"])
+            if isinstance(et, list):
+                et = et[0] if et else "import"
+            base = et.split("+")[0] if "+" in et else et
+            net.add_edge(a, b, color=EDGE_COLOR.get(base, "#30363d"), width=1.2)
         net.set_options(json.dumps({
             "nodes": {"borderWidth": 1.5, "font": {"size": 13, "face": "Tahoma"}},
             "edges": {"smooth": {"type": "continuous"}, "color": {"inherit": False}},
@@ -442,12 +479,42 @@ def main() -> int:
         }))
         html = os.path.join(outdir, "learning_loop.html")
         net.show(html, notebook=False)
+        _inject_legend(html, COLOR, EDGE_COLOR,
+                       "node = type · edge = relation (import/calls/produces/consumes/steers/applies/chooses/leads_to)")
         print(f"Wrote {html}")
     except Exception as e:
         print(f"PyVis skipped: {e}")
 
     print("\nAll artifacts under " + outdir)
     return 0
+
+
+def _inject_legend(html_path: str, node_colors: dict, edge_colors: dict, caption: str) -> None:
+    """Append a fixed-position color legend (nodes + edges) to the PyVis HTML."""
+    def swatch(color, label):
+        return (f'<span style="display:inline-block;margin:2px 10px 2px 0;">'
+                f'<span style="display:inline-block;width:12px;height:12px;'
+                f'background:{color};border:1px solid #555;border-radius:2px;'
+                f'margin-right:4px;vertical-align:middle;"></span>{label}</span>')
+    node_part = "".join(swatch(c, t) for t, c in sorted(node_colors.items()))
+    edge_part = "".join(swatch(c, t) for t, c in sorted(edge_colors.items()))
+    legend = (
+        '<div style="position:fixed;bottom:8px;left:8px;z-index:9999;'
+        'background:rgba(13,17,23,0.92);border:1px solid #30363d;'
+        'border-radius:6px;padding:8px 12px;font-family:Tahoma,Arial,sans-serif;'
+        'font-size:11px;color:#c9d1d9;max-width:85%;">'
+        f'<div style="font-weight:bold;margin-bottom:4px;">{caption}</div>'
+        '<div><b>nodes</b>&nbsp;' + node_part + '</div>'
+        '<div><b>edges</b>&nbsp;' + edge_part + '</div></div>')
+    try:
+        with open(html_path, "r", encoding="utf-8") as f:
+            html = f.read()
+        if "</body>" in html:
+            html = html.replace("</body>", legend + "</body>")
+            with open(html_path, "w", encoding="utf-8") as f:
+                f.write(html)
+    except Exception as e:
+        sys.stderr.write(f"[learning_loop_graph] legend inject skipped: {e}\n")
 
 
 if __name__ == "__main__":

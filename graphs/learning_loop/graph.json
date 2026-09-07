@@ -85,63 +85,63 @@
    "label": "dream_generated",
    "type": "event",
    "file": "",
-   "count": 710
+   "count": 0
   },
   {
    "id": "ev_steered",
    "label": "strategy_steered",
    "type": "event",
    "file": "",
-   "count": 15
+   "count": 0
   },
   {
    "id": "ev_policy",
    "label": "policy_applied",
    "type": "event",
    "file": "",
-   "count": 66
+   "count": 0
   },
   {
    "id": "ev_adapt",
    "label": "strategy_adaptation",
    "type": "event",
    "file": "",
-   "count": 67
+   "count": 0
   },
   {
    "id": "ev_state",
    "label": "state_saved",
    "type": "event",
    "file": "",
-   "count": 49
+   "count": 0
   },
   {
    "id": "ev_mccycle",
    "label": "mc_cycle",
    "type": "event",
    "file": "",
-   "count": 5
+   "count": 0
   },
   {
    "id": "ev_evoresult",
    "label": "evolution_result",
    "type": "event",
    "file": "",
-   "count": 3
+   "count": 0
   },
   {
    "id": "ev_train",
    "label": "training_complete",
    "type": "event",
    "file": "",
-   "count": 205
+   "count": 0
   },
   {
    "id": "ev_qtbl",
    "label": "q_table_persisted",
    "type": "event",
    "file": "",
-   "count": 210
+   "count": 0
   },
   {
    "id": "ev_cluster",
@@ -416,34 +416,6 @@
   {
    "source": "CLUSTERWORMS",
    "target": "ev_cluster"
-  },
-  {
-   "source": "ev_steered",
-   "target": "st_conservative"
-  },
-  {
-   "source": "ev_steered",
-   "target": "st_aggressive"
-  },
-  {
-   "source": "ev_adapt",
-   "target": "st_aggressive"
-  },
-  {
-   "source": "ev_adapt",
-   "target": "st_staged"
-  },
-  {
-   "source": "ev_adapt",
-   "target": "st_batched"
-  },
-  {
-   "source": "ev_adapt",
-   "target": "st_adaptive"
-  },
-  {
-   "source": "ev_adapt",
-   "target": "st_conservative"
   }
  ]
 }
