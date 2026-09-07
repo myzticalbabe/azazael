@@ -1,0 +1,32 @@
+name: Catch-all Guard
+
+on:
+  push:
+    paths:
+      - 'src/**/*.py'
+      - 'scripts/**/*.py'
+  pull_request:
+    paths:
+      - 'src/**/*.py'
+      - 'scripts/**/*.py'
+  workflow_dispatch:
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Run catch-all regression guard
+        run: |
+          python scripts/check_no_catch_alls.py --dirs src scripts --json
+          # Budget is enforced inside the script:
+          #   bare excepts -> always fail (MAX_BARE=0)
+          #   broad excepts -> fail if counted count exceeds MAX_BROAD (= current baseline)
+          # Lower MAX_BROAD in scripts/check_no_catch_alls.py as refactoring shrinks the surface.
