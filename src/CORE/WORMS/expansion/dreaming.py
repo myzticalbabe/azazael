@@ -435,8 +435,8 @@ class DreamingModule:
 
             # Detect: error -> success from same source
             if curr_severity == "error" and next_severity == "info" and curr_source == next_source:
-                error_msg = curr_data.get("error", curr_data.get("msg", "unknown"))
-                recovery_action = next_data.get("action", next_data.get("strategy", "retry_with_backoff"))
+                error_msg = curr_data.get("error", curr_data.get("msg", "unknown")) or "unknown"
+                recovery_action = next_data.get("action", next_data.get("strategy", "retry_with_backoff")) or "retry_with_backoff"
                 key = (curr_source, error_msg[:100])
 
                 if key not in recovery_patterns:
@@ -679,9 +679,10 @@ class DreamingModule:
         Returns:
             dict with integration results
         """
+        policy_result = None
         if policy_fn:
             try:
-                policy_fn(dream.policy_suggestions, dream.novel_patterns)
+                policy_result = policy_fn(dream.policy_suggestions, dream.novel_patterns)
             except Exception as e:
                 return {"error": f"Policy integration failed: {e}"}
 
@@ -705,6 +706,7 @@ class DreamingModule:
             "quality": dream.quality_score,
             "suggestions_applied": len(dream.policy_suggestions),
             "patterns_applied": len(dream.novel_patterns),
+            "policy_result": policy_result,
             "timestamp": datetime.now().isoformat(),
         }
 
