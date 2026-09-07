@@ -1,3 +1,13 @@
+---
+name: azazael-inference-analysis
+description: Multi-API inference subsystem — providers, unified retry client, secrets handling, GUI inference tab.
+metadata:
+  category: domain
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-inference-analysis
 **Category:** Domain Knowledge
 **Priority:** HIGH

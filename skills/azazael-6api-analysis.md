@@ -1,3 +1,13 @@
+---
+name: azazael-6api-analysis
+description: All deep analyses must query all 6 inference APIs with distinct angles (Groq, OpenRouter, NVIDIA NIM and more).
+metadata:
+  category: analysis
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # Azazael 6-API Analysis Protocol
 
 ## Overview

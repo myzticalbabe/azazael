@@ -1,3 +1,13 @@
+---
+name: azazael-work-stealing
+description: WorkStealingPool and WorkStealingQueue — dynamic load balancing across threads for Python 3.14t free-threading.
+metadata:
+  category: parallel
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-work-stealing
 **Category:** Domain Knowledge
 **Priority:** HIGH

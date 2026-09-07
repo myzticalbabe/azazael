@@ -1,3 +1,13 @@
+---
+name: azazael-gemini-protocol
+description: Mandatory 10-phase multi-tier protocol enforcement with Gemini synthesis points.
+metadata:
+  category: protocol
+  project: azazael
+  priority: critical
+  auto_load: false
+---
+
 # SKILL: azazael-gemini-protocol
 # PURPOSE: Mandatory 10-Phase Multi-Tier Protocol Enforcement
 

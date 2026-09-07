@@ -1,3 +1,13 @@
+---
+name: azazael-autodiff-backprop
+description: Reverse-mode automatic differentiation (back-propagation) using mygrad — gradients flowing backward through the computational graph.
+metadata:
+  category: algorithm
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-autodiff-backprop
 **Category:** Algorithm / Automatic Differentiation
 **Priority:** HIGH

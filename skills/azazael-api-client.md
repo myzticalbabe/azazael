@@ -1,3 +1,13 @@
+---
+name: azazael-api-client
+description: Documents the APIClient base class — unified retry/backoff, structured InferenceError hierarchy, thread-safe call tracking, key masking.
+metadata:
+  category: domain
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-api-client
 **Category:** Domain Knowledge
 **Priority:** HIGH

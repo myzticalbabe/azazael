@@ -1,3 +1,13 @@
+---
+name: azazael-nsga2-testing
+description: Unit tests for the NSGA-II evolutionary optimization engine (9 classes, 16 tests).
+metadata:
+  category: testing
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # Azazael NSGA-II Testing — EvolutionEngine Unit Tests
 
 ## Overview

@@ -1,3 +1,13 @@
+---
+name: azazael-gemini-injection
+description: Explicit rules for spawning thinker-with-files-gemini — injection points across task phases.
+metadata:
+  category: protocol
+  project: azazael
+  priority: critical
+  auto_load: false
+---
+
 # SKILL: azazael-gemini-injection
 # PURPOSE: Explicit Rules for Spawning `thinker-with-files-gemini`
 
