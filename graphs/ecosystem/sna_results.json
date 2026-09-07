@@ -1,10 +1,10 @@
 {
  "network": {
-  "nodes": 600,
+  "nodes": 603,
   "edges": 529,
-  "components": 314,
+  "components": 317,
   "density": 0.0029,
-  "avg_degree": 1.763,
+  "avg_degree": 1.755,
   "diameter": 10,
   "avg_shortest_path": 4.028
  },
@@ -30,7 +30,7 @@
    "scripts/bcc_kuzu_temporal_persist.py": 0.0017,
    "scripts/bcc_kuzu_timeline.py": 0.0,
    "scripts/bcc_lead_inference.py": 0.0,
-   "scripts/bcc_network_sna.py": 0.0067,
+   "scripts/bcc_network_sna.py": 0.0066,
    "scripts/bcc_pdfplumber_extract.py": 0.0,
    "scripts/bcc_political_court_layer.py": 0.0017,
    "scripts/bcc_pyvis_network.py": 0.0017,
@@ -58,6 +58,7 @@
    "scripts/desktop_projects_reference_check.py": 0.0,
    "scripts/dlq_burndown.py": 0.0017,
    "scripts/dlq_watch.py": 0.0017,
+   "scripts/ecosystem_gephi_launcher.py": 0.0,
    "scripts/ecosystem_graph.py": 0.0017,
    "scripts/emoji_demo.py": 0.0017,
    "scripts/export_graph_formats.py": 0.0,
@@ -74,6 +75,7 @@
    "scripts/klink.py": 0.0,
    "scripts/learning_loop_gephi_launcher.py": 0.0,
    "scripts/learning_loop_graph.py": 0.0017,
+   "scripts/learning_loop_temporal.py": 0.0,
    "scripts/make_launcher_icons.py": 0.0,
    "scripts/master_generate.py": 0.0033,
    "scripts/modernize_types.py": 0.0,
@@ -82,6 +84,7 @@
    "scripts/quick_test.py": 0.0,
    "scripts/reencode_large_videos.py": 0.0,
    "scripts/render_bcc_lead_findings.py": 0.0,
+   "scripts/render_graph_svg.py": 0.0,
    "scripts/run_training_orchestrator.py": 0.0033,
    "scripts/scan_secrets.py": 0.0,
    "scripts/scenario_a_full_pipeline.py": 0.01,
@@ -95,7 +98,7 @@
    "scripts/sync_g_drive.py": 0.0,
    "scripts/timesfm_pilot_314t.py": 0.0,
    "scripts/train_gosp_curative.py": 0.0017,
-   "scripts/update_header_and_render.py": 0.0067,
+   "scripts/update_header_and_render.py": 0.0066,
    "scripts/verify_aoa_cdp.py": 0.0,
    "scripts/verify_lead_links_cdp.py": 0.0,
    "scripts/video_frame_generator.py": 0.0033,
@@ -189,29 +192,29 @@
    "src/CODEX/generate_session_cain.py": 0.0,
    "src/CODEX/inject_session_cain.py": 0.0,
    "src/COMPREHENSIVE_FIX.py": 0.0,
-   "src/CORE/Agent.py": 0.0117,
+   "src/CORE/Agent.py": 0.0116,
    "src/CORE/AgentPool.py": 0.005,
    "src/CORE/FREETHREAD_UPGRADE.py": 0.0017,
    "src/CORE/FreeThreadedAgent.py": 0.005,
    "src/CORE/LOCAL_DEV.py": 0.0033,
-   "src/CORE/MemoryBus.py": 0.0167,
+   "src/CORE/MemoryBus.py": 0.0166,
    "src/CORE/NODE.py": 0.0017,
-   "src/CORE/NeuralPipeline.py": 0.0117,
+   "src/CORE/NeuralPipeline.py": 0.0116,
    "src/CORE/PYTHON_MANAGER.py": 0.0,
    "src/CORE/PamsBusBridge.py": 0.005,
-   "src/CORE/PamsRecorder.py": 0.0217,
+   "src/CORE/PamsRecorder.py": 0.0216,
    "src/CORE/STRESS_TEST.py": 0.0,
    "src/CORE/STRUCTURE.py": 0.0,
    "src/CORE/WORMS/BINARY_ANALYSIS.py": 0.0083,
    "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py": 0.0017,
    "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py": 0.005,
    "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py": 0.005,
-   "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py": 0.0067,
+   "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py": 0.0066,
    "src/CORE/WORMS/CAIN_ANALYZER.py": 0.0,
    "src/CORE/WORMS/CAIN_DATA.py": 0.0033,
    "src/CORE/WORMS/CAIN_WORM.py": 0.005,
    "src/CORE/WORMS/CLOCKZ.py": 0.0017,
-   "src/CORE/WORMS/CLUSTERWORMS.py": 0.0134,
+   "src/CORE/WORMS/CLUSTERWORMS.py": 0.0133,
    "src/CORE/WORMS/CLUSTER_INSPECTOR.py": 0.0033,
    "src/CORE/WORMS/CODEX_TOOLS.py": 0.0017,
    "src/CORE/WORMS/CONCURRENCY.py": 0.0033,
@@ -224,14 +227,14 @@
    "src/CORE/WORMS/HEALING_WORM.py": 0.0,
    "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py": 0.005,
    "src/CORE/WORMS/INFERENCE_WORM.py": 0.0083,
-   "src/CORE/WORMS/METACLUSTER.py": 0.0234,
+   "src/CORE/WORMS/METACLUSTER.py": 0.0233,
    "src/CORE/WORMS/METAZ.py": 0.0017,
    "src/CORE/WORMS/MORPHING_WORM.py": 0.0017,
    "src/CORE/WORMS/MORPHING_WORM_V2.py": 0.0033,
-   "src/CORE/WORMS/NATURE_CLUSTERS.py": 0.02,
+   "src/CORE/WORMS/NATURE_CLUSTERS.py": 0.0199,
    "src/CORE/WORMS/NETWORK_DIAG.py": 0.0033,
    "src/CORE/WORMS/NETWORXZ.py": 0.0017,
-   "src/CORE/WORMS/NIM_INFERENCE.py": 0.0067,
+   "src/CORE/WORMS/NIM_INFERENCE.py": 0.0066,
    "src/CORE/WORMS/OMNI_WORM.py": 0.0,
    "src/CORE/WORMS/OMNI_WORM_V2.py": 0.0033,
    "src/CORE/WORMS/OS_CONGRUENCY.py": 0.0017,
@@ -255,18 +258,18 @@
    "src/CORE/WORMS/expansion/config.py": 0.0033,
    "src/CORE/WORMS/expansion/container.py": 0.0033,
    "src/CORE/WORMS/expansion/db_monitor.py": 0.01,
-   "src/CORE/WORMS/expansion/dreaming.py": 0.0117,
+   "src/CORE/WORMS/expansion/dreaming.py": 0.0116,
    "src/CORE/WORMS/expansion/error_recovery.py": 0.0033,
    "src/CORE/WORMS/expansion/evolution.py": 0.005,
-   "src/CORE/WORMS/expansion/learning.py": 0.0301,
-   "src/CORE/WORMS/expansion/learning_ab.py": 0.0067,
+   "src/CORE/WORMS/expansion/learning.py": 0.0299,
+   "src/CORE/WORMS/expansion/learning_ab.py": 0.0066,
    "src/CORE/WORMS/expansion/learning_features.py": 0.01,
-   "src/CORE/WORMS/expansion/learning_grpo.py": 0.0117,
+   "src/CORE/WORMS/expansion/learning_grpo.py": 0.0116,
    "src/CORE/WORMS/expansion/learning_pipeline.py": 0.01,
    "src/CORE/WORMS/expansion/learning_replay.py": 0.0017,
    "src/CORE/WORMS/expansion/learning_rl.py": 0.01,
    "src/CORE/WORMS/expansion/learning_versioner.py": 0.0083,
-   "src/CORE/WORMS/expansion/meta_cognition.py": 0.0117,
+   "src/CORE/WORMS/expansion/meta_cognition.py": 0.0116,
    "src/CORE/WORMS/expansion/migration.py": 0.0033,
    "src/CORE/WORMS/expansion/profiling.py": 0.0033,
    "src/CORE/WORMS/expansion/race_detector.py": 0.0033,
@@ -277,69 +280,69 @@
    "src/CORE/WORMS/expansion/visualization.py": 0.0033,
    "src/CORE/Widgets/BasePopupMonitor.py": 0.005,
    "src/CORE/Widgets/__init__.py": 0.0017,
-   "src/CORE/__init__.py": 0.0117,
+   "src/CORE/__init__.py": 0.0116,
    "src/CORE/agent_registry.py": 0.005,
    "src/CORE/audit_compress.py": 0.0017,
    "src/CORE/audit_export_html.py": 0.0,
    "src/CORE/audit_merge.py": 0.0017,
    "src/CORE/audit_repair.py": 0.0017,
-   "src/CORE/audit_trail.py": 0.0317,
+   "src/CORE/audit_trail.py": 0.0316,
    "src/CORE/audit_watch.py": 0.0017,
-   "src/CORE/azazael_ctl.py": 0.0167,
-   "src/CORE/azazael_logging.py": 0.0067,
+   "src/CORE/azazael_ctl.py": 0.0166,
+   "src/CORE/azazael_logging.py": 0.0066,
    "src/CORE/backup.py": 0.0033,
    "src/CORE/cd2_verifier.py": 0.0017,
    "src/CORE/cd3_exporter.py": 0.0,
    "src/CORE/cd4_pipeline.py": 0.0,
-   "src/CORE/circuit_breaker.py": 0.0117,
+   "src/CORE/circuit_breaker.py": 0.0116,
    "src/CORE/cli_audit.py": 0.0033,
    "src/CORE/cli_completion.py": 0.0,
    "src/CORE/cli_crossref.py": 0.005,
    "src/CORE/cli_memory.py": 0.0033,
    "src/CORE/codebuff_tracker.py": 0.0017,
    "src/CORE/compliance/__init__.py": 0.0,
-   "src/CORE/compliance/broker.py": 0.0067,
+   "src/CORE/compliance/broker.py": 0.0066,
    "src/CORE/compliance/dashboard_api.py": 0.0017,
    "src/CORE/compliance/governance.py": 0.005,
    "src/CORE/compliance/heuristic_recorder.py": 0.015,
-   "src/CORE/compliance/orchestrator.py": 0.0234,
+   "src/CORE/compliance/orchestrator.py": 0.0233,
    "src/CORE/compliance/policy.py": 0.0033,
-   "src/CORE/compliance/pre_action_gate.py": 0.0384,
+   "src/CORE/compliance/pre_action_gate.py": 0.0382,
    "src/CORE/compliance/run_self_test.py": 0.0017,
-   "src/CORE/compliance/scanner.py": 0.0067,
+   "src/CORE/compliance/scanner.py": 0.0066,
    "src/CORE/compliance/scanner_db.py": 0.0033,
-   "src/CORE/compliance/state_machine.py": 0.0067,
+   "src/CORE/compliance/state_machine.py": 0.0066,
    "src/CORE/compliance/telemetry.py": 0.005,
    "src/CORE/compliance/validating.py": 0.0017,
    "src/CORE/compliance_auditor.py": 0.0033,
    "src/CORE/config.py": 0.015,
-   "src/CORE/dashboard.py": 0.0167,
-   "src/CORE/data_retention.py": 0.0067,
-   "src/CORE/direct_memory.py": 0.0417,
+   "src/CORE/dashboard.py": 0.0166,
+   "src/CORE/data_retention.py": 0.0066,
+   "src/CORE/direct_memory.py": 0.0415,
    "src/CORE/doctor.py": 0.0083,
-   "src/CORE/dream_policy_bridge.py": 0.0067,
+   "src/CORE/dream_policy_bridge.py": 0.0066,
    "src/CORE/enforcement_harness.py": 0.0,
    "src/CORE/error_triage.py": 0.0,
-   "src/CORE/freethreading.py": 0.0551,
-   "src/CORE/health_server.py": 0.0117,
-   "src/CORE/inference/__init__.py": 0.0067,
+   "src/CORE/freethreading.py": 0.0548,
+   "src/CORE/health_server.py": 0.0116,
+   "src/CORE/inference/__init__.py": 0.0066,
    "src/CORE/inference/api_client.py": 0.0,
-   "src/CORE/inference/bus_utils.py": 0.0067,
+   "src/CORE/inference/bus_utils.py": 0.0066,
    "src/CORE/inference/cloud_tab.py": 0.0017,
    "src/CORE/inference/hyper_optimizer.py": 0.0033,
    "src/CORE/inference/inference_cache.py": 0.0033,
    "src/CORE/inference/nim_client.py": 0.005,
    "src/CORE/inference/parallel.py": 0.0083,
-   "src/CORE/inference/providers.py": 0.025,
+   "src/CORE/inference/providers.py": 0.0249,
    "src/CORE/inference/query_loop.py": 0.0033,
    "src/CORE/inference/sequential_analyzer.py": 0.005,
    "src/CORE/inference/threaded.py": 0.005,
-   "src/CORE/inference_pool.py": 0.0067,
-   "src/CORE/local_memory.py": 0.0384,
+   "src/CORE/inference_pool.py": 0.0066,
+   "src/CORE/local_memory.py": 0.0382,
    "src/CORE/logging_config.py": 0.0,
    "src/CORE/metrics.py": 0.0083,
-   "src/CORE/notifier.py": 0.0067,
-   "src/CORE/paths.py": 0.0634,
+   "src/CORE/notifier.py": 0.0066,
+   "src/CORE/paths.py": 0.0631,
    "src/CORE/paths/__init__.py": 0.0017,
    "src/CORE/paths/__main__.py": 0.0017,
    "src/CORE/paths/external.py": 0.005,
@@ -351,18 +354,18 @@
    "src/CORE/rollback.py": 0.0017,
    "src/CORE/safe_file_ops.py": 0.0017,
    "src/CORE/safe_sql.py": 0.0017,
-   "src/CORE/sb3_agent.py": 0.0134,
+   "src/CORE/sb3_agent.py": 0.0133,
    "src/CORE/secrets_manager.py": 0.0,
    "src/CORE/sentinel_enforcer.py": 0.0083,
    "src/CORE/startup_warm.py": 0.0017,
    "src/CORE/threading_utils.py": 0.0,
    "src/CORE/tstrings.py": 0.0,
-   "src/CORE/uuid7.py": 0.0134,
+   "src/CORE/uuid7.py": 0.0133,
    "src/CORE/vocab_migration.py": 0.0033,
    "src/CORE/web_dashboard.py": 0.0083,
    "src/CORE/workflow.py": 0.01,
    "src/CORE/worm_governance.py": 0.0017,
-   "src/CORE/worm_registry.py": 0.1336,
+   "src/CORE/worm_registry.py": 0.1329,
    "src/CORE/worm_registry_cache.py": 0.0017,
    "src/CORE/xref_auto_link.py": 0.0033,
    "src/CORE/xref_dashboard.py": 0.0033,
@@ -376,7 +379,7 @@
    "src/FILE_MANIFEST_GENERATOR.py": 0.0033,
    "src/HEALTHZ.py": 0.005,
    "src/HORUS_INTEGRATION.py": 0.0033,
-   "src/HYDRA/__init__.py": 0.0067,
+   "src/HYDRA/__init__.py": 0.0066,
    "src/HYDRA/hydra_launcher.py": 0.0,
    "src/HYDRA/hydra_protocols.py": 0.0017,
    "src/HYDRA/ml_platforms/PERMANENT_LOAD.py": 0.0,
@@ -387,7 +390,7 @@
    "src/HYDRA/ml_platforms/launcher.py": 0.0,
    "src/HYDRA/ml_test.py": 0.0,
    "src/HYDRA/pipeline_specs.py": 0.0,
-   "src/HYDRAMETA.py": 0.0067,
+   "src/HYDRAMETA.py": 0.0066,
    "src/HYDRAMETA_UV.py": 0.0017,
    "src/HYDRA_CONTAINER.py": 0.0017,
    "src/INTERPRETERS/__init__.py": 0.0033,
@@ -403,13 +406,13 @@
    "src/META/METAWORMS_ENRICHED.py": 0.0,
    "src/META/METAWORMS_POPUP.py": 0.0,
    "src/META/METRICZ.py": 0.0,
-   "src/META/MetaWormSpawner.py": 0.0067,
+   "src/META/MetaWormSpawner.py": 0.0066,
    "src/META/OPTIMIZ.py": 0.0,
    "src/META/TELEMETRYZ.py": 0.0,
    "src/META/TRIMZ.py": 0.0,
    "src/META/UVZ.py": 0.0,
    "src/META/__init__.py": 0.0,
-   "src/METAWORMS.py": 0.0067,
+   "src/METAWORMS.py": 0.0066,
    "src/METAWORMS_ENRICHED.py": 0.0033,
    "src/METAWORMS_POPUP.py": 0.0017,
    "src/METRICZ.py": 0.0033,
@@ -441,7 +444,7 @@
    "src/ORCHESTRATION/TotalFusion.py": 0.0,
    "src/ORCHESTRATION/__init__.py": 0.0,
    "src/ORCHESTRATION/hydra_bridge.py": 0.0033,
-   "src/ORCHESTRATION/ml_platforms/__init__.py": 0.0067,
+   "src/ORCHESTRATION/ml_platforms/__init__.py": 0.0066,
    "src/ORCHESTRATION/ml_platforms/auto_install.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/autoload.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/changelog.py": 0.0,
@@ -508,7 +511,7 @@
    "src/SCRIPTS/enforce_pre_action_gate.py": 0.0017,
    "src/SCRIPTS/environ_updater.py": 0.0,
    "src/SCRIPTS/fix_bare_excepts.py": 0.0,
-   "src/SCRIPTS/gate_bash.py": 0.0067,
+   "src/SCRIPTS/gate_bash.py": 0.0066,
    "src/SCRIPTS/gate_str_replace.py": 0.0033,
    "src/SCRIPTS/gate_write_file.py": 0.0033,
    "src/SCRIPTS/gated_edit.py": 0.0,
@@ -570,7 +573,7 @@
    "src/environment_manager.py": 0.0,
    "src/eve_unleashed/__init__.py": 0.0017,
    "src/eve_unleashed/cache.py": 0.0017,
-   "src/eve_unleashed/cli.py": 0.0067,
+   "src/eve_unleashed/cli.py": 0.0066,
    "src/eve_unleashed/config.py": 0.0033,
    "src/eve_unleashed/core.py": 0.0033,
    "src/eve_unleashed/engine.py": 0.01,
@@ -600,7 +603,7 @@
    "src/scripts/monitor_learning.py": 0.0,
    "src/scripts/parallel_compliance_scanner.py": 0.0,
    "src/scripts/run_test_generate_telemetry.py": 0.0,
-   "src/scripts/sentinel_gate.py": 0.0134,
+   "src/scripts/sentinel_gate.py": 0.0133,
    "src/scripts/sync_skills.py": 0.0,
    "src/scripts/test_auto_sync.py": 0.0,
    "src/scripts/test_dynamic_logging.py": 0.0017,
@@ -660,6 +663,7 @@
    "scripts/desktop_projects_reference_check.py": 0.0,
    "scripts/dlq_burndown.py": 0.0,
    "scripts/dlq_watch.py": 0.0,
+   "scripts/ecosystem_gephi_launcher.py": 0.0,
    "scripts/ecosystem_graph.py": 0.0,
    "scripts/emoji_demo.py": 0.0,
    "scripts/export_graph_formats.py": 0.0,
@@ -676,6 +680,7 @@
    "scripts/klink.py": 0.0,
    "scripts/learning_loop_gephi_launcher.py": 0.0,
    "scripts/learning_loop_graph.py": 0.0,
+   "scripts/learning_loop_temporal.py": 0.0,
    "scripts/make_launcher_icons.py": 0.0,
    "scripts/master_generate.py": 0.0,
    "scripts/modernize_types.py": 0.0,
@@ -684,6 +689,7 @@
    "scripts/quick_test.py": 0.0,
    "scripts/reencode_large_videos.py": 0.0,
    "scripts/render_bcc_lead_findings.py": 0.0,
+   "scripts/render_graph_svg.py": 0.0,
    "scripts/run_training_orchestrator.py": 0.0,
    "scripts/scan_secrets.py": 0.0,
    "scripts/scenario_a_full_pipeline.py": 0.0026,
@@ -697,7 +703,7 @@
    "scripts/sync_g_drive.py": 0.0,
    "scripts/timesfm_pilot_314t.py": 0.0,
    "scripts/train_gosp_curative.py": 0.0,
-   "scripts/update_header_and_render.py": 0.0201,
+   "scripts/update_header_and_render.py": 0.0199,
    "scripts/verify_aoa_cdp.py": 0.0,
    "scripts/verify_lead_links_cdp.py": 0.0,
    "scripts/video_frame_generator.py": 0.0,
@@ -714,7 +720,7 @@
    "src/AZAZAEL_TOOLKIT/environment_manager.py": 0.0,
    "src/AZAZAEL_TOOLKIT/math_certainty.py": 0.0,
    "src/AZAZAEL_TOOLKIT/update_docs_paths.py": 0.0,
-   "src/AzazaelDynamicLogger.py": 0.0056,
+   "src/AzazaelDynamicLogger.py": 0.0055,
    "src/CHANGELOG_GENERATOR.py": 0.0014,
    "src/CLI/__init__.py": 0.0,
    "src/CLI/azazael_cli.py": 0.0,
@@ -801,10 +807,10 @@
    "src/CORE/NeuralPipeline.py": 0.0024,
    "src/CORE/PYTHON_MANAGER.py": 0.0,
    "src/CORE/PamsBusBridge.py": 0.0001,
-   "src/CORE/PamsRecorder.py": 0.0084,
+   "src/CORE/PamsRecorder.py": 0.0083,
    "src/CORE/STRESS_TEST.py": 0.0,
    "src/CORE/STRUCTURE.py": 0.0,
-   "src/CORE/WORMS/BINARY_ANALYSIS.py": 0.0043,
+   "src/CORE/WORMS/BINARY_ANALYSIS.py": 0.0042,
    "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py": 0.0,
    "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py": 0.0,
    "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py": 0.0,
@@ -813,8 +819,8 @@
    "src/CORE/WORMS/CAIN_DATA.py": 0.0,
    "src/CORE/WORMS/CAIN_WORM.py": 0.0028,
    "src/CORE/WORMS/CLOCKZ.py": 0.0,
-   "src/CORE/WORMS/CLUSTERWORMS.py": 0.003,
-   "src/CORE/WORMS/CLUSTER_INSPECTOR.py": 0.0047,
+   "src/CORE/WORMS/CLUSTERWORMS.py": 0.0029,
+   "src/CORE/WORMS/CLUSTER_INSPECTOR.py": 0.0046,
    "src/CORE/WORMS/CODEX_TOOLS.py": 0.0,
    "src/CORE/WORMS/CONCURRENCY.py": 0.0001,
    "src/CORE/WORMS/CROSS_NATURE_ROUTER.py": 0.0002,
@@ -826,28 +832,28 @@
    "src/CORE/WORMS/HEALING_WORM.py": 0.0,
    "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py": 0.0002,
    "src/CORE/WORMS/INFERENCE_WORM.py": 0.0019,
-   "src/CORE/WORMS/METACLUSTER.py": 0.0059,
+   "src/CORE/WORMS/METACLUSTER.py": 0.0058,
    "src/CORE/WORMS/METAZ.py": 0.0,
    "src/CORE/WORMS/MORPHING_WORM.py": 0.0,
-   "src/CORE/WORMS/MORPHING_WORM_V2.py": 0.0047,
+   "src/CORE/WORMS/MORPHING_WORM_V2.py": 0.0046,
    "src/CORE/WORMS/NATURE_CLUSTERS.py": 0.0061,
    "src/CORE/WORMS/NETWORK_DIAG.py": 0.0,
    "src/CORE/WORMS/NETWORXZ.py": 0.0,
-   "src/CORE/WORMS/NIM_INFERENCE.py": 0.0026,
+   "src/CORE/WORMS/NIM_INFERENCE.py": 0.0025,
    "src/CORE/WORMS/OMNI_WORM.py": 0.0,
-   "src/CORE/WORMS/OMNI_WORM_V2.py": 0.0047,
+   "src/CORE/WORMS/OMNI_WORM_V2.py": 0.0046,
    "src/CORE/WORMS/OS_CONGRUENCY.py": 0.0,
-   "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py": 0.0127,
+   "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py": 0.0126,
    "src/CORE/WORMS/PROCESSZ.py": 0.0,
    "src/CORE/WORMS/REVERSE_TOOLS.py": 0.0,
-   "src/CORE/WORMS/SMARTDISK.py": 0.0047,
+   "src/CORE/WORMS/SMARTDISK.py": 0.0046,
    "src/CORE/WORMS/SYSTEMZ.py": 0.0,
-   "src/CORE/WORMS/SYSTEMZ_ML.py": 0.0047,
+   "src/CORE/WORMS/SYSTEMZ_ML.py": 0.0046,
    "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py": 0.0,
    "src/CORE/WORMS/WORMZ.py": 0.0014,
-   "src/CORE/WORMS/WORMZ_ML.py": 0.0061,
+   "src/CORE/WORMS/WORMZ_ML.py": 0.006,
    "src/CORE/WORMS/WORMZ_POPUP.py": 0.0,
-   "src/CORE/WORMS/WORM_FLEET.py": 0.0047,
+   "src/CORE/WORMS/WORM_FLEET.py": 0.0046,
    "src/CORE/WORMS/WORM_SELECTOR.py": 0.0001,
    "src/CORE/WORMS/__init__.py": 0.0034,
    "src/CORE/WORMS/dead_letter_queue.py": 0.0,
@@ -885,7 +891,7 @@
    "src/CORE/audit_export_html.py": 0.0,
    "src/CORE/audit_merge.py": 0.0,
    "src/CORE/audit_repair.py": 0.0,
-   "src/CORE/audit_trail.py": 0.0139,
+   "src/CORE/audit_trail.py": 0.0138,
    "src/CORE/audit_watch.py": 0.0,
    "src/CORE/azazael_ctl.py": 0.0034,
    "src/CORE/azazael_logging.py": 0.0,
@@ -904,9 +910,9 @@
    "src/CORE/compliance/dashboard_api.py": 0.0,
    "src/CORE/compliance/governance.py": 0.0004,
    "src/CORE/compliance/heuristic_recorder.py": 0.0025,
-   "src/CORE/compliance/orchestrator.py": 0.0142,
+   "src/CORE/compliance/orchestrator.py": 0.0141,
    "src/CORE/compliance/policy.py": 0.0,
-   "src/CORE/compliance/pre_action_gate.py": 0.0163,
+   "src/CORE/compliance/pre_action_gate.py": 0.0161,
    "src/CORE/compliance/run_self_test.py": 0.0,
    "src/CORE/compliance/scanner.py": 0.0029,
    "src/CORE/compliance/scanner_db.py": 0.0014,
@@ -917,31 +923,31 @@
    "src/CORE/config.py": 0.0012,
    "src/CORE/dashboard.py": 0.0007,
    "src/CORE/data_retention.py": 0.0001,
-   "src/CORE/direct_memory.py": 0.0338,
-   "src/CORE/doctor.py": 0.0002,
+   "src/CORE/direct_memory.py": 0.0335,
+   "src/CORE/doctor.py": 0.0001,
    "src/CORE/dream_policy_bridge.py": 0.0012,
    "src/CORE/enforcement_harness.py": 0.0,
    "src/CORE/error_triage.py": 0.0,
-   "src/CORE/freethreading.py": 0.0142,
+   "src/CORE/freethreading.py": 0.014,
    "src/CORE/health_server.py": 0.0006,
    "src/CORE/inference/__init__.py": 0.0,
    "src/CORE/inference/api_client.py": 0.0,
-   "src/CORE/inference/bus_utils.py": 0.0002,
+   "src/CORE/inference/bus_utils.py": 0.0001,
    "src/CORE/inference/cloud_tab.py": 0.0,
    "src/CORE/inference/hyper_optimizer.py": 0.0,
    "src/CORE/inference/inference_cache.py": 0.001,
    "src/CORE/inference/nim_client.py": 0.0001,
    "src/CORE/inference/parallel.py": 0.0013,
-   "src/CORE/inference/providers.py": 0.0091,
+   "src/CORE/inference/providers.py": 0.009,
    "src/CORE/inference/query_loop.py": 0.0,
    "src/CORE/inference/sequential_analyzer.py": 0.0,
    "src/CORE/inference/threaded.py": 0.0,
    "src/CORE/inference_pool.py": 0.0001,
-   "src/CORE/local_memory.py": 0.007,
+   "src/CORE/local_memory.py": 0.0069,
    "src/CORE/logging_config.py": 0.0,
    "src/CORE/metrics.py": 0.0023,
    "src/CORE/notifier.py": 0.0001,
-   "src/CORE/paths.py": 0.0479,
+   "src/CORE/paths.py": 0.0474,
    "src/CORE/paths/__init__.py": 0.0,
    "src/CORE/paths/__main__.py": 0.0,
    "src/CORE/paths/external.py": 0.0,
@@ -959,12 +965,12 @@
    "src/CORE/startup_warm.py": 0.0,
    "src/CORE/threading_utils.py": 0.0,
    "src/CORE/tstrings.py": 0.0,
-   "src/CORE/uuid7.py": 0.0111,
+   "src/CORE/uuid7.py": 0.011,
    "src/CORE/vocab_migration.py": 0.0001,
    "src/CORE/web_dashboard.py": 0.0002,
    "src/CORE/workflow.py": 0.0005,
    "src/CORE/worm_governance.py": 0.0,
-   "src/CORE/worm_registry.py": 0.1187,
+   "src/CORE/worm_registry.py": 0.1175,
    "src/CORE/worm_registry_cache.py": 0.0,
    "src/CORE/xref_auto_link.py": 0.0001,
    "src/CORE/xref_dashboard.py": 0.0,
@@ -974,9 +980,9 @@
    "src/DAEMONS/parallax_validator.py": 0.0,
    "src/DOCKERZ.py": 0.0,
    "src/ECOSYSTEM_HEALTH_CHECK.py": 0.0014,
-   "src/ERRORZ.py": 0.0047,
+   "src/ERRORZ.py": 0.0046,
    "src/FILE_MANIFEST_GENERATOR.py": 0.0014,
-   "src/HEALTHZ.py": 0.002,
+   "src/HEALTHZ.py": 0.0019,
    "src/HORUS_INTEGRATION.py": 0.0014,
    "src/HYDRA/__init__.py": 0.0036,
    "src/HYDRA/hydra_launcher.py": 0.0,
@@ -1011,12 +1017,12 @@
    "src/META/TRIMZ.py": 0.0,
    "src/META/UVZ.py": 0.0,
    "src/META/__init__.py": 0.0,
-   "src/METAWORMS.py": 0.0015,
+   "src/METAWORMS.py": 0.0014,
    "src/METAWORMS_ENRICHED.py": 0.0022,
    "src/METAWORMS_POPUP.py": 0.0,
    "src/METRICZ.py": 0.0052,
    "src/MISSING_TOOLS.py": 0.0,
-   "src/OPTIMIZ.py": 0.002,
+   "src/OPTIMIZ.py": 0.0019,
    "src/ORCHESTRATION/ADLP_FusionCore.py": 0.0,
    "src/ORCHESTRATION/ADLP_MLOrchestrator.py": 0.0,
    "src/ORCHESTRATION/ADLP_SystemTools.py": 0.0,
@@ -1037,7 +1043,7 @@
    "src/ORCHESTRATION/SelfImprovingGUI.py": 0.0,
    "src/ORCHESTRATION/SystemManager.py": 0.0,
    "src/ORCHESTRATION/SystemManagerGUI.py": 0.0,
-   "src/ORCHESTRATION/TARBABY.py": 0.0042,
+   "src/ORCHESTRATION/TARBABY.py": 0.0041,
    "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py": 0.0005,
    "src/ORCHESTRATION/TEST/__init__.py": 0.0,
    "src/ORCHESTRATION/TotalFusion.py": 0.0,
@@ -1139,7 +1145,7 @@
    "src/TOOLS/archive_system.py": 0.0,
    "src/TOOLS/azazael_toolkit.py": 0.0,
    "src/TOOLS/debug_runner.py": 0.0,
-   "src/TRIMZ.py": 0.0047,
+   "src/TRIMZ.py": 0.0046,
    "src/UTILITIES/AzazaelDynamicLogger.py": 0.0,
    "src/UTILITIES/KLINK/__init__.py": 0.0,
    "src/UTILITIES/KLINK/klink.py": 0.0,
@@ -1183,7 +1189,7 @@
    "src/eve_unleashed/utils.py": 0.0,
    "src/math_certainty.py": 0.0,
    "src/matrix_animation.py": 0.0,
-   "src/memory_status.py": 0.0097,
+   "src/memory_status.py": 0.0096,
    "src/performance_monitor.py": 0.0,
    "src/persistent_memory.py": 0.0,
    "src/scripts/__init__.py": 0.0,
@@ -1262,6 +1268,7 @@
    "scripts/desktop_projects_reference_check.py": 0.0,
    "scripts/dlq_burndown.py": 0.0121,
    "scripts/dlq_watch.py": 0.0121,
+   "scripts/ecosystem_gephi_launcher.py": 0.0,
    "scripts/ecosystem_graph.py": 0.0,
    "scripts/emoji_demo.py": 0.0,
    "scripts/export_graph_formats.py": 0.0,
@@ -1278,6 +1285,7 @@
    "scripts/klink.py": 0.0,
    "scripts/learning_loop_gephi_launcher.py": 0.0,
    "scripts/learning_loop_graph.py": 0.0,
+   "scripts/learning_loop_temporal.py": 0.0,
    "scripts/make_launcher_icons.py": 0.0,
    "scripts/master_generate.py": 0.0,
    "scripts/modernize_types.py": 0.0,
@@ -1286,6 +1294,7 @@
    "scripts/quick_test.py": 0.0,
    "scripts/reencode_large_videos.py": 0.0,
    "scripts/render_bcc_lead_findings.py": 0.0,
+   "scripts/render_graph_svg.py": 0.0,
    "scripts/run_training_orchestrator.py": 0.0624,
    "scripts/scan_secrets.py": 0.0,
    "scripts/scenario_a_full_pipeline.py": 0.0865,
@@ -1836,7 +1845,7 @@
    "scripts/bcc_kuzu_temporal_persist.py": 0.0017,
    "scripts/bcc_kuzu_timeline.py": 0.0,
    "scripts/bcc_lead_inference.py": 0.0,
-   "scripts/bcc_network_sna.py": 0.0067,
+   "scripts/bcc_network_sna.py": 0.0066,
    "scripts/bcc_pdfplumber_extract.py": 0.0,
    "scripts/bcc_political_court_layer.py": 0.0038,
    "scripts/bcc_pyvis_network.py": 0.0038,
@@ -1854,23 +1863,24 @@
    "scripts/cain_video_pipeline_demo.py": 0.0,
    "scripts/check_314t_compat.py": 0.0,
    "scripts/check_no_catch_alls.py": 0.0,
-   "scripts/check_tooling.py": 0.0992,
-   "scripts/close_audit_sessions.py": 0.0973,
+   "scripts/check_tooling.py": 0.0987,
+   "scripts/close_audit_sessions.py": 0.0968,
    "scripts/convert_to_wmv.py": 0.0,
    "scripts/cosmos_export.py": 0.0,
    "scripts/cosmos_inline_viewer.py": 0.0,
    "scripts/cosmos_singlefile.py": 0.0,
-   "scripts/db_health.py": 0.1128,
+   "scripts/db_health.py": 0.1122,
    "scripts/desktop_projects_reference_check.py": 0.0,
-   "scripts/dlq_burndown.py": 0.1039,
-   "scripts/dlq_watch.py": 0.1039,
+   "scripts/dlq_burndown.py": 0.1034,
+   "scripts/dlq_watch.py": 0.1034,
+   "scripts/ecosystem_gephi_launcher.py": 0.0,
    "scripts/ecosystem_graph.py": 0.0038,
    "scripts/emoji_demo.py": 0.0017,
    "scripts/export_graph_formats.py": 0.0,
    "scripts/fetch_990_series.py": 0.0,
    "scripts/finalize_whitepaper.py": 0.0,
    "scripts/generate_capability_templates.py": 0.0,
-   "scripts/generate_dashboard.py": 0.128,
+   "scripts/generate_dashboard.py": 0.1274,
    "scripts/gosp_learner_divergence.py": 0.0,
    "scripts/gosp_learner_train.py": 0.0,
    "scripts/gosp_parity_check.py": 0.0,
@@ -1880,34 +1890,36 @@
    "scripts/klink.py": 0.0,
    "scripts/learning_loop_gephi_launcher.py": 0.0,
    "scripts/learning_loop_graph.py": 0.0038,
+   "scripts/learning_loop_temporal.py": 0.0,
    "scripts/make_launcher_icons.py": 0.0,
    "scripts/master_generate.py": 0.0033,
    "scripts/modernize_types.py": 0.0,
-   "scripts/pre_build_check.py": 0.1271,
-   "scripts/profile_clusterworms_parallel.py": 0.114,
+   "scripts/pre_build_check.py": 0.1265,
+   "scripts/profile_clusterworms_parallel.py": 0.1134,
    "scripts/quick_test.py": 0.0,
    "scripts/reencode_large_videos.py": 0.0,
    "scripts/render_bcc_lead_findings.py": 0.0,
-   "scripts/run_training_orchestrator.py": 0.129,
+   "scripts/render_graph_svg.py": 0.0,
+   "scripts/run_training_orchestrator.py": 0.1283,
    "scripts/scan_secrets.py": 0.0,
-   "scripts/scenario_a_full_pipeline.py": 0.1334,
-   "scripts/scenario_b_compressed_pipeline.py": 0.1285,
-   "scripts/scenario_c_distillation_pipeline.py": 0.1302,
-   "scripts/scenario_d_nas_pipeline.py": 0.1122,
+   "scripts/scenario_a_full_pipeline.py": 0.1327,
+   "scripts/scenario_b_compressed_pipeline.py": 0.1279,
+   "scripts/scenario_c_distillation_pipeline.py": 0.1296,
+   "scripts/scenario_d_nas_pipeline.py": 0.1116,
    "scripts/sna_communities_410k.py": 0.0017,
    "scripts/sna_scale_azazael.py": 0.0017,
    "scripts/spec_audit.py": 0.0,
    "scripts/sync_all.py": 0.0,
    "scripts/sync_g_drive.py": 0.0,
    "scripts/timesfm_pilot_314t.py": 0.0,
-   "scripts/train_gosp_curative.py": 0.0875,
-   "scripts/update_header_and_render.py": 0.1464,
+   "scripts/train_gosp_curative.py": 0.0871,
+   "scripts/update_header_and_render.py": 0.1457,
    "scripts/verify_aoa_cdp.py": 0.0,
    "scripts/verify_lead_links_cdp.py": 0.0,
    "scripts/video_frame_generator.py": 0.0033,
    "scripts/watch_training_day.py": 0.0,
    "src/ANIMATION_PROTOCOLS.py": 0.0017,
-   "src/AUTO_DOC_GENERATOR.py": 0.0916,
+   "src/AUTO_DOC_GENERATOR.py": 0.0911,
    "src/AZAZAEL_Inference_Studio.py": 0.0,
    "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py": 0.0,
    "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py": 0.0,
@@ -1918,19 +1930,19 @@
    "src/AZAZAEL_TOOLKIT/environment_manager.py": 0.0,
    "src/AZAZAEL_TOOLKIT/math_certainty.py": 0.0,
    "src/AZAZAEL_TOOLKIT/update_docs_paths.py": 0.0,
-   "src/AzazaelDynamicLogger.py": 0.0829,
-   "src/CHANGELOG_GENERATOR.py": 0.0917,
+   "src/AzazaelDynamicLogger.py": 0.0825,
+   "src/CHANGELOG_GENERATOR.py": 0.0913,
    "src/CLI/__init__.py": 0.0,
-   "src/CLI/azazael_cli.py": 0.0916,
+   "src/CLI/azazael_cli.py": 0.0911,
    "src/CODEX/CODEX_Studio.py": 0.0,
    "src/CODEX/CORE/ANIMATION_PROTOCOLS.py": 0.0017,
    "src/CODEX/CORE/AUTO_DOC_GENERATOR.py": 0.0,
    "src/CODEX/CORE/AUTO_DOWNLOADER.py": 0.0,
-   "src/CODEX/CORE/CAIN_ANALYZER.py": 0.0982,
-   "src/CODEX/CORE/CHANGELOG_GENERATOR.py": 0.0753,
-   "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py": 0.0753,
-   "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py": 0.0753,
-   "src/CODEX/CORE/HORUS_INTEGRATION.py": 0.0753,
+   "src/CODEX/CORE/CAIN_ANALYZER.py": 0.0977,
+   "src/CODEX/CORE/CHANGELOG_GENERATOR.py": 0.075,
+   "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py": 0.075,
+   "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py": 0.075,
+   "src/CODEX/CORE/HORUS_INTEGRATION.py": 0.075,
    "src/CODEX/CORE/QL_FILE_OPTIMIZER.py": 0.0017,
    "src/CODEX/CORE/__init__.py": 0.0,
    "src/CODEX/CORE/ascii_flowchart.py": 0.0017,
@@ -1955,13 +1967,13 @@
    "src/CODEX/SESSION_TEMPLATE/generators/generate_session_report.py": 0.0,
    "src/CODEX/SESSION_TEMPLATE/generators/unified_generator.py": 0.0,
    "src/CODEX/TESTING/INTEGRATION/__init__.py": 0.0,
-   "src/CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py": 0.0792,
+   "src/CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py": 0.0788,
    "src/CODEX/TESTING/PERFORMANCE/__init__.py": 0.0,
-   "src/CODEX/TESTING/PERFORMANCE/test_performance.py": 0.0792,
+   "src/CODEX/TESTING/PERFORMANCE/test_performance.py": 0.0788,
    "src/CODEX/TESTING/UNIT/__init__.py": 0.0,
-   "src/CODEX/TESTING/UNIT/test_hydra.py": 0.0733,
-   "src/CODEX/TESTING/UNIT/test_metaworms.py": 0.1055,
-   "src/CODEX/TESTING/UNIT/test_wormz.py": 0.0979,
+   "src/CODEX/TESTING/UNIT/test_hydra.py": 0.0729,
+   "src/CODEX/TESTING/UNIT/test_metaworms.py": 0.105,
+   "src/CODEX/TESTING/UNIT/test_wormz.py": 0.0974,
    "src/CODEX/TESTING/__init__.py": 0.0,
    "src/CODEX/TESTING/conftest.py": 0.0,
    "src/CODEX/VIDEOS/__init__.py": 0.0,
@@ -1972,7 +1984,7 @@
    "src/CODEX/VIDEOS/create_reference_video.py": 0.0,
    "src/CODEX/VIDEOS/create_scrolling_video.py": 0.0,
    "src/CODEX/VIDEOS/create_video.py": 0.0,
-   "src/CODEX/VIDEOS/generate_dashboard_video.py": 0.128,
+   "src/CODEX/VIDEOS/generate_dashboard_video.py": 0.1274,
    "src/CODEX/VIDEOS/generate_matrix_video.py": 0.0,
    "src/CODEX/VIDEOS/generate_video.py": 0.0,
    "src/CODEX/VIDEOS/generate_video_v2.py": 0.0,
@@ -1986,215 +1998,215 @@
    "src/CODEX/VIDEOS/make_video_zipper.py": 0.0,
    "src/CODEX/VIDEOS/video_popup.py": 0.0,
    "src/CODEX/__init__.py": 0.0,
-   "src/CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py": 0.0916,
-   "src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py": 0.0916,
-   "src/CODEX/comprehensive/GENERATE_ALL_11.py": 0.0916,
-   "src/CODEX/comprehensive/GENERATE_HTML.py": 0.0916,
-   "src/CODEX/comprehensive/GENERATE_RICH_HTML.py": 0.0916,
+   "src/CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py": 0.0911,
+   "src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py": 0.0911,
+   "src/CODEX/comprehensive/GENERATE_ALL_11.py": 0.0911,
+   "src/CODEX/comprehensive/GENERATE_HTML.py": 0.0911,
+   "src/CODEX/comprehensive/GENERATE_RICH_HTML.py": 0.0911,
    "src/CODEX/comprehensive/TWITLER_ANALYSIS.py": 0.0,
    "src/CODEX/generate_session_cain.py": 0.0,
    "src/CODEX/inject_session_cain.py": 0.0,
    "src/COMPREHENSIVE_FIX.py": 0.0,
-   "src/CORE/Agent.py": 0.1205,
-   "src/CORE/AgentPool.py": 0.1178,
-   "src/CORE/FREETHREAD_UPGRADE.py": 0.1005,
-   "src/CORE/FreeThreadedAgent.py": 0.1014,
-   "src/CORE/LOCAL_DEV.py": 0.1014,
-   "src/CORE/MemoryBus.py": 0.1201,
-   "src/CORE/NODE.py": 0.0916,
-   "src/CORE/NeuralPipeline.py": 0.1207,
+   "src/CORE/Agent.py": 0.1199,
+   "src/CORE/AgentPool.py": 0.1172,
+   "src/CORE/FREETHREAD_UPGRADE.py": 0.1,
+   "src/CORE/FreeThreadedAgent.py": 0.1008,
+   "src/CORE/LOCAL_DEV.py": 0.1008,
+   "src/CORE/MemoryBus.py": 0.1195,
+   "src/CORE/NODE.py": 0.0911,
+   "src/CORE/NeuralPipeline.py": 0.1201,
    "src/CORE/PYTHON_MANAGER.py": 0.0,
-   "src/CORE/PamsBusBridge.py": 0.1102,
-   "src/CORE/PamsRecorder.py": 0.1404,
+   "src/CORE/PamsBusBridge.py": 0.1097,
+   "src/CORE/PamsRecorder.py": 0.1397,
    "src/CORE/STRESS_TEST.py": 0.0,
    "src/CORE/STRUCTURE.py": 0.0,
-   "src/CORE/WORMS/BINARY_ANALYSIS.py": 0.1283,
-   "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py": 0.0984,
-   "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py": 0.0997,
-   "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py": 0.0997,
-   "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py": 0.1062,
+   "src/CORE/WORMS/BINARY_ANALYSIS.py": 0.1277,
+   "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py": 0.0979,
+   "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py": 0.0992,
+   "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py": 0.0992,
+   "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py": 0.1057,
    "src/CORE/WORMS/CAIN_ANALYZER.py": 0.0,
-   "src/CORE/WORMS/CAIN_DATA.py": 0.0982,
-   "src/CORE/WORMS/CAIN_WORM.py": 0.1277,
-   "src/CORE/WORMS/CLOCKZ.py": 0.1271,
-   "src/CORE/WORMS/CLUSTERWORMS.py": 0.1368,
-   "src/CORE/WORMS/CLUSTER_INSPECTOR.py": 0.1402,
-   "src/CORE/WORMS/CODEX_TOOLS.py": 0.1271,
-   "src/CORE/WORMS/CONCURRENCY.py": 0.1315,
-   "src/CORE/WORMS/CROSS_NATURE_ROUTER.py": 0.1141,
-   "src/CORE/WORMS/DEPENDZ.py": 0.1271,
-   "src/CORE/WORMS/DIAGNOSTIC_WORM.py": 0.1271,
-   "src/CORE/WORMS/DISKZ.py": 0.1271,
-   "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py": 0.0725,
-   "src/CORE/WORMS/ERROR_SCAN_WORM.py": 0.1271,
+   "src/CORE/WORMS/CAIN_DATA.py": 0.0977,
+   "src/CORE/WORMS/CAIN_WORM.py": 0.1271,
+   "src/CORE/WORMS/CLOCKZ.py": 0.1265,
+   "src/CORE/WORMS/CLUSTERWORMS.py": 0.1361,
+   "src/CORE/WORMS/CLUSTER_INSPECTOR.py": 0.1395,
+   "src/CORE/WORMS/CODEX_TOOLS.py": 0.1265,
+   "src/CORE/WORMS/CONCURRENCY.py": 0.1309,
+   "src/CORE/WORMS/CROSS_NATURE_ROUTER.py": 0.1136,
+   "src/CORE/WORMS/DEPENDZ.py": 0.1265,
+   "src/CORE/WORMS/DIAGNOSTIC_WORM.py": 0.1265,
+   "src/CORE/WORMS/DISKZ.py": 0.1265,
+   "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py": 0.0722,
+   "src/CORE/WORMS/ERROR_SCAN_WORM.py": 0.1265,
    "src/CORE/WORMS/HEALING_WORM.py": 0.0,
-   "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py": 0.1304,
-   "src/CORE/WORMS/INFERENCE_WORM.py": 0.1315,
-   "src/CORE/WORMS/METACLUSTER.py": 0.1444,
-   "src/CORE/WORMS/METAZ.py": 0.1271,
-   "src/CORE/WORMS/MORPHING_WORM.py": 0.0916,
-   "src/CORE/WORMS/MORPHING_WORM_V2.py": 0.1402,
-   "src/CORE/WORMS/NATURE_CLUSTERS.py": 0.1379,
-   "src/CORE/WORMS/NETWORK_DIAG.py": 0.1291,
-   "src/CORE/WORMS/NETWORXZ.py": 0.1271,
-   "src/CORE/WORMS/NIM_INFERENCE.py": 0.1312,
+   "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py": 0.1298,
+   "src/CORE/WORMS/INFERENCE_WORM.py": 0.1309,
+   "src/CORE/WORMS/METACLUSTER.py": 0.1437,
+   "src/CORE/WORMS/METAZ.py": 0.1265,
+   "src/CORE/WORMS/MORPHING_WORM.py": 0.0911,
+   "src/CORE/WORMS/MORPHING_WORM_V2.py": 0.1395,
+   "src/CORE/WORMS/NATURE_CLUSTERS.py": 0.1372,
+   "src/CORE/WORMS/NETWORK_DIAG.py": 0.1285,
+   "src/CORE/WORMS/NETWORXZ.py": 0.1265,
+   "src/CORE/WORMS/NIM_INFERENCE.py": 0.1306,
    "src/CORE/WORMS/OMNI_WORM.py": 0.0,
-   "src/CORE/WORMS/OMNI_WORM_V2.py": 0.1402,
-   "src/CORE/WORMS/OS_CONGRUENCY.py": 0.1271,
-   "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py": 0.1481,
-   "src/CORE/WORMS/PROCESSZ.py": 0.1271,
-   "src/CORE/WORMS/REVERSE_TOOLS.py": 0.1291,
-   "src/CORE/WORMS/SMARTDISK.py": 0.1402,
-   "src/CORE/WORMS/SYSTEMZ.py": 0.1271,
-   "src/CORE/WORMS/SYSTEMZ_ML.py": 0.1402,
-   "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py": 0.1271,
-   "src/CORE/WORMS/WORMZ.py": 0.1274,
-   "src/CORE/WORMS/WORMZ_ML.py": 0.1406,
+   "src/CORE/WORMS/OMNI_WORM_V2.py": 0.1395,
+   "src/CORE/WORMS/OS_CONGRUENCY.py": 0.1265,
+   "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py": 0.1473,
+   "src/CORE/WORMS/PROCESSZ.py": 0.1265,
+   "src/CORE/WORMS/REVERSE_TOOLS.py": 0.1285,
+   "src/CORE/WORMS/SMARTDISK.py": 0.1395,
+   "src/CORE/WORMS/SYSTEMZ.py": 0.1265,
+   "src/CORE/WORMS/SYSTEMZ_ML.py": 0.1395,
+   "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py": 0.1265,
+   "src/CORE/WORMS/WORMZ.py": 0.1268,
+   "src/CORE/WORMS/WORMZ_ML.py": 0.1399,
    "src/CORE/WORMS/WORMZ_POPUP.py": 0.0,
-   "src/CORE/WORMS/WORM_FLEET.py": 0.1402,
-   "src/CORE/WORMS/WORM_SELECTOR.py": 0.1296,
-   "src/CORE/WORMS/__init__.py": 0.1102,
-   "src/CORE/WORMS/dead_letter_queue.py": 0.0939,
-   "src/CORE/WORMS/expansion/__init__.py": 0.0875,
-   "src/CORE/WORMS/expansion/backup.py": 0.1315,
-   "src/CORE/WORMS/expansion/communication.py": 0.1315,
-   "src/CORE/WORMS/expansion/config.py": 0.1315,
-   "src/CORE/WORMS/expansion/container.py": 0.1315,
-   "src/CORE/WORMS/expansion/db_monitor.py": 0.1354,
-   "src/CORE/WORMS/expansion/dreaming.py": 0.1406,
-   "src/CORE/WORMS/expansion/error_recovery.py": 0.1293,
-   "src/CORE/WORMS/expansion/evolution.py": 0.1301,
-   "src/CORE/WORMS/expansion/learning.py": 0.1379,
-   "src/CORE/WORMS/expansion/learning_ab.py": 0.1332,
-   "src/CORE/WORMS/expansion/learning_features.py": 0.1335,
-   "src/CORE/WORMS/expansion/learning_grpo.py": 0.1334,
-   "src/CORE/WORMS/expansion/learning_pipeline.py": 0.1347,
-   "src/CORE/WORMS/expansion/learning_replay.py": 0.1039,
-   "src/CORE/WORMS/expansion/learning_rl.py": 0.1347,
-   "src/CORE/WORMS/expansion/learning_versioner.py": 0.1345,
-   "src/CORE/WORMS/expansion/meta_cognition.py": 0.1386,
-   "src/CORE/WORMS/expansion/migration.py": 0.1315,
-   "src/CORE/WORMS/expansion/profiling.py": 0.1315,
-   "src/CORE/WORMS/expansion/race_detector.py": 0.1293,
-   "src/CORE/WORMS/expansion/scheduling.py": 0.1364,
-   "src/CORE/WORMS/expansion/security.py": 0.1315,
-   "src/CORE/WORMS/expansion/session_state.py": 0.1437,
-   "src/CORE/WORMS/expansion/telemetry.py": 0.1315,
-   "src/CORE/WORMS/expansion/visualization.py": 0.1315,
-   "src/CORE/Widgets/BasePopupMonitor.py": 0.0758,
-   "src/CORE/Widgets/__init__.py": 0.0643,
-   "src/CORE/__init__.py": 0.129,
-   "src/CORE/agent_registry.py": 0.11,
-   "src/CORE/audit_compress.py": 0.0973,
+   "src/CORE/WORMS/WORM_FLEET.py": 0.1395,
+   "src/CORE/WORMS/WORM_SELECTOR.py": 0.129,
+   "src/CORE/WORMS/__init__.py": 0.1097,
+   "src/CORE/WORMS/dead_letter_queue.py": 0.0934,
+   "src/CORE/WORMS/expansion/__init__.py": 0.0871,
+   "src/CORE/WORMS/expansion/backup.py": 0.1309,
+   "src/CORE/WORMS/expansion/communication.py": 0.1309,
+   "src/CORE/WORMS/expansion/config.py": 0.1309,
+   "src/CORE/WORMS/expansion/container.py": 0.1309,
+   "src/CORE/WORMS/expansion/db_monitor.py": 0.1347,
+   "src/CORE/WORMS/expansion/dreaming.py": 0.1399,
+   "src/CORE/WORMS/expansion/error_recovery.py": 0.1286,
+   "src/CORE/WORMS/expansion/evolution.py": 0.1294,
+   "src/CORE/WORMS/expansion/learning.py": 0.1372,
+   "src/CORE/WORMS/expansion/learning_ab.py": 0.1325,
+   "src/CORE/WORMS/expansion/learning_features.py": 0.1329,
+   "src/CORE/WORMS/expansion/learning_grpo.py": 0.1327,
+   "src/CORE/WORMS/expansion/learning_pipeline.py": 0.134,
+   "src/CORE/WORMS/expansion/learning_replay.py": 0.1034,
+   "src/CORE/WORMS/expansion/learning_rl.py": 0.134,
+   "src/CORE/WORMS/expansion/learning_versioner.py": 0.1339,
+   "src/CORE/WORMS/expansion/meta_cognition.py": 0.1379,
+   "src/CORE/WORMS/expansion/migration.py": 0.1309,
+   "src/CORE/WORMS/expansion/profiling.py": 0.1309,
+   "src/CORE/WORMS/expansion/race_detector.py": 0.1286,
+   "src/CORE/WORMS/expansion/scheduling.py": 0.1358,
+   "src/CORE/WORMS/expansion/security.py": 0.1309,
+   "src/CORE/WORMS/expansion/session_state.py": 0.1429,
+   "src/CORE/WORMS/expansion/telemetry.py": 0.1309,
+   "src/CORE/WORMS/expansion/visualization.py": 0.1309,
+   "src/CORE/Widgets/BasePopupMonitor.py": 0.0754,
+   "src/CORE/Widgets/__init__.py": 0.0639,
+   "src/CORE/__init__.py": 0.1283,
+   "src/CORE/agent_registry.py": 0.1094,
+   "src/CORE/audit_compress.py": 0.0968,
    "src/CORE/audit_export_html.py": 0.0,
-   "src/CORE/audit_merge.py": 0.0973,
-   "src/CORE/audit_repair.py": 0.0973,
-   "src/CORE/audit_trail.py": 0.1264,
-   "src/CORE/audit_watch.py": 0.0973,
-   "src/CORE/azazael_ctl.py": 0.1134,
-   "src/CORE/azazael_logging.py": 0.1116,
-   "src/CORE/backup.py": 0.1026,
-   "src/CORE/cd2_verifier.py": 0.0995,
+   "src/CORE/audit_merge.py": 0.0968,
+   "src/CORE/audit_repair.py": 0.0968,
+   "src/CORE/audit_trail.py": 0.1257,
+   "src/CORE/audit_watch.py": 0.0968,
+   "src/CORE/azazael_ctl.py": 0.1128,
+   "src/CORE/azazael_logging.py": 0.111,
+   "src/CORE/backup.py": 0.1021,
+   "src/CORE/cd2_verifier.py": 0.099,
    "src/CORE/cd3_exporter.py": 0.0,
    "src/CORE/cd4_pipeline.py": 0.0,
-   "src/CORE/circuit_breaker.py": 0.1115,
-   "src/CORE/cli_audit.py": 0.1022,
+   "src/CORE/circuit_breaker.py": 0.1109,
+   "src/CORE/cli_audit.py": 0.1017,
    "src/CORE/cli_completion.py": 0.0,
-   "src/CORE/cli_crossref.py": 0.1061,
-   "src/CORE/cli_memory.py": 0.1042,
-   "src/CORE/codebuff_tracker.py": 0.0803,
+   "src/CORE/cli_crossref.py": 0.1056,
+   "src/CORE/cli_memory.py": 0.1037,
+   "src/CORE/codebuff_tracker.py": 0.0799,
    "src/CORE/compliance/__init__.py": 0.0,
-   "src/CORE/compliance/broker.py": 0.0841,
-   "src/CORE/compliance/dashboard_api.py": 0.0647,
-   "src/CORE/compliance/governance.py": 0.1012,
-   "src/CORE/compliance/heuristic_recorder.py": 0.1036,
-   "src/CORE/compliance/orchestrator.py": 0.1182,
-   "src/CORE/compliance/policy.py": 0.0953,
-   "src/CORE/compliance/pre_action_gate.py": 0.1059,
-   "src/CORE/compliance/run_self_test.py": 0.0923,
-   "src/CORE/compliance/scanner.py": 0.0931,
-   "src/CORE/compliance/scanner_db.py": 0.0764,
-   "src/CORE/compliance/state_machine.py": 0.0974,
-   "src/CORE/compliance/telemetry.py": 0.097,
-   "src/CORE/compliance/validating.py": 0.0923,
-   "src/CORE/compliance_auditor.py": 0.1001,
-   "src/CORE/config.py": 0.1224,
-   "src/CORE/dashboard.py": 0.1214,
-   "src/CORE/data_retention.py": 0.1062,
-   "src/CORE/direct_memory.py": 0.1301,
-   "src/CORE/doctor.py": 0.1063,
-   "src/CORE/dream_policy_bridge.py": 0.1183,
+   "src/CORE/compliance/broker.py": 0.0837,
+   "src/CORE/compliance/dashboard_api.py": 0.0644,
+   "src/CORE/compliance/governance.py": 0.1007,
+   "src/CORE/compliance/heuristic_recorder.py": 0.1031,
+   "src/CORE/compliance/orchestrator.py": 0.1176,
+   "src/CORE/compliance/policy.py": 0.0948,
+   "src/CORE/compliance/pre_action_gate.py": 0.1054,
+   "src/CORE/compliance/run_self_test.py": 0.0919,
+   "src/CORE/compliance/scanner.py": 0.0926,
+   "src/CORE/compliance/scanner_db.py": 0.076,
+   "src/CORE/compliance/state_machine.py": 0.0969,
+   "src/CORE/compliance/telemetry.py": 0.0965,
+   "src/CORE/compliance/validating.py": 0.0919,
+   "src/CORE/compliance_auditor.py": 0.0996,
+   "src/CORE/config.py": 0.1218,
+   "src/CORE/dashboard.py": 0.1208,
+   "src/CORE/data_retention.py": 0.1057,
+   "src/CORE/direct_memory.py": 0.1294,
+   "src/CORE/doctor.py": 0.1058,
+   "src/CORE/dream_policy_bridge.py": 0.1177,
    "src/CORE/enforcement_harness.py": 0.0,
    "src/CORE/error_triage.py": 0.0,
-   "src/CORE/freethreading.py": 0.1319,
-   "src/CORE/health_server.py": 0.119,
-   "src/CORE/inference/__init__.py": 0.0961,
+   "src/CORE/freethreading.py": 0.1312,
+   "src/CORE/health_server.py": 0.1184,
+   "src/CORE/inference/__init__.py": 0.0956,
    "src/CORE/inference/api_client.py": 0.0,
-   "src/CORE/inference/bus_utils.py": 0.114,
-   "src/CORE/inference/cloud_tab.py": 0.0923,
-   "src/CORE/inference/hyper_optimizer.py": 0.0924,
-   "src/CORE/inference/inference_cache.py": 0.1014,
-   "src/CORE/inference/nim_client.py": 0.1072,
-   "src/CORE/inference/parallel.py": 0.1199,
-   "src/CORE/inference/providers.py": 0.1182,
-   "src/CORE/inference/query_loop.py": 0.0924,
-   "src/CORE/inference/sequential_analyzer.py": 0.0925,
-   "src/CORE/inference/threaded.py": 0.096,
-   "src/CORE/inference_pool.py": 0.1071,
-   "src/CORE/local_memory.py": 0.1293,
+   "src/CORE/inference/bus_utils.py": 0.1134,
+   "src/CORE/inference/cloud_tab.py": 0.0919,
+   "src/CORE/inference/hyper_optimizer.py": 0.092,
+   "src/CORE/inference/inference_cache.py": 0.1008,
+   "src/CORE/inference/nim_client.py": 0.1067,
+   "src/CORE/inference/parallel.py": 0.1193,
+   "src/CORE/inference/providers.py": 0.1176,
+   "src/CORE/inference/query_loop.py": 0.092,
+   "src/CORE/inference/sequential_analyzer.py": 0.092,
+   "src/CORE/inference/threaded.py": 0.0956,
+   "src/CORE/inference_pool.py": 0.1066,
+   "src/CORE/local_memory.py": 0.1286,
    "src/CORE/logging_config.py": 0.0,
-   "src/CORE/metrics.py": 0.1227,
-   "src/CORE/notifier.py": 0.0983,
-   "src/CORE/paths.py": 0.1169,
-   "src/CORE/paths/__init__.py": 0.0988,
-   "src/CORE/paths/__main__.py": 0.0916,
+   "src/CORE/metrics.py": 0.1221,
+   "src/CORE/notifier.py": 0.0978,
+   "src/CORE/paths.py": 0.1163,
+   "src/CORE/paths/__init__.py": 0.0983,
+   "src/CORE/paths/__main__.py": 0.0911,
    "src/CORE/paths/external.py": 0.005,
    "src/CORE/paths/internal.py": 0.005,
    "src/CORE/paths/state.py": 0.005,
    "src/CORE/paths/targets.py": 0.005,
-   "src/CORE/postgres_memory.py": 0.1027,
+   "src/CORE/postgres_memory.py": 0.1022,
    "src/CORE/record_session.py": 0.0,
-   "src/CORE/rollback.py": 0.0995,
+   "src/CORE/rollback.py": 0.099,
    "src/CORE/safe_file_ops.py": 0.0017,
-   "src/CORE/safe_sql.py": 0.0826,
-   "src/CORE/sb3_agent.py": 0.111,
+   "src/CORE/safe_sql.py": 0.0822,
+   "src/CORE/sb3_agent.py": 0.1105,
    "src/CORE/secrets_manager.py": 0.0,
-   "src/CORE/sentinel_enforcer.py": 0.0986,
-   "src/CORE/startup_warm.py": 0.1271,
+   "src/CORE/sentinel_enforcer.py": 0.0981,
+   "src/CORE/startup_warm.py": 0.1265,
    "src/CORE/threading_utils.py": 0.0,
    "src/CORE/tstrings.py": 0.0,
-   "src/CORE/uuid7.py": 0.1448,
-   "src/CORE/vocab_migration.py": 0.1026,
-   "src/CORE/web_dashboard.py": 0.1059,
-   "src/CORE/workflow.py": 0.133,
-   "src/CORE/worm_governance.py": 0.1271,
-   "src/CORE/worm_registry.py": 0.1818,
-   "src/CORE/worm_registry_cache.py": 0.1271,
-   "src/CORE/xref_auto_link.py": 0.1026,
-   "src/CORE/xref_dashboard.py": 0.1042,
+   "src/CORE/uuid7.py": 0.1441,
+   "src/CORE/vocab_migration.py": 0.1021,
+   "src/CORE/web_dashboard.py": 0.1054,
+   "src/CORE/workflow.py": 0.1324,
+   "src/CORE/worm_governance.py": 0.1265,
+   "src/CORE/worm_registry.py": 0.1809,
+   "src/CORE/worm_registry_cache.py": 0.1265,
+   "src/CORE/xref_auto_link.py": 0.1021,
+   "src/CORE/xref_dashboard.py": 0.1037,
    "src/CORE/xref_webhook.py": 0.0,
    "src/DAEMONS/check_parallax.py": 0.0,
    "src/DAEMONS/install_parallax_startup.py": 0.0,
-   "src/DAEMONS/parallax_validator.py": 0.0995,
-   "src/DOCKERZ.py": 0.1271,
-   "src/ECOSYSTEM_HEALTH_CHECK.py": 0.0917,
-   "src/ERRORZ.py": 0.1402,
-   "src/FILE_MANIFEST_GENERATOR.py": 0.0917,
-   "src/HEALTHZ.py": 0.1299,
-   "src/HORUS_INTEGRATION.py": 0.0917,
-   "src/HYDRA/__init__.py": 0.0886,
+   "src/DAEMONS/parallax_validator.py": 0.099,
+   "src/DOCKERZ.py": 0.1265,
+   "src/ECOSYSTEM_HEALTH_CHECK.py": 0.0913,
+   "src/ERRORZ.py": 0.1395,
+   "src/FILE_MANIFEST_GENERATOR.py": 0.0913,
+   "src/HEALTHZ.py": 0.1293,
+   "src/HORUS_INTEGRATION.py": 0.0913,
+   "src/HYDRA/__init__.py": 0.0882,
    "src/HYDRA/hydra_launcher.py": 0.0,
-   "src/HYDRA/hydra_protocols.py": 0.0916,
+   "src/HYDRA/hydra_protocols.py": 0.0911,
    "src/HYDRA/ml_platforms/PERMANENT_LOAD.py": 0.0,
-   "src/HYDRA/ml_platforms/__init__.py": 0.0038,
+   "src/HYDRA/ml_platforms/__init__.py": 0.0037,
    "src/HYDRA/ml_platforms/config.py": 0.0,
-   "src/HYDRA/ml_platforms/harness.py": 0.0916,
+   "src/HYDRA/ml_platforms/harness.py": 0.0911,
    "src/HYDRA/ml_platforms/health_monitor.py": 0.0,
    "src/HYDRA/ml_platforms/launcher.py": 0.0,
    "src/HYDRA/ml_test.py": 0.0,
    "src/HYDRA/pipeline_specs.py": 0.0,
-   "src/HYDRAMETA.py": 0.1024,
-   "src/HYDRAMETA_UV.py": 0.0916,
+   "src/HYDRAMETA.py": 0.1019,
+   "src/HYDRAMETA_UV.py": 0.0911,
    "src/HYDRA_CONTAINER.py": 0.0017,
    "src/INTERPRETERS/__init__.py": 0.0033,
    "src/INTERPRETERS/go_runner.py": 0.0022,
@@ -2202,25 +2214,25 @@
    "src/META/DOCKERZ.py": 0.0,
    "src/META/ERRORZ.py": 0.0,
    "src/META/HEALTHZ.py": 0.0,
-   "src/META/HYDRAMETA.py": 0.0995,
+   "src/META/HYDRAMETA.py": 0.0991,
    "src/META/HYDRAMETA_UV.py": 0.0,
    "src/META/HYDRA_CONTAINER.py": 0.0,
    "src/META/METAWORMS.py": 0.0,
    "src/META/METAWORMS_ENRICHED.py": 0.0,
    "src/META/METAWORMS_POPUP.py": 0.0,
    "src/META/METRICZ.py": 0.0,
-   "src/META/MetaWormSpawner.py": 0.1104,
+   "src/META/MetaWormSpawner.py": 0.1099,
    "src/META/OPTIMIZ.py": 0.0,
    "src/META/TELEMETRYZ.py": 0.0,
    "src/META/TRIMZ.py": 0.0,
    "src/META/UVZ.py": 0.0,
    "src/META/__init__.py": 0.0,
-   "src/METAWORMS.py": 0.0791,
-   "src/METAWORMS_ENRICHED.py": 0.0934,
-   "src/METAWORMS_POPUP.py": 0.0916,
-   "src/METRICZ.py": 0.1301,
-   "src/MISSING_TOOLS.py": 0.1271,
-   "src/OPTIMIZ.py": 0.1299,
+   "src/METAWORMS.py": 0.0787,
+   "src/METAWORMS_ENRICHED.py": 0.0929,
+   "src/METAWORMS_POPUP.py": 0.0911,
+   "src/METRICZ.py": 0.1294,
+   "src/MISSING_TOOLS.py": 0.1265,
+   "src/OPTIMIZ.py": 0.1293,
    "src/ORCHESTRATION/ADLP_FusionCore.py": 0.0,
    "src/ORCHESTRATION/ADLP_MLOrchestrator.py": 0.0,
    "src/ORCHESTRATION/ADLP_SystemTools.py": 0.0,
@@ -2228,32 +2240,32 @@
    "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py": 0.0,
    "src/ORCHESTRATION/BIBL/__init__.py": 0.0,
    "src/ORCHESTRATION/BIBL/bibl_crawler.py": 0.0,
-   "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py": 0.0916,
-   "src/ORCHESTRATION/ECOSYSTEM_OPTIMIZER.py": 0.0916,
+   "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py": 0.0911,
+   "src/ORCHESTRATION/ECOSYSTEM_OPTIMIZER.py": 0.0911,
    "src/ORCHESTRATION/FusionHealer.py": 0.0,
-   "src/ORCHESTRATION/HORUS.py": 0.0643,
-   "src/ORCHESTRATION/HORUS_LIVE_MONITOR.py": 0.0916,
+   "src/ORCHESTRATION/HORUS.py": 0.0639,
+   "src/ORCHESTRATION/HORUS_LIVE_MONITOR.py": 0.0911,
    "src/ORCHESTRATION/HYDRA.py": 0.0,
-   "src/ORCHESTRATION/HYDRA_ANALYZER.py": 0.0916,
+   "src/ORCHESTRATION/HYDRA_ANALYZER.py": 0.0911,
    "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py": 0.0,
-   "src/ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py": 0.0916,
+   "src/ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py": 0.0911,
    "src/ORCHESTRATION/MathCertainty.py": 0.0,
    "src/ORCHESTRATION/SelfImprovingGUI.py": 0.0,
    "src/ORCHESTRATION/SystemManager.py": 0.0,
    "src/ORCHESTRATION/SystemManagerGUI.py": 0.0,
-   "src/ORCHESTRATION/TARBABY.py": 0.092,
-   "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py": 0.0883,
+   "src/ORCHESTRATION/TARBABY.py": 0.0916,
+   "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py": 0.0878,
    "src/ORCHESTRATION/TEST/__init__.py": 0.0,
    "src/ORCHESTRATION/TotalFusion.py": 0.0,
    "src/ORCHESTRATION/__init__.py": 0.0,
-   "src/ORCHESTRATION/hydra_bridge.py": 0.1067,
-   "src/ORCHESTRATION/ml_platforms/__init__.py": 0.1022,
+   "src/ORCHESTRATION/hydra_bridge.py": 0.1061,
+   "src/ORCHESTRATION/ml_platforms/__init__.py": 0.1017,
    "src/ORCHESTRATION/ml_platforms/auto_install.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/autoload.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/changelog.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/config.py": 0.005,
    "src/ORCHESTRATION/ml_platforms/cross_platform_analysis.py": 0.0,
-   "src/ORCHESTRATION/ml_platforms/diagnostics.py": 0.0038,
+   "src/ORCHESTRATION/ml_platforms/diagnostics.py": 0.0037,
    "src/ORCHESTRATION/ml_platforms/framework_activator.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/harness.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/health_monitor.py": 0.0,
@@ -2280,7 +2292,7 @@
    "src/ORCHESTRATION/ml_platforms/lm_studio_autoload.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/lm_studio_client.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/lm_studio_integration.py": 0.0,
-   "src/ORCHESTRATION/ml_platforms/lm_studio_server.py": 0.1018,
+   "src/ORCHESTRATION/ml_platforms/lm_studio_server.py": 0.1013,
    "src/ORCHESTRATION/ml_platforms/openinterpreter_startup.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/run_qanalysis.py": 0.0,
    "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py": 0.0,
@@ -2296,11 +2308,11 @@
    "src/ORCHESTRATION/scripts/complete_module_analysis.py": 0.0,
    "src/ORCHESTRATION/scripts/comprehensive_analysis.py": 0.0,
    "src/ORCHESTRATION/scripts/consistency_checker.py": 0.0,
-   "src/ORCHESTRATION/scripts/fix_syntax_errors.py": 0.0916,
+   "src/ORCHESTRATION/scripts/fix_syntax_errors.py": 0.0911,
    "src/ORCHESTRATION/scripts/generate_docs_index.py": 0.0,
-   "src/ORCHESTRATION/scripts/generate_docstrings.py": 0.0916,
+   "src/ORCHESTRATION/scripts/generate_docstrings.py": 0.0911,
    "src/ORCHESTRATION/scripts/improve_bat_files.py": 0.0,
-   "src/ORCHESTRATION/scripts/run_tests.py": 0.0916,
+   "src/ORCHESTRATION/scripts/run_tests.py": 0.0911,
    "src/ORCHESTRATION/scripts/test_enhancements.py": 0.0,
    "src/ORCHESTRATION/scripts/validate_docs.py": 0.0,
    "src/ORCHESTRATION/scripts/web_dashboard.py": 0.0,
@@ -2308,32 +2320,32 @@
    "src/QL_FILE_OPTIMIZER.py": 0.0017,
    "src/REAL_FRAMEWORK_TEST.py": 0.0,
    "src/SCRIPTS/__init__.py": 0.0,
-   "src/SCRIPTS/_reconstruct_error214.py": 0.0847,
+   "src/SCRIPTS/_reconstruct_error214.py": 0.0843,
    "src/SCRIPTS/auto_sync.py": 0.0,
-   "src/SCRIPTS/bootstrap.py": 0.0693,
-   "src/SCRIPTS/enforce_pre_action_gate.py": 0.0847,
+   "src/SCRIPTS/bootstrap.py": 0.0689,
+   "src/SCRIPTS/enforce_pre_action_gate.py": 0.0843,
    "src/SCRIPTS/environ_updater.py": 0.0,
    "src/SCRIPTS/fix_bare_excepts.py": 0.0,
-   "src/SCRIPTS/gate_bash.py": 0.103,
-   "src/SCRIPTS/gate_str_replace.py": 0.0847,
-   "src/SCRIPTS/gate_write_file.py": 0.0847,
+   "src/SCRIPTS/gate_bash.py": 0.1025,
+   "src/SCRIPTS/gate_str_replace.py": 0.0843,
+   "src/SCRIPTS/gate_write_file.py": 0.0843,
    "src/SCRIPTS/gated_edit.py": 0.0,
-   "src/SCRIPTS/generate_telemetry.py": 0.0864,
+   "src/SCRIPTS/generate_telemetry.py": 0.086,
    "src/SCRIPTS/lsp_diagnosis.py": 0.0,
    "src/SCRIPTS/parallel_compliance_scanner.py": 0.0,
-   "src/SCRIPTS/request_auth.py": 0.0858,
+   "src/SCRIPTS/request_auth.py": 0.0853,
    "src/SCRIPTS/run_test_generate_telemetry.py": 0.0,
-   "src/SCRIPTS/sentinel_gate.py": 0.1065,
+   "src/SCRIPTS/sentinel_gate.py": 0.106,
    "src/SCRIPTS/sync_skills.py": 0.0,
    "src/SCRIPTS/test_auto_sync.py": 0.0,
-   "src/SCRIPTS/test_dynamic_logging.py": 0.0693,
+   "src/SCRIPTS/test_dynamic_logging.py": 0.0689,
    "src/SCRIPTS/test_generate_telemetry.py": 0.0,
    "src/SCRIPTS/test_rule_0zf_consistency.py": 0.0,
-   "src/SCRIPTS/test_rule_0zf_integration.py": 0.0847,
-   "src/SCRIPTS/test_rule_0zf_telemetry.py": 0.0847,
+   "src/SCRIPTS/test_rule_0zf_integration.py": 0.0843,
+   "src/SCRIPTS/test_rule_0zf_telemetry.py": 0.0843,
    "src/SCRIPTS/test_startup_step4_8.py": 0.0,
    "src/SHORTCUTS/__init__.py": 0.0,
-   "src/TELEMETRYZ.py": 0.1301,
+   "src/TELEMETRYZ.py": 0.1294,
    "src/TOOLS/AzazaelDynamicLogger.py": 0.0,
    "src/TOOLS/COMPREHENSIVE_FIX.py": 0.0,
    "src/TOOLS/PythonMapper_Quick.py": 0.0,
@@ -2343,7 +2355,7 @@
    "src/TOOLS/archive_system.py": 0.0,
    "src/TOOLS/azazael_toolkit.py": 0.0017,
    "src/TOOLS/debug_runner.py": 0.0,
-   "src/TRIMZ.py": 0.1402,
+   "src/TRIMZ.py": 0.1395,
    "src/UTILITIES/AzazaelDynamicLogger.py": 0.0,
    "src/UTILITIES/KLINK/__init__.py": 0.0,
    "src/UTILITIES/KLINK/klink.py": 0.0,
@@ -2360,7 +2372,7 @@
    "src/UTILITIES/PERSEPHONE/version.py": 0.0,
    "src/UTILITIES/POINDEXTER/POINDEXTER.py": 0.0,
    "src/UTILITIES/POINDEXTER/__init__.py": 0.0,
-   "src/UTILITIES/TARBABY/TARBABY.py": 0.0916,
+   "src/UTILITIES/TARBABY/TARBABY.py": 0.0911,
    "src/UTILITIES/TARBABY/__init__.py": 0.0,
    "src/UTILITIES/TARBABY/tarbaby_enhanced.py": 0.0,
    "src/UTILITIES/TERENCE/TERENCE.py": 0.0,
@@ -2376,7 +2388,7 @@
    "src/environment_manager.py": 0.0,
    "src/eve_unleashed/__init__.py": 0.0017,
    "src/eve_unleashed/cache.py": 0.0058,
-   "src/eve_unleashed/cli.py": 0.0082,
+   "src/eve_unleashed/cli.py": 0.0081,
    "src/eve_unleashed/config.py": 0.0068,
    "src/eve_unleashed/core.py": 0.0068,
    "src/eve_unleashed/engine.py": 0.0102,
@@ -2387,39 +2399,39 @@
    "src/eve_unleashed/utils.py": 0.0058,
    "src/math_certainty.py": 0.0,
    "src/matrix_animation.py": 0.0017,
-   "src/memory_status.py": 0.1023,
-   "src/performance_monitor.py": 0.069,
+   "src/memory_status.py": 0.1018,
+   "src/performance_monitor.py": 0.0687,
    "src/persistent_memory.py": 0.0,
    "src/scripts/__init__.py": 0.0017,
-   "src/scripts/_reconstruct_error214.py": 0.0847,
+   "src/scripts/_reconstruct_error214.py": 0.0843,
    "src/scripts/auto_sync.py": 0.0,
-   "src/scripts/bootstrap.py": 0.0693,
-   "src/scripts/enforce_pre_action_gate.py": 0.0847,
+   "src/scripts/bootstrap.py": 0.0689,
+   "src/scripts/enforce_pre_action_gate.py": 0.0843,
    "src/scripts/environ_updater.py": 0.0,
    "src/scripts/fix_bare_excepts.py": 0.0,
-   "src/scripts/gate_bash.py": 0.1027,
-   "src/scripts/gate_str_replace.py": 0.0847,
-   "src/scripts/gate_write_file.py": 0.0847,
+   "src/scripts/gate_bash.py": 0.1022,
+   "src/scripts/gate_str_replace.py": 0.0843,
+   "src/scripts/gate_write_file.py": 0.0843,
    "src/scripts/gated_edit.py": 0.0,
-   "src/scripts/generate_telemetry.py": 0.0847,
+   "src/scripts/generate_telemetry.py": 0.0843,
    "src/scripts/lsp_diagnosis.py": 0.0,
    "src/scripts/monitor_learning.py": 0.0,
    "src/scripts/parallel_compliance_scanner.py": 0.0,
    "src/scripts/run_test_generate_telemetry.py": 0.0,
-   "src/scripts/sentinel_gate.py": 0.1063,
+   "src/scripts/sentinel_gate.py": 0.1058,
    "src/scripts/sync_skills.py": 0.0,
    "src/scripts/test_auto_sync.py": 0.0,
-   "src/scripts/test_dynamic_logging.py": 0.0693,
+   "src/scripts/test_dynamic_logging.py": 0.0689,
    "src/scripts/test_generate_telemetry.py": 0.0,
    "src/scripts/test_rule_0zf_consistency.py": 0.0,
-   "src/scripts/test_rule_0zf_integration.py": 0.0847,
-   "src/scripts/test_rule_0zf_telemetry.py": 0.0847,
+   "src/scripts/test_rule_0zf_integration.py": 0.0843,
+   "src/scripts/test_rule_0zf_telemetry.py": 0.0843,
    "src/scripts/test_startup_step4_8.py": 0.0,
-   "src/session_memory.py": 0.0825,
+   "src/session_memory.py": 0.0821,
    "src/tests/__init__.py": 0.0,
-   "src/tests/test_ecosystem.py": 0.1039,
-   "src/tests/test_learning_loop.py": 0.1142,
-   "src/tests/test_worm_registry.py": 0.1271,
+   "src/tests/test_ecosystem.py": 0.1034,
+   "src/tests/test_learning_loop.py": 0.1137,
+   "src/tests/test_worm_registry.py": 0.1265,
    "src/update_docs_paths.py": 0.0
   }
  },
@@ -2460,9 +2472,70 @@
  "communities": [
   {
    "index": 0,
-   "n": 46,
+   "n": 52,
    "types": {
-    "module": 46
+    "module": 52
+   },
+   "members": [
+    "scripts/generate_dashboard.py",
+    "scripts/pre_build_check.py",
+    "scripts/profile_clusterworms_parallel.py",
+    "scripts/run_training_orchestrator.py",
+    "src/CODEX/CORE/CAIN_ANALYZER.py",
+    "src/CODEX/VIDEOS/generate_dashboard_video.py",
+    "src/CORE/AgentPool.py",
+    "src/CORE/FREETHREAD_UPGRADE.py",
+    "src/CORE/FreeThreadedAgent.py",
+    "src/CORE/MemoryBus.py",
+    "src/CORE/PamsBusBridge.py",
+    "src/CORE/PamsRecorder.py",
+    "src/CORE/WORMS/CAIN_DATA.py",
+    "src/CORE/WORMS/CAIN_WORM.py",
+    "src/CORE/WORMS/CLOCKZ.py",
+    "src/CORE/WORMS/CODEX_TOOLS.py",
+    "src/CORE/WORMS/CONCURRENCY.py",
+    "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
+    "src/CORE/WORMS/DEPENDZ.py",
+    "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+    "src/CORE/WORMS/DISKZ.py",
+    "src/CORE/WORMS/ERROR_SCAN_WORM.py",
+    "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+    "src/CORE/WORMS/INFERENCE_WORM.py",
+    "src/CORE/WORMS/METAZ.py",
+    "src/CORE/WORMS/NETWORK_DIAG.py",
+    "src/CORE/WORMS/NETWORXZ.py",
+    "src/CORE/WORMS/OS_CONGRUENCY.py",
+    "src/CORE/WORMS/PROCESSZ.py",
+    "src/CORE/WORMS/REVERSE_TOOLS.py",
+    "src/CORE/WORMS/SYSTEMZ.py",
+    "src/CORE/WORMS/SYSTEMZ_ML.py",
+    "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py",
+    "src/CORE/WORMS/expansion/backup.py",
+    "src/CORE/WORMS/expansion/communication.py",
+    "src/CORE/WORMS/expansion/config.py",
+    "src/CORE/WORMS/expansion/container.py",
+    "src/CORE/WORMS/expansion/migration.py",
+    "src/CORE/WORMS/expansion/profiling.py",
+    "src/CORE/WORMS/expansion/security.py",
+    "src/CORE/WORMS/expansion/telemetry.py",
+    "src/CORE/WORMS/expansion/visualization.py",
+    "src/CORE/freethreading.py",
+    "src/CORE/inference/bus_utils.py",
+    "src/CORE/startup_warm.py",
+    "src/CORE/uuid7.py",
+    "src/CORE/worm_governance.py",
+    "src/CORE/worm_registry.py",
+    "src/CORE/worm_registry_cache.py",
+    "src/DOCKERZ.py",
+    "src/MISSING_TOOLS.py",
+    "src/tests/test_worm_registry.py"
+   ]
+  },
+  {
+   "index": 1,
+   "n": 45,
+   "types": {
+    "module": 45
    },
    "members": [
     "src/AUTO_DOC_GENERATOR.py",
@@ -2484,7 +2557,6 @@
     "src/CORE/WORMS/MORPHING_WORM_V2.py",
     "src/CORE/WORMS/OMNI_WORM_V2.py",
     "src/CORE/WORMS/SMARTDISK.py",
-    "src/CORE/WORMS/SYSTEMZ_ML.py",
     "src/CORE/WORMS/WORMZ_ML.py",
     "src/CORE/WORMS/WORM_FLEET.py",
     "src/CORE/Widgets/BasePopupMonitor.py",
@@ -2511,56 +2583,6 @@
     "src/ORCHESTRATION/scripts/run_tests.py",
     "src/TRIMZ.py",
     "src/UTILITIES/TARBABY/TARBABY.py"
-   ]
-  },
-  {
-   "index": 1,
-   "n": 41,
-   "types": {
-    "module": 41
-   },
-   "members": [
-    "scripts/generate_dashboard.py",
-    "scripts/pre_build_check.py",
-    "scripts/profile_clusterworms_parallel.py",
-    "scripts/run_training_orchestrator.py",
-    "src/CODEX/CORE/CAIN_ANALYZER.py",
-    "src/CODEX/VIDEOS/generate_dashboard_video.py",
-    "src/CORE/FREETHREAD_UPGRADE.py",
-    "src/CORE/WORMS/CAIN_DATA.py",
-    "src/CORE/WORMS/CAIN_WORM.py",
-    "src/CORE/WORMS/CLOCKZ.py",
-    "src/CORE/WORMS/CODEX_TOOLS.py",
-    "src/CORE/WORMS/CONCURRENCY.py",
-    "src/CORE/WORMS/DEPENDZ.py",
-    "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
-    "src/CORE/WORMS/DISKZ.py",
-    "src/CORE/WORMS/ERROR_SCAN_WORM.py",
-    "src/CORE/WORMS/METAZ.py",
-    "src/CORE/WORMS/NETWORK_DIAG.py",
-    "src/CORE/WORMS/NETWORXZ.py",
-    "src/CORE/WORMS/OS_CONGRUENCY.py",
-    "src/CORE/WORMS/PROCESSZ.py",
-    "src/CORE/WORMS/REVERSE_TOOLS.py",
-    "src/CORE/WORMS/SYSTEMZ.py",
-    "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py",
-    "src/CORE/WORMS/expansion/backup.py",
-    "src/CORE/WORMS/expansion/communication.py",
-    "src/CORE/WORMS/expansion/config.py",
-    "src/CORE/WORMS/expansion/container.py",
-    "src/CORE/WORMS/expansion/migration.py",
-    "src/CORE/WORMS/expansion/profiling.py",
-    "src/CORE/WORMS/expansion/security.py",
-    "src/CORE/WORMS/expansion/telemetry.py",
-    "src/CORE/WORMS/expansion/visualization.py",
-    "src/CORE/freethreading.py",
-    "src/CORE/startup_warm.py",
-    "src/CORE/worm_governance.py",
-    "src/CORE/worm_registry.py",
-    "src/CORE/worm_registry_cache.py",
-    "src/DOCKERZ.py",
-    "src/MISSING_TOOLS.py",
-    "src/tests/test_worm_registry.py"
    ]
   },
   {
@@ -2610,9 +2632,9 @@
   },
   {
    "index": 3,
-   "n": 34,
+   "n": 35,
    "types": {
-    "module": 34
+    "module": 35
    },
    "members": [
     "scripts/update_header_and_render.py",
@@ -2643,6 +2665,7 @@
     "src/SCRIPTS/test_rule_0zf_telemetry.py",
     "src/scripts/_reconstruct_error214.py",
     "src/scripts/enforce_pre_action_gate.py",
+    "src/scripts/gate_bash.py",
     "src/scripts/gate_str_replace.py",
     "src/scripts/gate_write_file.py",
     "src/scripts/generate_telemetry.py",
@@ -2653,9 +2676,9 @@
   },
   {
    "index": 4,
-   "n": 26,
+   "n": 25,
    "types": {
-    "module": 26
+    "module": 25
    },
    "members": [
     "scripts/close_audit_sessions.py",
@@ -2682,47 +2705,11 @@
     "src/CORE/vocab_migration.py",
     "src/CORE/xref_auto_link.py",
     "src/CORE/xref_dashboard.py",
-    "src/DAEMONS/parallax_validator.py",
-    "src/scripts/gate_bash.py"
+    "src/DAEMONS/parallax_validator.py"
    ]
   },
   {
    "index": 5,
-   "n": 26,
-   "types": {
-    "module": 26
-   },
-   "members": [
-    "scripts/dlq_burndown.py",
-    "scripts/dlq_watch.py",
-    "src/CORE/AgentPool.py",
-    "src/CORE/FreeThreadedAgent.py",
-    "src/CORE/MemoryBus.py",
-    "src/CORE/PamsBusBridge.py",
-    "src/CORE/PamsRecorder.py",
-    "src/CORE/WORMS/CLUSTERWORMS.py",
-    "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
-    "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
-    "src/CORE/WORMS/INFERENCE_WORM.py",
-    "src/CORE/WORMS/METACLUSTER.py",
-    "src/CORE/WORMS/NATURE_CLUSTERS.py",
-    "src/CORE/WORMS/expansion/db_monitor.py",
-    "src/CORE/circuit_breaker.py",
-    "src/CORE/config.py",
-    "src/CORE/dashboard.py",
-    "src/CORE/health_server.py",
-    "src/CORE/inference/bus_utils.py",
-    "src/CORE/metrics.py",
-    "src/CORE/notifier.py",
-    "src/CORE/postgres_memory.py",
-    "src/CORE/safe_sql.py",
-    "src/CORE/uuid7.py",
-    "src/CORE/web_dashboard.py",
-    "src/CORE/workflow.py"
-   ]
-  },
-  {
-   "index": 6,
    "n": 22,
    "types": {
     "module": 22
@@ -2750,6 +2737,31 @@
     "src/scripts/bootstrap.py",
     "src/scripts/test_dynamic_logging.py",
     "src/session_memory.py"
+   ]
+  },
+  {
+   "index": 6,
+   "n": 16,
+   "types": {
+    "module": 16
+   },
+   "members": [
+    "scripts/dlq_burndown.py",
+    "scripts/dlq_watch.py",
+    "src/CORE/WORMS/CLUSTERWORMS.py",
+    "src/CORE/WORMS/METACLUSTER.py",
+    "src/CORE/WORMS/NATURE_CLUSTERS.py",
+    "src/CORE/WORMS/expansion/db_monitor.py",
+    "src/CORE/circuit_breaker.py",
+    "src/CORE/config.py",
+    "src/CORE/dashboard.py",
+    "src/CORE/health_server.py",
+    "src/CORE/metrics.py",
+    "src/CORE/notifier.py",
+    "src/CORE/postgres_memory.py",
+    "src/CORE/safe_sql.py",
+    "src/CORE/web_dashboard.py",
+    "src/CORE/workflow.py"
    ]
   },
   {
@@ -2887,12 +2899,23 @@
     "module": 2
    },
    "members": [
+    "scripts/ascii_demo.py",
+    "src/CODEX/CORE/ascii_flowchart.py"
+   ]
+  },
+  {
+   "index": 17,
+   "n": 2,
+   "types": {
+    "module": 2
+   },
+   "members": [
     "scripts/bcc_graphiti_temporal.py",
     "scripts/bcc_kuzu_temporal_persist.py"
    ]
   },
   {
-   "index": 17,
+   "index": 18,
    "n": 2,
    "types": {
     "module": 2
@@ -2903,7 +2926,7 @@
    ]
   },
   {
-   "index": 18,
+   "index": 19,
    "n": 2,
    "types": {
     "module": 2
@@ -2914,25 +2937,14 @@
    ]
   },
   {
-   "index": 19,
-   "n": 2,
-   "types": {
-    "module": 2
-   },
-   "members": [
-    "scripts/ascii_demo.py",
-    "src/CODEX/CORE/ascii_flowchart.py"
-   ]
-  },
-  {
    "index": 20,
    "n": 2,
    "types": {
     "module": 2
    },
    "members": [
-    "scripts/emoji_demo.py",
-    "src/CODEX/CORE/emoji_maker.py"
+    "src/CODEX/CORE/QL_FILE_OPTIMIZER.py",
+    "src/QL_FILE_OPTIMIZER.py"
    ]
   },
   {
@@ -2942,8 +2954,8 @@
     "module": 2
    },
    "members": [
-    "src/CODEX/TESTING/UNIT/test_wormz.py",
-    "src/CORE/WORMS/WORMZ.py"
+    "scripts/emoji_demo.py",
+    "src/CODEX/CORE/emoji_maker.py"
    ]
   },
   {
@@ -2964,8 +2976,8 @@
     "module": 2
    },
    "members": [
-    "src/CODEX/CORE/QL_FILE_OPTIMIZER.py",
-    "src/QL_FILE_OPTIMIZER.py"
+    "src/CODEX/TESTING/UNIT/test_wormz.py",
+    "src/CORE/WORMS/WORMZ.py"
    ]
   },
   {
@@ -2975,8 +2987,8 @@
     "module": 2
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/__init__.py",
-    "src/UTILITIES/PERSEPHONE/lib/__init__.py"
+    "src/TOOLS/azazael_toolkit.py",
+    "src/azazael_toolkit.py"
    ]
   },
   {
@@ -2986,8 +2998,8 @@
     "module": 2
    },
    "members": [
-    "src/TOOLS/azazael_toolkit.py",
-    "src/azazael_toolkit.py"
+    "src/UTILITIES/PERSEPHONE/__init__.py",
+    "src/UTILITIES/PERSEPHONE/lib/__init__.py"
    ]
   },
   {
@@ -3351,7 +3363,7 @@
     "module": 1
    },
    "members": [
-    "scripts/export_graph_formats.py"
+    "scripts/ecosystem_gephi_launcher.py"
    ]
   },
   {
@@ -3361,7 +3373,7 @@
     "module": 1
    },
    "members": [
-    "scripts/fetch_990_series.py"
+    "scripts/export_graph_formats.py"
    ]
   },
   {
@@ -3371,7 +3383,7 @@
     "module": 1
    },
    "members": [
-    "scripts/finalize_whitepaper.py"
+    "scripts/fetch_990_series.py"
    ]
   },
   {
@@ -3381,7 +3393,7 @@
     "module": 1
    },
    "members": [
-    "scripts/generate_capability_templates.py"
+    "scripts/finalize_whitepaper.py"
    ]
   },
   {
@@ -3391,7 +3403,7 @@
     "module": 1
    },
    "members": [
-    "scripts/gosp_learner_divergence.py"
+    "scripts/generate_capability_templates.py"
    ]
   },
   {
@@ -3401,7 +3413,7 @@
     "module": 1
    },
    "members": [
-    "scripts/gosp_learner_train.py"
+    "scripts/gosp_learner_divergence.py"
    ]
   },
   {
@@ -3411,7 +3423,7 @@
     "module": 1
    },
    "members": [
-    "scripts/gosp_parity_check.py"
+    "scripts/gosp_learner_train.py"
    ]
   },
   {
@@ -3421,7 +3433,7 @@
     "module": 1
    },
    "members": [
-    "scripts/gosp_rani_integration.py"
+    "scripts/gosp_parity_check.py"
    ]
   },
   {
@@ -3431,7 +3443,7 @@
     "module": 1
    },
    "members": [
-    "scripts/graphify_huge_mode.py"
+    "scripts/gosp_rani_integration.py"
    ]
   },
   {
@@ -3441,7 +3453,7 @@
     "module": 1
    },
    "members": [
-    "scripts/graphify_node_limit_patch.py"
+    "scripts/graphify_huge_mode.py"
    ]
   },
   {
@@ -3451,7 +3463,7 @@
     "module": 1
    },
    "members": [
-    "scripts/klink.py"
+    "scripts/graphify_node_limit_patch.py"
    ]
   },
   {
@@ -3461,7 +3473,7 @@
     "module": 1
    },
    "members": [
-    "scripts/learning_loop_gephi_launcher.py"
+    "scripts/klink.py"
    ]
   },
   {
@@ -3471,7 +3483,7 @@
     "module": 1
    },
    "members": [
-    "scripts/make_launcher_icons.py"
+    "scripts/learning_loop_gephi_launcher.py"
    ]
   },
   {
@@ -3481,7 +3493,7 @@
     "module": 1
    },
    "members": [
-    "scripts/modernize_types.py"
+    "scripts/learning_loop_temporal.py"
    ]
   },
   {
@@ -3491,7 +3503,7 @@
     "module": 1
    },
    "members": [
-    "scripts/quick_test.py"
+    "scripts/make_launcher_icons.py"
    ]
   },
   {
@@ -3501,7 +3513,7 @@
     "module": 1
    },
    "members": [
-    "scripts/reencode_large_videos.py"
+    "scripts/modernize_types.py"
    ]
   },
   {
@@ -3511,7 +3523,7 @@
     "module": 1
    },
    "members": [
-    "scripts/render_bcc_lead_findings.py"
+    "scripts/quick_test.py"
    ]
   },
   {
@@ -3521,7 +3533,7 @@
     "module": 1
    },
    "members": [
-    "scripts/scan_secrets.py"
+    "scripts/reencode_large_videos.py"
    ]
   },
   {
@@ -3531,7 +3543,7 @@
     "module": 1
    },
    "members": [
-    "scripts/spec_audit.py"
+    "scripts/render_bcc_lead_findings.py"
    ]
   },
   {
@@ -3541,7 +3553,7 @@
     "module": 1
    },
    "members": [
-    "scripts/sync_all.py"
+    "scripts/render_graph_svg.py"
    ]
   },
   {
@@ -3551,7 +3563,7 @@
     "module": 1
    },
    "members": [
-    "scripts/sync_g_drive.py"
+    "scripts/scan_secrets.py"
    ]
   },
   {
@@ -3561,7 +3573,7 @@
     "module": 1
    },
    "members": [
-    "scripts/timesfm_pilot_314t.py"
+    "scripts/spec_audit.py"
    ]
   },
   {
@@ -3571,7 +3583,7 @@
     "module": 1
    },
    "members": [
-    "scripts/verify_aoa_cdp.py"
+    "scripts/sync_all.py"
    ]
   },
   {
@@ -3581,7 +3593,7 @@
     "module": 1
    },
    "members": [
-    "scripts/verify_lead_links_cdp.py"
+    "scripts/sync_g_drive.py"
    ]
   },
   {
@@ -3591,7 +3603,7 @@
     "module": 1
    },
    "members": [
-    "scripts/watch_training_day.py"
+    "scripts/timesfm_pilot_314t.py"
    ]
   },
   {
@@ -3601,7 +3613,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_Inference_Studio.py"
+    "scripts/verify_aoa_cdp.py"
    ]
   },
   {
@@ -3611,7 +3623,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py"
+    "scripts/verify_lead_links_cdp.py"
    ]
   },
   {
@@ -3621,7 +3633,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py"
+    "scripts/watch_training_day.py"
    ]
   },
   {
@@ -3631,7 +3643,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/QL_ANALYSIS.py"
+    "src/AZAZAEL_Inference_Studio.py"
    ]
   },
   {
@@ -3641,7 +3653,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py"
+    "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py"
    ]
   },
   {
@@ -3651,7 +3663,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/__init__.py"
+    "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py"
    ]
   },
   {
@@ -3661,7 +3673,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/azazael_toolkit.py"
+    "src/AZAZAEL_TOOLKIT/QL_ANALYSIS.py"
    ]
   },
   {
@@ -3671,7 +3683,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/environment_manager.py"
+    "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py"
    ]
   },
   {
@@ -3681,7 +3693,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/math_certainty.py"
+    "src/AZAZAEL_TOOLKIT/__init__.py"
    ]
   },
   {
@@ -3691,7 +3703,7 @@
     "module": 1
    },
    "members": [
-    "src/AZAZAEL_TOOLKIT/update_docs_paths.py"
+    "src/AZAZAEL_TOOLKIT/azazael_toolkit.py"
    ]
   },
   {
@@ -3701,7 +3713,7 @@
     "module": 1
    },
    "members": [
-    "src/CLI/__init__.py"
+    "src/AZAZAEL_TOOLKIT/environment_manager.py"
    ]
   },
   {
@@ -3711,7 +3723,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/CODEX_Studio.py"
+    "src/AZAZAEL_TOOLKIT/math_certainty.py"
    ]
   },
   {
@@ -3721,7 +3733,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/CORE/AUTO_DOC_GENERATOR.py"
+    "src/AZAZAEL_TOOLKIT/update_docs_paths.py"
    ]
   },
   {
@@ -3731,7 +3743,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/CORE/AUTO_DOWNLOADER.py"
+    "src/CLI/__init__.py"
    ]
   },
   {
@@ -3741,7 +3753,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/CORE/__init__.py"
+    "src/CODEX/CODEX_Studio.py"
    ]
   },
   {
@@ -3751,7 +3763,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/CORE/azazael_pygame.py"
+    "src/CODEX/CORE/AUTO_DOC_GENERATOR.py"
    ]
   },
   {
@@ -3761,7 +3773,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/CORE/enhanced_animations.py"
+    "src/CODEX/CORE/AUTO_DOWNLOADER.py"
    ]
   },
   {
@@ -3771,7 +3783,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/DOCUMENTATION/__init__.py"
+    "src/CODEX/CORE/__init__.py"
    ]
   },
   {
@@ -3781,7 +3793,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_ALL_11.py"
+    "src/CODEX/CORE/azazael_pygame.py"
    ]
   },
   {
@@ -3791,7 +3803,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_BUGFREE.py"
+    "src/CODEX/CORE/enhanced_animations.py"
    ]
   },
   {
@@ -3801,7 +3813,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_CLICKABLE.py"
+    "src/CODEX/DOCUMENTATION/__init__.py"
    ]
   },
   {
@@ -3811,7 +3823,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_DETAILED.py"
+    "src/CODEX/POPUPS/POPUP_ALL_11.py"
    ]
   },
   {
@@ -3821,7 +3833,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_DISPLAY.py"
+    "src/CODEX/POPUPS/POPUP_BUGFREE.py"
    ]
   },
   {
@@ -3831,7 +3843,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_IMMERSIVE.py"
+    "src/CODEX/POPUPS/POPUP_CLICKABLE.py"
    ]
   },
   {
@@ -3841,7 +3853,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_RICH.py"
+    "src/CODEX/POPUPS/POPUP_DETAILED.py"
    ]
   },
   {
@@ -3851,7 +3863,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_SIMPLE.py"
+    "src/CODEX/POPUPS/POPUP_DISPLAY.py"
    ]
   },
   {
@@ -3861,7 +3873,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/POPUPS/POPUP_WORKING.py"
+    "src/CODEX/POPUPS/POPUP_IMMERSIVE.py"
    ]
   },
   {
@@ -3871,7 +3883,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/SESSION_TEMPLATE/generators/batch_generator.py"
+    "src/CODEX/POPUPS/POPUP_RICH.py"
    ]
   },
   {
@@ -3881,7 +3893,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/SESSION_TEMPLATE/generators/batch_recorder.py"
+    "src/CODEX/POPUPS/POPUP_SIMPLE.py"
    ]
   },
   {
@@ -3891,7 +3903,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/SESSION_TEMPLATE/generators/generate_failure_report.py"
+    "src/CODEX/POPUPS/POPUP_WORKING.py"
    ]
   },
   {
@@ -3901,7 +3913,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/SESSION_TEMPLATE/generators/generate_session_report.py"
+    "src/CODEX/SESSION_TEMPLATE/generators/batch_generator.py"
    ]
   },
   {
@@ -3911,7 +3923,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/SESSION_TEMPLATE/generators/unified_generator.py"
+    "src/CODEX/SESSION_TEMPLATE/generators/batch_recorder.py"
    ]
   },
   {
@@ -3921,7 +3933,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/TESTING/INTEGRATION/__init__.py"
+    "src/CODEX/SESSION_TEMPLATE/generators/generate_failure_report.py"
    ]
   },
   {
@@ -3931,7 +3943,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/TESTING/PERFORMANCE/__init__.py"
+    "src/CODEX/SESSION_TEMPLATE/generators/generate_session_report.py"
    ]
   },
   {
@@ -3941,7 +3953,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/TESTING/UNIT/__init__.py"
+    "src/CODEX/SESSION_TEMPLATE/generators/unified_generator.py"
    ]
   },
   {
@@ -3951,7 +3963,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/TESTING/__init__.py"
+    "src/CODEX/TESTING/INTEGRATION/__init__.py"
    ]
   },
   {
@@ -3961,7 +3973,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/TESTING/conftest.py"
+    "src/CODEX/TESTING/PERFORMANCE/__init__.py"
    ]
   },
   {
@@ -3971,7 +3983,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/__init__.py"
+    "src/CODEX/TESTING/UNIT/__init__.py"
    ]
   },
   {
@@ -3981,7 +3993,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/compress_video.py"
+    "src/CODEX/TESTING/__init__.py"
    ]
   },
   {
@@ -3991,7 +4003,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/create_azazael_educational_video.py"
+    "src/CODEX/TESTING/conftest.py"
    ]
   },
   {
@@ -4001,7 +4013,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/create_dual_pane_popup.py"
+    "src/CODEX/VIDEOS/__init__.py"
    ]
   },
   {
@@ -4011,7 +4023,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/create_dual_pane_video.py"
+    "src/CODEX/VIDEOS/compress_video.py"
    ]
   },
   {
@@ -4021,7 +4033,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/create_reference_video.py"
+    "src/CODEX/VIDEOS/create_azazael_educational_video.py"
    ]
   },
   {
@@ -4031,7 +4043,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/create_scrolling_video.py"
+    "src/CODEX/VIDEOS/create_dual_pane_popup.py"
    ]
   },
   {
@@ -4041,7 +4053,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/create_video.py"
+    "src/CODEX/VIDEOS/create_dual_pane_video.py"
    ]
   },
   {
@@ -4051,7 +4063,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/generate_matrix_video.py"
+    "src/CODEX/VIDEOS/create_reference_video.py"
    ]
   },
   {
@@ -4061,7 +4073,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/generate_video.py"
+    "src/CODEX/VIDEOS/create_scrolling_video.py"
    ]
   },
   {
@@ -4071,7 +4083,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/generate_video_v2.py"
+    "src/CODEX/VIDEOS/create_video.py"
    ]
   },
   {
@@ -4081,7 +4093,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video.py"
+    "src/CODEX/VIDEOS/generate_matrix_video.py"
    ]
   },
   {
@@ -4091,7 +4103,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_docs.py"
+    "src/CODEX/VIDEOS/generate_video.py"
    ]
   },
   {
@@ -4101,7 +4113,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_quad.py"
+    "src/CODEX/VIDEOS/generate_video_v2.py"
    ]
   },
   {
@@ -4111,7 +4123,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_v2.py"
+    "src/CODEX/VIDEOS/make_video.py"
    ]
   },
   {
@@ -4121,7 +4133,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_v3.py"
+    "src/CODEX/VIDEOS/make_video_docs.py"
    ]
   },
   {
@@ -4131,7 +4143,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_vibrant.py"
+    "src/CODEX/VIDEOS/make_video_quad.py"
    ]
   },
   {
@@ -4141,7 +4153,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_zip.py"
+    "src/CODEX/VIDEOS/make_video_v2.py"
    ]
   },
   {
@@ -4151,7 +4163,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/make_video_zipper.py"
+    "src/CODEX/VIDEOS/make_video_v3.py"
    ]
   },
   {
@@ -4161,7 +4173,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/VIDEOS/video_popup.py"
+    "src/CODEX/VIDEOS/make_video_vibrant.py"
    ]
   },
   {
@@ -4171,7 +4183,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/__init__.py"
+    "src/CODEX/VIDEOS/make_video_zip.py"
    ]
   },
   {
@@ -4181,7 +4193,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/comprehensive/TWITLER_ANALYSIS.py"
+    "src/CODEX/VIDEOS/make_video_zipper.py"
    ]
   },
   {
@@ -4191,7 +4203,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/generate_session_cain.py"
+    "src/CODEX/VIDEOS/video_popup.py"
    ]
   },
   {
@@ -4201,7 +4213,7 @@
     "module": 1
    },
    "members": [
-    "src/CODEX/inject_session_cain.py"
+    "src/CODEX/__init__.py"
    ]
   },
   {
@@ -4211,7 +4223,7 @@
     "module": 1
    },
    "members": [
-    "src/COMPREHENSIVE_FIX.py"
+    "src/CODEX/comprehensive/TWITLER_ANALYSIS.py"
    ]
   },
   {
@@ -4221,7 +4233,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/PYTHON_MANAGER.py"
+    "src/CODEX/generate_session_cain.py"
    ]
   },
   {
@@ -4231,7 +4243,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/STRESS_TEST.py"
+    "src/CODEX/inject_session_cain.py"
    ]
   },
   {
@@ -4241,7 +4253,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/STRUCTURE.py"
+    "src/COMPREHENSIVE_FIX.py"
    ]
   },
   {
@@ -4251,7 +4263,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/WORMS/CAIN_ANALYZER.py"
+    "src/CORE/PYTHON_MANAGER.py"
    ]
   },
   {
@@ -4261,7 +4273,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/WORMS/HEALING_WORM.py"
+    "src/CORE/STRESS_TEST.py"
    ]
   },
   {
@@ -4271,7 +4283,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/WORMS/OMNI_WORM.py"
+    "src/CORE/STRUCTURE.py"
    ]
   },
   {
@@ -4281,7 +4293,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/WORMS/WORMZ_POPUP.py"
+    "src/CORE/WORMS/CAIN_ANALYZER.py"
    ]
   },
   {
@@ -4291,7 +4303,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/audit_export_html.py"
+    "src/CORE/WORMS/HEALING_WORM.py"
    ]
   },
   {
@@ -4301,7 +4313,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/cd3_exporter.py"
+    "src/CORE/WORMS/OMNI_WORM.py"
    ]
   },
   {
@@ -4311,7 +4323,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/cd4_pipeline.py"
+    "src/CORE/WORMS/WORMZ_POPUP.py"
    ]
   },
   {
@@ -4321,7 +4333,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/cli_completion.py"
+    "src/CORE/audit_export_html.py"
    ]
   },
   {
@@ -4331,7 +4343,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/compliance/__init__.py"
+    "src/CORE/cd3_exporter.py"
    ]
   },
   {
@@ -4341,7 +4353,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/enforcement_harness.py"
+    "src/CORE/cd4_pipeline.py"
    ]
   },
   {
@@ -4351,7 +4363,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/error_triage.py"
+    "src/CORE/cli_completion.py"
    ]
   },
   {
@@ -4361,7 +4373,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/inference/api_client.py"
+    "src/CORE/compliance/__init__.py"
    ]
   },
   {
@@ -4371,7 +4383,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/logging_config.py"
+    "src/CORE/enforcement_harness.py"
    ]
   },
   {
@@ -4381,7 +4393,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/record_session.py"
+    "src/CORE/error_triage.py"
    ]
   },
   {
@@ -4391,7 +4403,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/secrets_manager.py"
+    "src/CORE/inference/api_client.py"
    ]
   },
   {
@@ -4401,7 +4413,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/threading_utils.py"
+    "src/CORE/logging_config.py"
    ]
   },
   {
@@ -4411,7 +4423,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/tstrings.py"
+    "src/CORE/record_session.py"
    ]
   },
   {
@@ -4421,7 +4433,7 @@
     "module": 1
    },
    "members": [
-    "src/CORE/xref_webhook.py"
+    "src/CORE/secrets_manager.py"
    ]
   },
   {
@@ -4431,7 +4443,7 @@
     "module": 1
    },
    "members": [
-    "src/DAEMONS/check_parallax.py"
+    "src/CORE/threading_utils.py"
    ]
   },
   {
@@ -4441,7 +4453,7 @@
     "module": 1
    },
    "members": [
-    "src/DAEMONS/install_parallax_startup.py"
+    "src/CORE/tstrings.py"
    ]
   },
   {
@@ -4451,7 +4463,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/hydra_launcher.py"
+    "src/CORE/xref_webhook.py"
    ]
   },
   {
@@ -4461,7 +4473,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/ml_platforms/PERMANENT_LOAD.py"
+    "src/DAEMONS/check_parallax.py"
    ]
   },
   {
@@ -4471,7 +4483,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/ml_platforms/config.py"
+    "src/DAEMONS/install_parallax_startup.py"
    ]
   },
   {
@@ -4481,7 +4493,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/ml_platforms/health_monitor.py"
+    "src/HYDRA/hydra_launcher.py"
    ]
   },
   {
@@ -4491,7 +4503,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/ml_platforms/launcher.py"
+    "src/HYDRA/ml_platforms/PERMANENT_LOAD.py"
    ]
   },
   {
@@ -4501,7 +4513,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/ml_test.py"
+    "src/HYDRA/ml_platforms/config.py"
    ]
   },
   {
@@ -4511,7 +4523,7 @@
     "module": 1
    },
    "members": [
-    "src/HYDRA/pipeline_specs.py"
+    "src/HYDRA/ml_platforms/health_monitor.py"
    ]
   },
   {
@@ -4521,7 +4533,7 @@
     "module": 1
    },
    "members": [
-    "src/META/DOCKERZ.py"
+    "src/HYDRA/ml_platforms/launcher.py"
    ]
   },
   {
@@ -4531,7 +4543,7 @@
     "module": 1
    },
    "members": [
-    "src/META/ERRORZ.py"
+    "src/HYDRA/ml_test.py"
    ]
   },
   {
@@ -4541,7 +4553,7 @@
     "module": 1
    },
    "members": [
-    "src/META/HEALTHZ.py"
+    "src/HYDRA/pipeline_specs.py"
    ]
   },
   {
@@ -4551,7 +4563,7 @@
     "module": 1
    },
    "members": [
-    "src/META/HYDRAMETA_UV.py"
+    "src/META/DOCKERZ.py"
    ]
   },
   {
@@ -4561,7 +4573,7 @@
     "module": 1
    },
    "members": [
-    "src/META/HYDRA_CONTAINER.py"
+    "src/META/ERRORZ.py"
    ]
   },
   {
@@ -4571,7 +4583,7 @@
     "module": 1
    },
    "members": [
-    "src/META/METAWORMS.py"
+    "src/META/HEALTHZ.py"
    ]
   },
   {
@@ -4581,7 +4593,7 @@
     "module": 1
    },
    "members": [
-    "src/META/METAWORMS_ENRICHED.py"
+    "src/META/HYDRAMETA_UV.py"
    ]
   },
   {
@@ -4591,7 +4603,7 @@
     "module": 1
    },
    "members": [
-    "src/META/METAWORMS_POPUP.py"
+    "src/META/HYDRA_CONTAINER.py"
    ]
   },
   {
@@ -4601,7 +4613,7 @@
     "module": 1
    },
    "members": [
-    "src/META/METRICZ.py"
+    "src/META/METAWORMS.py"
    ]
   },
   {
@@ -4611,7 +4623,7 @@
     "module": 1
    },
    "members": [
-    "src/META/OPTIMIZ.py"
+    "src/META/METAWORMS_ENRICHED.py"
    ]
   },
   {
@@ -4621,7 +4633,7 @@
     "module": 1
    },
    "members": [
-    "src/META/TELEMETRYZ.py"
+    "src/META/METAWORMS_POPUP.py"
    ]
   },
   {
@@ -4631,7 +4643,7 @@
     "module": 1
    },
    "members": [
-    "src/META/TRIMZ.py"
+    "src/META/METRICZ.py"
    ]
   },
   {
@@ -4641,7 +4653,7 @@
     "module": 1
    },
    "members": [
-    "src/META/UVZ.py"
+    "src/META/OPTIMIZ.py"
    ]
   },
   {
@@ -4651,7 +4663,7 @@
     "module": 1
    },
    "members": [
-    "src/META/__init__.py"
+    "src/META/TELEMETRYZ.py"
    ]
   },
   {
@@ -4661,7 +4673,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ADLP_FusionCore.py"
+    "src/META/TRIMZ.py"
    ]
   },
   {
@@ -4671,7 +4683,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ADLP_MLOrchestrator.py"
+    "src/META/UVZ.py"
    ]
   },
   {
@@ -4681,7 +4693,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ADLP_SystemTools.py"
+    "src/META/__init__.py"
    ]
   },
   {
@@ -4691,7 +4703,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/AssistantLogProtocol.py"
+    "src/ORCHESTRATION/ADLP_FusionCore.py"
    ]
   },
   {
@@ -4701,7 +4713,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py"
+    "src/ORCHESTRATION/ADLP_MLOrchestrator.py"
    ]
   },
   {
@@ -4711,7 +4723,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/BIBL/__init__.py"
+    "src/ORCHESTRATION/ADLP_SystemTools.py"
    ]
   },
   {
@@ -4721,7 +4733,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/BIBL/bibl_crawler.py"
+    "src/ORCHESTRATION/AssistantLogProtocol.py"
    ]
   },
   {
@@ -4731,7 +4743,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/FusionHealer.py"
+    "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py"
    ]
   },
   {
@@ -4741,7 +4753,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/HYDRA.py"
+    "src/ORCHESTRATION/BIBL/__init__.py"
    ]
   },
   {
@@ -4751,7 +4763,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py"
+    "src/ORCHESTRATION/BIBL/bibl_crawler.py"
    ]
   },
   {
@@ -4761,7 +4773,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/MathCertainty.py"
+    "src/ORCHESTRATION/FusionHealer.py"
    ]
   },
   {
@@ -4771,7 +4783,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/SelfImprovingGUI.py"
+    "src/ORCHESTRATION/HYDRA.py"
    ]
   },
   {
@@ -4781,7 +4793,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/SystemManager.py"
+    "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py"
    ]
   },
   {
@@ -4791,7 +4803,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/SystemManagerGUI.py"
+    "src/ORCHESTRATION/MathCertainty.py"
    ]
   },
   {
@@ -4801,7 +4813,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/TEST/__init__.py"
+    "src/ORCHESTRATION/SelfImprovingGUI.py"
    ]
   },
   {
@@ -4811,7 +4823,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/TotalFusion.py"
+    "src/ORCHESTRATION/SystemManager.py"
    ]
   },
   {
@@ -4821,7 +4833,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/__init__.py"
+    "src/ORCHESTRATION/SystemManagerGUI.py"
    ]
   },
   {
@@ -4831,7 +4843,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/auto_install.py"
+    "src/ORCHESTRATION/TEST/__init__.py"
    ]
   },
   {
@@ -4841,7 +4853,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/autoload.py"
+    "src/ORCHESTRATION/TotalFusion.py"
    ]
   },
   {
@@ -4851,7 +4863,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/changelog.py"
+    "src/ORCHESTRATION/__init__.py"
    ]
   },
   {
@@ -4861,7 +4873,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/cross_platform_analysis.py"
+    "src/ORCHESTRATION/ml_platforms/auto_install.py"
    ]
   },
   {
@@ -4871,7 +4883,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/framework_activator.py"
+    "src/ORCHESTRATION/ml_platforms/autoload.py"
    ]
   },
   {
@@ -4881,7 +4893,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/harness.py"
+    "src/ORCHESTRATION/ml_platforms/changelog.py"
    ]
   },
   {
@@ -4891,7 +4903,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/health_monitor.py"
+    "src/ORCHESTRATION/ml_platforms/cross_platform_analysis.py"
    ]
   },
   {
@@ -4901,7 +4913,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/__init__.py"
+    "src/ORCHESTRATION/ml_platforms/framework_activator.py"
    ]
   },
   {
@@ -4911,7 +4923,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py"
+    "src/ORCHESTRATION/ml_platforms/harness.py"
    ]
   },
   {
@@ -4921,7 +4933,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py"
+    "src/ORCHESTRATION/ml_platforms/health_monitor.py"
    ]
   },
   {
@@ -4931,7 +4943,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/metrics_tracker.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/__init__.py"
    ]
   },
   {
@@ -4941,7 +4953,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/ml_integration.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py"
    ]
   },
   {
@@ -4951,7 +4963,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/mlflow_integration.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py"
    ]
   },
   {
@@ -4961,7 +4973,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/metrics_tracker.py"
    ]
   },
   {
@@ -4971,7 +4983,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/ml_integration.py"
    ]
   },
   {
@@ -4981,7 +4993,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/ray_integration.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/mlflow_integration.py"
    ]
   },
   {
@@ -4991,7 +5003,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py"
    ]
   },
   {
@@ -5001,7 +5013,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/tensor_utils.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py"
    ]
   },
   {
@@ -5011,7 +5023,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/vectorize_utils.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/ray_integration.py"
    ]
   },
   {
@@ -5021,7 +5033,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/improvements/weakness_testing.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py"
    ]
   },
   {
@@ -5031,7 +5043,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/install_improvements.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/tensor_utils.py"
    ]
   },
   {
@@ -5041,7 +5053,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/install_light.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/vectorize_utils.py"
    ]
   },
   {
@@ -5051,7 +5063,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/install_manager.py"
+    "src/ORCHESTRATION/ml_platforms/improvements/weakness_testing.py"
    ]
   },
   {
@@ -5061,7 +5073,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/installation_debug.py"
+    "src/ORCHESTRATION/ml_platforms/install_improvements.py"
    ]
   },
   {
@@ -5071,7 +5083,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/jax_analysis.py"
+    "src/ORCHESTRATION/ml_platforms/install_light.py"
    ]
   },
   {
@@ -5081,7 +5093,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/lm_studio_autoload.py"
+    "src/ORCHESTRATION/ml_platforms/install_manager.py"
    ]
   },
   {
@@ -5091,7 +5103,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/lm_studio_client.py"
+    "src/ORCHESTRATION/ml_platforms/installation_debug.py"
    ]
   },
   {
@@ -5101,7 +5113,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/lm_studio_integration.py"
+    "src/ORCHESTRATION/ml_platforms/jax_analysis.py"
    ]
   },
   {
@@ -5111,7 +5123,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/openinterpreter_startup.py"
+    "src/ORCHESTRATION/ml_platforms/lm_studio_autoload.py"
    ]
   },
   {
@@ -5121,7 +5133,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/run_qanalysis.py"
+    "src/ORCHESTRATION/ml_platforms/lm_studio_client.py"
    ]
   },
   {
@@ -5131,7 +5143,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py"
+    "src/ORCHESTRATION/ml_platforms/lm_studio_integration.py"
    ]
   },
   {
@@ -5141,7 +5153,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py"
+    "src/ORCHESTRATION/ml_platforms/openinterpreter_startup.py"
    ]
   },
   {
@@ -5151,7 +5163,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/unified_analysis.py"
+    "src/ORCHESTRATION/ml_platforms/run_qanalysis.py"
    ]
   },
   {
@@ -5161,7 +5173,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/universal_converter.py"
+    "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py"
    ]
   },
   {
@@ -5171,7 +5183,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/ml_platforms/verify_moe.py"
+    "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py"
    ]
   },
   {
@@ -5181,7 +5193,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/__init__.py"
+    "src/ORCHESTRATION/ml_platforms/unified_analysis.py"
    ]
   },
   {
@@ -5191,7 +5203,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/azazael_cli.py"
+    "src/ORCHESTRATION/ml_platforms/universal_converter.py"
    ]
   },
   {
@@ -5201,7 +5213,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/azazael_wsa.py"
+    "src/ORCHESTRATION/ml_platforms/verify_moe.py"
    ]
   },
   {
@@ -5211,7 +5223,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/bat_analysis.py"
+    "src/ORCHESTRATION/scripts/__init__.py"
    ]
   },
   {
@@ -5221,7 +5233,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/check_links.py"
+    "src/ORCHESTRATION/scripts/azazael_cli.py"
    ]
   },
   {
@@ -5231,7 +5243,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/complete_module_analysis.py"
+    "src/ORCHESTRATION/scripts/azazael_wsa.py"
    ]
   },
   {
@@ -5241,7 +5253,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/comprehensive_analysis.py"
+    "src/ORCHESTRATION/scripts/bat_analysis.py"
    ]
   },
   {
@@ -5251,7 +5263,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/consistency_checker.py"
+    "src/ORCHESTRATION/scripts/check_links.py"
    ]
   },
   {
@@ -5261,7 +5273,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/generate_docs_index.py"
+    "src/ORCHESTRATION/scripts/complete_module_analysis.py"
    ]
   },
   {
@@ -5271,7 +5283,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/improve_bat_files.py"
+    "src/ORCHESTRATION/scripts/comprehensive_analysis.py"
    ]
   },
   {
@@ -5281,7 +5293,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/test_enhancements.py"
+    "src/ORCHESTRATION/scripts/consistency_checker.py"
    ]
   },
   {
@@ -5291,7 +5303,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/validate_docs.py"
+    "src/ORCHESTRATION/scripts/generate_docs_index.py"
    ]
   },
   {
@@ -5301,7 +5313,7 @@
     "module": 1
    },
    "members": [
-    "src/ORCHESTRATION/scripts/web_dashboard.py"
+    "src/ORCHESTRATION/scripts/improve_bat_files.py"
    ]
   },
   {
@@ -5311,7 +5323,7 @@
     "module": 1
    },
    "members": [
-    "src/QL_ANALYSIS.py"
+    "src/ORCHESTRATION/scripts/test_enhancements.py"
    ]
   },
   {
@@ -5321,7 +5333,7 @@
     "module": 1
    },
    "members": [
-    "src/REAL_FRAMEWORK_TEST.py"
+    "src/ORCHESTRATION/scripts/validate_docs.py"
    ]
   },
   {
@@ -5331,7 +5343,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/__init__.py"
+    "src/ORCHESTRATION/scripts/web_dashboard.py"
    ]
   },
   {
@@ -5341,7 +5353,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/auto_sync.py"
+    "src/QL_ANALYSIS.py"
    ]
   },
   {
@@ -5351,7 +5363,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/environ_updater.py"
+    "src/REAL_FRAMEWORK_TEST.py"
    ]
   },
   {
@@ -5361,7 +5373,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/fix_bare_excepts.py"
+    "src/SCRIPTS/__init__.py"
    ]
   },
   {
@@ -5371,7 +5383,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/gated_edit.py"
+    "src/SCRIPTS/auto_sync.py"
    ]
   },
   {
@@ -5381,7 +5393,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/lsp_diagnosis.py"
+    "src/SCRIPTS/environ_updater.py"
    ]
   },
   {
@@ -5391,7 +5403,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/parallel_compliance_scanner.py"
+    "src/SCRIPTS/fix_bare_excepts.py"
    ]
   },
   {
@@ -5401,7 +5413,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/run_test_generate_telemetry.py"
+    "src/SCRIPTS/gated_edit.py"
    ]
   },
   {
@@ -5411,7 +5423,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/sync_skills.py"
+    "src/SCRIPTS/lsp_diagnosis.py"
    ]
   },
   {
@@ -5421,7 +5433,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/test_auto_sync.py"
+    "src/SCRIPTS/parallel_compliance_scanner.py"
    ]
   },
   {
@@ -5431,7 +5443,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/test_generate_telemetry.py"
+    "src/SCRIPTS/run_test_generate_telemetry.py"
    ]
   },
   {
@@ -5441,7 +5453,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/test_rule_0zf_consistency.py"
+    "src/SCRIPTS/sync_skills.py"
    ]
   },
   {
@@ -5451,7 +5463,7 @@
     "module": 1
    },
    "members": [
-    "src/SCRIPTS/test_startup_step4_8.py"
+    "src/SCRIPTS/test_auto_sync.py"
    ]
   },
   {
@@ -5461,7 +5473,7 @@
     "module": 1
    },
    "members": [
-    "src/SHORTCUTS/__init__.py"
+    "src/SCRIPTS/test_generate_telemetry.py"
    ]
   },
   {
@@ -5471,7 +5483,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/AzazaelDynamicLogger.py"
+    "src/SCRIPTS/test_rule_0zf_consistency.py"
    ]
   },
   {
@@ -5481,7 +5493,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/COMPREHENSIVE_FIX.py"
+    "src/SCRIPTS/test_startup_step4_8.py"
    ]
   },
   {
@@ -5491,7 +5503,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/PythonMapper_Quick.py"
+    "src/SHORTCUTS/__init__.py"
    ]
   },
   {
@@ -5501,7 +5513,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/PythonSystemMapper.py"
+    "src/TOOLS/AzazaelDynamicLogger.py"
    ]
   },
   {
@@ -5511,7 +5523,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/PythonSystemMapper_Full.py"
+    "src/TOOLS/COMPREHENSIVE_FIX.py"
    ]
   },
   {
@@ -5521,7 +5533,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/__init__.py"
+    "src/TOOLS/PythonMapper_Quick.py"
    ]
   },
   {
@@ -5531,7 +5543,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/archive_system.py"
+    "src/TOOLS/PythonSystemMapper.py"
    ]
   },
   {
@@ -5541,7 +5553,7 @@
     "module": 1
    },
    "members": [
-    "src/TOOLS/debug_runner.py"
+    "src/TOOLS/PythonSystemMapper_Full.py"
    ]
   },
   {
@@ -5551,7 +5563,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/AzazaelDynamicLogger.py"
+    "src/TOOLS/__init__.py"
    ]
   },
   {
@@ -5561,7 +5573,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/KLINK/__init__.py"
+    "src/TOOLS/archive_system.py"
    ]
   },
   {
@@ -5571,7 +5583,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/KLINK/klink.py"
+    "src/TOOLS/debug_runner.py"
    ]
   },
   {
@@ -5581,7 +5593,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/Loggers/__init__.py"
+    "src/UTILITIES/AzazaelDynamicLogger.py"
    ]
   },
   {
@@ -5591,7 +5603,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/bin/__init__.py"
+    "src/UTILITIES/KLINK/__init__.py"
    ]
   },
   {
@@ -5601,7 +5613,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py"
+    "src/UTILITIES/KLINK/klink.py"
    ]
   },
   {
@@ -5611,7 +5623,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py"
+    "src/UTILITIES/Loggers/__init__.py"
    ]
   },
   {
@@ -5621,7 +5633,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/lib/environment.py"
+    "src/UTILITIES/PERSEPHONE/bin/__init__.py"
    ]
   },
   {
@@ -5631,7 +5643,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/lib/path_manager.py"
+    "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py"
    ]
   },
   {
@@ -5641,7 +5653,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/lib/sync_manager.py"
+    "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py"
    ]
   },
   {
@@ -5651,7 +5663,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/persephone.py"
+    "src/UTILITIES/PERSEPHONE/lib/environment.py"
    ]
   },
   {
@@ -5661,7 +5673,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/PERSEPHONE/version.py"
+    "src/UTILITIES/PERSEPHONE/lib/path_manager.py"
    ]
   },
   {
@@ -5671,7 +5683,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/POINDEXTER/POINDEXTER.py"
+    "src/UTILITIES/PERSEPHONE/lib/sync_manager.py"
    ]
   },
   {
@@ -5681,7 +5693,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/POINDEXTER/__init__.py"
+    "src/UTILITIES/PERSEPHONE/persephone.py"
    ]
   },
   {
@@ -5691,7 +5703,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/TARBABY/__init__.py"
+    "src/UTILITIES/PERSEPHONE/version.py"
    ]
   },
   {
@@ -5701,7 +5713,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/TARBABY/tarbaby_enhanced.py"
+    "src/UTILITIES/POINDEXTER/POINDEXTER.py"
    ]
   },
   {
@@ -5711,7 +5723,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/TERENCE/TERENCE.py"
+    "src/UTILITIES/POINDEXTER/__init__.py"
    ]
   },
   {
@@ -5721,7 +5733,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/TERENCE/__init__.py"
+    "src/UTILITIES/TARBABY/__init__.py"
    ]
   },
   {
@@ -5731,7 +5743,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/TERENCE/terence_enhanced.py"
+    "src/UTILITIES/TARBABY/tarbaby_enhanced.py"
    ]
   },
   {
@@ -5741,7 +5753,7 @@
     "module": 1
    },
    "members": [
-    "src/UTILITIES/__init__.py"
+    "src/UTILITIES/TERENCE/TERENCE.py"
    ]
   },
   {
@@ -5751,7 +5763,7 @@
     "module": 1
    },
    "members": [
-    "src/UVZ.py"
+    "src/UTILITIES/TERENCE/__init__.py"
    ]
   },
   {
@@ -5761,7 +5773,7 @@
     "module": 1
    },
    "members": [
-    "src/__init__.py"
+    "src/UTILITIES/TERENCE/terence_enhanced.py"
    ]
   },
   {
@@ -5771,7 +5783,7 @@
     "module": 1
    },
    "members": [
-    "src/azazael_pygame.py"
+    "src/UTILITIES/__init__.py"
    ]
   },
   {
@@ -5781,7 +5793,7 @@
     "module": 1
    },
    "members": [
-    "src/chain_of_action.py"
+    "src/UVZ.py"
    ]
   },
   {
@@ -5791,7 +5803,7 @@
     "module": 1
    },
    "members": [
-    "src/environment_manager.py"
+    "src/__init__.py"
    ]
   },
   {
@@ -5801,7 +5813,7 @@
     "module": 1
    },
    "members": [
-    "src/eve_unleashed/models/qwen35_ssm.py"
+    "src/azazael_pygame.py"
    ]
   },
   {
@@ -5811,7 +5823,7 @@
     "module": 1
    },
    "members": [
-    "src/math_certainty.py"
+    "src/chain_of_action.py"
    ]
   },
   {
@@ -5821,7 +5833,7 @@
     "module": 1
    },
    "members": [
-    "src/persistent_memory.py"
+    "src/environment_manager.py"
    ]
   },
   {
@@ -5831,7 +5843,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/auto_sync.py"
+    "src/eve_unleashed/models/qwen35_ssm.py"
    ]
   },
   {
@@ -5841,7 +5853,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/environ_updater.py"
+    "src/math_certainty.py"
    ]
   },
   {
@@ -5851,7 +5863,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/fix_bare_excepts.py"
+    "src/persistent_memory.py"
    ]
   },
   {
@@ -5861,7 +5873,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/gated_edit.py"
+    "src/scripts/auto_sync.py"
    ]
   },
   {
@@ -5871,7 +5883,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/lsp_diagnosis.py"
+    "src/scripts/environ_updater.py"
    ]
   },
   {
@@ -5881,7 +5893,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/monitor_learning.py"
+    "src/scripts/fix_bare_excepts.py"
    ]
   },
   {
@@ -5891,7 +5903,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/parallel_compliance_scanner.py"
+    "src/scripts/gated_edit.py"
    ]
   },
   {
@@ -5901,7 +5913,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/run_test_generate_telemetry.py"
+    "src/scripts/lsp_diagnosis.py"
    ]
   },
   {
@@ -5911,7 +5923,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/sync_skills.py"
+    "src/scripts/monitor_learning.py"
    ]
   },
   {
@@ -5921,7 +5933,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/test_auto_sync.py"
+    "src/scripts/parallel_compliance_scanner.py"
    ]
   },
   {
@@ -5931,7 +5943,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/test_generate_telemetry.py"
+    "src/scripts/run_test_generate_telemetry.py"
    ]
   },
   {
@@ -5941,7 +5953,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/test_rule_0zf_consistency.py"
+    "src/scripts/sync_skills.py"
    ]
   },
   {
@@ -5951,7 +5963,7 @@
     "module": 1
    },
    "members": [
-    "src/scripts/test_startup_step4_8.py"
+    "src/scripts/test_auto_sync.py"
    ]
   },
   {
@@ -5961,11 +5973,41 @@
     "module": 1
    },
    "members": [
-    "src/tests/__init__.py"
+    "src/scripts/test_generate_telemetry.py"
    ]
   },
   {
    "index": 323,
+   "n": 1,
+   "types": {
+    "module": 1
+   },
+   "members": [
+    "src/scripts/test_rule_0zf_consistency.py"
+   ]
+  },
+  {
+   "index": 324,
+   "n": 1,
+   "types": {
+    "module": 1
+   },
+   "members": [
+    "src/scripts/test_startup_step4_8.py"
+   ]
+  },
+  {
+   "index": 325,
+   "n": 1,
+   "types": {
+    "module": 1
+   },
+   "members": [
+    "src/tests/__init__.py"
+   ]
+  },
+  {
+   "index": 326,
    "n": 1,
    "types": {
     "module": 1
@@ -5979,9 +6021,9 @@
   "core_max_k": 5,
   "core_shells": {
    "0": {
-    "n": 294,
+    "n": 297,
     "types": {
-     "module": 294
+     "module": 297
     },
     "members": [
      "scripts/__init__.py",
@@ -6015,6 +6057,7 @@
      "scripts/cosmos_inline_viewer.py",
      "scripts/cosmos_singlefile.py",
      "scripts/desktop_projects_reference_check.py",
+     "scripts/ecosystem_gephi_launcher.py",
      "scripts/export_graph_formats.py",
      "scripts/fetch_990_series.py",
      "scripts/finalize_whitepaper.py",
@@ -6027,11 +6070,13 @@
      "scripts/graphify_node_limit_patch.py",
      "scripts/klink.py",
      "scripts/learning_loop_gephi_launcher.py",
+     "scripts/learning_loop_temporal.py",
      "scripts/make_launcher_icons.py",
      "scripts/modernize_types.py",
      "scripts/quick_test.py",
      "scripts/reencode_large_videos.py",
      "scripts/render_bcc_lead_findings.py",
+     "scripts/render_graph_svg.py",
      "scripts/scan_secrets.py",
      "scripts/spec_audit.py",
      "scripts/sync_all.py",
@@ -6718,7 +6763,7 @@
     ]
    }
   ],
-  "maximal_cliques_count": 671,
+  "maximal_cliques_count": 674,
   "person": {}
  }
 }

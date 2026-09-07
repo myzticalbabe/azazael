@@ -28,6 +28,7 @@ import json
 import os
 import struct
 import sys
+import sysconfig
 
 try:
     import networkx as nx
@@ -45,6 +46,17 @@ except ImportError:
     pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _ensure_gil():
+    """Free-threaded 3.14t builds have a flaky sqlite3; re-exec with GIL on."""
+    if (sysconfig.get_config_var("Py_GIL_DISABLED")
+            and os.environ.get("AZAZAEL_GIL_ENFORCED") != "1"):
+        os.environ["AZAZAEL_GIL_ENFORCED"] = "1"
+        os.execv(sys.executable, [sys.executable, "-X", "gil=1"] + sys.argv)
+
+
+_ensure_gil()
 sys.path.insert(0, HERE)
 from bcc_network_sna import analyze, export_csv  # noqa: E402
 
@@ -261,11 +273,16 @@ def build_graph(use_db: bool) -> tuple:
     return G, nodes, idx, kinds
 
 
+COSMOS_COLOR = {"module": "#3fb950", "external": "#ffd700", "event": "#58a6ff",
+                "strategy": "#ff8844", "action": "#aa66ff"}
+
+
 def write_cosmos(G, nodes, outdir: str) -> None:
     os.makedirs(os.path.join(outdir, "cosmos"), exist_ok=True)
     deg = dict(G.degree())
     labels = [{"id": n["id"], "label": n["label"], "file": n.get("file", ""),
-               "type": n["type"], "deg": deg[i]} for i, n in enumerate(nodes)]
+               "type": n["type"], "color": COSMOS_COLOR.get(n["type"], "#888"),
+               "deg": deg[i]} for i, n in enumerate(nodes)]
     with open(os.path.join(outdir, "cosmos", "graph.labels.0.js"), "w", encoding="utf-8") as f:
         f.write("window.GV_LABELS_CHUNKS = window.GV_LABELS_CHUNKS || [];\n")
         f.write("window.GV_LABELS_CHUNKS.push(" + json.dumps(labels) + ");\n")
@@ -394,10 +411,81 @@ def write_gexf(G, outdir: str) -> str:
     return path
 
 
+def _write_sna_view(G, nodes, results, outdir: str, mode: str) -> None:
+    """Metric-based PyVis view: size by betweenness, color by community or
+    betweenness ramp, saved as learning_loop_sna.html (keeps the default
+    type-colored learning_loop.html intact)."""
+    from pyvis.network import Network
+    int_ = results["_internal"]
+    bet = int_["bet"]
+    comm_of = int_["comm_of"]
+    comm_colors = ["#3fb950", "#58a6ff", "#d29922", "#a371f7", "#f778ba",
+                   "#ff8844", "#39c5cf", "#e3b341", "#f47067", "#8b949e"]
+    deg = dict(G.degree())
+    max_deg = max(deg.values()) or 1
+    max_bet = max((bet.get(i, 0) for i in G.nodes()), default=0.0) or 1e-9
+    n_comm = max((comm_of.get(i, -1) for i in G.nodes()), default=-1) + 1
+
+    net = Network(height="900px", width="100%", bgcolor="#0d1117",
+                  font_color="#c9d1d9", directed=False)
+    for i, n in enumerate(nodes):
+        b = bet.get(i, 0.0)
+        if mode == "community":
+            col = comm_colors[comm_of.get(i, 0) % len(comm_colors)]
+            size = 8 + 20 * (deg.get(i, 1) / max_deg)
+            title = (f"{n['label']}<br>community C{comm_of.get(i, '?')} · "
+                     f"degree {deg.get(i, 0)} · betweenness {b:.4f}")
+        else:  # betweenness ramp: low=dim blue -> high=hot orange
+            t = b / max_bet
+            col = f"rgb({int(60 + 195 * t)},{int(140 - 80 * t)},{int(200 - 120 * t)})"
+            size = 6 + 40 * (b / max_bet)
+            title = (f"{n['label']}<br>betweenness {b:.4f} (rank by size) · "
+                     f"community C{comm_of.get(i, '?')} · degree {deg.get(i, 0)}")
+        net.add_node(i, label=n["label"], color=col, size=size, title=title)
+    for a, b in G.edges():
+        net.add_edge(a, b, color="#30363d", width=1.0)
+    net.set_options(json.dumps({
+        "nodes": {"borderWidth": 1.5, "font": {"size": 13, "face": "Tahoma"}},
+        "edges": {"smooth": {"type": "continuous"}},
+        "physics": {"enabled": True, "stabilization": {"iterations": 300}},
+        "interaction": {"hover": True, "tooltipDelay": 120},
+    }))
+    html = os.path.join(outdir, f"learning_loop_sna_{mode}.html")
+    net.show(html, notebook=False)
+    legend = (
+        '<div style="position:fixed;bottom:8px;left:8px;z-index:9999;'
+        'background:rgba(13,17,23,0.92);border:1px solid #30363d;border-radius:6px;'
+        'padding:8px 12px;font-family:Tahoma,Arial,sans-serif;font-size:11px;'
+        'color:#c9d1d9;">'
+        + (f"<b>{mode} coloring</b> · {n_comm} communities<br>"
+           + "".join(f'<span style="display:inline-block;margin-right:8px;">'
+                     f'<span style="display:inline-block;width:10px;height:10px;background:{comm_colors[c % len(comm_colors)]};'
+                     f'margin-right:3px;border-radius:2px;"></span>C{c}</span>'
+                     for c in range(n_comm))
+           if mode == "community" else
+           "<b>betweenness ramp</b>: blue = low influence · orange = high influence<br>"
+           "node size = betweenness")
+        + '</div>')
+    try:
+        with open(html, "r", encoding="utf-8") as f:
+            h = f.read()
+        if "</body>" in h:
+            h = h.replace("</body>", legend + "</body>")
+            with open(html, "w", encoding="utf-8") as f:
+                f.write(h)
+    except Exception as e:
+        sys.stderr.write(f"[learning_loop_graph] sna legend skipped: {e}\n")
+    print(f"Wrote {html} (color_by={mode})")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Map the learning-loop subsystem through the full graphing pipeline")
     ap.add_argument("--out", default=os.path.join(os.path.dirname(HERE), "graphs", "learning_loop"))
     ap.add_argument("--no-db", action="store_true", help="skip live DB enrichment")
+    ap.add_argument("--color-by", choices=["type", "community", "betweenness"],
+                    default="type",
+                    help="node color/size scheme: type (default), community (Louvain), "
+                         "betweenness (size=betweenness, color=community)")
     args = ap.parse_args()
 
     outdir = os.path.abspath(args.out)
@@ -413,6 +501,9 @@ def main() -> int:
     dump = {k: v for k, v in results.items() if k != "_internal"}
     with open(os.path.join(outdir, "sna_results.json"), "w", encoding="utf-8") as f:
         json.dump(dump, f, ensure_ascii=False, indent=1)
+
+    if args.color_by != "type":
+        _write_sna_view(G, nodes, results, outdir, args.color_by)
 
     print("\n=== TOP DEGREE ===")
     for label in results["rankings"]["top_degree"][:8]:

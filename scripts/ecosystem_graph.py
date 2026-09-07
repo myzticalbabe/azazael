@@ -29,6 +29,7 @@ import json
 import os
 import struct
 import sys
+import sysconfig
 
 try:
     import networkx as nx
@@ -45,6 +46,17 @@ except ImportError:
     pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _ensure_gil():
+    """Free-threaded 3.14t builds have a flaky sqlite3; re-exec with GIL on."""
+    if (sysconfig.get_config_var("Py_GIL_DISABLED")
+            and os.environ.get("AZAZAEL_GIL_ENFORCED") != "1"):
+        os.environ["AZAZAEL_GIL_ENFORCED"] = "1"
+        os.execv(sys.executable, [sys.executable, "-X", "gil=1"] + sys.argv)
+
+
+_ensure_gil()
 sys.path.insert(0, HERE)
 from bcc_network_sna import analyze, export_csv  # noqa: E402
 
@@ -335,6 +347,7 @@ def main() -> int:
     os.makedirs(os.path.join(outdir, "cosmos"), exist_ok=True)
     deg = dict(G.degree())
     labels = [{"id": n["id"], "label": n["label"], "file": n["rel"], "type": n["area"],
+               "color": area_color(n["area"]),
                "deg": deg[i], "events": G.nodes[i].get("event_count", 0)}
               for i, n in enumerate(nodes)]
     with open(os.path.join(outdir, "cosmos", "graph.labels.0.js"), "w", encoding="utf-8") as f:
