@@ -1,0 +1,1237 @@
+{
+  "BOM_HUNTER": [],
+  "SYNTAX_GUARD": [],
+  "IMPORT_WATCHER": [],
+  "STRING_ESCAPE_HUNTER": [
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\ORCHESTRATION\\scripts\\complete_module_analysis.py",
+      "line": 3,
+      "type": "BAD_ESCAPE",
+      "code": "Comprehensive Analysis of ALL Python Modules on C:\\ Drive"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\ORCHESTRATION\\scripts\\complete_module_analysis.py",
+      "line": 96,
+      "type": "BAD_ESCAPE",
+      "code": "        print(\"\\nScanning C:\\\\ drive for Python modules...\")"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\ORCHESTRATION\\scripts\\comprehensive_analysis.py",
+      "line": 43,
+      "type": "BAD_ESCAPE",
+      "code": "- Find all Python modules on C:\\ drive"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\ORCHESTRATION\\scripts\\comprehensive_analysis.py",
+      "line": 127,
+      "type": "BAD_ESCAPE",
+      "code": "        print(\"Scanning C:\\\\ drive for Python modules...\")"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\CORE\\compliance\\scanner.py",
+      "line": 13,
+      "type": "BAD_ESCAPE",
+      "code": "5. Hardcoded C:\\\\ Windows paths"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\CORE\\compliance\\scanner.py",
+      "line": 64,
+      "type": "BAD_ESCAPE",
+      "code": "    \"hardcoded_win_path\": \"Hardcoded C:\\\\ paths break on non"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\src\\CORE\\compliance\\scanner.py",
+      "line": 194,
+      "type": "BAD_ESCAPE",
+      "code": "        # 5. Hardcoded C:\\\\ paths"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\nuitka_build_backup\\inline_copy\\lib\\scons-4.3.0\\SCons\\Tool\\msvc.py",
+      "line": 204,
+      "type": "BAD_ESCAPE",
+      "code": "        # The Visual C/C++ compiler requires a \\ at the end "
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\nuitka_build_backup\\inline_copy\\lib\\scons-4.3.0\\SCons\\Tool\\msvs.py",
+      "line": 114,
+      "type": "BAD_ESCAPE",
+      "code": "    # Normalize the slnfile path to a Windows path (\\ separa"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\nuitka_build_backup\\inline_copy\\lib\\scons-4.10.1\\SCons\\Tool\\msvc.py",
+      "line": 211,
+      "type": "BAD_ESCAPE",
+      "code": "        # The Visual C/C++ compiler requires a \\ at the end "
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\nuitka_build_backup\\inline_copy\\lib\\scons-4.10.1\\SCons\\Tool\\msvs.py",
+      "line": 119,
+      "type": "BAD_ESCAPE",
+      "code": "    # Normalize the slnfile path to a Windows path (\\ separa"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\docs\\scripts\\patch_nuitka_314t.py",
+      "line": 16,
+      "type": "BAD_ESCAPE",
+      "code": "Created: June 4, 2026 \u2014 Recovered from G:\\\\ source-of-truth"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\ORCHESTRATION\\scripts\\complete_module_analysis.py",
+      "line": 3,
+      "type": "BAD_ESCAPE",
+      "code": "Comprehensive Analysis of ALL Python Modules on C:\\ Drive"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\ORCHESTRATION\\scripts\\complete_module_analysis.py",
+      "line": 96,
+      "type": "BAD_ESCAPE",
+      "code": "        print(\"\\nScanning C:\\\\ drive for Python modules...\")"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\ORCHESTRATION\\scripts\\comprehensive_analysis.py",
+      "line": 43,
+      "type": "BAD_ESCAPE",
+      "code": "- Find all Python modules on C:\\ drive"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\ORCHESTRATION\\scripts\\comprehensive_analysis.py",
+      "line": 127,
+      "type": "BAD_ESCAPE",
+      "code": "        print(\"Scanning C:\\\\ drive for Python modules...\")"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\CORE\\compliance\\scanner.py",
+      "line": 13,
+      "type": "BAD_ESCAPE",
+      "code": "5. Hardcoded C:\\\\ Windows paths"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\CORE\\compliance\\scanner.py",
+      "line": 64,
+      "type": "BAD_ESCAPE",
+      "code": "    \"hardcoded_win_path\": \"Hardcoded C:\\\\ paths break on non"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\build\\lib\\CORE\\compliance\\scanner.py",
+      "line": 194,
+      "type": "BAD_ESCAPE",
+      "code": "        # 5. Hardcoded C:\\\\ paths"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived_unified\\ORCHESTRATION\\scripts\\complete_module_analysis.py",
+      "line": 3,
+      "type": "BAD_ESCAPE",
+      "code": "Comprehensive Analysis of ALL Python Modules on C:\\ Drive"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived_unified\\ORCHESTRATION\\scripts\\complete_module_analysis.py",
+      "line": 99,
+      "type": "BAD_ESCAPE",
+      "code": "        print(\"\\nScanning C:\\\\ drive for Python modules...\")"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived_unified\\ORCHESTRATION\\scripts\\comprehensive_analysis.py",
+      "line": 43,
+      "type": "BAD_ESCAPE",
+      "code": "- Find all Python modules on C:\\ drive"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived_unified\\ORCHESTRATION\\scripts\\comprehensive_analysis.py",
+      "line": 131,
+      "type": "BAD_ESCAPE",
+      "code": "        print(\"Scanning C:\\\\ drive for Python modules...\")"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\onnxruntime_test_python_backend.py",
+      "line": 30,
+      "type": "BAD_ESCAPE",
+      "code": "                  |  /\\\\  |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 13,
+      "type": "BAD_ESCAPE",
+      "code": "    #     /   \\  \\"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 15,
+      "type": "BAD_ESCAPE",
+      "code": "    #    |    / \\  \\"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 17,
+      "type": "BAD_ESCAPE",
+      "code": "    #    \\     /    |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 18,
+      "type": "BAD_ESCAPE",
+      "code": "    #     \\   /     |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 70,
+      "type": "BAD_ESCAPE",
+      "code": "    #           /   \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 74,
+      "type": "BAD_ESCAPE",
+      "code": "    #           \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_calibration.py",
+      "line": 299,
+      "type": "BAD_ESCAPE",
+      "code": "        #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_conv_dynamic.py",
+      "line": 42,
+      "type": "BAD_ESCAPE",
+      "code": "        #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 38,
+      "type": "BAD_ESCAPE",
+      "code": "    #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 79,
+      "type": "BAD_ESCAPE",
+      "code": "    #       \\         /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 80,
+      "type": "BAD_ESCAPE",
+      "code": "    #        \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 81,
+      "type": "BAD_ESCAPE",
+      "code": "    #         \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 82,
+      "type": "BAD_ESCAPE",
+      "code": "    #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 109,
+      "type": "BAD_ESCAPE",
+      "code": "    #       \\         /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 110,
+      "type": "BAD_ESCAPE",
+      "code": "    #        \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 111,
+      "type": "BAD_ESCAPE",
+      "code": "    #         \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 112,
+      "type": "BAD_ESCAPE",
+      "code": "    #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 29,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\      |     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 30,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\    |    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 31,
+      "type": "BAD_ESCAPE",
+      "code": "        #           \\  |   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_embed_layernorm.py",
+      "line": 32,
+      "type": "BAD_ESCAPE",
+      "code": "        #              \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_pad.py",
+      "line": 372,
+      "type": "BAD_ESCAPE",
+      "code": "        #        /    \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_squeeze_unsqueeze.py",
+      "line": 42,
+      "type": "BAD_ESCAPE",
+      "code": "        #           \\      /        |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_op_squeeze_unsqueeze.py",
+      "line": 46,
+      "type": "BAD_ESCAPE",
+      "code": "        #                      \\    |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_qdq.py",
+      "line": 631,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_qdq_loss_debug.py",
+      "line": 44,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\python\\quantization\\test_quantize_static.py",
+      "line": 39,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\convert_generation.py",
+      "line": 1778,
+      "type": "BAD_ESCAPE",
+      "code": "    #            \\        |        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 254,
+      "type": "BAD_ESCAPE",
+      "code": "                           \\\\        |           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 255,
+      "type": "BAD_ESCAPE",
+      "code": "                            \\\\     Gather      Slice (data[1"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 256,
+      "type": "BAD_ESCAPE",
+      "code": "                              \\\\    /            |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 258,
+      "type": "BAD_ESCAPE",
+      "code": "                                   \\\\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 538,
+      "type": "BAD_ESCAPE",
+      "code": "        #       |                   \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 540,
+      "type": "BAD_ESCAPE",
+      "code": "        #                   \\         |           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 548,
+      "type": "BAD_ESCAPE",
+      "code": "        #                              \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 626,
+      "type": "BAD_ESCAPE",
+      "code": "        #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 40,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 41,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 84,
+      "type": "BAD_ESCAPE",
+      "code": "        #        |         /    \\           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 86,
+      "type": "BAD_ESCAPE",
+      "code": "        #        |      |        \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 87,
+      "type": "BAD_ESCAPE",
+      "code": "        #        +------|---+     \\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 88,
+      "type": "BAD_ESCAPE",
+      "code": "        #               |   |      \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 92,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 26,
+      "type": "BAD_ESCAPE",
+      "code": "        #      \\           |            |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 27,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\       Sigmoid         |---- `QuickGelu`"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 28,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\     /                |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 29,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\   /                 |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_shape.py",
+      "line": 60,
+      "type": "BAD_ESCAPE",
+      "code": "        #          \\           /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 104,
+      "type": "BAD_ESCAPE",
+      "code": "        #                            \\  /     (shape)"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 106,
+      "type": "BAD_ESCAPE",
+      "code": "        #                               \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 108,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\                       |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 110,
+      "type": "BAD_ESCAPE",
+      "code": "        #                        \\  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 121,
+      "type": "BAD_ESCAPE",
+      "code": "        #                       \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 123,
+      "type": "BAD_ESCAPE",
+      "code": "        #                  \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 164,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 175,
+      "type": "BAD_ESCAPE",
+      "code": "        #             \\              /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 177,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 770,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 777,
+      "type": "BAD_ESCAPE",
+      "code": "        #                 \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 781,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 792,
+      "type": "BAD_ESCAPE",
+      "code": "        #                   \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\onnxruntime_test_python_backend.py",
+      "line": 28,
+      "type": "BAD_ESCAPE",
+      "code": "                  |  /\\\\  |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 14,
+      "type": "BAD_ESCAPE",
+      "code": "    #     /   \\  \\"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 16,
+      "type": "BAD_ESCAPE",
+      "code": "    #    |    / \\  \\"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 18,
+      "type": "BAD_ESCAPE",
+      "code": "    #    \\     /    |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 19,
+      "type": "BAD_ESCAPE",
+      "code": "    #     \\   /     |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 71,
+      "type": "BAD_ESCAPE",
+      "code": "    #           /   \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 75,
+      "type": "BAD_ESCAPE",
+      "code": "    #           \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_calibration.py",
+      "line": 288,
+      "type": "BAD_ESCAPE",
+      "code": "        #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_conv_dynamic.py",
+      "line": 38,
+      "type": "BAD_ESCAPE",
+      "code": "        #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 38,
+      "type": "BAD_ESCAPE",
+      "code": "    #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 79,
+      "type": "BAD_ESCAPE",
+      "code": "    #       \\         /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 80,
+      "type": "BAD_ESCAPE",
+      "code": "    #        \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 81,
+      "type": "BAD_ESCAPE",
+      "code": "    #         \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 82,
+      "type": "BAD_ESCAPE",
+      "code": "    #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 109,
+      "type": "BAD_ESCAPE",
+      "code": "    #       \\         /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 110,
+      "type": "BAD_ESCAPE",
+      "code": "    #        \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 111,
+      "type": "BAD_ESCAPE",
+      "code": "    #         \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 112,
+      "type": "BAD_ESCAPE",
+      "code": "    #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 29,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\      |     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 30,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\    |    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 31,
+      "type": "BAD_ESCAPE",
+      "code": "        #           \\  |   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_embed_layernorm.py",
+      "line": 32,
+      "type": "BAD_ESCAPE",
+      "code": "        #              \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_pad.py",
+      "line": 363,
+      "type": "BAD_ESCAPE",
+      "code": "        #        /    \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_squeeze_unsqueeze.py",
+      "line": 42,
+      "type": "BAD_ESCAPE",
+      "code": "        #           \\      /        |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_op_squeeze_unsqueeze.py",
+      "line": 46,
+      "type": "BAD_ESCAPE",
+      "code": "        #                      \\    |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_qdq.py",
+      "line": 478,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_qdq_loss_debug.py",
+      "line": 45,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\python\\quantization\\test_quantize_static.py",
+      "line": 32,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\convert_generation.py",
+      "line": 1352,
+      "type": "BAD_ESCAPE",
+      "code": "    #            \\        |        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_bart_attention.py",
+      "line": 258,
+      "type": "BAD_ESCAPE",
+      "code": "            #           \\                  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_bart_attention.py",
+      "line": 259,
+      "type": "BAD_ESCAPE",
+      "code": "            #             \\              /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_bart_attention.py",
+      "line": 402,
+      "type": "BAD_ESCAPE",
+      "code": "            #           \\                  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_bart_attention.py",
+      "line": 403,
+      "type": "BAD_ESCAPE",
+      "code": "            #             \\              /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 255,
+      "type": "BAD_ESCAPE",
+      "code": "                           \\\\        |           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 256,
+      "type": "BAD_ESCAPE",
+      "code": "                            \\\\     Gather      Slice (data[1"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 257,
+      "type": "BAD_ESCAPE",
+      "code": "                              \\\\    /            |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 259,
+      "type": "BAD_ESCAPE",
+      "code": "                                   \\\\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 539,
+      "type": "BAD_ESCAPE",
+      "code": "        #       |                   \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 541,
+      "type": "BAD_ESCAPE",
+      "code": "        #                   \\         |           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 549,
+      "type": "BAD_ESCAPE",
+      "code": "        #                              \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 627,
+      "type": "BAD_ESCAPE",
+      "code": "        #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 40,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 41,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 84,
+      "type": "BAD_ESCAPE",
+      "code": "        #        |         /    \\           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 86,
+      "type": "BAD_ESCAPE",
+      "code": "        #        |      |        \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 87,
+      "type": "BAD_ESCAPE",
+      "code": "        #        +------|---+     \\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 88,
+      "type": "BAD_ESCAPE",
+      "code": "        #               |   |      \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 92,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_shape.py",
+      "line": 61,
+      "type": "BAD_ESCAPE",
+      "code": "        #          \\           /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 105,
+      "type": "BAD_ESCAPE",
+      "code": "        #                            \\  /     (shape)"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 107,
+      "type": "BAD_ESCAPE",
+      "code": "        #                               \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 109,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\                       |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 111,
+      "type": "BAD_ESCAPE",
+      "code": "        #                        \\  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 122,
+      "type": "BAD_ESCAPE",
+      "code": "        #                       \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 124,
+      "type": "BAD_ESCAPE",
+      "code": "        #                  \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 165,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 176,
+      "type": "BAD_ESCAPE",
+      "code": "        #             \\              /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 178,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\onnxruntime_test_python_backend.py",
+      "line": 30,
+      "type": "BAD_ESCAPE",
+      "code": "                  |  /\\\\  |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 13,
+      "type": "BAD_ESCAPE",
+      "code": "    #     /   \\  \\"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 15,
+      "type": "BAD_ESCAPE",
+      "code": "    #    |    / \\  \\"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 17,
+      "type": "BAD_ESCAPE",
+      "code": "    #    \\     /    |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 18,
+      "type": "BAD_ESCAPE",
+      "code": "    #     \\   /     |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 70,
+      "type": "BAD_ESCAPE",
+      "code": "    #           /   \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\ep_partitioning_tests.py",
+      "line": 74,
+      "type": "BAD_ESCAPE",
+      "code": "    #           \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_calibration.py",
+      "line": 299,
+      "type": "BAD_ESCAPE",
+      "code": "        #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_conv_dynamic.py",
+      "line": 42,
+      "type": "BAD_ESCAPE",
+      "code": "        #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 38,
+      "type": "BAD_ESCAPE",
+      "code": "    #     \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 79,
+      "type": "BAD_ESCAPE",
+      "code": "    #       \\         /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 80,
+      "type": "BAD_ESCAPE",
+      "code": "    #        \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 81,
+      "type": "BAD_ESCAPE",
+      "code": "    #         \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 82,
+      "type": "BAD_ESCAPE",
+      "code": "    #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 109,
+      "type": "BAD_ESCAPE",
+      "code": "    #       \\         /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 110,
+      "type": "BAD_ESCAPE",
+      "code": "    #        \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 111,
+      "type": "BAD_ESCAPE",
+      "code": "    #         \\     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_onnx_model.py",
+      "line": 112,
+      "type": "BAD_ESCAPE",
+      "code": "    #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 29,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\      |     /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 30,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\    |    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_concat.py",
+      "line": 31,
+      "type": "BAD_ESCAPE",
+      "code": "        #           \\  |   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_embed_layernorm.py",
+      "line": 32,
+      "type": "BAD_ESCAPE",
+      "code": "        #              \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_pad.py",
+      "line": 372,
+      "type": "BAD_ESCAPE",
+      "code": "        #        /    \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_squeeze_unsqueeze.py",
+      "line": 42,
+      "type": "BAD_ESCAPE",
+      "code": "        #           \\      /        |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_op_squeeze_unsqueeze.py",
+      "line": 46,
+      "type": "BAD_ESCAPE",
+      "code": "        #                      \\    |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_qdq.py",
+      "line": 631,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_qdq_loss_debug.py",
+      "line": 44,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\python\\quantization\\test_quantize_static.py",
+      "line": 39,
+      "type": "BAD_ESCAPE",
+      "code": "        \\\\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\convert_generation.py",
+      "line": 1778,
+      "type": "BAD_ESCAPE",
+      "code": "    #            \\        |        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 254,
+      "type": "BAD_ESCAPE",
+      "code": "                           \\\\        |           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 255,
+      "type": "BAD_ESCAPE",
+      "code": "                            \\\\     Gather      Slice (data[1"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 256,
+      "type": "BAD_ESCAPE",
+      "code": "                              \\\\    /            |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 258,
+      "type": "BAD_ESCAPE",
+      "code": "                                   \\\\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 538,
+      "type": "BAD_ESCAPE",
+      "code": "        #       |                   \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 540,
+      "type": "BAD_ESCAPE",
+      "code": "        #                   \\         |           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 548,
+      "type": "BAD_ESCAPE",
+      "code": "        #                              \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_embedlayer.py",
+      "line": 626,
+      "type": "BAD_ESCAPE",
+      "code": "        #          \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 40,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 41,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 84,
+      "type": "BAD_ESCAPE",
+      "code": "        #        |         /    \\           |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 86,
+      "type": "BAD_ESCAPE",
+      "code": "        #        |      |        \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 87,
+      "type": "BAD_ESCAPE",
+      "code": "        #        +------|---+     \\      /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 88,
+      "type": "BAD_ESCAPE",
+      "code": "        #               |   |      \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_gpt_attention.py",
+      "line": 92,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\       /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 26,
+      "type": "BAD_ESCAPE",
+      "code": "        #      \\           |            |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 27,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\       Sigmoid         |---- `QuickGelu`"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 28,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\     /                |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_quickgelu.py",
+      "line": 29,
+      "type": "BAD_ESCAPE",
+      "code": "        #         \\   /                 |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_shape.py",
+      "line": 60,
+      "type": "BAD_ESCAPE",
+      "code": "        #          \\           /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 104,
+      "type": "BAD_ESCAPE",
+      "code": "        #                            \\  /     (shape)"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 106,
+      "type": "BAD_ESCAPE",
+      "code": "        #                               \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 108,
+      "type": "BAD_ESCAPE",
+      "code": "        #        \\                       |"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 110,
+      "type": "BAD_ESCAPE",
+      "code": "        #                        \\  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 121,
+      "type": "BAD_ESCAPE",
+      "code": "        #                       \\   /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 123,
+      "type": "BAD_ESCAPE",
+      "code": "        #                  \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 164,
+      "type": "BAD_ESCAPE",
+      "code": "        #       \\  /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 175,
+      "type": "BAD_ESCAPE",
+      "code": "        #             \\              /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\fusion_skip_group_norm.py",
+      "line": 177,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\        /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 770,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 777,
+      "type": "BAD_ESCAPE",
+      "code": "        #                 \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 781,
+      "type": "BAD_ESCAPE",
+      "code": "        #                \\    /"
+    },
+    {
+      "file": "C:\\Users\\clint\\azazael\\archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\python\\tools\\transformers\\onnx_model_t5.py",
+      "line": 792,
+      "type": "BAD_ESCAPE",
+      "code": "        #                   \\     /"
+    }
+  ]
+}
