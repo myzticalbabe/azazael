@@ -57,7 +57,7 @@ def _uuid7() -> str:
     buf[12] = rand[4]; buf[13] = rand[5]; buf[14] = rand[6]; buf[15] = rand[7]
     return uuid.UUID(bytes=bytes(buf)).hex
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"  # 2026-09-07: recorder gates (dedupe 30m, milestone cap, alert throttle)
 
 # -- Database path (same as LocalMemoryStore) ----------------------
 def _get_db_path() -> Path:
@@ -361,11 +361,12 @@ class DirectMemory:
                 )
             conn.commit()
 
-    def _find_recent_session(self, minutes: int = 10) -> Optional[str]:
+    def _find_recent_session(self, minutes: int = 30) -> Optional[str]:
         """Return an open session id started within minutes, else None.
 
         Reconnect-merge lookup for Phase 2. Never raises: fails open (None),
         leaving the caller with a fresh session id.
+        2026-09-07: window 10->30m to dedupe session-start storms (129K rows/day).
         """
         try:
             conn = self._get_conn()
@@ -478,6 +479,38 @@ class DirectMemory:
             except Exception:
                 pass
 
+        # 2026-09-07 recorder gates (approved): throttle alert/error loops.
+        # Per-session scope (fixes self-test: different sessions must not
+        # suppress each other). Same action within 5 min -> skip.
+        # >50 same-type in this session last hour -> skip.
+        # Fails open. Returns 0 when throttled. Zero history touched.
+        if event_type in ("error_occurrence", "alert", "session_end",
+                          "message_end", "tooling_verify"):
+            try:
+                action = data.get("action", "") if isinstance(data, dict) else ""
+                now_utc = datetime.now(timezone.utc)
+                cutoff5 = (now_utc - timedelta(minutes=5)).isoformat()
+                cutoff60 = (now_utc - timedelta(minutes=60)).isoformat()
+                conn1 = self._get_conn()
+                dup = conn1.execute(
+                    "SELECT 1 FROM memories WHERE session_id = ? "
+                    "AND event_type = ? "
+                    "AND json_extract(data, '$.action') = ? "
+                    "AND timestamp > ? LIMIT 1",
+                    (self._session_id, event_type, action, cutoff5)).fetchone()
+                if dup:
+                    conn1.close()
+                    return 0
+                cnt = conn1.execute(
+                    "SELECT COUNT(*) FROM memories WHERE session_id = ? "
+                    "AND event_type = ? AND timestamp > ?",
+                    (self._session_id, event_type, cutoff60)).fetchone()
+                conn1.close()
+                if cnt and cnt[0] > 50:
+                    return 0
+            except Exception:
+                pass
+
         # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
         ev_uuid = _uuid7()
         corr_id = self._correlation_id  # Use instance correlation_id
@@ -576,6 +609,36 @@ class DirectMemory:
         }, severity=severity, tags=["test", "test-run", "ci", "quality"] + extra_tags)
 
     def milestone(self, title: str, details: Optional[Dict] = None):
+        # 2026-09-07 gate (approved): block auto-milestones unless opted in,
+        # cap 20 milestones/session-hour, dedupe same title 120 min.
+        # Env AZAZAEL_ALLOW_AUTO_MILESTONE=1 to allow auto_* titles.
+        # Fails open (records) on any gate error. Zero history touched.
+        try:
+            if "auto" in (title or "").lower() and os.environ.get(
+                    "AZAZAEL_ALLOW_AUTO_MILESTONE", "1") == "0":
+                return 0
+            now_utc = datetime.now(timezone.utc)
+            cutoff120 = (now_utc - timedelta(minutes=120)).isoformat()
+            cutoff60 = (now_utc - timedelta(minutes=60)).isoformat()
+            connm = self._get_conn()
+            dup = connm.execute(
+                "SELECT 1 FROM memories WHERE session_id = ? "
+                "AND event_type = 'milestone_reached' "
+                "AND json_extract(data, '$.title') = ? "
+                "AND timestamp > ? LIMIT 1",
+                (self._session_id, title, cutoff120)).fetchone()
+            if dup:
+                connm.close()
+                return 0
+            cnt = connm.execute(
+                "SELECT COUNT(*) FROM memories WHERE session_id = ? "
+                "AND event_type = 'milestone_reached' AND timestamp > ?",
+                (self._session_id, cutoff60)).fetchone()
+            connm.close()
+            if cnt and cnt[0] >= 20:
+                return 0
+        except Exception:
+            pass
         return self.record("milestone_reached", {
             "action": f"milestone: {title}",
             "title": title,
