@@ -170,6 +170,13 @@ class DirectMemory:
             # Reuse existing session — don't create a new one
             self._session_id = merged_session_id
             self._explicit_session = True
+        elif not self._explicit_session:
+            # Phase-2 reconnect merge (fails open to a fresh session id).
+            recent = self._find_recent_session()
+            if recent:
+                self._session_id = recent
+                self._merged_session_id = recent
+                self._explicit_session = True
         self._start_session()
         atexit.register(self._atexit_handler)
         # F02 fix (June 7 2026): Register signal handlers for hard kills.
@@ -353,6 +360,26 @@ class DirectMemory:
                     (_uuid7(), row_id)
                 )
             conn.commit()
+
+    def _find_recent_session(self, minutes: int = 10) -> Optional[str]:
+        """Return an open session id started within minutes, else None.
+
+        Reconnect-merge lookup for Phase 2. Never raises: fails open (None),
+        leaving the caller with a fresh session id.
+        """
+        try:
+            conn = self._get_conn()
+            row = conn.execute(
+                "SELECT session_id FROM sessions WHERE ended_at IS NULL "
+                "AND datetime(started_at) > datetime('now', ?) "
+                "ORDER BY started_at DESC LIMIT 1",
+                (f"-{minutes} minutes",)).fetchone()
+            conn.close()
+            if row and row[0] != self._session_id:
+                return row[0]
+        except Exception:
+            pass
+        return None
 
     def _start_session(self):
         """Insert or verify session record.
