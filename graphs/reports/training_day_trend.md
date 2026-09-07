@@ -48,10 +48,30 @@ confidence 0.784 — above the 0.5 adoption bar.
 
 ## Evolution
 
-- non-flat trajectory confirmed: gen 0 → 3 improving 11.23 → 11.29 → 11.38,
-  then converged (patience). Reward is now action-dependent, so fitness has a
-  gradient.
-- latest best fitness seen by the long-watch: 13.32 (still improving).
+- **non-flat trajectory confirmed live** — every run since the reward fix (19:59)
+  has a real gradient; best fitness keeps climbing to new highs:
+
+  | run (UTC) | trajectory (gen best)          | best  |
+  |-----------|--------------------------------|-------|
+  | 19:59     | ... → 11.38                    | 11.38 |
+  | 20:15     | ... → 13.32                    | 13.32 |
+  | 20:20     | ... → 14.45                    | 14.45 |
+  | 20:44     | 8.55 → 9.82 → 11.84 → 12.16   | 12.18 |
+  | 20:50     | 8.37 → 10.01 → 11.81 → 12.86  | 12.86 |
+  | 20:55     | 7.76 → 8.62 → 11.59 → 13.95  | 13.95 |
+  | 21:00     | 10.07 → 11.93 → 13.70        | 13.70 |
+  | **21:05** | 10.49 → 12.73 → 14.25 → 14.74 | **14.74** ← all-time high |
+
+- **reward landscape is noisy but the ceiling climbs**: per-run fitness spread
+  (min..max across generations) runs 2.2–6.2; each run re-seeds from the prior
+  best genome (`seeded_from_prior=true`), then explores fresh genomes.
+- **epsilon is being driven to 0** (21:05 champion: lr=0.232, **eps=0.0**,
+  discount=0.929): the Q-table has converged to deterministic severity-appropriate
+  actions, so exploration now *hurts* reward — textbook end-state of a converged
+  policy.
+- scheduled 20:45 cycle also improved: `[11.57, 11.997, 11.997, 11.997]`.
+
+See `graphs/reports/evolution_rewards.png` (spread per run + best trajectory).
 
 ## Caveats
 
