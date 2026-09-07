@@ -7,6 +7,19 @@ defaults (human decision). All runs recorded by the training loop itself.
 import sys
 sys.path.insert(0, 'C:/Users/clint/azazael/src')
 
+import os
+import time
+
+os.makedirs(r'C:\Users\clint\azazael\logs', exist_ok=True)
+_LOG = open(r'C:\Users\clint\azazael\logs\evolution_cycle.log', 'a', encoding='utf-8')
+
+
+def log(msg):
+    line = '%s %s' % (time.strftime('%Y-%m-%dT%H:%M:%S'), msg)
+    print(line, flush=True)
+    _LOG.write(line + '\n')
+    _LOG.flush()
+
 from CORE.WORMS.expansion.evolution import EvolutionEngine
 from CORE.WORMS.expansion.learning import RLTrainLoop
 
@@ -31,9 +44,19 @@ evo.initialize_population({
 for gen in range(4):
     stats = evo.evaluate_population(fitness)
     best = evo.get_best_genome()
-    print(f'gen {gen}: best={stats.get("best_fitness")} '
-          f'genes={best.genes if best else None}', flush=True)
+    log(f'gen {gen}: best={stats.get("best_fitness")} '
+        f'genes={best.genes if best else None}')
     evo.evolve()
 
 best = evo.get_best_genome()
-print('BEST:', best.genes if best else None)
+log('BEST: %s' % (best.genes if best else None))
+try:
+    from CORE.direct_memory import DirectMemory
+    DirectMemory().record('evolution_result', {
+        'action': 'evolution run complete',
+        'best_genes': best.genes if best else {},
+        'generations': 4,
+        'population': 8,
+    }, tags=['evolution', 'artifact'])
+except Exception as e:
+    log('artifact record failed: %s' % e)
