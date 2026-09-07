@@ -1,0 +1,1784 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+<rect width="1600" height="1100" fill="#0d1117"/>
+<text x="80" y="42" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="20" font-weight="bold">ecosystem</text>
+<text x="80" y="66" fill="#8b949e" font-family="Tahoma,Arial" font-size="13">603 nodes · 529 edges · area coloring</text>
+<line x1="1365.6" y1="500.3" x2="1395.7" y2="497.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1084.0" y1="236.8" x2="1102.5" y2="221.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1221.8" y1="581.8" x2="1170.5" y2="579.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1221.8" y1="581.8" x2="1246.6" y2="582.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1221.8" y1="581.8" x2="1263.5" y2="587.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1221.8" y1="581.8" x2="1229.7" y2="569.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1089.6" y1="199.1" x2="1112.0" y2="176.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1089.6" y1="199.1" x2="1101.4" y2="178.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="856.6" y1="659.3" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="856.6" y1="659.3" x2="894.1" y2="688.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="947.7" y1="520.6" x2="893.4" y2="525.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="844.0" y1="634.0" x2="818.4" y2="610.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="844.0" y1="634.0" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="869.0" y1="638.0" x2="818.4" y2="610.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="875.9" y1="630.9" x2="818.4" y2="610.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1389.5" y1="823.1" x2="1354.2" y2="807.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="772.5" y1="644.7" x2="826.6" y2="639.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="772.5" y1="644.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1112.0" y1="176.7" x2="1101.4" y2="178.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="703.5" y1="648.0" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="816.1" y1="583.7" x2="804.2" y2="595.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="816.1" y1="583.7" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="744.4" y1="642.4" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="744.4" y1="642.4" x2="782.3" y2="625.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.4" y1="610.5" x2="751.0" y2="626.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.4" y1="610.5" x2="746.2" y2="614.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.4" y1="610.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.4" y1="610.5" x2="685.8" y2="618.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.4" y1="610.5" x2="656.8" y2="625.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.4" y1="610.5" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.9" y1="626.0" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.9" y1="626.0" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="704.9" y1="626.0" x2="685.8" y2="618.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="707.8" y1="623.9" x2="751.0" y2="626.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="707.8" y1="623.9" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="707.8" y1="623.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="707.8" y1="623.9" x2="656.8" y2="625.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="707.8" y1="623.9" x2="685.8" y2="618.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="716.9" y1="609.1" x2="746.2" y2="614.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="716.9" y1="609.1" x2="685.8" y2="618.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="716.9" y1="609.1" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="716.9" y1="609.1" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="716.9" y1="609.1" x2="751.0" y2="626.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="612.8" y1="185.4" x2="599.1" y2="160.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="921.9" y1="622.2" x2="866.9" y2="604.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="828.8" y1="544.3" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="828.8" y1="544.3" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="828.8" y1="544.3" x2="826.6" y2="595.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="828.8" y1="544.3" x2="911.3" y2="474.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1274.5" y1="756.3" x2="1307.3" y2="769.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="587.7" y1="500.4" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="765.2" y1="426.6" x2="769.2" y2="393.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="765.2" y1="426.6" x2="782.6" y2="394.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="765.2" y1="426.6" x2="715.5" y2="493.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="765.2" y1="426.6" x2="800.7" y2="401.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="765.2" y1="426.6" x2="793.1" y2="396.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="679.9" y1="467.4" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="679.9" y1="467.4" x2="731.7" y2="451.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="640.8" y1="473.8" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="670.8" y1="707.4" x2="661.0" y2="704.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="670.8" y1="707.4" x2="688.6" y2="669.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="505.8" y1="474.3" x2="557.3" y2="484.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="545.9" y1="432.6" x2="582.3" y2="459.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="727.1" y1="466.5" x2="677.1" y2="475.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="574.6" y1="120.1" x2="566.8" y2="104.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="770.5" y1="121.3" x2="766.5" y2="108.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="847.4" y1="173.6" x2="832.0" y2="174.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="510.0" y1="514.3" x2="559.9" y2="524.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="510.0" y1="514.3" x2="530.9" y2="513.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="513.4" y1="507.5" x2="530.9" y2="513.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="513.4" y1="507.5" x2="559.9" y2="524.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="515.8" y1="498.9" x2="559.9" y2="524.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="693.1" y1="515.7" x2="687.4" y2="542.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="633.7" y1="684.6" x2="671.4" y2="652.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="779.1" y1="642.3" x2="826.6" y2="639.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="779.1" y1="642.3" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="591.4" y1="508.9" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="609.6" y1="471.5" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="602.2" y1="478.1" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="626.4" y1="463.5" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="580.4" y1="506.4" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="762.7" y2="597.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="801.5" y2="585.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="795.8" y2="624.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="798.9" y2="600.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="790.1" y1="600.9" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="788.5" y1="580.1" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="788.5" y1="580.1" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="788.5" y1="580.1" x2="762.7" y2="597.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="825.6" y1="633.5" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="834.7" y1="595.2" x2="801.5" y2="585.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="834.7" y1="595.2" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="834.7" y1="595.2" x2="842.4" y2="584.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="898.4" y1="578.0" x2="859.3" y2="562.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="898.4" y1="578.0" x2="860.7" y2="586.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="842.4" y2="584.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="804.2" y2="595.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="789.4" y2="590.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="761.9" y2="583.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="812.2" y2="600.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="801.5" y1="585.5" x2="759.7" y2="569.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="614.2" y1="463.9" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="751.0" y2="626.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="746.2" y2="614.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="817.9" y2="617.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.7" y1="604.7" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="842.4" y1="584.3" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="794.2" y2="656.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="804.2" y2="595.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="789.4" y2="590.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="812.2" y2="600.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="818.4" y2="610.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="728.2" y2="589.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="719.4" y2="595.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="762.7" y1="597.7" x2="654.2" y2="559.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="777.7" y1="666.5" x2="794.2" y2="656.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="777.7" y1="666.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="777.7" y1="666.5" x2="794.6" y2="705.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="777.7" y1="666.5" x2="810.9" y2="684.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="777.7" y1="666.5" x2="803.1" y2="686.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="810.9" y1="684.8" x2="794.2" y2="656.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="810.9" y1="684.8" x2="803.1" y2="686.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="803.1" y1="686.5" x2="794.2" y2="656.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="661.0" y1="704.9" x2="688.6" y2="669.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="688.6" y1="669.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="668.2" y1="633.2" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="804.2" y1="595.2" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="804.2" y1="595.2" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="804.2" y1="595.2" x2="843.0" y2="608.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="804.2" y1="595.2" x2="826.6" y2="595.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="804.2" y1="595.2" x2="860.7" y2="586.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="679.5" y1="547.9" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="679.5" y1="547.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="677.2" y1="638.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="757.1" y1="620.9" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="757.1" y1="620.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="789.4" y1="590.8" x2="818.4" y2="610.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="789.4" y1="590.8" x2="746.1" y2="580.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="789.4" y1="590.8" x2="812.2" y2="600.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="667.9" y1="604.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="687.7" y1="642.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="708.0" y1="640.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="930.8" y1="519.0" x2="907.5" y2="551.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="689.1" y1="636.2" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="761.9" y1="583.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="761.9" y1="583.5" x2="746.1" y2="580.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="746.1" y1="580.8" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="746.1" y1="580.8" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="746.1" y1="580.8" x2="759.7" y2="569.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="818.4" y2="610.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="854.8" y2="580.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="826.6" y2="595.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="843.0" y2="608.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="830.5" y2="620.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="860.7" y2="586.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="826.1" y2="615.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="845.2" y2="614.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="812.2" y1="600.8" x2="789.2" y2="611.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="668.7" y1="626.6" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="595.0" y1="471.4" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="668.6" y1="552.4" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="668.6" y1="552.4" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="818.4" y1="610.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="818.4" y1="610.7" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="818.4" y1="610.7" x2="826.6" y2="595.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="818.4" y1="610.7" x2="843.0" y2="608.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="818.4" y1="610.7" x2="830.5" y2="620.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="818.4" y1="610.7" x2="860.7" y2="586.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="589.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="720.4" y1="648.4" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="580.4" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="580.4" x2="680.4" y2="578.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="580.4" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="580.4" x2="759.7" y2="569.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="664.5" y1="555.5" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="664.5" y1="555.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="696.2" y1="644.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="778.8" y1="562.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="778.8" y1="562.1" x2="738.0" y2="572.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="778.8" y1="562.1" x2="759.7" y2="569.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="778.8" y1="562.1" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="778.8" y1="562.1" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="778.8" y1="562.1" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="679.4" y1="627.8" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="719.4" y1="595.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="673.7" y1="549.8" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="673.7" y1="549.8" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="698.7" y1="636.0" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="670.7" y1="556.6" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="670.7" y1="556.6" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="680.9" y1="633.3" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="671.4" y1="652.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="687.4" y1="542.9" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="687.4" y1="542.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="676.1" y1="554.1" x2="634.8" y2="502.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="676.1" y1="554.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.8" y1="629.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.8" y1="629.1" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.8" y1="629.1" x2="746.2" y2="614.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="860.7" y1="586.4" x2="907.5" y2="551.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="736.2" y1="614.3" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="736.2" y1="614.3" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="741.0" y1="608.0" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="741.0" y1="608.0" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="748.8" y1="630.8" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="748.8" y1="630.8" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="750.8" y1="591.9" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="750.8" y1="591.9" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="792.4" y1="638.2" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="792.4" y1="638.2" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="792.4" y1="638.2" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="792.4" y1="638.2" x2="811.9" y2="693.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="792.4" y1="638.2" x2="782.3" y2="625.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="792.4" y1="638.2" x2="826.1" y2="615.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="859.3" y2="562.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="798.9" y2="600.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="849.3" y2="569.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="866.9" y2="604.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="815.6" y1="593.7" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.3" y1="637.2" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.3" y1="637.2" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="807.7" y1="615.1" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="807.7" y1="615.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="807.7" y1="615.1" x2="866.9" y2="604.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="771.4" y2="613.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="773.3" y2="622.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="773.3" y2="617.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="764.9" y2="619.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="761.3" y2="612.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="738.7" y2="670.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="746.2" y2="614.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="782.3" y2="625.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="789.2" y2="611.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="750.4" y2="671.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="751.0" y1="626.7" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="761.3" y1="612.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="761.3" y1="612.5" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="761.3" y1="612.5" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.9" y1="619.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.9" y1="619.1" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.9" y1="619.1" x2="773.3" y2="617.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.9" y1="619.1" x2="771.4" y2="613.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="764.9" y1="619.1" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="746.2" y1="614.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="746.2" y1="614.7" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="617.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="617.7" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="617.7" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="617.7" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="771.4" y1="613.6" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="771.4" y1="613.6" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="771.4" y1="613.6" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="771.4" y1="613.6" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="622.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="622.7" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="622.7" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="773.3" y1="622.7" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="798.9" y1="600.4" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="798.9" y1="600.4" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="798.9" y1="600.4" x2="795.8" y2="624.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="798.9" y1="600.4" x2="849.3" y2="569.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="798.9" y1="600.4" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="736.3" y1="621.3" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="736.3" y1="621.3" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="741.7" y1="627.1" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="741.7" y1="627.1" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="771.2" y1="634.0" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="771.2" y1="634.0" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="782.3" y1="625.0" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="782.3" y1="625.0" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="782.3" y1="625.0" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="782.3" y1="625.0" x2="830.5" y2="620.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="782.3" y1="625.0" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="782.3" y1="625.0" x2="826.1" y2="615.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="747.1" y1="600.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="747.1" y1="600.5" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="805.1" y1="567.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="805.1" y1="567.5" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="805.1" y1="567.5" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="743.0" y1="619.6" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="743.0" y1="619.6" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="757.5" y1="630.2" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="757.5" y1="630.2" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="848.3" y1="446.8" x2="908.5" y2="428.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="848.3" y1="446.8" x2="912.7" y2="433.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="848.3" y1="446.8" x2="742.4" y2="470.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="859.3" y1="562.8" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="859.3" y1="562.8" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="859.3" y1="562.8" x2="893.4" y2="525.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="859.3" y1="562.8" x2="839.4" y2="564.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="859.3" y1="562.8" x2="916.8" y2="569.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="795.8" y1="624.9" x2="749.2" y2="619.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="949.0" y1="514.2" x2="893.4" y2="525.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="945.9" y1="528.9" x2="893.4" y2="525.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="955.8" y1="524.5" x2="893.4" y2="525.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="950.6" y2="534.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="858.5" y2="546.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="906.3" y2="508.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="906.7" y2="540.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="884.7" y2="526.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="933.6" y2="494.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="885.9" y2="532.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="871.0" y2="537.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="802.3" y2="543.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="910.8" y2="513.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="898.1" y2="505.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="893.4" y1="525.5" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="785.0" y2="601.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="839.4" y2="564.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="871.0" y2="537.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="885.9" y2="532.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="877.3" y2="522.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="884.7" y2="526.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="906.7" y2="540.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="858.5" y1="546.1" x2="866.4" y2="523.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="830.5" y1="620.9" x2="826.6" y2="595.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="906.3" y1="508.6" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="868.8" y1="488.2" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="843.0" y1="608.0" x2="826.6" y2="595.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="843.0" y1="608.0" x2="826.1" y2="615.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="843.0" y1="608.0" x2="845.2" y2="614.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="843.0" y1="608.0" x2="866.3" y2="616.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="884.7" y1="526.0" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.4" y1="523.0" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="933.8" y1="464.3" x2="930.7" y2="468.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="933.8" y1="464.3" x2="908.2" y2="486.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="933.8" y1="464.3" x2="895.3" y2="469.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="933.8" y1="464.3" x2="954.8" y2="459.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1075.0" y1="425.4" x2="1031.7" y2="434.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="933.6" y1="494.0" x2="957.1" y2="476.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="933.6" y1="494.0" x2="911.3" y2="474.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="914.4" y2="445.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="901.5" y2="436.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="914.8" y2="422.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="904.3" y2="421.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="894.9" y2="421.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="885.8" y2="423.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="891.5" y1="452.2" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="957.1" y2="476.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="930.7" y2="468.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="934.5" y2="444.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="971.0" y2="450.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="914.4" y2="445.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="926.6" y2="455.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="901.5" y2="436.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="953.8" y2="450.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="895.3" y2="469.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="883.6" y2="470.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="911.3" y1="474.5" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="914.4" y2="445.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="926.6" y2="455.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="916.8" y2="396.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="927.4" y2="399.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="895.3" y2="469.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="914.8" y2="422.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="904.3" y2="421.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="909.2" y2="453.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="941.2" y2="409.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="901.9" y2="395.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="918.4" y2="404.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="933.9" y2="405.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="883.6" y2="470.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="894.9" y2="421.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="885.8" y2="423.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="908.4" y2="401.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="893.9" y2="399.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="901.5" y1="436.6" x2="886.2" y2="401.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="971.0" y1="450.6" x2="1031.7" y2="434.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="971.0" y1="450.6" x2="926.6" y2="455.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="971.0" y1="450.6" x2="954.8" y2="459.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="930.7" y1="468.6" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="930.7" y1="468.6" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="908.2" y1="486.7" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.6" y1="595.1" x2="826.1" y2="615.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.6" y1="595.1" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.6" y1="595.1" x2="789.2" y2="611.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.1" y1="615.5" x2="854.8" y2="580.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.1" y1="615.5" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.1" y1="615.5" x2="789.2" y2="611.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.1" y1="615.5" x2="826.6" y2="639.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="826.1" y1="615.5" x2="845.2" y2="614.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="885.9" y1="532.0" x2="866.3" y2="513.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="885.9" y1="532.0" x2="871.0" y2="537.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="871.0" y2="537.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="849.3" y2="569.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="854.8" y2="580.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="858.4" y2="485.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="910.8" y2="513.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="898.1" y2="505.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="877.3" y2="522.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="886.0" y2="491.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="895.3" y2="469.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="883.6" y2="470.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="513.1" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="871.0" y1="537.5" x2="839.4" y2="564.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="849.3" y1="569.6" x2="866.9" y2="604.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="785.0" y1="601.0" x2="738.0" y2="572.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="785.0" y1="601.0" x2="839.4" y2="564.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="845.2" y1="614.4" x2="854.8" y2="580.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="845.2" y1="614.4" x2="800.9" y2="615.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="845.2" y1="614.4" x2="866.3" y2="616.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="845.2" y1="614.4" x2="826.6" y2="639.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="694.8" y1="572.4" x2="680.4" y2="578.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="694.8" y1="572.4" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="694.8" y1="572.4" x2="738.0" y2="572.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="694.8" y1="572.4" x2="701.0" y2="565.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="666.7" y1="545.4" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="646.8" y1="577.5" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="646.8" y1="577.5" x2="649.1" y2="568.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="802.3" y1="543.4" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="680.4" y1="578.6" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="738.0" y1="572.7" x2="713.9" y2="573.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="738.0" y1="572.7" x2="701.0" y2="565.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="573.5" x2="653.3" y2="572.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="573.5" x2="649.1" y2="568.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="713.9" y1="573.5" x2="701.0" y2="565.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="653.3" y1="572.9" x2="649.1" y2="568.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="800.9" y1="615.6" x2="810.5" y2="577.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="800.9" y1="615.6" x2="789.2" y2="611.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="800.9" y1="615.6" x2="788.5" y2="617.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="854.8" y1="580.4" x2="866.3" y2="616.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="866.3" y1="616.4" x2="826.6" y2="639.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="586.3" y2="488.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="557.3" y2="484.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="681.6" y2="552.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="582.3" y2="459.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="677.1" y2="475.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="597.5" y2="497.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="629.4" y2="478.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="578.6" y2="481.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="564.9" y2="504.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="616.6" y2="478.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="609.0" y2="486.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="590.8" y2="480.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="636.4" y2="467.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="576.9" y2="490.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="578.5" y2="496.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="742.4" y2="470.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="585.0" y2="474.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="622.6" y2="470.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="597.0" y2="488.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="685.9" y2="548.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="634.8" y1="502.4" x2="602.6" y2="466.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="297.1" y1="393.5" x2="271.3" y2="384.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="297.1" y1="393.5" x2="295.2" y2="386.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="297.1" y1="393.5" x2="281.5" y2="381.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="295.2" y1="386.3" x2="271.3" y2="384.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="295.2" y1="386.3" x2="281.5" y2="381.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="271.3" y1="384.3" x2="281.5" y2="381.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="811.9" y1="693.3" x2="823.5" y2="729.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1374.6" y1="577.8" x2="1384.8" y2="585.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="926.6" y1="455.8" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="926.6" y1="455.8" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="681.1" y1="622.7" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="810.5" y1="577.4" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="789.2" y1="611.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="674.1" y1="608.5" x2="728.2" y2="604.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="662.5" y2="612.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="712.3" y2="647.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="681.6" y2="552.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="657.7" y2="579.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="725.3" y2="545.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="672.5" y2="616.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="661.9" y2="576.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="719.0" y2="545.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="685.9" y2="548.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="728.2" y1="604.4" x2="665.1" y2="620.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="657.7" y1="579.4" x2="648.7" y2="535.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="657.7" y1="579.4" x2="616.6" y2="583.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="559.9" y1="524.8" x2="654.2" y2="559.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="820.9" y1="953.6" x2="835.0" y2="946.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="820.9" y1="953.6" x2="819.1" y2="940.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="648.7" y1="535.7" x2="661.9" y2="576.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="648.7" y1="535.7" x2="577.7" y2="528.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="648.7" y1="535.7" x2="715.5" y2="493.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="757.5" y1="178.8" x2="754.3" y2="151.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="757.5" y1="178.8" x2="762.1" y2="214.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="616.6" y1="583.2" x2="661.9" y2="576.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="530.9" y1="513.4" x2="564.9" y2="504.7" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="530.9" y1="513.4" x2="577.7" y2="528.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="725.3" y1="545.0" x2="715.5" y2="493.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="835.0" y1="946.7" x2="819.1" y2="940.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="835.0" y1="946.7" x2="847.1" y2="933.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="160.5" y1="439.3" x2="121.8" y2="430.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="909.2" y1="453.0" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="909.2" y1="453.0" x2="898.3" y2="476.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="954.8" y1="459.0" x2="905.6" y2="475.1" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="719.0" y1="545.3" x2="715.5" y2="493.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="684.7" y1="168.1" x2="677.7" y2="140.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="187.3" y1="452.5" x2="184.1" y2="462.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="523.0" y1="133.1" x2="531.4" y2="146.5" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1077.8" y1="887.7" x2="1050.0" y2="866.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1044.5" y1="882.0" x2="1050.0" y2="866.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1044.5" y1="882.0" x2="1036.5" y2="884.2" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1044.5" y1="882.0" x2="1038.0" y2="900.4" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1044.5" y1="882.0" x2="1061.3" y2="880.8" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1061.3" y1="880.8" x2="1050.0" y2="866.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1036.5" y1="884.2" x2="1050.0" y2="866.9" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1050.0" y1="866.9" x2="1074.0" y2="862.6" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="1050.0" y1="866.9" x2="1031.0" y2="844.0" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="715.5" y1="493.6" x2="700.3" y2="446.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<line x1="686.6" y1="412.9" x2="700.3" y2="446.3" stroke="#30363d" stroke-width="1" opacity="0.55"/>
+<circle cx="181.2" cy="798.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="181.2" y="813.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1365.6" cy="500.3" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1365.6" y="514.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ascii_demo.py</text>
+<circle cx="1517.1" cy="596.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1517.1" y="611.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_html.py</text>
+<circle cx="826.3" cy="90.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="826.3" y="104.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_links_refined.py</text>
+<circle cx="150.5" cy="626.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="150.5" y="641.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">autoflake_314t.py</text>
+<circle cx="1209.3" cy="913.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1209.3" y="928.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bai_perron_breakpoints.py</text>
+<circle cx="671.0" cy="94.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="671.0" y="108.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">batch_render.py</text>
+<circle cx="496.2" cy="973.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="496.2" y="988.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_chroma_index.py</text>
+<circle cx="130.5" cy="501.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="130.5" y="516.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_embed_link_sna.py</text>
+<circle cx="1308.0" cy="184.1" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1308.0" y="198.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_embed_tfidf_diff.py</text>
+<circle cx="1014.5" cy="996.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1014.5" y="1011.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_gephi_launcher.py</text>
+<circle cx="1084.0" cy="236.8" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1084.0" y="251.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_graphiti_temporal.py</text>
+<circle cx="1102.5" cy="221.2" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1102.5" y="235.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_kuzu_temporal_persist.py</text>
+<circle cx="1021.3" cy="960.1" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1021.3" y="974.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_kuzu_timeline.py</text>
+<circle cx="1439.6" cy="483.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1439.6" y="497.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_lead_inference.py</text>
+<circle cx="1221.8" cy="581.8" r="4.0" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1221.8" y="596.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_network_sna.py</text>
+<circle cx="192.3" cy="618.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="192.3" y="633.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_pdfplumber_extract.py</text>
+<circle cx="1170.5" cy="579.5" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1170.5" y="594.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_political_court_layer.py</text>
+<circle cx="1246.6" cy="582.4" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1246.6" y="597.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_pyvis_network.py</text>
+<circle cx="1027.9" cy="145.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1027.9" y="159.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_record_linkage.py</text>
+<circle cx="549.1" cy="166.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="549.1" y="180.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_semantic_index.py</text>
+<circle cx="1370.3" cy="342.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1370.3" y="356.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_splink_linkage.py</text>
+<circle cx="700.1" cy="976.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="700.1" y="990.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bcc_vault_sna.py</text>
+<circle cx="664.9" cy="1002.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="664.9" y="1017.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bench_rustworkx_vs_networkx.py</text>
+<circle cx="236.3" cy="822.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="236.3" y="837.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">benchmark_wal_docker.py</text>
+<circle cx="1089.6" cy="199.1" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1089.6" y="213.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bitmap_font.py</text>
+<circle cx="1438.2" cy="551.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1438.2" y="566.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">build_all_concurrent.py</text>
+<circle cx="734.1" cy="80.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="734.1" y="94.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">build_gap_index.py</text>
+<circle cx="149.3" cy="742.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="149.3" y="757.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">build_obsidian_vault.py</text>
+<circle cx="1056.2" cy="942.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1056.2" y="956.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">build_progress_governance_graph.py</text>
+<circle cx="1486.4" cy="699.2" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1486.4" y="713.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cain_video_pipeline_demo.py</text>
+<circle cx="121.3" cy="394.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="121.3" y="409.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">check_314t_compat.py</text>
+<circle cx="1067.3" cy="148.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1067.3" y="162.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">check_no_catch_alls.py</text>
+<circle cx="856.6" cy="659.3" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="856.6" y="674.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">check_tooling.py</text>
+<circle cx="947.7" cy="520.6" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="947.7" y="535.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">close_audit_sessions.py</text>
+<circle cx="1313.4" cy="216.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1313.4" y="231.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">convert_to_wmv.py</text>
+<circle cx="177.9" cy="426.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="177.9" y="440.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cosmos_export.py</text>
+<circle cx="1462.7" cy="519.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1462.7" y="533.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cosmos_inline_viewer.py</text>
+<circle cx="155.3" cy="375.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="155.3" y="389.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cosmos_singlefile.py</text>
+<circle cx="844.0" cy="634.0" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="844.0" y="648.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">db_health.py</text>
+<circle cx="126.4" cy="464.1" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="126.4" y="478.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">desktop_projects_reference_check.py</text>
+<circle cx="869.0" cy="638.0" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="869.0" y="652.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dlq_burndown.py</text>
+<circle cx="875.9" cy="630.9" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="875.9" y="645.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dlq_watch.py</text>
+<circle cx="733.2" cy="988.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="733.2" y="1002.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ecosystem_gephi_launcher.py</text>
+<circle cx="1263.5" cy="587.0" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1263.5" y="601.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ecosystem_graph.py</text>
+<circle cx="1389.5" cy="823.1" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1389.5" y="837.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">emoji_demo.py</text>
+<circle cx="240.9" cy="873.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="240.9" y="887.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">export_graph_formats.py</text>
+<circle cx="144.2" cy="525.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="144.2" y="540.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">fetch_990_series.py</text>
+<circle cx="1389.3" cy="790.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1389.3" y="804.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">finalize_whitepaper.py</text>
+<circle cx="154.5" cy="722.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="154.5" y="737.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_capability_templates.py</text>
+<circle cx="772.5" cy="644.7" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="772.5" y="659.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_dashboard.py</text>
+<circle cx="1466.2" cy="452.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1466.2" y="467.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gosp_learner_divergence.py</text>
+<circle cx="1164.5" cy="913.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1164.5" y="928.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gosp_learner_train.py</text>
+<circle cx="1416.6" cy="771.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1416.6" y="786.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gosp_parity_check.py</text>
+<circle cx="80.0" cy="509.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="80.0" y="523.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gosp_rani_integration.py</text>
+<circle cx="770.3" cy="87.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="770.3" y="101.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">graphify_huge_mode.py</text>
+<circle cx="1283.5" cy="815.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1283.5" y="830.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">graphify_node_limit_patch.py</text>
+<circle cx="1228.1" cy="942.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1228.1" y="957.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">klink.py</text>
+<circle cx="234.4" cy="267.1" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="234.4" y="281.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_loop_gephi_launcher.py</text>
+<circle cx="1229.7" cy="569.5" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1229.7" y="584.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_loop_graph.py</text>
+<circle cx="184.0" cy="727.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="184.0" y="741.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_loop_temporal.py</text>
+<circle cx="299.1" cy="877.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="299.1" y="892.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_launcher_icons.py</text>
+<circle cx="1112.0" cy="176.7" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1112.0" y="191.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">master_generate.py</text>
+<circle cx="981.3" cy="976.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="981.3" y="991.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">modernize_types.py</text>
+<circle cx="703.5" cy="648.0" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="703.5" y="662.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">pre_build_check.py</text>
+<circle cx="816.1" cy="583.7" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="816.1" y="598.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">profile_clusterworms_parallel.py</text>
+<circle cx="1446.1" cy="336.4" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1446.1" y="350.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">quick_test.py</text>
+<circle cx="625.6" cy="967.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="625.6" y="981.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">reencode_large_videos.py</text>
+<circle cx="1382.4" cy="277.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1382.4" y="291.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">render_bcc_lead_findings.py</text>
+<circle cx="1088.7" cy="959.6" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1088.7" y="974.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">render_graph_svg.py</text>
+<circle cx="744.4" cy="642.4" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="744.4" y="657.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_training_orchestrator.py</text>
+<circle cx="132.5" cy="364.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="132.5" y="378.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scan_secrets.py</text>
+<circle cx="704.4" cy="610.5" r="4.2" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="704.4" y="625.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scenario_a_full_pipeline.py</text>
+<circle cx="704.9" cy="626.0" r="3.9" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="704.9" y="640.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scenario_b_compressed_pipeline.py</text>
+<circle cx="707.8" cy="623.9" r="4.1" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="707.8" y="639.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scenario_c_distillation_pipeline.py</text>
+<circle cx="716.9" cy="609.1" r="4.1" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="716.9" y="624.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scenario_d_nas_pipeline.py</text>
+<circle cx="612.8" cy="185.4" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="612.8" y="200.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sna_communities_410k.py</text>
+<circle cx="599.1" cy="160.0" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="599.1" y="174.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sna_scale_azazael.py</text>
+<circle cx="907.3" cy="1011.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="907.3" y="1025.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">spec_audit.py</text>
+<circle cx="1476.0" cy="358.2" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1476.0" y="372.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sync_all.py</text>
+<circle cx="173.4" cy="814.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="173.4" y="828.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sync_g_drive.py</text>
+<circle cx="1506.0" cy="513.1" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1506.0" y="527.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">timesfm_pilot_314t.py</text>
+<circle cx="921.9" cy="622.2" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="921.9" y="636.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">train_gosp_curative.py</text>
+<circle cx="828.8" cy="544.3" r="4.0" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="828.8" y="559.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">update_header_and_render.py</text>
+<circle cx="148.0" cy="337.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="148.0" y="351.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">verify_aoa_cdp.py</text>
+<circle cx="468.7" cy="141.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="468.7" y="156.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">verify_lead_links_cdp.py</text>
+<circle cx="1101.4" cy="178.8" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1101.4" y="193.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">video_frame_generator.py</text>
+<circle cx="1026.7" cy="108.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1026.7" y="123.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">watch_training_day.py</text>
+<circle cx="1274.5" cy="756.3" r="3.6" fill="#f47067" stroke="#1b1f24" stroke-width="1"/>
+<text x="1274.5" y="770.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ANIMATION_PROTOCOLS.py</text>
+<circle cx="587.7" cy="500.4" r="3.6" fill="#56d4dd" stroke="#1b1f24" stroke-width="1"/>
+<text x="587.7" y="515.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AUTO_DOC_GENERATOR.py</text>
+<circle cx="977.7" cy="143.6" r="3.5" fill="#bc8cff" stroke="#1b1f24" stroke-width="1"/>
+<text x="977.7" y="158.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AZAZAEL_Inference_Studio.py</text>
+<circle cx="1230.6" cy="187.7" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1230.6" y="202.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AzazaelDynamicLogger.py</text>
+<circle cx="195.2" cy="340.1" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="195.2" y="354.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">COMPREHENSIVE_FIX.py</text>
+<circle cx="597.4" cy="127.3" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="597.4" y="141.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">QL_ANALYSIS.py</text>
+<circle cx="1421.9" cy="802.9" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1421.9" y="817.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">REAL_FRAMEWORK_TEST.py</text>
+<circle cx="116.6" cy="444.7" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="116.6" y="459.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="138.6" cy="483.0" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="138.6" y="497.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_toolkit.py</text>
+<circle cx="167.7" cy="665.2" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="167.7" y="679.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">environment_manager.py</text>
+<circle cx="1495.9" cy="458.5" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1495.9" y="473.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">math_certainty.py</text>
+<circle cx="1355.8" cy="770.5" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1355.8" y="785.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">update_docs_paths.py</text>
+<circle cx="765.2" cy="426.6" r="4.1" fill="#76e3ea" stroke="#1b1f24" stroke-width="1"/>
+<text x="765.2" y="441.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AzazaelDynamicLogger.py</text>
+<circle cx="679.9" cy="467.4" r="3.8" fill="#a5d6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="679.9" y="482.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CHANGELOG_GENERATOR.py</text>
+<circle cx="1159.7" cy="188.3" r="3.5" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="1159.7" y="202.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="640.8" cy="473.8" r="3.6" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="640.8" y="488.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_cli.py</text>
+<circle cx="1044.8" cy="125.0" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1044.8" y="139.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CODEX_Studio.py</text>
+<circle cx="1307.3" cy="769.7" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1307.3" y="784.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ANIMATION_PROTOCOLS.py</text>
+<circle cx="513.9" cy="920.4" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="513.9" y="934.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AUTO_DOC_GENERATOR.py</text>
+<circle cx="304.3" cy="930.7" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="304.3" y="945.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AUTO_DOWNLOADER.py</text>
+<circle cx="670.8" cy="707.4" r="3.8" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="670.8" y="722.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CAIN_ANALYZER.py</text>
+<circle cx="731.7" cy="451.9" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="731.7" y="466.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CHANGELOG_GENERATOR.py</text>
+<circle cx="505.8" cy="474.3" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="505.8" y="489.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ECOSYSTEM_HEALTH_CHECK.py</text>
+<circle cx="545.9" cy="432.6" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="545.9" y="447.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">FILE_MANIFEST_GENERATOR.py</text>
+<circle cx="727.1" cy="466.5" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="727.1" y="481.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HORUS_INTEGRATION.py</text>
+<circle cx="574.6" cy="120.1" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="574.6" y="134.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">QL_FILE_OPTIMIZER.py</text>
+<circle cx="1172.3" cy="933.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1172.3" y="947.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1395.7" cy="497.0" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1395.7" y="511.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ascii_flowchart.py</text>
+<circle cx="1279.4" cy="206.2" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1279.4" y="220.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_pygame.py</text>
+<circle cx="1354.2" cy="807.2" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1354.2" y="821.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">emoji_maker.py</text>
+<circle cx="222.4" cy="745.8" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="222.4" y="760.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enhanced_animations.py</text>
+<circle cx="770.5" cy="121.3" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="770.5" y="135.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enrichment_display.py</text>
+<circle cx="847.4" cy="173.6" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="847.4" y="188.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">matrix_animation.py</text>
+<circle cx="1362.9" cy="853.6" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1362.9" y="868.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="117.7" cy="669.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="117.7" y="683.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_ALL_11.py</text>
+<circle cx="438.4" cy="927.8" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="438.4" y="942.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_BUGFREE.py</text>
+<circle cx="1380.7" cy="410.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1380.7" y="424.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_CLICKABLE.py</text>
+<circle cx="1262.7" cy="169.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1262.7" y="183.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_DETAILED.py</text>
+<circle cx="1206.8" cy="223.9" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1206.8" y="238.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_DISPLAY.py</text>
+<circle cx="124.3" cy="730.9" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="124.3" y="745.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_IMMERSIVE.py</text>
+<circle cx="940.0" cy="999.7" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="940.0" y="1014.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_RICH.py</text>
+<circle cx="1302.4" cy="283.9" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1302.4" y="298.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_SIMPLE.py</text>
+<circle cx="1438.6" cy="292.6" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1438.6" y="307.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POPUP_WORKING.py</text>
+<circle cx="108.3" cy="686.7" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="108.3" y="701.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">batch_generator.py</text>
+<circle cx="498.5" cy="177.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="498.5" y="191.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">batch_recorder.py</text>
+<circle cx="1471.8" cy="413.8" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1471.8" y="428.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_failure_report.py</text>
+<circle cx="1460.0" cy="713.8" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1460.0" y="728.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_session_report.py</text>
+<circle cx="534.6" cy="116.4" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="534.6" y="130.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">unified_generator.py</text>
+<circle cx="515.1" cy="991.0" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="515.1" y="1005.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="510.0" cy="514.3" r="3.8" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="510.0" y="529.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_ecosystem_integration.py</text>
+<circle cx="549.9" cy="985.9" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="549.9" y="1000.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="513.4" cy="507.5" r="3.8" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="513.4" y="522.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_performance.py</text>
+<circle cx="419.8" cy="968.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="419.8" y="982.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="515.8" cy="498.9" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="515.8" y="513.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_hydra.py</text>
+<circle cx="693.1" cy="515.7" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="693.1" y="530.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_metaworms.py</text>
+<circle cx="633.7" cy="684.6" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="633.7" y="699.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_wormz.py</text>
+<circle cx="248.7" cy="230.0" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="248.7" y="244.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="311.3" cy="205.7" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="311.3" y="220.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">conftest.py</text>
+<circle cx="283.2" cy="191.6" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="283.2" y="206.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1388.1" cy="248.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1388.1" y="262.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">compress_video.py</text>
+<circle cx="802.5" cy="96.8" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="802.5" y="111.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">create_azazael_educational_video.py</text>
+<circle cx="328.5" cy="886.5" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="328.5" y="901.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">create_dual_pane_popup.py</text>
+<circle cx="1510.0" cy="566.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1510.0" y="580.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">create_dual_pane_video.py</text>
+<circle cx="259.4" cy="910.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="259.4" y="924.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">create_reference_video.py</text>
+<circle cx="97.8" cy="463.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="97.8" y="477.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">create_scrolling_video.py</text>
+<circle cx="879.0" cy="1005.2" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="879.0" y="1019.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">create_video.py</text>
+<circle cx="779.1" cy="642.3" r="3.8" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="779.1" y="657.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_dashboard_video.py</text>
+<circle cx="619.5" cy="985.2" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="619.5" y="999.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_matrix_video.py</text>
+<circle cx="1325.8" cy="882.5" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1325.8" y="897.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_video.py</text>
+<circle cx="1158.2" cy="147.9" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1158.2" y="162.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_video_v2.py</text>
+<circle cx="151.7" cy="599.2" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="151.7" y="613.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video.py</text>
+<circle cx="825.9" cy="998.5" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="825.9" y="1013.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_docs.py</text>
+<circle cx="225.0" cy="787.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="225.0" y="801.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_quad.py</text>
+<circle cx="533.1" cy="958.1" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="533.1" y="972.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_v2.py</text>
+<circle cx="125.0" cy="584.9" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="125.0" y="599.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_v3.py</text>
+<circle cx="205.0" cy="285.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="205.0" y="299.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_vibrant.py</text>
+<circle cx="1491.8" cy="427.0" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1491.8" y="441.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_zip.py</text>
+<circle cx="1487.7" cy="634.4" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1487.7" y="648.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">make_video_zipper.py</text>
+<circle cx="160.2" cy="786.6" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="160.2" y="801.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">video_popup.py</text>
+<circle cx="204.8" cy="834.6" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="204.8" y="849.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="591.4" cy="508.9" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="591.4" y="523.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">COMPLETE_SYSTEMS_ANALYSIS.py</text>
+<circle cx="609.6" cy="471.5" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="609.6" y="486.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">FULL_ECOSYSTEM_ANALYSIS.py</text>
+<circle cx="602.2" cy="478.1" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="602.2" y="492.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">GENERATE_ALL_11.py</text>
+<circle cx="626.4" cy="463.5" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="626.4" y="478.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">GENERATE_HTML.py</text>
+<circle cx="580.4" cy="506.4" r="3.6" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="580.4" y="521.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">GENERATE_RICH_HTML.py</text>
+<circle cx="1405.4" cy="281.3" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1405.4" y="295.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TWITLER_ANALYSIS.py</text>
+<circle cx="918.1" cy="128.8" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="918.1" y="143.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_session_cain.py</text>
+<circle cx="1094.1" cy="114.4" r="3.5" fill="#a371f7" stroke="#1b1f24" stroke-width="1"/>
+<text x="1094.1" y="128.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">inject_session_cain.py</text>
+<circle cx="866.8" cy="990.5" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="866.8" y="1005.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">COMPREHENSIVE_FIX.py</text>
+<circle cx="790.1" cy="600.9" r="4.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="790.1" y="616.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">Agent.py</text>
+<circle cx="788.5" cy="580.1" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="788.5" y="595.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AgentPool.py</text>
+<circle cx="825.6" cy="633.5" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="825.6" y="648.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">FREETHREAD_UPGRADE.py</text>
+<circle cx="834.7" cy="595.2" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="834.7" y="610.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">FreeThreadedAgent.py</text>
+<circle cx="898.4" cy="578.0" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="898.4" y="592.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">LOCAL_DEV.py</text>
+<circle cx="801.5" cy="585.5" r="4.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="801.5" y="601.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">MemoryBus.py</text>
+<circle cx="614.2" cy="463.9" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="614.2" y="478.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">NODE.py</text>
+<circle cx="764.7" cy="604.7" r="4.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="764.7" y="620.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">NeuralPipeline.py</text>
+<circle cx="221.7" cy="372.7" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="221.7" y="387.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PYTHON_MANAGER.py</text>
+<circle cx="842.4" cy="584.3" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="842.4" y="599.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PamsBusBridge.py</text>
+<circle cx="762.7" cy="597.7" r="5.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="762.7" y="613.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PamsRecorder.py</text>
+<circle cx="774.4" cy="1013.3" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="774.4" y="1027.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">STRESS_TEST.py</text>
+<circle cx="191.5" cy="760.6" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="191.5" y="775.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">STRUCTURE.py</text>
+<circle cx="777.7" cy="666.5" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="777.7" y="681.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">BINARY_ANALYSIS.py</text>
+<circle cx="794.6" cy="705.8" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="794.6" y="720.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">BINARY_ANALYSIS_CLI.py</text>
+<circle cx="810.9" cy="684.8" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="810.9" y="699.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">BINARY_ANALYSIS_PARSE.py</text>
+<circle cx="803.1" cy="686.5" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="803.1" y="701.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">BINARY_ANALYSIS_TOOLS.py</text>
+<circle cx="794.2" cy="656.4" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="794.2" y="671.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">BINARY_ANALYSIS_TYPES.py</text>
+<circle cx="908.1" cy="974.0" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="908.1" y="988.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CAIN_ANALYZER.py</text>
+<circle cx="661.0" cy="704.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="661.0" y="719.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CAIN_DATA.py</text>
+<circle cx="688.6" cy="669.9" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="688.6" y="684.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CAIN_WORM.py</text>
+<circle cx="668.2" cy="633.2" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="668.2" y="647.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CLOCKZ.py</text>
+<circle cx="804.2" cy="595.2" r="4.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="804.2" y="610.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CLUSTERWORMS.py</text>
+<circle cx="679.5" cy="547.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="679.5" y="562.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CLUSTER_INSPECTOR.py</text>
+<circle cx="677.2" cy="638.7" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="677.2" y="653.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CODEX_TOOLS.py</text>
+<circle cx="757.1" cy="620.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="757.1" y="635.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CONCURRENCY.py</text>
+<circle cx="789.4" cy="590.8" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="789.4" y="606.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">CROSS_NATURE_ROUTER.py</text>
+<circle cx="667.9" cy="604.1" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="667.9" y="618.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">DEPENDZ.py</text>
+<circle cx="687.7" cy="642.7" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="687.7" y="657.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">DIAGNOSTIC_WORM.py</text>
+<circle cx="708.0" cy="640.7" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="708.0" y="655.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">DISKZ.py</text>
+<circle cx="930.8" cy="519.0" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="930.8" y="533.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ECOSYSTEM_EXPANSION.py</text>
+<circle cx="689.1" cy="636.2" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="689.1" y="650.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ERROR_SCAN_WORM.py</text>
+<circle cx="998.1" cy="109.2" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="998.1" y="123.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HEALING_WORM.py</text>
+<circle cx="761.9" cy="583.5" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="761.9" y="598.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">INFERENCE_SUBSCRIBER.py</text>
+<circle cx="746.1" cy="580.8" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="746.1" y="595.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">INFERENCE_WORM.py</text>
+<circle cx="812.2" cy="600.8" r="5.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="812.2" y="617.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METACLUSTER.py</text>
+<circle cx="668.7" cy="626.6" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="668.7" y="641.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAZ.py</text>
+<circle cx="595.0" cy="471.4" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="595.0" y="486.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">MORPHING_WORM.py</text>
+<circle cx="668.6" cy="552.4" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="668.6" y="567.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">MORPHING_WORM_V2.py</text>
+<circle cx="818.4" cy="610.7" r="5.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="818.4" y="626.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">NATURE_CLUSTERS.py</text>
+<circle cx="728.2" cy="589.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="728.2" y="604.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">NETWORK_DIAG.py</text>
+<circle cx="720.4" cy="648.4" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="720.4" y="663.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">NETWORXZ.py</text>
+<circle cx="713.9" cy="580.4" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="713.9" y="595.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">NIM_INFERENCE.py</text>
+<circle cx="142.8" cy="649.7" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="142.8" y="664.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">OMNI_WORM.py</text>
+<circle cx="664.5" cy="555.5" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="664.5" y="570.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">OMNI_WORM_V2.py</text>
+<circle cx="696.2" cy="644.9" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="696.2" y="659.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">OS_CONGRUENCY.py</text>
+<circle cx="778.8" cy="562.1" r="4.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="778.8" y="577.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PARALLEL_INFERENCE_WORM.py</text>
+<circle cx="679.4" cy="627.8" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="679.4" y="642.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PROCESSZ.py</text>
+<circle cx="719.4" cy="595.5" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="719.4" y="610.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">REVERSE_TOOLS.py</text>
+<circle cx="673.7" cy="549.8" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="673.7" y="564.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">SMARTDISK.py</text>
+<circle cx="698.7" cy="636.0" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="698.7" y="650.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">SYSTEMZ.py</text>
+<circle cx="670.7" cy="556.6" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="670.7" y="571.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">SYSTEMZ_ML.py</text>
+<circle cx="680.9" cy="633.3" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="680.9" y="647.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">VIDEO_ANALYZER_WORM.py</text>
+<circle cx="671.4" cy="652.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="671.4" y="667.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">WORMZ.py</text>
+<circle cx="687.4" cy="542.9" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="687.4" y="557.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">WORMZ_ML.py</text>
+<circle cx="1264.3" cy="188.4" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1264.3" y="202.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">WORMZ_POPUP.py</text>
+<circle cx="676.1" cy="554.1" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="676.1" y="568.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">WORM_FLEET.py</text>
+<circle cx="764.8" cy="629.1" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="764.8" y="644.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">WORM_SELECTOR.py</text>
+<circle cx="860.7" cy="586.4" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="860.7" y="601.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="817.9" cy="617.9" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="817.9" y="632.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dead_letter_queue.py</text>
+<circle cx="907.5" cy="551.3" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="907.5" y="566.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="736.2" cy="614.3" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="736.2" y="629.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">backup.py</text>
+<circle cx="741.0" cy="608.0" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="741.0" y="622.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">communication.py</text>
+<circle cx="748.8" cy="630.8" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="748.8" y="645.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">config.py</text>
+<circle cx="750.8" cy="591.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="750.8" y="606.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">container.py</text>
+<circle cx="792.4" cy="638.2" r="4.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="792.4" y="653.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">db_monitor.py</text>
+<circle cx="815.6" cy="593.7" r="4.6" fill="#3fb950" stroke="#82d18d" stroke-width="3"/>
+<text x="815.6" y="609.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dreaming.py</text>
+<circle cx="764.3" cy="637.2" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="764.3" y="651.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">error_recovery.py</text>
+<circle cx="807.7" cy="615.1" r="4.0" fill="#3fb950" stroke="#82d18d" stroke-width="3"/>
+<text x="807.7" y="630.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">evolution.py</text>
+<circle cx="751.0" cy="626.7" r="6.4" fill="#3fb950" stroke="#82d18d" stroke-width="3"/>
+<text x="751.0" y="644.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning.py</text>
+<circle cx="761.3" cy="612.5" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="761.3" y="627.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_ab.py</text>
+<circle cx="764.9" cy="619.1" r="4.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="764.9" y="634.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_features.py</text>
+<circle cx="746.2" cy="614.7" r="4.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="746.2" y="630.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_grpo.py</text>
+<circle cx="773.3" cy="617.7" r="4.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="773.3" y="632.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_pipeline.py</text>
+<circle cx="738.7" cy="670.8" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="738.7" y="685.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_replay.py</text>
+<circle cx="771.4" cy="613.6" r="4.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="771.4" y="628.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_rl.py</text>
+<circle cx="773.3" cy="622.7" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="773.3" y="637.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">learning_versioner.py</text>
+<circle cx="798.9" cy="600.4" r="4.6" fill="#3fb950" stroke="#82d18d" stroke-width="3"/>
+<text x="798.9" y="616.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">meta_cognition.py</text>
+<circle cx="736.3" cy="621.3" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="736.3" y="636.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">migration.py</text>
+<circle cx="741.7" cy="627.1" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="741.7" y="641.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">profiling.py</text>
+<circle cx="771.2" cy="634.0" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="771.2" y="648.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">race_detector.py</text>
+<circle cx="782.3" cy="625.0" r="4.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="782.3" y="640.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scheduling.py</text>
+<circle cx="747.1" cy="600.5" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="747.1" y="615.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">security.py</text>
+<circle cx="805.1" cy="567.5" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="805.1" y="582.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">session_state.py</text>
+<circle cx="743.0" cy="619.6" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="743.0" y="634.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">telemetry.py</text>
+<circle cx="757.5" cy="630.2" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="757.5" y="645.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">visualization.py</text>
+<circle cx="848.3" cy="446.8" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="848.3" y="461.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">BasePopupMonitor.py</text>
+<circle cx="908.5" cy="428.7" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="908.5" y="443.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="859.3" cy="562.8" r="4.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="859.3" y="578.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="795.8" cy="624.9" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="795.8" y="639.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">agent_registry.py</text>
+<circle cx="949.0" cy="514.2" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="949.0" y="528.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_compress.py</text>
+<circle cx="475.6" cy="935.9" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="475.6" y="950.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_export_html.py</text>
+<circle cx="945.9" cy="528.9" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="945.9" y="543.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_merge.py</text>
+<circle cx="955.8" cy="524.5" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="955.8" y="539.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_repair.py</text>
+<circle cx="893.4" cy="525.5" r="5.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="893.4" y="542.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_trail.py</text>
+<circle cx="950.6" cy="534.4" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="950.6" y="549.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">audit_watch.py</text>
+<circle cx="858.5" cy="546.1" r="4.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="858.5" y="561.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_ctl.py</text>
+<circle cx="830.5" cy="620.9" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="830.5" y="635.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_logging.py</text>
+<circle cx="906.3" cy="508.6" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="906.3" y="523.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">backup.py</text>
+<circle cx="868.8" cy="488.2" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="868.8" y="502.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cd2_verifier.py</text>
+<circle cx="1500.1" cy="496.0" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1500.1" y="510.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cd3_exporter.py</text>
+<circle cx="181.4" cy="325.1" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="181.4" y="339.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cd4_pipeline.py</text>
+<circle cx="843.0" cy="608.0" r="4.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="843.0" y="623.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">circuit_breaker.py</text>
+<circle cx="906.7" cy="540.0" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="906.7" y="554.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cli_audit.py</text>
+<circle cx="259.1" cy="293.6" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="259.1" y="308.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cli_completion.py</text>
+<circle cx="884.7" cy="526.0" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="884.7" y="540.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cli_crossref.py</text>
+<circle cx="866.4" cy="523.0" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="866.4" y="537.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cli_memory.py</text>
+<circle cx="894.1" cy="688.0" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="894.1" y="702.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">codebuff_tracker.py</text>
+<circle cx="494.3" cy="135.5" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="494.3" y="150.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="933.8" cy="464.3" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="933.8" y="479.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">broker.py</text>
+<circle cx="1075.0" cy="425.4" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1075.0" y="440.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dashboard_api.py</text>
+<circle cx="933.6" cy="494.0" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="933.6" y="508.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">governance.py</text>
+<circle cx="891.5" cy="452.2" r="4.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="891.5" y="467.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">heuristic_recorder.py</text>
+<circle cx="911.3" cy="474.5" r="5.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="911.3" y="490.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">orchestrator.py</text>
+<circle cx="957.1" cy="476.0" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="957.1" y="490.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">policy.py</text>
+<circle cx="901.5" cy="436.6" r="6.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="901.5" y="454.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">pre_action_gate.py</text>
+<circle cx="953.8" cy="450.3" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="953.8" y="464.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_self_test.py</text>
+<circle cx="971.0" cy="450.6" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="971.0" y="465.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scanner.py</text>
+<circle cx="1031.7" cy="434.1" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1031.7" y="448.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">scanner_db.py</text>
+<circle cx="930.7" cy="468.6" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="930.7" y="483.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">state_machine.py</text>
+<circle cx="914.4" cy="445.1" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="914.4" y="459.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">telemetry.py</text>
+<circle cx="934.5" cy="444.5" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="934.5" y="459.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">validating.py</text>
+<circle cx="908.2" cy="486.7" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="908.2" y="501.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">compliance_auditor.py</text>
+<circle cx="826.6" cy="595.1" r="4.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="826.6" y="610.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">config.py</text>
+<circle cx="826.1" cy="615.5" r="4.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="826.1" y="631.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dashboard.py</text>
+<circle cx="885.9" cy="532.0" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="885.9" y="547.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">data_retention.py</text>
+<circle cx="866.3" cy="513.1" r="6.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="866.3" y="530.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">direct_memory.py</text>
+<circle cx="871.0" cy="537.5" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="871.0" y="552.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">doctor.py</text>
+<circle cx="849.3" cy="569.6" r="4.2" fill="#3fb950" stroke="#82d18d" stroke-width="3"/>
+<text x="849.3" y="584.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">dream_policy_bridge.py</text>
+<circle cx="102.2" cy="614.0" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="102.2" y="628.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enforcement_harness.py</text>
+<circle cx="1194.0" cy="949.6" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1194.0" y="964.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">error_triage.py</text>
+<circle cx="785.0" cy="601.0" r="7.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="785.0" y="619.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">freethreading.py</text>
+<circle cx="845.2" cy="614.4" r="4.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="845.2" y="629.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">health_server.py</text>
+<circle cx="694.8" cy="572.4" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="694.8" y="587.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="922.0" cy="93.8" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="922.0" y="108.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">api_client.py</text>
+<circle cx="759.7" cy="569.8" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="759.7" y="584.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bus_utils.py</text>
+<circle cx="666.7" cy="545.4" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="666.7" y="560.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cloud_tab.py</text>
+<circle cx="646.8" cy="577.5" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="646.8" y="592.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">hyper_optimizer.py</text>
+<circle cx="802.3" cy="543.4" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="802.3" y="558.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">inference_cache.py</text>
+<circle cx="680.4" cy="578.6" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="680.4" y="593.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">nim_client.py</text>
+<circle cx="738.0" cy="572.7" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="738.0" y="587.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">parallel.py</text>
+<circle cx="713.9" cy="573.5" r="5.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="713.9" y="589.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">providers.py</text>
+<circle cx="653.3" cy="572.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="653.3" y="587.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">query_loop.py</text>
+<circle cx="649.1" cy="568.6" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="649.1" y="583.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sequential_analyzer.py</text>
+<circle cx="701.0" cy="565.9" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="701.0" y="580.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">threaded.py</text>
+<circle cx="839.4" cy="564.3" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="839.4" y="579.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">inference_pool.py</text>
+<circle cx="800.9" cy="615.6" r="6.4" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="800.9" y="633.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">local_memory.py</text>
+<circle cx="1198.5" cy="201.7" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1198.5" y="216.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">logging_config.py</text>
+<circle cx="854.8" cy="580.4" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="854.8" y="595.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">metrics.py</text>
+<circle cx="866.3" cy="616.4" r="4.0" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="866.3" y="631.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">notifier.py</text>
+<circle cx="634.8" cy="502.4" r="8.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="634.8" y="521.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">paths.py</text>
+<circle cx="916.8" cy="569.2" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="916.8" y="583.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="586.3" cy="488.6" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="586.3" y="503.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__main__.py</text>
+<circle cx="297.1" cy="393.5" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="297.1" y="408.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">external.py</text>
+<circle cx="295.2" cy="386.3" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="295.2" y="401.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">internal.py</text>
+<circle cx="271.3" cy="384.3" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="271.3" y="399.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">state.py</text>
+<circle cx="281.5" cy="381.0" r="3.9" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="281.5" y="395.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">targets.py</text>
+<circle cx="811.9" cy="693.3" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="811.9" y="708.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">postgres_memory.py</text>
+<circle cx="1341.9" cy="228.3" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1341.9" y="242.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">record_session.py</text>
+<circle cx="858.4" cy="485.1" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="858.4" y="499.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">rollback.py</text>
+<circle cx="1374.6" cy="577.8" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1374.6" y="592.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">safe_file_ops.py</text>
+<circle cx="823.5" cy="729.9" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="823.5" y="744.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">safe_sql.py</text>
+<circle cx="749.2" cy="619.6" r="4.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="749.2" y="635.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sb3_agent.py</text>
+<circle cx="662.6" cy="108.6" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="662.6" y="123.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">secrets_manager.py</text>
+<circle cx="926.6" cy="455.8" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="926.6" y="471.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sentinel_enforcer.py</text>
+<circle cx="681.1" cy="622.7" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="681.1" y="637.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">startup_warm.py</text>
+<circle cx="292.7" cy="242.7" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="292.7" y="257.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">threading_utils.py</text>
+<circle cx="1438.0" cy="694.7" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="1438.0" y="709.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">tstrings.py</text>
+<circle cx="810.5" cy="577.4" r="4.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="810.5" y="592.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">uuid7.py</text>
+<circle cx="910.8" cy="513.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="910.8" y="528.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">vocab_migration.py</text>
+<circle cx="826.6" cy="639.5" r="4.1" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="826.6" y="654.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">web_dashboard.py</text>
+<circle cx="789.2" cy="611.5" r="4.2" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="789.2" y="626.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">workflow.py</text>
+<circle cx="674.1" cy="608.5" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="674.1" y="623.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">worm_governance.py</text>
+<circle cx="728.2" cy="604.4" r="13.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="728.2" y="628.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">worm_registry.py</text>
+<circle cx="662.5" cy="612.1" r="3.6" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="662.5" y="626.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">worm_registry_cache.py</text>
+<circle cx="898.1" cy="505.9" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="898.1" y="520.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">xref_auto_link.py</text>
+<circle cx="877.3" cy="522.5" r="3.8" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="877.3" y="537.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">xref_dashboard.py</text>
+<circle cx="702.8" cy="88.7" r="3.5" fill="#3fb950" stroke="#1b1f24" stroke-width="1"/>
+<text x="702.8" y="103.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">xref_webhook.py</text>
+<circle cx="303.4" cy="836.0" r="3.5" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="303.4" y="850.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">check_parallax.py</text>
+<circle cx="353.1" cy="953.0" r="3.5" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="353.1" y="967.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">install_parallax_startup.py</text>
+<circle cx="886.0" cy="491.9" r="3.6" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="886.0" y="506.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">parallax_validator.py</text>
+<circle cx="712.3" cy="647.3" r="3.6" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="712.3" y="661.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">DOCKERZ.py</text>
+<circle cx="557.3" cy="484.4" r="3.8" fill="#ffc680" stroke="#1b1f24" stroke-width="1"/>
+<text x="557.3" y="499.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ECOSYSTEM_HEALTH_CHECK.py</text>
+<circle cx="681.6" cy="552.1" r="3.8" fill="#76e3ea" stroke="#1b1f24" stroke-width="1"/>
+<text x="681.6" y="566.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ERRORZ.py</text>
+<circle cx="582.3" cy="459.8" r="3.8" fill="#56d4dd" stroke="#1b1f24" stroke-width="1"/>
+<text x="582.3" y="474.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">FILE_MANIFEST_GENERATOR.py</text>
+<circle cx="657.7" cy="579.4" r="3.9" fill="#bc8cff" stroke="#1b1f24" stroke-width="1"/>
+<text x="657.7" y="594.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HEALTHZ.py</text>
+<circle cx="677.1" cy="475.3" r="3.8" fill="#a5d6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="677.1" y="490.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HORUS_INTEGRATION.py</text>
+<circle cx="559.9" cy="524.8" r="4.0" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="559.9" y="539.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="691.0" cy="1020.0" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="691.0" y="1034.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">hydra_launcher.py</text>
+<circle cx="597.5" cy="497.1" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="597.5" y="511.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">hydra_protocols.py</text>
+<circle cx="123.9" cy="541.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="123.9" y="556.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PERMANENT_LOAD.py</text>
+<circle cx="820.9" cy="953.6" r="3.8" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="820.9" y="968.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1242.2" cy="900.2" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1242.2" y="914.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">config.py</text>
+<circle cx="629.4" cy="478.4" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="629.4" y="493.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">harness.py</text>
+<circle cx="1452.3" cy="373.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1452.3" y="388.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">health_monitor.py</text>
+<circle cx="1479.1" cy="608.2" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1479.1" y="622.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">launcher.py</text>
+<circle cx="446.3" cy="156.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="446.3" y="170.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ml_test.py</text>
+<circle cx="1421.8" cy="726.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1421.8" y="741.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">pipeline_specs.py</text>
+<circle cx="648.7" cy="535.7" r="4.0" fill="#ff7b72" stroke="#1b1f24" stroke-width="1"/>
+<text x="648.7" y="550.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRAMETA.py</text>
+<circle cx="578.6" cy="481.8" r="3.6" fill="#7ee787" stroke="#1b1f24" stroke-width="1"/>
+<text x="578.6" y="496.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRAMETA_UV.py</text>
+<circle cx="1384.8" cy="585.6" r="3.6" fill="#f47067" stroke="#1b1f24" stroke-width="1"/>
+<text x="1384.8" y="600.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRA_CONTAINER.py</text>
+<circle cx="757.5" cy="178.8" r="3.8" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="757.5" y="193.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="762.1" cy="214.7" r="3.6" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="762.1" y="229.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">go_runner.py</text>
+<circle cx="754.3" cy="151.9" r="3.6" fill="#39c5cf" stroke="#1b1f24" stroke-width="1"/>
+<text x="754.3" y="166.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">rust_runner.py</text>
+<circle cx="1111.9" cy="931.8" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1111.9" y="946.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">DOCKERZ.py</text>
+<circle cx="1495.4" cy="553.5" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1495.4" y="568.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ERRORZ.py</text>
+<circle cx="1436.2" cy="352.5" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1436.2" y="367.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HEALTHZ.py</text>
+<circle cx="616.6" cy="583.2" r="3.8" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="616.6" y="598.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRAMETA.py</text>
+<circle cx="1150.2" cy="956.6" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1150.2" y="971.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRAMETA_UV.py</text>
+<circle cx="761.4" cy="976.7" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="761.4" y="991.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRA_CONTAINER.py</text>
+<circle cx="113.4" cy="600.0" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="113.4" y="614.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAWORMS.py</text>
+<circle cx="1030.7" cy="180.2" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1030.7" y="194.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAWORMS_ENRICHED.py</text>
+<circle cx="149.6" cy="691.2" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="149.6" y="705.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAWORMS_POPUP.py</text>
+<circle cx="1380.0" cy="753.9" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1380.0" y="768.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METRICZ.py</text>
+<circle cx="866.9" cy="604.3" r="4.0" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="866.9" y="619.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">MetaWormSpawner.py</text>
+<circle cx="1461.6" cy="683.3" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1461.6" y="697.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">OPTIMIZ.py</text>
+<circle cx="1478.5" cy="439.9" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1478.5" y="454.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TELEMETRYZ.py</text>
+<circle cx="1203.1" cy="183.8" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="1203.1" y="198.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TRIMZ.py</text>
+<circle cx="315.8" cy="922.6" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="315.8" y="937.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">UVZ.py</text>
+<circle cx="633.0" cy="96.0" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="633.0" y="110.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="530.9" cy="513.4" r="4.0" fill="#ffc680" stroke="#1b1f24" stroke-width="1"/>
+<text x="530.9" y="528.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAWORMS.py</text>
+<circle cx="564.9" cy="504.7" r="3.8" fill="#ff7b72" stroke="#1b1f24" stroke-width="1"/>
+<text x="564.9" y="519.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAWORMS_ENRICHED.py</text>
+<circle cx="616.6" cy="478.9" r="3.6" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="616.6" y="493.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METAWORMS_POPUP.py</text>
+<circle cx="725.3" cy="545.0" r="3.8" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="725.3" y="559.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">METRICZ.py</text>
+<circle cx="672.5" cy="616.2" r="3.6" fill="#c69026" stroke="#1b1f24" stroke-width="1"/>
+<text x="672.5" y="630.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">MISSING_TOOLS.py</text>
+<circle cx="661.9" cy="576.7" r="3.9" fill="#56d4dd" stroke="#1b1f24" stroke-width="1"/>
+<text x="661.9" y="591.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">OPTIMIZ.py</text>
+<circle cx="1363.7" cy="827.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1363.7" y="841.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ADLP_FusionCore.py</text>
+<circle cx="1125.4" cy="142.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1125.4" y="157.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ADLP_MLOrchestrator.py</text>
+<circle cx="117.8" cy="708.1" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="117.8" y="722.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ADLP_SystemTools.py</text>
+<circle cx="1342.9" cy="316.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1342.9" y="331.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AssistantLogProtocol.py</text>
+<circle cx="601.2" cy="98.3" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="601.2" y="112.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AssistantLogProtocol_Enhanced.py</text>
+<circle cx="1453.7" cy="787.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1453.7" y="802.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1465.6" cy="762.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1465.6" y="777.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bibl_crawler.py</text>
+<circle cx="609.0" cy="486.8" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="609.0" y="501.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ECOSYSTEM_CRAWLER_LAUNCHER.py</text>
+<circle cx="590.8" cy="480.5" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="590.8" y="495.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ECOSYSTEM_OPTIMIZER.py</text>
+<circle cx="185.6" cy="372.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="185.6" y="387.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">FusionHealer.py</text>
+<circle cx="912.7" cy="433.7" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="912.7" y="448.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HORUS.py</text>
+<circle cx="636.4" cy="467.0" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="636.4" y="481.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HORUS_LIVE_MONITOR.py</text>
+<circle cx="414.1" cy="185.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="414.1" y="200.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRA.py</text>
+<circle cx="576.9" cy="490.0" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="576.9" y="504.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRA_ANALYZER.py</text>
+<circle cx="1419.5" cy="327.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1419.5" y="342.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">HYDRA_ANALYZER_V2.py</text>
+<circle cx="578.5" cy="496.9" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="578.5" y="511.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">INTEROPERABILITY_ANALYSIS.py</text>
+<circle cx="632.5" cy="1003.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="632.5" y="1018.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">MathCertainty.py</text>
+<circle cx="1484.0" cy="536.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1484.0" y="550.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">SelfImprovingGUI.py</text>
+<circle cx="973.6" cy="99.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="973.6" y="114.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">SystemManager.py</text>
+<circle cx="930.0" cy="978.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="930.0" y="993.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">SystemManagerGUI.py</text>
+<circle cx="742.4" cy="470.2" r="3.8" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="742.4" y="485.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TARBABY.py</text>
+<circle cx="577.7" cy="528.1" r="3.8" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="577.7" y="542.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ECOSYSTEM_TEST.py</text>
+<circle cx="425.7" cy="937.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="425.7" y="952.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1069.8" cy="907.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1069.8" y="922.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TotalFusion.py</text>
+<circle cx="378.6" cy="211.1" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="378.6" y="225.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="654.2" cy="559.1" r="3.8" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="654.2" y="573.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">hydra_bridge.py</text>
+<circle cx="685.8" cy="618.6" r="4.0" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="685.8" y="633.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1051.3" cy="992.1" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1051.3" y="1006.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">auto_install.py</text>
+<circle cx="240.1" cy="317.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="240.1" y="332.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">autoload.py</text>
+<circle cx="906.0" cy="104.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="906.0" y="119.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">changelog.py</text>
+<circle cx="835.0" cy="946.7" r="3.9" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="835.0" y="961.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">config.py</text>
+<circle cx="141.4" cy="562.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="141.4" y="577.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cross_platform_analysis.py</text>
+<circle cx="819.1" cy="940.4" r="3.8" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="819.1" y="955.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">diagnostics.py</text>
+<circle cx="1508.1" cy="631.1" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1508.1" y="645.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">framework_activator.py</text>
+<circle cx="271.2" cy="265.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="271.2" y="280.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">harness.py</text>
+<circle cx="1055.3" cy="974.3" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1055.3" y="988.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">health_monitor.py</text>
+<circle cx="970.1" cy="173.2" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="970.1" y="187.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1215.6" cy="163.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1215.6" y="178.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">deep_learning_qlearning.py</text>
+<circle cx="1513.5" cy="532.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1513.5" y="547.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enhanced_qlearning.py</text>
+<circle cx="494.2" cy="949.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="494.2" y="964.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">metrics_tracker.py</text>
+<circle cx="417.0" cy="163.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="417.0" y="178.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ml_integration.py</text>
+<circle cx="267.2" cy="822.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="267.2" y="837.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">mlflow_integration.py</text>
+<circle cx="100.2" cy="537.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="100.2" y="552.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">onnx_integration.py</text>
+<circle cx="160.5" cy="439.3" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="160.5" y="453.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">qlearning_table.py</text>
+<circle cx="255.8" cy="851.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="255.8" y="866.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">qualitative_improvements.py</text>
+<circle cx="1475.3" cy="397.1" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1475.3" y="411.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">ray_integration.py</text>
+<circle cx="359.0" cy="859.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="359.0" y="874.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">strategic_intelligence.py</text>
+<circle cx="1126.7" cy="129.1" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1126.7" y="143.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">tensor_utils.py</text>
+<circle cx="1125.9" cy="949.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1125.9" y="964.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">vectorize_utils.py</text>
+<circle cx="1469.3" cy="482.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1469.3" y="496.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">weakness_testing.py</text>
+<circle cx="1467.0" cy="650.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1467.0" y="665.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">install_improvements.py</text>
+<circle cx="234.6" cy="287.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="234.6" y="301.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">install_light.py</text>
+<circle cx="1403.1" cy="671.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1403.1" y="686.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">install_manager.py</text>
+<circle cx="1424.4" cy="748.0" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1424.4" y="762.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">installation_debug.py</text>
+<circle cx="165.1" cy="396.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="165.1" y="411.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">jax_analysis.py</text>
+<circle cx="847.1" cy="933.6" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="847.1" y="948.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">launcher.py</text>
+<circle cx="459.0" cy="970.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="459.0" y="985.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">lm_studio_autoload.py</text>
+<circle cx="643.9" cy="137.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="643.9" y="152.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">lm_studio_client.py</text>
+<circle cx="835.0" cy="126.7" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="835.0" y="141.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">lm_studio_integration.py</text>
+<circle cx="656.8" cy="625.0" r="3.8" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="656.8" y="639.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">lm_studio_server.py</text>
+<circle cx="1447.8" cy="416.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1447.8" y="431.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">openinterpreter_startup.py</text>
+<circle cx="114.8" cy="564.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="114.8" y="578.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_qanalysis.py</text>
+<circle cx="428.0" cy="219.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="428.0" y="233.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_qanalysis_full.py</text>
+<circle cx="381.2" cy="912.5" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="381.2" y="927.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_qanalysis_multi.py</text>
+<circle cx="431.9" cy="136.0" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="431.9" y="150.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">unified_analysis.py</text>
+<circle cx="1263.0" cy="877.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1263.0" y="892.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">universal_converter.py</text>
+<circle cx="380.2" cy="182.0" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="380.2" y="196.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">verify_moe.py</text>
+<circle cx="982.0" cy="997.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="982.0" y="1011.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="174.2" cy="694.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="174.2" y="708.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_cli.py</text>
+<circle cx="365.4" cy="897.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="365.4" y="911.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_wsa.py</text>
+<circle cx="869.7" cy="140.0" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="869.7" y="154.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bat_analysis.py</text>
+<circle cx="1440.3" cy="601.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1440.3" y="616.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">check_links.py</text>
+<circle cx="152.7" cy="417.6" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="152.7" y="432.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">complete_module_analysis.py</text>
+<circle cx="1475.4" cy="738.4" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1475.4" y="752.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">comprehensive_analysis.py</text>
+<circle cx="978.2" cy="955.2" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="978.2" y="969.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">consistency_checker.py</text>
+<circle cx="585.0" cy="474.8" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="585.0" y="489.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">fix_syntax_errors.py</text>
+<circle cx="1425.3" cy="312.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1425.3" y="327.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_docs_index.py</text>
+<circle cx="622.6" cy="470.4" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="622.6" y="485.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_docstrings.py</text>
+<circle cx="1394.9" cy="365.2" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1394.9" y="379.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">improve_bat_files.py</text>
+<circle cx="597.0" cy="488.3" r="3.6" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="597.0" y="502.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_tests.py</text>
+<circle cx="1422.0" cy="393.9" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1422.0" y="408.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_enhancements.py</text>
+<circle cx="1361.6" cy="273.8" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1361.6" y="288.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">validate_docs.py</text>
+<circle cx="1293.1" cy="895.0" r="3.5" fill="#d29922" stroke="#1b1f24" stroke-width="1"/>
+<text x="1293.1" y="909.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">web_dashboard.py</text>
+<circle cx="1286.0" cy="228.6" r="3.5" fill="#ffa657" stroke="#1b1f24" stroke-width="1"/>
+<text x="1286.0" y="243.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">QL_ANALYSIS.py</text>
+<circle cx="566.8" cy="104.6" r="3.6" fill="#7ee787" stroke="#1b1f24" stroke-width="1"/>
+<text x="566.8" y="119.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">QL_FILE_OPTIMIZER.py</text>
+<circle cx="155.5" cy="769.1" r="3.5" fill="#bc8cff" stroke="#1b1f24" stroke-width="1"/>
+<text x="155.5" y="783.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">REAL_FRAMEWORK_TEST.py</text>
+<circle cx="798.1" cy="987.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="798.1" y="1002.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="916.8" cy="396.3" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="916.8" y="410.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">_reconstruct_error214.py</text>
+<circle cx="1265.3" cy="940.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1265.3" y="955.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">auto_sync.py</text>
+<circle cx="769.2" cy="393.1" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="769.2" y="407.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bootstrap.py</text>
+<circle cx="927.4" cy="399.8" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="927.4" y="414.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enforce_pre_action_gate.py</text>
+<circle cx="1274.2" cy="249.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1274.2" y="264.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">environ_updater.py</text>
+<circle cx="592.4" cy="1003.1" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="592.4" y="1017.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">fix_bare_excepts.py</text>
+<circle cx="895.3" cy="469.4" r="4.0" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="895.3" y="484.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gate_bash.py</text>
+<circle cx="914.8" cy="422.8" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="914.8" y="437.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gate_str_replace.py</text>
+<circle cx="904.3" cy="421.7" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="904.3" y="436.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gate_write_file.py</text>
+<circle cx="948.4" cy="88.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="948.4" y="103.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gated_edit.py</text>
+<circle cx="909.2" cy="453.0" r="3.9" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="909.2" y="467.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_telemetry.py</text>
+<circle cx="570.6" cy="973.8" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="570.6" y="988.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">lsp_diagnosis.py</text>
+<circle cx="218.7" cy="345.6" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="218.7" y="360.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">parallel_compliance_scanner.py</text>
+<circle cx="954.8" cy="459.0" r="3.9" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="954.8" y="473.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">request_auth.py</text>
+<circle cx="1477.0" cy="378.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1477.0" y="393.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_test_generate_telemetry.py</text>
+<circle cx="905.6" cy="475.1" r="4.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="905.6" y="490.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sentinel_gate.py</text>
+<circle cx="1495.9" cy="589.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1495.9" y="603.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sync_skills.py</text>
+<circle cx="207.3" cy="813.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="207.3" y="828.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_auto_sync.py</text>
+<circle cx="782.6" cy="394.7" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="782.6" y="409.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_dynamic_logging.py</text>
+<circle cx="194.3" cy="305.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="194.3" y="320.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_generate_telemetry.py</text>
+<circle cx="847.8" cy="1015.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="847.8" y="1030.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_rule_0zf_consistency.py</text>
+<circle cx="941.2" cy="409.4" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="941.2" y="424.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_rule_0zf_integration.py</text>
+<circle cx="901.9" cy="395.6" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="901.9" y="410.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_rule_0zf_telemetry.py</text>
+<circle cx="963.7" cy="127.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="963.7" y="141.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_startup_step4_8.py</text>
+<circle cx="952.0" cy="1012.7" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="952.0" y="1027.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="719.0" cy="545.3" r="3.8" fill="#ffa657" stroke="#1b1f24" stroke-width="1"/>
+<text x="719.0" y="560.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TELEMETRYZ.py</text>
+<circle cx="1354.0" cy="249.8" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1354.0" y="264.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AzazaelDynamicLogger.py</text>
+<circle cx="246.5" cy="248.2" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="246.5" y="262.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">COMPREHENSIVE_FIX.py</text>
+<circle cx="1183.7" cy="157.5" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1183.7" y="172.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PythonMapper_Quick.py</text>
+<circle cx="108.7" cy="645.4" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="108.7" y="659.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PythonSystemMapper.py</text>
+<circle cx="1334.0" cy="841.2" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1334.0" y="855.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">PythonSystemMapper_Full.py</text>
+<circle cx="715.8" cy="1009.0" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="715.8" y="1023.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="113.6" cy="514.8" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="113.6" y="529.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">archive_system.py</text>
+<circle cx="684.7" cy="168.1" r="3.6" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="684.7" y="182.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_toolkit.py</text>
+<circle cx="350.4" cy="187.6" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="350.4" y="202.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">debug_runner.py</text>
+<circle cx="685.9" cy="548.8" r="3.8" fill="#56d4dd" stroke="#1b1f24" stroke-width="1"/>
+<text x="685.9" y="563.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TRIMZ.py</text>
+<circle cx="807.5" cy="1011.4" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="807.5" y="1025.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">AzazaelDynamicLogger.py</text>
+<circle cx="325.0" cy="252.3" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="325.0" y="266.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="880.7" cy="91.3" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="880.7" y="105.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">klink.py</text>
+<circle cx="90.4" cy="637.7" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="90.4" y="652.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="187.3" cy="452.5" r="3.6" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="187.3" y="467.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="344.0" cy="875.1" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="344.0" y="889.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1457.3" cy="628.2" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1457.3" y="642.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">persephone_cli.py</text>
+<circle cx="386.8" cy="927.9" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="386.8" y="942.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">setup_wizard.py</text>
+<circle cx="184.1" cy="462.3" r="3.6" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="184.1" y="476.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="388.7" cy="950.3" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="388.7" y="964.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">environment.py</text>
+<circle cx="1471.0" cy="573.6" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1471.0" y="588.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">path_manager.py</text>
+<circle cx="651.3" cy="948.0" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="651.3" y="962.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sync_manager.py</text>
+<circle cx="1426.2" cy="660.0" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1426.2" y="674.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">persephone.py</text>
+<circle cx="1071.9" cy="120.5" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1071.9" y="135.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">version.py</text>
+<circle cx="581.1" cy="964.3" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="581.1" y="978.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">POINDEXTER.py</text>
+<circle cx="746.0" cy="1019.0" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="746.0" y="1033.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="602.6" cy="466.2" r="3.6" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="602.6" y="480.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TARBABY.py</text>
+<circle cx="1492.4" cy="477.6" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1492.4" y="492.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1170.2" cy="891.8" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1170.2" y="906.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">tarbaby_enhanced.py</text>
+<circle cx="1402.6" cy="300.7" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1402.6" y="315.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">TERENCE.py</text>
+<circle cx="1474.9" cy="665.7" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1474.9" y="680.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="461.0" cy="186.5" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="461.0" y="201.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">terence_enhanced.py</text>
+<circle cx="1372.8" cy="879.2" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1372.8" y="893.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1242.6" cy="249.8" r="3.5" fill="#f47067" stroke="#1b1f24" stroke-width="1"/>
+<text x="1242.6" y="264.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">UVZ.py</text>
+<circle cx="1356.8" cy="207.7" r="3.5" fill="#f47067" stroke="#1b1f24" stroke-width="1"/>
+<text x="1356.8" y="222.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="88.6" cy="567.0" r="3.5" fill="#a5d6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="88.6" y="581.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_pygame.py</text>
+<circle cx="677.7" cy="140.8" r="3.6" fill="#79c0ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="677.7" y="155.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">azazael_toolkit.py</text>
+<circle cx="381.9" cy="162.3" r="3.5" fill="#ff7b72" stroke="#1b1f24" stroke-width="1"/>
+<text x="381.9" y="176.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">chain_of_action.py</text>
+<circle cx="766.5" cy="108.1" r="3.6" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="766.5" y="122.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enrichment_display.py</text>
+<circle cx="281.0" cy="216.2" r="3.5" fill="#f47067" stroke="#1b1f24" stroke-width="1"/>
+<text x="281.0" y="230.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">environment_manager.py</text>
+<circle cx="523.0" cy="133.1" r="3.6" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="523.0" y="147.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="1077.8" cy="887.7" r="3.6" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1077.8" y="902.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cache.py</text>
+<circle cx="1044.5" cy="882.0" r="4.0" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1044.5" y="897.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">cli.py</text>
+<circle cx="1061.3" cy="880.8" r="3.8" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1061.3" y="895.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">config.py</text>
+<circle cx="1036.5" cy="884.2" r="3.8" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1036.5" y="898.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">core.py</text>
+<circle cx="1050.0" cy="866.9" r="4.2" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1050.0" y="882.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">engine.py</text>
+<circle cx="1038.0" cy="900.4" r="3.6" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1038.0" y="915.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">model_registry.py</text>
+<circle cx="531.4" cy="146.5" r="3.6" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="531.4" y="161.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="229.1" cy="851.3" r="3.5" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="229.1" y="865.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">qwen35_ssm.py</text>
+<circle cx="1074.0" cy="862.6" r="3.6" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1074.0" y="877.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">streaming.py</text>
+<circle cx="1031.0" cy="844.0" r="3.6" fill="#f0883e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1031.0" y="858.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">utils.py</text>
+<circle cx="1329.2" cy="255.7" r="3.5" fill="#ffa198" stroke="#1b1f24" stroke-width="1"/>
+<text x="1329.2" y="270.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">math_certainty.py</text>
+<circle cx="832.0" cy="174.9" r="3.6" fill="#f47067" stroke="#1b1f24" stroke-width="1"/>
+<text x="832.0" y="189.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">matrix_animation.py</text>
+<circle cx="715.5" cy="493.6" r="4.1" fill="#ff7b72" stroke="#1b1f24" stroke-width="1"/>
+<text x="715.5" y="508.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">memory_status.py</text>
+<circle cx="686.6" cy="412.9" r="3.6" fill="#56d4dd" stroke="#1b1f24" stroke-width="1"/>
+<text x="686.6" y="427.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">performance_monitor.py</text>
+<circle cx="1416.4" cy="825.2" r="3.5" fill="#f778ba" stroke="#1b1f24" stroke-width="1"/>
+<text x="1416.4" y="839.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">persistent_memory.py</text>
+<circle cx="121.8" cy="430.6" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="121.8" y="445.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="918.4" cy="404.3" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="918.4" y="418.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">_reconstruct_error214.py</text>
+<circle cx="1307.4" cy="861.2" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1307.4" y="875.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">auto_sync.py</text>
+<circle cx="800.7" cy="401.6" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="800.7" y="416.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">bootstrap.py</text>
+<circle cx="933.9" cy="405.0" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="933.9" y="419.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">enforce_pre_action_gate.py</text>
+<circle cx="1282.6" cy="840.9" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1282.6" y="855.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">environ_updater.py</text>
+<circle cx="1104.9" cy="983.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1104.9" y="998.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">fix_bare_excepts.py</text>
+<circle cx="883.6" cy="470.0" r="3.9" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="883.6" y="484.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gate_bash.py</text>
+<circle cx="894.9" cy="421.6" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="894.9" y="436.4" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gate_str_replace.py</text>
+<circle cx="885.8" cy="423.5" r="3.8" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="885.8" y="438.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gate_write_file.py</text>
+<circle cx="277.4" cy="876.6" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="277.4" y="891.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">gated_edit.py</text>
+<circle cx="908.4" cy="401.3" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="908.4" y="415.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">generate_telemetry.py</text>
+<circle cx="1399.2" cy="714.6" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1399.2" y="729.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">lsp_diagnosis.py</text>
+<circle cx="673.2" cy="988.2" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="673.2" y="1002.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">monitor_learning.py</text>
+<circle cx="343.3" cy="206.2" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="343.3" y="220.7" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">parallel_compliance_scanner.py</text>
+<circle cx="854.1" cy="96.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="854.1" y="110.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">run_test_generate_telemetry.py</text>
+<circle cx="898.3" cy="476.3" r="4.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="898.3" y="491.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sentinel_gate.py</text>
+<circle cx="1262.1" cy="914.5" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1262.1" y="929.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">sync_skills.py</text>
+<circle cx="98.4" cy="490.0" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="98.4" y="504.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_auto_sync.py</text>
+<circle cx="793.1" cy="396.7" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="793.1" y="411.3" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_dynamic_logging.py</text>
+<circle cx="1221.6" cy="873.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="1221.6" y="888.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_generate_telemetry.py</text>
+<circle cx="329.7" cy="227.3" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="329.7" y="241.8" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_rule_0zf_consistency.py</text>
+<circle cx="893.9" cy="399.0" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="893.9" y="413.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_rule_0zf_integration.py</text>
+<circle cx="886.2" cy="401.9" r="3.6" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="886.2" y="416.5" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_rule_0zf_telemetry.py</text>
+<circle cx="131.4" cy="759.7" r="3.5" fill="#58a6ff" stroke="#1b1f24" stroke-width="1"/>
+<text x="131.4" y="774.2" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_startup_step4_8.py</text>
+<circle cx="700.3" cy="446.3" r="3.8" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="700.3" y="461.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">session_memory.py</text>
+<circle cx="1274.4" cy="858.5" r="3.5" fill="#8b949e" stroke="#1b1f24" stroke-width="1"/>
+<text x="1274.4" y="873.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">__init__.py</text>
+<circle cx="750.4" cy="671.0" r="3.6" fill="#8b949e" stroke="#1b1f24" stroke-width="1"/>
+<text x="750.4" y="685.6" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_ecosystem.py</text>
+<circle cx="788.5" cy="617.3" r="4.6" fill="#8b949e" stroke="#1b1f24" stroke-width="1"/>
+<text x="788.5" y="632.9" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_learning_loop.py</text>
+<circle cx="665.1" cy="620.4" r="3.6" fill="#8b949e" stroke="#1b1f24" stroke-width="1"/>
+<text x="665.1" y="635.1" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">test_worm_registry.py</text>
+<circle cx="728.9" cy="122.5" r="3.5" fill="#e3b341" stroke="#1b1f24" stroke-width="1"/>
+<text x="728.9" y="137.0" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="10" text-anchor="middle" opacity="0.9">update_docs_paths.py</text>
+<text x="80" y="1024" fill="#e6edf3" font-family="Tahoma,Arial" font-size="13" font-weight="bold">Legend — area:</text>
+<circle cx="85" cy="1036" r="6" fill="#39c5cf"/>
+<text x="96" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">8 nodes</text>
+<circle cx="166.4" cy="1036" r="6" fill="#3fb950"/>
+<text x="177.4" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">178 nodes</text>
+<circle cx="260.20000000000005" cy="1036" r="6" fill="#56d4dd"/>
+<text x="271.20000000000005" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">5 nodes</text>
+<circle cx="341.6" cy="1036" r="6" fill="#58a6ff"/>
+<text x="352.6" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">138 nodes</text>
+<circle cx="435.40000000000003" cy="1036" r="6" fill="#76e3ea"/>
+<text x="446.40000000000003" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">2 nodes</text>
+<circle cx="516.8000000000001" cy="1036" r="6" fill="#79c0ff"/>
+<text x="527.8000000000001" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">azazael_toolkit.py</text>
+<circle cx="666.4000000000001" cy="1036" r="6" fill="#7ee787"/>
+<text x="677.4000000000001" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">2 nodes</text>
+<circle cx="747.8000000000001" cy="1036" r="6" fill="#8b949e"/>
+<text x="758.8000000000001" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">4 nodes</text>
+<circle cx="829.2" cy="1036" r="6" fill="#a371f7"/>
+<text x="840.2" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">72 nodes</text>
+<circle cx="916.8000000000001" cy="1036" r="6" fill="#a5d6ff"/>
+<text x="927.8000000000001" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">3 nodes</text>
+<circle cx="998.2" cy="1036" r="6" fill="#bc8cff"/>
+<text x="1009.2" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">3 nodes</text>
+<circle cx="1079.6000000000001" cy="1036" r="6" fill="#c69026"/>
+<text x="1090.6000000000001" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">MISSING_TOOLS.py</text>
+<circle cx="1216.8000000000002" cy="1036" r="6" fill="#d29922"/>
+<text x="1227.8000000000002" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">94 nodes</text>
+<circle cx="1304.4" cy="1036" r="6" fill="#e3b341"/>
+<text x="1315.4" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">21 nodes</text>
+<circle cx="1392.0" cy="1036" r="6" fill="#f0883e"/>
+<text x="1403.0" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">11 nodes</text>
+<circle cx="1479.6" cy="1036" r="6" fill="#f47067"/>
+<text x="1490.6" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">6 nodes</text>
+<circle cx="1561.0" cy="1036" r="6" fill="#f778ba"/>
+<text x="1572.0" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">45 nodes</text>
+<circle cx="1648.6" cy="1036" r="6" fill="#ff7b72"/>
+<text x="1659.6" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">4 nodes</text>
+<circle cx="1730.0" cy="1036" r="6" fill="#ffa198"/>
+<text x="1741.0" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">math_certainty.py</text>
+<circle cx="1873.4" cy="1036" r="6" fill="#ffa657"/>
+<text x="1884.4" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">2 nodes</text>
+<circle cx="1954.8000000000002" cy="1036" r="6" fill="#ffc680"/>
+<text x="1965.8000000000002" y="1040" fill="#c9d1d9" font-family="Tahoma,Arial" font-size="11">2 nodes</text>
+<text x="80" y="1076" fill="#8b949e" font-family="Tahoma,Arial" font-size="11">glowing border = live-active (events in 24h) · size = degree</text>
+</svg>
