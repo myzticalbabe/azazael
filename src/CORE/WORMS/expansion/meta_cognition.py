@@ -283,9 +283,60 @@ class MetaCognitionWorm:
             "success_rate": round(success_rate, 4),
             "stability": round(stability, 4),
             "error_ratio": round(errors / max(total, 1), 4),
+            "n": total,
         }
 
     # -- ADAPT Phase ----------------------------------------------------
+
+    def recommend_from_evidence(self, worm_type: str) -> dict[str, Any]:
+        """Derive an evidence-backed strategy recommendation from real outcomes.
+
+        Uses the confidence model built by analyze_patterns() (actual observed
+        outcomes) to recommend how the learning loop should behave next:
+
+          * high error_ratio  -> defensive / conservative (stabilize, pull back)
+          * high success_rate -> aggressive (bolder exploration)
+          * mixed / noisy     -> adaptive (moderate)
+
+        The returned confidence reflects evidence strength so it either clears
+        ADOPT_CONFIDENCE (a real signal -- e.g. a worm failing often) or stays
+        below it (noise) -- which is what keeps the policy channel from
+        churning on weak dream suggestions. Callers pass recommended +
+        confidence straight into adapt_strategy().
+        """
+        conf = self._confidence_models.get(worm_type)
+        if conf is None:
+            obs = [o for o in self._observations if o["worm_type"] == worm_type]
+            conf = self._compute_confidence(worm_type, obs)
+
+        n = int(conf.get("n", 0) or 0)
+        err = float(conf.get("error_ratio", 0.0) or 0.0)
+        ok = float(conf.get("success_rate", 0.0) or 0.0)
+
+        if n < 5:
+            return {"recommended": None, "confidence": 0.0,
+                    "evidence": {"n": n, "error_ratio": round(err, 4),
+                                 "success_rate": round(ok, 4)},
+                    "reason": f"insufficient evidence ({n} observations)"}
+
+        if err >= 0.5:
+            strat, val = "defensive", 0.5 + err * 0.5
+            reason = f"error_ratio {err:.2f} >= 0.5 -- stabilize"
+        elif err >= 0.3:
+            strat, val = "conservative", 0.5 + err * 0.5
+            reason = f"error_ratio {err:.2f} in [0.3, 0.5) -- pull back"
+        elif ok >= 0.85:
+            strat, val = "aggressive", 0.5 + ok * 0.3
+            reason = f"success_rate {ok:.2f} >= 0.85 -- explore harder"
+        else:
+            strat, val = "adaptive", 0.45
+            reason = f"mixed outcomes (err {err:.2f} / ok {ok:.2f}) -- moderate"
+
+        return {"recommended": strat,
+                "confidence": round(min(val, 0.99), 3),
+                "evidence": {"n": n, "error_ratio": round(err, 4),
+                             "success_rate": round(ok, 4)},
+                "reason": reason}
 
     def get_current_strategy(self, worm_type: str) -> str:
         """Return the active strategy for a worm type ('default' when unset)."""

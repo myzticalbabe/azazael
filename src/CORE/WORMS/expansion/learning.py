@@ -59,6 +59,12 @@ class RLTrainLoop:
 
     VERSION = "2.0.0"
 
+    # Chosen-action semantics for Q-learning: index -> response policy.
+    # Rewards depend on whether the chosen action fits the record severity,
+    # so different hyperparameters (esp. epsilon) yield different fitness --
+    # this is what gives evolution a gradient to optimize.
+    ACTION_NAMES = ["ignore", "log", "alert", "remediate"]
+
     def __init__(self):
         self._episodes: List[Dict] = []
         self._q_table: Dict[str, Dict[int, float]
@@ -321,22 +327,52 @@ class RLTrainLoop:
             sv = record.get("severity", "info")
             return f"{src}:{sv}"
 
-        def _compute_reward(record: Dict) -> float:
-            """Compute reward from a record.
+        def _compute_reward(record: Dict, action: int) -> float:
+            """Compute action-dependent reward from a record.
 
-            Positive reward for non-error records, negative for errors.
-            Longer duration reduces reward slightly (penalizes slow operations).
+            Scores how well the CHOSEN action fits the record severity (the old
+            version ignored the action, so every action scored identically and
+            Q-learning / evolution had no gradient). Mapping:
+
+              severity   good actions           bad actions
+              error      remediate +1.0, alert +0.4
+                         log -0.3, ignore -1.0
+              warning    alert +0.7, remediate +0.2
+                         log 0.0, ignore -0.7
+              info       log +0.3, ignore +0.2
+                         alert -0.3, remediate -0.5
+
+            A data.success outcome (when present) refines: an error that was
+            remediated and succeeded earns a bonus; a failed remediation/alert
+            on an error is penalized. Duration still shaves a small amount to
+            penalize slow operations.
             """
             sev = record.get("severity", "info")
             data = record.get("data", {})
             if isinstance(data, dict):
-                duration = data.get("duration_ms", 0)
-                success = sev != "error"
-                reward = 1.0 if success else -1.0
-                if duration:
-                    reward -= duration / 10000.0
+                duration = data.get("duration_ms", 0) or 0
             else:
-                reward = 0.0
+                duration = 0
+
+            base = {
+                "error":   {3: 1.0, 2: 0.4, 1: -0.3, 0: -1.0},
+                "warning": {3: 0.2, 2: 0.7, 1: 0.0, 0: -0.7},
+                "info":    {3: -0.5, 2: -0.3, 1: 0.3, 0: 0.2},
+            }.get(sev, {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0})
+            reward = base.get(int(action), 0.0)
+
+            if isinstance(data, dict) and "success" in data:
+                ok = bool(data["success"])
+                if sev == "error":
+                    if ok and action == 3:
+                        reward += 0.3
+                    elif not ok and action in (2, 3):
+                        reward -= 0.4
+                elif sev == "info" and ok and action in (0, 1):
+                    reward += 0.1
+
+            if duration:
+                reward -= duration / 10000.0
             return reward
 
         start = time.perf_counter()
@@ -344,6 +380,7 @@ class RLTrainLoop:
 
         for episode in range(n_episodes):
             total_reward = 0.0
+            action_counts = defaultdict(int)
             for step in range(min(max_steps, len(records))):
                 record = records[(episode + step) % len(records)]
 
@@ -356,8 +393,9 @@ class RLTrainLoop:
                 else:
                     action = max(self._q_table[state_key], key=self._q_table[state_key].get)
 
-                # Compute reward
-                reward = _compute_reward(record)
+                # Compute reward -- depends on the chosen action so the
+                # policy gradient is real (see _compute_reward docstring)
+                reward = _compute_reward(record, action)
 
                 # Q-learning update
                 old_q = self._q_table[state_key].get(action, 0.0)
@@ -365,6 +403,7 @@ class RLTrainLoop:
                 new_q = old_q + learning_rate * (reward + discount_factor * next_max_q - old_q)
                 self._q_table[state_key][action] = new_q
 
+                action_counts[action] += 1
                 total_reward += reward
 
             episode_rewards.append(total_reward)
@@ -373,6 +412,7 @@ class RLTrainLoop:
                 "episode": episode + 1,
                 "total_reward": total_reward,
                 "steps": min(max_steps, len(records)),
+                "actions": dict(action_counts),
                 "timestamp": time.time(),
             }
             with self._lock:
@@ -395,7 +435,7 @@ class RLTrainLoop:
                     action = 0
                     test_unknown_states += 1
 
-                reward = _compute_reward(record)
+                reward = _compute_reward(record, action)
                 test_rewards.append(reward)
 
             test_metrics = {
