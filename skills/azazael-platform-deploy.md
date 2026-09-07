@@ -1,3 +1,13 @@
+---
+name: azazael-platform-deploy
+description: Cross-platform AZAZAEL 3.14t deployment — Windows 11, WSL2 Ubuntu, bare metal, Kali Linux setup and sync.
+metadata:
+  category: deploy
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-platform-deploy
 
 ## Description

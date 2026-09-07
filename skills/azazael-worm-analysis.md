@@ -1,3 +1,13 @@
+---
+name: azazael-worm-analysis
+description: Worm analysis patterns — CLUSTERWORMS dynamic resolution, dead letter queue, work-stealing, circuit breaker integration.
+metadata:
+  category: domain
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-worm-analysis
 **Category:** Domain Knowledge
 **Priority:** HIGH

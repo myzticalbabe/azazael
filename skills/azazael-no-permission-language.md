@@ -1,3 +1,13 @@
+---
+name: azazael-no-permission-language
+description: No permission-seeking language for mandated actions — CRITICAL process violation per instance.
+metadata:
+  category: guardrail
+  project: azazael
+  priority: critical
+  auto_load: false
+---
+
 # azazael-no-permission-language — No Permission Language for Mandated Actions
 
 > **Rule:** The assistant SHALL NOT use permission-seeking language ("Let me...") for actions that are already MANDATED by established rules.

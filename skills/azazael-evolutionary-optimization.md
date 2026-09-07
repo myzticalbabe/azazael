@@ -1,3 +1,13 @@
+---
+name: azazael-evolutionary-optimization
+description: NSGA-II and genetic algorithms — EvolutionEngine Pareto-front optimization and per-worm parameter tuning.
+metadata:
+  category: algorithm
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # Azazael Evolutionary Optimization — NSGA-II + Genetic Algorithms
 
 ## Overview

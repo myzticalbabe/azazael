@@ -1,3 +1,13 @@
+---
+name: azazael-pyright
+description: Pyright static type checking for the Azazael codebase — complements mypy on optionals, unbound variables, attribute access.
+metadata:
+  category: quality
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-pyright
 **Category:** Quality / Type Checking
 **Priority:** HIGH

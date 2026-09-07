@@ -78,3 +78,21 @@ python azazael/scripts/sync_all.py --sync-all         # Sync to ALL environments
 - `azazael-system-startup` — Step 2.5 auto-runs sync at session start
 - `azazael-sop` — RULE 0R codification
 - `azazael-testing` — Pre-commit checklist includes sync verification
+
+## Known Limitations (verified 2026-09-06)
+
+- **Reverse syncs need an in-WSL runtime.** `sync_wsl_to_windows`, `sync_wsl_to_g`
+  and `sync_wsl_to_kali` check `/root/azazael`, which never exists as a Windows
+  path — from Windows they always report "WSL root not found". Run them from
+  inside WSL instead. Forward sync (Windows → WSL2 via `wsl.exe`) works once
+  the target distro is awake (access wakes it; stopped distros fail).
+- **Skill sync to WSL breaks on prose.** File contents travel through
+  `wsl.exe … bash -c '…'` quoting layers; multiline/apostrophe content fails
+  with `unexpected EOF while looking for matching ''`. Copy skill files to
+  WSL targets directly (or via `\\wsl$\`) instead.
+- **`sync_canonical_docs.py` does not exist.** RULE 0Z-J names
+  `src/scripts/sync_canonical_docs.py`, but no such file exists on any pillar.
+  The operative mechanism is `sync_all.py`; doc patterns now explicitly
+  include `SYSTEM_INSTRUCTIONS.md` and `HAT_TAXONOMY.md` (added 2026-09-06).
+- **Fidelity:** unicode dashes normalize in transit on G: copies (observed
+  em-dash → hyphen). Hash-verify (`Get-FileHash`) after syncing canonical docs.

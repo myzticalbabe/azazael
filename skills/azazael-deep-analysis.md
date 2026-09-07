@@ -1,3 +1,13 @@
+---
+name: azazael-deep-analysis
+description: Mandates the DEEP API Analysis Standard — all analysis tasks use multiple free inference APIs with cross-referenced findings.
+metadata:
+  category: guardrail
+  project: azazael
+  priority: critical
+  auto_load: false
+---
+
 # azazael-deep-analysis
 **Category:** Mandatory Guardrail
 **Priority:** CRITICAL

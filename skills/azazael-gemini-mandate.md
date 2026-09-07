@@ -1,3 +1,13 @@
+---
+name: azazael-gemini-mandate
+description: Operational enforcement of Gemini spawning frequency for complex tasks.
+metadata:
+  category: protocol
+  project: azazael
+  priority: critical
+  auto_load: false
+---
+
 # SKILL: azazael-gemini-mandate
 # PURPOSE: Operational Enforcement of the Gemini Spawning Frequency
 
