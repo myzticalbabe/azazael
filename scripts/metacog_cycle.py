@@ -14,20 +14,35 @@ from CORE.local_memory import get_memory_store
 mc = MetaCognitionWorm()
 store = get_memory_store()
 
+# Never re-observe a cluster execution already fed in an earlier cycle:
+# state is restored on construction (load_state in __init__), so dedupe
+# against the restored observations' cluster_ids. With a 5-minute cadence
+# this keeps each execution counted exactly once.
+_known = set()
+for _o in mc._observations:
+    _cid = (_o.get('context') or {}).get('cluster_id')
+    if _cid:
+        _known.add(_cid)
+
 recent = store.query_memories(event_type='clusterwormz_execute_complete',
-                              limit=30) if store else []
+                              limit=50) if store else []
 fed = 0
 seen = {}
 for r in recent:
     data = r.get('data', {}) or {}
     if isinstance(data, str):
         continue
+    cid = data.get('cluster_id', '')
+    if cid and cid in _known:
+        continue  # already observed in an earlier cycle
     wt = str(data.get('cluster_type', 'unknown'))
     ok = not data.get('fail')
     mc.observe(worm_type=wt,
                action='cluster_execute',
                outcome='success' if ok else 'error',
-               context={'cluster_id': data.get('cluster_id', '')})
+               context={'cluster_id': cid})
+    if cid:
+        _known.add(cid)
     st = seen.setdefault(wt, {'ok': 0, 'err': 0})
     st['ok' if ok else 'err'] += 1
     fed += 1
