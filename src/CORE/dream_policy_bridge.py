@@ -7,7 +7,8 @@ strategy_adaptation rows), one suggestion at a time.
 
 Safety:
 - CurativePool governance per suggestion; blocked items are skipped.
-- Minimum confidence gate (default 0.5).
+- Minimum confidence gate (default 0.05, calibrated to the creative
+  branch band 0.07-0.45; CurativePool remains the real safety).
 - Fail-closed: governance/import errors skip items, never raise.
 - Audit row per run (best effort).
 
@@ -17,7 +18,7 @@ no production caller currently passes.
 
 from typing import Any, Dict, List, Optional
 
-MIN_CONFIDENCE = 0.5
+MIN_CONFIDENCE = 0.05
 
 
 def _governance_blocked(suggestion: Dict[str, Any]) -> bool:
