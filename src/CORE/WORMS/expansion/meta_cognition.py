@@ -73,6 +73,18 @@ class MetaCognitionWorm:
 
     VERSION = "1.0.0"
 
+    # Maps an active strategy to dreaming-loop parameter tuning so
+    # recorded policy (adapt_strategy) steers real dream behavior.
+    DREAM_STRATEGY_TUNING: dict[str, dict[str, Any]] = {
+        "default": {},
+        "conservative": {"num_episodes": 2, "scenario_count": 10, "creativity_factor": 0.15},
+        "defensive": {"num_episodes": 2, "scenario_count": 30, "creativity_factor": 0.1},
+        "aggressive": {"num_episodes": 8, "scenario_count": 20, "creativity_factor": 0.6},
+        "adaptive": {"num_episodes": 4, "scenario_count": 15, "creativity_factor": 0.35},
+        "batched": {"num_episodes": 5, "scenario_count": 30, "creativity_factor": 0.4},
+        "staged": {"num_episodes": 4, "scenario_count": 15, "creativity_factor": 0.3},
+    }
+
     def __init__(self, memory_store=None):
         self._lock = threading.Lock()
         # memory_store: None=use global, LocalMemoryStore instance=injected, _PERSISTENCE_DISABLED=skip all I/O
@@ -83,6 +95,7 @@ class MetaCognitionWorm:
         self._confidence_models: dict[str, dict[str, float]] = {}
         self._strategy_scores: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
         self._adaptations: list[dict] = []
+        self._current_strategies: dict[str, str] = {}
         self._episode_count = 0
 
         # Auto-restore state from previous session (fail-safe, never blocks)
@@ -269,16 +282,50 @@ class MetaCognitionWorm:
 
     # -- ADAPT Phase ----------------------------------------------------
 
-    def adapt_strategy(self, worm_type: str, current_strategy: str,
-                       available_strategies: (list[str] | None) = None) -> dict[str, Any]:
+    def get_current_strategy(self, worm_type: str) -> str:
+        """Return the active strategy for a worm type ('default' when unset)."""
+        return self._current_strategies.get(worm_type, "default")
+
+    def dream_tuning_for(self, worm_type: str = "global") -> tuple[dict[str, Any], str]:
+        """Return dream-loop parameter tuning for the active strategy.
+
+        Maps the tracked strategy (set via adapt_strategy) onto concrete
+        dreaming knobs so recorded policy steers real behavior:
+          conservative/defensive -> fewer, tamer dreams (less exploration)
+          aggressive/batched     -> more/bolder dreams (more exploration)
+        Unmapped strategies return ({}, strategy): caller keeps defaults.
+        """
+        strategy = self.get_current_strategy(worm_type)
+        return dict(self.DREAM_STRATEGY_TUNING.get(strategy, {})), strategy
+
+    def adapt_strategy(self, worm_type: str,
+                       current_strategy: (str | None) = None,
+                       available_strategies: (list[str] | None) = None,
+                       recommended: (str | None) = None,
+                       confidence: float = 0.0) -> dict[str, Any]:
         """Adapt execution strategy based on historical performance.
 
-        Uses confidence-weighted scoring to select optimal strategy.
+        Two evidence channels drive adaptation:
+
+        1. Policy channel -- an explicit ``recommended`` strategy from a
+           governed caller (e.g. dream_policy_bridge). Callers apply their
+           own confidence/governance gates before calling; when a different
+           strategy is recommended it is adopted, the per-worm current
+           strategy is switched, and the switch is persisted via
+           save_state()/load_state() so later runs see the new current.
+        2. Observation channel -- confidence-weighted scoring of stored
+           alternatives (``_strategy_scores`` / ``_confidence_models``),
+           switching only when an alternative exceeds the current score by
+           the 15% improvement threshold.
 
         Args:
             worm_type: Worm type to adapt for
-            current_strategy: Currently active strategy name
+            current_strategy: Currently active strategy name. When omitted,
+                or when the caller passes the generic marker 'default' but a
+                tracked strategy exists, the tracked strategy is used.
             available_strategies: list of alternative strategies
+            recommended: Optional explicit strategy to adopt (policy channel)
+            confidence: Confidence carried by the recommendation (0.0-1.0)
 
         Returns:
             dict with recommended_strategy and adaptation rationale
@@ -286,27 +333,65 @@ class MetaCognitionWorm:
         if available_strategies is None:
             available_strategies = ["default", "conservative", "aggressive", "defensive"]
 
-        # Get confidence for current strategy
-        confidence = self._confidence_models.get(worm_type, {})
-        current_score = confidence.get("overall", 0.5)
+        # Resolve the actual current strategy: tracked state wins over a
+        # hard-coded 'default' marker passed by callers without state.
+        tracked = self._current_strategies.get(worm_type)
+        if current_strategy is None:
+            current_strategy = tracked or "default"
+        elif tracked and tracked != "default" and current_strategy == "default":
+            current_strategy = tracked
 
-        # Score each available strategy
+        # Confidence for the current strategy (unknown = 0.5)
+        conf_model = self._confidence_models.get(worm_type, {})
+        current_score = conf_model.get("overall")
+        if current_score is None:
+            current_score = self._strategy_scores[worm_type].get(current_strategy, 0.5)
+        try:
+            current_score = float(current_score) or 0.5
+        except (TypeError, ValueError):
+            current_score = 0.5
+
+        # Score each available strategy from stored history (default 0.5)
         scores = {current_strategy: current_score}
         for alt in available_strategies:
-            if alt == current_strategy:
+            if alt == current_strategy or alt in scores:
                 continue
-            alt_score = self._strategy_scores[worm_type].get(alt, 0.5)
-            scores[alt] = alt_score
+            stored = self._strategy_scores[worm_type].get(alt)
+            try:
+                scores[alt] = float(stored) if stored is not None else 0.5
+            except (TypeError, ValueError):
+                scores[alt] = 0.5
 
-        # Find best strategy
-        best_strategy = max(scores, key=scores.get)
-        best_score = scores[best_strategy]
+        should_adapt = False
+        best_strategy = current_strategy
+        best_score = current_score
 
-        # Determine if adaptation is needed
-        should_adapt = (
-            best_strategy != current_strategy
-            and best_score > current_score * 1.15  # 15% improvement threshold
-        )
+        if recommended and recommended != current_strategy and recommended in available_strategies:
+            # Policy channel: governed recommendation -- adopt it.
+            rec_score = max(scores.get(recommended, 0.5), confidence)
+            scores[recommended] = max(scores.get(recommended, 0.5), rec_score)
+            should_adapt = True
+            best_strategy = recommended
+            best_score = scores[recommended]
+            rationale = (
+                f"Apply recommended {recommended}: policy suggestion "
+                f"(confidence {confidence:.3f})"
+            )
+        else:
+            # Observation channel: 15% improvement threshold.
+            best_strategy = max(scores, key=scores.get)
+            best_score = scores[best_strategy]
+            if best_strategy != current_strategy and best_score > current_score * 1.15:
+                should_adapt = True
+                rationale = (
+                    f"Switch to {best_strategy}: score {best_score:.3f} > "
+                    f"{current_score * 1.15:.3f}"
+                )
+            else:
+                rationale = (
+                    f"Keep {current_strategy}: no better alternative "
+                    f"(best: {best_strategy} at {best_score:.3f})"
+                )
 
         adaptation = {
             "worm_type": worm_type,
@@ -315,12 +400,9 @@ class MetaCognitionWorm:
             "recommended_strategy": best_strategy,
             "recommended_score": round(best_score, 4),
             "should_adapt": should_adapt,
-            "rationale": (
-                f"Switch to {best_strategy}: score {best_score:.3f} > {current_score:.3f}"
-                if should_adapt
-                else f"Keep {current_strategy}: no better alternative (best: {best_strategy} at {best_score:.3f})"
-            ),
+            "rationale": rationale,
             "all_scores": {k: round(v, 4) for k, v in scores.items()},
+            "channel": "recommendation" if recommended else "observation",
             "timestamp": datetime.now().isoformat(),
         }
 
@@ -329,21 +411,15 @@ class MetaCognitionWorm:
             if len(self._adaptations) > 100:
                 self._adaptations = self._adaptations[-100:]
 
-            # Update strategy score
-            if should_adapt:
-                self._strategy_scores[worm_type][best_strategy] = best_score * 1.05
+            # Commit the switch so later runs see the new current strategy.
+            if should_adapt and best_strategy != current_strategy:
+                self._current_strategies[worm_type] = best_strategy
+                self._strategy_scores[worm_type][best_strategy] = best_score
 
         # Persist adaptation
         self._persist_adaptation(adaptation)
 
         return adaptation
-
-    def get_confidence(self, worm_type: str) -> float:
-        """Overall confidence for a worm type (0.0-1.0, 0.5 = unknown)."""
-        try:
-            return float(self._confidence_models.get(worm_type, {}).get("overall", 0.5))
-        except (TypeError, ValueError, AttributeError):
-            return 0.5
 
     def _persist_adaptation(self, adaptation: dict) -> None:
         """Persist strategy adaptation to LocalMemoryStore."""
@@ -515,6 +591,7 @@ class MetaCognitionWorm:
                 "confidence_models": dict(self._confidence_models),
                 "strategy_scores": {k: dict(v) for k, v in self._strategy_scores.items()},
                 "adaptations": self._adaptations[-50:],  # Keep last 50
+                "current_strategies": dict(self._current_strategies),
                 "saved_at": datetime.now().isoformat(),
                 "free_threaded": True,
             }
@@ -548,14 +625,17 @@ class MetaCognitionWorm:
         if store is None:
             return False
         try:
-            events = store.search_memories(
-                "state_saved", source="MetaCognitionWorm", limit=5
+            # query_memories orders newest-first (id DESC); FTS
+            # search_memories ranks by relevance and can surface old
+            # rows, so it must not be used for "load latest state".
+            events = store.query_memories(
+                event_type="state_saved", source="MetaCognitionWorm", limit=5
             )
             if not events:
                 return False
 
             # Find the most recent state_saved event
-            for ev in reversed(events):
+            for ev in events:
                 data = ev.get("data", {})
                 if isinstance(data, str):
                     try:
@@ -576,6 +656,7 @@ class MetaCognitionWorm:
                         {k: defaultdict(float, v) for k, v in data.get("strategy_scores", {}).items()},
                     )
                     self._adaptations = data.get("adaptations", [])
+                    self._current_strategies = data.get("current_strategies", {}) or {}
 
                 return True
 

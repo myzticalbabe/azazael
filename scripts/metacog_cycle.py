@@ -40,7 +40,20 @@ if fed:
     worst = max(seen, key=lambda w: seen[w]['err'] / max(1, seen[w]['err'] + seen[w]['ok']))
     if seen[worst]['err']:
         adapted_worm = worst
-        adapted = mc.adapt_strategy(worst, 'default')
+        # Full strategy space so metacog can recommend any strategy the
+        # dreamer/bridge can apply. current 'default' marker resolves to the
+        # tracked strategy when one exists (see adapt_strategy).
+        adapted = mc.adapt_strategy(
+            worst, 'default',
+            available_strategies=['default', 'conservative', 'defensive',
+                                  'aggressive', 'adaptive', 'batched', 'staged'])
+
+# Persist learned state (confidence models, observations, any strategy
+# switch) so the next cycle resumes instead of restarting from empty.
+try:
+    mc.save_state()
+except Exception as e:
+    print('state save failed:', e)
 
 if store is not None:
     try:

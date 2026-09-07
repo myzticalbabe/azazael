@@ -1,16 +1,26 @@
 # coding: utf-8
-"""dream_policy_bridge.py — Close the dream->policy loop.
+"""dream_policy_bridge.py - Close the dream->policy loop.
 
 Applies dream suggestions through MetaCognitionWorm.adapt_strategy (the
 designed policy channel: confidence-weighted recommendations persisted as
 strategy_adaptation rows), one suggestion at a time.
+
+How adaptation now actually happens:
+- Each suggestion names the strategy to try (strategies / recovery_action).
+- The bridge calls adapt_strategy() with that strategy passed as the
+  explicit `recommended` argument plus the suggestion's confidence. The
+  policy channel in adapt_strategy() adopts a governed recommendation,
+  switches the per-worm current strategy, and persists it (save_state).
+- A detailed audit row (per suggestion + run summary) is recorded as a
+  policy_applied event so results are observable, not just counts.
 
 Safety:
 - CurativePool governance per suggestion; blocked items are skipped.
 - Minimum confidence gate (default 0.05, calibrated to the creative
   branch band 0.07-0.45; CurativePool remains the real safety).
 - Fail-closed: governance/import errors skip items, never raise.
-- Audit row per run (best effort).
+- State is saved after each run so the next 5-minute cycle resumes from
+  the updated strategy instead of a stale snapshot.
 
 This module is the `policy_fn` that dreaming.integrate_best() accepts but
 no production caller currently passes.
@@ -45,6 +55,7 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
     """Apply dream suggestions to live strategy policy. Returns report dict."""
     applied: List[Dict[str, Any]] = []
     skipped: List[Dict[str, Any]] = []
+    mc = None
     try:
         from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
         mc = MetaCognitionWorm()
@@ -67,18 +78,39 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
             if not actions:
                 skipped.append({"reason": "no-actionable-strategy"})
                 continue
-            res = mc.adapt_strategy(worm, "default", actions)
-            applied.append({"worm": worm, "actions": actions,
-                            "recommended": res.get("recommended_strategy"),
-                            "should_adapt": res.get("should_adapt")})
+            conf = float(s.get("confidence", 0.0)) or 0.0
+            current = mc.get_current_strategy(worm)
+            res = mc.adapt_strategy(
+                worm, current, actions,
+                recommended=actions[0], confidence=conf,
+            )
+            applied.append({
+                "worm": worm,
+                "current_strategy": current,
+                "recommended": actions[0],
+                "confidence": round(conf, 4),
+                "should_adapt": res.get("should_adapt"),
+                "rationale": res.get("rationale"),
+                "all_scores": res.get("all_scores"),
+            })
         except Exception as e:
             skipped.append({"reason": f"error: {e}"})
+
+    # Persist state so the next cycle resumes from the updated strategy.
+    if mc is not None:
+        try:
+            mc.save_state()
+        except Exception:
+            pass
 
     try:
         from CORE.direct_memory import DirectMemory
         DirectMemory().record("policy_applied", {
             "action": "dream policy bridge run",
-            "applied": len(applied), "skipped": len(skipped),
+            "applied": len(applied),
+            "skipped": len(skipped),
+            "details": {"applied": applied, "skipped": skipped},
+            "governance_min_confidence": min_confidence,
         }, tags=["policy", "dream", "bridge"])
     except Exception:
         pass
