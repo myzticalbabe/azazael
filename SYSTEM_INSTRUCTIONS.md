@@ -2438,3 +2438,14 @@ canonical doc changes = CRITICAL violation.
 
 **Related:** RULE 0K (Reading Order), RULE 0R (Skills Sync), RULE 0X (Auto-Compliance),
 Error #227 (Quartet pillar drift), Gemini Jun 21 architectural analysis.
+
+---
+
+## Hat Codification — White Hat / Red Hat / Cerulean Hat (Blue)
+
+**Rule:** every tool is deemed White Hat or Red Hat in HAT_TAXONOMY.md, or it
+is Cerulean Hat (Blue) by default. No other designations are used.
+**Principle:** the hat follows authorization and intent, not the binary —
+the Kali audit arsenal is White Hat under authorization; Red Hat is a
+reserved designation for unauthorized use only.
+**Canon:** `HAT_TAXONOMY.md` (repo root, 57 tools explicitly listed).
