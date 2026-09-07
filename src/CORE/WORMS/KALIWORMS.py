@@ -39,24 +39,40 @@ def _wsl(argv, timeout=_PROBE_TIMEOUT):
         return -1, str(e)[:200]
 
 
+_VERSION_FLAGS = (("--version",), ("-V",), ("version",), ("-h",), ("--help",))
+
+
 class _KaliToolWorm:
     """Base: probe the tool until one flag works. Subclasses set BIN/PROBES."""
     BIN = ""
-    PROBES = (("--version",), ("-V",), ("version",), ("-h",), ("--help",))
+    PROBES = None
     TIMEOUT = _PROBE_TIMEOUT
 
     def scan(self):
         """Probe tool capability. Parameterless so cluster machinery invokes it."""
-        if not self.BIN:
+        if self.PROBES:
+            chains = [list(a) for a in self.PROBES]
+            label = self.BIN or chains[0][0]
+        elif self.BIN:
+            chains = [[self.BIN] + list(f) for f in _VERSION_FLAGS]
+            label = self.BIN
+        else:
             return {"success": False, "error": "no binary configured"}
         last = ""
-        for flags in self.PROBES:
-            rc, out = _wsl([self.BIN] + list(flags), self.TIMEOUT)
-            if rc == 0 and out:
-                return {"success": True, "tool": self.BIN,
-                        "probe": " ".join(flags), "output": out[:300]}
-            last = out[:200]
-        return {"success": False, "tool": self.BIN, "error": last or "no output"}
+        for argv in chains:
+            rc, out = _wsl(argv, self.TIMEOUT)
+            if "command not found" in out or rc == 127:
+                last = out[:200]
+                continue
+            if ("Traceback" in out or "ModuleNotFoundError" in out
+                    or "PackageNotFoundError" in out or "ImportError" in out):
+                last = out[:200]
+                continue
+            if out:
+                return {"success": True, "tool": label,
+                        "probe": " ".join(argv), "output": out[:300]}
+            last = out[:200] or f"rc={rc} silent"
+        return {"success": False, "tool": label, "error": last or "no output"}
 
 
 def _make(name, binary, category, desc, probes=None):
@@ -103,7 +119,7 @@ _TOOLS = [
     ("MitmproxyWorm", "mitmproxy", "security", "Intercepting proxy via mitmproxy", None),
     ("BettercapWorm", "bettercap", "security", "MITM framework via bettercap", None),
     ("ResponderWorm", "responder", "security", "LLMNR/NBT-NS responder via responder", None),
-    ("BloodhoundWorm", "bloodhound", "security", "AD graph collection via BloodHound", None),
+    ("BloodhoundWorm", "bloodhound-ce-python", "security", "AD graph collection via BloodHound", None),
     ("ImpacketWorm", "impacket", "security", "Network protocol toolkit (impacket lib)",
      (( "python3", "-c", "import impacket; print('impacket-ok')"),)),
     ("CrackmapexecWorm", "crackmapexec", "security", "Network execution via crackmapexec/netexec",
