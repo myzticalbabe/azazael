@@ -737,12 +737,17 @@ class DreamingModule:
             source=source, event_type=event_type, limit=scenario_count * num_episodes
         )
 
-        # DREAM
-        dreams = self.dream(
-            num_episodes=num_episodes,
-            scenario_count=scenario_count,
-            creativity_factor=creativity_factor,
-        )
+        # DREAM (isolated: a failed generation must not kill the pipeline)
+        dream_error = None
+        try:
+            dreams = self.dream(
+                num_episodes=num_episodes,
+                scenario_count=scenario_count,
+                creativity_factor=creativity_factor,
+            )
+        except Exception as e:
+            dreams = []
+            dream_error = str(e)[:200]
 
         # EVALUATE
         eval_result = self.evaluate_dreams(dreams)
@@ -767,6 +772,7 @@ class DreamingModule:
             "dream_count": len(dreams),
             "evaluation": eval_result,
             "integration": integration,
+            "errors": ([dream_error] if dream_error else []),
             "duration_ms": round(duration_ms, 2),
             "timestamp": datetime.now().isoformat(),
         }
@@ -793,7 +799,15 @@ class DreamingModule:
             pass
 
     def _persist_dreaming_session(self, dreams: list[Dream]) -> None:
-        """Persist dreaming session to LocalMemoryStore."""
+        """Persist dreaming session to LocalMemoryStore.
+
+        Skips substance-free dreams (no suggestions and no patterns) so
+        failed generations don't become permanent noise.
+        """
+        dreams = [d for d in dreams
+                  if d.policy_suggestions or d.novel_patterns]
+        if not dreams:
+            return
         try:
             from CORE.local_memory import get_memory_store
             store = get_memory_store()
