@@ -64,6 +64,13 @@ def load_communities(sna_path):
     return lab_to_comm
 
 
+def load_betweenness(sna_path):
+    """label -> betweenness from sna_results.json (keyed by label)."""
+    with open(sna_path, encoding="utf-8") as f:
+        sna = json.load(f)
+    return dict(sna.get("centrality", {}).get("betweenness", {}))
+
+
 def area_color(area):
     if area in AREA_COLORS:
         return AREA_COLORS[area]
@@ -84,10 +91,12 @@ def lighten(h, amt=0.35):
     return rgb_to_hex(r + (255 - r) * amt, g + (255 - g) * amt, b + (255 - b) * amt)
 
 
-def build(G, data, mode, lab_to_comm=None):
+def build(G, data, mode, lab_to_comm=None, size_mode="degree", lab_to_bet=None):
     """Set node colors/sizes on G from graph.json node records."""
     deg = dict(G.degree())
     max_deg = max(deg.values()) or 1
+    bet = lab_to_bet or {}
+    max_bet = max(bet.values(), default=0.0) or 1e-9
     by_id = {n["id"]: n for n in data["nodes"]}
     for i in G.nodes():
         rec = by_id.get(G.nodes[i].get("id"), {})
@@ -99,9 +108,14 @@ def build(G, data, mode, lab_to_comm=None):
         else:
             col = TYPE_COLORS.get(rec.get("type", "module"), "#888")
         ev = rec.get("events", 0) or rec.get("count", 0)
+        if size_mode == "betweenness":
+            b = bet.get(rec.get("label", ""), 0.0)
+            size = 3.5 + 26 * (b / max_bet)
+        else:
+            size = 3.5 + 10 * (deg.get(i, 1) / max_deg)
         G.nodes[i]["color"] = col
         G.nodes[i]["ev"] = ev
-        G.nodes[i]["size"] = 3.5 + 10 * (deg.get(i, 1) / max_deg) * (1.3 if ev else 1.0)
+        G.nodes[i]["size"] = size * (1.3 if ev else 1.0)
         G.nodes[i]["label"] = rec.get("label", str(i))
 
 
@@ -181,22 +195,33 @@ def main():
     ap.add_argument("--mode", choices=["area", "type", "community"], default="area",
                     help="node color scheme: area (source dir), type (module/event/...), "
                          "community (Louvain from sna_results.json)")
+    ap.add_argument("--size", choices=["degree", "betweenness"], default="degree",
+                    help="node size metric (betweenness reads sna_results.json)")
     ap.add_argument("--out", default="")
+    ap.add_argument("--json", action="store_true",
+                    help="write community membership JSON next to the SVG")
     args = ap.parse_args()
 
     with open(args.graph_json, encoding="utf-8") as f:
         data = json.load(f)
 
     lab_to_comm = None
-    if args.mode == "community":
-        sna_path = os.path.join(os.path.dirname(os.path.abspath(args.graph_json)),
-                                "sna_results.json")
+    lab_to_bet = None
+    sna_path = os.path.join(os.path.dirname(os.path.abspath(args.graph_json)),
+                            "sna_results.json")
+    if args.mode == "community" or args.size == "betweenness" or args.json:
         if os.path.exists(sna_path):
             lab_to_comm = load_communities(sna_path)
-            print(f"community map: {len(lab_to_comm)} nodes assigned")
+            lab_to_bet = load_betweenness(sna_path)
+            if args.mode == "community":
+                print(f"community map: {len(lab_to_comm)} nodes assigned")
         else:
             print(f"[render_graph_svg] WARN: {sna_path} missing - falling back to area")
-            args.mode = "area"
+            if args.mode == "community":
+                args.mode = "area"
+
+    if args.json:
+        _write_communities_json(args.graph_json, lab_to_comm or {})
 
     G = nx.Graph()
     for n in data["nodes"]:
@@ -204,12 +229,27 @@ def main():
     for e in data["links"]:
         G.add_edge(e["source"], e["target"])
 
-    build(G, data, args.mode, lab_to_comm)
+    build(G, data, args.mode, lab_to_comm, args.size, lab_to_bet)
     if not args.out:
         args.out = os.path.splitext(args.graph_json)[0] + ".svg"
     title = os.path.basename(os.path.dirname(os.path.abspath(args.graph_json)))
     print("wrote", render_svg(G, data, args.mode, title, args.out))
     return 0
+
+
+def _write_communities_json(graph_json, lab_to_comm):
+    """Write per-community member lists next to the source graph.json."""
+    out = os.path.join(os.path.dirname(os.path.abspath(graph_json)), "communities.json")
+    by_comm = {}
+    for label, ci in lab_to_comm.items():
+        by_comm.setdefault(ci, []).append(label)
+    payload = {"n_communities": len(by_comm),
+               "communities": [{"index": ci, "n": len(members),
+                                "members": sorted(members)}
+                               for ci, members in sorted(by_comm.items())]}
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=1)
+    print(f"community memberships -> {out} ({len(by_comm)} communities)")
 
 
 if __name__ == "__main__":
