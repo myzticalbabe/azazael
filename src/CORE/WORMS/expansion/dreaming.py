@@ -715,7 +715,8 @@ class DreamingModule:
                                num_episodes: int = 5,
                                scenario_count: int = 20,
                                creativity_factor: float = 0.3,
-                               auto_integrate: bool = True) -> dict[str, Any]:
+                               auto_integrate: bool = True,
+                               policy_fn=None) -> dict[str, Any]:
         """Run the complete RECALL->DREAM->EVALUATE->INTEGRATE pipeline.
 
         Args:
@@ -755,7 +756,7 @@ class DreamingModule:
                     best_dream = d
                     break
             if best_dream:
-                integration = self.integrate_best(best_dream)
+                integration = self.integrate_best(best_dream, policy_fn=policy_fn)
 
         duration_ms = (time.perf_counter() - start) * 1000
 
