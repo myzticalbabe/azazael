@@ -180,6 +180,18 @@ class InferenceEngine:
             self._inference_count += len(result.results)
             self._total_latency_ms += result.total_time_ms
 
+        # Learn: record outcome for evolution (best-effort, never raises)
+        try:
+            from .model_registry import get_registry
+            _mpath = handle.split(":", 1)[1] if ":" in handle else handle
+            if isinstance(result, InferenceResult):
+                _lat = float(result.latency_ms or 0)
+            else:
+                _lat = float(result.total_time_ms) / max(1, len(result.results))
+            get_registry().record_inference(_mpath, _lat, framework)
+        except Exception:
+            pass
+
         # Store in cache
         if not batch and self._cache is not None:
             self._cache.put(handle, inputs, framework, result)

@@ -222,6 +222,23 @@ class ModelRegistry:
             } if most_used.inference_count > 0 else None,
         }
 
+    def select_fastest(self, framework: (str | None) = None) -> (str | None):
+        """Evolution: route to the lowest-latency model with observed data.
+
+        Falls back to the smallest registered model (cheapest to try) when
+        nothing has measurements yet. Returns canonical path or None.
+        """
+        cands = [m for m in self._models.values()
+                 if m.inference_count > 0
+                 and (framework is None or m.framework == framework)]
+        if cands:
+            return min(cands, key=lambda m: m.avg_latency_ms).canonical_path
+        cold = [m for m in self._models.values()
+                if framework is None or m.framework == framework]
+        if cold:
+            return min(cold, key=lambda m: m.size_mb).canonical_path
+        return None
+
     # ── Scanning ────────────────────────────────────────────────
 
     def scan(self, directories: (list[str] | None) = None) -> int:
