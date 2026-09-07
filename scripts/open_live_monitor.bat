@@ -22,4 +22,4 @@ echo  Showing this window instead of closing so you can read it.
 echo  (Ctrl+C to fully close)
 echo ============================================================
 pause
-goto loop
+goto loop
