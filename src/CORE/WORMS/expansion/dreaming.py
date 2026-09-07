@@ -368,6 +368,26 @@ class DreamingModule:
                         ),
                     })
 
+        # -- 4. Pattern-grounded guidance from distilled knowledge --
+        try:
+            from CORE.pattern_memory import query_patterns
+            srcs = sorted({s.get("source", "") for s in scenarios if s.get("source")})
+            qtext = "error recovery policy " + " ".join(srcs[:3])
+            for hit in query_patterns(qtext, top_k=2):
+                md = hit.get("metadata", {}) or {}
+                suggestions.append({
+                    "type": "pattern_grounded",
+                    "source": "pattern_memory",
+                    "pattern": md.get("key", "") or hit.get("pattern_type", ""),
+                    "confidence": round(hit.get("confidence", 0.5), 3),
+                    "rationale": (
+                        f"Distilled knowledge (score {hit.get('score', 0)}): "
+                        f"{(md.get('text', '') or json.dumps(md))[:140]}"
+                    ),
+                })
+        except Exception:
+            pass
+
         return suggestions
 
     def _mine_error_recovery_patterns(self, scenarios: list[dict]) -> list[dict]:
