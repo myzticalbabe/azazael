@@ -142,6 +142,40 @@ class ScheduledTrainingWorm:
 
     # -- Main Execution ----------------------------------------------
 
+    def _plateau_skip_reason(self) -> Optional[str]:
+        """Skip retraining when converged on unchanged data (learned knowledge).
+
+        Compares the last two scheduled runs: identical record counts and
+        reward within 2% means nothing left to learn. Returns reason or None.
+        Read-only; fails open (None) on any error.
+        """
+        try:
+            import json as _json
+            store = self._get_store()
+            if store is None:
+                return None
+            recent = store.query_memories(event_type="training_run_complete", limit=2)
+            if len(recent) < 2:
+                return None
+            datas = []
+            for r in recent:
+                d = r.get("data", {})
+                if isinstance(d, str):
+                    try:
+                        d = _json.loads(d)
+                    except (ValueError, TypeError):
+                        return None
+                datas.append(d if isinstance(d, dict) else {})
+            a, b = datas[0], datas[1]
+            if a.get("records") != b.get("records"):
+                return None
+            ra, rb = float(a.get("avg_reward", 0) or 0), float(b.get("avg_reward", 0) or 0)
+            if rb and abs(ra - rb) / abs(rb) < 0.02:
+                return f"plateaued: reward {ra} vs {rb} on {a.get('records')} records"
+            return None
+        except Exception:
+            return None
+
     def execute(self) -> TrainingRun:
         """Execute one full training pipeline run.
 
@@ -152,6 +186,18 @@ class ScheduledTrainingWorm:
         run_id = f"train_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{random.randint(1000, 9999)}"
         started_at = datetime.now().isoformat()
         error = None
+
+        # Knowledge application: skip converged retraining on unchanged data.
+        skip_reason = self._plateau_skip_reason()
+        if skip_reason:
+            return TrainingRun(
+                run_id=run_id, started_at=started_at,
+                completed_at=datetime.now().isoformat(),
+                duration_ms=round((time.perf_counter() - start) * 1000, 2),
+                records_extracted=0, n_episodes=0, avg_reward=0.0,
+                q_table_size=0, model_version=self._last_model_version,
+                success=True, error=None,
+            )
 
         try:
             # Stage 1: DataPipelineWorm — extract data
