@@ -1,8 +1,9 @@
-"""Scheduled dream cycle: recall -> dream (8 episodes) -> evaluate -> persist.
+"""Scheduled dream cycle: recall -> dream (8 episodes) -> evaluate -> integrate.
 
 Robustness: overlap guard (lockfile w/ stale-PID steal), file log,
 consecutive-failure counter, nonzero exit on failure (visible in
-Task Scheduler Last Result). Never auto-integrates.
+Task Scheduler Last Result). Policy bridge ARMED: approved suggestions
+apply via MetaCognitionWorm (governed, audited, reversible).
 Run every 5 minutes via Task Scheduler (Azazael-DreamCycle).
 """
 import json
@@ -70,16 +71,21 @@ def fail_count(delta=None):
 
 def main():
     from CORE.WORMS.expansion.dreaming import DreamingModule
+    from CORE.dream_policy_bridge import apply_dream_policy
     if not acquire_lock():
         log('SKIP overlap: previous cycle still running')
         return 0
     try:
         dm = DreamingModule()
         out = dm.run_dreaming_pipeline(
-            num_episodes=8, scenario_count=40, auto_integrate=False)
+            num_episodes=8, scenario_count=40, auto_integrate=True,
+            policy_fn=apply_dream_policy)
         fail_count(-999)
-        log('OK dreams=%s ms=%s' % (out.get('dream_count'),
-                                    out.get('duration_ms')))
+        integ = out.get('integration') or {}
+        pr = integ.get('policy_result') or {}
+        log('OK dreams=%s ms=%s applied=%d skipped=%d' % (
+            out.get('dream_count'), out.get('duration_ms'),
+            len(pr.get('applied', [])), len(pr.get('skipped', []))))
         return 0
     except Exception:
         n = fail_count(+1)
