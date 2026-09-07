@@ -350,23 +350,28 @@ class DreamingModule:
                     "evidence_count": hp.get("total_attempts", 1),
                 })
 
-        # -- 3. Creative strategy exploration (only if creativity_factor is high) --
-        if creativity_factor > 0.2:
-            strategies = ["conservative", "adaptive", "aggressive", "batched", "staged"]
-            if True:  # explore even with no mined suggestions yet
-                # Bias toward strategies that worked in data
-                used_strategies = {s.get("recovery_action", "") for s in suggestions}
-                novel_strategies = [s for s in strategies if s not in used_strategies]
-                if novel_strategies:
-                    suggestions.append({
-                        "type": "strategy_exploration",
-                        "strategies": random.sample(novel_strategies, min(2, len(novel_strategies))),
-                        "confidence": round(creativity_factor * random.uniform(0.2, 0.5), 3),
-                        "rationale": (
-                            f"Exploring untried strategies ({', '.join(novel_strategies[:2])}) "
-                            f"during offline dreaming — safe to test without live impact"
-                        ),
-                    })
+        # -- 3. Creative strategy exploration -------------------------------
+        # Low creativity must REDUCE exploration, not eliminate it: if the
+        # gate above is the only suggestion source (no error records to mine)
+        # then conservative/defensive tuning would silence every suggestion
+        # and the loop could never adapt away from them. Fire whenever novel
+        # strategies exist; creativity scales how many get proposed and their
+        # confidence (conservative -> 1 tepid suggestion, aggressive -> 2 bold).
+        strategies = ["conservative", "adaptive", "aggressive", "batched", "staged"]
+        # Bias toward strategies that worked in data
+        used_strategies = {s.get("recovery_action", "") for s in suggestions}
+        novel_strategies = [s for s in strategies if s not in used_strategies]
+        if novel_strategies:
+            n_propose = min(2, max(1, round(creativity_factor * 4)), len(novel_strategies))
+            suggestions.append({
+                "type": "strategy_exploration",
+                "strategies": random.sample(novel_strategies, n_propose),
+                "confidence": round(max(0.05, creativity_factor) * random.uniform(0.2, 0.5), 3),
+                "rationale": (
+                    f"Exploring untried strategies ({', '.join(novel_strategies[:2])}) "
+                    f"during offline dreaming — safe to test without live impact"
+                ),
+            })
 
         # -- 4. Pattern-grounded guidance from distilled knowledge --
         try:
