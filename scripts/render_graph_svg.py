@@ -36,6 +36,32 @@ TYPE_COLORS = {"module": "#3fb950", "external": "#ffd700", "event": "#58a6ff",
 FALLBACK = ["#f47067", "#7ee787", "#79c0ff", "#ffa657", "#d2a8ff", "#ff7b72",
             "#a5d6ff", "#ffc680", "#c69026", "#ffa198", "#56d4dd", "#e3b341",
             "#bc8cff", "#76e3ea", "#f778ba"]
+# spaced hues for Louvain communities (distinguishable at 300+ communities)
+COMMUNITY_PALETTE = ["#f47067", "#7ee787", "#79c0ff", "#ffa657", "#d2a8ff",
+                     "#ff7b72", "#a5d6ff", "#ffc680", "#c69026", "#ffa198",
+                     "#56d4dd", "#e3b341", "#bc8cff", "#76e3ea", "#f778ba",
+                     "#ff9bce", "#7ce38f", "#8bd5ca", "#e6edf3", "#f5a623"]
+
+
+def community_color(ci: int) -> str:
+    if ci < len(COMMUNITY_PALETTE):
+        return COMMUNITY_PALETTE[ci]
+    # deterministic golden-angle hue spacing for the long tail
+    import colorsys
+    h = (ci * 0.61803398875) % 1.0
+    r, g, b = colorsys.hsv_to_rgb(h, 0.75, 0.95)
+    return "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
+
+
+def load_communities(sna_path):
+    """label -> community index from sna_results.json (members are labels)."""
+    with open(sna_path, encoding="utf-8") as f:
+        sna = json.load(f)
+    lab_to_comm = {}
+    for c in sna.get("communities", []):
+        for m in c.get("members", []):
+            lab_to_comm[m] = c["index"]
+    return lab_to_comm
 
 
 def area_color(area):
@@ -58,7 +84,7 @@ def lighten(h, amt=0.35):
     return rgb_to_hex(r + (255 - r) * amt, g + (255 - g) * amt, b + (255 - b) * amt)
 
 
-def build(G, data, mode):
+def build(G, data, mode, lab_to_comm=None):
     """Set node colors/sizes on G from graph.json node records."""
     deg = dict(G.degree())
     max_deg = max(deg.values()) or 1
@@ -67,6 +93,9 @@ def build(G, data, mode):
         rec = by_id.get(G.nodes[i].get("id"), {})
         if mode == "area":
             col = area_color(rec.get("type", "?"))
+        elif mode == "community":
+            ci = (lab_to_comm or {}).get(rec.get("label", ""), 0)
+            col = community_color(ci)
         else:
             col = TYPE_COLORS.get(rec.get("type", "module"), "#888")
         ev = rec.get("events", 0) or rec.get("count", 0)
@@ -149,12 +178,25 @@ def render_svg(G, data, mode, title, out):
 def main():
     ap = argparse.ArgumentParser(description="Static SVG render of a pipeline graph.json")
     ap.add_argument("graph_json")
-    ap.add_argument("--mode", choices=["area", "type"], default="area")
+    ap.add_argument("--mode", choices=["area", "type", "community"], default="area",
+                    help="node color scheme: area (source dir), type (module/event/...), "
+                         "community (Louvain from sna_results.json)")
     ap.add_argument("--out", default="")
     args = ap.parse_args()
 
     with open(args.graph_json, encoding="utf-8") as f:
         data = json.load(f)
+
+    lab_to_comm = None
+    if args.mode == "community":
+        sna_path = os.path.join(os.path.dirname(os.path.abspath(args.graph_json)),
+                                "sna_results.json")
+        if os.path.exists(sna_path):
+            lab_to_comm = load_communities(sna_path)
+            print(f"community map: {len(lab_to_comm)} nodes assigned")
+        else:
+            print(f"[render_graph_svg] WARN: {sna_path} missing - falling back to area")
+            args.mode = "area"
 
     G = nx.Graph()
     for n in data["nodes"]:
@@ -162,7 +204,7 @@ def main():
     for e in data["links"]:
         G.add_edge(e["source"], e["target"])
 
-    build(G, data, args.mode)
+    build(G, data, args.mode, lab_to_comm)
     if not args.out:
         args.out = os.path.splitext(args.graph_json)[0] + ".svg"
     title = os.path.basename(os.path.dirname(os.path.abspath(args.graph_json)))
