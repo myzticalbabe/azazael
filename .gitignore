@@ -16,6 +16,7 @@ venv/
 # Archives (build artifacts, not source)
 .archive/
 archive/build_artifacts/
+archive/restored/
 
 # Databases
 *.db
