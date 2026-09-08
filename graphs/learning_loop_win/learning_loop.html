@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 900px;
+                 background-color: #0d1117;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 0, "label": "dreaming.py", "shape": "dot", "size": 28.0, "title": "dreaming.py\u003cbr\u003etype module \u00b7 community C0 \u00b7 degree 13"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 1, "label": "meta_cognition.py", "shape": "dot", "size": 28.0, "title": "meta_cognition.py\u003cbr\u003etype module \u00b7 community C0 \u00b7 degree 13"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 2, "label": "learning.py", "shape": "dot", "size": 20.307692307692307, "title": "learning.py\u003cbr\u003etype module \u00b7 community C1 \u00b7 degree 8"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 3, "label": "evolution.py", "shape": "dot", "size": 9.538461538461538, "title": "evolution.py\u003cbr\u003etype module \u00b7 community C1 \u00b7 degree 1"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 4, "label": "dream_policy_bridge.py", "shape": "dot", "size": 12.615384615384617, "title": "dream_policy_bridge.py\u003cbr\u003etype module \u00b7 community C2 \u00b7 degree 3"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 5, "label": "local_memory.py", "shape": "dot", "size": 15.692307692307693, "title": "local_memory.py\u003cbr\u003etype module \u00b7 community C3 \u00b7 degree 5"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 6, "label": "monitor_learning.py", "shape": "dot", "size": 18.769230769230766, "title": "monitor_learning.py\u003cbr\u003etype module \u00b7 community C2 \u00b7 degree 7"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 7, "label": "dream_cycle.py", "shape": "dot", "size": 9.538461538461538, "title": "dream_cycle.py\u003cbr\u003etype module \u00b7 community C0 \u00b7 degree 1"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 8, "label": "metacog_cycle.py", "shape": "dot", "size": 14.153846153846153, "title": "metacog_cycle.py\u003cbr\u003etype module \u00b7 community C3 \u00b7 degree 4"}, {"color": "#3fb950", "font": {"color": "#c9d1d9"}, "id": 9, "label": "evolution_cycle.py", "shape": "dot", "size": 12.615384615384617, "title": "evolution_cycle.py\u003cbr\u003etype module \u00b7 community C1 \u00b7 degree 3"}, {"color": "#ffd700", "font": {"color": "#c9d1d9"}, "id": 10, "label": "CLUSTERWORMS.py", "shape": "dot", "size": 9.538461538461538, "title": "CLUSTERWORMS.py\u003cbr\u003etype external \u00b7 community C3 \u00b7 degree 1"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 11, "label": "dream_generated", "shape": "square", "size": 11.076923076923077, "title": "dream_generated\u003cbr\u003etype event \u00b7 community C2 \u00b7 degree 2"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 12, "label": "strategy_steered", "shape": "square", "size": 12.615384615384617, "title": "strategy_steered\u003cbr\u003etype event \u00b7 community C0 \u00b7 degree 3"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 13, "label": "policy_applied", "shape": "square", "size": 11.076923076923077, "title": "policy_applied\u003cbr\u003etype event \u00b7 community C2 \u00b7 degree 2"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 14, "label": "strategy_adaptation", "shape": "square", "size": 17.230769230769234, "title": "strategy_adaptation\u003cbr\u003etype event \u00b7 community C0 \u00b7 degree 6"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 15, "label": "state_saved", "shape": "square", "size": 11.076923076923077, "title": "state_saved\u003cbr\u003etype event \u00b7 community C2 \u00b7 degree 2"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 16, "label": "mc_cycle", "shape": "square", "size": 11.076923076923077, "title": "mc_cycle\u003cbr\u003etype event \u00b7 community C3 \u00b7 degree 2"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 17, "label": "evolution_result", "shape": "square", "size": 11.076923076923077, "title": "evolution_result\u003cbr\u003etype event \u00b7 community C1 \u00b7 degree 2"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 18, "label": "training_complete", "shape": "square", "size": 11.076923076923077, "title": "training_complete\u003cbr\u003etype event \u00b7 community C2 \u00b7 degree 2"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 19, "label": "q_table_persisted", "shape": "square", "size": 9.538461538461538, "title": "q_table_persisted\u003cbr\u003etype event \u00b7 community C1 \u00b7 degree 1"}, {"color": "#58a6ff", "font": {"color": "#c9d1d9"}, "id": 20, "label": "clusterwormz_execute_complete", "shape": "square", "size": 11.076923076923077, "title": "clusterwormz_execute_complete\u003cbr\u003etype event \u00b7 community C3 \u00b7 degree 2"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 21, "label": "default", "shape": "star", "size": 11.076923076923077, "title": "default\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 2"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 22, "label": "conservative", "shape": "star", "size": 14.153846153846153, "title": "conservative\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 4"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 23, "label": "defensive", "shape": "star", "size": 11.076923076923077, "title": "defensive\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 2"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 24, "label": "aggressive", "shape": "star", "size": 14.153846153846153, "title": "aggressive\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 4"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 25, "label": "adaptive", "shape": "star", "size": 12.615384615384617, "title": "adaptive\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 3"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 26, "label": "batched", "shape": "star", "size": 12.615384615384617, "title": "batched\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 3"}, {"color": "#ff8844", "font": {"color": "#c9d1d9"}, "id": 27, "label": "staged", "shape": "star", "size": 12.615384615384617, "title": "staged\u003cbr\u003etype strategy \u00b7 community C0 \u00b7 degree 3"}, {"color": "#aa66ff", "font": {"color": "#c9d1d9"}, "id": 28, "label": "ignore", "shape": "diamond", "size": 9.538461538461538, "title": "ignore\u003cbr\u003etype action \u00b7 community C1 \u00b7 degree 1"}, {"color": "#aa66ff", "font": {"color": "#c9d1d9"}, "id": 29, "label": "log", "shape": "diamond", "size": 9.538461538461538, "title": "log\u003cbr\u003etype action \u00b7 community C1 \u00b7 degree 1"}, {"color": "#aa66ff", "font": {"color": "#c9d1d9"}, "id": 30, "label": "alert", "shape": "diamond", "size": 9.538461538461538, "title": "alert\u003cbr\u003etype action \u00b7 community C1 \u00b7 degree 1"}, {"color": "#aa66ff", "font": {"color": "#c9d1d9"}, "id": 31, "label": "remediate", "shape": "diamond", "size": 9.538461538461538, "title": "remediate\u003cbr\u003etype action \u00b7 community C1 \u00b7 degree 1"}]);
+                  edges = new vis.DataSet([{"color": "#8b949e", "from": 0, "to": 5, "width": 1.2}, {"color": "#8b949e", "from": 0, "to": 4, "width": 1.2}, {"color": "#8b949e", "from": 0, "to": 1, "width": 1.2}, {"color": "#a371f7", "from": 0, "to": 7, "width": 1.2}, {"color": "#3fb950", "from": 0, "to": 11, "width": 1.2}, {"color": "#3fb950", "from": 0, "to": 12, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 21, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 22, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 23, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 24, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 25, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 26, "width": 1.2}, {"color": "#ff8844", "from": 0, "to": 27, "width": 1.2}, {"color": "#8b949e", "from": 1, "to": 5, "width": 1.2}, {"color": "#8b949e", "from": 1, "to": 4, "width": 1.2}, {"color": "#a371f7", "from": 1, "to": 8, "width": 1.2}, {"color": "#3fb950", "from": 1, "to": 14, "width": 1.2}, {"color": "#3fb950", "from": 1, "to": 15, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 21, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 22, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 23, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 24, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 25, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 26, "width": 1.2}, {"color": "#d29922", "from": 1, "to": 27, "width": 1.2}, {"color": "#8b949e", "from": 2, "to": 5, "width": 1.2}, {"color": "#8b949e", "from": 2, "to": 9, "width": 1.2}, {"color": "#3fb950", "from": 2, "to": 18, "width": 1.2}, {"color": "#3fb950", "from": 2, "to": 19, "width": 1.2}, {"color": "#aa66ff", "from": 2, "to": 28, "width": 1.2}, {"color": "#aa66ff", "from": 2, "to": 29, "width": 1.2}, {"color": "#aa66ff", "from": 2, "to": 30, "width": 1.2}, {"color": "#aa66ff", "from": 2, "to": 31, "width": 1.2}, {"color": "#a371f7", "from": 3, "to": 9, "width": 1.2}, {"color": "#3fb950", "from": 4, "to": 13, "width": 1.2}, {"color": "#8b949e", "from": 5, "to": 6, "width": 1.2}, {"color": "#8b949e", "from": 5, "to": 8, "width": 1.2}, {"color": "#58a6ff", "from": 6, "to": 11, "width": 1.2}, {"color": "#58a6ff", "from": 6, "to": 13, "width": 1.2}, {"color": "#58a6ff", "from": 6, "to": 15, "width": 1.2}, {"color": "#58a6ff", "from": 6, "to": 16, "width": 1.2}, {"color": "#58a6ff", "from": 6, "to": 17, "width": 1.2}, {"color": "#58a6ff", "from": 6, "to": 18, "width": 1.2}, {"color": "#3fb950", "from": 8, "to": 16, "width": 1.2}, {"color": "#58a6ff", "from": 8, "to": 20, "width": 1.2}, {"color": "#3fb950", "from": 9, "to": 17, "width": 1.2}, {"color": "#3fb950", "from": 10, "to": 20, "width": 1.2}, {"color": "#f778ba", "from": 12, "to": 22, "width": 1.2}, {"color": "#f778ba", "from": 12, "to": 24, "width": 1.2}, {"color": "#f778ba", "from": 14, "to": 24, "width": 1.2}, {"color": "#f778ba", "from": 14, "to": 27, "width": 1.2}, {"color": "#f778ba", "from": 14, "to": 26, "width": 1.2}, {"color": "#f778ba", "from": 14, "to": 25, "width": 1.2}, {"color": "#f778ba", "from": 14, "to": 22, "width": 1.2}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"nodes": {"borderWidth": 1.5, "font": {"size": 13, "face": "Tahoma"}}, "edges": {"smooth": {"type": "continuous"}, "color": {"inherit": false}}, "physics": {"enabled": true, "stabilization": {"iterations": 300}}, "interaction": {"hover": true, "tooltipDelay": 120}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    <div style="position:fixed;bottom:8px;left:8px;z-index:9999;background:rgba(13,17,23,0.92);border:1px solid #30363d;border-radius:6px;padding:8px 12px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#c9d1d9;max-width:85%;"><div style="font-weight:bold;margin-bottom:4px;">node = type · edge = relation (import/calls/produces/consumes/steers/applies/chooses/leads_to)</div><div><b>nodes</b>&nbsp;<span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#aa66ff;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>action</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#58a6ff;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>event</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#ffd700;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>external</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#3fb950;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>module</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#ff8844;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>strategy</span></div><div><b>edges</b>&nbsp;<span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#d29922;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>applies</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#a371f7;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>calls</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#aa66ff;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>chooses</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#58a6ff;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>consumes</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#8b949e;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>import</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#f778ba;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>leads_to</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#3fb950;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>produces</span><span style="display:inline-block;margin:2px 10px 2px 0;"><span style="display:inline-block;width:12px;height:12px;background:#ff8844;border:1px solid #555;border-radius:2px;margin-right:4px;vertical-align:middle;"></span>steers</span></div></div></body>
+</html>

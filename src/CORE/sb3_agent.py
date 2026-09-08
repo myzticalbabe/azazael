@@ -40,6 +40,8 @@ Usage:
 import sys
 import json
 import time
+import os
+import subprocess
 import threading
 import numpy as np
 
@@ -57,11 +59,31 @@ if _azazael_src not in sys.path:
 from CORE.Agent import FreeThreadedAgent, AgentConfig, IS_FREE_THREADED
 
 # -- SB3 with graceful fallback ----------------------------------------------
+# NOTE: importing stable_baselines3 pulls in torch, whose C-extensions SEGFAULT
+# free-threaded 3.14t at import time (even with -X gil=1). So on free-threaded
+# Python with the GIL disabled, skip the import entirely — train() will route
+# to the GIL subprocess fallback instead.
 try:
-    from stable_baselines3 import PPO, DQN, A2C
-    from stable_baselines3.common.base_class import BaseAlgorithm
-    HAS_SB3 = True
-except ImportError:
+    import sysconfig as _sysconfig
+    _SKIP_SB3_IMPORT = (
+        _sysconfig.get_config_var("Py_GIL_DISABLED") == 1
+        and hasattr(sys, "_is_gil_enabled")
+        and not sys._is_gil_enabled()
+        and os.environ.get("AZAZAEL_GIL_ENFORCED") != "1"
+    )
+except Exception:
+    _SKIP_SB3_IMPORT = False
+
+if not _SKIP_SB3_IMPORT:
+    try:
+        from stable_baselines3 import PPO, DQN, A2C
+        from stable_baselines3.common.base_class import BaseAlgorithm
+        HAS_SB3 = True
+    except ImportError:
+        HAS_SB3 = False
+        PPO = DQN = A2C = None
+        BaseAlgorithm = object
+else:
     HAS_SB3 = False
     PPO = DQN = A2C = None
     BaseAlgorithm = object
@@ -78,6 +100,7 @@ try:
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
+    torch = None
     torch = None
 
 try:
@@ -113,6 +136,148 @@ try:
 except ImportError:
     def register_agent(**kw):
         return lambda cls: cls
+
+
+# -- GIL-enforced fallback for free-threaded Python --------------------------
+
+def _needs_gil_enforcement() -> bool:
+    """True when running on free-threaded Python with the GIL disabled.
+
+    SB3/torch C-extensions are known to segfault under 3.14t no-GIL, so
+    deep training must run under a GIL-enabled interpreter.
+    """
+    try:
+        import sysconfig
+        return (sysconfig.get_config_var("Py_GIL_DISABLED") == 1
+                and hasattr(sys, "_is_gil_enabled")
+                and not sys._is_gil_enabled())
+    except Exception:
+        return False
+
+
+def _find_gil_python() -> (str | None):
+    """Locate a standard (GIL-enabled) Python interpreter.
+
+    Prefers AZAZAEL_GIL_PYTHON env var, then the sibling standard build
+    (python3.14t.exe implies python.exe next to it), then py -V:3.14.
+    Returns None if no GIL interpreter can be found.
+    """
+    # 1. Explicit override
+    cand = os.environ.get("AZAZAEL_GIL_PYTHON")
+    if cand and os.path.isfile(cand):
+        return cand
+
+    # 2. Sibling standard build next to the free-threaded exe
+    #    (.../python3.14t.exe -> .../python.exe)
+    try:
+        sib = Path(sys.executable).with_name("python.exe")
+        if sib.is_file() and sib.resolve() != Path(sys.executable).resolve():
+            return str(sib)
+    except Exception:
+        pass
+
+    # 3. py launcher discovery (best-effort, non-fatal)
+    try:
+        proc = subprocess.run(
+            ["py", "-V:3.14", "-c",
+             "import sys; print(sys.executable)"],
+            capture_output=True, text=True, timeout=15,
+        )
+        if proc.returncode == 0:
+            p = proc.stdout.strip().splitlines()[-1].strip()
+            if p and os.path.isfile(p):
+                return p
+    except Exception:
+        pass
+    return None
+
+
+def _run_training_in_gil_subprocess(
+    algo: str, policy: str, device: str, seed: int,
+    source: (str | None), event_type: (str | None),
+    total_timesteps: int, model_name: (str | None),
+) -> dict:
+    """Run SB3 training in a standard (GIL-enabled) Python subprocess.
+
+    Used when the host process is free-threaded 3.14t, where SB3/torch
+    segfault even with -X gil=1 (the t-build itself is unsafe to import
+    these C-extensions). The subprocess uses a standard interpreter,
+    trains, registers with ModelVersioner, and prints a JSON result.
+    """
+    gil_py = _find_gil_python()
+    if gil_py is None:
+        return {
+            "error": "No GIL-enabled Python found for SB3 fallback "
+                     "(set AZAZAEL_GIL_PYTHON)",
+            "trained": False,
+        }
+
+    cmd = [
+        gil_py, "-c", _GIL_SUBPROCESS_CODE,
+        "--", algo, policy, device, str(seed),
+        source or "", event_type or "", str(total_timesteps),
+        model_name or "",
+    ]
+    env = dict(os.environ)
+    env["AZAZAEL_GIL_ENFORCED"] = "1"  # guard against re-exec loops
+    env["AZAZAEL_SRC"] = _azazael_src  # bootstrap sys.path for CORE import
+    env["PYTHONIOENCODING"] = "utf-8"
+    try:
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=1800, env=env,
+        )
+    except subprocess.TimeoutExpired:
+        return {"error": "GIL subprocess training timed out (30 min)", "trained": False}
+    except FileNotFoundError:
+        return {"error": f"GIL interpreter not found: {gil_py}", "trained": False}
+
+    # Parse the last JSON line of stdout (prints may precede it)
+    payload = None
+    for line in reversed((proc.stdout or "").strip().splitlines()):
+        line = line.strip()
+        if line.startswith("{"):
+            try:
+                payload = json.loads(line)
+                break
+            except json.JSONDecodeError:
+                continue
+    if payload is None:
+        return {
+            "error": f"GIL subprocess failed (rc={proc.returncode}): "
+                     f"{(proc.stderr or proc.stdout or '')[-400:]}",
+            "trained": False,
+        }
+    payload["via_gil_subprocess"] = True
+    return payload
+
+
+# Code executed inside the GIL-enforced subprocess. Reads argv after '--'.
+_GIL_SUBPROCESS_CODE = r'''
+import sys, json, os
+_src = os.environ.get("AZAZAEL_SRC")
+if _src and _src not in sys.path:
+    sys.path.insert(0, _src)
+sys.argv = sys.argv[sys.argv.index("--") + 1:]
+algo, policy, device, seed = sys.argv[0], sys.argv[1], sys.argv[2], int(sys.argv[3])
+source = sys.argv[4] or None
+event_type = sys.argv[5] or None
+total_timesteps = int(sys.argv[6])
+model_name = sys.argv[7] or None
+try:
+    from CORE.sb3_agent import SB3Agent
+    agent = SB3Agent(algo=algo, policy=policy, device=device, seed=seed)
+    result = agent.train(source=source, event_type=event_type,
+                         total_timesteps=total_timesteps,
+                         model_name=model_name, register_model=True)
+    result["gil_enforced"] = True
+    print(json.dumps(result))
+except Exception as e:
+    print(json.dumps({"error": f"{type(e).__name__}: {e}", "trained": False,
+                      "gil_enforced": True}))
+'''
+
+
+# -- Supported algorithms ----------------------------------------------------
 
 
 # -- Supported algorithms ----------------------------------------------------
@@ -281,6 +446,21 @@ class SB3Agent(FreeThreadedAgent):
         Returns:
             dict with training stats.
         """
+        # -- GIL enforcement fallback (checked FIRST — SB3 may not even be
+        # importable here; on free-threaded 3.14t the torch import segfaults,
+        # so HAS_SB3 is False and the fallback below is the only safe path) --
+        if os.environ.get("AZAZAEL_GIL_ENFORCED") != "1" and (
+                _needs_gil_enforcement() or not HAS_SB3):
+            gil_py = _find_gil_python()
+            if gil_py is not None:
+                print(f"[SB3Agent] GIL-enforced fallback via {gil_py}", flush=True)
+                return _run_training_in_gil_subprocess(
+                    algo=self.algo_name, policy=self.policy, device=self.device,
+                    seed=self.seed, source=source, event_type=event_type,
+                    total_timesteps=(n_episodes * 200 if n_episodes else total_timesteps),
+                    model_name=model_name,
+                )
+
         if not HAS_SB3:
             return {"error": "stable-baselines3 not installed", "trained": False}
 

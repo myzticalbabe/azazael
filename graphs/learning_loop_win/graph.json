@@ -1,0 +1,449 @@
+{
+ "directed": false,
+ "multigraph": false,
+ "graph": {},
+ "nodes": [
+  {
+   "id": "dreaming",
+   "label": "dreaming.py",
+   "type": "module",
+   "file": "src/CORE/WORMS/expansion/dreaming.py",
+   "count": 0
+  },
+  {
+   "id": "meta_cognition",
+   "label": "meta_cognition.py",
+   "type": "module",
+   "file": "src/CORE/WORMS/expansion/meta_cognition.py",
+   "count": 0
+  },
+  {
+   "id": "learning",
+   "label": "learning.py",
+   "type": "module",
+   "file": "src/CORE/WORMS/expansion/learning.py",
+   "count": 0
+  },
+  {
+   "id": "evolution",
+   "label": "evolution.py",
+   "type": "module",
+   "file": "src/CORE/WORMS/expansion/evolution.py",
+   "count": 0
+  },
+  {
+   "id": "bridge",
+   "label": "dream_policy_bridge.py",
+   "type": "module",
+   "file": "src/CORE/dream_policy_bridge.py",
+   "count": 0
+  },
+  {
+   "id": "local_memory",
+   "label": "local_memory.py",
+   "type": "module",
+   "file": "src/CORE/local_memory.py",
+   "count": 0
+  },
+  {
+   "id": "monitor",
+   "label": "monitor_learning.py",
+   "type": "module",
+   "file": "src/scripts/monitor_learning.py",
+   "count": 0
+  },
+  {
+   "id": "dream_cycle",
+   "label": "dream_cycle.py",
+   "type": "module",
+   "file": "scripts/dream_cycle.py",
+   "count": 0
+  },
+  {
+   "id": "metacog_cycle",
+   "label": "metacog_cycle.py",
+   "type": "module",
+   "file": "scripts/metacog_cycle.py",
+   "count": 0
+  },
+  {
+   "id": "evolution_cycle",
+   "label": "evolution_cycle.py",
+   "type": "module",
+   "file": "scripts/evolution_cycle.py",
+   "count": 0
+  },
+  {
+   "id": "CLUSTERWORMS",
+   "label": "CLUSTERWORMS.py",
+   "type": "external",
+   "file": "src/CORE/WORMS/CLUSTERWORMS.py",
+   "count": 0
+  },
+  {
+   "id": "ev_dream",
+   "label": "dream_generated",
+   "type": "event",
+   "file": "",
+   "count": 766
+  },
+  {
+   "id": "ev_steered",
+   "label": "strategy_steered",
+   "type": "event",
+   "file": "",
+   "count": 22
+  },
+  {
+   "id": "ev_policy",
+   "label": "policy_applied",
+   "type": "event",
+   "file": "",
+   "count": 73
+  },
+  {
+   "id": "ev_adapt",
+   "label": "strategy_adaptation",
+   "type": "event",
+   "file": "",
+   "count": 74
+  },
+  {
+   "id": "ev_state",
+   "label": "state_saved",
+   "type": "event",
+   "file": "",
+   "count": 63
+  },
+  {
+   "id": "ev_mccycle",
+   "label": "mc_cycle",
+   "type": "event",
+   "file": "",
+   "count": 12
+  },
+  {
+   "id": "ev_evoresult",
+   "label": "evolution_result",
+   "type": "event",
+   "file": "",
+   "count": 9
+  },
+  {
+   "id": "ev_train",
+   "label": "training_complete",
+   "type": "event",
+   "file": "",
+   "count": 481
+  },
+  {
+   "id": "ev_qtbl",
+   "label": "q_table_persisted",
+   "type": "event",
+   "file": "",
+   "count": 486
+  },
+  {
+   "id": "ev_cluster",
+   "label": "clusterwormz_execute_complete",
+   "type": "event",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_default",
+   "label": "default",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_conservative",
+   "label": "conservative",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_defensive",
+   "label": "defensive",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_aggressive",
+   "label": "aggressive",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_adaptive",
+   "label": "adaptive",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_batched",
+   "label": "batched",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "st_staged",
+   "label": "staged",
+   "type": "strategy",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "ac_ignore",
+   "label": "ignore",
+   "type": "action",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "ac_log",
+   "label": "log",
+   "type": "action",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "ac_alert",
+   "label": "alert",
+   "type": "action",
+   "file": "",
+   "count": 0
+  },
+  {
+   "id": "ac_remediate",
+   "label": "remediate",
+   "type": "action",
+   "file": "",
+   "count": 0
+  }
+ ],
+ "links": [
+  {
+   "source": "dreaming",
+   "target": "local_memory"
+  },
+  {
+   "source": "dreaming",
+   "target": "bridge"
+  },
+  {
+   "source": "dreaming",
+   "target": "meta_cognition"
+  },
+  {
+   "source": "dreaming",
+   "target": "dream_cycle"
+  },
+  {
+   "source": "dreaming",
+   "target": "ev_dream"
+  },
+  {
+   "source": "dreaming",
+   "target": "ev_steered"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_default"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_conservative"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_defensive"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_aggressive"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_adaptive"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_batched"
+  },
+  {
+   "source": "dreaming",
+   "target": "st_staged"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "local_memory"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "bridge"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "metacog_cycle"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "ev_adapt"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "ev_state"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_default"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_conservative"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_defensive"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_aggressive"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_adaptive"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_batched"
+  },
+  {
+   "source": "meta_cognition",
+   "target": "st_staged"
+  },
+  {
+   "source": "learning",
+   "target": "local_memory"
+  },
+  {
+   "source": "learning",
+   "target": "evolution_cycle"
+  },
+  {
+   "source": "learning",
+   "target": "ev_train"
+  },
+  {
+   "source": "learning",
+   "target": "ev_qtbl"
+  },
+  {
+   "source": "learning",
+   "target": "ac_ignore"
+  },
+  {
+   "source": "learning",
+   "target": "ac_log"
+  },
+  {
+   "source": "learning",
+   "target": "ac_alert"
+  },
+  {
+   "source": "learning",
+   "target": "ac_remediate"
+  },
+  {
+   "source": "evolution",
+   "target": "evolution_cycle"
+  },
+  {
+   "source": "bridge",
+   "target": "ev_policy"
+  },
+  {
+   "source": "local_memory",
+   "target": "monitor"
+  },
+  {
+   "source": "local_memory",
+   "target": "metacog_cycle"
+  },
+  {
+   "source": "monitor",
+   "target": "ev_dream"
+  },
+  {
+   "source": "monitor",
+   "target": "ev_policy"
+  },
+  {
+   "source": "monitor",
+   "target": "ev_state"
+  },
+  {
+   "source": "monitor",
+   "target": "ev_mccycle"
+  },
+  {
+   "source": "monitor",
+   "target": "ev_evoresult"
+  },
+  {
+   "source": "monitor",
+   "target": "ev_train"
+  },
+  {
+   "source": "metacog_cycle",
+   "target": "ev_mccycle"
+  },
+  {
+   "source": "metacog_cycle",
+   "target": "ev_cluster"
+  },
+  {
+   "source": "evolution_cycle",
+   "target": "ev_evoresult"
+  },
+  {
+   "source": "CLUSTERWORMS",
+   "target": "ev_cluster"
+  },
+  {
+   "source": "ev_steered",
+   "target": "st_conservative"
+  },
+  {
+   "source": "ev_steered",
+   "target": "st_aggressive"
+  },
+  {
+   "source": "ev_adapt",
+   "target": "st_aggressive"
+  },
+  {
+   "source": "ev_adapt",
+   "target": "st_staged"
+  },
+  {
+   "source": "ev_adapt",
+   "target": "st_batched"
+  },
+  {
+   "source": "ev_adapt",
+   "target": "st_adaptive"
+  },
+  {
+   "source": "ev_adapt",
+   "target": "st_conservative"
+  }
+ ]
+}

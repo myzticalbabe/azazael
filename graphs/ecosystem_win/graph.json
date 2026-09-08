@@ -1,0 +1,7233 @@
+{
+ "directed": false,
+ "multigraph": false,
+ "graph": {},
+ "nodes": [
+  {
+   "id": "n0000",
+   "label": "scripts/__init__.py",
+   "type": "scripts",
+   "file": "scripts/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0001",
+   "label": "scripts/ascii_demo.py",
+   "type": "scripts",
+   "file": "scripts/ascii_demo.py",
+   "events": 0
+  },
+  {
+   "id": "n0002",
+   "label": "scripts/audit_html.py",
+   "type": "scripts",
+   "file": "scripts/audit_html.py",
+   "events": 0
+  },
+  {
+   "id": "n0003",
+   "label": "scripts/audit_links_refined.py",
+   "type": "scripts",
+   "file": "scripts/audit_links_refined.py",
+   "events": 0
+  },
+  {
+   "id": "n0004",
+   "label": "scripts/autoflake_314t.py",
+   "type": "scripts",
+   "file": "scripts/autoflake_314t.py",
+   "events": 0
+  },
+  {
+   "id": "n0005",
+   "label": "scripts/bai_perron_breakpoints.py",
+   "type": "scripts",
+   "file": "scripts/bai_perron_breakpoints.py",
+   "events": 0
+  },
+  {
+   "id": "n0006",
+   "label": "scripts/batch_render.py",
+   "type": "scripts",
+   "file": "scripts/batch_render.py",
+   "events": 0
+  },
+  {
+   "id": "n0007",
+   "label": "scripts/bcc_chroma_index.py",
+   "type": "scripts",
+   "file": "scripts/bcc_chroma_index.py",
+   "events": 0
+  },
+  {
+   "id": "n0008",
+   "label": "scripts/bcc_embed_link_sna.py",
+   "type": "scripts",
+   "file": "scripts/bcc_embed_link_sna.py",
+   "events": 0
+  },
+  {
+   "id": "n0009",
+   "label": "scripts/bcc_embed_tfidf_diff.py",
+   "type": "scripts",
+   "file": "scripts/bcc_embed_tfidf_diff.py",
+   "events": 0
+  },
+  {
+   "id": "n0010",
+   "label": "scripts/bcc_gephi_launcher.py",
+   "type": "scripts",
+   "file": "scripts/bcc_gephi_launcher.py",
+   "events": 0
+  },
+  {
+   "id": "n0011",
+   "label": "scripts/bcc_graphiti_temporal.py",
+   "type": "scripts",
+   "file": "scripts/bcc_graphiti_temporal.py",
+   "events": 0
+  },
+  {
+   "id": "n0012",
+   "label": "scripts/bcc_kuzu_temporal_persist.py",
+   "type": "scripts",
+   "file": "scripts/bcc_kuzu_temporal_persist.py",
+   "events": 0
+  },
+  {
+   "id": "n0013",
+   "label": "scripts/bcc_kuzu_timeline.py",
+   "type": "scripts",
+   "file": "scripts/bcc_kuzu_timeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0014",
+   "label": "scripts/bcc_lead_inference.py",
+   "type": "scripts",
+   "file": "scripts/bcc_lead_inference.py",
+   "events": 0
+  },
+  {
+   "id": "n0015",
+   "label": "scripts/bcc_network_sna.py",
+   "type": "scripts",
+   "file": "scripts/bcc_network_sna.py",
+   "events": 0
+  },
+  {
+   "id": "n0016",
+   "label": "scripts/bcc_pdfplumber_extract.py",
+   "type": "scripts",
+   "file": "scripts/bcc_pdfplumber_extract.py",
+   "events": 0
+  },
+  {
+   "id": "n0017",
+   "label": "scripts/bcc_political_court_layer.py",
+   "type": "scripts",
+   "file": "scripts/bcc_political_court_layer.py",
+   "events": 0
+  },
+  {
+   "id": "n0018",
+   "label": "scripts/bcc_pyvis_network.py",
+   "type": "scripts",
+   "file": "scripts/bcc_pyvis_network.py",
+   "events": 0
+  },
+  {
+   "id": "n0019",
+   "label": "scripts/bcc_record_linkage.py",
+   "type": "scripts",
+   "file": "scripts/bcc_record_linkage.py",
+   "events": 0
+  },
+  {
+   "id": "n0020",
+   "label": "scripts/bcc_semantic_index.py",
+   "type": "scripts",
+   "file": "scripts/bcc_semantic_index.py",
+   "events": 0
+  },
+  {
+   "id": "n0021",
+   "label": "scripts/bcc_splink_linkage.py",
+   "type": "scripts",
+   "file": "scripts/bcc_splink_linkage.py",
+   "events": 0
+  },
+  {
+   "id": "n0022",
+   "label": "scripts/bcc_vault_sna.py",
+   "type": "scripts",
+   "file": "scripts/bcc_vault_sna.py",
+   "events": 0
+  },
+  {
+   "id": "n0023",
+   "label": "scripts/bench_rustworkx_vs_networkx.py",
+   "type": "scripts",
+   "file": "scripts/bench_rustworkx_vs_networkx.py",
+   "events": 0
+  },
+  {
+   "id": "n0024",
+   "label": "scripts/benchmark_wal_docker.py",
+   "type": "scripts",
+   "file": "scripts/benchmark_wal_docker.py",
+   "events": 0
+  },
+  {
+   "id": "n0025",
+   "label": "scripts/bitmap_font.py",
+   "type": "scripts",
+   "file": "scripts/bitmap_font.py",
+   "events": 0
+  },
+  {
+   "id": "n0026",
+   "label": "scripts/build_all_concurrent.py",
+   "type": "scripts",
+   "file": "scripts/build_all_concurrent.py",
+   "events": 0
+  },
+  {
+   "id": "n0027",
+   "label": "scripts/build_gap_index.py",
+   "type": "scripts",
+   "file": "scripts/build_gap_index.py",
+   "events": 0
+  },
+  {
+   "id": "n0028",
+   "label": "scripts/build_obsidian_vault.py",
+   "type": "scripts",
+   "file": "scripts/build_obsidian_vault.py",
+   "events": 0
+  },
+  {
+   "id": "n0029",
+   "label": "scripts/build_progress_governance_graph.py",
+   "type": "scripts",
+   "file": "scripts/build_progress_governance_graph.py",
+   "events": 0
+  },
+  {
+   "id": "n0030",
+   "label": "scripts/cain_video_pipeline_demo.py",
+   "type": "scripts",
+   "file": "scripts/cain_video_pipeline_demo.py",
+   "events": 0
+  },
+  {
+   "id": "n0031",
+   "label": "scripts/check_314t_compat.py",
+   "type": "scripts",
+   "file": "scripts/check_314t_compat.py",
+   "events": 0
+  },
+  {
+   "id": "n0032",
+   "label": "scripts/check_no_catch_alls.py",
+   "type": "scripts",
+   "file": "scripts/check_no_catch_alls.py",
+   "events": 0
+  },
+  {
+   "id": "n0033",
+   "label": "scripts/check_tooling.py",
+   "type": "scripts",
+   "file": "scripts/check_tooling.py",
+   "events": 0
+  },
+  {
+   "id": "n0034",
+   "label": "scripts/close_audit_sessions.py",
+   "type": "scripts",
+   "file": "scripts/close_audit_sessions.py",
+   "events": 0
+  },
+  {
+   "id": "n0035",
+   "label": "scripts/convert_to_wmv.py",
+   "type": "scripts",
+   "file": "scripts/convert_to_wmv.py",
+   "events": 0
+  },
+  {
+   "id": "n0036",
+   "label": "scripts/cosmos_export.py",
+   "type": "scripts",
+   "file": "scripts/cosmos_export.py",
+   "events": 0
+  },
+  {
+   "id": "n0037",
+   "label": "scripts/cosmos_inline_viewer.py",
+   "type": "scripts",
+   "file": "scripts/cosmos_inline_viewer.py",
+   "events": 0
+  },
+  {
+   "id": "n0038",
+   "label": "scripts/cosmos_singlefile.py",
+   "type": "scripts",
+   "file": "scripts/cosmos_singlefile.py",
+   "events": 0
+  },
+  {
+   "id": "n0039",
+   "label": "scripts/db_health.py",
+   "type": "scripts",
+   "file": "scripts/db_health.py",
+   "events": 0
+  },
+  {
+   "id": "n0040",
+   "label": "scripts/desktop_projects_reference_check.py",
+   "type": "scripts",
+   "file": "scripts/desktop_projects_reference_check.py",
+   "events": 0
+  },
+  {
+   "id": "n0041",
+   "label": "scripts/dlq_burndown.py",
+   "type": "scripts",
+   "file": "scripts/dlq_burndown.py",
+   "events": 0
+  },
+  {
+   "id": "n0042",
+   "label": "scripts/dlq_watch.py",
+   "type": "scripts",
+   "file": "scripts/dlq_watch.py",
+   "events": 0
+  },
+  {
+   "id": "n0043",
+   "label": "scripts/dream_cycle.py",
+   "type": "scripts",
+   "file": "scripts/dream_cycle.py",
+   "events": 0
+  },
+  {
+   "id": "n0044",
+   "label": "scripts/ecosystem_gephi_launcher.py",
+   "type": "scripts",
+   "file": "scripts/ecosystem_gephi_launcher.py",
+   "events": 0
+  },
+  {
+   "id": "n0045",
+   "label": "scripts/ecosystem_graph.py",
+   "type": "scripts",
+   "file": "scripts/ecosystem_graph.py",
+   "events": 0
+  },
+  {
+   "id": "n0046",
+   "label": "scripts/emoji_demo.py",
+   "type": "scripts",
+   "file": "scripts/emoji_demo.py",
+   "events": 0
+  },
+  {
+   "id": "n0047",
+   "label": "scripts/evolution_cycle.py",
+   "type": "scripts",
+   "file": "scripts/evolution_cycle.py",
+   "events": 9
+  },
+  {
+   "id": "n0048",
+   "label": "scripts/export_graph_formats.py",
+   "type": "scripts",
+   "file": "scripts/export_graph_formats.py",
+   "events": 0
+  },
+  {
+   "id": "n0049",
+   "label": "scripts/fetch_990_series.py",
+   "type": "scripts",
+   "file": "scripts/fetch_990_series.py",
+   "events": 0
+  },
+  {
+   "id": "n0050",
+   "label": "scripts/finalize_whitepaper.py",
+   "type": "scripts",
+   "file": "scripts/finalize_whitepaper.py",
+   "events": 0
+  },
+  {
+   "id": "n0051",
+   "label": "scripts/generate_capability_templates.py",
+   "type": "scripts",
+   "file": "scripts/generate_capability_templates.py",
+   "events": 0
+  },
+  {
+   "id": "n0052",
+   "label": "scripts/generate_dashboard.py",
+   "type": "scripts",
+   "file": "scripts/generate_dashboard.py",
+   "events": 0
+  },
+  {
+   "id": "n0053",
+   "label": "scripts/gephi_headless/run_headless.py",
+   "type": "scripts",
+   "file": "scripts/gephi_headless/run_headless.py",
+   "events": 0
+  },
+  {
+   "id": "n0054",
+   "label": "scripts/gosp_learner_divergence.py",
+   "type": "scripts",
+   "file": "scripts/gosp_learner_divergence.py",
+   "events": 0
+  },
+  {
+   "id": "n0055",
+   "label": "scripts/gosp_learner_train.py",
+   "type": "scripts",
+   "file": "scripts/gosp_learner_train.py",
+   "events": 0
+  },
+  {
+   "id": "n0056",
+   "label": "scripts/gosp_parity_check.py",
+   "type": "scripts",
+   "file": "scripts/gosp_parity_check.py",
+   "events": 0
+  },
+  {
+   "id": "n0057",
+   "label": "scripts/gosp_rani_integration.py",
+   "type": "scripts",
+   "file": "scripts/gosp_rani_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0058",
+   "label": "scripts/graphify_huge_mode.py",
+   "type": "scripts",
+   "file": "scripts/graphify_huge_mode.py",
+   "events": 0
+  },
+  {
+   "id": "n0059",
+   "label": "scripts/graphify_node_limit_patch.py",
+   "type": "scripts",
+   "file": "scripts/graphify_node_limit_patch.py",
+   "events": 0
+  },
+  {
+   "id": "n0060",
+   "label": "scripts/klink.py",
+   "type": "scripts",
+   "file": "scripts/klink.py",
+   "events": 0
+  },
+  {
+   "id": "n0061",
+   "label": "scripts/learning_loop_gephi_launcher.py",
+   "type": "scripts",
+   "file": "scripts/learning_loop_gephi_launcher.py",
+   "events": 0
+  },
+  {
+   "id": "n0062",
+   "label": "scripts/learning_loop_graph.py",
+   "type": "scripts",
+   "file": "scripts/learning_loop_graph.py",
+   "events": 0
+  },
+  {
+   "id": "n0063",
+   "label": "scripts/learning_loop_temporal.py",
+   "type": "scripts",
+   "file": "scripts/learning_loop_temporal.py",
+   "events": 0
+  },
+  {
+   "id": "n0064",
+   "label": "scripts/make_launcher_icons.py",
+   "type": "scripts",
+   "file": "scripts/make_launcher_icons.py",
+   "events": 0
+  },
+  {
+   "id": "n0065",
+   "label": "scripts/master_generate.py",
+   "type": "scripts",
+   "file": "scripts/master_generate.py",
+   "events": 0
+  },
+  {
+   "id": "n0066",
+   "label": "scripts/metacog_cycle.py",
+   "type": "scripts",
+   "file": "scripts/metacog_cycle.py",
+   "events": 12
+  },
+  {
+   "id": "n0067",
+   "label": "scripts/modernize_types.py",
+   "type": "scripts",
+   "file": "scripts/modernize_types.py",
+   "events": 0
+  },
+  {
+   "id": "n0068",
+   "label": "scripts/monitor_learning.py",
+   "type": "scripts",
+   "file": "scripts/monitor_learning.py",
+   "events": 0
+  },
+  {
+   "id": "n0069",
+   "label": "scripts/pre_build_check.py",
+   "type": "scripts",
+   "file": "scripts/pre_build_check.py",
+   "events": 0
+  },
+  {
+   "id": "n0070",
+   "label": "scripts/profile_clusterworms_parallel.py",
+   "type": "scripts",
+   "file": "scripts/profile_clusterworms_parallel.py",
+   "events": 0
+  },
+  {
+   "id": "n0071",
+   "label": "scripts/quick_test.py",
+   "type": "scripts",
+   "file": "scripts/quick_test.py",
+   "events": 0
+  },
+  {
+   "id": "n0072",
+   "label": "scripts/reencode_large_videos.py",
+   "type": "scripts",
+   "file": "scripts/reencode_large_videos.py",
+   "events": 0
+  },
+  {
+   "id": "n0073",
+   "label": "scripts/render_bcc_lead_findings.py",
+   "type": "scripts",
+   "file": "scripts/render_bcc_lead_findings.py",
+   "events": 0
+  },
+  {
+   "id": "n0074",
+   "label": "scripts/render_graph_svg.py",
+   "type": "scripts",
+   "file": "scripts/render_graph_svg.py",
+   "events": 0
+  },
+  {
+   "id": "n0075",
+   "label": "scripts/rollover_archive.py",
+   "type": "scripts",
+   "file": "scripts/rollover_archive.py",
+   "events": 0
+  },
+  {
+   "id": "n0076",
+   "label": "scripts/run_training_orchestrator.py",
+   "type": "scripts",
+   "file": "scripts/run_training_orchestrator.py",
+   "events": 0
+  },
+  {
+   "id": "n0077",
+   "label": "scripts/scan_secrets.py",
+   "type": "scripts",
+   "file": "scripts/scan_secrets.py",
+   "events": 0
+  },
+  {
+   "id": "n0078",
+   "label": "scripts/scenario_a_full_pipeline.py",
+   "type": "scripts",
+   "file": "scripts/scenario_a_full_pipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0079",
+   "label": "scripts/scenario_b_compressed_pipeline.py",
+   "type": "scripts",
+   "file": "scripts/scenario_b_compressed_pipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0080",
+   "label": "scripts/scenario_c_distillation_pipeline.py",
+   "type": "scripts",
+   "file": "scripts/scenario_c_distillation_pipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0081",
+   "label": "scripts/scenario_d_nas_pipeline.py",
+   "type": "scripts",
+   "file": "scripts/scenario_d_nas_pipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0082",
+   "label": "scripts/sna_communities_410k.py",
+   "type": "scripts",
+   "file": "scripts/sna_communities_410k.py",
+   "events": 0
+  },
+  {
+   "id": "n0083",
+   "label": "scripts/sna_scale_azazael.py",
+   "type": "scripts",
+   "file": "scripts/sna_scale_azazael.py",
+   "events": 0
+  },
+  {
+   "id": "n0084",
+   "label": "scripts/spec_audit.py",
+   "type": "scripts",
+   "file": "scripts/spec_audit.py",
+   "events": 0
+  },
+  {
+   "id": "n0085",
+   "label": "scripts/sync_all.py",
+   "type": "scripts",
+   "file": "scripts/sync_all.py",
+   "events": 0
+  },
+  {
+   "id": "n0086",
+   "label": "scripts/sync_g_drive.py",
+   "type": "scripts",
+   "file": "scripts/sync_g_drive.py",
+   "events": 0
+  },
+  {
+   "id": "n0087",
+   "label": "scripts/timesfm_pilot_314t.py",
+   "type": "scripts",
+   "file": "scripts/timesfm_pilot_314t.py",
+   "events": 0
+  },
+  {
+   "id": "n0088",
+   "label": "scripts/train_gosp_curative.py",
+   "type": "scripts",
+   "file": "scripts/train_gosp_curative.py",
+   "events": 0
+  },
+  {
+   "id": "n0089",
+   "label": "scripts/update_header_and_render.py",
+   "type": "scripts",
+   "file": "scripts/update_header_and_render.py",
+   "events": 0
+  },
+  {
+   "id": "n0090",
+   "label": "scripts/verify_aoa_cdp.py",
+   "type": "scripts",
+   "file": "scripts/verify_aoa_cdp.py",
+   "events": 0
+  },
+  {
+   "id": "n0091",
+   "label": "scripts/verify_lead_links_cdp.py",
+   "type": "scripts",
+   "file": "scripts/verify_lead_links_cdp.py",
+   "events": 0
+  },
+  {
+   "id": "n0092",
+   "label": "scripts/video_frame_generator.py",
+   "type": "scripts",
+   "file": "scripts/video_frame_generator.py",
+   "events": 0
+  },
+  {
+   "id": "n0093",
+   "label": "scripts/watch_training_day.py",
+   "type": "scripts",
+   "file": "scripts/watch_training_day.py",
+   "events": 0
+  },
+  {
+   "id": "n0094",
+   "label": "src/ANIMATION_PROTOCOLS.py",
+   "type": "ANIMATION_PROTOCOLS.py",
+   "file": "src/ANIMATION_PROTOCOLS.py",
+   "events": 0
+  },
+  {
+   "id": "n0095",
+   "label": "src/AOA/__init__.py",
+   "type": "AOA",
+   "file": "src/AOA/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0096",
+   "label": "src/AOA/arms/__init__.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0097",
+   "label": "src/AOA/arms/azazael_arm.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/azazael_arm.py",
+   "events": 0
+  },
+  {
+   "id": "n0098",
+   "label": "src/AOA/arms/codex_arm.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/codex_arm.py",
+   "events": 0
+  },
+  {
+   "id": "n0099",
+   "label": "src/AOA/arms/eve_arm.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/eve_arm.py",
+   "events": 0
+  },
+  {
+   "id": "n0100",
+   "label": "src/AOA/arms/kali_arm.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/kali_arm.py",
+   "events": 0
+  },
+  {
+   "id": "n0101",
+   "label": "src/AOA/arms/libra_arm.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/libra_arm.py",
+   "events": 0
+  },
+  {
+   "id": "n0102",
+   "label": "src/AOA/arms/support_arms.py",
+   "type": "AOA",
+   "file": "src/AOA/arms/support_arms.py",
+   "events": 0
+  },
+  {
+   "id": "n0103",
+   "label": "src/AOA/build.py",
+   "type": "AOA",
+   "file": "src/AOA/build.py",
+   "events": 0
+  },
+  {
+   "id": "n0104",
+   "label": "src/AOA/build_disclosure.py",
+   "type": "AOA",
+   "file": "src/AOA/build_disclosure.py",
+   "events": 0
+  },
+  {
+   "id": "n0105",
+   "label": "src/AOA/build_final.py",
+   "type": "AOA",
+   "file": "src/AOA/build_final.py",
+   "events": 0
+  },
+  {
+   "id": "n0106",
+   "label": "src/AOA/cli/__init__.py",
+   "type": "AOA",
+   "file": "src/AOA/cli/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0107",
+   "label": "src/AOA/cli/aoa_cli.py",
+   "type": "AOA",
+   "file": "src/AOA/cli/aoa_cli.py",
+   "events": 0
+  },
+  {
+   "id": "n0108",
+   "label": "src/AOA/conftest.py",
+   "type": "AOA",
+   "file": "src/AOA/conftest.py",
+   "events": 0
+  },
+  {
+   "id": "n0109",
+   "label": "src/AOA/core/__init__.py",
+   "type": "AOA",
+   "file": "src/AOA/core/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0110",
+   "label": "src/AOA/core/arm_registry.py",
+   "type": "AOA",
+   "file": "src/AOA/core/arm_registry.py",
+   "events": 0
+  },
+  {
+   "id": "n0111",
+   "label": "src/AOA/core/event_bus.py",
+   "type": "AOA",
+   "file": "src/AOA/core/event_bus.py",
+   "events": 0
+  },
+  {
+   "id": "n0112",
+   "label": "src/AOA/core/router.py",
+   "type": "AOA",
+   "file": "src/AOA/core/router.py",
+   "events": 0
+  },
+  {
+   "id": "n0113",
+   "label": "src/AOA/core/session_manager.py",
+   "type": "AOA",
+   "file": "src/AOA/core/session_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0114",
+   "label": "src/AOA/gen_html.py",
+   "type": "AOA",
+   "file": "src/AOA/gen_html.py",
+   "events": 0
+  },
+  {
+   "id": "n0115",
+   "label": "src/AOA/inject.py",
+   "type": "AOA",
+   "file": "src/AOA/inject.py",
+   "events": 0
+  },
+  {
+   "id": "n0116",
+   "label": "src/AOA/rebuild_html.py",
+   "type": "AOA",
+   "file": "src/AOA/rebuild_html.py",
+   "events": 0
+  },
+  {
+   "id": "n0117",
+   "label": "src/AOA/test_benchmark_workflow.py",
+   "type": "AOA",
+   "file": "src/AOA/test_benchmark_workflow.py",
+   "events": 0
+  },
+  {
+   "id": "n0118",
+   "label": "src/AOA/test_cross_arm.py",
+   "type": "AOA",
+   "file": "src/AOA/test_cross_arm.py",
+   "events": 0
+  },
+  {
+   "id": "n0119",
+   "label": "src/AUTO_DOC_GENERATOR.py",
+   "type": "AUTO_DOC_GENERATOR.py",
+   "file": "src/AUTO_DOC_GENERATOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0120",
+   "label": "src/AZAZAEL_Inference_Studio.py",
+   "type": "AZAZAEL_Inference_Studio.py",
+   "file": "src/AZAZAEL_Inference_Studio.py",
+   "events": 0
+  },
+  {
+   "id": "n0121",
+   "label": "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/AzazaelDynamicLogger.py",
+   "events": 0
+  },
+  {
+   "id": "n0122",
+   "label": "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/COMPREHENSIVE_FIX.py",
+   "events": 0
+  },
+  {
+   "id": "n0123",
+   "label": "src/AZAZAEL_TOOLKIT/QL_ANALYSIS.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/QL_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0124",
+   "label": "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py",
+   "events": 0
+  },
+  {
+   "id": "n0125",
+   "label": "src/AZAZAEL_TOOLKIT/__init__.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0126",
+   "label": "src/AZAZAEL_TOOLKIT/azazael_toolkit.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/azazael_toolkit.py",
+   "events": 0
+  },
+  {
+   "id": "n0127",
+   "label": "src/AZAZAEL_TOOLKIT/environment_manager.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/environment_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0128",
+   "label": "src/AZAZAEL_TOOLKIT/math_certainty.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/math_certainty.py",
+   "events": 0
+  },
+  {
+   "id": "n0129",
+   "label": "src/AZAZAEL_TOOLKIT/update_docs_paths.py",
+   "type": "AZAZAEL_TOOLKIT",
+   "file": "src/AZAZAEL_TOOLKIT/update_docs_paths.py",
+   "events": 0
+  },
+  {
+   "id": "n0130",
+   "label": "src/AzazaelDynamicLogger.py",
+   "type": "AzazaelDynamicLogger.py",
+   "file": "src/AzazaelDynamicLogger.py",
+   "events": 0
+  },
+  {
+   "id": "n0131",
+   "label": "src/CHANGELOG_GENERATOR.py",
+   "type": "CHANGELOG_GENERATOR.py",
+   "file": "src/CHANGELOG_GENERATOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0132",
+   "label": "src/CLI/__init__.py",
+   "type": "CLI",
+   "file": "src/CLI/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0133",
+   "label": "src/CLI/azazael_cli.py",
+   "type": "CLI",
+   "file": "src/CLI/azazael_cli.py",
+   "events": 0
+  },
+  {
+   "id": "n0134",
+   "label": "src/CODEX/CODEX_Studio.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CODEX_Studio.py",
+   "events": 0
+  },
+  {
+   "id": "n0135",
+   "label": "src/CODEX/CORE/ANIMATION_PROTOCOLS.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/ANIMATION_PROTOCOLS.py",
+   "events": 0
+  },
+  {
+   "id": "n0136",
+   "label": "src/CODEX/CORE/AUTO_DOC_GENERATOR.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/AUTO_DOC_GENERATOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0137",
+   "label": "src/CODEX/CORE/AUTO_DOWNLOADER.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/AUTO_DOWNLOADER.py",
+   "events": 0
+  },
+  {
+   "id": "n0138",
+   "label": "src/CODEX/CORE/CAIN_ANALYZER.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/CAIN_ANALYZER.py",
+   "events": 0
+  },
+  {
+   "id": "n0139",
+   "label": "src/CODEX/CORE/CHANGELOG_GENERATOR.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/CHANGELOG_GENERATOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0140",
+   "label": "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/ECOSYSTEM_HEALTH_CHECK.py",
+   "events": 0
+  },
+  {
+   "id": "n0141",
+   "label": "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/FILE_MANIFEST_GENERATOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0142",
+   "label": "src/CODEX/CORE/HORUS_INTEGRATION.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/HORUS_INTEGRATION.py",
+   "events": 0
+  },
+  {
+   "id": "n0143",
+   "label": "src/CODEX/CORE/QL_FILE_OPTIMIZER.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/QL_FILE_OPTIMIZER.py",
+   "events": 0
+  },
+  {
+   "id": "n0144",
+   "label": "src/CODEX/CORE/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0145",
+   "label": "src/CODEX/CORE/ascii_flowchart.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/ascii_flowchart.py",
+   "events": 0
+  },
+  {
+   "id": "n0146",
+   "label": "src/CODEX/CORE/azazael_pygame.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/azazael_pygame.py",
+   "events": 0
+  },
+  {
+   "id": "n0147",
+   "label": "src/CODEX/CORE/emoji_maker.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/emoji_maker.py",
+   "events": 0
+  },
+  {
+   "id": "n0148",
+   "label": "src/CODEX/CORE/enhanced_animations.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/enhanced_animations.py",
+   "events": 0
+  },
+  {
+   "id": "n0149",
+   "label": "src/CODEX/CORE/enrichment_display.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/enrichment_display.py",
+   "events": 0
+  },
+  {
+   "id": "n0150",
+   "label": "src/CODEX/CORE/matrix_animation.py",
+   "type": "CODEX",
+   "file": "src/CODEX/CORE/matrix_animation.py",
+   "events": 0
+  },
+  {
+   "id": "n0151",
+   "label": "src/CODEX/DOCUMENTATION/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/DOCUMENTATION/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0152",
+   "label": "src/CODEX/POPUPS/POPUP_ALL_11.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_ALL_11.py",
+   "events": 0
+  },
+  {
+   "id": "n0153",
+   "label": "src/CODEX/POPUPS/POPUP_BUGFREE.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_BUGFREE.py",
+   "events": 0
+  },
+  {
+   "id": "n0154",
+   "label": "src/CODEX/POPUPS/POPUP_CLICKABLE.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_CLICKABLE.py",
+   "events": 0
+  },
+  {
+   "id": "n0155",
+   "label": "src/CODEX/POPUPS/POPUP_DETAILED.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_DETAILED.py",
+   "events": 0
+  },
+  {
+   "id": "n0156",
+   "label": "src/CODEX/POPUPS/POPUP_DISPLAY.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_DISPLAY.py",
+   "events": 0
+  },
+  {
+   "id": "n0157",
+   "label": "src/CODEX/POPUPS/POPUP_IMMERSIVE.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_IMMERSIVE.py",
+   "events": 0
+  },
+  {
+   "id": "n0158",
+   "label": "src/CODEX/POPUPS/POPUP_RICH.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_RICH.py",
+   "events": 0
+  },
+  {
+   "id": "n0159",
+   "label": "src/CODEX/POPUPS/POPUP_SIMPLE.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_SIMPLE.py",
+   "events": 0
+  },
+  {
+   "id": "n0160",
+   "label": "src/CODEX/POPUPS/POPUP_WORKING.py",
+   "type": "CODEX",
+   "file": "src/CODEX/POPUPS/POPUP_WORKING.py",
+   "events": 0
+  },
+  {
+   "id": "n0161",
+   "label": "src/CODEX/SESSION_TEMPLATE/generators/batch_generator.py",
+   "type": "CODEX",
+   "file": "src/CODEX/SESSION_TEMPLATE/generators/batch_generator.py",
+   "events": 0
+  },
+  {
+   "id": "n0162",
+   "label": "src/CODEX/SESSION_TEMPLATE/generators/batch_recorder.py",
+   "type": "CODEX",
+   "file": "src/CODEX/SESSION_TEMPLATE/generators/batch_recorder.py",
+   "events": 0
+  },
+  {
+   "id": "n0163",
+   "label": "src/CODEX/SESSION_TEMPLATE/generators/generate_failure_report.py",
+   "type": "CODEX",
+   "file": "src/CODEX/SESSION_TEMPLATE/generators/generate_failure_report.py",
+   "events": 0
+  },
+  {
+   "id": "n0164",
+   "label": "src/CODEX/SESSION_TEMPLATE/generators/generate_session_report.py",
+   "type": "CODEX",
+   "file": "src/CODEX/SESSION_TEMPLATE/generators/generate_session_report.py",
+   "events": 0
+  },
+  {
+   "id": "n0165",
+   "label": "src/CODEX/SESSION_TEMPLATE/generators/unified_generator.py",
+   "type": "CODEX",
+   "file": "src/CODEX/SESSION_TEMPLATE/generators/unified_generator.py",
+   "events": 0
+  },
+  {
+   "id": "n0166",
+   "label": "src/CODEX/TESTING/INTEGRATION/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/INTEGRATION/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0167",
+   "label": "src/CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/INTEGRATION/test_ecosystem_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0168",
+   "label": "src/CODEX/TESTING/PERFORMANCE/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/PERFORMANCE/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0169",
+   "label": "src/CODEX/TESTING/PERFORMANCE/test_performance.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/PERFORMANCE/test_performance.py",
+   "events": 0
+  },
+  {
+   "id": "n0170",
+   "label": "src/CODEX/TESTING/UNIT/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/UNIT/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0171",
+   "label": "src/CODEX/TESTING/UNIT/test_hydra.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/UNIT/test_hydra.py",
+   "events": 0
+  },
+  {
+   "id": "n0172",
+   "label": "src/CODEX/TESTING/UNIT/test_metaworms.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/UNIT/test_metaworms.py",
+   "events": 0
+  },
+  {
+   "id": "n0173",
+   "label": "src/CODEX/TESTING/UNIT/test_wormz.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/UNIT/test_wormz.py",
+   "events": 0
+  },
+  {
+   "id": "n0174",
+   "label": "src/CODEX/TESTING/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0175",
+   "label": "src/CODEX/TESTING/conftest.py",
+   "type": "CODEX",
+   "file": "src/CODEX/TESTING/conftest.py",
+   "events": 0
+  },
+  {
+   "id": "n0176",
+   "label": "src/CODEX/VIDEOS/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0177",
+   "label": "src/CODEX/VIDEOS/compress_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/compress_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0178",
+   "label": "src/CODEX/VIDEOS/create_azazael_educational_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/create_azazael_educational_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0179",
+   "label": "src/CODEX/VIDEOS/create_dual_pane_popup.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/create_dual_pane_popup.py",
+   "events": 0
+  },
+  {
+   "id": "n0180",
+   "label": "src/CODEX/VIDEOS/create_dual_pane_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/create_dual_pane_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0181",
+   "label": "src/CODEX/VIDEOS/create_reference_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/create_reference_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0182",
+   "label": "src/CODEX/VIDEOS/create_scrolling_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/create_scrolling_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0183",
+   "label": "src/CODEX/VIDEOS/create_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/create_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0184",
+   "label": "src/CODEX/VIDEOS/generate_dashboard_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/generate_dashboard_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0185",
+   "label": "src/CODEX/VIDEOS/generate_matrix_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/generate_matrix_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0186",
+   "label": "src/CODEX/VIDEOS/generate_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/generate_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0187",
+   "label": "src/CODEX/VIDEOS/generate_video_v2.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/generate_video_v2.py",
+   "events": 0
+  },
+  {
+   "id": "n0188",
+   "label": "src/CODEX/VIDEOS/make_video.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video.py",
+   "events": 0
+  },
+  {
+   "id": "n0189",
+   "label": "src/CODEX/VIDEOS/make_video_docs.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_docs.py",
+   "events": 0
+  },
+  {
+   "id": "n0190",
+   "label": "src/CODEX/VIDEOS/make_video_quad.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_quad.py",
+   "events": 0
+  },
+  {
+   "id": "n0191",
+   "label": "src/CODEX/VIDEOS/make_video_v2.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_v2.py",
+   "events": 0
+  },
+  {
+   "id": "n0192",
+   "label": "src/CODEX/VIDEOS/make_video_v3.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_v3.py",
+   "events": 0
+  },
+  {
+   "id": "n0193",
+   "label": "src/CODEX/VIDEOS/make_video_vibrant.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_vibrant.py",
+   "events": 0
+  },
+  {
+   "id": "n0194",
+   "label": "src/CODEX/VIDEOS/make_video_zip.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_zip.py",
+   "events": 0
+  },
+  {
+   "id": "n0195",
+   "label": "src/CODEX/VIDEOS/make_video_zipper.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/make_video_zipper.py",
+   "events": 0
+  },
+  {
+   "id": "n0196",
+   "label": "src/CODEX/VIDEOS/progress_bar.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/progress_bar.py",
+   "events": 0
+  },
+  {
+   "id": "n0197",
+   "label": "src/CODEX/VIDEOS/video_popup.py",
+   "type": "CODEX",
+   "file": "src/CODEX/VIDEOS/video_popup.py",
+   "events": 0
+  },
+  {
+   "id": "n0198",
+   "label": "src/CODEX/__init__.py",
+   "type": "CODEX",
+   "file": "src/CODEX/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0199",
+   "label": "src/CODEX/build_bcc_cain_alternate.py",
+   "type": "CODEX",
+   "file": "src/CODEX/build_bcc_cain_alternate.py",
+   "events": 0
+  },
+  {
+   "id": "n0200",
+   "label": "src/CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py",
+   "type": "CODEX",
+   "file": "src/CODEX/comprehensive/COMPLETE_SYSTEMS_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0201",
+   "label": "src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py",
+   "type": "CODEX",
+   "file": "src/CODEX/comprehensive/FULL_ECOSYSTEM_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0202",
+   "label": "src/CODEX/comprehensive/GENERATE_ALL_11.py",
+   "type": "CODEX",
+   "file": "src/CODEX/comprehensive/GENERATE_ALL_11.py",
+   "events": 0
+  },
+  {
+   "id": "n0203",
+   "label": "src/CODEX/comprehensive/GENERATE_HTML.py",
+   "type": "CODEX",
+   "file": "src/CODEX/comprehensive/GENERATE_HTML.py",
+   "events": 0
+  },
+  {
+   "id": "n0204",
+   "label": "src/CODEX/comprehensive/GENERATE_RICH_HTML.py",
+   "type": "CODEX",
+   "file": "src/CODEX/comprehensive/GENERATE_RICH_HTML.py",
+   "events": 0
+  },
+  {
+   "id": "n0205",
+   "label": "src/CODEX/comprehensive/TWITLER_ANALYSIS.py",
+   "type": "CODEX",
+   "file": "src/CODEX/comprehensive/TWITLER_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0206",
+   "label": "src/CODEX/generate_session_cain.py",
+   "type": "CODEX",
+   "file": "src/CODEX/generate_session_cain.py",
+   "events": 0
+  },
+  {
+   "id": "n0207",
+   "label": "src/CODEX/inject_session_cain.py",
+   "type": "CODEX",
+   "file": "src/CODEX/inject_session_cain.py",
+   "events": 0
+  },
+  {
+   "id": "n0208",
+   "label": "src/COMPREHENSIVE_FIX.py",
+   "type": "COMPREHENSIVE_FIX.py",
+   "file": "src/COMPREHENSIVE_FIX.py",
+   "events": 0
+  },
+  {
+   "id": "n0209",
+   "label": "src/CORE/Agent.py",
+   "type": "CORE",
+   "file": "src/CORE/Agent.py",
+   "events": 0
+  },
+  {
+   "id": "n0210",
+   "label": "src/CORE/AgentPool.py",
+   "type": "CORE",
+   "file": "src/CORE/AgentPool.py",
+   "events": 0
+  },
+  {
+   "id": "n0211",
+   "label": "src/CORE/ERROR_SCAN_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/ERROR_SCAN_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0212",
+   "label": "src/CORE/FREETHREAD_UPGRADE.py",
+   "type": "CORE",
+   "file": "src/CORE/FREETHREAD_UPGRADE.py",
+   "events": 0
+  },
+  {
+   "id": "n0213",
+   "label": "src/CORE/FreeThreadedAgent.py",
+   "type": "CORE",
+   "file": "src/CORE/FreeThreadedAgent.py",
+   "events": 0
+  },
+  {
+   "id": "n0214",
+   "label": "src/CORE/LOCAL_DEV.py",
+   "type": "CORE",
+   "file": "src/CORE/LOCAL_DEV.py",
+   "events": 0
+  },
+  {
+   "id": "n0215",
+   "label": "src/CORE/MemoryBus.py",
+   "type": "CORE",
+   "file": "src/CORE/MemoryBus.py",
+   "events": 0
+  },
+  {
+   "id": "n0216",
+   "label": "src/CORE/NODE.py",
+   "type": "CORE",
+   "file": "src/CORE/NODE.py",
+   "events": 0
+  },
+  {
+   "id": "n0217",
+   "label": "src/CORE/NeuralPipeline.py",
+   "type": "CORE",
+   "file": "src/CORE/NeuralPipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0218",
+   "label": "src/CORE/PYTHON_MANAGER.py",
+   "type": "CORE",
+   "file": "src/CORE/PYTHON_MANAGER.py",
+   "events": 0
+  },
+  {
+   "id": "n0219",
+   "label": "src/CORE/PamsBusBridge.py",
+   "type": "CORE",
+   "file": "src/CORE/PamsBusBridge.py",
+   "events": 0
+  },
+  {
+   "id": "n0220",
+   "label": "src/CORE/PamsRecorder.py",
+   "type": "CORE",
+   "file": "src/CORE/PamsRecorder.py",
+   "events": 0
+  },
+  {
+   "id": "n0221",
+   "label": "src/CORE/STRESS_TEST.py",
+   "type": "CORE",
+   "file": "src/CORE/STRESS_TEST.py",
+   "events": 0
+  },
+  {
+   "id": "n0222",
+   "label": "src/CORE/STRUCTURE.py",
+   "type": "CORE",
+   "file": "src/CORE/STRUCTURE.py",
+   "events": 0
+  },
+  {
+   "id": "n0223",
+   "label": "src/CORE/WORMS/BENCHMARK_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/BENCHMARK_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0224",
+   "label": "src/CORE/WORMS/BINARY_ANALYSIS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/BINARY_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0225",
+   "label": "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/BINARY_ANALYSIS_CLI.py",
+   "events": 0
+  },
+  {
+   "id": "n0226",
+   "label": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/BINARY_ANALYSIS_PARSE.py",
+   "events": 0
+  },
+  {
+   "id": "n0227",
+   "label": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/BINARY_ANALYSIS_TOOLS.py",
+   "events": 0
+  },
+  {
+   "id": "n0228",
+   "label": "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/BINARY_ANALYSIS_TYPES.py",
+   "events": 0
+  },
+  {
+   "id": "n0229",
+   "label": "src/CORE/WORMS/CAIN_ANALYZER.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CAIN_ANALYZER.py",
+   "events": 0
+  },
+  {
+   "id": "n0230",
+   "label": "src/CORE/WORMS/CAIN_DATA.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CAIN_DATA.py",
+   "events": 0
+  },
+  {
+   "id": "n0231",
+   "label": "src/CORE/WORMS/CAIN_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CAIN_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0232",
+   "label": "src/CORE/WORMS/CLAWBOT.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CLAWBOT.py",
+   "events": 0
+  },
+  {
+   "id": "n0233",
+   "label": "src/CORE/WORMS/CLOCKZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CLOCKZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0234",
+   "label": "src/CORE/WORMS/CLUSTERWORMS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CLUSTERWORMS.py",
+   "events": 0
+  },
+  {
+   "id": "n0235",
+   "label": "src/CORE/WORMS/CLUSTER_INSPECTOR.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CLUSTER_INSPECTOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0236",
+   "label": "src/CORE/WORMS/CODEX_TOOLS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CODEX_TOOLS.py",
+   "events": 0
+  },
+  {
+   "id": "n0237",
+   "label": "src/CORE/WORMS/CONCURRENCY.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CONCURRENCY.py",
+   "events": 0
+  },
+  {
+   "id": "n0238",
+   "label": "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
+   "events": 0
+  },
+  {
+   "id": "n0239",
+   "label": "src/CORE/WORMS/DEPENDZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/DEPENDZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0240",
+   "label": "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/DIAGNOSTIC_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0241",
+   "label": "src/CORE/WORMS/DISKZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/DISKZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0242",
+   "label": "src/CORE/WORMS/DNSWORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/DNSWORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0243",
+   "label": "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/ECOSYSTEM_EXPANSION.py",
+   "events": 0
+  },
+  {
+   "id": "n0244",
+   "label": "src/CORE/WORMS/ERROR_SCAN_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/ERROR_SCAN_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0245",
+   "label": "src/CORE/WORMS/HEALING_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/HEALING_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0246",
+   "label": "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/INFERENCE_SUBSCRIBER.py",
+   "events": 0
+  },
+  {
+   "id": "n0247",
+   "label": "src/CORE/WORMS/INFERENCE_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/INFERENCE_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0248",
+   "label": "src/CORE/WORMS/KALIWORMS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/KALIWORMS.py",
+   "events": 0
+  },
+  {
+   "id": "n0249",
+   "label": "src/CORE/WORMS/METACLUSTER.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/METACLUSTER.py",
+   "events": 0
+  },
+  {
+   "id": "n0250",
+   "label": "src/CORE/WORMS/METAZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/METAZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0251",
+   "label": "src/CORE/WORMS/MORPHING_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/MORPHING_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0252",
+   "label": "src/CORE/WORMS/MORPHING_WORM_V2.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/MORPHING_WORM_V2.py",
+   "events": 0
+  },
+  {
+   "id": "n0253",
+   "label": "src/CORE/WORMS/NATURE_CLUSTERS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/NATURE_CLUSTERS.py",
+   "events": 0
+  },
+  {
+   "id": "n0254",
+   "label": "src/CORE/WORMS/NETWORK_DIAG.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/NETWORK_DIAG.py",
+   "events": 0
+  },
+  {
+   "id": "n0255",
+   "label": "src/CORE/WORMS/NETWORXZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/NETWORXZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0256",
+   "label": "src/CORE/WORMS/NIM_INFERENCE.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/NIM_INFERENCE.py",
+   "events": 0
+  },
+  {
+   "id": "n0257",
+   "label": "src/CORE/WORMS/OMNI_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/OMNI_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0258",
+   "label": "src/CORE/WORMS/OMNI_WORM_V2.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/OMNI_WORM_V2.py",
+   "events": 0
+  },
+  {
+   "id": "n0259",
+   "label": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/OS_CONGRUENCY.py",
+   "events": 0
+  },
+  {
+   "id": "n0260",
+   "label": "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/PARALLEL_INFERENCE_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0261",
+   "label": "src/CORE/WORMS/PROCESSZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/PROCESSZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0262",
+   "label": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/REVERSE_TOOLS.py",
+   "events": 0
+  },
+  {
+   "id": "n0263",
+   "label": "src/CORE/WORMS/SMARTDISK.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/SMARTDISK.py",
+   "events": 0
+  },
+  {
+   "id": "n0264",
+   "label": "src/CORE/WORMS/SYSTEMZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/SYSTEMZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0265",
+   "label": "src/CORE/WORMS/SYSTEMZ_ML.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/SYSTEMZ_ML.py",
+   "events": 0
+  },
+  {
+   "id": "n0266",
+   "label": "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/VIDEO_ANALYZER_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0267",
+   "label": "src/CORE/WORMS/WORMZ.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/WORMZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0268",
+   "label": "src/CORE/WORMS/WORMZ_ML.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/WORMZ_ML.py",
+   "events": 0
+  },
+  {
+   "id": "n0269",
+   "label": "src/CORE/WORMS/WORMZ_POPUP.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/WORMZ_POPUP.py",
+   "events": 0
+  },
+  {
+   "id": "n0270",
+   "label": "src/CORE/WORMS/WORM_FLEET.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/WORM_FLEET.py",
+   "events": 0
+  },
+  {
+   "id": "n0271",
+   "label": "src/CORE/WORMS/WORM_SELECTOR.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/WORM_SELECTOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0272",
+   "label": "src/CORE/WORMS/WSL_RECOVERY_WORM.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/WSL_RECOVERY_WORM.py",
+   "events": 0
+  },
+  {
+   "id": "n0273",
+   "label": "src/CORE/WORMS/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0274",
+   "label": "src/CORE/WORMS/dead_letter_queue.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/dead_letter_queue.py",
+   "events": 0
+  },
+  {
+   "id": "n0275",
+   "label": "src/CORE/WORMS/expansion/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0276",
+   "label": "src/CORE/WORMS/expansion/backup.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/backup.py",
+   "events": 0
+  },
+  {
+   "id": "n0277",
+   "label": "src/CORE/WORMS/expansion/communication.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/communication.py",
+   "events": 0
+  },
+  {
+   "id": "n0278",
+   "label": "src/CORE/WORMS/expansion/config.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/config.py",
+   "events": 0
+  },
+  {
+   "id": "n0279",
+   "label": "src/CORE/WORMS/expansion/container.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/container.py",
+   "events": 0
+  },
+  {
+   "id": "n0280",
+   "label": "src/CORE/WORMS/expansion/db_monitor.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/db_monitor.py",
+   "events": 0
+  },
+  {
+   "id": "n0281",
+   "label": "src/CORE/WORMS/expansion/dreaming.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/dreaming.py",
+   "events": 788
+  },
+  {
+   "id": "n0282",
+   "label": "src/CORE/WORMS/expansion/error_recovery.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/error_recovery.py",
+   "events": 0
+  },
+  {
+   "id": "n0283",
+   "label": "src/CORE/WORMS/expansion/evolution.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/evolution.py",
+   "events": 9
+  },
+  {
+   "id": "n0284",
+   "label": "src/CORE/WORMS/expansion/learning.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning.py",
+   "events": 967
+  },
+  {
+   "id": "n0285",
+   "label": "src/CORE/WORMS/expansion/learning_ab.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_ab.py",
+   "events": 0
+  },
+  {
+   "id": "n0286",
+   "label": "src/CORE/WORMS/expansion/learning_features.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_features.py",
+   "events": 0
+  },
+  {
+   "id": "n0287",
+   "label": "src/CORE/WORMS/expansion/learning_grpo.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_grpo.py",
+   "events": 0
+  },
+  {
+   "id": "n0288",
+   "label": "src/CORE/WORMS/expansion/learning_pipeline.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_pipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0289",
+   "label": "src/CORE/WORMS/expansion/learning_replay.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_replay.py",
+   "events": 0
+  },
+  {
+   "id": "n0290",
+   "label": "src/CORE/WORMS/expansion/learning_rl.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_rl.py",
+   "events": 0
+  },
+  {
+   "id": "n0291",
+   "label": "src/CORE/WORMS/expansion/learning_versioner.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/learning_versioner.py",
+   "events": 0
+  },
+  {
+   "id": "n0292",
+   "label": "src/CORE/WORMS/expansion/meta_cognition.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/meta_cognition.py",
+   "events": 137
+  },
+  {
+   "id": "n0293",
+   "label": "src/CORE/WORMS/expansion/migration.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/migration.py",
+   "events": 0
+  },
+  {
+   "id": "n0294",
+   "label": "src/CORE/WORMS/expansion/profiling.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/profiling.py",
+   "events": 0
+  },
+  {
+   "id": "n0295",
+   "label": "src/CORE/WORMS/expansion/race_detector.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/race_detector.py",
+   "events": 0
+  },
+  {
+   "id": "n0296",
+   "label": "src/CORE/WORMS/expansion/scheduling.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/scheduling.py",
+   "events": 0
+  },
+  {
+   "id": "n0297",
+   "label": "src/CORE/WORMS/expansion/security.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/security.py",
+   "events": 0
+  },
+  {
+   "id": "n0298",
+   "label": "src/CORE/WORMS/expansion/session_state.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/session_state.py",
+   "events": 0
+  },
+  {
+   "id": "n0299",
+   "label": "src/CORE/WORMS/expansion/telemetry.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/telemetry.py",
+   "events": 0
+  },
+  {
+   "id": "n0300",
+   "label": "src/CORE/WORMS/expansion/visualization.py",
+   "type": "CORE",
+   "file": "src/CORE/WORMS/expansion/visualization.py",
+   "events": 0
+  },
+  {
+   "id": "n0301",
+   "label": "src/CORE/WORM_FLEET.py",
+   "type": "CORE",
+   "file": "src/CORE/WORM_FLEET.py",
+   "events": 0
+  },
+  {
+   "id": "n0302",
+   "label": "src/CORE/Widgets/BasePopupMonitor.py",
+   "type": "CORE",
+   "file": "src/CORE/Widgets/BasePopupMonitor.py",
+   "events": 0
+  },
+  {
+   "id": "n0303",
+   "label": "src/CORE/Widgets/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/Widgets/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0304",
+   "label": "src/CORE/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0305",
+   "label": "src/CORE/_logging_shim.py",
+   "type": "CORE",
+   "file": "src/CORE/_logging_shim.py",
+   "events": 0
+  },
+  {
+   "id": "n0306",
+   "label": "src/CORE/agent_registry.py",
+   "type": "CORE",
+   "file": "src/CORE/agent_registry.py",
+   "events": 0
+  },
+  {
+   "id": "n0307",
+   "label": "src/CORE/archive_store.py",
+   "type": "CORE",
+   "file": "src/CORE/archive_store.py",
+   "events": 0
+  },
+  {
+   "id": "n0308",
+   "label": "src/CORE/audit_compress.py",
+   "type": "CORE",
+   "file": "src/CORE/audit_compress.py",
+   "events": 0
+  },
+  {
+   "id": "n0309",
+   "label": "src/CORE/audit_export_html.py",
+   "type": "CORE",
+   "file": "src/CORE/audit_export_html.py",
+   "events": 0
+  },
+  {
+   "id": "n0310",
+   "label": "src/CORE/audit_merge.py",
+   "type": "CORE",
+   "file": "src/CORE/audit_merge.py",
+   "events": 0
+  },
+  {
+   "id": "n0311",
+   "label": "src/CORE/audit_repair.py",
+   "type": "CORE",
+   "file": "src/CORE/audit_repair.py",
+   "events": 0
+  },
+  {
+   "id": "n0312",
+   "label": "src/CORE/audit_trail.py",
+   "type": "CORE",
+   "file": "src/CORE/audit_trail.py",
+   "events": 0
+  },
+  {
+   "id": "n0313",
+   "label": "src/CORE/audit_watch.py",
+   "type": "CORE",
+   "file": "src/CORE/audit_watch.py",
+   "events": 0
+  },
+  {
+   "id": "n0314",
+   "label": "src/CORE/azazael_ctl.py",
+   "type": "CORE",
+   "file": "src/CORE/azazael_ctl.py",
+   "events": 0
+  },
+  {
+   "id": "n0315",
+   "label": "src/CORE/azazael_logging.py",
+   "type": "CORE",
+   "file": "src/CORE/azazael_logging.py",
+   "events": 0
+  },
+  {
+   "id": "n0316",
+   "label": "src/CORE/backup.py",
+   "type": "CORE",
+   "file": "src/CORE/backup.py",
+   "events": 0
+  },
+  {
+   "id": "n0317",
+   "label": "src/CORE/cd2_verifier.py",
+   "type": "CORE",
+   "file": "src/CORE/cd2_verifier.py",
+   "events": 0
+  },
+  {
+   "id": "n0318",
+   "label": "src/CORE/cd3_exporter.py",
+   "type": "CORE",
+   "file": "src/CORE/cd3_exporter.py",
+   "events": 0
+  },
+  {
+   "id": "n0319",
+   "label": "src/CORE/cd4_pipeline.py",
+   "type": "CORE",
+   "file": "src/CORE/cd4_pipeline.py",
+   "events": 0
+  },
+  {
+   "id": "n0320",
+   "label": "src/CORE/circuit_breaker.py",
+   "type": "CORE",
+   "file": "src/CORE/circuit_breaker.py",
+   "events": 0
+  },
+  {
+   "id": "n0321",
+   "label": "src/CORE/cli_audit.py",
+   "type": "CORE",
+   "file": "src/CORE/cli_audit.py",
+   "events": 0
+  },
+  {
+   "id": "n0322",
+   "label": "src/CORE/cli_completion.py",
+   "type": "CORE",
+   "file": "src/CORE/cli_completion.py",
+   "events": 0
+  },
+  {
+   "id": "n0323",
+   "label": "src/CORE/cli_crossref.py",
+   "type": "CORE",
+   "file": "src/CORE/cli_crossref.py",
+   "events": 0
+  },
+  {
+   "id": "n0324",
+   "label": "src/CORE/cli_memory.py",
+   "type": "CORE",
+   "file": "src/CORE/cli_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0325",
+   "label": "src/CORE/codebase_graph.py",
+   "type": "CORE",
+   "file": "src/CORE/codebase_graph.py",
+   "events": 0
+  },
+  {
+   "id": "n0326",
+   "label": "src/CORE/codebuff_tracker.py",
+   "type": "CORE",
+   "file": "src/CORE/codebuff_tracker.py",
+   "events": 0
+  },
+  {
+   "id": "n0327",
+   "label": "src/CORE/compliance/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0328",
+   "label": "src/CORE/compliance/broker.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/broker.py",
+   "events": 0
+  },
+  {
+   "id": "n0329",
+   "label": "src/CORE/compliance/dashboard_api.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/dashboard_api.py",
+   "events": 0
+  },
+  {
+   "id": "n0330",
+   "label": "src/CORE/compliance/governance.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/governance.py",
+   "events": 0
+  },
+  {
+   "id": "n0331",
+   "label": "src/CORE/compliance/heuristic_recorder.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/heuristic_recorder.py",
+   "events": 0
+  },
+  {
+   "id": "n0332",
+   "label": "src/CORE/compliance/orchestrator.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/orchestrator.py",
+   "events": 0
+  },
+  {
+   "id": "n0333",
+   "label": "src/CORE/compliance/policy.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/policy.py",
+   "events": 0
+  },
+  {
+   "id": "n0334",
+   "label": "src/CORE/compliance/pre_action_gate.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/pre_action_gate.py",
+   "events": 0
+  },
+  {
+   "id": "n0335",
+   "label": "src/CORE/compliance/run_self_test.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/run_self_test.py",
+   "events": 0
+  },
+  {
+   "id": "n0336",
+   "label": "src/CORE/compliance/scanner.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/scanner.py",
+   "events": 0
+  },
+  {
+   "id": "n0337",
+   "label": "src/CORE/compliance/scanner_db.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/scanner_db.py",
+   "events": 0
+  },
+  {
+   "id": "n0338",
+   "label": "src/CORE/compliance/state_machine.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/state_machine.py",
+   "events": 0
+  },
+  {
+   "id": "n0339",
+   "label": "src/CORE/compliance/telemetry.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/telemetry.py",
+   "events": 0
+  },
+  {
+   "id": "n0340",
+   "label": "src/CORE/compliance/validating.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance/validating.py",
+   "events": 0
+  },
+  {
+   "id": "n0341",
+   "label": "src/CORE/compliance_auditor.py",
+   "type": "CORE",
+   "file": "src/CORE/compliance_auditor.py",
+   "events": 0
+  },
+  {
+   "id": "n0342",
+   "label": "src/CORE/config.py",
+   "type": "CORE",
+   "file": "src/CORE/config.py",
+   "events": 0
+  },
+  {
+   "id": "n0343",
+   "label": "src/CORE/dashboard.py",
+   "type": "CORE",
+   "file": "src/CORE/dashboard.py",
+   "events": 0
+  },
+  {
+   "id": "n0344",
+   "label": "src/CORE/data_retention.py",
+   "type": "CORE",
+   "file": "src/CORE/data_retention.py",
+   "events": 0
+  },
+  {
+   "id": "n0345",
+   "label": "src/CORE/direct_memory.py",
+   "type": "CORE",
+   "file": "src/CORE/direct_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0346",
+   "label": "src/CORE/doctor.py",
+   "type": "CORE",
+   "file": "src/CORE/doctor.py",
+   "events": 0
+  },
+  {
+   "id": "n0347",
+   "label": "src/CORE/dream_policy_bridge.py",
+   "type": "CORE",
+   "file": "src/CORE/dream_policy_bridge.py",
+   "events": 73
+  },
+  {
+   "id": "n0348",
+   "label": "src/CORE/enforcement_harness.py",
+   "type": "CORE",
+   "file": "src/CORE/enforcement_harness.py",
+   "events": 0
+  },
+  {
+   "id": "n0349",
+   "label": "src/CORE/error_triage.py",
+   "type": "CORE",
+   "file": "src/CORE/error_triage.py",
+   "events": 0
+  },
+  {
+   "id": "n0350",
+   "label": "src/CORE/freethreading.py",
+   "type": "CORE",
+   "file": "src/CORE/freethreading.py",
+   "events": 0
+  },
+  {
+   "id": "n0351",
+   "label": "src/CORE/full_scan.py",
+   "type": "CORE",
+   "file": "src/CORE/full_scan.py",
+   "events": 0
+  },
+  {
+   "id": "n0352",
+   "label": "src/CORE/graph_artifacts.py",
+   "type": "CORE",
+   "file": "src/CORE/graph_artifacts.py",
+   "events": 0
+  },
+  {
+   "id": "n0353",
+   "label": "src/CORE/graph_drift.py",
+   "type": "CORE",
+   "file": "src/CORE/graph_drift.py",
+   "events": 0
+  },
+  {
+   "id": "n0354",
+   "label": "src/CORE/health_server.py",
+   "type": "CORE",
+   "file": "src/CORE/health_server.py",
+   "events": 0
+  },
+  {
+   "id": "n0355",
+   "label": "src/CORE/inference/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0356",
+   "label": "src/CORE/inference/api_client.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/api_client.py",
+   "events": 0
+  },
+  {
+   "id": "n0357",
+   "label": "src/CORE/inference/bus_utils.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/bus_utils.py",
+   "events": 0
+  },
+  {
+   "id": "n0358",
+   "label": "src/CORE/inference/cloud_tab.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/cloud_tab.py",
+   "events": 0
+  },
+  {
+   "id": "n0359",
+   "label": "src/CORE/inference/hyper_optimizer.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/hyper_optimizer.py",
+   "events": 0
+  },
+  {
+   "id": "n0360",
+   "label": "src/CORE/inference/inference_cache.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/inference_cache.py",
+   "events": 0
+  },
+  {
+   "id": "n0361",
+   "label": "src/CORE/inference/nim_client.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/nim_client.py",
+   "events": 0
+  },
+  {
+   "id": "n0362",
+   "label": "src/CORE/inference/parallel.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/parallel.py",
+   "events": 0
+  },
+  {
+   "id": "n0363",
+   "label": "src/CORE/inference/providers.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/providers.py",
+   "events": 0
+  },
+  {
+   "id": "n0364",
+   "label": "src/CORE/inference/query_loop.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/query_loop.py",
+   "events": 0
+  },
+  {
+   "id": "n0365",
+   "label": "src/CORE/inference/sequential_analyzer.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/sequential_analyzer.py",
+   "events": 0
+  },
+  {
+   "id": "n0366",
+   "label": "src/CORE/inference/threaded.py",
+   "type": "CORE",
+   "file": "src/CORE/inference/threaded.py",
+   "events": 0
+  },
+  {
+   "id": "n0367",
+   "label": "src/CORE/inference_pool.py",
+   "type": "CORE",
+   "file": "src/CORE/inference_pool.py",
+   "events": 0
+  },
+  {
+   "id": "n0368",
+   "label": "src/CORE/local_memory.py",
+   "type": "CORE",
+   "file": "src/CORE/local_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0369",
+   "label": "src/CORE/logging_config.py",
+   "type": "CORE",
+   "file": "src/CORE/logging_config.py",
+   "events": 0
+  },
+  {
+   "id": "n0370",
+   "label": "src/CORE/metrics.py",
+   "type": "CORE",
+   "file": "src/CORE/metrics.py",
+   "events": 0
+  },
+  {
+   "id": "n0371",
+   "label": "src/CORE/notifier.py",
+   "type": "CORE",
+   "file": "src/CORE/notifier.py",
+   "events": 0
+  },
+  {
+   "id": "n0372",
+   "label": "src/CORE/paths/__init__.py",
+   "type": "CORE",
+   "file": "src/CORE/paths/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0373",
+   "label": "src/CORE/paths/__main__.py",
+   "type": "CORE",
+   "file": "src/CORE/paths/__main__.py",
+   "events": 0
+  },
+  {
+   "id": "n0374",
+   "label": "src/CORE/paths/external.py",
+   "type": "CORE",
+   "file": "src/CORE/paths/external.py",
+   "events": 0
+  },
+  {
+   "id": "n0375",
+   "label": "src/CORE/paths/internal.py",
+   "type": "CORE",
+   "file": "src/CORE/paths/internal.py",
+   "events": 0
+  },
+  {
+   "id": "n0376",
+   "label": "src/CORE/paths/state.py",
+   "type": "CORE",
+   "file": "src/CORE/paths/state.py",
+   "events": 0
+  },
+  {
+   "id": "n0377",
+   "label": "src/CORE/paths/targets.py",
+   "type": "CORE",
+   "file": "src/CORE/paths/targets.py",
+   "events": 0
+  },
+  {
+   "id": "n0378",
+   "label": "src/CORE/pattern_memory.py",
+   "type": "CORE",
+   "file": "src/CORE/pattern_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0379",
+   "label": "src/CORE/postgres_memory.py",
+   "type": "CORE",
+   "file": "src/CORE/postgres_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0380",
+   "label": "src/CORE/project_atlas.py",
+   "type": "CORE",
+   "file": "src/CORE/project_atlas.py",
+   "events": 0
+  },
+  {
+   "id": "n0381",
+   "label": "src/CORE/record_session.py",
+   "type": "CORE",
+   "file": "src/CORE/record_session.py",
+   "events": 0
+  },
+  {
+   "id": "n0382",
+   "label": "src/CORE/rollback.py",
+   "type": "CORE",
+   "file": "src/CORE/rollback.py",
+   "events": 0
+  },
+  {
+   "id": "n0383",
+   "label": "src/CORE/safe_file_ops.py",
+   "type": "CORE",
+   "file": "src/CORE/safe_file_ops.py",
+   "events": 0
+  },
+  {
+   "id": "n0384",
+   "label": "src/CORE/safe_sql.py",
+   "type": "CORE",
+   "file": "src/CORE/safe_sql.py",
+   "events": 0
+  },
+  {
+   "id": "n0385",
+   "label": "src/CORE/sb3_agent.py",
+   "type": "CORE",
+   "file": "src/CORE/sb3_agent.py",
+   "events": 0
+  },
+  {
+   "id": "n0386",
+   "label": "src/CORE/secrets_manager.py",
+   "type": "CORE",
+   "file": "src/CORE/secrets_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0387",
+   "label": "src/CORE/sentinel_enforcer.py",
+   "type": "CORE",
+   "file": "src/CORE/sentinel_enforcer.py",
+   "events": 0
+  },
+  {
+   "id": "n0388",
+   "label": "src/CORE/startup_warm.py",
+   "type": "CORE",
+   "file": "src/CORE/startup_warm.py",
+   "events": 0
+  },
+  {
+   "id": "n0389",
+   "label": "src/CORE/threading_utils.py",
+   "type": "CORE",
+   "file": "src/CORE/threading_utils.py",
+   "events": 0
+  },
+  {
+   "id": "n0390",
+   "label": "src/CORE/tstrings.py",
+   "type": "CORE",
+   "file": "src/CORE/tstrings.py",
+   "events": 0
+  },
+  {
+   "id": "n0391",
+   "label": "src/CORE/uuid7.py",
+   "type": "CORE",
+   "file": "src/CORE/uuid7.py",
+   "events": 0
+  },
+  {
+   "id": "n0392",
+   "label": "src/CORE/vocab_migration.py",
+   "type": "CORE",
+   "file": "src/CORE/vocab_migration.py",
+   "events": 0
+  },
+  {
+   "id": "n0393",
+   "label": "src/CORE/web_dashboard.py",
+   "type": "CORE",
+   "file": "src/CORE/web_dashboard.py",
+   "events": 0
+  },
+  {
+   "id": "n0394",
+   "label": "src/CORE/workflow.py",
+   "type": "CORE",
+   "file": "src/CORE/workflow.py",
+   "events": 0
+  },
+  {
+   "id": "n0395",
+   "label": "src/CORE/worm_governance.py",
+   "type": "CORE",
+   "file": "src/CORE/worm_governance.py",
+   "events": 0
+  },
+  {
+   "id": "n0396",
+   "label": "src/CORE/worm_health.py",
+   "type": "CORE",
+   "file": "src/CORE/worm_health.py",
+   "events": 0
+  },
+  {
+   "id": "n0397",
+   "label": "src/CORE/worm_registry.py",
+   "type": "CORE",
+   "file": "src/CORE/worm_registry.py",
+   "events": 0
+  },
+  {
+   "id": "n0398",
+   "label": "src/CORE/worm_registry_cache.py",
+   "type": "CORE",
+   "file": "src/CORE/worm_registry_cache.py",
+   "events": 0
+  },
+  {
+   "id": "n0399",
+   "label": "src/CORE/xref_auto_link.py",
+   "type": "CORE",
+   "file": "src/CORE/xref_auto_link.py",
+   "events": 0
+  },
+  {
+   "id": "n0400",
+   "label": "src/CORE/xref_dashboard.py",
+   "type": "CORE",
+   "file": "src/CORE/xref_dashboard.py",
+   "events": 0
+  },
+  {
+   "id": "n0401",
+   "label": "src/CORE/xref_webhook.py",
+   "type": "CORE",
+   "file": "src/CORE/xref_webhook.py",
+   "events": 0
+  },
+  {
+   "id": "n0402",
+   "label": "src/DAEMONS/check_parallax.py",
+   "type": "DAEMONS",
+   "file": "src/DAEMONS/check_parallax.py",
+   "events": 0
+  },
+  {
+   "id": "n0403",
+   "label": "src/DAEMONS/install_parallax_startup.py",
+   "type": "DAEMONS",
+   "file": "src/DAEMONS/install_parallax_startup.py",
+   "events": 0
+  },
+  {
+   "id": "n0404",
+   "label": "src/DAEMONS/parallax_validator.py",
+   "type": "DAEMONS",
+   "file": "src/DAEMONS/parallax_validator.py",
+   "events": 0
+  },
+  {
+   "id": "n0405",
+   "label": "src/DOCKERZ.py",
+   "type": "DOCKERZ.py",
+   "file": "src/DOCKERZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0406",
+   "label": "src/ECOSYSTEM_HEALTH_CHECK.py",
+   "type": "ECOSYSTEM_HEALTH_CHECK.py",
+   "file": "src/ECOSYSTEM_HEALTH_CHECK.py",
+   "events": 0
+  },
+  {
+   "id": "n0407",
+   "label": "src/ERRORZ.py",
+   "type": "ERRORZ.py",
+   "file": "src/ERRORZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0408",
+   "label": "src/FILE_MANIFEST_GENERATOR.py",
+   "type": "FILE_MANIFEST_GENERATOR.py",
+   "file": "src/FILE_MANIFEST_GENERATOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0409",
+   "label": "src/HEALTHZ.py",
+   "type": "HEALTHZ.py",
+   "file": "src/HEALTHZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0410",
+   "label": "src/HORUS_INTEGRATION.py",
+   "type": "HORUS_INTEGRATION.py",
+   "file": "src/HORUS_INTEGRATION.py",
+   "events": 0
+  },
+  {
+   "id": "n0411",
+   "label": "src/HYDRA/__init__.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0412",
+   "label": "src/HYDRA/hydra_launcher.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/hydra_launcher.py",
+   "events": 0
+  },
+  {
+   "id": "n0413",
+   "label": "src/HYDRA/hydra_protocols.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/hydra_protocols.py",
+   "events": 0
+  },
+  {
+   "id": "n0414",
+   "label": "src/HYDRA/ml_platforms/PERMANENT_LOAD.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_platforms/PERMANENT_LOAD.py",
+   "events": 0
+  },
+  {
+   "id": "n0415",
+   "label": "src/HYDRA/ml_platforms/__init__.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_platforms/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0416",
+   "label": "src/HYDRA/ml_platforms/config.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_platforms/config.py",
+   "events": 0
+  },
+  {
+   "id": "n0417",
+   "label": "src/HYDRA/ml_platforms/harness.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_platforms/harness.py",
+   "events": 0
+  },
+  {
+   "id": "n0418",
+   "label": "src/HYDRA/ml_platforms/health_monitor.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_platforms/health_monitor.py",
+   "events": 0
+  },
+  {
+   "id": "n0419",
+   "label": "src/HYDRA/ml_platforms/launcher.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_platforms/launcher.py",
+   "events": 0
+  },
+  {
+   "id": "n0420",
+   "label": "src/HYDRA/ml_test.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/ml_test.py",
+   "events": 0
+  },
+  {
+   "id": "n0421",
+   "label": "src/HYDRA/pipeline_specs.py",
+   "type": "HYDRA",
+   "file": "src/HYDRA/pipeline_specs.py",
+   "events": 0
+  },
+  {
+   "id": "n0422",
+   "label": "src/HYDRAMETA.py",
+   "type": "HYDRAMETA.py",
+   "file": "src/HYDRAMETA.py",
+   "events": 0
+  },
+  {
+   "id": "n0423",
+   "label": "src/HYDRAMETA_UV.py",
+   "type": "HYDRAMETA_UV.py",
+   "file": "src/HYDRAMETA_UV.py",
+   "events": 0
+  },
+  {
+   "id": "n0424",
+   "label": "src/HYDRA_CONTAINER.py",
+   "type": "HYDRA_CONTAINER.py",
+   "file": "src/HYDRA_CONTAINER.py",
+   "events": 0
+  },
+  {
+   "id": "n0425",
+   "label": "src/INTERPRETERS/__init__.py",
+   "type": "INTERPRETERS",
+   "file": "src/INTERPRETERS/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0426",
+   "label": "src/INTERPRETERS/go_runner.py",
+   "type": "INTERPRETERS",
+   "file": "src/INTERPRETERS/go_runner.py",
+   "events": 0
+  },
+  {
+   "id": "n0427",
+   "label": "src/INTERPRETERS/rust_runner.py",
+   "type": "INTERPRETERS",
+   "file": "src/INTERPRETERS/rust_runner.py",
+   "events": 0
+  },
+  {
+   "id": "n0428",
+   "label": "src/META/DOCKERZ.py",
+   "type": "META",
+   "file": "src/META/DOCKERZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0429",
+   "label": "src/META/ERRORZ.py",
+   "type": "META",
+   "file": "src/META/ERRORZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0430",
+   "label": "src/META/HEALTHZ.py",
+   "type": "META",
+   "file": "src/META/HEALTHZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0431",
+   "label": "src/META/HYDRAMETA.py",
+   "type": "META",
+   "file": "src/META/HYDRAMETA.py",
+   "events": 0
+  },
+  {
+   "id": "n0432",
+   "label": "src/META/HYDRAMETA_UV.py",
+   "type": "META",
+   "file": "src/META/HYDRAMETA_UV.py",
+   "events": 0
+  },
+  {
+   "id": "n0433",
+   "label": "src/META/HYDRA_CONTAINER.py",
+   "type": "META",
+   "file": "src/META/HYDRA_CONTAINER.py",
+   "events": 0
+  },
+  {
+   "id": "n0434",
+   "label": "src/META/METAWORMS.py",
+   "type": "META",
+   "file": "src/META/METAWORMS.py",
+   "events": 0
+  },
+  {
+   "id": "n0435",
+   "label": "src/META/METAWORMS_ENRICHED.py",
+   "type": "META",
+   "file": "src/META/METAWORMS_ENRICHED.py",
+   "events": 0
+  },
+  {
+   "id": "n0436",
+   "label": "src/META/METAWORMS_POPUP.py",
+   "type": "META",
+   "file": "src/META/METAWORMS_POPUP.py",
+   "events": 0
+  },
+  {
+   "id": "n0437",
+   "label": "src/META/METRICZ.py",
+   "type": "META",
+   "file": "src/META/METRICZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0438",
+   "label": "src/META/MetaWormSpawner.py",
+   "type": "META",
+   "file": "src/META/MetaWormSpawner.py",
+   "events": 0
+  },
+  {
+   "id": "n0439",
+   "label": "src/META/OPTIMIZ.py",
+   "type": "META",
+   "file": "src/META/OPTIMIZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0440",
+   "label": "src/META/TELEMETRYZ.py",
+   "type": "META",
+   "file": "src/META/TELEMETRYZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0441",
+   "label": "src/META/TRIMZ.py",
+   "type": "META",
+   "file": "src/META/TRIMZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0442",
+   "label": "src/META/UVZ.py",
+   "type": "META",
+   "file": "src/META/UVZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0443",
+   "label": "src/META/__init__.py",
+   "type": "META",
+   "file": "src/META/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0444",
+   "label": "src/METAWORMS.py",
+   "type": "METAWORMS.py",
+   "file": "src/METAWORMS.py",
+   "events": 0
+  },
+  {
+   "id": "n0445",
+   "label": "src/METAWORMS_ENRICHED.py",
+   "type": "METAWORMS_ENRICHED.py",
+   "file": "src/METAWORMS_ENRICHED.py",
+   "events": 0
+  },
+  {
+   "id": "n0446",
+   "label": "src/METAWORMS_POPUP.py",
+   "type": "METAWORMS_POPUP.py",
+   "file": "src/METAWORMS_POPUP.py",
+   "events": 0
+  },
+  {
+   "id": "n0447",
+   "label": "src/METRICZ.py",
+   "type": "METRICZ.py",
+   "file": "src/METRICZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0448",
+   "label": "src/MISSING_TOOLS.py",
+   "type": "MISSING_TOOLS.py",
+   "file": "src/MISSING_TOOLS.py",
+   "events": 0
+  },
+  {
+   "id": "n0449",
+   "label": "src/OPTIMIZ.py",
+   "type": "OPTIMIZ.py",
+   "file": "src/OPTIMIZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0450",
+   "label": "src/ORCHESTRATION/ADLP_FusionCore.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ADLP_FusionCore.py",
+   "events": 0
+  },
+  {
+   "id": "n0451",
+   "label": "src/ORCHESTRATION/ADLP_MLOrchestrator.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ADLP_MLOrchestrator.py",
+   "events": 0
+  },
+  {
+   "id": "n0452",
+   "label": "src/ORCHESTRATION/ADLP_SystemTools.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ADLP_SystemTools.py",
+   "events": 0
+  },
+  {
+   "id": "n0453",
+   "label": "src/ORCHESTRATION/AssistantLogProtocol.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/AssistantLogProtocol.py",
+   "events": 0
+  },
+  {
+   "id": "n0454",
+   "label": "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/AssistantLogProtocol_Enhanced.py",
+   "events": 0
+  },
+  {
+   "id": "n0455",
+   "label": "src/ORCHESTRATION/BIBL/__init__.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/BIBL/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0456",
+   "label": "src/ORCHESTRATION/BIBL/bibl_crawler.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/BIBL/bibl_crawler.py",
+   "events": 0
+  },
+  {
+   "id": "n0457",
+   "label": "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py",
+   "events": 0
+  },
+  {
+   "id": "n0458",
+   "label": "src/ORCHESTRATION/ECOSYSTEM_OPTIMIZER.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ECOSYSTEM_OPTIMIZER.py",
+   "events": 0
+  },
+  {
+   "id": "n0459",
+   "label": "src/ORCHESTRATION/FusionHealer.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/FusionHealer.py",
+   "events": 0
+  },
+  {
+   "id": "n0460",
+   "label": "src/ORCHESTRATION/HORUS.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/HORUS.py",
+   "events": 0
+  },
+  {
+   "id": "n0461",
+   "label": "src/ORCHESTRATION/HORUS_LIVE_MONITOR.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/HORUS_LIVE_MONITOR.py",
+   "events": 0
+  },
+  {
+   "id": "n0462",
+   "label": "src/ORCHESTRATION/HYDRA.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/HYDRA.py",
+   "events": 0
+  },
+  {
+   "id": "n0463",
+   "label": "src/ORCHESTRATION/HYDRA_ANALYZER.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/HYDRA_ANALYZER.py",
+   "events": 0
+  },
+  {
+   "id": "n0464",
+   "label": "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py",
+   "events": 0
+  },
+  {
+   "id": "n0465",
+   "label": "src/ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/INTEROPERABILITY_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0466",
+   "label": "src/ORCHESTRATION/MathCertainty.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/MathCertainty.py",
+   "events": 0
+  },
+  {
+   "id": "n0467",
+   "label": "src/ORCHESTRATION/SelfImprovingGUI.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/SelfImprovingGUI.py",
+   "events": 0
+  },
+  {
+   "id": "n0468",
+   "label": "src/ORCHESTRATION/SystemManager.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/SystemManager.py",
+   "events": 0
+  },
+  {
+   "id": "n0469",
+   "label": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/SystemManagerGUI.py",
+   "events": 0
+  },
+  {
+   "id": "n0470",
+   "label": "src/ORCHESTRATION/TARBABY.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/TARBABY.py",
+   "events": 0
+  },
+  {
+   "id": "n0471",
+   "label": "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/TEST/ECOSYSTEM_TEST.py",
+   "events": 0
+  },
+  {
+   "id": "n0472",
+   "label": "src/ORCHESTRATION/TEST/__init__.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/TEST/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0473",
+   "label": "src/ORCHESTRATION/TotalFusion.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/TotalFusion.py",
+   "events": 0
+  },
+  {
+   "id": "n0474",
+   "label": "src/ORCHESTRATION/__init__.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0475",
+   "label": "src/ORCHESTRATION/hydra_bridge.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/hydra_bridge.py",
+   "events": 0
+  },
+  {
+   "id": "n0476",
+   "label": "src/ORCHESTRATION/ml_platforms/__init__.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0477",
+   "label": "src/ORCHESTRATION/ml_platforms/auto_install.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/auto_install.py",
+   "events": 0
+  },
+  {
+   "id": "n0478",
+   "label": "src/ORCHESTRATION/ml_platforms/autoload.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/autoload.py",
+   "events": 0
+  },
+  {
+   "id": "n0479",
+   "label": "src/ORCHESTRATION/ml_platforms/changelog.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/changelog.py",
+   "events": 0
+  },
+  {
+   "id": "n0480",
+   "label": "src/ORCHESTRATION/ml_platforms/config.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/config.py",
+   "events": 0
+  },
+  {
+   "id": "n0481",
+   "label": "src/ORCHESTRATION/ml_platforms/cross_platform_analysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/cross_platform_analysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0482",
+   "label": "src/ORCHESTRATION/ml_platforms/diagnostics.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/diagnostics.py",
+   "events": 0
+  },
+  {
+   "id": "n0483",
+   "label": "src/ORCHESTRATION/ml_platforms/framework_activator.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/framework_activator.py",
+   "events": 0
+  },
+  {
+   "id": "n0484",
+   "label": "src/ORCHESTRATION/ml_platforms/harness.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/harness.py",
+   "events": 0
+  },
+  {
+   "id": "n0485",
+   "label": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/health_monitor.py",
+   "events": 0
+  },
+  {
+   "id": "n0486",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/__init__.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0487",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/deep_learning_qlearning.py",
+   "events": 0
+  },
+  {
+   "id": "n0488",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/enhanced_qlearning.py",
+   "events": 0
+  },
+  {
+   "id": "n0489",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/metrics_tracker.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/metrics_tracker.py",
+   "events": 0
+  },
+  {
+   "id": "n0490",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/ml_integration.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/ml_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0491",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/mlflow_integration.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/mlflow_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0492",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/onnx_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0493",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py",
+   "events": 0
+  },
+  {
+   "id": "n0494",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/qualitative_improvements.py",
+   "events": 0
+  },
+  {
+   "id": "n0495",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/ray_integration.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/ray_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0496",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/strategic_intelligence.py",
+   "events": 0
+  },
+  {
+   "id": "n0497",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/tensor_utils.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/tensor_utils.py",
+   "events": 0
+  },
+  {
+   "id": "n0498",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/vectorize_utils.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/vectorize_utils.py",
+   "events": 0
+  },
+  {
+   "id": "n0499",
+   "label": "src/ORCHESTRATION/ml_platforms/improvements/weakness_testing.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/improvements/weakness_testing.py",
+   "events": 0
+  },
+  {
+   "id": "n0500",
+   "label": "src/ORCHESTRATION/ml_platforms/install_improvements.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/install_improvements.py",
+   "events": 0
+  },
+  {
+   "id": "n0501",
+   "label": "src/ORCHESTRATION/ml_platforms/install_light.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/install_light.py",
+   "events": 0
+  },
+  {
+   "id": "n0502",
+   "label": "src/ORCHESTRATION/ml_platforms/install_manager.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/install_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0503",
+   "label": "src/ORCHESTRATION/ml_platforms/installation_debug.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/installation_debug.py",
+   "events": 0
+  },
+  {
+   "id": "n0504",
+   "label": "src/ORCHESTRATION/ml_platforms/jax_analysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/jax_analysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0505",
+   "label": "src/ORCHESTRATION/ml_platforms/launcher.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/launcher.py",
+   "events": 0
+  },
+  {
+   "id": "n0506",
+   "label": "src/ORCHESTRATION/ml_platforms/lm_studio_autoload.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/lm_studio_autoload.py",
+   "events": 0
+  },
+  {
+   "id": "n0507",
+   "label": "src/ORCHESTRATION/ml_platforms/lm_studio_client.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/lm_studio_client.py",
+   "events": 0
+  },
+  {
+   "id": "n0508",
+   "label": "src/ORCHESTRATION/ml_platforms/lm_studio_integration.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/lm_studio_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0509",
+   "label": "src/ORCHESTRATION/ml_platforms/lm_studio_server.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/lm_studio_server.py",
+   "events": 0
+  },
+  {
+   "id": "n0510",
+   "label": "src/ORCHESTRATION/ml_platforms/openinterpreter_startup.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/openinterpreter_startup.py",
+   "events": 0
+  },
+  {
+   "id": "n0511",
+   "label": "src/ORCHESTRATION/ml_platforms/run_qanalysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/run_qanalysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0512",
+   "label": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/run_qanalysis_full.py",
+   "events": 0
+  },
+  {
+   "id": "n0513",
+   "label": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/run_qanalysis_multi.py",
+   "events": 0
+  },
+  {
+   "id": "n0514",
+   "label": "src/ORCHESTRATION/ml_platforms/unified_analysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/unified_analysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0515",
+   "label": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/universal_converter.py",
+   "events": 0
+  },
+  {
+   "id": "n0516",
+   "label": "src/ORCHESTRATION/ml_platforms/verify_moe.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/ml_platforms/verify_moe.py",
+   "events": 0
+  },
+  {
+   "id": "n0517",
+   "label": "src/ORCHESTRATION/scripts/__init__.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0518",
+   "label": "src/ORCHESTRATION/scripts/azazael_cli.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/azazael_cli.py",
+   "events": 0
+  },
+  {
+   "id": "n0519",
+   "label": "src/ORCHESTRATION/scripts/azazael_wsa.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/azazael_wsa.py",
+   "events": 0
+  },
+  {
+   "id": "n0520",
+   "label": "src/ORCHESTRATION/scripts/bat_analysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/bat_analysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0521",
+   "label": "src/ORCHESTRATION/scripts/check_links.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/check_links.py",
+   "events": 0
+  },
+  {
+   "id": "n0522",
+   "label": "src/ORCHESTRATION/scripts/complete_module_analysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/complete_module_analysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0523",
+   "label": "src/ORCHESTRATION/scripts/comprehensive_analysis.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/comprehensive_analysis.py",
+   "events": 0
+  },
+  {
+   "id": "n0524",
+   "label": "src/ORCHESTRATION/scripts/consistency_checker.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/consistency_checker.py",
+   "events": 0
+  },
+  {
+   "id": "n0525",
+   "label": "src/ORCHESTRATION/scripts/fix_syntax_errors.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/fix_syntax_errors.py",
+   "events": 0
+  },
+  {
+   "id": "n0526",
+   "label": "src/ORCHESTRATION/scripts/generate_docs_index.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/generate_docs_index.py",
+   "events": 0
+  },
+  {
+   "id": "n0527",
+   "label": "src/ORCHESTRATION/scripts/generate_docstrings.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/generate_docstrings.py",
+   "events": 0
+  },
+  {
+   "id": "n0528",
+   "label": "src/ORCHESTRATION/scripts/improve_bat_files.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/improve_bat_files.py",
+   "events": 0
+  },
+  {
+   "id": "n0529",
+   "label": "src/ORCHESTRATION/scripts/run_tests.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/run_tests.py",
+   "events": 0
+  },
+  {
+   "id": "n0530",
+   "label": "src/ORCHESTRATION/scripts/test_enhancements.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/test_enhancements.py",
+   "events": 0
+  },
+  {
+   "id": "n0531",
+   "label": "src/ORCHESTRATION/scripts/validate_docs.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/validate_docs.py",
+   "events": 0
+  },
+  {
+   "id": "n0532",
+   "label": "src/ORCHESTRATION/scripts/web_dashboard.py",
+   "type": "ORCHESTRATION",
+   "file": "src/ORCHESTRATION/scripts/web_dashboard.py",
+   "events": 0
+  },
+  {
+   "id": "n0533",
+   "label": "src/QL_ANALYSIS.py",
+   "type": "QL_ANALYSIS.py",
+   "file": "src/QL_ANALYSIS.py",
+   "events": 0
+  },
+  {
+   "id": "n0534",
+   "label": "src/QL_FILE_OPTIMIZER.py",
+   "type": "QL_FILE_OPTIMIZER.py",
+   "file": "src/QL_FILE_OPTIMIZER.py",
+   "events": 0
+  },
+  {
+   "id": "n0535",
+   "label": "src/REAL_FRAMEWORK_TEST.py",
+   "type": "REAL_FRAMEWORK_TEST.py",
+   "file": "src/REAL_FRAMEWORK_TEST.py",
+   "events": 0
+  },
+  {
+   "id": "n0536",
+   "label": "src/SCRIPTS/__init__.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0537",
+   "label": "src/SCRIPTS/_reconstruct_error214.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/_reconstruct_error214.py",
+   "events": 0
+  },
+  {
+   "id": "n0538",
+   "label": "src/SCRIPTS/auto_sync.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/auto_sync.py",
+   "events": 0
+  },
+  {
+   "id": "n0539",
+   "label": "src/SCRIPTS/bootstrap.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/bootstrap.py",
+   "events": 0
+  },
+  {
+   "id": "n0540",
+   "label": "src/SCRIPTS/enforce_pre_action_gate.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/enforce_pre_action_gate.py",
+   "events": 0
+  },
+  {
+   "id": "n0541",
+   "label": "src/SCRIPTS/environ_updater.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/environ_updater.py",
+   "events": 0
+  },
+  {
+   "id": "n0542",
+   "label": "src/SCRIPTS/fix_bare_excepts.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/fix_bare_excepts.py",
+   "events": 0
+  },
+  {
+   "id": "n0543",
+   "label": "src/SCRIPTS/gate_bash.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/gate_bash.py",
+   "events": 0
+  },
+  {
+   "id": "n0544",
+   "label": "src/SCRIPTS/gate_str_replace.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/gate_str_replace.py",
+   "events": 0
+  },
+  {
+   "id": "n0545",
+   "label": "src/SCRIPTS/gate_write_file.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/gate_write_file.py",
+   "events": 0
+  },
+  {
+   "id": "n0546",
+   "label": "src/SCRIPTS/gated_edit.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/gated_edit.py",
+   "events": 0
+  },
+  {
+   "id": "n0547",
+   "label": "src/SCRIPTS/generate_telemetry.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/generate_telemetry.py",
+   "events": 0
+  },
+  {
+   "id": "n0548",
+   "label": "src/SCRIPTS/lsp_diagnosis.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/lsp_diagnosis.py",
+   "events": 0
+  },
+  {
+   "id": "n0549",
+   "label": "src/SCRIPTS/monitor_learning.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/monitor_learning.py",
+   "events": 0
+  },
+  {
+   "id": "n0550",
+   "label": "src/SCRIPTS/parallel_compliance_scanner.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/parallel_compliance_scanner.py",
+   "events": 0
+  },
+  {
+   "id": "n0551",
+   "label": "src/SCRIPTS/request_auth.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/request_auth.py",
+   "events": 0
+  },
+  {
+   "id": "n0552",
+   "label": "src/SCRIPTS/run_test_generate_telemetry.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/run_test_generate_telemetry.py",
+   "events": 0
+  },
+  {
+   "id": "n0553",
+   "label": "src/SCRIPTS/sentinel_gate.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/sentinel_gate.py",
+   "events": 0
+  },
+  {
+   "id": "n0554",
+   "label": "src/SCRIPTS/session_start.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/session_start.py",
+   "events": 0
+  },
+  {
+   "id": "n0555",
+   "label": "src/SCRIPTS/session_start_check.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/session_start_check.py",
+   "events": 0
+  },
+  {
+   "id": "n0556",
+   "label": "src/SCRIPTS/sync_canonical_docs.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/sync_canonical_docs.py",
+   "events": 0
+  },
+  {
+   "id": "n0557",
+   "label": "src/SCRIPTS/sync_skills.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/sync_skills.py",
+   "events": 0
+  },
+  {
+   "id": "n0558",
+   "label": "src/SCRIPTS/test_auto_sync.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_auto_sync.py",
+   "events": 0
+  },
+  {
+   "id": "n0559",
+   "label": "src/SCRIPTS/test_dynamic_logging.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_dynamic_logging.py",
+   "events": 0
+  },
+  {
+   "id": "n0560",
+   "label": "src/SCRIPTS/test_generate_telemetry.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_generate_telemetry.py",
+   "events": 0
+  },
+  {
+   "id": "n0561",
+   "label": "src/SCRIPTS/test_rule_0zf_consistency.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_rule_0zf_consistency.py",
+   "events": 0
+  },
+  {
+   "id": "n0562",
+   "label": "src/SCRIPTS/test_rule_0zf_integration.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_rule_0zf_integration.py",
+   "events": 0
+  },
+  {
+   "id": "n0563",
+   "label": "src/SCRIPTS/test_rule_0zf_telemetry.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_rule_0zf_telemetry.py",
+   "events": 0
+  },
+  {
+   "id": "n0564",
+   "label": "src/SCRIPTS/test_startup_step4_8.py",
+   "type": "SCRIPTS",
+   "file": "src/SCRIPTS/test_startup_step4_8.py",
+   "events": 0
+  },
+  {
+   "id": "n0565",
+   "label": "src/SHORTCUTS/__init__.py",
+   "type": "SHORTCUTS",
+   "file": "src/SHORTCUTS/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0566",
+   "label": "src/TELEMETRYZ.py",
+   "type": "TELEMETRYZ.py",
+   "file": "src/TELEMETRYZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0567",
+   "label": "src/TOOLS/AzazaelDynamicLogger.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/AzazaelDynamicLogger.py",
+   "events": 0
+  },
+  {
+   "id": "n0568",
+   "label": "src/TOOLS/COMPREHENSIVE_FIX.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/COMPREHENSIVE_FIX.py",
+   "events": 0
+  },
+  {
+   "id": "n0569",
+   "label": "src/TOOLS/PythonMapper_Quick.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/PythonMapper_Quick.py",
+   "events": 0
+  },
+  {
+   "id": "n0570",
+   "label": "src/TOOLS/PythonSystemMapper.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/PythonSystemMapper.py",
+   "events": 0
+  },
+  {
+   "id": "n0571",
+   "label": "src/TOOLS/PythonSystemMapper_Full.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/PythonSystemMapper_Full.py",
+   "events": 0
+  },
+  {
+   "id": "n0572",
+   "label": "src/TOOLS/__init__.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0573",
+   "label": "src/TOOLS/archive_system.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/archive_system.py",
+   "events": 0
+  },
+  {
+   "id": "n0574",
+   "label": "src/TOOLS/azazael_toolkit.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/azazael_toolkit.py",
+   "events": 0
+  },
+  {
+   "id": "n0575",
+   "label": "src/TOOLS/debug_runner.py",
+   "type": "TOOLS",
+   "file": "src/TOOLS/debug_runner.py",
+   "events": 0
+  },
+  {
+   "id": "n0576",
+   "label": "src/TRIMZ.py",
+   "type": "TRIMZ.py",
+   "file": "src/TRIMZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0577",
+   "label": "src/UTILITIES/AzazaelDynamicLogger.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/AzazaelDynamicLogger.py",
+   "events": 0
+  },
+  {
+   "id": "n0578",
+   "label": "src/UTILITIES/KLINK/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/KLINK/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0579",
+   "label": "src/UTILITIES/KLINK/klink.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/KLINK/klink.py",
+   "events": 0
+  },
+  {
+   "id": "n0580",
+   "label": "src/UTILITIES/Loggers/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/Loggers/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0581",
+   "label": "src/UTILITIES/PERSEPHONE/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0582",
+   "label": "src/UTILITIES/PERSEPHONE/bin/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/bin/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0583",
+   "label": "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py",
+   "events": 0
+  },
+  {
+   "id": "n0584",
+   "label": "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py",
+   "events": 0
+  },
+  {
+   "id": "n0585",
+   "label": "src/UTILITIES/PERSEPHONE/lib/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/lib/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0586",
+   "label": "src/UTILITIES/PERSEPHONE/lib/environment.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/lib/environment.py",
+   "events": 0
+  },
+  {
+   "id": "n0587",
+   "label": "src/UTILITIES/PERSEPHONE/lib/path_manager.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/lib/path_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0588",
+   "label": "src/UTILITIES/PERSEPHONE/lib/sync_manager.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/lib/sync_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0589",
+   "label": "src/UTILITIES/PERSEPHONE/persephone.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/persephone.py",
+   "events": 0
+  },
+  {
+   "id": "n0590",
+   "label": "src/UTILITIES/PERSEPHONE/version.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/PERSEPHONE/version.py",
+   "events": 0
+  },
+  {
+   "id": "n0591",
+   "label": "src/UTILITIES/POINDEXTER/POINDEXTER.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/POINDEXTER/POINDEXTER.py",
+   "events": 0
+  },
+  {
+   "id": "n0592",
+   "label": "src/UTILITIES/POINDEXTER/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/POINDEXTER/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0593",
+   "label": "src/UTILITIES/TARBABY/TARBABY.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/TARBABY/TARBABY.py",
+   "events": 0
+  },
+  {
+   "id": "n0594",
+   "label": "src/UTILITIES/TARBABY/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/TARBABY/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0595",
+   "label": "src/UTILITIES/TARBABY/tarbaby_enhanced.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/TARBABY/tarbaby_enhanced.py",
+   "events": 0
+  },
+  {
+   "id": "n0596",
+   "label": "src/UTILITIES/TERENCE/TERENCE.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/TERENCE/TERENCE.py",
+   "events": 0
+  },
+  {
+   "id": "n0597",
+   "label": "src/UTILITIES/TERENCE/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/TERENCE/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0598",
+   "label": "src/UTILITIES/TERENCE/terence_enhanced.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/TERENCE/terence_enhanced.py",
+   "events": 0
+  },
+  {
+   "id": "n0599",
+   "label": "src/UTILITIES/__init__.py",
+   "type": "UTILITIES",
+   "file": "src/UTILITIES/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0600",
+   "label": "src/UVZ.py",
+   "type": "UVZ.py",
+   "file": "src/UVZ.py",
+   "events": 0
+  },
+  {
+   "id": "n0601",
+   "label": "src/__init__.py",
+   "type": "__init__.py",
+   "file": "src/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0602",
+   "label": "src/azazael_pygame.py",
+   "type": "azazael_pygame.py",
+   "file": "src/azazael_pygame.py",
+   "events": 0
+  },
+  {
+   "id": "n0603",
+   "label": "src/azazael_toolkit.py",
+   "type": "azazael_toolkit.py",
+   "file": "src/azazael_toolkit.py",
+   "events": 0
+  },
+  {
+   "id": "n0604",
+   "label": "src/chain_of_action.py",
+   "type": "chain_of_action.py",
+   "file": "src/chain_of_action.py",
+   "events": 0
+  },
+  {
+   "id": "n0605",
+   "label": "src/enrichment_display.py",
+   "type": "enrichment_display.py",
+   "file": "src/enrichment_display.py",
+   "events": 0
+  },
+  {
+   "id": "n0606",
+   "label": "src/environment_manager.py",
+   "type": "environment_manager.py",
+   "file": "src/environment_manager.py",
+   "events": 0
+  },
+  {
+   "id": "n0607",
+   "label": "src/eve_unleashed/__init__.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0608",
+   "label": "src/eve_unleashed/cache.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/cache.py",
+   "events": 0
+  },
+  {
+   "id": "n0609",
+   "label": "src/eve_unleashed/cli.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/cli.py",
+   "events": 0
+  },
+  {
+   "id": "n0610",
+   "label": "src/eve_unleashed/config.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/config.py",
+   "events": 0
+  },
+  {
+   "id": "n0611",
+   "label": "src/eve_unleashed/core.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/core.py",
+   "events": 0
+  },
+  {
+   "id": "n0612",
+   "label": "src/eve_unleashed/engine.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/engine.py",
+   "events": 0
+  },
+  {
+   "id": "n0613",
+   "label": "src/eve_unleashed/model_registry.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/model_registry.py",
+   "events": 0
+  },
+  {
+   "id": "n0614",
+   "label": "src/eve_unleashed/models/__init__.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/models/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0615",
+   "label": "src/eve_unleashed/models/qwen35_ssm.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/models/qwen35_ssm.py",
+   "events": 0
+  },
+  {
+   "id": "n0616",
+   "label": "src/eve_unleashed/streaming.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/streaming.py",
+   "events": 0
+  },
+  {
+   "id": "n0617",
+   "label": "src/eve_unleashed/utils.py",
+   "type": "eve_unleashed",
+   "file": "src/eve_unleashed/utils.py",
+   "events": 0
+  },
+  {
+   "id": "n0618",
+   "label": "src/math_certainty.py",
+   "type": "math_certainty.py",
+   "file": "src/math_certainty.py",
+   "events": 0
+  },
+  {
+   "id": "n0619",
+   "label": "src/matrix_animation.py",
+   "type": "matrix_animation.py",
+   "file": "src/matrix_animation.py",
+   "events": 0
+  },
+  {
+   "id": "n0620",
+   "label": "src/memory_status.py",
+   "type": "memory_status.py",
+   "file": "src/memory_status.py",
+   "events": 0
+  },
+  {
+   "id": "n0621",
+   "label": "src/performance_monitor.py",
+   "type": "performance_monitor.py",
+   "file": "src/performance_monitor.py",
+   "events": 0
+  },
+  {
+   "id": "n0622",
+   "label": "src/persistent_memory.py",
+   "type": "persistent_memory.py",
+   "file": "src/persistent_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0623",
+   "label": "src/session_memory.py",
+   "type": "session_memory.py",
+   "file": "src/session_memory.py",
+   "events": 0
+  },
+  {
+   "id": "n0624",
+   "label": "src/tests/__init__.py",
+   "type": "tests",
+   "file": "src/tests/__init__.py",
+   "events": 0
+  },
+  {
+   "id": "n0625",
+   "label": "src/tests/test_ecosystem.py",
+   "type": "tests",
+   "file": "src/tests/test_ecosystem.py",
+   "events": 0
+  },
+  {
+   "id": "n0626",
+   "label": "src/tests/test_learning_loop.py",
+   "type": "tests",
+   "file": "src/tests/test_learning_loop.py",
+   "events": 0
+  },
+  {
+   "id": "n0627",
+   "label": "src/tests/test_verify_fixes.py",
+   "type": "tests",
+   "file": "src/tests/test_verify_fixes.py",
+   "events": 0
+  },
+  {
+   "id": "n0628",
+   "label": "src/tests/test_worm_registry.py",
+   "type": "tests",
+   "file": "src/tests/test_worm_registry.py",
+   "events": 0
+  },
+  {
+   "id": "n0629",
+   "label": "src/tmp_verify.py",
+   "type": "tmp_verify.py",
+   "file": "src/tmp_verify.py",
+   "events": 0
+  },
+  {
+   "id": "n0630",
+   "label": "src/update_docs_paths.py",
+   "type": "update_docs_paths.py",
+   "file": "src/update_docs_paths.py",
+   "events": 0
+  },
+  {
+   "id": "n0631",
+   "label": "src/verify_all.py",
+   "type": "verify_all.py",
+   "file": "src/verify_all.py",
+   "events": 0
+  }
+ ],
+ "links": [
+  {
+   "source": "n0001",
+   "target": "n0145",
+   "weight": 1
+  },
+  {
+   "source": "n0011",
+   "target": "n0012",
+   "weight": 1
+  },
+  {
+   "source": "n0015",
+   "target": "n0017",
+   "weight": 1
+  },
+  {
+   "source": "n0015",
+   "target": "n0018",
+   "weight": 1
+  },
+  {
+   "source": "n0015",
+   "target": "n0045",
+   "weight": 1
+  },
+  {
+   "source": "n0015",
+   "target": "n0062",
+   "weight": 1
+  },
+  {
+   "source": "n0025",
+   "target": "n0065",
+   "weight": 1
+  },
+  {
+   "source": "n0025",
+   "target": "n0092",
+   "weight": 1
+  },
+  {
+   "source": "n0033",
+   "target": "n0368",
+   "weight": 2
+  },
+  {
+   "source": "n0033",
+   "target": "n0326",
+   "weight": 1
+  },
+  {
+   "source": "n0034",
+   "target": "n0312",
+   "weight": 2
+  },
+  {
+   "source": "n0039",
+   "target": "n0253",
+   "weight": 2
+  },
+  {
+   "source": "n0039",
+   "target": "n0368",
+   "weight": 7
+  },
+  {
+   "source": "n0041",
+   "target": "n0253",
+   "weight": 1
+  },
+  {
+   "source": "n0042",
+   "target": "n0253",
+   "weight": 1
+  },
+  {
+   "source": "n0043",
+   "target": "n0281",
+   "weight": 1
+  },
+  {
+   "source": "n0043",
+   "target": "n0347",
+   "weight": 1
+  },
+  {
+   "source": "n0046",
+   "target": "n0147",
+   "weight": 1
+  },
+  {
+   "source": "n0047",
+   "target": "n0283",
+   "weight": 1
+  },
+  {
+   "source": "n0047",
+   "target": "n0284",
+   "weight": 1
+  },
+  {
+   "source": "n0047",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0047",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0052",
+   "target": "n0393",
+   "weight": 1
+  },
+  {
+   "source": "n0052",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0065",
+   "target": "n0092",
+   "weight": 1
+  },
+  {
+   "source": "n0066",
+   "target": "n0292",
+   "weight": 1
+  },
+  {
+   "source": "n0066",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0069",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0070",
+   "target": "n0234",
+   "weight": 1
+  },
+  {
+   "source": "n0070",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0076",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0076",
+   "target": "n0296",
+   "weight": 1
+  },
+  {
+   "source": "n0078",
+   "target": "n0284",
+   "weight": 3
+  },
+  {
+   "source": "n0078",
+   "target": "n0287",
+   "weight": 1
+  },
+  {
+   "source": "n0078",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0078",
+   "target": "n0476",
+   "weight": 1
+  },
+  {
+   "source": "n0078",
+   "target": "n0509",
+   "weight": 1
+  },
+  {
+   "source": "n0078",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0079",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0079",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0079",
+   "target": "n0476",
+   "weight": 1
+  },
+  {
+   "source": "n0080",
+   "target": "n0284",
+   "weight": 1
+  },
+  {
+   "source": "n0080",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0080",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0080",
+   "target": "n0509",
+   "weight": 1
+  },
+  {
+   "source": "n0080",
+   "target": "n0476",
+   "weight": 1
+  },
+  {
+   "source": "n0081",
+   "target": "n0287",
+   "weight": 1
+  },
+  {
+   "source": "n0081",
+   "target": "n0476",
+   "weight": 1
+  },
+  {
+   "source": "n0081",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0081",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0081",
+   "target": "n0284",
+   "weight": 1
+  },
+  {
+   "source": "n0082",
+   "target": "n0083",
+   "weight": 1
+  },
+  {
+   "source": "n0088",
+   "target": "n0438",
+   "weight": 1
+  },
+  {
+   "source": "n0089",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0089",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0089",
+   "target": "n0342",
+   "weight": 1
+  },
+  {
+   "source": "n0089",
+   "target": "n0332",
+   "weight": 1
+  },
+  {
+   "source": "n0094",
+   "target": "n0135",
+   "weight": 1
+  },
+  {
+   "source": "n0095",
+   "target": "n0096",
+   "weight": 5
+  },
+  {
+   "source": "n0095",
+   "target": "n0106",
+   "weight": 1
+  },
+  {
+   "source": "n0095",
+   "target": "n0109",
+   "weight": 4
+  },
+  {
+   "source": "n0097",
+   "target": "n0397",
+   "weight": 3
+  },
+  {
+   "source": "n0097",
+   "target": "n0234",
+   "weight": 1
+  },
+  {
+   "source": "n0097",
+   "target": "n0249",
+   "weight": 1
+  },
+  {
+   "source": "n0102",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0110",
+   "target": "n0112",
+   "weight": 1
+  },
+  {
+   "source": "n0111",
+   "target": "n0112",
+   "weight": 1
+  },
+  {
+   "source": "n0119",
+   "target": "n0372",
+   "weight": 2
+  },
+  {
+   "source": "n0130",
+   "target": "n0539",
+   "weight": 1
+  },
+  {
+   "source": "n0130",
+   "target": "n0559",
+   "weight": 1
+  },
+  {
+   "source": "n0130",
+   "target": "n0620",
+   "weight": 1
+  },
+  {
+   "source": "n0130",
+   "target": "n0627",
+   "weight": 3
+  },
+  {
+   "source": "n0131",
+   "target": "n0372",
+   "weight": 2
+  },
+  {
+   "source": "n0131",
+   "target": "n0139",
+   "weight": 1
+  },
+  {
+   "source": "n0133",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0138",
+   "target": "n0230",
+   "weight": 1
+  },
+  {
+   "source": "n0138",
+   "target": "n0231",
+   "weight": 1
+  },
+  {
+   "source": "n0140",
+   "target": "n0406",
+   "weight": 1
+  },
+  {
+   "source": "n0141",
+   "target": "n0408",
+   "weight": 1
+  },
+  {
+   "source": "n0142",
+   "target": "n0410",
+   "weight": 1
+  },
+  {
+   "source": "n0143",
+   "target": "n0534",
+   "weight": 1
+  },
+  {
+   "source": "n0149",
+   "target": "n0605",
+   "weight": 1
+  },
+  {
+   "source": "n0150",
+   "target": "n0619",
+   "weight": 1
+  },
+  {
+   "source": "n0167",
+   "target": "n0411",
+   "weight": 1
+  },
+  {
+   "source": "n0167",
+   "target": "n0444",
+   "weight": 1
+  },
+  {
+   "source": "n0169",
+   "target": "n0444",
+   "weight": 1
+  },
+  {
+   "source": "n0169",
+   "target": "n0411",
+   "weight": 1
+  },
+  {
+   "source": "n0171",
+   "target": "n0411",
+   "weight": 5
+  },
+  {
+   "source": "n0172",
+   "target": "n0268",
+   "weight": 4
+  },
+  {
+   "source": "n0173",
+   "target": "n0267",
+   "weight": 4
+  },
+  {
+   "source": "n0184",
+   "target": "n0393",
+   "weight": 1
+  },
+  {
+   "source": "n0184",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0200",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0201",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0202",
+   "target": "n0372",
+   "weight": 2
+  },
+  {
+   "source": "n0203",
+   "target": "n0372",
+   "weight": 2
+  },
+  {
+   "source": "n0204",
+   "target": "n0372",
+   "weight": 2
+  },
+  {
+   "source": "n0209",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0209",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0209",
+   "target": "n0220",
+   "weight": 1
+  },
+  {
+   "source": "n0209",
+   "target": "n0215",
+   "weight": 1
+  },
+  {
+   "source": "n0209",
+   "target": "n0306",
+   "weight": 2
+  },
+  {
+   "source": "n0209",
+   "target": "n0292",
+   "weight": 1
+  },
+  {
+   "source": "n0209",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0210",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0210",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0210",
+   "target": "n0220",
+   "weight": 1
+  },
+  {
+   "source": "n0211",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0212",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0213",
+   "target": "n0215",
+   "weight": 1
+  },
+  {
+   "source": "n0213",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0213",
+   "target": "n0219",
+   "weight": 1
+  },
+  {
+   "source": "n0214",
+   "target": "n0304",
+   "weight": 4
+  },
+  {
+   "source": "n0214",
+   "target": "n0273",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0219",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0234",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0238",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0246",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0249",
+   "weight": 1
+  },
+  {
+   "source": "n0215",
+   "target": "n0357",
+   "weight": 2
+  },
+  {
+   "source": "n0216",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0284",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0287",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0274",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0217",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0219",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0228",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0234",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0238",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0249",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0253",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0254",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0262",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0220",
+   "target": "n0475",
+   "weight": 1
+  },
+  {
+   "source": "n0223",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0224",
+   "target": "n0228",
+   "weight": 1
+  },
+  {
+   "source": "n0224",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0224",
+   "target": "n0225",
+   "weight": 2
+  },
+  {
+   "source": "n0224",
+   "target": "n0226",
+   "weight": 4
+  },
+  {
+   "source": "n0224",
+   "target": "n0227",
+   "weight": 7
+  },
+  {
+   "source": "n0226",
+   "target": "n0228",
+   "weight": 1
+  },
+  {
+   "source": "n0226",
+   "target": "n0227",
+   "weight": 1
+  },
+  {
+   "source": "n0227",
+   "target": "n0228",
+   "weight": 1
+  },
+  {
+   "source": "n0230",
+   "target": "n0231",
+   "weight": 1
+  },
+  {
+   "source": "n0231",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0232",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0233",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0234",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0234",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0234",
+   "target": "n0320",
+   "weight": 1
+  },
+  {
+   "source": "n0234",
+   "target": "n0342",
+   "weight": 2
+  },
+  {
+   "source": "n0234",
+   "target": "n0273",
+   "weight": 1
+  },
+  {
+   "source": "n0235",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0235",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0236",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0237",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0237",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0238",
+   "target": "n0253",
+   "weight": 1
+  },
+  {
+   "source": "n0238",
+   "target": "n0247",
+   "weight": 1
+  },
+  {
+   "source": "n0238",
+   "target": "n0249",
+   "weight": 1
+  },
+  {
+   "source": "n0239",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0240",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0241",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0242",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0243",
+   "target": "n0275",
+   "weight": 1
+  },
+  {
+   "source": "n0244",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0246",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0246",
+   "target": "n0247",
+   "weight": 1
+  },
+  {
+   "source": "n0247",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0247",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0247",
+   "target": "n0357",
+   "weight": 1
+  },
+  {
+   "source": "n0247",
+   "target": "n0627",
+   "weight": 1
+  },
+  {
+   "source": "n0248",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0253",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0370",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0342",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0320",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0315",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0273",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0343",
+   "weight": 2
+  },
+  {
+   "source": "n0249",
+   "target": "n0354",
+   "weight": 1
+  },
+  {
+   "source": "n0249",
+   "target": "n0394",
+   "weight": 1
+  },
+  {
+   "source": "n0250",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0251",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0252",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0252",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0342",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0320",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0315",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0273",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0352",
+   "weight": 1
+  },
+  {
+   "source": "n0253",
+   "target": "n0627",
+   "weight": 2
+  },
+  {
+   "source": "n0254",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0255",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0256",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0256",
+   "target": "n0361",
+   "weight": 1
+  },
+  {
+   "source": "n0256",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0256",
+   "target": "n0357",
+   "weight": 1
+  },
+  {
+   "source": "n0256",
+   "target": "n0627",
+   "weight": 1
+  },
+  {
+   "source": "n0258",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0258",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0259",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0260",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0260",
+   "target": "n0362",
+   "weight": 1
+  },
+  {
+   "source": "n0260",
+   "target": "n0357",
+   "weight": 1
+  },
+  {
+   "source": "n0260",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0260",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0260",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0261",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0262",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0263",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0263",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0264",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0265",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0265",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0266",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0267",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0268",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0268",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0270",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0270",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0271",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0271",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0271",
+   "target": "n0287",
+   "weight": 2
+  },
+  {
+   "source": "n0272",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0273",
+   "target": "n0275",
+   "weight": 17
+  },
+  {
+   "source": "n0276",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0276",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0277",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0277",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0278",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0278",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0279",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0279",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0280",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0280",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0280",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0280",
+   "target": "n0379",
+   "weight": 1
+  },
+  {
+   "source": "n0280",
+   "target": "n0296",
+   "weight": 1
+  },
+  {
+   "source": "n0280",
+   "target": "n0343",
+   "weight": 3
+  },
+  {
+   "source": "n0281",
+   "target": "n0368",
+   "weight": 7
+  },
+  {
+   "source": "n0281",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0281",
+   "target": "n0378",
+   "weight": 1
+  },
+  {
+   "source": "n0281",
+   "target": "n0292",
+   "weight": 1
+  },
+  {
+   "source": "n0281",
+   "target": "n0347",
+   "weight": 1
+  },
+  {
+   "source": "n0281",
+   "target": "n0438",
+   "weight": 1
+  },
+  {
+   "source": "n0281",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0282",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0282",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0283",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0283",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0283",
+   "target": "n0438",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0290",
+   "weight": 3
+  },
+  {
+   "source": "n0284",
+   "target": "n0291",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0288",
+   "weight": 2
+  },
+  {
+   "source": "n0284",
+   "target": "n0286",
+   "weight": 2
+  },
+  {
+   "source": "n0284",
+   "target": "n0285",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0289",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0287",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0296",
+   "weight": 7
+  },
+  {
+   "source": "n0284",
+   "target": "n0385",
+   "weight": 2
+  },
+  {
+   "source": "n0284",
+   "target": "n0394",
+   "weight": 1
+  },
+  {
+   "source": "n0284",
+   "target": "n0625",
+   "weight": 2
+  },
+  {
+   "source": "n0284",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0285",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0285",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0285",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0286",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0286",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0286",
+   "target": "n0288",
+   "weight": 1
+  },
+  {
+   "source": "n0286",
+   "target": "n0290",
+   "weight": 1
+  },
+  {
+   "source": "n0286",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0287",
+   "target": "n0397",
+   "weight": 2
+  },
+  {
+   "source": "n0287",
+   "target": "n0368",
+   "weight": 5
+  },
+  {
+   "source": "n0287",
+   "target": "n0292",
+   "weight": 1
+  },
+  {
+   "source": "n0288",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0288",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0288",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0288",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0290",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0290",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0290",
+   "target": "n0368",
+   "weight": 5
+  },
+  {
+   "source": "n0290",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0291",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0291",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0291",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0291",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0292",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0292",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0292",
+   "target": "n0306",
+   "weight": 1
+  },
+  {
+   "source": "n0292",
+   "target": "n0347",
+   "weight": 1
+  },
+  {
+   "source": "n0292",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0293",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0293",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0294",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0294",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0295",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0295",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0296",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0296",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0296",
+   "target": "n0368",
+   "weight": 3
+  },
+  {
+   "source": "n0296",
+   "target": "n0315",
+   "weight": 3
+  },
+  {
+   "source": "n0296",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0296",
+   "target": "n0343",
+   "weight": 1
+  },
+  {
+   "source": "n0297",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0297",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0298",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0298",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0298",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0299",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0299",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0300",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0300",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0301",
+   "target": "n0372",
+   "weight": 1
+  },
+  {
+   "source": "n0301",
+   "target": "n0397",
+   "weight": 2
+  },
+  {
+   "source": "n0302",
+   "target": "n0303",
+   "weight": 1
+  },
+  {
+   "source": "n0302",
+   "target": "n0460",
+   "weight": 1
+  },
+  {
+   "source": "n0302",
+   "target": "n0470",
+   "weight": 1
+  },
+  {
+   "source": "n0304",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0304",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0304",
+   "target": "n0305",
+   "weight": 1
+  },
+  {
+   "source": "n0304",
+   "target": "n0312",
+   "weight": 2
+  },
+  {
+   "source": "n0304",
+   "target": "n0367",
+   "weight": 1
+  },
+  {
+   "source": "n0304",
+   "target": "n0372",
+   "weight": 4
+  },
+  {
+   "source": "n0305",
+   "target": "n0315",
+   "weight": 1
+  },
+  {
+   "source": "n0306",
+   "target": "n0385",
+   "weight": 1
+  },
+  {
+   "source": "n0308",
+   "target": "n0312",
+   "weight": 1
+  },
+  {
+   "source": "n0310",
+   "target": "n0312",
+   "weight": 1
+  },
+  {
+   "source": "n0311",
+   "target": "n0312",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0313",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0314",
+   "weight": 4
+  },
+  {
+   "source": "n0312",
+   "target": "n0316",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0321",
+   "weight": 2
+  },
+  {
+   "source": "n0312",
+   "target": "n0323",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0330",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0344",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0345",
+   "weight": 2
+  },
+  {
+   "source": "n0312",
+   "target": "n0346",
+   "weight": 3
+  },
+  {
+   "source": "n0312",
+   "target": "n0360",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0392",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0399",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0553",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0554",
+   "weight": 1
+  },
+  {
+   "source": "n0312",
+   "target": "n0629",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0345",
+   "weight": 5
+  },
+  {
+   "source": "n0314",
+   "target": "n0350",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0367",
+   "weight": 3
+  },
+  {
+   "source": "n0314",
+   "target": "n0325",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0380",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0397",
+   "weight": 2
+  },
+  {
+   "source": "n0314",
+   "target": "n0352",
+   "weight": 3
+  },
+  {
+   "source": "n0314",
+   "target": "n0346",
+   "weight": 2
+  },
+  {
+   "source": "n0314",
+   "target": "n0344",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0400",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0323",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0321",
+   "weight": 1
+  },
+  {
+   "source": "n0314",
+   "target": "n0324",
+   "weight": 1
+  },
+  {
+   "source": "n0315",
+   "target": "n0342",
+   "weight": 1
+  },
+  {
+   "source": "n0316",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0317",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0320",
+   "target": "n0342",
+   "weight": 1
+  },
+  {
+   "source": "n0320",
+   "target": "n0343",
+   "weight": 2
+  },
+  {
+   "source": "n0320",
+   "target": "n0354",
+   "weight": 1
+  },
+  {
+   "source": "n0320",
+   "target": "n0371",
+   "weight": 1
+  },
+  {
+   "source": "n0323",
+   "target": "n0345",
+   "weight": 2
+  },
+  {
+   "source": "n0324",
+   "target": "n0345",
+   "weight": 2
+  },
+  {
+   "source": "n0325",
+   "target": "n0352",
+   "weight": 1
+  },
+  {
+   "source": "n0325",
+   "target": "n0353",
+   "weight": 1
+  },
+  {
+   "source": "n0328",
+   "target": "n0338",
+   "weight": 1
+  },
+  {
+   "source": "n0328",
+   "target": "n0341",
+   "weight": 1
+  },
+  {
+   "source": "n0328",
+   "target": "n0543",
+   "weight": 1
+  },
+  {
+   "source": "n0328",
+   "target": "n0551",
+   "weight": 2
+  },
+  {
+   "source": "n0329",
+   "target": "n0337",
+   "weight": 1
+  },
+  {
+   "source": "n0330",
+   "target": "n0333",
+   "weight": 1
+  },
+  {
+   "source": "n0330",
+   "target": "n0332",
+   "weight": 2
+  },
+  {
+   "source": "n0330",
+   "target": "n0629",
+   "weight": 1
+  },
+  {
+   "source": "n0331",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0331",
+   "target": "n0339",
+   "weight": 1
+  },
+  {
+   "source": "n0331",
+   "target": "n0334",
+   "weight": 6
+  },
+  {
+   "source": "n0331",
+   "target": "n0544",
+   "weight": 1
+  },
+  {
+   "source": "n0331",
+   "target": "n0545",
+   "weight": 1
+  },
+  {
+   "source": "n0331",
+   "target": "n0553",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0333",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0338",
+   "weight": 2
+  },
+  {
+   "source": "n0332",
+   "target": "n0340",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0336",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0339",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0387",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0334",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0335",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0543",
+   "weight": 1
+  },
+  {
+   "source": "n0332",
+   "target": "n0553",
+   "weight": 2
+  },
+  {
+   "source": "n0334",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0339",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0387",
+   "weight": 2
+  },
+  {
+   "source": "n0334",
+   "target": "n0537",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0540",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0543",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0544",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0545",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0547",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0553",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0562",
+   "weight": 1
+  },
+  {
+   "source": "n0334",
+   "target": "n0563",
+   "weight": 1
+  },
+  {
+   "source": "n0336",
+   "target": "n0337",
+   "weight": 4
+  },
+  {
+   "source": "n0336",
+   "target": "n0387",
+   "weight": 1
+  },
+  {
+   "source": "n0336",
+   "target": "n0551",
+   "weight": 1
+  },
+  {
+   "source": "n0338",
+   "target": "n0553",
+   "weight": 1
+  },
+  {
+   "source": "n0341",
+   "target": "n0345",
+   "weight": 1
+  },
+  {
+   "source": "n0342",
+   "target": "n0343",
+   "weight": 3
+  },
+  {
+   "source": "n0342",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0342",
+   "target": "n0394",
+   "weight": 1
+  },
+  {
+   "source": "n0343",
+   "target": "n0370",
+   "weight": 6
+  },
+  {
+   "source": "n0343",
+   "target": "n0368",
+   "weight": 5
+  },
+  {
+   "source": "n0343",
+   "target": "n0394",
+   "weight": 2
+  },
+  {
+   "source": "n0343",
+   "target": "n0393",
+   "weight": 3
+  },
+  {
+   "source": "n0343",
+   "target": "n0354",
+   "weight": 3
+  },
+  {
+   "source": "n0344",
+   "target": "n0345",
+   "weight": 2
+  },
+  {
+   "source": "n0344",
+   "target": "n0346",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0388",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0346",
+   "weight": 5
+  },
+  {
+   "source": "n0345",
+   "target": "n0347",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0370",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0382",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0392",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0399",
+   "weight": 2
+  },
+  {
+   "source": "n0345",
+   "target": "n0400",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0404",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0543",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0553",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0554",
+   "weight": 1
+  },
+  {
+   "source": "n0345",
+   "target": "n0555",
+   "weight": 1
+  },
+  {
+   "source": "n0346",
+   "target": "n0388",
+   "weight": 2
+  },
+  {
+   "source": "n0346",
+   "target": "n0397",
+   "weight": 2
+  },
+  {
+   "source": "n0346",
+   "target": "n0367",
+   "weight": 1
+  },
+  {
+   "source": "n0347",
+   "target": "n0438",
+   "weight": 1
+  },
+  {
+   "source": "n0350",
+   "target": "n0362",
+   "weight": 1
+  },
+  {
+   "source": "n0350",
+   "target": "n0367",
+   "weight": 1
+  },
+  {
+   "source": "n0352",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0354",
+   "target": "n0370",
+   "weight": 2
+  },
+  {
+   "source": "n0354",
+   "target": "n0368",
+   "weight": 1
+  },
+  {
+   "source": "n0354",
+   "target": "n0371",
+   "weight": 1
+  },
+  {
+   "source": "n0354",
+   "target": "n0393",
+   "weight": 2
+  },
+  {
+   "source": "n0355",
+   "target": "n0361",
+   "weight": 1
+  },
+  {
+   "source": "n0355",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0355",
+   "target": "n0362",
+   "weight": 1
+  },
+  {
+   "source": "n0355",
+   "target": "n0366",
+   "weight": 1
+  },
+  {
+   "source": "n0358",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0359",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0359",
+   "target": "n0365",
+   "weight": 1
+  },
+  {
+   "source": "n0360",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0361",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0362",
+   "target": "n0363",
+   "weight": 1
+  },
+  {
+   "source": "n0362",
+   "target": "n0366",
+   "weight": 1
+  },
+  {
+   "source": "n0363",
+   "target": "n0364",
+   "weight": 1
+  },
+  {
+   "source": "n0363",
+   "target": "n0365",
+   "weight": 1
+  },
+  {
+   "source": "n0363",
+   "target": "n0366",
+   "weight": 1
+  },
+  {
+   "source": "n0364",
+   "target": "n0365",
+   "weight": 1
+  },
+  {
+   "source": "n0368",
+   "target": "n0391",
+   "weight": 1
+  },
+  {
+   "source": "n0368",
+   "target": "n0394",
+   "weight": 1
+  },
+  {
+   "source": "n0368",
+   "target": "n0626",
+   "weight": 1
+  },
+  {
+   "source": "n0370",
+   "target": "n0371",
+   "weight": 2
+  },
+  {
+   "source": "n0370",
+   "target": "n0396",
+   "weight": 1
+  },
+  {
+   "source": "n0371",
+   "target": "n0393",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0373",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0406",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0407",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0408",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0410",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0413",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0417",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0423",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0429",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0441",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0445",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0446",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0457",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0458",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0461",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0463",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0465",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0470",
+   "weight": 2
+  },
+  {
+   "source": "n0372",
+   "target": "n0525",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0527",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0529",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0576",
+   "weight": 1
+  },
+  {
+   "source": "n0372",
+   "target": "n0593",
+   "weight": 2
+  },
+  {
+   "source": "n0374",
+   "target": "n0376",
+   "weight": 1
+  },
+  {
+   "source": "n0374",
+   "target": "n0375",
+   "weight": 1
+  },
+  {
+   "source": "n0374",
+   "target": "n0377",
+   "weight": 1
+  },
+  {
+   "source": "n0375",
+   "target": "n0376",
+   "weight": 1
+  },
+  {
+   "source": "n0375",
+   "target": "n0377",
+   "weight": 1
+  },
+  {
+   "source": "n0376",
+   "target": "n0377",
+   "weight": 1
+  },
+  {
+   "source": "n0379",
+   "target": "n0384",
+   "weight": 1
+  },
+  {
+   "source": "n0383",
+   "target": "n0424",
+   "weight": 1
+  },
+  {
+   "source": "n0387",
+   "target": "n0553",
+   "weight": 2
+  },
+  {
+   "source": "n0388",
+   "target": "n0397",
+   "weight": 5
+  },
+  {
+   "source": "n0388",
+   "target": "n0555",
+   "weight": 1
+  },
+  {
+   "source": "n0391",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0394",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0395",
+   "target": "n0397",
+   "weight": 1
+  },
+  {
+   "source": "n0396",
+   "target": "n0397",
+   "weight": 3
+  },
+  {
+   "source": "n0397",
+   "target": "n0398",
+   "weight": 5
+  },
+  {
+   "source": "n0397",
+   "target": "n0405",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0407",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0409",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0447",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0448",
+   "weight": 2
+  },
+  {
+   "source": "n0397",
+   "target": "n0449",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0566",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0576",
+   "weight": 1
+  },
+  {
+   "source": "n0397",
+   "target": "n0628",
+   "weight": 1
+  },
+  {
+   "source": "n0409",
+   "target": "n0422",
+   "weight": 1
+  },
+  {
+   "source": "n0409",
+   "target": "n0431",
+   "weight": 1
+  },
+  {
+   "source": "n0411",
+   "target": "n0475",
+   "weight": 1
+  },
+  {
+   "source": "n0415",
+   "target": "n0480",
+   "weight": 1
+  },
+  {
+   "source": "n0415",
+   "target": "n0482",
+   "weight": 1
+  },
+  {
+   "source": "n0422",
+   "target": "n0449",
+   "weight": 1
+  },
+  {
+   "source": "n0422",
+   "target": "n0471",
+   "weight": 2
+  },
+  {
+   "source": "n0422",
+   "target": "n0620",
+   "weight": 1
+  },
+  {
+   "source": "n0425",
+   "target": "n0427",
+   "weight": 1
+  },
+  {
+   "source": "n0425",
+   "target": "n0426",
+   "weight": 1
+  },
+  {
+   "source": "n0431",
+   "target": "n0449",
+   "weight": 1
+  },
+  {
+   "source": "n0444",
+   "target": "n0445",
+   "weight": 1
+  },
+  {
+   "source": "n0444",
+   "target": "n0471",
+   "weight": 1
+  },
+  {
+   "source": "n0447",
+   "target": "n0620",
+   "weight": 1
+  },
+  {
+   "source": "n0480",
+   "target": "n0482",
+   "weight": 1
+  },
+  {
+   "source": "n0480",
+   "target": "n0505",
+   "weight": 1
+  },
+  {
+   "source": "n0547",
+   "target": "n0553",
+   "weight": 1
+  },
+  {
+   "source": "n0566",
+   "target": "n0620",
+   "weight": 1
+  },
+  {
+   "source": "n0574",
+   "target": "n0603",
+   "weight": 1
+  },
+  {
+   "source": "n0581",
+   "target": "n0585",
+   "weight": 3
+  },
+  {
+   "source": "n0607",
+   "target": "n0614",
+   "weight": 1
+  },
+  {
+   "source": "n0608",
+   "target": "n0612",
+   "weight": 1
+  },
+  {
+   "source": "n0609",
+   "target": "n0612",
+   "weight": 4
+  },
+  {
+   "source": "n0609",
+   "target": "n0611",
+   "weight": 3
+  },
+  {
+   "source": "n0609",
+   "target": "n0613",
+   "weight": 1
+  },
+  {
+   "source": "n0609",
+   "target": "n0610",
+   "weight": 1
+  },
+  {
+   "source": "n0610",
+   "target": "n0612",
+   "weight": 1
+  },
+  {
+   "source": "n0611",
+   "target": "n0612",
+   "weight": 1
+  },
+  {
+   "source": "n0612",
+   "target": "n0616",
+   "weight": 1
+  },
+  {
+   "source": "n0612",
+   "target": "n0617",
+   "weight": 1
+  },
+  {
+   "source": "n0612",
+   "target": "n0613",
+   "weight": 1
+  },
+  {
+   "source": "n0620",
+   "target": "n0623",
+   "weight": 1
+  },
+  {
+   "source": "n0621",
+   "target": "n0623",
+   "weight": 2
+  }
+ ]
+}

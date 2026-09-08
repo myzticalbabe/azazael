@@ -113,7 +113,7 @@ class _DirectStore:
     def _get_conn(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._db_path, check_same_thread=False, timeout=2)
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=DELETE")
+        conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA busy_timeout=2000")
         return conn
@@ -291,7 +291,8 @@ class CodebuffTracker:
         # Only use the provided store if explicitly passed in (e.g., LocalMemoryStore
         # from a long-running process where CORE is already loaded).
         self.store = store if store is not None else _DirectStore()
-        self._session_id = datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
+        self._session_id = (datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
+                              + f"_{os.getpid()}")
         self._lock = threading.Lock()
         self._event_count = 0
         self._session_started = False

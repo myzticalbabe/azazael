@@ -50,6 +50,35 @@ class ScheduleConfig:
     source_filter: (str | None) = None  # None = all sources
     record_to_memory: bool = True        # Persist results
 
+    def apply_evolved_overrides(self) -> bool:
+        """Load champion genes promoted by evolution_cycle.py, if present.
+
+        Reads config/evolved_rl_params.json (written after 3 consecutive
+        wins over the production baseline). Range-validates before
+        applying; falls back to built-in defaults on any problem.
+        Rollback = delete the JSON file. Returns True if overrides applied.
+        """
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+            p = (_Path(__file__).resolve().parent.parent.parent.parent
+                 / "config" / "evolved_rl_params.json")
+            if not p.exists():
+                return False
+            data = _json.loads(p.read_text(encoding="utf-8"))
+            g = {k: float(data["genes"][k])
+                 for k in ("learning_rate", "epsilon", "discount")}
+            if not (0.01 <= g["learning_rate"] <= 0.5
+                    and 0.0 <= g["epsilon"] <= 0.5
+                    and 0.8 <= g["discount"] <= 0.999):
+                return False
+            self.learning_rate = g["learning_rate"]
+            self.epsilon = g["epsilon"]
+            self.discount_factor = g["discount"]
+            return True
+        except Exception:
+            return False
+
 
 @dataclass
 class TrainingRun:
@@ -83,6 +112,15 @@ class ScheduledTrainingWorm:
 
     def __init__(self, config: (ScheduleConfig | None) = None):
         self.config = config or ScheduleConfig()
+        # Champion promotion: use evolved hyperparameters when a champion
+        # has been promoted (rollback = delete evolved_rl_params.json).
+        try:
+            if self.config.apply_evolved_overrides():
+                print(f"[train] using evolved params: lr={self.config.learning_rate} "
+                      f"eps={self.config.epsilon} disc={self.config.discount_factor}",
+                      flush=True)
+        except Exception:
+            pass
         self._lock = threading.Lock()
         self._run_history: list[TrainingRun] = []
         self._scheduler_thread: (threading.Thread | None) = None
@@ -190,6 +228,7 @@ class ScheduledTrainingWorm:
         # Knowledge application: skip converged retraining on unchanged data.
         skip_reason = self._plateau_skip_reason()
         if skip_reason:
+            print(f"[train] {run_id} SKIPPED ({skip_reason})", flush=True)
             return TrainingRun(
                 run_id=run_id, started_at=started_at,
                 completed_at=datetime.now().isoformat(),
@@ -317,6 +356,11 @@ class ScheduledTrainingWorm:
             # Keep last 50 runs
             if len(self._run_history) > 50:
                 self._run_history = self._run_history[-50:]
+
+        print(f"[train] {run_id} done: success={run.success} "
+              f"episodes={run.n_episodes} reward={round(run.avg_reward, 2)} "
+              f"q={run.q_table_size} version={run.model_version} "
+              f"ms={round(run.duration_ms, 1)}", flush=True)
 
         return run
 

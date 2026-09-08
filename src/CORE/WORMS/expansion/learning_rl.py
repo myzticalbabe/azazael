@@ -1,0 +1,805 @@
+# coding: utf-8
+"""RL training worm -- RLTrainLoop (split from learning.py, 2026-09-07)."""
+
+import json
+import time
+import random
+import threading
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Callable, Tuple
+from collections import defaultdict
+
+# -- Worm Registry Import ---------------------------------------------
+try:
+    from CORE.worm_registry import register_worm
+    _REGISTRY = True
+except ImportError:
+    _REGISTRY = False
+def register_worm(**kw):
+        return lambda cls: cls
+
+
+# -- Python 3.14t Free-Threading Awareness ----------------------------
+try:
+    from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
+    _FREETHREAD = True
+except ImportError:
+    _FREETHREAD = False
+FreeThreadPool = None
+ThreadSafeDict = dict
+ThreadSafeList = list
+def is_free_threaded() -> bool:
+        import sysconfig
+        try:
+            return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
+        except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            return False
+
+@register_worm(category="learning", priority=6, cooldown_seconds=120.0,
+    description="RL train loop v2 — trains from DataPipelineWorm output with Q-learning policy optimization")
+class RLTrainLoop:
+    """Reinforcement learning training loop v2.0.
+
+    Trains from real execution data extracted by DataPipelineWorm from
+    LocalMemoryStore. Uses Q-learning with epsilon-greedy exploration.
+    Records training metrics and persists learned Q-tables.
+
+    Usage:
+        loop = RLTrainLoop()
+
+        # Train from DataPipelineWorm output
+        stats = loop.train_from_memory(source="SystemZ", n_episodes=100)
+
+        # Or train with a mock environment
+        episode = loop.train_episode(env, agent)
+    """
+
+    VERSION = "2.0.0"
+
+    # Chosen-action semantics for Q-learning: index -> response policy.
+    # Rewards depend on whether the chosen action fits the record severity,
+    # so different hyperparameters (esp. epsilon) yield different fitness --
+    # this is what gives evolution a gradient to optimize.
+    ACTION_NAMES = ["ignore", "log", "alert", "remediate"]
+
+    def __init__(self):
+        self._episodes: List[Dict] = []
+        self._q_table: Dict[str, Dict[int, float]
+            ] = defaultdict(lambda: defaultdict(float))
+        self._lock = threading.Lock()
+        self._pipeline = None  # Lazy DataPipelineWorm
+        self._versioner = None  # Lazy ModelVersioner
+        self._model_name = None  # Set during register_to_versioner()
+
+
+    def _get_pipeline(self):
+        """Lazy DataPipelineWorm for memory access — double-checked locking for 3.14t."""
+        if self._pipeline is None:
+            with self._lock:
+                if self._pipeline is None:
+                    try:
+                        from CORE.WORMS.expansion.learning import DataPipelineWorm
+                        self._pipeline = DataPipelineWorm()
+                    except ImportError:
+                        self._pipeline = False
+        return self._pipeline if self._pipeline else None
+    def _get_versioner(self):
+        """Lazy ModelVersioner for model version tracking — double-checked locking for 3.14t."""
+        if self._versioner is None:
+            with self._lock:
+                if self._versioner is None:
+                    try:
+                        from CORE.WORMS.expansion.learning import ModelVersioner
+                        self._versioner = ModelVersioner()
+                    except ImportError:
+                        self._versioner = False
+        return self._versioner if self._versioner else None
+    def register_to_versioner(self, model_name: Optional[str] = None,
+                               metrics: Optional[Dict[str, float]] = None,
+                               metadata: Optional[Dict] = None) -> Dict[str, Any]:
+        """
+        Register the current Q-table policy with ModelVersioner for version tracking.
+
+        Persists the learned policy to LocalMemoryStore via ModelVersioner,
+        enabling rollback, comparison, and history queries.
+
+        Args:
+            model_name: Name for the model (default: "RLTrainLoop_QTable").
+            metrics: Optional metrics dict (avg_reward, q_table_size, etc.)
+            metadata: Optional metadata (source, n_episodes, etc.)
+
+        Returns:
+            Dict with registration result: model_name, version, registered_at
+        """
+        versioner = self._get_versioner()
+        if not versioner:
+            return {"error": "ModelVersioner unavailable"}
+
+        name = model_name or f"RLTrainLoop_{
+    datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self._model_name = name
+        stats = self.get_training_stats()
+
+        _metrics = metrics or {
+            "avg_reward": stats.get("avg_reward", 0),
+            "q_table_size": stats.get("q_table_size", 0),
+            "episodes": stats.get("episodes", 0),
+        }
+        _metadata = metadata or {
+            "version": self.VERSION,
+            "source": "RLTrainLoop",
+        }
+
+        version = f"v{stats.get('episodes', 0)}"
+
+        try:
+            result = versioner.register_model(
+                name=name, version=version,
+                metrics=_metrics, metadata=_metadata,
+            )
+            # Also persist Q-table to LocalMemoryStore for durability
+            self._save_q_table_to_store(name, version)
+            return {
+                "model_name": name,
+                "version": version,
+                "registered_at": result.get("registered_at", datetime.now().isoformat()),
+                "metrics": _metrics,
+            }
+        except Exception as e:  # noqa: BLE001 — registration failure returns signed error
+            return {"error": str(e)}
+
+    def _save_q_table_to_store(self, model_name: str, version: str) -> bool:
+        """Persist the Q-table to LocalMemoryStore for durable storage."""
+        try:
+            # Singleton — creating a fresh LocalMemoryStore per call re-runs
+            # schema migration on every use (slow on large DBs).
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+            # Convert Q-table to serializable format
+            q_serializable = {}
+            with self._lock:
+                for state_key, actions in self._q_table.items():
+                    q_serializable[state_key] = dict(actions)
+
+            store.record_event(
+                source="RLTrainLoop", event_type="q_table_persisted",
+                data={
+                    "model_name": model_name,
+                    "model_version": version,
+                    "q_table": q_serializable,
+                    "q_table_size": len(q_serializable),
+                    "episodes": len(self._episodes),
+                },
+                severity="info", tags=["rl", "q_table", "persist"],
+            )
+            return True
+        except Exception:  # noqa: BLE001 — persistence best-effort
+            return False
+    def load_q_table_from_store(self, model_name: Optional[str] = None, version: Optional[str] = None) -> bool:
+        """Load a persisted Q-table from LocalMemoryStore.
+
+        Args:
+            model_name: Model name to search for (default: latest).
+            version: Specific version to load.
+
+        Returns:
+            True if Q-table was loaded successfully.
+        """
+        try:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+
+            if model_name:
+                query = f"q_table_persisted {model_name}"
+            else:
+                query = "q_table_persisted RLTrainLoop"
+
+            events = store.search_memories(query, source="RLTrainLoop", limit=10)
+            if not events:
+                return False
+
+            for ev in reversed(events):
+                data = ev.get("data", {})
+                if isinstance(data, str):
+                    try:
+                        data = json.loads(data)
+                    except Exception:  # noqa: BLE001 — skip malformed serialized payload
+                        continue
+                if not isinstance(data, dict):
+                    continue
+
+                q_data = data.get("q_table")
+                if not q_data:
+                    continue
+
+                # Rebuild Q-table from serialized format
+                with self._lock:
+                    self._q_table.clear()
+                    for state_key, actions in q_data.items():
+                        for action_val, q_val in actions.items():
+                            self._q_table[state_key][int(action_val)] = float(q_val)
+
+                # Also restore episode count
+                episodes = data.get("episodes", 0)
+                if episodes and not self._episodes:
+                    self._episodes = [{"loaded": True, "count": episodes}]
+
+                return True
+
+            return False
+        except Exception:  # noqa: BLE001 — load best-effort
+            return False
+    def train_from_memory(self, source: Optional[str] = None, event_type: Optional[str] = None,
+                          n_episodes: int = 100, max_steps: int = 50,
+                          learning_rate: float = 0.1, discount_factor: float = 0.9,
+                          epsilon: float = 0.1,
+                          test_data: Optional[List[Dict]] = None,
+                          use_data_split: bool = False,
+                          val_ratio: float = 0.1, test_ratio: float = 0.2,
+                          by_session: bool = True,
+                          use_schema_features: bool = False) -> Dict[str, Any]:
+        """Train from real execution data in LocalMemoryStore.
+
+        Uses DataPipelineWorm to extract records, then treats each
+        record as a training step. Builds a state-action-reward model
+        based on worm execution patterns.
+
+        If use_data_split=True, automatically splits memories into
+        train/validation/test sets (by session_id to prevent leakage).
+
+        If use_schema_features=True, uses SchemaAwareFeatureExtractor for
+        richer state vectors (typed numeric features from the data blob).
+        Otherwise uses simple source:severity state keys.
+
+        If test_data is provided directly, uses it for held-out evaluation.
+
+        Args:
+            source: Filter memories by source component
+            event_type: Filter by event type
+            n_episodes: Number of training episodes to run
+            max_steps: Max steps per episode
+            learning_rate: Q-learning alpha
+            discount_factor: Q-learning gamma
+            epsilon: Exploration rate
+            test_data: Optional held-out test records for evaluation
+            use_data_split: If True, auto-split memories using split_memories()
+            val_ratio: Fraction of sessions for validation when use_data_split=True
+            test_ratio: Fraction of sessions for test when use_data_split=True
+            by_session: If True, split by session_id to prevent leakage
+            use_schema_features: If True, use SchemaAwareFeatureExtractor states
+
+        Returns:
+            Dict with training stats, policy summary, and test metrics
+        """
+        pipeline = self._get_pipeline()
+        if not pipeline:
+            return {"error": "DataPipelineWorm unavailable", "episodes": 0}
+
+        # Auto-split if requested (overrides explicit test_data)
+        if use_data_split:
+            split_result = pipeline.split_memories(
+                source=source, event_type=event_type,
+                test_ratio=test_ratio, val_ratio=val_ratio,
+                by_session=by_session,
+            )
+            records = split_result.get("train", [])
+            test_data = split_result.get("test", [])
+            split_stats = split_result.get("stats", {})
+        else:
+            # Extract all records (no split)
+            records = pipeline.extract_from_memory(
+                source=source, event_type=event_type, limit=n_episodes * 10
+            )
+            split_stats = {}
+
+        if not records:
+            return {"error": "No training data found in LocalMemoryStore", "episodes": 0}
+
+        # Build SchemaAwareFeatureExtractor if requested
+        _schema_extractor = None
+        if use_schema_features:
+            try:
+                from CORE.WORMS.expansion.learning_features import SchemaAwareFeatureExtractor
+                _schema_extractor = SchemaAwareFeatureExtractor()
+                _schema_extractor.fit(records)
+            except Exception:  # noqa: BLE001 — schema extraction best-effort
+                _schema_extractor = None
+
+        def _get_state_key(record: Dict) -> str:
+            """Build a state key from a record.
+
+            When use_schema_features=True, uses the feature vector hash
+            from SchemaAwareFeatureExtractor for richer state discrimination.
+            Otherwise uses simple source:severity string key.
+            """
+            if _schema_extractor:
+                features, _ = _schema_extractor.extract([record])
+                if features:
+                    # Round features to 2 decimals and join as comma-separated string
+                    rounded = tuple(round(v, 2) for v in features[0])
+                    # Include severity to ensure different severities map to different states
+                    sv = record.get("severity", "info")
+                    return f"schema:{hash(rounded)}:{sv}"
+            # Fallback to simple key
+            src = record.get("source", "unknown")
+            sv = record.get("severity", "info")
+            return f"{src}:{sv}"
+
+        def _compute_reward(record: Dict, action: int) -> float:
+            """Compute action-dependent reward from a record.
+
+            Scores how well the CHOSEN action fits the record severity (the old
+            version ignored the action, so every action scored identically and
+            Q-learning / evolution had no gradient). Mapping:
+
+              severity   good actions           bad actions
+              error      remediate +1.0, alert +0.4
+                         log -0.3, ignore -1.0
+              warning    alert +0.7, remediate +0.2
+                         log 0.0, ignore -0.7
+              info       log +0.3, ignore +0.2
+                         alert -0.3, remediate -0.5
+
+            A data.success outcome (when present) refines: an error that was
+            remediated and succeeded earns a bonus; a failed remediation/alert
+            on an error is penalized. Duration still shaves a small amount to
+            penalize slow operations.
+            """
+            sev = record.get("severity", "info")
+            data = record.get("data", {})
+            if isinstance(data, dict):
+                duration = data.get("duration_ms", 0) or 0
+            else:
+                duration = 0
+
+            base = {
+                "error":   {3: 1.0, 2: 0.4, 1: -0.3, 0: -1.0},
+                "warning": {3: 0.2, 2: 0.7, 1: 0.0, 0: -0.7},
+                "info":    {3: -0.5, 2: -0.3, 1: 0.3, 0: 0.2},
+            }.get(sev, {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0})
+            reward = base.get(int(action), 0.0)
+
+            if isinstance(data, dict) and "success" in data:
+                ok = bool(data["success"])
+                if sev == "error":
+                    if ok and action == 3:
+                        reward += 0.3
+                    elif not ok and action in (2, 3):
+                        reward -= 0.4
+                elif sev == "info" and ok and action in (0, 1):
+                    reward += 0.1
+
+            if duration:
+                reward -= duration / 10000.0
+            return reward
+
+        start = time.perf_counter()
+        episode_rewards = []
+
+        for episode in range(n_episodes):
+            total_reward = 0.0
+            action_counts = defaultdict(int)
+            for step in range(min(max_steps, len(records))):
+                record = records[(episode + step) % len(records)]
+
+                # Build state key (simple or schema-aware)
+                state_key = _get_state_key(record)
+
+                # Choose action (epsilon-greedy)
+                if state_key not in self._q_table or random.random() < epsilon:
+                    action = random.randint(0, 3)
+                else:
+                    action = max(self._q_table[state_key], key=self._q_table[state_key].get)
+
+                # Compute reward -- depends on the chosen action so the
+                # policy gradient is real (see _compute_reward docstring)
+                reward = _compute_reward(record, action)
+
+                # Q-learning update
+                old_q = self._q_table[state_key].get(action, 0.0)
+                next_max_q = max(self._q_table[state_key].values(), default=0.0)
+                new_q = old_q + learning_rate * (reward + discount_factor * next_max_q - old_q)
+                self._q_table[state_key][action] = new_q
+
+                action_counts[action] += 1
+                total_reward += reward
+
+            episode_rewards.append(total_reward)
+
+            episode_data = {
+                "episode": episode + 1,
+                "total_reward": total_reward,
+                "steps": min(max_steps, len(records)),
+                "actions": dict(action_counts),
+                "timestamp": time.time(),
+            }
+            with self._lock:
+                self._episodes.append(episode_data)
+
+        duration_ms = (time.perf_counter() - start) * 1000
+
+        # Evaluate on held-out test data if provided
+        test_metrics = {}
+        if test_data:
+            test_rewards = []
+            test_unknown_states = 0
+            for record in test_data:
+                state_key = _get_state_key(record)
+
+                # Greedy action (no exploration)
+                if state_key in self._q_table:
+                    action = max(self._q_table[state_key], key=self._q_table[state_key].get)
+                else:
+                    action = 0
+                    test_unknown_states += 1
+
+                reward = _compute_reward(record, action)
+                test_rewards.append(reward)
+
+            test_metrics = {
+                "test_records": len(test_data),
+                "test_avg_reward": round(sum(test_rewards) / len(test_rewards), 4) if test_rewards else 0,
+                "test_unknown_states": test_unknown_states,
+            }
+
+        # Build result dict before persistence (fixes used-before-def error)
+        result = {
+            "version": self.VERSION,
+            "episodes": n_episodes,
+            "avg_reward": round(sum(episode_rewards) / len(episode_rewards), 4) if episode_rewards else 0,
+            "max_reward": round(max(episode_rewards), 4) if episode_rewards else 0,
+            "min_reward": round(min(episode_rewards), 4) if episode_rewards else 0,
+            "q_table_size": len(self._q_table),
+            "duration_ms": round(duration_ms, 2),
+            "data_source": source or "all",
+            "persisted": False,
+        }
+        if test_metrics:
+            result["test_metrics"] = test_metrics
+        if split_stats:
+            result["data_split"] = {
+                "method": split_stats.get("split_method", "unknown"),
+                "train_records": split_stats.get("train_records", len(records)),
+                "test_records": split_stats.get("test_records", 0),
+                "val_records": split_stats.get("val_records", 0),
+                "total_sessions": split_stats.get("total_sessions", 0),
+            }
+
+        # Persist learned policy to LocalMemoryStore + ModelVersioner
+        try:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+            save_data = {
+                "n_episodes": n_episodes,
+                "total_duration_ms": round(duration_ms, 2),
+                "avg_reward": result["avg_reward"],
+                "q_table_size": len(self._q_table),
+                "source_filter": source,
+            }
+            if test_metrics:
+                save_data["test_avg_reward"] = test_metrics["test_avg_reward"]
+            store.record_event(
+                source="RLTrainLoop", event_type="training_complete",
+                data=save_data,
+                severity="info", tags=["rl", "training", "v2"],
+            )
+            result["persisted"] = True
+
+            # Auto-register with ModelVersioner if training produced results
+            if len(self._q_table) > 0:
+                reg_result = self.register_to_versioner(
+                    metrics={
+                        "avg_reward": result["avg_reward"],
+                        "q_table_size": len(self._q_table),
+                        "episodes": n_episodes,
+                    },
+                    metadata={
+                        "source_filter": source or "all",
+                        "learning_rate": learning_rate,
+                        "discount_factor": discount_factor,
+                        "epsilon": epsilon,
+                        "use_schema_features": use_schema_features,
+                    },
+                )
+                if "error" not in reg_result:
+                    result["registered_model"] = reg_result.get("model_name")
+                    result["registered_version"] = reg_result.get("version")
+        except Exception:  # noqa: BLE001 — model registration best-effort
+            pass
+
+        return result
+    def hyperparameter_tune(self, source: Optional[str] = None, event_type: Optional[str] = None,
+                              n_episodes: int = 50, max_steps: int = 30,
+                              n_folds: int = 3, use_schema_features: bool = False,
+                              lr_values: Optional[List[float]] = None,
+                              gamma_values: Optional[List[float]] = None,
+                              eps_values: Optional[List[float]] = None,
+                              register_tune_model: bool = False) -> Dict[str, Any]:
+        """Hyperparameter tuning via temporal cross-validation.
+
+        Uses DataPipelineWorm.temporal_cross_validation() to create
+        temporally-ordered train/test folds, then trains an RLTrainLoop
+        on each fold for each hyperparameter combination, evaluating
+        held-out test avg_reward to find the best config.
+
+        Grid search over learning_rate, discount_factor (gamma), and
+        epsilon. Default values are reasonable starting points.
+
+        Args:
+            source: Filter memories by source.
+            event_type: Filter by event type.
+            n_episodes: Episodes per training run.
+            max_steps: Steps per episode.
+            n_folds: Number of CV folds.
+            use_schema_features: Use SchemaAwareFeatureExtractor states.
+            lr_values: Learning rates to try.
+            gamma_values: Discount factors to try.
+            eps_values: Epsilon (exploration) values to try.
+
+        Returns:
+            Dict with best_params, best_score, and all_results.
+        """
+        pipeline = self._get_pipeline()
+        if not pipeline:
+            return {"error": "DataPipelineWorm unavailable"}
+
+        # Default grid
+        if lr_values is None:
+            lr_values = [0.05, 0.1, 0.2]
+        if gamma_values is None:
+            gamma_values = [0.8, 0.9, 0.95]
+        if eps_values is None:
+            eps_values = [0.05, 0.1, 0.2]
+
+        # Get CV folds from pipeline
+        cv_result = pipeline.temporal_cross_validation(
+            source=source, event_type=event_type,
+            n_folds=n_folds,
+        )
+        folds = cv_result.get("folds", [])
+        if not folds:
+            return {"error": "No data for CV folds", "cv_stats": cv_result.get("stats", {})}
+
+        start = time.perf_counter()
+        results = []
+        best_score = -float("inf")
+        best_params = {}
+
+        # Save original state to restore after tuning
+        _saved_q_table = self._q_table
+        _saved_episodes = self._episodes
+
+        len(lr_values) * len(gamma_values) * len(eps_values)
+        config_idx = 0
+
+        for lr in lr_values:
+            for gamma in gamma_values:
+                for eps in eps_values:
+                    config_idx += 1
+                    fold_rewards = []
+
+                    for fold in folds:
+                        train_records = fold["train"]
+                        test_records = fold["test"]
+
+                        if not train_records or not test_records:
+                            continue
+
+                        # Use fresh Q-table per config/fold (non-destructive)
+                        self._q_table = defaultdict(lambda: defaultdict(float))
+                        self._episodes = []
+
+                        # Quick training on fold
+                        fold_result = self.train_from_memory(
+                            source=source, event_type=event_type,
+                            n_episodes=n_episodes // max(1, n_folds),
+                            max_steps=max_steps,
+                            learning_rate=lr,
+                            discount_factor=gamma,
+                            epsilon=eps,
+                            test_data=test_records,
+                            use_schema_features=use_schema_features,
+                        )
+
+                        if "test_metrics" in fold_result:
+                            fold_rewards.append(fold_result["test_metrics"]["test_avg_reward"])
+
+                    if not fold_rewards:
+                        continue
+
+                    avg_fold_reward = round(sum(fold_rewards) / len(fold_rewards), 4)
+
+                    result_entry = {
+                        "learning_rate": lr,
+                        "discount_factor": gamma,
+                        "epsilon": eps,
+                        "avg_test_reward": avg_fold_reward,
+                        "n_folds_with_data": len(fold_rewards),
+                    }
+                    results.append(result_entry)
+
+                    if avg_fold_reward > best_score:
+                        best_score = avg_fold_reward
+                        best_params = {
+                            "learning_rate": lr,
+                            "discount_factor": gamma,
+                            "epsilon": eps,
+                        }
+
+        duration_ms = (time.perf_counter() - start) * 1000
+
+        # Restore original state
+        self._q_table = _saved_q_table
+        self._episodes = _saved_episodes
+
+        # Optionally register best config as a model version
+        registered_version = None
+        if register_tune_model and best_params:
+            try:
+                from CORE.local_memory import get_memory_store
+                store = get_memory_store()
+                version = datetime.now().strftime("%Y%m%d_%H%M%S")
+                store.record_event(
+                    source="RLTrainLoop", event_type="tune_config_registered",
+                    data={
+                        "best_params": best_params,
+                        "best_score": best_score,
+                        "n_configs_tried": len(results),
+                        "n_folds": n_folds,
+                        "data_source": source or "all",
+                        "use_schema_features": use_schema_features,
+                    },
+                    severity="info", tags=["rl", "tune", "v2"],
+                )
+                registered_version = version
+            except Exception:  # noqa: BLE001 — tune-run persistence best-effort
+                pass
+
+        return {
+            "version": self.VERSION,
+            "best_params": best_params,
+            "best_score": best_score,
+            "results": sorted(results, key=lambda r: -r["avg_test_reward"]),
+            "n_configs_tried": len(results),
+            "n_folds": n_folds,
+            "duration_ms": round(duration_ms, 2),
+            "data_source": source or "all",
+            "use_schema_features": use_schema_features,
+            "registered_version": registered_version,
+        }
+
+    def tune_and_train(self, source: Optional[str] = None, event_type: Optional[str] = None,
+                        n_episodes: int = 50, max_steps: int = 30,
+                        n_folds: int = 3, use_schema_features: bool = False,
+                        lr_values: Optional[List[float]] = None,
+                        gamma_values: Optional[List[float]] = None,
+                        eps_values: Optional[List[float]] = None,
+                        register_tune_model: bool = False) -> Dict[str, Any]:
+        """Tune hyperparams via CV, then train a final model with best params.
+
+        Runs hyperparameter_tune() to find the optimal configuration via
+        temporal cross-validation, then trains a final policy using those
+        optimal hyperparameters on ALL available data.
+
+        Args:
+            Same as hyperparameter_tune() + same as train_from_memory().
+
+        Returns:
+            Dict with 'tune_result', 'train_result', and 'best_params'.
+        """
+        # Step 1: Tune hyperparams via CV
+        tune_result = self.hyperparameter_tune(
+            source=source, event_type=event_type,
+            n_episodes=n_episodes, max_steps=max_steps,
+            n_folds=n_folds, use_schema_features=use_schema_features,
+            lr_values=lr_values, gamma_values=gamma_values,
+            eps_values=eps_values,
+            register_tune_model=register_tune_model,
+        )
+
+        if "error" in tune_result:
+            return {"error": tune_result["error"], "tune_result": tune_result}
+
+        best_params = tune_result.get("best_params", {})
+
+        # Step 2: Train final model with best params on all data
+        train_result = self.train_from_memory(
+            source=source, event_type=event_type,
+            n_episodes=n_episodes, max_steps=max_steps,
+            learning_rate=best_params.get("learning_rate", 0.1),
+            discount_factor=best_params.get("discount_factor", 0.9),
+            epsilon=best_params.get("epsilon", 0.1),
+            use_schema_features=use_schema_features,
+        )
+
+        return {
+            "tune_result": tune_result,
+            "train_result": train_result,
+            "best_params": best_params,
+            "best_score": tune_result.get("best_score"),
+        }
+
+    def train_episode(self, env, agent, max_steps: int = 1000) -> Dict[str, Any]:
+        """Run a single training episode (backward-compatible mock training)."""
+        state = getattr(env, "reset", lambda: 0)()
+        total_reward = 0.0
+        steps = 0
+        for _ in range(max_steps):
+            action = getattr(agent, "act", lambda s: 0)(state)
+            try:
+                next_state, reward, done, *_ = getattr(env, "step", lambda a: (0, 0, True, {}))(action)
+            except Exception:  # noqa: BLE001 — broken env stops episode
+                break
+            total_reward += reward
+            state = next_state
+            steps += 1
+            if done:
+                break
+        episode = {"steps": steps, "total_reward": total_reward, "timestamp": time.time()}
+        with self._lock:
+            self._episodes.append(episode)
+        return episode
+    def get_training_stats(self) -> Dict[str, Any]:
+        with self._lock:
+            if not self._episodes:
+                return {"episodes": 0}
+            rewards = [e["total_reward"] for e in self._episodes]
+            return {"episodes": len(rewards), "avg_reward": round(sum(rewards) / len(rewards), 2),
+                    "max_reward": max(rewards), "min_reward": min(rewards),
+                    "q_table_size": len(self._q_table)}
+
+    def tune_history(self, limit: int = 20) -> Dict[str, Any]:
+        """Query tune_config_registered events from LocalMemoryStore.
+
+        Queries all 'tune_config_registered' events to show the
+        progression of best_params and best scores over time.
+
+        Args:
+            limit: Max history entries to return.
+
+        Returns:
+            Dict with history list and summary stats.
+        """
+        try:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+            events = store.search_memories(
+                "tune_config_registered", source="RLTrainLoop", limit=limit
+            )
+
+            history = []
+            for ev in events:
+                raw_data = ev.get("data", {})
+                if isinstance(raw_data, str):
+                    try:
+                        data = json.loads(raw_data)
+                    except Exception:  # noqa: BLE001 — skip malformed serialized payload
+                        continue
+                else:
+                    data = raw_data
+                if isinstance(data, dict) and "best_params" in data:
+                    history.append({
+                        "registered_at": ev.get("timestamp", ""),
+                        "best_params": data["best_params"],
+                        "best_score": data.get("best_score"),
+                        "n_configs_tried": data.get("n_configs_tried"),
+                        "n_folds": data.get("n_folds"),
+                        "data_source": data.get("data_source"),
+                    })
+
+            # Compute progression summary
+            scores = [h["best_score"] for h in history if h["best_score"] is not None]
+
+            return {
+                "history": history,
+                "count": len(history),
+                "summary": {
+                    "best_overall": max(scores) if scores else None,
+                    "worst_overall": min(scores) if scores else None,
+                    "avg_score": round(sum(scores) / len(scores), 4) if scores else None,
+                    "n_tune_runs": len(history),
+                } if scores else {},
+            }
+        except Exception as e:  # noqa: BLE001 — tuning failure returns signed error
+            return {"error": str(e), "history": []}

@@ -1,0 +1,238 @@
+# coding: utf-8
+"""
+Regression tests for the autonomous learning loop (fixed 2026-09-07).
+
+Covers the six defects fixed in the session plus the learning.py split:
+  1. Reward gradient across hyperparameters (was flat -> evolution had no fitness)
+  2. Q-learning policy learns severity-appropriate actions
+  3. Evidence-driven strategy recommendations (metacog -> global)
+  4. ADOPT_CONFIDENCE gate (no churn on low-confidence suggestions)
+  5. State persistence across instances (save_state/load_state)
+  6. Strategy steering reaches the dreamer (run_dreaming_pipeline)
+  7. learning.py split: shim re-exports keep every import path working
+
+Run:  python -m pytest src/tests/test_learning_loop.py -v
+   or: python -m unittest src.tests.test_learning_loop -v
+"""
+import os
+import random
+import shutil
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+# Ensure azazael/src is on sys.path and point memory at a scratch DB BEFORE
+# any CORE import (the LocalMemoryStore singleton binds to the env at init).
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+_SCRATCH = tempfile.mkdtemp(prefix="learning_loop_test_")
+os.environ["AZAZAEL_MEMORY_DIR"] = _SCRATCH
+
+from CORE.local_memory import get_memory_store  # noqa: E402
+from CORE.WORMS.expansion.learning import (  # noqa: E402
+    RLTrainLoop, ModelVersioner, DataPipelineWorm,
+    SchemaAwareFeatureExtractor, FeatureEngineer, ABTestRunner,
+    refresh_dynamic_shapes, DATA_SHAPES, DYNAMIC_SHAPES)
+from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm  # noqa: E402
+from CORE.WORMS.expansion.dreaming import DreamingModule  # noqa: E402
+
+STORE = get_memory_store()
+AVAIL = ['default', 'conservative', 'defensive', 'aggressive', 'adaptive',
+         'batched', 'staged']
+
+
+def seed_records(source="SystemZ", n=12):
+    for i in range(n):
+        STORE.record_event(
+            source=source, event_type="monitor",
+            severity="error" if i % 2 == 0 else "warning",
+            data={"duration_ms": 20, "success": False}, tags=["test"])
+
+
+class TestRewardGradient(unittest.TestCase):
+    """Defect 6: reward must depend on the chosen action, giving evolution a
+    fitness gradient across hyperparameters (was flat 50.0 for every genome)."""
+
+    def test_epsilon_changes_avg_reward(self):
+        seed_records()
+        rewards = {}
+        for eps in (0.05, 0.5):
+            random.seed(7)
+            loop = RLTrainLoop()
+            stats = loop.train_from_memory(
+                source="SystemZ", n_episodes=15, max_steps=20,
+                learning_rate=0.1, discount_factor=0.9, epsilon=eps)
+            rewards[eps] = round(stats.get("avg_reward", 0.0), 4)
+        self.assertGreaterEqual(len(set(rewards.values())), 2,
+                                f"no gradient across epsilon: {rewards}")
+
+    def test_policy_learns_severity_appropriate_actions(self):
+        seed_records()
+        random.seed(7)
+        loop = RLTrainLoop()
+        loop.train_from_memory(source="SystemZ", n_episodes=20, max_steps=30,
+                               learning_rate=0.1, discount_factor=0.9,
+                               epsilon=0.1)
+        policy = {k: loop.ACTION_NAMES[max(v, key=v.get)]
+                  for k, v in loop._q_table.items()}
+        self.assertEqual(policy.get("SystemZ:error"), "remediate")
+        self.assertEqual(policy.get("SystemZ:warning"), "alert")
+
+    def test_episode_records_action_distribution(self):
+        seed_records()
+        random.seed(7)
+        loop = RLTrainLoop()
+        loop.train_from_memory(source="SystemZ", n_episodes=4, max_steps=10,
+                               learning_rate=0.1, discount_factor=0.9,
+                               epsilon=0.3)
+        self.assertIn("actions", loop._episodes[-1])
+        self.assertTrue(loop._episodes[-1]["actions"])
+
+
+class TestEvidenceRecommendations(unittest.TestCase):
+    """Defect 5 + metacog wiring: real outcomes produce high-confidence
+    recommendations that clear the adoption bar."""
+
+    def _scenario(self, outcomes):
+        mc = MetaCognitionWorm()
+        for wt, outcome in outcomes:
+            mc.observe(worm_type=wt, action="cluster_execute", outcome=outcome,
+                       context={"cluster_id": f"c{outcome}{len(outcomes)}"})
+        mc.analyze_patterns(worm_type=outcomes[0][0])
+        rec = mc.recommend_from_evidence(outcomes[0][0])
+        adapted = None
+        if rec.get("recommended"):
+            adapted = mc.adapt_strategy("global", "default",
+                                        available_strategies=AVAIL,
+                                        recommended=rec["recommended"],
+                                        confidence=rec["confidence"])
+        return rec, adapted, mc
+
+    def test_error_heavy_recommends_defensive_and_adopts(self):
+        rec, adapted, mc = self._scenario(
+            [("security", "error")] * 8 + [("security", "success")] * 2)
+        self.assertEqual(rec["recommended"], "defensive")
+        self.assertGreaterEqual(rec["confidence"], 0.5)
+        self.assertTrue(adapted["should_adapt"])
+        self.assertEqual(mc.get_current_strategy("global"), "defensive")
+
+    def test_success_heavy_recommends_aggressive(self):
+        rec, adapted, _ = self._scenario(
+            [("security", "success")] * 9 + [("security", "error")])
+        self.assertEqual(rec["recommended"], "aggressive")
+        self.assertTrue(adapted["should_adapt"])
+
+    def test_insufficient_evidence_holds(self):
+        rec, adapted, _ = self._scenario([("security", "error")] * 3)
+        self.assertIsNone(rec["recommended"])
+        self.assertIsNone(adapted)
+
+
+class TestAdoptConfidenceGate(unittest.TestCase):
+    """Defect 5: tepid suggestions must not flip the active strategy."""
+
+    def test_low_confidence_holds(self):
+        mc = MetaCognitionWorm()
+        adapted = mc.adapt_strategy("global", "default",
+                                    available_strategies=AVAIL,
+                                    recommended="aggressive", confidence=0.1)
+        self.assertFalse(adapted["should_adapt"])
+        self.assertEqual(mc.get_current_strategy("global"), "default")
+
+    def test_high_confidence_switches(self):
+        mc = MetaCognitionWorm()
+        adapted = mc.adapt_strategy("global", "default",
+                                    available_strategies=AVAIL,
+                                    recommended="aggressive", confidence=0.8)
+        self.assertTrue(adapted["should_adapt"])
+        self.assertEqual(mc.get_current_strategy("global"), "aggressive")
+
+
+class TestStatePersistence(unittest.TestCase):
+    """Defect 1: state must survive fresh instances (was lost to FTS ranking)."""
+
+    def test_save_then_load_restores_strategy(self):
+        mc = MetaCognitionWorm()
+        mc.adapt_strategy("global", "default", available_strategies=AVAIL,
+                          recommended="batched", confidence=0.9)
+        mc.save_state()
+
+        mc2 = MetaCognitionWorm()  # load_state runs in __init__
+        self.assertEqual(mc2.get_current_strategy("global"), "batched")
+
+
+class TestSteeringWiring(unittest.TestCase):
+    """Defect 2/4: the tracked strategy must change what the dreamer does."""
+
+    def test_aggressive_strategy_steers_pipeline(self):
+        mc = MetaCognitionWorm()
+        mc.adapt_strategy("global", "default", available_strategies=AVAIL,
+                          recommended="aggressive", confidence=0.9)
+        mc.save_state()
+
+        dm = DreamingModule()
+        result = dm.run_dreaming_pipeline(num_episodes=8, scenario_count=10,
+                                          policy_fn=None)
+        self.assertIsNotNone(result)
+        rows = STORE.query_memories(event_type="strategy_steered", limit=1)
+        self.assertTrue(rows, "no strategy_steered row recorded")
+        data = rows[0].get("data", {})
+        if isinstance(data, str):
+            import json
+            data = json.loads(data)
+        self.assertEqual(data.get("strategy"), "aggressive")
+        params = data.get("params") or data.get("tuning") or {}
+        self.assertEqual(params.get("num_episodes"), 8)
+
+    def test_dream_tuning_for_mapping(self):
+        mc = MetaCognitionWorm()
+        mc.adapt_strategy("global", "default", available_strategies=AVAIL,
+                          recommended="conservative", confidence=0.9)
+        tuning, strategy = mc.dream_tuning_for("global")
+        self.assertEqual(strategy, "conservative")
+        self.assertEqual(tuning.get("num_episodes"), 2)
+
+
+class TestLearningSplitShim(unittest.TestCase):
+    """Audit AR-2: learning.py split must keep every import path working."""
+
+    def test_public_api_identities(self):
+        from CORE.WORMS.expansion.learning_rl import RLTrainLoop as RL2
+        from CORE.WORMS.expansion.learning_versioner import ModelVersioner as MV2
+        from CORE.WORMS.expansion.learning_pipeline import DataPipelineWorm as DP2
+        from CORE.WORMS.expansion.learning_features import SchemaAwareFeatureExtractor as SFE2
+        from CORE.WORMS.expansion.learning_ab import ABTestRunner as AB2
+        self.assertIs(RL2, RLTrainLoop)
+        self.assertIs(MV2, ModelVersioner)
+        self.assertIs(DP2, DataPipelineWorm)
+        self.assertIs(SFE2, SchemaAwareFeatureExtractor)
+        self.assertIs(AB2, ABTestRunner)
+        self.assertIn("training_complete", DATA_SHAPES)
+        self.assertIsInstance(DYNAMIC_SHAPES, dict)
+
+    def test_classes_instantiate(self):
+        for cls in (RLTrainLoop, ModelVersioner, DataPipelineWorm,
+                    SchemaAwareFeatureExtractor, FeatureEngineer, ABTestRunner):
+            self.assertIsNotNone(cls())
+
+    def test_ab_runner(self):
+        ab = ABTestRunner()
+        ab.create_experiment("e1", ["a", "b"])
+        ab.track("e1", "a", True)
+        ab.track("e1", "b", False)
+        r = ab.get_results("e1")
+        self.assertEqual(r["variants"]["a"]["conversion_rate"], 1.0)
+        self.assertEqual(r["variants"]["b"]["conversion_rate"], 0.0)
+
+
+def tearDownModule():
+    try:
+        STORE.close() if hasattr(STORE, "close") else None
+    except Exception:
+        pass
+    shutil.rmtree(_SCRATCH, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

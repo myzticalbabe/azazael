@@ -128,6 +128,21 @@ CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE ON memories BEGIN
     INSERT INTO memories_fts(rowid, event_type, data, tags)
     VALUES (new.id, new.event_type, new.data, new.tags);
 END;
+
+CREATE TABLE IF NOT EXISTS knowledge_patterns (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_agent    TEXT NOT NULL,
+    pattern_type    TEXT NOT NULL,
+    embedding       TEXT NOT NULL DEFAULT '[]',
+    metadata        TEXT NOT NULL DEFAULT '{}',
+    confidence      REAL NOT NULL DEFAULT 1.0,
+    hit_count       INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_kp_source_agent ON knowledge_patterns(source_agent);
+CREATE INDEX IF NOT EXISTS idx_kp_pattern_type ON knowledge_patterns(pattern_type);
 """
 
 
@@ -167,7 +182,7 @@ class LocalMemoryStore:
         self._backup_interval: float = 86400.0  # 24 hours (default)
         self._last_backup_path: Optional[str] = None
         self._size_warning_issued = False
-        self._max_size_mb = 100  # Default threshold
+        self._max_size_mb = 400  # Default threshold (warn at 80% of 500 MB quota)
         # Instance-level performance counters (was class-level — moved for 3.14t safety)
         self._query_count: int = 0
         self._slow_query_count: int = 0
@@ -314,11 +329,11 @@ class LocalMemoryStore:
 
     def _get_conn(self) -> sqlite3.Connection:
         """Get a new connection. Uses WAL mode for concurrent access."""
-        conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=5)
+        conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=15)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute("PRAGMA busy_timeout=15000")
         conn.execute("PRAGMA wal_autocheckpoint=1000")
         return conn
 
@@ -552,7 +567,7 @@ class LocalMemoryStore:
         Returns:
             List of memory dicts, newest first.
         """
-        conditions = []
+        conditions = ["severity != 'deleted'"]  # Exclude tombstoned (soft-deleted) rows
         params: List[Any] = []
 
         if source:
@@ -610,7 +625,8 @@ class LocalMemoryStore:
         """
         # Sanitize FTS5 query — escape special chars
         safe_query = query.replace('"', '""').replace("'", "''")
-        conditions = ["memories_fts MATCH ?"]
+        # Exclude tombstoned (soft-deleted) rows, same as query_memories()
+        conditions = ["memories_fts MATCH ?", "memories.severity != 'deleted'"]
         params: List[Any] = [f'"{safe_query}"']
 
         if source:
@@ -638,12 +654,14 @@ class LocalMemoryStore:
                 if source:
                     rows = conn.execute(
                         "SELECT * FROM memories WHERE (event_type LIKE ? OR data LIKE ?) AND source = ? "
+                        "AND severity != 'deleted' "
                         "ORDER BY id DESC LIMIT ?",
                         (like_param, like_param, source, limit)
                     ).fetchall()
                 else:
                     rows = conn.execute(
-                        "SELECT * FROM memories WHERE event_type LIKE ? OR data LIKE ? "
+                        "SELECT * FROM memories WHERE (event_type LIKE ? OR data LIKE ?) "
+                        "AND severity != 'deleted' "
                         "ORDER BY id DESC LIMIT ?",
                         (like_param, like_param, limit)
                     ).fetchall()
@@ -1403,6 +1421,246 @@ class LocalMemoryStore:
             conn.close()
         except Exception:
             pass
+
+    # -- Knowledge Graph: Pattern Registration & Similarity ---------------
+
+    def register_pattern(self, source_agent: str, pattern_type: str,
+                         embedding: list[float],
+                         metadata: (dict | None) = None,
+                         confidence: float = 1.0) -> int:
+        """Register a pattern/embedding in the knowledge graph.
+
+        Args:
+            source_agent: Agent that discovered the pattern.
+            pattern_type: Category (e.g., "anomaly", "preference").
+            embedding: Feature vector as list of floats.
+            metadata: Optional metadata dict.
+            confidence: Confidence score (0.0-1.0).
+
+        Returns:
+            Pattern ID (rowid).
+        """
+        embedding_str = json.dumps(embedding, ensure_ascii=False)
+        metadata_str = json.dumps(metadata or {}, ensure_ascii=False)
+        ts = datetime.now(timezone.utc).isoformat()
+
+        with self._lock:
+            conn = self._get_conn()
+            cursor = conn.execute(
+                "INSERT INTO knowledge_patterns(source_agent, pattern_type, embedding, metadata, confidence, created_at, updated_at) "
+                "VALUES(?, ?, ?, ?, ?, ?, ?)",
+                (source_agent, pattern_type, embedding_str, metadata_str, confidence, ts, ts)
+            )
+            pid = cursor.lastrowid or 0
+            conn.commit()
+            conn.close()
+        return pid
+
+    def query_similar_patterns(self, embedding: list[float], top_k: int = 10,
+                                pattern_type: (str | None) = None) -> list[dict[str, Any]]:
+        """Find patterns similar to the given embedding via cosine similarity.
+
+        Args:
+            embedding: Query feature vector.
+            top_k: Max results to return.
+            pattern_type: Optional filter by pattern type.
+
+        Returns:
+            List of pattern dicts with similarity scores, sorted descending.
+        """
+        conn = self._get_conn()
+        try:
+            if pattern_type:
+                rows = conn.execute(
+                    "SELECT * FROM knowledge_patterns WHERE pattern_type = ? ORDER BY id DESC",
+                    (pattern_type,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM knowledge_patterns ORDER BY id DESC"
+                ).fetchall()
+        finally:
+            conn.close()
+
+        results = []
+        for r in rows:
+            stored_emb = json.loads(r["embedding"]) if isinstance(r["embedding"], str) else r["embedding"]
+            sim = self._cosine_similarity(embedding, stored_emb)
+
+            # Update hit count for matched patterns
+            try:
+                update_conn = self._get_conn()
+                update_conn.execute(
+                    "UPDATE knowledge_patterns SET hit_count = hit_count + 1, updated_at = ? WHERE id = ?",
+                    (datetime.now(timezone.utc).isoformat(), r["id"])
+                )
+                update_conn.commit()
+                update_conn.close()
+            except Exception:
+                pass
+
+            metadata_val = json.loads(r["metadata"]) if isinstance(r["metadata"], str) else r["metadata"]
+            results.append({
+                "id": r["id"],
+                "source_agent": r["source_agent"],
+                "pattern_type": r["pattern_type"],
+                "embedding": stored_emb,
+                "metadata": metadata_val,
+                "confidence": r["confidence"],
+                "hit_count": r["hit_count"] + 1,
+                "similarity": round(sim, 4),
+                "created_at": r["created_at"],
+            })
+
+        results.sort(key=lambda x: -x["similarity"])
+        return results[:top_k]
+
+    def get_patterns_by_agent(self, source_agent: str,
+                               pattern_type: (str | None) = None) -> list[dict[str, Any]]:
+        """Get all patterns registered by a specific agent.
+
+        Args:
+            source_agent: Agent name to filter by.
+            pattern_type: Optional filter by pattern type.
+
+        Returns:
+            List of pattern dicts.
+        """
+        conn = self._get_conn()
+        try:
+            if pattern_type:
+                rows = conn.execute(
+                    "SELECT * FROM knowledge_patterns WHERE source_agent = ? AND pattern_type = ? ORDER BY id DESC",
+                    (source_agent, pattern_type)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM knowledge_patterns WHERE source_agent = ? ORDER BY id DESC",
+                    (source_agent,)
+                ).fetchall()
+        finally:
+            conn.close()
+
+        results = []
+        for r in rows:
+            metadata_val = json.loads(r["metadata"]) if isinstance(r["metadata"], str) else r["metadata"]
+            results.append({
+                "id": r["id"],
+                "source_agent": r["source_agent"],
+                "pattern_type": r["pattern_type"],
+                "embedding": json.loads(r["embedding"]) if isinstance(r["embedding"], str) else r["embedding"],
+                "metadata": metadata_val,
+                "confidence": r["confidence"],
+                "hit_count": r["hit_count"],
+                "created_at": r["created_at"],
+                "updated_at": r["updated_at"],
+            })
+        return results
+
+    def delete_pattern(self, pattern_id: (int | None) = None,
+                         source_agent: (str | None) = None,
+                         pattern_type: (str | None) = None) -> int:
+        """Delete one or more patterns from the knowledge graph.
+
+        Supports flexible filtering — at least one of pattern_id, source_agent,
+        or pattern_type must be provided. Combine source_agent + pattern_type
+        to delete specific pattern categories for an agent.
+
+        Args:
+            pattern_id: Delete a specific pattern by its ID.
+            source_agent: Delete all patterns registered by this agent.
+            pattern_type: Delete all patterns of this type (optionally combined
+                          with source_agent for a compound filter).
+
+        Returns:
+            Number of rows deleted.
+
+        Raises:
+            ValueError: If no filter argument is provided.
+        """
+        if pattern_id is None and source_agent is None and pattern_type is None:
+            raise ValueError(
+                "At least one of pattern_id, source_agent, or pattern_type must be provided"
+            )
+
+        conditions: list[str] = []
+        params: list[Any] = []
+
+        if pattern_id is not None:
+            conditions.append("id = ?")
+            params.append(pattern_id)
+        if source_agent is not None:
+            conditions.append("source_agent = ?")
+            params.append(source_agent)
+        if pattern_type is not None:
+            conditions.append("pattern_type = ?")
+            params.append(pattern_type)
+
+        where = " AND ".join(conditions)
+        sql = f"DELETE FROM knowledge_patterns WHERE {where}"
+
+        with self._lock:
+            conn = self._get_conn()
+            try:
+                cursor = conn.execute(sql, params)
+                deleted = cursor.rowcount
+                conn.commit()
+            finally:
+                conn.close()
+
+        return deleted
+
+    def get_knowledge_graph_stats(self) -> dict[str, Any]:
+        """Get statistics about the knowledge graph.
+
+        Returns:
+            Dict with total_patterns, by_agent, by_type, avg_confidence.
+        """
+        conn = self._get_conn()
+        try:
+            total = conn.execute("SELECT COUNT(*) as n FROM knowledge_patterns").fetchone()["n"]
+
+            by_agent = {}
+            agent_rows = conn.execute(
+                "SELECT source_agent, COUNT(*) as n FROM knowledge_patterns GROUP BY source_agent"
+            ).fetchall()
+            for r in agent_rows:
+                by_agent[r["source_agent"]] = r["n"]
+
+            by_type = {}
+            type_rows = conn.execute(
+                "SELECT pattern_type, COUNT(*) as n FROM knowledge_patterns GROUP BY pattern_type"
+            ).fetchall()
+            for r in type_rows:
+                by_type[r["pattern_type"]] = r["n"]
+
+            avg_conf = conn.execute(
+                "SELECT AVG(confidence) as avg_c FROM knowledge_patterns"
+            ).fetchone()["avg_c"] or 0.0
+        finally:
+            conn.close()
+
+        return {
+            "total_patterns": total,
+            "by_agent": by_agent,
+            "by_type": by_type,
+            "avg_confidence": round(avg_conf, 4),
+        }
+
+    @staticmethod
+    def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
+        """Compute cosine similarity between two vectors.
+
+        Returns 0.0 for empty or mismatched-length vectors.
+        """
+        if not vec1 or not vec2 or len(vec1) != len(vec2):
+            return 0.0
+        dot = sum(a * b for a, b in zip(vec1, vec2))
+        norm1 = sum(a * a for a in vec1) ** 0.5
+        norm2 = sum(b * b for b in vec2) ** 0.5
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+        return dot / (norm1 * norm2)
 
 
 # -- Global singleton ------------------------------------------------------

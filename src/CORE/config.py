@@ -302,14 +302,14 @@ class MemoryStoreConfig:
     """Memory store (SQLite) configuration section."""
     auto_vacuum: bool = True
     vacuum_interval_hours: float = 24.0
-    max_size_mb_warn: int = 100
+    max_size_mb_warn: int = 400
 
     @classmethod
     def from_dict(cls, d: dict) -> "MemoryStoreConfig":
         return cls(
             auto_vacuum=d.get("auto_vacuum", True),
             vacuum_interval_hours=d.get("vacuum_interval_hours", 24.0),
-            max_size_mb_warn=d.get("max_size_mb_warn", 100),
+            max_size_mb_warn=d.get("max_size_mb_warn", 400),
         )
 
 

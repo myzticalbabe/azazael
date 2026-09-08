@@ -149,7 +149,8 @@ class DirectMemory:
         """
         self._db_path = str(DB_PATH)
         self._lock = threading.Lock()
-        self._session_id = session_id or datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
+        self._session_id = session_id or (
+            datetime.now().strftime("codebuff_%Y%m%d_%H%M%S") + f"_{os.getpid()}")
         self._explicit_session = bool(session_id)  # True if user provided session_id
         self._merged_session_id = merged_session_id
         self._event_count = 0
@@ -160,7 +161,8 @@ class DirectMemory:
         self._correlation_id = _uuid7()
         # Validate session_id before proceeding
         if not self._session_id or not isinstance(self._session_id, str):
-            self._session_id = datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
+            self._session_id = (datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
+                                + f"_{os.getpid()}")
         if merged_session_id:
             if not merged_session_id or not isinstance(merged_session_id, str):
                 merged_session_id = None
@@ -273,10 +275,10 @@ class DirectMemory:
             pass
 
     def _get_conn(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._db_path, check_same_thread=False, timeout=5)
+        conn = sqlite3.connect(self._db_path, check_same_thread=False, timeout=15)
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute("PRAGMA busy_timeout=15000")
         conn.execute("PRAGMA wal_autocheckpoint=1000")
         return conn
 
