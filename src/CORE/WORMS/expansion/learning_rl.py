@@ -2,6 +2,7 @@
 """RL training worm -- RLTrainLoop (split from learning.py, 2026-09-07)."""
 
 import json
+import math
 import time
 import random
 import threading
@@ -35,6 +36,55 @@ def is_free_threaded() -> bool:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:  # noqa: BLE001 — 314t detection is best-effort
             return False
+
+
+def _compute_reward(record: Dict, action: int) -> float:
+    """Score how well the CHOSEN action fits the record severity.
+
+    Hoisted out of train_from_memory (2026-09-08) so the reward model is
+    directly unit-testable. Mapping:
+
+      severity   good actions           bad actions
+      error      remediate +1.0, alert +0.4
+                 log -0.3, ignore -1.0
+      warning    alert +0.7, remediate +0.2
+                 log 0.0, ignore -0.7
+      info       log +0.3, ignore +0.2
+                 alert -0.3, remediate -0.5
+
+    A data.success outcome (when present) refines: an error that was
+    remediated and succeeded earns a bonus; a failed remediation/alert
+    on an error is penalized. Duration still shaves a small amount to
+    penalize slow operations.
+    """
+    sev = record.get("severity", "info")
+    data = record.get("data", {})
+    if isinstance(data, dict):
+        duration = data.get("duration_ms", 0) or 0
+    else:
+        duration = 0
+
+    base = {
+        "error":   {3: 1.0, 2: 0.4, 1: -0.3, 0: -1.0},
+        "warning": {3: 0.2, 2: 0.7, 1: 0.0, 0: -0.7},
+        "info":    {3: -0.5, 2: -0.3, 1: 0.3, 0: 0.2},
+    }.get(sev, {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0})
+    reward = base.get(int(action), 0.0)
+
+    if isinstance(data, dict) and "success" in data:
+        ok = bool(data["success"])
+        if sev == "error":
+            if ok and action == 3:
+                reward += 0.3
+            elif not ok and action in (2, 3):
+                reward -= 0.4
+        elif sev == "info" and ok and action in (0, 1):
+            reward += 0.1
+
+    if duration:
+        reward -= duration / 10000.0
+    return reward
+
 
 @register_worm(category="learning", priority=6, cooldown_seconds=120.0,
     description="RL train loop v2 — trains from DataPipelineWorm output with Q-learning policy optimization")
@@ -234,11 +284,14 @@ class RLTrainLoop:
                           n_episodes: int = 100, max_steps: int = 50,
                           learning_rate: float = 0.1, discount_factor: float = 0.9,
                           epsilon: float = 0.1,
+                          epsilon_decay: float = 0.0,
                           test_data: Optional[List[Dict]] = None,
                           use_data_split: bool = False,
                           val_ratio: float = 0.1, test_ratio: float = 0.2,
                           by_session: bool = True,
-                          use_schema_features: bool = False) -> Dict[str, Any]:
+                          use_schema_features: bool = False,
+                          exclude_sources: Optional[List[str]] = None,
+                          persist: bool = True) -> Dict[str, Any]:
         """Train from real execution data in LocalMemoryStore.
 
         Uses DataPipelineWorm to extract records, then treats each
@@ -251,6 +304,23 @@ class RLTrainLoop:
         If use_schema_features=True, uses SchemaAwareFeatureExtractor for
         richer state vectors (typed numeric features from the data blob).
         Otherwise uses simple source:severity state keys.
+
+        If exclude_sources is provided, those source components are skipped
+        during extraction (used to keep eval pools free of the training
+        system's own recorded bookkeeping events).
+
+        If persist=False (used by evolution_cycle GA evals), the run is
+        scored but nothing is written back: no training_complete event, no
+        ModelVersioner registration, no q_table_persisted event. This keeps
+        the GA's ~96 eval runs per cycle from bloating the store and the
+        model registry with bookkeeping rows.
+
+        If epsilon_decay > 0 (2026-09-08 expansion), epsilon anneals toward
+        a floor each episode: eps_eff = max(floor, epsilon * exp(-decay * ep)).
+        A real policy knob — evolution can now search over how fast the agent
+        shifts from exploration to exploitation without changing eval budget
+        (unlike n_episodes/max_steps, which would create fake selection
+        pressure via more Q-updates).
 
         If test_data is provided directly, uses it for held-out evaluation.
 
@@ -289,7 +359,8 @@ class RLTrainLoop:
         else:
             # Extract all records (no split)
             records = pipeline.extract_from_memory(
-                source=source, event_type=event_type, limit=n_episodes * 10
+                source=source, event_type=event_type, limit=n_episodes * 10,
+                exclude_sources=exclude_sources,
             )
             split_stats = {}
 
@@ -326,60 +397,18 @@ class RLTrainLoop:
             sv = record.get("severity", "info")
             return f"{src}:{sv}"
 
-        def _compute_reward(record: Dict, action: int) -> float:
-            """Compute action-dependent reward from a record.
-
-            Scores how well the CHOSEN action fits the record severity (the old
-            version ignored the action, so every action scored identically and
-            Q-learning / evolution had no gradient). Mapping:
-
-              severity   good actions           bad actions
-              error      remediate +1.0, alert +0.4
-                         log -0.3, ignore -1.0
-              warning    alert +0.7, remediate +0.2
-                         log 0.0, ignore -0.7
-              info       log +0.3, ignore +0.2
-                         alert -0.3, remediate -0.5
-
-            A data.success outcome (when present) refines: an error that was
-            remediated and succeeded earns a bonus; a failed remediation/alert
-            on an error is penalized. Duration still shaves a small amount to
-            penalize slow operations.
-            """
-            sev = record.get("severity", "info")
-            data = record.get("data", {})
-            if isinstance(data, dict):
-                duration = data.get("duration_ms", 0) or 0
-            else:
-                duration = 0
-
-            base = {
-                "error":   {3: 1.0, 2: 0.4, 1: -0.3, 0: -1.0},
-                "warning": {3: 0.2, 2: 0.7, 1: 0.0, 0: -0.7},
-                "info":    {3: -0.5, 2: -0.3, 1: 0.3, 0: 0.2},
-            }.get(sev, {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0})
-            reward = base.get(int(action), 0.0)
-
-            if isinstance(data, dict) and "success" in data:
-                ok = bool(data["success"])
-                if sev == "error":
-                    if ok and action == 3:
-                        reward += 0.3
-                    elif not ok and action in (2, 3):
-                        reward -= 0.4
-                elif sev == "info" and ok and action in (0, 1):
-                    reward += 0.1
-
-            if duration:
-                reward -= duration / 10000.0
-            return reward
-
         start = time.perf_counter()
         episode_rewards = []
 
         for episode in range(n_episodes):
             total_reward = 0.0
             action_counts = defaultdict(int)
+            # epsilon annealing (2026-09-08): exploration decays exponentially
+            # toward a 5% floor when epsilon_decay > 0, so the agent shifts
+            # from exploration to exploitation within a run.
+            eps_eff = epsilon
+            if epsilon_decay and epsilon_decay > 0.0:
+                eps_eff = max(0.05, epsilon * math.exp(-epsilon_decay * episode))
             for step in range(min(max_steps, len(records))):
                 record = records[(episode + step) % len(records)]
 
@@ -387,7 +416,7 @@ class RLTrainLoop:
                 state_key = _get_state_key(record)
 
                 # Choose action (epsilon-greedy)
-                if state_key not in self._q_table or random.random() < epsilon:
+                if state_key not in self._q_table or random.random() < eps_eff:
                     action = random.randint(0, 3)
                 else:
                     action = max(self._q_table[state_key], key=self._q_table[state_key].get)
@@ -466,47 +495,51 @@ class RLTrainLoop:
                 "total_sessions": split_stats.get("total_sessions", 0),
             }
 
-        # Persist learned policy to LocalMemoryStore + ModelVersioner
-        try:
-            from CORE.local_memory import get_memory_store
-            store = get_memory_store()
-            save_data = {
-                "n_episodes": n_episodes,
-                "total_duration_ms": round(duration_ms, 2),
-                "avg_reward": result["avg_reward"],
-                "q_table_size": len(self._q_table),
-                "source_filter": source,
-            }
-            if test_metrics:
-                save_data["test_avg_reward"] = test_metrics["test_avg_reward"]
-            store.record_event(
-                source="RLTrainLoop", event_type="training_complete",
-                data=save_data,
-                severity="info", tags=["rl", "training", "v2"],
-            )
-            result["persisted"] = True
+        # Persist learned policy to LocalMemoryStore + ModelVersioner.
+        # Skipped entirely when persist=False (GA eval runs) so evolution
+        # does not bloat the store or model registry with bookkeeping rows.
+        if persist:
+            try:
+                from CORE.local_memory import get_memory_store
+                store = get_memory_store()
+                save_data = {
+                    "n_episodes": n_episodes,
+                    "total_duration_ms": round(duration_ms, 2),
+                    "avg_reward": result["avg_reward"],
+                    "q_table_size": len(self._q_table),
+                    "source_filter": source,
+                }
+                if test_metrics:
+                    save_data["test_avg_reward"] = test_metrics["test_avg_reward"]
+                store.record_event(
+                    source="RLTrainLoop", event_type="training_complete",
+                    data=save_data,
+                    severity="info", tags=["rl", "training", "v2"],
+                )
+                result["persisted"] = True
 
-            # Auto-register with ModelVersioner if training produced results
-            if len(self._q_table) > 0:
-                reg_result = self.register_to_versioner(
-                    metrics={
-                        "avg_reward": result["avg_reward"],
-                        "q_table_size": len(self._q_table),
-                        "episodes": n_episodes,
-                    },
+                # Auto-register with ModelVersioner if training produced results
+                if len(self._q_table) > 0:
+                    reg_result = self.register_to_versioner(
+                        metrics={
+                            "avg_reward": result["avg_reward"],
+                            "q_table_size": len(self._q_table),
+                            "episodes": n_episodes,
+                        },
                     metadata={
                         "source_filter": source or "all",
                         "learning_rate": learning_rate,
                         "discount_factor": discount_factor,
                         "epsilon": epsilon,
+                        "epsilon_decay": epsilon_decay,
                         "use_schema_features": use_schema_features,
                     },
-                )
-                if "error" not in reg_result:
-                    result["registered_model"] = reg_result.get("model_name")
-                    result["registered_version"] = reg_result.get("version")
-        except Exception:  # noqa: BLE001 — model registration best-effort
-            pass
+                    )
+                    if "error" not in reg_result:
+                        result["registered_model"] = reg_result.get("model_name")
+                        result["registered_version"] = reg_result.get("version")
+            except Exception:  # noqa: BLE001 — model registration best-effort
+                pass
 
         return result
     def hyperparameter_tune(self, source: Optional[str] = None, event_type: Optional[str] = None,
@@ -570,13 +603,9 @@ class RLTrainLoop:
         _saved_q_table = self._q_table
         _saved_episodes = self._episodes
 
-        len(lr_values) * len(gamma_values) * len(eps_values)
-        config_idx = 0
-
         for lr in lr_values:
             for gamma in gamma_values:
                 for eps in eps_values:
-                    config_idx += 1
                     fold_rewards = []
 
                     for fold in folds:
