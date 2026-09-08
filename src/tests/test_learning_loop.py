@@ -202,12 +202,16 @@ class TestLearningSplitShim(unittest.TestCase):
         from CORE.WORMS.expansion.learning_versioner import ModelVersioner as MV2
         from CORE.WORMS.expansion.learning_pipeline import DataPipelineWorm as DP2
         from CORE.WORMS.expansion.learning_features import SchemaAwareFeatureExtractor as SFE2
-        from CORE.WORMS.expansion.learning_ab import ABTestRunner as AB2
+        from CORE.WORMS.expansion.learning_grpo import ABTestRunner as AB2
+        from CORE.WORMS.expansion.learning_ab import ABTestRunner as AB_FALLBACK
         self.assertIs(RL2, RLTrainLoop)
         self.assertIs(MV2, ModelVersioner)
         self.assertIs(DP2, DataPipelineWorm)
         self.assertIs(SFE2, SchemaAwareFeatureExtractor)
+        # The shim intentionally prefers the v2 DPO-capable ABTestRunner from
+        # learning_grpo, falling back to the v1 stub in learning_ab (learning.py).
         self.assertIs(AB2, ABTestRunner)
+        self.assertIsNot(AB_FALLBACK, ABTestRunner)
         self.assertIn("training_complete", DATA_SHAPES)
         self.assertIsInstance(DYNAMIC_SHAPES, dict)
 
