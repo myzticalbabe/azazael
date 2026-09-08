@@ -1,31 +1,45 @@
 # coding: utf-8
-"""
-learning_pipeline.py - DataPipelineWorm (fast-loading focused module)
-
-Extracted from learning.py (103K monolith) for fast loading.
-Used by: workflow.py, scheduling.py, RLTrainLoop
-"""
+"""ETL/data pipeline worm -- DataPipelineWorm + dynamic shape registry (split from learning.py, 2026-09-07)."""
 
 import json
 import time
+import random
 import threading
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable
+from typing import Dict, List, Optional, Any, Callable, Tuple
+from collections import defaultdict
 
-try:
-    from CORE.freethreading import ThreadSafeDict
-except ImportError:
-    ThreadSafeDict = dict
-
+# -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
     _REGISTRY = False
-    def register_worm(**kw):
+def register_worm(**kw):
         return lambda cls: cls
 
+
+# -- Python 3.14t Free-Threading Awareness ----------------------------
+try:
+    from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
+    _FREETHREAD = True
+except ImportError:
+    _FREETHREAD = False
+FreeThreadPool = None
+ThreadSafeDict = dict
+ThreadSafeList = list
+def is_free_threaded() -> bool:
+        import sysconfig
+        try:
+            return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
+        except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            return False
+
+from CORE.WORMS.expansion.learning_features import DATA_SHAPES
+
+@register_worm(category="learning", priority=5, cooldown_seconds=90.0,
+    description="Data pipeline worm — ETL from LocalMemoryStore with caching, batching, and validation")
 class DataPipelineWorm:
     """ETL data preprocessing pipeline connected to LocalMemoryStore.
     
@@ -65,28 +79,30 @@ class DataPipelineWorm:
     VERSION = "2.0.0"
 
     def __init__(self):
-        self._cache: dict[str, Any] = ThreadSafeDict() if ThreadSafeDict != dict else {}
+        self._cache: Dict[str, Any] = ThreadSafeDict() if ThreadSafeDict != dict else {}
         self._lock = threading.Lock()
         self._store = None  # Lazy LocalMemoryStore
         self._execution_count = 0
-        self._operations: list[dict] = []
+        self._operations: List[Dict] = []
 
     def _get_store(self):
-        """Lazy LocalMemoryStore connection."""
+        """Lazy LocalMemoryStore connection — double-checked locking for 3.14t."""
         if self._store is None:
-            try:
-                from CORE.local_memory import LocalMemoryStore
-                self._store = LocalMemoryStore()
-            except ImportError:
-                self._store = False
+            with self._lock:
+                if self._store is None:
+                    try:
+                        from CORE.local_memory import get_memory_store
+                        self._store = get_memory_store()
+                    except ImportError:
+                        self._store = False
         return self._store if self._store else None
 
     # -- Extract from LocalMemoryStore ---------------------------------
 
-    def extract_from_memory(self, source: str = None, event_type: str = None,
-                            severity: str = None, limit: int = 200,
-                            since: str = None, max_age_days: int = None,
-                            session_id: str = None) -> list[dict]:
+    def extract_from_memory(self, source: Optional[str] = None, event_type: Optional[str] = None,
+                            severity: Optional[str] = None, limit: int = 200,
+                            since: Optional[str] = None, max_age_days: Optional[int] = None,
+                            session_id: Optional[str] = None) -> List[Dict]:
         """Extract data from LocalMemoryStore with filters.
         
         This is the primary data source for the ML training pipeline.
@@ -112,23 +128,20 @@ class DataPipelineWorm:
         with self._lock:
             self._cache[cache_key] = results
         return results
-
-    def search_memory(self, query: str, source: str = None,
-                      limit: int = 50) -> list[dict]:
+    def search_memory(self, query: str, source: Optional[str] = None,
+                      limit: int = 50) -> List[Dict]:
         """Full-text search across all memories (uses FTS5)."""
         store = self._get_store()
         if not store:
             return []
         return store.search_memories(query, source=source, limit=limit)
-
-    def extract_recent(self, limit: int = 50, source: str = None) -> list[dict]:
+    def extract_recent(self, limit: int = 50, source: Optional[str] = None) -> List[Dict]:
         """Get most recent memories, optionally by source."""
         store = self._get_store()
         if not store:
             return []
         return store.recall_recent(limit=limit, source=source)
-
-    def get_memory_stats(self) -> dict:
+    def get_memory_stats(self) -> Dict:
         """Get statistics about available training data."""
         store = self._get_store()
         if not store:
@@ -154,17 +167,16 @@ class DataPipelineWorm:
 
     # -- Transform -----------------------------------------------------
 
-    def transform(self, data: Any, transformations: list[Callable]) -> Any:
+    def transform(self, data: Any, transformations: List[Callable]) -> Any:
         """Apply a chain of transformations with caching."""
         result = data
         for tf in transformations:
             try:
                 result = tf(result)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — record fallback then re-raise
                 self._record_fallback("transform", {"error": str(e)})
                 raise
         return result
-
     def extract_field(self, field_name: str) -> Callable:
         """Create a transformation that extracts a field from each record."""
         def _extract(records):
@@ -180,20 +192,17 @@ class DataPipelineWorm:
                     results.append(val)
             return results
         return _extract
-
     def filter_by_severity(self, severity: str) -> Callable:
         """Create a transformation that filters records by severity."""
         def _filter(records):
             return [r for r in records if isinstance(r, dict) and r.get("severity") == severity]
         return _filter
-
     def filter_by_source(self, source: str) -> Callable:
         """Create a transformation that filters records by source."""
         def _filter(records):
             return [r for r in records if isinstance(r, dict) and r.get("source") == source]
         return _filter
-
-    def flatten_data(self, records: list[dict]) -> list[dict]:
+    def flatten_data(self, records: List[Dict]) -> List[Dict]:
         """Flatten nested 'data' field into top-level columns."""
         flattened = []
         for r in records:
@@ -203,8 +212,7 @@ class DataPipelineWorm:
                 flat.update({f"data_{k}": v for k, v in data_field.items()})
             flattened.append(flat)
         return flattened
-
-    def deduplicate(self, records: list[dict], key: str = "id") -> list[dict]:
+    def deduplicate(self, records: List[Dict], key: str = "id") -> List[Dict]:
         """Remove duplicate records by a key field."""
         seen = set()
         unique = []
@@ -226,9 +234,8 @@ class DataPipelineWorm:
         else:
             path.write_text(str(data), encoding="utf-8")
         self._record_fallback("load", {"target": target, "size": len(str(data))})
-
     def load_to_memory(self, source: str, event_type: str, data: Any,
-                       severity: str = "info", tags: list[str] = None):
+                       severity: str = "info", tags: Optional[List[str]] = None):
         """Load data into LocalMemoryStore."""
         store = self._get_store()
         if store:
@@ -239,12 +246,12 @@ class DataPipelineWorm:
 
     # -- Batch Processing ----------------------------------------------
 
-    def batch(self, items: list[Any], batch_size: int = 100) -> list[list[Any]]:
+    def batch(self, items: List[Any], batch_size: int = 100) -> List[List[Any]]:
         """Split items into batches."""
         return [items[i:i + batch_size] for i in range(0, len(items), batch_size)]
 
-    def process_batches(self, items: list[Any], processor: Callable,
-                        batch_size: int = 100) -> list[Any]:
+    def process_batches(self, items: List[Any], processor: Callable,
+                        batch_size: int = 100) -> List[Any]:
         """Process items in batches with progress tracking."""
         batches = self.batch(items, batch_size)
         results = []
@@ -252,15 +259,15 @@ class DataPipelineWorm:
             try:
                 result = processor(batch)
                 results.append(result)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 — record failed batch, continue
                 self._record_fallback("batch", {"batch": i, "error": str(e)})
         return results
 
     # -- Full Pipeline -------------------------------------------------
 
-    def run_pipeline(self, source: str = None, event_type: str = None,
-                     limit: int = 200, output: str = None,
-                     max_age_days: int = None) -> dict[str, Any]:
+    def run_pipeline(self, source: Optional[str] = None, event_type: Optional[str] = None,
+                     limit: int = 200, output: Optional[str] = None,
+                     max_age_days: Optional[int] = None) -> Dict[str, Any]:
         """Run a complete ETL pipeline from LocalMemoryStore to output.
         
         Args:
@@ -271,7 +278,7 @@ class DataPipelineWorm:
             max_age_days: Only include records newer than N days
         
         Returns:
-            dict with pipeline stats and extracted data preview
+            Dict with pipeline stats and extracted data preview
         """
         start = time.perf_counter()
 
@@ -309,10 +316,10 @@ class DataPipelineWorm:
 
     # -- Train/Validation/Test Split ----------------------------------
 
-    def split_memories(self, source: str = None, event_type: str = None,
+    def split_memories(self, source: Optional[str] = None, event_type: Optional[str] = None,
                         test_ratio: float = 0.2, val_ratio: float = 0.1,
                         by_session: bool = True,
-                        max_age_days: int = None) -> dict[str, Any]:
+                        max_age_days: Optional[int] = None) -> Dict[str, Any]:
         """Split memories into train/validation/test sets.
 
         When by_session=True, splits by session_id to prevent data leakage
@@ -328,7 +335,7 @@ class DataPipelineWorm:
             max_age_days: Only include records newer than N days.
 
         Returns:
-            dict with 'train', 'val', 'test' lists and 'stats'.
+            Dict with 'train', 'val', 'test' lists and 'stats'.
         """
         store = self._get_store()
         if not store:
@@ -346,7 +353,7 @@ class DataPipelineWorm:
         if by_session:
             # Group by session
             from collections import OrderedDict
-            sessions: dict[str, list] = OrderedDict()
+            sessions: Dict[str, List] = OrderedDict()
             for r in records:
                 sid = r.get("session_id", "unknown")
                 if sid not in sessions:
@@ -419,9 +426,9 @@ class DataPipelineWorm:
 
     # -- Temporal Cross-Validation --------------------------------------
 
-    def temporal_cross_validation(self, source: str = None, event_type: str = None,
+    def temporal_cross_validation(self, source: Optional[str] = None, event_type: Optional[str] = None,
                                    n_folds: int = 5, gap_days: int = 0,
-                                   max_age_days: int = None) -> dict[str, Any]:
+                                   max_age_days: Optional[int] = None) -> Dict[str, Any]:
         """Temporal cross-validation with sliding window splits.
 
         Creates n_folds train/test splits where each fold's test set is
@@ -436,7 +443,7 @@ class DataPipelineWorm:
             max_age_days: Only include records newer than N days.
 
         Returns:
-            dict with 'folds' list and 'stats' summary.
+            Dict with 'folds' list and 'stats' summary.
             Each fold: {'fold': N, 'train': [...], 'test': [...], 'stats': {...}}
         """
         store = self._get_store()
@@ -482,10 +489,10 @@ class DataPipelineWorm:
                                     if r_dt >= gap_end_dt:
                                         gap_end = i
                                         break
-                                except Exception:
+                                except Exception:  # noqa: BLE001 — timestamp parse best-effort
                                     pass
                         train_end = gap_end
-                    except Exception:
+                    except Exception:  # noqa: BLE001 — gap-detection best-effort
                         pass
 
             test_start = train_end
@@ -523,7 +530,7 @@ class DataPipelineWorm:
 
     def schedule_dynamic_refresh(self, interval_hours: int = 24,
                                   sample_limit: int = 100,
-                                  auto_merge: bool = True) -> dict[str, Any]:
+                                  auto_merge: bool = True) -> Dict[str, Any]:
         """Schedule periodic DYNAMIC_SHAPES refresh with logging.
 
         Runs refresh_dynamic_shapes() now and records the operation.
@@ -535,7 +542,7 @@ class DataPipelineWorm:
             auto_merge: If True, call refresh_dynamic_shapes() immediately.
 
         Returns:
-            dict with refresh results and schedule info.
+            Dict with refresh results and schedule info.
         """
         from CORE.WORMS.expansion.learning import (
             refresh_dynamic_shapes, DYNAMIC_SHAPES, DATA_SHAPES
@@ -565,7 +572,7 @@ class DataPipelineWorm:
                     severity="info",
                     tags=["shapes", "dynamic", "refresh"],
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — shape-refresh telemetry best-effort
                 pass
 
         return {
@@ -579,7 +586,7 @@ class DataPipelineWorm:
 
     # -- Auto-Discover DATA_SHAPES --------------------------------------
 
-    def auto_discover_shapes(self, sample_limit: int = 100) -> dict[str, Any]:
+    def auto_discover_shapes(self, sample_limit: int = 100) -> Dict[str, Any]:
         """Auto-discover DATA_SHAPES entries from LocalMemoryStore.
 
         Queries all event_types in the store, samples their data shapes,
@@ -590,7 +597,7 @@ class DataPipelineWorm:
             sample_limit: Max records to sample per event_type.
 
         Returns:
-            dict with discovered shapes keyed by event_type.
+            Dict with discovered shapes keyed by event_type.
         """
         store = self._get_store()
         if not store:
@@ -655,13 +662,13 @@ class DataPipelineWorm:
             },
         }
 
-    def execute(self) -> dict[str, Any]:
+    def execute(self) -> Dict[str, Any]:
         """Standard worm execute() — runs pipeline with default params."""
         return self.run_pipeline(limit=100, max_age_days=7)
 
     # -- Internal ------------------------------------------------------
 
-    def _record_fallback(self, operation: str, data: dict):
+    def _record_fallback(self, operation: str, data: Dict):
         """Record operation metadata to instance state."""
         self._operations.append({
             "operation": operation,
@@ -669,7 +676,47 @@ class DataPipelineWorm:
             "timestamp": datetime.now().isoformat(),
         })
 
+# -- Dynamic Shape Registry ----------------------------------------------
+# Auto-populated from LocalMemoryStore at runtime, merged with static DATA_SHAPES
 
-# -- ABTestRunner (original definition below — now shadowed by re-export) --
-# Kept for reference; the re-exported version from learning_grpo.py is authoritative.
+DYNAMIC_SHAPES: Dict[str, Dict] = {}
 
+
+def refresh_dynamic_shapes(pipeline=None, sample_limit: int = 100) -> Dict[str, Any]:
+    """Refresh the DYNAMIC_SHAPES registry from LocalMemoryStore.
+
+    Runs auto_discover_shapes() on a DataPipelineWorm instance and
+    merges the discovered entries into the module-level DYNAMIC_SHAPES dict.
+    Only adds event_types that are not already in the static DATA_SHAPES.
+
+    Args:
+        pipeline: Optional DataPipelineWorm instance (creates one if None).
+        sample_limit: Max records to sample per event_type.
+
+    Returns:
+        Dict with "added" (count of new shapes), "total" (DYNAMIC_SHAPES size).
+    """
+    global DYNAMIC_SHAPES
+    if pipeline is None:
+        try:
+            pipeline = DataPipelineWorm()
+        except Exception:  # noqa: BLE001 — pipeline creation failure is a signed error
+            return {"error": "Cannot create DataPipelineWorm"}
+
+    result = pipeline.auto_discover_shapes(sample_limit=sample_limit)
+    discovered = result.get("discovered", {})
+
+    added = 0
+    for et, shape in discovered.items():
+        if et not in DATA_SHAPES and et not in DYNAMIC_SHAPES:
+            # Remove internal metadata keys before storing
+            clean_shape = {k: v for k, v in shape.items() if not k.startswith("_")}
+            DYNAMIC_SHAPES[et] = clean_shape
+            added += 1
+
+    return {
+        "added": added,
+        "total": len(DYNAMIC_SHAPES),
+        "discovered_total": len(discovered),
+        "static_total": len(DATA_SHAPES),
+    }

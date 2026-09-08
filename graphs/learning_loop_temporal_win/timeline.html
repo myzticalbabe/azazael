@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Learning loop — hourly evolution</title>
+<style>
+  body { background:#0d1117; color:#c9d1d9; font-family:Tahoma,Arial,sans-serif; margin:0; }
+  #head { padding:14px 20px 6px; }
+  #head h1 { margin:0; font-size:18px; }
+  #head p { margin:4px 0 0; font-size:12px; color:#8b949e; }
+  #frame { width:100%; height:640px; border:0; }
+  #controls { padding:8px 20px; display:flex; align-items:center; gap:10px; }
+  button { background:#21262d; color:#c9d1d9; border:1px solid #30363d; border-radius:6px;
+            padding:6px 14px; cursor:pointer; font-size:13px; }
+  button:hover { background:#30363d; }
+  #slider { flex:1; accent-color:#3fb950; }
+  #cur { font-size:13px; min-width:70px; }
+</style></head><body>
+<div id="head">
+  <h1>Learning loop — hourly evolution (last 24h)</h1>
+  <p>node size = events that hour · orange edges = activity weight · grey = static links</p>
+</div>
+<iframe id="frame" src="frames/hour_15.html"></iframe>
+<div id="controls">
+  <button id="prev">&#9664; prev</button>
+  <button id="play">&#9654; play</button>
+  <button id="next">next &#9654;</button>
+  <span id="cur">15:00</span>
+  <input type="range" id="slider" min="0" max="21" value="0" step="1">
+</div>
+<script>
+const slides = [
+    { "label": "15:00", "file": "frames/hour_15.html" },
+    { "label": "16:00", "file": "frames/hour_16.html" },
+    { "label": "19:00", "file": "frames/hour_19.html" },
+    { "label": "20:00", "file": "frames/hour_20.html" },
+    { "label": "21:00", "file": "frames/hour_21.html" },
+    { "label": "22:00", "file": "frames/hour_22.html" },
+    { "label": "23:00", "file": "frames/hour_23.html" },
+    { "label": "00:00", "file": "frames/hour_00.html" },
+    { "label": "01:00", "file": "frames/hour_01.html" },
+    { "label": "02:00", "file": "frames/hour_02.html" },
+    { "label": "03:00", "file": "frames/hour_03.html" },
+    { "label": "04:00", "file": "frames/hour_04.html" },
+    { "label": "11:00", "file": "frames/hour_11.html" },
+    { "label": "12:00", "file": "frames/hour_12.html" },
+    { "label": "13:00", "file": "frames/hour_13.html" },
+    { "label": "14:00", "file": "frames/hour_14.html" },
+    { "label": "15:00", "file": "frames/hour_15.html" },
+    { "label": "16:00", "file": "frames/hour_16.html" },
+    { "label": "17:00", "file": "frames/hour_17.html" },
+    { "label": "18:00", "file": "frames/hour_18.html" },
+    { "label": "19:00", "file": "frames/hour_19.html" },
+    { "label": "20:00", "file": "frames/hour_20.html" }
+];
+let i = 0, timer = null;
+const frame = document.getElementById('frame');
+const slider = document.getElementById('slider');
+const cur = document.getElementById('cur');
+function show(n) {
+  i = (n + slides.length) % slides.length;
+  frame.src = 'frames/' + slides[i].file.split('/').pop();
+  slider.value = i;
+  cur.textContent = slides[i].label;
+}
+document.getElementById('prev').onclick = () => show(i - 1);
+document.getElementById('next').onclick = () => show(i + 1);
+document.getElementById('play').onclick = () => {
+  if (timer) { clearInterval(timer); timer = null; document.getElementById('play').textContent = '&#9654; play'; return; }
+  timer = setInterval(() => { show(i + 1); }, 2500);
+  document.getElementById('play').textContent = '&#9632; pause';
+};
+slider.oninput = () => show(parseInt(slider.value));
+</script></body></html>

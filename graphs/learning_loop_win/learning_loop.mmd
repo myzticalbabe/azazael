@@ -1,0 +1,179 @@
+graph TD
+    classDef module fill:#1a3a1a,stroke:#00ff88,color:#00ff88
+    classDef external fill:#3a3a1a,stroke:#ffd700,color:#ffd700
+    classDef event fill:#1a1a3a,stroke:#4488ff,color:#4488ff
+    classDef strategy fill:#3a1a1a,stroke:#ff8844,color:#ff8844
+    classDef action fill:#2a1a3a,stroke:#aa66ff,color:#aa66ff
+    subgraph MODULES[MODULE]
+      dreaming["dreaming.py"]
+      meta_cognition["meta_cognition.py"]
+      learning["learning.py"]
+      evolution["evolution.py"]
+      bridge["dream_policy_bridge.py"]
+      local_memory["local_memory.py"]
+      monitor["monitor_learning.py"]
+      dream_cycle["dream_cycle.py"]
+      metacog_cycle["metacog_cycle.py"]
+      evolution_cycle["evolution_cycle.py"]
+    end
+      CLUSTERWORMS["CLUSTERWORMS.py"]
+    subgraph EVENTS[EVENT]
+      ev_dream["dream_generated (766)"]
+      ev_steered["strategy_steered (22)"]
+      ev_policy["policy_applied (73)"]
+      ev_adapt["strategy_adaptation (74)"]
+      ev_state["state_saved (63)"]
+      ev_mccycle["mc_cycle (12)"]
+      ev_evoresult["evolution_result (9)"]
+      ev_train["training_complete (481)"]
+      ev_qtbl["q_table_persisted (486)"]
+      ev_cluster["clusterwormz_execute_complete"]
+    end
+    subgraph STRATEGYS[STRATEGY]
+      st_default["default"]
+      st_conservative["conservative"]
+      st_defensive["defensive"]
+      st_aggressive["aggressive"]
+      st_adaptive["adaptive"]
+      st_batched["batched"]
+      st_staged["staged"]
+    end
+    subgraph ACTIONS[ACTION]
+      ac_ignore["ignore"]
+      ac_log["log"]
+      ac_alert["alert"]
+      ac_remediate["remediate"]
+    end
+    dreaming --> local_memory
+    linkStyle 0 stroke:#8b949e
+    dreaming --> bridge
+    linkStyle 1 stroke:#8b949e
+    dreaming --> meta_cognition
+    linkStyle 2 stroke:#8b949e
+    dreaming --> dream_cycle
+    linkStyle 3 stroke:#a371f7
+    dreaming --> ev_dream
+    linkStyle 4 stroke:#3fb950
+    dreaming --> ev_steered
+    linkStyle 5 stroke:#3fb950
+    dreaming --> st_default
+    linkStyle 6 stroke:#ff8844
+    dreaming --> st_conservative
+    linkStyle 7 stroke:#ff8844
+    dreaming --> st_defensive
+    linkStyle 8 stroke:#ff8844
+    dreaming --> st_aggressive
+    linkStyle 9 stroke:#ff8844
+    dreaming --> st_adaptive
+    linkStyle 10 stroke:#ff8844
+    dreaming --> st_batched
+    linkStyle 11 stroke:#ff8844
+    dreaming --> st_staged
+    linkStyle 12 stroke:#ff8844
+    meta_cognition --> local_memory
+    linkStyle 13 stroke:#8b949e
+    meta_cognition --> bridge
+    linkStyle 14 stroke:#8b949e
+    meta_cognition --> metacog_cycle
+    linkStyle 15 stroke:#a371f7
+    meta_cognition --> ev_adapt
+    linkStyle 16 stroke:#3fb950
+    meta_cognition --> ev_state
+    linkStyle 17 stroke:#3fb950
+    meta_cognition --> st_default
+    linkStyle 18 stroke:#d29922
+    meta_cognition --> st_conservative
+    linkStyle 19 stroke:#d29922
+    meta_cognition --> st_defensive
+    linkStyle 20 stroke:#d29922
+    meta_cognition --> st_aggressive
+    linkStyle 21 stroke:#d29922
+    meta_cognition --> st_adaptive
+    linkStyle 22 stroke:#d29922
+    meta_cognition --> st_batched
+    linkStyle 23 stroke:#d29922
+    meta_cognition --> st_staged
+    linkStyle 24 stroke:#d29922
+    learning --> local_memory
+    linkStyle 25 stroke:#8b949e
+    learning --> evolution_cycle
+    linkStyle 26 stroke:#8b949e
+    learning --> ev_train
+    linkStyle 27 stroke:#3fb950
+    learning --> ev_qtbl
+    linkStyle 28 stroke:#3fb950
+    learning --> ac_ignore
+    linkStyle 29 stroke:#aa66ff
+    learning --> ac_log
+    linkStyle 30 stroke:#aa66ff
+    learning --> ac_alert
+    linkStyle 31 stroke:#aa66ff
+    learning --> ac_remediate
+    linkStyle 32 stroke:#aa66ff
+    evolution --> evolution_cycle
+    linkStyle 33 stroke:#a371f7
+    bridge --> ev_policy
+    linkStyle 34 stroke:#3fb950
+    local_memory --> monitor
+    linkStyle 35 stroke:#8b949e
+    local_memory --> metacog_cycle
+    linkStyle 36 stroke:#8b949e
+    monitor --> ev_dream
+    linkStyle 37 stroke:#58a6ff
+    monitor --> ev_policy
+    linkStyle 38 stroke:#58a6ff
+    monitor --> ev_state
+    linkStyle 39 stroke:#58a6ff
+    monitor --> ev_mccycle
+    linkStyle 40 stroke:#58a6ff
+    monitor --> ev_evoresult
+    linkStyle 41 stroke:#58a6ff
+    monitor --> ev_train
+    linkStyle 42 stroke:#58a6ff
+    metacog_cycle --> ev_mccycle
+    linkStyle 43 stroke:#3fb950
+    metacog_cycle --> ev_cluster
+    linkStyle 44 stroke:#58a6ff
+    evolution_cycle --> ev_evoresult
+    linkStyle 45 stroke:#3fb950
+    CLUSTERWORMS --> ev_cluster
+    linkStyle 46 stroke:#3fb950
+    ev_steered --> st_conservative
+    linkStyle 47 stroke:#f778ba
+    ev_steered --> st_aggressive
+    linkStyle 48 stroke:#f778ba
+    ev_adapt --> st_aggressive
+    linkStyle 49 stroke:#f778ba
+    ev_adapt --> st_staged
+    linkStyle 50 stroke:#f778ba
+    ev_adapt --> st_batched
+    linkStyle 51 stroke:#f778ba
+    ev_adapt --> st_adaptive
+    linkStyle 52 stroke:#f778ba
+    ev_adapt --> st_conservative
+    linkStyle 53 stroke:#f778ba
+    class dreaming,meta_cognition,learning,evolution,bridge,local_memory,monitor,dream_cycle,metacog_cycle,evolution_cycle module
+    class CLUSTERWORMS external
+    class ev_dream,ev_steered,ev_policy,ev_adapt,ev_state,ev_mccycle,ev_evoresult,ev_train,ev_qtbl,ev_cluster event
+    class st_default,st_conservative,st_defensive,st_aggressive,st_adaptive,st_batched,st_staged strategy
+    class ac_ignore,ac_log,ac_alert,ac_remediate action
+
+sequenceDiagram
+    participant CYC as dream_cycle (5 min)
+    participant D as dreaming
+    participant B as dream_policy_bridge
+    participant M as meta_cognition
+    participant MC as metacog_cycle (5 min)
+    participant E as evolution_cycle
+    participant L as local_memory
+    CYC->>D: run_dreaming_pipeline(8 eps)
+    D->>M: dream_tuning_for(global)
+    M-->>D: tuned params (steered)
+    D->>L: dream + strategy_steered
+    D->>B: apply_dream_policy
+    B->>M: adapt_strategy(recommended, confidence)
+    M-->>B: adopted/held (0.5 bar)
+    MC->>M: observe(cluster outcomes)
+    M-->>MC: recommend_from_evidence
+    MC->>M: adapt_strategy(global, evidence)
+    E->>L: train_from_memory(avg_reward)

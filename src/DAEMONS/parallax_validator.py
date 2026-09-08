@@ -54,8 +54,11 @@ _WORKSPACE = _PROJECT_ROOT.parent  # C:/Users/clint/
 WATCH_PATTERNS = ["*.py", "*.md", "*.json", "*.toml", "*.yaml", "*.yml",
                   "*.ts", "*.js", "*.html", "*.css", "*.sh", "*.ps1"]
 IGNORE_DIRS = {".git", "__pycache__", ".audit", "node_modules", ".venv",
-               "venv", ".agents", ".inference_cache", "npExtractDir"}
+               ".venv-3.14t", "venv", ".agents", ".inference_cache", "npExtractDir"}
 IGNORE_PREFIXES = {".pre_gate_backup", ".gate_backup_"}
+# Any dir starting with .venv is a virtualenv (e.g. .venv-3.14t) — pip
+# installs there fire thousands of modify events; never watch them.
+IGNORE_DIR_PREFIXES = {".venv"}
 
 # ---------------------------------------------------------------------------
 # Token Verification
@@ -64,6 +67,26 @@ IGNORE_PREFIXES = {".pre_gate_backup", ".gate_backup_"}
 # Debounce registry: tracks recently reverted files to prevent infinite loops
 _revert_cooldown: dict[str, float] = {}
 _REVERT_COOLDOWN_SECONDS = 2.0
+
+# Violation RECORD throttle (separate from revert debounce above — revert
+# always runs; this only limits DB/console writes per record_violation).
+_violation_record_cooldown: dict[str, float] = {}
+_VIOLATION_RECORD_COOLDOWN_SECONDS = 3600.0  # one record per file per hour
+_violation_last_global: float = 0.0
+_VIOLATION_MIN_GLOBAL_INTERVAL = 5.0  # at most one record per 5s globally
+_violation_suppressed: int = 0
+_shared_dm = None
+
+
+def _get_shared_dm():
+    """Single DirectMemory for the daemon lifetime (avoids one
+    session_start row per violation)."""
+    global _shared_dm
+    if _shared_dm is None:
+        sys.path.insert(0, str(_PROJECT_ROOT))
+        from CORE.direct_memory import DirectMemory
+        _shared_dm = DirectMemory()
+    return _shared_dm
 
 
 def _get_tokens_dir() -> Path:
@@ -169,7 +192,13 @@ def revert_file(filepath: str) -> tuple[bool, str]:
         (success: bool, message: str)
     """
     global _revert_cooldown
-    
+
+    # Prune stale entries so the registry stays bounded (same pattern as
+    # the record throttle — without this every touched file leaks one entry).
+    # Keeps files reverted in the last 2h; the 2s debounce only needs seconds.
+    _revert_cooldown = {k: t for k, t in _revert_cooldown.items()
+                        if time.time() - t < _REVERT_COOLDOWN_SECONDS * 3600}
+
     # Register debounce BEFORE reverting to prevent re-trigger
     _revert_cooldown[filepath] = time.time()
     
@@ -210,14 +239,39 @@ def revert_file(filepath: str) -> tuple[bool, str]:
 
 def record_violation(filepath: str, reason: str) -> None:
     """Record a CRITICAL violation when unauthorized changes are detected.
-    
+
     Records to:
     1. Console output (immediate visibility)
     2. ERROR_LOG.md (canonical error log)
     3. DirectMemory (session audit trail)
+
+    Throttle: a file storm (e.g. pip install into an unwatched dir) must
+    not write thousands of DB rows — the 2026-07-02 storm wrote 26k
+    session_start+milestone pairs because every violation constructed a
+    fresh DirectMemory (one session_start each) plus a milestone row.
+    Mitigations: one shared DirectMemory per daemon lifetime, at most one
+    recorded violation per file per hour, at most one global record per
+    5 seconds (suppressed ones counted). Auto-revert still runs every
+    time — only the DB/console recording is throttled.
     """
+    global _violation_last_global, _violation_suppressed
+
+    now = time.time()
+    # Prune stale per-file cooldown entries (bounded memory)
+    for k in [k for k, t in _violation_record_cooldown.items()
+              if now - t >= _VIOLATION_RECORD_COOLDOWN_SECONDS]:
+        del _violation_record_cooldown[k]
+
+    last_file = _violation_record_cooldown.get(filepath, 0)
+    if (now - last_file < _VIOLATION_RECORD_COOLDOWN_SECONDS
+            or now - _violation_last_global < _VIOLATION_MIN_GLOBAL_INTERVAL):
+        _violation_suppressed += 1
+        return
+    _violation_record_cooldown[filepath] = now
+    _violation_last_global = now
+
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    
+
     # Console log
     print(f"\n{'='*60}")
     print(f"[PARALLAX VALIDATOR] CRITICAL VIOLATION DETECTED")
@@ -225,13 +279,15 @@ def record_violation(filepath: str, reason: str) -> None:
     print(f"  File: {filepath}")
     print(f"  Reason: {reason}")
     print(f"  Action: AUTO-REVERT initiated")
+    if _violation_suppressed:
+        print(f"  Suppressed similar: {_violation_suppressed} (throttled)")
+        _violation_suppressed = 0
     print(f"{'='*60}\n", flush=True)
-    
-    # Try recording to DirectMemory
+
+    # Try recording to DirectMemory (shared instance — one session_start
+    # per daemon lifetime, not one per violation)
     try:
-        sys.path.insert(0, str(_PROJECT_ROOT))
-        from CORE.direct_memory import DirectMemory
-        dm = DirectMemory()
+        dm = _get_shared_dm()
         dm.milestone("parallax_violation", {
             "file": filepath,
             "reason": reason,
@@ -258,9 +314,13 @@ class ParallaxHandler:
         """Check if this file should be monitored."""
         file_path = Path(path)
         
-        # Skip ignored directories
+        # Skip ignored directories (exact match or .venv* prefix — virtualenvs
+        # fire thousands of pip-install events, e.g. the 2026-07-02 storm
+        # that wrote 26k violation rows from .venv-3.14t)
         for part in file_path.parts:
             if part in IGNORE_DIRS:
+                return False
+            if any(part.startswith(p) for p in IGNORE_DIR_PREFIXES):
                 return False
         
         # Skip backup files

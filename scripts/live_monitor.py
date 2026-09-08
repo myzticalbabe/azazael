@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """live_monitor.py — persistent live dashboard for the Azazael learning loop.
 
-Reads the hot Windows DB (C:\\Users\\clint\\.azazael\\memory_store.db) and
+Reads the hot Windows DB (~/.azazael/memory_store.db, see DB default) and
 refreshes a dashboard every REFRESH seconds, forever. Built to run inside a
 console window that stays open (see open_live_monitor.bat).
 
@@ -161,6 +161,11 @@ def evo_history(con, n=20):
             "best": max(traj) if traj else 0.0,
             "flat": len(set(round(x, 3) for x in traj)) <= 1 if traj else None,
             "genes": d.get("best_genes") or {},
+            # v2-dual (2026-09-08): combined best splits into info/alert
+            # parts; older rows lack these keys (v1 scale, info-only).
+            "info": d.get("best_info"),
+            "alert": d.get("best_alert"),
+            "fit": d.get("fitness", "v1"),
         })
     return out
 
@@ -218,8 +223,9 @@ def explain(data):
                             f"the loops can silently stop when trigger windows expire."))
 
     # --- evolution verdict ---
+    # Trend is only meaningful within one fitness scale (v1 vs v2-dual).
     evo = data["evo"]
-    if len(evo) >= 3:
+    if len(evo) >= 3 and len({e["fit"] for e in evo[:4]}) == 1:
         recent = evo[0]["best"]
         prev3 = [e["best"] for e in evo[1:4]]
         mid = sum(prev3) / len(prev3)
@@ -311,12 +317,21 @@ def render(data, now):
         e = evo[0]
         L(f"    latest at {e['ts'][11:19]}Z  best {C_GRN}{e['best']:.3f}{C_RST}  "
           f"non-flat={not e['flat']}  lr={e['genes'].get('learning_rate', 0):.4f}  "
-          f"eps={e['genes'].get('epsilon', 0):.4f}  disc={e['genes'].get('discount', 0):.4f}")
+          f"eps={e['genes'].get('epsilon', 0):.4f}  disc={e['genes'].get('discount', 0):.4f}"
+          f"  [{e['fit']}]")
+        if e["info"] is not None or e["alert"] is not None:
+            L(f"    parts: info={e['info'] if e['info'] is not None else '?'}  "
+              f"alert={e['alert'] if e['alert'] is not None else '?'}")
 
         L("    last 5 runs (best / gens / eps):")
         for e2 in evo[:5]:
             L(f"      {e2['ts'][11:16]}Z  {C_GRN}{e2['best']:6.2f}{C_RST}  gens={len(e2['traj']):2d}  "
-              f"eps={e2['genes'].get('epsilon', 0):.3f}  flat={e2['flat']}")
+              f"eps={e2['genes'].get('epsilon', 0):.3f}  flat={e2['flat']}  [{e2['fit']}]")
+
+        fits = {e2["fit"] for e2 in evo[:5]}
+        if len(fits) > 1:
+            L(f"      {C_YEL}(note: mixed fitness scales {sorted(fits)} — "
+              f"v2-dual bests run ~1pt higher by construction, not a spike){C_RST}")
 
         bests = [e2["best"] for e2 in evo][::-1]  # oldest -> newest
         L(f"    climb (per-run best, {len(bests)} runs, newest right):")
@@ -375,7 +390,10 @@ def append_log(data, now):
             if evo:
                 e = evo[0]
                 f.write(f"  evolution best {e['best']:.3f} eps {e['genes'].get('epsilon', 0):.4f} "
-                        f"traj {[round(x, 2) for x in e['traj']]}\n")
+                        f"traj {[round(x, 2) for x in e['traj']]} [{e['fit']}]"
+                        + (f" info={e['info']} alert={e['alert']}"
+                           if e["info"] is not None or e["alert"] is not None else "")
+                        + "\n")
             s = data["strategy"]
             f.write(f"  strategy {s['value']}  steer24h {data['steer_24h']}  "
                     f"activity {data['activity']}\n")
@@ -429,7 +447,7 @@ def main():
         except Exception as e:
             text = f"render error: {e}"
             con = db_connect()  # reconnect on next loop
-        os.system("cls" if os.name == "nt" else "clear")
+        print("\033[2J\033[H", end="")
         print(text)
         time.sleep(REFRESH)
 

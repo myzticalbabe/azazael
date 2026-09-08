@@ -40,6 +40,9 @@ except ImportError:
         return lambda cls: cls
 
 
+import uuid as _uuid
+
+
 @dataclass
 class Genome:
     """An individual in the evolutionary population."""
@@ -47,7 +50,11 @@ class Genome:
     fitness: float = 0.0
     generation: int = 0
     parent_ids: list[str] = field(default_factory=list)
-    id: str = field(default_factory=lambda: f"g_{int(time.time() * 1000)}_{random.randint(1000,9999)}")
+    # UUID4 id: unique per genome instance. The old timestamp+random scheme
+    # collided within the same millisecond (all genomes in a generation),
+    # which poisoned the fitness cache — a fresh child could inherit a
+    # cached fitness from a different genome and never be evaluated.
+    id: str = field(default_factory=lambda: f"g_{_uuid.uuid4().hex}")
     _crowding_distance: float = field(default=0.0, repr=False)  # NSGA-II crowding distance for diversity preservation
 
 
@@ -531,7 +538,7 @@ class EvolutionEngine:
                         fitness=gdata.get("fitness", 0.0),
                         generation=gdata.get("generation", 0),
                         parent_ids=gdata.get("parent_ids", []),
-                        id=gdata.get("id", f"g_{int(time.time()*1000)}_{random.randint(1000,9999)}"),
+                        id=gdata.get("id") or f"g_{_uuid.uuid4().hex}",
                     )
                     self._population.append(genome)
                     self._fitness_cache[genome.id] = genome.fitness

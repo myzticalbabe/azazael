@@ -1,0 +1,190 @@
+# coding: utf-8
+"""Model versioning worm -- ModelVersioner (split from learning.py, 2026-09-07)."""
+
+import json
+import time
+import random
+import threading
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Any, Callable, Tuple
+from collections import defaultdict
+
+# -- Worm Registry Import ---------------------------------------------
+try:
+    from CORE.worm_registry import register_worm
+    _REGISTRY = True
+except ImportError:
+    _REGISTRY = False
+def register_worm(**kw):
+        return lambda cls: cls
+
+
+# -- Python 3.14t Free-Threading Awareness ----------------------------
+try:
+    from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
+    _FREETHREAD = True
+except ImportError:
+    _FREETHREAD = False
+FreeThreadPool = None
+ThreadSafeDict = dict
+ThreadSafeList = list
+def is_free_threaded() -> bool:
+        import sysconfig
+        try:
+            return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
+        except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            return False
+
+@register_worm(category="learning", priority=5, cooldown_seconds=60.0,
+    description="Model versioner v2 — persistent ML model version tracking via LocalMemoryStore with rollback support")
+class ModelVersioner:
+    """Tracks ML model versions with LocalMemoryStore persistence v2.0.
+    
+    Stores model versions in LocalMemoryStore for durability.
+    Supports: register, compare, list, rollback, and history queries.
+    
+    Usage:
+        mv = ModelVersioner()
+        
+        # Register a trained model
+        mv.register_model("worm_dispatch", "1.0.0", {
+            "avg_reward": 0.85, "success_rate": 0.92
+        }, metadata={"training_source": "SystemZ"})
+        
+        # Compare versions
+        comparison = mv.compare_versions("worm_dispatch", "1.0.0", "2.0.0")
+        
+        # List all versions of a model
+        versions = mv.list_versions("worm_dispatch")
+    """
+
+    VERSION = "2.0.0"
+
+    def __init__(self):
+        self._models: Dict[str, List[Dict]] = {}
+        self._lock = threading.Lock()
+        self._store = None  # Lazy LocalMemoryStore
+
+    def _get_store(self):
+        """Lazy LocalMemoryStore connection — double-checked locking for 3.14t."""
+        if self._store is None:
+            with self._lock:
+                if self._store is None:
+                    try:
+                        from CORE.local_memory import get_memory_store
+                        self._store = get_memory_store()
+                    except ImportError:
+                        self._store = False
+        return self._store if self._store else None
+    def register_model(self, name: str, version: str, metrics: Dict[str, float],
+                       metadata: Optional[Dict] = None) -> Dict:
+        """Register a model version, persisting to LocalMemoryStore."""
+        entry = {
+            "name": name, "version": version, "metrics": metrics,
+            "metadata": metadata or {},
+            "registered_at": datetime.now().isoformat(),
+        }
+        with self._lock:
+            if name not in self._models:
+                self._models[name] = []
+            self._models[name].append(entry)
+
+        # Persist to LocalMemoryStore
+        store = self._get_store()
+        if store:
+            try:
+                store.record_event(
+                    source="ModelVersioner", event_type="model_registered",
+                    data={
+                        "model_name": name,
+                        "model_version": version,
+                        "metrics": metrics,
+                        "metadata": metadata or {},
+                        "version_count": len(self._models[name]),
+                    },
+                    severity="info", tags=["model", "versioner"]
+                )
+            except Exception:  # noqa: BLE001 — version-clone telemetry best-effort
+                pass
+
+        return entry
+    def compare_versions(self, name: str, v1: str, v2: str) -> Dict[str, Any]:
+        """Compare metrics between two model versions."""
+        versions = self._models.get(name, [])
+        m1 = next((m for m in versions if m["version"] == v1), None)
+        m2 = next((m for m in versions if m["version"] == v2), None)
+        if not m1 or not m2:
+            return {"error": "Version not found"}
+        comparison = {}
+        for k in set(list(m1["metrics"]) + list(m2["metrics"])):
+            comparison[k] = {
+                "v1": m1["metrics"].get(k),
+                "v2": m2["metrics"].get(k),
+                "delta": round(m2["metrics"].get(k, 0) - m1["metrics"].get(k, 0), 4),
+            }
+        return {"model": name, "v1": v1, "v2": v2, "comparison": comparison}
+
+    def list_versions(self, name: str) -> List[Dict]:
+        """List all versions of a model."""
+        with self._lock:
+            return list(self._models.get(name, []))
+    def get_latest_version(self, name: str) -> Optional[Dict]:
+        """Get the latest (most recently registered) version of a model."""
+        with self._lock:
+            versions = self._models.get(name, [])
+            return versions[-1] if versions else None
+    def rollback(self, name: str, target_version: str) -> Dict[str, Any]:
+        """Rollback to a specific version (soft rollback — marks active)."""
+        versions = self._models.get(name, [])
+        target = next((v for v in versions if v["version"] == target_version), None)
+        if not target:
+            return {"error": f"Version {target_version} not found for model {name}"}
+
+        # Record rollback event
+        store = self._get_store()
+        if store:
+            store.record_event(
+                source="ModelVersioner", event_type="model_rollback",
+                data={
+                    "model_name": name,
+                    "rolled_back_to": target_version,
+                    "current_version": versions[-1]["version"] if versions else "none",
+                },
+                severity="warning", tags=["model", "rollback"]
+            )
+
+        return {
+            "model": name,
+            "rolled_back_to": target_version,
+            "target": target,
+        }
+
+    def get_history(self, name: str, include_store: bool = True) -> List[Dict]:
+        """Get version history from memory and optionally LocalMemoryStore."""
+        versions = self.list_versions(name) if not include_store else []
+
+        if include_store:
+            store_inst = self._get_store()
+            if store_inst:
+                stored = store_inst.search_memories(
+                    f"model_registered {name}", source="ModelVersioner", limit=50
+                )
+                for entry in stored:
+                    data = entry.get("data", {})
+                    if isinstance(data, dict) and data.get("model_name") == name:
+                        versions.append({
+                            "name": data["model_name"],
+                            "version": data["model_version"],
+                            "metrics": data.get("metrics", {}),
+                            "registered_at": entry.get("timestamp", ""),
+                        })
+
+        # Deduplicate by version
+        seen = set()
+        unique = []
+        for v in versions:
+            v_str = str(v.get("version", ""))
+            if v_str not in seen:
+                seen.add(v_str)
+                unique.append(v)
