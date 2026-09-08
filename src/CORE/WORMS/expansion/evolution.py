@@ -135,10 +135,22 @@ class EvolutionEngine:
             self._generation = 0
             self._fitness_cache.clear()
 
-            # Seed with provided genomes first
+            # Seed with provided genomes first, normalized to the current
+            # gene bounds. Stale seeds from older genome shapes (e.g. a
+            # 3-gene hall-of-famer after a 4th gene is added) get missing
+            # genes filled with uniform draws — otherwise _crossover (which
+            # iterates parent1's keys) silently drops the new dimension
+            # from every child of that seed (2026-09-08 fix).
             if seed_genomes:
                 for genes in seed_genomes:
-                    genome = Genome(genes=genes, generation=0)
+                    full = dict(genes)
+                    for name, (min_val, max_val) in gene_bounds.items():
+                        if name not in full:
+                            if isinstance(min_val, int) and isinstance(max_val, int):
+                                full[name] = float(random.randint(min_val, max_val))
+                            else:
+                                full[name] = random.uniform(min_val, max_val)
+                    genome = Genome(genes=full, generation=0)
                     self._population.append(genome)
 
             # Fill remainder with random genomes

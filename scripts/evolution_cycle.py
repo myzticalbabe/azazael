@@ -81,7 +81,7 @@ def genome_seed(genes, salt='a'):
     return int(hashlib.sha256(s.encode('utf-8')).hexdigest()[:8], 16)
 
 
-def _eval_salt(genes):
+def _eval_salt(genes, info_pool=None, alert_pool=None):
     """One dual-skill evaluation. Assumes RNG already seeded. Returns (total, info, alert).
 
     persist=False (2026-09-08): GA eval runs score without writing back —
@@ -91,6 +91,12 @@ def _eval_salt(genes):
 
     epsilon_decay (2026-09-08 expansion): passed through from the genome so
     the GA can evolve exploration-annealing speed.
+
+    Frozen pools (2026-09-08 fix): when info_pool/alert_pool are given, both
+    skills train on those snapshots instead of re-extracting the live
+    window — the 300-row eval window drifts ~3 fitness points during a
+    single cycle (monitor writes), which used to contaminate trajectories
+    and the promotion comparison. None = live extraction (backward compat).
     """
     loop = RLTrainLoop()
     info_stats = loop.train_from_memory(
@@ -100,6 +106,7 @@ def _eval_salt(genes):
         epsilon_decay=float(genes.get('epsilon_decay', 0.0)),
         discount_factor=float(genes['discount']),
         exclude_sources=EXCLUDED_TRAINING_SOURCES,
+        records=info_pool,
         persist=False)
     alert_stats = RLTrainLoop().train_from_memory(
         n_episodes=N_EPISODES, max_steps=50,
@@ -109,13 +116,14 @@ def _eval_salt(genes):
         discount_factor=float(genes['discount']),
         event_type='db_health_alert',
         exclude_sources=EXCLUDED_TRAINING_SOURCES,
+        records=alert_pool,
         persist=False)
     info = float(info_stats.get('avg_reward', 0.0))
     alert = float(alert_stats.get('avg_reward', 0.0))
     return (info + alert, info, alert)
 
 
-def fitness_skill(genes, idx):
+def fitness_skill(genes, idx, info_pool=None, alert_pool=None):
     """Deterministic single-objective fitness (min over 2 salts), like fitness_genes.
 
     idx: 1 = info-skill score, 2 = alert-skill score. Used by the NSGA-II
@@ -125,13 +133,13 @@ def fitness_skill(genes, idx):
     best = None
     for salt in ('a', 'b'):
         random.seed(genome_seed(genes, salt))
-        parts = _eval_salt(genes)
+        parts = _eval_salt(genes, info_pool, alert_pool)
         v = parts[idx]
         best = v if best is None else min(best, v)
     return best
 
 
-def fitness_genes(genes):
+def fitness_genes(genes, info_pool=None, alert_pool=None):
     """v3-dual-robust fitness: min over 2 exploration salts.
 
     v3 (2026-09-08): single-salt evals let lucky exploration draws win, so
@@ -144,17 +152,17 @@ def fitness_genes(genes):
     best = None
     for salt in ('a', 'b'):
         random.seed(genome_seed(genes, salt))
-        total, _, _ = _eval_salt(genes)
+        total, _, _ = _eval_salt(genes, info_pool, alert_pool)
         best = total if best is None else min(best, total)
     return best
 
 
-def fitness_parts(genes):
+def fitness_parts(genes, info_pool=None, alert_pool=None):
     """Recompute (total, info, alert) of the argmin salt — reproduces fitness_genes exactly."""
     results = []
     for salt in ('a', 'b'):
         random.seed(genome_seed(genes, salt))
-        results.append(_eval_salt(genes))
+        results.append(_eval_salt(genes, info_pool, alert_pool))
     results.sort(key=lambda r: r[0])
     total, info, alert = results[0]
     return (round(total, 4), round(info, 4), round(alert, 4))
@@ -249,7 +257,31 @@ def production_genes():
             'epsilon_decay': float(getattr(c, 'epsilon_decay', 0.0))}
 
 
+def _acquire_cycle_lock():
+    """Single-instance guard (2026-09-08): a manual run colliding with the
+    scheduled one was observed twice (12:14 and 12:49 — two processes
+    interleaved in the log and raced on the promotion file). Non-blocking;
+    returns the open handle to hold for the run, or None when another
+    cycle owns the lock. The OS releases msvcrt locks on process death,
+    so no stale-lock cleanup is needed."""
+    import msvcrt
+    lock_path = os.path.abspath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        '..', 'logs', 'evolution_cycle.lock'))
+    fh = open(lock_path, 'w')
+    try:
+        msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+        return fh
+    except OSError:
+        fh.close()
+        return None
+
+
 def main():
+    _lock = _acquire_cycle_lock()
+    if _lock is None:
+        log('another evolution cycle holds the lock, skipping this run')
+        return
     seed = int(time.time()) % 100000
     random.seed(seed)
     log('seed=%d' % seed)
@@ -268,7 +300,6 @@ def main():
         _store = get_memory_store()
         _rows = _store.query_memories(event_type='evolution_result', limit=40)
         _best = None   # best v3-scale champion (comparable units)
-        _best_any = None  # fallback: best of any scale (transition periods)
         for _r in _rows:
             _d = _r.get('data', {}) or {}
             if isinstance(_d, str):
@@ -282,13 +313,14 @@ def main():
                 continue
             # Pair the champion score with the genome that earned it. Pre-fix
             # artifacts (before 2026-09-08) only have best_genes — fall back.
+            # v3-only (2026-09-08 fix): older-scale champions (e.g. the 40s
+            # band) re-eval far below current genomes and only waste
+            # population slots while diluting new genes via crossover.
             _genes = _d.get('champion_genes') or _d.get('best_genes')
-            if _best_any is None or _c > _best_any[0]:
-                _best_any = (_c, _genes)
             if str(_d.get('fitness', '')).startswith('v3'):
                 if _best is None or _c > _best[0]:
                     _best = (_c, _genes)
-        _pick = _best or _best_any
+        _pick = _best
         if _pick and isinstance(_pick[1], dict) and _pick[1]:
             hof_genes = _pick[1]
             log('hall-of-fame seed: champ=%s genes=%s' % (_pick[0], {k: round(v, 4) for k, v in _pick[1].items()}))
@@ -312,9 +344,29 @@ def main():
         'epsilon_decay': (0.0, 0.1),  # exploration-annealing speed (2026-09-08)
     }, seed_genomes=_unique_seeds)
 
+    # Frozen eval pools (2026-09-08 fix): extract once so every genome in
+    # the loop, the champion re-eval, and the production baseline are all
+    # scored on identical data. Same extraction params the live path used
+    # (limit = N_EPISODES * 10 per pool), so historical fitness stays
+    # comparable. Falls back to live evals if extraction fails.
+    from CORE.WORMS.expansion.learning import DataPipelineWorm
+    try:
+        info_pool = DataPipelineWorm().extract_from_memory(
+            limit=N_EPISODES * 10, exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        alert_pool = DataPipelineWorm().extract_from_memory(
+            event_type='db_health_alert', limit=N_EPISODES * 10,
+            exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        log('frozen pools: info=%d alert=%d' % (len(info_pool), len(alert_pool)))
+    except Exception as e:
+        log('pool freeze failed, falling back to live evals: %s' % str(e)[:120])
+        info_pool, alert_pool = None, None
+
+    def fitness_frozen(genome):
+        return fitness_genes(genome.genes, info_pool, alert_pool)
+
     trajectory = []
     for gen in range(15):
-        stats = evo.evaluate_population(fitness)
+        stats = evo.evaluate_population(fitness_frozen)
         best = evo.get_best_genome()
         trajectory.append(round(stats.get('best_fitness', 0.0), 4))
         log(f'gen {gen}: best={stats.get("best_fitness")} '
@@ -326,7 +378,8 @@ def main():
 
     best = evo.get_best_genome()
     log('BEST: %s' % (best.genes if best else None))
-    best_total, best_info, best_alert = fitness_parts(best.genes) if best else (0.0, 0.0, 0.0)
+    best_total, best_info, best_alert = (
+        fitness_parts(best.genes, info_pool, alert_pool) if best else (0.0, 0.0, 0.0))
     log('BEST parts: total=%s info=%s alert=%s' % (best_total, best_info, best_alert))
 
     # Champion re-evaluation on the current pool: with deterministic fitness
@@ -335,14 +388,14 @@ def main():
     champ_score = None
     if seed_genes:
         try:
-            champ_score = round(fitness_genes(seed_genes), 4)
+            champ_score = round(fitness_genes(seed_genes, info_pool, alert_pool), 4)
             log('champion re-eval on current pool: %s' % champ_score)
         except Exception as e:
             log('champion re-eval failed: %s' % str(e)[:120])
 
     try:
         baseline_genes = production_genes()
-        baseline_fit = round(fitness_genes(baseline_genes), 4)
+        baseline_fit = round(fitness_genes(baseline_genes, info_pool, alert_pool), 4)
         log('production baseline: %s -> %s' % (
             {k: round(v, 4) for k, v in baseline_genes.items()}, baseline_fit))
     except Exception as e:
@@ -399,8 +452,8 @@ def main():
     pareto = None
     try:
         res = evo.optimize_multi_objective(
-            [lambda g: -fitness_skill(g.genes, 1),
-             lambda g: -fitness_skill(g.genes, 2)],
+            [lambda g: -fitness_skill(g.genes, 1, info_pool, alert_pool),
+             lambda g: -fitness_skill(g.genes, 2, info_pool, alert_pool)],
             generations=MULTI_GENS)
         front = res.get('pareto_front', []) or []
         if front:

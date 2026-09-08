@@ -291,6 +291,7 @@ class RLTrainLoop:
                           by_session: bool = True,
                           use_schema_features: bool = False,
                           exclude_sources: Optional[List[str]] = None,
+                          records: Optional[List[Dict]] = None,
                           persist: bool = True) -> Dict[str, Any]:
         """Train from real execution data in LocalMemoryStore.
 
@@ -338,6 +339,9 @@ class RLTrainLoop:
             test_ratio: Fraction of sessions for test when use_data_split=True
             by_session: If True, split by session_id to prevent leakage
             use_schema_features: If True, use SchemaAwareFeatureExtractor states
+            records: Optional pre-extracted record list. When given, the
+                live extraction is skipped and every episode trains on this
+                frozen snapshot (used for pool-consistent GA evaluation).
 
         Returns:
             Dict with training stats, policy summary, and test metrics
@@ -357,12 +361,18 @@ class RLTrainLoop:
             test_data = split_result.get("test", [])
             split_stats = split_result.get("stats", {})
         else:
-            # Extract all records (no split)
-            records = pipeline.extract_from_memory(
-                source=source, event_type=event_type, limit=n_episodes * 10,
-                exclude_sources=exclude_sources,
-            )
-            split_stats = {}
+            # Extract all records (no split) — or reuse a caller-frozen
+            # snapshot (2026-09-08: evolution_cycle freezes one pool per
+            # cycle so every genome is scored on identical data instead
+            # of a window that drifts between evaluations).
+            if records is not None:
+                split_stats = {"frozen_pool": len(records)}
+            else:
+                records = pipeline.extract_from_memory(
+                    source=source, event_type=event_type, limit=n_episodes * 10,
+                    exclude_sources=exclude_sources,
+                )
+                split_stats = {}
 
         if not records:
             return {"error": "No training data found in LocalMemoryStore", "episodes": 0}
