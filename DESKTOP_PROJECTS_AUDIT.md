@@ -1,136 +1,126 @@
 # AZAZAEL — Desktop Projects Operability Audit
 
-> **Generated:** May 29, 2026 — **Updated:** June 1, 2026 (afternoon session)
+> **Generated:** May 29, 2026 — **Updated:** September 7, 2026 (Full re-audit)
 > **Purpose:** Complete inventory and operability assessment of all projects on the Desktop
-> **Scope:** 14 Desktop projects (all standalone)
+> **Scope:** 40 Desktop directories (was 14 in the original skill, 22 at the 2026-07-30 audit)
+> **Method:** 3-pass architecture review — live `du`/`ls` verification, run.py/entry-point discovery, G: drive cross-check
+> **Companion report:** `FULL_PROJECT_AUDIT_2026-09-07.md` (scorecard, 6.1/10, 10 improvement items)
 
 ---
 
-## Summary — All Projects Now Standalone
+## Summary — Current Reality (September 7, 2026)
 
-| # | Project | Type | Status | Entry Point | Stack |
-|---|---------|------|--------|-------------|-------|
-| 1 | **AZAZAEL_Standalone** | AZAZAEL | ✅ Operational | 52 EXEs | Nuitka (Python 3.14t, patched) |
-| 2 | **agent_system** | External | ✅ Standalone | `python run.py all` | Python 3.10+ |
-| 3 | **Azazael_UNIFIED** | AZAZAEL | ✅ Standalone | `python run.py status` | Python |
-| 4 | **CODEX** | AZAZAEL | ✅ Standalone | `python run.py status` | Python |
-| 5 | **CODEX_Studio_Output** | AZAZAEL | ✅ Standalone | `index.html` | HTML video player |
-| 6 | **EveUnleashed_Selector** | External | ✅ Standalone | `python run.py` | Python 3.11+, Tkinter |
-| 7 | **LlamaServer** | External | ✅ Standalone | `python run.py start` | Rust + Jan backend |
-| 8 | **METAWORMS** | AZAZAEL | ✅ Standalone | `python run.py report` | Python |
-| 9 | **PAMS** | AZAZAEL | ✅ Standalone | `python run.py start` | Python 3.10+ |
-| 10 | **PerformanceMonitor** | External | ✅ Standalone | `python run.py status` | Go + Rust + Python |
-| 11 | **SysTools_JSON_Converter** | External | ✅ Standalone | `python run.py convert` | Python |
-| 12 | **Ultimate_Agent_Selector** | External | ✅ Standalone | `python run.py stats` | Python 3.14t |
-| 13 | **WSL Models** | External | ✅ Standalone | `python run.py` | WSL + GGUF |
-| 14 | **WSL_CrossExplorer** | External | ✅ Standalone | `python run.py status` | Python + WSL |
+| Metric | Value |
+|--------|-------|
+| Desktop directories | **40** |
+| run.py launchers present | **7** (EveUnleashed_Selector, LlamaServer, PAMS, PerformanceMonitor, Ultimate_Agent_Selector, WSL Models, WSL_CrossExplorer) |
+| Operational projects | 12 |
+| Output/atlas/render dirs | 12 |
+| Deprecated/remnant dirs | 3 (Azazael_UNIFIED, FACEBOOK_UBUNTU_MIRROR, AZAZAEL_ARCHIVE) |
+| Housekeeping dirs | 3 (logs, scripts_archive, __pycache__) |
+| Total Desktop size | ~25 GB (largest: Graphify atlas 21.3 GB) |
+| Deprecated projects archived to G: | 6 ✅ (agent_system, CODEX, CODEX_Studio_Output, METAWORMS, SysTools_JSON_Converter, Azazael_UNIFIED) |
 
-**Before this session:** 3 operational, 5 partial, 6 stub/deprecated
-**After this session:** 14/14 standalone with `run.py` or `index.html` entry points
+**Key structural changes since the original audit:**
+1. **AZAZAEL_Standalone repurposed** — Desktop copy now holds **0 EXEs** (docs hub only). The **52 EXEs live at `G:/AZAZAEL_Standalone`**.
+2. **6 deprecated projects archived** to `G:/Desktop_Archive/deprecated_projects/`.
+3. **New active projects:** AOA, BCC/BCC_Maps, FACEBOOK (1.5 GB investigation), Libra (legal filing), TikTok_Videos.
+4. **New output families:** 7 AZAZAEL_COSMOS_VIEWER variants, Graphify_Codebase_Atlas (21.3 GB), Azazael_Graphs (x3), Filesystem_Graphs/Scans, CODEX_Azazael_Complete, CODEX_Quartet, DisclosureWhitepaper.
 
 ---
 
-## Per-Project Status (Updated)
+## Per-Directory Status (40 dirs, verified Sep 7)
 
-### 1. AZAZAEL_Standalone ✅
-- **52 EXEs** (was 49) — all Nuitka-compiled, zero-dependency
-- `build_all.py`, `regenerate_bats.py` for batch rebuilds
+### ✅ Operational Projects (12)
 
-### 2. agent_system ✅ (was ❌ Stub)
-- **5 new files built this session**: `run.py`, `api_agent/agent.py`, `data_handler/handler.py`, `utils/config.py`, updated `__init__.py` files
-- API health checks, data export, environment config — all functional
+| # | Project | Type | Entry | Contents |
+|---|---------|------|-------|----------|
+| 1 | **AOA** | External | 23 .py, 2 html | Research/investigation arm, evidence builds |
+| 2 | **AZAZAEL_Vault** | AZAZAEL | vault_server.py, run_vault.bat | vault_notes.json + index.html |
+| 3 | **BCC / BCC_Maps** | External | 5 .py + 3 html (Maps) | BCC investigation + map gallery |
+| 4 | **EveUnleashed_Selector** | External | `run.py` ✅ | 31 .py, Tkinter GUI, rani-vl framework |
+| 5 | **FACEBOOK** | External | 26 .py, 7 .bat, 126 html | 1.5 GB investigation project |
+| 6 | **Libra** | External | 46 .py | Legal filing system (PA/Berks jurisdiction), BIBL/CAIN/CODEX/HORUS subsystems |
+| 7 | **LlamaServer** | External | `run.py` ✅ | Rust llama-server + Jan backend |
+| 8 | **PAMS** | AZAZAEL | `run.py` ✅ | Memory/event system |
+| 9 | **PerformanceMonitor** | External | `run.py` ✅ | Go+Rust+Python telemetry |
+| 10 | **Ultimate_Agent_Selector** | External | `run.py` ✅ | 4/7 agents implemented |
+| 11 | **WSL Models** | External | `run.py` ✅ | WSL + GGUF launchers |
+| 12 | **WSL_CrossExplorer** | External | `run.py` ✅ | WSL file explorer |
 
-### 3. Azazael_UNIFIED ✅ (was ❌ Deprecated)
-- Now has `run.py` launcher with migration guide to canonical `azazael/src/`
-- Status command shows all existing ORCHESTRATION_UNIFIED contents
+### 📦 Output / Atlas / Render Directories (12)
 
-### 4. CODEX ✅ (was ❌ Deprecated)
-- Now has `run.py` launcher: docs, report, systems, manifest, status commands
-- All CODEX output data accessible
+| # | Project | Contents |
+|---|---------|----------|
+| 13 | **AOA_Complete_Atlas_2026-08-27** | AOA atlas |
+| 14 | **AZAZAEL_COSMOS_VIEWER** (+6 variants: aoa_g, aoa_source, bcc, kali, progress_governance, vermillion_lightfury) | 7 `cosmos` HTML viewers |
+| 15 | **Azazael_Audit** | 104 MB audit artifacts |
+| 16 | **Azazael_Filesystem_Graphs_2026-08-27** | filesystem graph renders |
+| 17 | **Azazael_Full_Filesystem_Scans_2026-08-27** | 206 MB full scans |
+| 18 | **Azazael_Graphs_2026-08-27 / 2026-08-28** | graph renders + html |
+| 19 | **CODEX_Azazael_Complete / CODEX_Quartet** | MP4 renders |
+| 20 | **DisclosureWhitepaper** | 443 MB whitepaper MP4s |
+| 21 | **Graphify_Codebase_Atlas_2026-08-27** | **21.3 GB** codebase atlas |
+| 22 | **TikTok_Videos** | 1.4 GB video output |
+| 23 | **azazael_graphs** | live graph output |
 
-### 5. CODEX_Studio_Output ✅ (was ❌ Deprecated)
-- New `index.html` with styled video player for all 3 validation videos
-- Videos verified playable via ffprobe
+### ⚠️ Partial / Repurposed / Deprecated (6)
 
-### 6. EveUnleashed_Selector ✅ (was ⚠️ Partial)
-- **Bug fixed**: `HAS_PYNVML` now initialized to `False` before try/except (was undefined when pynvml not installed)
-- `run.py` launcher added — shows backend status, free-threading detection, dependency check
-- Tkinter GUI app functional with inference, REPL, monitor, benchmark, memory tabs
+| # | Project | Status | Notes |
+|---|---------|--------|-------|
+| 24 | **AZAZAEL_Standalone** | 🔴 REPURPOSED | **0 EXEs on Desktop** — docs hub (SYSTEM_INSTRUCTIONS.md, LESSONS_MASTER.md, skills/). Real 52 EXEs at `G:/AZAZAEL_Standalone` |
+| 25 | **Azazael_UNIFIED** | ❌ Deprecated | ORCHESTRATION_UNIFIED remnant only — archive candidate |
+| 26 | **AZAZAEL_ARCHIVE** | 📦 Archive | 1 .py remnant |
+| 27 | **FACEBOOK_UBUNTU_MIRROR** | ⚠️ Empty | 0 MB empty mirror dir |
+| 28 | **Project Launchers** | ✅ Hub | launcher scripts |
+| 29 | **scripts_archive / logs / __pycache__** | 🧹 Housekeeping | cleanup candidates |
 
-### 7. LlamaServer 🆕 (NEW this session)
-- **Created `Desktop/LlamaServer/`** with 9-command `run.py`
-- **Rust binary built**: `llama-server.exe` (4.79 MB), compiles clean
-- **Config fixed**: TOML `\U` escape issue resolved — all paths use forward slashes
-- **launch_llama_stack.ps1 rewritten**: broken temp paths → Jan backend
-- **4 scattered Desktop files organized** into project directory
-- 8 GGUF models available, Jan backend verified working
-- Rust API on port 8080, native llama.cpp on port 12780
+### ✅ Archived to G: (no longer on Desktop)
 
-### 8. METAWORMS ✅ (was ❌ Data only)
-- Now has `run.py` regenerator: reads 8 JSON files → rebuilds HTML report
-- `webbrowser.open()` auto-opens the report
-
-### 9. PAMS ✅ (was ✅ Operational)
-- Added `run.py` launcher: start, benchmark, config, status commands
-- `urllib.request` import moved to module level
-
-### 10. PerformanceMonitor ✅ (was ⚠️ Partial)
-- Added `status` command alias (was only `all`)
-- All 5 services verified [OK]: Python Flask, Go Gateway, Rust Collector, Tkinter GUI, HTML Dashboard
-- Go + Rust + Python sources all verified present
-
-### 11. SysTools_JSON_Converter ✅ (was ❌ Data only)
-- Now has `run.py` converter: JSON→CSV, JSON→HTML
-- Auto-detects input from local directory or Documents
-
-### 12. Ultimate_Agent_Selector ✅ (was ⚠️ Stub)
-- 4/7 agents implemented (artifact_admin, file_manager, memory_bridge, npu_orchestrator)
-- Running on Python 3.14.5 free-threading
-- All agents documented with 3.14t support
-- 3 agents still stubs: code_generation, orchestrator, rl_learner
-
-### 13. WSL Models ✅ (was ⚠️ WSL-dependent)
-- Now has `run.py` + README.md
-- Documents all WSL-dependent launchers
-
-### 14. WSL_CrossExplorer ✅ (was ⚠️ Unknown)
-- `urllib.request` import moved to module level
-- Status, start, frontend, health commands all functional
+| Project | Destination |
+|---------|-------------|
+| agent_system | `G:/Desktop_Archive/deprecated_projects/` |
+| Azazael_UNIFIED | `G:/Desktop_Archive/deprecated_projects/` |
+| CODEX | `G:/Desktop_Archive/deprecated_projects/` |
+| CODEX_Studio_Output | `G:/Desktop_Archive/deprecated_projects/` |
+| METAWORMS | `G:/Desktop_Archive/deprecated_projects/` |
+| SysTools_JSON_Converter | `G:/Desktop_Archive/deprecated_projects/` |
 
 ---
 
 ## Statistics
 
-| Metric | Before | After |
-|--------|--------|-------|
-| ✅ Fully operational | 3 | 14 |
-| ⚠️ Partially operational | 5 | 0 |
-| ❌ Deprecated/Stub | 6 | 0 |
-| run.py launchers | 8 | 14 |
-| EXE-based projects | 1 | 1 |
-| HTML-based projects | 0 | 1 |
+| Metric | 2026-05-29 | 2026-07-30 | **2026-09-07** |
+|--------|-----------|------------|----------------|
+| Desktop dirs | 14 | 22 | **40** |
+| run.py launchers | 8 | — | **7** |
+| ✅ Operational | 3 | — | **12** |
+| ⚠️ Partial/Repurposed | 5 | — | **3** |
+| ❌ Deprecated on Desktop | 6 | — | **2** |
+| EXEs on Desktop | 52 | 0 | **0** (52 on G:) |
 
 ---
 
-## Priority Actions (Updated)
+## Priority Actions (Sep 7 re-audit)
 
-### Done This Session
-1. ✅ All 14 Desktop projects now have standalone launchers
-2. ✅ EveUnleashed HAS_PYNVML bug fixed
-3. ✅ LlamaServer created with full Rust inference stack
-4. ✅ llama-server config.toml TOML path bug fixed
-5. ✅ launch_llama_stack.ps1 paths fixed
-6. ✅ PAMS + WSL_CrossExplorer import hygiene fixed
-7. ✅ PerformanceMonitor status command added
-8. ✅ 4 scattered Desktop llama files organized
+### Done Since Original Audit
+1. ✅ 6 deprecated projects archived to `G:/Desktop_Archive/deprecated_projects/`
+2. ✅ AZAZAEL_Standalone EXEs relocated to `G:/AZAZAEL_Standalone` (52 verified)
+3. ✅ EveUnleashed, PAMS, WSL_CrossExplorer, PerformanceMonitor all have working run.py
+4. ✅ Learning-loop session work committed (a289ad6d, 74 files)
 
 ### Short-Term
-9. Complete Ultimate_Agent_Selector (3 stubs → implemented)
-10. Test llama-server chat end-to-end (model needs loading time)
-11. Start Ollama, install Aider, test local coding agent
-12. Integrate LlamaServer with AZAZAEL launcher menu
+5. Reconcile `Desktop/AZAZAEL_Standalone` — 0 EXEs but name implies the suite; add README pointing to `G:/AZAZAEL_Standalone`
+6. Add run.py launchers to AOA, BCC, FACEBOOK, Libra for entry-point consistency
+7. Update worm-count docs (77 → 136) and skill-count docs (1224)
+8. Execute `LEARNING_LOOP_AUDIT_20260907.md`'s 8 improvement items (esp. AR-4 WSL monitor → live DB)
 
 ### Medium-Term
-13. Wire EveUnleashed_Selector agents into AZAZAEL worm registry
-14. Connect PerformanceMonitor telemetry to AZAZAEL observability worms
-15. Build LlamaServer as standalone single binary (already compiles via `cargo build --release`)
+9. Archive `Graphify_Codebase_Atlas_2026-08-27` (21.3 GB) to G: — desktop space pressure
+10. Clean empty/stale dirs: FACEBOOK_UBUNTU_MIRROR, Azazael_UNIFIED remnant, logs/, __pycache__
+11. Complete Ultimate_Agent_Selector 3 stubs (code_generation, orchestrator, rl_learner)
+12. Fix `evolution_cycle.py` champion_reeval/best_genes artifact mis-pairing (store champion_genes)
+
+---
+
+*Report updated from live filesystem verification + `FULL_PROJECT_AUDIT_2026-09-07.md`. Session `codebuff_20260907_233715_13888` recorded via DirectMemory.*
