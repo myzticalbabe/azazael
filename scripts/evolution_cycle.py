@@ -18,6 +18,11 @@ a stable hash of the genome's genes, so a genome's score is a pure
 function of (genome, eval pool). The pool fingerprint (severity
 histogram) is recorded in the artifact so landscape drift between runs
 is observable instead of silent.
+
+Import-safety (2026-09-08 fix): all execution lives in main(), guarded by
+`if __name__ == '__main__'`. Importing this module (for tests or the
+benchmark) now loads only the pure helpers; it no longer triggers a GA run
+or a promotion write.
 """
 import hashlib
 import json
@@ -45,6 +50,30 @@ from CORE.WORMS.expansion.learning import RLTrainLoop
 
 N_EPISODES = 80  # eval budget per skill (was 60; runs take ~10-15s, fits the slot)
 
+# NSGA-II multi-objective refinement (2026-09-08 expansion): after the scalar
+# loop, info mastery and critical-alert mastery are treated as separate
+# objectives, the Pareto front of the evolved population is surfaced, and a
+# 'knee' genome (max normalized objective sum) is picked as the balanced
+# alternative. Budget-bounded: 2 generations costs ~50-60s extra, fits the
+# 5-min slot next to the scalar loop's ~40s.
+MULTI_GENS = 2
+
+# Sources that are pure training/bookkeeping noise (the training loops record
+# their own training_complete / model_registered events back into the store;
+# together RLTrainLoop+ModelVersioner are ~70% of all rows). Excluding them
+# keeps the eval pools on real worm/production signals instead of the system
+# optimizing against its own feedback loop.
+EXCLUDED_TRAINING_SOURCES = [
+    'RLTrainLoop',
+    'ModelVersioner',
+    'GRPOTrainer',
+    'EvolutionEngine',
+    'sb3_agent',
+    'TrainingOrchestrator',
+    'ABTestRunner',
+    'FleetTrainer',
+]
+
 
 def genome_seed(genes, salt='a'):
     """Stable per-genome RNG seed (same genes+salt -> same seed, any process)."""
@@ -53,22 +82,53 @@ def genome_seed(genes, salt='a'):
 
 
 def _eval_salt(genes):
-    """One dual-skill evaluation. Assumes RNG already seeded. Returns (total, info, alert)."""
+    """One dual-skill evaluation. Assumes RNG already seeded. Returns (total, info, alert).
+
+    persist=False (2026-09-08): GA eval runs score without writing back —
+    no training_complete / model_registered / q_table_persisted rows, so a
+    full cycle no longer bloats the store or model registry with ~96
+    bookkeeping events per run.
+
+    epsilon_decay (2026-09-08 expansion): passed through from the genome so
+    the GA can evolve exploration-annealing speed.
+    """
     loop = RLTrainLoop()
     info_stats = loop.train_from_memory(
         n_episodes=N_EPISODES, max_steps=50,
         learning_rate=float(genes['learning_rate']),
         epsilon=float(genes['epsilon']),
-        discount_factor=float(genes['discount']))
+        epsilon_decay=float(genes.get('epsilon_decay', 0.0)),
+        discount_factor=float(genes['discount']),
+        exclude_sources=EXCLUDED_TRAINING_SOURCES,
+        persist=False)
     alert_stats = RLTrainLoop().train_from_memory(
         n_episodes=N_EPISODES, max_steps=50,
         learning_rate=float(genes['learning_rate']),
         epsilon=float(genes['epsilon']),
+        epsilon_decay=float(genes.get('epsilon_decay', 0.0)),
         discount_factor=float(genes['discount']),
-        event_type='db_health_alert')
+        event_type='db_health_alert',
+        exclude_sources=EXCLUDED_TRAINING_SOURCES,
+        persist=False)
     info = float(info_stats.get('avg_reward', 0.0))
     alert = float(alert_stats.get('avg_reward', 0.0))
     return (info + alert, info, alert)
+
+
+def fitness_skill(genes, idx):
+    """Deterministic single-objective fitness (min over 2 salts), like fitness_genes.
+
+    idx: 1 = info-skill score, 2 = alert-skill score. Used by the NSGA-II
+    multi-objective phase so the Pareto front trades info mastery vs
+    critical-alert mastery as separate objectives.
+    """
+    best = None
+    for salt in ('a', 'b'):
+        random.seed(genome_seed(genes, salt))
+        parts = _eval_salt(genes)
+        v = parts[idx]
+        best = v if best is None else min(best, v)
+    return best
 
 
 def fitness_genes(genes):
@@ -115,10 +175,12 @@ def pool_fingerprint():
     try:
         from collections import Counter
         from CORE.WORMS.expansion.learning import DataPipelineWorm
-        recs = DataPipelineWorm().extract_from_memory(limit=300)
+        recs = DataPipelineWorm().extract_from_memory(
+            limit=300, exclude_sources=EXCLUDED_TRAINING_SOURCES)
         fp = dict(Counter(r.get('severity', 'unknown') for r in recs))
         hard = DataPipelineWorm().extract_from_memory(
-            event_type='db_health_alert', limit=2000)
+            event_type='db_health_alert', limit=2000,
+            exclude_sources=EXCLUDED_TRAINING_SOURCES)
         if hard:
             fp['hard_count'] = len(hard)
             fp['hard_newest'] = max(
@@ -149,95 +211,6 @@ def last_best_genes():
     return None
 
 
-seed = int(time.time()) % 100000
-random.seed(seed)
-log('seed=%d' % seed)
-
-evo = EvolutionEngine(population_size=24, elitism_count=3,
-                      crossover_rate=0.7, mutation_rate=0.15,
-                      early_stop_patience=5, early_stop_tolerance=0.01)
-seed_genes = last_best_genes()
-
-# Hall of fame: best champion ever recorded, by champion_reeval score.
-# Keeps the global best in the population even if recent runs regressed,
-# so a bad run can never erase the best-known genome.
-hof_genes = None
-try:
-    from CORE.local_memory import get_memory_store
-    _store = get_memory_store()
-    _rows = _store.query_memories(event_type='evolution_result', limit=40)
-    _best = None   # best v3-scale champion (comparable units)
-    _best_any = None  # fallback: best of any scale (transition periods)
-    for _r in _rows:
-        _d = _r.get('data', {}) or {}
-        if isinstance(_d, str):
-            import json as _json
-            try:
-                _d = _json.loads(_d)
-            except Exception:
-                continue
-        _c = _d.get('champion_reeval')
-        if _c is None:
-            continue
-        # Pair the champion score with the genome that earned it. Pre-fix
-        # artifacts (before 2026-09-08) only have best_genes — fall back.
-        _genes = _d.get('champion_genes') or _d.get('best_genes')
-        if _best_any is None or _c > _best_any[0]:
-            _best_any = (_c, _genes)
-        if str(_d.get('fitness', '')).startswith('v3'):
-            if _best is None or _c > _best[0]:
-                _best = (_c, _genes)
-    _pick = _best or _best_any
-    if _pick and isinstance(_pick[1], dict) and _pick[1]:
-        hof_genes = _pick[1]
-        log('hall-of-fame seed: champ=%s genes=%s' % (_pick[0], {k: round(v, 4) for k, v in _pick[1].items()}))
-except Exception as e:
-    log('hall-of-fame lookup failed: %s' % str(e)[:120])
-
-_seeds = [g for g in (seed_genes, hof_genes) if isinstance(g, dict) and g]
-# Dedupe identical gene dicts
-_seen = set()
-_unique_seeds = []
-for _g in _seeds:
-    _key = tuple(sorted(_g.items()))
-    if _key not in _seen:
-        _seen.add(_key)
-        _unique_seeds.append(_g)
-
-evo.initialize_population({
-    'learning_rate': (0.01, 0.5),
-    'epsilon': (0.0, 0.5),
-    'discount': (0.8, 0.999),
-}, seed_genomes=_unique_seeds)
-
-trajectory = []
-for gen in range(15):
-    stats = evo.evaluate_population(fitness)
-    best = evo.get_best_genome()
-    trajectory.append(round(stats.get('best_fitness', 0.0), 4))
-    log(f'gen {gen}: best={stats.get("best_fitness")} '
-        f'genes={best.genes if best else None}')
-    if evo.has_converged():
-        log(f'converged at gen {gen}, stopping early')
-        break
-    evo.evolve()
-
-best = evo.get_best_genome()
-log('BEST: %s' % (best.genes if best else None))
-best_total, best_info, best_alert = fitness_parts(best.genes) if best else (0.0, 0.0, 0.0)
-log('BEST parts: total=%s info=%s alert=%s' % (best_total, best_info, best_alert))
-
-# Champion re-evaluation on the current pool: with deterministic fitness
-# this score is comparable across runs, separating 'genome got worse'
-# from 'the data landscape moved' (drift shows in pool_fingerprint).
-champ_score = None
-if seed_genes:
-    try:
-        champ_score = round(fitness_genes(seed_genes), 4)
-        log('champion re-eval on current pool: %s' % champ_score)
-    except Exception as e:
-        log('champion re-eval failed: %s' % str(e)[:120])
-
 # Champion promotion (2026-09-08): 3 consecutive wins over the production
 # baseline promotes genes to config/evolved_rl_params.json, which
 # ScheduledTrainingWorm loads as hyperparameter overrides.
@@ -250,6 +223,9 @@ PROMOTE_JSON = os.path.join(
     'config', 'evolved_rl_params.json')
 
 
+PROMOTE_KEYS = ('learning_rate', 'epsilon', 'discount', 'epsilon_decay')
+
+
 def production_genes():
     """Currently-promoted genes, else ScheduleConfig built-in defaults."""
     try:
@@ -259,6 +235,8 @@ def production_genes():
              for k in ('learning_rate', 'epsilon', 'discount')}
         if (0.01 <= g['learning_rate'] <= 0.5 and 0.0 <= g['epsilon'] <= 0.5
                 and 0.8 <= g['discount'] <= 0.999):
+            g['epsilon_decay'] = float(data['genes'].get('epsilon_decay', 0.0))
+            g['epsilon_decay'] = max(0.0, min(g['epsilon_decay'], 0.2))
             return g
         log('promoted file out of range, using built-in defaults')
     except Exception:
@@ -267,91 +245,227 @@ def production_genes():
     c = ScheduleConfig()
     return {'learning_rate': float(c.learning_rate),
             'epsilon': float(c.epsilon),
-            'discount': float(c.discount_factor)}
+            'discount': float(c.discount_factor),
+            'epsilon_decay': float(getattr(c, 'epsilon_decay', 0.0))}
 
 
-try:
-    baseline_genes = production_genes()
-    baseline_fit = round(fitness_genes(baseline_genes), 4)
-    log('production baseline: %s -> %s' % (
-        {k: round(v, 4) for k, v in baseline_genes.items()}, baseline_fit))
-except Exception as e:
-    baseline_genes, baseline_fit = {}, 0.0
-    log('baseline eval failed: %s' % str(e)[:120])
+def main():
+    seed = int(time.time()) % 100000
+    random.seed(seed)
+    log('seed=%d' % seed)
 
-beats = bool(best) and (best_total > baseline_fit + PROMOTE_MARGIN)
-streak = 0
-if beats:
-    streak = 1
+    evo = EvolutionEngine(population_size=24, elitism_count=3,
+                          crossover_rate=0.7, mutation_rate=0.15,
+                          early_stop_patience=5, early_stop_tolerance=0.01)
+    seed_genes = last_best_genes()
+
+    # Hall of fame: best champion ever recorded, by champion_reeval score.
+    # Keeps the global best in the population even if recent runs regressed,
+    # so a bad run can never erase the best-known genome.
+    hof_genes = None
     try:
         from CORE.local_memory import get_memory_store
-        _hrows = get_memory_store().query_memories(
-            event_type='evolution_result', limit=PROMOTE_WINS - 1)
-        for _hr in _hrows:
-            _hd = _hr.get('data', {}) or {}
-            if isinstance(_hd, str):
+        _store = get_memory_store()
+        _rows = _store.query_memories(event_type='evolution_result', limit=40)
+        _best = None   # best v3-scale champion (comparable units)
+        _best_any = None  # fallback: best of any scale (transition periods)
+        for _r in _rows:
+            _d = _r.get('data', {}) or {}
+            if isinstance(_d, str):
+                import json as _json
                 try:
-                    _hd = json.loads(_hd)
+                    _d = _json.loads(_d)
                 except Exception:
-                    break
-            if (str(_hd.get('fitness', '')).startswith('v3')
-                    and _hd.get('beats_baseline')):
-                streak += 1
-            else:
-                break
+                    continue
+            _c = _d.get('champion_reeval')
+            if _c is None:
+                continue
+            # Pair the champion score with the genome that earned it. Pre-fix
+            # artifacts (before 2026-09-08) only have best_genes — fall back.
+            _genes = _d.get('champion_genes') or _d.get('best_genes')
+            if _best_any is None or _c > _best_any[0]:
+                _best_any = (_c, _genes)
+            if str(_d.get('fitness', '')).startswith('v3'):
+                if _best is None or _c > _best[0]:
+                    _best = (_c, _genes)
+        _pick = _best or _best_any
+        if _pick and isinstance(_pick[1], dict) and _pick[1]:
+            hof_genes = _pick[1]
+            log('hall-of-fame seed: champ=%s genes=%s' % (_pick[0], {k: round(v, 4) for k, v in _pick[1].items()}))
     except Exception as e:
-        log('streak lookup failed: %s' % str(e)[:120])
-log('promotion standing: beats=%s streak=%s/%s' % (beats, streak, PROMOTE_WINS))
+        log('hall-of-fame lookup failed: %s' % str(e)[:120])
 
-promoted = False
-if beats and streak >= PROMOTE_WINS and best:
+    _seeds = [g for g in (seed_genes, hof_genes) if isinstance(g, dict) and g]
+    # Dedupe identical gene dicts
+    _seen = set()
+    _unique_seeds = []
+    for _g in _seeds:
+        _key = tuple(sorted(_g.items()))
+        if _key not in _seen:
+            _seen.add(_key)
+            _unique_seeds.append(_g)
+
+    evo.initialize_population({
+        'learning_rate': (0.01, 0.5),
+        'epsilon': (0.0, 0.5),
+        'discount': (0.8, 0.999),
+        'epsilon_decay': (0.0, 0.1),  # exploration-annealing speed (2026-09-08)
+    }, seed_genomes=_unique_seeds)
+
+    trajectory = []
+    for gen in range(15):
+        stats = evo.evaluate_population(fitness)
+        best = evo.get_best_genome()
+        trajectory.append(round(stats.get('best_fitness', 0.0), 4))
+        log(f'gen {gen}: best={stats.get("best_fitness")} '
+            f'genes={best.genes if best else None}')
+        if evo.has_converged():
+            log(f'converged at gen {gen}, stopping early')
+            break
+        evo.evolve()
+
+    best = evo.get_best_genome()
+    log('BEST: %s' % (best.genes if best else None))
+    best_total, best_info, best_alert = fitness_parts(best.genes) if best else (0.0, 0.0, 0.0)
+    log('BEST parts: total=%s info=%s alert=%s' % (best_total, best_info, best_alert))
+
+    # Champion re-evaluation on the current pool: with deterministic fitness
+    # this score is comparable across runs, separating 'genome got worse'
+    # from 'the data landscape moved' (drift shows in pool_fingerprint).
+    champ_score = None
+    if seed_genes:
+        try:
+            champ_score = round(fitness_genes(seed_genes), 4)
+            log('champion re-eval on current pool: %s' % champ_score)
+        except Exception as e:
+            log('champion re-eval failed: %s' % str(e)[:120])
+
     try:
-        with open(PROMOTE_JSON, 'w', encoding='utf-8') as f:
-            json.dump({
+        baseline_genes = production_genes()
+        baseline_fit = round(fitness_genes(baseline_genes), 4)
+        log('production baseline: %s -> %s' % (
+            {k: round(v, 4) for k, v in baseline_genes.items()}, baseline_fit))
+    except Exception as e:
+        baseline_genes, baseline_fit = {}, 0.0
+        log('baseline eval failed: %s' % str(e)[:120])
+
+    beats = bool(best) and (best_total > baseline_fit + PROMOTE_MARGIN)
+    streak = 0
+    if beats:
+        streak = 1
+        try:
+            from CORE.local_memory import get_memory_store
+            _hrows = get_memory_store().query_memories(
+                event_type='evolution_result', limit=PROMOTE_WINS - 1)
+            for _hr in _hrows:
+                _hd = _hr.get('data', {}) or {}
+                if isinstance(_hd, str):
+                    try:
+                        _hd = json.loads(_hd)
+                    except Exception:
+                        break
+                if (str(_hd.get('fitness', '')).startswith('v3')
+                        and _hd.get('beats_baseline')):
+                    streak += 1
+                else:
+                    break
+        except Exception as e:
+            log('streak lookup failed: %s' % str(e)[:120])
+    log('promotion standing: beats=%s streak=%s/%s' % (beats, streak, PROMOTE_WINS))
+
+    promoted = False
+    if beats and streak >= PROMOTE_WINS and best:
+        try:
+            with open(PROMOTE_JSON, 'w', encoding='utf-8') as f:
+                json.dump({
+                    'genes': best.genes,
+                    'fitness': best_total,
+                    'fitness_detail': {'info': best_info, 'alert': best_alert},
+                    'baseline': baseline_fit,
+                    'wins': streak,
+                    'promoted_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+                    'run_seed': seed,
+                }, f, indent=2)
+            promoted = True
+            log('PROMOTED to %s (rollback: delete the file)' % PROMOTE_JSON)
+        except Exception as e:
+            log('promotion write failed: %s' % str(e)[:120])
+
+    # --- NSGA-II multi-objective refinement (2026-09-08 expansion) ---
+    # Info mastery and critical-alert mastery as separate objectives. The
+    # engine's Pareto machinery (non-dominated sort + crowding distance) is
+    # used as-is; objectives are negated (engine minimizes). The 'knee' is the
+    # front member with the max normalized objective sum — the balanced pick.
+    pareto = None
+    try:
+        res = evo.optimize_multi_objective(
+            [lambda g: -fitness_skill(g.genes, 1),
+             lambda g: -fitness_skill(g.genes, 2)],
+            generations=MULTI_GENS)
+        front = res.get('pareto_front', []) or []
+        if front:
+            obj = [f['objectives'] for f in front]
+            lo = [min(o[i] for o in obj) for i in range(2)]
+            hi = [max(o[i] for o in obj) for i in range(2)]
+            rng = [max(1e-9, hi[i] - lo[i]) for i in range(2)]
+
+            def _norm(o):
+                return sum((o[i] - lo[i]) / rng[i] for i in range(2))
+
+            knee = max(front, key=lambda f: _norm(f['objectives']))
+            pareto = {
+                'front': [{'genes': f['genes'],
+                           'info': round(-f['objectives'][0], 4),
+                           'alert': round(-f['objectives'][1], 4)}
+                          for f in front],
+                'knee': {'genes': knee['genes'],
+                         'info': round(-knee['objectives'][0], 4),
+                         'alert': round(-knee['objectives'][1], 4)},
+                'generations': res.get('generations', MULTI_GENS),
+            }
+            log('multi-objective: front=%d knee=%s info=%.3f alert=%.3f' % (
+                len(front),
+                {k: round(v, 4) for k, v in knee['genes'].items()},
+                pareto['knee']['info'], pareto['knee']['alert']))
+    except Exception as e:
+        log('multi-objective phase failed: %s' % str(e)[:160])
+
+    try:
+        from CORE.direct_memory import DirectMemory
+        dm = DirectMemory()
+        dm.record('evolution_result', {
+            'action': 'evolution run complete',
+            'fitness': 'v3-dual-robust',
+            'best_genes': best.genes if best else {},
+            'best_total': best_total,
+            'best_info': best_info,
+            'best_alert': best_alert,
+            'baseline': baseline_fit,
+            'beats_baseline': beats,
+            'promoted': promoted,
+            'generations': len(trajectory),
+            'population': 24,
+            'episodes': N_EPISODES,
+            'seed': seed,
+            'trajectory': trajectory,
+            'seeded_from_prior': bool(seed_genes),
+            'champion_reeval': champ_score,
+            'champion_genes': seed_genes,
+            'pool_fingerprint': pool_fingerprint(),
+            'pareto': pareto,
+        }, tags=['evolution', 'artifact'])
+        if promoted and best:
+            dm.record('evolution_promotion', {
+                'action': 'champion promoted to production defaults',
                 'genes': best.genes,
                 'fitness': best_total,
-                'fitness_detail': {'info': best_info, 'alert': best_alert},
                 'baseline': baseline_fit,
                 'wins': streak,
-                'promoted_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
-                'run_seed': seed,
-            }, f, indent=2)
-        promoted = True
-        log('PROMOTED to %s (rollback: delete the file)' % PROMOTE_JSON)
+                'rollback': 'delete config/evolved_rl_params.json',
+            }, tags=['evolution', 'promotion'])
     except Exception as e:
-        log('promotion write failed: %s' % str(e)[:120])
+        log('artifact record failed: %s' % e)
 
-try:
-    from CORE.direct_memory import DirectMemory
-    dm = DirectMemory()
-    dm.record('evolution_result', {
-        'action': 'evolution run complete',
-        'fitness': 'v3-dual-robust',
-        'best_genes': best.genes if best else {},
-        'best_total': best_total,
-        'best_info': best_info,
-        'best_alert': best_alert,
-        'baseline': baseline_fit,
-        'beats_baseline': beats,
-        'promoted': promoted,
-        'generations': len(trajectory),
-        'population': 24,
-        'episodes': N_EPISODES,
-        'seed': seed,
-        'trajectory': trajectory,
-        'seeded_from_prior': bool(seed_genes),
-        'champion_reeval': champ_score,
-        'champion_genes': seed_genes,
-        'pool_fingerprint': pool_fingerprint(),
-    }, tags=['evolution', 'artifact'])
-    if promoted and best:
-        dm.record('evolution_promotion', {
-            'action': 'champion promoted to production defaults',
-            'genes': best.genes,
-            'fitness': best_total,
-            'baseline': baseline_fit,
-            'wins': streak,
-            'rollback': 'delete config/evolved_rl_params.json',
-        }, tags=['evolution', 'promotion'])
-except Exception as e:
-    log('artifact record failed: %s' % e)
+
+if __name__ == '__main__':
+    main()

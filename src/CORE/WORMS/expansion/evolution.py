@@ -171,6 +171,7 @@ class EvolutionEngine:
             })
 
         scores = []
+        eval_failures = 0
         for genome in self._population:
             genome_id = genome.id
             if genome_id in self._fitness_cache:
@@ -178,8 +179,12 @@ class EvolutionEngine:
             else:
                 try:
                     genome.fitness = fitness_fn(genome)
-                except Exception:
+                except Exception as e:  # noqa: BLE001 — surfaced, not silent
                     genome.fitness = 0.0
+                    eval_failures += 1
+                    if eval_failures <= 3:
+                        print('[EvolutionEngine] fitness eval failed for %s: %s' % (
+                            genome.id[:12], str(e)[:160]))
                 self._fitness_cache[genome_id] = genome.fitness
             scores.append(genome.fitness)
 
@@ -197,6 +202,7 @@ class EvolutionEngine:
             "avg_fitness": sum(scores) / len(scores) if scores else 0.0,
             "min_fitness": min(scores) if scores else 0.0,
             "population_size": len(self._population),
+            "eval_failures": eval_failures,
             "timestamp": datetime.now().isoformat(),
         }
 
