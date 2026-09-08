@@ -129,14 +129,19 @@ def pool_fingerprint():
 
 
 def last_best_genes():
-    """Best genome from the most recent evolution_result row (or None)."""
+    """Champion genome from the most recent evolution_result row (or None).
+
+    Prefers champion_genes (the genome that actually earned champion_reeval)
+    so the seed chain tracks the true champion; falls back to best_genes for
+    artifacts recorded before the champion_genes fix (2026-09-08).
+    """
     try:
         from CORE.local_memory import get_memory_store
         store = get_memory_store()
         rows = store.query_memories(event_type='evolution_result', limit=1)
         if rows:
             data = rows[0].get('data', {}) or {}
-            genes = data.get('best_genes')
+            genes = data.get('champion_genes') or data.get('best_genes')
             if isinstance(genes, dict) and genes:
                 return genes
     except Exception as e:
@@ -174,11 +179,14 @@ try:
         _c = _d.get('champion_reeval')
         if _c is None:
             continue
+        # Pair the champion score with the genome that earned it. Pre-fix
+        # artifacts (before 2026-09-08) only have best_genes — fall back.
+        _genes = _d.get('champion_genes') or _d.get('best_genes')
         if _best_any is None or _c > _best_any[0]:
-            _best_any = (_c, _d.get('best_genes'))
+            _best_any = (_c, _genes)
         if str(_d.get('fitness', '')).startswith('v3'):
             if _best is None or _c > _best[0]:
-                _best = (_c, _d.get('best_genes'))
+                _best = (_c, _genes)
     _pick = _best or _best_any
     if _pick and isinstance(_pick[1], dict) and _pick[1]:
         hof_genes = _pick[1]
@@ -333,6 +341,7 @@ try:
         'trajectory': trajectory,
         'seeded_from_prior': bool(seed_genes),
         'champion_reeval': champ_score,
+        'champion_genes': seed_genes,
         'pool_fingerprint': pool_fingerprint(),
     }, tags=['evolution', 'artifact'])
     if promoted and best:
