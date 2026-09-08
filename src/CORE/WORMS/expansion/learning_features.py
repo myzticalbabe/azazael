@@ -40,6 +40,22 @@ def is_free_threaded() -> bool:
 # Known data shapes per (source, event_type) in LocalMemoryStore
 # Maps event_type -> {field_name: (type, [source_pattern])}
 
+
+def _dynamic_shapes() -> Dict[str, Any]:
+    """Lazily return the DYNAMIC_SHAPES registry from learning_pipeline.
+
+    Imported here (not at module level) to avoid a circular import:
+    learning_pipeline imports DATA_SHAPES from this module, so a
+    module-level `from learning_pipeline import DYNAMIC_SHAPES` would
+    resolve to a partially-initialized module when learning_pipeline is
+    the import root. DYNAMIC_SHAPES is a module-level dict that
+    refresh_dynamic_shapes() mutates in place, so returning the live
+    object (not a copy) keeps this accessor current.
+    """
+    from CORE.WORMS.expansion.learning_pipeline import DYNAMIC_SHAPES
+    return DYNAMIC_SHAPES
+
+
 DATA_SHAPES = {
     "cluster_created": {
         "type": "cluster",
@@ -188,7 +204,7 @@ class SchemaAwareFeatureExtractor:
             event_type = r.get("event_type", "unknown")
             shape = DATA_SHAPES.get(event_type)
             if shape is None:
-                shape = DYNAMIC_SHAPES.get(event_type)
+                shape = _dynamic_shapes().get(event_type)
 
             if shape:
                 for field_name, field_type in shape["fields"].items():
@@ -240,7 +256,7 @@ class SchemaAwareFeatureExtractor:
             r.get("source", "unknown")
             shape = DATA_SHAPES.get(event_type)
             if shape is None:
-                shape = DYNAMIC_SHAPES.get(event_type)
+                shape = _dynamic_shapes().get(event_type)
 
             feat = []
 
@@ -287,7 +303,7 @@ class SchemaAwareFeatureExtractor:
             dim = len(features[0])
             field_names = ["severity_ordinal"]
             for et in sorted(shapes_used):
-                src_shape = DATA_SHAPES.get(et) or DYNAMIC_SHAPES.get(et) or {}
+                src_shape = DATA_SHAPES.get(et) or _dynamic_shapes().get(et) or {}
                 for k in src_shape.get("numeric_keys", []):
                     field_names.append(f"{et}::{k}")
                 for fn, ft in src_shape.get("fields", {}).items():
@@ -298,7 +314,7 @@ class SchemaAwareFeatureExtractor:
                             field_names.append(f"{et}::{fn}={cat}")
 
         # Count unknown shapes considering both DATA_SHAPES and DYNAMIC_SHAPES
-        all_known = set(DATA_SHAPES.keys()) | set(DYNAMIC_SHAPES.keys())
+        all_known = set(DATA_SHAPES.keys()) | set(_dynamic_shapes().keys())
 
         return features, {
             "dim": dim,

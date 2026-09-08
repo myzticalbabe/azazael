@@ -336,7 +336,7 @@ class NeuralPipeline:
 
             dlq_entry = self.dlq.enqueue(
                 worm_name="NeuralPipeline",
-                error_data={
+                error={
                     "error": str(e),
                     "type": type(e).__name__,
                     "source": source,
@@ -422,13 +422,20 @@ class NeuralPipeline:
     def _train_qlearning(self, source: str, train_records: List[Dict],
                          test_records: List[Dict], **train_kwargs) -> Dict[str, Any]:
         """Train with RLTrainLoop (Q-learning)."""
+        # Strip SB3-only kwargs (total_timesteps) that aren't part of
+        # RLTrainLoop.train_from_memory's signature — the shared ALL path
+        # passes the same train_kwargs to every agent.
+        qlearn_kwargs = {
+            k: v for k, v in train_kwargs.items()
+            if k not in ("total_timesteps",)
+        }
         loop = RLTrainLoop()
         result = loop.train_from_memory(
             source=source,
             test_data=test_records if test_records else None,
             use_data_split=False,
             use_schema_features=True,
-            **train_kwargs,
+            **qlearn_kwargs,
         )
         return {
             "trainer": "RLTrainLoop",
@@ -470,7 +477,10 @@ class NeuralPipeline:
                 results["QLEARN"] = res
 
         # Merge into unified result
-        success_count = sum(1 for v in results.values() if "error" not in v)
+        success_count = sum(
+            1 for v in results.values()
+            if v is not None and "error" not in v
+        )
         return {
             "trainer": "ALL (parallel)",
             "agents_trained": list(results.keys()),
