@@ -26,8 +26,15 @@ from pathlib import Path
 # any CORE import (the LocalMemoryStore singleton binds to the env at init).
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-_SCRATCH = tempfile.mkdtemp(prefix="learning_loop_test_")
-os.environ["AZAZAEL_MEMORY_DIR"] = _SCRATCH
+# Shared scratch dir (same fixed path as test_evolution_accuracy.py) so the
+# process-global store singleton binds to ONE db across the whole suite.
+# NOTE: AZAZAEL_MEMORY_DIR is a *directory* in production (the store
+# appends memory_store.db), so the scratch var must be a dir and the db a
+# file inside it — passing the bare path as db_path makes sqlite fail
+# with "unable to open database file" (2026-09-08 fix).
+_SCRATCH_DIR = str(Path(tempfile.gettempdir()) / "azazael_test_scratch_shared")
+_SCRATCH = str(Path(_SCRATCH_DIR) / "memory_store.db")
+os.environ["AZAZAEL_MEMORY_DIR"] = _SCRATCH_DIR
 
 from CORE.local_memory import get_memory_store  # noqa: E402
 from CORE.WORMS.expansion.learning import (  # noqa: E402
@@ -39,7 +46,21 @@ from CORE.WORMS.expansion.dreaming import DreamingModule  # noqa: E402
 
 STORE = get_memory_store()
 AVAIL = ['default', 'conservative', 'defensive', 'aggressive', 'adaptive',
-         'batched', 'staged']
+         'batched', 'staged', 'measured', 'sustained', 'targeted']
+
+
+def setUpModule():
+    """Wipe the shared scratch DB so persisted metacog state from a previous
+    run (or another module) can't leak into these tests."""
+    import CORE.local_memory as _lm
+    _lm._global_store = None
+    for suffix in ("", "-wal", "-shm"):
+        try:
+            os.remove(_SCRATCH + suffix)
+        except OSError:
+            pass
+    _lm._global_store = _lm.LocalMemoryStore(db_path=_SCRATCH)
+    globals()["STORE"] = _lm._global_store
 
 
 def seed_records(source="SystemZ", n=12):
@@ -231,11 +252,21 @@ class TestLearningSplitShim(unittest.TestCase):
 
 
 def tearDownModule():
+    # Reset the process-global store singleton so the next test module in the
+    # suite rebinds to its own scratch dir (first-import wins otherwise, and
+    # the loser's tests hit "unable to open database file" after the winner
+    # deletes its scratch).
     try:
         STORE.close() if hasattr(STORE, "close") else None
     except Exception:
         pass
-    shutil.rmtree(_SCRATCH, ignore_errors=True)
+    try:
+        import CORE.local_memory as _lm
+        _lm._global_store = None
+    except Exception:
+        pass
+    # Do NOT rmtree the shared scratch dir here: another test module in the
+    # suite may still be using it. OS temp cleans it up eventually.
 
 
 if __name__ == "__main__":
