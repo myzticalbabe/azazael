@@ -493,6 +493,7 @@ def collect(con):
                 "adv": _adv,
                 "score": _sm.get("avg_score"),
                 "lat": _sm.get("avg_latency_ms"),
+                "tok": _best.get("max_tokens"),
                 "date": _best_ts[:16],
             }
     except Exception:
@@ -588,6 +589,40 @@ def collect(con):
             except Exception:
                 pass
             data["servers"].append({"port": _port, "ok": _ok, "ms": _ms})
+    except Exception:
+        pass
+
+    # api key status per provider (names only — values never leave disk).
+    # Fail-soft: without keys the RANI API path is down but nothing else cares.
+    data["keys"] = []
+    try:
+        sys.path.insert(0, os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "src"))
+        from CORE.inference.providers import get_provider
+        for _pn in ("groq", "cerebras", "openrouter", "gemini", "mistral",
+                    "nvidia_nim", "siliconflow", "cohere", "github",
+                    "huggingface", "zhipu", "cloudflare"):
+            try:
+                _ok = bool(get_provider(_pn).has_valid_key())
+            except Exception:
+                _ok = False
+            data["keys"].append({"name": _pn, "ok": _ok})
+    except Exception:
+        pass
+
+    # last retention trim (from the maintenance log — warns if the
+    # nightly caps stop keeping up with training exhaust).
+    data["caps"] = None
+    try:
+        _ml = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "logs", "maintenance.log")
+        if os.path.exists(_ml):
+            with open(_ml, encoding="utf-8", errors="replace") as f:
+                _tail = f.read()[-6000:]
+            import re as _re
+            _hits = _re.findall(r"'total':\s*(\d+)", _tail)
+            if _hits:
+                data["caps"] = {"last_trim": int(_hits[-1])}
     except Exception:
         pass
 
@@ -1059,6 +1094,8 @@ def render(data, now):
             if isinstance(_rb.get("lat"), (int, float)):
                 _lat = _rb['lat']
                 _rparts.append(f"lat={_lat / 1000:.1f}s" if _lat >= 1000 else f"lat={_lat:.0f}ms")
+            if _rb.get("tok") is not None:
+                _rparts.append(f"tok={_rb['tok']}")
             if _rb.get("date"):
                 _rparts.append(f"({_rb['date']})")
             L(_fit("EVE    " + "  ".join(_rparts), width))
@@ -1090,8 +1127,20 @@ def render(data, now):
             pool_txt = f"  hard {hard}" + (f"@{hard_ts}Z" if hard_ts else "")
             if hard_stale is not None and hard_stale > 24:
                 pool_txt += f"  {C_RED}(stale {hard_stale:.0f}h){C_RST}"
-        L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f} eps={g.get('epsilon', 0):.4f} "
-                 f"disc={g.get('discount', 0):.4f} dec={g.get('epsilon_decay', 0):.4f}  [{e['fit']}]{pool_txt}", width)) if show_genes else None
+        # PIN flags (2026-09-09): a gene sitting on its bound means the
+        # search has converged in that dimension without proving it —
+        # widen mutation if a pin persists for days.
+        def _pin(v, lo, hi, eps=1e-9):
+            try:
+                f = float(v)
+            except (ValueError, TypeError):
+                return ""
+            return " PIN" if f <= lo + eps or f >= hi - eps else ""
+        L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f}{_pin(g.get('learning_rate'), 0.01, 0.5)} "
+                 f"eps={g.get('epsilon', 0):.4f}{_pin(g.get('epsilon'), 0.0, 0.5)} "
+                 f"disc={g.get('discount', 0):.4f}{_pin(g.get('discount'), 0.8, 0.999)} "
+                 f"dec={g.get('epsilon_decay', 0):.4f}{_pin(g.get('epsilon_decay'), 0.0, 0.1)}"
+                 f"  [{e['fit']}]{pool_txt}", width)) if show_genes else None
         bests = [e2["best"] for e2 in evo][::-1]
         if show_climb:
             L(f"CLIMB ({len(bests)} runs, newest right) {C_CYN}{sparkline(bests, width=max(10, width - 30))}{C_RST}")
@@ -1246,13 +1295,15 @@ def render(data, now):
             _bits.append((_txt, _a is not None and _a < 15))
         L(_fit("CYCLES " + "   ".join(f"{C_GRN}{t}{C_RST}" if _ok else f"{C_RED}{t}{C_RST}" for t, _ok in _bits), width))
 
-    # --- store size + write rate + alert load ---
+    # --- store size + write rate + alert load + last trim ---
     _st = data.get("store")
     if _st:
         _mb = f"{_st['mb']}MB" if _st.get("mb") is not None else "?"
         _al = data.get("alerts") or {}
         _atxt = f"  alerts {_al.get('per_hr', 0)}/hr ({_al.get('crit', 0)} crit)" if _al.get("per_hr") else ""
-        L(_fit(f"STORE  {_mb} {(_st.get('rows') or 0):,} rows  +{(_st.get('per_hr') or 0):,}/hr{_atxt}", width))
+        _cp = data.get("caps") or {}
+        _ctxt = f"  trim -{_cp['last_trim']:,}" if isinstance(_cp.get("last_trim"), int) else ""
+        L(_fit(f"STORE  {_mb} {(_st.get('rows') or 0):,} rows  +{(_st.get('per_hr') or 0):,}/hr{_atxt}{_ctxt}", width))
 
     # --- inference servers ---
     _sv = data.get("servers") or []
@@ -1264,6 +1315,13 @@ def render(data, now):
             else:
                 _bits.append(f"{C_RED}:{_s['port']} DOWN{C_RST}")
         L(_fit("SRV    " + "   ".join(_bits), width))
+
+    # --- api keys: which inference providers can actually be called ---
+    _ky = data.get("keys") or []
+    if _ky:
+        L(_fit("KEYS   " + "  ".join(
+            f"{C_GRN}{_k['name']}+{C_RST}" if _k.get("ok") else f"{C_RED}{_k['name']}-{C_RST}"
+            for _k in _ky), width))
 
     # --- llm scoreboard: measured tok/s per local model ---
     _lm = data.get("llm") or []
