@@ -24,12 +24,13 @@ Usage:
 import json
 import time
 import random
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from dataclasses import dataclass, field
-import tkinter as tk
-from tkinter import ttk, scrolledtext
+# NOTE (3.14t port): tkinter imports live inside run_popup() — a top-level
+# import pointlessly hard-requires Tk on headless interpreters.
 
 
 @dataclass
@@ -72,9 +73,13 @@ class HYDRAMETAConfig:
         "C:/Users/clint/Desktop/TERENCE",
     ]
 
-    OUTPUT_PATH = "C:/Users/clint/Desktop/METAWORMS/output/hydrometa"
-    STATE_FILE = "C:/Users/clint/Desktop/METAWORMS/output/hydrometa/state.json"
-    TRIALS_FILE = "C:/Users/clint/Desktop/METAWORMS/output/hydrometa/trials.json"
+    # State lives with the repo (2026-09-09 3.14t port): the old
+    # C:/Users/clint/Desktop/METAWORMS tree never existed on this machine,
+    # so every save failed silently and no trial ever persisted.
+    _ROOT = Path(__file__).resolve().parent.parent
+    OUTPUT_PATH = str(_ROOT / "state" / "hydrometa")
+    STATE_FILE = str(_ROOT / "state" / "hydrometa" / "state.json")
+    TRIALS_FILE = str(_ROOT / "state" / "hydrometa" / "trials.json")
 
     WORMS = [
         "SYSTEMZ",
@@ -121,22 +126,30 @@ class HYDRAOptimizer:
 
     def __init__(self, config=None):
         self.config = config or HYDRAMETAConfig()
+        # 3.14t port: own lock + own RNG. The old code mutated shared
+        # state lock-free and reseeded the GLOBAL random module per call —
+        # benign under the 3.13 GIL-era single-threaded use, a race (and a
+        # determinism-poison for co-tenants like evolution's seeded evals)
+        # under free-threaded parallelism. RLock: get_best_params() can
+        # trigger initialize+evolve while holding the lock.
+        self._lock = threading.RLock()
+        self._rng = random.Random(time.time_ns() ^ id(self))
         self.population: list[dict] = []
         self.best_params: dict = {}
         self.best_score: float = 0.0
         self.trial_history: list[TrialResult] = []
 
     def _generate_params(self, seed: int = None) -> dict[str, Any]:
-        """Generate random parameters."""
-        random.seed(seed)
+        """Generate random parameters (instance RNG; seed arg kept for API)."""
+        rng = random.Random(seed) if seed is not None else self._rng
         return {
-            "interval": round(random.uniform(0.1, 5.0), 2),
-            "parallel": random.choice([True, False]),
-            "timeout": random.randint(5, 60),
-            "retry": random.randint(0, 3),
-            "priority": random.choice(["low", "normal", "high"]),
-            "batch_size": random.randint(1, 20),
-            "workers": random.randint(1, 8),
+            "interval": round(rng.uniform(0.1, 5.0), 2),
+            "parallel": rng.choice([True, False]),
+            "timeout": rng.randint(5, 60),
+            "retry": rng.randint(0, 3),
+            "priority": rng.choice(["low", "normal", "high"]),
+            "batch_size": rng.randint(1, 20),
+            "workers": rng.randint(1, 8),
         }
 
     def _fitness(self, params: dict, worms: list[str]) -> float:
@@ -154,72 +167,109 @@ class HYDRAOptimizer:
     def initialize_population(self, size: int = None):
         """Initialize population for optimization."""
         size = size or self.config.POPULATION_SIZE
-        self.population = []
+        pop = []
         for i in range(size):
             params = self._generate_params(seed=time.time_ns() + i)
             params["_score"] = self._fitness(params, [])
-            self.population.append(params)
-        self.best_params = self.population[0].copy()
-        self.best_score = self.best_params["_score"]
+            pop.append(params)
+        with self._lock:
+            self.population = pop
+            self.best_params = self.population[0].copy()
+            self.best_score = self.best_params["_score"]
 
     def evolve(self, num_generations: int = 5):
         """Evolve population through generations."""
         for gen in range(num_generations):
+            with self._lock:
+                current = list(self.population)
             new_population = []
-            for _ in range(len(self.population)):
-                parent = random.choice(self.population)
+            for _ in range(len(current)):
+                parent = self._rng.choice(current)
                 child = self._mutate(parent)
                 child["_score"] = self._fitness(child, [])
                 new_population.append(child)
-            self.population = sorted(
-                self.population + new_population,
-                key=lambda x: x.get("_score", 0),
-                reverse=True,
-            )[: len(self.population)]
-            if self.population[0].get("_score", 0) > self.best_score:
-                self.best_params = self.population[0].copy()
-                self.best_score = self.population[0]["_score"]
+            with self._lock:
+                self.population = sorted(
+                    current + new_population,
+                    key=lambda x: x.get("_score", 0),
+                    reverse=True,
+                )[: len(current)]
+                if self.population[0].get("_score", 0) > self.best_score:
+                    self.best_params = self.population[0].copy()
+                    self.best_score = self.population[0]["_score"]
 
     def _mutate(self, params: dict) -> dict:
         """Mutate parameters."""
         child = params.copy()
-        if random.random() < self.config.MUTATION_RATE:
+        rng, rate = self._rng, self.config.MUTATION_RATE
+        if rng.random() < rate:
             child["interval"] = round(
-                child.get("interval", 1) + random.uniform(-0.5, 0.5), 2
+                child.get("interval", 1) + rng.uniform(-0.5, 0.5), 2
             )
-        if random.random() < self.config.MUTATION_RATE:
+        if rng.random() < rate:
             child["timeout"] = max(
-                5, child.get("timeout", 30) + random.randint(-10, 10)
+                5, child.get("timeout", 30) + rng.randint(-10, 10)
             )
-        if random.random() < self.config.MUTATION_RATE:
+        if rng.random() < rate:
             child["retry"] = max(
-                0, min(5, child.get("retry", 0) + random.randint(-1, 1))
+                0, min(5, child.get("retry", 0) + rng.randint(-1, 1))
             )
-        if random.random() < self.config.MUTATION_RATE:
+        if rng.random() < rate:
             child["parallel"] = not child.get("parallel", False)
-        if random.random() < self.config.MUTATION_RATE:
-            child["priority"] = random.choice(["low", "normal", "high"])
-        if random.random() < self.config.MUTATION_RATE:
+        if rng.random() < rate:
+            child["priority"] = rng.choice(["low", "normal", "high"])
+        if rng.random() < rate:
             child["batch_size"] = max(
-                1, min(50, child.get("batch_size", 10) + random.randint(-5, 5))
+                1, min(50, child.get("batch_size", 10) + rng.randint(-5, 5))
             )
         return child
 
+    def record_trial(self, result: TrialResult) -> None:
+        """Thread-safe history append (3.14t port)."""
+        with self._lock:
+            self.trial_history.append(result)
+
     def run_trial(
-        self, trial_id: str, worm_sequence: list[str], params: dict
+        self, trial_id: str, worm_sequence: list[str], params: dict,
+        executor=None,
     ) -> TrialResult:
-        """Run a single optimization trial."""
+        """Run a single optimization trial.
+
+        3.14t port: with executor(worm, params) -> {success, duration_ms,
+        ...} the trial MEASURES real executions; without one it falls back
+        to the legacy simulated estimates (flagged simulated=True) so
+        direct optimizer use keeps working. HYDRAMETA.run_trials always
+        passes its real executor.
+        """
         start = time.time()
-
-        duration = random.uniform(100, 500) * len(worm_sequence)
-        efficiency = self._fitness(params, worm_sequence)
-
-        metrics = {
-            "cpu_usage": random.uniform(10, 50),
-            "memory_usage": random.uniform(20, 60),
-            "disk_io": random.uniform(5, 30),
-            "success_rate": random.uniform(0.8, 1.0),
-        }
+        if executor is None:
+            duration = self._rng.uniform(100, 500) * len(worm_sequence)
+            efficiency = self._fitness(params, worm_sequence)
+            metrics = {
+                "cpu_usage": self._rng.uniform(10, 50),
+                "memory_usage": self._rng.uniform(20, 60),
+                "disk_io": self._rng.uniform(5, 30),
+                "success_rate": self._rng.uniform(0.8, 1.0),
+                "simulated": True,
+            }
+        else:
+            effs, succs, total_ms = [], 0, 0.0
+            for worm in worm_sequence:
+                try:
+                    r = executor(worm, params) or {}
+                except Exception:
+                    r = {"success": False, "duration_ms": 0.0}
+                ok = bool(r.get("success", False))
+                ms = float(r.get("duration_ms", 0.0) or 0.0)
+                succs += 1 if ok else 0
+                total_ms += ms
+                effs.append((100.0 - min(ms, 1000.0) / 10.0) if ok else 0.0)
+            duration = (time.time() - start) * 1000.0
+            efficiency = round(sum(effs) / len(effs), 3) if effs else 0.0
+            metrics = {
+                "success_rate": round(succs / len(worm_sequence), 3) if worm_sequence else 0.0,
+                "measured": True,
+            }
 
         result = TrialResult(
             trial_id=trial_id,
@@ -230,15 +280,18 @@ class HYDRAOptimizer:
             metrics=metrics,
         )
 
-        self.trial_history.append(result)
+        self.record_trial(result)
         return result
 
     def get_best_params(self) -> dict:
         """Get best parameters from optimization."""
-        if not self.best_params:
+        with self._lock:
+            empty = not self.best_params
+        if empty:
             self.initialize_population()
             self.evolve()
-        return {k: v for k, v in self.best_params.items() if not k.startswith("_")}
+        with self._lock:
+            return {k: v for k, v in self.best_params.items() if not k.startswith("_")}
 
     def get_trial_history(self) -> list[dict]:
         """Get trial history."""
@@ -258,6 +311,8 @@ class PersistenceManager:
     """Persistence manager for HYDRAMETA state."""
 
     def __init__(self, state_file: str, trials_file: str):
+        # RLock (3.14t port): update_worm_performance -> save_state nests.
+        self._lock = threading.RLock()
         self.state_file = Path(state_file)
         self.trials_file = Path(trials_file)
         self.state: dict = self._load_state()
@@ -290,20 +345,23 @@ class PersistenceManager:
         return []
 
     def save_state(self, state: dict):
-        """Save state."""
+        """Save state (creates parent dirs; 3.14t port added parents=True —
+        the old exist_ok-only call failed on nested missing trees)."""
         try:
-            self.state_file.parent.mkdir(exist_ok=True)
-            self.state_file.write_text(json.dumps(state, indent=2))
-            self.state = state
+            with self._lock:
+                self.state_file.parent.mkdir(parents=True, exist_ok=True)
+                self.state_file.write_text(json.dumps(state, indent=2))
+                self.state = state
         except Exception as e:
             print(f"[HYDRAMETA] State save error: {e}")
 
     def save_trials(self, trials: list[dict]):
         """Save trials."""
         try:
-            self.trials_file.parent.mkdir(exist_ok=True)
-            self.trials_file.write_text(json.dumps(trials, indent=2))
-            self.trials = trials
+            with self._lock:
+                self.trials_file.parent.mkdir(parents=True, exist_ok=True)
+                self.trials_file.write_text(json.dumps(trials, indent=2))
+                self.trials = trials
         except Exception as e:
             print(f"[HYDRAMETA] Trials save error: {e}")
 
@@ -312,24 +370,32 @@ class PersistenceManager:
         return self.state
 
     def update_worm_performance(self, worm_name: str, metrics: dict):
-        """Update worm performance metrics."""
-        if "worm_performance" not in self.state:
-            self.state["worm_performance"] = {}
-        if worm_name not in self.state["worm_performance"]:
-            self.state["worm_performance"][worm_name] = {
-                "executions": 0,
-                "avg_duration": 0,
-                "success_rate": 1.0,
-                "efficiency": 0,
-            }
-        wp = self.state["worm_performance"][worm_name]
-        wp["executions"] += 1
-        wp["avg_duration"] = (
-            wp["avg_duration"] * (wp["executions"] - 1) + metrics.get("duration", 0)
-        ) / wp["executions"]
-        wp["success_rate"] = metrics.get("success_rate", wp["success_rate"])
-        wp["efficiency"] = metrics.get("efficiency", wp["efficiency"])
-        self.save_state(self.state)
+        """Update worm performance metrics (locked; nests save_state)."""
+        with self._lock:
+            if "worm_performance" not in self.state:
+                self.state["worm_performance"] = {}
+            if worm_name not in self.state["worm_performance"]:
+                self.state["worm_performance"][worm_name] = {
+                    "executions": 0,
+                    "avg_duration": 0,
+                    "success_rate": 1.0,
+                    "efficiency": 0,
+                }
+            wp = self.state["worm_performance"][worm_name]
+            wp["executions"] += 1
+            wp["avg_duration"] = (
+                wp["avg_duration"] * (wp["executions"] - 1) + metrics.get("duration", 0)
+            ) / wp["executions"]
+            wp["success_rate"] = metrics.get("success_rate", wp["success_rate"])
+            wp["efficiency"] = metrics.get("efficiency", wp["efficiency"])
+            self.save_state(self.state)
+
+    def record_run(self) -> None:
+        """Locked total_runs increment (3.14t port: read-modify-write)."""
+        with self._lock:
+            self.state["last_run"] = datetime.now().isoformat()
+            self.state["total_runs"] = self.state.get("total_runs", 0) + 1
+            self.save_state(self.state)
 
     def get_best_sequence(self) -> list[str]:
         """Get best worm sequence."""
@@ -352,7 +418,27 @@ class HYDRAMETA:
         self.persistence = PersistenceManager(
             self.config.STATE_FILE, self.config.TRIALS_FILE
         )
+        # 3.14t port: own lock + RNG (running flag and strategy sampling
+        # were shared unsynchronized globals-adjacent state).
+        self._lock = threading.RLock()
+        self._rng = random.Random(time.time_ns() ^ id(self))
         self.running = False
+
+    def _import_worm_module(self, name: str):
+        """Resolve a legacy worm module: top-level, then CORE.WORMS.
+
+        3.14t port: bare `import X` only works from legacy CWDs; the
+        fallback keeps headless/scheduled use working. None = unresolvable.
+        """
+        try:
+            return __import__(name)
+        except ImportError:
+            pass
+        try:
+            import importlib
+            return importlib.import_module(f"CORE.WORMS.{name}")
+        except ImportError:
+            return None
 
     def _select_worms_strategy(
         self, strategy: str = "ml_optimized", count: int = 5
@@ -383,46 +469,40 @@ class HYDRAMETA:
 
         try:
             if worm_name == "SYSTEMZ":
-                import SYSTEMZ
-
-                sz = SYSTEMZ.SYSTEMZ()
-                result = sz.get_status()
+                mod = self._import_worm_module("SYSTEMZ")
+                result = mod.SYSTEMZ().get_status().__dict__ if mod else {"error": "unresolvable module"}
             elif worm_name == "PROCESSZ":
-                import PROCESSZ
-
-                pz = PROCESSZ.PROCESSZ()
-                result = pz.get_summary()
+                mod = self._import_worm_module("PROCESSZ")
+                result = mod.PROCESSZ().get_summary() if mod else {"error": "unresolvable module"}
             elif worm_name == "DISKZ":
-                import DISKZ
-
-                dz = DISKZ.DISKZ()
-                result = dz.get_summary()
+                mod = self._import_worm_module("DISKZ")
+                result = mod.DISKZ().get_summary() if mod else {"error": "unresolvable module"}
             elif worm_name == "NETWORXZ":
-                import NETWORXZ
-
-                nz = NETWORXZ.NETWORXZ()
-                result = nz.get_summary()
+                mod = self._import_worm_module("NETWORXZ")
+                result = mod.NETWORXZ().get_summary() if mod else {"error": "unresolvable module"}
             elif worm_name == "CLOCKZ":
-                import CLOCKZ
-
-                cz = CLOCKZ.CLOCKZ()
-                result = cz.get_uptime()
+                mod = self._import_worm_module("CLOCKZ")
+                result = mod.CLOCKZ().get_uptime() if mod else {"error": "unresolvable module"}
             elif worm_name == "OPTIMIZ":
-                import OPTIMIZ
-
-                oz = OPTIMIZ.OPTIMIZ()
-                result = oz.analyze()
+                mod = self._import_worm_module("OPTIMIZ")
+                result = mod.OPTIMIZ().analyze() if mod else {"error": "unresolvable module"}
             elif worm_name == "HEALTHZ":
-                import HEALTHZ
-
-                hz = HEALTHZ.HEALTHZ()
-                result = hz.check()
+                mod = self._import_worm_module("HEALTHZ")
+                result = mod.HEALTHZ().check() if mod else {"error": "unresolvable module"}
             else:
                 result = {"status": "skipped", "worm": worm_name}
         except Exception as e:
             success = False
             error = str(e)
             result = {"error": error}
+
+        # A known worm whose module can't be resolved is a FAILURE, not a
+        # skip — otherwise missing modules inflate the measured success
+        # rate the optimizer learns from (3.14t port honesty fix).
+        # Other names stay neutral skips (not dispatchable here).
+        if success and isinstance(result, dict) and result.get("error"):
+            success = False
+            error = str(result["error"])[:300]
 
         duration = (time.time() - start) * 1000
 
@@ -448,7 +528,8 @@ class HYDRAMETA:
         self, strategy: str = "ml_optimized", count: int = 5, params: dict = None
     ) -> dict:
         """Run worms with optimized parameters."""
-        self.running = True
+        with self._lock:
+            self.running = True
         start_time = time.time()
 
         params = params or self.optimizer.get_best_params()
@@ -464,9 +545,7 @@ class HYDRAMETA:
         duration = (time.time() - start_time) * 1000
         success_count = sum(1 for r in results if r["success"])
 
-        self.persistence.state["last_run"] = datetime.now().isoformat()
-        self.persistence.state["total_runs"] += 1
-        self.persistence.save_state(self.persistence.state)
+        self.persistence.record_run()
 
         return {
             "strategy": strategy,
@@ -478,7 +557,12 @@ class HYDRAMETA:
         }
 
     def run_trials(self, num_trials: int = None) -> list[TrialResult]:
-        """Run optimization trials."""
+        """Run optimization trials with REAL measured executions.
+
+        3.14t port: trials execute the worm sequence through _execute_worm
+        and score measured success/duration instead of the legacy random
+        estimates. Strategy/count sampling uses the instance RNG.
+        """
         num_trials = num_trials or self.config.NUM_TRIALS
         self.optimizer.initialize_population()
 
@@ -486,11 +570,12 @@ class HYDRAMETA:
         for i in range(num_trials):
             trial_id = f"trial_{i + 1}_{int(time.time())}"
             worms = self._select_worms_strategy(
-                random.choice(HYDRAMETAConfig.ALTERNATING_STRATEGIES),
-                random.randint(3, 8),
+                self._rng.choice(HYDRAMETAConfig.ALTERNATING_STRATEGIES),
+                self._rng.randint(3, 8),
             )
             params = self._generate_optimized_params()
-            result = self.optimizer.run_trial(trial_id, worms, params)
+            result = self.optimizer.run_trial(
+                trial_id, worms, params, executor=self._execute_worm)
             results.append(result)
 
         self.optimizer.evolve(num_generations=3)
@@ -506,14 +591,15 @@ class HYDRAMETA:
 
     def _generate_optimized_params(self) -> dict:
         """Generate optimized parameters from best practices."""
+        rng = self._rng
         return {
-            "interval": round(random.uniform(0.5, 2.0), 2),
-            "parallel": random.choice([True, False]),
-            "timeout": random.randint(10, 30),
-            "retry": random.randint(1, 2),
+            "interval": round(rng.uniform(0.5, 2.0), 2),
+            "parallel": rng.choice([True, False]),
+            "timeout": rng.randint(10, 30),
+            "retry": rng.randint(1, 2),
             "priority": "normal",
-            "batch_size": random.randint(5, 15),
-            "workers": random.randint(2, 4),
+            "batch_size": rng.randint(5, 15),
+            "workers": rng.randint(2, 4),
         }
 
     def analyze_performance(self) -> dict:
@@ -547,6 +633,8 @@ class HYDRAMETA:
 
 def run_popup():
     """Run HYDRAMETA with popup window."""
+    import tkinter as tk
+    from tkinter import ttk, scrolledtext
     root = tk.Tk()
     root.title("HYDRAMETA - Hydratic Meta-Worms with HYDRA ML")
     root.geometry("1100x850")
