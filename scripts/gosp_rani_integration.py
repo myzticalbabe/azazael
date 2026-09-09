@@ -58,6 +58,7 @@ def main() -> int:
     report = {
         "test": "GOSP x RANI integration",
         "date": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "backend": "GOSP",
         "gosp": "gossamer-oxford-parser (Montague/lambda, 26/26 tests)",
         "rani": "EveUnleashed_Selector agents/adversarial AdversarialEngine",
         "mode": "deterministic (no LLM backend)",
@@ -78,7 +79,7 @@ def main() -> int:
     AdversarialConfig = _mod.AdversarialConfig
 
     engine = AdversarialEngine(AdversarialConfig(adversarial_rounds=4, recursion_depth=2))
-    engine.register_inference(gosp_infer)
+    engine.register_inference(gosp_infer, name="GOSP")
 
     probe = "Every board member who approved the compensation plan voted."
     probe_rec = {"base_prompt": probe, "rounds": [], "layers": []}
@@ -89,6 +90,7 @@ def main() -> int:
         probe_rec["rounds"].append(
             {
                 "round_id": r.round_id,
+                "backend": r.backend,
                 "prompt": r.prompt[:120],
                 "score": r.score,
                 "critique": r.critique,
