@@ -29,11 +29,17 @@ LEDGER_PATH = os.path.abspath(os.path.join(
     "..", "config", "track_bandit.json"))
 
 EPSILON = 0.15  # uniform-exploration floor (same seed stream as picks)
+STALE_SLOTS = 48  # backstop (4h): no track goes longer unpicked (2026-09-09
+# fix: pure Thompson converged on WORMGA/DPO and starved 11 SB3 tracks for
+# 4+ hours. Starved SB3 also rots DPO's chosen/rejected pairs, so coverage
+# is systemic, not cosmetic.)
+COOLDOWN_SLOTS = 4  # after a pick, a track sits out 4 slots (~20 min):
+# caps any single track at ~20% share so concentration can't recur.
 
 
 def _blank(tracks):
-    return {t: {"a": 1, "b": 1, "picks": 0, "wins": 0, "last_slot": None}
-            for t in tracks}
+    return {t: {"a": 1, "b": 1, "picks": 0, "wins": 0, "last_slot": None,
+                "cool": 0} for t in tracks}
 
 
 def load_ledger(tracks):
@@ -51,7 +57,8 @@ def load_ledger(tracks):
                       "b": max(1, int(st.get("b", 1))),
                       "picks": int(st.get("picks", 0)),
                       "wins": int(st.get("wins", 0)),
-                      "last_slot": st.get("last_slot")}
+                      "last_slot": st.get("last_slot"),
+                      "cool": int(st.get("cool", 0) or 0)}
         except (ValueError, TypeError):
             pass
     return out
@@ -69,10 +76,34 @@ def save_ledger(ledger):
 
 
 def pick(slot, ledger, tracks, epsilon=EPSILON):
-    """Deterministic track choice for a slot: epsilon-greedy Thompson."""
-    rng = random.Random(int(slot))
+    """Deterministic track choice: staleness backstop, cooldown cap, then
+    epsilon-greedy Thompson. Never-seen tracks (last_slot None) count as
+    infinitely stale so newcomers are tried immediately."""
+    slot = int(slot)
+    pool = [t for t in tracks
+            if int(((ledger or {}).get(t) or {}).get("cool", 0) or 0) <= slot]
+    if not pool:
+        pool = list(tracks)
+    stalest, stalest_age = None, -1
+    for t in pool:
+        st = (ledger or {}).get(t) or {}
+        ls = st.get("last_slot")
+        age = (slot - int(ls)) if ls is not None else 10 ** 9
+        if age > stalest_age:
+            stalest, stalest_age = t, age
+    if stalest is not None and stalest_age > STALE_SLOTS:
+        return stalest
+    rng = random.Random(slot)
     if rng.random() < epsilon:
-        return rng.choice(list(tracks))
+        return rng.choice(pool)
+    best, best_v = None, -1.0
+    for t in pool:
+        st = (ledger or {}).get(t) or {"a": 1, "b": 1}
+        v = rng.betavariate(max(1, int(st.get("a", 1))),
+                            max(1, int(st.get("b", 1))))
+        if v > best_v:
+            best, best_v = t, v
+    return best if best is not None else pool[0]
     best, best_v = None, -1.0
     for t in tracks:
         st = (ledger or {}).get(t) or {"a": 1, "b": 1}
@@ -95,6 +126,10 @@ def observe(ledger, algo, won, slot=None):
         st["b"] += 1
     st["picks"] += 1
     st["last_slot"] = slot
+    try:
+        st["cool"] = int(slot or 0) + COOLDOWN_SLOTS
+    except (ValueError, TypeError):
+        pass
     save_ledger(ledger)
     return ledger
 

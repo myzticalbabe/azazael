@@ -328,12 +328,15 @@ def collect(con):
     data = {}
 
     data["freshness"] = []
-    # training freshness: the SB3 rotation records sb3_training_orchestrated
-    # (not training_complete), and the RL pipeline records
-    # training_run_complete — watch the newest of all three or the loop
-    # looks stale while training constantly (2026-09-09 fix).
+    # training freshness: watch the newest of EVERY training event type.
+    # (2026-09-09 fix: the original 3-type list missed GRPO/DPO/OFFLINE/
+    # DREAMTUNE/WORMGA rows, so training read stale for hours while those
+    # tracks ran constantly.)
     train_evts = ("training_complete", "sb3_training_orchestrated",
-                  "training_run_complete")
+                  "training_run_complete", "grpo_training_orchestrated",
+                  "dpo_training_orchestrated", "offline_training_orchestrated",
+                  "dreamtune_training_orchestrated",
+                  "wormga_training_orchestrated")
     for et, label in [("evolution_result", "evolution"), ("strategy_steered", "metacog/steer"),
                       ("dream_generated", "dreaming"), ("training_complete", "training")]:
         rows = latest(con, et, 1)
