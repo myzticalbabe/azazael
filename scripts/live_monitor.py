@@ -51,8 +51,29 @@ C_GRN = "\x1b[92m"
 C_YEL = "\x1b[93m"
 C_CYN = "\x1b[96m"
 C_BLD = "\x1b[1m"
-C_ORG = "\x1b[38;5;202m"   # red-orange for the GOSP title
+C_ORG = "\x1b[38;5;202m"   # red-orange (legacy GOSP title; now rainbow)
 C_RST = "\x1b[0m"
+
+# rainbow wheel (256-color hue rotation) for the twinkling GOSP line
+_RAINBOW = [196, 202, 208, 214, 220, 190, 154, 118, 82, 46,
+            49, 51, 45, 39, 33, 27, 93, 129, 165, 201]
+_FRAME_NO = [0]   # increments per render -> colors drift = twinkle
+
+
+def _rainbow(text, width, step=3):
+    """Per-character rainbow gradient that shifts every frame (twinkle).
+
+    Truncates to width FIRST (visible chars), then colorizes, so the
+    frame math stays exact and lines never wrap.
+    """
+    import re
+    plain = re.sub("\x1b\\[[0-9;]*m", "", text)[:max(0, width)]
+    frame = _FRAME_NO[0]
+    out = []
+    for i, ch in enumerate(plain):
+        out.append(f"\x1b[38;5;{_RAINBOW[(i + frame * step) % len(_RAINBOW)]}m{ch}")
+    out.append(C_RST)
+    return "".join(out)
 
 # sparkline glyphs: 0..8 levels, pure ASCII so cmd codepage never mangles
 _SPARK = " .:-=+*#%"
@@ -625,6 +646,7 @@ def render(data, now):
     """
     width, height = shutil.get_terminal_size((100, 30))
     width = max(64, min(width, 200))
+    _FRAME_NO[0] += 1   # twinkle step for the rainbow GOSP line
     # Priority drop for short windows (2026-09-09): the bottom sections
     # (TRAIN grid, verdict) must never be cut — drop detail lines first.
     show_climb = height >= 22
@@ -687,17 +709,19 @@ def render(data, now):
                                      "tournament_size", "early_stop_patience",
                                      "early_stop_tolerance")
                          if _cand.get(k) != _mp.get(k)]
+                _cr, _cs = _m.get("candidate_runs", 0), _m.get("candidate_sum", 0.0)
+                _cmean = f" mean{_cs / _cr:+.2f}" if _cr else ""
                 if _diff:
                     _meta_txt += (f"  {C_YEL}testing {_diff[0]}={_cand[_diff[0]]} "
-                                  f"({_m.get('candidate_runs', 0)}/3){C_RST}")
+                                  f"({_cr}/3{_cmean}){C_RST}")
                 else:
-                    _meta_txt += f"  {C_YEL}testing candidate{C_RST}"
+                    _meta_txt += f"  {C_YEL}testing candidate ({_cr}/3{_cmean}){C_RST}"
         else:
             _meta_txt = "META   no meta state yet (first scored cycle still running)"
         L(_fit(_meta_txt, width))
         _g = data.get("gosp") or {}
         _gl = _g.get("learner") or {}
-        L(_fit(f"{C_ORG}{C_BLD}Gossamer Oxford Semantical Parser{C_RST}", width))
+        _gtxt = "Gossamer Oxford Semantical Parser"
         if _gl:
             _gsegs = []
             if _gl.get("iter") is not None:
@@ -708,18 +732,27 @@ def render(data, now):
                 _gsegs.append(f"acc={_gl['acc']}")
             if _gl.get("docs") is not None:
                 _gsegs.append(f"docs={_gl['docs']}")
-            _gline = "GOSP   " + " ".join(_gsegs)
+            _gtxt += "  " + " ".join(_gsegs)
             if _gl.get("mover") and _gl["mover"] != "?":
-                _gline += f"  top mover {_gl['mover']} {_gl.get('mfrom')}->{_gl.get('mto')}"
+                _gtxt += f"  top mover {_gl['mover']} {_gl.get('mfrom')}->{_gl.get('mto')}"
             _gp = _g.get("parity") or {}
             if _gp.get("total"):
-                _gline += f"  parity {_gp['agree']}/{_gp['total']}"
+                _gtxt += f"  parity {_gp['agree']}/{_gp['total']}"
             _gr = _g.get("rani") or {}
             if _gr.get("mode"):
-                _gline += f"  rani {_gr['mode'].split(' ')[0]}"
-            L(_fit(_gline, width))
+                _gtxt += f"  rani {_gr['mode'].split(' ')[0]}"
         else:
-            L(_fit("GOSP   no learner evidence yet (run gosp_learner_train.py in WSL)", width))
+            _gtxt += "  no learner evidence yet (run gosp_learner_train.py in WSL)"
+        L(_rainbow(_gtxt, width))
+        # evo genetics detail: champion re-eval, beat rate, pool mix
+        _champs = [e2.get("champ") for e2 in evo[:2]]
+        _champ_txt = "champ " + "->".join("%.2f" % c for c in _champs if c is not None) or "champ n/a"
+        _beat_n = sum(1 for e2 in evo[:10] if e2.get("beats"))
+        _pool0 = evo[0].get("pool") or {}
+        _pmix = "/".join(f"{k}={_pool0[k]}" for k in ("info", "critical", "warning")
+                         if isinstance(_pool0.get(k), (int, float)))
+        L(_fit(f"EVO2   {_champ_txt}  beats {_beat_n}/{min(10, len(evo))}  pool {_pmix}"
+               + (f"  run gens={len(evo[0].get('traj') or [])}" if evo[0].get("traj") else ""), width))
         # pool drift: hard-alert inflow (starvation would freeze this)
         pool = e.get("pool") or {}
         hard = pool.get("hard_count")
@@ -738,7 +771,7 @@ def render(data, now):
             if hard_stale is not None and hard_stale > 24:
                 pool_txt += f"  {C_RED}(stale {hard_stale:.0f}h){C_RST}"
         L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f} eps={g.get('epsilon', 0):.4f} "
-                 f"disc={g.get('discount', 0):.4f}  [{e['fit']}]{pool_txt}", width)) if show_genes else None
+                 f"disc={g.get('discount', 0):.4f} dec={g.get('epsilon_decay', 0):.4f}  [{e['fit']}]{pool_txt}", width)) if show_genes else None
         bests = [e2["best"] for e2 in evo][::-1]
         if show_climb:
             L(f"CLIMB ({len(bests)} runs, newest right) {C_CYN}{sparkline(bests, width=max(10, width - 30))}{C_RST}")
