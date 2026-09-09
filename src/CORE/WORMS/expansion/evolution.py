@@ -930,8 +930,12 @@ class GeneticOptimizer:
         if not engine:
             return {"error": f"No engine initialized for {worm_type}"}
 
+        # Fail loud without an explicit fitness (2026-09-09 fix): the old
+        # placeholder (mean of gene values) silently "optimized" worms
+        # toward MAXIMUM parameter values — the opposite of tuning.
         if fitness_fn is None:
-            fitness_fn = lambda g: sum(g.genes.values()) / len(g.genes)
+            return {"error": "fitness_fn is required (no safe default: higher "
+                             "is not better for timeouts/scales/depths)"}
 
         history = []
         for gen in range(generations):
