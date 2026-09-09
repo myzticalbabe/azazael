@@ -19,7 +19,17 @@ from pathlib import Path
 sys.path.insert(0, "/root/workspace/projects/gossamer-oxford-parser")
 from semantical_main import GossamerOxfordParser  # noqa: E402
 
-GOSP_EXE = "/mnt/c/Users/clint/gosp_parity/gosp.exe"
+def _find_gosp_exe() -> str:
+    """Resolve the Rust gosp.exe (2026-09-09 fix: it lives in
+    gosp_cli_run/, not gosp_parity/ — check both instead of crashing)."""
+    for cand in ("/mnt/c/Users/clint/gosp_parity/gosp.exe",
+                 "/mnt/c/Users/clint/gosp_cli_run/gosp.exe"):
+        if Path(cand).exists():
+            return cand
+    return "/mnt/c/Users/clint/gosp_parity/gosp.exe"
+
+
+GOSP_EXE = _find_gosp_exe()
 PARITY = Path("/mnt/c/Users/clint/gosp_parity")
 OUT = Path("/mnt/c/Users/clint/GOSP_PARITY_evidence.json")
 # Windows process needs Windows-style paths (interop does not translate argv)
