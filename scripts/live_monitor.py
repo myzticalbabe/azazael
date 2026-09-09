@@ -51,29 +51,8 @@ C_GRN = "\x1b[92m"
 C_YEL = "\x1b[93m"
 C_CYN = "\x1b[96m"
 C_BLD = "\x1b[1m"
-C_ORG = "\x1b[38;5;202m"   # red-orange (legacy GOSP title; now rainbow)
+C_ORG = "\x1b[38;5;202m"   # red-orange GOSP title
 C_RST = "\x1b[0m"
-
-# rainbow wheel (256-color hue rotation) for the twinkling GOSP line
-_RAINBOW = [196, 202, 208, 214, 220, 190, 154, 118, 82, 46,
-            49, 51, 45, 39, 33, 27, 93, 129, 165, 201]
-_FRAME_NO = [0]   # increments per render -> colors drift = twinkle
-
-
-def _rainbow(text, width, step=3):
-    """Per-character rainbow gradient that shifts every frame (twinkle).
-
-    Truncates to width FIRST (visible chars), then colorizes, so the
-    frame math stays exact and lines never wrap.
-    """
-    import re
-    plain = re.sub("\x1b\\[[0-9;]*m", "", text)[:max(0, width)]
-    frame = _FRAME_NO[0]
-    out = []
-    for i, ch in enumerate(plain):
-        out.append(f"\x1b[38;5;{_RAINBOW[(i + frame * step) % len(_RAINBOW)]}m{ch}")
-    out.append(C_RST)
-    return "".join(out)
 
 # sparkline glyphs: 0..8 levels, pure ASCII so cmd codepage never mangles
 _SPARK = " .:-=+*#%"
@@ -646,7 +625,6 @@ def render(data, now):
     """
     width, height = shutil.get_terminal_size((100, 30))
     width = max(64, min(width, 200))
-    _FRAME_NO[0] += 1   # twinkle step for the rainbow GOSP line
     # Priority drop for short windows (2026-09-09): the bottom sections
     # (TRAIN grid, verdict) must never be cut — drop detail lines first.
     show_climb = height >= 22
@@ -721,7 +699,8 @@ def render(data, now):
         L(_fit(_meta_txt, width))
         _g = data.get("gosp") or {}
         _gl = _g.get("learner") or {}
-        _gtxt = "Gossamer Oxford Semantical Parser"
+        L(_fit(f"{C_ORG}{C_BLD}Gossamer Oxford Semantical Parser{C_RST}", width))
+        _gtxt = "GOSP  "
         if _gl:
             _gsegs = []
             if _gl.get("iter") is not None:
@@ -742,8 +721,8 @@ def render(data, now):
             if _gr.get("mode"):
                 _gtxt += f"  rani {_gr['mode'].split(' ')[0]}"
         else:
-            _gtxt += "  no learner evidence yet (run gosp_learner_train.py in WSL)"
-        L(_rainbow(_gtxt, width))
+            _gtxt += " no learner evidence yet (run gosp_learner_train.py in WSL)"
+        L(_fit(_gtxt, width))
         # evo genetics detail: champion re-eval, beat rate, pool mix
         _champs = [e2.get("champ") for e2 in evo[:2]]
         _champ_txt = "champ " + "->".join("%.2f" % c for c in _champs if c is not None) or "champ n/a"
