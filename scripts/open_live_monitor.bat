@@ -7,6 +7,10 @@ rem Press Ctrl+C inside the window to stop the dashboard (window still stays for
 
 title AZAZAEL LIVE MONITOR
 color 0A
+rem Fixed size so the full wallboard fits ONE screen for snapshots
+rem (118 wide keeps the training tail columns + verdict; 34 rows holds
+rem all 28 render lines + the header with headroom).
+mode con: cols=118 lines=34
 cd /d "%~dp0.."
 
 set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe
@@ -18,8 +22,7 @@ echo [%date% %time%] starting live monitor...
 echo.
 echo ============================================================
 echo  Monitor stopped or errored at %date% %time%.
-echo  Showing this window instead of closing so you can read it.
-echo  (Ctrl+C to fully close)
+echo  Relaunching in 10s (Ctrl+C to fully close)
 echo ============================================================
-pause
+timeout /t 10 /nobreak >nul
 goto loop

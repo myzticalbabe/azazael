@@ -51,6 +51,7 @@ C_GRN = "\x1b[92m"
 C_YEL = "\x1b[93m"
 C_CYN = "\x1b[96m"
 C_BLD = "\x1b[1m"
+C_ORG = "\x1b[38;5;202m"   # red-orange for the GOSP title
 C_RST = "\x1b[0m"
 
 # sparkline glyphs: 0..8 levels, pure ASCII so cmd codepage never mangles
@@ -356,6 +357,56 @@ def collect(con):
                 data["meta"] = json.load(f)
     except Exception:
         data["meta"] = None
+
+    # GOSP learner evidence (written by the WSL gosp_* scripts on each
+    # run; absent until the first run — all fields optional).
+    data["gosp"] = {"learner": None, "parity": None, "rani": None}
+    try:
+        _home = os.path.expanduser("~")
+        _lp = os.path.join(_home, "GOSP_LEARNER_TRAIN_evidence.json")
+        if os.path.exists(_lp):
+            with open(_lp, encoding="utf-8") as f:
+                _ld = json.load(f)
+            _wb, _wa = _ld.get("native_intel_weights_before") or {}, _ld.get("native_intel_weights_after") or {}
+            _mover, _mdelta = "?", 0.0
+            for _k, _v0 in _wb.items():
+                try:
+                    _dd = abs(float(_wa.get(_k, _v0)) - float(_v0))
+                except (ValueError, TypeError):
+                    continue
+                if _dd > abs(_mdelta):
+                    _mdelta, _mover = (_wa.get(_k, _v0) - _v0), _k
+            _aft = _ld.get("learner_state_after") or {}
+            data["gosp"]["learner"] = {
+                "docs": _ld.get("docs_fed"), "date": (_ld.get("date") or "")[:16],
+                "iter": _aft.get("iterations"), "conv": _aft.get("converged"),
+                "acc": _aft.get("current_accuracy"),
+                "mover": _mover, "mfrom": round(float(_wb.get(_mover, 0)), 3) if _mover in _wb else None,
+                "mto": round(float(_wa.get(_mover, 0)), 3) if _mover in _wa else None,
+            }
+        _pp = os.path.join(_home, "GOSP_PARITY_evidence.json")
+        if os.path.exists(_pp):
+            with open(_pp, encoding="utf-8") as f:
+                _pd = json.load(f)
+            _agree, _total = 0, 0
+            _ag = _pd.get("agreement") or {}
+            if isinstance(_ag, dict):
+                for _q, _r in _ag.items():
+                    if not isinstance(_r, dict):
+                        continue
+                    _total += 1
+                    if not _r.get("rust_only") and not _r.get("python_only"):
+                        _agree += 1
+            data["gosp"]["parity"] = {"agree": _agree, "total": _total,
+                                      "date": (_pd.get("date") or "")[:16]}
+        _rp = os.path.join(_home, "GOSP_RANI_INTEGRATION_evidence.json")
+        if os.path.exists(_rp):
+            with open(_rp, encoding="utf-8") as f:
+                _rd = json.load(f)
+            data["gosp"]["rani"] = {"mode": _rd.get("mode"),
+                                    "date": (_rd.get("date") or "")[:16]}
+    except Exception:
+        pass
     return data
 
 
@@ -723,6 +774,33 @@ def render(data, now):
     else:
         L(_fit("META   no meta state yet (first scored cycle still running)", width))
 
+    # --- GOSP native intelligence: title + learner evolution + parity ---
+    g = data.get("gosp") or {}
+    gl = g.get("learner") or {}
+    L(_fit(f"{C_ORG}{C_BLD}Gossamer Oxford Semantical Parser{C_RST}", width))
+    if gl:
+        _gsegs = []
+        if gl.get("iter") is not None:
+            _gsegs.append(f"iter={gl['iter']}")
+        if gl.get("conv") is not None:
+            _gsegs.append(f"conv={gl['conv']}")
+        if gl.get("acc") is not None:
+            _gsegs.append(f"acc={gl['acc']}")
+        if gl.get("docs") is not None:
+            _gsegs.append(f"docs={gl['docs']}")
+        _gline = "GOSP   " + " ".join(_gsegs)
+        if gl.get("mover") and gl["mover"] != "?":
+            _gline += f"  top mover {gl['mover']} {gl.get('mfrom')}->{gl.get('mto')}"
+        _gp = g.get("parity") or {}
+        if _gp.get("total"):
+            _gline += f"  parity {_gp['agree']}/{_gp['total']}"
+        _gr = g.get("rani") or {}
+        if _gr.get("mode"):
+            _gline += f"  rani {_gr['mode'].split(' ')[0]}"
+        L(_fit(_gline, width))
+    else:
+        L(_fit("GOSP   no learner evidence yet (run gosp_learner_train.py in WSL)", width))
+
     # --- alerts + verdict: fixed lines, only what fires ---
     if any_stale:
         L(_fit(f"{C_RED}STALE  {', '.join(f['label'] for f in data['freshness'] if not f['ok'])} "
@@ -816,6 +894,46 @@ def _paint_in_place(frame_lines):
     sys.stdout.flush()
 
 
+def _pid_alive(pid):
+    """Windows liveness check (2026-09-09 fix): os.kill(pid, 0) is not
+    supported on Windows (WinError 87) — it always raised, so every guard
+    using it never blocked. OpenProcess is the correct probe."""
+    try:
+        import ctypes
+        _SYNCHRONIZE = 0x00100000
+        h = ctypes.windll.kernel32.OpenProcess(_SYNCHRONIZE, False, int(pid))
+        if not h:
+            return False
+        ctypes.windll.kernel32.CloseHandle(h)
+        return True
+    except Exception:
+        return False
+
+
+def _single_instance():
+    """Exit if another live monitor is already running (2026-09-09).
+
+    Two painters would fight over consoles and double every log line.
+    Stale PID files are stolen (crash-safe), like dream_cycle's guard.
+    """
+    lock = os.path.join(tempfile.gettempdir(), "azazael_live_monitor.lock")
+    try:
+        with open(lock) as f:
+            old = int((f.read() or "0").strip() or 0)
+        if old and _pid_alive(old):
+            print(f"Another live monitor is already running (PID {old}) - not starting a second one.",
+                  file=sys.stderr)
+            return False
+    except (OSError, ValueError):
+        pass
+    try:
+        with open(lock, "w") as f:
+            f.write(str(os.getpid()))
+    except OSError:
+        pass
+    return True
+
+
 def main():
     global REFRESH, LOG_PATH
     ap = argparse.ArgumentParser(description="Persistent Azazael live dashboard")
@@ -824,6 +942,9 @@ def main():
     args = ap.parse_args()
     REFRESH = max(5, args.refresh)
     LOG_PATH = os.path.abspath(args.log)
+
+    if not _single_instance():
+        return 2
 
     con = db_connect()
     if con is None:
