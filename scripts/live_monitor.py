@@ -5,14 +5,18 @@ Reads the hot Windows DB (~/.azazael/memory_store.db, see DB default) and
 refreshes a dashboard every REFRESH seconds, forever. Built to run inside a
 console window that stays open (see open_live_monitor.bat).
 
-Shows, live, with plain-English interpretation:
-  - cycle freshness: minutes since last evolution_result / strategy_steered /
-    dream_generated / training_complete (red + FLASH when stale >15 min)
-  - evolution: latest run + last 5 trajectories + a climb sparkline of per-run
-    best fitness; beeps when a new all-time high appears
-  - steering: active strategy + what that strategy means
-  - activity: dreams & training in the last hour, avg dream quality
-  - bottom line: one-sentence verdict on how training is going
+Shows, live, with plain-English interpretation (detail in the log file):
+  - LOOPS: cycle freshness in one line (red when stale >15 min)
+  - EVO: latest best + promotion standing; GENES + climb sparkline
+  - META: meta-evolution champion search-params, margin EMA, live candidate
+  - STEER: active strategy + dream/adapt activity, width-adaptive
+  - TRAIN: fixed compact grid of all 15 tracks (reward + trend arrow)
+  - Verdict: one line; STALE/HARDPOOL alerts only when firing
+
+Fixed frame, truncate-never-wrap: the layout is bounded by construction
+at any window size (small windows show the same sections narrower).
+Detail (trajectories, fingerprints, explanations) lives in the rolling
+log file, not on screen.
 
 Every refresh is also appended to a rolling log file (logs/live_monitor.log,
 rotated at 1 MB) so you can review the day's history later.
@@ -117,6 +121,14 @@ def count_window(con, event_type, minutes):
         (event_type, cutoff.isoformat(timespec="seconds"))).fetchone()[0]
 
 
+def age_of_latest(con, event_type):
+    """Minutes since the newest event of this type, or None if never seen."""
+    rows = con.execute(
+        "SELECT timestamp FROM memories WHERE event_type=? ORDER BY id DESC LIMIT 1",
+        (event_type,)).fetchone()
+    return age_min(rows[0]) if rows else None
+
+
 def avg_quality(con, minutes):
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
     row = con.execute(
@@ -155,6 +167,15 @@ def evo_history(con, n=20):
     out = []
     for ts, d in latest(con, "evolution_result", n):
         traj = [float(x) for x in (d.get("trajectory") or [])]
+        # promotion standing + pool drift (2026-09-08): surfaced from the
+        # artifact so the wallboard shows whether the GA beats production
+        # and whether the eval pool is moving (fresh hard alerts).
+        pool = d.get("pool_fingerprint") or {}
+        if isinstance(pool, str):
+            try:
+                pool = json.loads(pool)
+            except Exception:
+                pool = {}
         out.append({
             "ts": ts,
             "traj": traj,
@@ -166,7 +187,84 @@ def evo_history(con, n=20):
             "info": d.get("best_info"),
             "alert": d.get("best_alert"),
             "fit": d.get("fitness", "v1"),
+            "baseline": d.get("baseline"),
+            "beats": bool(d.get("beats_baseline")),
+            "promoted": bool(d.get("promoted")),
+            "champ": d.get("champion_reeval"),
+            "pool": pool,
         })
+    return out
+
+
+# Training rotation — must match run_training_orchestrator.py's ROTATION
+# (order matters: next_rotation uses the same slot arithmetic).
+TRAIN_ALGOS = ("PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
+               "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL")
+TRAIN_EVENT_TYPES = ("sb3_training_orchestrated",
+                     "grpo_training_orchestrated",
+                     "dpo_training_orchestrated",
+                     "offline_training_orchestrated",
+                     "training_run_complete")
+# training_run_complete rows from before the RL track was wired (2026-09-09)
+# used a degenerate reward scale (25.0/50.0) — excluded from the wallboard.
+RL_LIVE_SINCE = "2026-09-09"
+
+
+def sb3_training(con, n=3):
+    """Latest training runs per algo + reward series (dashboard + web).
+
+    Covers all rotation tracks (SB3 PPO/DQN/A2C/SAC/TD3/DDPG/QRDQN/TRPO/TQC/
+    ARS/MaskablePPO, GRPO worm-selection, DPO preference learning, OFFLINE
+    holdout, RL scheduled pipeline). Same shape
+    for both viewers: {algo: latest runs,
+    series: reward history per algo, counts, next_rotation}. Rewards are None
+    for runs recorded before the reward-tracking fix (2026-09-08). GRPO/DPO
+    rewards are on a different scale than SB3 episode totals — the renderer
+    notes this.
+    """
+    ph = ",".join("?" for _ in TRAIN_EVENT_TYPES)
+    rows = con.execute(
+        "SELECT timestamp, event_type, source, data FROM memories WHERE event_type IN (%s) "
+        "ORDER BY id DESC LIMIT 500" % ph,
+        TRAIN_EVENT_TYPES).fetchall()
+    by_algo = {}
+    counts = {}
+    for ts, et, src, data in rows:
+        d = parse_data(data)
+        algo = d.get("algo")
+        if algo is None and et == "training_run_complete" and src == "ScheduledTrainingWorm":
+            if ts < RL_LIVE_SINCE:
+                continue
+            algo = "RL"
+            d = {"algo": "RL",
+                 "run_id": d.get("run_id"),
+                 "model_version": d.get("model_version"),
+                 "eval_mean_reward": d.get("avg_reward"),
+                 "eval_std_reward": None,
+                 "records_used": d.get("records"),
+                 "total_timesteps": None,
+                 "dpo_loss": None}
+        if not algo:
+            continue
+        counts[algo] = counts.get(algo, 0) + 1
+        by_algo.setdefault(algo, []).append({
+            "time_utc": ts,
+            "run_id": d.get("run_id"),
+            "model_version": d.get("model_version"),
+            "eval_mean_reward": d.get("eval_mean_reward"),
+            "eval_std_reward": d.get("eval_std_reward"),
+            "records_used": d.get("records_used"),
+            "total_timesteps": d.get("total_timesteps"),
+            "dpo_loss": d.get("dpo_loss"),
+        })
+    out = {a: by_algo.get(a, [])[:n] for a in TRAIN_ALGOS}
+    out["series"] = {
+        a: [{"time_utc": r["time_utc"], "reward": r["eval_mean_reward"]}
+            for r in by_algo.get(a, []) if r["eval_mean_reward"] is not None][:40]
+        for a in TRAIN_ALGOS
+    }
+    out["counts"] = counts
+    out["next_rotation"] = TRAIN_ALGOS[int(time.time()) // 300 % len(TRAIN_ALGOS)]
     return out
 
 
@@ -175,9 +273,26 @@ def collect(con):
     data = {}
 
     data["freshness"] = []
+    # training freshness: the SB3 rotation records sb3_training_orchestrated
+    # (not training_complete), and the RL pipeline records
+    # training_run_complete — watch the newest of all three or the loop
+    # looks stale while training constantly (2026-09-09 fix).
+    train_evts = ("training_complete", "sb3_training_orchestrated",
+                  "training_run_complete")
     for et, label in [("evolution_result", "evolution"), ("strategy_steered", "metacog/steer"),
                       ("dream_generated", "dreaming"), ("training_complete", "training")]:
         rows = latest(con, et, 1)
+        if et == "training_complete":
+            newest_ts, newest_age = None, None
+            for tet in train_evts:
+                r = latest(con, tet, 1)
+                if r:
+                    a = age_min(r[0][0])
+                    if newest_age is None or (a is not None and a < newest_age):
+                        newest_age, newest_ts = a, r[0][0]
+            data["freshness"].append({"label": label, "ts": newest_ts, "age": newest_age,
+                                      "ok": newest_age is not None and newest_age < 15})
+            continue
         if not rows:
             data["freshness"].append({"label": label, "ts": None, "age": None, "ok": False})
             continue
@@ -199,9 +314,45 @@ def collect(con):
         "dreams": count_window(con, "dream_generated", 60),
         "quality": round(avg_quality(con, 60), 3),
         "training": count_window(con, "training_complete", 60),
-        "adaptations": count_window(con, "strategy_adaptation", 60),
-        "policy_applied": count_window(con, "policy_applied", 60),
+        # Rolling 60-min counts of an every-5-min event sit pinned at ~12 and
+        # look frozen. Surface the age of the newest event instead so liveness
+        # is visible; counts stay in the log.
+        "adapt_age": age_of_latest(con, "strategy_adaptation"),
+        "apply_age": age_of_latest(con, "policy_applied"),
     }
+
+    # Last time the active strategy actually CHANGED (should_adapt rows), not
+    # merely when an adaptation was evaluated. This is what answers "has it
+    # adapted recently?"
+    data["last_flip"] = None
+    flip_rows = latest(con, "strategy_adaptation", 30)
+    for ts, d in flip_rows:
+        if isinstance(d, str):
+            try:
+                d = json.loads(d)
+            except Exception:
+                continue
+        if d.get("should_adapt"):
+            data["last_flip"] = {
+                "ts": ts, "age": age_min(ts),
+                "to": d.get("recommended_strategy") or d.get("current_strategy"),
+                "reason": (d.get("rationale") or "")[:60],
+            }
+            break
+
+    data["training"] = sb3_training(con)
+
+    # meta-evolution state (file-based, cheap; None until the first
+    # meta-scoring cycle writes config/evolved_meta_params.json).
+    data["meta"] = None
+    try:
+        meta_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "..", "config", "evolved_meta_params.json")
+        if os.path.exists(meta_path):
+            with open(meta_path, encoding="utf-8") as f:
+                data["meta"] = json.load(f)
+    except Exception:
+        data["meta"] = None
     return data
 
 
@@ -216,10 +367,10 @@ def explain(data):
     # --- freshness verdict ---
     stale = [f for f in data["freshness"] if not f["ok"]]
     if not stale:
-        out.append(("OK", "All 4 loops are firing on their 5-min cadence — training is live."))
+        out.append(("OK", "All 4 loops are firing on their 5-min cadence - training is live."))
     else:
         names = ", ".join(f["label"] for f in stale)
-        out.append(("WARN", f"{names} stale (>15 min) — check Windows Task Scheduler; "
+        out.append(("WARN", f"{names} stale (>15 min) - check Windows Task Scheduler; "
                             f"the loops can silently stop when trigger windows expire."))
 
     # --- evolution verdict ---
@@ -232,39 +383,52 @@ def explain(data):
         if recent > mid * 1.03:
             trend = f"climbing (recent {recent:.2f} vs avg {mid:.2f} of prior 3)"
         elif recent < mid * 0.97:
-            trend = f"dip (recent {recent:.2f} vs avg {mid:.2f} of prior 3 — normal noise, re-seeds each run)"
+            trend = f"dip (recent {recent:.2f} vs avg {mid:.2f} of prior 3 - normal noise, re-seeds each run)"
         else:
             trend = f"steady around {mid:.2f}"
         out.append(("EVO", f"best fitness {trend}."))
 
     if evo and evo[0]["flat"] is False:
-        out.append(("EVO", "trajectory is non-flat — reward is action-dependent, so evolution has a "
+        out.append(("EVO", "trajectory is non-flat - reward is action-dependent, so evolution has a "
                            "real gradient to climb (the reward fix is working)."))
     if evo:
         eps = evo[0]["genes"].get("epsilon", -1)
         if eps is not None and eps < 0.02:
-            out.append(("EVO", f"epsilon={eps:.3f} — near-pure exploitation: the policy has converged to "
+            out.append(("EVO", f"epsilon={eps:.3f} - near-pure exploitation: the policy has converged to "
                                "deterministic actions; random exploration now mostly hurts reward."))
         elif eps is not None and eps < 0.12:
-            out.append(("EVO", f"epsilon={eps:.3f} — mostly exploiting, light exploration remaining."))
+            out.append(("EVO", f"epsilon={eps:.3f} - mostly exploiting, light exploration remaining."))
         elif eps is not None:
-            out.append(("EVO", f"epsilon={eps:.3f} — still exploring widely; search is sampling new genes."))
+            out.append(("EVO", f"epsilon={eps:.3f} - still exploring widely; search is sampling new genes."))
 
     # --- steering verdict ---
     s = data["strategy"]
     if s["value"] != "?":
         meaning = STRATEGY_MEANING.get(s["value"].lower(),
-                                       "no canned description — check metacog output")
+                                       "no canned description - check metacog output")
         out.append(("STEER", f"strategy '{s['value']}' -> {meaning}."))
 
     # --- activity verdict ---
     a = data["activity"]
     if a["quality"] >= 0.6:
-        out.append(("ACT", f"dream quality {a['quality']:.2f} — healthy; dreams are being adopted."))
+        out.append(("ACT", f"dream quality {a['quality']:.2f} - healthy; dreams are being adopted."))
     elif a["quality"] >= 0.45:
-        out.append(("ACT", f"dream quality {a['quality']:.2f} — mediocre; many dreams may miss the 0.5 bar."))
+        out.append(("ACT", f"dream quality {a['quality']:.2f} - mediocre; many dreams may miss the 0.5 bar."))
     else:
-        out.append(("ACT", f"dream quality {a['quality']:.2f} — weak; check creativity factors."))
+        out.append(("ACT", f"dream quality {a['quality']:.2f} - weak; check creativity factors."))
+
+    # --- training verdict ---
+    tr = data.get("training", {})
+    # RL excluded from the lead comparison (2026-09-09): its reward is a
+    # Q-value average on a different scale than SB3 episode totals, but it
+    # stays visible in the grid.
+    scored = {a: r["eval_mean_reward"] for a in TRAIN_ALGOS if a != "RL"
+              for r in (tr.get(a) or [])[:1] if r.get("eval_mean_reward") is not None}
+    if len(scored) >= 2:
+        best = max(scored, key=scored.get)
+        others = [(a, v) for a, v in sorted(scored.items()) if a != best]
+        out.append(("EVO", f"Training lead: {best} (reward {scored[best]:.1f}) vs "
+                            + ", ".join(f"{a} {v:.1f}" for a, v in others)))
 
     return out
 
@@ -285,90 +449,265 @@ def bottom_line(data):
         parts.append(f"strategy {s['value']}")
     if a["dreams"]:
         parts.append(f"{a['dreams']} dreams/hr @ {a['quality']:.2f} quality")
+    tr = data.get("training", {})
+    # RL excluded from the lead comparison (2026-09-09): its reward is a
+    # Q-value average on a different scale than SB3 episode totals, but it
+    # stays visible in the grid.
+    scored = {a: r["eval_mean_reward"] for a in TRAIN_ALGOS if a != "RL"
+              for r in (tr.get(a) or [])[:1] if r.get("eval_mean_reward") is not None}
+    if scored:
+        best = max(scored, key=scored.get)
+        parts.append(f"training lead {best} ({scored[best]:.1f})")
     if not parts:
-        return "No data yet — waiting for the first cycle to fire."
+        return "No data yet - waiting for the first cycle to fire."
     return "Training is live: " + "; ".join(parts) + "."
 
 
+# Display names that are shorter than the registry algo keys.
+_ALGO_DISP = {"MaskablePPO": "MaskPPO"}
+# last-seen latest-run id per algo, for the "new run" flash
+_LAST_RUN_ID = {}
+
+
+def _algo_name(a):
+    return _ALGO_DISP.get(a, a)
+
+
+def _algo_trend(series):
+    """Up/down arrow of the two most recent rewards (series newest-first).
+
+    Returns '^' if the newest run beat the previous, 'v' if it fell, '=' if
+    equal, or '' when there aren't two usable points yet.
+    """
+    vals = [p["reward"] for p in series[:2] if p.get("reward") is not None]
+    if len(vals) < 2:
+        return ""
+    return "^" if vals[0] > vals[1] else ("v" if vals[0] < vals[1] else "=")
+
+
+def _last_run_meta(a, tr):
+    """Return (run, color) for an algo's newest run, updating the flash map."""
+    runs = tr.get(a) or []
+    if not runs:
+        return None, ""
+    r = runs[0]
+    rid = r.get("run_id")
+    m = r.get("eval_mean_reward")
+    fresh = _LAST_RUN_ID.get(a) not in (None, rid)
+    _LAST_RUN_ID[a] = rid
+    arrow = _algo_trend(tr.get("series", {}).get(a) or [])
+    if fresh:
+        col = C_YEL  # new run since the previous refresh
+    elif arrow == "^":
+        col = C_GRN
+    elif arrow == "v":
+        col = C_RED
+    else:
+        col = ""
+    return r, col
+
+
+def _training_grid(tr, width):
+    """Fixed-height compact grid: one cell per algo, N columns by width.
+
+    Cell: `PPO 289.4^` (latest mean reward + trend vs previous run).
+    Green improving / red falling / yellow = new since last refresh.
+    Row count depends ONLY on width (never on data), so the frame height
+    is predictable — this is what keeps the wallboard on one screen.
+    """
+    ncols = max(1, (width - 4) // 16)          # 14-char cell + 2-space separator
+    rows_out = []
+    if not tr.get("counts"):
+        return ["    no training artifacts yet"]
+    cells = []
+    for a in TRAIN_ALGOS:
+        r, col = _last_run_meta(a, tr)
+        if r is None:
+            cells.append((f"{_algo_name(a):<7}{"--":>7}", ""))
+            continue
+        m = r.get("eval_mean_reward")
+        if m is None:
+            cells.append((f"{_algo_name(a):<7}{"n/a":>7}", ""))
+            continue
+        arrow = _algo_trend(tr.get("series", {}).get(a) or [])
+        val = f"{m:.1f}{arrow}"
+        cells.append((f"{_algo_name(a):<7}{val:>7}", col))
+    for i in range(0, len(cells), ncols):
+        chunk = cells[i:i + ncols]
+        parts = []
+        for body, col in chunk:
+            parts.append(f"{col}{body}{C_RST}" if col else body)
+        rows_out.append("    " + "  ".join(parts))
+    return rows_out
+
+
+def _vis_len(s):
+    """Visible length ignoring ANSI color codes."""
+    import re
+    return len(re.sub("\x1b\\[[0-9;]*m", "", s))
+
+
+def _fit(s, width):
+    """Truncate to window width (visible chars); never wrap, never scroll.
+
+    Colors are stripped on truncation (simpler than re-closing codes, and
+    truncated lines are rare edge cases on narrow windows).
+    """
+    import re
+    if _vis_len(s) <= width:
+        return s
+    return re.sub("\x1b\\[[0-9;]*m", "", s)[:max(0, width)]
+
+
 def render(data, now):
-    """Console text for one refresh."""
+    """Fixed-frame one-screen wallboard (2026-09-09 redesign).
+
+    Every section has a data-independent line budget and every line is
+    truncated (never wrapped) to the window width, so the frame height is
+    bounded by construction: header 3 + LOOPS 1 + EVO 2 + STEER 1 +
+    TRAIN head 1 + grid ceil(15/ncols) + VERDICT 1 + alerts 0..2.
+    Small windows show the same sections narrower — never scrolled.
+    The plain-English interpretation moved to the log file (append_log).
+    """
+    width, height = shutil.get_terminal_size((100, 30))
+    width = max(64, min(width, 200))
     lines = []
     L = lines.append
-    L("=" * 78)
-    L(f"  AZAZAEL LIVE MONITOR   {now.strftime('%Y-%m-%d %H:%M:%S')}   (refresh {REFRESH}s, Ctrl+C to stop)")
-    L("=" * 78)
 
-    # --- cycle freshness ---
-    L("\n[1] CYCLE FRESHNESS  (minutes since last event; <5 = on cadence)")
+    L("=" * width)
+    L(_fit(f"  AZAZAEL LIVE MONITOR   {now.strftime('%Y-%m-%d %H:%M:%S')}   (refresh {REFRESH}s, Ctrl+C to stop)", width))
+    L("=" * width)
+
+    # --- cycle freshness, one line ---
+    bits = []
+    any_stale = False
     for f in data["freshness"]:
         if f["ts"] is None:
-            L(f"    {f['label']:<18} no events found")
+            bits.append((f"{f['label']}: --", C_RED))
+            any_stale = True
             continue
         a = f["age"]
-        if f["ok"]:
-            L(f"    {C_GRN}{f['label']:<18} last {f['ts'][11:19]}Z  age {a:>6} min   [OK]{C_RST}")
-        else:
-            L(f"{C_RED}    {f['label']:<18} last {f['ts'][11:19]}Z  age {a:>6} min   [STALE!]{C_RST}")
+        ok = f["ok"]
+        if not ok:
+            any_stale = True
+        label = f"{f['label']} {a:.1f}m"
+        bits.append((label, C_GRN if ok else C_RED))
+    L(_fit("LOOPS  " + "   ".join(f"{c}{t}{C_RST}" if c else t for t, c in bits), width))
 
     # --- evolution ---
-    L("\n[2] EVOLUTION")
     evo = data["evo"]
+    hard_stale = None  # hours since newest hard example (None = unknown/absent)
     if evo:
         e = evo[0]
-        L(f"    latest at {e['ts'][11:19]}Z  best {C_GRN}{e['best']:.3f}{C_RST}  "
-          f"non-flat={not e['flat']}  lr={e['genes'].get('learning_rate', 0):.4f}  "
-          f"eps={e['genes'].get('epsilon', 0):.4f}  disc={e['genes'].get('discount', 0):.4f}"
-          f"  [{e['fit']}]")
-        if e["info"] is not None or e["alert"] is not None:
-            L(f"    parts: info={e['info'] if e['info'] is not None else '?'}  "
-              f"alert={e['alert'] if e['alert'] is not None else '?'}")
-
-        L("    last 5 runs (best / gens / eps):")
-        for e2 in evo[:5]:
-            L(f"      {e2['ts'][11:16]}Z  {C_GRN}{e2['best']:6.2f}{C_RST}  gens={len(e2['traj']):2d}  "
-              f"eps={e2['genes'].get('epsilon', 0):.3f}  flat={e2['flat']}  [{e2['fit']}]")
-
-        fits = {e2["fit"] for e2 in evo[:5]}
-        if len(fits) > 1:
-            L(f"      {C_YEL}(note: mixed fitness scales {sorted(fits)} — "
-              f"v2-dual bests run ~1pt higher by construction, not a spike){C_RST}")
-
-        bests = [e2["best"] for e2 in evo][::-1]  # oldest -> newest
-        L(f"    climb (per-run best, {len(bests)} runs, newest right):")
-        L(f"      {C_CYN}{sparkline(bests)}{C_RST}")
-        if len(bests) >= 2:
-            L(f"      min {min(bests):.2f}   max {max(bests):.2f}   "
-              f"recent: {bests[-3] if len(bests) >= 3 else bests[0]:.2f} -> {bests[-1]:.2f}")
-        if max(bests) > 25:
-            L(f"      (note: {max(bests):.2f} is a legacy pre-reward-fix run; excluded from scale)")
+        g = e.get("genes") or {}
+        # promotion standing folded into the EVO line (0 extra rows)
+        prom_txt = ""
+        if e.get("baseline") is not None:
+            if e["beats"]:
+                prom_txt = (f"  {C_GRN}beats base +{e['best'] - e['baseline']:.2f}{C_RST}"
+                            + (f"  {C_YEL}PROMOTED{C_RST}" if e["promoted"] else ""))
+            else:
+                prom_txt = f"  vs base {e['baseline']:.1f}"
+        L(_fit(f"EVO    best {C_GRN}{e['best']:.3f}{C_RST}"
+                 + (f"  info={e['info'] if e['info'] is not None else '?'} "
+                    f"alert={e['alert'] if e['alert'] is not None else '?'}"
+                    if e.get("info") is not None or e.get("alert") is not None else "")
+                 + prom_txt, width))
+        # pool drift: hard-alert inflow (starvation would freeze this)
+        pool = e.get("pool") or {}
+        hard = pool.get("hard_count")
+        hard_ts = (pool.get("hard_newest") or "")[11:16] if pool.get("hard_newest") else ""
+        # staleness: age of the newest hard example in hours (None if unknown)
+        hard_stale = None
+        if pool.get("hard_newest"):
+            try:
+                hdt = datetime.fromisoformat(str(pool["hard_newest"]).replace("Z", "+00:00"))
+                hard_stale = (now - hdt.astimezone()).total_seconds() / 3600.0
+            except Exception:
+                hard_stale = None
+        pool_txt = ""
+        if hard:
+            pool_txt = f"  hard {hard}" + (f"@{hard_ts}Z" if hard_ts else "")
+            if hard_stale is not None and hard_stale > 24:
+                pool_txt += f"  {C_RED}(stale {hard_stale:.0f}h){C_RST}"
+        L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f} eps={g.get('epsilon', 0):.4f} "
+                 f"disc={g.get('discount', 0):.4f}  [{e['fit']}]{pool_txt}", width))
+        bests = [e2["best"] for e2 in evo][::-1]
+        L(f"CLIMB ({len(bests)} runs, newest right) {C_CYN}{sparkline(bests, width=max(10, width - 30))}{C_RST}")
     else:
-        L("    no evolution_result rows yet")
+        L("EVO    no evolution_result rows yet")
 
-    # --- steering ---
-    L("\n[3] STEERING")
+    # --- steering + activity on one line ---
     s = data["strategy"]
-    L(f"    active strategy: {C_YEL}{s['value']}{C_RST}" + (f"   (at {s['ts'][11:19]}Z)" if s["ts"] else ""))
-    L(f"    steering events (24h): {data['steer_24h']}")
+    act = data["activity"]
+    flip = data.get("last_flip")
+    flip_txt = ""
+    if flip and flip.get("to") != s["value"]:
+        # strategy currently differs from last committed flip -> show pending
+        flip_txt = f"  [last change -> {C_GRN}{flip['to']}{C_RST} {flip['age']}m ago]"
+    elif flip:
+        fa = flip.get("age")
+        if fa is not None and fa < 60:
+            flip_txt = f"  [{C_YEL}flipped to {flip['to']} {flip['age']}m ago{C_RST}]"
+        else:
+            flip_txt = f"  [last flip -> {flip['to']} {flip['age']}m ago]"
+    # STEER line is width-adaptive (2026-09-08): segments are dropped
+    # right-to-left when the window is tight so the line never wraps.
+    steer_segs = [f"STEER  {C_YEL}{s['value']}{C_RST} ({data['steer_24h']}/24h)"]
+    if flip_txt:
+        steer_segs.append(flip_txt)
+    steer_segs.append(f"DREAMS {act['dreams']}/hr q={act['quality']:.3f}")
+    steer_segs.append(f"adapt {act.get('adapt_age')}m ago  apply {act.get('apply_age')}m ago")
+    _steer = steer_segs[0]
+    for _seg in steer_segs[1:]:
+        if len(_steer) + len(_seg) + 3 <= width - 4:
+            _steer += "   " + _seg
+        else:
+            break
+    L(_fit(_steer, width))
 
-    # --- activity ---
-    a = data["activity"]
-    L("\n[4] ACTIVITY (last 60 min)")
-    L(f"    dreams:      {a['dreams']}   avg quality {a['quality']:.3f}")
-    L(f"    training:    {a['training']}")
-    L(f"    adaptations: {a['adaptations']}")
-    L(f"    policy apps: {a['policy_applied']}")
+    # --- training: fixed compact grid (row count depends only on width) ---
+    tr = data.get("training", {})
+    nxt = tr.get("next_rotation", "?")
+    L(_fit(f"TRAIN  next slot {C_CYN}{nxt}{C_RST}   (reward ^/v vs previous run, yellow = new)", width))
+    for r_ in _training_grid(tr, width):
+        L(r_)
 
-    # --- what it means ---
-    L("\n[5] WHAT IT MEANS")
-    for tag, msg in explain(data):
-        col = {"OK": C_GRN, "WARN": C_RED, "EVO": C_CYN, "STEER": C_YEL, "ACT": C_CYN}.get(tag, "")
-        L(f"    {col}{tag:<6}{C_RST} {msg}")
-    L(f"    {C_BLD}BOTTOM LINE:{C_RST} {bottom_line(data)}")
+    # --- meta-evolution: champion search-params + margin EMA + live candidate ---
+    m = data.get("meta") or {}
+    mp = m.get("params") or {}
+    if mp:
+        meta_txt = (f"META   mut={mp.get('mutation_rate', 0):.2f} "
+                    f"xov={mp.get('crossover_rate', 0):.2f} "
+                    f"tour={mp.get('tournament_size', 0)} "
+                    f"pat={mp.get('early_stop_patience', 0)} "
+                    f"tol={mp.get('early_stop_tolerance', 0):.3f}  "
+                    f"ema {m.get('score_ema', 0):+.2f}/{m.get('runs', 0)}r")
+        cand = m.get("candidate")
+        if cand:
+            diff = [k for k in ("mutation_rate", "crossover_rate",
+                                "tournament_size", "early_stop_patience",
+                                "early_stop_tolerance")
+                    if cand.get(k) != mp.get(k)]
+            if diff:
+                meta_txt += (f"  {C_YEL}testing {diff[0]}={cand[diff[0]]} "
+                             f"({m.get('candidate_runs', 0)}/3){C_RST}")
+            else:
+                meta_txt += f"  {C_YEL}testing candidate{C_RST}"
+        L(_fit(meta_txt, width))
+    else:
+        L(_fit("META   no meta state yet (first scored cycle still running)", width))
 
-    L("\n" + "-" * 78)
-    L("  Log: " + os.path.abspath(LOG_PATH))
-    L("  Web: http://<this-pc>:8765  (live_monitor_web.py)")
-    L("  Tip: press Ctrl+C to exit (the window itself stays open).")
+    # --- alerts + verdict: fixed lines, only what fires ---
+    if any_stale:
+        L(_fit(f"{C_RED}STALE  {', '.join(f['label'] for f in data['freshness'] if not f['ok'])} "
+                 f">15 min - check Task Scheduler.{C_RST}", width))
+    if evo and hard_stale is not None and hard_stale > 24:
+        L(_fit(f"{C_RED}HARDPOOL  no fresh critical-alert examples for {hard_stale:.0f}h - "
+               f"evolution is re-mastering frozen rows.{C_RST}", width))
+    bl = bottom_line(data)
+    L(_fit(f"    {C_BLD}Verdict:{C_RST} {bl}", width))
+
     return "\n".join(lines)
 
 
@@ -397,6 +736,14 @@ def append_log(data, now):
             s = data["strategy"]
             f.write(f"  strategy {s['value']}  steer24h {data['steer_24h']}  "
                     f"activity {data['activity']}\n")
+            tr = data.get("training", {})
+            if tr.get("counts"):
+                scored = {a: r["eval_mean_reward"] for a in TRAIN_ALGOS
+                          for r in (tr.get(a) or [])[:1] if r.get("eval_mean_reward") is not None}
+            f.write("  train " + ", ".join(f"{a}={v:.1f}" for a, v in sorted(scored.items()))
+                    + f"  next={tr.get('next_rotation')}\n")
+            for tag, msg in explain(data):
+                f.write(f"  {tag:<6} {msg}\n")
             f.write(f"  >> {bottom_line(data)}\n")
     except Exception as e:
         print(f"log write failed: {e}", file=sys.stderr)
@@ -418,6 +765,32 @@ def beep_if_high(data):
     return False
 
 
+def _paint_in_place(frame_lines):
+    """Redraw the dashboard in place: no full-screen clear, no scrolling.
+
+    Moves the cursor home, overwrites each row (erasing to end-of-line so a
+    shorter row never leaves stale text), then erases only the rows below the
+    frame. Never emits a trailing newline past the bottom row, so the console
+    never scrolls -- everything stays on one screen and updates in place.
+    """
+    import shutil as _sh
+    size = _sh.get_terminal_size((100, 30))
+    max_rows = max(4, size.lines - 1)
+    rows = frame_lines[:max_rows]          # never exceed the visible window
+    if len(rows) < max_rows:
+        rows = rows + [""] * (max_rows - len(rows))  # wipe any longer old frame
+
+    out = ["\033[H"]                       # cursor home (keep the old buffer)
+    for i, line in enumerate(rows):
+        if i:
+            out.append("\r\n")
+        out.append(line)
+        out.append("\033[K")               # erase to end of this line
+    out.append("\033[J")                   # erase everything below the frame
+    sys.stdout.write("".join(out))
+    sys.stdout.flush()
+
+
 def main():
     global REFRESH, LOG_PATH
     ap = argparse.ArgumentParser(description="Persistent Azazael live dashboard")
@@ -432,6 +805,7 @@ def main():
         print(f"FATAL: cannot open {DB}", file=sys.stderr)
         return 2
 
+    first = True
     while True:
         now = datetime.now()
         try:
@@ -447,8 +821,12 @@ def main():
         except Exception as e:
             text = f"render error: {e}"
             con = db_connect()  # reconnect on next loop
-        print("\033[2J\033[H", end="")
-        print(text)
+
+        if first:
+            # clear once on startup so the first frame starts from a clean screen
+            sys.stdout.write("\033[2J\033[H")
+            first = False
+        _paint_in_place(text.split("\n"))
         time.sleep(REFRESH)
 
 
