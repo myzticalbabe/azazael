@@ -314,6 +314,126 @@ def _load_or_freeze_pools():
         return None, None, False, 0
 
 
+# --- Meta-evolution (2026-09-09): evolve the search itself ---------------
+# A 1+1 evolution strategy over the GA's own hyperparameters. One cycle =
+# one meta-sample (slow by nature: ~12/hour), so the design is a cautious
+# hill-climb, not a full GA: exploit the best-known meta-params 75% of
+# cycles, explore a single-param perturbation otherwise; promote the
+# candidate after 3 runs if its mean beats the champion's EMA.
+#
+# Meta-fitness = same-pool MARGIN (best_total - baseline_fit), the honest
+# signal per the 2026-09-08 audit: absolute fitness is pool-polluted,
+# margin isolates search quality on identical data.
+#
+# Deliberately NOT evolved: population_size (wall-clock cost),
+# elitism_count (stability), PROMOTE_MARGIN/WINS (safety-critical —
+# letting the search relax its own promotion guardrail is textbook
+# reward hacking; those stay hand-set).
+META_STATE_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    '..', 'config', 'evolved_meta_params.json'))
+META_BOUNDS = {
+    'mutation_rate': (0.02, 0.4),
+    'crossover_rate': (0.3, 1.0),
+    'tournament_size': (2, 5),
+    'early_stop_patience': (3, 8),
+    'early_stop_tolerance': (0.001, 0.05),
+}
+META_DEFAULTS = {
+    'mutation_rate': 0.15,
+    'crossover_rate': 0.7,
+    'tournament_size': 3,
+    'early_stop_patience': 5,
+    'early_stop_tolerance': 0.01,
+}
+META_INT_KEYS = ('tournament_size', 'early_stop_patience')
+META_EXPLORE_PROB = 0.25
+META_CANDIDATE_RUNS = 3
+
+
+def _meta_load():
+    try:
+        with open(META_STATE_PATH, encoding='utf-8') as f:
+            st = json.load(f)
+        params = {k: float(st.get('params', {}).get(k, META_DEFAULTS[k]))
+                  for k in META_BOUNDS}
+        for k in META_INT_KEYS:
+            params[k] = int(round(params[k]))
+        return {'params': params,
+                'score_ema': float(st.get('score_ema', 0.0)),
+                'runs': int(st.get('runs', 0)),
+                'candidate': st.get('candidate'),
+                'candidate_runs': int(st.get('candidate_runs', 0)),
+                'candidate_sum': float(st.get('candidate_sum', 0.0))}
+    except Exception:
+        return {'params': dict(META_DEFAULTS), 'score_ema': 0.0, 'runs': 0,
+                'candidate': None, 'candidate_runs': 0, 'candidate_sum': 0.0}
+
+
+def _meta_save(st):
+    try:
+        tmp = META_STATE_PATH + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(st, f, indent=2)
+        os.replace(tmp, META_STATE_PATH)
+    except Exception as e:
+        log('meta state save failed: %s' % str(e)[:100])
+
+
+def _meta_propose(st):
+    """Pick this cycle's meta-params: exploit champion or explore one
+    perturbed dimension. Returns (params, is_candidate)."""
+    if st['candidate'] is None and random.random() < META_EXPLORE_PROB:
+        cand = dict(st['params'])
+        key = random.choice(sorted(META_BOUNDS))
+        lo, hi = META_BOUNDS[key]
+        if key in META_INT_KEYS:
+            cand[key] = int(min(hi, max(lo, cand[key] + random.choice((-1, 1)))))
+        else:
+            cand[key] = min(hi, max(lo, cand[key] * random.uniform(0.8, 1.25)))
+        st['candidate'] = cand
+        st['candidate_runs'] = 0
+        st['candidate_sum'] = 0.0
+        log('meta: exploring %s=%s (champ %s)' % (key, cand[key], st['params'][key]))
+        return cand, True
+    if st['candidate'] is not None:
+        return dict(st['candidate']), True
+    return dict(st['params']), False
+
+
+def _meta_score(st, params, is_candidate, margin):
+    """Fold one cycle's margin into the meta-state; promote qualifying
+    candidates. Returns a short status string for the log/artifact."""
+    if is_candidate:
+        st['candidate_runs'] += 1
+        st['candidate_sum'] += margin
+        mean = st['candidate_sum'] / st['candidate_runs']
+        if st['candidate_runs'] >= META_CANDIDATE_RUNS:
+            old_ema = st['score_ema']
+            if mean > old_ema:
+                st['params'] = dict(st['candidate'])
+                st['score_ema'] = mean
+                msg = ('meta: candidate PROMOTED (mean %+.2f > ema %+.2f): %s'
+                       % (mean, old_ema, st['params']))
+            else:
+                msg = ('meta: candidate rejected (mean %+.2f <= ema %+.2f)'
+                       % (mean, old_ema))
+            st['candidate'] = None
+            st['candidate_runs'] = 0
+            st['candidate_sum'] = 0.0
+        else:
+            msg = ('meta: candidate %d/%d, mean %+.2f (ema %+.2f)'
+                   % (st['candidate_runs'], META_CANDIDATE_RUNS, mean,
+                      st['score_ema']))
+    else:
+        st['runs'] += 1
+        alpha = 0.2
+        st['score_ema'] += alpha * (margin - st['score_ema'])
+        msg = 'meta: champ ema %+.2f over %d runs' % (st['score_ema'], st['runs'])
+    _meta_save(st)
+    return msg
+
+
 def _acquire_cycle_lock():
     """Single-instance guard (2026-09-08): a manual run colliding with the
     scheduled one was observed twice (12:14 and 12:49 — two processes
@@ -343,9 +463,18 @@ def main():
     random.seed(seed)
     log('seed=%d' % seed)
 
+    meta_st = _meta_load()
+    meta_params, meta_is_cand = _meta_propose(meta_st)
+    log('meta: %s params=%s' % (
+        'candidate' if meta_is_cand else 'champion',
+        {k: round(v, 4) for k, v in meta_params.items()}))
+
     evo = EvolutionEngine(population_size=24, elitism_count=3,
-                          crossover_rate=0.7, mutation_rate=0.15,
-                          early_stop_patience=5, early_stop_tolerance=0.01)
+                          crossover_rate=meta_params['crossover_rate'],
+                          mutation_rate=meta_params['mutation_rate'],
+                          tournament_size=meta_params['tournament_size'],
+                          early_stop_patience=meta_params['early_stop_patience'],
+                          early_stop_tolerance=meta_params['early_stop_tolerance'])
     seed_genes = last_best_genes()
 
     # Hall of fame: best champion ever recorded, by champion_reeval score.
@@ -473,6 +602,9 @@ def main():
         except Exception as e:
             log('streak lookup failed: %s' % str(e)[:120])
     log('promotion standing: beats=%s streak=%s/%s' % (beats, streak, PROMOTE_WINS))
+    meta_msg = _meta_score(meta_st, meta_params, meta_is_cand,
+                           (best_total - baseline_fit) if best else 0.0)
+    log(meta_msg)
 
     promoted = False
     if beats and streak >= PROMOTE_WINS and best:
@@ -550,6 +682,9 @@ def main():
             'seed': seed,
             'trajectory': trajectory,
             'seeded_from_prior': bool(seed_genes),
+            'meta_params': meta_params,
+            'meta_candidate': meta_is_cand,
+            'meta_msg': meta_msg,
             'champion_reeval': champ_score,
             'champion_genes': seed_genes,
             'pool_fingerprint': pool_fingerprint(),
