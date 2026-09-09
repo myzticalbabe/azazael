@@ -23,14 +23,22 @@ import json
 import time
 import hashlib
 import pickle
-import numpy as np
+# 3.14t port: numpy has no free-threaded build. Guard the import and use
+# plain lists everywhere (sklearn calls accept lists; the file already
+# degrades without sklearn via SKLEARN_AVAILABLE).
+try:
+    import numpy as _np  # noqa: F401 (kept for SKU-level compat checks)
+    _NUMPY_AVAILABLE = True
+except ImportError:
+    _np = None
+    _NUMPY_AVAILABLE = False
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from dataclasses import dataclass
-import tkinter as tk
-from tkinter import ttk, scrolledtext
+# NOTE (3.14t port): tkinter imports live in run_popup() — a top-level
+# import pointlessly hard-requires Tk on headless interpreters.
 
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -146,7 +154,7 @@ class WORMZ_ML:
         self.vectorizer: (TfidfVectorizer | None) = None
         self.cluster_model: (KMeans | None) = None
         self.classifier: (RandomForestClassifier | None) = None
-        self.file_features: dict[str, np.ndarray] = {}
+        self.file_features: dict[str, list] = {}
 
         self._load_patterns()
         self._load_model()
@@ -156,8 +164,8 @@ class WORMZ_ML:
         self.output_path.mkdir(parents=True, exist_ok=True)
         self.bibl_path.mkdir(parents=True, exist_ok=True)
 
-    def _extract_features(self, content: str) -> np.ndarray:
-        """Extract TF-IDF features from content."""
+    def _extract_features(self, content: str) -> list:
+        """Extract TF-IDF features from content (plain list, no numpy)."""
         if self.vectorizer is None:
             self.vectorizer = TfidfVectorizer(
                 max_features=100,
@@ -165,9 +173,9 @@ class WORMZ_ML:
                 ngram_range=(1, 2),
             )
         try:
-            return self.vectorizer.fit_transform([content]).toarray()[0]
+            return list(self.vectorizer.fit_transform([content]).toarray()[0])
         except Exception:
-            return np.zeros(100)
+            return [0.0] * 100
 
     def _calculate_pattern_score(self, term: str, category: str) -> float:
         """Calculate pattern match score."""
@@ -183,12 +191,12 @@ class WORMZ_ML:
             return "utilities", 0.5
 
         features = self._extract_features(content)
-        if features.sum() == 0:
+        if not any(features):
             return "utilities", 0.5
 
         try:
-            proba = self.classifier.predict_proba([features])[0]
-            category_idx = np.argmax(proba)
+            proba = list(self.classifier.predict_proba([features])[0])
+            category_idx = max(range(len(proba)), key=lambda i: proba[i])
             category = self.config.CATEGORIES[category_idx]
             confidence = proba[category_idx]
             return category, confidence
@@ -494,6 +502,8 @@ class WORMZ_ML:
         }
 
     def run_popup(self):
+        import tkinter as tk
+        from tkinter import ttk, scrolledtext
         """Run with GUI popup."""
         root = tk.Tk()
         root.title("WORMZ_ML - Predictive BIBL Crawler")
