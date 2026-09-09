@@ -12,6 +12,7 @@ import sys
 import tempfile
 import time
 import traceback
+from pathlib import Path
 
 sys.path.insert(0, 'C:/Users/clint/azazael/src')
 
@@ -69,6 +70,27 @@ def fail_count(delta=None):
     return n
 
 
+def _tuned_creativity():
+    """Tuned dreaming params from the DREAMTUNE track (2026-09-09 apply).
+
+    Returns (creativity_factor, scenario_count); falls back to built-in
+    defaults when the file is missing or older than 48h (stale tunings
+    must not steer dreams forever if the track dies). Precedence:
+    these explicit args < metacog steering inside the pipeline.
+    """
+    cf, sc = 0.3, 40
+    try:
+        p = Path(__file__).resolve().parent.parent / "config" / "tuned_creativity.json"
+        if p.exists() and (time.time() - p.stat().st_mtime) < 48 * 3600:
+            d = json.loads(p.read_text(encoding="utf-8"))
+            cf = min(0.95, max(0.05, float(d.get("creativity_factor", cf))))
+            sc = min(100, max(5, int(d.get("scenario_count", sc))))
+            return cf, sc, True
+    except Exception:
+        pass
+    return cf, sc, False
+
+
 def main():
     from CORE.WORMS.expansion.dreaming import DreamingModule
     from CORE.dream_policy_bridge import apply_dream_policy
@@ -77,15 +99,18 @@ def main():
         return 0
     try:
         dm = DreamingModule()
+        cf, sc, tuned = _tuned_creativity()
         out = dm.run_dreaming_pipeline(
-            num_episodes=8, scenario_count=40, auto_integrate=True,
+            num_episodes=8, scenario_count=sc, creativity_factor=cf,
+            auto_integrate=True,
             policy_fn=apply_dream_policy)
         fail_count(-999)
         integ = out.get('integration') or {}
         pr = integ.get('policy_result') or {}
-        log('OK dreams=%s ms=%s applied=%d skipped=%d' % (
+        log('OK dreams=%s ms=%s applied=%d skipped=%d cf=%.2f sc=%d %s' % (
             out.get('dream_count'), out.get('duration_ms'),
-            len(pr.get('applied', [])), len(pr.get('skipped', []))))
+            len(pr.get('applied', [])), len(pr.get('skipped', [])),
+            cf, sc, 'tuned' if tuned else 'defaults'))
         return 0
     except Exception:
         n = fail_count(+1)
