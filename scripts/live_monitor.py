@@ -732,12 +732,13 @@ def _last_run_meta(a, tr):
 def _training_grid(tr, width):
     """Fixed-height compact grid: one cell per algo, N columns by width.
 
-    Cell: `PPO 289.4^` (latest mean reward + trend vs previous run).
-    Green improving / red falling / yellow = new since last refresh.
-    Row count depends ONLY on width (never on data), so the frame height
-    is predictable — this is what keeps the wallboard on one screen.
+    Cell: `PPO v3 289.4^` (model version, latest mean reward, trend vs
+    previous run). Green improving / red falling / yellow = new since
+    last refresh. Row count depends ONLY on width (never on data), so
+    the frame height is predictable — this is what keeps the wallboard
+    on one screen.
     """
-    ncols = max(1, (width - 4) // 16)          # 14-char cell + 2-space separator
+    ncols = max(1, (width - 4) // 20)          # 18-char cell + 2-space separator
     rows_out = []
     if not tr.get("counts"):
         return ["    no training artifacts yet"]
@@ -745,15 +746,16 @@ def _training_grid(tr, width):
     for a in TRAIN_ALGOS:
         r, col = _last_run_meta(a, tr)
         if r is None:
-            cells.append((f"{_algo_name(a):<7}{"--":>7}", ""))
+            cells.append((f"{_algo_name(a):<7}{"--":>11}", ""))
             continue
         m = r.get("eval_mean_reward")
         if m is None:
-            cells.append((f"{_algo_name(a):<7}{"n/a":>7}", ""))
+            cells.append((f"{_algo_name(a):<7}{"n/a":>11}", ""))
             continue
         arrow = _algo_trend(tr.get("series", {}).get(a) or [])
-        val = f"{m:.1f}{arrow}"
-        cells.append((f"{_algo_name(a):<7}{val:>7}", col))
+        ver = (r.get("model_version") or "?").lstrip("v") or "?"
+        val = f"v{ver} {m:.1f}{arrow}"
+        cells.append((f"{_algo_name(a):<7}{val:>11}", col))
     for i in range(0, len(cells), ncols):
         chunk = cells[i:i + ncols]
         parts = []
@@ -986,6 +988,13 @@ def render(data, now):
     L(_fit(f"TRAIN  next slot {C_CYN}{nxt}{C_RST}   (reward ^/v vs previous run, yellow = new)", width))
     for r_ in _training_grid(tr, width):
         L(r_)
+
+    # --- run counts per track (cycles each algo has completed) ---
+    _counts = tr.get("counts") or {}
+    if _counts:
+        _ordered = sorted(_counts.items(), key=lambda kv: -kv[1])
+        _total = sum(_counts.values())
+        L(_fit(f"RUNS   {_total} total  " + "  ".join(f"{_algo_name(a)}x{n}" for a, n in _ordered), width))
 
     # --- recent runs: last few training cycles across all tracks ---
     _rr = data.get("recent_runs") or []
