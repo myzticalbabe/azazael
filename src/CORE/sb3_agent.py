@@ -11,9 +11,10 @@ __all__ = [
 
 SB3Agent — FreeThreadedAgent wrapping stable-baselines3 RL algorithms.
 
-Provides a FreeThreadedAgent subclass that wraps SB3's PPO, DQN, and A2C
-algorithms with automatic DataPipelineWorm integration for training data,
-ModelVersioner for version tracking, and PAMS/MemoryBus for observability.
+Provides a FreeThreadedAgent subclass that wraps SB3's PPO, DQN, A2C, SAC,
+TD3, DDPG plus the sb3-contrib QRDQN/TRPO/TQC/ARS/MaskablePPO algorithms
+with automatic DataPipelineWorm integration for training data, ModelVersioner
+for version tracking, and PAMS/MemoryBus for observability.
 
 Features:
 - train() — Train from LocalMemoryStore data via DataPipelineWorm
@@ -76,17 +77,33 @@ except Exception:
 
 if not _SKIP_SB3_IMPORT:
     try:
-        from stable_baselines3 import PPO, DQN, A2C
+        from stable_baselines3 import PPO, DQN, A2C, SAC, TD3, DDPG
         from stable_baselines3.common.base_class import BaseAlgorithm
         HAS_SB3 = True
     except ImportError:
         HAS_SB3 = False
-        PPO = DQN = A2C = None
+        PPO = DQN = A2C = SAC = TD3 = DDPG = None
         BaseAlgorithm = object
 else:
     HAS_SB3 = False
-    PPO = DQN = A2C = None
+    PPO = DQN = A2C = SAC = TD3 = DDPG = None
     BaseAlgorithm = object
+
+# sb3-contrib algorithms (QRDQN discrete, TRPO/TQC/ARS continuous,
+# MaskablePPO discrete with an all-ones action mask).
+try:
+    from sb3_contrib import QRDQN, TRPO, TQC, ARS, MaskablePPO
+    HAS_SB3_CONTRIB = True
+except Exception:
+    HAS_SB3_CONTRIB = False
+    QRDQN = TRPO = TQC = ARS = MaskablePPO = None
+
+try:
+    from sb3_contrib.common.wrappers import ActionMasker
+    HAS_ACTION_MASKER = True
+except Exception:
+    HAS_ACTION_MASKER = False
+    ActionMasker = None
 
 try:
     import gymnasium as gym
@@ -282,10 +299,22 @@ except Exception as e:
 
 # -- Supported algorithms ----------------------------------------------------
 
+# Algorithms whose env uses the continuous Box(3) soft-weight action space;
+# the rest get the Discrete(3) severity-response space.
+CONTINUOUS_ALGOS = frozenset({"SAC", "TD3", "DDPG", "TQC", "TRPO", "ARS"})
+
 SUPPORTED_ALGOS = {
     "PPO": PPO,
     "DQN": DQN,
     "A2C": A2C,
+    "SAC": SAC,        # continuous action space (Box) — see _create_env_from_records
+    "TD3": TD3,         # continuous action space (Box)
+    "DDPG": DDPG,       # continuous action space (Box)
+    "QRDQN": QRDQN,     # discrete (distributional Q-learning)
+    "TRPO": TRPO,       # continuous action space (Box)
+    "TQC": TQC,         # continuous action space (Box)
+    "ARS": ARS,         # continuous action space (Box)
+    "MaskablePPO": MaskablePPO,  # discrete w/ all-ones action mask
 }
 
 ALGO_DEFAULTS = {
@@ -311,6 +340,28 @@ ALGO_DEFAULTS = {
         "train_freq": 4,
         "target_update_interval": 1000,
     },
+    "SAC": {
+        "learning_rate": 3e-4,
+        "buffer_size": 50000,
+        "learning_starts": 500,
+        "batch_size": 256,
+        "tau": 0.005,
+        "gamma": 0.99,
+        "train_freq": 1,
+        "gradient_steps": 1,
+        "ent_coef": "auto",
+    },
+    "TD3": {
+        "learning_rate": 3e-4,
+        "buffer_size": 50000,
+        "learning_starts": 500,
+        "batch_size": 256,
+        "tau": 0.005,
+        "gamma": 0.99,
+        "train_freq": 1,
+        "gradient_steps": 1,
+        "policy_kwargs": {"net_arch": [256, 256]},
+    },
     "A2C": {
         "learning_rate": 7e-4,
         "n_steps": 5,
@@ -320,7 +371,85 @@ ALGO_DEFAULTS = {
         "vf_coef": 0.5,
         "max_grad_norm": 0.5,
     },
+    "DDPG": {
+        "learning_rate": 1e-3,
+        "buffer_size": 50000,
+        "learning_starts": 500,
+        "batch_size": 256,
+        "tau": 0.005,
+        "gamma": 0.99,
+        "train_freq": 1,
+        "gradient_steps": 1,
+        "policy_kwargs": {"net_arch": [256, 256]},
+    },
+    "QRDQN": {
+        "learning_rate": 1e-4,
+        "buffer_size": 50000,
+        "learning_starts": 1000,
+        "batch_size": 32,
+        "tau": 1.0,
+        "gamma": 0.99,
+        "train_freq": 4,
+        "target_update_interval": 1000,
+    },
+    "TRPO": {
+        "learning_rate": 1e-3,
+        "n_steps": 512,
+        "batch_size": 128,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "cg_max_steps": 10,
+        "target_kl": 0.01,
+    },
+    "TQC": {
+        "learning_rate": 3e-4,
+        "buffer_size": 50000,
+        "learning_starts": 500,
+        "batch_size": 256,
+        "tau": 0.005,
+        "gamma": 0.99,
+        "train_freq": 1,
+        "gradient_steps": 1,
+        "ent_coef": "auto",
+        "top_quantiles_to_drop_per_net": 2,
+    },
+    "ARS": {
+        "learning_rate": 0.02,
+        "n_delta": 8,
+        "n_top": 4,
+        "delta_std": 0.05,
+    },
+    "MaskablePPO": {
+        "learning_rate": 3e-4,
+        "n_steps": 2048,
+        "batch_size": 64,
+        "n_epochs": 10,
+        "gamma": 0.99,
+        "gae_lambda": 0.95,
+        "clip_range": 0.2,
+        "ent_coef": 0.0,
+        "vf_coef": 0.5,
+        "max_grad_norm": 0.5,
+    },
 }
+
+
+def _next_model_version(versioner, name: str, fallback: int = 1) -> str:
+    """Next vN for a stable per-algo model name (2026-09-09 fix).
+
+    The old scheme (timestamped name + v{len(in-memory history)}) reset to
+    v1 on every scheduled run because each run is a fresh process with an
+    empty history. get_latest_version falls back to persisted
+    model_registered rows, so this counter survives across processes.
+    """
+    try:
+        latest = versioner.get_latest_version(name) if versioner else None
+        if latest:
+            n = int(str(latest.get("version", "v0")).lstrip("v").split(".")[0])
+            return f"v{n + 1}"
+    except (ValueError, TypeError, AttributeError):
+        pass
+    return f"v{max(int(fallback or 1), 1)}"
 
 
 @register_agent(category="rl", priority=8, description="SB3-based RL agent wrapping PPO/DQN/A2C")
@@ -354,7 +483,11 @@ class SB3Agent(FreeThreadedAgent):
 
         Args:
             config: AgentConfig for the base FreeThreadedAgent.
-            algo: Algorithm name: "PPO", "DQN", or "A2C".
+            algo: Algorithm name: "PPO", "DQN", "A2C", "SAC", "TD3",
+                  "DDPG", "QRDQN", "TRPO", "TQC", "ARS", or "MaskablePPO"
+                  (SAC/TD3/DDPG/TQC/TRPO/ARS use a continuous Box(3)
+                  action space; the rest use Discrete(3); MaskablePPO
+                  additionally gets an all-ones action mask).
             policy: SB3 policy type: "MlpPolicy", "CnnPolicy", "MultiInputPolicy".
             algo_kwargs: Additional kwargs passed to the SB3 constructor.
             device: Torch device ("auto", "cpu", "cuda"). "auto" picks cuda if available.
@@ -366,7 +499,11 @@ class SB3Agent(FreeThreadedAgent):
             pams_source="sb3_agent",
         ))
 
-        self.algo_name = algo.upper() if HAS_SB3 else "PPO"
+        # Resolve to the canonical registry name case-insensitively. A blanket
+        # .upper() previously turned "MaskablePPO" into MASKABLEPPO, which
+        # matches no key in SUPPORTED_ALGOS and made it report "unsupported".
+        _canon = next((k for k in SUPPORTED_ALGOS if str(k).lower() == str(algo).lower()), None)
+        self.algo_name = _canon or (algo if HAS_SB3 else "PPO")
         self.policy = policy
         self.algo_kwargs = algo_kwargs or {}
         self.env_kwargs = env_kwargs or {}
@@ -424,7 +561,8 @@ class SB3Agent(FreeThreadedAgent):
               total_timesteps: int = 10000, n_episodes: (int | None) = None,
               learning_rate: (float | None) = None, use_data_split: bool = True,
               max_age_days: int = 30, model_name: (str | None) = None,
-              register_model: bool = True, **kwargs) -> dict[str, Any]:
+              register_model: bool = True, exclude_sources: (list[str] | None) = None,
+              **kwargs) -> dict[str, Any]:
         """
         Train the SB3 model using data from LocalMemoryStore.
 
@@ -441,6 +579,9 @@ class SB3Agent(FreeThreadedAgent):
             max_age_days: Only include records newer than N days.
             model_name: Name for ModelVersioner registration.
             register_model: If True, auto-register with ModelVersioner.
+            exclude_sources: Skip events from these source components so the
+                training slice isn't dominated by self-generated bookkeeping
+                (e.g. RLTrainLoop/ModelVersioner events).
             **kwargs: Additional kwargs passed to SB3 model.learn().
 
         Returns:
@@ -471,6 +612,7 @@ class SB3Agent(FreeThreadedAgent):
         records = pipeline.extract_from_memory(
             source=source, event_type=event_type,
             limit=5000, max_age_days=max_age_days,
+            exclude_sources=exclude_sources,
         )
 
         if not records:
@@ -478,7 +620,19 @@ class SB3Agent(FreeThreadedAgent):
 
         # -- Step 2: Create environment --------------------------------
         try:
-            env = self._create_env_from_records(records)
+            env = self._create_env_from_records(
+                records, continuous=self.algo_name in CONTINUOUS_ALGOS)
+            if self.algo_name == "MaskablePPO":
+                # MaskablePPO requires the env to expose an action mask;
+                # all-ones = no action is constrained yet, so this is a
+                # no-op mask that keeps the algorithm trainable.
+                if ActionMasker is None:
+                    raise RuntimeError("sb3_contrib ActionMasker unavailable")
+
+                def _noop_mask(venv):
+                    return np.ones(venv.action_space.n, dtype=bool)
+
+                env = ActionMasker(env, _noop_mask)
         except Exception as e:
             return {"error": f"Failed to create environment: {e}", "trained": False}
 
@@ -519,6 +673,23 @@ class SB3Agent(FreeThreadedAgent):
         duration_ms = (time.perf_counter() - start) * 1000
         self._last_train_time = time.time()
 
+        # -- Step 4b: Evaluate the trained policy -----------------------
+        # Roll out the learned policy over the same record-derived env so
+        # artifacts carry a reward signal (previously only timestep counts
+        # were recorded — you could see training happened, not whether the
+        # policy got better). Best-effort; evaluation failures don't fail
+        # the run.
+        eval_mean_reward = None
+        eval_std_reward = None
+        try:
+            from stable_baselines3.common.evaluation import evaluate_policy
+            _er_mean, _er_std = evaluate_policy(
+                self._model, env, n_eval_episodes=10, deterministic=True)
+            eval_mean_reward = round(float(_er_mean), 4)
+            eval_std_reward = round(float(_er_std), 4)
+        except Exception:
+            pass
+
         # -- Step 5: Record training stats -----------------------------
         train_result = {
             "algo": self.algo_name,
@@ -530,6 +701,8 @@ class SB3Agent(FreeThreadedAgent):
             "device": self.device,
             "learning_rate": params.get("learning_rate"),
             "total_timesteps_trained": self._total_timesteps_trained,
+            "eval_mean_reward": eval_mean_reward,
+            "eval_std_reward": eval_std_reward,
             "trained": True,
         }
 
@@ -549,13 +722,17 @@ class SB3Agent(FreeThreadedAgent):
         self._publish_bus_event(f"agent.{self.agent_id}.training_complete", train_result)
 
         # -- Step 6: Register with ModelVersioner ----------------------
+        # Stable per-algo name (run timestamp moves to metadata) so the
+        # version lineage accumulates instead of restarting at v1.
         if register_model and HAS_VERSIONER:
-            mname = model_name or f"SB3_{self.algo_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            mname = model_name or f"SB3_{self.algo_name}"
             try:
                 versioner = self._get_versioner()
+                version = _next_model_version(
+                    versioner, mname, fallback=len(self._training_history))
                 versioner.register_model(
                     name=mname,
-                    version=f"v{len(self._training_history)}",
+                    version=version,
                     metrics={
                         "total_timesteps": n,
                         "records_used": len(records),
@@ -566,6 +743,7 @@ class SB3Agent(FreeThreadedAgent):
                         "policy": self.policy,
                         "device": self.device,
                         "data_source": source or "all",
+                        "run_ts": datetime.now().isoformat(),
                     },
                 )
                 train_result["registered_model"] = mname
@@ -588,15 +766,19 @@ class SB3Agent(FreeThreadedAgent):
             (action, next_state) tuple.
         """
         if not HAS_SB3 or self._model is None:
-            # Fallback: random action
-            action = np.random.randint(0, self._action_dim)
-            return action, None
+            # Fallback: default action. No model means no learned policy —
+            # returning a RANDOM action here lets an untrained agent randomly
+            # fire remediate/alert on production records. Return deterministic
+            # action 0 (ignore) instead. Scalar ndarray to match SB3's
+            # Discrete-action output shape.
+            return np.asarray(0, dtype=np.int64), None
 
         try:
             return self._model.predict(observation, deterministic=deterministic, state=state)
         except Exception:
             self._increment_stat('tasks_failed')
-            return np.array([0]), None
+            # Same default-action contract as the untrained fallback.
+            return np.asarray(0, dtype=np.int64), None
 
     def predict_batch(self, observations: list[np.ndarray],
                       deterministic: bool = True) -> list[Any]:
@@ -652,13 +834,15 @@ class SB3Agent(FreeThreadedAgent):
 
     # -- Environment Creation ------------------------------------------------
 
-    def _create_env_from_records(self, records: list[dict]) -> 'gym.Env':
+    def _create_env_from_records(self, records: list[dict],
+                                 continuous: bool = False) -> 'gym.Env':
         """
         Create a gym environment from LocalMemoryStore records.
 
         Transforms records into a simple vector environment where:
         - Observation: feature vector extracted from record data
-        - Action: discrete action space (0 = info, 1 = warning, 2 = error)
+        - Action: discrete action space (0 = info, 1 = warning, 2 = error), or
+          continuous Box(3) (soft weights over the 3 actions) for SAC/TD3
         - Reward: based on record severity
 
         Handles variable-length feature vectors by padding shorter records
@@ -698,8 +882,8 @@ class SB3Agent(FreeThreadedAgent):
         if not features:
             # Default observation space
             self._obs_dim = 4
-            self._action_dim = 2
-            return self._create_default_env()
+            self._action_dim = 3 if continuous else 2
+            return self._create_default_env(continuous=continuous)
 
         # Pad all feature vectors to the same length using a sentinel value
         # outside the normalized [0,1] range. The model learns to ignore -2.0
@@ -714,9 +898,10 @@ class SB3Agent(FreeThreadedAgent):
         self._action_dim = 3  # info, warning, error
 
         # Create environment
-        return self._create_vector_env(features)
+        return self._create_vector_env(features, continuous=continuous)
 
-    def _create_vector_env(self, feature_vectors: list[list[float]]) -> 'gym.Env':
+    def _create_vector_env(self, feature_vectors: list[list[float]],
+                           continuous: bool = False) -> 'gym.Env':
         """
         Create a simple vector-based gym environment.
 
@@ -729,11 +914,12 @@ class SB3Agent(FreeThreadedAgent):
         class _MemoryDatasetEnv(gym.Env):
             """Gym environment from LocalMemoryStore data."""
 
-            def __init__(self, features: list[list[float]]):
+            def __init__(self, features: list[list[float]], continuous: bool = False):
                 super().__init__()
                 self.features = features
                 self.n = len(features)
                 self.idx = 0
+                self.continuous = continuous
 
                 obs_dim = len(features[0]) if features else 4
                 self.observation_space = Box(
@@ -741,7 +927,13 @@ class SB3Agent(FreeThreadedAgent):
                     shape=(obs_dim,),
                     dtype=np.float32,
                 )
-                self.action_space = Discrete(3)  # 0=improve, 1=maintain, 2=escalate
+                # 0=improve, 1=maintain, 2=escalate. Continuous algos (SAC/TD3)
+                # get a Box(3) soft-weight action; step() takes the argmax so
+                # the reward semantics match the discrete case.
+                self.action_space = (
+                    Box(low=0.0, high=1.0, shape=(3,), dtype=np.float32)
+                    if continuous else Discrete(3)
+                )
 
                 # Infer expected action from feature vector
                 # First feature is severity ordinal (0.0=info, 0.33=warning, 0.67=error, 1.0=critical)
@@ -764,15 +956,17 @@ class SB3Agent(FreeThreadedAgent):
             def step(self, action):
                 # Reward: +1 for correct action, -0.5 for incorrect
                 expected = self._expected_actions[self.idx]
+                if self.continuous:
+                    action = int(np.argmax(np.asarray(action, dtype=np.float32)))
                 reward = 1.0 if action == expected else -0.5
                 self.idx = (self.idx + 1) % self.n
                 obs = np.array(self.features[self.idx], dtype=np.float32)
                 done = self.idx == 0  # Episode ends when we cycle through all
                 return obs, reward, done, False, {}
 
-        return _MemoryDatasetEnv(feature_vectors)
+        return _MemoryDatasetEnv(feature_vectors, continuous=continuous)
 
-    def _create_default_env(self) -> 'gym.Env':
+    def _create_default_env(self, continuous: bool = False) -> 'gym.Env':
         """Create a default simple environment when no data is available."""
         import gymnasium as gym
         from gymnasium.spaces import Box, Discrete
@@ -780,12 +974,16 @@ class SB3Agent(FreeThreadedAgent):
         class _DefaultEnv(gym.Env):
             """Simple default environment with 4-dim observation space."""
 
-            def __init__(self):
+            def __init__(self, continuous: bool = False):
                 super().__init__()
+                self.continuous = continuous
                 self.observation_space = Box(
                     low=-1.0, high=1.0, shape=(4,), dtype=np.float32
                 )
-                self.action_space = Discrete(2)
+                self.action_space = (
+                    Box(low=0.0, high=1.0, shape=(3,), dtype=np.float32)
+                    if continuous else Discrete(2)
+                )
                 self.t = 0
 
             def reset(self, *, seed=None, options=None):
@@ -796,11 +994,13 @@ class SB3Agent(FreeThreadedAgent):
             def step(self, action):
                 self.t += 1
                 obs = np.random.randn(4).astype(np.float32) * 0.1
+                if self.continuous:
+                    action = int(np.argmax(np.asarray(action, dtype=np.float32)))
                 reward = 1.0 if action == 0 else -0.1
                 done = self.t >= 200
                 return obs, reward, done, False, {}
 
-        return _DefaultEnv()
+        return _DefaultEnv(continuous=continuous)
 
     # -- Lazy helpers --------------------------------------------------------
 
