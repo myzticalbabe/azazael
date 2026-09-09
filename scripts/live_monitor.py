@@ -459,6 +459,40 @@ def collect(con):
                 _rd = json.load(f)
             data["gosp"]["rani"] = {"mode": _rd.get("mode"),
                                     "date": (_rd.get("date") or "")[:16]}
+        # RANI batteries (Eve Unleashed AdversarialEngine): newest of the
+        # GOSP-integration and live-LLM evidence files. Backend identity
+        # is the point — every round is stamped with what answered it.
+        _best, _best_ts = None, ""
+        for _rf in ("GOSP_RANI_INTEGRATION_evidence.json",
+                    "RANI_LLM_evidence.json"):
+            _fp = os.path.join(_home, _rf)
+            try:
+                if not os.path.exists(_fp):
+                    continue
+                with open(_fp, encoding="utf-8") as f:
+                    _ed = json.load(f)
+            except Exception:
+                continue
+            _dt = str(_ed.get("date") or "")
+            if _dt >= _best_ts:
+                _best_ts, _best = _dt, _ed
+        if _best:
+            _sm = _best.get("engine_summary") or {}
+            _probes = _best.get("probes") or []
+            _nr = sum(len(_p.get("rounds") or []) for _p in _probes) or len(_best.get("rounds") or [])
+            _adv = _sm.get("adversarial_detected")
+            if _adv is None:
+                _adv = sum(1 for _p in _probes for _r in (_p.get("rounds") or [])
+                           if _r.get("adversarial_flag"))
+                _adv += sum(1 for _r in (_best.get("rounds") or []) if _r.get("adversarial_flag"))
+            data["gosp"]["rani_batt"] = {
+                "backend": _best.get("backend") or _best.get("model") or "?",
+                "rounds": _nr or _sm.get("total_rounds"),
+                "adv": _adv,
+                "score": _sm.get("avg_score"),
+                "lat": _sm.get("avg_latency_ms"),
+                "date": _best_ts[:16],
+            }
     except Exception:
         pass
 
@@ -1010,6 +1044,24 @@ def render(data, now):
         else:
             _gtxt += " no learner evidence yet (run gosp_learner_train.py in WSL)"
         L(_rainbow(_gtxt, width))
+        # --- Eve Unleashed RANI: which backend answered last + battery stats ---
+        _rb = (data.get("gosp") or {}).get("rani_batt")
+        if _rb:
+            _rparts = [f"backend={_rb.get('backend', '?')}"]
+            if _rb.get("rounds") is not None:
+                _rparts.append(f"{_rb['rounds']} rounds")
+            if _rb.get("adv") is not None:
+                _rparts.append(f"adv={_rb['adv']}")
+            if isinstance(_rb.get("score"), (int, float)):
+                _rparts.append(f"score={_rb['score']:.2f}")
+            if isinstance(_rb.get("lat"), (int, float)):
+                _lat = _rb['lat']
+                _rparts.append(f"lat={_lat / 1000:.1f}s" if _lat >= 1000 else f"lat={_lat:.0f}ms")
+            if _rb.get("date"):
+                _rparts.append(f"({_rb['date']})")
+            L(_fit("EVE    " + "  ".join(_rparts), width))
+        else:
+            L(_fit("EVE    no RANI battery yet (run gosp_rani_integration.py or rani_llm_test.py)", width))
         # evo genetics detail: champion re-eval, beat rate, pool mix
         _champs = [e2.get("champ") for e2 in evo[:2]]
         _champ_txt = "champ " + "->".join("%.2f" % c for c in _champs if c is not None) or "champ n/a"
