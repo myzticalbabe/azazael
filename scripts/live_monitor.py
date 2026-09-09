@@ -479,6 +479,8 @@ def collect(con):
         if _best:
             _sm = _best.get("engine_summary") or {}
             _probes = _best.get("probes") or []
+            if not _sm and _probes and isinstance(_probes[0], dict):
+                _sm = _probes[0].get("engine_summary") or {}
             _nr = sum(len(_p.get("rounds") or []) for _p in _probes) or len(_best.get("rounds") or [])
             _adv = _sm.get("adversarial_detected")
             if _adv is None:
