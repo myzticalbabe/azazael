@@ -200,13 +200,14 @@ def evo_history(con, n=20):
 # (order matters: next_rotation uses the same slot arithmetic).
 TRAIN_ALGOS = ("PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
                "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL",
-               "DREAMTUNE")
+               "DREAMTUNE", "WORMGA")
 TRAIN_EVENT_TYPES = ("sb3_training_orchestrated",
                      "grpo_training_orchestrated",
                      "dpo_training_orchestrated",
                      "offline_training_orchestrated",
                      "training_run_complete",
-                     "dreamtune_training_orchestrated")
+                     "dreamtune_training_orchestrated",
+                     "wormga_training_orchestrated")
 # training_run_complete rows from before the RL track was wired (2026-09-09)
 # used a degenerate reward scale (25.0/50.0) — excluded from the wallboard.
 RL_LIVE_SINCE = "2026-09-09"
@@ -667,6 +668,28 @@ def render(data, now):
         else:
             break
     L(_fit(_steer, width))
+
+    # --- meta-director: who trains next + top tracks by win rate ---
+    try:
+        import meta_director as _md
+    except Exception:
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import meta_director as _md
+        except Exception:
+            _md = None
+    if _md is not None:
+        try:
+            _ledger = _md.load_ledger(TRAIN_ALGOS)
+            _slot = int(time.time()) // 300
+            _pick = _md.pick(_slot, _ledger, TRAIN_ALGOS)
+            _top = _md.top_tracks(_ledger, TRAIN_ALGOS, 3)
+            L(_fit(f"DIR    next {C_CYN}{_pick}{C_RST}  "
+                   + "  ".join(f"{a}({m:.2f})" for a, m in _top), width))
+        except Exception:
+            L(_fit("DIR    director unavailable", width))
+    else:
+        L(_fit("DIR    director unavailable", width))
 
     # --- training: fixed compact grid (row count depends only on width) ---
     tr = data.get("training", {})

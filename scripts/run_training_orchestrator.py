@@ -50,7 +50,7 @@ EXCLUDED_TRAINING_SOURCES = [
 # every len(ROTATION)*5 minutes.
 ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
             "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL",
-            "DREAMTUNE"]
+            "DREAMTUNE", "WORMGA"]
 
 
 def _next_track_version(event_type: str) -> str:
@@ -80,14 +80,108 @@ def _next_track_version(event_type: str) -> str:
     return "v1"
 
 
+def _load_director():
+    """Import meta_director (scripts/ sibling); None on any problem."""
+    try:
+        import meta_director as _md
+        return _md
+    except Exception:
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            import meta_director as _md
+            return _md
+        except Exception:
+            return None
+
+
 def rotated_algo() -> str:
     """Pick the algorithm for the current 5-minute slot.
 
-    int(time.time()) // 300 advances by 1 every 5 minutes, so scheduled runs
-    cycle through ROTATION and each algo trains once per len(ROTATION)*5
-    minutes with no two algos training in the same slot.
+    Meta-director (2026-09-09): Thompson sampling over per-track win
+    posteriors replaces fixed rotation — compute follows the tracks
+    that beat their own medians. Slot-seeded, so concurrent launches in
+    one slot agree and the monitor replicates the pick. Falls back to
+    plain rotation if the ledger is unreadable.
     """
-    return ROTATION[int(time.time()) // 300 % len(ROTATION)]
+    slot = int(time.time()) // 300
+    md = _load_director()
+    if md is not None:
+        try:
+            return md.pick(slot, md.load_ledger(ROTATION), ROTATION)
+        except Exception:
+            pass
+    return ROTATION[slot % len(ROTATION)]
+
+
+_TRACK_EVENTS = {
+    "GRPO": ("grpo_training_orchestrated", "eval_mean_reward", None),
+    "DPO": ("dpo_training_orchestrated", "eval_mean_reward", None),
+    "OFFLINE": ("offline_training_orchestrated", "eval_mean_reward", None),
+    "DREAMTUNE": ("dreamtune_training_orchestrated", "eval_mean_reward", None),
+    "RL": ("training_run_complete", "avg_reward", "ScheduledTrainingWorm"),
+}
+
+
+def _track_recent_rewards(algo: str, n: int = 20) -> list:
+    """Last-n eval rewards for a track (scale is track-local by design)."""
+    try:
+        from CORE.local_memory import get_memory_store
+        import json as _json
+        store = get_memory_store()
+        if algo in _TRACK_EVENTS:
+            et, field, src = _TRACK_EVENTS[algo]
+            rows = store.query_memories(event_type=et, limit=200)
+            vals = []
+            for r in rows:
+                if src is not None and r.get("source") != src:
+                    continue
+                d = r.get("data", {})
+                if isinstance(d, str):
+                    try:
+                        d = _json.loads(d)
+                    except Exception:
+                        continue
+                v = d.get(field)
+                if isinstance(v, (int, float)):
+                    vals.append(float(v))
+            return vals[:n]
+        rows = store.query_memories(event_type="sb3_training_orchestrated",
+                                    limit=500)
+        vals = []
+        for r in rows:
+            d = r.get("data", {})
+            if isinstance(d, str):
+                try:
+                    d = _json.loads(d)
+                except Exception:
+                    continue
+            if d.get("algo") != algo:
+                continue
+            v = d.get("eval_mean_reward")
+            if isinstance(v, (int, float)):
+                vals.append(float(v))
+            if len(vals) >= n:
+                break
+        return vals
+    except Exception:
+        return []
+
+
+def _director_observe(algo: str, reward) -> None:
+    """Fold one run into the director ledger: 1 iff it beat the track's
+    own median (scale-free), optimistic win on thin history."""
+    try:
+        if not isinstance(reward, (int, float)):
+            return
+        md = _load_director()
+        if md is None:
+            return
+        hist = _track_recent_rewards(algo, 20)
+        won = True if len(hist) < 2 else bool(float(reward) > sorted(hist)[len(hist) // 2])
+        md.observe(md.load_ledger(ROTATION), algo, won,
+                   slot=int(time.time()) // 300)
+    except Exception:
+        pass
 
 
 def _gen_run_id(prefix: str) -> str:
@@ -406,7 +500,149 @@ def run_dreamtune_cycle() -> dict:
         source="TrainingOrchestrator", event_type="dreamtune_training_orchestrated",
         data=data, severity="info", tags=["dreamtune", "training", "orchestrated"],
     )
+    # Publish tuned params for dream_cycle.py (2026-09-09 apply step).
+    # Precedence at apply time: explicit tuned file < metacog steering
+    # (the pipeline's internal steer_by_strategy still wins when active).
+    try:
+        from pathlib import Path as _Path
+        import json as _json
+        _tuned = _Path(__file__).resolve().parent.parent / "config" / "tuned_creativity.json"
+        _tmp = _tuned.with_suffix(".json.tmp")
+        _tmp.write_text(_json.dumps({
+            "creativity_factor": float(res.get("best_parameters", {}).get(
+                "creativity_factor", 0.3)),
+            "scenario_count": int(round(float(res.get("best_parameters", {}).get(
+                "scenario_count", 20)))),
+            "fitness": data["eval_mean_reward"],
+            "run_id": run_id,
+            "promoted_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }, indent=2), encoding="utf-8")
+        os.replace(_tmp, _tuned)
+    except Exception:
+        pass
     return {"algo": "DREAMTUNE", "records_used": data["records_used"],
+            "model_version": data["model_version"],
+            "eval_mean_reward": data["eval_mean_reward"],
+            "duration_ms": duration_ms}
+
+
+# Safe read-only worms for live micro-evals (status/summary/uptime only —
+# never anything that writes, moves, or deletes).
+WORMGA_WORMS = ("SYSTEMZ", "PROCESSZ", "DISKZ", "NETWORXZ", "CLOCKZ", "HEALTHZ")
+
+
+def _wormga_probe(worm, timeout_s=10.0):
+    """Run one safe worm once, daemon-guarded. Returns (success, ms, error).
+
+    _legacy_execute has no timeout of its own, so it runs on a daemon
+    thread: a hung worm is recorded as a timeout failure and can never
+    hang the track (daemons don't block process exit).
+    """
+    import threading
+    box = {}
+    try:
+        from CORE.WORMS.CLUSTERWORMS import _legacy_execute
+    except Exception as e:
+        return False, 0.0, "unresolvable: %s" % str(e)[:100]
+
+    def _run():
+        t0 = time.time()
+        try:
+            out = _legacy_execute(worm)
+            box["ok"] = out is not None
+            box["ms"] = (time.time() - t0) * 1000.0
+            box["err"] = None if out is not None else "unresolvable"
+        except Exception as e:
+            box["ok"] = False
+            box["ms"] = (time.time() - t0) * 1000.0
+            box["err"] = str(e)[:200]
+
+    th = threading.Thread(target=_run, daemon=True,
+                          name="wormga-probe-%s" % worm)
+    th.start()
+    th.join(timeout=timeout_s)
+    if th.is_alive():
+        return False, timeout_s * 1000.0, "probe-timeout"
+    return (box.get("ok", False), round(box.get("ms", 0.0), 2),
+            box.get("err"))
+
+
+def run_wormga_cycle() -> dict:
+    """One per-worm execution-policy GA pass (2026-09-09 track #17).
+
+    Genome: shared {timeout_ms, max_retries} applied to the safe-worm
+    set. Fitness (live, causal): success_rate - 0.2 * normalized time,
+    min over 2 reps. Micro-evals write NO rows (persist=False doctrine —
+    like evolution/ dreamtune evals); the single artifact below carries
+    the reliability leaderboard every run, so the track is observably
+    useful even when the landscape is flat (healthy machine: everything
+    succeeds and the GA honestly converges immediately).
+    Retries apply per worm on failure inside one rep.
+    """
+    import random as _random
+    from CORE.WORMS.expansion.evolution import GeneticOptimizer
+    from CORE.local_memory import get_memory_store
+
+    t0 = time.time()
+    run_id = _gen_run_id("wormga")
+    samples = []  # (worm, ok, ms) across the whole run -> leaderboard
+
+    def _fitness(genome):
+        timeout_ms = max(500, min(15000, float(genome.genes.get('timeout_ms', 5000))))
+        retries = int(round(max(0, min(3, float(genome.genes.get('max_retries', 1))))))
+        scores = []
+        for _rep in range(2):
+            oks, mss = 0, []
+            for w in WORMGA_WORMS:
+                ok, ms, _err = _wormga_probe(w, timeout_s=timeout_ms / 1000.0 + 2.0)
+                for _r in range(retries):
+                    if ok:
+                        break
+                    ok, ms, _err = _wormga_probe(w, timeout_s=timeout_ms / 1000.0 + 2.0)
+                oks += 1 if ok else 0
+                mss.append(min(ms, timeout_ms))
+                samples.append((w, ok, ms))
+            succ = oks / len(WORMGA_WORMS)
+            t_norm = (sum(mss) / len(mss)) / timeout_ms if mss else 1.0
+            scores.append(succ - 0.2 * min(1.0, t_norm))
+        return min(scores) if scores else 0.0
+
+    opt = GeneticOptimizer()
+    opt.initialize("ClusterWormPolicy",
+                   {"timeout_ms": (500, 15000), "max_retries": (0, 3)},
+                   population_size=6)
+    res = opt.optimize("ClusterWormPolicy", generations=3, fitness_fn=_fitness)
+    duration_ms = round((time.time() - t0) * 1000, 2)
+
+    board = {}
+    for w, ok, ms in samples:
+        b = board.setdefault(w, {"n": 0, "ok": 0, "ms": 0.0})
+        b["n"] += 1
+        b["ok"] += 1 if ok else 0
+        b["ms"] += ms
+    leaderboard = {w: {"success_rate": round(v["ok"] / v["n"], 3),
+                       "avg_ms": round(v["ms"] / v["n"], 1),
+                       "n": v["n"]} for w, v in board.items()}
+
+    data = {
+        "run_id": run_id,
+        "algo": "WORMGA",
+        "total_timesteps": 0,
+        "records_used": len(samples),
+        "data_source": "live_microevals",
+        "model_version": _next_track_version("wormga_training_orchestrated"),
+        "eval_mean_reward": round(float(res.get("best_fitness", 0.0)), 4),
+        "best_params": res.get("best_parameters", {}),
+        "generations": res.get("generations", 0),
+        "leaderboard": leaderboard,
+        "duration_ms": duration_ms,
+    }
+    store = get_memory_store()
+    store.record_event(
+        source="TrainingOrchestrator", event_type="wormga_training_orchestrated",
+        data=data, severity="info", tags=["wormga", "training", "orchestrated"],
+    )
+    return {"algo": "WORMGA", "records_used": data["records_used"],
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "duration_ms": duration_ms}
@@ -449,13 +685,15 @@ def _run_impl():
         print(f"  [WARN] Registry warm failed: {e}", flush=True)
 
     # Non-SB3 tracks (GRPO worm-selection, DPO preference learning,
-    # OFFLINE holdout, RL scheduled pipeline, DREAMTUNE dream-GA)
-    if algo in ("GRPO", "DPO", "OFFLINE", "RL", "DREAMTUNE"):
+    # OFFLINE holdout, RL scheduled pipeline, DREAMTUNE dream-GA, WORMGA
+    # per-worm execution-policy GA)
+    if algo in ("GRPO", "DPO", "OFFLINE", "RL", "DREAMTUNE", "WORMGA"):
         fn = (run_grpo_cycle if algo == "GRPO"
               else run_dpo_cycle if algo == "DPO"
               else run_offline_cycle if algo == "OFFLINE"
               else run_rl_cycle if algo == "RL"
-              else run_dreamtune_cycle)
+              else run_dreamtune_cycle if algo == "DREAMTUNE"
+              else run_wormga_cycle)
         try:
             r = fn()
         except Exception as e:
@@ -475,6 +713,7 @@ def _run_impl():
         print(f"  Duration:     {r.get('duration_ms', 0):.0f}ms")
         print("=" * 60)
         print(f"STATUS: {algo} TRAINING SUCCESSFUL", flush=True)
+        _director_observe(algo, r.get("eval_mean_reward"))
         return 0
 
     print(f"Starting TrainingOrchestrator (algo={algo}, "
@@ -519,6 +758,7 @@ def _run_impl():
         # Return exit code based on success
         if result.trained:
             print("STATUS: TRAINING SUCCESSFUL", flush=True)
+            _director_observe(algo, result.eval_mean_reward)
             return 0
         elif result.error:
             print(f"STATUS: TRAINING FAILED — {result.error}", flush=True)
