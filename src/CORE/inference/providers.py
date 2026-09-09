@@ -62,7 +62,14 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Iterator
 
-from openai import OpenAI
+# 3.14t port: the `openai` SDK depends on pydantic_core, which ships no
+# free-threaded build — a top-level import made this entire registry
+# (keys, validation, model lists) unusable on 3.14t. Import lazily so
+# everything except live OpenAI-SDK calls works everywhere.
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 # --- Configuration --------------------------------------------------
 
@@ -671,8 +678,13 @@ class OpenAIProvider:
 
     # -- Client factory ----------------------------------------------
 
-    def _get_client(self) -> OpenAI:
+    def _get_client(self) -> "OpenAI":
         """Get or lazily create the cached OpenAI client."""
+        if OpenAI is None:
+            raise RuntimeError(
+                "openai package unavailable on this interpreter "
+                "(pydantic_core has no 3.14t build); use a stdlib HTTP "
+                "client or plain CPython for live OpenAI-SDK calls")
         if self._openai_client is None:
             kwargs = dict(
                 base_url=self.config.base_url,

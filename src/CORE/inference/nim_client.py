@@ -33,7 +33,11 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any
 
-from openai import OpenAI
+# 3.14t port: openai SDK needs pydantic_core (no free-threaded build).
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 from CORE.inference.providers import OpenAIProvider
 
