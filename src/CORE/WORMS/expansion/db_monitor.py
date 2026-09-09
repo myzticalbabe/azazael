@@ -112,6 +112,15 @@ class DatabaseMonitorWorm:
     CRITICAL_GROWTH_24H: int = 50000
     WARN_ERRORS_7D: int = 50
     CRITICAL_ERRORS_7D: int = 200
+    # Repeat-alert cooldown (2026-09-08 fix): the same metric+severity is
+    # recorded at most once per cooldown window. Previously every execute()
+    # re-recorded the whole in-memory alert history AND fresh instances
+    # re-fired permanent breaches, compounding into ~200 alert rows/hour.
+    ALERT_COOLDOWN_S: float = 3600.0
+    # Sources excluded from real-error counts (2026-09-08 fix): the monitor
+    # counting its own alert/snapshot rows made thresholds self-referential
+    # (alerts bred alerts). Same lesson as the evolution eval pools.
+    _SELF_EXCLUDE_SOURCES: list = ["DatabaseMonitorWorm"]
 
     def __init__(self, use_postgres: bool = False, store: Any = None):
         self._use_postgres = use_postgres
@@ -264,12 +273,17 @@ class DatabaseMonitorWorm:
         try:
             stats = store.get_stats()
 
-            # Get recent error/warning counts
-            real = store.query_real_errors(days=7, limit=500)
-            error_count = real.get("total_errors", 0)
-            warning_count = real.get("total_warnings", 0)
+            # Get recent error/warning counts. Exact COUNT(*) totals
+            # (2026-09-08 fix): the sampled lists are fetch-capped, so
+            # thresholds must use the exact totals. Self-source excluded
+            # so alerts can't breed alerts.
+            real = store.query_real_errors(
+                days=7, limit=500,
+                exclude_sources=self._SELF_EXCLUDE_SOURCES)
+            error_count = real.get("total_errors_exact", 0)
+            warning_count = real.get("total_warnings_exact", 0)
 
-            # Get daily growth
+            # Get daily growth (actual 24h count, not a projection)
             growth = store.get_db_growth(days=1)
             growth_24h = growth[-1]["count"] if growth else 0
 
@@ -310,30 +324,26 @@ class DatabaseMonitorWorm:
                 healthy=healthy,
             )
 
-            # Compare with baseline for growth rate
-            now = time.time()
-            if self._last_growth_baseline is not None and self._last_check_time is not None:
-                elapsed_hours = (now - self._last_check_time) / 3600
-                if elapsed_hours > 0:
-                    growth_rate = (stats.get("total_memories", 0) - self._last_growth_baseline) / elapsed_hours
-                    # Generate alert if growth rate is abnormally high
-                    projected_24h = int(growth_rate * 24)
-                    if projected_24h > self.CRITICAL_GROWTH_24H:
-                        self._add_alert(
-                            severity="critical",
-                            message=f"Abnormally high memory growth rate: ~{projected_24h}/day",
-                            metric="growth_rate_24h",
-                            value=projected_24h,
-                            threshold=self.CRITICAL_GROWTH_24H,
-                        )
-                    elif projected_24h > self.WARN_GROWTH_24H:
-                        self._add_alert(
-                            severity="warning",
-                            message=f"High memory growth rate: ~{projected_24h}/day",
-                            metric="growth_rate_24h",
-                            value=projected_24h,
-                            threshold=self.WARN_GROWTH_24H,
-                        )
+            # Growth-rate alerts on the ACTUAL 24h count (2026-09-08
+            # fix): the old single-interval projection turned any burst
+            # into absurd ~/day figures (e.g. 770K/day) that stayed
+            # breached for as long as training loops spewed rows.
+            if growth_24h >= self.CRITICAL_GROWTH_24H:
+                self._add_alert(
+                    severity="critical",
+                    message=f"High memory growth in last 24h: {growth_24h} rows/day",
+                    metric="growth_24h_actual",
+                    value=growth_24h,
+                    threshold=self.CRITICAL_GROWTH_24H,
+                )
+            elif growth_24h >= self.WARN_GROWTH_24H:
+                self._add_alert(
+                    severity="warning",
+                    message=f"Elevated memory growth in last 24h: {growth_24h} rows/day",
+                    metric="growth_24h_actual",
+                    value=growth_24h,
+                    threshold=self.WARN_GROWTH_24H,
+                )
 
             # Check DB size thresholds
             db_size = stats.get("db_size_mb", 0)
@@ -378,10 +388,6 @@ class DatabaseMonitorWorm:
                 self._snapshot_history.append(snapshot)
                 if len(self._snapshot_history) > 100:
                     self._snapshot_history = self._snapshot_history[-100:]
-
-            # Update baseline
-            self._last_growth_baseline = stats.get("total_memories", 0)
-            self._last_check_time = now
 
             return snapshot
 
@@ -439,12 +445,48 @@ class DatabaseMonitorWorm:
         except Exception:
             pass
 
+    def _recently_alerted(self, store: Any, metric: str, severity: str) -> bool:
+        """True when the same metric+severity was recorded within cooldown.
+
+        Store-backed (2026-09-08 fix) so it works across fresh worm
+        instances, not just within one process's memory. Integrity
+        failures bypass the cooldown — corruption must always re-alert.
+        """
+        if metric == "integrity_check":
+            return False
+        try:
+            rows = store.query_memories(
+                source="DatabaseMonitorWorm", event_type="db_health_alert",
+                limit=30)
+        except Exception:
+            return False
+        now = datetime.now(timezone.utc)
+        local_tz = datetime.now().astimezone().tzinfo
+        for r in rows:
+            try:
+                data = r.get("data", {}) or {}
+                if isinstance(data, str):
+                    import json as _json
+                    data = _json.loads(data)
+                if data.get("metric") != metric or r.get("severity") != severity:
+                    continue
+                ts = datetime.fromisoformat(str(r.get("timestamp", "")))
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=local_tz)
+                if (now - ts).total_seconds() < self.ALERT_COOLDOWN_S:
+                    return True
+            except Exception:
+                continue
+        return False
+
     def _record_alert(self, alert: DbAlert):
-        """Record an alert to LocalMemoryStore."""
+        """Record an alert to LocalMemoryStore (cooldown-deduped)."""
         store = self._get_store()
         if not store:
             return
         try:
+            if self._recently_alerted(store, alert.metric, alert.severity):
+                return
             store.record_event(
                 source="DatabaseMonitorWorm",
                 event_type="db_health_alert",
@@ -477,9 +519,12 @@ class DatabaseMonitorWorm:
         # Record to memory
         self._record_snapshot(snapshot)
 
-        # Record any new alerts
+        # Record any new alerts, then DRAIN the pending list (2026-09-08
+        # fix): previously the list was only copied, so every execute()
+        # re-recorded the entire accumulated history as new rows.
         with self._lock:
             pending_alerts = list(self._alerts)
+            self._alerts.clear()
         for alert in pending_alerts:
             self._record_alert(alert)
 
