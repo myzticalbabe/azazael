@@ -32,7 +32,7 @@ import time
 import hashlib
 import threading
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 from CORE.uuid7 import uuid7
 
@@ -592,8 +592,12 @@ class LocalMemoryStore:
             conditions.append("session_id = ?")
             params.append(session_id)
         if max_age_days:
-            conditions.append("timestamp > datetime('now', ?)")
-            params.append(f"-{max_age_days} days")
+            # Python-computed UTC cutoff in T-format (2026-09-09 fix):
+            # SQLite datetime('now') renders space-separated, which sorts
+            # BELOW every T-separated stored row — the old predicate
+            # matched all of today's rows regardless of window.
+            conditions.append("timestamp > ?")
+            params.append((datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat())
         if exclude_sources:
             conditions.append(
                 "source NOT IN (%s)" % ", ".join("?" * len(exclude_sources)))
@@ -1162,12 +1166,12 @@ class LocalMemoryStore:
 
     def purge_old(self, days: int = 90) -> int:
         """Delete memories older than N days. Returns count deleted."""
-        cutoff = datetime.now(timezone.utc).replace().isoformat()
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
         with self._lock:
             conn = self._get_conn()
             cursor = conn.execute(
-                "DELETE FROM memories WHERE timestamp < datetime('now', ?)",
-                (f"-{days} days",)
+                "DELETE FROM memories WHERE timestamp < ?",
+                (cutoff,)
             )
             deleted = cursor.rowcount
             conn.commit()
@@ -1233,19 +1237,20 @@ class LocalMemoryStore:
         # Exact totals with the same predicates (sample lists above are
         # fetch-capped at 500 rows by query_memories, so len() is a floor).
         conds = ["severity != 'deleted'", "severity = ?",
-                 "timestamp > datetime('now', ?)"]
+                 "timestamp > ?"]
         excl_sql = ""
         if exclude_sources:
             excl_sql = " AND source NOT IN (%s)" % ", ".join("?" * len(exclude_sources))
         conn = self._get_conn()
         try:
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
             where = " AND ".join(conds) + excl_sql
             total_errors_exact = conn.execute(
                 f"SELECT COUNT(*) FROM memories WHERE {where}",
-                ["error", f"-{days} days", *(exclude_sources or [])]).fetchone()[0]
+                ["error", cutoff, *(exclude_sources or [])]).fetchone()[0]
             total_warnings_exact = conn.execute(
                 f"SELECT COUNT(*) FROM memories WHERE {where}",
-                ["warning", f"-{days} days", *(exclude_sources or [])]).fetchone()[0]
+                ["warning", cutoff, *(exclude_sources or [])]).fetchone()[0]
         finally:
             conn.close()
 
@@ -1274,9 +1279,9 @@ class LocalMemoryStore:
         rows = conn.execute(
             "SELECT date(timestamp) as day, severity, COUNT(*) as cnt "
             "FROM memories WHERE severity IN ('error', 'warning') "
-            "AND timestamp > datetime('now', ?) "
+            "AND timestamp > ? "
             "GROUP BY day, severity ORDER BY day",
-            (f"-{days} days",)
+            ((datetime.now(timezone.utc) - timedelta(days=days)).isoformat(),)
         ).fetchall()
         conn.close()
 
@@ -1305,9 +1310,9 @@ class LocalMemoryStore:
         conn = self._get_conn()
         rows = conn.execute(
             "SELECT date(timestamp) as day, COUNT(*) as cnt "
-            "FROM memories WHERE timestamp > datetime('now', ?) "
+            "FROM memories WHERE timestamp > ? "
             "GROUP BY day ORDER BY day",
-            (f"-{days} days",)
+            ((datetime.now(timezone.utc) - timedelta(days=days)).isoformat(),)
         ).fetchall()
         conn.close()
         return [{"date": r["day"], "count": r["cnt"]} for r in rows]
