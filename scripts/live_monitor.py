@@ -521,6 +521,60 @@ def collect(con):
             }
     except Exception:
         pass
+
+    # latest tuner outputs (best params each specialist found)
+    data["tuners"] = {}
+    try:
+        for _et, _tk in (("dreamtune_training_orchestrated", "dreamtune"),
+                         ("wormga_training_orchestrated", "wormga")):
+            _rows = con.execute(
+                "SELECT timestamp, data FROM memories WHERE event_type=? "
+                "ORDER BY id DESC LIMIT 1", (_et,)).fetchall()
+            if not _rows:
+                continue
+            _ts, _dd = _rows[0]
+            _dd = parse_data(_dd)
+            data["tuners"][_tk] = {
+                "age": age_min(_ts),
+                "fit": _dd.get("eval_mean_reward"),
+                "ver": _dd.get("model_version"),
+                "params": _dd.get("best_params") or {},
+                "board": _dd.get("leaderboard") or {},
+            }
+    except Exception:
+        pass
+
+    # cycle process liveness from their own log files (complements event
+    # freshness: proves the scheduler tasks themselves are firing).
+    # dbmon is special: the daemon only logs at startup/errors, so its
+    # liveness comes from its snapshot events, not its log file.
+    data["cycles"] = []
+    try:
+        _logdir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "..", "logs")
+        for _fn, _lb in (("evolution_cycle.log", "evo"),
+                         ("training_orchestrator.log", "train"),
+                         ("dream_cycle.log", "dream"),
+                         ("metacog_cycle.log", "meta"),
+                         ("db_monitor.log", "dbmon")):
+            _fp = os.path.join(_logdir, _fn)
+            try:
+                _age = round((time.time() - os.path.getmtime(_fp)) / 60.0, 1)
+            except OSError:
+                _age = None
+            data["cycles"].append({"label": _lb, "age": _age})
+        try:
+            _snap = con.execute(
+                "SELECT timestamp FROM memories WHERE event_type='db_health_snapshot' "
+                "ORDER BY id DESC LIMIT 1").fetchone()
+            if _snap:
+                for _c in data["cycles"]:
+                    if _c.get("label") == "dbmon":
+                        _c["age"] = age_min(_snap[0])
+        except Exception:
+            pass
+    except Exception:
+        pass
     return data
 
 
@@ -946,10 +1000,52 @@ def render(data, now):
     # --- promotion file: hyperparams actually live in production ---
     _pr = data.get("promo")
     if _pr:
+        _streak, _streak_n = "", 0
+        for _e2 in data.get("evo") or []:
+            if str(_e2.get("fit", "")).startswith("v3") and _e2.get("beats"):
+                _streak_n += 1
+            else:
+                break
+        if _streak_n:
+            _streak = f"  streak {_streak_n}/3"
         L(_fit(f"PROMO  lr={_pr['lr']} eps={_pr['eps']} disc={_pr['disc']} "
-               f"fit={_pr.get('fit')} wins={_pr.get('wins')} {_pr.get('age')}m ago", width))
+               f"fit={_pr.get('fit')} wins={_pr.get('wins')} {_pr.get('age')}m ago{_streak}", width))
     else:
         L(_fit("PROMO  no promoted params file (defaults in effect)", width))
+
+    # --- tuner bests: what the specialist tracks found ---
+    _tn = data.get("tuners") or {}
+    _dt = _tn.get("dreamtune") or {}
+    if _dt:
+        _dp = _dt.get("params") or {}
+        _cf = _dp.get("creativity_factor")
+        _sc = _dp.get("scenario_count")
+        _dtxt = (f"TUNE   dreamtune cf={_cf:.2f} sc={_sc:.0f}" if isinstance(_cf, (int, float)) else "TUNE   dreamtune ?")
+        if isinstance(_dt.get("fit"), (int, float)):
+            _dtxt += f" fit={_dt['fit']:.3f}"
+        L(_fit(_dtxt, width))
+    _wb = _tn.get("wormga") or {}
+    _board = _wb.get("board") or {}
+    if _board:
+        _ab = {"SYSTEMZ": "SYS", "PROCESSZ": "PRC", "DISKZ": "DSK",
+               "NETWORXZ": "NET", "CLOCKZ": "CLK", "HEALTHZ": "HLT"}
+        _cells = []
+        for _w in ("SYSTEMZ", "PROCESSZ", "DISKZ", "NETWORXZ", "CLOCKZ", "HEALTHZ"):
+            _e = _board.get(_w) or {}
+            _sr = _e.get("success_rate")
+            _cells.append(f"{_ab.get(_w, _w[:3])} {int(round(_sr * 100))}%" if isinstance(_sr, (int, float)) else f"{_ab.get(_w, _w[:3])} ?")
+        _wfit = f" fit={_wb['fit']:.3f}" if isinstance(_wb.get("fit"), (int, float)) else ""
+        L(_fit("WORMS  " + "  ".join(_cells) + _wfit, width))
+
+    # --- cycle processes: scheduler tasks proven alive by their own logs ---
+    _cy = data.get("cycles") or []
+    if _cy:
+        _bits = []
+        for _c in _cy:
+            _a = _c.get("age")
+            _txt = f"{_c.get('label')} {_a:.0f}m" if isinstance(_a, (int, float)) else f"{_c.get('label')} --"
+            _bits.append((_txt, _a is not None and _a < 15))
+        L(_fit("CYCLES " + "   ".join(f"{C_GRN}{t}{C_RST}" if _ok else f"{C_RED}{t}{C_RST}" for t, _ok in _bits), width))
 
     # --- store size + write rate ---
     _st = data.get("store")
