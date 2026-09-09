@@ -226,7 +226,12 @@ class _DirectStore:
         if session_id:
             conditions.append("session_id=?"); params.append(session_id)
         if max_age_days:
-            conditions.append("timestamp>datetime('now',?)"); params.append(f"-{max_age_days} days")
+            # Python UTC T-cutoff (2026-09-09 fix): SQLite datetime('now')
+            # renders space-separated and sorts below every stored
+            # T-separated row, making intraday windows match everything.
+            from datetime import timedelta as _td
+            conditions.append("timestamp>?")
+            params.append((datetime.now(timezone.utc) - _td(days=max_age_days)).isoformat())
         where = " AND ".join(conditions) if conditions else "1=1"
         conn = self._get_conn()
         rows = conn.execute(
