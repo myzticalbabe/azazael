@@ -292,7 +292,8 @@ class RLTrainLoop:
                           use_schema_features: bool = False,
                           exclude_sources: Optional[List[str]] = None,
                           records: Optional[List[Dict]] = None,
-                          persist: bool = True) -> Dict[str, Any]:
+                          persist: bool = True,
+                          rng: Optional[random.Random] = None) -> Dict[str, Any]:
         """Train from real execution data in LocalMemoryStore.
 
         Uses DataPipelineWorm to extract records, then treats each
@@ -324,6 +325,11 @@ class RLTrainLoop:
         pressure via more Q-updates).
 
         If test_data is provided directly, uses it for held-out evaluation.
+
+        If rng is provided (a random.Random instance), all exploration
+        draws use it instead of the global random module, making the eval
+        an isolated pure function of (genome, pool, seed) — required for
+        parallel fitness evaluation under free-threading.
 
         Args:
             source: Filter memories by source component
@@ -409,6 +415,9 @@ class RLTrainLoop:
 
         start = time.perf_counter()
         episode_rewards = []
+        # Isolated RNG (2026-09-09): callers pass a seeded Random for
+        # deterministic thread-safe evals; default preserves old behavior.
+        R = rng if rng is not None else random
 
         for episode in range(n_episodes):
             total_reward = 0.0
@@ -426,8 +435,8 @@ class RLTrainLoop:
                 state_key = _get_state_key(record)
 
                 # Choose action (epsilon-greedy)
-                if state_key not in self._q_table or random.random() < eps_eff:
-                    action = random.randint(0, 3)
+                if state_key not in self._q_table or R.random() < eps_eff:
+                    action = R.randint(0, 3)
                 else:
                     action = max(self._q_table[state_key], key=self._q_table[state_key].get)
 
