@@ -572,6 +572,68 @@ def collect(con):
     except Exception:
         pass
 
+    # last policy bridge verdict (what dreams actually did)
+    data["policy"] = None
+    try:
+        _prows = con.execute(
+            "SELECT timestamp, data FROM memories WHERE event_type='policy_applied' "
+            "ORDER BY id DESC LIMIT 1").fetchall()
+        if _prows:
+            _pts, _pdd = _prows[0]
+            _pdd = parse_data(_pdd)
+            _det = _pdd.get("details") or {}
+            _ap = _det.get("applied") or []
+            _sk = _det.get("skipped") or []
+            _last = _ap[-1] if _ap else {}
+            data["policy"] = {
+                "age": age_min(_pts),
+                "napplied": len(_ap), "nskipped": len(_sk),
+                "worm": _last.get("worm"), "rec": _last.get("recommended"),
+                "conf": _last.get("confidence"),
+                "adapted": _last.get("should_adapt"),
+            }
+    except Exception:
+        pass
+
+    # llm benchmark scoreboard (latest row per model)
+    data["llm"] = []
+    try:
+        _seen_models = set()
+        for _ts, _dd in con.execute(
+                "SELECT timestamp, data FROM memories WHERE event_type='llm_benchmark' "
+                "ORDER BY id DESC LIMIT 20").fetchall():
+            _dd = parse_data(_dd)
+            _m = _dd.get("model") or "?"
+            if _m in _seen_models:
+                continue
+            _seen_models.add(_m)
+            data["llm"].append({
+                "model": _m, "age": age_min(_ts),
+                "prompt": _dd.get("prompt_tps"), "gen": _dd.get("gen_tps"),
+                "think": _dd.get("think_chars"),
+            })
+            if len(data["llm"]) >= 5:
+                break
+    except Exception:
+        pass
+
+    # alert rate last hour (crit split for the human)
+    data["alerts"] = {"per_hr": 0, "crit": 0}
+    try:
+        for _ts, _sv in con.execute(
+                "SELECT timestamp, severity FROM memories WHERE event_type='db_health_alert' "
+                "ORDER BY id DESC LIMIT 500").fetchall():
+            _a = age_min(_ts)
+            if _a is None:
+                continue
+            if _a > 60:
+                break
+            data["alerts"]["per_hr"] += 1
+            if _sv == "critical":
+                data["alerts"]["crit"] += 1
+    except Exception:
+        pass
+
     # latest tuner outputs (best params each specialist found)
     data["tuners"] = {}
     try:
@@ -979,6 +1041,12 @@ def render(data, now):
         bests = [e2["best"] for e2 in evo][::-1]
         if show_climb:
             L(f"CLIMB ({len(bests)} runs, newest right) {C_CYN}{sparkline(bests, width=max(10, width - 30))}{C_RST}")
+        # per-generation trajectory of the latest run (how it got there)
+        _tj = evo[0].get("traj") or []
+        if _tj:
+            _tvals = [f"{x:.2f}" for x in _tj]
+            _tflag = "flat" if len(set(round(x, 3) for x in _tj)) <= 1 else f"+{_tj[-1] - _tj[0]:+.2f}"
+            L(_fit(f"TRAJ   {' '.join(_tvals)}  [{_tflag} over {len(_tvals)} gens]", width))
     else:
         L("EVO    no evolution_result rows yet")
 
@@ -1013,6 +1081,20 @@ def render(data, now):
         else:
             break
     L(_fit(_steer, width))
+
+    # --- policy verdict: what the last dream round actually did ---
+    _py = data.get("policy")
+    if _py:
+        _ptxt = f"POLICY applied {_py.get('napplied', 0)} skipped {_py.get('nskipped', 0)}"
+        if _py.get("worm") and _py.get("rec"):
+            _cf = _py.get("conf")
+            _cfs = f"{_cf:.3f}" if isinstance(_cf, (int, float)) else "?"
+            _ad = "ADAPTED" if _py.get("adapted") else "held"
+            _ptxt += f"  {_py['worm']}->{_py['rec']} conf={_cfs} {_ad}"
+        _pa = _py.get("age")
+        if isinstance(_pa, (int, float)):
+            _ptxt += f"  {_pa:.0f}m ago"
+        L(_fit(_ptxt, width))
 
     # --- meta-director: who trains next + top tracks by win rate ---
     try:
@@ -1110,11 +1192,13 @@ def render(data, now):
             _bits.append((_txt, _a is not None and _a < 15))
         L(_fit("CYCLES " + "   ".join(f"{C_GRN}{t}{C_RST}" if _ok else f"{C_RED}{t}{C_RST}" for t, _ok in _bits), width))
 
-    # --- store size + write rate ---
+    # --- store size + write rate + alert load ---
     _st = data.get("store")
     if _st:
         _mb = f"{_st['mb']}MB" if _st.get("mb") is not None else "?"
-        L(_fit(f"STORE  {_mb} {(_st.get('rows') or 0):,} rows  +{(_st.get('per_hr') or 0):,}/hr", width))
+        _al = data.get("alerts") or {}
+        _atxt = f"  alerts {_al.get('per_hr', 0)}/hr ({_al.get('crit', 0)} crit)" if _al.get("per_hr") else ""
+        L(_fit(f"STORE  {_mb} {(_st.get('rows') or 0):,} rows  +{(_st.get('per_hr') or 0):,}/hr{_atxt}", width))
 
     # --- inference servers ---
     _sv = data.get("servers") or []
@@ -1126,6 +1210,21 @@ def render(data, now):
             else:
                 _bits.append(f"{C_RED}:{_s['port']} DOWN{C_RST}")
         L(_fit("SRV    " + "   ".join(_bits), width))
+
+    # --- llm scoreboard: measured tok/s per local model ---
+    _lm = data.get("llm") or []
+    if _lm:
+        _cells = []
+        for _m in _lm:
+            _nm = str(_m.get("model", "?"))
+            for _cut in ("-it-", "-instruct", "-uncensored", ".gguf", "_GGUF"):
+                _nm = _nm.split(_cut)[0]
+            _nm = _nm.split("/")[-1].split("\\")[-1][:14]
+            _gp = f"{_m['gen']:.0f}/s" if isinstance(_m.get("gen"), (int, float)) else "?"
+            _pp = f"{_m['prompt']:.0f}" if isinstance(_m.get("prompt"), (int, float)) else "?"
+            _th = "T" if (_m.get("think") or 0) > 200 else ""
+            _cells.append(f"{_nm} {_pp}/{_gp}{_th}")
+        L(_fit("MODELS " + "   ".join(_cells), width))
 
     # --- alerts + verdict: fixed lines, only what fires ---
     if any_stale:
