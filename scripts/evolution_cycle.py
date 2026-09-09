@@ -257,6 +257,63 @@ def production_genes():
             'epsilon_decay': float(getattr(c, 'epsilon_decay', 0.0))}
 
 
+POOL_SNAPSHOT_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    '..', 'state', 'evolution_pool_snapshot.json'))
+POOL_MAX_AGE_S = 1800  # 30 min: consecutive 5-min cycles share one pool
+
+
+def _load_or_freeze_pools():
+    """Shared frozen pools across consecutive runs (2026-09-09 hardening).
+
+    Within-run freezing (2026-09-08) made trajectories pool-consistent,
+    but the production baseline still swung 31.6 -> 26.4 on identical
+    genes between runs minutes apart. Reusing one snapshot while fresh
+    makes streak comparisons apples-to-apples too.
+
+    Returns (info_pool, alert_pool, reused, age_s). Degenerate (empty)
+    extractions are never persisted and fall back to live per-eval
+    extraction. The cycle lock serializes readers/writers.
+    """
+    from CORE.WORMS.expansion.learning import DataPipelineWorm
+    now = time.time()
+    try:
+        with open(POOL_SNAPSHOT_PATH, encoding='utf-8') as f:
+            snap = json.load(f)
+        age = now - float(snap.get('saved_at', 0))
+        info_pool, alert_pool = snap.get('info'), snap.get('alert')
+        if (isinstance(info_pool, list) and isinstance(alert_pool, list)
+                and info_pool and alert_pool and age < POOL_MAX_AGE_S):
+            log('reusing pool snapshot (age %ds): info=%d alert=%d' % (
+                age, len(info_pool), len(alert_pool)))
+            return info_pool, alert_pool, True, int(age)
+        log('pool snapshot unusable (age %s), re-freezing' % (
+            ('%ds' % age) if age >= 0 else 'missing'))
+    except Exception as e:
+        log('pool snapshot load failed, extracting fresh: %s' % str(e)[:100])
+    try:
+        info_pool = DataPipelineWorm().extract_from_memory(
+            limit=N_EPISODES * 10, exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        alert_pool = DataPipelineWorm().extract_from_memory(
+            event_type='db_health_alert', limit=N_EPISODES * 10,
+            exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        if not info_pool or not alert_pool:
+            log('pool extraction degenerate (info=%d alert=%d), '
+                'using live evals without persisting' % (
+                    len(info_pool or []), len(alert_pool or [])))
+            return None, None, False, 0
+        log('frozen pools: info=%d alert=%d' % (len(info_pool), len(alert_pool)))
+        tmp = POOL_SNAPSHOT_PATH + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump({'saved_at': now, 'info': info_pool,
+                       'alert': alert_pool}, f, ensure_ascii=False, default=str)
+        os.replace(tmp, POOL_SNAPSHOT_PATH)
+        return info_pool, alert_pool, False, 0
+    except Exception as e:
+        log('pool freeze failed, falling back to live evals: %s' % str(e)[:120])
+        return None, None, False, 0
+
+
 def _acquire_cycle_lock():
     """Single-instance guard (2026-09-08): a manual run colliding with the
     scheduled one was observed twice (12:14 and 12:49 — two processes
@@ -344,22 +401,13 @@ def main():
         'epsilon_decay': (0.0, 0.1),  # exploration-annealing speed (2026-09-08)
     }, seed_genomes=_unique_seeds)
 
-    # Frozen eval pools (2026-09-08 fix): extract once so every genome in
-    # the loop, the champion re-eval, and the production baseline are all
-    # scored on identical data. Same extraction params the live path used
-    # (limit = N_EPISODES * 10 per pool), so historical fitness stays
-    # comparable. Falls back to live evals if extraction fails.
-    from CORE.WORMS.expansion.learning import DataPipelineWorm
-    try:
-        info_pool = DataPipelineWorm().extract_from_memory(
-            limit=N_EPISODES * 10, exclude_sources=EXCLUDED_TRAINING_SOURCES)
-        alert_pool = DataPipelineWorm().extract_from_memory(
-            event_type='db_health_alert', limit=N_EPISODES * 10,
-            exclude_sources=EXCLUDED_TRAINING_SOURCES)
-        log('frozen pools: info=%d alert=%d' % (len(info_pool), len(alert_pool)))
-    except Exception as e:
-        log('pool freeze failed, falling back to live evals: %s' % str(e)[:120])
-        info_pool, alert_pool = None, None
+    # Frozen eval pools (2026-09-08 fix, 2026-09-09 shared-snapshot
+    # hardening): one snapshot per cycle, reused by consecutive cycles
+    # while fresh, so genomes, champion re-eval AND the baseline — this
+    # run and the next — are all scored on identical data. Same
+    # extraction params the live path used (limit = N_EPISODES * 10),
+    # so historical fitness stays comparable.
+    info_pool, alert_pool, pool_reused, pool_age_s = _load_or_freeze_pools()
 
     def fitness_frozen(genome):
         return fitness_genes(genome.genes, info_pool, alert_pool)
@@ -505,6 +553,8 @@ def main():
             'champion_reeval': champ_score,
             'champion_genes': seed_genes,
             'pool_fingerprint': pool_fingerprint(),
+            'pool_snapshot_reused': pool_reused,
+            'pool_snapshot_age_s': pool_age_s,
             'pareto': pareto,
         }, tags=['evolution', 'artifact'])
         if promoted and best:
