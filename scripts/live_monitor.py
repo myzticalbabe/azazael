@@ -625,6 +625,10 @@ def render(data, now):
     """
     width, height = shutil.get_terminal_size((100, 30))
     width = max(64, min(width, 200))
+    # Priority drop for short windows (2026-09-09): the bottom sections
+    # (TRAIN grid, verdict) must never be cut — drop detail lines first.
+    show_climb = height >= 22
+    show_genes = height >= 19
     lines = []
     L = lines.append
 
@@ -667,6 +671,55 @@ def render(data, now):
                     f"alert={e['alert'] if e['alert'] is not None else '?'}"
                     if e.get("info") is not None or e.get("alert") is not None else "")
                  + prom_txt, width))
+        # --- the three learners together: META + GOSP beside EVO ---
+        _m = data.get("meta") or {}
+        _mp = _m.get("params") or {}
+        if _mp:
+            _meta_txt = (f"META   mut={_mp.get('mutation_rate', 0):.2f} "
+                         f"xov={_mp.get('crossover_rate', 0):.2f} "
+                         f"tour={_mp.get('tournament_size', 0)} "
+                         f"pat={_mp.get('early_stop_patience', 0)} "
+                         f"tol={_mp.get('early_stop_tolerance', 0):.3f}  "
+                         f"ema {_m.get('score_ema', 0):+.2f}/{_m.get('runs', 0)}r")
+            _cand = _m.get("candidate")
+            if _cand:
+                _diff = [k for k in ("mutation_rate", "crossover_rate",
+                                     "tournament_size", "early_stop_patience",
+                                     "early_stop_tolerance")
+                         if _cand.get(k) != _mp.get(k)]
+                if _diff:
+                    _meta_txt += (f"  {C_YEL}testing {_diff[0]}={_cand[_diff[0]]} "
+                                  f"({_m.get('candidate_runs', 0)}/3){C_RST}")
+                else:
+                    _meta_txt += f"  {C_YEL}testing candidate{C_RST}"
+        else:
+            _meta_txt = "META   no meta state yet (first scored cycle still running)"
+        L(_fit(_meta_txt, width))
+        _g = data.get("gosp") or {}
+        _gl = _g.get("learner") or {}
+        L(_fit(f"{C_ORG}{C_BLD}Gossamer Oxford Semantical Parser{C_RST}", width))
+        if _gl:
+            _gsegs = []
+            if _gl.get("iter") is not None:
+                _gsegs.append(f"iter={_gl['iter']}")
+            if _gl.get("conv") is not None:
+                _gsegs.append(f"conv={_gl['conv']}")
+            if _gl.get("acc") is not None:
+                _gsegs.append(f"acc={_gl['acc']}")
+            if _gl.get("docs") is not None:
+                _gsegs.append(f"docs={_gl['docs']}")
+            _gline = "GOSP   " + " ".join(_gsegs)
+            if _gl.get("mover") and _gl["mover"] != "?":
+                _gline += f"  top mover {_gl['mover']} {_gl.get('mfrom')}->{_gl.get('mto')}"
+            _gp = _g.get("parity") or {}
+            if _gp.get("total"):
+                _gline += f"  parity {_gp['agree']}/{_gp['total']}"
+            _gr = _g.get("rani") or {}
+            if _gr.get("mode"):
+                _gline += f"  rani {_gr['mode'].split(' ')[0]}"
+            L(_fit(_gline, width))
+        else:
+            L(_fit("GOSP   no learner evidence yet (run gosp_learner_train.py in WSL)", width))
         # pool drift: hard-alert inflow (starvation would freeze this)
         pool = e.get("pool") or {}
         hard = pool.get("hard_count")
@@ -685,9 +738,10 @@ def render(data, now):
             if hard_stale is not None and hard_stale > 24:
                 pool_txt += f"  {C_RED}(stale {hard_stale:.0f}h){C_RST}"
         L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f} eps={g.get('epsilon', 0):.4f} "
-                 f"disc={g.get('discount', 0):.4f}  [{e['fit']}]{pool_txt}", width))
+                 f"disc={g.get('discount', 0):.4f}  [{e['fit']}]{pool_txt}", width)) if show_genes else None
         bests = [e2["best"] for e2 in evo][::-1]
-        L(f"CLIMB ({len(bests)} runs, newest right) {C_CYN}{sparkline(bests, width=max(10, width - 30))}{C_RST}")
+        if show_climb:
+            L(f"CLIMB ({len(bests)} runs, newest right) {C_CYN}{sparkline(bests, width=max(10, width - 30))}{C_RST}")
     else:
         L("EVO    no evolution_result rows yet")
 
@@ -748,58 +802,6 @@ def render(data, now):
     L(_fit(f"TRAIN  next slot {C_CYN}{nxt}{C_RST}   (reward ^/v vs previous run, yellow = new)", width))
     for r_ in _training_grid(tr, width):
         L(r_)
-
-    # --- meta-evolution: champion search-params + margin EMA + live candidate ---
-    m = data.get("meta") or {}
-    mp = m.get("params") or {}
-    if mp:
-        meta_txt = (f"META   mut={mp.get('mutation_rate', 0):.2f} "
-                    f"xov={mp.get('crossover_rate', 0):.2f} "
-                    f"tour={mp.get('tournament_size', 0)} "
-                    f"pat={mp.get('early_stop_patience', 0)} "
-                    f"tol={mp.get('early_stop_tolerance', 0):.3f}  "
-                    f"ema {m.get('score_ema', 0):+.2f}/{m.get('runs', 0)}r")
-        cand = m.get("candidate")
-        if cand:
-            diff = [k for k in ("mutation_rate", "crossover_rate",
-                                "tournament_size", "early_stop_patience",
-                                "early_stop_tolerance")
-                    if cand.get(k) != mp.get(k)]
-            if diff:
-                meta_txt += (f"  {C_YEL}testing {diff[0]}={cand[diff[0]]} "
-                             f"({m.get('candidate_runs', 0)}/3){C_RST}")
-            else:
-                meta_txt += f"  {C_YEL}testing candidate{C_RST}"
-        L(_fit(meta_txt, width))
-    else:
-        L(_fit("META   no meta state yet (first scored cycle still running)", width))
-
-    # --- GOSP native intelligence: title + learner evolution + parity ---
-    g = data.get("gosp") or {}
-    gl = g.get("learner") or {}
-    L(_fit(f"{C_ORG}{C_BLD}Gossamer Oxford Semantical Parser{C_RST}", width))
-    if gl:
-        _gsegs = []
-        if gl.get("iter") is not None:
-            _gsegs.append(f"iter={gl['iter']}")
-        if gl.get("conv") is not None:
-            _gsegs.append(f"conv={gl['conv']}")
-        if gl.get("acc") is not None:
-            _gsegs.append(f"acc={gl['acc']}")
-        if gl.get("docs") is not None:
-            _gsegs.append(f"docs={gl['docs']}")
-        _gline = "GOSP   " + " ".join(_gsegs)
-        if gl.get("mover") and gl["mover"] != "?":
-            _gline += f"  top mover {gl['mover']} {gl.get('mfrom')}->{gl.get('mto')}"
-        _gp = g.get("parity") or {}
-        if _gp.get("total"):
-            _gline += f"  parity {_gp['agree']}/{_gp['total']}"
-        _gr = g.get("rani") or {}
-        if _gr.get("mode"):
-            _gline += f"  rani {_gr['mode'].split(' ')[0]}"
-        L(_fit(_gline, width))
-    else:
-        L(_fit("GOSP   no learner evidence yet (run gosp_learner_train.py in WSL)", width))
 
     # --- alerts + verdict: fixed lines, only what fires ---
     if any_stale:
