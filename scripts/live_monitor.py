@@ -54,6 +54,27 @@ C_BLD = "\x1b[1m"
 C_ORG = "\x1b[38;5;202m"   # red-orange GOSP title
 C_RST = "\x1b[0m"
 
+# rainbow wheel (256-color hue rotation) for the twinkling GOSP info line
+_RAINBOW = [196, 202, 208, 214, 220, 190, 154, 118, 82, 46,
+            49, 51, 45, 39, 33, 27, 93, 129, 165, 201]
+_FRAME_NO = [0]   # increments per render -> colors drift = twinkle
+
+
+def _rainbow(text, width, step=3):
+    """Per-character rainbow gradient that shifts every frame (twinkle).
+
+    Truncates to width FIRST (visible chars), then colorizes, so the
+    frame math stays exact and lines never wrap.
+    """
+    import re
+    plain = re.sub("\x1b\\[[0-9;]*m", "", text)[:max(0, width)]
+    frame = _FRAME_NO[0]
+    out = []
+    for i, ch in enumerate(plain):
+        out.append(f"\x1b[38;5;{_RAINBOW[(i + frame * step) % len(_RAINBOW)]}m{ch}")
+    out.append(C_RST)
+    return "".join(out)
+
 # sparkline glyphs: 0..8 levels, pure ASCII so cmd codepage never mangles
 _SPARK = " .:-=+*#%"
 
@@ -407,6 +428,99 @@ def collect(con):
                                     "date": (_rd.get("date") or "")[:16]}
     except Exception:
         pass
+
+    # recent training runs across all tracks (newest first, for TRAIN2)
+    data["recent_runs"] = []
+    try:
+        _ph = ",".join("?" for _ in TRAIN_EVENT_TYPES)
+        for _ts, _et, _src, _d in con.execute(
+                "SELECT timestamp, event_type, source, data FROM memories "
+                f"WHERE event_type IN ({_ph}) ORDER BY id DESC LIMIT 4",
+                TRAIN_EVENT_TYPES).fetchall():
+            _d = parse_data(_d)
+            _algo = _d.get("algo")
+            if _algo is None and _et == "training_run_complete" and _src == "ScheduledTrainingWorm":
+                _algo = "RL"
+            if not _algo:
+                continue
+            _rw = _d.get("eval_mean_reward", _d.get("avg_reward"))
+            data["recent_runs"].append({"algo": _algo, "reward": _rw,
+                                        "age": age_min(_ts),
+                                        "ver": _d.get("model_version")})
+    except Exception:
+        pass
+
+    # promotion file standing (evolved hyperparams actually in production)
+    data["promo"] = None
+    try:
+        _pj = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "config", "evolved_rl_params.json")
+        if os.path.exists(_pj):
+            with open(_pj, encoding="utf-8") as f:
+                _pd = json.load(f)
+            _gg = _pd.get("genes") or {}
+            _mt = os.path.getmtime(_pj)
+            data["promo"] = {
+                "lr": round(float(_gg.get("learning_rate", 0)), 4),
+                "eps": round(float(_gg.get("epsilon", 0)), 4),
+                "disc": round(float(_gg.get("discount", 0)), 4),
+                "fit": _pd.get("fitness"),
+                "wins": _pd.get("wins"),
+                "age": round((time.time() - _mt) / 60.0, 1),
+            }
+    except Exception:
+        pass
+
+    # store size / rows / hourly growth
+    data["store"] = None
+    try:
+        _dbrow = con.execute("SELECT COUNT(*) FROM memories").fetchone()
+        _n = _dbrow[0] if _dbrow else 0
+        _cut = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat(timespec="seconds")
+        _hrow = con.execute("SELECT COUNT(*) FROM memories WHERE timestamp >= ?",
+                            (_cut,)).fetchone()
+        _h = _hrow[0] if _hrow else 0
+        try:
+            _mb = round(os.path.getsize(DB) / 1e6, 1)
+        except OSError:
+            _mb = None
+        data["store"] = {"mb": _mb, "rows": _n, "per_hr": _h}
+    except Exception:
+        pass
+
+    # inference servers (best-effort, short timeout so refresh never hangs)
+    data["servers"] = []
+    try:
+        import urllib.request as _url
+        for _port in (18090, 18091, 18080):
+            _ok, _ms = False, None
+            try:
+                _t0 = time.time()
+                _r = _url.urlopen(f"http://127.0.0.1:{_port}/health", timeout=1)
+                _ok = _r.status == 200
+                _ms = int((time.time() - _t0) * 1000)
+            except Exception:
+                pass
+            data["servers"].append({"port": _port, "ok": _ok, "ms": _ms})
+    except Exception:
+        pass
+
+    # dream tuning file (what creativity the last dream cycle actually used)
+    data["tuned"] = None
+    try:
+        _tp = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "config", "tuned_creativity.json")
+        if os.path.exists(_tp):
+            with open(_tp, encoding="utf-8") as f:
+                _td = json.load(f)
+            _mt = os.path.getmtime(_tp)
+            data["tuned"] = {
+                "cf": _td.get("creativity_factor"),
+                "sc": _td.get("scenario_count"),
+                "age": round((time.time() - _mt) / 3600.0, 1),
+            }
+    except Exception:
+        pass
     return data
 
 
@@ -625,6 +739,7 @@ def render(data, now):
     """
     width, height = shutil.get_terminal_size((100, 30))
     width = max(64, min(width, 200))
+    _FRAME_NO[0] += 1   # twinkle step for the rainbow GOSP line
     # Priority drop for short windows (2026-09-09): the bottom sections
     # (TRAIN grid, verdict) must never be cut — drop detail lines first.
     show_climb = height >= 22
@@ -722,7 +837,7 @@ def render(data, now):
                 _gtxt += f"  rani {_gr['mode'].split(' ')[0]}"
         else:
             _gtxt += " no learner evidence yet (run gosp_learner_train.py in WSL)"
-        L(_fit(_gtxt, width))
+        L(_rainbow(_gtxt, width))
         # evo genetics detail: champion re-eval, beat rate, pool mix
         _champs = [e2.get("champ") for e2 in evo[:2]]
         _champ_txt = "champ " + "->".join("%.2f" % c for c in _champs if c is not None) or "champ n/a"
@@ -777,6 +892,9 @@ def render(data, now):
     if flip_txt:
         steer_segs.append(flip_txt)
     steer_segs.append(f"DREAMS {act['dreams']}/hr q={act['quality']:.3f}")
+    _tn = data.get("tuned")
+    if _tn and _tn.get("cf") is not None:
+        steer_segs.append(f"tuned cf={_tn['cf']} sc={_tn.get('sc', '?')}")
     steer_segs.append(f"adapt {act.get('adapt_age')}m ago  apply {act.get('apply_age')}m ago")
     _steer = steer_segs[0]
     for _seg in steer_segs[1:]:
@@ -814,6 +932,41 @@ def render(data, now):
     L(_fit(f"TRAIN  next slot {C_CYN}{nxt}{C_RST}   (reward ^/v vs previous run, yellow = new)", width))
     for r_ in _training_grid(tr, width):
         L(r_)
+
+    # --- recent runs: last few training cycles across all tracks ---
+    _rr = data.get("recent_runs") or []
+    if _rr:
+        _cells = []
+        for _r in _rr[:4]:
+            _rw = f"{_r['reward']:.1f}" if isinstance(_r.get("reward"), (int, float)) else "?"
+            _age = f"{_r['age']:.0f}m" if isinstance(_r.get("age"), (int, float)) else "?"
+            _cells.append(f"{_r.get('algo', '?')} {_rw} ({_age} ago)")
+        L(_fit("LAST   " + "   ".join(_cells), width))
+
+    # --- promotion file: hyperparams actually live in production ---
+    _pr = data.get("promo")
+    if _pr:
+        L(_fit(f"PROMO  lr={_pr['lr']} eps={_pr['eps']} disc={_pr['disc']} "
+               f"fit={_pr.get('fit')} wins={_pr.get('wins')} {_pr.get('age')}m ago", width))
+    else:
+        L(_fit("PROMO  no promoted params file (defaults in effect)", width))
+
+    # --- store size + write rate ---
+    _st = data.get("store")
+    if _st:
+        _mb = f"{_st['mb']}MB" if _st.get("mb") is not None else "?"
+        L(_fit(f"STORE  {_mb} {(_st.get('rows') or 0):,} rows  +{(_st.get('per_hr') or 0):,}/hr", width))
+
+    # --- inference servers ---
+    _sv = data.get("servers") or []
+    if _sv:
+        _bits = []
+        for _s in _sv:
+            if _s.get("ok"):
+                _bits.append(f":{_s['port']} ok {_s.get('ms')}ms")
+            else:
+                _bits.append(f"{C_RED}:{_s['port']} DOWN{C_RST}")
+        L(_fit("SRV    " + "   ".join(_bits), width))
 
     # --- alerts + verdict: fixed lines, only what fires ---
     if any_stale:
