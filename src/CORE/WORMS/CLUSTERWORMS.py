@@ -707,6 +707,40 @@ class WormExecutor:
 # CLUSTERWORMS — Main Cluster Orchestrator with PAMS + Mermaid
 # ═══════════════════════════════════════════════════════════════════════
 
+def _record_cluster_worm_telemetry(name: str, result: Dict[str, Any],
+                                     cluster: Any = None) -> None:
+    """Record one per-worm execution row (2026-09-09 tap).
+
+    Schema matches the historical clusterwormz_worm_executed rows so old
+    and new telemetry query uniformly: {worm, success, duration_ms,
+    error}. Fail-soft by design — telemetry must never break execution.
+    Feeds future per-worm tuning once fresh volume accumulates.
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        store = get_memory_store()
+        data: Dict[str, Any] = {
+            "worm": name,
+            "success": bool(result.get("success", False)),
+            "duration_ms": float(result.get("duration_ms", 0.0) or 0.0),
+            "error": str(result.get("error"))[:300] if result.get("error") else None,
+        }
+        for attr, key in (("cluster_type", "cluster_type"),
+                          ("cluster_id", "cluster_id"),
+                          ("cluster_name", "cluster_id")):
+            val = getattr(cluster, attr, None)
+            if val is not None and key not in data:
+                data[key] = str(val)
+        store.record_event(
+            source="ClusterWORMZ", event_type="clusterwormz_worm_executed",
+            data=data,
+            severity="error" if not data["success"] else "info",
+            tags=["cluster", "worm-telemetry"],
+        )
+    except Exception:
+        pass
+
+
 @register_worm(
     category="orchestration", priority=8, cooldown_seconds=20.0,
     description="Coordinated worm collectives with shared state, dynamic resolution, PAMS recording, and Mermaid visualization"
@@ -1032,7 +1066,8 @@ class ClusterWORMZ:
                     timeout=self.timeout,
                     max_retries=getattr(self, '_nature_max_retries', None),
                 )
-        
+
+        _record_cluster_worm_telemetry(config.name, result, cluster=self)
         return result
 
     def execute_worm(self, name: str) -> Optional[Dict[str, Any]]:

@@ -49,7 +49,8 @@ EXCLUDED_TRAINING_SOURCES = [
 # outcomes. All share the same 5-minute rotation slot, so each trains once
 # every len(ROTATION)*5 minutes.
 ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
-            "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL"]
+            "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL",
+            "DREAMTUNE"]
 
 
 def _next_track_version(event_type: str) -> str:
@@ -312,6 +313,105 @@ def run_rl_cycle() -> dict:
             "duration_ms": duration_ms}
 
 
+def run_dreamtune_cycle() -> dict:
+    """One GA pass over dreaming hyperparameters (2026-09-09 track #16).
+
+    Nothing tuned the dream generator itself (creativity_factor and
+    scenario_count were hand-set constants), yet suggestion quality is
+    what the policy bridge consumes. Small search, cheap live evals:
+    population 8 x up to 4 generations, 2 salts x 2 episodes per genome,
+    each scored on mean dream quality + mean top-suggestion confidence.
+    ONE DreamingModule per run (frozen scenario set, like frozen eval
+    pools); evals run persist=False so scoring never bloats dream
+    history; RNG seeded per genome+salt for comparability. Uses
+    GeneticOptimizer (fail-loud without fitness — supplied here).
+    v1 scope: reports the best params; application (dream_cycle reading
+    a tuned-creativity file) is a follow-up, like evolution's promotion.
+    """
+    import hashlib
+    import random as _random
+    from CORE.WORMS.expansion.dreaming import DreamingModule
+    from CORE.WORMS.expansion.evolution import GeneticOptimizer
+    from CORE.local_memory import get_memory_store
+
+    def _seed(genes, salt):
+        s = salt + '|' + ','.join('%s=%.6f' % (k, float(genes[k])) for k in sorted(genes))
+        return int(hashlib.sha256(s.encode('utf-8')).hexdigest()[:8], 16)
+
+    t0 = time.time()
+    run_id = _gen_run_id("dreamtune")
+    dm = DreamingModule()
+    # Frozen scenario set for the whole run (like frozen eval pools):
+    # recall once so every genome is scored on identical scenarios.
+    recalled = dm.recall_scenarios(limit=300, max_age_days=30)
+    n_scenarios = recalled.get("recalled", 0)
+    if n_scenarios == 0:
+        duration_ms = round((time.time() - t0) * 1000, 2)
+        return {"algo": "DREAMTUNE", "records_used": 0,
+                "model_version": _next_track_version("dreamtune_training_orchestrated"),
+                "eval_mean_reward": 0.0, "duration_ms": duration_ms,
+                "note": "skipped: no scenarios recalled"}
+
+    def _fitness(genome):
+        scores = []
+        for salt in ('a', 'b'):
+            _random.seed(_seed(genome.genes, salt))
+            try:
+                dreams = dm.dream(
+                    num_episodes=2,
+                    scenario_count=int(round(genome.genes.get('scenario_count', 20))),
+                    creativity_factor=float(genome.genes.get('creativity_factor', 0.3)),
+                    use_curative=True, persist=False)
+            except Exception:
+                scores.append(0.0)
+                continue
+            if not dreams:
+                scores.append(0.0)
+                continue
+            quals, confs = [], []
+            for dr in dreams:
+                quals.append(float(getattr(dr, 'quality_score', 0.0) or 0.0))
+                sug = [s.get('confidence', 0.0) for s in
+                       (getattr(dr, 'policy_suggestions', None) or [])
+                       if isinstance(s, dict)]
+                sug.sort(reverse=True)
+                confs.extend(sug[:2])
+            q = sum(quals) / len(quals) if quals else 0.0
+            c = sum(confs) / len(confs) if confs else 0.0
+            scores.append(0.5 * q + 0.5 * c)
+        return min(scores) if scores else 0.0
+
+    opt = GeneticOptimizer()
+    opt.initialize("DreamingModule",
+                   {"creativity_factor": (0.05, 0.9),
+                    "scenario_count": (10, 60)},
+                   population_size=8)
+    res = opt.optimize("DreamingModule", generations=4, fitness_fn=_fitness)
+    duration_ms = round((time.time() - t0) * 1000, 2)
+
+    data = {
+        "run_id": run_id,
+        "algo": "DREAMTUNE",
+        "total_timesteps": 0,
+        "records_used": n_scenarios,
+        "data_source": "dream_scenarios",
+        "model_version": _next_track_version("dreamtune_training_orchestrated"),
+        "eval_mean_reward": round(float(res.get("best_fitness", 0.0)), 4),
+        "best_params": res.get("best_parameters", {}),
+        "generations": res.get("generations", 0),
+        "duration_ms": duration_ms,
+    }
+    store = get_memory_store()
+    store.record_event(
+        source="TrainingOrchestrator", event_type="dreamtune_training_orchestrated",
+        data=data, severity="info", tags=["dreamtune", "training", "orchestrated"],
+    )
+    return {"algo": "DREAMTUNE", "records_used": data["records_used"],
+            "model_version": data["model_version"],
+            "eval_mean_reward": data["eval_mean_reward"],
+            "duration_ms": duration_ms}
+
+
 def main():
     """Tee all run output to logs/training_orchestrator.log, then run."""
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -349,12 +449,13 @@ def _run_impl():
         print(f"  [WARN] Registry warm failed: {e}", flush=True)
 
     # Non-SB3 tracks (GRPO worm-selection, DPO preference learning,
-    # OFFLINE holdout, RL scheduled pipeline)
-    if algo in ("GRPO", "DPO", "OFFLINE", "RL"):
+    # OFFLINE holdout, RL scheduled pipeline, DREAMTUNE dream-GA)
+    if algo in ("GRPO", "DPO", "OFFLINE", "RL", "DREAMTUNE"):
         fn = (run_grpo_cycle if algo == "GRPO"
               else run_dpo_cycle if algo == "DPO"
               else run_offline_cycle if algo == "OFFLINE"
-              else run_rl_cycle)
+              else run_rl_cycle if algo == "RL"
+              else run_dreamtune_cycle)
         try:
             r = fn()
         except Exception as e:
