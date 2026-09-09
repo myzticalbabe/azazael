@@ -49,7 +49,34 @@ EXCLUDED_TRAINING_SOURCES = [
 # outcomes. All share the same 5-minute rotation slot, so each trains once
 # every len(ROTATION)*5 minutes.
 ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
-            "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE"]
+            "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL"]
+
+
+def _next_track_version(event_type: str) -> str:
+    """Monotonic per-track version (2026-09-09 fix).
+
+    v{history}/v{pairs}/v{episodes} counters reset every run (each
+    scheduled run is a fresh process) and conflated data size with
+    lineage. COUNT+1 of the track's own artifact rows is the honest
+    lineage and survives across processes.
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        import sqlite3
+        store = get_memory_store()
+        db = getattr(store, "db_path", None)
+        if db:
+            conn = sqlite3.connect(str(db))
+            try:
+                n = conn.execute(
+                    "SELECT COUNT(*) FROM memories WHERE event_type = ?",
+                    (event_type,)).fetchone()[0]
+            finally:
+                conn.close()
+            return f"v{n + 1}"
+    except Exception:
+        pass
+    return "v1"
 
 
 def rotated_algo() -> str:
@@ -117,7 +144,7 @@ def run_grpo_cycle() -> dict:
         "total_timesteps": 0,
         "records_used": len(group),
         "data_source": "worm_registry",
-        "model_version": f"v{len(trainer._history)}",
+        "model_version": _next_track_version("grpo_training_orchestrated"),
         "eval_mean_reward": round(mean_r, 4),
         "eval_std_reward": round(std_r, 4),
         "best_worm": best_worm,
@@ -175,7 +202,7 @@ def run_offline_cycle() -> dict:
         "total_timesteps": 0,
         "records_used": train_recs,
         "data_source": f"memory_split(train={train_recs},holdout={test_recs})",
-        "model_version": f"v{result.get('episodes', 0)}",
+        "model_version": _next_track_version("offline_training_orchestrated"),
         "eval_mean_reward": round(test_avg, 4),
         "eval_std_reward": 0.0,
         "train_avg_reward": round(float(result.get("avg_reward", 0.0)), 4),
@@ -246,7 +273,7 @@ def run_dpo_cycle() -> dict:
         "total_timesteps": 0,
         "records_used": len(pairs),
         "data_source": exp,
-        "model_version": f"v{len(pairs)}",
+        "model_version": _next_track_version("dpo_training_orchestrated"),
         "eval_mean_reward": round(mean_m, 4),
         "eval_std_reward": round(std_m, 4),
         "dpo_loss": result.get("loss"),
@@ -261,6 +288,28 @@ def run_dpo_cycle() -> dict:
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "dpo_loss": data["dpo_loss"], "duration_ms": duration_ms}
+
+
+def run_rl_cycle() -> dict:
+    """One ScheduledTrainingWorm pipeline run (2026-09-09 wiring).
+
+    This is the designated consumer of evolution's promoted
+    hyperparameters: ScheduledTrainingWorm.__init__ loads
+    config/evolved_rl_params.json via apply_evolved_overrides. The worm
+    was never scheduled (last manual run 2026-09-07), so the RL loop
+    evolution optimizes had been dead for 2 days. On the rotation it
+    runs every len(ROTATION)*5 minutes; the plateau-skip inside
+    execute() prevents spam once converged.
+    """
+    from CORE.WORMS.expansion.scheduling import ScheduledTrainingWorm
+    t0 = time.time()
+    worm = ScheduledTrainingWorm()
+    run = worm.execute()
+    duration_ms = round((time.time() - t0) * 1000, 2)
+    return {"algo": "RL", "records_used": run.records_extracted,
+            "model_version": run.model_version,
+            "eval_mean_reward": round(run.avg_reward, 4),
+            "duration_ms": duration_ms}
 
 
 def main():
@@ -299,10 +348,13 @@ def _run_impl():
     except Exception as e:
         print(f"  [WARN] Registry warm failed: {e}", flush=True)
 
-    # Non-SB3 tracks (GRPO worm-selection, DPO preference learning)
-    if algo in ("GRPO", "DPO", "OFFLINE"):
+    # Non-SB3 tracks (GRPO worm-selection, DPO preference learning,
+    # OFFLINE holdout, RL scheduled pipeline)
+    if algo in ("GRPO", "DPO", "OFFLINE", "RL"):
         fn = (run_grpo_cycle if algo == "GRPO"
-              else run_dpo_cycle if algo == "DPO" else run_offline_cycle)
+              else run_dpo_cycle if algo == "DPO"
+              else run_offline_cycle if algo == "OFFLINE"
+              else run_rl_cycle)
         try:
             r = fn()
         except Exception as e:
