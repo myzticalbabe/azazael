@@ -14,11 +14,13 @@ __all__ = [
     "DB_SIZE_QUOTA_MB",
     "EVENT_TTL_DAYS",
     "SESSION_ROTATION_HOURS",
+    "TYPE_CAPS",
     "VACUUM_THRESHOLD_PCT",
     "archive_old_audit_files",
     "check_db_size_quota",
     "cmd_maintain",
     "enforce_event_ttl",
+    "enforce_type_caps",
     "rotate_old_sessions",
     "run_maintenance",
     "vacuum_if_needed",
@@ -39,6 +41,20 @@ SESSION_ROTATION_HOURS = 24  # Auto-close sessions older than this
 DB_SIZE_QUOTA_MB = 500       # Warn when DB exceeds this
 AUDIT_ARCHIVE_DAYS = 30      # Archive .audit/ files older than this
 VACUUM_THRESHOLD_PCT = 20    # Auto-vacuum when free pages exceed this %
+
+# Per-type keep-last-N caps (2026-09-08): high-volume regenerable
+# bookkeeping rows. SAFETY: only rolling-window data is capped here —
+# evolution pools read the most-recent <=2000 rows, well within every
+# cap below. NEVER add evolution_result / evolution_promotion (the
+# selection history) or severity-filtered rows (alert evidence).
+TYPE_CAPS = {
+    "training_complete": 20000,
+    "q_table_persisted": 20000,
+    "model_registered": 20000,
+    "db_health_snapshot": 2000,
+    "db_health_alert": 5000,
+    "generation_complete": 5000,
+}
 
 
 def _get_db_path() -> str:
@@ -63,6 +79,33 @@ def enforce_event_ttl(ttl_days: int = EVENT_TTL_DAYS) -> dict:
         )
         conn.commit()
         return {"events_deleted": deleted, "cutoff": cutoff}
+    finally:
+        conn.close()
+
+
+def enforce_type_caps(caps: dict = None) -> dict:
+    """Keep-last-N trim per high-volume bookkeeping event_type.
+
+    Deletes rows older than the newest N of each capped type. Runs in one
+    DELETE per type (indexed on event_type); the nightly slot owns the
+    lock window and cycles fail soft on contention. Returns per-type
+    deleted counts. Dry-run: pass caps={} (no-op) or compute counts with
+    the SELECT in cmd_maintain before enabling.
+    """
+    caps = caps if caps is not None else TYPE_CAPS
+    conn = sqlite3.connect(_get_db_path(), timeout=30)
+    deleted: dict = {}
+    try:
+        for event_type, keep in caps.items():
+            cur = conn.execute(
+                "DELETE FROM memories WHERE event_type = ? AND id NOT IN "
+                "(SELECT id FROM memories WHERE event_type = ? "
+                "ORDER BY id DESC LIMIT ?)",
+                (event_type, event_type, keep),
+            )
+            deleted[event_type] = cur.rowcount
+        conn.commit()
+        return {"deleted": deleted, "total": sum(deleted.values())}
     finally:
         conn.close()
 
@@ -158,6 +201,10 @@ def run_maintenance() -> dict:
         results["session_rotation"] = {"closed": rotate_old_sessions()}
     except Exception as e:
         results["session_rotation"] = {"error": str(e)}
+    try:
+        results["type_caps"] = enforce_type_caps()
+    except Exception as e:
+        results["type_caps"] = {"error": str(e)}
     try:
         results["db_quota"] = check_db_size_quota()
     except Exception as e:

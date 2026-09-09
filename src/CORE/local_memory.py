@@ -551,7 +551,8 @@ class LocalMemoryStore:
     def query_memories(self, source: Optional[str] = None, event_type: Optional[str] = None,
                        severity: Optional[str] = None, limit: int = 50,
                        offset: int = 0, since: Optional[str] = None,
-                       session_id: Optional[str] = None, max_age_days: Optional[int] = None) -> List[Dict]:
+                       session_id: Optional[str] = None, max_age_days: Optional[int] = None,
+                       exclude_sources: Optional[List[str]] = None) -> List[Dict]:
         """
         Query memories with optional filters.
 
@@ -563,6 +564,11 @@ class LocalMemoryStore:
             offset: Pagination offset.
             since: ISO timestamp — only return events after this time.
             session_id: Filter by session.
+            max_age_days: Only return events newer than N days.
+            exclude_sources: Skip events from these source components (used to
+                keep training pools free of self-generated bookkeeping noise,
+                e.g. RLTrainLoop/ModelVersioner events recorded by the very
+                training runs being evaluated).
 
         Returns:
             List of memory dicts, newest first.
@@ -588,6 +594,10 @@ class LocalMemoryStore:
         if max_age_days:
             conditions.append("timestamp > datetime('now', ?)")
             params.append(f"-{max_age_days} days")
+        if exclude_sources:
+            conditions.append(
+                "source NOT IN (%s)" % ", ".join("?" * len(exclude_sources)))
+            params.extend(exclude_sources)
 
         where = " AND ".join(conditions) if conditions else "1=1"
         sql = f"SELECT * FROM memories WHERE {where} ORDER BY id DESC LIMIT ? OFFSET ?"
@@ -1114,22 +1124,29 @@ class LocalMemoryStore:
             RuntimeError: If backup fails.
         """
         target = Path(target_path)
-        target.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
 
-        with self._lock:
-            conn = self._get_conn()
-            try:
-                # Try VACUUM INTO (SQLite 3.27+) — atomic, consistent
-                conn.execute(f"VACUUM INTO '{target}'")
-                conn.commit()
-            except Exception:
-                # Fallback: checkpoint WAL, then copy file
-                conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-                conn.commit()
-                import shutil
-                shutil.copy2(self.db_path, str(target))
-            finally:
-                conn.close()
+            with self._lock:
+                conn = self._get_conn()
+                try:
+                    # Try VACUUM INTO (SQLite 3.27+) — atomic, consistent
+                    conn.execute(f"VACUUM INTO '{target}'")
+                    conn.commit()
+                except Exception:
+                    # Fallback: checkpoint WAL, then copy file
+                    conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+                    conn.commit()
+                    import shutil
+                    shutil.copy2(self.db_path, str(target))
+                finally:
+                    conn.close()
+        except RuntimeError:
+            raise
+        except Exception as e:
+            # Honor the documented contract: any backup failure raises
+            # RuntimeError (previously raw OSError/FileExistsError leaked).
+            raise RuntimeError(f"Backup failed: {e}") from e
 
         # Verify the backup is readable
         verify_conn = sqlite3.connect(str(target))
@@ -1181,33 +1198,65 @@ class LocalMemoryStore:
                 return True
         return False
 
-    def query_real_errors(self, days: int = 7, limit: int = 100) -> Dict[str, Any]:
+    def query_real_errors(self, days: int = 7, limit: int = 100,
+                          exclude_sources: Optional[List[str]] = None) -> Dict[str, Any]:
         """Query real errors/warnings, excluding known test artifacts.
 
         Args:
             days: Look back this many days. Use 0 to return empty (no time window).
             limit: Max results per severity category.
+            exclude_sources: Skip these source components (e.g. a monitor
+                excluding its own alert rows to avoid self-referential
+                threshold breaches).
 
         Returns:
-            Dict with 'errors', 'warnings', 'total', and 'filtered' counts.
+            Dict with 'errors', 'warnings', 'total', and 'filtered' counts,
+            plus exact COUNT(*) totals ('total_errors_exact') — the sampled
+            lists are fetch-capped, so thresholds must use the exact totals.
         """
         if days <= 0:
             return {
                 "errors": [], "warnings": [],
                 "total_errors": 0, "total_warnings": 0,
+                "total_errors_exact": 0, "total_warnings_exact": 0,
+                "capped": False,
                 "filtered_errors": 0, "filtered_warnings": 0,
             }
-        all_errors = self.query_memories(severity="error", max_age_days=days, limit=limit * 2)
-        all_warnings = self.query_memories(severity="warning", max_age_days=days, limit=limit * 2)
+        all_errors = self.query_memories(severity="error", max_age_days=days,
+                                         limit=limit * 2, exclude_sources=exclude_sources)
+        all_warnings = self.query_memories(severity="warning", max_age_days=days,
+                                           limit=limit * 2, exclude_sources=exclude_sources)
 
         real_errors = [e for e in all_errors if not self._is_test_artifact(e)]
         real_warnings = [w for w in all_warnings if not self._is_test_artifact(w)]
+
+        # Exact totals with the same predicates (sample lists above are
+        # fetch-capped at 500 rows by query_memories, so len() is a floor).
+        conds = ["severity != 'deleted'", "severity = ?",
+                 "timestamp > datetime('now', ?)"]
+        excl_sql = ""
+        if exclude_sources:
+            excl_sql = " AND source NOT IN (%s)" % ", ".join("?" * len(exclude_sources))
+        conn = self._get_conn()
+        try:
+            where = " AND ".join(conds) + excl_sql
+            total_errors_exact = conn.execute(
+                f"SELECT COUNT(*) FROM memories WHERE {where}",
+                ["error", f"-{days} days", *(exclude_sources or [])]).fetchone()[0]
+            total_warnings_exact = conn.execute(
+                f"SELECT COUNT(*) FROM memories WHERE {where}",
+                ["warning", f"-{days} days", *(exclude_sources or [])]).fetchone()[0]
+        finally:
+            conn.close()
 
         return {
             "errors": real_errors[:limit],
             "warnings": real_warnings[:limit],
             "total_errors": len(real_errors),
             "total_warnings": len(real_warnings),
+            "total_errors_exact": total_errors_exact,
+            "total_warnings_exact": total_warnings_exact,
+            "capped": len(all_errors) >= 500 or len(all_warnings) >= 500,
             "filtered_errors": len(all_errors) - len(real_errors),
             "filtered_warnings": len(all_warnings) - len(real_warnings),
         }

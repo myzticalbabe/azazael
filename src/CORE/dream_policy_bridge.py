@@ -16,8 +16,8 @@ How adaptation now actually happens:
 
 Safety:
 - CurativePool governance per suggestion; blocked items are skipped.
-- Minimum confidence gate (default 0.05, calibrated to the creative
-  branch band 0.07-0.45; CurativePool remains the real safety).
+- Minimum confidence gate (default 0.01; the generator's tepid band
+  starts at 0.01 — CurativePool remains the real safety).
 - Fail-closed: governance/import errors skip items, never raise.
 - State is saved after each run so the next 5-minute cycle resumes from
   the updated strategy instead of a stale snapshot.
@@ -28,7 +28,13 @@ no production caller currently passes.
 
 from typing import Any, Dict, List, Optional
 
-MIN_CONFIDENCE = 0.05
+# Minimum confidence gate (2026-09-08: 0.05 -> 0.01). The dream generator
+# deliberately emits tepid low-confidence strategy_exploration suggestions
+# (confidence = max(0.05, creativity) * U(0.2, 0.5), i.e. a 0.01-0.10 band
+# at low creativity) — the old 0.05 gate sat inside that band and rejected
+# every suggestion, so applied stayed 0 forever. CurativePool governance
+# below remains the real safety; this gate only filters numerical noise.
+MIN_CONFIDENCE = 0.01
 
 
 def _governance_blocked(suggestion: Dict[str, Any]) -> bool:
