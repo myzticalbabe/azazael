@@ -174,7 +174,8 @@ class DreamingModule:
     def dream(self, num_episodes: int = 5,
               scenario_count: int = 20,
               creativity_factor: float = 0.3,
-              use_curative: bool = True) -> list[Dream]:
+              use_curative: bool = True,
+              persist: bool = True) -> list[Dream]:
         """Run offline dreaming episodes on recalled scenarios.
 
         Each dream:
@@ -188,6 +189,10 @@ class DreamingModule:
             scenario_count: Scenarios per dream
             creativity_factor: How much random variation to inject (0.0-1.0)
             use_curative: Govern dreaming through CurativePool
+            persist: Write the session to the store. GA-style evaluators
+                (e.g. the DREAMTUNE track, dozens of micro-evals per run)
+                pass persist=False so scoring doesn't bloat dream history
+                with synthetic eval rows.
 
         Returns:
             list of Dream objects
@@ -248,8 +253,9 @@ class DreamingModule:
             if len(self._dreams) > self._dream_capacity:
                 self._dreams = self._dreams[-self._dream_capacity:]
 
-        # Persist dreaming session
-        self._persist_dreaming_session(dreams)
+        # Persist dreaming session (skipped for no-write GA evals)
+        if persist:
+            self._persist_dreaming_session(dreams)
 
         return dreams
 
