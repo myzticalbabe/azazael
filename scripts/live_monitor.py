@@ -121,6 +121,10 @@ def parse_data(d):
 def age_min(ts):
     try:
         t = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        if t.tzinfo is None:
+            # naive timestamps are local wall-clock (some writers omit the
+            # offset); assuming UTC would silently shift ages by hours.
+            t = t.replace(tzinfo=datetime.now().astimezone().tzinfo)
         return round((datetime.now(timezone.utc) - t).total_seconds() / 60.0, 1)
     except Exception:
         return None
@@ -137,10 +141,26 @@ def latest(con, event_type, n=1):
 
 
 def count_window(con, event_type, minutes):
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
-    return con.execute(
-        "SELECT COUNT(*) FROM memories WHERE event_type=? AND timestamp >= ?",
-        (event_type, cutoff.isoformat(timespec="seconds"))).fetchone()[0]
+    """Count events in the last N minutes, robust to mixed timestamp formats.
+
+    The store holds both offset (+00:00) and naive-local timestamps, so a
+    SQL string comparison against one cutoff silently drops rows. Filter
+    by parsed age in Python instead (rows come newest-first; small scan).
+    """
+    try:
+        rows = con.execute(
+            "SELECT timestamp FROM memories WHERE event_type=? ORDER BY id DESC LIMIT 500",
+            (event_type,)).fetchall()
+    except Exception:
+        return 0
+    n = 0
+    for (ts,) in rows:
+        a = age_min(ts)
+        if a is None:
+            continue
+        if a <= minutes:
+            n += 1
+    return n
 
 
 def age_of_latest(con, event_type):
@@ -152,12 +172,22 @@ def age_of_latest(con, event_type):
 
 
 def avg_quality(con, minutes):
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
-    row = con.execute(
-        "SELECT AVG(CAST(json_extract(data, '$.quality') AS REAL)) FROM memories "
-        "WHERE event_type='dream_generated' AND timestamp >= ?",
-        (cutoff.isoformat(timespec="seconds"),)).fetchone()
-    return row[0] if row and row[0] is not None else 0.0
+    try:
+        rows = con.execute(
+            "SELECT timestamp, data FROM memories WHERE event_type='dream_generated' "
+            "ORDER BY id DESC LIMIT 200").fetchall()
+    except Exception:
+        return 0.0
+    vals = []
+    for ts, d in rows:
+        a = age_min(ts)
+        if a is None or a > minutes:
+            continue
+        try:
+            vals.append(float((parse_data(d) or {}).get("quality", 0) or 0))
+        except (ValueError, TypeError):
+            continue
+    return round(sum(vals) / len(vals), 3) if vals else 0.0
 
 
 def sparkline(vals, width=52):
@@ -433,11 +463,17 @@ def collect(con):
     data["recent_runs"] = []
     try:
         _ph = ",".join("?" for _ in TRAIN_EVENT_TYPES)
+        _seen = set()
         for _ts, _et, _src, _d in con.execute(
                 "SELECT timestamp, event_type, source, data FROM memories "
-                f"WHERE event_type IN ({_ph}) ORDER BY id DESC LIMIT 4",
+                f"WHERE event_type IN ({_ph}) ORDER BY id DESC LIMIT 12",
                 TRAIN_EVENT_TYPES).fetchall():
             _d = parse_data(_d)
+            _rid = _d.get("run_id")
+            if _rid is not None:
+                if _rid in _seen:
+                    continue
+                _seen.add(_rid)
             _algo = _d.get("algo")
             if _algo is None and _et == "training_run_complete" and _src == "ScheduledTrainingWorm":
                 _algo = "RL"
@@ -447,6 +483,8 @@ def collect(con):
             data["recent_runs"].append({"algo": _algo, "reward": _rw,
                                         "age": age_min(_ts),
                                         "ver": _d.get("model_version")})
+            if len(data["recent_runs"]) >= 4:
+                break
     except Exception:
         pass
 
@@ -471,15 +509,24 @@ def collect(con):
     except Exception:
         pass
 
-    # store size / rows / hourly growth
+    # store size / rows / hourly growth (python-side age filter: the
+    # store mixes offset and naive-local timestamps, so SQL string
+    # comparison against one cutoff silently drops rows)
     data["store"] = None
     try:
         _dbrow = con.execute("SELECT COUNT(*) FROM memories").fetchone()
         _n = _dbrow[0] if _dbrow else 0
-        _cut = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat(timespec="seconds")
-        _hrow = con.execute("SELECT COUNT(*) FROM memories WHERE timestamp >= ?",
-                            (_cut,)).fetchone()
-        _h = _hrow[0] if _hrow else 0
+        _h = 0
+        try:
+            for (_ts,) in con.execute(
+                    "SELECT timestamp FROM memories ORDER BY id DESC LIMIT 3000").fetchall():
+                _a = age_min(_ts)
+                if _a is None:
+                    continue
+                if _a <= 60:
+                    _h += 1
+        except Exception:
+            pass
         try:
             _mb = round(os.path.getsize(DB) / 1e6, 1)
         except OSError:
@@ -754,6 +801,8 @@ def _training_grid(tr, width):
             continue
         arrow = _algo_trend(tr.get("series", {}).get(a) or [])
         ver = (r.get("model_version") or "?").lstrip("v") or "?"
+        if len(ver) > 4 and "." in ver:
+            ver = ".".join(ver.split(".")[:2])
         val = f"v{ver} {m:.1f}{arrow}"
         cells.append((f"{_algo_name(a):<7}{val:>11}", col))
     for i in range(0, len(cells), ncols):
@@ -861,7 +910,9 @@ def render(data, now):
                 _cr, _cs = _m.get("candidate_runs", 0), _m.get("candidate_sum", 0.0)
                 _cmean = f" mean{_cs / _cr:+.2f}" if _cr else ""
                 if _diff:
-                    _meta_txt += (f"  {C_YEL}testing {_diff[0]}={_cand[_diff[0]]} "
+                    _cv = _cand[_diff[0]]
+                    _cv = round(_cv, 4) if isinstance(_cv, float) else _cv
+                    _meta_txt += (f"  {C_YEL}testing {_diff[0]}={_cv} "
                                   f"({_cr}/3{_cmean}){C_RST}")
                 else:
                     _meta_txt += f"  {C_YEL}testing candidate ({_cr}/3{_cmean}){C_RST}"
@@ -949,8 +1000,8 @@ def render(data, now):
         steer_segs.append(flip_txt)
     steer_segs.append(f"DREAMS {act['dreams']}/hr q={act['quality']:.3f}")
     _tn = data.get("tuned")
-    if _tn and _tn.get("cf") is not None:
-        steer_segs.append(f"tuned cf={_tn['cf']} sc={_tn.get('sc', '?')}")
+    if _tn and isinstance(_tn.get("cf"), (int, float)):
+        steer_segs.append(f"tuned cf={_tn['cf']:.2f} sc={_tn.get('sc', '?')}")
     steer_segs.append(f"adapt {act.get('adapt_age')}m ago  apply {act.get('apply_age')}m ago")
     _steer = steer_segs[0]
     for _seg in steer_segs[1:]:
