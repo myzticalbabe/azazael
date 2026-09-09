@@ -26,13 +26,15 @@ import time
 import hashlib
 import random
 import shutil
-import numpy as np
+# 3.14t port: numpy has no free-threaded build (import hard-fails), and
+# the single use was a plain mean — stdlib statistics instead.
+import statistics
 from pathlib import Path
 from typing import Any
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import tkinter as tk
-from tkinter import ttk, scrolledtext
+# NOTE (3.14t port): tkinter imports live inside run_popup() — a top-level
+# import pointlessly hard-requires Tk on headless interpreters.
 
 
 @dataclass
@@ -440,7 +442,8 @@ class HYDRAMETA_UV:
                         worm_scores[worm] = []
                     worm_scores[worm].append(trial.efficiency_score / (i + 1))
             sequence = sorted(
-                worm_scores.keys(), key=lambda w: -np.mean(worm_scores.get(w, [0]))
+                worm_scores.keys(),
+                key=lambda w: -statistics.mean(worm_scores.get(w, [0])),
             )[:4]
         elif strategy == "ml_optimized":
             best = self.state.get("best_sequence", self.config.WORMS[:4])
@@ -474,7 +477,9 @@ class HYDRAMETA_UV:
         }
 
     def run_popup(self):
-        """Run with GUI popup."""
+        """Run with GUI popup (tkinter imported lazily — 3.14t port)."""
+        import tkinter as tk
+        from tkinter import ttk, scrolledtext
         root = tk.Tk()
         root.title("HYDRAMETA_UV - uv-Powered Optimization")
         root.geometry("700x500")
