@@ -81,8 +81,13 @@ def genome_seed(genes, salt='a'):
     return int(hashlib.sha256(s.encode('utf-8')).hexdigest()[:8], 16)
 
 
-def _eval_salt(genes, info_pool=None, alert_pool=None):
-    """One dual-skill evaluation. Assumes RNG already seeded. Returns (total, info, alert).
+# Salts for the conservative min-estimator. Three, not two: one lucky seed
+# must not be able to carry a genome into production.
+_SALTS = ('a', 'b', 'c')
+
+
+def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
+    """One dual-skill evaluation. Returns (total, info, alert).
 
     persist=False (2026-09-08): GA eval runs score without writing back —
     no training_complete / model_registered / q_table_persisted rows, so a
@@ -97,6 +102,14 @@ def _eval_salt(genes, info_pool=None, alert_pool=None):
     window — the 300-row eval window drifts ~3 fitness points during a
     single cycle (monitor writes), which used to contaminate trajectories
     and the promotion comparison. None = live extraction (backward compat).
+
+    Isolated RNG (2026-09-09): pass a seeded random.Random and the eval is
+    a pure function of (genome, pools, seed) with zero global-state
+    traffic — safe for parallel fitness evaluation under free-threading.
+
+    3-salt min (2026-09-09): the min is taken over three salts, so one
+    lucky seed can't carry a genome. +50% eval cost, covered by the 4x
+    parallel speedup from isolated RNG.
     """
     loop = RLTrainLoop()
     info_stats = loop.train_from_memory(
@@ -107,7 +120,8 @@ def _eval_salt(genes, info_pool=None, alert_pool=None):
         discount_factor=float(genes['discount']),
         exclude_sources=EXCLUDED_TRAINING_SOURCES,
         records=info_pool,
-        persist=False)
+        persist=False,
+        rng=rng)
     alert_stats = RLTrainLoop().train_from_memory(
         n_episodes=N_EPISODES, max_steps=50,
         learning_rate=float(genes['learning_rate']),
@@ -117,7 +131,8 @@ def _eval_salt(genes, info_pool=None, alert_pool=None):
         event_type='db_health_alert',
         exclude_sources=EXCLUDED_TRAINING_SOURCES,
         records=alert_pool,
-        persist=False)
+        persist=False,
+        rng=rng)
     info = float(info_stats.get('avg_reward', 0.0))
     alert = float(alert_stats.get('avg_reward', 0.0))
     return (info + alert, info, alert)
@@ -131,9 +146,9 @@ def fitness_skill(genes, idx, info_pool=None, alert_pool=None):
     critical-alert mastery as separate objectives.
     """
     best = None
-    for salt in ('a', 'b'):
-        random.seed(genome_seed(genes, salt))
-        parts = _eval_salt(genes, info_pool, alert_pool)
+    for salt in _SALTS:
+        parts = _eval_salt(genes, info_pool, alert_pool,
+                           rng=random.Random(genome_seed(genes, salt)))
         v = parts[idx]
         best = v if best is None else min(best, v)
     return best
@@ -150,9 +165,9 @@ def fitness_genes(genes, info_pool=None, alert_pool=None):
     function of (genome, pools).
     """
     best = None
-    for salt in ('a', 'b'):
-        random.seed(genome_seed(genes, salt))
-        total, _, _ = _eval_salt(genes, info_pool, alert_pool)
+    for salt in _SALTS:
+        total, _, _ = _eval_salt(genes, info_pool, alert_pool,
+                                 rng=random.Random(genome_seed(genes, salt)))
         best = total if best is None else min(best, total)
     return best
 
@@ -160,9 +175,9 @@ def fitness_genes(genes, info_pool=None, alert_pool=None):
 def fitness_parts(genes, info_pool=None, alert_pool=None):
     """Recompute (total, info, alert) of the argmin salt — reproduces fitness_genes exactly."""
     results = []
-    for salt in ('a', 'b'):
-        random.seed(genome_seed(genes, salt))
-        results.append(_eval_salt(genes, info_pool, alert_pool))
+    for salt in _SALTS:
+        results.append(_eval_salt(genes, info_pool, alert_pool,
+                                  rng=random.Random(genome_seed(genes, salt))))
     results.sort(key=lambda r: r[0])
     total, info, alert = results[0]
     return (round(total, 4), round(info, 4), round(alert, 4))
@@ -222,8 +237,9 @@ def last_best_genes():
 # Champion promotion (2026-09-08): 3 consecutive wins over the production
 # baseline promotes genes to config/evolved_rl_params.json, which
 # ScheduledTrainingWorm loads as hyperparameter overrides.
-# Guardrails: deterministic re-eval (no luck), margin 0.5, scale-consistent
-# streak (v3 rows only), range-validated genes. Rollback = delete the file.
+# Guardrails: deterministic 3-salt re-eval (no luck), margin 0.75,
+# scale-consistent streak (v3 rows only), range-validated genes, fresh-pool
+# holdout gate, .prev backup + one-shot auto-canary with landscape probe.
 PROMOTE_MARGIN = 0.75
 PROMOTE_WINS = 3
 PROMOTE_JSON = os.path.join(
@@ -232,6 +248,27 @@ PROMOTE_JSON = os.path.join(
 
 
 PROMOTE_KEYS = ('learning_rate', 'epsilon', 'discount', 'epsilon_decay')
+
+
+# Canary + rollback + holdout (2026-09-09): the 3-win streak proves the
+# candidate beats production on frozen pools, but pools are shared across
+# runs — a candidate can overfit one snapshot. Two extra gates:
+#
+# 1. Holdout gate (pre-promotion): re-extract FRESH pools (data pulled
+#    after the GA ran, never seen during search) and require the
+#    candidate to beat the baseline there too, by the same margin.
+# 2. Canary watch (post-promotion): the run after a promotion, with
+#    fresh pools, re-evaluates production (= the new genes) plus the
+#    built-in defaults as a landscape probe. If the landscape is stable
+#    (defaults reproduce within LANDSCAPE_TOL) but production regressed
+#    more than CANARY_TOL below its promotion fitness, the previous
+#    production file (kept as .prev.json on every promotion) is restored
+#    automatically. If the landscape moved instead, the canary is
+#    inconclusive and just clears. Either way the canary fires once.
+PREV_JSON = PROMOTE_JSON + '.prev.json'
+CANARY_JSON = PROMOTE_JSON + '.canary.json'
+CANARY_TOL = 1.5
+LANDSCAPE_TOL = 1.0
 
 
 def production_genes():
@@ -255,6 +292,116 @@ def production_genes():
             'epsilon': float(c.epsilon),
             'discount': float(c.discount_factor),
             'epsilon_decay': float(getattr(c, 'epsilon_decay', 0.0))}
+
+
+def _builtin_default_genes():
+    """ScheduleConfig built-ins — the landscape probe for canary checks."""
+    from CORE.WORMS.expansion.scheduling import ScheduleConfig
+    c = ScheduleConfig()
+    return {'learning_rate': float(c.learning_rate),
+            'epsilon': float(c.epsilon),
+            'discount': float(c.discount_factor),
+            'epsilon_decay': float(getattr(c, 'epsilon_decay', 0.0))}
+
+
+def _holdout_gate(cand_genes, base_genes):
+    """Evaluate candidate vs baseline on freshly-extracted pools.
+
+    Returns dict with cand/base/margin/passed, or {'passed': False,
+    'reason': ...} on extraction failure (fail closed — no promotion on
+    an unverified holdout). Runs serially: 2 genomes x 3 salts.
+    """
+    try:
+        from CORE.WORMS.expansion.learning import DataPipelineWorm
+        fresh_info = DataPipelineWorm().extract_from_memory(
+            limit=N_EPISODES * 10, exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        fresh_alert = DataPipelineWorm().extract_from_memory(
+            event_type='db_health_alert', limit=N_EPISODES * 10,
+            exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        if not fresh_info or not fresh_alert:
+            return {'passed': False, 'reason': 'degenerate fresh pools'}
+        fc = round(fitness_genes(cand_genes, fresh_info, fresh_alert), 4)
+        fb = round(fitness_genes(base_genes, fresh_info, fresh_alert), 4)
+        margin = round(fc - fb, 4)
+        return {'passed': bool(fc > fb + PROMOTE_MARGIN), 'cand': fc,
+                'base': fb, 'margin': margin,
+                'fresh_info': len(fresh_info), 'fresh_alert': len(fresh_alert)}
+    except Exception as e:
+        return {'passed': False, 'reason': str(e)[:120]}
+
+
+def _write_canary(promoted_genes, promote_fit, default_fit):
+    try:
+        with open(CANARY_JSON, 'w', encoding='utf-8') as f:
+            json.dump({'genes': promoted_genes, 'promote_fit': promote_fit,
+                       'default_fit': default_fit,
+                       'written_at': time.strftime('%Y-%m-%dT%H:%M:%S')},
+                      f, indent=2)
+    except Exception as e:
+        log('canary write failed: %s' % str(e)[:120])
+
+
+def _check_canary(info_pool, alert_pool, pool_reused):
+    """One-shot post-promotion watch. Returns a report dict for the artifact.
+
+    Deferred while pools are shared (same data the promotion was scored
+    on — re-eval would be circular). Fires once on the first run with
+    fresh pools, then deletes the canary file.
+    """
+    try:
+        with open(CANARY_JSON, encoding='utf-8') as f:
+            can = json.load(f)
+    except Exception:
+        return {}
+    if not info_pool or not alert_pool:
+        return {'status': 'deferred-degenerate-pools'}
+    if pool_reused:
+        return {'status': 'deferred-shared-pools'}
+    report = {'status': 'unknown'}
+    try:
+        if not os.path.exists(PROMOTE_JSON):
+            report = {'status': 'cleared-manual-rollback'}
+            log('canary cleared: production file removed manually')
+        else:
+            prod = production_genes()
+            dflt = _builtin_default_genes()
+            prod_now = round(fitness_genes(prod, info_pool, alert_pool), 4)
+            dflt_now = round(fitness_genes(dflt, info_pool, alert_pool), 4)
+            landscape_shift = abs(dflt_now - float(can.get('default_fit', dflt_now)))
+            regress = float(can.get('promote_fit', prod_now)) - prod_now
+            report = {'status': 'pass', 'prod_now': prod_now,
+                      'default_now': dflt_now,
+                      'landscape_shift': round(landscape_shift, 4),
+                      'regress': round(regress, 4)}
+            if landscape_shift > LANDSCAPE_TOL:
+                report['status'] = 'inconclusive-landscape-moved'
+                log('canary inconclusive: landscape moved (default shift %.3f)' % landscape_shift)
+            elif regress > CANARY_TOL:
+                if os.path.exists(PREV_JSON):
+                    with open(PREV_JSON, encoding='utf-8') as f:
+                        prev = json.load(f)
+                    with open(PROMOTE_JSON + '.canary-failed.json', 'w', encoding='utf-8') as f:
+                        json.dump({'genes': prod,
+                                   'failed_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+                                   'regress': round(regress, 4)}, f, indent=2)
+                    with open(PROMOTE_JSON, 'w', encoding='utf-8') as f:
+                        json.dump(prev, f, indent=2)
+                    report['status'] = 'ROLLED-BACK'
+                    log('canary FAILED: production regressed %.3f — restored %s' % (
+                        regress, PREV_JSON))
+                else:
+                    report['status'] = 'regressed-no-prev'
+                    log('canary FAILED: regressed %.3f but no .prev to restore' % regress)
+            else:
+                log('canary PASS: production holding (regress %.3f)' % regress)
+    except Exception as e:
+        report = {'status': 'error', 'reason': str(e)[:120]}
+        log('canary check failed: %s' % str(e)[:120])
+    try:
+        os.remove(CANARY_JSON)
+    except Exception:
+        pass
+    return report
 
 
 POOL_SNAPSHOT_PATH = os.path.abspath(os.path.join(
@@ -541,9 +688,21 @@ def main():
     def fitness_frozen(genome):
         return fitness_genes(genome.genes, info_pool, alert_pool)
 
+    # One-shot canary watch for the previous promotion (2026-09-09).
+    # Deferred automatically while pools are shared.
+    canary_report = _check_canary(info_pool, alert_pool, pool_reused)
+    if canary_report:
+        log('canary: %s' % canary_report.get('status'))
+
+    # Parallel eval workers (2026-09-09): fitness is now RNG-isolated per
+    # genome (no global-random traffic), so the population evaluates with
+    # true parallelism under free-threading. 8 workers ≈ one per 3 genomes
+    # at population 24; results assign back in order, stats bit-identical.
+    _workers = 8
+
     trajectory = []
     for gen in range(15):
-        stats = evo.evaluate_population(fitness_frozen)
+        stats = evo.evaluate_population(fitness_frozen, workers=_workers)
         best = evo.get_best_genome()
         trajectory.append(round(stats.get('best_fitness', 0.0), 4))
         log(f'gen {gen}: best={stats.get("best_fitness")} '
@@ -607,20 +766,41 @@ def main():
     log(meta_msg)
 
     promoted = False
+    holdout = {}
     if beats and streak >= PROMOTE_WINS and best:
+        # Holdout gate (2026-09-09): the streak was scored on frozen pools
+        # the GA searched on. Re-extract fresh pools and require the
+        # candidate to beat the baseline there too — fail closed.
+        holdout = _holdout_gate(best.genes, baseline_genes)
+        log('holdout: %s' % holdout)
+        if not holdout.get('passed'):
+            log('promotion BLOCKED by holdout gate')
+    if beats and streak >= PROMOTE_WINS and best and holdout.get('passed'):
         try:
+            if os.path.exists(PROMOTE_JSON):
+                with open(PROMOTE_JSON, encoding='utf-8') as f:
+                    prev_data = f.read()
+                with open(PREV_JSON, 'w', encoding='utf-8') as f:
+                    f.write(prev_data)
             with open(PROMOTE_JSON, 'w', encoding='utf-8') as f:
                 json.dump({
                     'genes': best.genes,
                     'fitness': best_total,
                     'fitness_detail': {'info': best_info, 'alert': best_alert},
                     'baseline': baseline_fit,
+                    'holdout': holdout,
                     'wins': streak,
                     'promoted_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
                     'run_seed': seed,
                 }, f, indent=2)
             promoted = True
-            log('PROMOTED to %s (rollback: delete the file)' % PROMOTE_JSON)
+            log('PROMOTED to %s (prev kept at %s, auto-canary armed)' % (
+                PROMOTE_JSON, PREV_JSON))
+            try:
+                _write_canary(best.genes, best_total, round(fitness_genes(
+                    _builtin_default_genes(), info_pool, alert_pool), 4))
+            except Exception as e:
+                log('canary arm failed: %s' % str(e)[:120])
         except Exception as e:
             log('promotion write failed: %s' % str(e)[:120])
 
@@ -691,6 +871,8 @@ def main():
             'pool_snapshot_reused': pool_reused,
             'pool_snapshot_age_s': pool_age_s,
             'pareto': pareto,
+            'holdout': holdout,
+            'canary': canary_report,
         }, tags=['evolution', 'artifact'])
         if promoted and best:
             dm.record('evolution_promotion', {
@@ -698,8 +880,9 @@ def main():
                 'genes': best.genes,
                 'fitness': best_total,
                 'baseline': baseline_fit,
+                'holdout': holdout,
                 'wins': streak,
-                'rollback': 'delete config/evolved_rl_params.json',
+                'rollback': 'auto-canary armed; manual: restore %s' % PREV_JSON,
             }, tags=['evolution', 'promotion'])
     except Exception as e:
         log('artifact record failed: %s' % e)

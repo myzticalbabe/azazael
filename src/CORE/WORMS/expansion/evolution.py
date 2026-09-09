@@ -166,12 +166,19 @@ class EvolutionEngine:
 
             return list(self._population)
 
-    def evaluate_population(self, fitness_fn, use_curative: bool = True) -> dict[str, Any]:
+    def evaluate_population(self, fitness_fn, use_curative: bool = True,
+                            workers: int = 1) -> dict[str, Any]:
         """Evaluate fitness for all genomes in the population.
 
         Args:
             fitness_fn: Callable(genome: Genome) -> float fitness score
             use_curative: Govern evaluation through CurativePool
+            workers: Thread-pool width for fitness evals (2026-09-09).
+                workers=1 preserves the exact sequential behavior.
+                workers>1 requires a thread-safe fitness_fn with isolated
+                RNG (no global-random traffic) — true parallelism under
+                free-threading. Results are assigned back in population
+                order, so stats are identical to the serial path.
 
         Returns:
             dict with generation stats
@@ -184,20 +191,38 @@ class EvolutionEngine:
 
         scores = []
         eval_failures = 0
-        for genome in self._population:
-            genome_id = genome.id
-            if genome_id in self._fitness_cache:
-                genome.fitness = self._fitness_cache[genome_id]
+        todo = [g for g in self._population if g.id not in self._fitness_cache]
+        for g in self._population:
+            if g.id in self._fitness_cache:
+                g.fitness = self._fitness_cache[g.id]
+
+        def _eval_one(genome):
+            try:
+                return (genome.id, fitness_fn(genome), None)
+            except Exception as e:  # noqa: BLE001 — surfaced, not silent
+                return (genome.id, 0.0, str(e)[:160])
+
+        if workers > 1 and todo:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=workers,
+                                    thread_name_prefix="evo-eval") as pool:
+                results = list(pool.map(_eval_one, todo))
+        else:
+            results = [_eval_one(g) for g in todo]
+
+        by_id = {g.id: g for g in self._population}
+        for genome_id, fitness, err in results:
+            if err is None:
+                by_id[genome_id].fitness = fitness
             else:
-                try:
-                    genome.fitness = fitness_fn(genome)
-                except Exception as e:  # noqa: BLE001 — surfaced, not silent
-                    genome.fitness = 0.0
-                    eval_failures += 1
-                    if eval_failures <= 3:
-                        print('[EvolutionEngine] fitness eval failed for %s: %s' % (
-                            genome.id[:12], str(e)[:160]))
-                self._fitness_cache[genome_id] = genome.fitness
+                by_id[genome_id].fitness = 0.0
+                eval_failures += 1
+                if eval_failures <= 3:
+                    print('[EvolutionEngine] fitness eval failed for %s: %s' % (
+                        genome_id[:12], err))
+            with self._lock:
+                self._fitness_cache[genome_id] = by_id[genome_id].fitness
+        for genome in self._population:
             scores.append(genome.fitness)
 
         # Sort population by fitness

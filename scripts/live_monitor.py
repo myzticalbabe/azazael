@@ -402,15 +402,21 @@ def collect(con):
 
     # meta-evolution state (file-based, cheap; None until the first
     # meta-scoring cycle writes config/evolved_meta_params.json).
+    # meta_age_s guards against a dead copy: a frozen file with no age
+    # looks identical to a live one, so the render flags STALE past 15 min
+    # (3 missed 5-min cycles).
     data["meta"] = None
+    data["meta_age_s"] = None
     try:
         meta_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                  "..", "config", "evolved_meta_params.json")
         if os.path.exists(meta_path):
             with open(meta_path, encoding="utf-8") as f:
                 data["meta"] = json.load(f)
+            data["meta_age_s"] = int(time.time() - os.path.getmtime(meta_path))
     except Exception:
         data["meta"] = None
+        data["meta_age_s"] = None
 
     # GOSP learner evidence (written by the WSL gosp_* scripts on each
     # run; absent until the first run — all fields optional).
@@ -1030,13 +1036,21 @@ def render(data, now):
         # --- the three learners together: META + GOSP beside EVO ---
         _m = data.get("meta") or {}
         _mp = _m.get("params") or {}
+        # dead-copy guard: the file is only written by a scored meta cycle,
+        # so age it — past 15 min the numbers on screen are history.
+        _mage = data.get("meta_age_s")
+        _mage_txt = ""
+        if isinstance(_mage, (int, float)):
+            _mage_txt = f" {_mage // 60:.0f}m" if _mage >= 60 else f" {_mage:.0f}s"
+            if _mage > 900:
+                _mage_txt = f" {C_RED}STALE{_mage_txt}{C_RST}"
         if _mp:
             _meta_txt = (f"META   mut={_mp.get('mutation_rate', 0):.2f} "
                          f"xov={_mp.get('crossover_rate', 0):.2f} "
                          f"tour={_mp.get('tournament_size', 0)} "
                          f"pat={_mp.get('early_stop_patience', 0)} "
-                         f"tol={_mp.get('early_stop_tolerance', 0):.3f}  "
-                         f"ema {_m.get('score_ema', 0):+.2f}/{_m.get('runs', 0)}r")
+                          f"tol={_mp.get('early_stop_tolerance', 0):.3f}  "
+                          f"ema {_m.get('score_ema', 0):+.2f}/{_m.get('runs', 0)}r{_mage_txt}")
             _cand = _m.get("candidate")
             if _cand:
                 _diff = [k for k in ("mutation_rate", "crossover_rate",
@@ -1189,6 +1203,18 @@ def render(data, now):
     _py = data.get("policy")
     if _py:
         _ptxt = f"POLICY applied {_py.get('napplied', 0)} skipped {_py.get('nskipped', 0)}"
+        # dream bar: visual adoption ratio for the last dream round.
+        # Same counts, glanceable — dropped automatically if both are zero.
+        try:
+            _na = int(_py.get('napplied', 0) or 0)
+            _ns = int(_py.get('nskipped', 0) or 0)
+        except Exception:
+            _na, _ns = 0, 0
+        if _na + _ns > 0:
+            _fill = round(10 * _na / (_na + _ns))
+            _bar = "#" * _fill + "-" * (10 - _fill)
+            _bcol = C_GRN if _fill >= 5 else (C_YEL if _fill >= 3 else C_RED)
+            _ptxt += f"  {_bcol}[{_bar}]{C_RST}"
         if _py.get("worm") and _py.get("rec"):
             _cf = _py.get("conf")
             _cfs = f"{_cf:.3f}" if isinstance(_cf, (int, float)) else "?"
