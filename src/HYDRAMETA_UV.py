@@ -26,13 +26,14 @@ import time
 import hashlib
 import random
 import shutil
+import uuid
 # 3.14t port: numpy has no free-threaded build (import hard-fails), and
 # the single use was a plain mean — stdlib statistics instead.
 import statistics
 from pathlib import Path
 from typing import Any
 from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 # NOTE (3.14t port): tkinter imports live inside run_popup() — a top-level
 # import pointlessly hard-requires Tk on headless interpreters.
 
@@ -51,6 +52,8 @@ class UVTrialResult:
     parameters: dict[str, Any]
     success: bool = True
     error: str = ""
+    timed_out: bool = False
+    execution_mode: str = "in-process"
 
 
 @dataclass
@@ -160,13 +163,44 @@ class HYDRAMETA_UV:
         self.output_dir = Path(self.config.OUTPUT_PATH)
         self._ensure_directories()
         self._load_state()
+        # Preflight (2026-09-09 hardening): verify the uv binary actually
+        # runs. Construction never raises — trials fail fast with the
+        # recorded reason instead of cryptic WinError traces.
+        self.uv_available, self._uv_error = self._probe_uv()
 
     def _find_uv(self) -> str:
-        """Find uv executable."""
-        result = subprocess.run(["where", "uv"], capture_output=True, text=True)
-        if result.returncode == 0:
-            return result.stdout.strip().split("\n")[0]
-        return "uv"
+        """Find uv executable.
+
+        (2026-09-09 hardening: was `where uv` with no timeout —
+        Windows-only and a hang risk. shutil.which is cross-platform;
+        HYDRAMETA_UV_PATH env overrides for hermetic setups.)
+        """
+        override = os.environ.get("HYDRAMETA_UV_PATH")
+        if override and Path(override).exists():
+            return override
+        found = shutil.which("uv")
+        return found or "uv"
+
+    def _probe_uv(self, timeout: int = 30) -> tuple[bool, str]:
+        try:
+            r = subprocess.run(
+                [self.uv_path, "--version"],
+                capture_output=True, text=True, timeout=timeout,
+            )
+            if r.returncode == 0:
+                return True, r.stdout.strip()[:80]
+            return False, (r.stderr or r.stdout or "exit %s" % r.returncode)[:160]
+        except Exception as e:
+            return False, "%s: %s" % (type(e).__name__, str(e)[:140])
+
+    def preflight(self) -> dict[str, Any]:
+        """Public readiness check: uv binary, version, output dirs."""
+        return {"uv_path": self.uv_path,
+                "uv_available": self.uv_available,
+                "uv_version": self._uv_error if self.uv_available else "",
+                "uv_error": "" if self.uv_available else self._uv_error,
+                "output_dir": str(self.output_dir),
+                "cache_dir": str(self.cache_dir)}
 
     def _ensure_directories(self):
         """Create output directories."""
@@ -174,21 +208,29 @@ class HYDRAMETA_UV:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def _load_state(self):
-        """Load persisted state."""
+        """Load persisted state (corrupt files are quarantined, not dropped)."""
         state_file = Path(self.config.STATE_FILE)
         if state_file.exists():
             try:
-                with open(state_file) as f:
+                with open(state_file, encoding="utf-8") as f:
                     self.state = json.load(f)
             except Exception:
+                bad = state_file.with_name(
+                    state_file.name + ".corrupt-%d" % int(time.time()))
+                try:
+                    state_file.replace(bad)
+                except Exception:
+                    pass
                 self.state = {"best_sequence": [], "best_params": {}}
 
     def _save_state(self):
-        """Persist state."""
+        """Persist state atomically (tmp + replace — no torn files)."""
         state_file = Path(self.config.STATE_FILE)
         state_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(state_file, "w") as f:
+        tmp = state_file.with_name(state_file.name + ".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(self.state, f, indent=2)
+        os.replace(tmp, state_file)
 
     def _run_uv_command(
         self, args: list[str], venv_path: (str | None) = None, timeout: int = 120
@@ -226,18 +268,36 @@ class HYDRAMETA_UV:
 
     def _install_worm_deps(
         self, venv_path: str, packages: list[str]
-    ) -> tuple[int, int]:
-        """Install dependencies in trial venv."""
+    ) -> tuple[bool, str, int]:
+        """Install dependencies in trial venv.
+
+        (2026-09-09 hardening: returned 2 values while run_trial unpacked
+        3 — every trial with uv available crashed here. UV trials never
+        actually ran end-to-end before this fix.)
+        """
         args = ["--python", f"{venv_path}/Scripts/python.exe", "pip", "install"]
         args.extend(packages)
-        success, output, duration = self._run_uv_command(args)
-        return success, duration
+        return self._run_uv_command(args)
 
     def _execute_worm(
         self, venv_path: str, worm_name: str, timeout: float
     ) -> tuple[bool, float, dict[str, Any]]:
-        """Execute worm in trial venv."""
+        """Execute worm with a REAL timeout (2026-09-09 hardening: the
+        timeout param was accepted and ignored — a hung worm hung the
+        whole trial forever).
+
+        Execution runs in a worker thread joined at `timeout`; on expiry
+        the trial is marked timed_out (the leaked thread is abandoned, not
+        awaited — documented, bounded by trial count).
+
+        Honesty note: worms execute in-process in THIS interpreter, not
+        inside the trial venv — the venv isolates installed packages for
+        `uv pip` bookkeeping, not execution. Recorded as
+        execution_mode='in-process' so results never imply isolation
+        they don't have.
+        """
         import importlib.util
+        import threading
 
         worm_paths = {
             "SYSTEMZ": f"{HYDRAMETA_UVConfig._DESKTOP}/WORMZ/SYSTEMZ.py",
@@ -249,24 +309,40 @@ class HYDRAMETA_UV:
 
         path = worm_paths.get(worm_name)
         if not path or not Path(path).exists():
-            return True, 0.0, {}
+            return True, 0.0, {"execution_mode": "skipped-unknown-worm"}
+
+        box: dict[str, Any] = {}
+
+        def _target():
+            try:
+                spec = importlib.util.spec_from_file_location(worm_name, path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                if hasattr(module, f"run_{worm_name.lower()}"):
+                    box["result"] = getattr(module, f"run_{worm_name.lower()}")()
+                else:
+                    box["result"] = {"success": True}
+            except Exception as e:  # noqa: BLE001 — recorded, not raised
+                box["error"] = str(e)[:300]
 
         start = time.time()
-        try:
-            spec = importlib.util.spec_from_file_location(worm_name, path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-            if hasattr(module, f"run_{worm_name.lower()}"):
-                result = getattr(module, f"run_{worm_name.lower()}")()
-            else:
-                result = {"success": True}
-
-            duration = (time.time() - start) * 1000
-            return True, duration, result
-        except Exception as e:
-            duration = (time.time() - start) * 1000
-            return False, duration, {"error": str(e)}
+        t = threading.Thread(target=_target,
+                             name=f"uv-worm-{worm_name}", daemon=True)
+        t.start()
+        t.join(timeout=max(1.0, float(timeout)))
+        duration = (time.time() - start) * 1000
+        if t.is_alive():
+            return False, duration, {"execution_mode": "in-process",
+                                     "timed_out": True,
+                                     "error": "worm exceeded timeout %.0fs (abandoned)" % timeout}
+        if "error" in box:
+            return False, duration, {"execution_mode": "in-process",
+                                     "error": box["error"]}
+        res = box.get("result")
+        if not isinstance(res, dict):
+            res = {"value": res}
+        res["execution_mode"] = "in-process"
+        return True, duration, res
 
     def run_trial(
         self,
@@ -275,13 +351,32 @@ class HYDRAMETA_UV:
         packages: (list[str] | None) = None,
     ) -> UVTrialResult:
         """Run single optimization trial with uv."""
-        trial_id = hashlib.md5(f"{time.time()}_{random.random()}".encode()).hexdigest()[
-            :8
-        ]
+        # uuid4 ids (2026-09-09 hardening: was md5(time+random) — global-RNG
+        # traffic and a real collision window under parallel trials).
+        trial_id = uuid.uuid4().hex[:8]
 
         params = params or self.config.DEFAULT_PARAMS
         worm_sequence = worm_sequence or self.config.WORMS[:4]
-        packages = packages or ["psutil", "requests"]
+        packages = packages if packages is not None else ["psutil", "requests"]
+
+        def _fail(msg: str) -> UVTrialResult:
+            return UVTrialResult(
+                trial_id=trial_id,
+                worm_sequence=worm_sequence or [],
+                duration_ms=0,
+                efficiency_score=0.0,
+                uv_install_time_ms=0,
+                worm_execution_time_ms=0,
+                packages_installed=0,
+                parameters=params or {},
+                success=False,
+                error=msg,
+            )
+
+        # Fail fast with a clear reason instead of cryptic WinErrors deep
+        # in venv creation.
+        if not self.uv_available:
+            return _fail("uv unavailable (%s): %s" % (self.uv_path, self._uv_error))
 
         venv_path = None
         try:
@@ -294,10 +389,13 @@ class HYDRAMETA_UV:
 
             worm_start = time.time()
             results = []
+            any_timeout = False
             for worm in worm_sequence:
                 success, duration, result = self._execute_worm(
                     venv_path, worm, params.get("timeout", 30.0)
                 )
+                if isinstance(result, dict) and result.get("timed_out"):
+                    any_timeout = True
                 results.append({"worm": worm, "success": success, "duration": duration})
 
             worm_duration = (time.time() - worm_start) * 1000
@@ -315,9 +413,12 @@ class HYDRAMETA_UV:
                 packages_installed=len(packages),
                 parameters=params,
                 success=True,
+                timed_out=any_timeout,
             )
 
-            self.trials.append(trial_result)
+            # NOTE (2026-09-09 hardening): run_trial does NOT append to
+            # self.trials — run_trials owns the list. The old in-here
+            # append double-counted every serial trial (2x rows).
             return trial_result
 
         except Exception as e:
@@ -351,17 +452,29 @@ class HYDRAMETA_UV:
         count: int = 10,
         parallel: bool = False,
         packages: (list[str] | None) = None,
+        workers: (int | None) = None,
     ) -> list[UVTrialResult]:
-        """Run multiple optimization trials."""
+        """Run multiple optimization trials.
+
+        workers (2026-09-09 hardening): was hardcoded 4, ignoring the
+        uv_workers config. Defaults to config DEFAULT_PARAMS uv_workers.
+        Results keep submission order (was as_completed order —
+        nondeterministic trials.json).
+        """
         self.trials = []
+        if workers is None:
+            try:
+                workers = int(self.config.DEFAULT_PARAMS.get("uv_workers", 4))
+            except Exception:
+                workers = 4
+        workers = max(1, workers)
 
         if parallel and count > 1:
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                futures = [
-                    executor.submit(self.run_trial, packages=packages)
-                    for _ in range(count)
-                ]
-                self.trials = [f.result() for f in as_completed(futures)]
+            with ThreadPoolExecutor(max_workers=workers,
+                                    thread_name_prefix="uv-trial") as executor:
+                futs = [executor.submit(self.run_trial, packages=packages)
+                        for _ in range(count)]
+                self.trials = [f.result() for f in futs]
         else:
             for _ in range(count):
                 trial = self.run_trial(packages=packages)
@@ -372,10 +485,11 @@ class HYDRAMETA_UV:
         return self.trials
 
     def _save_trials(self):
-        """Persist trials to file."""
+        """Persist trials to file (atomic tmp+replace)."""
         trials_file = Path(self.config.TRIALS_FILE)
         trials_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(trials_file, "w") as f:
+        tmp = trials_file.with_name(trials_file.name + ".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
             json.dump(
                 [
                     {
@@ -386,12 +500,15 @@ class HYDRAMETA_UV:
                         "uv_overhead_ms": t.uv_install_time_ms,
                         "success": t.success,
                         "error": t.error,
+                        "timed_out": t.timed_out,
+                        "execution_mode": t.execution_mode,
                     }
                     for t in self.trials
                 ],
                 f,
                 indent=2,
             )
+        os.replace(tmp, trials_file)
 
     def _update_best(self):
         """Update best sequence based on trials."""
@@ -419,7 +536,11 @@ class HYDRAMETA_UV:
             / max(len(successful), 1),
             "avg_efficiency": sum(t.efficiency_score for t in successful)
             / max(len(successful), 1),
-            "best_efficiency": max(t.efficiency_score for t in successful) or 0.0,
+            # default= (2026-09-09 hardening: all-failed trials crashed
+            # max() on an empty sequence).
+            "best_efficiency": max((t.efficiency_score for t in successful),
+                                   default=0.0),
+            "timed_out_trials": sum(1 for t in self.trials if t.timed_out),
             "best_sequence": self.state.get("best_sequence", []),
             "best_params": self.state.get("best_params", {}),
             "avg_uv_overhead_ms": sum(t.uv_install_time_ms for t in successful)

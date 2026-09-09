@@ -1266,6 +1266,73 @@ class LocalMemoryStore:
             "filtered_warnings": len(all_warnings) - len(real_warnings),
         }
 
+    @staticmethod
+    def _triage_signature(memory: Dict) -> str:
+        """Cluster key: event_type + normalized first line of the message.
+
+        Normalization lowercases, collapses numbers/hex/uuids to '#', and
+        truncates — so 200 repetitions of the same failing probe land in
+        one cluster while genuinely different errors stay apart.
+        """
+        import re
+        data = memory.get("data", {})
+        if isinstance(data, dict):
+            msg = str(data.get("error") or data.get("message")
+                      or data.get("action") or data.get("reason") or "")
+        else:
+            msg = str(data)
+        first = msg.strip().splitlines()[0] if msg.strip() else ""
+        first = first[:160].lower()
+        first = re.sub(r"0x[0-9a-f]+", "#", first)
+        first = re.sub(r"[0-9a-f]{8}-[0-9a-f-]{4,}", "#", first)
+        first = re.sub(r"\d+", "#", first)
+        return "%s|%s" % (memory.get("event_type", "?"), first or "(empty)")
+
+    def triage_real_errors(self, days: int = 7, limit: int = 100,
+                           exclude_sources: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Cluster real errors/warnings into triage groups (2026-09-09).
+
+        query_real_errors() lists rows but nobody grouped them — 600
+        identical probe failures looked as alarming as 600 distinct bugs.
+        Returns clusters sorted by count desc: source, severity, count,
+        newest timestamp, and a sample row. Designed for the nightly
+        maintenance log, not for new store rows (no churn).
+        """
+        qr = self.query_real_errors(days=days, limit=limit,
+                                    exclude_sources=exclude_sources)
+        clusters: Dict[tuple, Dict[str, Any]] = {}
+        for sev_key in ("errors", "warnings"):
+            for m in qr.get(sev_key, []):
+                key = (m.get("source", "?"), m.get("severity", "?"),
+                       self._triage_signature(m))
+                c = clusters.get(key)
+                if c is None:
+                    clusters[key] = {
+                        "source": m.get("source", "?"),
+                        "severity": m.get("severity", "?"),
+                        "signature": key[2],
+                        "count": 1,
+                        "newest": m.get("timestamp", ""),
+                        "sample_event": m.get("event_type", "?"),
+                    }
+                else:
+                    c["count"] += 1
+                    if str(m.get("timestamp", "")) > str(c["newest"]):
+                        c["newest"] = m.get("timestamp", "")
+                        c["sample_event"] = m.get("event_type", "?")
+        ranked = sorted(clusters.values(), key=lambda c: -c["count"])
+        return {
+            "generated": datetime.now(timezone.utc).isoformat(),
+            "window_days": days,
+            "total_errors_exact": qr.get("total_errors_exact", 0),
+            "total_warnings_exact": qr.get("total_warnings_exact", 0),
+            "capped": qr.get("capped", False),
+            "filtered_errors": qr.get("filtered_errors", 0),
+            "filtered_warnings": qr.get("filtered_warnings", 0),
+            "cluster_count": len(ranked),
+            "clusters": ranked[:25],
+        }
+
     def get_error_trends(self, days: int = 30) -> List[Dict]:
         """Get daily error/warning counts for trend analysis.
 

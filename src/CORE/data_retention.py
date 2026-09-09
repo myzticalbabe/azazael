@@ -13,6 +13,8 @@ __all__ = [
     "AUDIT_ARCHIVE_DAYS",
     "DB_SIZE_QUOTA_MB",
     "EVENT_TTL_DAYS",
+    "LOG_ROTATE_KEEP",
+    "LOG_ROTATE_MB",
     "SESSION_ROTATION_HOURS",
     "TYPE_CAPS",
     "VACUUM_THRESHOLD_PCT",
@@ -22,6 +24,7 @@ __all__ = [
     "enforce_event_ttl",
     "enforce_type_caps",
     "rotate_old_sessions",
+    "rotate_logs",
     "run_maintenance",
     "vacuum_if_needed",
     "wal_checkpoint",
@@ -41,6 +44,8 @@ SESSION_ROTATION_HOURS = 24  # Auto-close sessions older than this
 DB_SIZE_QUOTA_MB = 500       # Warn when DB exceeds this
 AUDIT_ARCHIVE_DAYS = 30      # Archive .audit/ files older than this
 VACUUM_THRESHOLD_PCT = 20    # Auto-vacuum when free pages exceed this %
+LOG_ROTATE_MB = 2            # Rotate logs/*.log past this size
+LOG_ROTATE_KEEP = 5          # Keep this many generations (.1 .. .5)
 
 # Per-type keep-last-N caps (2026-09-08): high-volume regenerable
 # bookkeeping rows. SAFETY: only rolling-window data is capped here —
@@ -187,6 +192,50 @@ def wal_checkpoint() -> dict:
         conn.close()
 
 
+def _logs_dir() -> Path:
+    return Path(_get_db_path()).resolve().parent.parent / "azazael" / "logs"
+
+
+def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,
+                log_dir: (Path | str | None) = None) -> dict:
+    """Rotate logs/*.log past max_mb, keeping .1 .. .keep generations.
+
+    (2026-09-09: evolution_cycle.log was growing unbounded — 0.6 MB and
+    climbing 5 KB per cycle with no rotation anywhere. The nightly
+    maintenance task runs this, so no log can grow more than ~1 day past
+    the cap between runs.)
+
+    Shift-up scheme: .keep is dropped, .N -> .N+1, live .log -> .1.
+    A concurrently-written .log is never moved mid-line — writers here
+    open append-per-line, and rotation runs from the nightly task when
+    cycles aren't mid-write... in practice a torn last line is possible
+    and acceptable for logs (never for state/DB, which use tmp+replace).
+    Returns {rotated: [...], skipped: [...]}.
+    """
+    d = Path(log_dir) if log_dir else _logs_dir()
+    rotated, skipped = [], []
+    if not d.exists():
+        return {"rotated": rotated, "skipped": skipped, "log_dir": str(d)}
+    cap = max_mb * 1024 * 1024
+    for logf in sorted(d.glob("*.log")):
+        try:
+            if logf.stat().st_size < cap:
+                skipped.append(logf.name)
+                continue
+            oldest = logf.with_name(logf.name + ".%d" % keep)
+            if oldest.exists():
+                oldest.unlink()
+            for n in range(keep - 1, 0, -1):
+                src = logf.with_name(logf.name + ".%d" % n)
+                if src.exists():
+                    src.replace(logf.with_name(logf.name + ".%d" % (n + 1)))
+            logf.replace(logf.with_name(logf.name + ".1"))
+            rotated.append(logf.name)
+        except Exception as e:  # noqa: BLE001 — one bad log never blocks the rest
+            skipped.append("%s (%s)" % (logf.name, str(e)[:80]))
+    return {"rotated": rotated, "skipped": skipped, "log_dir": str(d)}
+
+
 def run_maintenance() -> dict:
     """Run all maintenance tasks in sequence.
     
@@ -221,6 +270,27 @@ def run_maintenance() -> dict:
         results["wal_checkpoint"] = wal_checkpoint()
     except Exception as e:
         results["wal_checkpoint"] = {"error": str(e)}
+    try:
+        results["log_rotation"] = rotate_logs()
+    except Exception as e:
+        results["log_rotation"] = {"error": str(e)}
+    try:
+        # Error triage (2026-09-09): cluster the week's real errors for
+        # the maintenance log. Summary only — no new store rows.
+        from CORE.local_memory import get_memory_store
+        tri = get_memory_store().triage_real_errors(days=7)
+        results["error_triage"] = {
+            "errors_exact": tri.get("total_errors_exact", 0),
+            "warnings_exact": tri.get("total_warnings_exact", 0),
+            "clusters": tri.get("cluster_count", 0),
+            "capped": tri.get("capped", False),
+            "top": [{"source": c["source"], "severity": c["severity"],
+                     "count": c["count"], "newest": c["newest"],
+                     "signature": c["signature"][:120]}
+                    for c in tri.get("clusters", [])[:5]],
+        }
+    except Exception as e:
+        results["error_triage"] = {"error": str(e)}
     return results
 
 
