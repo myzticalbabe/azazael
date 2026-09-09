@@ -53,6 +53,14 @@ def gateway_infer(prompt: str, model: str, max_tokens: int) -> tuple[str, int]:
         method="POST")
     with urllib.request.urlopen(req, timeout=300) as resp:
         data = json.loads(resp.read())
+    routed = str(data.get("model") or "")
+    # Match against the model dir/file segments only: full Windows paths
+    # contain junk substrings ("jan" matches OmniCoder's \Jan\data dir).
+    _segs = "/".join(routed.replace("\\", "/").split("/")[-2:]).lower()
+    if model.lower() not in _segs:
+        raise RuntimeError(
+            f"gateway routed '{model}' to '{routed}' — no upstream matches; "
+            f"battery would silently test the wrong model")
     msg = data["choices"][0].get("message") or {}
     return _strip_thinking(msg.get("content") or "",
                            msg.get("reasoning_content") or "")
@@ -104,7 +112,8 @@ def main() -> int:
     ap.add_argument("--backend", default="gateway:omnicoder",
                     help="gateway:<model> | gosp | <provider>[:<model>]")
     ap.add_argument("--rounds", type=int, default=3)
-    ap.add_argument("--max-tokens", type=int, default=250)
+    ap.add_argument("--max-tokens", type=int, default=None,
+                    help="override per-model budget (default: model profile)")
     ap.add_argument("--workers", type=int, default=1,
                     help="parallel inference workers (1 = sequential; use 1 for "
                          "single small local models that serialize anyway)")
@@ -117,18 +126,32 @@ def main() -> int:
 
     t0 = time.time()
     spec_lower = args.backend.lower()
+
+    # Per-model token budgets (2026-09-09): thinking models burn the whole
+    # budget reasoning and answer nothing; direct answerers waste wall time
+    # on oversized budgets. Substring match, first hit wins.
+    MODEL_BUDGETS = [("omni", 400), ("heretic", 400), ("gemma", 300),
+                     ("jan", 150), ("qwen", 200), ("llama", 200)]
+    budget = args.max_tokens
+    if budget is None:
+        budget = 250
+        for _sub, _b in MODEL_BUDGETS:
+            if _sub in spec_lower:
+                budget = _b
+                break
+
     if spec_lower == "gosp":
         backend = "GOSP"
-        fn = lambda p: gosp_infer(p, args.max_tokens)  # noqa: E731
+        fn = lambda p: gosp_infer(p, budget)  # noqa: E731
     elif spec_lower.startswith("gateway:"):
         model = args.backend.split(":", 1)[1] or "omnicoder"
         backend = f"{model}-via-gateway"
-        fn = lambda p: gateway_infer(p, model, args.max_tokens)  # noqa: E731
+        fn = lambda p: gateway_infer(p, model, budget)  # noqa: E731
     else:
         parts = args.backend.split(":", 1)
         prov_name, prov_model = parts[0], (parts[1] if len(parts) > 1 else None)
         backend = f"{prov_name}:{prov_model}" if prov_model else prov_name
-        fn = lambda p: provider_infer(prov_name, prov_model, p, args.max_tokens)  # noqa: E731
+        fn = lambda p: provider_infer(prov_name, prov_model, p, budget)  # noqa: E731
 
     def infer(prompt: str) -> str:
         text, think_n = fn(prompt)
@@ -150,6 +173,7 @@ def main() -> int:
         "test": "RANI x live backend",
         "date": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "backend": backend,
+        "max_tokens": budget,
         "elapsed_s": round(time.time() - t0, 2),
         "engine_summary": {
             "total_rounds": sm.get("total_rounds"),
