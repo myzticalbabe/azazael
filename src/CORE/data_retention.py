@@ -23,6 +23,7 @@ __all__ = [
     "cmd_maintain",
     "enforce_event_ttl",
     "enforce_type_caps",
+    "newest_backup",
     "rotate_old_sessions",
     "rotate_logs",
     "run_maintenance",
@@ -206,6 +207,59 @@ def _backup_dir() -> Path:
     return d
 
 
+def newest_backup() -> dict:
+    """Newest local backup + age (for the monitor STORE line)."""
+    try:
+        cands = sorted(_backup_dir().glob("memory_store.*.db.gz"))
+        if not cands:
+            return {"exists": False}
+        latest = cands[-1]
+        import time as _time
+        return {"exists": True, "name": latest.name,
+                "mb": round(latest.stat().st_size / 1e6, 1),
+                "age_h": round((_time.time() - latest.stat().st_mtime) / 3600.0, 1)}
+    except Exception as e:
+        return {"exists": False, "error": str(e)[:100]}
+
+
+def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
+    """Gunzip newest backup to temp + integrity_check, at most monthly."""
+    import gzip as _gzip
+    import shutil as _shutil
+    import tempfile as _tempfile
+    import time as _time
+    state = _backup_dir() / "last_drill.json"
+    try:
+        if state.exists():
+            last = json.loads(state.read_text(encoding="utf-8"))
+            if _time.time() - float(last.get("at", 0)) < max_age_days * 86400:
+                return {"status": "deferred", "last": last.get("at_str", "?")}
+    except Exception:
+        pass
+    tmp = Path(_tempfile.mkdtemp(prefix="dbdrill_")) / "drill.db"
+    try:
+        with _gzip.open(gz, "rb") as f_in, open(tmp, "wb") as f_out:
+            _shutil.copyfileobj(f_in, f_out, length=4 * 1024 * 1024)
+        vconn = sqlite3.connect(str(tmp), timeout=60)
+        try:
+            ok = vconn.execute("PRAGMA integrity_check").fetchone()[0]
+            n = vconn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]
+        finally:
+            vconn.close()
+        result = {"status": "pass" if str(ok).lower() == "ok" else "FAIL",
+                  "integrity": str(ok)[:60], "rows": n,
+                  "at_str": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+        state.write_text(json.dumps(
+            {"at": _time.time(), "at_str": result["at_str"],
+             "result": result["status"]}), encoding="utf-8")
+        return result
+    finally:
+        try:
+            _shutil.rmtree(tmp.parent, ignore_errors=True)
+        except Exception:
+            pass
+
+
 def backup_database(keep: int = 3) -> dict:
     """Nightly online backup of the memory store (2026-09-10).
 
@@ -285,6 +339,13 @@ def backup_database(keep: int = 3) -> dict:
             out["verified"] = True
         except Exception as e:
             out["verified"] = "CRC FAIL: %s" % str(e)[:100]
+        # Full drill, monthly (2026-09-10): gunzip to temp + real
+        # integrity_check proves the archive actually restores, not just
+        # CRC-passes. Gated by last-drill state so nightly stays fast.
+        try:
+            out["full_drill"] = _maybe_full_drill(gz)
+        except Exception as e:
+            out["full_drill"] = "drill error: %s" % str(e)[:100]
         return out
     except Exception as e:
         try:
