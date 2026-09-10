@@ -65,7 +65,8 @@ for _o in mc._observations:
 recent = []
 if store:
     for et in ('db_health_snapshot',
-               'cluster_execution_completed', 'nature_cluster_executed'):
+               'cluster_execution_completed', 'nature_cluster_executed',
+               'training_run_complete', 'policy_applied'):
         try:
             recent += list(store.query_memories(event_type=et, limit=50) or [])
         except Exception:
@@ -114,6 +115,37 @@ for r in recent:
             f"nature run: {n_fail} worm failures")
         cid = 'na_' + str(r.get('timestamp', ''))[:16]
         action = 'cluster_execute'
+    elif et == 'training_run_complete':
+        # (2026-09-10 improvement: metacog was blind to training — fed=0
+        # most rounds while dozens of trainings completed. Only clear
+        # success/failure feeds evidence; verdict-less rows are skipped.)
+        terr = data.get('error')
+        rw = data.get('eval_mean_reward', data.get('avg_reward'))
+        wt = 'training'
+        if terr:
+            outcome, err = 'error', 'training failed: %s' % str(terr)[:120]
+        elif isinstance(rw, (int, float)):
+            outcome, err = 'success', None
+        else:
+            continue
+        cid = 'tr_' + str(data.get('run_id') or r.get('timestamp', ''))[:24]
+        action = 'model_train'
+    elif et == 'policy_applied':
+        # Dream policy verdicts: applied>0 with zero skips = clean win;
+        # anything skipped = partial (error) so mediocre rounds count.
+        det = data.get('details') or {}
+        nap = len(det.get('applied', []))
+        nsk = len(det.get('skipped', []))
+        wt = 'dreaming'
+        if nap > 0 and nsk == 0:
+            outcome, err = 'success', None
+        elif nap > 0 or nsk > 0:
+            outcome = 'error'
+            err = 'dream round partial: %d applied %d skipped' % (nap, nsk)
+        else:
+            continue
+        cid = 'po_' + str(r.get('timestamp', ''))[:16]
+        action = 'dream_integrate'
     else:
         continue
 

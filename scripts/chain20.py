@@ -9,6 +9,7 @@ import subprocess
 import time
 
 PY = r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe'
+PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe'
 SCRIPTS = r'C:\Users\clint\azazael\scripts'
 LOG = r'C:\Users\clint\azazael\logs\chain20.log'
 ROUNDS = 20
@@ -22,11 +23,12 @@ def log(msg):
         f.write(line + '\n')
 
 
-def step(name, args):
+def step(name, args, binary=None):
     t0 = time.time()
     try:
-        p = subprocess.run([PY] + args, capture_output=True, text=True,
-                           timeout=STEP_TIMEOUT, cwd=r'C:\Users\clint\azazael')
+        p = subprocess.run([binary or PY] + args, capture_output=True,
+                           text=True, timeout=STEP_TIMEOUT,
+                           cwd=r'C:\Users\clint\azazael')
         ok = p.returncode == 0
         tail = ((p.stdout or '') + (p.stderr or '')).strip().splitlines()
         tail = tail[-1][-160:] if tail else ''
@@ -42,11 +44,13 @@ def main():
     for i in range(1, ROUNDS + 1):
         r0 = time.time()
         log('--- round %d/%d ---' % (i, ROUNDS))
-        for name, script, extra in (
-                ('dream', 'dream_cycle.py', []),
-                ('metacog', 'metacog_cycle.py', []),
-                ('train', 'run_training_orchestrator.py', [])):
-            if step('%s[%d]' % (name, i), [SCRIPTS + '\\' + script] + extra):
+        for name, script, extra, binary in (
+                ('dream', 'dream_cycle.py', [], None),
+                ('metacog', 'metacog_cycle.py', [], None),
+                ('train', 'run_training_orchestrator.py', [], None),
+                ('evolution', 'evolution_cycle.py', [], PY_FT)):
+            if step('%s[%d]' % (name, i), [SCRIPTS + '\\' + script] + extra,
+                    binary=binary):
                 ok += 1
             else:
                 fail += 1
