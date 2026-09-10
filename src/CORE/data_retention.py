@@ -249,6 +249,20 @@ def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
         result = {"status": "pass" if str(ok).lower() == "ok" else "FAIL",
                   "integrity": str(ok)[:60], "rows": n,
                   "at_str": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+        # Mirror parity (2026-09-10): the G: copy rots independently —
+        # CRC-read it too so the drill covers both restore paths.
+        try:
+            _mirror = Path(r"G:\source-of-truth\azazael\db-backup") / gz.name
+            if _mirror.exists():
+                with _gzip.open(_mirror, "rb") as f:
+                    while f.read(4 * 1024 * 1024):
+                        pass
+                result["mirror_crc"] = True
+            else:
+                result["mirror_crc"] = "mirror missing"
+        except Exception as e:
+            result["mirror_crc"] = "CRC FAIL: %s" % str(e)[:100]
+            result["status"] = "FAIL"
         state.write_text(json.dumps(
             {"at": _time.time(), "at_str": result["at_str"],
              "result": result["status"]}), encoding="utf-8")
