@@ -102,26 +102,64 @@ def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
     # (2026-09-10 fix: the WSL path was hardcoded, so --backend gosp
     # always died on Windows with a bare ImportError. GOSP_PARSER_PATH
     # env overrides; error names every location tried.)
+    # (2026-09-10 bridge: the parser lives in Ubuntu-26.04 WSL
+    # (pure-stdlib, 3.4ms parses). Try direct import first (works when
+    # GOSP_PARSER_PATH points at a Windows-readable copy), then fall
+    # back to the `wsl` subprocess bridge. GOSP_WSL_DISTRO overrides.)
+    import subprocess as _sp
     candidates = [os.environ.get("GOSP_PARSER_PATH") or "",
                   "/root/workspace/projects/gossamer-oxford-parser"]
-    tried = []
     for _base in candidates:
         if not _base:
             continue
-        tried.append(_base)
-        if os.path.isdir(_base):
-            sys.path.insert(0, _base)
-            break
-    else:
-        raise RuntimeError(
-            "GOSP parser not found (tried: %s). Set GOSP_PARSER_PATH." %
-            (", ".join(tried) or "(nothing configured)"))
-    from semantical_main import GossamerOxfordParser
-    res = GossamerOxfordParser(max_workers=4).parse(prompt, depth="full", learn=False)
+        try:
+            if os.path.isdir(_base):
+                if _base not in sys.path:
+                    sys.path.insert(0, _base)
+                from semantical_main import GossamerOxfordParser
+                res = GossamerOxfordParser(max_workers=4).parse(
+                    prompt, depth="full", learn=False)
+                return _gosp_format(prompt, res), 0
+        except Exception:
+            continue
+    # WSL bridge.
+    _distro = os.environ.get("GOSP_WSL_DISTRO", "Ubuntu-26.04")
+    _distros = [_distro] if _distro else []
+    _distros.append("")  # default distro last
+    _errs = []
+    for _d in _distros:
+        _cmd = (["wsl", "-d", _d] if _d else ["wsl"]) + [
+            "python3", "/root/workspace/projects/gossamer-oxford-parser/"
+            "semantical_main.py",
+            "--text", prompt, "--format", "json"]
+        try:
+            _p = _sp.run(_cmd, capture_output=True, text=True, timeout=180)
+        except Exception as e:
+            _errs.append("%s: %s" % (_d or "default", str(e)[:100]))
+            continue
+        if _p.returncode != 0:
+            _errs.append("%s: exit %s %s" % (
+                _d or "default", _p.returncode, _p.stderr.strip()[-160:]))
+            continue
+        try:
+            _out = _p.stdout
+            _res = json.loads(_out[_out.index("{"): _out.rindex("}") + 1])
+            return _gosp_format(prompt, _res), 0
+        except Exception as e:
+            _errs.append("%s: bad json (%s)" % (_d or "default", str(e)[:80]))
+            continue
+    raise RuntimeError(
+        "GOSP parser unreachable (tried: %s; bridge: %s). Set "
+        "GOSP_PARSER_PATH." % (
+            ", ".join(candidates),
+            "; ".join(_errs) or "(nothing configured)"))
+
+
+def _gosp_format(prompt: str, res: dict) -> str:
     lines = [f"INPUT: {prompt}"]
     for i, t in enumerate(res.get("parse_trees", [])[:2]):
         lines.append(f"TREE[{i}]: {json.dumps(t, default=str)[:600]}")
-    return "\n".join(lines), 0
+    return "\n".join(lines)
 
 
 def main() -> int:
