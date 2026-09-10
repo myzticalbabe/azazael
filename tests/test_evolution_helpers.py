@@ -73,3 +73,31 @@ class TestTerenceVerify:
         ok, reason = t._apply_verified(fix)
         assert not ok and "drifted" in reason
         assert p.read_text() == "y = 2\n"
+
+    def test_non_utf8_skipped_intact(self, tmp_path):
+        p = tmp_path / "a.py"
+        raw = b"x = '\xff\xfe not utf8'\n"
+        p.write_bytes(raw)
+        t, fix = self._fix(p, 1, "x =", "x ==")
+        ok, reason = t._apply_verified(fix)
+        assert not ok and "UTF8" in reason
+        assert p.read_bytes() == raw
+
+    def test_locked_file_rejected(self, tmp_path):
+        import msvcrt
+        p = tmp_path / "a.py"
+        p.write_text("x = 1\n")
+        lfh = open(str(p) + ".terence.lock", "w")
+        msvcrt.locking(lfh.fileno(), msvcrt.LK_NBLCK, 1)
+        try:
+            t, fix = self._fix(p, 1, "x = 1", "x = 2")
+            ok, reason = t._apply_verified(fix)
+            assert not ok and "locked" in reason
+            assert p.read_text() == "x = 1\n"
+        finally:
+            lfh.close()
+            try:
+                import os as _os
+                _os.remove(str(p) + ".terence.lock")
+            except OSError:
+                pass
