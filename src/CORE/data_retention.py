@@ -200,6 +200,68 @@ def _state_dir() -> Path:
     return Path(_get_db_path()).resolve().parent.parent / "azazael" / "state"
 
 
+def _backup_dir() -> Path:
+    d = Path(_get_db_path()).resolve().parent.parent / "azazael" / "backup" / "db"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def backup_database(keep: int = 3) -> dict:
+    """Nightly online backup of the memory store (2026-09-10).
+
+    The single SQLite file underpins all five cycles; until now there
+    was no automated restore path. Uses the online backup API (safe
+    against concurrent readers/writers), verifies with integrity_check
+    on the COPY, gzips it (~5x), and keeps the newest `keep`.
+    Returns {path, bytes, gz_bytes, integrity, pruned}.
+    """
+    import gzip as _gzip
+    import shutil as _shutil
+    src = _get_db_path()
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    raw = _backup_dir() / ("memory_store.%s.db" % stamp)
+    try:
+        sconn = sqlite3.connect(src, timeout=30)
+        try:
+            dconn = sqlite3.connect(str(raw), timeout=30)
+            try:
+                sconn.backup(dconn)
+            finally:
+                dconn.close()
+        finally:
+            sconn.close()
+        vconn = sqlite3.connect(str(raw), timeout=30)
+        try:
+            integrity = vconn.execute("PRAGMA integrity_check").fetchone()[0]
+        finally:
+            vconn.close()
+        if str(integrity).lower() != "ok":
+            raw.unlink(missing_ok=True)
+            return {"error": "backup integrity check failed: %s" % str(integrity)[:120]}
+        gz = raw.with_suffix(".db.gz")
+        with open(raw, "rb") as f_in, _gzip.open(gz, "wb") as f_out:
+            _shutil.copyfileobj(f_in, f_out, length=4 * 1024 * 1024)
+        raw.unlink()
+        pruned = []
+        existing = sorted(_backup_dir().glob("memory_store.*.db.gz"))
+        while len(existing) > keep:
+            old = existing.pop(0)
+            try:
+                old.unlink()
+                pruned.append(old.name)
+            except OSError:
+                break
+        return {"path": str(gz), "gz_bytes": gz.stat().st_size,
+                "integrity": "ok", "pruned": pruned}
+    except Exception as e:
+        try:
+            if raw.exists():
+                raw.unlink()
+        except OSError:
+            pass
+        return {"error": str(e)[:200]}
+
+
 def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,
                 log_dir: (Path | str | None) = None) -> dict:
     """Rotate logs/*.log past max_mb, keeping .1 .. .keep generations.
@@ -274,6 +336,10 @@ def run_maintenance() -> dict:
         results["wal_checkpoint"] = wal_checkpoint()
     except Exception as e:
         results["wal_checkpoint"] = {"error": str(e)}
+    try:
+        results["db_backup"] = backup_database()
+    except Exception as e:
+        results["db_backup"] = {"error": str(e)}
     try:
         results["log_rotation"] = rotate_logs()
     except Exception as e:

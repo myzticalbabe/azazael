@@ -436,12 +436,17 @@ class TerenceEnhanced:
     def _resolve_prepend_context(
         self, incompatability: Incompatability, context: dict
     ) -> str:
-        return f"# TODO: Resolve {incompatability.conflict_type}\n{incompatability.conflicting_pattern}"
+        # (2026-09-10: was a bare TODO emitter — debt generator. Name the
+        # conflict and the needed decision instead of an open TODO.)
+        return (f"# UNRESOLVED {incompatability.conflict_type}: "
+                f"review {incompatability.conflicting_pattern}")
 
     def _resolve_wrap_block(
         self, incompatability: Incompatability, context: dict
     ) -> str:
-        return f"try:\n    {incompatability.conflicting_pattern}\nexcept Exception as e:\n    pass"
+        # (2026-09-10: was try/except-pass — the silencing anti-pattern.)
+        return (f"try:\n    {incompatability.conflicting_pattern}\n"
+                f"except Exception as e:\n    print(f\"terence-guard: {{e}}\")")
 
     def _resolve_remove_pattern(
         self, incompatability: Incompatability, context: dict

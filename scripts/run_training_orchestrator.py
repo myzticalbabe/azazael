@@ -315,6 +315,15 @@ def run_offline_cycle() -> dict:
             "duration_ms": duration_ms}
 
 
+def _thought_family(task) -> str:
+    """Task family for DPO affinity pairing: first 3 lowercased words.
+
+    Verb-led tasks cluster naturally ('fix hof ...' vs 'refactor hof'
+    stay apart — different operations deserve different contrasts).
+    """
+    return " ".join(str(task or "").lower().split()[:3])
+
+
 def run_dpo_cycle() -> dict:
     """One DPO preference-learning update from the latest SB3 run outcomes.
 
@@ -355,15 +364,15 @@ def run_dpo_cycle() -> dict:
                 context={"task_type": "scheduled_training"},
                 chosen_reward=cr, rejected_reward=rr)
 
-    # Chain-of-thought preferences (2026-09-10): pair the newest
-    # successful thought trace against the newest failed one. The DPO
-    # loss then favors reasoning patterns that led to success — the
-    # local loop's first actual CoT signal. Additive: never disturbs
-    # the SB3 experiment above.
+    # Chain-of-thought preferences (2026-09-10, affinity upgrade): pair
+    # the newest successful thought trace against the newest failed one
+    # FROM THE SAME TASK FAMILY. Cross-task contrasts are label noise —
+    # a skipped pair beats a misleading one. Family = first 3 words of
+    # the lowercased task (verb-led tasks cluster naturally).
     thought_pairs = 0
     try:
-        _thoughts = store.query_memories(event_type="thought_process", limit=60)
-        _ok, _bad = None, None
+        _thoughts = store.query_memories(event_type="thought_process", limit=120)
+        _oks, _bads = {}, []
         for _r in _thoughts:
             _d = _r.get("data", {})
             if isinstance(_d, str):
@@ -373,20 +382,31 @@ def run_dpo_cycle() -> dict:
                     continue
             if not isinstance(_d, dict) or "success" not in _d:
                 continue
-            if _d.get("success") and _ok is None:
-                _ok = (_r.get("id"), str(_d.get("task", "?"))[:60])
-            elif not _d.get("success") and _bad is None:
-                _bad = (_r.get("id"), str(_d.get("task", "?"))[:60])
-            if _ok and _bad:
+            _fam = _thought_family(_d.get("task"))
+            if _d.get("success"):
+                _oks.setdefault(_fam, (_r.get("id"),
+                                       str(_d.get("task", "?"))[:60]))
+            else:
+                _bads.append((_fam, _r.get("id"),
+                              str(_d.get("task", "?"))[:60]))
+        _paired = None
+        for _fam, _bid, _btask in _bads:
+            if _fam in _oks:
+                _paired = (_oks[_fam], (_bid, _btask), _fam)
                 break
-        if _ok and _bad:
+        if _paired:
+            (_oid, _otask), (_bid, _btask), _fam = _paired
             runner.record_preference(
-                "thought_preferences", chosen="thought#%s" % _ok[0],
-                rejected="thought#%s" % _bad[0],
+                "thought_preferences", chosen="thought#%s" % _oid,
+                rejected="thought#%s" % _bid,
                 context={"task_type": "chain_of_thought",
-                         "chosen_task": _ok[1], "rejected_task": _bad[1]},
+                         "family": _fam,
+                         "chosen_task": _otask, "rejected_task": _btask},
                 chosen_reward=1.0, rejected_reward=0.0)
             thought_pairs = 1
+        else:
+            print("thought-preference pairing skipped: no same-family "
+                  "success/fail contrast", flush=True)
     except Exception as e:
         print("thought-preference pairing skipped: %s" % str(e)[:120], flush=True)
 

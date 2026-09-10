@@ -261,6 +261,18 @@ class TERENCE:
 
         # Determine root from env var or auto-detect
         root = os.environ.get("AZAZAEL_ROOT", os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        # Sweep stale Terence lock files (crash litter; live locks are
+        # held open by running processes, and we only reap older than 1h).
+        try:
+            import time as _t
+            for _lf in Path(root).rglob("*.terence.lock"):
+                try:
+                    if _t.time() - _lf.stat().st_mtime > 3600:
+                        _lf.unlink()
+                except OSError:
+                    pass
+        except Exception:
+            pass
         target_folders = [
             os.path.join(root, "ORCHESTRATION"),
             os.path.join(root, "src"),
@@ -383,6 +395,47 @@ class TERENCE:
 
         return count
 
+    def pattern_scores(self, min_samples: int = 5) -> dict:
+        """Per-pattern success rates from Terence's own thought rows.
+
+        This is Terence's evolution: patterns that verify poorly are
+        selected against. Returns {error_type: {n, ok, rate}}. Fails
+        open (empty dict) when the store is unreachable.
+        """
+        try:
+            import sys as _sys
+            _src = os.path.join(os.path.dirname(
+                os.path.abspath(__file__)), "..", "..")
+            if _src not in _sys.path:
+                _sys.path.insert(0, _src)
+            from CORE.local_memory import get_memory_store
+            rows = get_memory_store().query_memories(
+                event_type="thought_process", limit=1000)
+        except Exception:
+            return {}
+        import json as _json
+        import re as _re
+        stats: dict = {}
+        for r in rows:
+            d = r.get("data", {})
+            if isinstance(d, str):
+                try:
+                    d = _json.loads(d)
+                except Exception:
+                    continue
+            if not isinstance(d, dict):
+                continue
+            if r.get("source") != "Terence" and "auto-fix" not in str(d.get("task", "")):
+                continue
+            m = _re.match(r"auto-fix (.+) at .+:\d+", str(d.get("task", "")))
+            if not m:
+                continue
+            s = stats.setdefault(m.group(1), {"n": 0, "ok": 0})
+            s["n"] += 1
+            s["ok"] += 1 if d.get("success") else 0
+        return {k: {"n": v["n"], "ok": v["ok"],
+                    "rate": round(v["ok"] / v["n"], 3)} for k, v in stats.items()}
+
     def fix_all(self, apply: bool = False) -> int:
         """Apply all fixes (or just count if apply=False).
 
@@ -400,8 +453,22 @@ class TERENCE:
         applied = 0
         skipped = 0
 
+        # Evolution (2026-09-10): select against patterns with a proven
+        # bad record (<50% verify over >=5 samples). Logged loudly, never
+        # silent — a skipped pattern is a hypothesis, not a verdict.
+        _scores = self.pattern_scores() if apply else {}
+        _dead = {k for k, v in _scores.items()
+                 if v["n"] >= 5 and v["rate"] < 0.5}
+        if _dead:
+            print("  evolved skip (poor verify history): %s"
+                  % sorted(_dead))
+
         for fix in self.fixes:
             if apply:
+                if fix.error_type in _dead:
+                    skipped += 1
+                    print(f"[EVOLVED-SKIP] {fix.file}:{fix.line} - {fix.error_type}")
+                    continue
                 ok, reason = self._apply_verified(fix)
                 if ok:
                     applied += 1
