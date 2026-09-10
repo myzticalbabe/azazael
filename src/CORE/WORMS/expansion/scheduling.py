@@ -261,14 +261,18 @@ class ScheduledTrainingWorm:
             )
             n_records = len(records)
 
-            # Fallback to mock data if no records
+            # Fallback to mock data if no records (2026-09-10 honesty
+            # fix): fakes used to be counted as real records and the run
+            # reported success on invented data. Now flagged synthetic
+            # end-to-end and real count kept at zero.
+            _synthetic = False
             if n_records == 0:
                 records = [
-                    {"source": "SystemZ", "severity": "info", "data": {"duration_ms": 150}},
-                    {"source": "ProcessZ", "severity": "info", "data": {"duration_ms": 200}},
-                    {"source": "VulnScanner", "severity": "error", "data": {"duration_ms": 5000}},
+                    {"source": "SystemZ", "severity": "info", "data": {"duration_ms": 150, "synthetic": True}},
+                    {"source": "ProcessZ", "severity": "info", "data": {"duration_ms": 200, "synthetic": True}},
+                    {"source": "VulnScanner", "severity": "error", "data": {"duration_ms": 5000, "synthetic": True}},
                 ]
-                n_records = len(records)
+                _synthetic = True
 
             # Stage 2: FeatureEngineer — extract features
             engineer = self._get_engineer()
@@ -277,9 +281,19 @@ class ScheduledTrainingWorm:
             else:
                 features = {"count": 0, "feature_dim": 0}
 
-            # Stage 3: RLTrainLoop — train
+            # Stage 3: RLTrainLoop — train. Resume persisted Q-knowledge
+            # first (2026-09-10 fix): every run started tabula-rasa while
+            # q_table_persisted rows piled up write-only. Load failure
+            # falls back to fresh (logged, never fatal).
             rl = self._get_rl()
             if rl:
+                try:
+                    _resumed = bool(rl.load_q_table_from_store())
+                except Exception as e:
+                    _resumed = False
+                    print(f"[train] {run_id} Q-resume failed, fresh start: {e}", flush=True)
+                if _resumed:
+                    print(f"[train] {run_id} resumed persisted Q-table", flush=True)
                 training_result = rl.train_from_memory(
                     source=self.config.source_filter,
                     n_episodes=self.config.n_episodes,
@@ -332,6 +346,7 @@ class ScheduledTrainingWorm:
                         "algo": "RL",
                         "run_id": run_id,
                         "records": n_records,
+                        "synthetic": _synthetic,
                         "episodes": self.config.n_episodes,
                         "avg_reward": avg_reward,
                         "q_table_size": q_table_size,

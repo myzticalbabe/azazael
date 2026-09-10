@@ -373,8 +373,9 @@ class GRPOTrainer:
                     )
                     conn.commit()
                     conn.close()
-            except Exception:
-                pass
+            except Exception as e:  # noqa: BLE001 — was silent pass: tombstone
+                # failure meant unbounded policy_snapshot growth, invisible.
+                print("GRPO tombstone cleanup failed: %s" % str(e)[:160], flush=True)
             return True
         except Exception:
             return False

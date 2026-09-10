@@ -958,9 +958,46 @@ def main():
                 'wins': streak,
                 'rollback': 'auto-canary armed; manual: restore %s' % PREV_JSON,
             }, tags=['evolution', 'promotion'])
+        # Auto-thought (2026-09-10): the verdict becomes chain-of-thought
+        # training data without human transcription. Concise reasoning +
+        # outcome; DPO pairs it against other verdicts automatically.
+        try:
+            _margin = round((best_total - baseline_fit) if best else 0.0, 4)
+            if promoted:
+                _v, _why = 'PROMOTED', 'cleared streak+holdout, canary armed'
+            elif holdout and not holdout.get('passed'):
+                _v, _why = 'BLOCKED by holdout', 'frozen wins did not survive fresh pools'
+            elif not beats:
+                _v, _why = 'HELD', 'margin below gate'
+            else:
+                _v, _why = 'STREAK %d/3' % streak, 'accumulating within pool era'
+            dm.record('thought_process', {
+                'task': 'evolution promotion verdict',
+                'reasoning': ('%s: best %s vs baseline %s (margin %s) on pool era %s. %s.' % (
+                    _v, best_total, baseline_fit, _margin, pool_id, _why)),
+                'actions': ['evaluate', 'holdout' if holdout else 'streak', 'canary' if promoted else 'hold'],
+                'success': True,
+                'session_id': 'evolution-%s' % seed,
+            }, tags=['thought', 'chain-of-thought', 'evolution'], source='EvolutionCycle')
+        except Exception as e:
+            log('auto-thought record failed: %s' % e)
     except Exception as e:
         log('artifact record failed: %s' % e)
 
 
 if __name__ == '__main__':
-    main()
+    # Scheduler-visible failure (2026-09-10): tracebacks used to go to
+    # stdout, which the scheduler discards — the task read 0x0 while the
+    # loop was dead (the NameError stall was caught only by log absence).
+    # Fatals now land in the cycle log AND the exit code.
+    try:
+        main()
+    except SystemExit:
+        raise
+    except BaseException:
+        import traceback
+        try:
+            log('FATAL\n%s' % traceback.format_exc()[-3000:])
+        except Exception:
+            pass
+        sys.exit(1)
