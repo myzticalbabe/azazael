@@ -18,6 +18,22 @@ sys.path.insert(0, 'C:/Users/clint/azazael/src')
 
 from CORE.local_memory import get_memory_store
 
+# Scheduler-visible failure (2026-09-10): this script is flat (no main),
+# so an unhandled traceback went to stdout, which the scheduler
+# discards. The hook lands fatals in metacog_cycle.log instead.
+def _fatal_hook(_t, _v, _tb):
+    try:
+        import traceback as _tbmod
+        import time as _timemod
+        with open(r'C:\Users\clint\azazael\logs\metacog_cycle.log',
+                  'a', encoding='utf-8') as _f:
+            _f.write('%s FATAL\n%s\n' % (
+                _timemod.strftime('%Y-%m-%dT%H:%M:%S'),
+                ''.join(_tbmod.format_exception(_t, _v, _tb))[-2000:]))
+    except Exception:
+        pass
+sys.excepthook = _fatal_hook
+
 # Single-instance guard (2026-09-10): overlapping metacog runs would
 # double-observe and double-adapt. Non-blocking msvcrt lock held open
 # for process life; OS releases on death, so no stale-lock cleanup.

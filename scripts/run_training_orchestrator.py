@@ -695,7 +695,20 @@ def main():
     LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(LOG_PATH, "a", encoding="utf-8") as lf:
         with contextlib.redirect_stdout(_Tee(sys.stdout, lf)):
-            return _run_impl()
+            # Scheduler-visible failure (2026-09-10): an unhandled
+            # traceback inside a track used to vanish (scheduler captures
+            # no output and the log only got prints). Fatals now land in
+            # the log with a FATAL banner and a nonzero exit.
+            try:
+                return _run_impl()
+            except SystemExit as e:
+                print("STATUS: EXIT %s" % e.code, flush=True)
+                raise
+            except BaseException:
+                import traceback
+                print("FATAL\n%s" % traceback.format_exc()[-3000:], flush=True)
+                print("STATUS: ORCHESTRATOR FATAL", flush=True)
+                return 4
 
 
 def _run_impl():

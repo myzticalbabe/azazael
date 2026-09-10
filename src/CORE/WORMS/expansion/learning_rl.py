@@ -240,12 +240,23 @@ class RLTrainLoop:
             from CORE.local_memory import get_memory_store
             store = get_memory_store()
 
+            # Exact indexed lookup (2026-09-10 fix): the old FTS query
+            # ('q_table_persisted RLTrainLoop') matched zero rows even
+            # with 20k persisted tables in the store, so every load
+            # silently returned False and all runs started tabula-rasa.
             if model_name:
-                query = f"q_table_persisted {model_name}"
+                events = [r for r in store.query_memories(
+                    event_type="q_table_persisted", source="RLTrainLoop",
+                    limit=50) if (r.get("data", {}) or {}).get("model_name") == model_name
+                    or (isinstance(r.get("data"), str) and model_name in r.get("data", ""))]
             else:
-                query = "q_table_persisted RLTrainLoop"
-
-            events = store.search_memories(query, source="RLTrainLoop", limit=10)
+                events = store.query_memories(
+                    event_type="q_table_persisted", source="RLTrainLoop",
+                    limit=10)
+            if version:
+                events = [r for r in events
+                          if ((r.get("data", {}) or {}).get("model_version") == version
+                              if isinstance(r.get("data"), dict) else True)]
             if not events:
                 return False
 
