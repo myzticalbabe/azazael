@@ -834,13 +834,40 @@ def main():
     promoted = False
     holdout = {}
     if beats and streak >= PROMOTE_WINS and best:
-        # Holdout gate (2026-09-09): the streak was scored on frozen pools
-        # the GA searched on. Re-extract fresh pools and require the
-        # candidate to beat the baseline there too — fail closed.
-        holdout = _holdout_gate(best.genes, baseline_genes)
+        # Holdout cooldown (2026-09-10): a blocked streak re-tests
+        # holdout every cycle within one pool era (~25s apart at
+        # rapid-fire cadence) with no new evidence. Re-test only when
+        # the frozen margin improved since the last block; era change
+        # clears the cooldown automatically via pool_id mismatch.
+        _cd_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'state', 'holdout_cooldown.json')
+        _cd_margin = None
+        try:
+            if os.path.exists(_cd_path):
+                _cd = json.load(open(_cd_path, encoding='utf-8'))
+                if _cd.get('pool_id') == pool_id:
+                    _cd_margin = float(_cd.get('margin', -1e9))
+        except Exception:
+            _cd_margin = None
+        _margin_now = round(best_total - baseline_fit, 4)
+        if _cd_margin is not None and _margin_now <= _cd_margin + 0.05:
+            log('holdout cooldown: margin %s not improved since block (%s), '
+                'waiting for era change or stronger genome' % (
+                    _margin_now, _cd_margin))
+            holdout = {'passed': False, 'cooldown': True,
+                       'margin': _margin_now, 'prior_block': _cd_margin}
+        else:
+            holdout = _holdout_gate(best.genes, baseline_genes)
         log('holdout: %s' % holdout)
-        if not holdout.get('passed'):
+        if not holdout.get('passed') and not holdout.get('cooldown'):
             log('promotion BLOCKED by holdout gate')
+            try:
+                with open(_cd_path, 'w', encoding='utf-8') as f:
+                    json.dump({'pool_id': pool_id, 'margin': _margin_now,
+                               'at': time.strftime('%Y-%m-%dT%H:%M:%S')}, f)
+            except Exception as e:
+                log('cooldown write failed: %s' % str(e)[:100])
     if beats and streak >= PROMOTE_WINS and best and holdout.get('passed'):
         try:
             if os.path.exists(PROMOTE_JSON):
