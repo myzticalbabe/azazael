@@ -21,6 +21,7 @@ Run on Windows (gateway/llama must be up for gateway: backends):
 import argparse
 import importlib.util
 import json
+import os
 import re
 import sys
 import time
@@ -98,7 +99,23 @@ def provider_infer(provider_name: str, model: str | None, prompt: str,
 
 
 def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
-    sys.path.insert(0, "/root/workspace/projects/gossamer-oxford-parser")
+    # (2026-09-10 fix: the WSL path was hardcoded, so --backend gosp
+    # always died on Windows with a bare ImportError. GOSP_PARSER_PATH
+    # env overrides; error names every location tried.)
+    candidates = [os.environ.get("GOSP_PARSER_PATH") or "",
+                  "/root/workspace/projects/gossamer-oxford-parser"]
+    tried = []
+    for _base in candidates:
+        if not _base:
+            continue
+        tried.append(_base)
+        if os.path.isdir(_base):
+            sys.path.insert(0, _base)
+            break
+    else:
+        raise RuntimeError(
+            "GOSP parser not found (tried: %s). Set GOSP_PARSER_PATH." %
+            (", ".join(tried) or "(nothing configured)"))
     from semantical_main import GossamerOxfordParser
     res = GossamerOxfordParser(max_workers=4).parse(prompt, depth="full", learn=False)
     lines = [f"INPUT: {prompt}"]
@@ -108,6 +125,13 @@ def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
 
 
 def main() -> int:
+    # (2026-09-10: Windows console is cp1252 — model output with unicode
+    # dashes crashed printing mid-battery, losing the evidence write.
+    # Replace unencodables instead of dying.)
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
     ap = argparse.ArgumentParser(description="RANI battery vs selectable backend")
     ap.add_argument("--backend", default="gateway:omnicoder",
                     help="gateway:<model> | gosp | <provider>[:<model>]")
@@ -130,11 +154,19 @@ def main() -> int:
     # Per-model token budgets (2026-09-09): thinking models burn the whole
     # budget reasoning and answer nothing; direct answerers waste wall time
     # on oversized budgets. Substring match, first hit wins.
-    MODEL_BUDGETS = [("omni", 400), ("heretic", 400), ("gemma", 300),
-                     ("jan", 150), ("qwen", 200), ("llama", 200)]
+    # (2026-09-09 fix: adversarial rounds inflate thinking — OmniCoder
+    # burned 400/400 tokens on reasoning_content and answered empty, so
+    # its battery read as 0.00 "nonresponsive" even though the model is
+    # fine. Thinking-heavy models get headroom: content must survive the
+    # adversarial rounds, not just R0. Bumped again to 4096 so deep
+    # reasoning + full answer both fit comfortably inside one budget.)
+    # (2026-09-10: budgets increased across the board — truncation was
+    # still cutting deep-reasoning answers short on fresh evidence.)
+    MODEL_BUDGETS = [("omni", 8192), ("heretic", 8192), ("gemma", 600),
+                     ("jan", 300), ("qwen", 400), ("llama", 400)]
     budget = args.max_tokens
     if budget is None:
-        budget = 250
+        budget = 500
         for _sub, _b in MODEL_BUDGETS:
             if _sub in spec_lower:
                 budget = _b
