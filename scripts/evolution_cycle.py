@@ -812,6 +812,13 @@ def main():
                         _hd = json.loads(_hd)
                     except Exception:
                         break
+                # Era-pinned streak (2026-09-10): a streak must accumulate
+                # inside ONE pool era. Rows predating pool_id tagging (or
+                # from an older snapshot) break the streak — cross-era
+                # margins are comparable-ish but not promotion-grade, and
+                # without this a blocked streak re-tests holdout forever.
+                if _hd.get('pool_id') != pool_id:
+                    break
                 if (str(_hd.get('fitness', '')).startswith('v3')
                         and _hd.get('beats_baseline')):
                     streak += 1
