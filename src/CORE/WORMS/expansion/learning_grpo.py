@@ -141,17 +141,30 @@ class GRPOTrainer:
         if evaluator:
             return [evaluator(w, task_context) for w in group]
 
-        # Default: look up historical performance
+        # Default: score from REAL execution history. The old default queried
+        # event_type="worm_execution" — a legacy event NO producer records, so
+        # every worm scored a flat 0.0 and the GRPO policy update was a no-op
+        # (fix, 2026-09-08). Real signal streams, in preference order:
+        #   1. cluster_execution_completed / nature_cluster_executed
+        #      (modern cluster events, recorded by NATURE_CLUSTERS/CLUSTERWORMS)
+        #   2. any recent events from that worm source (fallback), minus
+        #      self-recorded training bookkeeping
+        # Reward = success_rate - duration penalty (success = severity != error).
         rewards = []
         try:
             from CORE.local_memory import LocalMemoryStore
             store = LocalMemoryStore()
+            event_prefs = ("cluster_execution_completed", "nature_cluster_executed")
             for worm_name in group:
-                records = store.query_memories(
-                    source=worm_name, event_type="worm_execution", limit=20
-                )
+                records = []
+                for et in event_prefs:
+                    records = store.query_memories(
+                        source=worm_name, event_type=et, limit=20)
+                    if records:
+                        break
+                if not records:
+                    records = store.query_memories(source=worm_name, limit=20)
                 if records:
-                    # Average success and penalize duration
                     success_count = sum(1 for r in records if r.get("severity") != "error")
                     success_rate = success_count / len(records)
                     avg_duration = 0.0
@@ -162,7 +175,7 @@ class GRPOTrainer:
                     avg_duration /= max(len(records), 1)
                     reward = success_rate - avg_duration / 10000.0
                 else:
-                    reward = 0.0  # Unknown worm gets neutral reward
+                    reward = 0.0  # No execution history yet: neutral reward
                 rewards.append(reward)
         except Exception:
             rewards = [0.0] * len(group)
@@ -457,6 +470,55 @@ class ABTestRunner:
         self._experiments: dict[str, dict] = {}
         self._preferences: dict[str, list[dict]] = {}  # experiment -> preference pairs
         self._lock = threading.Lock()
+
+    def load_pairs(self, experiment: str, limit: int = 1000) -> int:
+        """Hydrate in-memory pairs from persisted preference_recorded rows.
+
+        (2026-09-10 fix: each DPO run is a fresh process, so the learner
+        only ever saw that run's pairs — loss over 1 pair, history
+        accumulating unread in the store. Loading first makes the loss
+        cumulative. Idempotent per instance: skips already-loaded
+        (chosen, rejected, timestamp) triples.)
+        """
+        try:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+            rows = store.query_memories(event_type="preference_recorded",
+                                        limit=limit)
+        except Exception:
+            return 0
+        import json as _json
+        loaded = 0
+        with self._lock:
+            cur = self._preferences.setdefault(experiment, [])
+            seen = {(p.get("chosen"), p.get("rejected"), p.get("timestamp"))
+                    for p in cur}
+            for r in reversed(rows):  # oldest first keeps chronological order
+                d = r.get("data", {})
+                if isinstance(d, str):
+                    try:
+                        d = _json.loads(d)
+                    except Exception:
+                        continue
+                if not isinstance(d, dict) or d.get("experiment") != experiment:
+                    continue
+                key = (d.get("chosen"), d.get("rejected"),
+                       r.get("timestamp", ""))
+                if key in seen:
+                    continue
+                seen.add(key)
+                cur.append({
+                    "chosen": d.get("chosen"),
+                    "rejected": d.get("rejected"),
+                    "context": d.get("context") or {},
+                    "chosen_reward": float(d.get("chosen_reward", 0.0)),
+                    "rejected_reward": float(d.get("rejected_reward", 0.0)),
+                    "reward_margin": round(float(d.get("chosen_reward", 0.0))
+                                           - float(d.get("rejected_reward", 0.0)), 4),
+                    "timestamp": r.get("timestamp", ""),
+                })
+                loaded += 1
+        return loaded
 
     def create_experiment(self, name: str, variants: list[str]):
         with self._lock:

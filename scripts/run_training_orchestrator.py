@@ -355,6 +355,46 @@ def run_dpo_cycle() -> dict:
                 context={"task_type": "scheduled_training"},
                 chosen_reward=cr, rejected_reward=rr)
 
+    # Chain-of-thought preferences (2026-09-10): pair the newest
+    # successful thought trace against the newest failed one. The DPO
+    # loss then favors reasoning patterns that led to success — the
+    # local loop's first actual CoT signal. Additive: never disturbs
+    # the SB3 experiment above.
+    thought_pairs = 0
+    try:
+        _thoughts = store.query_memories(event_type="thought_process", limit=60)
+        _ok, _bad = None, None
+        for _r in _thoughts:
+            _d = _r.get("data", {})
+            if isinstance(_d, str):
+                try:
+                    _d = _json.loads(_d)
+                except Exception:
+                    continue
+            if not isinstance(_d, dict) or "success" not in _d:
+                continue
+            if _d.get("success") and _ok is None:
+                _ok = (_r.get("id"), str(_d.get("task", "?"))[:60])
+            elif not _d.get("success") and _bad is None:
+                _bad = (_r.get("id"), str(_d.get("task", "?"))[:60])
+            if _ok and _bad:
+                break
+        if _ok and _bad:
+            runner.record_preference(
+                "thought_preferences", chosen="thought#%s" % _ok[0],
+                rejected="thought#%s" % _bad[0],
+                context={"task_type": "chain_of_thought",
+                         "chosen_task": _ok[1], "rejected_task": _bad[1]},
+                chosen_reward=1.0, rejected_reward=0.0)
+            thought_pairs = 1
+    except Exception as e:
+        print("thought-preference pairing skipped: %s" % str(e)[:120], flush=True)
+
+    # Hydrate cumulative history (2026-09-10 fix): fresh processes start
+    # with empty in-memory pairs, so without this the loss covers only
+    # the current run's pairs. Load persisted rows first (both exps).
+    runner.load_pairs(exp)
+    runner.load_pairs("thought_preferences")
     result = runner.compute_dpo_loss(exp)
     pairs = runner.get_preference_pairs(exp, limit=1000)
     margins = [float(p.get("reward_margin", 0.0)) for p in pairs]
@@ -373,6 +413,8 @@ def run_dpo_cycle() -> dict:
         "eval_std_reward": round(std_m, 4),
         "dpo_loss": result.get("loss"),
         "n_pairs": result.get("n_pairs", 0),
+        "thought_pairs": len(runner.get_preference_pairs(
+            "thought_preferences", limit=1000)),
         "duration_ms": duration_ms,
     }
     store.record_event(
