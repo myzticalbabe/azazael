@@ -718,6 +718,26 @@ def collect(con):
     except Exception:
         data["triage"] = None
 
+    # chain-of-thought corpus (thought_process rows: the local loop's
+    # reasoning supervision — count, success contrast, freshness).
+    data["thoughts"] = None
+    try:
+        _trows = con.execute(
+            "SELECT timestamp FROM memories WHERE event_type='thought_process' "
+            "ORDER BY id DESC LIMIT 1000").fetchall()
+        if _trows:
+            _srow = con.execute(
+                "SELECT COUNT(*) FROM memories WHERE event_type='thought_process' "
+                "AND json_extract(data, '$.success') = 1").fetchone()
+            _sok = _srow[0] if _srow else 0
+            data["thoughts"] = {
+                "n": len(_trows),
+                "ok": _sok,
+                "age": age_min(_trows[0][0]),
+            }
+    except Exception:
+        data["thoughts"] = None
+
     # llm benchmark scoreboard (latest row per model)
     data["llm"] = []
     try:
@@ -1300,6 +1320,16 @@ def render(data, now):
         if isinstance(_pa, (int, float)):
             _ptxt += f"  {_pa:.0f}m ago"
         L(_fit(_ptxt, width))
+
+    # --- chain-of-thought corpus liveness ---
+    _th = data.get("thoughts")
+    if _th:
+        _ta = _th.get("age")
+        _txt = f"THOUGHT {_th.get('n', 0)} traces {_th.get('ok', 0)} ok"
+        _txt += f"  {_ta:.0f}m ago" if isinstance(_ta, (int, float)) else "  --"
+        if isinstance(_ta, (int, float)) and _ta > 1440:
+            _txt += f" {C_RED}STALE{C_RST}"
+        L(_fit(_txt, width))
 
     # --- meta-director: who trains next + top tracks by win rate ---
     try:
