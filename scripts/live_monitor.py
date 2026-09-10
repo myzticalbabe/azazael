@@ -263,6 +263,11 @@ TRAIN_EVENT_TYPES = ("sb3_training_orchestrated",
 # training_run_complete rows from before the RL track was wired (2026-09-09)
 # used a degenerate reward scale (25.0/50.0) — excluded from the wallboard.
 RL_LIVE_SINCE = "2026-09-09"
+# promotion-spam era (followup #11): evolution_result rows before the
+# 2026-09-09 holdout gate promoted every ~5 min with no fresh-pool check,
+# so pre-2026-09-09 promotion streaks/wins read hotter than the same
+# margins would today. Compare margins, not win counts, across that line.
+PROMOTION_GATE_SINCE = "2026-09-09"
 
 
 def sb3_training(con, n=3):
@@ -502,6 +507,28 @@ def collect(con):
                 "tok": _best.get("max_tokens"),
                 "date": _best_ts[:16],
             }
+        # HYDRAMETA_UV trials (same output-base resolution as the tool
+        # itself: env -> Desktop/METAWORMS -> project output/METAWORMS).
+        try:
+            _ub = (os.environ.get("AZAZAEL_OUTPUT_PATH")
+                   or (os.path.join(_home, "Desktop", "METAWORMS")
+                       if os.path.exists(os.path.join(_home, "Desktop", "METAWORMS"))
+                       else os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                          "..", "output", "METAWORMS")))
+            _ut = os.path.join(_ub, "hydrometa_uv", "trials.json")
+            if os.path.exists(_ut):
+                with open(_ut, encoding="utf-8") as f:
+                    _td = json.load(f)
+                if isinstance(_td, list) and _td:
+                    _be = max((t.get("efficiency_score", 0) or 0 for t in _td
+                               if isinstance(t, dict)), default=0.0)
+                    data["gosp"]["uv"] = {
+                        "n": len(_td),
+                        "best": round(float(_be), 1),
+                        "age": round((time.time() - os.path.getmtime(_ut)) / 3600.0, 1),
+                    }
+        except Exception:
+            pass
     except Exception:
         pass
 
@@ -672,6 +699,25 @@ def collect(con):
     except Exception:
         pass
 
+    # nightly error triage (written by run_maintenance; aged so a stale
+    # file can't pose as fresh — same dead-copy guard as META).
+    data["triage"] = None
+    try:
+        _trp = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "..", "state", "error_triage.json")
+        if os.path.exists(_trp):
+            with open(_trp, encoding="utf-8") as f:
+                _tr = json.load(f)
+            _tcl = _tr.get("clusters") or []
+            data["triage"] = {
+                "clusters": _tr.get("cluster_count", len(_tcl)),
+                "errors": _tr.get("total_errors_exact", 0),
+                "top": _tcl[0] if _tcl else None,
+                "age": round((time.time() - os.path.getmtime(_trp)) / 3600.0, 1),
+            }
+    except Exception:
+        data["triage"] = None
+
     # llm benchmark scoreboard (latest row per model)
     data["llm"] = []
     try:
@@ -711,6 +757,32 @@ def collect(con):
     except Exception:
         pass
 
+    # latest DB-monitor verdict (the DatabaseMonitorWorm snapshot the
+    # alert pool and metacog evidence both key off). Surface the flag so
+    # the wallboard shows whether the DB is within its (config-aligned)
+    # size/error gates — and age it like META so a dead monitor can't
+    # pose as a healthy one.
+    data["dbmon"] = None
+    try:
+        _drows = con.execute(
+            "SELECT timestamp, data FROM memories WHERE event_type='db_health_snapshot' "
+            "ORDER BY id DESC LIMIT 1").fetchall()
+        if _drows:
+            _dts, _ddd = _drows[0]
+            _ddd = parse_data(_ddd)
+            data["dbmon"] = {
+                "age": age_min(_dts),
+                "healthy": bool(_ddd.get("healthy")),
+                "size": _ddd.get("db_size_mb"),
+                "err7d": _ddd.get("error_count_7d"),
+                "warn7d": _ddd.get("warning_count_7d"),
+                "grow24h": _ddd.get("memory_growth_24h"),
+                "vac": bool(_ddd.get("auto_vacuum_running")),
+                "rows": _ddd.get("total_memories"),
+            }
+    except Exception:
+        data["dbmon"] = None
+
     # latest tuner outputs (best params each specialist found)
     data["tuners"] = {}
     try:
@@ -745,6 +817,7 @@ def collect(con):
                          ("training_orchestrator.log", "train"),
                          ("dream_cycle.log", "dream"),
                          ("metacog_cycle.log", "meta"),
+                         ("maintenance.log", "maint"),
                          ("db_monitor.log", "dbmon")):
             _fp = os.path.join(_logdir, _fn)
             try:
@@ -1092,6 +1165,9 @@ def render(data, now):
             _gr = _g.get("rani") or {}
             if _gr.get("mode"):
                 _gtxt += f"  rani {_gr['mode'].split(' ')[0]}"
+            _gu = _g.get("uv") or {}
+            if _gu.get("n"):
+                _gtxt += f"  uv best={_gu['best']}/{_gu['n']}T {_gu.get('age', '?')}h"
         else:
             _gtxt += " no learner evidence yet (run gosp_learner_train.py in WSL)"
         L(_rainbow(_gtxt, width))
@@ -1312,13 +1388,20 @@ def render(data, now):
         L(_fit("WORMS  " + "  ".join(_cells) + _wfit, width))
 
     # --- cycle processes: scheduler tasks proven alive by their own logs ---
+    # Per-task freshness thresholds (followup: maintenance.log is nightly —
+    # the 15-min rule would paint it permanently red, so maint gets 25h).
+    _CYCLE_OK_MIN = {"maint": 1500.0}
     _cy = data.get("cycles") or []
     if _cy:
         _bits = []
         for _c in _cy:
             _a = _c.get("age")
-            _txt = f"{_c.get('label')} {_a:.0f}m" if isinstance(_a, (int, float)) else f"{_c.get('label')} --"
-            _bits.append((_txt, _a is not None and _a < 15))
+            _lim = _CYCLE_OK_MIN.get(_c.get("label"), 15.0)
+            if isinstance(_a, (int, float)) and _a >= 120:
+                _txt = f"{_c.get('label')} {_a / 60:.1f}h"
+            else:
+                _txt = f"{_c.get('label')} {_a:.0f}m" if isinstance(_a, (int, float)) else f"{_c.get('label')} --"
+            _bits.append((_txt, _a is not None and _a < _lim))
         L(_fit("CYCLES " + "   ".join(f"{C_GRN}{t}{C_RST}" if _ok else f"{C_RED}{t}{C_RST}" for t, _ok in _bits), width))
 
     # --- store size + write rate + alert load + last trim ---
@@ -1329,7 +1412,55 @@ def render(data, now):
         _atxt = f"  alerts {_al.get('per_hr', 0)}/hr ({_al.get('crit', 0)} crit)" if _al.get("per_hr") else ""
         _cp = data.get("caps") or {}
         _ctxt = f"  trim -{_cp['last_trim']:,}" if isinstance(_cp.get("last_trim"), int) else ""
-        L(_fit(f"STORE  {_mb} {(_st.get('rows') or 0):,} rows  +{(_st.get('per_hr') or 0):,}/hr{_atxt}{_ctxt}", width))
+        _tr = data.get("triage")
+        _trtxt = ""
+        if _tr:
+            _ago = f"{_tr['age']:.0f}h" if isinstance(_tr.get("age"), (int, float)) else "?"
+            _top = _tr.get("top") or {}
+            if _top.get("count"):
+                _trtxt = (f"  triage {_tr.get('clusters', 0)}c {_top['count']}x "
+                          f"{str(_top.get('source', '?'))[:12]} {_ago}")
+            else:
+                _trtxt = f"  triage {_tr.get('clusters', 0)}c {_ago}"
+            if isinstance(_tr.get("age"), (int, float)) and _tr["age"] > 30:
+                _trtxt += f" {C_RED}STALE{C_RST}"
+        # DB-monitor verdict folded into STORE (0 extra rows): the flag
+        # that gates metacog's evidence and the alert pool, live. Red
+        # UNHEALTHY is exactly what "everything works" must not show.
+        _dm = data.get("dbmon")
+        _dm_txt = ""
+        if _dm:
+            if _dm.get("healthy"):
+                _dm_txt = f"{C_GRN}DB OK{C_RST} err{_dm.get('err7d', '?')}/7d"
+            else:
+                _dm_txt = f"{C_RED}DB UNHEALTHY{C_RST} err{_dm.get('err7d', '?')}/7d"
+            if not _dm.get("vac"):
+                _dm_txt += " vac-off"
+        L(_fit(f"STORE  {_dm_txt}  {_mb} {(_st.get('rows') or 0):,} rows  "
+               f"+{(_st.get('per_hr') or 0):,}/hr{_atxt}{_ctxt}{_trtxt}", width))
+
+    # --- DB detail (height-gated: the snapshot facts behind DB OK) ---
+    _dm = data.get("dbmon")
+    if _dm and height >= 37:
+        _seg = []
+        _a = _dm.get("age")
+        _seg.append(f"snap {_a:.0f}m ago" if isinstance(_a, (int, float)) else "snap ?")
+        if isinstance(_dm.get("size"), (int, float)):
+            _seg.append(f"{_dm['size']:.0f}MB")
+        if isinstance(_dm.get("grow24h"), int):
+            _seg.append(f"+{_dm['grow24h']:,}/24h")
+        if isinstance(_dm.get("warn7d"), int):
+            _seg.append(f"warn {_dm['warn7d']}/7d")
+        _seg.append("vacuum RUNNING" if _dm.get("vac") else "vacuum off")
+        L(_fit("DBMON  " + "  ".join(_seg), width))
+    # error triage top cluster (the largest source of the err7d count)
+    _tr = data.get("triage")
+    if _tr and height >= 37:
+        _top = _tr.get("top") or {}
+        _src = str(_top.get("source", "?"))[:24] if _top.get("count") else "?"
+        _ago = f"{_tr['age']:.0f}h ago" if isinstance(_tr.get("age"), (int, float)) else ""
+        L(_fit(f"ERRS   {_tr.get('errors', 0)} rows/7d in {_tr.get('clusters', 0)} clusters  "
+               + (f"top {_src} x{_top.get('count')} {_ago}" if _top.get("count") else _ago), width))
 
     # --- inference servers ---
     _sv = data.get("servers") or []

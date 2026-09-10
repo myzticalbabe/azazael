@@ -196,6 +196,10 @@ def _logs_dir() -> Path:
     return Path(_get_db_path()).resolve().parent.parent / "azazael" / "logs"
 
 
+def _state_dir() -> Path:
+    return Path(_get_db_path()).resolve().parent.parent / "azazael" / "state"
+
+
 def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,
                 log_dir: (Path | str | None) = None) -> dict:
     """Rotate logs/*.log past max_mb, keeping .1 .. .keep generations.
@@ -279,6 +283,16 @@ def run_maintenance() -> dict:
         # the maintenance log. Summary only — no new store rows.
         from CORE.local_memory import get_memory_store
         tri = get_memory_store().triage_real_errors(days=7)
+        # Persist for the live monitor (atomic; monitor reads + ages it).
+        try:
+            _td = _state_dir()
+            _td.mkdir(parents=True, exist_ok=True)
+            _tmp = _td / "error_triage.json.tmp"
+            with open(_tmp, "w", encoding="utf-8") as f:
+                json.dump(tri, f, ensure_ascii=False, default=str)
+            _tmp.replace(_td / "error_triage.json")
+        except Exception as e:  # noqa: BLE001 — triage summary still reported
+            tri["_persist_error"] = str(e)[:120]
         results["error_triage"] = {
             "errors_exact": tri.get("total_errors_exact", 0),
             "warnings_exact": tri.get("total_warnings_exact", 0),

@@ -11,7 +11,7 @@ import time
 import random
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 from dataclasses import dataclass
 
 # -- Worm Registry Import ---------------------------------------------
@@ -47,8 +47,10 @@ class ScheduleConfig:
     learning_rate: float = 0.29      # Evolved 2026-09-07 (was 0.1)
     discount_factor: float = 0.91    # Evolved 2026-09-07 (was 0.9)
     epsilon: float = 0.11            # Evolved 2026-09-07 (was 0.2)
+    epsilon_decay: float = 0.0       # Evolved gene (2026-09-08): annealing speed
     source_filter: (str | None) = None  # None = all sources
     record_to_memory: bool = True        # Persist results
+    exclude_sources: (list[str] | None) = None  # Skip self-generated bookkeeping sources
 
     def apply_evolved_overrides(self) -> bool:
         """Load champion genes promoted by evolution_cycle.py, if present.
@@ -61,7 +63,11 @@ class ScheduleConfig:
         try:
             import json as _json
             from pathlib import Path as _Path
-            p = (_Path(__file__).resolve().parent.parent.parent.parent
+            # Resolve to <project-root>/config/evolved_rl_params.json — the
+            # same location evolution_cycle.py writes to. This file sits
+            # 5 dirs below the root (src/CORE/WORMS/expansion/), so five
+            # .parent hops, not four (path mismatch bug, 2026-09-08).
+            p = (_Path(__file__).resolve().parent.parent.parent.parent.parent
                  / "config" / "evolved_rl_params.json")
             if not p.exists():
                 return False
@@ -75,6 +81,11 @@ class ScheduleConfig:
             self.learning_rate = g["learning_rate"]
             self.epsilon = g["epsilon"]
             self.discount_factor = g["discount"]
+            # Evolved gene (2026-09-08): exploration-annealing speed.
+            # Absent from older promotion files -> keep built-in default.
+            if "epsilon_decay" in data.get("genes", {}):
+                dec = float(data["genes"]["epsilon_decay"])
+                self.epsilon_decay = max(0.0, min(dec, 0.2))
             return True
         except Exception:
             return False
@@ -246,6 +257,7 @@ class ScheduledTrainingWorm:
             records = pipeline.extract_from_memory(
                 source=self.config.source_filter,
                 limit=self.config.data_limit,
+                exclude_sources=self.config.exclude_sources,
             )
             n_records = len(records)
 
@@ -317,6 +329,7 @@ class ScheduledTrainingWorm:
                     source="ScheduledTrainingWorm",
                     event_type="training_run_complete",
                     data={
+                        "algo": "RL",
                         "run_id": run_id,
                         "records": n_records,
                         "episodes": self.config.n_episodes,
@@ -677,6 +690,7 @@ class OrchestratorConfig:
     max_duration_minutes: float = 30.0           # Max run duration
     record_to_memory: bool = True                # Persist results to DB
     register_model: bool = True                  # Auto-register with ModelVersioner
+    exclude_sources: (list[str] | None) = None   # Skip self-generated bookkeeping sources
 
 
 @dataclass
@@ -692,6 +706,8 @@ class OrchestratorRun:
     data_source: str
     trained: bool
     model_version: (str | None) = None
+    eval_mean_reward: (float | None) = None
+    eval_std_reward: (float | None) = None
     error: (str | None) = None
 
 
@@ -785,6 +801,7 @@ class TrainingOrchestrator:
                 source=self.config.source_filter,
                 limit=5000,
                 max_age_days=self.config.max_age_days,
+                exclude_sources=self.config.exclude_sources,
             )
             records_used = len(records)
 
@@ -813,6 +830,7 @@ class TrainingOrchestrator:
                 total_timesteps=self.config.total_timesteps,
                 register_model=self.config.register_model,
                 max_age_days=self.config.max_age_days,
+                exclude_sources=self.config.exclude_sources,
             )
 
             trained = train_result.get("trained", False)
@@ -843,6 +861,8 @@ class TrainingOrchestrator:
                             "records_used": records_used,
                             "data_source": data_source,
                             "model_version": model_version or "untracked",
+                            "eval_mean_reward": train_result.get("eval_mean_reward"),
+                            "eval_std_reward": train_result.get("eval_std_reward"),
                             "duration_ms": round((time.perf_counter() - start) * 1000, 2),
                         },
                         severity="info",
@@ -865,6 +885,8 @@ class TrainingOrchestrator:
             data_source=data_source,
             trained=trained,
             model_version=model_version,
+            eval_mean_reward=train_result.get("eval_mean_reward"),
+            eval_std_reward=train_result.get("eval_std_reward"),
             error=error,
         )
 

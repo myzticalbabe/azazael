@@ -250,22 +250,28 @@ PROMOTE_JSON = os.path.join(
 PROMOTE_KEYS = ('learning_rate', 'epsilon', 'discount', 'epsilon_decay')
 
 
-# Canary + rollback + holdout (2026-09-09): the 3-win streak proves the
-# candidate beats production on frozen pools, but pools are shared across
-# runs — a candidate can overfit one snapshot. Two extra gates:
-#
-# 1. Holdout gate (pre-promotion): re-extract FRESH pools (data pulled
-#    after the GA ran, never seen during search) and require the
-#    candidate to beat the baseline there too, by the same margin.
-# 2. Canary watch (post-promotion): the run after a promotion, with
-#    fresh pools, re-evaluates production (= the new genes) plus the
-#    built-in defaults as a landscape probe. If the landscape is stable
-#    (defaults reproduce within LANDSCAPE_TOL) but production regressed
-#    more than CANARY_TOL below its promotion fitness, the previous
-#    production file (kept as .prev.json on every promotion) is restored
-#    automatically. If the landscape moved instead, the canary is
-#    inconclusive and just clears. Either way the canary fires once.
+# === Promotion pipeline (canonical doc, followup #10) =====================
+# One genome reaches production only through all four gates, in order:
+#   1. STREAK — beats production by PROMOTE_MARGIN on the frozen pools in
+#      PROMOTE_WINS consecutive cycles (scale-consistent: v3 rows only).
+#   2. HOLDOUT — beats the baseline by the same margin on FRESH pools
+#      extracted after the GA ran (fail closed on extraction failure).
+#      Blocks snapshot overfitting (caught 2 on day one: 23:54, 12:29).
+#   3. PROMOTE — .prev -> .prev2, current -> .prev, candidate written to
+#      evolved_rl_params.json, one-shot canary armed.
+#   4. CANARY — next fresh-pool run re-evaluates production + built-in
+#      defaults (landscape probe). Stable landscape + regress > CANARY_TOL
+#      restores .prev (fallback .prev2). Fires once, then self-deletes.
+#      Caught a real 2.96 regression on day one (12:04).
+# Fitness throughout is the 3-salt min over isolated RNG (deterministic:
+# same genome + same pool_id => bit-identical score). Margins, not raw
+# scores, are the cross-pool-era currency — raw fitness is pool-polluted
+# (±1.5 baseline swings observed across eras).
+# Rollback, manual: restore .prev.json (.prev2.json) over the production
+# file, or delete the production file to fall back to built-in defaults.
+# =========================================================================
 PREV_JSON = PROMOTE_JSON + '.prev.json'
+PREV2_JSON = PROMOTE_JSON + '.prev2.json'
 CANARY_JSON = PROMOTE_JSON + '.canary.json'
 CANARY_TOL = 1.5
 LANDSCAPE_TOL = 1.0
@@ -341,6 +347,70 @@ def _write_canary(promoted_genes, promote_fit, default_fit):
         log('canary write failed: %s' % str(e)[:120])
 
 
+def _select_hof(info_pool, alert_pool):
+    """Margin-ranked hall-of-fame seed, re-evaluated on current pools.
+
+    Returns hof_genes dict or None. Pure selection + scoring; all logging
+    inside. See the promotion-pipeline canonical doc for why margin, not
+    raw champion_reeval.
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        _store = get_memory_store()
+        _rows = _store.query_memories(event_type='evolution_result', limit=40)
+        _cands = []  # (margin, champ_reeval, genes)
+        for _r in _rows:
+            _d = _r.get('data', {}) or {}
+            if isinstance(_d, str):
+                try:
+                    _d = json.loads(_d)
+                except Exception:
+                    continue
+            if not str(_d.get('fitness', '')).startswith('v3'):
+                continue
+            _base = _d.get('baseline')
+            _tot = _d.get('best_total')
+            if not isinstance(_base, (int, float)) or not _base:
+                continue
+            if not isinstance(_tot, (int, float)):
+                continue
+            _genes = _d.get('best_genes')
+            if not isinstance(_genes, dict) or not _genes:
+                continue
+            _cands.append((round(_tot - _base, 4), _d.get('champion_reeval'), _genes))
+        _cands.sort(key=lambda c: -c[0])
+        _reseeded = None
+        _seen_genes, _attempts = set(), 0
+        for _margin, _champ, _genes in _cands:
+            if _attempts >= 3:
+                break
+            try:
+                _gkey = tuple(sorted((k, round(float(v), 6)) for k, v in _genes.items()))
+            except Exception:
+                continue
+            if _gkey in _seen_genes:
+                continue
+            _seen_genes.add(_gkey)
+            _attempts += 1
+            try:
+                _re = round(fitness_genes(_genes, info_pool, alert_pool), 4)
+            except Exception as e:
+                log('hof re-eval failed: %s' % str(e)[:100])
+                continue
+            if _reseeded is None or _re > _reseeded[0]:
+                _reseeded = (_re, _margin, _genes)
+        if _reseeded:
+            log('hall-of-fame seed: margin=+%s re-eval=%s genes=%s' % (
+                _reseeded[1], _reseeded[0],
+                {k: round(v, 4) for k, v in _reseeded[2].items()}))
+            return _reseeded[2]
+        log('hall-of-fame: no margin-ranked candidate re-evaluated')
+        return None
+    except Exception as e:
+        log('hall-of-fame lookup failed: %s' % str(e)[:120])
+        return None
+
+
 def _check_canary(info_pool, alert_pool, pool_reused):
     """One-shot post-promotion watch. Returns a report dict for the artifact.
 
@@ -377,8 +447,16 @@ def _check_canary(info_pool, alert_pool, pool_reused):
                 report['status'] = 'inconclusive-landscape-moved'
                 log('canary inconclusive: landscape moved (default shift %.3f)' % landscape_shift)
             elif regress > CANARY_TOL:
-                if os.path.exists(PREV_JSON):
-                    with open(PREV_JSON, encoding='utf-8') as f:
+                # Depth-2 backup (followup #5): restore .prev, falling back
+                # to .prev2 — a double-bad-promotion can no longer clobber
+                # the last known-good genome.
+                _restored_from = None
+                for _cand_prev in (PREV_JSON, PREV2_JSON):
+                    if os.path.exists(_cand_prev):
+                        _restored_from = _cand_prev
+                        break
+                if _restored_from:
+                    with open(_restored_from, encoding='utf-8') as f:
                         prev = json.load(f)
                     with open(PROMOTE_JSON + '.canary-failed.json', 'w', encoding='utf-8') as f:
                         json.dump({'genes': prod,
@@ -387,11 +465,12 @@ def _check_canary(info_pool, alert_pool, pool_reused):
                     with open(PROMOTE_JSON, 'w', encoding='utf-8') as f:
                         json.dump(prev, f, indent=2)
                     report['status'] = 'ROLLED-BACK'
+                    report['restored_from'] = os.path.basename(_restored_from)
                     log('canary FAILED: production regressed %.3f — restored %s' % (
-                        regress, PREV_JSON))
+                        regress, _restored_from))
                 else:
                     report['status'] = 'regressed-no-prev'
-                    log('canary FAILED: regressed %.3f but no .prev to restore' % regress)
+                    log('canary FAILED: regressed %.3f but no .prev/.prev2 to restore' % regress)
             else:
                 log('canary PASS: production holding (regress %.3f)' % regress)
     except Exception as e:
@@ -418,9 +497,13 @@ def _load_or_freeze_pools():
     genes between runs minutes apart. Reusing one snapshot while fresh
     makes streak comparisons apples-to-apples too.
 
-    Returns (info_pool, alert_pool, reused, age_s). Degenerate (empty)
-    extractions are never persisted and fall back to live per-eval
-    extraction. The cycle lock serializes readers/writers.
+    Returns (info_pool, alert_pool, reused, age_s, pool_id). pool_id is
+    the snapshot's saved_at epoch (followup #7: pool-era tagging — every
+    fitness number is labeled with the data era that produced it, so
+    cross-era comparisons in the log/artifacts are explicit, not
+    inferred). 0 = degenerate/live extraction, no era.
+    Degenerate (empty) extractions are never persisted and fall back to
+    live per-eval extraction. The cycle lock serializes readers/writers.
     """
     from CORE.WORMS.expansion.learning import DataPipelineWorm
     now = time.time()
@@ -433,7 +516,7 @@ def _load_or_freeze_pools():
                 and info_pool and alert_pool and age < POOL_MAX_AGE_S):
             log('reusing pool snapshot (age %ds): info=%d alert=%d' % (
                 age, len(info_pool), len(alert_pool)))
-            return info_pool, alert_pool, True, int(age)
+            return info_pool, alert_pool, True, int(age), int(float(snap.get('saved_at', 0)))
         log('pool snapshot unusable (age %s), re-freezing' % (
             ('%ds' % age) if age >= 0 else 'missing'))
     except Exception as e:
@@ -448,17 +531,17 @@ def _load_or_freeze_pools():
             log('pool extraction degenerate (info=%d alert=%d), '
                 'using live evals without persisting' % (
                     len(info_pool or []), len(alert_pool or [])))
-            return None, None, False, 0
+            return None, None, False, 0, 0
         log('frozen pools: info=%d alert=%d' % (len(info_pool), len(alert_pool)))
         tmp = POOL_SNAPSHOT_PATH + '.tmp'
         with open(tmp, 'w', encoding='utf-8') as f:
             json.dump({'saved_at': now, 'info': info_pool,
                        'alert': alert_pool}, f, ensure_ascii=False, default=str)
         os.replace(tmp, POOL_SNAPSHOT_PATH)
-        return info_pool, alert_pool, False, 0
+        return info_pool, alert_pool, False, 0, int(now)
     except Exception as e:
         log('pool freeze failed, falling back to live evals: %s' % str(e)[:120])
-        return None, None, False, 0
+        return None, None, False, 0, 0
 
 
 # --- Meta-evolution (2026-09-09): evolve the search itself ---------------
@@ -624,41 +707,34 @@ def main():
                           early_stop_tolerance=meta_params['early_stop_tolerance'])
     seed_genes = last_best_genes()
 
-    # Hall of fame: best champion ever recorded, by champion_reeval score.
-    # Keeps the global best in the population even if recent runs regressed,
-    # so a bad run can never erase the best-known genome.
-    hof_genes = None
-    try:
-        from CORE.local_memory import get_memory_store
-        _store = get_memory_store()
-        _rows = _store.query_memories(event_type='evolution_result', limit=40)
-        _best = None   # best v3-scale champion (comparable units)
-        for _r in _rows:
-            _d = _r.get('data', {}) or {}
-            if isinstance(_d, str):
-                import json as _json
-                try:
-                    _d = _json.loads(_d)
-                except Exception:
-                    continue
-            _c = _d.get('champion_reeval')
-            if _c is None:
-                continue
-            # Pair the champion score with the genome that earned it. Pre-fix
-            # artifacts (before 2026-09-08) only have best_genes — fall back.
-            # v3-only (2026-09-08 fix): older-scale champions (e.g. the 40s
-            # band) re-eval far below current genomes and only waste
-            # population slots while diluting new genes via crossover.
-            _genes = _d.get('champion_genes') or _d.get('best_genes')
-            if str(_d.get('fitness', '')).startswith('v3'):
-                if _best is None or _c > _best[0]:
-                    _best = (_c, _genes)
-        _pick = _best
-        if _pick and isinstance(_pick[1], dict) and _pick[1]:
-            hof_genes = _pick[1]
-            log('hall-of-fame seed: champ=%s genes=%s' % (_pick[0], {k: round(v, 4) for k, v in _pick[1].items()}))
-    except Exception as e:
-        log('hall-of-fame lookup failed: %s' % str(e)[:120])
+    # Frozen eval pools (2026-09-08 fix, 2026-09-09 shared-snapshot
+    # hardening): one snapshot per cycle, reused by consecutive cycles
+    # while fresh, so genomes, champion re-eval AND the baseline — this
+    # run and the next — are all scored on identical data. Same
+    # extraction params the live path used (limit = N_EPISODES * 10),
+    # so historical fitness stays comparable.
+    # ORDER (2026-09-10 fix): pools freeze BEFORE the HOF reseed — the
+    # reseed re-evaluates on current pools, and calling it with undefined
+    # pools killed two live cycles with NameError.
+    info_pool, alert_pool, pool_reused, pool_age_s, pool_id = _load_or_freeze_pools()
+
+    def fitness_frozen(genome):
+        return fitness_genes(genome.genes, info_pool, alert_pool)
+
+    # One-shot canary watch for the previous promotion (2026-09-09).
+    # Deferred automatically while pools are shared.
+    canary_report = _check_canary(info_pool, alert_pool, pool_reused)
+    if canary_report:
+        log('canary: %s' % canary_report.get('status'))
+
+    # Hall of fame (2026-09-10 audit fix #1+#4): rank by MARGIN over the
+    # baseline, not raw champion_reeval. Raw scores are pool-era-relative
+    # (a 27.6 crowned in an easy era re-evals 21.2 today — worse than
+    # fresh randoms, wasting seed slots). Margin is pool-invariant, and
+    # the top-3 by margin are re-evaluated on the CURRENT pools so the
+    # seed proves itself in this era before joining the population.
+    # Rows with a falsy baseline are skipped (margin undefined).
+    hof_genes = _select_hof(info_pool, alert_pool)
 
     _seeds = [g for g in (seed_genes, hof_genes) if isinstance(g, dict) and g]
     # Dedupe identical gene dicts
@@ -676,23 +752,6 @@ def main():
         'discount': (0.8, 0.999),
         'epsilon_decay': (0.0, 0.1),  # exploration-annealing speed (2026-09-08)
     }, seed_genomes=_unique_seeds)
-
-    # Frozen eval pools (2026-09-08 fix, 2026-09-09 shared-snapshot
-    # hardening): one snapshot per cycle, reused by consecutive cycles
-    # while fresh, so genomes, champion re-eval AND the baseline — this
-    # run and the next — are all scored on identical data. Same
-    # extraction params the live path used (limit = N_EPISODES * 10),
-    # so historical fitness stays comparable.
-    info_pool, alert_pool, pool_reused, pool_age_s = _load_or_freeze_pools()
-
-    def fitness_frozen(genome):
-        return fitness_genes(genome.genes, info_pool, alert_pool)
-
-    # One-shot canary watch for the previous promotion (2026-09-09).
-    # Deferred automatically while pools are shared.
-    canary_report = _check_canary(info_pool, alert_pool, pool_reused)
-    if canary_report:
-        log('canary: %s' % canary_report.get('status'))
 
     # Parallel eval workers (2026-09-09): fitness is now RNG-isolated per
     # genome (no global-random traffic), so the population evaluates with
@@ -778,6 +837,13 @@ def main():
     if beats and streak >= PROMOTE_WINS and best and holdout.get('passed'):
         try:
             if os.path.exists(PROMOTE_JSON):
+                # Rotate backups depth-2 (followup #5): .prev -> .prev2,
+                # current -> .prev.
+                if os.path.exists(PREV_JSON):
+                    with open(PREV_JSON, encoding='utf-8') as f:
+                        prev_data = f.read()
+                    with open(PREV2_JSON, 'w', encoding='utf-8') as f:
+                        f.write(prev_data)
                 with open(PROMOTE_JSON, encoding='utf-8') as f:
                     prev_data = f.read()
                 with open(PREV_JSON, 'w', encoding='utf-8') as f:
@@ -870,6 +936,7 @@ def main():
             'pool_fingerprint': pool_fingerprint(),
             'pool_snapshot_reused': pool_reused,
             'pool_snapshot_age_s': pool_age_s,
+            'pool_id': pool_id,
             'pareto': pareto,
             'holdout': holdout,
             'canary': canary_report,

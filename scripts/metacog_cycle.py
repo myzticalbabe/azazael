@@ -1,77 +1,156 @@
 """Metacognition cycle: feed -> observe -> analyze per worm -> adapt worst.
 
-Reads recent cluster execution rows, observes outcomes into MetaCognitionWorm,
+Reads recent live outcome signals, observes outcomes into MetaCognitionWorm,
 runs per-worm analysis (which persists confidence models), adapts the worst
 offender, records a cycle summary row. Actuation beyond scoring is
 human-approved (no config writes here).
+
+Evidence sources (all real, live event types with actual producers):
+  - db_health_snapshot (DatabaseMonitorWorm, ~every 15 min)  -> 'database'
+  - cluster_execution_completed (ClusterWORMZ.system)         -> cluster_type
+  - nature_cluster_executed   (NatureClusters)                -> nature
+Feeding the health monitor is what gives the evidence channel a signal on
+cadence even when no cluster batch is running.
 """
+import json
 import sys
 sys.path.insert(0, 'C:/Users/clint/azazael/src')
 
-from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
 from CORE.local_memory import get_memory_store
+
+# Single-instance guard (2026-09-10): overlapping metacog runs would
+# double-observe and double-adapt. Non-blocking msvcrt lock held open
+# for process life; OS releases on death, so no stale-lock cleanup.
+import msvcrt
+import os
+import tempfile
+try:
+    _lock_fh = open(os.path.join(tempfile.gettempdir(), 'metacog_cycle.lock'), 'w')
+    msvcrt.locking(_lock_fh.fileno(), msvcrt.LK_NBLCK, 1)
+except (OSError, IOError):
+    print('SKIP overlap: previous metacog cycle still running', flush=True)
+    sys.exit(0)
+
+from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
 
 mc = MetaCognitionWorm()
 store = get_memory_store()
 
-# Never re-observe a cluster execution already fed in an earlier cycle:
-# state is restored on construction (load_state in __init__), so dedupe
-# against the restored observations' cluster_ids. With a 5-minute cadence
-# this keeps each execution counted exactly once.
+# Never re-observe a signal already fed in an earlier cycle: state is
+# restored on construction (load_state in __init__), so dedupe against the
+# restored observations' context ids. With a 5-minute cadence this keeps
+# each snapshot/execution counted exactly once.
 _known = set()
 for _o in mc._observations:
     _cid = (_o.get('context') or {}).get('cluster_id')
     if _cid:
         _known.add(_cid)
 
-recent = store.query_memories(event_type='clusterwormz_execute_complete',
-                              limit=50) if store else []
+recent = []
+if store:
+    for et in ('db_health_snapshot',
+               'cluster_execution_completed', 'nature_cluster_executed'):
+        try:
+            recent += list(store.query_memories(event_type=et, limit=50) or [])
+        except Exception:
+            pass
+# newest first, but stable within an event type so dedupe is deterministic
+recent.sort(key=lambda r: str(r.get('timestamp', '')), reverse=True)
+
 fed = 0
 seen = {}
 for r in recent:
+    et = r.get('event_type', '')
     data = r.get('data', {}) or {}
     if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except (ValueError, TypeError):
+            continue
+    if not isinstance(data, dict):
         continue
-    cid = data.get('cluster_id', '')
-    if cid and cid in _known:
+
+    if et == 'db_health_snapshot':
+        wt = 'database'
+        healthy = bool(data.get('healthy'))
+        outcome = 'success' if healthy else 'error'
+        err = None if healthy else (
+            f"db unhealthy: {data.get('db_size_mb')} MB, "
+            f"{data.get('error_count_7d')} errors/7d, "
+            f"{data.get('total_memories')} rows")
+        # one snapshot per ~15 min window; truncate to the minute for dedupe
+        cid = 'db_' + str(r.get('timestamp', ''))[:16]
+        action = 'health_check'
+    elif et == 'cluster_execution_completed':
+        wt = str(data.get('cluster_type', 'cluster'))
+        ok = int(data.get('success', 0) or 0)
+        tot = int(data.get('results', 0) or 0) or max(ok, 1)
+        outcome = 'success' if ok >= tot * 0.8 else 'error'
+        err = None if outcome == 'success' else (
+            f"cluster degraded: {ok}/{tot} worms succeeded")
+        cid = 'cl_' + str(r.get('timestamp', ''))[:16]
+        action = 'cluster_execute'
+    elif et == 'nature_cluster_executed':
+        wt = str(data.get('nature', 'nature'))
+        n_fail = int(data.get('failures', 0) or 0)
+        outcome = 'success' if n_fail == 0 else 'error'
+        err = None if outcome == 'success' else (
+            f"nature run: {n_fail} worm failures")
+        cid = 'na_' + str(r.get('timestamp', ''))[:16]
+        action = 'cluster_execute'
+    else:
+        continue
+
+    if cid in _known:
         continue  # already observed in an earlier cycle
-    wt = str(data.get('cluster_type', 'unknown'))
-    ok = not data.get('fail')
-    mc.observe(worm_type=wt,
-               action='cluster_execute',
-               outcome='success' if ok else 'error',
-               context={'cluster_id': cid})
-    if cid:
-        _known.add(cid)
+    mc.observe(worm_type=wt, action=action, outcome=outcome,
+               context={'cluster_id': cid}, error=err)
+    _known.add(cid)
     st = seen.setdefault(wt, {'ok': 0, 'err': 0})
-    st['ok' if ok else 'err'] += 1
+    st['ok' if outcome == 'success' else 'err'] += 1
     fed += 1
 
 adapted = None
 adapted_worm = None
 evidence = None
-if fed:
-    for wt in seen:
+# Re-evaluate on accumulated evidence every cycle (not only when a new
+# snapshot happens to fall inside this exact 5-minute window), so a real
+# health change moves the strategy on the next tick. Only worm types that
+# have actually been observed are considered.
+observed_wts = sorted({o.get('worm_type') for o in mc._observations})
+if observed_wts:
+    for wt in observed_wts:
         mc.analyze_patterns(worm_type=wt)
-    worst = max(seen, key=lambda w: seen[w]['err'] / max(1, seen[w]['err'] + seen[w]['ok']))
+    # worst = highest error ratio among observed worm types
+    worst = None
+    worst_err = -1.0
+    for wt in observed_wts:
+        obs = [o for o in mc._observations if o.get('worm_type') == wt]
+        n_err = sum(1 for o in obs if o['outcome'] == 'error')
+        ratio = n_err / max(1, len(obs))
+        if ratio > worst_err:
+            worst_err = ratio
+            worst = wt
     adapted_worm = worst
     # Real-outcome evidence channel: analyze_patterns builds a confidence
-    # model from observed cluster outcomes; recommend_from_evidence turns it
-    # into a strategy recommendation whose confidence clears the
-    # ADOPT_CONFIDENCE bar only when the evidence is strong.
-    rec = mc.recommend_from_evidence(worst)
-    evidence = rec.get('evidence')
-    if rec.get('recommended'):
-        # Full strategy space so metacog can recommend any strategy the
-        # dreamer/bridge can apply. Target 'global' -- the worm the dream
-        # pipeline actually steers -- so a metacog-driven switch reaches
-        # the dreamer instead of only recording per-cluster scores.
-        adapted = mc.adapt_strategy(
-            'global', 'default',
-            available_strategies=['default', 'conservative', 'defensive',
-                                  'aggressive', 'adaptive', 'batched', 'staged'],
-            recommended=rec['recommended'],
-            confidence=rec['confidence'])
+    # model from observed outcomes; recommend_from_evidence turns it into a
+    # strategy recommendation whose confidence clears the ADOPT_CONFIDENCE
+    # bar only when the evidence is strong.
+    if worst:
+        rec = mc.recommend_from_evidence(worst)
+        evidence = rec.get('evidence')
+        if rec.get('recommended'):
+            # Full strategy space so metacog can recommend any strategy the
+            # dreamer/bridge can apply. Target 'global' -- the worm the
+            # dream pipeline actually steers -- so a metacog-driven switch
+            # reaches the dreamer instead of only recording per-cluster
+            # scores.
+            adapted = mc.adapt_strategy(
+                'global', 'default',
+                available_strategies=['default', 'conservative', 'defensive',
+                                      'aggressive', 'adaptive', 'batched', 'staged'],
+                recommended=rec['recommended'],
+                confidence=rec['confidence'])
 
 # Persist learned state (confidence models, observations, any strategy
 # switch) so the next cycle resumes instead of restarting from empty.
