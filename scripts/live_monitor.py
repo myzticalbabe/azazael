@@ -1442,6 +1442,25 @@ def render(data, now):
         _atxt = f"  alerts {_al.get('per_hr', 0)}/hr ({_al.get('crit', 0)} crit)" if _al.get("per_hr") else ""
         _cp = data.get("caps") or {}
         _ctxt = f"  trim -{_cp['last_trim']:,}" if isinstance(_cp.get("last_trim"), int) else ""
+        # backup age (2026-09-10): the restore story on one segment.
+        # STALE past 30h = nightly backup missed.
+        _btxt = ""
+        try:
+            import sys as _sys2
+            _sp = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "..", "src")
+            if _sp not in _sys2.path:
+                _sys2.path.insert(0, _sp)
+            from CORE.data_retention import newest_backup as _nb
+            _bk = _nb()
+            if _bk.get("exists"):
+                _btxt = f"  bkup {_bk.get('age_h', '?')}h"
+                if isinstance(_bk.get("age_h"), (int, float)) and _bk["age_h"] > 30:
+                    _btxt += f" {C_RED}STALE{C_RST}"
+            else:
+                _btxt = f"  {C_RED}bkup none{C_RST}"
+        except Exception:
+            pass
         _tr = data.get("triage")
         _trtxt = ""
         if _tr:
@@ -1467,7 +1486,7 @@ def render(data, now):
             if not _dm.get("vac"):
                 _dm_txt += " vac-off"
         L(_fit(f"STORE  {_dm_txt}  {_mb} {(_st.get('rows') or 0):,} rows  "
-               f"+{(_st.get('per_hr') or 0):,}/hr{_atxt}{_ctxt}{_trtxt}", width))
+               f"+{(_st.get('per_hr') or 0):,}/hr{_atxt}{_ctxt}{_trtxt}{_btxt}", width))
 
     # --- DB detail (height-gated: the snapshot facts behind DB OK) ---
     _dm = data.get("dbmon")
