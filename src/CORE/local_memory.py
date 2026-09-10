@@ -1772,8 +1772,21 @@ class LocalMemoryStore:
     def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
         """Compute cosine similarity between two vectors.
 
-        Returns 0.0 for empty or mismatched-length vectors.
+        Dimension-tolerant: if lengths differ (multi-model store — nomic 768,
+        bge-m3 1024, etc.), both vectors are projected to the store's
+        self-tuned optimal dimension before comparison. Returns 0.0 only for
+        empty vectors.
         """
+        if not vec1 or not vec2:
+            return 0.0
+        if len(vec1) != len(vec2):
+            try:
+                from CORE.embedding_backend import project, optimal_dim
+                k = optimal_dim()
+                vec1 = project(vec1, k)
+                vec2 = project(vec2, k)
+            except Exception:
+                return 0.0
         if not vec1 or not vec2 or len(vec1) != len(vec2):
             return 0.0
         dot = sum(a * b for a, b in zip(vec1, vec2))

@@ -671,6 +671,21 @@ def _run_impl():
 
     args = parser.parse_args()
 
+    # Single-instance guard (2026-09-10): each algo must complete its
+    # per-cycle chain before the next cycle starts. The 5-min scheduler
+    # allows overlaps ("Stop If Still Running: Disabled"); this
+    # non-blocking lock serializes runs instead. Held open for process
+    # life; OS releases on death.
+    import msvcrt
+    import tempfile
+    try:
+        _lock_fh = open(os.path.join(tempfile.gettempdir(),
+                                     'training_orchestrator.lock'), 'w')
+        msvcrt.locking(_lock_fh.fileno(), msvcrt.LK_NBLCK, 1)
+    except (OSError, IOError):
+        print('SKIP overlap: previous training run still running', flush=True)
+        return 0
+
     algo = args.algo or rotated_algo()
     print(f"Rotation pick: algo={algo} (explicit override: {bool(args.algo)})",
           flush=True)
