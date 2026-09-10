@@ -94,11 +94,13 @@ class TERENCE:
             "fix": "# TODO: Move to loop",
             "desc": "Comment out continue/break outside loop",
         },
-        # Empty try block
+        # Empty try block (2026-09-10: the old template emitted a bare
+        # `except: pass` — the tool taught the anti-pattern. Emit a
+        # logging handler instead.)
         {
             "pattern": r"try\s*:\s*\n\s*(?:pass|\n|$)",
             "match": "Pattern matching - Python 3.10+ try: pass",
-            "fix": "try:\n    # TODO: Add exception handling\nexcept Exception as e:\n    pass",
+            "fix": "try:\n    # TODO: handle expected errors narrowly\nexcept Exception as e:\n    print(f\"unhandled: {e}\")",
             "desc": "Add exception handling to empty try",
         },
         # assert without message
@@ -382,7 +384,13 @@ class TERENCE:
         return count
 
     def fix_all(self, apply: bool = False) -> int:
-        """Apply all fixes (or just count if apply=False)."""
+        """Apply all fixes (or just count if apply=False).
+
+        Proficiency upgrade (2026-09-10): applied fixes are verified
+        (py_compile) with per-file backup + rollback, and every outcome
+        is recorded as a thought_process row so the learning loop trains
+        on Terence's own successes and failures.
+        """
         print()
         print("=" * 70)
         print("  APPLYING FIXES" if apply else "  WOULD APPLY FIXES")
@@ -394,28 +402,14 @@ class TERENCE:
 
         for fix in self.fixes:
             if apply:
-                try:
-                    lines = []
-                    with open(fix.file, "r", encoding="utf-8", errors="ignore") as f:
-                        lines = f.readlines()
-
-                    if fix.line <= len(lines):
-                        lines[fix.line - 1]
-                        # Simple line replacement
-                        lines[fix.line - 1] = lines[fix.line - 1].replace(
-                            fix.original, fix.fixed, 1
-                        )
-
-                        with open(fix.file, "w", encoding="utf-8") as f:
-                            f.writelines(lines)
-
-                        applied += 1
-                        print(f"[APPLIED] {fix.file}:{fix.line} - {fix.error_type}")
-                    else:
-                        skipped += 1
-                except Exception as e:
+                ok, reason = self._apply_verified(fix)
+                if ok:
+                    applied += 1
+                    print(f"[APPLIED] {fix.file}:{fix.line} - {fix.error_type}")
+                else:
                     skipped += 1
-                    print(f"[SKIPPED] {fix.file}:{fix.line} - {str(e)[:50]}")
+                    print(f"[SKIPPED] {fix.file}:{fix.line} - {reason[:50]}")
+                self._record_outcome(fix, ok, reason)
             else:
                 print(f"[WOULD FIX] {fix.file}:{fix.line} - {fix.error_type}")
                 applied += 1
@@ -433,6 +427,69 @@ class TERENCE:
         print("=" * 70)
 
         return applied
+
+    def _apply_verified(self, fix) -> tuple:
+        """Apply one fix with backup, py_compile verify, and rollback.
+
+        Returns (ok: bool, reason: str). A fix that breaks compilation is
+        reverted and reported, never left half-applied.
+        """
+        import py_compile
+        try:
+            with open(fix.file, "r", encoding="utf-8", errors="ignore") as f:
+                lines = f.readlines()
+            if fix.line > len(lines):
+                return False, "line out of range"
+            if fix.original not in lines[fix.line - 1]:
+                return False, "original text drifted - stale fix"
+            backup = "".join(lines)
+            lines[fix.line - 1] = lines[fix.line - 1].replace(
+                fix.original, fix.fixed, 1)
+            with open(fix.file, "w", encoding="utf-8") as f:
+                f.writelines(lines)
+            try:
+                py_compile.compile(fix.file, doraise=True)
+            except Exception as ce:
+                with open(fix.file, "w", encoding="utf-8") as f:
+                    f.write(backup)
+                return False, "verify failed, rolled back: %s" % str(ce)[:80]
+            return True, "applied+verified"
+        except Exception as e:
+            return False, str(e)[:80]
+
+    def _record_outcome(self, fix, ok: bool, reason: str) -> None:
+        """Record the fix outcome as chain-of-thought training data.
+
+        This is Terence's learning loop: successes teach the patterns
+        that verify, failures (stale lines, verify breaks, rollbacks)
+        teach what to avoid. DPO pairs them automatically.
+        """
+        try:
+            import sys as _sys
+            _src = os.path.join(os.path.dirname(
+                os.path.abspath(__file__)), "..", "..")
+            if _src not in _sys.path:
+                _sys.path.insert(0, _src)
+            from CORE.local_memory import get_memory_store
+            get_memory_store().record_event(
+                source="Terence",
+                event_type="thought_process",
+                data={
+                    "task": "auto-fix %s at %s:%s" % (
+                        fix.error_type, fix.file, fix.line),
+                    "reasoning": (
+                        "Pattern '%s' matched; applied '%s'. %s." % (
+                            fix.original[:120], fix.fixed[:120], reason)),
+                    "actions": ["scan", "apply", "verify",
+                                "rollback" if not ok else "keep"],
+                    "success": bool(ok),
+                    "session_id": "terence-%s" % time.strftime("%Y-%m-%d"),
+                },
+                severity="info" if ok else "warning",
+                tags=["thought", "chain-of-thought", "terence"],
+            )
+        except Exception:
+            pass
 
     def status(self) -> dict:
         """Show current status."""
