@@ -431,28 +431,57 @@ class TERENCE:
     def _apply_verified(self, fix) -> tuple:
         """Apply one fix with backup, py_compile verify, and rollback.
 
-        Returns (ok: bool, reason: str). A fix that breaks compilation is
-        reverted and reported, never left half-applied.
+        Hardened (2026-09-10): strict UTF-8 gate (the old errors="ignore"
+        read silently dropped undecodable bytes on write-back, corrupting
+        files it never meant to change), per-file msvcrt lock (two
+        Terence processes must not interleave writes), stale-line
+        rejection. Returns (ok: bool, reason: str). A fix that breaks
+        compilation is reverted and reported, never left half-applied.
         """
         import py_compile
         try:
-            with open(fix.file, "r", encoding="utf-8", errors="ignore") as f:
-                lines = f.readlines()
+            with open(fix.file, "rb") as f:
+                raw = f.read()
+            try:
+                text = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                return False, "skipped non-UTF8 file"
+            lines = text.split("\n")
             if fix.line > len(lines):
                 return False, "line out of range"
             if fix.original not in lines[fix.line - 1]:
                 return False, "original text drifted - stale fix"
-            backup = "".join(lines)
+            backup = text
             lines[fix.line - 1] = lines[fix.line - 1].replace(
                 fix.original, fix.fixed, 1)
-            with open(fix.file, "w", encoding="utf-8") as f:
-                f.writelines(lines)
             try:
-                py_compile.compile(fix.file, doraise=True)
-            except Exception as ce:
-                with open(fix.file, "w", encoding="utf-8") as f:
-                    f.write(backup)
-                return False, "verify failed, rolled back: %s" % str(ce)[:80]
+                import msvcrt
+                _lfh = open(fix.file + ".terence.lock", "w")
+                try:
+                    msvcrt.locking(_lfh.fileno(), msvcrt.LK_NBLCK, 1)
+                    _locked = True
+                except (OSError, IOError):
+                    _locked = False
+            except Exception:
+                _lfh, _locked = None, True
+            try:
+                if not _locked:
+                    return False, "file locked by another Terence"
+                with open(fix.file, "w", encoding="utf-8", newline="") as f:
+                    f.write("\n".join(lines))
+                try:
+                    py_compile.compile(fix.file, doraise=True)
+                except Exception as ce:
+                    with open(fix.file, "w", encoding="utf-8", newline="") as f:
+                        f.write(backup)
+                    return False, "verify failed, rolled back: %s" % str(ce)[:80]
+            finally:
+                try:
+                    if _lfh:
+                        _lfh.close()
+                    os.remove(fix.file + ".terence.lock")
+                except Exception:
+                    pass
             return True, "applied+verified"
         except Exception as e:
             return False, str(e)[:80]
