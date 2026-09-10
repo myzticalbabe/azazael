@@ -1178,6 +1178,31 @@ class LocalMemoryStore:
             conn.close()
         return deleted
 
+    def tombstone(self, ids: list) -> int:
+        """Non-destructive delete: mark rows deleted, wipe payloads.
+
+        (2026-09-10, A6: GRPO policy cleanup bypassed this API with a
+        private connection + silent swallow. All tombstoning routes
+        through here now.) Returns rows marked. Raises on DB error —
+        callers decide visibility, never silent.
+        """
+        ids = [int(i) for i in (ids or [])]
+        if not ids:
+            return 0
+        with self._lock:
+            conn = self._get_conn()
+            try:
+                cursor = conn.execute(
+                    "UPDATE memories SET severity = 'deleted', data = '{}' "
+                    "WHERE id IN (%s)" % ",".join("?" * len(ids)),
+                    ids,
+                )
+                marked = cursor.rowcount
+                conn.commit()
+            finally:
+                conn.close()
+        return marked
+
     # -- Real-Error Query (filters test artifacts) -------------------------
 
     # Patterns in data that indicate test artifacts, not real errors

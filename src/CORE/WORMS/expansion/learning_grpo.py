@@ -363,18 +363,13 @@ class GRPOTrainer:
                 )
                 if len(old) > 3:
                     ids_to_delete = [r["id"] for r in old[3:]]
-                    # TODO: add public delete API to LocalMemoryStore
-                    placeholders = ",".join("?" * len(ids_to_delete))
-                    conn = store._get_conn()
-                    # P1-3 Fix: Non-destructive tombstoning instead of hard DELETE
-                    conn.execute(
-                        f"UPDATE memories SET severity = 'deleted', data = '{{}}' WHERE id IN ({placeholders})",
-                        ids_to_delete,
-                    )
-                    conn.commit()
-                    conn.close()
-            except Exception as e:  # noqa: BLE001 — was silent pass: tombstone
-                # failure meant unbounded policy_snapshot growth, invisible.
+                    # (2026-09-10, A6: routed through the public tombstone
+                    # API — no more private connections.)
+                    marked = store.tombstone(ids_to_delete)
+                    if marked != len(ids_to_delete):
+                        print("GRPO tombstone cleanup partial: %d/%d" % (
+                            marked, len(ids_to_delete)), flush=True)
+            except Exception as e:  # noqa: BLE001 — logged, never silent
                 print("GRPO tombstone cleanup failed: %s" % str(e)[:160], flush=True)
             return True
         except Exception:
