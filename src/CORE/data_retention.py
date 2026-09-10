@@ -213,7 +213,12 @@ def backup_database(keep: int = 3) -> dict:
     was no automated restore path. Uses the online backup API (safe
     against concurrent readers/writers), verifies with integrity_check
     on the COPY, gzips it (~5x), and keeps the newest `keep`.
-    Returns {path, bytes, gz_bytes, integrity, pruned}.
+
+    Source-of-Truth mirror (2026-09-10): a second copy goes to
+    G:\\source-of-truth\\azazael\\db-backup\\ — off-disk redundancy.
+    Fail-open when G: is absent (undocked laptop must never break
+    maintenance). Returns {path, bytes, gz_bytes, integrity, pruned,
+    mirror, verified}.
     """
     import gzip as _gzip
     import shutil as _shutil
@@ -251,8 +256,36 @@ def backup_database(keep: int = 3) -> dict:
                 pruned.append(old.name)
             except OSError:
                 break
-        return {"path": str(gz), "gz_bytes": gz.stat().st_size,
-                "integrity": "ok", "pruned": pruned}
+        out = {"path": str(gz), "gz_bytes": gz.stat().st_size,
+               "integrity": "ok", "pruned": pruned}
+        # Mirror to Source of Truth (fail-open).
+        try:
+            _mirror = Path(r"G:\source-of-truth\azazael\db-backup")
+            _mirror.mkdir(parents=True, exist_ok=True)
+            _dest = _mirror / gz.name
+            _shutil.copyfile(str(gz), str(_dest))
+            _mexisting = sorted(_mirror.glob("memory_store.*.db.gz"))
+            while len(_mexisting) > keep:
+                _old = _mexisting.pop(0)
+                try:
+                    _old.unlink()
+                except OSError:
+                    break
+            out["mirror"] = str(_dest)
+        except Exception as e:
+            out["mirror"] = "skipped: %s" % str(e)[:100]
+        # Restore drill (light): re-read the gz (CRC check) so a
+        # bit-rotted archive is caught here, not at 3am during an
+        # actual incident.
+        try:
+            with _gzip.open(gz, "rb") as f:
+                _n = 0
+                while f.read(4 * 1024 * 1024):
+                    _n += 1
+            out["verified"] = True
+        except Exception as e:
+            out["verified"] = "CRC FAIL: %s" % str(e)[:100]
+        return out
     except Exception as e:
         try:
             if raw.exists():
@@ -308,6 +341,13 @@ def run_maintenance() -> dict:
     Returns dict with results of each task.
     """
     results = {}
+    # Backup FIRST (2026-09-10): the pre-maintenance snapshot is the
+    # true restore point — post-prune state is reproducible, pre-prune
+    # deletions are not. Destructive ops (TTL, caps, vacuum) follow.
+    try:
+        results["db_backup"] = backup_database()
+    except Exception as e:
+        results["db_backup"] = {"error": str(e)}
     try:
         results["event_ttl"] = enforce_event_ttl()
     except Exception as e:
@@ -336,10 +376,6 @@ def run_maintenance() -> dict:
         results["wal_checkpoint"] = wal_checkpoint()
     except Exception as e:
         results["wal_checkpoint"] = {"error": str(e)}
-    try:
-        results["db_backup"] = backup_database()
-    except Exception as e:
-        results["db_backup"] = {"error": str(e)}
     try:
         results["log_rotation"] = rotate_logs()
     except Exception as e:
