@@ -110,5 +110,23 @@ _e2e_*.json
 _all_providers_*.json
 _instruct_*.json
 _eca_*.json
+
+# Runtime evolution state — LIVE, mutated every 5 min by evolution_cycle.py.
+# These must never be tracked: a git restore/checkout reverts them, which on
+# 2026-09-10 silently bypassed the streak/holdout/promote/canary gates in
+# reverse (production genes reverted 29.67 -> 28.23 with no promotion event).
+# See EVOLUTION_PROCESS_AUDIT_20260910.md (D-1) / improvement item EV-1.
+config/evolved_rl_params.json
+config/evolved_rl_params.json.*
+config/evolved_meta_params.json
+state/evolved_rl_params.json
+state/evolved_rl_params.json.*
+state/evolution_pool_snapshot.json
+state/evolution_pool_snapshot.json.tmp
+state/holdout_cooldown.json
+state/qd_archive.json
+state/qd_archive.json.tmp
+state/worm_policy.json
+state/worm_policy.json.tmp
 session_log*.txt
 nul
