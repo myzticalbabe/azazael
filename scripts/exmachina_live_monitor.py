@@ -797,6 +797,25 @@ def exmachina_lines(width, height, snap):
         sev.get("active", 0), wname or "--",
         "--" if worst is None else "%.2f" % worst, C_RST), width))
 
+    # 3b. escalation: the severity model's own override, and the fact the
+    # average can hide -- `escalated` means ONE signal reached the hard-alarm
+    # threshold (0.85, `_HARD_ALARM` in exmachina.py) and forced the mood band
+    # up regardless of the mean.
+    if height >= 26:
+        _hard = sorted((n for n, v in (sev.get("signals") or {}).items()
+                        if float(v) >= 0.85),
+                       key=lambda n: -float((sev.get("signals") or {})[n]))
+        _ecol = C_RED if sev.get("escalated") else C_GRN
+        _etxt = ("%s (mood forced up)" % ", ".join(_hard[:3])) if _hard else "not escalated"
+        _eraw = sev.get("raw")
+        out.append(_fit(" %s %-9s %s%s%s  hard %d/%s  raw %s  worst %s" % (
+            GLYPH["bad"] if sev.get("escalated") else GLYPH["ok"],
+            _ex_shift("ESCALATE", 4),
+            _ecol, _etxt, C_RST,
+            len(_hard), sev.get("active", 0),
+            "--" if _eraw is None else "%.3f" % _eraw,
+            "--" if worst is None else "%.2f" % worst), width))
+
     # 4. the loudest signals, so the mood can be argued with
     sig = dict(sev.get("signals") or {})
     if sig:
@@ -842,6 +861,23 @@ def exmachina_lines(width, height, snap):
             GLYPH["vital"], _ex_shift("VITALS", 3),
             _ex_status(not vs.get("stale"), "%d/%d" % (vs.get("fresh", 0), vs.get("n", 0))),
             "  ".join(bits)), width))
+
+    # 5b. per-signal freshness budget: `pct` is how much of each artifact's
+    # staleness window has been spent, which LEADS the VITALS row's age/STALE
+    # (that only reports the crossing, after the fact). Nearest-to-stale first.
+    if height >= 28 and vs.get("signals"):
+        _fs = sorted((vs["signals"] or {}).items(),
+                     key=lambda kv: -float((kv[1] or {}).get("pct") or 0.0))
+        _fp = []
+        for _n, _d in _fs:
+            _d = _d or {}
+            _p = float(_d.get("pct") or 0.0)
+            _fcol = C_RED if not _d.get("fresh") else (C_YEL if _p >= 0.5 else C_GRN)
+            _fp.append("%s%s %d%%%s%s" % (
+                _fcol, _n, int(round(_p * 100)),
+                " STALE" if not _d.get("fresh") else "", C_RST))
+        out.append(_fit(" %s %-9s %s" % (
+            GLYPH["vital"], _ex_shift("FRESH", 9), "  ".join(_fp)), width))
 
     # 6. the nine judging organs, two per line where there is room
     cells = []
