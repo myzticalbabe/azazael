@@ -210,6 +210,89 @@ class TestDefaultAwareInertness(unittest.TestCase):
         self.assertEqual(m["genes"][0]["unknown"], 6)
 
 
+class TestMatchedAB(unittest.TestCase):
+    """The organ must report the ATTRIBUTABLE effect when the cycle measured one.
+
+    The fitness delta in a morph row compares a 5-gene champion against the
+    4-gene production baseline, so it conflates the gene with the search — and
+    52 of 69 rows never moved the trainer call at all. The matched A/B holds the
+    champion and the pools fixed and moves ONE gene, so its delta is
+    attributable by construction; MUTAGEN reports it separately rather than
+    folding it into the confounded comparison.
+    """
+
+    def _ab_row(self, gene="by_session", value=True, delta=1.0,
+                control=22.4, treatment=22.1, cycle=0):
+        r = _row(gene=gene, value=value, delta=delta, cycle=cycle)
+        r["ab"] = {"gene": gene, "control_fitness": control,
+                   "treatment_fitness": treatment}
+        return r
+
+    def test_measured_trials_are_counted(self):
+        rows = [self._ab_row(cycle=i) for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["measured_trials"], 6)
+        self.assertEqual(m["measured_share"], 1.0)
+        self.assertEqual(m["never_measured"], [])
+
+    def test_ab_mean_is_the_attributable_effect(self):
+        # treatment loses every time: the gene did not pay for itself
+        rows = [self._ab_row(cycle=i) for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertAlmostEqual(m["ab_mean"], -0.3, places=4)
+        self.assertEqual(m["ab_positive"], 0)
+        self.assertEqual(m["ab_p"], 1.0)
+        g = m["genes"][0]
+        self.assertEqual(g["ab_n"], 6)
+        self.assertAlmostEqual(g["ab_mean"], -0.3, places=4)
+        self.assertFalse(g["never_measured"])
+
+    def test_a_winning_treatment_reads_as_attributable(self):
+        rows = [self._ab_row(control=22.0, treatment=22.5, cycle=i)
+                for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertAlmostEqual(m["ab_mean"], 0.5, places=4)
+        self.assertEqual(m["ab_positive"], 6)
+        self.assertLess(m["ab_p"], 0.05)
+
+    def test_genes_without_an_ab_are_never_measured(self):
+        rows = [_row(value=False, delta=1.0, cycle=i) for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["measured_trials"], 0)
+        self.assertEqual(m["never_measured"], ["use_schema_features"])
+        self.assertIsNone(m["ab_mean"])
+        self.assertEqual(m["genes"][0]["ab_n"], 0)
+        self.assertTrue(m["genes"][0]["never_measured"])
+
+    def test_a_recorded_summary_delta_is_used_when_present(self):
+        # 6 rows, not 4: below `min_trials` the organ reports `unavailable` and
+        # deliberately carries no measurement keys at all.
+        rows = []
+        for i in range(6):
+            r = _row(value=True, delta=1.0, cycle=i)
+            r["ab"] = {"gene": "use_schema_features", "delta": 0.25}
+            rows.append(r)
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["measured_trials"], 6)
+        self.assertAlmostEqual(m["ab_mean"], 0.25, places=4)
+
+    def test_too_few_rows_reports_unavailable_without_measurement_keys(self):
+        rows = [self._ab_row(cycle=i) for i in range(3)]
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["verdict"], "unavailable")
+        self.assertNotIn("measured_trials", m)
+
+    def test_a_broken_ab_is_not_counted_as_measured(self):
+        rows = []
+        for i in range(6):
+            r = _row(value=False, delta=1.0, cycle=i)
+            r["ab"] = {"gene": "use_schema_features"}       # no arms at all
+            rows.append(r)
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["measured_trials"], 0)
+        self.assertIsNone(m["ab_mean"])
+
+
 class TestAbsenceIsNotCalm(unittest.TestCase):
 
     def test_no_ledger_yields_no_signal(self):

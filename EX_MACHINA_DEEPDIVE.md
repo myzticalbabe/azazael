@@ -114,6 +114,49 @@ this, the summary presented `use_schema_features` as a 30/30 winner.
 
 `free_growth` on this data is **0.7536** (was 0.7627 on the 59 rows).
 
+### 2c. The informative trial: a matched A/B (the fix, not another measurement)
+
+Stamping `inert` on a row makes the null visible; it does not make the trial
+informative. The comparison Phase E records — 5-gene champion vs 4-gene
+PRODUCTION baseline — cannot separate the added gene from the search that produced
+the champion, and it is not fixable by better bookkeeping: the two differ in more
+than the gene.
+
+So the cycle now runs a matched A/B per morph cycle:
+
+```
+control    = champion genes, gene set to the TRAINER'S DEFAULT   (same pools, same seeds)
+treatment  = champion genes, gene set to the value that MOVES it
+ab.delta   = treatment_fitness - control_fitness      (positive => the gene pays)
+```
+
+Everything is held fixed except the one gene, so the difference is attributable by
+construction. It also FORCES the trial arm off the default — the literal ask — which
+is why this is the fix rather than a hope: a trial that leaves the trainer call alone
+is no longer possible, because the treatment value is defined as the one that does
+not.
+
+Note what "off the default" means per gene, since the defaults are not all False:
+`use_schema_features` is forced to **True**, `by_session` to **False**.
+
+Cost is 2 evaluations (6 salt-runs) against ~144 for one generation of a 24-genome
+population, i.e. ~4% of a generation, and it fails open: a cycle whose A/B errors
+still writes its ledger row, and MUTAGEN then reports that row as unattributable
+instead of guessing.
+
+MUTAGEN reads it as a separate axis rather than folding it in:
+
+```
+measured_trials, measured_share      rows carrying a matched pair
+ab_mean, ab_positive, ab_p           the attributable effect across the ledger
+never_measured[gene]                 no matched pair has EVER been run for it
+```
+
+**Honest limit.** The A/B is one champion against itself on one pair of frozen
+pools, so it is a within-era, within-champion estimate. It answers "does this gene
+change the score, holding this genome fixed", not "does this gene generalise". The
+cross-era question belongs to PERENNIS, and the two must not be conflated.
+
 ## 3. The genomics mapping — used, not decorative
 
 The organ is named for biological mutagenesis because the mapping is exact, not because it
@@ -225,7 +268,9 @@ Recorded so they are not re-proposed.
   claim and is stated so it cannot be over-read.
 * **The root cause is not identified.** A stale `baseline_fitness`, a mismatched pool, or an
   evaluation that differs in more than the gene would all produce this. MUTAGEN reports the
-  symptom precisely enough to act on and deliberately does not guess the mechanism.
+  symptom precisely enough to act on and deliberately does not guess the mechanism. §2c removes
+  the need to guess for FUTURE cycles (the A/B holds everything but the gene fixed); it does not
+  retroactively explain the 69 recorded ones, which stay permanently unattributable.
 * **`inert_share` depends on the resolution rule.** For `use_schema_features` it does not: every
   observed raw value (0.0563, 0.0686, `False`) is below any threshold in (0.07, 1.0]. For
   `by_session` it does, since 0.5142 sits just above 0.5. `resolver` records which path resolved
