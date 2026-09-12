@@ -72,6 +72,16 @@ if snap.get("tensor"):
           "rows at %dx%d: %d" % (_DEFAULT_W, _DEFAULT_H, len(default_lines)))
 else:
     check("tensor artifact present to display", False, "snapshot has no tensor")
+# The MUTAGEN per-gene split is the row that says which genes the ledger ever
+# actually TESTED, so the same reachability rule applies to it: it was written
+# at a height>=34 gate while this window is 30, i.e. invisible where anyone
+# would look.
+if snap.get("mutagen"):
+    check("MUTAGEN split row visible at default window",
+          any("c/" in l and "i" in l for l in default_lines),
+          "a gene token like \"0c/35i\" at %dx%d" % (_DEFAULT_W, _DEFAULT_H))
+else:
+    check("mutagen ledger present to display", False, "snapshot has no mutagen")
 check("no overflow at default window", len(default_lines) <= _DEFAULT_H,
       "%d lines for %d" % (len(default_lines), _DEFAULT_H))
 

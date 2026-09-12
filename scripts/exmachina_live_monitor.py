@@ -1142,21 +1142,40 @@ def exmachina_lines(width, height, snap):
             ("--" if mg.get("inert_gain") is None else "%+0.2f" % float(mg["inert_gain"])),
             _pt), width))
 
-    if mg and height >= 34:
+    # 9c. MUTAGEN per-gene: for EVERY candidate gene, how many trials actually
+    # MOVED the trainer call versus how many left it at the trainer's default.
+    # Gated at 30, not 34: at 34 it was invisible in the default 100x30 window,
+    # which is the same "component exists, is correct, and is never seen"
+    # failure the gate below now tests for rather than assumes.
+    # That split is the whole attribution question on one line -- a gene with
+    # 0c/Ni has a null result, not a win -- and when the cycle ran the matched
+    # A/B (9d in the cycle) the attributable effect is shown next to it. The
+    # genes are printed BEFORE the load/suite tail and the tail is dropped when
+    # the window is too narrow, so a narrow window loses the secondary numbers
+    # rather than the split itself.
+    if mg and height >= 30:
         _gp = []
-        for _g in (mg.get("genes") or [])[:2]:
-            _gp.append("%s %d/%d%s" % (
-                str(_g.get("gene") or "?")[:20],
-                _g.get("changed") or 0, _g.get("n") or 0,
-                " NEVER-TREATED" if _g.get("never_changed") else " treated"))
+        for _g in (mg.get("genes") or []):
+            _tok = "%s %dc/%di" % (str(_g.get("gene") or "?")[:19],
+                                   int(_g.get("changed") or 0),
+                                   int(_g.get("inert") or 0))
+            if _g.get("never_changed"):
+                _tok += " NEVER-TREATED"
+            elif _g.get("ab_n"):
+                _tok += " ab%+0.2f" % float(_g.get("ab_mean") or 0.0)
+            _gp.append(_tok)
         _ld = mg.get("load") or {}
         _ts = mg.get("tests") or {}
         _tail = "load %d/%d" % (len(_ld.get("below_floor") or []), _ld.get("genes") or 0)
         if _ts.get("mutants"):
             _tail += "  suite %s/%s>=%s %sh" % (_ts.get("killed"), _ts.get("mutants"),
                                                 _ts.get("lower"), _ts.get("age_h"))
-        out.append(_fit("   %s %s   %s" % (
-            GLYPH["mutagen"], "  ".join(_gp), _tail), width))
+        _head = "   %s %s" % (GLYPH["mutagen"], "  ".join(_gp))
+        if width and _vis_len(_head) + len(_tail) + 2 > int(width):
+            _row = _head
+        else:
+            _row = "%s  %s" % (_head, _tail)
+        out.append(_fit(_row, width))
 
     gt = snap.get("gate") or {}
     if height >= 30:
