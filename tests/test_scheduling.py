@@ -13,16 +13,23 @@ class TestScheduleConfig(unittest.TestCase):
 
     def test_default_config(self):
         """Default config should have sensible defaults."""
-        from CORE.WORMS.expansion.scheduling import ScheduleConfig
+        from CORE.WORMS.expansion.scheduling import ScheduleConfig, EVAL_EPISODES
         cfg = ScheduleConfig()
         self.assertEqual(cfg.interval_hours, 24.0)
-        self.assertEqual(cfg.n_episodes, 50)
+        # G-3: tuning and deployment share one horizon (was a hardcoded 50
+        # here vs 80 in the driver). The test tracks the constant.
+        self.assertEqual(cfg.n_episodes, EVAL_EPISODES)
         self.assertEqual(cfg.data_limit, 200)
-        self.assertEqual(cfg.learning_rate, 0.1)
-        self.assertEqual(cfg.discount_factor, 0.9)
-        self.assertEqual(cfg.epsilon, 0.2)
+        # Hyperparameter defaults were evolved by evolution_cycle.py on
+        # 2026-09-07 (see the inline comments on ScheduleConfig). The test
+        # must track the intentional current defaults, not the pre-evolution
+        # values (0.1 / 0.9 / 0.2).
+        self.assertEqual(cfg.learning_rate, 0.29)
+        self.assertEqual(cfg.discount_factor, 0.91)
+        self.assertEqual(cfg.epsilon, 0.11)
         self.assertTrue(cfg.record_to_memory)
         self.assertIsNone(cfg.source_filter)
+        self.assertIsNone(cfg.exclude_sources)
 
     def test_custom_config(self):
         """Custom config should override defaults."""

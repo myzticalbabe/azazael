@@ -37,12 +37,19 @@ except ImportError:
             return False
 
 
+# G-3 (2026-09-11): single tuning/deployment horizon. Evolution evaluated
+# candidates at N_EPISODES=80 while production trained at n_episodes=50 —
+# horizon-sensitive genes (discount, epsilon_decay) were tuned on one
+# horizon and deployed on another. Both now share EVAL_EPISODES.
+EVAL_EPISODES = 80
+
+
 @dataclass
 class ScheduleConfig:
     """Configuration for a scheduled training run."""
     interval_hours: float = 24.0        # How often to run
     max_duration_minutes: float = 30.0   # Max training duration
-    n_episodes: int = 50                 # RL episodes per run
+    n_episodes: int = EVAL_EPISODES      # RL episodes per run (= tuning horizon)
     data_limit: int = 200                # Records to extract
     learning_rate: float = 0.29      # Evolved 2026-09-07 (was 0.1)
     discount_factor: float = 0.91    # Evolved 2026-09-07 (was 0.9)
@@ -55,7 +62,7 @@ class ScheduleConfig:
     def apply_evolved_overrides(self) -> bool:
         """Load champion genes promoted by evolution_cycle.py, if present.
 
-        Reads config/evolved_rl_params.json (written after 3 consecutive
+        Reads state/evolved_rl_params.json (written after 3 consecutive
         wins over the production baseline). Range-validates before
         applying; falls back to built-in defaults on any problem.
         Rollback = delete the JSON file. Returns True if overrides applied.
@@ -63,12 +70,22 @@ class ScheduleConfig:
         try:
             import json as _json
             from pathlib import Path as _Path
-            # Resolve to <project-root>/config/evolved_rl_params.json — the
+            # Resolve to <project-root>/state/evolved_rl_params.json — the
             # same location evolution_cycle.py writes to. This file sits
             # 5 dirs below the root (src/CORE/WORMS/expansion/), so five
             # .parent hops, not four (path mismatch bug, 2026-09-08).
             p = (_Path(__file__).resolve().parent.parent.parent.parent.parent
-                 / "config" / "evolved_rl_params.json")
+                 / "state" / "evolved_rl_params.json")
+            # EV-1 (EVOLUTION_PROCESS_AUDIT_20260910, D-1): prefer the untracked
+            # runtime location and only fall back to the legacy tracked
+            # config/ path for reading, so a repo git restore/checkout can no
+            # longer silently revert production hyperparameters.
+            if not p.exists():
+                _legacy = (_Path(__file__).resolve()
+                           .parent.parent.parent.parent.parent
+                           / "config" / "evolved_rl_params.json")
+                if _legacy.exists():
+                    p = _legacy
             if not p.exists():
                 return False
             data = _json.loads(p.read_text(encoding="utf-8"))
@@ -93,7 +110,13 @@ class ScheduleConfig:
 
 @dataclass
 class TrainingRun:
-    """Record of a single training run."""
+    """Record of a single training run.
+
+    Honesty protocol (2026-09-11 audit): a run that did no training must
+    never look like a successful one. Plateau/data skips set
+    skipped=True (and success=False); synthetic-fallback runs set
+    synthetic=True so ledgers and dashboards can exclude them.
+    """
     run_id: str
     started_at: str
     completed_at: str
@@ -105,6 +128,9 @@ class TrainingRun:
     model_version: str
     success: bool
     error: (str | None) = None
+    skipped: bool = False
+    skip_reason: (str | None) = None
+    synthetic: bool = False
 
 
 class ScheduledTrainingWorm:
@@ -237,6 +263,8 @@ class ScheduledTrainingWorm:
         error = None
 
         # Knowledge application: skip converged retraining on unchanged data.
+        # Honesty protocol: a skip is skipped=True + success=False, never a
+        # zero-record "success" (2026-09-11 audit — the 0-record SUCCESSFUL).
         skip_reason = self._plateau_skip_reason()
         if skip_reason:
             print(f"[train] {run_id} SKIPPED ({skip_reason})", flush=True)
@@ -246,9 +274,11 @@ class ScheduledTrainingWorm:
                 duration_ms=round((time.perf_counter() - start) * 1000, 2),
                 records_extracted=0, n_episodes=0, avg_reward=0.0,
                 q_table_size=0, model_version=self._last_model_version,
-                success=True, error=None,
+                success=False, error=None,
+                skipped=True, skip_reason=skip_reason,
             )
 
+        _synthetic = False  # bound before try: exception paths below read it
         try:
             # Stage 1: DataPipelineWorm — extract data
             pipeline = self._get_pipeline()
@@ -265,7 +295,6 @@ class ScheduledTrainingWorm:
             # fix): fakes used to be counted as real records and the run
             # reported success on invented data. Now flagged synthetic
             # end-to-end and real count kept at zero.
-            _synthetic = False
             if n_records == 0:
                 records = [
                     {"source": "SystemZ", "severity": "info", "data": {"duration_ms": 150, "synthetic": True}},
@@ -377,6 +406,7 @@ class ScheduledTrainingWorm:
             model_version=new_version,
             success=error is None,
             error=error,
+            synthetic=_synthetic,
         )
 
         with self._lock:

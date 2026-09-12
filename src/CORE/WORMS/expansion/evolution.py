@@ -86,12 +86,15 @@ class EvolutionEngine:
         best = evo.get_best_genome()
     """
 
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"
 
     def __init__(self, population_size: int = 50, elitism_count: int = 5,
                  crossover_rate: float = 0.7, mutation_rate: float = 0.1,
                  tournament_size: int = 3, early_stop_patience: int = 5,
-                 early_stop_tolerance: float = 0.01, memory_store=None):
+                 early_stop_tolerance: float = 0.01, memory_store=None,
+                 crossover_operator: str = "sbx",
+                 mutation_operator: str = "polynomial",
+                 eta_c: float = 15.0, eta_m: float = 20.0):
         self._lock = threading.Lock()
         self._memory_store = memory_store  # Injected store (None = use global, "none" = disabled)
         self.population_size = population_size
@@ -101,6 +104,17 @@ class EvolutionEngine:
         self.tournament_size = tournament_size
         self.early_stop_patience = early_stop_patience
         self.early_stop_tolerance = early_stop_tolerance
+        # -- v2.0 real-coded operators (audit item 1: SBX + poly mutation) --
+        # crossover_operator: "uniform" (legacy) | "sbx"
+        # mutation_operator: "uniform" (legacy) | "polynomial" | "gaussian"
+        self.crossover_operator = crossover_operator
+        self.mutation_operator = mutation_operator
+        self.eta_c = float(eta_c)
+        self.eta_m = float(eta_m)
+        # -- v2.0 mixed-type genome specs (audit item 3) --
+        # {name: ("float"|"int"|"bool"|"choice", lo, hi, choices)}
+        # Empty = legacy float-only inferred from bounds tuples.
+        self._gene_specs: dict[str, tuple] = {}
 
         # -- Adaptive mutation rate --
         self.base_mutation_rate = mutation_rate
@@ -116,21 +130,92 @@ class EvolutionEngine:
         self._generation_history: list[dict] = []
         self._best_genome: (Genome | None) = None
         self._fitness_cache: dict[str, float] = {}
+        self._fitness_hash_cache: dict[str, float] = {}  # v2.0: gene-hash -> fitness (cross-cycle reuse)
         self._curative_pool = None  # Lazy CurativePool singleton
 
-    def initialize_population(self, gene_bounds: dict[str, tuple[float, float]],
-                              seed_genomes: (list[dict[str, float]] | None) = None) -> list[Genome]:
+    # -- v2.0 mixed-type genome specs ----------------------------------
+    # gene_specs entries: {name: {"type": float|int|bool|choice, "lo":.., "hi":..,
+    #   "choices": [...]}}. Unifies the old HYDRAMETA fork (bool/categorical
+    #   params) into EvolutionEngine so H-4 can be retired.
+
+    def set_gene_specs(self, specs: dict[str, dict]) -> None:
+        """Define mixed-type genes. Example:
+        {"interval": {"type": "float", "lo": 0.1, "hi": 5.0},
+         "parallel": {"type": "bool"},
+         "priority": {"type": "choice", "choices": ["low","normal","high"]},
+         "workers":  {"type": "int", "lo": 1, "hi": 8}}
+        """
+        with self._lock:
+            self._gene_specs = dict(specs or {})
+            # Mirror continuous bounds for legacy paths
+            for name, spec in self._gene_specs.items():
+                t = spec.get("type", "float")
+                if t in ("float", "int"):
+                    self._gene_bounds[name] = (spec["lo"], spec["hi"])
+
+    def _sample_gene(self, name: str):
+        spec = self._gene_specs.get(name)
+        if spec is None:
+            bounds = self._gene_bounds.get(name)
+            if bounds is None:
+                return 0.0
+            lo, hi = bounds
+            if isinstance(lo, int) and isinstance(hi, int):
+                return float(random.randint(lo, hi))
+            if isinstance(lo, bool) or isinstance(hi, bool):
+                return bool(random.random() < 0.5)
+            return random.uniform(float(lo), float(hi))
+        t = spec.get("type", "float")
+        if t == "bool":
+            return bool(random.random() < 0.5)
+        if t == "choice":
+            import random as _r
+            return _r.choice(list(spec["choices"]))
+        if t == "int":
+            return int(random.randint(int(spec["lo"]), int(spec["hi"])))
+        return random.uniform(float(spec["lo"]), float(spec["hi"]))
+
+    @staticmethod
+    def gene_hash(genes: dict) -> str:
+        """Stable cross-cycle fitness key (gene values rounded, sorted)."""
+        import hashlib as _hl
+        parts = []
+        for k in sorted(genes):
+            v = genes[k]
+            if isinstance(v, float):
+                parts.append("%s=%.6f" % (k, float(v)))
+            else:
+                parts.append("%s=%r" % (k, v))
+        return _hl.sha256("|".join(parts).encode()).hexdigest()[:16]
+
+    def initialize_population(self, gene_bounds: (dict | None) = None,
+                              seed_genomes: (list[dict] | None) = None,
+                              gene_specs: (dict | None) = None) -> list[Genome]:
         """Initialize a random population within gene bounds.
 
         Args:
-            gene_bounds: {gene_name: (min_val, max_val)} for each evolvable parameter
+            gene_bounds: {gene_name: (min_val, max_val)} legacy float/int bounds.
+                Also accepts mixed specs {name: {"type":..}} (auto-detected).
             seed_genomes: Optional pre-existing genomes to seed the population
+            gene_specs: Optional explicit mixed-type specs (see set_gene_specs)
 
         Returns:
             list of initialized Genome objects
         """
+        # Auto-detect mixed-spec dicts passed as gene_bounds
+        if gene_bounds and any(isinstance(v, dict) for v in gene_bounds.values()):
+            gene_specs = gene_bounds
+            gene_bounds = None
         with self._lock:
-            self._gene_bounds = gene_bounds
+            if gene_specs:
+                self._gene_specs = dict(gene_specs)
+                for name, spec in self._gene_specs.items():
+                    t = spec.get("type", "float")
+                    if t in ("float", "int"):
+                        self._gene_bounds[name] = (spec["lo"], spec["hi"])
+            elif gene_bounds:
+                self._gene_bounds = dict(gene_bounds)
+                # Infer bool/choice pass-through: keep legacy float/int sampling
             self._population = []
             self._generation = 0
             self._fitness_cache.clear()
@@ -141,27 +226,26 @@ class EvolutionEngine:
             # genes filled with uniform draws — otherwise _crossover (which
             # iterates parent1's keys) silently drops the new dimension
             # from every child of that seed (2026-09-08 fix).
+            bounds = self._gene_bounds
+            if self._gene_specs:
+                # full key universe = specs + legacy bounds
+                bounds = dict(self._gene_bounds)
             if seed_genomes:
                 for genes in seed_genomes:
                     full = dict(genes)
-                    for name, (min_val, max_val) in gene_bounds.items():
+                    for name in list(bounds.keys()) + [k for k in self._gene_specs if k not in bounds]:
                         if name not in full:
-                            if isinstance(min_val, int) and isinstance(max_val, int):
-                                full[name] = float(random.randint(min_val, max_val))
-                            else:
-                                full[name] = random.uniform(min_val, max_val)
+                            full[name] = self._sample_gene(name)
                     genome = Genome(genes=full, generation=0)
                     self._population.append(genome)
 
             # Fill remainder with random genomes
+            all_keys = list(bounds.keys()) + [k for k in self._gene_specs if k not in bounds]
+            if not all_keys and gene_bounds:
+                all_keys = list(gene_bounds.keys())
             remaining = self.population_size - len(self._population)
             for _ in range(remaining):
-                genes = {}
-                for name, (min_val, max_val) in gene_bounds.items():
-                    if isinstance(min_val, int) and isinstance(max_val, int):
-                        genes[name] = float(random.randint(min_val, max_val))
-                    else:
-                        genes[name] = random.uniform(min_val, max_val)
+                genes = {name: self._sample_gene(name) for name in all_keys}
                 self._population.append(Genome(genes=genes, generation=0))
 
             return list(self._population)
@@ -191,10 +275,22 @@ class EvolutionEngine:
 
         scores = []
         eval_failures = 0
-        todo = [g for g in self._population if g.id not in self._fitness_cache]
+        cache_hits = 0
+        todo = []
         for g in self._population:
             if g.id in self._fitness_cache:
                 g.fitness = self._fitness_cache[g.id]
+                continue
+            # v2.0 cross-cycle hash cache: same genes -> same fitness, any UUID
+            h = self.gene_hash(g.genes)
+            hit = self._fitness_hash_cache.get(h)
+            if hit is not None:
+                g.fitness = hit
+                cache_hits += 1
+                with self._lock:
+                    self._fitness_cache[g.id] = hit
+            else:
+                todo.append(g)
 
         def _eval_one(genome):
             try:
@@ -222,6 +318,10 @@ class EvolutionEngine:
                         genome_id[:12], err))
             with self._lock:
                 self._fitness_cache[genome_id] = by_id[genome_id].fitness
+                try:
+                    self._fitness_hash_cache[self.gene_hash(by_id[genome_id].genes)] = by_id[genome_id].fitness
+                except Exception:
+                    pass
         for genome in self._population:
             scores.append(genome.fitness)
 
@@ -240,6 +340,7 @@ class EvolutionEngine:
             "min_fitness": min(scores) if scores else 0.0,
             "population_size": len(self._population),
             "eval_failures": eval_failures,
+            "cache_hits": cache_hits,
             "timestamp": datetime.now().isoformat(),
         }
 
@@ -273,13 +374,13 @@ class EvolutionEngine:
             parent1 = self._tournament_select(current_pop)
             parent2 = self._tournament_select(current_pop)
 
-            # Crossover
+            # Crossover (SBX dispatch passes bounds for clamping)
             if random.random() < self.crossover_rate:
-                child_genes = self._crossover(parent1.genes, parent2.genes)
+                child_genes = self._crossover(parent1.genes, parent2.genes, gene_bounds)
             else:
                 child_genes = dict(parent1.genes)
 
-            # Mutation
+            # Mutation (polynomial dispatch)
             child_genes = self._mutate(child_genes, gene_bounds)
 
             child = Genome(
@@ -312,20 +413,131 @@ class EvolutionEngine:
         )
         return max(tournament, key=lambda g: g.fitness)
 
-    def _crossover(self, genes1: dict[str, float], genes2: dict[str, float]) -> dict[str, float]:
-        """Uniform crossover: randomly pick each gene from either parent."""
+    def _crossover(self, genes1: dict, genes2: dict,
+                   gene_bounds: (dict | None) = None) -> dict:
+        """Dispatch: SBX (default, real-coded) or uniform (legacy)."""
+        if self.crossover_operator == "sbx":
+            return self._sbx_crossover(genes1, genes2, gene_bounds or self._gene_bounds)
         child = {}
         for key in genes1:
             child[key] = genes1[key] if random.random() < 0.5 else genes2.get(key, genes1[key])
+        # carry keys only in parent2 (mixed-type shape drift)
+        for key in genes2:
+            if key not in child:
+                child[key] = genes2[key]
         return child
 
-    def _mutate(self, genes: dict[str, float],
-                gene_bounds: dict[str, tuple[float, float]]) -> dict[str, float]:
-        """Apply random mutation to genes within bounds."""
+    def _sbx_crossover(self, genes1: dict, genes2: dict, gene_bounds: dict) -> dict:
+        """Simulated Binary Crossover (Deb & Agrawal). One child, per-gene blend.
+
+        Numeric genes blend with distribution index eta_c; bool/choice genes
+        fall back to uniform pick (SBX undefined for discrete).
+        """
+        child = {}
+        eta = max(1.0, float(self.eta_c))
+        for key in list(genes1.keys()) + [k for k in genes2 if k not in genes1]:
+            v1 = genes1.get(key, genes2.get(key))
+            v2 = genes2.get(key, v1)
+            spec = self._gene_specs.get(key)
+            is_discrete = (
+                (spec is not None and spec.get("type") in ("bool", "choice"))
+                or isinstance(v1, bool) or isinstance(v2, bool)
+                or isinstance(v1, str) or isinstance(v2, str)
+            )
+            if is_discrete:
+                child[key] = v1 if random.random() < 0.5 else v2
+                continue
+            try:
+                x1, x2 = float(v1), float(v2)
+            except (TypeError, ValueError):
+                child[key] = v1 if random.random() < 0.5 else v2
+                continue
+            if random.random() > 0.5 or abs(x1 - x2) < 1e-14:
+                child[key] = x1 if random.random() < 0.5 else x2
+                continue
+            lo, hi = (gene_bounds.get(key, (min(x1, x2), max(x1, x2)))
+                      if isinstance(gene_bounds.get(key), (list, tuple)) else (min(x1, x2), max(x1, x2)))
+            lo, hi = float(lo), float(hi)
+            if hi <= lo:
+                child[key] = x1
+                continue
+            u = random.random()
+            if u <= 0.5:
+                beta = (2.0 * u) ** (1.0 / (eta + 1.0))
+            else:
+                beta = (1.0 / (2.0 * (1.0 - u))) ** (1.0 / (eta + 1.0))
+            c1 = 0.5 * ((1.0 + beta) * x1 + (1.0 - beta) * x2)
+            c2 = 0.5 * ((1.0 - beta) * x1 + (1.0 + beta) * x2)
+            c = c1 if random.random() < 0.5 else c2
+            c = max(lo, min(hi, c))
+            if spec is not None and spec.get("type") == "int":
+                c = int(round(c))
+            child[key] = c
+        return child
+
+    def _mutate(self, genes: dict,
+                gene_bounds: dict[str, tuple[float, float]]) -> dict:
+        """Dispatch: polynomial (default) / gaussian / uniform (legacy)."""
+        if self.mutation_operator == "polynomial":
+            return self._polynomial_mutate(genes, gene_bounds)
+        if self.mutation_operator == "gaussian":
+            return self._gaussian_mutate(genes, gene_bounds)
         for key, (min_val, max_val) in gene_bounds.items():
             if random.random() < self.mutation_rate:
                 perturbation = random.uniform(-0.1, 0.1) * (max_val - min_val)
                 genes[key] = max(min_val, min(max_val, genes.get(key, (min_val + max_val) / 2) + perturbation))
+        # discrete genes under legacy uniform: resample
+        for key, spec in self._gene_specs.items():
+            if spec.get("type") in ("bool", "choice") and random.random() < self.mutation_rate:
+                genes[key] = self._sample_gene(key)
+        return genes
+
+    def _polynomial_mutate(self, genes: dict, gene_bounds: dict) -> dict:
+        """Polynomial mutation (Deb). Bounded, distribution index eta_m."""
+        eta = max(1.0, float(self.eta_m))
+        for key, bounds in gene_bounds.items():
+            if random.random() >= self.mutation_rate:
+                continue
+            if key in self._gene_specs and self._gene_specs[key].get("type") in ("bool", "choice"):
+                genes[key] = self._sample_gene(key)
+                continue
+            lo, hi = float(bounds[0]), float(bounds[1])
+            if hi <= lo:
+                continue
+            try:
+                x = float(genes.get(key, (lo + hi) / 2.0))
+            except (TypeError, ValueError):
+                continue
+            x = max(lo, min(hi, x))
+            d1 = (x - lo) / (hi - lo)
+            d2 = (hi - x) / (hi - lo)
+            mut_pow = 1.0 / (eta + 1.0)
+            u = random.random()
+            if u < 0.5:
+                delta = (2.0 * u + (1.0 - 2.0 * u) * (1.0 - d1) ** (eta + 1.0)) ** mut_pow - 1.0
+            else:
+                delta = 1.0 - (2.0 * (1.0 - u) + 2.0 * (u - 0.5) * (1.0 - d2) ** (eta + 1.0)) ** mut_pow
+            x_new = max(lo, min(hi, x + delta * (hi - lo)))
+            if key in self._gene_specs and self._gene_specs[key].get("type") == "int":
+                genes[key] = int(round(x_new))
+            else:
+                genes[key] = x_new
+        for key, spec in self._gene_specs.items():
+            if key not in gene_bounds and spec.get("type") in ("bool", "choice"):
+                if random.random() < self.mutation_rate:
+                    genes[key] = self._sample_gene(key)
+        return genes
+
+    def _gaussian_mutate(self, genes: dict, gene_bounds: dict, sigma_frac: float = 0.1) -> dict:
+        for key, bounds in gene_bounds.items():
+            if random.random() >= self.mutation_rate:
+                continue
+            lo, hi = float(bounds[0]), float(bounds[1])
+            try:
+                x = float(genes.get(key, (lo + hi) / 2.0))
+            except (TypeError, ValueError):
+                continue
+            genes[key] = max(lo, min(hi, random.gauss(x, sigma_frac * (hi - lo))))
         return genes
 
     def _govern_evolution_gate(self, phase: str, context: dict) -> None:
@@ -406,7 +618,12 @@ class EvolutionEngine:
 
         diversity_scores = []
         for gene_name, (min_val, max_val) in bounds.items():
-            values = [g.genes.get(gene_name, 0.0) for g in pop]
+            # v2.0: skip discrete genes (bool/choice/str) — stddev undefined.
+            # Categorical diversity is tracked by the MAP-Elites archive instead.
+            try:
+                values = [float(g.genes.get(gene_name, 0.0)) for g in pop]
+            except (TypeError, ValueError):
+                continue
             mean_val = sum(values) / len(values)
             if mean_val == 0:
                 diversity_scores.append(0.0)
@@ -414,7 +631,10 @@ class EvolutionEngine:
             variance = sum((v - mean_val) ** 2 for v in values) / len(values)
             stddev = variance ** 0.5
             # Normalize by gene range so different-scale genes are comparable
-            gene_range = max_val - min_val
+            try:
+                gene_range = float(max_val) - float(min_val)
+            except (TypeError, ValueError):
+                continue
             if gene_range > 0:
                 diversity_scores.append(min(stddev / gene_range, 1.0))
             else:
@@ -536,14 +756,16 @@ class EvolutionEngine:
             return False
         try:
             events = store.search_memories(
-                "checkpoint_saved", source="EvolutionEngine", limit=10
+                "checkpoint_saved", source="EvolutionEngine", limit=50
             )
             if not events:
                 return False
 
-            # Find matching checkpoint
-            checkpoint = None
-            for ev in reversed(events):
+            # Find matching checkpoint — newest by saved_at wins, so reused
+            # labels across test runs can't resurrect a stale checkpoint.
+            best = None
+            best_ts = ""
+            for ev in events:
                 data = ev.get("data", {})
                 if isinstance(data, str):
                     try:
@@ -554,8 +776,11 @@ class EvolutionEngine:
                     continue
                 if label and data.get("label") != label:
                     continue
-                checkpoint = data
-                break
+                ts = str(data.get("saved_at", "")) or str(ev.get("timestamp", ""))
+                if best is None or ts >= best_ts:
+                    best = data
+                    best_ts = ts
+            checkpoint = best
 
             if checkpoint is None:
                 return False
@@ -793,13 +1018,13 @@ class EvolutionEngine:
                                 new_population[slot] = best_in_obj
                                 elite_slots.add(slot)
 
-                # Crossover and mutation on survivors
+                # Crossover and mutation on survivors (v2.0 SBX/poly dispatch)
                 offspring = []
                 while len(new_population) + len(offspring) < self.population_size * 2:
                     p1 = self._tournament_select(new_population)
                     p2 = self._tournament_select(new_population)
                     if random.random() < self.crossover_rate:
-                        child_genes = self._crossover(p1.genes, p2.genes)
+                        child_genes = self._crossover(p1.genes, p2.genes, self._gene_bounds)
                     else:
                         child_genes = dict(p1.genes)
                     child_genes = self._mutate(child_genes, self._gene_bounds)
@@ -922,22 +1147,51 @@ class GeneticOptimizer:
         best_params = opt.optimize(generations=10)
     """
 
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"
 
     def __init__(self):
         self._lock = threading.Lock()
         self._engines: dict[str, EvolutionEngine] = {}
         self._optimization_history: dict[str, list[dict]] = {}
 
-    def initialize(self, worm_type: str, param_bounds: dict[str, tuple[float, float]],
-                   population_size: int = 30) -> EvolutionEngine:
-        """Initialize an evolution engine for a specific worm type."""
-        engine = EvolutionEngine(population_size=population_size)
+    def initialize(self, worm_type: str, param_bounds: dict,
+                   population_size: int = 30, **engine_kwargs) -> EvolutionEngine:
+        """Initialize an evolution engine for a specific worm type.
+
+        param_bounds accepts legacy {(lo,hi)} tuples OR mixed-type specs
+        ({name: {"type": ...}}), so bool/categorical worm params no longer
+        need the HYDRAMETA fork.
+        """
+        engine = EvolutionEngine(population_size=population_size, **engine_kwargs)
         engine.initialize_population(param_bounds)
         with self._lock:
             self._engines[worm_type] = engine
             self._optimization_history[worm_type] = []
         return engine
+
+    def optimize_cma(self, worm_type: str, gene_bounds: dict[str, tuple[float, float]],
+                     fitness_fn, generations: int = 20,
+                     workers: int = 1) -> dict[str, Any]:
+        """Continuous-param optimization via sep-CMA-ES (preferred over GA
+        for float-only worm params). fitness_fn(genes_dict) -> float."""
+        cma = SepCMAES(dict(gene_bounds))
+        result = cma.optimize(fitness_fn, generations=generations, workers=workers)
+        with self._lock:
+            self._optimization_history.setdefault(worm_type, []).append({
+                "type": "cma-es", "best_fitness": result["best_fitness"],
+                "timestamp": datetime.now().isoformat()})
+        return {"worm_type": worm_type, "method": "sep-cma-es", **result}
+
+    def optimize_de(self, worm_type: str, gene_bounds: dict[str, tuple[float, float]],
+                    fitness_fn, generations: int = 30) -> dict[str, Any]:
+        """Continuous-param optimization via Differential Evolution."""
+        de = DifferentialEvolution(dict(gene_bounds))
+        result = de.optimize(fitness_fn, generations=generations)
+        with self._lock:
+            self._optimization_history.setdefault(worm_type, []).append({
+                "type": "de", "best_fitness": result["best_fitness"],
+                "timestamp": datetime.now().isoformat()})
+        return {"worm_type": worm_type, "method": "de", **result}
 
     def optimize(self, worm_type: str, generations: int = 10,
                  fitness_fn=None) -> dict[str, Any]:
@@ -1045,3 +1299,481 @@ class GeneticOptimizer:
                 "optimized_worms": list(self._engines.keys()),
                 "total_optimizations": sum(len(h) for h in self._optimization_history.values()),
             }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  v2.0 new engines (audit 2026-09-11: CMA-ES, DE, MAP-Elites, TPE,
+#  NSGA-III/MOEA-D, Island model). All stdlib-only, thread-safe.
+# ═══════════════════════════════════════════════════════════════════════
+
+@register_worm(
+    category="learning", priority=6, cooldown_seconds=120.0,
+    description="sep-CMA-ES — diagonal-covariance evolution strategy for continuous hyperparameters"
+)
+class SepCMAES:
+    """Separable CMA-ES (diagonal covariance) — the right tool for H-1's
+    continuous 4-D RL genes where isotropic ±10% mutation wastes evals.
+
+    Maximizes fitness_fn(genome_dict) -> float. Box-bounded by clamping.
+    Ask/tell interface plus one-shot optimize().
+    """
+
+    VERSION = "2.0.0"
+
+    def __init__(self, gene_bounds: dict[str, tuple[float, float]],
+                 sigma0_frac: float = 0.3, popsize: int = 0,
+                 seed_genes: (dict | None) = None,
+                 rng: (Any | None) = None):
+        import math as _m
+        self._lock = threading.Lock()
+        self.names = list(gene_bounds.keys())
+        self.bounds = {k: (float(v[0]), float(v[1])) for k, v in gene_bounds.items()}
+        self.n = len(self.names)
+        if self.n == 0:
+            raise ValueError("SepCMAES needs at least 1 gene")
+        self.rng = rng or random
+        lam = 4 + int(3 * _m.log(self.n + 1)) if not popsize else popsize
+        self.lam = max(4, lam)
+        self.mu = max(1, self.lam // 2)
+        # log-rank weights (higher weight = better rank)
+        w = [_m.log(self.mu + 0.5) - _m.log(i + 1) for i in range(self.mu)]
+        s = sum(w)
+        self.weights = [x / s for x in w]
+        self.mueff = sum(w) ** 2 / sum(x * x for x in w)
+        # strategy params (Hansen 2016 defaults, diagonal variant)
+        self.cc = (4.0 + self.mueff / self.n) / (self.n + 4.0 + 2.0 * self.mueff / self.n)
+        self.cs = (self.mueff + 2.0) / (self.n + self.mueff + 5.0)
+        self.c1 = 2.0 / ((self.n + 1.3) ** 2 + self.mueff)
+        self.cmu = min(1.0 - self.c1, 2.0 * (self.mueff - 2.0 + 1.0 / self.mueff)
+                       / ((self.n + 2.0) ** 2 + self.mueff))
+        self.damps = 1.0 + 2.0 * max(0.0, ((self.mueff - 1.0) / (self.n + 1.0)) ** 0.5 - 1.0) + self.cs
+        # state
+        self.mean = {}
+        for k in self.names:
+            lo, hi = self.bounds[k]
+            self.mean[k] = float(seed_genes[k]) if seed_genes and k in seed_genes else (lo + hi) / 2.0
+        self.sigma = sum((hi - lo) for lo, hi in self.bounds.values()) / self.n * sigma0_frac
+        self.sigma = max(self.sigma, 1e-12)
+        self.pc = {k: 0.0 for k in self.names}
+        self.ps = {k: 0.0 for k in self.names}
+        self.diagC = {k: 1.0 for k in self.names}  # normalized diagonal
+        self.counteval = 0
+        self.best_genes: (dict | None) = None
+        self.best_fitness = float("-inf")
+        self._pop: list[dict] = []
+
+    def ask(self) -> list[dict]:
+        """Sample one generation of candidate gene dicts."""
+        pop = []
+        for _ in range(self.lam):
+            g = {}
+            for k in self.names:
+                lo, hi = self.bounds[k]
+                step = self.sigma * (self.diagC[k] ** 0.5) * self.rng.gauss(0.0, 1.0)
+                # scale step by range so sigma is range-relative
+                step *= (hi - lo)
+                g[k] = max(lo, min(hi, self.mean[k] + step))
+            pop.append(g)
+        with self._lock:
+            self._pop = pop
+        return list(pop)
+
+    def tell(self, fitnesses: list[float]) -> dict[str, Any]:
+        """Update distribution from fitnesses aligned with last ask() (higher = better)."""
+        import math as _m
+        with self._lock:
+            pop = list(self._pop)
+        if len(fitnesses) != len(pop):
+            return {"error": "fitnesses length must match ask() population"}
+        order = sorted(range(len(pop)), key=lambda i: fitnesses[i], reverse=True)
+        # track best
+        if fitnesses[order[0]] > self.best_fitness:
+            self.best_fitness = fitnesses[order[0]]
+            self.best_genes = dict(pop[order[0]])
+        # weighted mean shift (normalized coords)
+        old_mean = dict(self.mean)
+        for k in self.names:
+            lo, hi = self.bounds[k]
+            rng = (hi - lo) or 1.0
+            shift = sum(self.weights[r] * (pop[order[r]][k] - old_mean[k]) / rng
+                        for r in range(self.mu))
+            self.mean[k] = old_mean[k] + shift
+            lo2, hi2 = self.bounds[k]
+            self.mean[k] = max(lo2, min(hi2, self.mean[k]))
+        # evolution paths + diagonal covariance + step-size (CSA)
+        for k in self.names:
+            lo, hi = self.bounds[k]
+            rng = (hi - lo) or 1.0
+            yw = sum(self.weights[r] * (pop[order[r]][k] - old_mean[k]) / rng
+                     for r in range(self.mu)) / max(self.sigma, 1e-300)
+            self.ps[k] = (1.0 - self.cs) * self.ps[k] + ((self.cs * (2.0 - self.cs) * self.mueff) ** 0.5) * yw
+            hs = 1.0  # diagonal variant skips hsig stall logic
+            self.pc[k] = (1.0 - self.cc) * self.pc[k] + hs * ((self.cc * (2.0 - self.cc) * self.mueff) ** 0.5) * yw
+            # rank-one + rank-mu on the diagonal only
+            rank1 = self.pc[k] ** 2
+            rankmu = sum(self.weights[r] * ((pop[order[r]][k] - old_mean[k]) / rng / max(self.sigma, 1e-300)) ** 2
+                         for r in range(self.mu))
+            self.diagC[k] = max(1e-8, (1.0 - self.c1 - self.cmu) * self.diagC[k]
+                                + self.c1 * rank1 + self.cmu * rankmu)
+        ps_norm = sum(v * v for v in self.ps.values()) ** 0.5
+        chiN = self.n ** 0.5 * (1.0 - 1.0 / (4.0 * self.n) + 1.0 / (21.0 * self.n ** 2))
+        self.sigma *= _m.exp((self.cs / self.damps) * (ps_norm / max(chiN, 1e-12) - 1.0))
+        # clamp sigma to 1e-4..1.0 of mean range
+        mean_range = sum(hi - lo for lo, hi in self.bounds.values()) / self.n or 1.0
+        self.sigma = max(mean_range * 1e-6, min(mean_range * 1.0, self.sigma))
+        self.counteval += self.lam
+        return {"best_fitness": self.best_fitness, "sigma": self.sigma,
+                "evals": self.counteval, "generation_best": fitnesses[order[0]]}
+
+    def optimize(self, fitness_fn, generations: int = 20,
+                 workers: int = 1) -> dict[str, Any]:
+        """Maximize fitness_fn(genes_dict). Returns best + history."""
+        import concurrent.futures as _cf
+        history = []
+        for _ in range(generations):
+            pop = self.ask()
+
+            def _one(g):
+                try:
+                    return float(fitness_fn(g))
+                except Exception:
+                    return 0.0
+
+            if workers > 1:
+                with _cf.ThreadPoolExecutor(max_workers=workers) as pool:
+                    fits = list(pool.map(_one, pop))
+            else:
+                fits = [_one(g) for g in pop]
+            stat = self.tell(fits)
+            history.append({"best": self.best_fitness, **stat})
+        return {"best_genes": dict(self.best_genes or self.mean),
+                "best_fitness": self.best_fitness,
+                "evals": self.counteval, "history": history}
+
+
+class DifferentialEvolution:
+    """DE/rand/1/bin for continuous bounded spaces. Simpler than CMA-ES,
+    consistently beats vanilla GA on continuous benchmarks (audit item P0)."""
+
+    VERSION = "2.0.0"
+
+    def __init__(self, gene_bounds: dict[str, tuple[float, float]],
+                 popsize: int = 15, F: float = 0.7, CR: float = 0.9,
+                 seed_genes: (dict | None) = None):
+        self._lock = threading.Lock()
+        self.names = list(gene_bounds.keys())
+        self.bounds = {k: (float(v[0]), float(v[1])) for k, v in gene_bounds.items()}
+        self.popsize = max(4, popsize)
+        self.F = F
+        self.CR = CR
+        self.pop: list[dict] = []
+        self.fit: list[float] = []
+        for _ in range(self.popsize):
+            g = {}
+            for k in self.names:
+                lo, hi = self.bounds[k]
+                g[k] = float(seed_genes[k]) if seed_genes and k in seed_genes and random.random() < 0.2 \
+                    else random.uniform(lo, hi)
+            self.pop.append(g)
+            self.fit.append(float("-inf"))
+        self.best_idx = 0
+
+    def _mutate_cross(self, i: int) -> dict:
+        idxs = list(range(len(self.pop)))
+        idxs.remove(i)
+        a, b, c = random.sample(idxs, 3)
+        j_rand = random.randrange(len(self.names))
+        trial = {}
+        for j, k in enumerate(self.names):
+            lo, hi = self.bounds[k]
+            if random.random() < self.CR or j == j_rand:
+                v = self.pop[a][k] + self.F * (self.pop[b][k] - self.pop[c][k])
+                trial[k] = max(lo, min(hi, v))
+            else:
+                trial[k] = self.pop[i][k]
+        return trial
+
+    def optimize(self, fitness_fn, generations: int = 30) -> dict[str, Any]:
+        def _one(g):
+            try:
+                return float(fitness_fn(g))
+            except Exception:
+                return 0.0
+        for i, g in enumerate(self.pop):
+            if self.fit[i] == float("-inf"):
+                self.fit[i] = _one(g)
+        history = []
+        for _ in range(generations):
+            for i in range(len(self.pop)):
+                trial = self._mutate_cross(i)
+                f = _one(trial)
+                if f >= self.fit[i]:
+                    with self._lock:
+                        self.pop[i] = trial
+                        self.fit[i] = f
+            self.best_idx = max(range(len(self.fit)), key=lambda i: self.fit[i])
+            history.append({"best": self.fit[self.best_idx]})
+        return {"best_genes": dict(self.pop[self.best_idx]),
+                "best_fitness": self.fit[self.best_idx], "history": history}
+
+
+@register_worm(
+    category="learning", priority=6, cooldown_seconds=120.0,
+    description="MAP-Elites — quality-diversity archive preventing fixed-point stagnation"
+)
+class MAPElites:
+    """MAP-Elites quality-diversity archive (audit item P1).
+
+    behavior_fn(genes) -> tuple[float,...] maps a genome to a behavior
+    descriptor; the archive keeps the fittest genome per grid cell.
+    Fixes the D-2 failure class (identical-champion stalls): even when one
+    cell dominates fitness, other cells preserve stepping stones.
+    """
+
+    VERSION = "2.0.0"
+
+    def __init__(self, behavior_dims: list[tuple[str, int, float, float]],
+                 gene_bounds: (dict | None) = None):
+        self._lock = threading.Lock()
+        self.dims = [(n, int(b), float(lo), float(hi)) for n, b, lo, hi in behavior_dims]
+        self.gene_bounds = dict(gene_bounds or {})
+        self.archive: dict[tuple, dict] = {}  # cell -> {"genes","fitness","behavior"}
+
+    def cell_of(self, behavior: tuple) -> tuple:
+        cell = []
+        for ( _n, bins, lo, hi), b in zip(self.dims, behavior):
+            b = max(lo, min(hi, float(b)))
+            idx = min(bins - 1, int((b - lo) / (hi - lo or 1.0) * bins))
+            cell.append(idx)
+        return tuple(cell)
+
+    def add(self, genes: dict, fitness: float, behavior: tuple) -> bool:
+        """Insert; True if cell was empty or improved."""
+        cell = self.cell_of(behavior)
+        with self._lock:
+            cur = self.archive.get(cell)
+            if cur is None or float(fitness) > float(cur["fitness"]):
+                self.archive[cell] = {"genes": dict(genes), "fitness": float(fitness),
+                                      "behavior": tuple(behavior)}
+                return True
+            return False
+
+    def suggest(self) -> dict:
+        """Random elite + Gaussian perturb, or uniform when empty/unbounded."""
+        with self._lock:
+            elites = list(self.archive.values())
+        if not elites or not self.gene_bounds:
+            if not self.gene_bounds:
+                return {}
+            return {k: random.uniform(float(v[0]), float(v[1]))
+                    for k, v in self.gene_bounds.items()}
+        e = random.choice(elites)
+        out = {}
+        for k, v in e["genes"].items():
+            if k in self.gene_bounds and isinstance(v, (int, float)) and not isinstance(v, bool):
+                lo, hi = float(self.gene_bounds[k][0]), float(self.gene_bounds[k][1])
+                out[k] = max(lo, min(hi, random.gauss(float(v), 0.1 * (hi - lo))))
+            else:
+                out[k] = v
+        return out
+
+    def stats(self) -> dict[str, Any]:
+        with self._lock:
+            cells = list(self.archive.values())
+        total = 1
+        for (_n, b, _l, _h) in self.dims:
+            total *= b
+        fits = [c["fitness"] for c in cells]
+        return {"filled": len(cells), "total_cells": total,
+                "coverage": (len(cells) / total) if total else 0.0,
+                "qd_score": sum(fits) if fits else 0.0,
+                "best": max(fits) if fits else 0.0}
+
+
+class TPESurrogate:
+    """Tree-structured Parzen Estimator lite (audit item P2, sample efficiency).
+
+    Stdlib-only EI proxy: split observations into good/bad by gamma
+    quantile, sample candidates around good points, score by
+    (dist-to-bad − dist-to-good) in normalized gene space. Suggests where
+    a full 80-ep × 3-salt eval is worth spending.
+    """
+
+    VERSION = "2.0.0"
+
+    def __init__(self, gene_bounds: dict[str, tuple[float, float]],
+                 gamma: float = 0.25, candidates: int = 24):
+        self._lock = threading.Lock()
+        self.bounds = {k: (float(v[0]), float(v[1])) for k, v in gene_bounds.items()}
+        self.names = list(self.bounds.keys())
+        self.gamma = gamma
+        self.candidates = candidates
+        self.obs: list[tuple[dict, float]] = []
+
+    def observe(self, genes: dict, fitness: float) -> None:
+        with self._lock:
+            self.obs.append((dict(genes), float(fitness)))
+
+    def _norm(self, genes: dict) -> list[float]:
+        v = []
+        for k in self.names:
+            lo, hi = self.bounds[k]
+            rng = (hi - lo) or 1.0
+            try:
+                v.append((float(genes.get(k, lo)) - lo) / rng)
+            except (TypeError, ValueError):
+                v.append(0.0)
+        return v
+
+    def suggest(self) -> dict:
+        with self._lock:
+            obs = list(self.obs)
+        if len(obs) < 8:
+            return {k: random.uniform(lo, hi) for k, (lo, hi) in self.bounds.items()}
+        ranked = sorted(obs, key=lambda o: o[1], reverse=True)
+        n_good = max(2, int(len(ranked) * self.gamma))
+        good = [self._norm(g) for g, _f in ranked[:n_good]]
+        bad = [self._norm(g) for g, _f in ranked[n_good:]] or good
+        best, best_s = None, None
+        for _ in range(self.candidates):
+            if random.random() < 0.8 and good:
+                base = random.choice(good)
+                cand = [min(1.0, max(0.0, x + random.gauss(0, 0.15))) for x in base]
+            else:
+                cand = [random.random() for _ in self.names]
+            dg = min(sum((c - g) ** 2 for c, g in zip(cand, gp)) ** 0.5 for gp in good)
+            db = min(sum((c - b) ** 2 for c, b in zip(cand, bp)) ** 0.5 for bp in bad)
+            score = db - dg
+            if best_s is None or score > best_s:
+                best_s, best = score, cand
+        return {k: lo + c * (hi - lo) for k, c, (lo, hi) in
+                zip(self.names, best, [self.bounds[k] for k in self.names])}
+
+
+# -- v2.0 many-objective + metrics + islands (audit items P1/P2) --------
+
+def generate_reference_points(n_obj: int, p: int = 4) -> list[tuple]:
+    """Das-Dennis reference points on the unit simplex (NSGA-III)."""
+    pts: list[tuple] = []
+
+    def _rec(lo: int, left: int, cur: list):
+        if lo == n_obj - 1:
+            pts.append(tuple(cur + [left / p]))
+            return
+        for v in range(left + 1):
+            _rec(lo + 1, left - v, cur + [v / p])
+
+    _rec(0, p, [])
+    return pts
+
+
+def hypervolume_2d(pareto_pts: list[tuple[float, float]],
+                   ref: tuple[float, float]) -> float:
+    """Hypervolume for 2-obj minimization front. Larger = better."""
+    pts = sorted(((min(x, ref[0]), min(y, ref[1])) for x, y in pareto_pts))
+    hv, prev_y = 0.0, ref[1]
+    for x, y in pts:
+        if y < prev_y:
+            hv += (ref[0] - x) * (prev_y - y)
+            prev_y = y
+    return max(0.0, hv)
+
+
+def moead_weights(pop_size: int, n_obj: int) -> list[tuple]:
+    """Uniform simplex weights for MOEA/D (Tchebycheff). Falls back to
+    Dirichlet-ish random weights when Das-Dennis under/overshoots."""
+    import math as _m
+    p = 1
+    while True:
+        pts = generate_reference_points(n_obj, p)
+        if len(pts) >= pop_size:
+            return pts[:pop_size]
+        if p > 12:
+            return [(random.random(), 1.0 - random.random())[:n_obj]
+                    if n_obj == 2 else
+                    tuple(random.random() for _ in range(n_obj))
+                    for _ in range(pop_size)]
+        p += 1
+
+
+def tchebycheff(values: list[float], weight: tuple, ideal: list[float]) -> float:
+    """Tchebycheff scalarization (minimize)."""
+    return max(w * abs(v - z) for w, v, z in zip(weight, values, ideal))
+
+
+class IslandModel:
+    """Archipelago parallel GA (audit item P2): N EvolutionEngine islands
+    with ring migration. Eval stays parallel per island; search becomes
+    parallel across islands — the topology free-threading was missing."""
+
+    VERSION = "2.0.0"
+
+    def __init__(self, n_islands: int = 4, population_size: int = 24,
+                 gene_bounds: (dict | None) = None,
+                 migration_interval: int = 3, migration_size: int = 2,
+                 engine_kwargs: (dict | None) = None):
+        self._lock = threading.Lock()
+        self.islands: list[EvolutionEngine] = []
+        kw = dict(engine_kwargs or {})
+        kw.setdefault("memory_store", "none")
+        for _ in range(max(1, n_islands)):
+            e = EvolutionEngine(population_size=population_size, **kw)
+            if gene_bounds:
+                e.initialize_population(dict(gene_bounds))
+            self.islands.append(e)
+        self.migration_interval = migration_interval
+        self.migration_size = migration_size
+        self._gen = 0
+
+    def step(self, fitness_fn, workers: int = 1) -> dict[str, Any]:
+        """One generation on every island + periodic ring migration."""
+        import concurrent.futures as _cf
+        with _cf.ThreadPoolExecutor(max_workers=len(self.islands),
+                                     thread_name_prefix="island") as pool:
+            def _one(e: EvolutionEngine):
+                e.evaluate_population(fitness_fn, use_curative=False, workers=workers)
+                return e.evolve()
+            list(pool.map(_one, self.islands))
+        self._gen += 1
+        migrated = 0
+        if self._gen % self.migration_interval == 0:
+            n = len(self.islands)
+            # snapshot emigrants first so migration is order-independent
+            emigrants = []
+            for e in self.islands:
+                with e._lock:
+                    emigrants.append(sorted(e._population, key=lambda g: -g.fitness)
+                                     [:self.migration_size])
+            for i, e in enumerate(self.islands):
+                incoming = emigrants[(i - 1) % n]
+                with e._lock:
+                    # replace worst with incoming copies (fresh IDs, no fitness leak)
+                    e._population.sort(key=lambda g: g.fitness)
+                    for k, g in enumerate(incoming):
+                        if k < len(e._population):
+                            e._population[k] = Genome(genes=dict(g.genes),
+                                                      generation=self._gen,
+                                                      parent_ids=[g.id])
+                            migrated += 1
+        best = self.best_overall()
+        return {"generation": self._gen, "migrated": migrated,
+                "best_fitness": best.fitness if best else 0.0,
+                "islands": len(self.islands)}
+
+    def best_overall(self):
+        best = None
+        for e in self.islands:
+            b = e.get_best_genome()
+            if b is not None and (best is None or b.fitness > best.fitness):
+                best = b
+        return best
+
+    def optimize(self, fitness_fn, generations: int = 10,
+                 workers: int = 1) -> dict[str, Any]:
+        hist = []
+        for _ in range(generations):
+            hist.append(self.step(fitness_fn, workers=workers))
+        best = self.best_overall()
+        return {"best_genes": dict(best.genes) if best else {},
+                "best_fitness": best.fitness if best else 0.0,
+                "history": hist}

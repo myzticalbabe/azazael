@@ -101,3 +101,93 @@ class TestTerenceVerify:
                 _os.remove(str(p) + ".terence.lock")
             except OSError:
                 pass
+
+
+class TestTerenceSelfGuard:
+    """Regression tests for the 2026-09-11 self-corruption incident.
+
+    TERENCE's training pass scanned its own rule table. Because several rule
+    DESCRIPTIONS embed the pattern they detect (e.g. "== None"), it rewrote
+    its own metadata: the None rule's description became "Use 'is None'
+    instead of 'is None'", the assertEquals pattern dropped its 's', and the
+    list(d.keys()) rule was shortened. These tests fail if TERENCE can ever
+    edit its own package again, and pin the repaired rule fields in place.
+    """
+
+    def _module(self):
+        import importlib.util
+        path = os.path.join(os.path.dirname(__file__), '..', 'src',
+                            'UTILITIES', 'TERENCE', 'TERENCE.py')
+        spec = importlib.util.spec_from_file_location('terence_selfguard',
+                                                      path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def test_self_dir_is_own_package(self):
+        import pathlib
+        t = self._module().TERENCE()
+        assert t.SELF_DIR.name == 'TERENCE'
+        assert t._is_self(pathlib.Path(str(t.SELF_DIR), 'TERENCE.py'))
+        assert t._is_self(pathlib.Path(str(t.SELF_DIR), 'terence_enhanced.py'))
+
+    def test_sibling_package_is_not_self(self):
+        t = self._module().TERENCE()
+        assert not t._is_self(os.path.join('src', 'CORE', 'local_memory.py'))
+
+    def test_scan_file_refuses_own_source(self):
+        """The exact regression: scanning TERENCE.py must yield no fixes."""
+        import pathlib
+        t = self._module().TERENCE()
+        assert t._scan_file(pathlib.Path(str(t.SELF_DIR), 'TERENCE.py')) == []
+
+    def test_no_file_in_own_package_yields_fixes(self):
+        """Every module in TERENCE's package must scan clean.
+
+        Equivalent to the full-scan guarantee without sweeping the repo:
+        the loop in scan() can only add fixes that _scan_file produced, and
+        this asserts that function produces none for any sibling module.
+        """
+        import pathlib
+        t = self._module().TERENCE()
+        own = list(pathlib.Path(str(t.SELF_DIR)).rglob('*.py'))
+        assert own, 'expected to find TERENCE source files'
+        offenders = {str(p): t._scan_file(p) for p in own}
+        assert all(v == [] for v in offenders.values()), offenders
+
+    def test_apply_refuses_own_source(self):
+        mod = self._module()
+        t = mod.TERENCE()
+        fix = mod.Fix(os.path.join(str(t.SELF_DIR), 'TERENCE.py'), 1,
+                      'Use modern unittest methods', 'assertEquals',
+                      'assertEqual', 'test')
+        ok, reason = t._apply_verified(fix)
+        assert not ok and 'own package' in reason
+
+    def test_corrupted_rule_fields_are_repaired(self):
+        t = self._module().TERENCE()
+        by_desc = {r['desc']: r for r in t.FIXES}
+        assert "Use 'is None' instead of '== None'" in by_desc
+        assert "Use 'is not None' instead of '!= None'" in by_desc
+        assert by_desc['Simplify list(d.keys())']['match'] == 'list(d.keys())'
+        assert by_desc['Use modern unittest methods']['pattern'] == \
+            r'assertEquals|assert_'
+        # no rule description may claim to replace a thing with itself
+        for desc in by_desc:
+            head, _, tail = desc.partition('instead of ')
+            assert not tail or head.replace('Use ', '') != tail, desc
+
+    def test_substitution_and_unsafe_keys_exist(self):
+        T = self._module().TERENCE
+        descs = {r['desc'] for r in T().FIXES}
+        assert set(T.RULE_SUBSTITUTIONS) <= descs
+        assert set(T.UNSAFE_RULES) <= descs
+
+    def test_none_rule_never_inverts_negation(self):
+        import re
+        T = self._module().TERENCE
+        pattern, repl = T.RULE_SUBSTITUTIONS[
+            "Use 'is None' instead of '== None'"]
+        assert re.sub(pattern, repl, 'x == None') == 'x is None'
+        # the negated form must be left untouched by this rule
+        assert re.sub(pattern, repl, 'x != None') == 'x != None'
