@@ -28,6 +28,7 @@ for _p in (_project_root, os.path.join(_project_root, "scripts"),
 
 import live_monitor as az            # noqa: E402
 import exmachina_live_monitor as ex  # noqa: E402
+import exmachina_health_alert as alert  # noqa: E402
 
 _SCRIPTS = os.path.join(_project_root, "scripts")
 _ANSI = re.compile("\x1b\\[[0-9;]*m")
@@ -107,6 +108,42 @@ class TestPanelHasItsOwnMonitor(unittest.TestCase):
             con.close()
         self.assertNotIn("EX MACHINA", frame.upper(),
                          "the Azazael wallboard is rendering the Ex Machina panel")
+
+
+class TestScheduledHealthAlert(unittest.TestCase):
+
+    def test_degradation_alerts_once_on_the_transition(self):
+        import json
+        import tempfile
+        original = alert.mon.health_check
+        alert.mon.health_check = lambda: (False, "tier unavailable")
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                sj = os.path.join(d, "health.json")
+                lg = os.path.join(d, "alerts.log")
+                alert.run(quiet=True, state_json=sj, alert_log=lg)
+                alert.run(quiet=True, state_json=sj, alert_log=lg)  # still down
+                with open(sj, encoding="utf-8") as f:
+                    self.assertFalse(json.load(f)["ok"])
+                with open(lg, encoding="utf-8") as f:
+                    lines = [ln for ln in f.read().splitlines() if ln.strip()]
+        finally:
+            alert.mon.health_check = original
+        self.assertEqual(len(lines), 1,
+                         "a persistent fault must alert once, not every run")
+
+    def test_healthy_run_writes_state_and_no_alert(self):
+        import json
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            sj = os.path.join(d, "health.json")
+            lg = os.path.join(d, "alerts.log")
+            ok, msg = alert.run(quiet=True, state_json=sj, alert_log=lg)
+            self.assertTrue(ok, msg)
+            with open(sj, encoding="utf-8") as f:
+                self.assertTrue(json.load(f)["ok"])
+            self.assertFalse(os.path.exists(lg),
+                             "a healthy run must not write an alert")
 
 
 if __name__ == "__main__":
