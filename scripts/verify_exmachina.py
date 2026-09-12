@@ -337,10 +337,36 @@ check("inert trials detected", _mg.get("inert_trials") == 8, str(_mg.get("inert_
 check("never-enabled gene flagged", _mg.get("never_enabled") == ["use_schema_features"])
 check("free growth flagged", _mg.get("verdict") == "free growth", str(_mg.get("free_growth")))
 
-_on = [_mrow("by_session", True, (1.0 if i % 2 else -1.0), i) for i in range(8)]
+# A switch whose ON is a real change: `use_schema_features` defaults to False
+# in the trainer, so True is a treatment.
+_on = [_mrow("use_schema_features", True, (1.0 if i % 2 else -1.0), i)
+       for i in range(8)]
 _mo = ex.mutagenesis(_on)
 check("no false alarm with the gene on", _mo.get("verdict") == "selection active",
       str(_mo.get("free_growth")))
+
+# Default-aware inertness (2026-09-12, producer fix). `by_session` defaults to
+# **True**: a `by_session=True` trial calls the trainer exactly as production
+# does, so its margin belongs to the search. A naive on/off reading calls that
+# trial a real treatment and credits the gene for it.
+_dflt = [_mrow("by_session", True, 1.0, i) for i in range(8)]
+_md = ex.mutagenesis(_dflt)
+check("default-valued trial is inert", _md.get("inert_trials") == 8,
+      "inert_share=%s resolver=%s" % (_md.get("inert_share"),
+                                      _md.get("inert_resolver")))
+check("default-valued gene flagged", _md.get("never_enabled") == ["by_session"])
+# The tier must say which rule it used: the producer's, or its own mirror. A
+# silent fallback to the mirror is how a tier and its producer drift apart.
+check("inert resolver reports its path",
+      _md.get("inert_resolver") in ("producer", "defaults-mirror"),
+      str(_md.get("inert_resolver")))
+# The ledger's own verdict outranks the mirror: the producer owns the trainer's
+# signature, and this is the one case the mirror cannot check by itself.
+_stamped = [dict(_mrow("by_session", True, 1.0, i), inert=True) for i in range(8)]
+check("recorded verdict is authoritative",
+      ex.mutagenesis(_stamped).get("inert_trials") == 8)
+check("stamp and mirror agree on real rows",
+      ex.mutagenesis(_dflt).get("inert_disagreements") == 0)
 check("absent ledger is not calm", ex.mutagenesis(None).get("free_growth") is None)
 check("mutagenesis not a signal without a ledger",
       "mutagenesis" not in rep["signals"])

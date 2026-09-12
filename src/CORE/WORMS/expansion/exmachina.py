@@ -1515,6 +1515,18 @@ def causal_emergence(micro_states: Iterable[int], n_bits: int = 4,
 # is locked to the producer by a test so the two cannot drift apart in silence.
 _MORPH_SWITCH_AT = 0.5
 
+# Mirror of `proteus_hooks.MORPH_TRAINER_DEFAULTS`, for the same reason: the
+# tier must load as a bare directory, so it cannot import the producer just to
+# read two booleans. These are the trainer's OWN defaults
+# (`RLTrainLoop.train_from_memory`), and the inert question is "did the trial
+# change what the trainer was called with?" — a trial that resolves to the
+# default did not, so its margin belongs to the search. Locked to the producer
+# by `test_morph_defaults_mirror_the_producer`.
+_MORPH_TRAINER_DEFAULTS: Dict[str, bool] = {
+    "use_schema_features": False,
+    "by_session": True,
+}
+
 
 def _switch_resolver() -> Tuple[Any, str]:
     """(resolve, how): resolve a morph gene the way the TRAINER will.
@@ -1556,6 +1568,53 @@ def _switch_resolver() -> Tuple[Any, str]:
         except (TypeError, ValueError):
             return None
     return _mirror, "threshold:%s" % _MORPH_SWITCH_AT
+
+
+def _inert_resolver(resolve: Any) -> Tuple[Any, str]:
+    """(inert?, how): did this trial change what the trainer was called with?
+
+    Returns a predicate `(gene_name, raw_value) -> Optional[bool]`, where `None`
+    is UNKNOWN and must not be scored as inert. Prefers the producer's own
+    `morph_is_inert`; falls back to the mirrored defaults. The producer is the
+    authority because it owns the trainer's signature — the mirror exists only
+    so the tier can run standalone, and reports which it used.
+    """
+    producer = None
+    try:
+        from proteus_hooks import morph_is_inert as producer        # type: ignore
+    except Exception:
+        try:
+            from .proteus_hooks import morph_is_inert as producer   # type: ignore
+        except Exception:
+            producer = None
+    if producer is None:
+        _mod = sys.modules.get("CORE.WORMS.expansion.proteus_hooks")
+        if _mod is not None:
+            producer = getattr(_mod, "morph_is_inert", None)
+
+    if producer is not None:
+        def _from_producer(name: str, raw: Any) -> Optional[bool]:
+            # A name that is not a candidate at all is UNCLASSIFIABLE, not
+            # "changed". The producer answers False there (it refuses to claim
+            # inert without a known default), which is right for the producer
+            # and wrong here: scoring it False would count a mystery gene as a
+            # measured treatment.
+            if name not in _MORPH_TRAINER_DEFAULTS:
+                return None
+            try:
+                return bool(producer(name, {name: raw}))
+            except Exception:
+                return None
+        return _from_producer, "producer"
+
+    def _mirror_inert(name: str, raw: Any) -> Optional[bool]:
+        if name not in _MORPH_TRAINER_DEFAULTS:
+            return None
+        eff = resolve(name, raw)
+        if eff is None:
+            return None
+        return bool(eff) == bool(_MORPH_TRAINER_DEFAULTS[name])
+    return _mirror_inert, "defaults-mirror"
 
 
 def _comb(n: int, k: int) -> int:
@@ -1633,7 +1692,7 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
             dim = int(r.get("dimension") or 0)
         except (TypeError, ValueError):
             dim = 0
-        trials.append((r.get("gene"), raw, delta, dim))
+        trials.append((r.get("gene"), raw, delta, dim, r))
 
     out: Dict[str, Any] = {"n": len(trials)}
     if len(trials) < max(1, int(min_trials)):
@@ -1645,56 +1704,83 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
 
     resolve, how = _switch_resolver()
     out["resolver"] = how
+    inert_of, inert_how = _inert_resolver(resolve)
+    out["inert_resolver"] = inert_how
 
-    retained = sum(1 for _g, _r, d, _dim in trials if d > 0.0)
+    retained = sum(1 for _g, _r, d, _dim, _row in trials if d > 0.0)
     out["trials"] = len(trials)
     out["retained"] = retained
     out["retention"] = round(retained / float(len(trials)), 4)
-    out["dims"] = sorted({dim for _g, _r, _d, dim in trials})
+    out["dims"] = sorted({dim for _g, _r, _d, dim, _row in trials})
 
     inert: List[float] = []
     by_gene: Dict[str, Dict[str, Any]] = {}
-    for gene, raw, delta, _dim in trials:
+    flagged = 0
+    disagree = 0
+    for gene, raw, delta, _dim, row in trials:
         g = str(gene or "?")
         rec = by_gene.setdefault(g, {"n": 0, "retained": 0, "inert": 0,
                                      "unknown": 0, "inert_delta": [],
-                                     "on_delta": [], "off_delta": []})
+                                     "changed_delta": [], "changed": 0})
         rec["n"] += 1
         if delta > 0.0:
             rec["retained"] += 1
-        eff = resolve(g, raw)
-        if eff is None:
-            # Unresolvable is NOT inert: absence of evidence is not evidence.
+        # The ledger's own verdict wins where it carries one: the producer owns
+        # the trainer's signature, so its `inert` stamp is the authority. Only
+        # rows written before that stamp existed are re-derived here.
+        stamped = row.get("inert") if isinstance(row, dict) else None
+        derived = inert_of(g, raw)
+        if isinstance(stamped, bool) and derived is not None \
+                and bool(stamped) != bool(derived):
+            disagree += 1
+        is_inert = bool(stamped) if isinstance(stamped, bool) else derived
+        if isinstance(stamped, bool):
+            flagged += 1
+        if is_inert is None:
+            # Unknown is NOT inert: absence of evidence is not evidence.
             rec["unknown"] += 1
-        elif bool(eff):
-            rec["on_delta"].append(delta)
-        else:
+        elif is_inert:
             rec["inert"] += 1
             rec["inert_delta"].append(delta)
             inert.append(delta)
+        else:
+            rec["changed"] += 1
+            rec["changed_delta"].append(delta)
 
     genes_out: List[Dict[str, Any]] = []
     for g, rec in sorted(by_gene.items()):
-        idl, on, off = rec["inert_delta"], rec["on_delta"], rec["off_delta"]
-        base = off or idl
+        idl, ch = rec["inert_delta"], rec["changed_delta"]
         ve = None
-        if on and base:
-            ve = round((sum(on) / len(on)) - (sum(base) / len(base)), 4)
+        if ch and idl:
+            # Trials that MOVED the trainer call minus trials that left it at
+            # the default. That difference is the gene's value where a plain
+            # on-vs-off split would not be: `by_session`'s default is True, so
+            # "on" is the no-op and "off" is the treatment.
+            ve = round((sum(ch) / len(ch)) - (sum(idl) / len(idl)), 4)
         genes_out.append({
             "gene": g,
             "n": rec["n"],
             "retained": rec["retained"],
             "inert": rec["inert"],
             "unknown": rec["unknown"],
+            "changed": rec["changed"],
             "inert_share": round(rec["inert"] / float(rec["n"]), 4) if rec["n"] else None,
             "inert_gain": None if not idl else round(sum(idl) / len(idl), 4),
             "value_effect": ve,
-            # The strongest form: EVERY resolvable trial had this gene off, so
-            # the ledger never once tested what the gene does.
-            "never_enabled": bool(rec["n"] and rec["inert"] == rec["n"]),
+            # The strongest form: EVERY resolvable trial left the trainer call
+            # at its default, so the ledger never once tested what the gene
+            # does. `never_enabled` is kept as the name the panel and the
+            # earlier write-up used.
+            "never_changed": bool(rec["n"] and rec["changed"] == 0),
+            "never_enabled": bool(rec["n"] and rec["changed"] == 0),
         })
     out["genes"] = genes_out
-    out["never_enabled"] = sorted(g["gene"] for g in genes_out if g["never_enabled"])
+    out["never_enabled"] = sorted(g["gene"] for g in genes_out if g["never_changed"])
+    # Agreement between the producer's stamp and this tier's own rule. A
+    # non-zero count here means the two have drifted, which is the one failure
+    # the mirror cannot detect by itself.
+    out["flagged_rows"] = flagged
+    out["inert_disagreements"] = disagree
 
     pos = sum(1 for d in inert if d > 0.0)
     out["inert_trials"] = len(inert)

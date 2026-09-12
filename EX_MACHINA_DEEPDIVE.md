@@ -74,6 +74,46 @@ Meanwhile `state/tensor_genome.json` reads the *same* gene the other way round:
 `use_schema_features |rho| = 0.3347` — the most "useful" gene in the genome. The tier now holds
 two artifacts that contradict each other about the same coordinate, and nothing compared them.
 
+### 2b. Correction, same day: inert is "left at the trainer's default", not "off"
+
+The reading above resolved the switch with `_as_bool` and called everything that came back
+`False` inert. That is one step short. A trial is only a treatment if it changes what the
+trainer is CALLED WITH, and `RLTrainLoop.train_from_memory` already has defaults —
+`use_schema_features=False`, **`by_session=True`** (`learning_rl.py:302-303`). So for
+`by_session` it is the *True* trials that are the no-ops, and the first reading counted every
+one of them as a real treatment.
+
+The rule is now per-gene and data-driven (`proteus_hooks.MORPH_TRAINER_DEFAULTS`, pinned to the
+trainer's own signature by `test_morph_defaults_mirror_the_trainers_own_signature`). Re-measured
+on the 69-row ledger:
+
+```
+rows 69   retained 68/69 (0.9855)      dF mean +0.9133  sd 0.6043
+P(>=68 of 69 | no selection) = 1.2e-19
+
+producer-flagged inert rows   52/69 (75.4%)   mean dF +0.8858  52/52 positive  P=2.2e-16
+  use_schema_features  35 trials   35 inert    0 changed   dF +0.904   NEVER TREATED
+  by_session           34 trials   17 inert   17 changed   dF +0.848   value_effect +0.149
+```
+
+The `by_session` line is the one that changed, and it is the interesting one: half its trials
+matched its default and are unattributable, the other half did move the call — so `by_session` is
+the only gene in this ledger whose value has actually been tested, and the differential across
+trials that moved it is **+0.149**, against a per-row dF of ~+0.9 for the trials that did not.
+`use_schema_features` is not merely inert, it is **never treated**: 35 trials, 0 of which changed
+the trainer call.
+
+The producer now records this instead of leaving it to a reader. `morph_record` stamps every row
+with `applied` (the kwargs the trainer actually received) and `inert`, and
+`morph_dimension_summary` re-derives the flag for rows written before the stamp existed — so the
+correction applies retroactively rather than only to future cycles. Its verdict also changed shape:
+where it used to read every row and report a `best` per gene, it now computes only from EFFECTIVE
+trials and reports `tested: False` with
+`"no informative trial: every row resolved to the trainer default"` when there are none. Before
+this, the summary presented `use_schema_features` as a 30/30 winner.
+
+`free_growth` on this data is **0.7536** (was 0.7627 on the 59 rows).
+
 ## 3. The genomics mapping — used, not decorative
 
 The organ is named for biological mutagenesis because the mapping is exact, not because it
@@ -82,7 +122,7 @@ sounds well.
 | Genomics | Here |
 |---|---|
 | **dN/dS (omega)** — nonsynonymous vs synonymous substitution rates; >1 positive selection, <1 purifying, ~1 neutral drift | structural retention (a gene's *existence/kind* changes) vs the value-level differential within a gene. Structural retention 0.983 with a value differential of **-0.084** is the "elevated dN/dS with no adaptive signal" case — apparent positive selection that is an artifact |
-| **provably inert allele** | a trial whose gene resolves OFF: behaviourally identical to the baseline arm, so any dF is unattributable |
+| **provably inert allele** | a trial whose gene resolves to the trainer's own DEFAULT: the trainer is called exactly as production calls it, so any dF is unattributable (for `by_session`, default **True**, that is the *on* value — inert is not the same as off) |
 | **genetic load** — the fitness burden of deleterious alleles a population carries | `1 - mean(|rho|)/max(|rho|)` over the tensor genome = **0.3924**, with `learning_rate` (0.145) and `epsilon` (0.0365) below the 0.15 floor and `epsilon` carried for 297 samples |
 | **mutational spectrum** — which mutation *types* a system actually suffers | `scripts/mutate.py`'s five AST operators. **Not recorded per-operator**, so the spectrum is not measurable today (see §6) |
 
@@ -99,19 +139,34 @@ raises, mirrors the tier's contract. It reports:
 ```
 trials, retained, retention          the selection rate, with the binomial that says
                                      whether it is distinguishable from no selection
-inert_trials, inert_share            trials whose gene resolved OFF
+inert_trials, inert_share            trials that left the trainer call at its default
 inert_gain, inert_positive, inert_p  mean dF on those trials  <- THE claim
-value_effect[gene]                   mean dF(on) - mean dF(off); ~=0 means the value is inert
+value_effect[gene]                   mean dF(trials that MOVED the call) - mean dF(trials
+                                     that left it at the default); the default-aware form,
+                                     since for a default-True switch "on" is the no-op
+changed[gene]                        how many trials actually changed the call
+never_changed[gene]                  none did  <- the strong form, called out
 load_share, load_below               genetic load from the tensor genome
 tests: mutants, killed, score,       the test suite's own mutational evidence
        lower (Wilson 95%), age_h
 resolver                             "producer" | "threshold:0.5" | "none"  <- which
                                      resolution path was used, stated not assumed
+inert_resolver                       "producer" | "defaults-mirror"  <- which path decided
+                                     inertness, stated not assumed
+flagged_rows / inert_disagreements   rows whose recorded verdict was used, and rows where
+                                     the mirror disagreed with the producer's stamp
 free_growth                          the severity signal in [0,1]
 ```
 
 `free_growth = inert_share * (1 - min(1, p/0.05))`, i.e. the share of the ledger that is
-provably unattributable, discounted by how strong the evidence is. On today's data: **0.7627**.
+provably unattributable, discounted by how strong the evidence is. On today's data: **0.7536**.
+
+Where the ledger carries its own verdict the ORGAN BELIEVES IT rather than re-deriving it —
+the producer owns the trainer's signature, so re-deriving would be the mirror second-guessing
+the thing it mirrors. `inert_disagreements` counts the cases where the two differ, because that
+drift is the one failure the mirror cannot detect by itself. A row with an unknown gene name is
+neither inert nor treated: it is counted UNKNOWN, on the same "absence of evidence is not
+evidence" rule the rest of the tier follows.
 
 Two design rules are inherited deliberately:
 
@@ -127,8 +182,8 @@ Two design rules are inherited deliberately:
 
 ## 5. Signal and severity
 
-`SEVERITY_WEIGHTS["mutagenesis"] = 1.2` ("the genome grows on trials where the added gene was
-switched off"), placed just under `contradiction` (1.3) because it is the same class of claim —
+`SEVERITY_WEIGHTS["mutagenesis"] = 1.2` ("the genome grows on trials that never changed the
+trainer call"), placed just under `contradiction` (1.3) because it is the same class of claim —
 an improvement asserted with evidence that does not support it — asserted about the genome
 instead of about the margin. It does **not** duplicate BREVIS (description length) or TENSOR
 (per-gene association): those report what the genome *costs* and what it *correlates with*;
@@ -179,6 +234,21 @@ Recorded so they are not re-proposed.
   not about Morph in general.
 
 ## 8. Wiring
+
+**Producer-side fix (2026-09-12, `proteus_hooks.py` + `evolution_cycle.py`)** — recording the
+verdict is only half of it; the other half is that nothing may *credit* an inert trial going
+forward:
+
+* `MORPH_TRAINER_DEFAULTS` names the trainer's own defaults as data.
+* `morph_effective(gene, genes)` reports what the trainer is actually called with.
+* `morph_is_inert(gene, genes)` = "that call is production's call".
+* `morph_record` stamps `applied` + `inert` on every row it writes.
+* `morph_dimension_summary` computes by_gene / verdict from EFFECTIVE trials only, reports
+  `inert_rows` / `effective_rows` / `inert_share`, and marks a never-treated gene
+  `tested: False` with a note instead of a winner.
+* `evolution_cycle.py` logs `morph: trial <gene> was INERT - ...` at record time, which is the
+  one place anyone looks first: a null cycle must not read as a win in the cycle log.
+
 
 * `_ORGAN_ROWS` gains the 17th entry (`mutagen`); `organ_readings()` and `epistemic_report()`
   iterate the registry, so the panel needed no registry change.
