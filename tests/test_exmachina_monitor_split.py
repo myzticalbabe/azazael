@@ -66,14 +66,26 @@ class TestPanelHasItsOwnMonitor(unittest.TestCase):
                             "exmachina_live_monitor lost %s" % sym)
 
     def test_standalone_monitor_renders_the_panel_within_width(self):
-        width = 100
-        frame = ex.render(size=(width, 40))
+        cols = 100
+        frame = ex.render(size=(cols, 40))
         self.assertIn(_PANEL_TITLE, frame.upper(),
                       "standalone monitor did not render the panel")
         for line in frame.split("\n"):
-            self.assertLessEqual(
-                ex._vis_len(line), width,
-                "line wider than the window: %r" % _ANSI.sub("", line)[:70])
+            # strictly narrower than the window: a line that fills the last
+            # cell exactly can wrap and scroll the whole frame, which breaks
+            # the in-place refresh
+            self.assertLess(
+                ex._vis_len(line), cols,
+                "line fills or exceeds the window: %r" % _ANSI.sub("", line)[:70])
+
+    def test_standalone_frame_fits_the_launcher_window(self):
+        cols, rows = 118, 40          # open_exmachina_live_monitor.bat window
+        lines = ex.render(size=(cols, rows)).split("\n")
+        self.assertLessEqual(len(lines), rows - 1,
+                             "frame needs %d rows of %d" % (len(lines), rows))
+        for line in lines:
+            self.assertLess(ex._vis_len(line), cols,
+                            "line fills the window: %r" % _ANSI.sub("", line)[:70])
 
     def test_health_check_reports_the_tier(self):
         ok, msg = ex.health_check()
