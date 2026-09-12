@@ -79,6 +79,16 @@ class TestPanelHasItsOwnMonitor(unittest.TestCase):
                 ex._vis_len(line), cols,
                 "line fills or exceeds the window: %r" % _ANSI.sub("", line)[:70])
 
+    def test_panel_renders_the_mutagen_organ(self):
+        """MUTAGEN reads the ledger that decides the genome's SHAPE; it must be
+        reachable at the default window, not gated behind a taller terminal."""
+        ledger = os.path.join(_project_root, "state", "proteus_morph.jsonl")
+        if not os.path.exists(ledger):
+            self.skipTest("no morph ledger on this checkout")
+        frame = ex.render(size=(118, 40))
+        self.assertIn("MUTAGEN", frame.upper(),
+                      "the genome-selection organ never reached the panel")
+
     def test_standalone_frame_fits_the_launcher_window(self):
         cols, rows = 118, 40          # open_exmachina_live_monitor.bat window
         lines = ex.render(size=(cols, rows)).split("\n")

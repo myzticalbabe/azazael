@@ -2,7 +2,7 @@
 
 **Status:** implemented, verified under both interpreters, live in `scripts/exmachina_live_monitor.py`
 (its own viewer - the panel is NOT injected into `scripts/live_monitor.py`).
-**Modules:** `src/CORE/WORMS/expansion/exmachina.py` (16 organs, severity model, mood band),
+**Modules:** `src/CORE/WORMS/expansion/exmachina.py` (17 organs, severity model, mood band),
 `src/CORE/WORMS/expansion/exmachina_operators.py` (operator tier, pure stdlib).
 **Tests:** `tests/test_exmachina_operators.py`. **Gates:** `scripts/verify_exmachina.py`,
 `scripts/verify_exmachina_panel.py`.
@@ -21,7 +21,7 @@ evidence of quality.
 Ex Machina is the layer that asks whether the numbers mean anything. Each organ is a
 *falsifiable claim about a failure mode*, not a metric with a nicer name.
 
-## 2. The 16 organs
+## 2. The 17 organs
 
 Each entry: **thesis** (what it asserts) / *breaks* (the failure it exists to catch).
 
@@ -43,6 +43,7 @@ Each entry: **thesis** (what it asserts) / *breaks* (the failure it exists to ca
 | **COMPAGES** | cointegration: is there a long-run link between margin and the independent check | a margin trending up while the holdout never moves is non-cointegrated by definition |
 | **BREVIS** | two-part MDL: bits for the genome plus bits for the residuals | "fitness up" is not free evidence if description length grew to buy it |
 | **EMERGON** | causal emergence: effective information of the macro grain minus the micro grain | organs may be most legible grouped (belief-organs vs measure-organs) |
+| **MUTAGEN** | genome selection: did the genome grow, or was it given away? | Phase E retains a structural mutation on a trial whose added gene was switched OFF, so dF measures the comparison, not the gene |
 
 `ORGANS` in `exmachina.py` is the single registry; `organ_readings()` and
 `epistemic_report()` iterate it, so adding an organ does not mean editing the panel.
@@ -64,7 +65,7 @@ Each entry: **thesis** (what it asserts) / *breaks* (the failure it exists to ca
 The Ex Machina panel is one screen, ASCII-safe by default, restructured around:
 
 ```
-|-- EX MACHINA -- :O ALARMED 0.32 | 9 judged + 7 operators --------|
+|-- EX MACHINA -- :O ALARMED 0.32 | 10 judged + 7 operators -------|
 | :O o [===-] alive [|||||...]  ~ vitality 0.86 exploring          |
 | SEVERITY [####--------] 0.32  active 12 worst non_invariance 1.00|
 | ! non_invariance  [##########] 1.00  <claim>                     |
