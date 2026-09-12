@@ -219,6 +219,7 @@ def evo_history(con, n=20):
     out = []
     for ts, d in latest(con, "evolution_result", n):
         traj = [float(x) for x in (d.get("trajectory") or [])]
+        traj_avg = [float(x) for x in (d.get("trajectory_avg") or [])]
         # promotion standing + pool drift (2026-09-08): surfaced from the
         # artifact so the wallboard shows whether the GA beats production
         # and whether the eval pool is moving (fresh hard alerts).
@@ -228,11 +229,22 @@ def evo_history(con, n=20):
                 pool = json.loads(pool)
             except Exception:
                 pool = {}
+        # v2.0 search secondaries (2026-09-11): CMA arm / QD archive / TPE
+        # seeds / SPRT state. Pre-v2.0 rows lack these keys -> safe defaults.
+        sprt = d.get("sprt") or {}
+        cma = d.get("cma_arm") or {}
+        qd = d.get("qd_archive") or {}
+        pg = d.get("pareto_gate") or {}
         out.append({
             "ts": ts,
             "traj": traj,
+            "traj_avg": traj_avg,
             "best": max(traj) if traj else 0.0,
             "flat": len(set(round(x, 3) for x in traj)) <= 1 if traj else None,
+            # EV-8: best is flat BY CONSTRUCTION under elitism; the mean
+            # distinguishes plateau-at-champion from true no-gradient stall.
+            "avg_flat": (len(set(round(x, 3) for x in traj_avg)) <= 1
+                         if traj_avg else None),
             "genes": d.get("best_genes") or {},
             # v2-dual (2026-09-08): combined best splits into info/alert
             # parts; older rows lack these keys (v1 scale, info-only).
@@ -244,15 +256,182 @@ def evo_history(con, n=20):
             "promoted": bool(d.get("promoted")),
             "champ": d.get("champion_reeval"),
             "pool": pool,
+            "sprt": {"decision": sprt.get("decision"), "n": sprt.get("n"),
+                     "llr": sprt.get("llr")},
+            # 'arm' is which secondary actually ran (cma|de, alternating by
+            # 5-min slot in _second_arm_name). It was dropped here, so the
+            # wallboard could not tell a DE duel from a CMA one (2026-09-11).
+            "cma": {"ran": bool(cma.get("ran")), "winner": cma.get("winner"),
+                    "arm": cma.get("arm"),
+                    "cma_total": cma.get("cma_total"), "ga_total": cma.get("ga_total")},
+            "qd": {"filled": qd.get("filled"), "coverage": qd.get("coverage"),
+                   "qd_score": qd.get("qd_score")},
+            "tpe": d.get("tpe_seeds"),
+            "pareto": {"passed": pg.get("passed"), "source": pg.get("source")},
+            "holdout": bool((d.get("holdout") or {}).get("passed")),
+            "strategy": d.get("strategy"),
         })
     return out
+
+
+AOA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         "..", "src", "AOA")
+_AOA_IMPORT = {}  # cached adapter import check (once per process)
+
+
+def aoa_status():
+    """Armorie-of-Anubis umbrella orchestrator: adapters + milestone + bench.
+
+    File reads only per refresh; the arms import is attempted once and
+    cached (adapter imports must stay side-effect-light for this to hold).
+    Returns dict with ok count, unexported files, milestone/bench ages.
+    """
+    out = {"adapters": None, "unexported": [], "ms_ver": None,
+           "ms_n": None, "ms_age_d": None, "bench_age_d": None,
+           "eve_models": None}
+    try:
+        import glob as _glob
+        files = [os.path.basename(p)[:-3]
+                 for p in _glob.glob(os.path.join(AOA_DIR, "arms", "*_arm.py"))]
+        if "support_arms" in files:
+            files.remove("support_arms")
+        if "azazael_arm" in files:
+            pass
+        if not _AOA_IMPORT:
+            try:
+                sys.path.insert(0, os.path.join(AOA_DIR))
+                import arms as _arms
+                _AOA_IMPORT["names"] = [n for n in dir(_arms) if n.endswith("Arm")]
+            except Exception as e:
+                _AOA_IMPORT["error"] = str(e)[:80]
+        names = _AOA_IMPORT.get("names")
+        out["adapters"] = len(names) if names else 0
+        # files on disk with no exported class (e.g. kali_arm.py)
+        if names:
+            lowered = "".join(names).lower()
+            out["unexported"] = [f for f in files
+                                 if f not in ("support_arms", "__init__")
+                                 and f.lower().replace("_", "") not in
+                                 lowered.replace("_", "")]
+        try:
+            with open(os.path.join(AOA_DIR, "AOA_MILESTONE.json"), encoding="utf-8") as f:
+                ms = json.load(f)
+            out["ms_ver"] = ms.get("version")
+            sess = ms.get("session") or {}
+            out["ms_n"] = sess.get("milestone_count")
+            out["ms_age_d"] = (time.time() - os.path.getmtime(
+                os.path.join(AOA_DIR, "AOA_MILESTONE.json"))) / 86400.0
+        except Exception:
+            pass
+        try:
+            _bp = os.path.join(AOA_DIR, "benchmark_data.json")
+            out["bench_age_d"] = (time.time() - os.path.getmtime(_bp)) / 86400.0
+            with open(_bp, encoding="utf-8") as f:
+                bd = json.load(f)
+            out["eve_models"] = (bd.get("eve") or {}).get("discovery_total_models")
+        except Exception:
+            pass
+    except Exception:
+        pass
+    return out
+
+
+RUN100_LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "logs", "run100_progress.log")
+
+
+def run100_status():
+    """Background 100-run progress: (done, target) or None when no run.
+
+    Encoding-robust: powershell Out-File defaults to UTF-16, so older
+    progress logs may be UTF-16 while newer appends are UTF-8.
+    """
+    try:
+        if not os.path.exists(RUN100_LOG):
+            return None
+        with open(RUN100_LOG, "rb") as f:
+            raw = f.read()
+        try:
+            text = raw.decode("utf-8")
+            if "\x00" in text:
+                raise ValueError("utf16 content")
+        except Exception:
+            try:
+                text = raw.decode("utf-16")
+            except Exception:
+                text = raw.decode("utf-8", errors="replace")
+        done, target = 0, 100
+        for line in text.splitlines():
+            line = line.strip().replace("\x00", "")
+            if line.startswith("run "):
+                try:
+                    done = max(done, int(line.split()[1].split("/")[0]))
+                    target = int(line.split()[1].split("/")[1])
+                except Exception:
+                    pass
+            elif line.startswith("END"):
+                return (done, target)
+        return (done, target) if done else None
+    except Exception:
+        return None
+
+
+def qd_grid():
+    """4x4 QD fitness heatmap rows (high alert at top) or None.
+
+    Read from state/qd_archive.json (keys 'i,j', fitness per cell).
+    Chars scale with fitness across filled cells; empty cells are spaces.
+    """
+    try:
+        _p = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "state", "qd_archive.json")
+        with open(_p, encoding="utf-8") as f:
+            data = json.load(f)
+        cells = data.get("cells", {}) if isinstance(data, dict) else {}
+        dims = data.get("dims") or []
+        try:
+            _bins = int(dims[0][1]) if dims else 4
+        except Exception:
+            _bins = 4
+        _bins = max(2, min(_bins, 8))
+        fits = [float(c.get("fitness", 0.0)) for c in cells.values()
+                if isinstance(c, dict)]
+        if not fits:
+            return None
+        lo, hi = min(fits), max(fits)
+        rng = (hi - lo) or 1.0
+        _scale = " .:-=+*#%@"
+        # single filled cell has no contrast range — show it mid-scale
+        # instead of blank (blank must mean empty).
+        _flat = hi <= lo
+        rows = []
+        for _a in range(_bins - 1, -1, -1):
+            row = ""
+            for _i in range(_bins):
+                c = cells.get(f"{_i},{_a}")
+                if isinstance(c, dict):
+                    if _flat:
+                        lvl = len(_scale) // 2
+                    else:
+                        try:
+                            lvl = int((float(c.get("fitness", lo)) - lo) / rng
+                                      * (len(_scale) - 1))
+                        except Exception:
+                            lvl = 0
+                    row += _scale[min(max(lvl, 0), len(_scale) - 1)]
+                else:
+                    row += " "
+            rows.append(f"[{row}]")
+        return rows
+    except Exception:
+        return None
 
 
 # Training rotation — must match run_training_orchestrator.py's ROTATION
 # (order matters: next_rotation uses the same slot arithmetic).
 TRAIN_ALGOS = ("PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
                "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL",
-               "DREAMTUNE", "WORMGA")
+               "DREAMTUNE", "WORMGA", "GRPOTUNE")
 TRAIN_EVENT_TYPES = ("sb3_training_orchestrated",
                      "grpo_training_orchestrated",
                      "dpo_training_orchestrated",
@@ -562,10 +741,16 @@ def collect(con):
         pass
 
     # promotion file standing (evolved hyperparams actually in production)
+    # G-1: state/ is canonical since EV-1 (2026-09-10); config/ is a
+    # read-only legacy fallback. Reading config/ first displayed the
+    # frozen Sep-7 genome as production.
     data["promo"] = None
     try:
         _pj = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           "..", "config", "evolved_rl_params.json")
+                           "..", "state", "evolved_rl_params.json")
+        if not os.path.exists(_pj):
+            _pj = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "..", "config", "evolved_rl_params.json")
         if os.path.exists(_pj):
             with open(_pj, encoding="utf-8") as f:
                 _pd = json.load(f)
@@ -656,6 +841,41 @@ def collect(con):
             _hits = _re.findall(r"'total':\s*(\d+)", _tail)
             if _hits:
                 data["caps"] = {"last_trim": int(_hits[-1])}
+    except Exception:
+        pass
+
+    # audit + mutation summaries (repo health, written by repo_audit.py
+    # and mutate.py — file reads only, absent until first run)
+    data["audit"] = None
+    data["mutants"] = None
+    try:
+        _ap = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "state", "audit_summary.json")
+        if os.path.exists(_ap):
+            with open(_ap, encoding="utf-8") as f:
+                _ad = json.load(f)
+            _c = _ad.get("compile") or {}
+            _p = _ad.get("patterns") or {}
+            data["audit"] = {
+                "at": _ad.get("at"),
+                "files": _ad.get("files_scanned"),
+                "compile_bad": len(_c.get("bad") or []),
+                "bare": (_p.get("bare_except") or {}).get("count"),
+                "uncovered": (_ad.get("testmap") or {}).get("uncovered_count"),
+            }
+        _mp = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "..", "state", "mutation_summary.json")
+        if os.path.exists(_mp):
+            with open(_mp, encoding="utf-8") as f:
+                _md = json.load(f)
+            data["mutants"] = {
+                "target": os.path.basename(str(_md.get("target", "?"))),
+                "score": _md.get("score"),
+                "killed": _md.get("killed"),
+                "mutants": _md.get("mutants"),
+                "at": _md.get("at"),
+                "survived": _md.get("survived") or [],
+            }
     except Exception:
         pass
 
@@ -895,6 +1115,41 @@ def explain(data):
     if evo and evo[0]["flat"] is False:
         out.append(("EVO", "trajectory is non-flat - reward is action-dependent, so evolution has a "
                            "real gradient to climb (the reward fix is working)."))
+    elif evo and evo[0]["flat"] is True:
+        # EV-8: best is flat BY CONSTRUCTION under elitism — only a flat
+        # MEAN means the objective has no usable gradient here.
+        if evo[0].get("avg_flat") is False:
+            out.append(("EVO", "best flat but mean moved - converged to a plateau at a strong "
+                               "seeded champion; search is running, not stuck."))
+        elif evo[0].get("avg_flat") is True:
+            out.append(("EVO", "best AND mean flat - objective has no usable gradient on this pool."))
+    # promotion funnel (2026-09-11): where candidates die, over recent rows.
+    if len(evo) >= 3:
+        _n = len(evo)
+        _beats = sum(1 for e2 in evo if e2.get("beats"))
+        _sprt = sum(1 for e2 in evo if (e2.get("sprt") or {}).get("decision") == "promote")
+        _par = sum(1 for e2 in evo if (e2.get("pareto") or {}).get("passed") is True)
+        _hold = sum(1 for e2 in evo if e2.get("holdout"))
+        _prom = sum(1 for e2 in evo if e2.get("promoted"))
+        out.append(("EVO", f"funnel over {_n}: beats {_beats} -> sprt {_sprt} -> "
+                           f"pareto {_par} -> holdout {_hold} -> promoted {_prom}."))
+        # funnel BLOCKED warn: SPRT says promote but nothing ships — the
+        # gates downstream are eating every candidate. Distinguishes *where*.
+        _died_par = sum(1 for e2 in evo
+                        if (e2.get("sprt") or {}).get("decision") == "promote"
+                        and not e2.get("promoted")
+                        and (e2.get("pareto") or {}).get("passed") is not True)
+        _died_hold = sum(1 for e2 in evo
+                         if (e2.get("sprt") or {}).get("decision") == "promote"
+                         and not e2.get("promoted")
+                         and (e2.get("pareto") or {}).get("passed") is True
+                         and not e2.get("holdout"))
+        if _died_par >= 3:
+            out.append(("WARN", f"funnel blocked at PARETO gate ({_died_par}/{_n} SPRT-promotes died) - "
+                                f"alert floor may be unsatisfiable; review PARETO_ALERT_TOL_PCT."))
+        elif _died_hold >= 3:
+            out.append(("WARN", f"funnel blocked at HOLDOUT gate ({_died_hold}/{_n} SPRT-promotes died) - "
+                                f"wins not surviving fresh pools; check pool drift / overfitting."))
     if evo:
         eps = evo[0]["genes"].get("epsilon", -1)
         if eps is not None and eps < 0.02:
@@ -1049,22 +1304,59 @@ def _training_grid(tr, width):
     return rows_out
 
 
+# ── display width (2026-09-12) ─────────────────────────────────────────
+# The monitor's never-wrap invariant depends on measuring lines the way the
+# TERMINAL does. `len()` is only correct while every glyph is ASCII: a wide
+# character (emoji are `east_asian_width == 'W'`) occupies TWO columns while
+# `len()` reports 1, so one wide glyph silently shifts every line by a column.
+# `_vis_len` counts COLUMNS and `_fit` truncates in columns; the ASCII fast
+# path keeps the previous behaviour exactly.
+_ANSI_RE = None
+_ZW = ("\ufe0e", "\ufe0f", "\u200d", "\u200b")   # variation selectors + ZWJ
+
+
+def _disp_w(ch):
+    """Display columns for one character, as the terminal counts them."""
+    import unicodedata
+    if ch in _ZW or unicodedata.combining(ch):
+        return 0
+    return 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+
+
 def _vis_len(s):
-    """Visible length ignoring ANSI color codes."""
+    """Visible width in COLUMNS, ignoring ANSI color codes."""
     import re
-    return len(re.sub("\x1b\\[[0-9;]*m", "", s))
+    global _ANSI_RE
+    if _ANSI_RE is None:
+        _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
+    plain = _ANSI_RE.sub("", s)
+    if plain.isascii():          # fast path: unchanged behaviour for ASCII
+        return len(plain)
+    return sum(_disp_w(c) for c in plain)
 
 
 def _fit(s, width):
-    """Truncate to window width (visible chars); never wrap, never scroll.
+    """Truncate to window width in COLUMNS; never wrap, never scroll.
 
     Colors are stripped on truncation (simpler than re-closing codes, and
     truncated lines are rare edge cases on narrow windows).
     """
     import re
+    global _ANSI_RE
+    if _ANSI_RE is None:
+        _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
     if _vis_len(s) <= width:
         return s
-    return re.sub("\x1b\\[[0-9;]*m", "", s)[:max(0, width)]
+    plain = _ANSI_RE.sub("", s)
+    ascii_only = plain.isascii()
+    out, used = [], 0
+    for ch in plain:
+        cw = 1 if ascii_only else _disp_w(ch)
+        if used + cw > max(0, width):
+            break
+        out.append(ch)
+        used += cw
+    return "".join(out)
 
 
 def render(data, now):
@@ -1121,11 +1413,25 @@ def render(data, now):
                             + (f"  {C_YEL}PROMOTED{C_RST}" if e["promoted"] else ""))
             else:
                 prom_txt = f"  vs base {e['baseline']:.1f}"
+        # SPRT gate state folded into EVO (0 extra rows): the gate that
+        # actually decides promotion was invisible on the wallboard.
+        sprt_txt = ""
+        _sp = e.get("sprt") or {}
+        if _sp.get("decision"):
+            _llr = f"{_sp['llr']:.1f}" if isinstance(_sp.get("llr"), (int, float)) else "?"
+            _sn = _sp.get("n", "?")
+            _sd = _sp["decision"]
+            _scol = C_GRN if _sd == "promote" else (C_RED if _sd == "reject" else C_YEL)
+            # 'not_run' = the margin gate failed first, so the test never ran.
+            # Showing "reject" for that (the old default) made an untested
+            # cycle look like evidence against a promotion (2026-09-11).
+            _slab = "--" if _sd == "not_run" else _sd
+            sprt_txt = f"  sprt={_scol}{_slab}{C_RST}(n={_sn} llr={_llr})"
         L(_fit(f"EVO    best {C_GRN}{e['best']:.3f}{C_RST}"
                  + (f"  info={e['info'] if e['info'] is not None else '?'} "
                     f"alert={e['alert'] if e['alert'] is not None else '?'}"
                     if e.get("info") is not None or e.get("alert") is not None else "")
-                 + prom_txt, width))
+                 + prom_txt + sprt_txt, width))
         # --- the three learners together: META + GOSP beside EVO ---
         _m = data.get("meta") or {}
         _mp = _m.get("params") or {}
@@ -1211,6 +1517,23 @@ def render(data, now):
             L(_fit("EVE    " + "  ".join(_rparts), width))
         else:
             L(_fit("EVE    no RANI battery yet (run gosp_rani_integration.py or rani_llm_test.py)", width))
+        # --- Armorie-of-Anubis umbrella orchestrator (1 line, file reads) ---
+        _aoa = aoa_status()
+        _asegs = []
+        if _aoa.get("adapters") is not None:
+            _asegs.append(f"{_aoa['adapters']} adapters import-ok")
+        if _aoa.get("unexported"):
+            _asegs.append(f"+{','.join(_aoa['unexported'])} unexported")
+        if _aoa.get("ms_n") is not None:
+            _asegs.append(f"ms v{_aoa.get('ms_ver', '?')} x{_aoa['ms_n']}")
+            if isinstance(_aoa.get("ms_age_d"), (int, float)):
+                _asegs.append(f"{_aoa['ms_age_d']:.0f}d ago")
+        if isinstance(_aoa.get("bench_age_d"), (int, float)):
+            _btxt = f"bench {_aoa['bench_age_d']:.0f}d ago"
+            if isinstance(_aoa.get("eve_models"), int):
+                _btxt += f" eve{_aoa['eve_models']}mdl"
+            _asegs.append(_btxt)
+        L(_fit("AOA    " + ("  ".join(_asegs) if _asegs else "no AOA state found"), width))
         # evo genetics detail: champion re-eval, beat rate, pool mix
         _champs = [e2.get("champ") for e2 in evo[:2]]
         _champ_txt = "champ " + "->".join("%.2f" % c for c in _champs if c is not None) or "champ n/a"
@@ -1246,10 +1569,13 @@ def render(data, now):
             except (ValueError, TypeError):
                 return ""
             return " PIN" if f <= lo + eps or f >= hi - eps else ""
-        L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f}{_pin(g.get('learning_rate'), 0.01, 0.5)} "
+        # PIN bounds mirror GENE_BOUNDS in evolution_cycle.py. They were widened
+        # 2026-09-11 (lr 0.5->0.9, discount 0.8->0.5 floor, decay 0.1->0.3); the
+        # literals here must move with them or the PIN flag lies.
+        L(_fit(f"GENES lr={g.get('learning_rate', 0):.4f}{_pin(g.get('learning_rate'), 0.01, 0.9)} "
                  f"eps={g.get('epsilon', 0):.4f}{_pin(g.get('epsilon'), 0.0, 0.5)} "
-                 f"disc={g.get('discount', 0):.4f}{_pin(g.get('discount'), 0.8, 0.999)} "
-                 f"dec={g.get('epsilon_decay', 0):.4f}{_pin(g.get('epsilon_decay'), 0.0, 0.1)}"
+                 f"disc={g.get('discount', 0):.4f}{_pin(g.get('discount'), 0.5, 0.999)} "
+                 f"dec={g.get('epsilon_decay', 0):.4f}{_pin(g.get('epsilon_decay'), 0.0, 0.3)}"
                  f"  [{e['fit']}]{pool_txt}", width)) if show_genes else None
         bests = [e2["best"] for e2 in evo][::-1]
         if show_climb:
@@ -1260,6 +1586,57 @@ def render(data, now):
             _tvals = [f"{x:.2f}" for x in _tj]
             _tflag = "flat" if len(set(round(x, 3) for x in _tj)) <= 1 else f"+{_tj[-1] - _tj[0]:+.2f}"
             L(_fit(f"TRAJ   {' '.join(_tvals)}  [{_tflag} over {len(_tvals)} gens]", width))
+        # --- v2.0 search arms: one line (per-arm duel + gate funnel + QD/TPE) ---
+        _armed = [e2 for e2 in evo if (e2.get("cma") or {}).get("ran")]
+        _segs = []
+        if _armed:
+            # Split the duel by the arm that actually ran (cma|de) instead of
+            # labelling every row "cma" - DE slots were invisible before
+            # (2026-09-11). Green = the secondary arm took at least half.
+            _by = {}
+            for e2 in _armed:
+                _by.setdefault((e2["cma"].get("arm") or "cma"), []).append(e2)
+            for _an in sorted(_by):
+                _rows = _by[_an]
+                _ww = sum(1 for e2 in _rows if e2["cma"].get("winner") == "cma")
+                _ms = [(e2["cma"]["cma_total"] - e2["cma"]["ga_total"])
+                       for e2 in _rows
+                       if isinstance(e2["cma"].get("cma_total"), (int, float))
+                       and isinstance(e2["cma"].get("ga_total"), (int, float))]
+                _mm = f" {sum(_ms) / len(_ms):+.2f}" if _ms else ""
+                _acol = C_GRN if _ww * 2 >= len(_rows) else C_YEL
+                _segs.append(f"{_acol}{_an} {_ww}/{len(_rows)}{_mm}{C_RST}")
+            _strip = "".join("C" if e2["cma"].get("winner") == "cma" else "G"
+                             for e2 in _armed[:20][::-1])
+            _segs.append(f"[{_strip}]")
+        # gate funnel on the wallboard: how far the recent cycles actually got.
+        # pareto.passed is None when the gate never ran (margin/SPRT stopped it
+        # earlier), so the denominator is real attempts, not every row.
+        _pg = [e2 for e2 in evo
+               if (e2.get("pareto") or {}).get("passed") is not None]
+        if _pg:
+            _pp = sum(1 for e2 in _pg if e2["pareto"]["passed"])
+            _hc = sum(1 for e2 in _pg if e2.get("holdout"))
+            _pcol = C_GRN if _pp * 2 >= len(_pg) else C_YEL
+            _hcol = C_GRN if _hc else C_RED
+            _segs.append(f"{_pcol}pareto {_pp}/{len(_pg)}{C_RST} "
+                         f"{_hcol}holdout {_hc}{C_RST}")
+        _qd0 = (evo[0].get("qd") or {})
+        if _qd0.get("filled") is not None:
+            _segs.append(f"qd {_qd0['filled']}/16 cov={_qd0.get('coverage', '?')}")
+        _tpe0 = evo[0].get("tpe")
+        if isinstance(_tpe0, int):
+            _segs.append(f"tpe={_tpe0}")
+        _r100 = run100_status()
+        if _r100:
+            _segs.append(f"run100 {_r100[0]}/{_r100[1]}")
+        if _segs:
+            L(_fit("ARMS   " + "  ".join(_segs), width))
+        # QD illumination heatmap (height-gated: 4 rows only on tall windows)
+        if height >= 40:
+            _grid = qd_grid()
+            if _grid:
+                L(_fit("QDMAP  " + " ".join(_grid) + "  (info ->, alert ^)", width))
     else:
         L("EVO    no evolution_result rows yet")
 
@@ -1544,6 +1921,45 @@ def render(data, now):
             _cells.append(f"{_nm} {_pp}/{_gp}{_th}")
         L(_fit("MODELS " + "   ".join(_cells), width))
 
+    # --- repo audit + mutation score (file reads, absent until first run) ---
+    _au = data.get("audit")
+    _mu = data.get("mutants")
+    if _au or _mu:
+        _asegs = []
+        if _au:
+            # meaningful colors: green = healthy, yellow = watch, red = act.
+            _cb = _au.get("compile_bad", 0) or 0
+            _cbtxt = f"{C_GRN}compile ok{C_RST}" if not _cb else f"{C_RED}compile {_cb} bad{C_RST}"
+            _bare = _au.get("bare")
+            if isinstance(_bare, int):
+                _bcol = C_GRN if _bare == 0 else (C_YEL if _bare <= 5 else C_RED)
+                _btxt = f"{_bcol}bare={_bare}{C_RST}"
+            else:
+                _btxt = "bare=?"
+            _unc = _au.get("uncovered")
+            if isinstance(_unc, int):
+                _ucol = C_GRN if _unc < 50 else (C_YEL if _unc < 200 else C_RED)
+                _utxt = f"{_ucol}uncov={_unc}{C_RST}"
+            else:
+                _utxt = "uncov=?"
+            _asegs.append(f"audit {_au.get('files', '?')}f {_cbtxt} {_btxt} {_utxt}")
+        if _mu and isinstance(_mu.get("score"), (int, float)):
+            _ms = _mu["score"]
+            _mcol = C_GRN if _ms >= 0.7 else (C_YEL if _ms >= 0.3 else C_RED)
+            _asegs.append(f"mutants {_mu.get('target', '?')} "
+                          f"{_mcol}{_mu.get('killed', '?')}/{_mu.get('mutants', '?')} "
+                          f"({_ms:.2f}){C_RST}")
+        L(_fit("AUDIT  " + "  ".join(_asegs), width))
+        if height >= 36 and _mu and _mu.get("at"):
+            _dtxt = f"last audit {_au.get('at', '?') if _au else '?'}  last mutants {_mu.get('at', '?')}"
+            # survived mutants shift into the monitor: each is a ready-made
+            # test case, red until the suite kills it.
+            _surv = [s for s in (_mu.get("survived") or []) if isinstance(s, dict)]
+            if _surv:
+                _slist = " ".join(f"{s.get('kind', '?')}@{s.get('site', '?')}" for s in _surv[:6])
+                _dtxt += f"  {C_RED if len(_surv) > 3 else C_YEL}survived: {_slist}{C_RST}"
+            L(_fit(f"       {_dtxt}", width))
+
     # --- alerts + verdict: fixed lines, only what fires ---
     if any_stale:
         L(_fit(f"{C_RED}STALE  {', '.join(f['label'] for f in data['freshness'] if not f['ok'])} "
@@ -1682,9 +2098,30 @@ def main():
     ap = argparse.ArgumentParser(description="Persistent Azazael live dashboard")
     ap.add_argument("--refresh", type=int, default=30)
     ap.add_argument("--log", default=LOG_PATH)
+    ap.add_argument("--once", action="store_true",
+                    help="render a single frame to stdout and exit (for screenshots/reports)")
+    ap.add_argument("--no-color", action="store_true",
+                    help="strip ANSI colors (pair with --once for clean captures)")
     args = ap.parse_args()
     REFRESH = max(5, args.refresh)
     LOG_PATH = os.path.abspath(args.log)
+    if args.no_color:
+        global C_RED, C_GRN, C_YEL, C_CYN, C_BLD, C_ORG, C_RST
+        C_RED = C_GRN = C_YEL = C_CYN = C_BLD = C_ORG = C_RST = ""
+
+    if args.once:
+        # read-only snapshot: bypass the single-instance lock so a capture
+        # never fights the running wallboard, and skip the rolling log.
+        con = db_connect()
+        if con is None:
+            print(f"FATAL: cannot open {DB}", file=sys.stderr)
+            return 2
+        try:
+            print(render(collect(con), datetime.now()))
+        except Exception as e:
+            print(f"render error: {e}", file=sys.stderr)
+            return 1
+        return 0
 
     if not _single_instance():
         return 2
