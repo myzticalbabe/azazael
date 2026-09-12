@@ -401,7 +401,7 @@ _EX_SIGNAL_TEXT = (
     ("routing", "expert router sends everything to one expert"),
     ("memory", "associative store cannot recall what it stored"),
     ("staleness", "an artifact stopped being written"),
-    ("mutagenesis", "the genome grows on trials where the added gene was off"),
+    ("mutagenesis", "the genome grows on trials that never changed the trainer call"),
 )
 
 # mood band -> colour, glyph key, and the word shown
@@ -1118,11 +1118,13 @@ def exmachina_lines(width, height, snap):
 
     # 9b. MUTAGEN: the genome's own mutation ledger. Every organ above reads the
     # OUTCOME series or a derived artifact; none reads the file that decides the
-    # genome's SHAPE. On this history 76% of the structural trials ran with the
-    # added gene resolved OFF and every one of them was retained -- so the gain
-    # cannot be attributed to the gene. 'NEVER-ON' is the strong form and is
-    # called out, because a gene that is off in the trial arm cannot have caused
-    # the difference, whatever the fitness delta says.
+    # genome's SHAPE. On this history 75% of the structural trials never changed
+    # what the trainer was called with, and every one of them was retained -- so
+    # the gain cannot be attributed to the gene. Note "never treated" is not the
+    # same as "off": `by_session` DEFAULTS to True in the trainer, so for it the
+    # no-op trial is the True one. The tier compares against the trainer's own
+    # defaults for exactly that reason, and the row reports which trials
+    # actually MOVED the call.
     mg = snap.get("mutagen")
     if mg and height >= 30:
         fg = mg.get("free_growth")
@@ -1144,8 +1146,9 @@ def exmachina_lines(width, height, snap):
         _gp = []
         for _g in (mg.get("genes") or [])[:2]:
             _gp.append("%s %d/%d%s" % (
-                str(_g.get("gene") or "?")[:20], _g.get("inert") or 0, _g.get("n") or 0,
-                " NEVER-ON" if _g.get("never_enabled") else " off"))
+                str(_g.get("gene") or "?")[:20],
+                _g.get("changed") or 0, _g.get("n") or 0,
+                " NEVER-TREATED" if _g.get("never_changed") else " treated"))
         _ld = mg.get("load") or {}
         _ts = mg.get("tests") or {}
         _tail = "load %d/%d" % (len(_ld.get("below_floor") or []), _ld.get("genes") or 0)

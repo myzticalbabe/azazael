@@ -43,7 +43,7 @@ Each entry: **thesis** (what it asserts) / *breaks* (the failure it exists to ca
 | **COMPAGES** | cointegration: is there a long-run link between margin and the independent check | a margin trending up while the holdout never moves is non-cointegrated by definition |
 | **BREVIS** | two-part MDL: bits for the genome plus bits for the residuals | "fitness up" is not free evidence if description length grew to buy it |
 | **EMERGON** | causal emergence: effective information of the macro grain minus the micro grain | organs may be most legible grouped (belief-organs vs measure-organs) |
-| **MUTAGEN** | genome selection: did the genome grow, or was it given away? | Phase E retains a structural mutation on a trial whose added gene was switched OFF, so dF measures the comparison, not the gene |
+| **MUTAGEN** | genome selection: did the genome grow, or was it given away? | Phase E retains a structural mutation on a trial that never changed the trainer call (the added gene resolved to the trainer's own default — for `by_session`, default **True**, that is the *on* value), so dF measures the comparison, not the gene |
 
 `ORGANS` in `exmachina.py` is the single registry; `organ_readings()` and
 `epistemic_report()` iterate it, so adding an organ does not mean editing the panel.
@@ -259,8 +259,9 @@ the producer rather than restated.
 ### 8.5 Verification
 
 ```
-278 passed    tensorgene(63) + proteus_hooks(48) + proteus_organs + operators(36)
-              + monitor paths(10) + sprt remeasurement(11)      [python.exe]
+324 passed    tensorgene(63) + proteus_hooks(59) + proteus_organs(98) + operators(40)
+              + monitor paths(9) + monitor split(10) + mutagen(27)
+              + sprt remeasurement(18)                          [python.exe]
 ALL OK        verify_exmachina.py          python.exe  and  python3.14t.exe
 ALL OK        verify_exmachina_panel.py    python.exe  and  python3.14t.exe
 ALL ORGANS OK verify_proteus.py            GIL and free-threaded
@@ -281,7 +282,41 @@ deliverable would have been invisible in the default window. `verify_exmachina_p
 now asserts that every declared row appears at the default window and that no height
 overflows.
 
-### 8.6 Known pre-existing failures (not introduced here)
+### 8.6 Follow-through: the producer stopped crediting inert trials
+
+MUTAGEN measuring the defect is not the same as the defect being fixed, and the measurement
+was only ever half the problem: **nothing in the producer refused to credit a null trial**. A
+cycle whose added gene resolved to the trainer's own default still appended a row whose
+`fitness - baseline_fitness` looked like a win.
+
+The correction rests on one fact read from the trainer itself
+(`RLTrainLoop.train_from_memory`, `learning_rl.py:302-303`): the defaults are
+`use_schema_features=False` and **`by_session=True`**. So "inert" is not "off" — it is "the
+trainer was called exactly as production calls it", and for `by_session` that is the *True*
+value. Re-measured on the ledger, that reclassification is not cosmetic:
+
+```
+before (resolved-True == treatment)      after (resolved == trainer default)
+rows 69   inert 45/69 (65%)              rows 69   inert 52/69 (75.4%)
+by_session    29 trials 15 inert         by_session    34 trials 17 inert, 17 CHANGED
+use_schema_features 30 trials 30 inert   use_schema_features 35 trials 35 inert, 0 changed
+```
+
+`proteus_hooks.py` now carries `MORPH_TRAINER_DEFAULTS`, `morph_effective` and `morph_is_inert`;
+`morph_record` stamps `applied` (the kwargs the trainer actually received) and `inert` on every
+row; `morph_dimension_summary` computes its per-gene verdict from EFFECTIVE trials only and
+reports a never-treated gene as `tested: False` with a note instead of as a winner. Rows written
+before the stamp are re-derived on read, so the fix is retroactive rather than prospective.
+`evolution_cycle.py` logs the verdict at record time, so a null cycle is distinguishable from a
+win in the place anyone looks first.
+
+The mirror is locked to the producer twice over: `MORPH_TRAINER_DEFAULTS` is asserted against
+`inspect.signature(RLTrainLoop.train_from_memory)` in the tests, and on the tier side
+`_MORPH_TRAINER_DEFAULTS` is asserted equal to the producer's table. The organ also prefers the
+ledger's own stamp and counts `inert_disagreements` when its mirror would have said otherwise,
+because that drift is the one failure a mirror cannot detect by itself.
+
+### 8.7 Known pre-existing failures (not introduced here)
 
 Four failures exist in the wider suite and are unrelated to this workstream:
 

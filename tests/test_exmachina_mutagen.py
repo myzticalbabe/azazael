@@ -27,8 +27,12 @@ import sys
 import unittest
 
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# `scripts` is on the path too so the panel test can import the viewer on its
+# own: it previously only worked when another test file had already added it,
+# which made this file fail when run alone.
 for _p in (_project_root, os.path.join(_project_root, "src"),
-           os.path.join(_project_root, "src", "CORE", "WORMS", "expansion")):
+           os.path.join(_project_root, "src", "CORE", "WORMS", "expansion"),
+           os.path.join(_project_root, "scripts")):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
@@ -128,6 +132,82 @@ class TestProvablyInertTrials(unittest.TestCase):
         m = ex.mutagenesis(rows)
         self.assertEqual(m["inert_trials"], 3)
         self.assertAlmostEqual(m["genes"][0]["value_effect"], 1.5, places=4)
+
+
+class TestDefaultAwareInertness(unittest.TestCase):
+    """Inert is not "off" — it is "the trainer was called as production calls it".
+
+    `RLTrainLoop.train_from_memory` defaults `use_schema_features=False` and
+    `by_session=True`, so for the latter it is ON that is the no-op. The earlier
+    on/off reading counted every `by_session=True` trial as a real treatment and
+    credited the gene for a margin the trial could not have produced: on the
+    2026-09-12 ledger that was 17 of the 52 inert rows.
+    """
+
+    def test_morph_defaults_mirror_the_producer(self):
+        self.assertEqual(ex._MORPH_TRAINER_DEFAULTS, ph.MORPH_TRAINER_DEFAULTS)
+        # and both mirror the trainer itself
+        import inspect
+        from CORE.WORMS.expansion.learning_rl import RLTrainLoop
+        sig = inspect.signature(RLTrainLoop.train_from_memory)
+        for kwarg, default in ex._MORPH_TRAINER_DEFAULTS.items():
+            self.assertIs(sig.parameters[kwarg].default, default,
+                          "%s default drifted from the trainer" % kwarg)
+
+    def test_default_valued_trial_is_inert(self):
+        rows = [_row(gene="by_session", value=True, delta=1.0, cycle=i)
+                for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["inert_trials"], 6)
+        self.assertEqual(m["inert_share"], 1.0)
+        self.assertEqual(m["never_enabled"], ["by_session"])
+        self.assertEqual(m["genes"][0]["changed"], 0)
+
+    def test_leaving_the_default_is_a_real_treatment(self):
+        rows = [_row(gene="by_session", value=False, delta=1.0, cycle=i)
+                for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["inert_trials"], 0)
+        self.assertEqual(m["genes"][0]["changed"], 6)
+
+    def test_value_effect_is_changed_minus_default_matched(self):
+        rows = ([_row(gene="by_session", value=False, delta=2.0, cycle=i)
+                 for i in range(3)]
+                + [_row(gene="by_session", value=True, delta=0.5, cycle=i)
+                   for i in range(3)])
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["inert_trials"], 3)
+        self.assertAlmostEqual(m["genes"][0]["value_effect"], 1.5, places=4)
+
+    def test_a_ledgers_own_verdict_outranks_the_mirror(self):
+        """The producer owns the trainer's signature, so where it has stamped a
+        row the tier must believe the stamp rather than re-derive it."""
+        stamped = [dict(_row(gene="by_session", value=True, delta=1.0, cycle=i),
+                        inert=True) for i in range(6)]
+        self.assertEqual(ex.mutagenesis(stamped)["inert_trials"], 6)
+
+        overridden = [dict(_row(gene="use_schema_features", value=0.9,
+                                delta=1.0, cycle=i), inert=False)
+                      for i in range(6)]
+        m = ex.mutagenesis(overridden)
+        self.assertEqual(m["inert_trials"], 0,
+                         "a stamped row must not be reclassified as inert")
+        self.assertEqual(m["flagged_rows"], 6)
+
+    def test_disagreement_between_stamp_and_rule_is_reported(self):
+        """Drift between the tier's mirror and the producer is the one failure
+        the mirror cannot detect by itself, so it is counted rather than
+        assumed away."""
+        rows = [dict(_row(gene="use_schema_features", value=False, delta=1.0,
+                          cycle=i), inert=False) for i in range(6)]
+        self.assertEqual(ex.mutagenesis(rows)["inert_disagreements"], 6)
+
+    def test_unknown_gene_is_not_counted_as_inert(self):
+        rows = [_row(gene="mystery", value=0.1, delta=1.0, cycle=i)
+                for i in range(6)]
+        m = ex.mutagenesis(rows)
+        self.assertEqual(m["inert_trials"], 0)
+        self.assertEqual(m["genes"][0]["unknown"], 6)
 
 
 class TestAbsenceIsNotCalm(unittest.TestCase):
