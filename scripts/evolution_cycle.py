@@ -1,14 +1,18 @@
 """Evolution cycle: evolve RLTrainLoop hyperparameters for training reward.
 
 Robustness: seeded RNG (logged, replayable), seeded population from last
-best genome (continuity across runs), early stopping on convergence
-(max 15 gens, patience 5), per-gen trajectory in the artifact row.
-Genome: {learning_rate, epsilon, discount_factor}. Fitness (v3-dual-robust):
-min over 2 exploration salts of (info-flood avg + critical-alert avg) over
-80-episode runs. Reports the best genome; PROMOTES to production defaults
-after 3 consecutive wins over the production baseline (guardrailed, rollback
-= delete config/evolved_rl_params.json). All runs recorded by the training
-loop itself.
+best genome + HOF + TPE suggests + QD elite (continuity across runs),
+early stopping on convergence (max 15 gens, MIN_GENS 6 gate), per-gen
+trajectory (+mean, EV-8) in the artifact row.
+Genome: {learning_rate, epsilon, discount, epsilon_decay}. Fitness
+(v3-dual-robust): min over 3 exploration salts of (info avg +
+critical-alert avg) over EVAL_EPISODES-run evaluations. Search: GA
+(SBX+poly) + SepCMAES second arm (winner-takes-best) + NSGA-II knee
+refinement. PROMOTES to production defaults when the SPRT evidence gate
+accepts H1 (replacing the old fixed 3-win rule), then pareto alert-floor,
+fresh-pool holdout, and one-shot canary all pass (guardrailed, rollback
+= restore .prev / delete state/evolved_rl_params.json). All runs recorded
+by the training loop itself.
 
 Deterministic fitness (2026-09-07 fix): RLTrainLoop explores via the
 module-level `random` module, so an unseeded evaluation is a fresh random
@@ -26,12 +30,14 @@ or a promotion write.
 """
 import hashlib
 import json
+import math
 import random
 import sys
 sys.path.insert(0, 'C:/Users/clint/azazael/src')
 
 import os
 import time
+from datetime import datetime, timezone
 
 os.makedirs(r'C:\Users\clint\azazael\logs', exist_ok=True)
 _LOG = open(r'C:\Users\clint\azazael\logs\evolution_cycle.log', 'a', encoding='utf-8')
@@ -46,9 +52,12 @@ def log(msg):
 
 from CORE.WORMS.expansion.evolution import EvolutionEngine
 from CORE.WORMS.expansion.learning import RLTrainLoop
+from CORE.WORMS.expansion.scheduling import EVAL_EPISODES
 
 
-N_EPISODES = 80  # eval budget per skill (was 60; runs take ~10-15s, fits the slot)
+# G-3: shared tuning/deployment horizon (was a hardcoded 80 here vs 50 in
+# ScheduleConfig — discount/decay tuned on one horizon, deployed on another).
+N_EPISODES = EVAL_EPISODES  # eval budget per skill (runs take ~10-15s, fits the slot)
 
 # NSGA-II multi-objective refinement (2026-09-08 expansion): after the scalar
 # loop, info mastery and critical-alert mastery are treated as separate
@@ -86,6 +95,23 @@ def genome_seed(genes, salt='a'):
 _SALTS = ('a', 'b', 'c')
 
 
+def _trainer_extra_kwargs(genes):
+    """Forward extra (Phase E) genes to the trainer, or nothing at all.
+
+    `_eval_salt` reads exactly four keys, so a fifth gene is DROPPED unless it
+    is forwarded — the search would appear to grow while the fitness landscape
+    stayed four-dimensional. Wrapped in try/except because a training kwargs
+    failure must never take out the whole cycle.
+    """
+    if not PROTEUS_MORPH:
+        return {}
+    try:
+        from CORE.WORMS.expansion.proteus_hooks import morph_trainer_kwargs
+        return morph_trainer_kwargs(genes)
+    except Exception:
+        return {}
+
+
 def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
     """One dual-skill evaluation. Returns (total, info, alert).
 
@@ -111,8 +137,10 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
     lucky seed can't carry a genome. +50% eval cost, covered by the 4x
     parallel speedup from isolated RNG.
     """
+    _extra = _trainer_extra_kwargs(genes)
     loop = RLTrainLoop()
     info_stats = loop.train_from_memory(
+        **_extra,
         n_episodes=N_EPISODES, max_steps=50,
         learning_rate=float(genes['learning_rate']),
         epsilon=float(genes['epsilon']),
@@ -123,6 +151,7 @@ def _eval_salt(genes, info_pool=None, alert_pool=None, rng=None):
         persist=False,
         rng=rng)
     alert_stats = RLTrainLoop().train_from_memory(
+        **_extra,
         n_episodes=N_EPISODES, max_steps=50,
         learning_rate=float(genes['learning_rate']),
         epsilon=float(genes['epsilon']),
@@ -187,6 +216,50 @@ def fitness(genome):
     return fitness_genes(genome.genes)
 
 
+def baseline_hash(genes):
+    """Stable id of the production baseline genome (2026-09-10 audit EV-2).
+
+    The promotion streak was era-pinned by pool_id only, so a mid-era change of
+    the BASELINE slipped through: on 2026-09-10 an external restore reverted
+    production from a 29.67-fitness genome to a 28.23 one while pool_id stayed
+    identical, and wins measured against the two different baselines were
+    counted as a single streak. The streak now also requires an unchanged
+    baseline genome; rows written before this fix carry no baseline_hash and
+    therefore break the streak (fails closed).
+    """
+    return hashlib.sha256(
+        ','.join('%s=%.6f' % (k, float(genes[k])) for k in sorted(genes))
+        .encode('utf-8')).hexdigest()[:16]
+
+
+def _promoted_file():
+    """First existing promoted-genes file: state/ (canonical), then config/."""
+    for _p in (PROMOTE_JSON, LEGACY_PROMOTE_JSON):
+        if os.path.exists(_p):
+            return _p
+    return None
+
+
+def _migrate_legacy_promotions():
+    """One-time copy of pre-EV-1 promotion state from config/ into state/.
+
+    Copy-don't-move: the legacy files stay on disk. Preserves rollback depth
+    (.prev/.prev2) and makes the untracked state/ location authoritative so a
+    repo operation cannot revert production genes.
+    """
+    import shutil
+    for _suffix in ('', '.prev.json', '.prev2.json', '.canary.json',
+                    '.canary-failed.json'):
+        _dst = PROMOTE_JSON + _suffix
+        _src = LEGACY_PROMOTE_JSON + _suffix
+        if not os.path.exists(_dst) and os.path.exists(_src):
+            try:
+                shutil.copyfile(_src, _dst)
+                log('migrated %s -> state/' % os.path.basename(_src))
+            except Exception as e:
+                log('migration failed for %s: %s' % (_src, str(e)[:80]))
+
+
 def pool_fingerprint():
     """Severity histogram of the eval pool — landscape drift indicator.
 
@@ -216,9 +289,12 @@ def pool_fingerprint():
 def last_best_genes():
     """Champion genome from the most recent evolution_result row (or None).
 
-    Prefers champion_genes (the genome that actually earned champion_reeval)
-    so the seed chain tracks the true champion; falls back to best_genes for
-    artifacts recorded before the champion_genes fix (2026-09-08).
+    Prefers best_genes — the genome that actually WON the generation.
+    EV-3 (2026-09-10): champion_genes used to record the input seed, so the
+    chain was a fixed point — seed(n+1) == seed(n) — and champion_reeval froze
+    at 21.815 across 7 consecutive runs (the old docstring claimed otherwise).
+    Legacy rows without best_genes fall back to champion_genes (2026-09-08
+    artifacts).
     """
     try:
         from CORE.local_memory import get_memory_store
@@ -226,7 +302,7 @@ def last_best_genes():
         rows = store.query_memories(event_type='evolution_result', limit=1)
         if rows:
             data = rows[0].get('data', {}) or {}
-            genes = data.get('champion_genes') or data.get('best_genes')
+            genes = data.get('best_genes') or data.get('champion_genes')
             if isinstance(genes, dict) and genes:
                 return genes
     except Exception as e:
@@ -234,15 +310,72 @@ def last_best_genes():
     return None
 
 
+def _pareto_blocked_streak(limit=30):
+    """Consecutive recent cycles blocked by the pareto balance gate.
+
+    EV-9 (2026-09-11): a gate that blocks forever is indistinguishable from a
+    healthy system unless the repetition is measured. 34 consecutive cycles
+    reaching SPRT 'promote' and promoting nothing looked exactly like normal
+    operation in the log. Returns how many of the most recent artifacts FAILED
+    the gate; a cycle that never reached the gate (no margin/SPRT, or a legacy
+    row without one) ends the streak, because it is not evidence of blockage.
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        rows = get_memory_store().query_memories(
+            event_type='evolution_result', limit=int(limit))
+    except Exception:
+        return 0
+    streak = 0
+    for row in rows or []:
+        gate = (row.get('data', {}) or {}).get('pareto_gate') or {}
+        if not gate or gate.get('passed') is not False:
+            break
+        streak += 1
+    return streak
+
+
 # Champion promotion (2026-09-08): 3 consecutive wins over the production
-# baseline promotes genes to config/evolved_rl_params.json, which
+# baseline promotes genes to state/evolved_rl_params.json, which
 # ScheduledTrainingWorm loads as hyperparameter overrides.
 # Guardrails: deterministic 3-salt re-eval (no luck), margin 0.75,
 # scale-consistent streak (v3 rows only), range-validated genes, fresh-pool
 # holdout gate, .prev backup + one-shot auto-canary with landscape probe.
 PROMOTE_MARGIN = 0.75
 PROMOTE_WINS = 3
+
+# --- SPRT promotion gate (2026-09-11, followup #2) --------------------------
+# The fixed "3 consecutive wins" rule had no variance model: a +0.76 margin and
+# a +10.0 margin both required exactly 3 wins, and the era/baseline pinning
+# (pool_id + baseline_hash) existed only to stop heterogeneous margins being
+# compared. SPRT treats each cycle's margin as ONE observation of a true effect
+# and stops as soon as the evidence is sufficient, so large margins promote
+# sooner and marginal ones need more evidence.
+#
+#   H0: true margin = SPRT_DELTA0 (no real improvement)
+#   H1: true margin = SPRT_DELTA1 (worth acting on == PROMOTE_MARGIN)
+#
+# Decisions: LLR >= SPRT_UPPER -> accept H1 (promote); LLR <= SPRT_LOWER ->
+# accept H0 (reset). PROMOTE_MIN_WINS is a hard floor so a single lucky cycle
+# can never promote on a degenerate sigma.
+SPRT_ALPHA = 0.05     # tolerated false-promote rate
+SPRT_BETA = 0.10      # tolerated false-hold rate
+SPRT_DELTA0 = 0.0     # H0 effect size
+SPRT_DELTA1 = PROMOTE_MARGIN  # H1 effect size (same unit as the gate margin)
+PROMOTE_MIN_WINS = 2  # floor: never promote on one observation
+PROMOTE_MAX_WINS = 6  # cap: inconclusive evidence stops accumulating
+SPRT_UPPER = math.log((1.0 - SPRT_BETA) / SPRT_ALPHA)
+SPRT_LOWER = math.log(SPRT_BETA / (1.0 - SPRT_ALPHA))
 PROMOTE_JSON = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    'state', 'evolved_rl_params.json')
+# Legacy location (2026-09-10 audit EV-1/D-1): live genes used to be written to
+# config/evolved_rl_params.json, which is TRACKED by git. A git restore/checkout
+# reverted production genes to the committed Sep-7 genome at 23:24:38 on
+# 2026-09-10, silently bypassing streak -> holdout -> promote -> canary in
+# reverse. state/ is gitignored, so repo operations can no longer touch
+# production genes. This path is still read as a fallback, never written.
+LEGACY_PROMOTE_JSON = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     'config', 'evolved_rl_params.json')
 
@@ -277,17 +410,371 @@ CANARY_TOL = 1.5
 LANDSCAPE_TOL = 1.0
 
 
+def _compute_streak(rows, pool_id, baseline_id, beats):
+    """Consecutive same-era wins over the production baseline (EV-2).
+
+    Extracted from main() (2026-09-10) so the promotion gate is testable
+    without running a GA. A prior win counts only when it came from the SAME
+    pool era (pool_id) AND was measured against the SAME production baseline
+    (baseline_hash): either changing mid-streak invalidates the accumulated
+    wins, because they were scored against different data or a different
+    reference genome.
+
+    Rows lacking either tag (pre-fix artifacts) break the streak — fails
+    closed, so a promotion always needs PROMOTE_WINS wins recorded by current
+    code. Returns 0 whenever this cycle did not beat the baseline.
+    """
+    if not beats:
+        return 0
+    streak = 1
+    for row in list(rows or [])[:PROMOTE_WINS - 1]:
+        data = row.get('data', {}) or {}
+        if isinstance(data, str):
+            try:
+                data = json.loads(data)
+            except Exception:
+                break
+        if not isinstance(data, dict):
+            break
+        if data.get('pool_id') != pool_id:
+            break
+        # EV-2: a mid-era BASELINE change invalidates the streak too.
+        if data.get('baseline_hash') != baseline_id:
+            break
+        if (str(data.get('fitness', '')).startswith('v3')
+                and data.get('beats_baseline')):
+            streak += 1
+        else:
+            break
+    return min(streak, PROMOTE_WINS)
+
+
+# --- SPRT helpers (followup #2) --------------------------------------------
+
+def _row_payload(row):
+    """Decode one stored evolution_result row into its data dict (or None)."""
+    data = (row or {}).get('data', {})
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except Exception:
+            return None
+    return data if isinstance(data, dict) else None
+
+
+def sprt_llr_step(delta, sigma, delta1=SPRT_DELTA1, delta0=SPRT_DELTA0):
+    """One SPRT log-likelihood-ratio increment for a normal mean.
+
+    Observation delta ~ N(mu, sigma); H0: mu=delta0, H1: mu=delta1.
+    The increment is ((d-d0)^2 - (d-d1)^2) / (2 sigma^2), which is zero at the
+    indifference point (d0+d1)/2, positive for strong evidence and negative for
+    evidence against. sigma is floored so a degenerate estimate cannot make the
+    ratio explode.
+    """
+    try:
+        d = float(delta)
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(d):
+        return 0.0
+    s = max(float(sigma), 1e-6)
+    return ((d - delta0) ** 2 - (d - delta1) ** 2) / (2.0 * s * s)
+
+
+def salt_spread(genes, info_pool, alert_pool):
+    """Per-salt total spread: an in-cycle floor for the SPRT sigma.
+
+    fitness_genes() reports min-over-salts, which deliberately hides the spread
+    it is robust against. Recovering the raw per-salt totals gives a noise
+    estimate available on the very first cycle, before any margin history
+    exists. Returns a standard deviation (0.0 when it cannot be computed).
+    """
+    try:
+        totals = []
+        for salt in _SALTS:
+            total, _, _ = _eval_salt(genes, info_pool, alert_pool,
+                                     rng=random.Random(genome_seed(genes, salt)))
+            totals.append(float(total))
+        if len(totals) < 2:
+            return 0.0
+        mean = sum(totals) / len(totals)
+        var = sum((t - mean) ** 2 for t in totals) / (len(totals) - 1)
+        return var ** 0.5
+    except Exception:
+        return 0.0
+
+
+def estimate_margin_sigma(margins, salt_floor=0.0):
+    """Sigma for the SPRT: observed margin dispersion, floored by eval noise.
+
+    Each cycle contributes one margin observation, so the dispersion of the
+    era's margins is the per-observation standard deviation the test needs. With
+    fewer than two observations it falls back to the salt-spread floor.
+    """
+    clean = []
+    for m in (margins or []):
+        try:
+            fm = float(m)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(fm):
+            clean.append(fm)
+    floor = max(abs(float(salt_floor or 0.0)), 1e-6)
+    if len(clean) >= 2:
+        mean = sum(clean) / len(clean)
+        var = sum((m - mean) ** 2 for m in clean) / (len(clean) - 1)
+        return max(var ** 0.5, floor)
+    return floor
+
+
+def _sprt_history(rows, pool_id, baseline_id, limit=PROMOTE_MAX_WINS):
+    """Era-pinned prior margins (newest-first), stopping at the first break.
+
+    Same pinning as _compute_streak: only rows from the SAME pool era and the
+    SAME production baseline are comparable, and only v3-scale rows carry a
+    usable margin. A break is a hard stop, so a promotion always rests on a
+    contiguous run of same-era evidence.
+    """
+    out = []
+    for row in list(rows or [])[:limit]:
+        data = _row_payload(row)
+        if data is None:
+            break
+        if data.get('pool_id') != pool_id:
+            break
+        if data.get('baseline_hash') != baseline_id:
+            break
+        if not str(data.get('fitness', '')).startswith('v3'):
+            break
+        margin = data.get('margin')
+        if margin is None:
+            # Rows written before the margin key existed: derive it.
+            try:
+                margin = float(data.get('best_total')) - float(data.get('baseline'))
+            except (TypeError, ValueError):
+                break
+        try:
+            out.append(float(margin))
+        except (TypeError, ValueError):
+            break
+    return out
+
+
+def _margin_repeat_streak(rows, margin_now, tol=1e-9, limit=12):
+    """How many of the newest v3 rows repeat `margin_now`. Pure; no I/O.
+
+    Extracted from `main` so the stall rule is testable without running a
+    2,400-line cycle - the same reason `cranium_override` was extracted, and
+    for the same reason: logic that only executes in a regime you cannot reach
+    is logic that is never observed.
+
+    Newest-first input; counting stops at the first different margin, so the
+    value is a *consecutive* repeat count, not a frequency.
+    """
+    n = 0
+    for row in list(rows or [])[:int(limit)]:
+        d = _row_payload(row)
+        if d is None or not str(d.get('fitness', '')).startswith('v3'):
+            continue
+        m = d.get('margin')
+        try:
+            m = float(m)
+        except (TypeError, ValueError):
+            try:
+                m = float(d.get('best_total')) - float(d.get('baseline'))
+            except (TypeError, ValueError):
+                break
+        if abs(m - float(margin_now)) > float(tol):
+            break
+        n += 1
+    return n
+
+
+def _sprt_collapse(seq, tol=1e-9):
+    """Collapse consecutive re-measurements. Returns (collapsed, n_dropped).
+
+    Why this is required for the SPRT to mean anything here:
+    `_load_or_freeze_pools` REUSES one pool snapshot for up to `POOL_MAX_AGE_S`
+    (1800s) so that streak comparisons are apples-to-apples. That is deliberate
+    and was the fix for the baseline swinging 31.6 -> 26.4 on identical genes.
+
+    The consequence was not intended. Measured 2026-09-12: twenty consecutive
+    live cycles recorded the SAME margin, 0.5563, all with
+    `pool_snapshot_reused: True` and the same `pool_id`. The candidate is
+    re-found deterministically from the champion seed, so the margin is not
+    twenty observations of "about +0.56" - it is ONE observation, re-recorded.
+
+    The SPRT's whole premise is independent samples, and `sprt_llr_step` is
+    additive, so feeding it copies inflates the log-likelihood ratio without
+    bound: the live log reached llr 328 at n=7 on margins 1.33-1.39, which is
+    a repeated number, not seven measurements. Deduping is the conservative
+    direction - it can only make promotion harder.
+    """
+    out = []
+    for m in (seq or []):
+        try:
+            v = float(m)
+        except (TypeError, ValueError):
+            continue
+        if out and abs(v - out[-1]) <= float(tol):
+            continue
+        out.append(v)
+    return out, max(0, len(list(seq or [])) - len(out))
+
+
+def _sprt_decide(margins, salt_floor=0.0):
+    """Run the SPRT over era-pinned margins plus this cycle's margin.
+
+    margins is the newest-first list of prior same-era margins; the FINAL
+    element is the current cycle's margin, so callers append it last.
+
+    Returns (llr, sigma, n, decision) where decision is one of
+    'promote' / 'reject' / 'continue' / 'inconclusive'.
+    """
+    seq = [float(m) for m in (margins or [])]
+    if not seq:
+        return 0.0, max(abs(float(salt_floor or 0.0)), 1e-6), 0, 'reject'
+    sigma = estimate_margin_sigma(seq[:-1], salt_floor)
+    llr = sum(sprt_llr_step(m, sigma) for m in seq)
+    n = len(seq)
+    if n < PROMOTE_MIN_WINS:
+        decision = 'continue'
+    elif llr >= SPRT_UPPER:
+        decision = 'promote'
+    elif llr <= SPRT_LOWER:
+        decision = 'reject'
+    elif n >= PROMOTE_MAX_WINS:
+        decision = 'inconclusive'
+    else:
+        decision = 'continue'
+    return round(llr, 4), round(sigma, 6), n, decision
+
+
+# --- Pareto balance gate (followup #1, 2026-09-11) --------------------------
+# Why a plain dominance gate would be USELESS here: fitness is a scalar sum, so
+# if the baseline dominated the candidate on BOTH objectives it would also have
+# the larger total, and `beats` would already be False. Dominance can therefore
+# never fire on a candidate that passed the margin gate. The constraint that
+# CANNOT be expressed by the total is a one-sided regression: a genome may lift
+# info hard enough to raise the sum while collapsing the critical-alert skill
+# (measured: alert -13.0 with total +1.0). That is exactly how the hard pool
+# starved. So the gate enforces a BOUNDED alert regression, and the NSGA-II knee
+# (the balanced point on the info/alert front) is the fallback candidate.
+#
+# EV-9 (2026-09-11): the bound has to be SCALED to the objective. A fixed
+# absolute tolerance is dimensionally wrong here: on the live pool the alert
+# objective spans sd ~2.38 across genomes (60 random genomes: min 2.21, max 8.54,
+# sd 2.377), so 0.25 is ~0.1 sd - below the population's own spread, so it cannot
+# separate a trade-off from noise. Worse, it made the gate UNREACHABLE: 34
+# consecutive cycles cleared the margin and SPRT said 'promote' on 33 of them,
+# yet 0 promoted, because production alert (8.3712) sits +1.04 sd up while every
+# candidate sat ~0.6 lower. A 7% dip is a trade, not a gutted objective. The
+# rejection also looked like normal operation in the log, so the repetition is
+# now measured and escalated too (see _pareto_blocked_streak).
+PARETO_ALERT_TOL = 0.25      # absolute floor (matters only for a tiny objective)
+PARETO_ALERT_TOL_PCT = 0.15  # ...and at most this fraction of production alert
+
+
+def _pareto_refine(evo, info_pool, alert_pool):
+    """NSGA-II refinement over (info, alert) objectives; returns front + knee.
+
+    Extracted from main() so it can run BEFORE the promotion decision. The
+    engine's Pareto machinery (non-dominated sort + crowding distance) is used
+    as-is; objectives are negated because the engine minimizes. The knee is the
+    front member with the max normalized objective sum - the balanced pick.
+    """
+    try:
+        res = evo.optimize_multi_objective(
+            [lambda g: -fitness_skill(g.genes, 1, info_pool, alert_pool),
+             lambda g: -fitness_skill(g.genes, 2, info_pool, alert_pool)],
+            generations=MULTI_GENS)
+        front = res.get('pareto_front', []) or []
+        if not front:
+            return None
+        obj = [f['objectives'] for f in front]
+        lo = [min(o[i] for o in obj) for i in range(2)]
+        hi = [max(o[i] for o in obj) for i in range(2)]
+        rng = [max(1e-9, hi[i] - lo[i]) for i in range(2)]
+
+        def _norm(o):
+            return sum((o[i] - lo[i]) / rng[i] for i in range(2))
+
+        knee = max(front, key=lambda f: _norm(f['objectives']))
+        pareto = {
+            'front': [{'genes': f['genes'],
+                       'info': round(-f['objectives'][0], 4),
+                       'alert': round(-f['objectives'][1], 4)}
+                      for f in front],
+            'knee': {'genes': knee['genes'],
+                     'info': round(-knee['objectives'][0], 4),
+                     'alert': round(-knee['objectives'][1], 4)},
+            'generations': res.get('generations', MULTI_GENS),
+        }
+        log('multi-objective: front=%d knee=%s info=%.3f alert=%.3f' % (
+            len(front),
+            {k: round(v, 4) for k, v in knee['genes'].items()},
+            pareto['knee']['info'], pareto['knee']['alert']))
+        return pareto
+    except Exception as e:
+        log('multi-objective phase failed: %s' % str(e)[:160])
+        return None
+
+
+def _pareto_gate(cand_genes, base_genes, info_pool, alert_pool,
+                 knee_genes=None, tol=PARETO_ALERT_TOL):
+    """Balance gate: a promotion may not gut one objective to lift the total.
+
+    Requires the candidate to hold the critical-alert objective within `tol` of
+    production. If the champion regresses it but the NSGA-II knee does not (and
+    the knee still clears the margin over baseline), the knee is returned as the
+    promotion candidate instead. Fail-closed on any error.
+
+    Returns a report dict: passed / source / the compared objective pairs, and
+    knee_genes when the knee is the chosen candidate.
+    """
+    try:
+        cand = fitness_parts(cand_genes, info_pool, alert_pool)
+        base = fitness_parts(base_genes, info_pool, alert_pool)
+        # EV-9 (2026-09-11): scaled tolerance - see PARETO_ALERT_TOL_PCT. The
+        # absolute value is a FLOOR, not the rule, so a tiny objective cannot
+        # make the gate trivially passable.
+        tol_eff = max(float(tol), PARETO_ALERT_TOL_PCT * float(base[2]))
+        floor = round(base[2] - tol_eff, 4)
+        rep = {'cand_total': cand[0], 'cand_info': cand[1], 'cand_alert': cand[2],
+               'base_total': base[0], 'base_info': base[1], 'base_alert': base[2],
+               'alert_floor': floor, 'alert_tol': round(tol_eff, 4),
+               'source': 'champion', 'passed': bool(cand[2] >= floor)}
+        if rep['passed']:
+            return rep
+        if isinstance(knee_genes, dict) and knee_genes:
+            knee = fitness_parts(knee_genes, info_pool, alert_pool)
+            if knee[2] >= floor and knee[0] > base[0] + PROMOTE_MARGIN:
+                rep.update({'passed': True, 'source': 'knee',
+                            'knee_genes': knee_genes, 'knee_total': knee[0],
+                            'knee_info': knee[1], 'knee_alert': knee[2]})
+        return rep
+    except Exception as e:
+        return {'passed': False, 'reason': str(e)[:120]}
+
+
 def production_genes():
     """Currently-promoted genes, else ScheduleConfig built-in defaults."""
     try:
-        with open(PROMOTE_JSON, encoding='utf-8') as f:
+        _pf = _promoted_file()
+        if not _pf:
+            raise FileNotFoundError('no promoted genes file (state/ or config/)')
+        with open(_pf, encoding='utf-8') as f:
             data = json.load(f)
+        # Range-check against GENE_BOUNDS rather than hardcoded numbers
+        # (2026-09-11): the literals here duplicated GENE_BOUNDS and would have
+        # silently rejected any genome promoted onto a newly-widened bound,
+        # falling back to ScheduleConfig defaults instead of loading it.
         g = {k: float(data['genes'][k])
              for k in ('learning_rate', 'epsilon', 'discount')}
-        if (0.01 <= g['learning_rate'] <= 0.5 and 0.0 <= g['epsilon'] <= 0.5
-                and 0.8 <= g['discount'] <= 0.999):
+        if all(GENE_BOUNDS[k][0] <= g[k] <= GENE_BOUNDS[k][1] for k in g):
             g['epsilon_decay'] = float(data['genes'].get('epsilon_decay', 0.0))
-            g['epsilon_decay'] = max(0.0, min(g['epsilon_decay'], 0.2))
+            _dlo, _dhi = GENE_BOUNDS['epsilon_decay']
+            g['epsilon_decay'] = max(_dlo, min(g['epsilon_decay'], _dhi))
             return g
         log('promoted file out of range, using built-in defaults')
     except Exception:
@@ -310,6 +797,273 @@ def _builtin_default_genes():
             'epsilon_decay': float(getattr(c, 'epsilon_decay', 0.0))}
 
 
+# ── PROTEUS Phase C: counterfactual-era oracle gate ─────────────────────
+# OFF BY DEFAULT and advisory. See PROTEUS_DEEP_EXPANSION.md section 2.2.
+#
+# Why it exists (E9). On the 2026-09-11 batches all 50 cycles beat the FROZEN
+# SNAPSHOT pool by +2.91..+3.39 and SPRT promoted 50/50, yet of the 4 cycles
+# that reached the fresh holdout ALL 4 failed. A +3.3 margin on a reused pool
+# bought zero confirmed improvement, because the search had overfit the pool.
+#
+# The oracle asks a strictly harder question: is the genome predicted to clear
+# `baseline + PROMOTE_MARGIN` across a DISTRIBUTION of imagined eras, not on one
+# draw? It is falsifiable against criterion 1 of the ANIMA plan (holdout pass
+# rate, currently 0/4).
+#
+# Fail-open by design: if the oracle cannot be trained or queried the cycle
+# proceeds and says so in the log. An advisory organ that can silently block
+# promotion would be worse than not having it.
+PROTEUS_ORACLE = str(os.environ.get('AZAZAEL_PROTEUS_ORACLE', '0')).strip().lower() not in (
+    '0', '', 'false', 'no', 'off')
+PROTEUS_ORACLE_MIN_P = float(os.environ.get('AZAZAEL_PROTEUS_MIN_P', '0.75'))
+PROTEUS_ORACLE_TRAIN = str(os.environ.get('AZAZAEL_PROTEUS_TRAIN', '1')).strip().lower() not in (
+    '0', '', 'false', 'no', 'off')
+PROTEUS_ORACLE_TRAIN_MIN = float(os.environ.get('AZAZAEL_PROTEUS_TRAIN_MIN', '30'))
+ORACLE_JSON = os.path.join(os.path.dirname(PROMOTE_JSON), 'fitness_oracle.json')
+ORACLE_LOG = os.path.join(os.path.dirname(PROMOTE_JSON), 'fitness_oracle.last.json')
+
+# --- PROTEUS Phase D/E flags (2026-09-12) -----------------------------------
+# Wired but OFF by default. Each flag moves exactly ONE variable, per the
+# plan's constraint 5: Morph changes the genome, Circulation changes which
+# operator is funded. Enabling both in one batch reproduces precisely the
+# confounding the earlier ordering avoided.
+_OFF = ('0', '', 'false', 'no', 'off')
+
+
+def _flag(name, default='0'):
+    return str(os.environ.get(name, default)).strip().lower() not in _OFF
+
+
+PROTEUS_CRANIUM = _flag('AZAZAEL_PROTEUS_CRANIUM')
+PROTEUS_CIRCULATION = _flag('AZAZAEL_PROTEUS_CIRCULATION')
+PROTEUS_MORPH = _flag('AZAZAEL_PROTEUS_MORPH')
+CIRCULATION_JSON = os.path.join(os.path.dirname(PROMOTE_JSON),
+                                'proteus_circulation.json')
+MORPH_HISTORY = os.path.join(os.path.dirname(PROMOTE_JSON),
+                             'proteus_morph.jsonl')
+
+# --- Tensor genome: the deliverable (2026-09-12) -----------------------------
+# Genes become typed tensors that carry their own measured usefulness, so the
+# genome can be PRUNED and COMPILED into a model rather than only searched.
+#
+# Unlike the Oracle, this needs no GIL interpreter: it is pure Python, so it
+# runs identically under python3.14t and python314. It is refreshed every cycle
+# because it costs O(rows) and reuses the same history feed the oracle uses.
+#
+# Advisory and fail-open by construction: a genome refresh must never be able to
+# abort a promotion cycle.
+TENSOR_GENOME_JSON = os.path.join(os.path.dirname(PROMOTE_JSON),
+                                  'tensor_genome.json')
+TENSOR_GENOME_SPEC = os.path.join(os.path.dirname(PROMOTE_JSON),
+                                  'tensor_genome.spec.json')
+TENSOR_GENOME_LOG = os.path.join(os.path.dirname(PROMOTE_JSON),
+                                 'tensor_genome.last.json')
+PROTEUS_TENSOR = _flag('AZAZAEL_TENSOR_GENOME', '1')
+TENSOR_HISTORY_ROWS = int(os.environ.get('AZAZAEL_TENSOR_ROWS', '600'))
+# The cycle runs while other writers (the live monitor's recorder, a concurrent
+# scheduled cycle) hold SQLite locks. The refresh is advisory, so a transient
+# lock must not be reported as a failure — it is retried with a short backoff.
+TENSOR_READ_RETRIES = int(os.environ.get('AZAZAEL_TENSOR_RETRIES', '3'))
+
+
+def _query_history_with_retry(limit):
+    """Read evolution_result rows, tolerating transient SQLite locks.
+
+    Returns (rows, error). A locked database is a normal, expected condition
+    here, not a defect: the store is shared with the live monitor and with any
+    scheduled cycle. Retrying is cheaper than serialising every reader.
+    """
+    from CORE.local_memory import get_memory_store
+
+    last = None
+    for attempt in range(max(1, TENSOR_READ_RETRIES)):
+        try:
+            rows = get_memory_store().query_memories(
+                event_type='evolution_result', limit=int(limit)) or []
+            return rows, None
+        except Exception as e:
+            last = e
+            msg = str(e).lower()
+            if 'locked' not in msg and 'busy' not in msg:
+                return None, e
+            time.sleep(0.4 * (attempt + 1))
+    return None, last
+
+# Genes that are not free to be pruned because a downstream consumer requires
+# them by name (the trainer kwargs and the production default writer both read
+# exactly these keys). Pruning one would break a contract, not a model.
+TENSOR_KEEP = tuple(PROMOTE_KEYS)
+
+
+def _tensor_genome_refresh():
+    """Rebuild the self-describing genome from real history. Advisory.
+
+    Returns a summary dict. Never raises: any failure yields `ok=False` with a
+    reason, because the caller is a promotion cycle that must not be aborted by
+    an artifact write.
+    """
+    if not PROTEUS_TENSOR:
+        return {'ok': False, 'skipped': 'disabled (AZAZAEL_TENSOR_GENOME=0)'}
+    try:
+        from CORE.WORMS.expansion.tensorgene import TensorGenome
+
+        rows, err = _query_history_with_retry(TENSOR_HISTORY_ROWS)
+        if rows is None:
+            return {'ok': False,
+                    'skipped': 'history read failed: %s' % str(err)[:140]}
+        if not rows:
+            return {'ok': False, 'skipped': 'no evolution_result rows'}
+
+        # The morph genes are read from MORPH_CANDIDATES, which is the ONE
+        # source of truth for their names and kinds. Hardcoding "morph_switch"
+        # here typed the real gene (`use_schema_features`) as a continuous
+        # `float` with `unknown` provenance -- the rotation holds two
+        # candidates and neither is named morph_switch, so the declaration was
+        # wrong for every row that ever carried one.
+        #
+        # A morph gene is present only on the cycles that trialled it. Its
+        # absence elsewhere is exactly why `correlate` skips rather than
+        # imputes: those rows are not observations of that gene.
+        kind_map = dict((k, 'float') for k in PROMOTE_KEYS)
+        provenance_map = dict((k, 'core') for k in PROMOTE_KEYS)
+        try:
+            from CORE.WORMS.expansion.proteus_hooks import MORPH_CANDIDATES
+            for _name, _kind, _lo, _hi, _kw in MORPH_CANDIDATES:
+                kind_map[_name] = _kind
+                provenance_map[_name] = 'morph'
+        except Exception as e:
+            log('tensor genome: MORPH_CANDIDATES unavailable (%s)' % str(e)[:80])
+
+        genome = TensorGenome().declare(
+            rows, kind_map=kind_map, bounds_map=GENE_BOUNDS,
+            provenance_map=provenance_map)
+        if not genome.genes:
+            return {'ok': False, 'skipped': 'history carried no gene mappings'}
+
+        summary = genome.summary()
+        genome.save_json(TENSOR_GENOME_JSON)
+
+        # `compile_spec` already carries `below_floor` (candidates, non-
+        # destructively). Pruning for real is deliberately NOT done here: the
+        # search still uses these genes, and a spec that removes them would
+        # desynchronise the artifact from the genome it describes.
+        spec = genome.compile_spec()
+        with open(TENSOR_GENOME_SPEC, 'w', encoding='utf-8') as fh:
+            json.dump(spec, fh, indent=2, default=str)
+
+        out = dict(summary)
+        out['ok'] = True
+        out['rows'] = len(rows)
+        out['keep'] = list(TENSOR_KEEP)
+        out['genes'] = [genome.genes[n].to_dict() for n in genome.order()]
+        with open(TENSOR_GENOME_LOG, 'w', encoding='utf-8') as fh:
+            json.dump(out, fh, indent=2, default=str)
+
+        log('tensor genome: %d genes width %d identifiable %d/%d most=%s' % (
+            summary['n_genes'], summary['width'], summary['identifiable'],
+            summary['n_genes'], summary['most_useful']))
+        return out
+    except Exception as e:
+        log('tensor genome refresh failed: %s' % str(e)[:140])
+        return {'ok': False, 'skipped': 'error: %s' % str(e)[:140]}
+
+
+def _morph_cycle_index():
+    """Cycle counter for the Morph round-robin.
+
+    Read from the artifact rather than held in a new state file, so the
+    rotation survives a restart AND stays in lock-step with what was actually
+    trialled. Deriving it from wall-clock would desynchronise the accounting.
+    """
+    try:
+        with open(MORPH_HISTORY, encoding='utf-8') as fh:
+            return sum(1 for line in fh if line.strip())
+    except Exception:
+        return 0
+# Training needs torch. The production runner executes every cycle under
+# python3.14t.exe, where torch CANNOT load (abi cp314 vs cp314t), so training
+# runs in the GIL interpreter as a subprocess and only JSON crosses back.
+PY_GIL = os.environ.get(
+    'AZAZAEL_PY_GIL',
+    r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe')
+TRAIN_ORACLE_SCRIPT = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'train_fitness_oracle.py')
+
+
+def _oracle_model_stale():
+    """True when the JSON model is missing or older than the retrain window.
+
+    The window exists so a batch trains at most once: a model that changed
+    mid-batch would change the treatment between cycles and make the run
+    uninterpretable.
+    """
+    if not os.path.exists(ORACLE_JSON):
+        return True
+    try:
+        age_min = (time.time() - os.path.getmtime(ORACLE_JSON)) / 60.0
+    except Exception:
+        return False
+    return age_min > PROTEUS_ORACLE_TRAIN_MIN
+
+
+def _train_oracle_subprocess():
+    """Ask the GIL interpreter to (re)train and export the JSON model."""
+    try:
+        import subprocess
+        p = subprocess.run([PY_GIL, TRAIN_ORACLE_SCRIPT], capture_output=True,
+                           text=True, timeout=900, cwd=os.path.dirname(
+                               os.path.dirname(os.path.abspath(__file__))))
+        return 'rc=%s %s' % (p.returncode, (p.stdout or '').strip()[-200:])
+    except Exception as e:
+        return 'train spawn failed: %s' % str(e)[:140]
+
+
+def _oracle_gate(cand_genes, threshold):
+    """PROTEUS Phase C pre-gate: imagined-era robustness. Advisory, fail-open.
+
+    Returns a dict whose `ok` is permission to CONTINUE the promotion
+    decision, never a promotion itself. `threshold` is an absolute fitness
+    the genome must clear in each imagined era.
+
+    Torch-free by construction: it loads a JSON model and evaluates with a
+    pure-Python forward pass, so it works under the free-threaded runner.
+    """
+    if not PROTEUS_ORACLE:
+        return {'ok': True, 'skipped': 'disabled (set AZAZAEL_PROTEUS_ORACLE=1)'}
+    try:
+        from CORE.WORMS.expansion.oracle import FitnessOracle
+
+        if PROTEUS_ORACLE_TRAIN and _oracle_model_stale():
+            log('oracle model stale/missing -> %s' % _train_oracle_subprocess())
+        if not os.path.exists(ORACLE_JSON):
+            return {'ok': True, 'skipped': 'no model at %s' % ORACLE_JSON}
+
+        oracle = FitnessOracle.load_json(ORACLE_JSON)
+        eras = oracle.meta.get('eras') or []
+        if not eras:
+            return {'ok': True, 'skipped': 'model carries no era descriptors'}
+        if oracle.n_gene != len(PROMOTE_KEYS):
+            return {'ok': True, 'skipped': 'model n_gene=%d != %d' % (
+                oracle.n_gene, len(PROMOTE_KEYS))}
+
+        vec = [float(cand_genes[k]) for k in PROMOTE_KEYS]
+        dec = oracle.era_robust_decision_pure(
+            vec, eras, threshold=float(threshold), min_prob=PROTEUS_ORACLE_MIN_P)
+        out = dict(dec)
+        out['ok'] = bool(dec.get('passed'))
+        out['n_eras'] = len(eras)
+        out['model_rows'] = oracle.meta.get('n_rows')
+        out['trained_at'] = oracle.meta.get('trained_at')
+        try:
+            with open(ORACLE_LOG, 'w', encoding='utf-8') as f:
+                json.dump(dict(out, at=time.strftime('%Y-%m-%dT%H:%M:%S')), f, indent=2)
+        except Exception:
+            pass
+        return out
+    except Exception as e:
+        return {'ok': True, 'skipped': 'error: %s' % str(e)[:140]}
+
+
 def _holdout_gate(cand_genes, base_genes):
     """Evaluate candidate vs baseline on freshly-extracted pools.
 
@@ -326,6 +1080,9 @@ def _holdout_gate(cand_genes, base_genes):
             exclude_sources=EXCLUDED_TRAINING_SOURCES)
         if not fresh_info or not fresh_alert:
             return {'passed': False, 'reason': 'degenerate fresh pools'}
+        # Prioritized sampling must apply to the fresh pools too, otherwise the
+        # holdout scores a different (uniform) distribution than the gate did.
+        fresh_alert = prioritize_pool(fresh_alert, seed=len(fresh_alert))
         fc = round(fitness_genes(cand_genes, fresh_info, fresh_alert), 4)
         fb = round(fitness_genes(base_genes, fresh_info, fresh_alert), 4)
         margin = round(fc - fb, 4)
@@ -379,7 +1136,7 @@ def _select_hof(info_pool, alert_pool):
                 continue
             _cands.append((round(_tot - _base, 4), _d.get('champion_reeval'), _genes))
         _cands.sort(key=lambda c: -c[0])
-        _reseeded = None
+        _ranked = []  # (re-eval, margin, genes), best re-eval first
         _seen_genes, _attempts = set(), 0
         for _margin, _champ, _genes in _cands:
             if _attempts >= 3:
@@ -397,18 +1154,349 @@ def _select_hof(info_pool, alert_pool):
             except Exception as e:
                 log('hof re-eval failed: %s' % str(e)[:100])
                 continue
-            if _reseeded is None or _re > _reseeded[0]:
-                _reseeded = (_re, _margin, _genes)
-        if _reseeded:
-            log('hall-of-fame seed: margin=+%s re-eval=%s genes=%s' % (
-                _reseeded[1], _reseeded[0],
-                {k: round(v, 4) for k, v in _reseeded[2].items()}))
-            return _reseeded[2]
-        log('hall-of-fame: no margin-ranked candidate re-evaluated')
-        return None
+            _ranked.append((_re, _margin, _genes))
+        if not _ranked:
+            log('hall-of-fame: no margin-ranked candidate re-evaluated')
+            return None
+        _ranked.sort(key=lambda c: -c[0])
+        # Novelty rotation (2026-09-11): always taking the re-eval winner
+        # fed the identical champion back every cycle within an era (the
+        # +1.41 x8 / +0.36 x5 margin pins) — same winner, same margin,
+        # cooldown-blocked forever. Rotate the seed among the top-3 by
+        # 5-min slot so consecutive cycles explore different lineage.
+        # Deterministic per slot; fail-open to rank 0.
+        try:
+            _slot = int(time.time()) // 300 % max(1, len(_ranked))
+        except Exception:
+            _slot = 0
+        _re, _margin, _genes = _ranked[_slot % len(_ranked)]
+        log('hall-of-fame seed: rank %d/%d margin=+%s re-eval=%s genes=%s' % (
+            _slot % len(_ranked), len(_ranked), _margin, _re,
+            {k: round(v, 4) for k, v in _genes.items()}))
+        return _genes
     except Exception as e:
         log('hall-of-fame lookup failed: %s' % str(e)[:120])
         return None
+
+
+# Widened 2026-09-11 (50-run analysis, E8). The promoted genome had drifted to a
+# VERTEX of this box: learning_rate = 0.5 was exactly the old upper bound,
+# discount = 0.8033 sat within 0.003 of the 0.8 floor, and epsilon_decay =
+# 0.0859 pressed a 0.1 ceiling. The QD archive's global best cell held the
+# identical pinned genome. With three of four genes against a wall the effective
+# search space was ~1-D and its optimum was already occupied, which is why every
+# era re-converged to the same corner and candidate margins clustered just under
+# the promotion gate instead of clearing it.
+#
+# learning_rate stays below 1.0 deliberately: tabular Q-learning is only
+# guaranteed to converge for a step size in (0, 1], so the ceiling is 0.9 rather
+# than an open bound.
+GENE_BOUNDS = {
+    'learning_rate': (0.01, 0.9),
+    'epsilon': (0.0, 0.5),
+    'discount': (0.5, 0.999),
+    'epsilon_decay': (0.0, 0.3),  # exploration-annealing speed (2026-09-08)
+}
+
+# --- v2.0 secondaries (2026-09-11 audit followups) ---------------------------
+# CMA-ES second arm: 2 gens x ~8 evals (~11% overhead) seeded at the GA
+# champion. Winner-takes-best on the SAME frozen pools, then the SAME
+# SPRT -> pareto -> holdout -> canary gates. Gates never see two
+# candidates; they see one winner, so no gate logic changes.
+CMA_ARM_GENS = 2
+# MAP-Elites behavior descriptor: (info, alert) mastery — the two objectives
+# the Pareto gate already trades off. Behaviors are z-scored against the
+# rolling 40-cycle median/IQR (_qd_norm_stats), so ANY operating band
+# spreads across the fixed 4x4 grid on (-2, +2)^2. Raw-value grids kept
+# collapsing (1-2 cells: the band is ~5 wide wherever it sits).
+# Archive persists in state/ so diversity survives across cycles.
+QD_BEHAVIOR_DIMS = [('info', 4, -2.0, 2.0), ('alert', 4, -2.0, 2.0)]
+QD_ARCHIVE_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    '..', 'state', 'qd_archive.json'))
+# TPE seeds per cycle (evaluated inside the GA population, zero extra evals).
+TPE_SUGGEST_N = 2
+TPE_HISTORY_LIMIT = 40
+
+
+def _load_qd_archive():
+    """Load persisted QD archive cells; {} on fresh start / corrupt file."""
+    try:
+        if os.path.exists(QD_ARCHIVE_PATH):
+            with open(QD_ARCHIVE_PATH, encoding='utf-8') as f:
+                data = json.load(f)
+            cells = data.get('cells', {}) if isinstance(data, dict) else {}
+            return cells if isinstance(cells, dict) else {}
+    except Exception as e:
+        log('qd archive load failed: %s' % str(e)[:100])
+    return {}
+
+
+def _save_qd_archive(cells):
+    try:
+        os.makedirs(os.path.dirname(QD_ARCHIVE_PATH), exist_ok=True)
+        tmp = QD_ARCHIVE_PATH + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump({'cells': cells,
+                       'saved_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
+                       'dims': QD_BEHAVIOR_DIMS}, f, indent=2)
+        os.replace(tmp, QD_ARCHIVE_PATH)
+    except Exception as e:
+        log('qd archive save failed: %s' % str(e)[:100])
+
+
+def _qd_cell_of(behavior):
+    """Grid cell for an (info, alert) behavior tuple."""
+    cell = []
+    for (_n, bins, lo, hi), b in zip(QD_BEHAVIOR_DIMS, behavior):
+        b = max(lo, min(hi, float(b)))
+        idx = min(bins - 1, int((b - lo) / ((hi - lo) or 1.0) * bins))
+        cell.append(idx)
+    return tuple(cell)
+
+
+def _qd_norm_stats():
+    """Rolling median/IQR of (info, alert) over the last 40 artifacts.
+
+    Fail-open defaults bracket the historical band. Powers the z-scored
+    behavior descriptor so the grid illuminates regardless of scale.
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        rows = get_memory_store().query_memories(
+            event_type="evolution_result", limit=40)
+        infos, alerts = [], []
+        for r in rows or []:
+            d = (r.get("data", {}) or {})
+            if isinstance(d, str):
+                try:
+                    d = json.loads(d)
+                except Exception:
+                    continue
+            if isinstance(d.get("best_info"), (int, float)):
+                infos.append(float(d["best_info"]))
+            if isinstance(d.get("best_alert"), (int, float)):
+                alerts.append(float(d["best_alert"]))
+        out = {}
+        for name, vals, fb in (("info", infos, (15.0, 2.0)),
+                               ("alert", alerts, (9.0, 2.0))):
+            if len(vals) >= 5:
+                vals = sorted(vals)
+                med = vals[len(vals) // 2]
+                q1, q3 = vals[len(vals) // 4], vals[3 * len(vals) // 4]
+                out[name] = (med, max(0.5, q3 - q1))
+            else:
+                out[name] = fb
+        return out
+    except Exception:
+        return {"info": (15.0, 2.0), "alert": (9.0, 2.0)}
+
+
+def _qd_autocenter(cells):
+    """Recenter the QD grid on the archive's observed behavior median.
+
+    A hand-set grid rots when the operating band drifts (the (-10,40)
+    collapse measured 2026-09-11: 100 cycles, 2/16 cells). When the
+    median behavior sits more than one cell-width outside the grid
+    center, re-bracket: width = clamp(2x observed spread, 6, 30) around
+    the median, then reinsert every elite under the new dims. Returns
+    the remapped cells. Mutates the global QD_BEHAVIOR_DIMS.
+    """
+    global QD_BEHAVIOR_DIMS
+    try:
+        beh = [tuple(c.get("behavior", ())) for c in cells.values()
+               if isinstance(c, dict) and len(c.get("behavior", ())) >= 2]
+        if len(beh) < 3:
+            return cells
+        infos = sorted(float(b[0]) for b in beh)
+        alerts = sorted(float(b[1]) for b in beh)
+        med_i = infos[len(infos) // 2]
+        med_a = alerts[len(alerts) // 2]
+        spr_i = max(1.0, infos[-1] - infos[0])
+        spr_a = max(1.0, alerts[-1] - alerts[0])
+        new_dims = []
+        moved = False
+        for (_n, bins, lo, hi), med, spr in (
+                (QD_BEHAVIOR_DIMS[0], med_i, spr_i),
+                (QD_BEHAVIOR_DIMS[1], med_a, spr_a)):
+            width = max(6.0, min(30.0, spr * 2.0))
+            nlo, nhi = med - width / 2.0, med + width / 2.0
+            center = (lo + hi) / 2.0
+            if abs(med - center) > (hi - lo) / bins:
+                moved = True
+            new_dims.append((_n, bins, round(nlo, 3), round(nhi, 3)))
+        if not moved:
+            return cells
+        QD_BEHAVIOR_DIMS = new_dims
+        fresh = {}
+        for c in cells.values():
+            if not isinstance(c, dict):
+                continue
+            try:
+                _t, _i, _a = float(c["fitness"]), float(c["behavior"][0]), float(c["behavior"][1])
+            except Exception:
+                continue
+            key = "%d,%d" % _qd_cell_of((_i, _a))
+            cur = fresh.get(key)
+            if cur is None or _t > float(cur.get("fitness", float("-inf"))):
+                fresh[key] = {"genes": dict(c.get("genes", {})),
+                              "fitness": _t, "behavior": [_i, _a]}
+        log("qd autocenter: dims=%s cells %d->%d" % (QD_BEHAVIOR_DIMS, len(cells), len(fresh)))
+        return fresh
+    except Exception as e:  # noqa: BLE001 — fail-open, keep old grid
+        log("qd autocenter failed: %s" % str(e)[:100])
+        return cells
+
+
+def _tpe_seeds(n=TPE_SUGGEST_N):
+    """Suggest seed genomes from TPE over past artifact bests.
+
+    History = last TPE_HISTORY_LIMIT evolution_result rows' (best_genes,
+    best_total). Zero extra evals: suggestions join the GA population as
+    seeds. Returns [] on fresh start / any error (fail-open: GA unaffected).
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        from CORE.WORMS.expansion.evolution import TPESurrogate
+        rows = get_memory_store().query_memories(
+            event_type='evolution_result', limit=TPE_HISTORY_LIMIT)
+        tpe = TPESurrogate({k: tuple(v) for k, v in GENE_BOUNDS.items()})
+        seen = 0
+        for r in rows or []:
+            d = (r.get('data', {}) or {})
+            if isinstance(d, str):
+                try:
+                    d = json.loads(d)
+                except Exception:
+                    continue
+            g, t = d.get('best_genes'), d.get('best_total')
+            if isinstance(g, dict) and isinstance(t, (int, float)) and g:
+                try:
+                    tpe.observe({k: float(g[k]) for k in GENE_BOUNDS if k in g}, float(t))
+                    seen += 1
+                except Exception:
+                    continue
+        if seen < 8:
+            return []
+        # Richer history (2026-09-11): observe winner + knee + seed per
+        # cycle instead of winners only — 3x density, zero extra evals.
+        # (Winner observes happened above; add knee and seed here.)
+        try:
+            for r in rows or []:
+                d = (r.get("data", {}) or {})
+                if isinstance(d, str):
+                    try:
+                        d = json.loads(d)
+                    except Exception:
+                        continue
+                _knee = (d.get("pareto") or {}).get("knee") or {}
+                _kg, _ki, _ka = _knee.get("genes"), _knee.get("info"), _knee.get("alert")
+                if isinstance(_kg, dict) and isinstance(_ki, (int, float)) \
+                        and isinstance(_ka, (int, float)):
+                    try:
+                        tpe.observe({k: float(_kg[k]) for k in GENE_BOUNDS if k in _kg},
+                                    float(_ki) + float(_ka))
+                    except Exception:
+                        pass
+                _sg = d.get("seed_genes")
+                _cr = d.get("champion_reeval")
+                if isinstance(_sg, dict) and isinstance(_cr, (int, float)):
+                    try:
+                        tpe.observe({k: float(_sg[k]) for k in GENE_BOUNDS if k in _sg},
+                                    float(_cr))
+                    except Exception:
+                        pass
+        except Exception as e:
+            log("tpe enrich failed: %s" % str(e)[:100])
+        out = []
+        for _ in range(n):
+            try:
+                out.append(tpe.suggest())
+            except Exception:
+                break
+        return [g for g in out if isinstance(g, dict) and g]
+    except Exception as e:
+        log('tpe seeds failed: %s' % str(e)[:100])
+        return []
+
+
+def _qd_suggest(cells):
+    """One diverse seed from the persisted QD archive (random elite +
+    Gaussian perturb). None when the archive is empty."""
+    try:
+        if not cells:
+            return None
+        import random as _r
+        key = _r.choice(list(cells.keys()))
+        elite = (cells[key] or {}).get('genes', {})
+        if not isinstance(elite, dict) or not elite:
+            return None
+        out = {}
+        for k, v in elite.items():
+            if k in GENE_BOUNDS and isinstance(v, (int, float)) and not isinstance(v, bool):
+                lo, hi = GENE_BOUNDS[k]
+                out[k] = max(lo, min(hi, _r.gauss(float(v), 0.1 * (hi - lo))))
+            else:
+                out[k] = v
+        return out if out else None
+    except Exception as e:
+        log('qd suggest failed: %s' % str(e)[:100])
+        return None
+
+
+def _second_arm_name():
+    """Alternate the second arm by 5-min slot: even slots sep-CMA-ES, odd
+    slots Differential Evolution. Deterministic per slot; gives both
+    secondaries live duel data against the GA champion."""
+    try:
+        return "de" if (int(time.time()) // 300) % 2 else "cma"
+    except Exception:
+        return "cma"
+
+
+def _run_cma_arm(start_genes, fitness_frozen, workers=8, force_arm=None,
+                 gene_bounds=None):
+    """Second search arm: sep-CMA-ES or DE (alternating by slot), seeded at
+    the GA champion.
+
+    Budget: ~2 gens x ~8 evals either way. Returns (genes, total) or
+    (None, None) on any error (fail-open: GA champion stands). The report
+    carries 'arm' (cma/de); 'winner' keeps cma/ga semantics (secondary/GA)
+    so existing monitor/funnel parsing is untouched.
+    """
+    # force_arm lets the Phase D circulation allocator fund a SPECIFIC arm.
+    # Without it the internal slot alternation would override the posterior's
+    # choice, and the feedback loop would credit the wrong operator.
+    arm = str(force_arm) if force_arm in ('cma', 'de') else _second_arm_name()
+    # `gene_bounds` lets Phase E hand the arm the SAME genome the GA searched.
+    # Without it the arm is built from the 4-key GENE_BOUNDS, so when its
+    # candidate wins the extra gene is simply absent from the winner and the
+    # recorded dimension drops back to 4 (measured: cycle 8, dimension 4,
+    # extra {}).
+    _bounds = gene_bounds or GENE_BOUNDS
+    try:
+        if arm == "de":
+            from CORE.WORMS.expansion.evolution import DifferentialEvolution
+            opt = DifferentialEvolution(
+                {k: tuple(v) for k, v in _bounds.items()},
+                popsize=10, seed_genes=start_genes)
+            res = opt.optimize(lambda g: float(fitness_frozen(
+                type('G', (), {'genes': g})())), generations=2)
+            res["_arm"] = "de"
+            return res.get("best_genes"), res.get("best_fitness")
+        from CORE.WORMS.expansion.evolution import SepCMAES
+        cma = SepCMAES({k: tuple(v) for k, v in _bounds.items()},
+                       seed_genes=start_genes)
+        res = cma.optimize(lambda g: float(fitness_frozen(
+            type('G', (), {'genes': g})())), generations=CMA_ARM_GENS,
+            workers=workers)
+        genes = res.get('best_genes')
+        if not isinstance(genes, dict) or not genes:
+            return None, None
+        return genes, res.get('best_fitness')
+    except Exception as e:
+        log('cma arm failed: %s' % str(e)[:120])
+        return None, None
 
 
 def _check_canary(info_pool, alert_pool, pool_reused):
@@ -429,7 +1517,7 @@ def _check_canary(info_pool, alert_pool, pool_reused):
         return {'status': 'deferred-shared-pools'}
     report = {'status': 'unknown'}
     try:
-        if not os.path.exists(PROMOTE_JSON):
+        if _promoted_file() is None:
             report = {'status': 'cleared-manual-rollback'}
             log('canary cleared: production file removed manually')
         else:
@@ -483,6 +1571,97 @@ def _check_canary(info_pool, alert_pool, pool_reused):
     return report
 
 
+# --- Prioritized alert-pool sampling (followup #4, 2026-09-11) --------------
+# WHY: the alert pool is a hard-capped 500-row sliding window
+# (`query_memories` does min(limit, 500)) sampled UNIFORMLY by the RL loop.
+# So when the system is healthy and no new alerts arrive, the objective keeps
+# re-training on the same frozen rows - the starvation the audit found. Two
+# structural facts make the old metric blind to it: hard_count SATURATES at 500
+# (it can never reveal starvation) and uniform sampling gives a 3-day-old row
+# the same weight as one from a minute ago.
+#
+# WHAT THIS IS: the SAMPLING half of prioritized experience replay -
+# proportional resampling by an intrinsic priority p_i^alpha. The
+# importance-sampling CORRECTION half is deliberately NOT implemented, because
+# RLTrainLoop.train_from_memory() accepts no per-sample weights; claiming full
+# PER here would be false. Priority is intrinsic (severity x recency), not
+# TD-error driven, so it needs no policy feedback and stays a pure function.
+PRIORITY_ALPHA = 0.6            # exponent on the priority (1.0 = fully greedy)
+PRIORITY_HALFLIFE_H = 24.0      # recency half-life for aging rows
+PRIORITY_RECENCY_FLOOR = 0.15   # old rows fade but never vanish entirely
+SEVERITY_WEIGHT = {'critical': 4.0, 'error': 2.5, 'warning': 1.5, 'info': 1.0}
+
+
+def _now_epoch():
+    return datetime.now(timezone.utc).timestamp()
+
+
+def _age_hours(timestamp, now=None):
+    """Age of an ISO timestamp in hours, or None when unparseable."""
+    if not timestamp:
+        return None
+    try:
+        ts = str(timestamp).replace('Z', '+00:00')
+        dt = datetime.fromisoformat(ts)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return ((now if now is not None else _now_epoch())
+                - dt.timestamp()) / 3600.0
+    except Exception:
+        return None
+
+
+def pool_priority(record, now=None):
+    """Intrinsic priority of one alert row: severity weight x recency decay.
+
+    No policy feedback, so this is deterministic and testable. Recency uses an
+    exponential half-life and is floored, so an old-but-critical row still gets
+    sampled rather than ageing out of the distribution entirely.
+    """
+    rec = record or {}
+    sev = str(rec.get('severity', 'info')).lower()
+    weight = float(SEVERITY_WEIGHT.get(sev, 1.0))
+    age = _age_hours(rec.get('timestamp'), now)
+    if age is not None:
+        decay = 0.5 ** (max(0.0, float(age)) / PRIORITY_HALFLIFE_H)
+        weight *= max(PRIORITY_RECENCY_FLOOR, decay)
+    return max(weight, 1e-6)
+
+
+def prioritize_pool(records, size=None, alpha=PRIORITY_ALPHA, now=None, seed=0):
+    """Proportional resampling of a pool by priority (deterministic given seed).
+
+    Returns a NEW list, same length by default, drawn with replacement so high
+    priority rows appear more often. Both zero-mean and all-equal priorities
+    degrade gracefully to an unweighted draw, so this can never empty a pool.
+    """
+    if not records:
+        return list(records or [])
+    n = int(size) if size else len(records)
+    now_ts = now if now is not None else _now_epoch()
+    try:
+        prios = [max(float(pool_priority(r, now_ts)), 1e-9) ** float(alpha)
+                 for r in records]
+    except Exception:
+        return list(records)
+    total = sum(prios)
+    if not (total > 0.0):
+        return list(records)
+    rng = random.Random(seed)
+    out = []
+    for _ in range(n):
+        target = rng.random() * total
+        acc = 0.0
+        pick = records[-1]
+        for i, p in enumerate(prios):
+            acc += p
+            if target <= acc:
+                pick = records[i]
+                break
+        out.append(pick)
+    return out
+
+
 POOL_SNAPSHOT_PATH = os.path.abspath(os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     '..', 'state', 'evolution_pool_snapshot.json'))
@@ -516,7 +1695,15 @@ def _load_or_freeze_pools():
                 and info_pool and alert_pool and age < POOL_MAX_AGE_S):
             log('reusing pool snapshot (age %ds): info=%d alert=%d' % (
                 age, len(info_pool), len(alert_pool)))
-            return info_pool, alert_pool, True, int(age), int(float(snap.get('saved_at', 0)))
+            # Prioritized sampling (followup #4): resample the alert pool by
+            # severity x recency. The snapshot itself stays RAW (so pool_id and
+            # pool_fingerprint keep meaning the same data era) and the seed is
+            # the era's saved_at, so every genome and every cycle within the era
+            # sees the SAME prioritized draw - prioritization must not become a
+            # second source of per-genome variance.
+            alert_out = prioritize_pool(
+                alert_pool, seed=int(float(snap.get('saved_at', 0))))
+            return info_pool, alert_out, True, int(age), int(float(snap.get('saved_at', 0)))
         log('pool snapshot unusable (age %s), re-freezing' % (
             ('%ds' % age) if age >= 0 else 'missing'))
     except Exception as e:
@@ -533,12 +1720,17 @@ def _load_or_freeze_pools():
                     len(info_pool or []), len(alert_pool or [])))
             return None, None, False, 0, 0
         log('frozen pools: info=%d alert=%d' % (len(info_pool), len(alert_pool)))
+        # The snapshot stores the RAW pool; prioritization is applied on the way
+        # out so it is never double-applied on a later reuse.
+        alert_out = prioritize_pool(alert_pool, seed=int(now))
+        log('prioritized alert pool: %d rows resampled by severity x recency'
+            % len(alert_out))
         tmp = POOL_SNAPSHOT_PATH + '.tmp'
         with open(tmp, 'w', encoding='utf-8') as f:
             json.dump({'saved_at': now, 'info': info_pool,
                        'alert': alert_pool}, f, ensure_ascii=False, default=str)
         os.replace(tmp, POOL_SNAPSHOT_PATH)
-        return info_pool, alert_pool, False, 0, int(now)
+        return info_pool, alert_out, False, 0, int(now)
     except Exception as e:
         log('pool freeze failed, falling back to live evals: %s' % str(e)[:120])
         return None, None, False, 0, 0
@@ -566,7 +1758,7 @@ META_BOUNDS = {
     'mutation_rate': (0.02, 0.4),
     'crossover_rate': (0.3, 1.0),
     'tournament_size': (2, 5),
-    'early_stop_patience': (3, 8),
+    'early_stop_patience': (5, 8),
     'early_stop_tolerance': (0.001, 0.05),
 }
 META_DEFAULTS = {
@@ -577,8 +1769,35 @@ META_DEFAULTS = {
     'early_stop_tolerance': 0.01,
 }
 META_INT_KEYS = ('tournament_size', 'early_stop_patience')
+# EV-4 (2026-09-10): search-integrity knobs are NOT explorable. The meta-search
+# had driven early_stop_patience to its own lower bound (3), so the GA stopped
+# at gen 3-4 of a 15-gen budget every cycle and every trajectory came out flat.
+# Letting a search relax its own stopping rule (or PROMOTE_MARGIN/WINS) is
+# reward hacking; only real search knobs are perturbed.
+META_EXPLORE_KEYS = ('mutation_rate', 'crossover_rate', 'tournament_size')
+# Minimum generations before a convergence claim is honoured (EV-4):
+# has_converged() reads within-process history only (each cycle is a new
+# process), so an early plateau is not evidence of convergence.
+MIN_GENS = 6
 META_EXPLORE_PROB = 0.25
 META_CANDIDATE_RUNS = 3
+
+
+def _clamp_meta(params):
+    """Force meta-params into META_BOUNDS (EV-4).
+
+    Every source of meta-params must pass through here. A stale 'candidate'
+    persisted in the meta state file otherwise pins a search-integrity knob
+    below its floor: on 2026-09-10 the file's candidate still carried
+    early_stop_patience=3, and _meta_propose() returned it unclamped — so the
+    floor added to _meta_load() alone was bypassed and the GA kept stopping at
+    gen 3-4.
+    """
+    out = {}
+    for k, (lo, hi) in META_BOUNDS.items():
+        v = min(hi, max(lo, float(params.get(k, META_DEFAULTS[k]))))
+        out[k] = int(round(v)) if k in META_INT_KEYS else v
+    return out
 
 
 def _meta_load():
@@ -589,6 +1808,7 @@ def _meta_load():
                   for k in META_BOUNDS}
         for k in META_INT_KEYS:
             params[k] = int(round(params[k]))
+        params = _clamp_meta(params)
         return {'params': params,
                 'score_ema': float(st.get('score_ema', 0.0)),
                 'runs': int(st.get('runs', 0)),
@@ -610,12 +1830,36 @@ def _meta_save(st):
         log('meta state save failed: %s' % str(e)[:100])
 
 
-def _meta_propose(st):
+def _active_strategy():
+    """Metacog's active strategy (latest strategy_steered row), or '?'.
+
+    G-7 steering point: the one place strategy enters evolution. Fail-open
+    — unknown strategy behaves like a neutral one, never blocks a cycle.
+    """
+    try:
+        from CORE.local_memory import get_memory_store
+        rows = get_memory_store().query_memories(
+            event_type="strategy_steered", limit=1)
+        if rows:
+            d = (rows[0].get("data", {}) or {})
+            s = str(d.get("strategy", "?") or "?")
+            return s
+    except Exception as e:  # noqa: BLE001
+        log("strategy lookup failed: %s" % str(e)[:100])
+    return "?"
+
+
+def _meta_propose(st, explore_prob=META_EXPLORE_PROB):
     """Pick this cycle's meta-params: exploit champion or explore one
-    perturbed dimension. Returns (params, is_candidate)."""
-    if st['candidate'] is None and random.random() < META_EXPLORE_PROB:
+    perturbed dimension. Returns (params, is_candidate).
+
+    explore_prob overrides the module default so callers (G-7 steering:
+    defensive halves exploration) can modulate without touching the
+    safety-reviewed constant.
+    """
+    if st['candidate'] is None and random.random() < explore_prob:
         cand = dict(st['params'])
-        key = random.choice(sorted(META_BOUNDS))
+        key = random.choice(META_EXPLORE_KEYS)
         lo, hi = META_BOUNDS[key]
         if key in META_INT_KEYS:
             cand[key] = int(min(hi, max(lo, cand[key] + random.choice((-1, 1)))))
@@ -627,8 +1871,8 @@ def _meta_propose(st):
         log('meta: exploring %s=%s (champ %s)' % (key, cand[key], st['params'][key]))
         return cand, True
     if st['candidate'] is not None:
-        return dict(st['candidate']), True
-    return dict(st['params']), False
+        return _clamp_meta(dict(st['candidate'])), True
+    return _clamp_meta(dict(st['params'])), False
 
 
 def _meta_score(st, params, is_candidate, margin):
@@ -641,7 +1885,7 @@ def _meta_score(st, params, is_candidate, margin):
         if st['candidate_runs'] >= META_CANDIDATE_RUNS:
             old_ema = st['score_ema']
             if mean > old_ema:
-                st['params'] = dict(st['candidate'])
+                st['params'] = _clamp_meta(dict(st['candidate']))
                 st['score_ema'] = mean
                 msg = ('meta: candidate PROMOTED (mean %+.2f > ema %+.2f): %s'
                        % (mean, old_ema, st['params']))
@@ -689,12 +1933,20 @@ def main():
     if _lock is None:
         log('another evolution cycle holds the lock, skipping this run')
         return
+    _migrate_legacy_promotions()
     seed = int(time.time()) % 100000
     random.seed(seed)
     log('seed=%d' % seed)
 
     meta_st = _meta_load()
-    meta_params, meta_is_cand = _meta_propose(meta_st)
+    # G-7 steering point: strategy enters evolution here and only here.
+    # Defensive halves meta exploration (exploit the known-good champion
+    # instead of perturbing search knobs); anything else explores at the
+    # reviewed default. Logged + persisted per cycle for later analysis.
+    strategy = _active_strategy()
+    _explore = META_EXPLORE_PROB * (0.5 if strategy.strip().lower() == "defensive" else 1.0)
+    log('strategy=%s explore_prob=%s' % (strategy, _explore))
+    meta_params, meta_is_cand = _meta_propose(meta_st, explore_prob=_explore)
     log('meta: %s params=%s' % (
         'candidate' if meta_is_cand else 'champion',
         {k: round(v, 4) for k, v in meta_params.items()}))
@@ -736,22 +1988,71 @@ def main():
     # Rows with a falsy baseline are skipped (margin undefined).
     hof_genes = _select_hof(info_pool, alert_pool)
 
-    _seeds = [g for g in (seed_genes, hof_genes) if isinstance(g, dict) and g]
+    # v2.0 seeds: champion + HOF + TPE suggests (exploit history) + one QD
+    # diverse elite (explore). TPE/QD suggestions cost zero extra evals —
+    # they join the GA population as seeds. All fail-open: GA unaffected.
+    _qd_cells = _qd_autocenter(_load_qd_archive())
+    _tpe = _tpe_seeds()
+    if _tpe:
+        log('tpe seeds: %d suggestions from %d-row history' % (len(_tpe), TPE_HISTORY_LIMIT))
+    _qd_seed = _qd_suggest(_qd_cells)
+    if _qd_seed:
+        log('qd seed: diverse elite from %d-cell archive' % len(_qd_cells))
+    _seeds = [g for g in (seed_genes, hof_genes, *_tpe, _qd_seed)
+              if isinstance(g, dict) and g]
     # Dedupe identical gene dicts
     _seen = set()
     _unique_seeds = []
     for _g in _seeds:
-        _key = tuple(sorted(_g.items()))
+        try:
+            _key = tuple(sorted((k, round(float(v), 6)) for k, v in _g.items()))
+        except Exception:
+            continue
         if _key not in _seen:
             _seen.add(_key)
             _unique_seeds.append(_g)
 
-    evo.initialize_population({
-        'learning_rate': (0.01, 0.5),
-        'epsilon': (0.0, 0.5),
-        'discount': (0.8, 0.999),
-        'epsilon_decay': (0.0, 0.1),  # exploration-annealing speed (2026-09-08)
-    }, seed_genomes=_unique_seeds)
+    # --- PROTEUS Phase E: rotate ONE extra gene into the search space -------
+    # gated, fail-open. `_trainer_extra_kwargs` is the matching pass-through:
+    # without it the added gene is sampled by the engine and then discarded by
+    # the evaluator, so the search would look 5-D and score 4-D.
+    _gene_specs, _morph_gene = None, None
+    _morph_index = -1
+    if PROTEUS_MORPH:
+        try:
+            from CORE.WORMS.expansion.proteus_hooks import (
+                morph_gene_specs, morph_strip)
+            _morph_index = _morph_cycle_index()
+            _gene_specs, _morph_gene = morph_gene_specs(_morph_index, GENE_BOUNDS)
+            # Seeds come from last_best_genes(), i.e. the PREVIOUS cycle's
+            # winner, which carries whatever extra gene that cycle trialled.
+            # The engine fills missing genes but never prunes extras, so
+            # without this strip the genome accumulates candidates forever
+            # (measured: a dimension-6 row carrying BOTH genes). Each cycle
+            # must be a clean 4 + 1 factorial or the per-gene verdict is
+            # confounded.
+            _stripped = 0
+            for _sg in _unique_seeds:
+                try:
+                    _clean = morph_strip(_sg)
+                    if len(_clean) != len(_sg):
+                        _stripped += 1
+                    _sg.clear()
+                    _sg.update(_clean)
+                except Exception:
+                    continue
+            if _stripped:
+                log('morph: stripped prior extra genes from %s seed genome(s)'
+                    % _stripped)
+            log('morph: cycle %s adds gene %s (kind=%s)' % (
+                _morph_index, (_morph_gene or {}).get('name'),
+                (_morph_gene or {}).get('kind')))
+        except Exception as e:
+            _gene_specs, _morph_gene = None, None
+            log('morph specs failed (fail-open to 4-gene): %s' % str(e)[:120])
+
+    evo.initialize_population(dict(GENE_BOUNDS), seed_genomes=_unique_seeds,
+                              gene_specs=_gene_specs)
 
     # Parallel eval workers (2026-09-09): fitness is now RNG-isolated per
     # genome (no global-random traffic), so the population evaluates with
@@ -760,13 +2061,22 @@ def main():
     _workers = 8
 
     trajectory = []
+    trajectory_avg = []
     for gen in range(15):
         stats = evo.evaluate_population(fitness_frozen, workers=_workers)
         best = evo.get_best_genome()
         trajectory.append(round(stats.get('best_fitness', 0.0), 4))
+        # EV-8 (2026-09-11): the population MEAN is what distinguishes a
+        # plateau at a strong seeded champion from a true no-gradient stall.
+        # With elitism, `best_fitness` is flat BY CONSTRUCTION until a child
+        # beats the elite, so `best` alone cannot tell the two apart - and
+        # the monitor was asserting 'fitness has no gradient' on that basis
+        # even though 40 random genomes on this pool give 40 distinct scores.
+        trajectory_avg.append(round(stats.get('avg_fitness', 0.0), 4))
         log(f'gen {gen}: best={stats.get("best_fitness")} '
             f'genes={best.genes if best else None}')
-        if evo.has_converged():
+        # EV-4: honour a convergence claim only after MIN_GENS generations.
+        if (gen + 1) >= MIN_GENS and evo.has_converged():
             log(f'converged at gen {gen}, stopping early')
             break
         evo.evolve()
@@ -776,6 +2086,139 @@ def main():
     best_total, best_info, best_alert = (
         fitness_parts(best.genes, info_pool, alert_pool) if best else (0.0, 0.0, 0.0))
     log('BEST parts: total=%s info=%s alert=%s' % (best_total, best_info, best_alert))
+
+    # Baseline moved ahead of the CMA arm (gate needs the margin first).
+    try:
+        baseline_genes = production_genes()
+        baseline_fit = round(fitness_genes(baseline_genes, info_pool, alert_pool), 4)
+        log('production baseline: %s -> %s' % (
+            {k: round(v, 4) for k, v in baseline_genes.items()}, baseline_fit))
+    except Exception as e:
+        baseline_genes, baseline_fit = {}, 0.0
+        log('baseline eval failed: %s' % str(e)[:120])
+
+    # --- v2.0 CMA-ES second arm (audit followup, 2026-09-11) -----------------
+    # Seeded at the GA champion, 2 gens x ~8 evals. Winner-takes-best on the
+    # SAME frozen pools; the winner alone enters SPRT -> pareto -> holdout ->
+    # canary, so gate logic is unchanged. Fail-open: any error keeps GA best.
+    # Gated (2026-09-11, post-RUN100: 4/100 wins): the arm earns its ~11%
+    # overhead only where the GA looks contestable — margin below 2x the
+    # promote threshold. A GA champion already crushing it stands unopposed.
+    cma_report = {'ran': False, 'winner': 'ga', 'arm': _second_arm_name(),
+                  'funded_by': 'circulation' if PROTEUS_CIRCULATION else '2x_gate'}
+
+    # The secondary arm must search the SAME genome as the GA. With Phase E on
+    # that genome is 4 continuous genes + 1 switch, and the switch is offered
+    # to the continuous optimiser as a (0.0, 1.0) coordinate (thresholded at
+    # 0.5 in morph_trainer_kwargs). Otherwise an arm win silently drops the
+    # extra dimension: measured cycle 8, dimension 4, extra {}.
+    _arm_gene_bounds = dict(GENE_BOUNDS)
+    if PROTEUS_MORPH and _morph_gene:
+        _arm_gene_bounds[_morph_gene['name']] = (0.0, 1.0)
+    _gate_margin = (best_total - baseline_fit) if best and baseline_genes else float("-inf")
+    _circ = {}
+    if PROTEUS_CIRCULATION:
+        # Phase D replacement for the fixed gate. The old rule
+        # `margin < 2 * PROMOTE_MARGIN` could only ever say "not needed right
+        # now"; every margin on the 2026-09-11 batch was >= 2.91 against a 1.5
+        # threshold, so the second arm was skipped 50/50 and the operator was
+        # structurally unreachable once the regime shifted. Thompson sampling
+        # with a floor share keeps a starved arm discoverable.
+        try:
+            from CORE.WORMS.expansion.proteus_hooks import circulation_decide
+            _circ = circulation_decide(CIRCULATION_JSON)
+            cma_report['circulation'] = _circ
+            _circ_arm = _circ.get('arm')
+            # The allocator is restricted to SEARCH_ARMS, so a funded secondary
+            # is always 'cma' or 'de' and cma_report['arm'] therefore names the
+            # arm that ACTUALLY runs. Feedback keys on this label, so the two
+            # cannot drift apart.
+            if _circ_arm in ('cma', 'de'):
+                cma_report['arm'] = _circ_arm
+            _cma_wanted = bool(_circ.get('run_secondary')) and best is not None
+            log('circulation: arm=%s weights=%s -> secondary %s' % (
+                _circ_arm, _circ.get('weights'),
+                'RUNS' if _cma_wanted else 'skipped'))
+        except Exception as e:
+            _circ = {'error': str(e)[:140]}
+            _cma_wanted = best is not None and _gate_margin < 2 * PROMOTE_MARGIN
+            log('circulation failed (fail-open to 2x gate): %s' % str(e)[:120])
+    else:
+        _cma_wanted = best is not None and _gate_margin < 2 * PROMOTE_MARGIN
+    if not _cma_wanted and best is not None:
+        cma_report['skipped'] = 'ga margin %.3f clears 2x threshold' % _gate_margin
+        log('%s arm: skipped (%s)' % (cma_report['arm'].upper(), cma_report['skipped']))
+    if _cma_wanted:
+        _cma_genes, _cma_fit = _run_cma_arm(
+            best.genes, fitness_frozen, _workers,
+            force_arm=(cma_report.get('arm') if PROTEUS_CIRCULATION else None),
+            gene_bounds=_arm_gene_bounds)
+        if isinstance(_cma_genes, dict) and _cma_genes:
+            try:
+                _cma_total, _cma_info, _cma_alert = fitness_parts(
+                    _cma_genes, info_pool, alert_pool)
+                cma_report.update({'ran': True, 'cma_total': _cma_total,
+                                   'ga_total': best_total})
+                _armtag = cma_report['arm'].upper()
+                if _cma_total > best_total:
+                    from CORE.WORMS.expansion.evolution import Genome as _Genome
+                    best = _Genome(genes=dict(_cma_genes), fitness=float(_cma_fit or _cma_total),
+                                   generation=evo._generation + 1, parent_ids=[])
+                    best_total, best_info, best_alert = _cma_total, _cma_info, _cma_alert
+                    cma_report['winner'] = 'cma'
+                    log('%s arm: WON total=%s (ga=%s) info=%s alert=%s' % (
+                        _armtag, _cma_total, cma_report['ga_total'], _cma_info, _cma_alert))
+                else:
+                    log('%s arm: held (%s=%s ga=%s), GA champion stands' % (
+                        _armtag, cma_report['arm'], _cma_total, best_total))
+            except Exception as e:
+                log('second-arm scoring failed: %s' % str(e)[:120])
+
+    # --- v2.0 MAP-Elites update (audit followup, 2026-09-11) -----------------
+    # Behavior descriptor = (info, alert) mastery: the archive keeps the
+    # fittest genome per behavior cell, so a future D-2-class collapse (one
+    # cell dominating fitness) preserves stepping stones elsewhere. Top-5 GA
+    # + CMA best + winner enter the grid; archive persists in state/.
+    qd_report = {'filled': len(_qd_cells), 'added': 0}
+    try:
+        _qd_cands = []
+        try:
+            _pop_sorted = sorted(evo._population, key=lambda g: -g.fitness)[:5]
+            _qd_cands.extend([dict(g.genes) for g in _pop_sorted])
+        except Exception:
+            pass
+        if best is not None:
+            _qd_cands.append(dict(best.genes))
+        _nstat = _qd_norm_stats()
+        for _g in _qd_cands:
+            try:
+                _t, _i, _a = fitness_parts(_g, info_pool, alert_pool)
+            except Exception:
+                continue
+            _ni = (_i - _nstat["info"][0]) / _nstat["info"][1]
+            _na = (_a - _nstat["alert"][0]) / _nstat["alert"][1]
+            _cell = _qd_cell_of((_ni, _na))
+            _key = '%d,%d' % _cell
+            _cur = _qd_cells.get(_key)
+            if not isinstance(_cur, dict) or float(_t) > float(_cur.get('fitness', float('-inf'))):
+                _qd_cells[_key] = {'genes': _g, 'fitness': _t,
+                                   'behavior': [round(_ni, 3), round(_na, 3)],
+                                   'raw': [round(_i, 3), round(_a, 3)]}
+                qd_report['added'] += 1
+        _save_qd_archive(_qd_cells)
+        _total_cells = 1
+        for (_n, _b, _l, _h) in QD_BEHAVIOR_DIMS:
+            _total_cells *= _b
+        _fits = [float(c.get('fitness', 0.0)) for c in _qd_cells.values()
+                 if isinstance(c, dict)]
+        qd_report.update({'filled': len(_qd_cells), 'total_cells': _total_cells,
+                          'coverage': round(len(_qd_cells) / _total_cells, 4) if _total_cells else 0.0,
+                          'qd_score': round(sum(_fits), 2) if _fits else 0.0,
+                          'best': round(max(_fits), 4) if _fits else 0.0})
+        log('qd archive: %(filled)d/%(total_cells)d cells coverage=%(coverage)s '
+            'qd_score=%(qd_score)s best=%(best)s (+%(added)d this cycle)' % qd_report)
+    except Exception as e:
+        log('qd update failed: %s' % str(e)[:120])
 
     # Champion re-evaluation on the current pool: with deterministic fitness
     # this score is comparable across runs, separating 'genome got worse'
@@ -788,52 +2231,187 @@ def main():
         except Exception as e:
             log('champion re-eval failed: %s' % str(e)[:120])
 
-    try:
-        baseline_genes = production_genes()
-        baseline_fit = round(fitness_genes(baseline_genes, info_pool, alert_pool), 4)
-        log('production baseline: %s -> %s' % (
-            {k: round(v, 4) for k, v in baseline_genes.items()}, baseline_fit))
-    except Exception as e:
-        baseline_genes, baseline_fit = {}, 0.0
-        log('baseline eval failed: %s' % str(e)[:120])
+    # (baseline evaluated above, ahead of the CMA gate)
+    baseline_id = baseline_hash(baseline_genes) if baseline_genes else ''
+    _margin_raw = (best_total - baseline_fit) if best else 0.0
+    beats = bool(best) and (_margin_raw > PROMOTE_MARGIN)
+    margin_now = round(_margin_raw, 4)
 
-    beats = bool(best) and (best_total > baseline_fit + PROMOTE_MARGIN)
+    # --- stall detection (2026-09-12) ---------------------------------------
+    # A frozen pool (`POOL_MAX_AGE_S` = 1800s) makes consecutive cycles
+    # re-compute the SAME margin, so `beats=False` repeats and the SPRT, the
+    # Pareto refine, the holdout and Cranium are ALL skipped. Measured: 100
+    # consecutive cycles with `beats=False`, twenty of them recording the
+    # identical margin 0.5563. Nothing in the log said the loop had stopped
+    # producing information - it looked exactly like normal operation, which is
+    # the same failure the pareto-blocked streak was added to expose.
+    #
+    # So the repetition is measured and recorded. A cycle that repeats the
+    # previous margin on a reused pool is NOT a new observation, and downstream
+    # consumers can now see that instead of inferring it.
+    _repeat = 0
+    try:
+        from CORE.local_memory import get_memory_store
+        _recent = get_memory_store().query_memories(
+            event_type='evolution_result', limit=12)
+        _repeat = _margin_repeat_streak(_recent, margin_now)
+    except Exception:
+        _repeat = 0
+    _non_informative = bool(_repeat >= 2 and pool_reused)
+    if _non_informative:
+        log('STALL: margin %s repeated %d cycles on a reused pool (id=%s) - '
+            'no new information; SPRT/pareto/holdout cannot run, so this '
+            'cycle is recorded as non-informative'
+            % (margin_now, _repeat + 1, pool_id))
     streak = 0
+    # E2 (2026-09-11, 50-run analysis): this default used to be 'reject', so a
+    # cycle the margin gate already failed was recorded and displayed as an SPRT
+    # rejection even though the test never ran (n=0). 31 of 51 analysed cycles
+    # were that case, which made the SPRT look far more decisive than it was.
+    # 'not_run' keeps the two situations distinguishable everywhere downstream.
+    sprt_llr, sprt_sigma, sprt_n, sprt_decision = 0.0, 0.0, 0, 'not_run'
+    # (_repeat / _non_informative are computed by the stall check above.)
+    _sprt_dup = 0
     if beats:
         streak = 1
+        _hrows = []
         try:
             from CORE.local_memory import get_memory_store
             _hrows = get_memory_store().query_memories(
-                event_type='evolution_result', limit=PROMOTE_WINS - 1)
-            for _hr in _hrows:
-                _hd = _hr.get('data', {}) or {}
-                if isinstance(_hd, str):
-                    try:
-                        _hd = json.loads(_hd)
-                    except Exception:
-                        break
-                # Era-pinned streak (2026-09-10): a streak must accumulate
-                # inside ONE pool era. Rows predating pool_id tagging (or
-                # from an older snapshot) break the streak — cross-era
-                # margins are comparable-ish but not promotion-grade, and
-                # without this a blocked streak re-tests holdout forever.
-                if _hd.get('pool_id') != pool_id:
-                    break
-                if (str(_hd.get('fitness', '')).startswith('v3')
-                        and _hd.get('beats_baseline')):
-                    streak += 1
-                else:
-                    break
+                event_type='evolution_result', limit=PROMOTE_MAX_WINS)
+            # Era-pinned streak criteria live in _compute_streak (EV-2).
+            streak = _compute_streak(_hrows, pool_id, baseline_id, beats)
         except Exception as e:
             log('streak lookup failed: %s' % str(e)[:120])
-    log('promotion standing: beats=%s streak=%s/%s' % (beats, streak, PROMOTE_WINS))
+        # SPRT (2026-09-11, followup #2): variance-aware sequential gate that
+        # replaces the fixed 3/3 rule as the promotion criterion. The era-pinned
+        # streak is retained only as a display/compatibility counter.
+        try:
+            _prior = _sprt_history(_hrows, pool_id, baseline_id)
+            _floor = salt_spread(best.genes, info_pool, alert_pool)
+            # Collapse re-measurements BEFORE the test. A frozen pool makes
+            # consecutive margins bit-identical, and the additive LLR would
+            # otherwise treat one number as a growing stack of evidence.
+            _seq, _sprt_dup = _sprt_collapse(_prior + [margin_now])
+            if _sprt_dup:
+                log('SPRT: collapsed %d re-measurement(s) of an identical '
+                    'margin (frozen pool) -> n=%d' % (_sprt_dup, len(_seq)))
+            sprt_llr, sprt_sigma, sprt_n, sprt_decision = _sprt_decide(
+                _seq, _floor)
+        except Exception as e:
+            log('sprt failed: %s' % str(e)[:120])
+    log('promotion standing: beats=%s margin=%s sprt=%s(n=%s llr=%s sigma=%s) '
+        'streak=%s/%s' % (beats, margin_now, sprt_decision, sprt_n, sprt_llr,
+                          sprt_sigma, streak, PROMOTE_WINS))
+    sprt_ok = sprt_decision == 'promote'
+
+    # --- PROTEUS Phase D: Cranium cross-era pooling (2026-09-12) ------------
+    # Why this exists: `_sprt_history` hard-stops at the first pool_id change,
+    # and on the 2026-09-11 batch that break landed 28 times in 51 cycles
+    # (~1.8 cycles/era) while the SPRT needs 2..6 same-era observations. The
+    # evidence could never accumulate, so the gate produced 1 promotion in 51
+    # cycles. Cranium treats era as a random effect and pools through the grand
+    # mean, so a NEW era ADDS information instead of resetting the count.
+    # Both directions are wired: rescue a stalled SPRT, and veto an SPRT
+    # promote whose pooled posterior is strongly below the promote threshold.
+    cranium = {}
+    if PROTEUS_CRANIUM and beats:
+        try:
+            from CORE.WORMS.expansion.proteus_hooks import (
+                cranium_decide, cranium_override)
+            cranium = cranium_decide(_hrows, pool_id, margin_now,
+                                     threshold=SPRT_DELTA1)
+            # Policy lives in a pure function so both branches are testable
+            # without running this 2,350-line script (see cranium_override).
+            _sprt_before = sprt_decision
+            _ov = cranium_override(sprt_decision, cranium)
+            sprt_decision = _ov['decision']
+            sprt_ok = _ov['sprt_ok']
+            cranium['action'] = _ov['action']
+            cranium['sprt_before'] = _sprt_before
+            if _ov['action'] == 'rescue':
+                log('CRANIUM rescue: pooled over %s eras (n=%s) p_above=%s '
+                    'posterior %s+-%s -> SPRT gained a promotion' % (
+                        cranium.get('n_eras'), cranium.get('n_obs'),
+                        cranium.get('p_above_threshold'),
+                        cranium.get('posterior_mean'),
+                        cranium.get('posterior_sd')))
+            elif _ov['action'] == 'veto':
+                log('CRANIUM veto: pooled posterior p_above=%s < alpha over %s '
+                    'eras -> SPRT promote withdrawn (E9 shape)' % (
+                        cranium.get('p_above_threshold'), cranium.get('n_eras')))
+            log('cranium: action=%s (sprt %s -> %s) %s' % (
+                _ov['action'], _sprt_before, sprt_decision,
+                {k: v for k, v in cranium.items()
+                 if k not in ('action', 'sprt_before')}))
+        except Exception as e:
+            cranium = {'error': str(e)[:140]}
+            log('cranium failed (fail-open to SPRT): %s' % str(e)[:120])
+    if beats and sprt_decision == 'reject':
+        log('SPRT rejected: evidence against a real improvement (llr %s <= %s) '
+            '- streak reset' % (sprt_llr, round(SPRT_LOWER, 4)))
+
+    # --- NSGA-II refinement + Pareto balance gate (2026-09-11, followup #1) ---
+    # Refinement now runs BEFORE the promotion decision, so the knee is an input
+    # to it instead of a post-hoc report, and the scalar total can no longer buy
+    # a promotion by trading away the critical-alert objective.
+    # E1 (2026-09-11, 50-run analysis): the refine is ~90% of cycle wall clock
+    # (1066s of 1177s over 51 runs) and its knee/front are ONLY read inside the
+    # `beats and sprt_ok` block below. On a cycle the margin gate already failed
+    # that search burned ~21s to produce a front nothing consumes - 33 of the 51
+    # analysed cycles. Gate the expensive search on the cheap decision that can
+    # actually use its output.
+    pareto = (_pareto_refine(evo, info_pool, alert_pool)
+              if (beats and sprt_ok and best) else None)
+    knee_genes = ((pareto or {}).get('knee') or {}).get('genes')
+    pareto_gate = {}
+    cand_genes = best.genes if best else {}
+    cand_total, cand_info, cand_alert = best_total, best_info, best_alert
+    if beats and sprt_ok and best:
+        pareto_gate = _pareto_gate(cand_genes, baseline_genes, info_pool,
+                                   alert_pool, knee_genes=knee_genes)
+        log('pareto gate: %s' % {k: v for k, v in pareto_gate.items()
+                                if k != 'knee_genes'})
+        if pareto_gate.get('source') == 'knee' and pareto_gate.get('knee_genes'):
+            # The champion regressed the alert objective but the balanced front
+            # point does not and still clears the margin: promote the knee.
+            cand_genes = pareto_gate['knee_genes']
+            cand_total = pareto_gate.get('knee_total', cand_total)
+            cand_info = pareto_gate.get('knee_info', cand_info)
+            cand_alert = pareto_gate.get('knee_alert', cand_alert)
+            log('pareto gate: promoting the NSGA-II knee instead of the champion')
+        elif not pareto_gate.get('passed'):
+            log('promotion BLOCKED by pareto balance gate'
+                ' (alert %s < floor %s)' % (pareto_gate.get('cand_alert'),
+                                            pareto_gate.get('alert_floor')))
+    pareto_ok = bool(pareto_gate.get('passed'))
+    # EV-9: surface a persistent blockage instead of logging the same line every
+    # cycle. The streak counts PRIOR cycles, so >=10 means this is the 11th+.
+    pareto_blocked_streak = _pareto_blocked_streak() if pareto_gate else 0
+    if not pareto_ok and pareto_blocked_streak >= 10:
+        log('pareto gate has now blocked %d consecutive promotions - the alert '
+            'floor may be unsatisfiable; review PARETO_ALERT_TOL_PCT'
+            % (pareto_blocked_streak + 1))
     meta_msg = _meta_score(meta_st, meta_params, meta_is_cand,
                            (best_total - baseline_fit) if best else 0.0)
     log(meta_msg)
 
     promoted = False
     holdout = {}
-    if beats and streak >= PROMOTE_WINS and best:
+
+    # PROTEUS Phase C pre-gate. Runs BEFORE the holdout deliberately: it is the
+    # cheaper, STRICTER question ("does this clear baseline+margin across
+    # imagined eras?"), so it belongs upstream of the single fresh draw it is
+    # meant to strengthen. Placing it after the holdout made it unreachable --
+    # measured 2026-09-12: 14 of 14 cycles reached beats+sprt+pareto yet sat in
+    # holdout cooldown, so an after-holdout gate never evaluated once.
+    if beats and sprt_ok and pareto_ok and best:
+        oracle_gate = _oracle_gate(cand_genes, baseline_fit + PROMOTE_MARGIN)
+        log('oracle gate: %s' % oracle_gate)
+    else:
+        oracle_gate = {'ok': True, 'skipped': 'earlier gate did not pass'}
+
+    if beats and sprt_ok and pareto_ok and best:
         # Holdout cooldown (2026-09-10): a blocked streak re-tests
         # holdout every cycle within one pool era (~25s apart at
         # rapid-fire cadence) with no new evidence. Re-test only when
@@ -858,7 +2436,7 @@ def main():
             holdout = {'passed': False, 'cooldown': True,
                        'margin': _margin_now, 'prior_block': _cd_margin}
         else:
-            holdout = _holdout_gate(best.genes, baseline_genes)
+            holdout = _holdout_gate(cand_genes, baseline_genes)
         log('holdout: %s' % holdout)
         if not holdout.get('passed') and not holdout.get('cooldown'):
             log('promotion BLOCKED by holdout gate')
@@ -868,7 +2446,80 @@ def main():
                                'at': time.strftime('%Y-%m-%dT%H:%M:%S')}, f)
             except Exception as e:
                 log('cooldown write failed: %s' % str(e)[:100])
-    if beats and streak >= PROMOTE_WINS and best and holdout.get('passed'):
+    if not oracle_gate.get('ok'):
+        log('promotion BLOCKED by oracle counterfactual-era gate: %s'
+            % oracle_gate)
+
+    # Phase E is a MEASUREMENT phase, not a deployment. A 5-gene genome is
+    # scored WITH the extra gene active (`_trainer_extra_kwargs`), but
+    # production evaluates with only the four genes unless Morph is also on —
+    # through `production_genes()`, which deliberately reads just the four.
+    # Promoting it would write a champion whose recorded fitness does not
+    # describe how it will be scored, which is exactly the incomparability the
+    # plan warned about. Trial it, measure it, do not ship it.
+    _morph_blocks_promotion = bool(PROTEUS_MORPH and _morph_gene)
+    if _morph_blocks_promotion and beats and sprt_ok and pareto_ok \
+            and holdout.get('passed'):
+        log('morph: promotion WITHHELD — genome carries the trial gene %s, so '
+            'its measured fitness is not the fitness production would score'
+            % _morph_gene.get('name'))
+
+    # --- PROTEUS Phase E: the matched A/B (2026-09-12) ----------------------
+    # The comparison above asks "did a 5-gene genome beat the 4-gene production
+    # baseline", which conflates the added gene with the search that produced
+    # the champion. Measured on this ledger: 52 of 69 trials never changed the
+    # trainer call at all, so that comparison was reporting the search and the
+    # gene was credited for it.
+    #
+    # The A/B holds everything fixed — SAME champion, SAME frozen pools, SAME
+    # seeds — and moves ONE gene: the trainer's default value versus the value
+    # that actually changes the call. That difference is attributable to the
+    # gene by construction. It also FORCES the trial arm off the default, which
+    # is the point: a trial that leaves the call alone cannot be evidence no
+    # matter how the search scored.
+    #
+    # Cost: 2 evaluations (6 salt-runs) against ~144 for one generation of a
+    # 24-genome population, so ~4% of a generation. Fail-open: a ledger row
+    # without an A/B is still a row, and MUTAGEN reports it as unattributable
+    # rather than guessing.
+    _morph_ab = None
+    if _morph_blocks_promotion and best is not None:
+        try:
+            from CORE.WORMS.expansion.proteus_hooks import (
+                morph_ab_delta, morph_ab_plan)
+            _ab_plan = morph_ab_plan(_morph_gene, best.genes)
+            if _ab_plan:
+                _ab_ctl = dict(best.genes)
+                _ab_ctl[_ab_plan['gene']] = _ab_plan['control']
+                _ab_trt = dict(best.genes)
+                _ab_trt[_ab_plan['gene']] = _ab_plan['treatment']
+                _c_tot, _c_info, _c_alert = fitness_parts(
+                    _ab_ctl, info_pool, alert_pool)
+                _t_tot, _t_info, _t_alert = fitness_parts(
+                    _ab_trt, info_pool, alert_pool)
+                _morph_ab = {
+                    'gene': _ab_plan['gene'],
+                    'default': _ab_plan['default'],
+                    'control_value': _ab_plan['control'],
+                    'treatment_value': _ab_plan['treatment'],
+                    'control_fitness': _c_tot,
+                    'treatment_fitness': _t_tot,
+                    'control_parts': {'info': _c_info, 'alert': _c_alert},
+                    'treatment_parts': {'info': _t_info, 'alert': _t_alert},
+                    'delta': morph_ab_delta(_c_tot, _t_tot),
+                }
+                log('morph A/B: %s default(%s)=%.4f treatment(%s)=%.4f '
+                    'delta=%s' % (
+                        _ab_plan['gene'], _ab_plan['control'], _c_tot,
+                        _ab_plan['treatment'], _t_tot,
+                        _morph_ab['delta']))
+        except Exception as e:
+            _morph_ab = None
+            log('morph A/B failed (fail-open, ledger still written): %s'
+                % str(e)[:120])
+
+    if beats and sprt_ok and pareto_ok and best and holdout.get('passed') \
+            and oracle_gate.get('ok') and not _morph_blocks_promotion:
         try:
             if os.path.exists(PROMOTE_JSON):
                 # Rotate backups depth-2 (followup #5): .prev -> .prev2,
@@ -884,12 +2535,20 @@ def main():
                     f.write(prev_data)
             with open(PROMOTE_JSON, 'w', encoding='utf-8') as f:
                 json.dump({
-                    'genes': best.genes,
-                    'fitness': best_total,
-                    'fitness_detail': {'info': best_info, 'alert': best_alert},
+                    'genes': cand_genes,
+                    'fitness': cand_total,
+                    'fitness_detail': {'info': cand_info, 'alert': cand_alert},
                     'baseline': baseline_fit,
                     'holdout': holdout,
+                    'oracle': oracle_gate,
                     'wins': streak,
+                    'margin': margin_now,
+                    'sprt_llr': sprt_llr,
+                    # Traceability: if a trial gene were ever present here, the
+                    # artifact says which one, so the measurement can be
+                    # attributed rather than guessed at.
+                    'proteus_morph_gene': (_morph_gene or {}).get('name'),
+                    'pareto_source': pareto_gate.get('source', 'champion'),
                     'promoted_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
                     'run_seed': seed,
                 }, f, indent=2)
@@ -897,52 +2556,27 @@ def main():
             log('PROMOTED to %s (prev kept at %s, auto-canary armed)' % (
                 PROMOTE_JSON, PREV_JSON))
             try:
-                _write_canary(best.genes, best_total, round(fitness_genes(
+                _write_canary(cand_genes, cand_total, round(fitness_genes(
                     _builtin_default_genes(), info_pool, alert_pool), 4))
             except Exception as e:
                 log('canary arm failed: %s' % str(e)[:120])
         except Exception as e:
             log('promotion write failed: %s' % str(e)[:120])
 
-    # --- NSGA-II multi-objective refinement (2026-09-08 expansion) ---
-    # Info mastery and critical-alert mastery as separate objectives. The
-    # engine's Pareto machinery (non-dominated sort + crowding distance) is
-    # used as-is; objectives are negated (engine minimizes). The 'knee' is the
-    # front member with the max normalized objective sum — the balanced pick.
-    pareto = None
+    # EV-7 (2026-09-10): the engine advertises checkpoint save/restore but the
+    # live loop never called it (checkpoint_saved = 17 rows total, none since
+    # 2026-09-09), so continuity was dead code. Save once per cycle: one row
+    # carrying the full population + best genome, restorable via
+    # EvolutionEngine.load_checkpoint().
     try:
-        res = evo.optimize_multi_objective(
-            [lambda g: -fitness_skill(g.genes, 1, info_pool, alert_pool),
-             lambda g: -fitness_skill(g.genes, 2, info_pool, alert_pool)],
-            generations=MULTI_GENS)
-        front = res.get('pareto_front', []) or []
-        if front:
-            obj = [f['objectives'] for f in front]
-            lo = [min(o[i] for o in obj) for i in range(2)]
-            hi = [max(o[i] for o in obj) for i in range(2)]
-            rng = [max(1e-9, hi[i] - lo[i]) for i in range(2)]
-
-            def _norm(o):
-                return sum((o[i] - lo[i]) / rng[i] for i in range(2))
-
-            knee = max(front, key=lambda f: _norm(f['objectives']))
-            pareto = {
-                'front': [{'genes': f['genes'],
-                           'info': round(-f['objectives'][0], 4),
-                           'alert': round(-f['objectives'][1], 4)}
-                          for f in front],
-                'knee': {'genes': knee['genes'],
-                         'info': round(-knee['objectives'][0], 4),
-                         'alert': round(-knee['objectives'][1], 4)},
-                'generations': res.get('generations', MULTI_GENS),
-            }
-            log('multi-objective: front=%d knee=%s info=%.3f alert=%.3f' % (
-                len(front),
-                {k: round(v, 4) for k, v in knee['genes'].items()},
-                pareto['knee']['info'], pareto['knee']['alert']))
+        _ck = evo.save_checkpoint('cycle-%s' % seed)
+        log('checkpoint saved: gen %s best=%s' % (
+            _ck.get('generation'), _ck.get('best_fitness')))
     except Exception as e:
-        log('multi-objective phase failed: %s' % str(e)[:160])
+        log('checkpoint save failed: %s' % str(e)[:120])
 
+    # (NSGA-II refinement ran earlier, before the promotion decision —
+    # followup #1, 2026-09-11. `pareto` is already populated above.)
     try:
         from CORE.direct_memory import DirectMemory
         dm = DirectMemory()
@@ -961,20 +2595,121 @@ def main():
             'episodes': N_EPISODES,
             'seed': seed,
             'trajectory': trajectory,
+            'trajectory_avg': trajectory_avg,
             'seeded_from_prior': bool(seed_genes),
             'meta_params': meta_params,
             'meta_candidate': meta_is_cand,
             'meta_msg': meta_msg,
+            # G-7 steering point: active metacog strategy + the explore
+            # probability it produced (joins strategy↔search analysis).
+            'strategy': strategy,
+            'explore_prob': _explore,
             'champion_reeval': champ_score,
-            'champion_genes': seed_genes,
+            'baseline_hash': baseline_id,
+            # EV-3 (2026-09-10): champion_genes records the WINNER. It used to
+            # record the input seed, so last_best_genes() returned its own
+            # input: seed(n+1) == seed(n), the chain was a fixed point, and
+            # champion_reeval froze at 21.815 across 7 consecutive runs.
+            'champion_genes': best.genes if best else {},
+            'seed_genes': seed_genes,
             'pool_fingerprint': pool_fingerprint(),
             'pool_snapshot_reused': pool_reused,
             'pool_snapshot_age_s': pool_age_s,
+            # Stall visibility (2026-09-12): true when this cycle re-measured
+            # the previous cycles' margin on a frozen pool. Consumers must not
+            # count these as independent observations.
+            'margin_repeat_streak': _repeat,
+            'non_informative': _non_informative,
             'pool_id': pool_id,
             'pareto': pareto,
+            'pareto_gate': {k: v for k, v in (pareto_gate or {}).items()
+                            if k != 'knee_genes'},
+            'pareto_blocked_streak': pareto_blocked_streak,
+            'promoted_source': pareto_gate.get('source', 'champion'),
             'holdout': holdout,
             'canary': canary_report,
+            # v2.0 secondaries (2026-09-11): CMA arm + QD archive + TPE seeds.
+            'cma_arm': cma_report,
+            'qd_archive': qd_report,
+            'tpe_seeds': len(_tpe),
+            'search_arms': {'ga': 'EvolutionEngine/SBX+poly', 'cma': 'SepCMAES/2gens',
+                            'qd': 'MAP-Elites/(info,alert)', 'suggest': 'TPE'},
+            # SPRT gate state (2026-09-11, followup #2). `margin` is the raw
+            # per-cycle effect that the sequential test accumulates, so it is
+            # persisted explicitly (older rows only carry best_total/baseline).
+            'margin': margin_now,
+            'sprt': {'llr': sprt_llr, 'sigma': sprt_sigma, 'n': sprt_n,
+                     'decision': sprt_decision, 'upper': round(SPRT_UPPER, 4),
+                     'lower': round(SPRT_LOWER, 4),
+                     # Re-measurements dropped because the pool was frozen.
+                     # Without this the inflation is invisible after the fact.
+                     'collapsed_duplicates': _sprt_dup},
+            # PROTEUS Phase D/E (2026-09-12). Persisted so a batch can be
+            # attributed: without these keys a Cranium rescue is
+            # indistinguishable from a plain SPRT promote after the fact.
+            'cranium': cranium,
+            'circulation': _circ,
+            'morph': {'cycle_index': _morph_index,
+                      'gene': _morph_gene,
+                      'dimension': len(best.genes) if best else 0,
+                      # The attributable reading, recorded next to the
+                      # comparison so a batch can be judged on the A/B rather
+                      # than on the confounded fitness delta.
+                      'ab': _morph_ab},
         }, tags=['evolution', 'artifact'])
+
+        # --- PROTEUS Phase D/E feedback (2026-09-12) -----------------------
+        # Credit the operator that actually ran. Outcome strings are weighted
+        # by `reward_for_outcome`; a holdout pass is worth far more than
+        # beating a reused snapshot because E9 showed a +3.3 snapshot margin
+        # buying 0/4 holdout passes. Failures are swallowed: the cycle has
+        # already produced its artifact.
+        _outcome = ('holdout_pass' if (promoted and holdout.get('passed'))
+                    else 'promoted' if promoted
+                    else 'beat_baseline' if beats
+                    else 'flat')
+        if PROTEUS_CIRCULATION and cma_report.get('ran'):
+            try:
+                from CORE.WORMS.expansion.proteus_hooks import circulation_update
+                _upd = circulation_update(CIRCULATION_JSON,
+                                          str(cma_report.get('arm')), _outcome)
+                log('circulation feedback: arm=%s outcome=%s %s' % (
+                    cma_report.get('arm'), _outcome, _upd))
+            except Exception as e:
+                log('circulation feedback failed: %s' % str(e)[:120])
+        if PROTEUS_MORPH and _morph_index >= 0:
+            try:
+                from CORE.WORMS.expansion.proteus_hooks import (
+                    morph_is_inert, morph_record)
+                # 2026-09-12: a trial only measures its gene if it changes what
+                # the trainer is called with. Measured on this ledger: 52 of 69
+                # rows resolved to the trainer's OWN default, so
+                # `fitness - baseline_fit` was reporting the search, not the
+                # gene — and every one was retained. `morph_record` stamps the
+                # verdict on the row either way; logging it here is what makes
+                # a null cycle distinguishable from a real win in the cycle
+                # log, which is where anyone actually looks first.
+                if morph_is_inert(_morph_gene, (best.genes if best else {})):
+                    log('morph: trial %s was INERT - its resolved value equals '
+                        'the trainer default, so this row cannot attribute the '
+                        'margin (fitness %.4f vs baseline %.4f)' % (
+                            (_morph_gene or {}).get('name'), best_total,
+                            baseline_fit))
+                if _morph_ab and _morph_ab.get('delta') is not None \
+                        and float(_morph_ab['delta']) <= 0.0:
+                    log('morph: A/B says the trial gene did NOT pay for itself '
+                        '(delta %s) - the fitness delta above is the search'
+                        % _morph_ab['delta'])
+                morph_record(MORPH_HISTORY, _morph_index, _morph_gene,
+                             (best.genes if best else {}), best_total,
+                             baseline_fit, ab=_morph_ab)
+            except Exception as e:
+                log('morph record failed: %s' % str(e)[:120])
+        # Tensor genome (the deliverable): refresh the self-describing artifact
+        # from the same history the oracle feed reads. Pure Python, so it runs
+        # under python3.14t as well as the GIL interpreter. Advisory: a failure
+        # here must never abort a promotion cycle, so it is swallowed and logged.
+        _tensor_genome_refresh()
         if promoted and best:
             dm.record('evolution_promotion', {
                 'action': 'champion promoted to production defaults',
@@ -997,7 +2732,8 @@ def main():
             elif not beats:
                 _v, _why = 'HELD', 'margin below gate'
             else:
-                _v, _why = 'STREAK %d/3' % streak, 'accumulating within pool era'
+                _v, _why = ('EVIDENCE %d (llr %s)' % (sprt_n, sprt_llr),
+                            'accumulating within pool era (SPRT %s)' % sprt_decision)
             dm.record('thought_process', {
                 'task': 'evolution promotion verdict',
                 'reasoning': ('%s: best %s vs baseline %s (margin %s) on pool era %s. %s.' % (
