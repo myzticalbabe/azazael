@@ -1369,8 +1369,13 @@ def render(data, now):
     Small windows show the same sections narrower — never scrolled.
     The plain-English interpretation moved to the log file (append_log).
     """
-    width, height = shutil.get_terminal_size((100, 30))
-    width = max(64, min(width, 200))
+    cols, rows = shutil.get_terminal_size((100, 30))
+    # Leave the last column and the 3 header rows out of the budget: a line
+    # that fills the window EXACTLY can wrap on a console that wraps on the
+    # last cell, and a wrapped line shifts -- then scrolls -- the whole frame,
+    # so it no longer repaints in place.
+    width = max(64, min(cols - 1, 200))
+    height = max(8, rows - 3)
     _FRAME_NO[0] += 1   # twinkle step for the rainbow GOSP line
     # Priority drop for short windows (2026-09-09): the bottom sections
     # (TRAIN grid, verdict) must never be cut — drop detail lines first.
@@ -2037,16 +2042,23 @@ def _paint_in_place(frame_lines):
     """
     import shutil as _sh
     size = _sh.get_terminal_size((100, 30))
-    max_rows = max(4, size.lines - 1)
+    # Use the FULL window height: the width margin in render() already makes a
+    # wrapped line impossible, which was the original reason to keep the last
+    # row free. Reserving it silently dropped the final line -- the VERDICT,
+    # the one line the wallboard exists to show.
+    max_rows = max(4, size.lines)
     rows = frame_lines[:max_rows]          # never exceed the visible window
     if len(rows) < max_rows:
         rows = rows + [""] * (max_rows - len(rows))  # wipe any longer old frame
 
-    out = ["\033[H"]                       # cursor home (keep the old buffer)
+    # Reset first: without it the frame starts in whatever colour the previous
+    # one ended in, so the banner can change colour on the second paint.
+    out = ["\033[H", C_RST]                # home, then clear any inherited SGR
     for i, line in enumerate(rows):
         if i:
             out.append("\r\n")
         out.append(line)
+        out.append(C_RST)                  # never let one row's colour bleed
         out.append("\033[K")               # erase to end of this line
     out.append("\033[J")                   # erase everything below the frame
     sys.stdout.write("".join(out))

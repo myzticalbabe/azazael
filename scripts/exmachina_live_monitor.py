@@ -1103,7 +1103,9 @@ def _paint_in_place(frame_lines):
     """
     import shutil as _sh
     size = _sh.get_terminal_size((100, 30))
-    max_rows = max(4, size.lines - 1)
+    # FULL window height: render() already leaves the last column free, so a
+    # line cannot wrap and the last row is safe to use. Reserving it just made
+    # the rows reserved by render() pointless.
     rows = frame_lines[:max_rows]          # never exceed the visible window
     if len(rows) < max_rows:
         rows = rows + [""] * (max_rows - len(rows))  # wipe any longer old frame
