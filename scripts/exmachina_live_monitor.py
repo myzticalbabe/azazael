@@ -1044,6 +1044,26 @@ def exmachina_lines(width, height, snap):
 
 
 
+# --- health -----------------------------------------------------------
+def health_check():
+    """Is the epistemic tier loadable and reporting? Returns (ok, message).
+
+    This viewer is useless if the tier it views cannot be imported: the panel
+    then degrades to a single DEGRADED row, which is easy to mistake for a
+    quiet subsystem. Automation needs an explicit yes/no, so `--health`
+    exits non-zero instead of relying on someone reading the panel.
+    """
+    core = ex_core()
+    if core is None:
+        return False, "epistemic tier not loadable: %s" % (
+            "; ".join(_EX_LOAD_ERR) or "unknown")
+    snap = exmachina_snapshot()
+    if snap.get("error"):
+        return False, str(snap["error"])
+    return True, "tier loaded: %d organs, %d signals" % (
+        len(EX_ORGANS), len(snap.get("signals") or {}))
+
+
 # --- rendering --------------------------------------------------------
 def render(now=None, size=None):
     """One frame: header + the Ex Machina panel. Never raises."""
@@ -1141,6 +1161,8 @@ def main():
                     help="render a single frame to stdout and exit (screenshots/reports)")
     ap.add_argument("--no-color", action="store_true",
                     help="strip ANSI colors (pair with --once for clean captures)")
+    ap.add_argument("--health", action="store_true",
+                    help="check that the epistemic tier loads, then exit (0 ok / 1 degraded)")
     args = ap.parse_args()
     REFRESH = max(5, args.refresh)
     LOG_PATH = os.path.abspath(args.log)
@@ -1154,6 +1176,11 @@ def main():
     except Exception:
         pass
 
+    if args.health:
+        ok, msg = health_check()
+        print(("OK   " if ok else "FAIL ") + msg)
+        return 0 if ok else 1
+
     if args.once:
         # read-only snapshot: bypass the single-instance lock so a capture
         # never fights the running wallboard.
@@ -1162,6 +1189,12 @@ def main():
 
     if not _single_instance():
         return 2
+
+    # alert once if the tier is not loadable, so a silent blank panel is never
+    # mistaken for a healthy idle subsystem
+    _ok, _msg = health_check()
+    if not _ok:
+        sys.stderr.write("\a[EX MACHINA] %s\n" % _msg)
 
     first = True
     while True:

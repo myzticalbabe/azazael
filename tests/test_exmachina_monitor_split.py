@@ -75,6 +75,13 @@ class TestPanelHasItsOwnMonitor(unittest.TestCase):
                 ex._vis_len(line), width,
                 "line wider than the window: %r" % _ANSI.sub("", line)[:70])
 
+    def test_health_check_reports_the_tier(self):
+        ok, msg = ex.health_check()
+        self.assertIsInstance(ok, bool)
+        self.assertTrue(msg, "health_check returned no message")
+        # the tier is stdlib-only and committed, so it must load
+        self.assertTrue(ok, msg)
+
     def test_azazael_monitor_does_not_render_the_panel(self):
         con = az.db_connect()
         if con is None:
