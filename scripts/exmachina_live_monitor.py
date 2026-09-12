@@ -815,6 +815,21 @@ def exmachina_lines(width, height, snap):
         for ln in meter_lines[:cap]:
             out.append(_fit(ln, width))
 
+    # 4b. the tier's own promotion funnel. `summary` counts only the rows the
+    # report actually judged, so "attempts -> passes" is the tier's read on how
+    # far candidates got, independent of the Azazael wallboard's EVO row.
+    if height >= 26 and sm:
+        _att, _pas = sm.get("attempts"), sm.get("passes")
+        _pro, _cd, _sd = sm.get("promoted"), sm.get("cooldowns"), sm.get("margin_sd")
+        _pcol = C_GRN if (_pas or 0) > 0 else C_YEL
+        out.append(_fit(" %s %-9s attempts %s  %spasses %s%s  promoted %s  cooldowns %s  margin_sd %s" % (
+            GLYPH["warn"], _ex_shift("FUNNEL", 5),
+            "--" if _att is None else _att,
+            _pcol, "--" if _pas is None else _pas, C_RST,
+            "--" if _pro is None else _pro,
+            "--" if _cd is None else _cd,
+            "--" if _sd is None else "%.3f" % _sd), width))
+
     # 5. vitals: which artifact has gone quiet
     vs = snap.get("vitals") or {}
     if height >= 26 and vs.get("signals"):
@@ -886,6 +901,17 @@ def exmachina_lines(width, height, snap):
         chunk = shown[i:i + per_line]
         out.append(_fit("  " + ("   " if two_up else "").join(
             c if two_up else c for c in chunk), width))
+
+    # 6b. the evidence the operators consumed, so an "idle" operator can be
+    # told apart from an operator whose evidence set was never populated.
+    if height >= 30 and operators:
+        _ev = "rows %s  complete %s  complete-models %s  holdout %s" % (
+            operators.get("n_rows"), operators.get("n_complete"),
+            operators.get("n_complete_models"), operators.get("n_holdout"))
+        if operators.get("check_key"):
+            _ev += "  check=%s" % operators["check_key"]
+        out.append(_fit(" %s %-9s %s" % (
+            GLYPH["vital"], _ex_shift("EVIDENCE", 7), _ev), width))
 
     # 7. the seven operators, with their measured numbers
     ops = []
