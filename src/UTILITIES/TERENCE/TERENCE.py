@@ -53,9 +53,22 @@ class TERENCE:
 
     VERSION = "1.0.0"
 
+    # TERENCE must never scan or edit its own package. Several rule
+    # DESCRIPTIONS contain the very pattern they detect (for example
+    # "Use 'is None' instead of '== None'"), so an unrestricted training
+    # pass rewrote its own rule table on 2026-09-11: the None rule's
+    # description became "Use 'is None' instead of 'is None'", the
+    # assertEquals pattern lost its 's', and the list(d.keys()) rule was
+    # shortened. The guard below makes that class of self-corruption
+    # impossible, and it is enforced at three points (scan, quick check,
+    # and apply) so no queue or replay can bypass it.
+    SELF_DIR = Path(__file__).resolve().parent
+
     def __init__(self):
         self.fixes: list[Fix] = []
         self.stats = FixStats()
+        # Append the corrected comparison rules (2026-09-11).
+        self.FIXES = list(self.FIXES) + list(self.EXTRA_RULES)
 
     # === ERROR PATTERNS AND FIXES ===
 
@@ -177,7 +190,7 @@ class TERENCE:
         {
             "pattern": r"list\s*\(\s*\.keys\s*\(\s*\)\s*\)",
             "match": "list(d.keys())",
-            "fix": "list(d.keys())  # Or use list(d)",
+            "fix": "list(d)  # Or use list(d)",
             "desc": "Simplify list(d.keys())",
         },
         # str(list) instead of ', '.join()
@@ -245,6 +258,128 @@ class TERENCE:
         },
     ]
 
+    # === RULE SAFETY (2026-09-11) ==========================================
+    # Two defects made this tool net-destructive and made its training signal
+    # actively wrong:
+    #
+    # 1. FIX SEMANTICS. `_scan_file` stored `original = line.strip()[:50]` and
+    #    `_apply_verified` did a whole-line `.replace()`. So a rule whose
+    #    replacement was a COMMENT (e.g. "print(" -> "# print(  # Debug")
+    #    deleted the entire statement. py_compile still passed, so
+    #    `_record_outcome` recorded success=True and the loop REINFORCED code
+    #    deletion. "Magic numbers" (any 3+ digit number) and "Long lines" had
+    #    the same shape, which would have gutted large parts of the repo.
+    #
+    # 2. INVERTED COMPARISONS. `==\s*None|!=\s*None` with a single fix of
+    #    "is None" turned `x is not None` into `x is None` — the exact opposite
+    #    test. Same for `== True|== False` -> "is True".
+    #
+    # Fixes: (a) fixes are SPAN substitutions, never whole-line replacements;
+    # (b) every auto-appliable rule has an explicit correct substitution in
+    # RULE_SUBSTITUTIONS; (c) rules that delete/comment out code are advisory
+    # only (UNSAFE_RULES) and can never be auto-applied; (d) `_apply_verified`
+    # refuses any edit that removes all executable content from the line.
+    UNSAFE_RULES = {
+        "Comment out print statement",
+        "Comment out return outside function",
+        "Comment out continue/break outside loop",
+        "Comment out eval()",
+        "Comment out exec()",
+        "Replace __import__ with importlib",
+        "Replace wildcard import",
+        "Replace wildcard from import",
+        "Don't shadow builtins",
+        "Replace magic numbers with constants",
+        "Split long lines (>120 chars)",
+        "Use context manager for open()",
+        "Add default to dict.get()",
+        "Replace mutable default argument",
+        "Use enumerate() instead of range(len())",
+        "Consider string formatting",
+        "Replace tabs with 4 spaces",
+        "Add message to assert",
+        "Add exception handling to empty try",
+        # --- Second safety pass (2026-09-11): rules that LOOK equivalent but
+        # are not. Auto-applying any of these would change behaviour while
+        # verifying clean, which is the same failure mode as the comment-out
+        # rules - just quieter.
+        #
+        # `str(d.keys())` yields "dict_keys([...])" whereas ', '.join(d.keys())
+        # yields the joined contents: a different STRING, not a modernization.
+        "Use join for string conversion",
+        # `except:` also catches KeyboardInterrupt/SystemExit; narrowing to
+        # `except Exception:` changes which failures are caught. The work order
+        # (Class A5) requires logging + a DLQ counter at those sites, not a
+        # silent mechanical narrowing.
+        "Replace bare except with Exception handling",
+        # `x == True` is TRUE for x = 1 and `x == False` is TRUE for x = 0,
+        # but `is True`/`is False` require the singletons. The correct rewrite
+        # is `if x:` / `if not x:`, which needs judgement. Not equivalent.
+        "Use 'is' for boolean comparison",
+        "Use 'is False' for boolean comparison",
+        # Pure no-op: `isinstance(x, T)` and `isinstance(x, (T,))` are
+        # identical at runtime. 202 of these would otherwise dominate the
+        # applied-count and dilute the learning signal with non-events.
+        "Use tuple for isinstance",
+    }
+
+    # Explicit, CORRECT substitution for every rule worth auto-applying. The
+    # value REPLACES the rule's own pattern+fix, so a rule that matched too
+    # broadly (or whose replacement inverted the logic) is narrowed here.
+    RULE_SUBSTITUTIONS = {
+        "Replace bare except with Exception handling":
+            (r"except\s*:", "except Exception:"),
+        # narrowed to equals-only: the original pattern also matched `is not None`
+        # and rewrote it to `is None`, inverting the condition.
+        "Use 'is None' instead of '== None'":
+            (r"==\s*None", "is None"),
+        # narrowed to True-only: the original also matched `== False`.
+        "Use 'is' for boolean comparison":
+            (r"==\s*True", "is True"),
+        "Use modern unittest methods":
+            (r"\bassertEquals\b", "assertEqual"),
+        "Simplify list(d.keys())":
+            (r"list\s*\(\s*(\w+)\.keys\s*\(\s*\)\s*\)", r"list(\1)"),
+    }
+
+    # Cases the original rule set got WRONG by omission, added as their own
+    # rules so neither comparison can be rewritten to its opposite.
+    EXTRA_RULES = [
+        {
+            "pattern": r"!=\s*None",
+            "fix": "is not None",
+            "desc": "Use 'is not None' instead of '!= None'",
+        },
+        {
+            "pattern": r"==\s*False",
+            "fix": "is False",
+            "desc": "Use 'is False' for boolean comparison",
+        },
+    ]
+
+    @classmethod
+    def _is_self(cls, file_path) -> bool:
+        """True when `file_path` lives inside TERENCE's own package."""
+        try:
+            return cls.SELF_DIR in Path(file_path).resolve().parents
+        except OSError:
+            return False
+
+    @staticmethod
+    def _gutted(original, fixed):
+        """True when an edit removes ALL executable content from the line.
+
+        `x == None` -> `x is None` shortens the line but keeps code (allowed).
+        `print(x)` -> `# print(...)` and `x = 500` -> `# 1000` leave nothing
+        but a comment (refused). This is the guard that stops py_compile from
+        rewarding code deletion.
+        """
+        def _code(s):
+            i = s.find('#')
+            return (s[:i] if i >= 0 else s).strip()
+        oc, fc = _code(original or ""), _code(fixed or "")
+        return bool(oc) and not fc
+
     # === MAIN FUNCTIONS ===
 
     def scan(self) -> FixStats:
@@ -293,6 +428,8 @@ class TERENCE:
             for f in p.rglob("*.py"):
                 if any(s in str(f) for s in ["__pycache__", ".git", ".venv"]):
                     continue
+                if self._is_self(f):
+                    continue
 
                 file_count += 1
                 fixes = self._scan_file(f)
@@ -311,30 +448,59 @@ class TERENCE:
         return self.stats
 
     def _scan_file(self, file_path: Path) -> list[Fix]:
-        """Scan a single file for fixable errors."""
+        """Scan a single file for fixable errors.
+
+        SPAN semantics (2026-09-11): `original` is the MATCHED SPAN and `fixed`
+        is that span after substitution - never the whole stripped line. The
+        old form replaced an entire statement whenever a rule matched, so a
+        rule whose replacement was a comment silently deleted code that still
+        compiled (and was therefore recorded as a success).
+
+        Strict UTF-8 decode: `errors="ignore"` silently dropped undecodable
+        bytes, so a 'fix' could rewrite a file it had mis-read.
+        """
         fixes = []
+        # Single-file guard as well as the loop guard in scan(): this is the
+        # one function that turns a file into Fix objects, so refusing here
+        # makes self-corruption impossible even for direct callers.
+        if self._is_self(file_path):
+            return fixes
 
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-                lines = content.split("\n")
+        except (UnicodeDecodeError, OSError):
+            return fixes
 
-            for line_num, line in enumerate(lines, 1):
-                for fix_rule in self.FIXES:
-                    if re.search(fix_rule["pattern"], line):
-                        fixes.append(
-                            Fix(
-                                file=str(file_path),
-                                line=line_num,
-                                error_type=fix_rule["desc"],
-                                original=line.strip()[:50],
-                                fixed=fix_rule["fix"],
-                                description=fix_rule["desc"],
-                            )
-                        )
-        except Exception:
-            pass
-
+        lines = content.split("\n")
+        for line_num, line in enumerate(lines, 1):
+            for fix_rule in self.FIXES:
+                desc = fix_rule["desc"]
+                pattern, repl = self.RULE_SUBSTITUTIONS.get(
+                    desc, (fix_rule["pattern"], fix_rule["fix"]))
+                try:
+                    m = re.search(pattern, line)
+                except re.error:
+                    continue
+                if not m or not m.group(0):
+                    continue
+                try:
+                    fixed_span = re.sub(pattern, repl, m.group(0))
+                except re.error:
+                    continue
+                if fixed_span == m.group(0):
+                    continue  # genuine no-op; do not report it as a fix
+                unsafe = desc in self.UNSAFE_RULES
+                fixes.append(
+                    Fix(
+                        file=str(file_path),
+                        line=line_num,
+                        error_type=desc,
+                        original=m.group(0),
+                        fixed=fixed_span,
+                        description=("[ADVISORY] " if unsafe else "") + desc,
+                    )
+                )
         return fixes
 
     def _print_summary(self):
@@ -436,13 +602,17 @@ class TERENCE:
         return {k: {"n": v["n"], "ok": v["ok"],
                     "rate": round(v["ok"] / v["n"], 3)} for k, v in stats.items()}
 
-    def fix_all(self, apply: bool = False) -> int:
+    def fix_all(self, apply: bool = False, max_fixes: (int | None) = None) -> int:
         """Apply all fixes (or just count if apply=False).
 
         Proficiency upgrade (2026-09-10): applied fixes are verified
         (py_compile) with per-file backup + rollback, and every outcome
         is recorded as a thought_process row so the learning loop trains
         on Terence's own successes and failures.
+
+        max_fixes (2026-09-11): bound a training pass. Sweeping an entire
+        codebase in one run makes the batch unreviewable and the learning
+        signal unreadable; a capped pass keeps each batch attributable.
         """
         print()
         print("=" * 70)
@@ -463,12 +633,31 @@ class TERENCE:
             print("  evolved skip (poor verify history): %s"
                   % sorted(_dead))
 
-        for fix in self.fixes:
+        # Advisory rules are filtered BEFORE the loop (2026-09-11). They can
+        # never apply, so leaving them queued exhausted a capped training pass
+        # on non-attempts (observed: 39 skips, 1 real fix, cap spent).
+        if apply:
+            advisory = sum(1 for f in self.fixes
+                           if f.error_type in self.UNSAFE_RULES)
+            if advisory:
+                print("  %d advisory findings withheld from apply "
+                      "(report-only: they delete code or are not equivalent)"
+                      % advisory)
+            queue = [f for f in self.fixes
+                     if f.error_type not in self.UNSAFE_RULES]
+        else:
+            queue = list(self.fixes)
+
+        for fix in queue:
             if apply:
                 if fix.error_type in _dead:
                     skipped += 1
                     print(f"[EVOLVED-SKIP] {fix.file}:{fix.line} - {fix.error_type}")
                     continue
+                if max_fixes is not None and applied >= max_fixes:
+                    print("  training cap reached (%d) - remaining fixes deferred"
+                          % max_fixes)
+                    break
                 ok, reason = self._apply_verified(fix)
                 if ok:
                     applied += 1
@@ -506,6 +695,9 @@ class TERENCE:
         compilation is reverted and reported, never left half-applied.
         """
         import py_compile
+        # Never write TERENCE's own package, whatever queue produced the fix.
+        if self._is_self(fix.file):
+            return False, "refused: target is TERENCE's own package"
         try:
             with open(fix.file, "rb") as f:
                 raw = f.read()
@@ -516,8 +708,15 @@ class TERENCE:
             lines = text.split("\n")
             if fix.line > len(lines):
                 return False, "line out of range"
+            # Advisory-only rules must never mutate code (2026-09-11).
+            if fix.error_type in self.UNSAFE_RULES:
+                return False, "advisory-only rule (would delete code)"
             if fix.original not in lines[fix.line - 1]:
                 return False, "original text drifted - stale fix"
+            # Content-loss guard: py_compile passes on a comment, so it cannot
+            # tell 'fixed' from 'deleted'. Refuse any edit that leaves no code.
+            if self._gutted(fix.original, fix.fixed):
+                return False, "refused: edit removes all code from the line"
             backup = text
             lines[fix.line - 1] = lines[fix.line - 1].replace(
                 fix.original, fix.fixed, 1)
@@ -633,6 +832,8 @@ class TERENCE:
         for py_file in Path(root).rglob("*.py"):
             if "__pycache__" in str(py_file) or ".git" in str(py_file):
                 continue
+            if self._is_self(py_file):
+                continue
             try:
                 content = py_file.read_text(encoding="utf-8", errors="ignore")
                 issues = []
@@ -657,6 +858,9 @@ def main():
     parser.add_argument("--scan", action="store_true", help="Scan for errors")
     parser.add_argument("--preview", action="store_true", help="Preview fixes")
     parser.add_argument("--fix", action="store_true", help="Apply fixes")
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Cap the number of applied fixes (bounded "
+                             "training pass; default: no cap)")
     parser.add_argument("--status", action="store_true", help="Show status")
     parser.add_argument("--quick", action="store_true", help="Quick fix check")
 
@@ -671,7 +875,7 @@ def main():
         terence.preview()
     elif args.fix:
         terence.scan()
-        terence.fix_all(apply=True)
+        terence.fix_all(apply=True, max_fixes=args.limit)
     elif args.status:
         print(json.dumps(terence.status(), indent=2))
     elif args.quick:
