@@ -190,6 +190,10 @@ _GLYPH_TIERS = {
         # ABACUS: measured EAW 'W', so one emoji cell. The tensor genome is the
         # compiled-computation artifact, which is what an abacus is.
         "genome": "\U0001f9ee",
+        # RADIOACTIVE SIGN: measured EAW 'N', so it is one cell here and legal in
+        # the unicode tier too. Radiation is what a mutagen IS, and it is not the
+        # TENSOR organ's abacus -- a duplicate glyph makes two rows read as one.
+        "mutagen": "\u2622",
         # NEUTRAL: a state that is neither success nor failure. The success
         # checkmark was being used for below-threshold severity signals, which
         # rendered 'mdl fitness bought with description length' as a tick beside
@@ -214,6 +218,8 @@ _GLYPH_TIERS = {
         # U+25A6 SQUARE WITH ORTHOGONAL CROSS are EAW 'A' and would wrap under
         # a CJK font, so they were rejected by measurement, not by taste.
         "genome": "\u229e",
+        # U+2622 RADIOACTIVE SIGN: measured EAW 'N' (see the emoji tier note).
+        "mutagen": "\u2622",
         # U+2219 BULLET OPERATOR: measured EAW 'N'. U+00B7 MIDDLE DOT and
         # U+2022 BULLET are the obvious picks and are both EAW 'A'.
         "neutral": "\u2219",
@@ -227,6 +233,8 @@ _GLYPH_TIERS = {
         "mood0": ":)", "mood1": ":|", "mood2": ":(", "mood3": ":O", "mood4": "XX",
         "beat": "o", "flat": "z", "vital": "~", "op": "+",
         "genome": "T", "neutral": "-",
+        # 'R' for radiation -- the ASCII stand-in for a mutagen.
+        "mutagen": "R",
     },
 }
 
@@ -376,6 +384,7 @@ EX_ORGANS = (
     ("NEXUS", "op", "sparse mixture-of-experts: routing entropy is reported"),
     ("OPUS", "op", "KAN spline backbone (interpolates; does not extrapolate)"),
     ("LIMEN", "op", "active-learning queue ranked by expected information gain"),
+    ("MUTAGEN", "live", "genome selection: did the genome grow, or was it given away"),
 )
 
 # what each severity signal means, in the order the meters are shown
@@ -392,6 +401,7 @@ _EX_SIGNAL_TEXT = (
     ("routing", "expert router sends everything to one expert"),
     ("memory", "associative store cannot recall what it stored"),
     ("staleness", "an artifact stopped being written"),
+    ("mutagenesis", "the genome grows on trials where the added gene was off"),
 )
 
 # mood band -> colour, glyph key, and the word shown
@@ -530,7 +540,7 @@ def exmachina_snapshot(con=None):
          "cranium": None, "speculum": None, "testudo": None,
          "report": None, "readings": {}, "operators": {}, "summary": {},
          "signals": {}, "severity": {}, "mood": None, "vitals": {},
-         "tensor": None, "spec": None,
+         "tensor": None, "spec": None, "mutagen": None,
          "ages": ex_ages(), "error": None}
     try:
         p = os.path.join(_EX_STATE, "fitness_oracle.json")
@@ -544,6 +554,27 @@ def exmachina_snapshot(con=None):
                 "kb": round((os.path.getsize(p) or 0) / 1024.0),
             }
         s["gate"] = _ex_json(os.path.join(_EX_STATE, "fitness_oracle.last.json"))
+    except Exception:
+        pass
+
+    # The three artifacts MUTAGEN fuses: the mutation ledger that decides the
+    # genome's shape, the genome's per-gene usefulness, and the test suite's own
+    # mutational evidence. Read ONCE here and reused below, so the panel and the
+    # organ cannot disagree about which rows they are describing.
+    mrows_all, genome_a, mutation_a = [], None, None
+    try:
+        if os.path.exists(_EX_MORPH):
+            with open(_EX_MORPH, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        mrows_all.append(json.loads(line))
+                    except Exception:
+                        continue
+        genome_a = _ex_json(os.path.join(_EX_STATE, "tensor_genome.json"))
+        mutation_a = _ex_json(os.path.join(_EX_STATE, "mutation_summary.json"))
     except Exception:
         pass
 
@@ -574,7 +605,9 @@ def exmachina_snapshot(con=None):
                     pass
         if rows:
             try:
-                rep = core.epistemic_report(rows, ages=s["ages"])
+                rep = core.epistemic_report(rows, ages=s["ages"],
+                                            morph_rows=mrows_all,
+                                            genome=genome_a, mutation=mutation_a)
             except Exception as exc:
                 rep = None
                 s["error"] = "report: %s: %s" % (type(exc).__name__, exc)
@@ -588,6 +621,7 @@ def exmachina_snapshot(con=None):
                 s["vitals"] = rep.get("vitals") or {}
                 s["speculum"] = s["readings"].get("speculum")
                 s["testudo"] = s["readings"].get("testudo")
+                s["mutagen"] = s["readings"].get("mutagen")
                 s["mood"] = ex_mood_update(core, s["signals"])
 
         # Cranium's verdict rides on the newest row that carries one. It is an
@@ -606,17 +640,10 @@ def exmachina_snapshot(con=None):
                 break
 
     try:
-        mr = []
-        if os.path.exists(_EX_MORPH):
-            with open(_EX_MORPH, encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        mr.append(json.loads(line))
-                    except Exception:
-                        continue
+        # Reuse the single read taken above rather than opening the ledger a
+        # second time: two readers of one file is how a panel ends up disagreeing
+        # with itself about which cycles it is describing.
+        mr = mrows_all
         if mr:
             by = {}
             for r in mr:
@@ -1088,6 +1115,45 @@ def exmachina_lines(width, height, snap):
             GLYPH["flat"], sp.get("in_width"),
             ("x".join(str(h) for h in hid) or "--"),
             "trained" if sp.get("trained") else "UNTRAINED spec"), width))
+
+    # 9b. MUTAGEN: the genome's own mutation ledger. Every organ above reads the
+    # OUTCOME series or a derived artifact; none reads the file that decides the
+    # genome's SHAPE. On this history 76% of the structural trials ran with the
+    # added gene resolved OFF and every one of them was retained -- so the gain
+    # cannot be attributed to the gene. 'NEVER-ON' is the strong form and is
+    # called out, because a gene that is off in the trial arm cannot have caused
+    # the difference, whatever the fitness delta says.
+    mg = snap.get("mutagen")
+    if mg and height >= 30:
+        fg = mg.get("free_growth")
+        bad = bool(fg is not None and fg >= 0.35)
+        _pv = mg.get("inert_p")
+        _pt = "--" if _pv is None else ("<1e-15" if float(_pv) < 1e-15 else "%.0e" % float(_pv))
+        out.append(_fit(" %s %-9s %s %s  %2.0f%% inert  %d/%d won  dF %s  P %s" % (
+            GLYPH["mutagen"], _ex_shift("MUTAGEN", 14),
+            _ex_status(not bad, str(mg.get("verdict") or "n/a"),
+                       marker=(GLYPH["bad"] if bad else GLYPH["ok"]),
+                       tone=("warn" if (fg is not None
+                                      and 0.15 <= float(fg) < 0.35) else None)),
+            _ex_bar(fg or 0.0, 8), 100.0 * float(mg.get("inert_share") or 0.0),
+            mg.get("inert_positive") or 0, mg.get("inert_trials") or 0,
+            ("--" if mg.get("inert_gain") is None else "%+0.2f" % float(mg["inert_gain"])),
+            _pt), width))
+
+    if mg and height >= 34:
+        _gp = []
+        for _g in (mg.get("genes") or [])[:2]:
+            _gp.append("%s %d/%d%s" % (
+                str(_g.get("gene") or "?")[:20], _g.get("inert") or 0, _g.get("n") or 0,
+                " NEVER-ON" if _g.get("never_enabled") else " off"))
+        _ld = mg.get("load") or {}
+        _ts = mg.get("tests") or {}
+        _tail = "load %d/%d" % (len(_ld.get("below_floor") or []), _ld.get("genes") or 0)
+        if _ts.get("mutants"):
+            _tail += "  suite %s/%s>=%s %sh" % (_ts.get("killed"), _ts.get("mutants"),
+                                                _ts.get("lower"), _ts.get("age_h"))
+        out.append(_fit("   %s %s   %s" % (
+            GLYPH["mutagen"], "  ".join(_gp), _tail), width))
 
     gt = snap.get("gate") or {}
     if height >= 30:

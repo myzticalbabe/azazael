@@ -296,7 +296,19 @@ for k, v in rep["readings"].items():
                               "emergence_bits", "best_grain", "genome_share",
                               "achieved", "belief", "belief_bits") if kk in v]
         print("    %-10s %s" % (k, {kk: v[kk] for kk in keys}))
-check("report has all organs", len(rep["readings"]) == 8, str(len(rep["readings"])))
+# The judge-tier organs that MUST have a reading entry. Named rather than
+# counted: this check used to assert `len(readings) == 8`, so adding MUTAGEN
+# made the gate fail on a number instead of on a missing organ -- and a gate
+# that cries wolf when nothing is wrong is one people learn to ignore. Testing
+# for ABSENCE catches the failure that actually matters.
+# NB: FULCRUM is exported by the module but has no reading entry by design, so
+# it is deliberately not in this list.
+_JUDGE_READINGS = ("speculum", "testudo", "vigil", "filum", "perennis",
+                   "compages", "brevis", "emergon", "mutagen")
+_missing = [k for k in _JUDGE_READINGS if k not in rep["readings"]]
+check("report has all organs", not _missing,
+      "%d/%d readings %s" % (len(_JUDGE_READINGS) - len(_missing),
+                             len(_JUDGE_READINGS), _missing or "ok"))
 check("report mood resolves", rep["mood"]["band"] in (0, 1, 2, 3, 4))
 check("empty report is watchful", ex.epistemic_report([])["mood"]["band"] == 1)
 check("no gaming score without data", "gaming" not in ex.epistemic_report([])["signals"])
@@ -305,6 +317,33 @@ if real:
           "%d margins" % rep["summary"]["margins"])
     check("features found", len(ex.feature_keys(real)) >= 2,
           str(ex.feature_keys(real)))
+
+# ---- MUTAGEN ----------------------------------------------------------
+# The one organ that reads `proteus_morph.jsonl`. Its whole claim is that a
+# trial whose gene resolved to its OFF state cannot have produced the fitness
+# delta, so the delta is measuring the comparison rather than the gene.
+print("\n[MUTAGEN]")
+
+
+def _mrow(gene, value, delta, i):
+    return {"cycle_index": i, "gene": gene, "dimension": 5,
+            "fitness": 20.0 + float(delta), "baseline_fitness": 20.0,
+            "extra": {gene: value}}
+
+
+_off = [_mrow("use_schema_features", False, 1.0, i) for i in range(8)]
+_mg = ex.mutagenesis(_off)
+check("inert trials detected", _mg.get("inert_trials") == 8, str(_mg.get("inert_share")))
+check("never-enabled gene flagged", _mg.get("never_enabled") == ["use_schema_features"])
+check("free growth flagged", _mg.get("verdict") == "free growth", str(_mg.get("free_growth")))
+
+_on = [_mrow("by_session", True, (1.0 if i % 2 else -1.0), i) for i in range(8)]
+_mo = ex.mutagenesis(_on)
+check("no false alarm with the gene on", _mo.get("verdict") == "selection active",
+      str(_mo.get("free_growth")))
+check("absent ledger is not calm", ex.mutagenesis(None).get("free_growth") is None)
+check("mutagenesis not a signal without a ledger",
+      "mutagenesis" not in rep["signals"])
 
 print("\n%s  (%d failures)" % ("ALL OK" if not fails else "FAILURES: " + ", ".join(fails), len(fails)))
 sys.exit(1 if fails else 0)

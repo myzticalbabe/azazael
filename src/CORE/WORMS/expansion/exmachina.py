@@ -13,7 +13,7 @@ Every module here is stdlib-only, because the production runner executes cycles
 under `python3.14t.exe` where torch and numpy cannot load. A technique that
 needs a C-extension cannot live in this tier.
 
-Implemented now (all nine run today, on real artifacts):
+Implemented now (all ten run today, on real artifacts):
   SPECULUM  reward-hacking detection      zlib + statistics
   FULCRUM   compression-based novelty     zlib (NCD)
   TESTUDO   conformal calibration         order statistics
@@ -23,6 +23,7 @@ Implemented now (all nine run today, on real artifacts):
   COMPAGES  long-run link margin<->check  Engle-Granger cointegration
   BREVIS    description-length budget     two-part MDL
   EMERGON   causal emergence              effective information
+  MUTAGEN   genome selection (the ledger) binomial tail + producer resolution
 
 The operator tier (RADIX, CATENA, NAVIS, VELA, NEXUS, OPUS, LIMEN) lives in
 exmachina_operators.py: it PRODUCES and ROUTES evidence, where this module
@@ -38,6 +39,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import sys
 import time
 import zlib
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -53,6 +55,7 @@ __all__ = [
     "COMPAGES",
     "BREVIS",
     "EMERGON",
+    "MUTAGEN",
     "detect_gaming",
     "ncd",
     "novelty_ncd",
@@ -79,6 +82,8 @@ __all__ = [
     # EMERGON
     "effective_information",
     "causal_emergence",
+    # MUTAGEN
+    "mutagenesis",
     # numeric core shared with the operator tier
     "solve_linear",
     "matrix_inverse",
@@ -167,6 +172,10 @@ _ORGAN_ROWS = (
      "Causal emergence: effective information of the macro grain minus the micro grain.",
      "The organs may be most legible grouped (e.g. belief-organs vs measure-organs).",
      "emergence_bits"),
+    ("mutagen", "MUTAGEN", "implemented",
+     "Genome selection: did the genome GROW, or was it given away? A structural",
+     "mutation can be retained on a trial whose added gene was switched off, so the",
+     "inert_share"),
 )
 
 ORGANS: Tuple[dict, ...] = tuple(
@@ -177,6 +186,7 @@ ORGANS: Tuple[dict, ...] = tuple(
 SPECULUM, FULCRUM, TESTUDO = "speculum", "fulcrum", "testudo"
 VIGIL, FILUM, PERENNIS = "vigil", "filum", "perennis"
 COMPAGES, BREVIS, EMERGON = "compages", "brevis", "emergon"
+MUTAGEN = "mutagen"
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -396,10 +406,17 @@ def state_paths(root: str) -> Dict[str, str]:
     return {
         "oracle_json": os.path.join(st, "fitness_oracle.json"),
         "oracle_last": os.path.join(st, "fitness_oracle.last.json"),
-        "allocator": os.path.join(st, "proteus_allocator.json"),
+        # NOTE: the cycle writes `proteus_circulation.json`; `proteus_allocator.json`
+        # is a path NO producer writes. EX_MACHINA.md 5.7 fixed this in the VIEWER
+        # only, so this module-level map kept reporting the allocator absent.
+        "allocator": os.path.join(st, "proteus_circulation.json"),
         "qd_archive": os.path.join(st, "qd_archive.json"),
-        "morph_history": os.path.join(root, "logs", "morph_history.jsonl"),
+        # The cycle writes `state/proteus_morph.jsonl`; `logs/morph_history.jsonl`
+        # is the other half of the same stale-path defect (see the note above).
+        "morph_history": os.path.join(st, "proteus_morph.jsonl"),
         "promote": os.path.join(st, "evolved_rl_params.json"),
+        "tensor_genome": os.path.join(st, "tensor_genome.json"),
+        "mutation": os.path.join(st, "mutation_summary.json"),
     }
 
 
@@ -466,8 +483,13 @@ def collect_state(root: str, history_rows: Optional[Iterable[Any]] = None,
                               "pulls": al.get("pulls") or {},
                               "wins": al.get("wins") or {}}
 
-    # Morph
+    # Morph — the mutation ledger, plus the two artifacts MUTAGEN fuses with it:
+    # the genome's per-gene usefulness (genetic load) and the test suite's own
+    # mutational evidence. Read here so the module-level `collect_state()` gives
+    # the same reading as the viewer.
     mrows = _read_jsonl(p["morph_history"])
+    genome = _read_json(p["tensor_genome"])
+    mutation = _read_json(p["mutation"])
     if mrows:
         by_dim: Dict[int, List[float]] = {}
         for r in mrows:
@@ -501,7 +523,8 @@ def collect_state(root: str, history_rows: Optional[Iterable[Any]] = None,
     # disagree with itself about which cycles it is describing.
     if history_rows is not None:
         try:
-            report = epistemic_report(history_rows, ages=ages)
+            report = epistemic_report(history_rows, ages=ages, morph_rows=mrows,
+                                      genome=genome, mutation=mutation)
             out["readings"] = report["readings"]
             out["severity"] = report["severity"]
             out["mood"] = report["mood"]
@@ -1457,6 +1480,297 @@ def causal_emergence(micro_states: Iterable[int], n_bits: int = 4,
 
 
 # ══════════════════════════════════════════════════════════════════════
+# MUTAGEN — genome selection: did the genome GROW, or was it given away?
+#
+# Phase E (Morph) appends one ledger row per cycle to
+# `state/proteus_morph.jsonl`: which extra gene was trialled, the genome's
+# dimension, the trial fitness, and the baseline it was compared against.
+# That file IS the genome's own record of whether adding a gene helped — the
+# fitness function for growing the genome — and until now no organ read it.
+# It was believed on faith, which is the single thing this tier exists to
+# refuse.
+#
+# What it says (2026-09-12, 59 contiguous trials, 2 genes):
+#
+#     retained (dF > 0)         58 / 59     retention 0.9831
+#     provably INERT trials     45 / 59     76.3%
+#     mean dF on those          +0.9328     44/45 positive, P = 1.3e-12
+#
+# `use_schema_features` was trialled 30 times with the switch resolved OFF in
+# ALL THIRTY (`_as_bool` thresholds at 0.5; every raw value was 0.056, 0.069 or
+# False) and was retained 30/30 with mean dF +0.93. A gene that is switched off
+# in the trial arm cannot have produced the gain, so `fitness - baseline` is
+# measuring the COMPARISON, not the gene. The genome grew for free.
+#
+# Stated narrowly on purpose: this does NOT prove the genes are useless —
+# tensor_genome.json rates use_schema_features |rho| = 0.335, its most useful
+# gene. It proves the Morph trial, as recorded, cannot ATTRIBUTE the gain.
+# Keeping those two apart is the difference between a measurement and a belief.
+# ══════════════════════════════════════════════════════════════════════
+
+# Mirror of `proteus_hooks._as_bool`'s threshold. The tier loads as a bare
+# directory (the viewer puts it on sys.path WITHOUT the worm package), so the
+# producer cannot be imported unconditionally. `_switch_resolver` prefers the
+# producer whenever it IS importable and reports which path it took; the mirror
+# is locked to the producer by a test so the two cannot drift apart in silence.
+_MORPH_SWITCH_AT = 0.5
+
+
+def _switch_resolver() -> Tuple[Any, str]:
+    """(resolve, how): resolve a morph gene the way the TRAINER will.
+
+    Returns the producer's own `morph_trainer_kwargs` when reachable, else a
+    documented mirror. `how` is reported in the artifact rather than assumed.
+    """
+    mtk = None
+    try:
+        from proteus_hooks import morph_trainer_kwargs as mtk          # type: ignore
+    except Exception:
+        try:
+            from .proteus_hooks import morph_trainer_kwargs as mtk      # type: ignore
+        except Exception:
+            mtk = None
+    if mtk is None:
+        # Reuse the package module ONLY if something else already loaded it.
+        # Importing it here would drag the whole worm package into a tier that
+        # is deliberately loadable as a bare directory (and therefore into the
+        # viewer's 30-second refresh loop), so the tier never forces it.
+        _mod = sys.modules.get("CORE.WORMS.expansion.proteus_hooks")
+        if _mod is not None:
+            mtk = getattr(_mod, "morph_trainer_kwargs", None)
+
+    if mtk is not None:
+        def _producer(name: str, raw: Any) -> Any:
+            try:
+                vals = list(mtk({name: raw}).values())
+                return vals[0] if vals else None
+            except Exception:
+                return None
+        return _producer, "producer"
+
+    def _mirror(_name: str, raw: Any) -> Any:
+        if isinstance(raw, bool):
+            return raw
+        try:
+            return float(raw) >= _MORPH_SWITCH_AT
+        except (TypeError, ValueError):
+            return None
+    return _mirror, "threshold:%s" % _MORPH_SWITCH_AT
+
+
+def _comb(n: int, k: int) -> int:
+    if k < 0 or k > n:
+        return 0
+    k = min(k, n - k)
+    r = 1
+    for i in range(1, k + 1):
+        r = r * (n - k + i) // i
+    return r
+
+
+def _binomial_tail(k: int, n: int) -> Optional[float]:
+    """P(>= k successes in n fair trials). None when n is not usable."""
+    try:
+        n = int(n)
+        if n <= 0:
+            return None
+        k = max(0, min(int(k), n))
+        num = 0
+        for i in range(k, n + 1):
+            try:
+                num += math.comb(n, i)
+            except AttributeError:                        # pragma: no cover
+                num += _comb(n, i)
+        return num / float(2 ** n)
+    except Exception:
+        return None
+
+
+def _wilson(k: Any, n: Any, z: float = 1.96) -> Optional[float]:
+    """Wilson score LOWER bound. `30/30` is not 1.0 — it is >= 0.887."""
+    try:
+        n = float(n)
+        if n <= 0:
+            return None
+        p = float(k) / n
+        den = 1.0 + z * z / n
+        c = (p + z * z / (2.0 * n)) / den
+        hw = z * math.sqrt(p * (1.0 - p) / n + z * z / (4.0 * n * n)) / den
+        return round(max(0.0, c - hw), 4)
+    except Exception:
+        return None
+
+
+def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
+                genome: Optional[dict] = None,
+                mutation: Optional[dict] = None,
+                min_trials: int = 6) -> Dict[str, Any]:
+    """Did the genome grow, or was it given away? Never raises.
+
+    `free_growth` is the severity signal: the share of the mutation ledger that
+    is provably UNATTRIBUTABLE (the trialled gene resolved to its OFF state, so
+    the trial arm cannot have differed from the baseline), discounted by how
+    strong the evidence is that those trials nevertheless all "won".
+    """
+    trials: List[Tuple[Any, Any, float, int]] = []
+    try:
+        source = list(morph_rows or [])
+    except TypeError:                 # a non-iterable is absent data, not a crash
+        source = []
+    for r in source:
+        if not isinstance(r, dict):
+            continue
+        f, b = r.get("fitness"), r.get("baseline_fitness")
+        if f is None or b is None:
+            continue
+        try:
+            delta = float(f) - float(b)
+        except (TypeError, ValueError):
+            continue
+        extra = r.get("extra") if isinstance(r.get("extra"), dict) else {}
+        raw = next(iter(extra.values())) if extra else None
+        try:
+            dim = int(r.get("dimension") or 0)
+        except (TypeError, ValueError):
+            dim = 0
+        trials.append((r.get("gene"), raw, delta, dim))
+
+    out: Dict[str, Any] = {"n": len(trials)}
+    if len(trials) < max(1, int(min_trials)):
+        out["verdict"] = "unavailable"
+        out["free_growth"] = None
+        out["note"] = ("only %d usable morph rows; %d needed to judge selection"
+                       % (len(trials), max(1, int(min_trials))))
+        return out
+
+    resolve, how = _switch_resolver()
+    out["resolver"] = how
+
+    retained = sum(1 for _g, _r, d, _dim in trials if d > 0.0)
+    out["trials"] = len(trials)
+    out["retained"] = retained
+    out["retention"] = round(retained / float(len(trials)), 4)
+    out["dims"] = sorted({dim for _g, _r, _d, dim in trials})
+
+    inert: List[float] = []
+    by_gene: Dict[str, Dict[str, Any]] = {}
+    for gene, raw, delta, _dim in trials:
+        g = str(gene or "?")
+        rec = by_gene.setdefault(g, {"n": 0, "retained": 0, "inert": 0,
+                                     "unknown": 0, "inert_delta": [],
+                                     "on_delta": [], "off_delta": []})
+        rec["n"] += 1
+        if delta > 0.0:
+            rec["retained"] += 1
+        eff = resolve(g, raw)
+        if eff is None:
+            # Unresolvable is NOT inert: absence of evidence is not evidence.
+            rec["unknown"] += 1
+        elif bool(eff):
+            rec["on_delta"].append(delta)
+        else:
+            rec["inert"] += 1
+            rec["inert_delta"].append(delta)
+            inert.append(delta)
+
+    genes_out: List[Dict[str, Any]] = []
+    for g, rec in sorted(by_gene.items()):
+        idl, on, off = rec["inert_delta"], rec["on_delta"], rec["off_delta"]
+        base = off or idl
+        ve = None
+        if on and base:
+            ve = round((sum(on) / len(on)) - (sum(base) / len(base)), 4)
+        genes_out.append({
+            "gene": g,
+            "n": rec["n"],
+            "retained": rec["retained"],
+            "inert": rec["inert"],
+            "unknown": rec["unknown"],
+            "inert_share": round(rec["inert"] / float(rec["n"]), 4) if rec["n"] else None,
+            "inert_gain": None if not idl else round(sum(idl) / len(idl), 4),
+            "value_effect": ve,
+            # The strongest form: EVERY resolvable trial had this gene off, so
+            # the ledger never once tested what the gene does.
+            "never_enabled": bool(rec["n"] and rec["inert"] == rec["n"]),
+        })
+    out["genes"] = genes_out
+    out["never_enabled"] = sorted(g["gene"] for g in genes_out if g["never_enabled"])
+
+    pos = sum(1 for d in inert if d > 0.0)
+    out["inert_trials"] = len(inert)
+    out["inert_share"] = round(len(inert) / float(len(trials)), 4)
+    out["inert_gain"] = None if not inert else round(sum(inert) / len(inert), 4)
+    out["inert_positive"] = pos
+    out["inert_p"] = _binomial_tail(pos, len(inert))
+
+    # Genetic load: the share of the genome's measured association mass sitting
+    # on coordinates at or below the usefulness floor. Reported, not scored —
+    # BREVIS already owns description length, and double-counting it would make
+    # one finding look like two.
+    load = None
+    if isinstance(genome, dict):
+        gs = [g for g in (genome.get("genes") or []) if isinstance(g, dict)]
+        floor = genome.get("usefulness_floor")
+        floor = float(floor) if isinstance(floor, (int, float)) else None
+        us: List[float] = []
+        below: List[str] = []
+        for g in gs:
+            try:
+                u = abs(float(g.get("usefulness")))
+            except (TypeError, ValueError):
+                continue
+            us.append(u)
+            if floor is not None and u < floor:
+                below.append(str(g.get("name") or "?"))
+        if us:
+            peak = max(us) or 1.0
+            load = {"genes": len(us), "floor": floor, "below_floor": below,
+                    "share": round(len(below) / float(len(us)), 4),
+                    "value": round(1.0 - (sum(us) / len(us)) / peak, 4)}
+    out["load"] = load
+
+    # The test suite's own mutational evidence, with an honest bound: 30/30 is
+    # not "score 1.0", and with n=30 the difference is the whole statement.
+    tests = None
+    if isinstance(mutation, dict):
+        try:
+            n_m, k_m = int(mutation.get("mutants")), int(mutation.get("killed"))
+        except (TypeError, ValueError):
+            n_m = k_m = None
+        if n_m:
+            age_h = None
+            at = mutation.get("at")
+            if isinstance(at, str):
+                for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"):
+                    try:
+                        age_h = round((time.time()
+                                       - time.mktime(time.strptime(at, fmt))) / 3600.0, 2)
+                        break
+                    except Exception:
+                        continue
+            tests = {"mutants": n_m, "killed": k_m,
+                     "score": (round(k_m / float(n_m), 4) if k_m is not None else None),
+                     "lower": _wilson(k_m, n_m), "age_h": age_h,
+                     "target": mutation.get("target")}
+    out["tests"] = tests
+
+    if not inert:
+        out["free_growth"] = 0.0
+        out["verdict"] = "selection active"
+    else:
+        # `p` is None only when the tail is unrepresentable, which is the
+        # strongest possible evidence, so it counts as p -> 0.
+        p = out["inert_p"]
+        strength = 1.0 if p is None else max(0.0, 1.0 - min(1.0, float(p) / 0.05))
+        fg = out["inert_share"] * strength
+        out["free_growth"] = round(min(1.0, max(0.0, fg)), 4)
+        out["verdict"] = ("free growth" if out["free_growth"] >= 0.35
+                          else ("drift" if out["free_growth"] >= 0.15
+                                else "selection active"))
+    return out
+
+
+# ══════════════════════════════════════════════════════════════════════
 # THE SEVERITY MOOD BAND
 #
 # The band is not a status light. A status light says "ok / not ok" and
@@ -1488,6 +1802,7 @@ MOODS = (
 SEVERITY_WEIGHTS: Dict[str, Tuple[float, str]] = {
     "gaming": (1.4, "objective rising while the held-out check stays at zero"),
     "contradiction": (1.3, "an improvement is claimed but the evidence is weak"),
+    "mutagenesis": (1.2, "the genome grows on trials where the added gene was switched off"),
     "causal_absence": (1.1, "the objective is d-separated from the check"),
     "non_invariance": (1.0, "the fitness relation does not hold across eras"),
     "cointegration": (0.9, "no long-run link between objective and check"),
@@ -1691,7 +2006,10 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
                    bound: float = 5.0, alpha: float = 0.05,
                    predictor_keys: Optional[Sequence[str]] = None,
                    ages: Optional[Dict[str, Any]] = None,
-                   resolution: float = 0.01) -> Dict[str, Any]:
+                   resolution: float = 0.01,
+                   morph_rows: Optional[Iterable[Any]] = None,
+                   genome: Optional[dict] = None,
+                   mutation: Optional[dict] = None) -> Dict[str, Any]:
     """Every Ex Machina organ's reading from one pass over the outcome rows.
 
     Nothing here raises. A monitor that dies because one subsystem is
@@ -1768,6 +2086,13 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
 
     out["organs"]["compages"] = cointegration(margins, cum_pass)
     out["organs"]["emergon"] = causal_emergence(flags, n_bits=4)
+    # MUTAGEN: the only organ that reads the mutation ledger (`proteus_morph.jsonl`),
+    # which is the artifact that decides the genome's SHAPE. Set here rather than
+    # beside BREVIS because the operator tier returns early below, and an organ
+    # that is absent whenever an unrelated subsystem is down would be worse than
+    # no organ at all.
+    out["organs"]["mutagen"] = mutagenesis(morph_rows, genome=genome,
+                                           mutation=mutation)
 
     # BREVIS: what share of the total description is spent describing the
     # GENOME rather than the data. It rises with every knob Morph adds, which
@@ -1858,10 +2183,14 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
 def epistemic_report(rows: Iterable[Any], ages: Optional[Dict[str, Any]] = None,
                      margin_floor: float = 1.0, alpha: float = 0.05,
                      staleness_cutoff: float = 900.0,
-                     predictor_keys: Optional[Sequence[str]] = None) -> Dict[str, Any]:
+                     predictor_keys: Optional[Sequence[str]] = None,
+                     morph_rows: Optional[Iterable[Any]] = None,
+                     genome: Optional[dict] = None,
+                     mutation: Optional[dict] = None) -> Dict[str, Any]:
     """Readings -> severity vector -> mood. The whole epistemic verdict."""
     rd = organ_readings(rows, margin_floor=margin_floor, alpha=alpha,
-                        predictor_keys=predictor_keys, ages=ages)
+                        predictor_keys=predictor_keys, ages=ages,
+                        morph_rows=morph_rows, genome=genome, mutation=mutation)
     organs = rd["organs"]
     n = rd["margins"] or 0
 
@@ -1938,6 +2267,13 @@ def epistemic_report(rows: Iterable[Any], ages: Optional[Dict[str, Any]] = None,
         # 5% of the description on the genome is unremarkable; 50% is the
         # genome describing itself and calling it fitness.
         sig["mdl"] = round(min(1.0, max(0.0, (float(share) - 0.05) / 0.45)), 4)
+
+    # The genome's own mutation ledger. A signal is set only when the ledger was
+    # actually readable, so a missing artifact cannot read as "selection works".
+    mut = organs.get("mutagen") or {}
+    fg = mut.get("free_growth")
+    if fg is not None:
+        sig["mutagenesis"] = round(min(1.0, max(0.0, float(fg))), 4)
 
     vs = vital_signs(ages, cutoff=staleness_cutoff)
     sig["staleness"] = vs.get("staleness")
