@@ -1660,6 +1660,33 @@ def _wilson(k: Any, n: Any, z: float = 1.96) -> Optional[float]:
         return None
 
 
+def _ab_delta_of(row: Any) -> Optional[float]:
+    """The matched-pair delta a ledger row carries, if any.
+
+    Plain numeric extraction from the recorded arms (the producer writes
+    `ab.control_fitness` / `ab.treatment_fitness`, and `ab.delta` when it
+    summarised them), so there is no rule here to keep in sync — the RULE that
+    decides what the pair means lives in `proteus_hooks.morph_ab_plan`.
+    """
+    ab = row.get("ab") if isinstance(row, dict) else None
+    if not isinstance(ab, dict):
+        return None
+    try:
+        if ab.get("delta") is not None:
+            d = float(ab["delta"])
+            if d == d and d not in (float("inf"), float("-inf")):
+                return round(d, 4)
+        c, t = ab.get("control_fitness"), ab.get("treatment_fitness")
+        if c is None or t is None:
+            return None
+        d = float(t) - float(c)
+        if d != d or d in (float("inf"), float("-inf")):
+            return None
+        return round(d, 4)
+    except (TypeError, ValueError):
+        return None
+
+
 def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
                 genome: Optional[dict] = None,
                 mutation: Optional[dict] = None,
@@ -1717,11 +1744,22 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     by_gene: Dict[str, Dict[str, Any]] = {}
     flagged = 0
     disagree = 0
+    measured = 0
+    ab_all: List[float] = []
     for gene, raw, delta, _dim, row in trials:
         g = str(gene or "?")
         rec = by_gene.setdefault(g, {"n": 0, "retained": 0, "inert": 0,
                                      "unknown": 0, "inert_delta": [],
-                                     "changed_delta": [], "changed": 0})
+                                     "changed_delta": [], "changed": 0,
+                                     "ab_delta": []})
+        # The matched A/B, when the cycle ran one. THIS is the attributable
+        # reading; the delta above is the fitness comparison and conflates the
+        # gene with the search.
+        _ab = _ab_delta_of(row)
+        if _ab is not None:
+            rec["ab_delta"].append(_ab)
+            ab_all.append(_ab)
+            measured += 1
         rec["n"] += 1
         if delta > 0.0:
             rec["retained"] += 1
@@ -1773,9 +1811,27 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
             # earlier write-up used.
             "never_changed": bool(rec["n"] and rec["changed"] == 0),
             "never_enabled": bool(rec["n"] and rec["changed"] == 0),
+            # Matched-pair evidence: same champion, same pools, one gene moved.
+            "ab_n": len(rec["ab_delta"]),
+            "ab_mean": (None if not rec["ab_delta"]
+                        else round(sum(rec["ab_delta"]) / len(rec["ab_delta"]), 4)),
+            "ab_positive": sum(1 for d in rec["ab_delta"] if d > 0.0),
+            "ab_p": _binomial_tail(sum(1 for d in rec["ab_delta"] if d > 0.0),
+                                   len(rec["ab_delta"])),
+            # The strong form of the A/B question: no matched pair has ever been
+            # run for this gene, so its effect is not merely unattributed, it is
+            # UNMEASURED.
+            "never_measured": bool(rec["n"] and not rec["ab_delta"]),
         })
     out["genes"] = genes_out
     out["never_enabled"] = sorted(g["gene"] for g in genes_out if g["never_changed"])
+    out["never_measured"] = sorted(g["gene"] for g in genes_out if g["never_measured"])
+    out["measured_trials"] = measured
+    out["measured_share"] = round(measured / float(len(trials)), 4)
+    out["ab_mean"] = (None if not ab_all
+                      else round(sum(ab_all) / len(ab_all), 4))
+    out["ab_positive"] = sum(1 for d in ab_all if d > 0.0)
+    out["ab_p"] = _binomial_tail(out["ab_positive"], len(ab_all))
     # Agreement between the producer's stamp and this tier's own rule. A
     # non-zero count here means the two have drifted, which is the one failure
     # the mirror cannot detect by itself.

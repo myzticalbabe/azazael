@@ -310,6 +310,15 @@ before the stamp are re-derived on read, so the fix is retroactive rather than p
 `evolution_cycle.py` logs the verdict at record time, so a null cycle is distinguishable from a
 win in the place anyone looks first.
 
+And the trial itself is now informative rather than merely labelled. Each morph
+cycle runs a **matched A/B**: the same champion on the same frozen pools, with one
+gene moved from the trainer's default to the value that changes the call
+(`use_schema_features` -> True, `by_session` -> False). `ab.delta = treatment -
+control` is attributable to that gene by construction, because nothing else
+differs, and it costs ~4% of a generation. MUTAGEN reports it separately
+(`measured_trials`, `ab_mean`, `ab_p`, `never_measured`) instead of folding it into
+the confounded fitness comparison.
+
 The mirror is locked to the producer twice over: `MORPH_TRAINER_DEFAULTS` is asserted against
 `inspect.signature(RLTrainLoop.train_from_memory)` in the tests, and on the tier side
 `_MORPH_TRAINER_DEFAULTS` is asserted equal to the producer's table. The organ also prefers the

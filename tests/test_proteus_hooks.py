@@ -19,7 +19,7 @@ from CORE.WORMS.expansion.proteus_hooks import (
     MORPH_CANDIDATES, MORPH_TRAINER_DEFAULTS, morph_candidate_gene,
     morph_effective, morph_gene_specs, morph_is_inert,
     morph_trainer_kwargs, morph_record, morph_dimension_summary, SEARCH_ARMS,
-    cranium_override,
+    cranium_override, morph_ab_delta, morph_ab_plan, morph_treatment_value,
 )
 from CORE.WORMS.expansion.allocation import PROTEUS_ARMS
 
@@ -656,6 +656,97 @@ class TestMorphInertTrials(unittest.TestCase):
             out = morph_dimension_summary(p)
         self.assertEqual(out["inert_rows"], 1)
         self.assertFalse(out["verdict"]["use_schema_features"]["tested"])
+
+
+class TestMorphMatchedAB(unittest.TestCase):
+    """The trial's own comparison is confounded; the A/B is not.
+
+    `fitness - baseline_fitness` compares a 5-gene champion against the 4-gene
+    PRODUCTION baseline, so it cannot separate the added gene from the search
+    that produced the champion -- and 52 of 69 rows resolved the gene to the
+    trainer's default, so the trial never moved the thing it was testing. The
+    A/B holds the champion and the pools fixed and moves ONE gene.
+    """
+
+    def test_treatment_value_is_the_negation_of_the_default(self):
+        # per-gene, because the defaults are not all False
+        self.assertIs(morph_treatment_value("use_schema_features"), True)
+        self.assertIs(morph_treatment_value("by_session"), False)
+        self.assertIsNone(morph_treatment_value("not_a_gene"))
+        self.assertIsNone(morph_treatment_value(None))
+
+    def test_ab_plan_pairs_the_default_against_the_treatment(self):
+        plan = morph_ab_plan("by_session", {"by_session": True})
+        self.assertEqual(plan["control"], True)          # the trainer's default
+        self.assertEqual(plan["treatment"], False)       # the value that MOVES it
+        self.assertIs(plan["default"], True)
+
+    def test_ab_plan_needs_the_gene_to_be_in_the_genome(self):
+        self.assertIsNone(morph_ab_plan("by_session", {"learning_rate": 0.1}))
+        self.assertIsNone(morph_ab_plan("mystery", {"mystery": 1}))
+        self.assertIsNotNone(morph_ab_plan("by_session"))
+
+    def test_ab_delta_sign_convention(self):
+        """POSITIVE means the treatment beat the trainer's default."""
+        self.assertEqual(morph_ab_delta(22.0, 22.4), 0.4)
+        self.assertEqual(morph_ab_delta(22.4, 22.0), -0.4)
+        self.assertIsNone(morph_ab_delta(None, 22.0))
+        self.assertIsNone(morph_ab_delta(22.0, None))
+        self.assertIsNone(morph_ab_delta("x", 22.0))
+        self.assertIsNone(morph_ab_delta(float("nan"), 22.0))
+
+    def test_record_stores_the_measurement(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "morph.jsonl")
+            morph_record(p, 0, {"name": "by_session"}, {"by_session": True},
+                         22.4, 21.5,
+                         ab={"gene": "by_session", "control": True,
+                             "treatment": False, "control_fitness": 22.4,
+                             "treatment_fitness": 22.1})
+            with open(p, encoding="utf-8") as fh:
+                row = json.loads(fh.readline())
+        self.assertEqual(row["ab"]["gene"], "by_session")
+        self.assertEqual(row["ab"]["treatment"], False)
+
+    def test_summary_reports_the_attributable_effect(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "morph.jsonl")
+            for i, delta in enumerate((0.4, 0.2, -0.1)):
+                morph_record(p, i, {"name": "by_session"}, {"by_session": True},
+                             22.4, 21.5,
+                             ab={"gene": "by_session", "control": True,
+                                 "treatment": False, "control_fitness": 22.4,
+                                 "treatment_fitness": 22.4 + delta})
+            out = morph_dimension_summary(p)
+        self.assertEqual(out["measured_rows"], 3)
+        v = out["verdict"]["by_session"]
+        self.assertEqual(v["ab_n"], 3)
+        self.assertAlmostEqual(v["ab_mean"], 0.1667, places=4)
+        self.assertEqual(v["ab_positive"], 2)
+        self.assertTrue(v["ab_beats_default"])          # mean > 0
+        self.assertEqual(v["inert_n"], 3, "all three still inert vs the trainer's default")
+
+    def test_rows_without_an_ab_are_not_measured(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "morph.jsonl")
+            morph_record(p, 0, {"name": "by_session"}, {"by_session": True},
+                         22.4, 21.5)
+            out = morph_dimension_summary(p)
+        self.assertEqual(out["measured_rows"], 0)
+        self.assertEqual(out["verdict"]["by_session"]["ab_n"], 0)
+        self.assertIsNone(out["verdict"]["by_session"]["ab_mean"])
+
+    def test_arm_scores_alone_are_enough_to_measure(self):
+        """A row that records the two arms but no summary delta still counts."""
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "morph.jsonl")
+            morph_record(p, 0, {"name": "by_session"}, {"by_session": True},
+                         22.4, 21.5,
+                         ab={"gene": "by_session", "control_fitness": 22.4,
+                             "treatment_fitness": 22.0})
+            out = morph_dimension_summary(p)
+        self.assertEqual(out["measured_rows"], 1)
+        self.assertAlmostEqual(out["by_gene_ab"]["by_session"]["mean"], -0.4, places=4)
 
 
 if __name__ == "__main__":

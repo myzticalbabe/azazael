@@ -71,6 +71,8 @@ __all__ = [
     "morph_trainer_kwargs",
     "morph_effective",
     "morph_is_inert",
+    "morph_treatment_value",
+    "morph_ab_plan",
     "morph_record",
     "morph_dimension_summary",
     "row_payload",
@@ -552,9 +554,79 @@ def morph_is_inert(gene: Any, genes: Dict[str, Any],
     return bool(eff) == bool(table[kwarg])
 
 
+def morph_treatment_value(gene: Any) -> Any:
+    """The value that MOVES this gene off the trainer's default.
+
+    For a bool switch that is simply the negation, and "negation" is per-gene:
+    `by_session` must be set to **False** to be a treatment, because True is what
+    the trainer already does. This is the value the A/B arm is forced to.
+    """
+    name = (gene or {}).get("name") if isinstance(gene, dict) else gene
+    name = str(name or "")
+    if not name:
+        return None
+    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    if kwarg is None or kwarg not in MORPH_TRAINER_DEFAULTS:
+        return None
+    return not bool(MORPH_TRAINER_DEFAULTS[kwarg])
+
+
+def morph_ab_plan(gene: Any, genes: Optional[Dict[str, Any]] = None) -> Optional[dict]:
+    """A matched pair for the trialled gene: default arm vs treatment arm.
+
+    THE problem this exists to solve. The Morph trial as originally recorded
+    compares a 5-gene champion against the 4-gene PRODUCTION baseline, so from
+    the moment the added gene resolves to its default the difference it reports
+    is the search's, not the gene's — and 52 of 69 rows did exactly that while
+    being credited as wins.
+
+    The A/B holds everything else fixed: SAME champion genome, SAME frozen
+    pools, SAME seeds, ONE gene changed — the trainer's default value versus
+    the value that moves it. That difference is attributable to the gene by
+    construction, whatever the search was doing.
+
+    Returns `{"gene", "control", "treatment", "default"}` or None when the
+    candidate is not a known switch (never a made-up pair).
+    """
+    name = (gene or {}).get("name") if isinstance(gene, dict) else gene
+    name = str(name or "")
+    if not name:
+        return None
+    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    if kwarg is None or kwarg not in MORPH_TRAINER_DEFAULTS:
+        return None
+    if genes is not None and name not in genes:
+        return None
+    default = bool(MORPH_TRAINER_DEFAULTS[kwarg])
+    return {"gene": name,
+            "default": default,
+            "control": default,
+            "treatment": (not default)}
+
+
+def morph_ab_delta(control_fitness: Any, treatment_fitness: Any) -> Optional[float]:
+    """treatment - control, or None when either side is missing/non-finite.
+
+    Sign convention: POSITIVE means the trial arm beat the trainer's default,
+    i.e. the gene earned its place. Kept explicit because the same quantity
+    computed in the other order would invert every verdict.
+    """
+    if control_fitness is None or treatment_fitness is None:
+        return None
+    try:
+        c, t = float(control_fitness), float(treatment_fitness)
+        delta = t - c
+        if delta != delta or delta in (float("inf"), float("-inf")):
+            return None
+        return round(delta, 4)
+    except (TypeError, ValueError):
+        return None
+
+
 def morph_record(history_path: str, cycle_index: int, gene: Optional[dict],
                  genes: Dict[str, Any], fitness: Optional[float],
-                 baseline_fitness: Optional[float] = None) -> None:
+                 baseline_fitness: Optional[float] = None,
+                 ab: Optional[dict] = None) -> None:
     """Append one JSONL row: which gene was trialled, dimension, fitness.
 
     Dimension is recorded alongside fitness on purpose — the plan's honest-risk
@@ -566,7 +638,12 @@ def morph_record(history_path: str, cycle_index: int, gene: Optional[dict],
 
       * `applied` — the kwargs the trainer actually received (post-resolution),
       * `inert`   — whether those kwargs equal the trainer's defaults, i.e.
-                    whether this row can speak about the gene at all.
+                    whether this row can speak about the gene at all,
+      * `ab`      — the matched default-vs-treatment pair for the gene, when the
+                    caller ran one. THIS is the attributable measurement: the
+                    `fitness`/`baseline_fitness` pair above answers "did a wider
+                    genome beat production", which conflates the gene with the
+                    search.
 
     Recomputed on read for older rows (see `morph_dimension_summary`), so a
     ledger written before this change is still classified correctly rather than
@@ -585,12 +662,34 @@ def morph_record(history_path: str, cycle_index: int, gene: Optional[dict],
                       if k in [c[0] for c in MORPH_CANDIDATES]},
             "applied": {k: applied[k] for k in sorted(applied)},
             "inert": morph_is_inert(gene, genes),
+            "ab": (dict(ab) if isinstance(ab, dict) and ab else None),
         }
         os.makedirs(os.path.dirname(os.path.abspath(history_path)), exist_ok=True)
         with open(history_path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(row) + "\n")
     except Exception:
         pass
+
+
+def _row_ab_delta(r: dict) -> Optional[float]:
+    """The matched-pair delta recorded on a row, if it carries a usable one.
+
+    Derives it from the two arm scores when they are present but the summary
+    `delta` is not, so a row that records the measurement still counts as
+    measured instead of silently reading as "no A/B".
+    """
+    ab = r.get("ab")
+    if not isinstance(ab, dict):
+        return None
+    if ab.get("delta") is not None:
+        try:
+            d = float(ab["delta"])
+            if d == d and d not in (float("inf"), float("-inf")):
+                return round(d, 4)
+        except (TypeError, ValueError):
+            pass
+    return morph_ab_delta(ab.get("control_fitness"),
+                          ab.get("treatment_fitness"))
 
 
 def _row_inert(r: dict) -> bool:
@@ -637,7 +736,9 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
     by_dim: Dict[int, List[float]] = {}
     by_gene: Dict[str, List[float]] = {}          # EFFECTIVE trials only
     by_gene_inert: Dict[str, List[float]] = {}
+    by_gene_ab: Dict[str, List[float]] = {}       # matched-pair deltas
     inert_rows = 0
+    measured_rows = 0
     for r in rows:
         try:
             fit = float(r["fitness"])
@@ -647,6 +748,10 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
         g = r.get("gene")
         if not g:
             continue
+        _ab = _row_ab_delta(r)
+        if _ab is not None:
+            measured_rows += 1
+            by_gene_ab.setdefault(str(g), []).append(_ab)
         if _row_inert(r):
             inert_rows += 1
             by_gene_inert.setdefault(str(g), []).append(fit)
@@ -664,9 +769,11 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
         "by_dimension": {str(k): _stat(v) for k, v in sorted(by_dim.items())},
         "by_gene": {k: _stat(v) for k, v in sorted(by_gene.items())},
         "by_gene_inert": {k: _stat(v) for k, v in sorted(by_gene_inert.items())},
+        "by_gene_ab": {k: _stat(v) for k, v in sorted(by_gene_ab.items())},
         "n_rows": len(rows),
         "inert_rows": inert_rows,
         "effective_rows": len(rows) - inert_rows,
+        "measured_rows": measured_rows,
         "inert_share": (round(inert_rows / float(len(rows)), 4) if rows else None),
         "baseline_4gene_best": max(base) if base else None,
         "verdict": {},
@@ -681,12 +788,26 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
                          + list(out["by_gene_inert"].keys()))):
         st = out["by_gene"].get(g)
         n_inert = (out["by_gene_inert"].get(g) or {}).get("n", 0)
+        ab = out["by_gene_ab"].get(g) or {}
+        ab_vals = by_gene_ab.get(g) or []
         best = None if st is None else st["best"]
         out["verdict"][g] = {
             "best": best,
             "informative_n": 0 if st is None else st["n"],
             "inert_n": n_inert,
             "tested": bool(st),
+            # The matched A/B is the attributable reading: same champion, same
+            # pools, one gene moved. Reported alongside (not instead of) the
+            # fitness comparison, because they answer different questions.
+            "ab_n": ab.get("n", 0),
+            "ab_mean": (None if not ab_vals
+                        else round(sum(ab_vals) / len(ab_vals), 4)),
+            "ab_positive": sum(1 for x in ab_vals if x > 0.0),
+            # "did the treatment beat the trainer's default, on average" -- a
+            # TALLY, not a significance claim; the per-row deltas are in the
+            # ledger so anyone wanting a test can run one on the real numbers.
+            "ab_beats_default": (None if not ab_vals
+                                 else bool(sum(ab_vals) / len(ab_vals) > 0.0)),
             "delta_vs_4gene": (None if (b4 is None or best is None)
                                else round(best - b4, 4)),
             "beats_4gene": (None if (b4 is None or best is None)
