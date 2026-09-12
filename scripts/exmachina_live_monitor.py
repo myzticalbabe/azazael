@@ -1066,9 +1066,18 @@ def health_check():
 
 # --- rendering --------------------------------------------------------
 def render(now=None, size=None):
-    """One frame: header + the Ex Machina panel. Never raises."""
-    width, height = size if size else shutil.get_terminal_size((110, 40))
-    width = max(64, min(width, 200))
+    """One frame: header + the Ex Machina panel. Never raises.
+
+    A column is left free at the right edge and three rows at the bottom. A
+    line that fills the window EXACTLY can wrap on a console that wraps on the
+    last cell, and one wrapped line shifts -- then scrolls -- the whole frame;
+    that is what "it does not refresh in place" looks like. The panel is told
+    the reduced height so it never has to be cut off at the bottom either, and
+    more rows can be added without re-tuning this budget.
+    """
+    cols, rows = size if size else shutil.get_terminal_size((110, 40))
+    width = max(64, min(cols - 1, 200))  # keep the last column unused
+    height = max(8, rows - 3)            # 2 banner rows + 1 margin
     _FRAME_NO[0] += 1                    # twinkle step for the drifting hues
     lines = []
     L = lines.append
@@ -1099,11 +1108,14 @@ def _paint_in_place(frame_lines):
     if len(rows) < max_rows:
         rows = rows + [""] * (max_rows - len(rows))  # wipe any longer old frame
 
-    out = ["\033[H"]                       # cursor home (keep the old buffer)
+    # Reset first: without it the frame starts in whatever colour the previous
+    # one ended in, so the banner changes colour on the second paint.
+    out = ["\033[H", C_RST]                # home, then clear any inherited SGR
     for i, line in enumerate(rows):
         if i:
             out.append("\r\n")
         out.append(line)
+        out.append(C_RST)                  # never let one row's colour bleed
         out.append("\033[K")               # erase to end of this line
     out.append("\033[J")                   # erase everything below the frame
     sys.stdout.write("".join(out))
