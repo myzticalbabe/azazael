@@ -2185,7 +2185,7 @@ python -c "import sys; sys.path.insert(0, 'src'); from CORE.worm_registry import
 - `NatureClusterManager.discover_all_natures()`: use `timeout 120` minimum
 - `ClusterWORMZ(\"system\").execute_all()`: use `timeout 90` (sequential) or `timeout 120` (parallel)
 - Profiling scripts that create multiple ClusterWORMZ instances: use `timeout 60` per iteration
-- Full ecosystem scan (all 17 natures, 77 worms): use `timeout 300` (lesson #11)
+- Full ecosystem scan (all 35 natures, 226 worms): use `timeout 300` (lesson #11)
 - **CurativePool tests**: 37/37 pass on 3.14t in 0.05s — quick validation after package changes
 
 ### Rule REG-3: Discovery Is Cached — Call Once

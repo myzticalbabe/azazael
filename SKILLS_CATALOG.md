@@ -2,8 +2,8 @@
 # Complete Inventory of Codebuff Skills for the Azazael Project
 
 > Generated: May 29, 2026
-> Last Updated: August 23, 2026 — regenerated to inventory ALL 1,220 canonical skills (core + Kali + 3.14t package + binary-tool skills)
-> Current: 1,259 total (1,220 base + 39 session skills #1221–#1259: kali-graph, archive-restore, 4 AOA, 3 inference, 10 investigation, catalog-reconciliation, 6 investigation-technique, aoa-kali-arm, html-render-verification, corpus-reference-integrity, timesfm-314t, aoa-artifact-cross-check, background-sweep-resilience, builder-status-discipline, pre-action-gate-lite, asof-qualifier-protocol, desktop-automation-safety, azazael-venv-tooling-policy, azazael-embed-link-sna, azazael-gap-index-anchoring — all core)
+> Last Updated: September 14, 2026 — recounted from disk (`C:\Users\clint\.agents\skills`: 1,224 dirs, all with SKILL.md). Prior Aug-23 claim of 1,259 was stale (+35 over actual).
+> Current: 1,224 total = 968 `azazael-pkg-*` + 74 `azazael-pkg314t-*` + 46 `azazael-bin-*` + 133 core `azazael-*` + 3 misc (`azazael_314t_master`, `azazael_314t_optimum`, `azazael_insights_2026-05-28`). (Historical note: Aug-23 edition listed 1,259 incl. 39 session skills #1221–#1259; numbering below predates this recount — full table regeneration via `skills_staging/regenerate_catalog.py` still pending.)
 > Purpose: Single source of truth for all available Azazael skills
 
 ---
@@ -12,8 +12,8 @@
 
 | Metric | Count |
 |--------|-------|
-| Total canonical skills | 1,259 |
-| Core skills (non-package) | 170 |
+| Total canonical skills | 1,224 (recounted 2026-09-14; was stale 1,259) |
+| Core skills (non-package) | 136 (133 `azazael-*` + 3 misc) |
 | Package skills (Kali 3.13 env, `azazael-pkg-*`) | 968 |
 | Package skills (Azazael 3.14t env, `azazael-pkg314t-*`) | 74 |
 | Binary-tool skills (`azazael-bin-*`) | 46 |
@@ -80,7 +80,7 @@
 | 47 | `azazael-state-machine` | architecture | ComplianceStateMachine reference — 7 states, legal transitions, is_in_sequence rules, and the startup wirin... |
 | 48 | `azazael-worm-registry` | architecture | Full API reference for worm_registry.py — @register_worm, WORM_REGISTRY, discover_worms() with progress_cal... |
 | 49 | `azazael-worm-registry-fixes` | architecture | Worm registry module path fixes — how discover_worms() stores module names incorrectly, the 28 affected wor... |
-| 50 | `azazael-worms` | architecture | Azazael worm registry — all 77 worms across 17 categories, @register_worm decorator, how to add/register wo... |
+| 50 | `azazael-worms` | architecture | Azazael worm registry — all 226 worms across 35 categories, @register_worm decorator, how to add/register wo... |
 | 51 | `azazael-worms-core` | architecture | Azazael core infrastructure worms — orchestration (6), utility (5), diagnostic (4). Load when working with ... |
 | 52 | `azazael-worms-data` | architecture | Azazael data & insight worms — learning (5), ml (2), analysis (3), visualization (5), sync (1). Load when w... |
 | 53 | `azazael-worms-devops` | architecture | Azazael DevOps worms — container (5), communication (5), migration (5). Load when working with Docker, IPC,... |

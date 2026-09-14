@@ -1,6 +1,6 @@
 ---
 name: azazael-worms
-description: Azazael worm registry — all 77 worms across 17 categories, @register_worm decorator, how to add/register worms, category breakdown, priority/cooldown patterns.
+description: Azazael worm registry — all 226 worms across 35 categories, @register_worm decorator, how to add/register worms, category breakdown, priority/cooldown patterns.
 metadata:
   category: architecture
   project: azazael

@@ -35,7 +35,7 @@
 | 1.5 | Register 25 unregistered worms from vermillion_lightfury, native Rust, and stale refs | P2 | ⬜ |
 | 1.6 | Cross-reference worm descriptions with actual behavior | P2 | ⬜ |
 | 1.7 | ClusterWORMZ v2.2.0 — disclosure review + integration tests for parallel execution | P1 | ⬜ |
-| 1.8 | MetaCluster — integration tests for cross-nature orchestration (46 routes, 264 paths) | P1 | ⬜ |
+| 1.8 | MetaCluster — integration tests for cross-nature orchestration (70 routes, 594 paths) | P1 | ⬜ |
 | 1.9 | FreeThreadPool — work-stealing optimization, verify cpu_count auto-scale | P2 | ⬜ |
 | 1.10 | CircuitBreaker — dead letter queue integration testing | P2 | ⬜ |
 | 1.11 | CurativePool — 3-pool (Validation/Audit/Feedback) runtime testing with CAIN | P1 | ⬜ |

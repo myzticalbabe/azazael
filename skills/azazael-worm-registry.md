@@ -24,7 +24,7 @@ _discovery_done: bool            # True after discover_worms() completes
 ### Signature
 ```python
 @register_worm(
-    category: str = "utility",          # One of 17 categories
+    category: str = "utility",          # One of 35 categories
     priority: int = 5,                  # 1-10, higher = more important
     cooldown_seconds: float = 30.0,     # Min seconds between spawns
     description: str = "",              # Human-readable description
@@ -38,7 +38,7 @@ Each registered worm stores:
 |-----|------|-------------|
 | `class` | type | The actual worm class |
 | `module` | str | Module name (e.g., `CORE.WORMS.SYSTEMZ`) |
-| `category` | str | One of the 17 categories |
+| `category` | str | One of the 35 categories |
 | `priority` | int | 1-10 spawn priority |
 | `cooldown_seconds` | float | Minimum time between spawns |
 | `description` | str | First line of docstring |
@@ -271,7 +271,7 @@ for item in engine.get_staleness_report()[:5]:
 ```
 
 ## Related Skills
-- `azazael-worms` — Full 77-worm catalog, 17 categories
+- `azazael-worms` — Full 226-worm catalog, 35 categories
 - `azazael-worms-core` — orchestration, utility, diagnostic (15 worms)
 - `azazael-worms-monitor` — monitor, profiling, telemetry (16 worms)
 - `azazael-worms-security` — security, config, backup (15 worms)

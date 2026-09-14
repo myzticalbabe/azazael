@@ -99,7 +99,7 @@ breaking the monolith into standalone, independently operable projects.
 ```
 CORE/ (paths, registry, threading)
   ↑
-  ├── CORE/WORMS/ (77 worms) ──→ CORE
+  ├── CORE/WORMS/ (226 worms) ──→ CORE
   │     ↑
   ├── ORCHESTRATION/ ──────────→ CORE, HYDRA, META
   │     ↑

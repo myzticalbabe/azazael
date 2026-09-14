@@ -26,8 +26,8 @@ Previous AOA_STRUCTURE.html + AOA_Structure_Disclosure.mp4 contained:
 
 ### 3-Tier Cluster System
 1. CLUSTERWORMS v2.0.0 — Dynamic worm resolution, parallel execution
-2. NATURE_CLUSTERS — Auto-discovered 17 nature (category) groups
-3. METACLUSTER — CrossNatureRoutingEngine (runtime-derived; engine computes routes dynamically via `get_routes_from()` — 46 routes / 264 paths is a measured snapshot, not a static table)
+2. NATURE_CLUSTERS — Auto-discovered 35 nature (category) groups
+3. METACLUSTER — CrossNatureRoutingEngine (runtime-derived; engine computes routes dynamically via `get_routes_from()` — 70 routes / 594 paths is a measured snapshot, not a static table)
 
 ### 8 Wired Arms
 | Arm | Priority | Real Capabilities (from source) |
@@ -42,10 +42,12 @@ Previous AOA_STRUCTURE.html + AOA_Structure_Disclosure.mp4 contained:
 | AgentSelector | 6 | select_agent, get_status |
 | LlamaServer | 5 | start_server, stop_server, get_status |
 
-### 77 Worms, 17 Categories
-17 categories: orchestration, monitor, security, profiling,
-telemetry, learning, visualization, container, communication,
-backup, config, migration, utility, diagnostic, analysis, ml, sync
+### 226 Worms, 35 Categories
+35 categories: analysis, axon, backup, communication, config, consensus,
+consolidation, container, defense, dendrite, diagnostic, engram, envmesh,
+federated, glia, immune, learning, mesh, metabolic, migration, ml, monitor,
+network, orchestration, plasticity, profiling, security, servemesh, synapse,
+sync, telemetry, thalamus, utility, visualization, xenomorph
 
 ### Expansion Modules (CORE/WORMS/expansion/)
 - DreamingModule — Tier 6 offline simulation (802 lines)
@@ -80,7 +82,7 @@ Use the short-line heredoc strategy from aoa-html-builder skill:
 - [ ] Zero JS errors in console
 - [ ] DOCTYPE at position 0-1
 - [ ] CDN script tag intact (no newline in URL)
-- [ ] Stats match code: 77 worms, 17 cats, 46 routes, 264 paths (both route stats are runtime-derived snapshots, not constants)
+- [ ] Stats match code: 226 worms, 35 cats, 70 routes, 594 paths (both route stats are runtime-derived snapshots, not constants)
 - [ ] Arm capabilities match source arms/*.py
 - [ ] DreamingModule pipeline shown
 - [ ] MetaCognitionWorm loop shown

@@ -1,10 +1,35 @@
 # AZAZAEL — Codebase Audit & Production Wiring TODO
 
 > **Created:** May 29, 2026 — Consolidated from Phase 12-14 sessions
-> **Updated:** Sep 3, 2026 (Session 28 cont.) — BCC corpus qualifiers (37 bannered docs + 3 .md/skill files), FINAL_STATUS_REPORT inventory reconciled (TOTAL 64), G: archive gap filled (40 html), filing-source dating probe, mirror check closed. Prior: June 19, 2026 (v11) — Audit fix marathon.
+> **Updated:** Sep 13, 2026 (Neural Mesh Gap Audit + G1-G12 Fixes) — BCC corpus qualifiers (37 bannered docs + 3 .md/skill files), FINAL_STATUS_REPORT inventory reconciled (TOTAL 64), G: archive gap filled (40 html), filing-source dating probe, mirror check closed. Prior: June 19, 2026 (v11) — Audit fix marathon.
 > **Replaces:** TODO_FULL_PRODUCTION_WIRING.md, PHASE_6_TODO.md (incorporated)
 > **Status:** Living document — update with each phase
 > **Companions:** azazael/memories.md, azazael/ERROR_LOG.md, SESSION_INSIGHTS_*.md
+
+---
+
+## Session Completion — Sep 13, 2026 (Neural Mesh Architecture Gap Audit + All-Fix Pass)
+
+| ID | Item | Status |
+|----|------|--------|
+| NM-1 | Neural mesh architecture audit — 12 gaps identified (G1-G12) across spine/synapse/immune/dreaming | ✅ **DONE** |
+| NM-2 | G1: Unified Q-table — SynapseWeightWorm delegates to spine_registry._Q_WEIGHTS | ✅ **DONE** |
+| NM-3 | G2: Adaptive alpha — Welford variance tracking in _reinforce_q | ✅ **DONE** |
+| NM-4 | G3: Kademlia XOR-distance routing in SpineGossipWorm | ✅ **DONE** |
+| NM-5 | G4: SSMSequenceWorm — input-dependent gating, learned B/C params | ✅ **DONE** |
+| NM-6 | G5: AttentionRouterWorm — softmax over natures, Q-weight driven | ✅ **DONE** |
+| NM-7 | G6: PlasticityWorm wired into SpineCycleWorm (Hebbian/STDP) | ✅ **DONE** |
+| NM-8 | G7: Graduated scar healing (3 consecutive successes threshold) | ✅ **DONE** |
+| NM-9 | G8: MorphogenesisWorm auto-registration gate | ✅ **DONE** |
+| NM-10 | G9: DreamingModule curriculum sampling (severity-weighted) | ✅ **DONE** |
+| NM-11 | G10: Typed data contracts in NATURE_DEFINITIONS | ✅ **DONE** |
+| NM-12 | G11: AutoencoderAnomalyWorm (linear autoencoder, online learning) | ✅ **DONE** |
+| NM-13 | G12: Temporal discounting in DreamingModule | ✅ **DONE** |
+| NM-14 | Gephi export pipeline built (tools/gephi_mesh_pipeline.py) | ✅ **DONE** |
+| NM-15 | 220 worms / 35 categories verified (was 108/19 in Sep 3 docs) | ✅ **DONE** |
+| NM-16 | 47/47 tests pass, 9/9 files compile clean | ✅ **DONE** |
+
+**Metrics:** 220 worms, 35 categories, 12 G-fixes, 47 tests passing.
 
 ---
 
@@ -65,11 +90,11 @@
 | G: drive | **35.30 GB free post-cleanup** | ⬆️ From 4.86 GB (MBR repair + node_modules cluster-slack recovery) |
 | Session handoff | NEXT_SESSION_PLAN.md (8 sections, thread scoring) | ✅ Written + mirrored |
 
-## State Snapshot — Live Reconcile (Sep 3, 2026 — worm/file/EXE counts verified)
+## State Snapshot — Live Reconcile (Sep 13, 2026 — neural mesh audit verified)
 
-| Metric | Live value (2026-09-03) | vs prior snapshot |
+| Metric | Live value (2026-09-13) | vs prior snapshot |
 |--------|-------|--------|
-| Worms in registry | **108 across 19 categories** (live `discover_worms` + cache rebuild agree; all have category, 1 missing desc) | ⬆️ June 5 said 91/17; **skills say 77/17 (12 files — stale, doc-consistency only)**; Aug 29 health matrix said 105 |
+| Worms in registry | **220 across 35 categories** (live `discover_worms`; expansion packs discovered since Sep 3; all G1-G12 new worms registered) | ⬆️ Sep 3 said 108/19 — **doubled via expansion packs**; Jun 5 said 91/17 |
 | Python source files (src/) | **526 .py files** (excl. `__pycache__`; 25 Python-bearing top dirs: CORE 185, ORCHESTRATION 83, CODEX 74, SCRIPTS 26, AOA 24, UTILITIES 23, META 16…) | ⬆️ June 5 said 322 .py / 18 subdirs |
 | Standalone EXEs | **52 EXEs + 52 BATs @ `G:\AZAZAEL_Standalone`** (51 `_314t.exe` + `AZAZAEL_314t_Launcher.exe`; 1.97 GB, 9,024 files) | ✅ Count matches June 5 (52/52) but **location moved Desktop→G:** — Desktop/AZAZAEL_Standalone is docs-only now |
 | Skills catalog rows | **1,253 numbered rows** | ✅ Matches Sep 2 snapshot |
@@ -84,9 +109,9 @@
 
 | Metric | Value | Change |
 |--------|-------|--------|
-| Python version | **3.14.5t ONLY** | ✅ Unchanged |
+| Python version | **3.14.6/3.14.7 + 3.14t** (Win default 3.14.7, WSL Ubuntu 3.14.7 FT, Kali 3.14.6 FT) | ⚠️ Was pinned 3.14.5t-only; prescriptive 3.14.5 pins elsewhere unverified |
 | Python source files (src/) | **322 .py files** across **18 subdirectories** | ⬆️ Was 305 (17 new) — ⚠️ **SUPERSEDED Sep 3: live = 526 .py** (see Live Reconcile snapshot) |
-| Worms in registry | **91** across **17 categories** | ⬆️ Was ~79 (improved discovery) — ⚠️ **SUPERSEDED Sep 3: live = 108 / 19** (see Live Reconcile snapshot) |
+| Worms in registry | **226** across **35 categories** | ⬆️ Was 91/17 — ⚠️ **SUPERSEDED Sep 14: live = 226 / 35, 70 routes / 594 paths** (clean rebuild ×2) |
 | Desktop standalone EXEs | **52** (operational) | ✅ 52 EXEs + 52 BATs — ⚠️ **SUPERSEDED Sep 3: count holds (52/52) but suite now lives at `G:\AZAZAEL_Standalone`** (Desktop folder docs-only; see Live Reconcile snapshot) |
 | Desktop projects inventoried | **17** (was 14) | ⚠️ 3 undocumented: AZAZAEL_Vault, AZAZAEL_ARCHIVE, scripts_archive |
 | G: AZAZAEL_ROOT | **6,567 files, 14.7 GB** | Most complete G: copy |
@@ -174,7 +199,7 @@ Each step depends on the previous one completing. Implement in sequence.
 - [ ] Integration tests for parallel execution (FreeThreadPool, work-stealing)
 - [ ] Integration tests for cross-nature orchestration
 - [ ] Mock tests for PAMS/MemoryBus event recording
-- [ ] Regression tests for all 77 worms (import + register + basic smoke)
+- [ ] Regression tests for all 226 worms (import + register + basic smoke)
 - [ ] Test coverage reporting (pytest-cov, target: 60%+)
 
 ### Step 4: Error Recovery & Resilience
@@ -335,7 +360,7 @@ Each step depends on the previous one completing. Implement in sequence.
 
 ## 📁 Related Files
 
-- [`azazael/LESSONS_MASTER.md`](LESSONS_MASTER.md) — All 57 lessons learned across 12 domains (canonical reference)
+- [`azazael/LESSONS_MASTER.md`](LESSONS_MASTER.md) — All 88 lessons learned (2026-09-14 count; was cited as 57) (canonical reference)
 - `azazael/LESSONS_DESTRUCTIVE_BEHAVIOR.md` — ⚠️ CRITICAL: 4 incidents of destroying user work, 6 prevention rules
 - `azazael/LESSONS_DEV_TOOLS.md` — Effective dev commands reference (13 sections)
 - `azazael/skills/azazael-error-resolution.md` — **NEW** Sequential error resolution decision tree
@@ -343,7 +368,7 @@ Each step depends on the previous one completing. Implement in sequence.
 - `azazael/skills/azazael-exe-build.md` — Nuitka build procedures (**SUSPENDED** — broken on 3.14.5t)
 - `azazael/skills/azazael-standalone-audit.md` — Periodic EXE audit procedures
 - `azazael/MEMORIES.md` — Persistent cross-session knowledge
-- `azazael/ERROR_LOG.md` — All 54+ recorded errors with root causes
+- `azazael/ERROR_LOG.md` — All 140 recorded errors, max #189 (2026-09-14; was cited as 54+)
 - `azazael/TODO_FULL_PRODUCTION_WIRING.md` — (Legacy) Original 15-area roadmap (now superseded)
 - `azazael/PHASE_6_TODO.md` — (Legacy) Phase-specific tasks (now incorporated)
 - `azazael/PRODUCTION_TODO.md` — (Legacy) Original production gaps (now superseded)
@@ -428,7 +453,7 @@ Each step depends on the previous one completing. Implement in sequence.
 
 | # | Project | Files | Size | run.py | Status | Notes |
 |---|---------|-------|------|--------|--------|-------|
-| 1 | **AZAZAEL_Standalone** | 10,062 | 1,962 MB | ✅ (EXEs) | 🟢 Active | 52 EXEs + 52 BATs; Nuitka builds suspended (3.14.5t incompatibility) |
+| 1 | **AZAZAEL_Standalone** | 10,062 | 1,962 MB | ✅ (EXEs) | 🟢 Active | 52 EXEs + 73 BATs at G:/AZAZAEL_Standalone (2026-09-14); Desktop copy is docs/build-dirs only; Nuitka builds suspended (3.14t incompatibility) |
 | 2 | **AZAZAEL_Vault** | 93 | 95 MB | ❌ | 🟡 Unknown | ⚠️ NOT in any prior audit doc — new find |
 | 3 | **AZAZAEL_ARCHIVE** | 11 | 19 KB | ❌ | 🟡 Archive | ⚠️ NOT in any prior audit doc — new find |
 | 4 | **Azazael_UNIFIED** | 2 | 7 KB | ✅ | 🟢 Active | MUST remain on Desktop (Anti-Pattern #10) |

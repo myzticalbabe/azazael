@@ -1,6 +1,6 @@
 ---
 name: azazael-worms-data
-description: Azazael data & insight worms — learning (5), ml (2), analysis (3), visualization (5), sync (1). Load when working with ML training, data pipelines, binary analysis, dashboards, or time sync.
+description: Azazael data & insight worms — learning (19), ml (2), analysis (17), visualization (7), sync (2). Load when working with ML training, data pipelines, binary analysis, dashboards, or time sync.
 metadata:
   category: architecture
   project: azazael

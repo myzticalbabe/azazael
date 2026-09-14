@@ -211,6 +211,6 @@ Also replaced `inspect.isclass(obj)` with `isinstance(obj, type)` for speed.
 ## FUTURE OPTIMIZATION TARGETS
 
 1. **NCM loop in NatureClusterManager** — The remaining ~2s for `discover_all_natures()` is from PamsRecorder.record_event() fallback path. Could be further reduced by batching events.
-2. **Other heavy modules** — Check for module-level `import psutil`, `import requests`, `from PIL import Image`, etc. across all 77 worms.
+2. **Other heavy modules** — Check for module-level `import psutil`, `import requests`, `from PIL import Image`, etc. across all 226 worms.
 3. **Thread safety** — The `_pams_unreachable` cache uses class-level attributes without a lock. For true 3.14t parallelism, add a `threading.Lock()` around cache checks.
 4. **Slow test (test_metacluster_unit.py)** — 31/33 pass, 2 pre-existing failures. The ~38s discovery phase is now eliminated; the remaining time is from actual worm execution.

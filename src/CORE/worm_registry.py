@@ -51,8 +51,9 @@ import logging
 _log = logging.getLogger("worm_registry")
 
 # Simple thread-local correlation ID for traceability across operations
+# (set dynamically in _get_correlation_id / set_correlation_id — mypy
+# rejects attribute annotations on non-self attribute assignment).
 _thread_local = threading.local()
-_thread_local.correlation_id: Optional[str] = None
 
 
 def _get_correlation_id() -> str:
@@ -146,7 +147,184 @@ _VALID_CATEGORIES = frozenset({
     "security", "config", "backup",
     "profiling", "telemetry",
     "expansion", "network", "system",
+    # Neural mesh fabric (2026-09-13: 7 new mesh classes, 25 worms)
+    "mesh", "synapse", "consensus", "engram",
+    "federated", "servemesh", "immune",
+    # Exotic hive (2026-09-13: xenomorph lifecycle, 7 worms)
+    "xenomorph",
+    # Neural mesh v2 (2026-09-14: 8 new classes, 32 worms — dendrite/axon signal,
+    # glia support, plasticity learning, thalamus relay, consolidation sleep,
+    # envmesh 5-way env incl wsl2-ubuntu vs wsl2-kali split + bare passthrough,
+    # metabolic budgets)
+    "dendrite", "axon", "glia", "plasticity",
+    "thalamus", "consolidation", "envmesh", "metabolic",
 })
+
+
+# ── FLEET-AUTHORITY INVARIANT (audit G16, 2026-09-14) ────────────────
+# RedQueenWorm runs hostile read-only probes against worms in
+# RedQueenWorm.PROBE_NATURES == ("mesh", "synapse", "immune") and writes the
+# results into the homeostat ledger — the same ledger HomeostatWorm and
+# SynapseWeightWorm *regulate*. `SpineCycleWorm` escaped that loop only by
+# being registered `orchestration` (outside the probe set): one accidental
+# protection, in one place, documented nowhere.
+#
+# Measured 2026-09-14: FOUR regulators currently sit INSIDE probed natures —
+# HomeostatWorm(synapse), SpineMapperWorm(mesh), MeshRouterWorm(mesh),
+# AutoencoderAnomalyWorm(immune). `pressure_probe()` takes the first N worms
+# of a nature in registration order, so the queen was probing the organs that
+# regulate it. The instinct was right; the invariant was missing.
+#
+# Two declarations make it explicit and enforced at registration:
+#
+#   PROTECTED_NATURES — natures whose worms are NEVER probed (they host
+#                       fleet-regulatory or self-referential logic).
+#   FLEET_GOVERNORS   — class name -> the ONE nature it may be registered
+#                       under. A governor may keep living in a *functional*
+#                       nature (HomeostatWorm really is `synapse`), so the
+#                       rule is not "move it out"; it is "it may not be
+#                       re-filed". `_guess_category()`'s long keyword chains
+#                       are exactly the mechanism that would silently re-file
+#                       one, so registration now refuses a mismatch.
+#
+# Registration auto-tags declared governors `fleet_governor`, and
+# RedQueenWorm skips tagged worms regardless of their nature — which is the
+# part that actually stops the circular feedback.
+PROTECTED_NATURES = frozenset({"orchestration", "xenomorph", "plasticity"})
+
+FLEET_GOVERNORS = {
+    # class name            -> sanctioned nature (verified against the live
+    #                          registry, 2026-09-14 — not aspirational)
+    "SpineCycleWorm":       "orchestration",
+    "HomeostatWorm":        "synapse",
+    "SpineMapperWorm":      "mesh",
+    "MeshRouterWorm":       "mesh",
+    "MorphogenesisWorm":    "engram",
+    "ConsolidationWorm":    "learning",
+    "AutoencoderAnomalyWorm": "immune",
+    "RedQueenWorm":         "xenomorph",
+    "PlasticityEngineWorm": "plasticity",
+    "Lilith":               "xenomorph",
+    # F8: a worm that reshapes the fleet graph must never be probed by the
+    # fleet's own adversarial loop.
+    "MeshArchitectWorm":    "orchestration",
+}
+
+FLEET_GOVERNOR_TAG = "fleet_governor"
+
+
+def get_heuristic_registrations() -> Dict[str, Dict[str, Any]]:
+    """Worms whose nature was guessed rather than declared (audit G17).
+
+    These entries have a `category` that no author asserted. Their cooldown and
+    nature-cluster membership are heuristic output, so consumers that care
+    about scheduling fidelity can treat them as lower-confidence instead of
+    trusting them equally with decorated worms.
+    """
+    return {name: dict(info) for name, info in WORM_REGISTRY.items()
+            if isinstance(info, dict)
+            and info.get("category_source") == "heuristic"}
+
+
+def _validate_fleet_authority(name: str, category: str) -> None:
+    """Enforce the fleet-authority invariant for a registering class.
+
+    Raises ValueError if a declared fleet governor is registered under any
+    nature other than its sanctioned one. Non-governors are unconstrained.
+    """
+    sanctioned = FLEET_GOVERNORS.get(name)
+    if sanctioned is not None and category != sanctioned:
+        raise ValueError(
+            f"Fleet-authority invariant (G16): {name} is a declared fleet "
+            f"governor and must be registered under '{sanctioned}', not "
+            f"'{category}'. Governors regulate the ledger that RedQueen "
+            f"probes feed, so re-filing one into a probed nature "
+            f"reintroduces the feedback loop. Update FLEET_GOVERNORS "
+            f"deliberately if this is intentional."
+        )
+    if category in PROTECTED_NATURES and sanctioned is None:
+        # Not an error — PROTECTED_NATURES is about probing, not about which
+        # worms may live there. Recorded so the invariant stays auditable.
+        return
+
+
+def is_protected_worm(info: Optional[dict]) -> bool:
+    """True if `info` describes a worm the Red Queen must never probe."""
+    if not isinstance(info, dict):
+        return False
+    if info.get("fleet_governor"):
+        return True
+    if info.get("category") in PROTECTED_NATURES:
+        return True
+    tags = info.get("tags") or ()
+    try:
+        return FLEET_GOVERNOR_TAG in tags
+    except TypeError:
+        return False
+
+
+def _replay_policy_journal() -> int:
+    """Re-apply persisted homeostat policy adaptations into WORM_REGISTRY.
+
+    Homeostat apply=True mutates the registry in-process; without replay,
+    every fresh process silently reverted to decorator defaults (adaptations
+    evaporated on restart — found 2026-09-14). Re-applies latest journaled
+    cooldown/priority per worm. Returns number of worms adjusted.
+    """
+    adjusted = 0
+    try:
+        from CORE import spine_registry as _spine_reg
+        try:
+            _spine_reg.load_spine_state()
+        except Exception:
+            pass
+        # G10: the journal is a bounded ring, so replaying it directly meant a
+        # worm whose last adaptation had been evicted silently reverted to its
+        # decorator default — a regression that only shows up once the fleet is
+        # busy enough to wrap the ring. The compacting per-worm map is the
+        # authoritative state; the ring is only the audit log. Fall back to the
+        # ring for state files written before the map existed.
+        latest = None
+        getter = getattr(_spine_reg, "get_policy_latest", None)
+        if callable(getter):
+            try:
+                latest = getter()
+            except Exception:
+                latest = None
+        if not latest:
+            _journal = getattr(_spine_reg, "_POLICY_JOURNAL", None) or []
+            if not _journal:
+                return 0
+            # Fold the ring in order so the newest entry per worm wins, which
+            # is the same semantics the latest-map already has.
+            latest = {}
+            for _e in _journal:
+                _w = _e.get("worm") if isinstance(_e, dict) else None
+                if _w:
+                    latest[_w] = _e
+        with _registry_lock:
+            for entry in latest.values():
+                try:
+                    name = entry.get("worm", "")
+                    changes = entry.get("changes", {}) or {}
+                    info = WORM_REGISTRY.get(name)
+                    if not info:
+                        continue
+                    cd = (changes.get("cooldown_seconds") or {}).get("to")
+                    pr = (changes.get("priority") or {}).get("to")
+                    touched = False
+                    if isinstance(cd, (int, float)) and cd > 0:
+                        info["cooldown_seconds"] = float(cd)
+                        touched = True
+                    if isinstance(pr, int) and 1 <= pr <= 10:
+                        info["priority"] = pr
+                        touched = True
+                    adjusted += 1 if touched else 0
+                except Exception:
+                    continue
+    except Exception:
+        pass
+    return adjusted
 
 
 def _validate_registry_params(category: str, priority: int, cooldown_seconds: float, tags: Optional[Set[str]]):
@@ -206,6 +384,9 @@ def register_worm(
             raise TypeError(f"@register_worm requires a class, got {type(cls).__name__}")
 
         name = cls.__name__
+        # G16: refuse to let a declared fleet governor be re-filed into a
+        # different nature (the `_guess_category` keyword-chain hazard).
+        _validate_fleet_authority(name, category)
         module = cls.__module__
         try:
             source_file = inspect.getfile(cls)
@@ -227,6 +408,16 @@ def register_worm(
                 module = "CORE." + module
 
         with _registry_lock:
+            if name in WORM_REGISTRY:
+                # Loud, structured warning: registry keys by class NAME, so a
+                # second registration silently replaces the first. Happens
+                # when two modules define same-named worm classes (found via
+                # the GossipSyncWorm collision between expansion/mesh.py and
+                # expansion/spine.py). Not an exception — loading continues —
+                # but it is visible in logs and the event stream.
+                _log_event("worm_registered_overwrite", worm_name=name,
+                           old_module=WORM_REGISTRY[name].get("module", ""),
+                           new_module=module)
             WORM_REGISTRY[name] = {
                 "class": cls,
                 "module": module,
@@ -240,6 +431,14 @@ def register_worm(
                 "tags": tags or set(),
                 "source_file": source_file,
                 "version": getattr(cls, "VERSION", "0.0.0"),
+                # Declared fleet-authority membership. RedQueenWorm consults
+                # this (via is_protected_worm) so a regulator is never probed,
+                # even when its functional nature IS in PROBE_NATURES.
+                "fleet_governor": name in FLEET_GOVERNORS,
+                # G17: provenance of the nature. "declared" means an author
+                # asserted it via @register_worm(category=...).
+                "registration_source": "decorator",
+                "category_source": "declared",
             }
 
         _log_event("worm_registered", worm_name=name, category=category, priority=priority)
@@ -251,6 +450,26 @@ def register_worm(
 # --- Auto-Discovery -------------------------------------------------
 
 def discover_worms(
+    worms_dir: Optional[str] = None,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+) -> int:
+    """Auto-discover worms (lock-guarded public entry point).
+
+    Thin wrapper: holds _registry_lock for the ENTIRE discovery pass.
+    Under Python 3.14t free-threading, unsynchronized concurrent
+    discovery (e.g. startup_warm background thread racing a caller)
+    produced partial registries (top-level worms only, ~142/17 cats)
+    or double-registered ones (~199). With the lock, racers queue and
+    the latecomer sees _discovery_done=True and returns immediately.
+    RLock is reentrant, so the implementation's register_worm() calls
+    do not deadlock.
+    """
+    with _registry_lock:
+        return _discover_worms_impl(worms_dir=worms_dir,
+                                    progress_callback=progress_callback)
+
+
+def _discover_worms_impl(
     worms_dir: Optional[str] = None,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
 ) -> int:
@@ -294,6 +513,7 @@ def discover_worms(
                     WORM_REGISTRY.update(registry)
                 _discovery_done = True
                 _log_event("discovery_cache_hit", count=len(WORM_REGISTRY), worms_dir=worms_dir)
+                _replay_policy_journal()
                 return len(WORM_REGISTRY)
         except Exception as exc:
             _log_event("discovery_cache_miss", error=str(exc)[:80])
@@ -313,25 +533,46 @@ def discover_worms(
         if info.get("source_file")
     }
 
-    # Build sorted file list once (avoids double-iterating listdir)
-    py_files = sorted(
-        f for f in os.listdir(worms_dir)
-        if f.endswith(".py") and not f.startswith("_") and not f.startswith(".")
-    )
-    total = len(py_files)
+    # Build the module candidate list ONCE via a recursive walk.
+    # Top-level modules import as bare names ("NetworkDiag"); package
+    # subdir modules (e.g. WORMS/expansion/*.py) import as dotted bare
+    # names ("expansion.mesh") with worms_dir itself on sys.path.
+    # Only directories with __init__.py are descended into (proper
+    # packages); "_"/"."-prefixed files and dirs are skipped.
+    py_modules = []
+    for dirpath, dirnames, filenames in os.walk(worms_dir):
+        dirnames[:] = sorted(
+            d for d in dirnames
+            if not d.startswith(("_", "."))
+            and os.path.isfile(os.path.join(dirpath, d, "__init__.py"))
+        )
+        rel_dir = os.path.relpath(dirpath, worms_dir)
+        prefix = "" if rel_dir == "." else rel_dir.replace(os.sep, ".") + "."
+        for f in sorted(filenames):
+            if f.endswith(".py") and not f.startswith(("_", ".")):
+                py_modules.append((prefix + f[:-3]))
+    py_modules.sort()
+    total = len(py_modules)
 
-    for processed, filename in enumerate(py_files, 1):
-        # Skip already-registered modules (fast set lookup)
-        if filename in registered_files:
+    for processed, module_name in enumerate(py_modules, 1):
+        # Skip already-registered modules (fast basename lookup)
+        if (module_name.split(".")[-1] + ".py") in registered_files:
             continue
-
-        module_name = filename[:-3]  # strip .py
 
         if progress_callback:
             progress_callback(processed, total, module_name)
 
         try:
-            module = importlib.import_module(module_name)
+            # Prefer the package-qualified name (CORE.WORMS.expansion.mesh):
+            # safer under free-threading and avoids clobbering an unrelated
+            # "expansion" module in sys.modules from another project. Fall
+            # back to the bare dotted name for non-CORE layouts (VF, ad-hoc
+            # worms_dir passed by tests).
+            qualified = "CORE.WORMS." + module_name
+            try:
+                module = importlib.import_module(qualified)
+            except ImportError:
+                module = importlib.import_module(module_name)
 
             # After import, skip dir() loop if @register_worm already registered this module
             src_file = getattr(module, "__file__", "")
@@ -360,15 +601,44 @@ def discover_worms(
                 if attr_name in WORM_REGISTRY:
                     continue
 
-                # Auto-categorize and register
-                auto_category = _guess_category(attr_name, module_name)
+                # Auto-categorize and register.
+                #
+                # G17 root cause (measured 2026-09-14): the guess was fed the
+                # module currently being SCANNED, not the module that DEFINES
+                # the class. Those differ whenever a class is reached through a
+                # re-export — and the deprecated `ECOSYSTEM_EXPANSION` shim
+                # re-exports 50 worm classes. So `DataPipelineWorm` (defined in
+                # `expansion/learning_pipeline.py`) was guessed from the name
+                # "ECOSYSTEM_EXPANSION", matched no rule, and landed in the
+                # `utility` default bucket. Six of the nine heuristic filings
+                # were mis-natured by exactly this mechanism.
+                hint_module = getattr(obj, "__module__", "") or module_name
+                auto_category = _guess_category(attr_name, hint_module)
                 register_fn = register_worm(
                     category=auto_category,
-                    priority=_guess_priority(attr_name, module_name),
+                    priority=_guess_priority(attr_name, hint_module),
                     cooldown_seconds=_guess_cooldown(auto_category),
                     description=obj.__doc__ or "",
                 )
                 register_fn(obj)
+                # G17: mark the entry as heuristic-derived. Nothing before this
+                # distinguished a declared nature from a guessed one, so the
+                # fleet's own scheduling metadata could be fabricated without
+                # a trace. Now it is flagged on the record and logged, which
+                # makes the guess population measurable (see
+                # get_heuristic_registrations).
+                _info = WORM_REGISTRY.get(attr_name)
+                if isinstance(_info, dict):
+                    _info["registration_source"] = "heuristic"
+                    _info["category_source"] = "heuristic"
+                    # Which module actually drove the guess. Kept separately
+                    # from `module` (the defining file) because disagreement
+                    # between the two is the exact signal that would have made
+                    # this bug obvious a year ago.
+                    _info["category_hint_module"] = hint_module
+                _log_event("worm_auto_registered", worm_name=attr_name,
+                           category=auto_category, module=module_name,
+                           hint_module=hint_module)
 
         except Exception:
             # Module might have import issues or psutil segfaults
@@ -399,6 +669,9 @@ def discover_worms(
         except Exception:
             pass
 
+    # -- Replay persisted policy adaptations (2026-09-14, helper below) --
+    _replay_policy_journal()
+
     _discovery_done = True
 
     # -- Save to pickle cache for next session --
@@ -414,10 +687,101 @@ def discover_worms(
     return new_count
 
 
+# G17 (2026-09-14): module-name prefixes are a STRONGER signal than
+# class-name keywords when the module was named for its nature. Measured on
+# the live registry, `DataPipelineWorm`, `FeatureEngineer` and `ModelVersioner`
+# were all filed under the `utility` default branch despite living in
+# `learning_pipeline`, `learning_features` and `learning_versioner` — the exact
+# "right module, wrong nature" fabrication the heuristic risk describes. A
+# declared prefix map fixes the class of problem instead of adding another
+# keyword to the chain.
+_MODULE_PREFIX_NATURES = {
+    "learning_": "learning",
+    "ml_": "ml",
+    "viz_": "visualization",
+    "telemetry_": "telemetry",
+    "container_": "container",
+    "backup_": "backup",
+}
+
+
 def _guess_category(class_name: str, module_name: str) -> str:
-    """Heuristic category guessing for auto-discovered worms."""
+    """Heuristic category guessing for auto-discovered worms.
+
+    Only used for classes that carry a `VERSION` attribute but were never
+    decorated — i.e. worms whose nature was never *declared*. Their category
+    drives scheduling (nature clusters) and cooldown, so a wrong answer is a
+    real scheduling error, not a cosmetic one. The auto-registration path
+    therefore records `category_source="heuristic"` on the registry entry and
+    emits a `worm_auto_registered` event, so guessed metadata is countable
+    instead of invisible.
+    """
     name_upper = class_name.upper()
     module_upper = module_name.upper()
+
+    # Module-prefix rule: checked FIRST, because the module name is declarative
+    # where the class name is descriptive.
+    base = str(module_name).rsplit(".", 1)[-1].lower()
+    for prefix, nature in _MODULE_PREFIX_NATURES.items():
+        if base.startswith(prefix):
+            return nature
+
+    # ── Neural mesh fabric natures (2026-09-13) — checked FIRST because
+    # the generic rules below misfile them (Gossip->sync via "SYNC",
+    # SelfHeal/PartitionHealer->defense via "HEAL").
+    if any(kw in name_upper for kw in (
+            "QUORUM", "LEADERELECT", "SPLITBRAIN")):
+        return "consensus"
+    if any(kw in name_upper for kw in (
+            "ENGRAM", "VECTORSHARD", "RECALLROUTER", "COHERENCE",
+            "DREAMCONSOLIDAT")):
+        return "engram"
+    if any(kw in name_upper for kw in (
+            "FEDERATED", "NASMESH", "REWARDSHAPER")):
+        return "federated"
+    if any(kw in name_upper for kw in (
+            "SERVEMESH", "LOADBALANCER", "FAILOVER", "MODELSHARD")):
+        return "servemesh"
+    if any(kw in name_upper for kw in (
+            "IMMUNE", "QUARANTINE", "ATTESTATION", "SELFHEAL")):
+        return "immune"
+    if any(kw in name_upper for kw in (
+            "SYNAPSE", "HOMEOSTAT", "MOEDISPATCH", "SSMSEQUENCE",
+            "ACTIVATION")):
+        return "synapse"
+    if any(kw in name_upper for kw in (
+            "XENOMORPH", "OVOMORPH", "FACEHUGGER", "CHESTBURSTER",
+            "PRAETORIAN", "LILITH", "REDQUEEN", "RESIN", "DRONEWORM")):
+        return "xenomorph"
+    if any(kw in name_upper for kw in (
+            "SPINE", "MESH", "GOSSIP", "PARTITION", "BEACON")):
+        return "mesh"
+    # Neural mesh v2 (2026-09-14) — 8 new classes
+    if any(kw in name_upper for kw in (
+            "DENDRITE", "ATTENTIONGATE", "CONTEXTCONCAT", "SENSORYFUSE")):
+        return "dendrite"
+    if any(kw in name_upper for kw in (
+            "MYELIN", "SALTATORY", "SPIKEENCOD", "LATENCYCOMPENSAT")):
+        return "axon"
+    if any(kw in name_upper for kw in (
+            "ASTROCYTE", "OLIGODENDROCYTE", "MICROGLIA", "EPENDYMAL", "GLIA")):
+        return "glia"
+    if any(kw in name_upper for kw in (
+            "HEBBIAN", "STDP", "ELASTICCONSOLIDAT", "FORGETTINGCURVE", "PLASTICITY")):
+        return "plasticity"
+    if any(kw in name_upper for kw in (
+            "THALAMIC", "SENSORYRELAY", "AROUSAL", "THALAMUS")):
+        return "thalamus"
+    if any(kw in name_upper for kw in (
+            "SHARPWAVE", "SLEEPCONSOLIDAT", "ENGRAMINDEX", "DREAMCRITIC", "CONSOLIDAT")):
+        return "consolidation"
+    if any(kw in name_upper for kw in (
+            "WINBRIDGE", "WSLUBUNTU", "WSLKALI", "BAREPASSTHROUGH", "GDRIVELOOM",
+            "ENVBEACONV2", "ENVMESH")):
+        return "envmesh"
+    if any(kw in name_upper for kw in (
+            "POWERBUDGET", "THERMALTHROTTLE", "QUOTAENFORC", "METABOLIC")):
+        return "metabolic"
 
     if any(kw in name_upper for kw in ["DIAG", "SCAN", "INSPECT"]):
         return "diagnostic"
@@ -467,6 +831,15 @@ def _guess_cooldown(category: str) -> float:
         "sync": 30.0,
         "repair": 60.0,
         "utility": 30.0,
+        # Neural mesh fabric natures (2026-09-13)
+        "mesh": 15.0,
+        "synapse": 20.0,
+        "consensus": 45.0,
+        "engram": 45.0,
+        "federated": 120.0,
+        "servemesh": 20.0,
+        "immune": 45.0,
+        "xenomorph": 120.0,
     }
     return cooldowns.get(category, 30.0)
 
@@ -1117,9 +1490,11 @@ def repair_registry() -> Dict[str, Any]:
     moved, or removed since the cache was saved). This function:
       1. Validates the current registry.
       2. If no broken entries, returns immediately (no-op).
-      3. Otherwise invalidates the pickle cache and resets discovery state,
-         forcing discover_worms() to re-import every worm module fresh and
-         rebuild the registry from current source.
+      3. Otherwise invalidates the pickle cache, purges imported worm
+         modules from sys.modules, and resets discovery state — forcing
+         discover_worms() to re-import every worm module fresh so
+         @register_worm decorators fire and the rebuild is faithful
+         (full recursion, exact categories, exact cooldowns).
       4. Re-validates and reports what was fixed.
 
     Returns:
@@ -1159,6 +1534,7 @@ def repair_registry() -> Dict[str, Any]:
         WORM_REGISTRY.clear()
         global _discovery_done
         _discovery_done = False
+    _purge_worm_modules()
 
     try:
         discover_worms()
@@ -1179,12 +1555,55 @@ def repair_registry() -> Dict[str, Any]:
     }
 
 
+def _purge_worm_modules() -> None:
+    """Purge imported worm modules from sys.modules.
+
+    Without the purge, re-discovery cannot re-fire @register_worm
+    decorators (modules import as cached no-ops) and worms rebuild via
+    the dir()-fallback with heuristic metadata — fewer natures, wrong
+    categories, wrong cooldowns, and expansion/ subpackages dropped
+    entirely. Shared by reset_registry() and repair_registry().
+    """
+    # expansion/ package modules (recursively discovered) —
+    for mod_name in list(sys.modules):
+        if mod_name == "expansion" or mod_name.startswith("expansion."):
+            del sys.modules[mod_name]
+        elif mod_name.startswith("CORE.WORMS."):
+            del sys.modules[mod_name]
+    # Also bare-named worm modules (discovery imports WORMS dir flat names
+    # when running against an ad-hoc worms_dir): heuristic — names that
+    # match a .py file directly in the WORMS dir.
+    try:
+        worms_dir = Path(__file__).resolve().parent / "WORMS"
+        bare = {f[:-3] for f in os.listdir(worms_dir)
+                if f.endswith(".py") and not f.startswith(("_", "."))}
+        for mod_name in list(sys.modules):
+            if mod_name in bare and not mod_name.startswith("CORE."):
+                del sys.modules[mod_name]
+    except OSError:
+        pass
+
+
 def reset_registry():
-    """Reset the registry (for testing)."""
-    global _discovery_done
+    """Reset the registry (for testing).
+
+    Clears WORM_REGISTRY and ALSO purges already-imported worm modules
+    from sys.modules (see _purge_worm_modules). Without the purge,
+    re-discovery after a reset cannot re-fire @register_worm decorators
+    (modules import as no-ops), and worms rebuild via the dir()-fallback
+    with heuristic metadata — fewer natures, wrong categories, wrong
+    cooldowns.
+
+    trade-off (accepted): classes from the purged modules become
+    distinct objects from pre-reset ones; any test holding a direct
+    class reference across a reset must re-discover.
+    """
+    global _discovery_done, _vf_already_discovered
     with _registry_lock:
         WORM_REGISTRY.clear()
         _discovery_done = False
+        _vf_already_discovered = False
+    _purge_worm_modules()
 
 
 # Auto-discover on import

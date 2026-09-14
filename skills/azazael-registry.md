@@ -26,7 +26,7 @@ get_worms_by_category(cat: str) -> Dict     # Returns worms in a category
 ### Signature
 ```python
 @register_worm(
-    category: str,          # One of 17 categories (required)
+    category: str,          # One of 35 categories (required)
     priority: int,          # 1-10, higher = more important (required)
     cooldown_seconds: float, # Minimum seconds between spawns (required)
     version: str = "0.0.0", # Semver (optional, default "0.0.0")

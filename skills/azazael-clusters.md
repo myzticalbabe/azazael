@@ -13,11 +13,11 @@ METACLUSTER.py              NATURE_CLUSTERS.py         CLUSTERWORMS.py
      │                            │                          │
      │ MetaCluster                │ NatureCluster            │ ClusterWORMZ v2.0.0
      │ CrossNatureRoutingEngine   │ NatureClusterManager     │ Dynamic worm resolution
-     │ 46 routes, 264 paths       │ Auto-discovery           │ PAMS/MemoryBus
+     │ 70 routes, 594 paths       │ Auto-discovery           │ PAMS/MemoryBus
      │                            │                          │
      └────────────────────────────┴──────────────────────────┘
                               │
-                         WORM_REGISTRY (77 worms)
+                         WORM_REGISTRY (226 worms)
 ```
 
 ## CLUSTERWORMS.py — `CORE/WORMS/CLUSTERWORMS.py` (v2.0.0)
@@ -30,7 +30,7 @@ cluster = ClusterWORMZ.build_from_nature("security")
 
 # Build from entire registry
 cluster = ClusterWORMZ.build_from_registry()
-# Returns ClusterWORMZ with all 77 worms
+# Returns ClusterWORMZ with all 226 worms
 
 # Build from specific worm names
 cluster = ClusterWORMZ.build_from_worms(["SYSTEMZ", "PROCESSZ"])
@@ -81,7 +81,7 @@ mc = MetaCluster()
 mc.discover_all()  # Discovers all natures and builds cross-nature routes
 
 # CrossNatureRoutingEngine
-mc.router.routes  # 46 routes
+mc.router.routes  # 70 routes
 mc.router.paths    # 264 cross-nature paths
 ```
 

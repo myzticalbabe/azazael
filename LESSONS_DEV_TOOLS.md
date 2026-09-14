@@ -153,7 +153,7 @@ for cat in sorted(cats):
 
 | What | When | Expected |
 |------|------|----------|
-| Full worm census | After adding/removing worms, or session startup | ~90 worms, 17 categories, <15s |
+| Full worm census | After adding/removing worms, or session startup | ~226 worms, 35 categories, <15s (clean rebuild; stale pickle cache under-reports — delete `~/.azazael/worm_registry_cache.pkl` if counts look old) |
 
 **⚠️ Pitfall:** First call takes ~10s (cold start imports all worm modules). Second call is <1s (cached). See Lesson #30.
 

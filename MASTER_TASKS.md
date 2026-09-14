@@ -16,7 +16,7 @@
 | T3 | Run full concurrent build test (neural tier, both platforms) | P0 | Failed (0/12), needs Nuitka fix | build_all_concurrent.py |
 | T4 | Expand build_all_concurrent.py to include all remaining targets from STANDALONE_BUILDS.md | P1 | Registry complete, build blocked | build_all_concurrent.py |
 | T5 | Full project syntax audit (256 files) | P1 | Not yet run this session | py_compile |
-| T6 | Worm registry integration test (77 worms, 17 categories) | P1 | Not yet run this session | worm_registry |
+| T6 | Worm registry integration test (226 worms, 35 categories) | P1 | Counts verified 2026-09-14 (clean rebuild ×2); test itself pending | worm_registry |
 | T7 | Record all session actions via DirectMemory (canonical) | P0 | Pending | SOP Rule 5 |
 | T8 | Delete temporary files from repo (_test_*.py, _trace_*.py, _tmp.py) | P2 | Check needed | Post-session cleanup |
 | T9 | Update LESSONS_MASTER.md with Lessons #54-#61 (Tasks F, G, H) | P2 | 3 task-specific docs created, not yet merged to master | LESSONS_MASTER.md |
@@ -106,7 +106,7 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 
 1. **Mypy burndown:** Continue fixing CORE/ errors (261 remaining, 84 files). Next: pick top file from leaderboard.
 2. **Immediate:** Resolve Nuitka 3.14t LNK2001 (contact Nuitka upstream or apply C-level patches)
-3. **Short-term:** Run full syntax audit (256 files), worm registry test (77 worms)
+3. **Short-term:** Run full syntax audit (256 files), worm registry test (226 worms)
 4. **Short-term:** Record all session actions via DirectMemory (canonical)
 5. **Medium-term:** Build all 39 targets concurrently once Nuitka is fixed
 6. **Medium-term:** Merge 23 new lessons into LESSONS_MASTER.md
@@ -153,7 +153,7 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 
 ---
 
-*Last updated: June 4, 2026 — Environment realignment session*
+*Last updated: June 4, 2026 — Environment realignment session (stale: worm counts since updated to 226/35 in registry row T6, Sep 14, 2026)*
 
 ## June 14, 2026 — Autodiff Suite Milestone
 

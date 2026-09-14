@@ -114,7 +114,7 @@ Purpose: Every environment must know what every other environment contains and c
 | Claim | Reality | Source |
 |-------|---------|--------|
 | 104 worms, 18 categories | 104 worms, 18 categories | worm_registry.py |
-| 56 cross-arm routes | 46 routes, 264 paths | METACLUSTER.py |
+| 56 cross-arm routes | 70 routes, 594 paths (2026-09-14; was 46/264) | METACLUSTER.py |
 | Quartet = Core/Support split | Quartet = VF cross-platform paths + 4 pillars + 8 docs | worm_registry.py:102 |
 | Arm capabilities simplified | Actual capabilities verified from arm source files | arms/*.py |
 

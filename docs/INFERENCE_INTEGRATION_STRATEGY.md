@@ -18,7 +18,7 @@ Current State:
 - get_best_provider() auto-selects fastest available
 
 Audit Findings:
-- 77 worms across 17 categories
+- 226 worms across 35 categories (2026-09-14; was 77/17)
 - MetaCluster (p=10) orchestrates all Natures
 - ClusterWORMZ (p=8) executes worm collectives
 - MemoryBus (v1.0.0) pub/sub for inter-agent communication

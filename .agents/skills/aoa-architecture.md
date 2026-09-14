@@ -23,7 +23,7 @@ projects (Azazael, CODEX Studio, Eve Unleashed, Libra) plus five support arms
 - 56 cross-arm routes (computed dynamically at runtime from registry x capabilities; not a static table)
 - 5 event priority levels
 - Python 3.14.6 free-threaded
-- 77 worms (via Azazael)
+- 226 worms (via Azazael, 2026-09-14)
 
 ## Project Layout
 
@@ -38,7 +38,7 @@ Desktop/AOA/
 │   ├── router.py                # CrossArmRouter, dynamic cross-arm routing (no static table)
 │   └── session_manager.py       # Session lifecycle management
 ├── arms/
-│   ├── azazael_arm.py           # AzazaelArm (p=10) — 77 worms, 17 categories
+│   ├── azazael_arm.py           # AzazaelArm (p=10) — 226 worms, 35 categories
 │   ├── codex_arm.py             # CodexArm (p=8) — HTML→MP4 rendering
 │   ├── eve_arm.py               # EveArm (p=7) — AI model selector
 │   ├── libra_arm.py             # LibraArm (p=9) — Legal automation
@@ -135,4 +135,4 @@ cmd_init(args); cmd_arms_list(args)"
 > `build_html.py` never existed (real set: build.py / build_final.py / build_disclosure.py / gen_html.py / rebuild_html.py / inject.py);
 > Libra caps are `generate_document` etc., not `index_terms`/`search_dict`; Eve cap is `select_model`, not `select_agent`
 > (that one lives on AgentSelector, where it is fully implemented, not a stub); Llama arm exposes `infer`/`get_status`
-> (start/stop live as `Desktop/LlamaServer/` scripts); worms = 77 (17 categories); routes are runtime-derived.
+> (start/stop live as `Desktop/LlamaServer/` scripts); worms = 226 (35 categories, 2026-09-14); routes are runtime-derived.
