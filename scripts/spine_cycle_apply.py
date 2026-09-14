@@ -35,16 +35,78 @@ def log(msg: str) -> None:
         pass
 
 
+def _measure(env: str) -> tuple:
+    """REAL latency probe per env (no fabricated outcomes)."""
+    import socket as _s
+    import subprocess as _sp
+    import time as _t
+    t0 = _t.perf_counter()
+    try:
+        if env == "wsl2-ubuntu":
+            ok = _sp.run(["wsl", "-d", "Ubuntu-26.04", "--", "echo", "ok"],
+                         capture_output=True, timeout=60).returncode == 0
+        elif env == "wsl2-kali":
+            ok = _sp.run(["wsl", "-d", "kali-linux", "--", "echo", "ok"],
+                         capture_output=True, timeout=60).returncode == 0
+        elif env == "g_archive":
+            p = "G:/source-of-truth/azazael_models/probe.tmp"
+            open(p, "w").write("x" * 4096)
+            os.stat(p)
+            os.remove(p)
+            ok = True
+        else:
+            _s.gethostbyname("localhost")
+            ok = True
+    except Exception:
+        ok = False
+    return ok, round((_t.perf_counter() - t0) * 1000, 1)
+
+
 def main() -> int:
     from CORE.WORMS.expansion.mesh import MeshRouterWorm
     from CORE.WORMS.expansion.spine import SpineCycleWorm
     from CORE import spine_registry as sp
 
-    # 1. Traffic: keep the ledger fed so homeostat clears MIN_SAMPLES.
+    # 0. Gossip round: merge ubuntu/kali ledgers via C: drop dir first, so
+    # the cycle below sees the whole fleet's experience, not just local.
+    try:
+        import subprocess as _sp0
+        _gr = _sp0.run([sys.executable, "C:/Users/clint/azazael/scripts/gossip_round.py"],
+                       capture_output=True, text=True, timeout=300)
+        _gl = (_gr.stdout or "").strip().splitlines()
+        log(f"gossip: {_gl[-1][:160] if _gl else 'no-output'}")
+    except Exception as exc:
+        log(f"gossip: skipped ({str(exc)[:80]})")
+    # 1. CURIOSITY probe: gemma ranks candidate envs (~20s, guarded); fallback
+    # is thinnest-ledger-key. The pick is MEASURED for real, never fabricated.
     m = MeshRouterWorm()
-    for dst in ("bare", "wsl2-ubuntu", "wsl2-kali", "g_archive"):
+    cands = ["wsl2-ubuntu", "wsl2-kali", "g_archive", "windows"]
+    order = list(cands)
+    try:
+        from CORE.WORMS.expansion.driver import GemmaDriverWorm
+        stats = {}
         try:
-            m.record_route_result(dst, True, 50.0)
+            gt = json.load(open("G:/source-of-truth/azazael_models/groundtruth.json"))
+            vw = sp.get_homeostat_view()
+            for e in cands:
+                rk = [k for k in vw if k.endswith(">" + e)]
+                n = sum(vw[k].get("successes", 0) + vw[k].get("failures", 0) for k in rk)
+                stats[e] = {"ok_rate": gt.get(e, {}).get("ok_rate", 1.0),
+                            "median_ms": gt.get(e, {}).get("median_ms", 50.0),
+                            "samples": n}
+        except Exception:
+            stats = {}
+        r = GemmaDriverWorm(timeout=90.0).rank_trials(
+            cands, context="hourly mesh health probe", stats=stats or None)
+        if r.get("order"):
+            order = r["order"]
+            log(f"curiosity: model-ranked {order} (src={r.get('src')})")
+    except Exception as exc:
+        log(f"curiosity: heuristic order ({str(exc)[:60]})")
+    for dst in order[:2]:
+        try:
+            ok, ms = _measure(dst)
+            m.record_route_result(dst, ok and ms < 30000, ms)
         except Exception:
             pass
     # 1b. eBPF sample (WSL Ubuntu, best-effort ~15s): score live syscall
