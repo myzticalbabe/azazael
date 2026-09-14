@@ -119,10 +119,21 @@ class GemmaDriverWorm:
                 "goal": {"objective": f"raise {weak} next stretch",
                          "target_metric": weak, "target_value": 0.8}}
 
-    def rank_trials(self, candidates: list, context: str = "") -> dict[str, Any]:
-        """Curiosity order: least-sampled first (model may rerank)."""
-        prompt = ("Rank these probe targets by information value for a "
-                  f"self-learning monitor. Context: {context[:200]}. "
+    def rank_trials(self, candidates: list, context: str = "",
+                    stats: dict | None = None) -> dict[str, Any]:
+        """Curiosity order: least-sampled first (model may rerank).
+
+        Pass stats={env: {ok_rate, median_ms, samples}} to ground the model
+        in measured history — ungrounded rankings tested near-random.
+        """
+        stat_txt = ""
+        if stats:
+            stat_txt = " Measured history: " + "; ".join(
+                f"{e}: ok={v.get('ok_rate')} med={v.get('median_ms')}ms "
+                f"n={v.get('samples')}" for e, v in stats.items()) + "."
+        prompt = ("Rank these probe targets by reliability (proven low latency "
+                  "and high success first) for a self-learning monitor. "
+                  f"Context: {context[:200]}.{stat_txt} "
                   f"Targets: {', '.join(candidates)}. Reply ONLY a comma "
                   "list in best-first order.")
         txt = self._chat(prompt, max_tokens=48)
