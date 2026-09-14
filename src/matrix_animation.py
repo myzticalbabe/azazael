@@ -238,4 +238,19 @@ if __name__ == "__main__":
     ], capture_output=True)
 
     print(f"\nVideo saved to: {output_video}")
+
+    # Disk guard: PPM intermediates are ~2.7MB/frame (~3.6GB per 45s run).
+    # Delete them after a successful encode unless KEEP_FRAMES=1.
+    import glob as _glob
+    keep = os.environ.get("KEEP_FRAMES", "0") == "1"
+    if not keep and os.path.exists(output_video) and os.path.getsize(output_video) > 0:
+        victim = _glob.glob(f"{OUTPUT_DIR}/frame_*.ppm")
+        for vf in victim:
+            try:
+                os.remove(vf)
+            except OSError:
+                pass
+        print(f"Cleaned {len(victim)} PPM intermediates (KEEP_FRAMES=1 to retain).")
+    else:
+        print("Kept PPM intermediates (encode missing or KEEP_FRAMES=1).")
     print("\nTo play: vlc {output_video}")

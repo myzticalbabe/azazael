@@ -1,6 +1,6 @@
 ---
 name: azazael-worms-core
-description: Azazael core infrastructure worms — orchestration (6), utility (5), diagnostic (4). Load when working with CLUSTERWORMS, MetaCluster, PAMS/MemoryBus, or diagnostic tools.
+description: Azazael core infrastructure worms — orchestration (10), utility (5), diagnostic (6). Load when working with CLUSTERWORMS, MetaCluster, PAMS/MemoryBus, or diagnostic tools.
 metadata:
   category: architecture
   project: azazael

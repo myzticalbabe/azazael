@@ -60,13 +60,13 @@ graph TD
     NC_UTIL --> MORPH2["MorphingWorm_V2 p=4"]
 
     MC --> CNR["CrossNatureRoutingEngine"]
-    CNR --> |"46 routes, 264 paths"| NC_SEC
+    CNR --> |"70 routes, 594 paths"| NC_SEC
     CNR --> NC_MON
     CNR --> NC_DIAG
     CNR --> NC_ORCH
 
     subgraph "Infrastructure"
-        WR["WORM_REGISTRY (77 worms, 17 categories)"]
+        WR["WORM_REGISTRY (226 worms, 35 categories — was 184/27, 77/17 pre-neural-mesh)"]
         LMS["LocalMemoryStore (SQLite, 1100+ entries)"]
         PAMS["PAMS Bus (51 insights, 133 memories)"]
         FTA["FreeThreadedAgent (Python 3.14t)"]

@@ -33,11 +33,11 @@
 > Lessons: [#14](LESSONS_MASTER.md) (store injection), [#15](LESSONS_MASTER.md) (test infra pays), [#16](LESSONS_MASTER.md) (verify queries first)
 - [ ] Unit tests for CLUSTERWORMS.py dynamic resolution (3 strategies)
 - [ ] Unit tests for NATURE_CLUSTERS.py category discovery
-- [ ] Unit tests for METACLUSTER.py routing engine (46 routes, 264 paths)
+- [ ] Unit tests for METACLUSTER.py routing engine (70 routes, 594 paths)
 - [ ] Integration tests for parallel execution (FreeThreadPool, work-stealing)
 - [ ] Integration tests for cross-nature orchestration
 - [ ] Mock tests for PAMS/MemoryBus event recording
-- [ ] Regression tests for all 77 worms (import + register + basic smoke)
+- [ ] Regression tests for all 226 worms (import + register + basic smoke)
 - [ ] Test coverage reporting (pytest-cov, target: 60%+)
 
 ### 2. Error Recovery (0/5)

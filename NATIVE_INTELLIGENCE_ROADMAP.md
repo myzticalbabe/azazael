@@ -7,11 +7,11 @@
 
 ## EXECUTIVE SUMMARY
 
-**Current state:** 77 worms across 17 categories, 239 passing tests, 16 projects on system (33.8 GB total), 0 production deployments.
+**Current state:** 226 worms across 35 categories *(2026-09-14 clean rebuild ×2; was 184/27, 77/17 pre-neural-mesh)*, 239 passing tests, 16 projects on system (33.8 GB total), 0 production deployments.
 
 **Target state:** A self-sustaining Native Intelligence Artifact ecosystem where ML/RL/AI learning worms train from real execution data, agent types are unified under a single architecture, and production wiring enables scheduled, observable, resilient operation.
 
-**Key gap:** Only **2 ML worms** (SYSTEMZ_ML, WORMZ_ML) and **5 learning worms** (RLTrainLoop, DataPipelineWorm, ModelVersioner, FeatureEngineer, ABTestRunner) exist. No production pipeline connects them to real worm execution data.
+**Key gap (narrowed 2026-09-14):** **2 ML worms** + **19 learning worms** now exist, and a production loop DOES connect them to real data (hourly SpineCycle apply=True, eBPF sampling, 258-ledger-sample training days, LoRA adapters on G:). Remaining: scheduled chaos is manual-run, gossip merge across envs is file-bridged not automated.
 
 ---
 
@@ -27,7 +27,7 @@
 | C4 | Integration tests: parallel execution | 4 | C1 |
 | C5 | Integration tests: cross-nature orchestration | 6 | C3 |
 | C6 | Mock tests: PAMS/MemoryBus | 2 | — |
-| C7 | Regression tests: all 77 worms | 8 | — |
+| C7 | Regression tests: all 226 worms | 8 | — |
 | C8 | Test coverage reporting (pytest-cov, target 60%+) | 2 | C1-C7 |
 | CR1 | Timeout handling (daemon threads) | 3 | — |
 | CR2 | Partial failure handling (continue vs abort) | 2 | CR1 |
@@ -106,10 +106,10 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    LAYER 3: ORCHESTRATION                           │
 │  MetaCluster (routing)  →  NatureClusterManager →  CLUSTERWORMS    │
-│  46 routes, 264 paths     17 nature groups         Dynamic resolve │
+│  70 routes, 594 paths     35 nature groups         Dynamic resolve │
 ├─────────────────────────────────────────────────────────────────────┤
 │                    LAYER 2: INTELLIGENCE                            │
-│  learning (5 worms)  →   ml (2 worms)  →  analysis (3 worms)       │
+│  learning (19 worms)  →   ml (2 worms)  →  analysis (17 worms)      │
 │  RLTrainLoop          SYSTEMZ_ML        BinaryAnalysis             │
 │  DataPipelineWorm     WORMZ_ML          ReverseTools               │
 │  ModelVersioner                         ClusterInspector           │

@@ -54,7 +54,7 @@ This handles: RULE 0K 7-file reading, guardrail skills, FreeBuff/Bun check, Dire
 | 9 | azazael-files | architecture | File index, import resolution |
 | 10 | azazael-threading | architecture | 3.14t threading patterns |
 | 11 | azazael-mermaid | domain | Mermaid graph generation |
-| 12 | azazael-worms | architecture | Parent: 77 worms, 17 categories |
+| 12 | azazael-worms | architecture | Parent: 226 worms, 35 categories |
 | 13 | azazael-worms-core | architecture | orchestration + utility + diagnostic (15) |
 | 14 | azazael-worms-monitor | architecture | monitor + profiling + telemetry (16) |
 | 15 | azazael-worms-security | architecture | security + config + backup (15) |

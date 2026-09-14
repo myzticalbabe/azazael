@@ -74,7 +74,7 @@
 |-----------|---------|--------|---------------------|
 | ClusterWORMZ | v2.2.0 | â¬œ Review | Dynamic worm resolution (3 strategies), Nature-based building, parallel execution, Mermaid visualization |
 | NatureClusters | v1.0.0 | â¬œ Review | Auto-discovery from registry, category-grouped execution |
-| MetaCluster | v1.0.0 | â¬œ Review | Cross-nature routing (46 routes, 264 paths), orchestration engine |
+| MetaCluster | v1.0.0 | â¬œ Review | Cross-nature routing (70 routes, 594 paths), orchestration engine |
 | CrossNatureRoutingEngine | â€” | â¬œ Review | Route discovery, path optimization |
 | FreeThreadPool | â€” | â¬œ Review | Python 3.14t GIL-free parallel execution, work-stealing |
 | CircuitBreaker | â€” | â¬œ Review | Error rate threshold, cooldown, dead letter queue integration |
@@ -563,8 +563,8 @@ Sets up Python path for HYDRA/ml_platforms and UTILITIES modules. Minimal entry 
 
 | Component | File | Size | Capability |
 |-----------|------|------|------------|
-| **Inference Test** | `scripts/inference_test.py` | 16.3 KB | Full inference pipeline testing across all backends |
-| **Full Inference Test** | `scripts/full_inference_test.py` | 9.6 KB | Comprehensive multi-backend inference validation |
+| **Inference Test** | `scripts/inference_test.py` | 16.3 KB | Full inference pipeline testing across all backends — ⚠️ MISSING on disk 2026-09-14 |
+| **Full Inference Test** | `scripts/full_inference_test.py` | 9.6 KB | Comprehensive multi-backend inference validation — ⚠️ MISSING on disk 2026-09-14 |
 | **Run Inference Test** | `run_inference_test.py` | 9.6 KB | CLI inference test runner |
 | **Adversarial Test** | `tests/test_adversarial_pipeline.py` | 5.6 KB | End-to-end adversarial pipeline test |
 | **VL Bridge Test** | `tests/test_unit_bridge_agent.py` | 10.0 KB | Vision-language bridge unit tests |
@@ -574,11 +574,11 @@ Sets up Python path for HYDRA/ml_platforms and UTILITIES modules. Minimal entry 
 
 | Component | File | Size | Capability |
 |-----------|------|------|------------|
-| **Gen Everything** | `scripts/gen_everything.py` | 7.5 KB | Multi-model generation pipeline |
-| **Probe Model** | `scripts/probe_model.py` | 3.1 KB | Model architecture probing and analysis |
-| **Probe All** | `scripts/probe_all.py` | 3.2 KB | All-model batch probing |
+| **Gen Everything** | `scripts/gen_everything.py` | 7.5 KB | Multi-model generation pipeline — ⚠️ MISSING on disk 2026-09-14 |
+| **Probe Model** | `scripts/probe_model.py` | 3.1 KB | Model architecture probing and analysis — ⚠️ MISSING on disk 2026-09-14 |
+| **Probe All** | `scripts/probe_all.py` | 3.2 KB | All-model batch probing — ⚠️ MISSING on disk 2026-09-14 |
 | **TUI Model Switcher** | `logs/llama_switch_model_tui.py` | 14.9 KB | Terminal-based model switching UI with benchmark |
-| **Memory Creator** | `scripts/create_memories.py` | 6.8 KB | Inference memory/context creation |
+| **Memory Creator** | `scripts/create_memories.py` | 6.8 KB | Inference memory/context creation — ⚠️ MISSING on disk 2026-09-14 |
 
 #### C5D â€” Desktop App Capabilities
 

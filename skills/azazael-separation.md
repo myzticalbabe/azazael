@@ -54,7 +54,7 @@ matrix_animation, QL_FILE_OPTIMIZER
 ```
 CORE/ (paths.py, worm_registry.py, freethreading.py)
   ↑  ← Everything depends on CORE
-  ├── CORE/WORMS/ (77 worms)
+  ├── CORE/WORMS/ (226 worms)
   │     ↑
   ├── ORCHESTRATION/ ← CORE, HYDRA, META
   │     ↑

@@ -1,7 +1,7 @@
 # AZAZAEL MEMORIES — Persistent Cross-Session Knowledge
 
 > *This file is canonical memory. Future assistants MUST read this before doing any work.*
-> *Last updated: August 8, 2026 — Session: startup complete, anti-pattern scan, os_system fix (see session entry below).*
+> *Last updated: September 14, 2026 — Session: neural-mesh training program (226 worms/35 cats, LoRA adapters, eBPF baselines, threat triage, live monitors, doc recensus; see session entry below). Prior: August 8, 2026 — startup complete, anti-pattern scan, os_system fix.*
 
 ---
 
@@ -369,7 +369,7 @@ over files and applies regex/byte-level modifications. This pattern:
 ### Cluster Architecture
 - **ClusterWORMZ** (`CORE/WORMS/CLUSTERWORMS.py` v2.0.0) — Dynamic worm resolution (3 strategies), Nature-based building, thread-safe parallel execution, Mermaid graphs
 - **NatureClusters** (`CORE/WORMS/NATURE_CLUSTERS.py`) — Auto-discovery from registry
-- **MetaCluster** (`CORE/WORMS/METACLUSTER.py`) — Cross-Nature routing (46 routes, 264 paths)
+- **MetaCluster** (`CORE/WORMS/METACLUSTER.py`) — Cross-Nature routing (70 routes, 594 paths)
 
 ### Deprecation Shims (META/ directory)
 All META/ duplicates have been consolidated into deprecation shims that re-export from root canonical sources:

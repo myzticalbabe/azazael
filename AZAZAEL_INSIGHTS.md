@@ -7,8 +7,8 @@
 ## 1. Architecture Overview (Current State)
 
 ### Worm Registry — The Central Nervous System
-- **77 worms** registered across **17 categories** via `CORE/worm_registry.py`
-- Categories: `system`, `monitoring`, `security`, `profiling`, `container`, `communication`, `backup`, `config`, `network`, `diagnostic`, `optimization`, `filesystem`, `sync`, `gaming`, `reporting`, `process`, `memory`
+- **226 worms** registered across **35 categories** via `CORE/worm_registry.py` *(2026-09-14 clean rebuild ×2; was 184/27, 77/17 pre-neural-mesh)*
+- Categories: analysis, axon, backup, communication, config, consensus, consolidation, container, defense, dendrite, diagnostic, engram, envmesh, federated, glia, immune, learning, mesh, metabolic, migration, ml, monitor, network, orchestration, plasticity, profiling, security, servemesh, synapse, sync, telemetry, thalamus, utility, visualization, xenomorph
 - Dynamic discovery via `discover_worms()` scanning `CORE/WORMS/`, `META/`, and top-level `src/`
 - Decorator-based: `@register_worm(category="security", priority=5, ...)`
 
@@ -21,7 +21,7 @@ NATURE_CLUSTERS.py          METACLUSTER.py
        │       │                  │       │
        │       ▼                  │       ▼
        │  CLUSTERWORMS.py ◄────────┤  CrossNatureRoutingEngine
-       │  (dynamic resolution)     │  (46 routes, 264 paths)
+                       │  (dynamic resolution)     │  (70 routes, 594 paths)
        │       │                  │
        ▼       ▼                  ▼
   WORM_REGISTRY ──────── PamsRecorder ──────── MemoryBus
@@ -32,8 +32,8 @@ NATURE_CLUSTERS.py          METACLUSTER.py
 | File | Change | Impact |
 |------|--------|--------|
 | `CORE/WORMS/CLUSTERWORMS.py` | Complete rewrite — dynamic worm resolution, PAMS/MemoryBus, Mermaid graphs, Nature-based building | Replaced hardcoded if/elif with registry lookup |
-| `CORE/WORMS/NATURE_CLUSTERS.py` | NEW — NatureCluster + NatureClusterManager | 17 auto-discovered categories |
-| `CORE/WORMS/METACLUSTER.py` | NEW — MetaCluster + CrossNatureRoutingEngine | 46 routes, 264 cross-nature paths |
+| `CORE/WORMS/NATURE_CLUSTERS.py` | NEW — NatureCluster + NatureClusterManager | 35 auto-discovered categories |
+| `CORE/WORMS/METACLUSTER.py` | NEW — MetaCluster + CrossNatureRoutingEngine | 70 routes, 594 cross-nature paths |
 | `CORE/paths.py` | NEW — Centralized path resolution | Cached, env-var-aware paths |
 | `METAWORMS.py` | Deprecation shim → re-exports from `METAWORMS_ENRICHED` | Backward compatible |
 
@@ -193,7 +193,7 @@ G:\AZAZAEL\
 | PAMS events recorded | 44 |
 | PAMS records | 44 |
 | MemoryBus publications | 1 (test) |
-| Cluster build_full_ecosystem | 77 worms |
+| Cluster build_full_ecosystem | 226 worms |
 | Mermaid graph (NATURE_CLUSTERS) | 8,535 chars |
 | PIL frame generation speed | 13.7 fps |
 
@@ -238,7 +238,7 @@ Areas for continued investment:
 
 ### Mandatory Error Recording
 As of this session, a mandatory **ERROR LOG** system has been established:
-- `ERROR_LOG.md` — 15 errors catalogued with timestamps, causes, fixes, preventions
+- `ERROR_LOG.md` — 140 errors catalogued, max #189 (2026-09-14; was 15 at writing) with timestamps, causes, fixes, preventions
 - `SYSTEM_INSTRUCTIONS.md` — SOP requiring error recording BEFORE proceeding to next task
 
 ### Top Error Patterns
@@ -267,7 +267,7 @@ Full per-worm configuration audit completed: `WORM_CONFIG_TRACE.md` + `worm_conf
 - **Highest priority**: MetaCluster (p=10, cooldown=5s)
 - **Longest cooldown**: ColdArchivist (300s = 5min)
 - **Version anomalies**: ClusterWORMZ v2.0.0 (upgraded this session), 4 worms at v0.0.0 (pre-release)
-- **All 77 worms have 0 spawns** — SpawnDiversityEngine ready but unused in production
+- **All 226 worms have 0 spawns** — SpawnDiversityEngine ready but unused in production
 
 ### Category Distribution
 | Priority | Count |

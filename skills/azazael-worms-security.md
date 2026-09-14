@@ -1,6 +1,6 @@
 ---
 name: azazael-worms-security
-description: Azazael security & integrity worms — security (5), config (5), backup (5). Load when working with VulnScanner, PortAuditor, secret rotation, config validation, or backup/recovery.
+description: Azazael security & integrity worms — security (24), config (5), backup (5). Load when working with VulnScanner, PortAuditor, secret rotation, config validation, or backup/recovery.
 metadata:
   category: architecture
   project: azazael

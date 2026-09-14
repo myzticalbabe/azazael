@@ -168,7 +168,7 @@ def execute_work_stealing(self, configs: List[WormConfig]) -> List[Dict]:
 **When to use work-stealing:**
 - Mix of short and long cooldowns (orchestration 5s + backup 300s)
 - Unknown worm execution times
-- Full ecosystem scans (77 worms with varied costs)
+- Full ecosystem scans (226 worms with varied costs)
 
 ## Batch Result Collection (Lock-Free)
 

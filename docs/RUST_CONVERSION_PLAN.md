@@ -143,7 +143,7 @@ Convert the cluster system (CLUSTERWORMS 1,439 lines + NATURE_CLUSTERS 1,276 lin
 |-----------------|-----------------|
 | `ClusterWORMZ` (v2.0.0) | `ClusterWormz` struct with dynamic resolution |
 | `NatureClusterManager` | `NatureClusterManager` with auto-discovery |
-| `MetaCluster` (46 routes, 264 paths) | `MetaCluster` with routing graph (petgraph) |
+| `MetaCluster` (70 routes, 594 paths) | `MetaCluster` with routing graph (petgraph) |
 | Python threading | `rayon` parallel iterators + `tokio` tasks |
 | Cross-nature routing | `petgraph::Graph` with Dijkstra/A* pathfinding |
 | Mermaid graph generation | `mermaid` crate or template-based output |
@@ -397,7 +397,7 @@ G:/source-of-truth/
 - [ ] Connection pool handles 100 concurrent readers without deadlock
 
 ### `azazael-cluster`
-- [ ] `MetaCluster` routes correctly across all 46 routes / 264 paths
+- [ ] `MetaCluster` routes correctly across all 70 routes / 594 paths
 - [ ] Parallel execution achieves >=5x throughput vs Python sequential
 - [ ] Mermaid graph output matches Python output node-for-node
 

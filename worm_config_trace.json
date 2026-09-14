@@ -1,803 +1,2036 @@
 {
-  "total": 91,
-  "categories": [
-    {
-      "name": "analysis",
-      "count": 11
-    },
-    {
-      "name": "backup",
-      "count": 5
-    },
-    {
-      "name": "communication",
-      "count": 5
-    },
-    {
-      "name": "config",
-      "count": 5
-    },
-    {
-      "name": "container",
-      "count": 5
-    },
-    {
-      "name": "diagnostic",
-      "count": 5
-    },
-    {
-      "name": "learning",
-      "count": 8
-    },
-    {
-      "name": "migration",
-      "count": 5
-    },
-    {
-      "name": "ml",
-      "count": 2
-    },
-    {
-      "name": "monitor",
-      "count": 7
-    },
-    {
-      "name": "orchestration",
-      "count": 6
-    },
-    {
-      "name": "profiling",
-      "count": 5
-    },
-    {
-      "name": "security",
-      "count": 6
-    },
-    {
-      "name": "sync",
-      "count": 1
-    },
-    {
-      "name": "telemetry",
-      "count": 5
-    },
-    {
-      "name": "utility",
-      "count": 5
-    },
-    {
-      "name": "visualization",
-      "count": 5
-    }
-  ],
-  "worms": [
-    {
-      "name": "ABTestRunner",
-      "category": "learning",
-      "priority": 4,
-      "cooldown": 120.0,
-      "version": "2.0.0",
-      "source": "learning_grpo.py"
-    },
-    {
-      "name": "AlertEscalator",
-      "category": "telemetry",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "telemetry.py"
-    },
-    {
-      "name": "BinaryAnalysis",
-      "category": "analysis",
-      "priority": 6,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "BINARY_ANALYSIS.py"
-    },
-    {
-      "name": "CLOCKZ",
-      "category": "sync",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "CLOCKZ.py"
-    },
-    {
-      "name": "CPUFlameProfiler",
-      "category": "profiling",
-      "priority": 6,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "profiling.py"
-    },
-    {
-      "name": "CainAnalyzerWorm",
-      "category": "analysis",
-      "priority": 5,
-      "cooldown": 120,
-      "version": "1.0.0",
-      "source": "CODEX_TOOLS.py"
-    },
-    {
-      "name": "CainWorm",
-      "category": "analysis",
-      "priority": 6,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "CAIN_WORM.py"
-    },
-    {
-      "name": "CertMonitor",
-      "category": "security",
-      "priority": 6,
-      "cooldown": 120.0,
-      "version": "1.0.0",
-      "source": "security.py"
-    },
-    {
-      "name": "CheckpointWorm",
-      "category": "backup",
-      "priority": 6,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "backup.py"
-    },
-    {
-      "name": "ClusterInspector",
-      "category": "analysis",
-      "priority": 5,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "CLUSTER_INSPECTOR.py"
-    },
-    {
-      "name": "ClusterWORMZ",
-      "category": "orchestration",
-      "priority": 8,
-      "cooldown": 20.0,
-      "version": "2.2.0",
-      "source": "CLUSTERWORMS.py"
-    },
-    {
-      "name": "CodeMigrator",
-      "category": "migration",
-      "priority": 6,
-      "cooldown": 120.0,
-      "version": "1.0.0",
-      "source": "migration.py"
-    },
-    {
-      "name": "CodeProfiler",
-      "category": "profiling",
-      "priority": 7,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "profiling.py"
-    },
-    {
-      "name": "ColdArchivist",
-      "category": "backup",
-      "priority": 4,
-      "cooldown": 300.0,
-      "version": "1.0.0",
-      "source": "backup.py"
-    },
-    {
-      "name": "ComposeValidator",
-      "category": "container",
-      "priority": 5,
-      "cooldown": 120.0,
-      "version": "1.0.0",
-      "source": "container.py"
-    },
-    {
-      "name": "ConcurrencyManager",
-      "category": "orchestration",
-      "priority": 7,
-      "cooldown": 20.0,
-      "version": "1.0.0",
-      "source": "CONCURRENCY.py"
-    },
-    {
-      "name": "ConfigLinter",
-      "category": "config",
-      "priority": 5,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "config.py"
-    },
-    {
-      "name": "ContainerOrch",
-      "category": "container",
-      "priority": 6,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "container.py"
-    },
-    {
-      "name": "DEPENDZ",
-      "category": "analysis",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "2.2.0",
-      "source": "DEPENDZ.py"
-    },
-    {
-      "name": "DISKZ",
-      "category": "monitor",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "DISKZ.py"
-    },
-    {
-      "name": "DashboardGen",
-      "category": "visualization",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "visualization.py"
-    },
-    {
-      "name": "DataPipelineWorm",
-      "category": "utility",
-      "priority": 3,
-      "cooldown": 30.0,
-      "version": "2.0.0",
-      "source": "learning.py"
-    },
-    {
-      "name": "DatabaseMonitorWorm",
-      "category": "monitor",
-      "priority": 6,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "db_monitor.py"
-    },
-    {
-      "name": "DeadLetterQueue",
-      "category": "utility",
-      "priority": 3,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "dead_letter_queue.py"
-    },
-    {
-      "name": "DepUpgrader",
-      "category": "migration",
-      "priority": 5,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "migration.py"
-    },
-    {
-      "name": "DiagnosticWorm",
-      "category": "diagnostic",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "0.0.0",
-      "source": "DIAGNOSTIC_WORM.py"
-    },
-    {
-      "name": "DotfileSync",
-      "category": "config",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "config.py"
-    },
-    {
-      "name": "DreamingModule",
-      "category": "learning",
-      "priority": 5,
-      "cooldown": 180.0,
-      "version": "1.0.0",
-      "source": "dreaming.py"
-    },
-    {
-      "name": "EnvValidator",
-      "category": "config",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "config.py"
-    },
-    {
-      "name": "ErrorRecoveryOrchestrator",
-      "category": "orchestration",
-      "priority": 9,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "error_recovery.py"
-    },
-    {
-      "name": "EventRouter",
-      "category": "telemetry",
-      "priority": 6,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "telemetry.py"
-    },
-    {
-      "name": "EvolutionEngine",
-      "category": "learning",
-      "priority": 6,
-      "cooldown": 120.0,
-      "version": "1.0.0",
-      "source": "evolution.py"
-    },
-    {
-      "name": "FastErrorScanner",
-      "category": "diagnostic",
-      "priority": 4,
-      "cooldown": 45.0,
-      "version": "0.0.0",
-      "source": "ERROR_SCAN_WORM.py"
-    },
-    {
-      "name": "FeatureFlagCtrl",
-      "category": "config",
-      "priority": 4,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "config.py"
-    },
-    {
-      "name": "FirewallAudit",
-      "category": "security",
-      "priority": 5,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "security.py"
-    },
-    {
-      "name": "GILContentionProbe",
-      "category": "profiling",
-      "priority": 7,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "profiling.py"
-    },
-    {
-      "name": "GeneticOptimizer",
-      "category": "learning",
-      "priority": 5,
-      "cooldown": 180.0,
-      "version": "1.0.0",
-      "source": "evolution.py"
-    },
-    {
-      "name": "GraphRenderer",
-      "category": "visualization",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "visualization.py"
-    },
-    {
-      "name": "HeatmapBuilder",
-      "category": "visualization",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "visualization.py"
-    },
-    {
-      "name": "HypnagogicSynthesizer",
-      "category": "learning",
-      "priority": 4,
-      "cooldown": 300.0,
-      "version": "1.0.0",
-      "source": "dreaming.py"
-    },
-    {
-      "name": "IOBottleneckFinder",
-      "category": "profiling",
-      "priority": 6,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "profiling.py"
-    },
-    {
-      "name": "IPCBridge",
-      "category": "communication",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "communication.py"
-    },
-    {
-      "name": "ImageAuditor",
-      "category": "container",
-      "priority": 5,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "container.py"
-    },
-    {
-      "name": "ImportPathFixWorm",
-      "category": "migration",
-      "priority": 4,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "migration.py"
-    },
-    {
-      "name": "IncrementalBackupWorm",
-      "category": "backup",
-      "priority": 6,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "backup.py"
-    },
-    {
-      "name": "InferenceSubscriberWorm",
-      "category": "analysis",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "INFERENCE_SUBSCRIBER.py"
-    },
-    {
-      "name": "InferenceWorm",
-      "category": "analysis",
-      "priority": 7,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "INFERENCE_WORM.py"
-    },
-    {
-      "name": "LegacyShimGen",
-      "category": "migration",
-      "priority": 3,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "migration.py"
-    },
-    {
-      "name": "LogStreamer",
-      "category": "telemetry",
-      "priority": 5,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "telemetry.py"
-    },
-    {
-      "name": "METAZ",
-      "category": "analysis",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "2.0.0",
-      "source": "METAZ.py"
-    },
-    {
-      "name": "MemoryLeakDetector",
-      "category": "profiling",
-      "priority": 6,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "profiling.py"
-    },
-    {
-      "name": "MessageBroker",
-      "category": "communication",
-      "priority": 7,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "communication.py"
-    },
-    {
-      "name": "MetaCluster",
-      "category": "orchestration",
-      "priority": 10,
-      "cooldown": 5.0,
-      "version": "1.0.0",
-      "source": "METACLUSTER.py"
-    },
-    {
-      "name": "MetaCognitionWorm",
-      "category": "learning",
-      "priority": 7,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "meta_cognition.py"
-    },
-    {
-      "name": "MetricAggregator",
-      "category": "telemetry",
-      "priority": 6,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "telemetry.py"
-    },
-    {
-      "name": "MorphingWorm",
-      "category": "utility",
-      "priority": 3,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "MORPHING_WORM.py"
-    },
-    {
-      "name": "MorphingWormV2",
-      "category": "diagnostic",
-      "priority": 4,
-      "cooldown": 45.0,
-      "version": "2.0.0",
-      "source": "MORPHING_WORM_V2.py"
-    },
-    {
-      "name": "NETWORXZ",
-      "category": "monitor",
-      "priority": 7,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "NETWORXZ.py"
-    },
-    {
-      "name": "NatureClusterManager",
-      "category": "orchestration",
-      "priority": 9,
-      "cooldown": 10.0,
-      "version": "1.0.0",
-      "source": "NATURE_CLUSTERS.py"
-    },
-    {
-      "name": "NetworkDiag",
-      "category": "diagnostic",
-      "priority": 7,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "NETWORK_DIAG.py"
-    },
-    {
-      "name": "NimInferenceWorm",
-      "category": "analysis",
-      "priority": 6,
-      "cooldown": 30.0,
-      "version": "1.2.0",
-      "source": "NIM_INFERENCE.py"
-    },
-    {
-      "name": "OMNIV2",
-      "category": "utility",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "2.0.0",
-      "source": "OMNI_WORM_V2.py"
-    },
-    {
-      "name": "PROCESSZ",
-      "category": "monitor",
-      "priority": 7,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "PROCESSZ.py"
-    },
-    {
-      "name": "ParallelInferenceWorm",
-      "category": "analysis",
-      "priority": 8,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "PARALLEL_INFERENCE_WORM.py"
-    },
-    {
-      "name": "PermissionScanner",
-      "category": "security",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "security.py"
-    },
-    {
-      "name": "PortAuditor",
-      "category": "security",
-      "priority": 7,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "security.py"
-    },
-    {
-      "name": "ProtocolNegotiator",
-      "category": "communication",
-      "priority": 4,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "communication.py"
-    },
-    {
-      "name": "RPCEndpoint",
-      "category": "communication",
-      "priority": 6,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "communication.py"
-    },
-    {
-      "name": "RaceConditionDetector",
-      "category": "security",
-      "priority": 9,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "race_detector.py"
-    },
-    {
-      "name": "RecoveryTester",
-      "category": "backup",
-      "priority": 5,
-      "cooldown": 180.0,
-      "version": "1.0.0",
-      "source": "backup.py"
-    },
-    {
-      "name": "RegistryPoller",
-      "category": "container",
-      "priority": 4,
-      "cooldown": 180.0,
-      "version": "1.0.0",
-      "source": "container.py"
-    },
-    {
-      "name": "ReportCompiler",
-      "category": "visualization",
-      "priority": 4,
-      "cooldown": 90.0,
-      "version": "1.0.0",
-      "source": "visualization.py"
-    },
-    {
-      "name": "ResourceQuotaWatch",
-      "category": "container",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "container.py"
-    },
-    {
-      "name": "ReverseTools",
-      "category": "analysis",
-      "priority": 6,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "REVERSE_TOOLS.py"
-    },
-    {
-      "name": "SMARTDISK",
-      "category": "monitor",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "SMARTDISK.py"
-    },
-    {
-      "name": "SYSTEMZ_ML",
-      "category": "ml",
-      "priority": 6,
-      "cooldown": 45.0,
-      "version": "1.0.0",
-      "source": "SYSTEMZ_ML.py"
-    },
-    {
-      "name": "ScheduledDbMonitorWorm",
-      "category": "monitor",
-      "priority": 6,
-      "cooldown": 120.0,
-      "version": "1.0.0",
-      "source": "scheduling.py"
-    },
-    {
-      "name": "ScheduledTrainingWorm",
-      "category": "learning",
-      "priority": 4,
-      "cooldown": 300.0,
-      "version": "1.0.0",
-      "source": "scheduling.py"
-    },
-    {
-      "name": "SchemaVersioner",
-      "category": "migration",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "migration.py"
-    },
-    {
-      "name": "SecretRotator",
-      "category": "config",
-      "priority": 6,
-      "cooldown": 120.0,
-      "version": "1.0.0",
-      "source": "config.py"
-    },
-    {
-      "name": "SpanTracer",
-      "category": "telemetry",
-      "priority": 7,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "telemetry.py"
-    },
-    {
-      "name": "StateSnapshotter",
-      "category": "backup",
-      "priority": 7,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "backup.py"
-    },
-    {
-      "name": "SystemZ",
-      "category": "monitor",
-      "priority": 8,
-      "cooldown": 15.0,
-      "version": "1.0.0",
-      "source": "SYSTEMZ.py"
-    },
-    {
-      "name": "TimelineViz",
-      "category": "visualization",
-      "priority": 4,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "visualization.py"
-    },
-    {
-      "name": "TrainingOrchestrator",
-      "category": "learning",
-      "priority": 5,
-      "cooldown": 300.0,
-      "version": "1.0.0",
-      "source": "scheduling.py"
-    },
-    {
-      "name": "VideoAnalyzerWorm",
-      "category": "diagnostic",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "VIDEO_ANALYZER_WORM.py"
-    },
-    {
-      "name": "VulnScanner",
-      "category": "security",
-      "priority": 8,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "security.py"
-    },
-    {
-      "name": "WORMZ",
-      "category": "utility",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "WORMZ.py"
-    },
-    {
-      "name": "WORMZ_ML",
-      "category": "ml",
-      "priority": 5,
-      "cooldown": 60.0,
-      "version": "1.0.0",
-      "source": "WORMZ_ML.py"
-    },
-    {
-      "name": "WebhookRelay",
-      "category": "communication",
-      "priority": 5,
-      "cooldown": 30.0,
-      "version": "1.0.0",
-      "source": "communication.py"
-    },
-    {
-      "name": "WormFleet",
-      "category": "orchestration",
-      "priority": 6,
-      "cooldown": 30.0,
-      "version": "0.0.0",
-      "source": "WORM_FLEET.py"
-    }
-  ]
+ "ABTestRunner": {
+  "module": "CORE.WORMS.expansion.learning_grpo",
+  "category": "learning",
+  "priority": 4,
+  "cooldown_seconds": 120.0,
+  "version": "2.0.0",
+  "source": "learning_grpo.py",
+  "description": "A/B test runner \u2014 split-test framework with DPO preference learning"
+ },
+ "ActivationRouterWorm": {
+  "module": "CORE.WORMS.expansion.synapse",
+  "category": "synapse",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "synapse.py",
+  "description": "Threshold gating \u2014 only fires downstream cluster if confidence above threshold"
+ },
+ "AlertEscalator": {
+  "module": "CORE.WORMS.expansion.telemetry",
+  "category": "telemetry",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "telemetry.py",
+  "description": "Alert escalator \u2014 threshold-based alerting with severity levels and deduplication"
+ },
+ "AmassWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Attack-surface mapping via amass"
+ },
+ "ArousalSwitchWorm": {
+  "module": "CORE.WORMS.expansion.thalamus",
+  "category": "thalamus",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "thalamus.py",
+  "description": "wake / sleep / recon modes; Kali quiet, Bare full"
+ },
+ "AstrocyteWorm": {
+  "module": "CORE.WORMS.expansion.glia",
+  "category": "glia",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "glia.py",
+  "description": "Metabolic cleanup: __pycache__, tmp, stale locks per env"
+ },
+ "AttentionGateWorm": {
+  "module": "CORE.WORMS.expansion.dendrite",
+  "category": "dendrite",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "dendrite.py",
+  "description": "Top-k attention gate over dendritic inputs; MoE-adjacent"
+ },
+ "AttentionRouterWorm": {
+  "module": "CORE.WORMS.expansion.synapse",
+  "category": "synapse",
+  "priority": 8,
+  "cooldown_seconds": 30.0,
+  "version": "2.0.0",
+  "source": "synapse.py",
+  "description": "G5: scalar attention prior over active natures; cross-nature routing bias"
+ },
+ "AttestationWorm": {
+  "module": "CORE.WORMS.expansion.immune",
+  "category": "immune",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "immune.py",
+  "description": "Per-env integrity (py_compile + hash + FT check) before quorum"
+ },
+ "AutoDownloaderWorm": {
+  "module": "CORE.WORMS.CODEX_TOOLS",
+  "category": "orchestration",
+  "priority": 4,
+  "cooldown_seconds": 300,
+  "version": "1.0.0",
+  "source": "CODEX_TOOLS.py",
+  "description": "ML framework detection and auto-install manager \u2014 detects missing frameworks, verifies installations, generates status reports"
+ },
+ "AutoencoderAnomalyWorm": {
+  "module": "CORE.WORMS.expansion.immune",
+  "category": "immune",
+  "priority": 8,
+  "cooldown_seconds": 60.0,
+  "version": "2.0.0",
+  "source": "immune.py",
+  "description": "G11: Autoencoder anomaly detector \u2014 reconstruct input, flag high reconstruction error"
+ },
+ "BarePassthroughWorm": {
+  "module": "CORE.WORMS.expansion.envmesh",
+  "category": "envmesh",
+  "priority": 9,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "envmesh.py",
+  "description": "Bare-metal passthrough: local kernel unreachable from WSL2/Win, use SSH/vsock/mount chain"
+ },
+ "BenchmarkWorm": {
+  "module": "worms.benchmark_worm",
+  "category": "telemetry",
+  "priority": 5,
+  "cooldown_seconds": 604800,
+  "version": "1.0.0",
+  "source": "benchmark_worm.py",
+  "description": "Weekly function benchmark runner \u2014 33 functions across 5 VF modules, appends to time-series history and regenerates dashboard"
+ },
+ "BerksMonitorWorm": {
+  "module": "CORE.WORMS.expansion.berks",
+  "category": "monitor",
+  "priority": 6,
+  "cooldown_seconds": 900.0,
+  "version": "1.0.0",
+  "source": "berks.py",
+  "description": "First-party watchdog: BCC public sites HTTP/DNS/TLS only"
+ },
+ "BettercapWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat MITM framework via bettercap"
+ },
+ "BinaryAnalysis": {
+  "module": "CORE.WORMS.BINARY_ANALYSIS",
+  "category": "analysis",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "BINARY_ANALYSIS.py",
+  "description": "Binary analysis & reverse engineering (PE/ELF, symbols, entropy, disasm, sed, awk)"
+ },
+ "BloodhoundWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat AD graph collection via BloodHound"
+ },
+ "CLAWBOT": {
+  "module": "CORE.WORMS.CLAWBOT",
+  "category": "communication",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "0.0.0",
+  "source": "CLAWBOT.py",
+  "description": "CLAW-BOT outreach agent \u2014 human-approval email/form queue (Desktop/Libra/claw_bot) + Moltbook investigative connector"
+ },
+ "CLOCKZ": {
+  "module": "CORE.WORMS.CLOCKZ",
+  "category": "sync",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "CLOCKZ.py",
+  "description": "Time synchronization and scheduling worm"
+ },
+ "CPUFlameProfiler": {
+  "module": "CORE.WORMS.expansion.profiling",
+  "category": "profiling",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "profiling.py",
+  "description": "CPU flame profiler \u2014 sampling profiler, flame graph data generation"
+ },
+ "CainAnalyzerWorm": {
+  "module": "CORE.WORMS.CODEX_TOOLS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 120,
+  "version": "1.0.0",
+  "source": "CODEX_TOOLS.py",
+  "description": "CAIN psychoanalysis framework \u2014 analyzes session data for psychological accountability patterns (7 sins, Jungian archetypes, stakeholder impact)"
+ },
+ "CainWorm": {
+  "module": "CORE.WORMS.CAIN_WORM",
+  "category": "analysis",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "CAIN_WORM.py",
+  "description": "CAIN Accountability Psychoanalysis Framework \u2014 Seven Deadly Sins, multi-modal analysis, stakeholder impact, emotion web"
+ },
+ "CertMonitor": {
+  "module": "CORE.WORMS.expansion.security",
+  "category": "security",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "security.py",
+  "description": "Certificate monitor \u2014 SSL/TLS cert expiry tracking, chain validation"
+ },
+ "ChaosWorm": {
+  "module": "CORE.WORMS.expansion.chaos",
+  "category": "diagnostic",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "chaos.py",
+  "description": "Safe chaos drills: prune/partition/controlled-fail with truthful outcomes"
+ },
+ "CheckpointWorm": {
+  "module": "CORE.WORMS.expansion.backup",
+  "category": "backup",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "backup.py",
+  "description": "Checkpoint worm \u2014 save worm execution state for resume-after-failure"
+ },
+ "ChestbursterWorm": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 7,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "Variant fan-out counter; forks N mutated cases via EvolutionEngine params"
+ },
+ "ClusterInspector": {
+  "module": "CORE.WORMS.CLUSTER_INSPECTOR",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "CLUSTER_INSPECTOR.py",
+  "description": "Multi-file type analysis system for txt, md, ps1, html inspection"
+ },
+ "ClusterWORMZ": {
+  "module": "CORE.WORMS.CLUSTERWORMS",
+  "category": "orchestration",
+  "priority": 8,
+  "cooldown_seconds": 20.0,
+  "version": "2.2.0",
+  "source": "CLUSTERWORMS.py",
+  "description": "Coordinated worm collectives with shared state, dynamic resolution, PAMS recording, and Mermaid visualization"
+ },
+ "CodeMigrator": {
+  "module": "CORE.WORMS.expansion.migration",
+  "category": "migration",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "migration.py",
+  "description": "Code migrator \u2014 automated Python 2->3 migration with lib2to3 fixers"
+ },
+ "CodeProfiler": {
+  "module": "CORE.WORMS.expansion.profiling",
+  "category": "profiling",
+  "priority": 7,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "profiling.py",
+  "description": "Code profiler \u2014 cProfile integration, hot-path detection, call-graph generation"
+ },
+ "CoherenceValidatorWorm": {
+  "module": "CORE.WORMS.expansion.engram",
+  "category": "engram",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "2.0.0",
+  "source": "engram.py",
+  "description": "Replica coherence: exact hash equality + cosine drift detection"
+ },
+ "ColdArchivist": {
+  "module": "CORE.WORMS.expansion.backup",
+  "category": "backup",
+  "priority": 4,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "backup.py",
+  "description": "Cold archivist \u2014 compress and move old files to cold storage with indexing"
+ },
+ "ComposeValidator": {
+  "module": "CORE.WORMS.expansion.container",
+  "category": "container",
+  "priority": 5,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "container.py",
+  "description": "Compose validator \u2014 docker-compose.yml syntax and schema validation"
+ },
+ "ConcurrencyManager": {
+  "module": "CORE.WORMS.CONCURRENCY",
+  "category": "orchestration",
+  "priority": 7,
+  "cooldown_seconds": 20.0,
+  "version": "1.0.0",
+  "source": "CONCURRENCY.py",
+  "description": "Cotemporaneous execution engine for parallel worm/cluster operations"
+ },
+ "ConfigLinter": {
+  "module": "CORE.WORMS.expansion.config",
+  "category": "config",
+  "priority": 5,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "config.py",
+  "description": "Config linter \u2014 JSON/YAML/TOML schema validation and consistency checking"
+ },
+ "ConsolidationWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "learning",
+  "priority": 5,
+  "cooldown_seconds": 1800.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "Sleep phase: wires DreamingModule to spine; reinforces Q from high-quality dreams when idle"
+ },
+ "ContainerOrch": {
+  "module": "CORE.WORMS.expansion.container",
+  "category": "container",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "container.py",
+  "description": "Container orchestrator \u2014 multi-container lifecycle, health checks, restart policies"
+ },
+ "ContextConcatWorm": {
+  "module": "CORE.WORMS.expansion.dendrite",
+  "category": "dendrite",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "dendrite.py",
+  "description": "Concat + truncate multi-source context for LLM prompt build"
+ },
+ "CrackmapexecWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Network execution via crackmapexec/netexec"
+ },
+ "DEPENDZ": {
+  "module": "CORE.WORMS.DEPENDZ",
+  "category": "analysis",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "2.2.0",
+  "source": "DEPENDZ.py",
+  "description": "Dependency analysis worm \u2014 package deps, unused imports, version drift, pip-audit"
+ },
+ "DISKZ": {
+  "module": "CORE.WORMS.DISKZ",
+  "category": "monitor",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "DISKZ.py",
+  "description": "Disk I/O and space monitoring worm"
+ },
+ "DashboardGen": {
+  "module": "CORE.WORMS.expansion.visualization",
+  "category": "visualization",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "visualization.py",
+  "description": "Dashboard generator \u2014 auto-generate HTML dashboards from worm metrics"
+ },
+ "DataPipelineWorm": {
+  "module": "CORE.WORMS.expansion.learning_pipeline",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "2.0.0",
+  "source": "learning_pipeline.py",
+  "description": "ETL data preprocessing pipeline connected to LocalMemoryStore.\n\nProduction Features:\n- Extract: reads from LocalMemoryStore (FTS5 full-text search) or JSON file"
+ },
+ "DatabaseMonitorWorm": {
+  "module": "CORE.WORMS.expansion.db_monitor",
+  "category": "monitor",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "db_monitor.py",
+  "description": "Database health monitor \u2014 tracks LocalMemoryStore size, growth, error trends, and generates alerts with configurable thresholds"
+ },
+ "DeadLetterQueue": {
+  "module": "CORE.WORMS.dead_letter_queue",
+  "category": "utility",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "dead_letter_queue.py",
+  "description": "Thread-safe dead letter queue for failed worm executions.\n\nPersists to disk as JSON for cross-session durability.\nIntegrates with circuit breaker for intelligen"
+ },
+ "DendriteAggregatorWorm": {
+  "module": "CORE.WORMS.expansion.dendrite",
+  "category": "dendrite",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "dendrite.py",
+  "description": "Weighted fan-in over N worm outputs; per-env gain"
+ },
+ "DepUpgrader": {
+  "module": "CORE.WORMS.expansion.migration",
+  "category": "migration",
+  "priority": 5,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "migration.py",
+  "description": "Dependency upgrader \u2014 auto-upgrade requirements.txt with compatibility testing"
+ },
+ "DiagnosticWorm": {
+  "module": "CORE.WORMS.DIAGNOSTIC_WORM",
+  "category": "diagnostic",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "0.0.0",
+  "source": "DIAGNOSTIC_WORM.py",
+  "description": "Self-healing diagnostic crawler with module import testing"
+ },
+ "DirbWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Web content scanning via dirb"
+ },
+ "DnsWorm": {
+  "module": "CORE.WORMS.DNSWORM",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "DNSWORM.py",
+  "description": "Autonomous DNS recon \u2014 resolves safe default targets (localhost + public infra) with stdlib only"
+ },
+ "DnsgenWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat DNS name generation via dnsgen"
+ },
+ "DnsxWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat DNS toolkit via dnsx"
+ },
+ "DotfileSync": {
+  "module": "CORE.WORMS.expansion.config",
+  "category": "config",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "config.py",
+  "description": "Dotfile sync \u2014 sync .bashrc, .zshrc, .profile across machines"
+ },
+ "DreamConsolidatorWorm": {
+  "module": "CORE.WORMS.expansion.engram",
+  "category": "engram",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "2.0.0",
+  "source": "engram.py",
+  "description": "Nightly merge DreamingModule/Hypnagogic output into ModelVersioner + engram index"
+ },
+ "DreamCriticWorm": {
+  "module": "CORE.WORMS.expansion.consolidation",
+  "category": "consolidation",
+  "priority": 5,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "consolidation.py",
+  "description": "Scores DreamingModule outputs; keeps only coherent dreams"
+ },
+ "DreamingModule": {
+  "module": "CORE.WORMS.expansion.dreaming",
+  "category": "learning",
+  "priority": 5,
+  "cooldown_seconds": 180.0,
+  "version": "1.0.0",
+  "source": "dreaming.py",
+  "description": "Dreaming engine \u2014 offline simulation, scenario replay, policy improvement without live risk"
+ },
+ "DroneWorm": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "Cross-env carrier; routes successful DNA via MeshRouterWorm weights"
+ },
+ "ElasticConsolidationWorm": {
+  "module": "CORE.WORMS.expansion.plasticity",
+  "category": "plasticity",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "plasticity.py",
+  "description": "EWC-lite: Fisher-weighted penalty anchors old tasks"
+ },
+ "EmojiMakerWorm": {
+  "module": "CORE.WORMS.CODEX_TOOLS",
+  "category": "visualization",
+  "priority": 3,
+  "cooldown_seconds": 60,
+  "version": "1.0.0",
+  "source": "CODEX_TOOLS.py",
+  "description": "Dynamic emotional emoji generator \u2014 50+ emojis across 15 emotions, 5 moods, 5 categories with CSS animation mappings"
+ },
+ "EngramIndexerWorm": {
+  "module": "CORE.WORMS.expansion.consolidation",
+  "category": "consolidation",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "consolidation.py",
+  "description": "Content-hash index over consolidated engrams"
+ },
+ "EnhancedAnimationsWorm": {
+  "module": "CORE.WORMS.CODEX_TOOLS",
+  "category": "visualization",
+  "priority": 3,
+  "cooldown_seconds": 60,
+  "version": "1.0.0",
+  "source": "CODEX_TOOLS.py",
+  "description": "CSS animation library \u2014 30+ animations across 6 categories (Cinematic, Data, Particle, UI, Emotional, Structural) with keyframe generation"
+ },
+ "EnvBeaconV2Worm": {
+  "module": "CORE.WORMS.expansion.envmesh",
+  "category": "envmesh",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "envmesh.py",
+  "description": "5-way capability beacon: windows/wsl2-ubuntu/wsl2-kali/bare/kali + FT + GPU"
+ },
+ "EnvBeaconWorm": {
+  "module": "CORE.WORMS.expansion.mesh",
+  "category": "mesh",
+  "priority": 6,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "mesh.py",
+  "description": "Heartbeat + capability advertisement for router weights"
+ },
+ "EnvValidator": {
+  "module": "CORE.WORMS.expansion.config",
+  "category": "config",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "config.py",
+  "description": "Environment validator \u2014 check env consistency across .env, system env, and docker-compose"
+ },
+ "EpendymalWorm": {
+  "module": "CORE.WORMS.expansion.glia",
+  "category": "glia",
+  "priority": 5,
+  "cooldown_seconds": 180.0,
+  "version": "1.0.0",
+  "source": "glia.py",
+  "description": "G: archive GC: stale loom outputs, dedup by hash"
+ },
+ "ErrorRecoveryOrchestrator": {
+  "module": "CORE.WORMS.expansion.error_recovery",
+  "category": "orchestration",
+  "priority": 9,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "error_recovery.py",
+  "description": "Error recovery orchestrator \u2014 retry with exponential backoff, fallback, circuit-breaking for all 38 worms"
+ },
+ "EventRouter": {
+  "module": "CORE.WORMS.expansion.telemetry",
+  "category": "telemetry",
+  "priority": 6,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "telemetry.py",
+  "description": "Event router \u2014 pub/sub event bus with topic-based routing and subscriber callbacks"
+ },
+ "EvolutionEngine": {
+  "module": "CORE.WORMS.expansion.evolution",
+  "category": "learning",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "2.0.0",
+  "source": "evolution.py",
+  "description": "Evolution engine \u2014 population-based optimization with selection, crossover, mutation, and CurativePool governance"
+ },
+ "FacehuggerWorm": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 8,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "Single-execution injector tracer; attaches to one target input, then detaches"
+ },
+ "FastErrorScanner": {
+  "module": "CORE.WORMS.ERROR_SCAN_WORM",
+  "category": "diagnostic",
+  "priority": 4,
+  "cooldown_seconds": 45.0,
+  "version": "0.0.0",
+  "source": "ERROR_SCAN_WORM.py",
+  "description": "Fast error scanner for BOM, syntax, and import issues"
+ },
+ "FeatureEngineer": {
+  "module": "CORE.WORMS.expansion.learning_features",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "2.0.0",
+  "source": "learning_features.py",
+  "description": "Feature engineering pipeline for ML preprocessing.\n\nWorks with data extracted by DataPipelineWorm from LocalMemoryStore.\nProvides: normalization, one-hot encodi"
+ },
+ "FeatureFlagCtrl": {
+  "module": "CORE.WORMS.expansion.config",
+  "category": "config",
+  "priority": 4,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "config.py",
+  "description": "Feature flag controller \u2014 runtime toggle management with percentage rollout"
+ },
+ "FederatedAggregatorWorm": {
+  "module": "CORE.WORMS.expansion.federated",
+  "category": "federated",
+  "priority": 7,
+  "cooldown_seconds": 180.0,
+  "version": "1.0.0",
+  "source": "federated.py",
+  "description": "FedAvg over SB3Agent/GRPOTrainer policies; Ray backend"
+ },
+ "FeroxbusterWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Content discovery via feroxbuster"
+ },
+ "FfufWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Web fuzzing via ffuf (seclists present)"
+ },
+ "FirewallAudit": {
+  "module": "CORE.WORMS.expansion.security",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "security.py",
+  "description": "Firewall auditor \u2014 Windows firewall rule analysis, gap detection"
+ },
+ "ForgettingCurveWorm": {
+  "module": "CORE.WORMS.expansion.plasticity",
+  "category": "plasticity",
+  "priority": 5,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "plasticity.py",
+  "description": "Ebbinghaus decay scheduler for engram review timing"
+ },
+ "GDriveLoomWorm": {
+  "module": "CORE.WORMS.expansion.envmesh",
+  "category": "envmesh",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "envmesh.py",
+  "description": "G: loom bridge: W11 G:/ <-> WSL /mnt/g shared state"
+ },
+ "GILContentionProbe": {
+  "module": "CORE.WORMS.expansion.profiling",
+  "category": "profiling",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "profiling.py",
+  "description": "GIL contention probe \u2014 free-threading diagnostics, lock contention analysis"
+ },
+ "GRPOTrainer": {
+  "module": "CORE.WORMS.expansion.learning_grpo",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "learning_grpo.py",
+  "description": "Group Relative Policy Optimization for worm selection.\n\nFor each task, generates a group of candidate worms, scores them\nrelative to each other, and updates the"
+ },
+ "GemmaDriverWorm": {
+  "module": "CORE.WORMS.expansion.driver",
+  "category": "orchestration",
+  "priority": 7,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "driver.py",
+  "description": "Gemma-E2B goal/curiosity driver with heuristic fallbacks"
+ },
+ "GeneticOptimizer": {
+  "module": "CORE.WORMS.expansion.evolution",
+  "category": "learning",
+  "priority": 5,
+  "cooldown_seconds": 180.0,
+  "version": "2.0.0",
+  "source": "evolution.py",
+  "description": "Genetic optimizer \u2014 per-worm parameter optimization using genetic algorithms with fitness tracking"
+ },
+ "GitleaksWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Git secret scanning via gitleaks"
+ },
+ "GobusterWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Directory/DNS brute-forcing via gobuster"
+ },
+ "GossipSyncWorm": {
+  "module": "CORE.WORMS.expansion.mesh",
+  "category": "mesh",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "mesh.py",
+  "description": "Epidemic state gossip \u2014 worm health, model versions; heals sync drift"
+ },
+ "GraphRenderer": {
+  "module": "CORE.WORMS.expansion.visualization",
+  "category": "visualization",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "visualization.py",
+  "description": "Graph renderer \u2014 render dependency graphs as DOT/SVG via Graphviz"
+ },
+ "H8mailWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Breach hunting via h8mail"
+ },
+ "HashcatWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Hash recovery via hashcat"
+ },
+ "HeatmapBuilder": {
+  "module": "CORE.WORMS.expansion.visualization",
+  "category": "visualization",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "visualization.py",
+  "description": "Heatmap builder \u2014 generate activity heatmaps from timestamped event data"
+ },
+ "HebbianUpdaterWorm": {
+  "module": "CORE.WORMS.expansion.plasticity",
+  "category": "plasticity",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "plasticity.py",
+  "description": "Hebbian edge update: fire-together wire-together"
+ },
+ "HoleheWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Account/breach checks via holehe"
+ },
+ "HomeostatWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "synapse",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "Consumes execution outcome ledger; proposes cooldown/priority shifts + Q-reinforcement"
+ },
+ "HydraWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Online credential testing via hydra"
+ },
+ "HypnagogicSynthesizer": {
+  "module": "CORE.WORMS.expansion.dreaming",
+  "category": "learning",
+  "priority": 4,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "dreaming.py",
+  "description": "Hypnagogic synthesizer \u2014 cross-domain pattern blending for novel solution generation"
+ },
+ "IOBottleneckFinder": {
+  "module": "CORE.WORMS.expansion.profiling",
+  "category": "profiling",
+  "priority": 6,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "profiling.py",
+  "description": "I/O bottleneck finder \u2014 disk read/write latency, iostat integration"
+ },
+ "IPCBridge": {
+  "module": "CORE.WORMS.expansion.communication",
+  "category": "communication",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "communication.py",
+  "description": "IPC bridge \u2014 inter-process communication via pipes, shared memory, or sockets"
+ },
+ "ImageAuditor": {
+  "module": "CORE.WORMS.expansion.container",
+  "category": "container",
+  "priority": 5,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "container.py",
+  "description": "Image auditor \u2014 scan container images for size, layers, and base-image freshness"
+ },
+ "ImmuneSentinelWorm": {
+  "module": "CORE.WORMS.expansion.immune",
+  "category": "immune",
+  "priority": 8,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "immune.py",
+  "description": "Anomaly on SpanTracer/MetricAggregator (SYSTEMZ_ML features)"
+ },
+ "ImpacketWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Network protocol toolkit (impacket lib)"
+ },
+ "ImportPathFixWorm": {
+  "module": "CORE.WORMS.expansion.migration",
+  "category": "migration",
+  "priority": 4,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "migration.py",
+  "description": "Import path fixer \u2014 update import paths after file moves/renames"
+ },
+ "IncrementalBackupWorm": {
+  "module": "CORE.WORMS.expansion.backup",
+  "category": "backup",
+  "priority": 6,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "backup.py",
+  "description": "Incremental backup worm \u2014 rsync-style incremental backup with changed-file detection"
+ },
+ "InferenceLoadBalancerWorm": {
+  "module": "CORE.WORMS.expansion.servemesh",
+  "category": "servemesh",
+  "priority": 8,
+  "cooldown_seconds": 10.0,
+  "version": "1.0.0",
+  "source": "servemesh.py",
+  "description": "Least-loaded route over llama-server/LM Studio/NIM endpoints"
+ },
+ "InferenceSubscriberWorm": {
+  "module": "CORE.WORMS.INFERENCE_SUBSCRIBER",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "INFERENCE_SUBSCRIBER.py",
+  "description": "MemoryBus inference subscriber \u2014 real-time anomaly detection via LLM"
+ },
+ "InferenceWorm": {
+  "module": "CORE.WORMS.INFERENCE_WORM",
+  "category": "analysis",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "INFERENCE_WORM.py",
+  "description": "Provider-agnostic inference \u2014 auto-selects best available LLM API"
+ },
+ "JohnWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Offline password audit via john"
+ },
+ "KaliHealth": {
+  "module": "worms.kali_health",
+  "category": "monitor",
+  "priority": 8,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "kali_health.py",
+  "description": "Kali WSL health monitor \u2014 E: free space, VHDX growth, RAM/CPU breach alerts"
+ },
+ "LatencyCompensatorWorm": {
+  "module": "CORE.WORMS.expansion.axon",
+  "category": "axon",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "axon.py",
+  "description": "CLOCKZ-aware delay compensation per env pair"
+ },
+ "LeaderElectorWorm": {
+  "module": "CORE.WORMS.expansion.consensus",
+  "category": "consensus",
+  "priority": 8,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "consensus.py",
+  "description": "Bully/Raft-lite: elects trainer (Bare) vs server (Win) vs scanner (Kali)"
+ },
+ "LegacyShimGen": {
+  "module": "CORE.WORMS.expansion.migration",
+  "category": "migration",
+  "priority": 3,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "migration.py",
+  "description": "Legacy shim generator \u2014 create backward-compatibility wrappers for renamed APIs"
+ },
+ "Lilith": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 10,
+  "cooldown_seconds": 600.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "LILITH, hive genome coordinator. PREFERS bare; interim degraded lease elsewhere"
+ },
+ "LogStreamer": {
+  "module": "CORE.WORMS.expansion.telemetry",
+  "category": "telemetry",
+  "priority": 5,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "telemetry.py",
+  "description": "Log streamer \u2014 real-time log tailing, pattern filtering, structured log parsing"
+ },
+ "MAPElites": {
+  "module": "CORE.WORMS.expansion.evolution",
+  "category": "learning",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "2.0.0",
+  "source": "evolution.py",
+  "description": "MAP-Elites \u2014 quality-diversity archive preventing fixed-point stagnation"
+ },
+ "METAZ": {
+  "module": "CORE.WORMS.METAZ",
+  "category": "analysis",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "2.0.0",
+  "source": "METAZ.py",
+  "description": "Metadata analysis worm \u2014 imports, exports, dependency graphs, coupling metrics"
+ },
+ "MaigretWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Username search across 3000+ sites via maigret"
+ },
+ "MasscanWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Internet-scale port scanning via masscan"
+ },
+ "MemoryLeakDetector": {
+  "module": "CORE.WORMS.expansion.profiling",
+  "category": "profiling",
+  "priority": 6,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "profiling.py",
+  "description": "Memory leak detector \u2014 tracemalloc integration, allocation tracking, growth detection"
+ },
+ "MeshArchitectWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "orchestration",
+  "priority": 7,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "F8: proposes topology edits from per-edge learning telemetry"
+ },
+ "MeshRouterWorm": {
+  "module": "CORE.WORMS.expansion.mesh",
+  "category": "mesh",
+  "priority": 9,
+  "cooldown_seconds": 10.0,
+  "version": "1.0.0",
+  "source": "mesh.py",
+  "description": "Cross-env mesh router \u2014 wraps MessageBroker+IPCBridge+ProtocolNegotiator"
+ },
+ "MessageBroker": {
+  "module": "CORE.WORMS.expansion.communication",
+  "category": "communication",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "communication.py",
+  "description": "Message broker \u2014 in-process pub/sub with topic routing and persistence"
+ },
+ "MetaCluster": {
+  "module": "CORE.WORMS.METACLUSTER",
+  "category": "orchestration",
+  "priority": 10,
+  "cooldown_seconds": 5.0,
+  "version": "1.0.0",
+  "source": "METACLUSTER.py",
+  "description": "MetaCluster \u2014 cluster-of-clusters orchestrator coordinating all Natures with cross-Nature routing and PAMS recording"
+ },
+ "MetaCognitionWorm": {
+  "module": "CORE.WORMS.expansion.meta_cognition",
+  "category": "learning",
+  "priority": 7,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "meta_cognition.py",
+  "description": "MetaCognition engine \u2014 self-reflection, error pattern learning, strategy adaptation for autonomous improvement"
+ },
+ "MetasploitBridge": {
+  "module": "worms.metasploit_bridge",
+  "category": "security",
+  "priority": 9,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "metasploit_bridge.py",
+  "description": "Kali Metasploit bridge \u2014 automated exploit execution with checkpoint rollback and PAMS audit"
+ },
+ "MetricAggregator": {
+  "module": "CORE.WORMS.expansion.telemetry",
+  "category": "telemetry",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "telemetry.py",
+  "description": "Metric aggregator \u2014 Prometheus-style counter/gauge/histogram with time-window aggregation"
+ },
+ "MicrogliaWorm": {
+  "module": "CORE.WORMS.expansion.glia",
+  "category": "glia",
+  "priority": 7,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "glia.py",
+  "description": "Prunes dead worm procs + drains DeadLetterQueue backlog"
+ },
+ "MitmproxyWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Intercepting proxy via mitmproxy"
+ },
+ "MoEDispatcherWorm": {
+  "module": "CORE.WORMS.expansion.synapse",
+  "category": "synapse",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "2.0.0",
+  "source": "synapse.py",
+  "description": "Sparse top-k routing over InferenceWorm/ParallelInference/NimInference (MoE)"
+ },
+ "ModelShardServerWorm": {
+  "module": "CORE.WORMS.expansion.servemesh",
+  "category": "servemesh",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "servemesh.py",
+  "description": "Serves GGUF/ONNX shards (GGUF Q4_K_M on Win CPU, GPTQ on Bare GPU)"
+ },
+ "ModelVersioner": {
+  "module": "CORE.WORMS.expansion.learning_versioner",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "2.0.0",
+  "source": "learning_versioner.py",
+  "description": "Tracks ML model versions with LocalMemoryStore persistence v2.0.\n\nStores model versions in LocalMemoryStore for durability.\nSupports: register, compare, list, r"
+ },
+ "MorphingWorm": {
+  "module": "CORE.WORMS.MORPHING_WORM",
+  "category": "utility",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "MORPHING_WORM.py",
+  "description": "Adaptive self-modifying error-detection worm \u2014 morphs, spawns variants, learns new error patterns."
+ },
+ "MorphingWormV2": {
+  "module": "CORE.WORMS.MORPHING_WORM_V2",
+  "category": "diagnostic",
+  "priority": 4,
+  "cooldown_seconds": 45.0,
+  "version": "2.0.0",
+  "source": "MORPHING_WORM_V2.py",
+  "description": "Improved false-positive free detection of BOM/syntax/pattern issues"
+ },
+ "MorphogenesisWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "engram",
+  "priority": 6,
+  "cooldown_seconds": 900.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "Morphogenesis: generates new worm classes from chronic failure gaps (railed; no auto-exec)"
+ },
+ "MyelinSheathWorm": {
+  "module": "CORE.WORMS.expansion.axon",
+  "category": "axon",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "axon.py",
+  "description": "Priority fast-lane: myelinated routes skip gossip hops"
+ },
+ "NASMeshSearcherWorm": {
+  "module": "CORE.WORMS.expansion.federated",
+  "category": "federated",
+  "priority": 6,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "federated.py",
+  "description": "Evolutionary NAS (EvolutionEngine/MAPElites/SepCMAES) distributed across envs"
+ },
+ "NETWORXZ": {
+  "module": "CORE.WORMS.NETWORXZ",
+  "category": "monitor",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "NETWORXZ.py",
+  "description": "Network interface and traffic monitoring worm"
+ },
+ "NaabuWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Fast port scanning via naabu"
+ },
+ "NatureClusterManager": {
+  "module": "CORE.WORMS.NATURE_CLUSTERS",
+  "category": "orchestration",
+  "priority": 9,
+  "cooldown_seconds": 10.0,
+  "version": "1.0.0",
+  "source": "NATURE_CLUSTERS.py",
+  "description": "Nature-based cluster manager \u2014 dynamically groups worms by Nature, executes by need, records to PAMS"
+ },
+ "NetworkDiag": {
+  "module": "CORE.WORMS.NETWORK_DIAG",
+  "category": "diagnostic",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "NETWORK_DIAG.py",
+  "description": "Advanced network diagnostics (ping, traceroute, MTR, netstat, lsof, strace)"
+ },
+ "NiktoWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Web server scanning via nikto"
+ },
+ "NimInferenceWorm": {
+  "module": "CORE.WORMS.NIM_INFERENCE",
+  "category": "analysis",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.2.0",
+  "source": "NIM_INFERENCE.py",
+  "description": "Multi-provider inference \u2014 NIM, Groq, Gemini via OpenAI-compatible API"
+ },
+ "NmapScanner": {
+  "module": "worms.nmap_scanner",
+  "category": "security",
+  "priority": 8,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "nmap_scanner.py",
+  "description": "Kali nmap scanner \u2014 WSL-dispatched port/vulnerability scanning with VulnScanner cross-reference and PAMS audit trail"
+ },
+ "NmapWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Port/service discovery via nmap"
+ },
+ "NucleiWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Template-based vuln scanning via nuclei"
+ },
+ "OMNIV2": {
+  "module": "CORE.WORMS.OMNI_WORM_V2",
+  "category": "utility",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "2.0.0",
+  "source": "OMNI_WORM_V2.py",
+  "description": "Ultimate self-healing worm with learned intelligence and BOM detection"
+ },
+ "OSCongruency": {
+  "module": "CORE.WORMS.OS_CONGRUENCY",
+  "category": "monitor",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "0.0.0",
+  "source": "OS_CONGRUENCY.py",
+  "description": "Windows OS congruency manager with deep system integration"
+ },
+ "OligodendrocyteWorm": {
+  "module": "CORE.WORMS.expansion.glia",
+  "category": "glia",
+  "priority": 5,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "glia.py",
+  "description": "ONNX/GGUF packaging helper: picks quant per env RAM"
+ },
+ "OvomorphWorm": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 2,
+  "cooldown_seconds": 600.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "Dormant payload cache (eggs) on G:; hatches on EnvBeacon signal"
+ },
+ "PROCESSZ": {
+  "module": "CORE.WORMS.PROCESSZ",
+  "category": "monitor",
+  "priority": 7,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "PROCESSZ.py",
+  "description": "Process management and monitoring worm"
+ },
+ "ParallelInferenceWorm": {
+  "module": "CORE.WORMS.PARALLEL_INFERENCE_WORM",
+  "category": "analysis",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "PARALLEL_INFERENCE_WORM.py",
+  "description": "Parallel inference \u2014 ALL providers simultaneously, local model benchmarking, session recording"
+ },
+ "PartitionHealerWorm": {
+  "module": "CORE.WORMS.expansion.mesh",
+  "category": "mesh",
+  "priority": 7,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "mesh.py",
+  "description": "Detects split-brain (WSL stopped, G: unmounted), replays DeadLetterQueue"
+ },
+ "PermissionScanner": {
+  "module": "CORE.WORMS.expansion.security",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "security.py",
+  "description": "Permission scanner \u2014 file/directory permission audit, writable-path detection"
+ },
+ "PhoneinfogaWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Phone-number OSINT via phoneinfoga"
+ },
+ "PlasticityEngineWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "plasticity",
+  "priority": 8,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "Persistent edge weights + TD(lambda) credit assignment over the mesh edge graph"
+ },
+ "PortAuditor": {
+  "module": "CORE.WORMS.expansion.security",
+  "category": "security",
+  "priority": 7,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "security.py",
+  "description": "Port auditor \u2014 open-port scanning, service fingerprinting, exposure analysis"
+ },
+ "PowerBudgetWorm": {
+  "module": "CORE.WORMS.expansion.metabolic",
+  "category": "metabolic",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "2.0.0",
+  "source": "metabolic.py",
+  "description": "Per-env watt/job budget; sheds load when over budget"
+ },
+ "PraetorianWorm": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 9,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "Hive guard; moults to Queen only if LeaderElector term expires with no Queen"
+ },
+ "PrioritizedReplayBuffer": {
+  "module": "CORE.WORMS.expansion.learning_replay",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "learning_replay.py",
+  "description": "Prioritized experience replay for RL training.\n\nStores (state, action, reward, next_state, done) tuples with\npriorities based on TD-error. High-error experience"
+ },
+ "ProtocolNegotiator": {
+  "module": "CORE.WORMS.expansion.communication",
+  "category": "communication",
+  "priority": 4,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "communication.py",
+  "description": "Protocol negotiator \u2014 auto-detect best protocol between JSON, MessagePack, gRPC"
+ },
+ "ProviderFailoverMeshWorm": {
+  "module": "CORE.WORMS.expansion.servemesh",
+  "category": "servemesh",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "servemesh.py",
+  "description": "12-provider chain (RULE 0D) as mesh-aware worm, not just client lib"
+ },
+ "QuarantineWorm": {
+  "module": "CORE.WORMS.expansion.immune",
+  "category": "immune",
+  "priority": 7,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "immune.py",
+  "description": "Isolates poisoned shard / malicious Kali finding"
+ },
+ "QuorumVoterWorm": {
+  "module": "CORE.WORMS.expansion.consensus",
+  "category": "consensus",
+  "priority": 9,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "consensus.py",
+  "description": "Majority vote on VulnScanner/RaceDetector findings across envs"
+ },
+ "QuotaEnforcerWorm": {
+  "module": "CORE.WORMS.expansion.metabolic",
+  "category": "metabolic",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "2.0.0",
+  "source": "metabolic.py",
+  "description": "API/file quota guard for 12-provider inference + G: writes"
+ },
+ "RLTrainLoop": {
+  "module": "CORE.WORMS.expansion.learning_rl",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "2.0.0",
+  "source": "learning_rl.py",
+  "description": "Reinforcement learning training loop v2.0.\n\nTrains from real execution data extracted by DataPipelineWorm from\nLocalMemoryStore. Uses Q-learning with epsilon-gr"
+ },
+ "RPCEndpoint": {
+  "module": "CORE.WORMS.expansion.communication",
+  "category": "communication",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "communication.py",
+  "description": "RPC endpoint \u2014 JSON-RPC 2.0 server for inter-worm remote procedure calls"
+ },
+ "RaceConditionDetector": {
+  "module": "CORE.WORMS.expansion.race_detector",
+  "category": "security",
+  "priority": 9,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "race_detector.py",
+  "description": "Race condition detector \u2014 monitors shared-state access under 3.14t free-threading, flags unguarded concurrent writes"
+ },
+ "RecallRouterWorm": {
+  "module": "CORE.WORMS.expansion.engram",
+  "category": "engram",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "2.0.0",
+  "source": "engram.py",
+  "description": "Routes recall to the shard owning the best semantic hit; fallback to G: archive"
+ },
+ "RecoveryTester": {
+  "module": "CORE.WORMS.expansion.backup",
+  "category": "backup",
+  "priority": 5,
+  "cooldown_seconds": 180.0,
+  "version": "1.0.0",
+  "source": "backup.py",
+  "description": "Recovery tester \u2014 validate backup integrity and perform dry-run restorations"
+ },
+ "RedQueenWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "xenomorph",
+  "priority": 9,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "Red-team driver: validates Lilith claim, pressure-probes mesh, quorum-ordered quarantine"
+ },
+ "RegistryPoller": {
+  "module": "CORE.WORMS.expansion.container",
+  "category": "container",
+  "priority": 4,
+  "cooldown_seconds": 180.0,
+  "version": "1.0.0",
+  "source": "container.py",
+  "description": "Registry poller \u2014 poll container registries for new tags and digest changes"
+ },
+ "ReportCompiler": {
+  "module": "CORE.WORMS.expansion.visualization",
+  "category": "visualization",
+  "priority": 4,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "visualization.py",
+  "description": "Report compiler \u2014 compile JSON data into PDF/HTML reports with templates"
+ },
+ "ResinWorm": {
+  "module": "CORE.WORMS.expansion.xenomorph",
+  "category": "xenomorph",
+  "priority": 5,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "xenomorph.py",
+  "description": "Quarantined kill-trace writer (memory-only; G: append only if mounted)"
+ },
+ "ResourceQuotaWatch": {
+  "module": "CORE.WORMS.expansion.container",
+  "category": "container",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "container.py",
+  "description": "Resource quota watch \u2014 monitor container CPU/memory usage against limits"
+ },
+ "ResponderWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat LLMNR/NBT-NS responder via responder"
+ },
+ "ReverseTools": {
+  "module": "CORE.WORMS.REVERSE_TOOLS",
+  "category": "analysis",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "REVERSE_TOOLS.py",
+  "description": "RE tool manager (Ghidra, radare2/r2pipe, cross-tool analysis)"
+ },
+ "RewardShaperMeshWorm": {
+  "module": "CORE.WORMS.expansion.federated",
+  "category": "federated",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "federated.py",
+  "description": "6-provider inference reward during training; DLQ on fail"
+ },
+ "RustscanWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Fast port scanning via rustscan"
+ },
+ "SMARTDISK": {
+  "module": "CORE.WORMS.SMARTDISK",
+  "category": "monitor",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "SMARTDISK.py",
+  "description": "SMART-based disk health monitoring with failure prediction"
+ },
+ "SSMSequenceWorm": {
+  "module": "CORE.WORMS.expansion.synapse",
+  "category": "synapse",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "3.0.0",
+  "source": "synapse.py",
+  "description": "Input-dependent state-space summarizer; selective-scan recurrence with an LMS-fitted readout"
+ },
+ "STDPClockWorm": {
+  "module": "CORE.WORMS.expansion.plasticity",
+  "category": "plasticity",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "plasticity.py",
+  "description": "STDP window: pre-before-post potentiates, reverse depresses"
+ },
+ "SYSTEMZ_ML": {
+  "module": "CORE.WORMS.SYSTEMZ_ML",
+  "category": "ml",
+  "priority": 6,
+  "cooldown_seconds": 45.0,
+  "version": "1.0.0",
+  "source": "SYSTEMZ_ML.py",
+  "description": "ML-enhanced system monitoring with anomaly detection"
+ },
+ "SaltatoryRouterWorm": {
+  "module": "CORE.WORMS.expansion.axon",
+  "category": "axon",
+  "priority": 7,
+  "cooldown_seconds": 20.0,
+  "version": "1.0.0",
+  "source": "axon.py",
+  "description": "Hop-skipping router: direct env send when partition-free"
+ },
+ "ScheduledDbMonitorWorm": {
+  "module": "CORE.WORMS.expansion.scheduling",
+  "category": "monitor",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "scheduling.py",
+  "description": "Scheduled database monitor \u2014 runs DatabaseMonitorWorm health checks on configurable interval with alert thresholds"
+ },
+ "ScheduledTrainingWorm": {
+  "module": "CORE.WORMS.expansion.scheduling",
+  "category": "learning",
+  "priority": 4,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "scheduling.py",
+  "description": "Scheduled ML training pipeline \u2014 runs DataPipelineWorm -> RLTrainLoop -> ModelVersioner on configurable interval"
+ },
+ "SchemaAwareFeatureExtractor": {
+  "module": "CORE.WORMS.expansion.learning_features",
+  "category": "learning",
+  "priority": 3,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "learning_features.py",
+  "description": "Extracts typed features from the `data` JSON blob based on known schemas.\n\nUses DATA_SHAPES registry to know what fields exist per event_type.\nFalls back to gen"
+ },
+ "SchemaVersioner": {
+  "module": "CORE.WORMS.expansion.migration",
+  "category": "migration",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "migration.py",
+  "description": "Schema versioner \u2014 track JSON/YAML schema versions and detect breaking changes"
+ },
+ "SecretRotator": {
+  "module": "CORE.WORMS.expansion.config",
+  "category": "config",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "config.py",
+  "description": "Secret rotator \u2014 credential rotation automation with backup and validation"
+ },
+ "SelfHealWorm": {
+  "module": "CORE.WORMS.expansion.immune",
+  "category": "immune",
+  "priority": 7,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "immune.py",
+  "description": "Rebuilds from ColdArchivist + StateSnapshotter + WSLRecovery"
+ },
+ "SensoryFuseWorm": {
+  "module": "CORE.WORMS.expansion.dendrite",
+  "category": "dendrite",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "dendrite.py",
+  "description": "Fuse SystemZ/ProcessZ/NetworXZ + Kali findings into one sensory vector"
+ },
+ "SensoryRelayWorm": {
+  "module": "CORE.WORMS.expansion.thalamus",
+  "category": "thalamus",
+  "priority": 7,
+  "cooldown_seconds": 20.0,
+  "version": "1.0.0",
+  "source": "thalamus.py",
+  "description": "Routes gated sensory to cortex worms by modality map"
+ },
+ "SepCMAES": {
+  "module": "CORE.WORMS.expansion.evolution",
+  "category": "learning",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "2.0.0",
+  "source": "evolution.py",
+  "description": "sep-CMA-ES \u2014 diagonal-covariance evolution strategy for continuous hyperparameters"
+ },
+ "SessionStateManager": {
+  "module": "CORE.WORMS.expansion.session_state",
+  "category": "utility",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "session_state.py",
+  "description": "Session state manager \u2014 auto-save/restore worm state across runs with versioned schemas"
+ },
+ "SharpWaveReplayWorm": {
+  "module": "CORE.WORMS.expansion.consolidation",
+  "category": "consolidation",
+  "priority": 6,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "consolidation.py",
+  "description": "Prioritized replay buffer sampler for sleep cycles"
+ },
+ "SherlockWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Username search via sherlock"
+ },
+ "SleepConsolidatorWorm": {
+  "module": "CORE.WORMS.expansion.consolidation",
+  "category": "consolidation",
+  "priority": 5,
+  "cooldown_seconds": 180.0,
+  "version": "1.0.0",
+  "source": "consolidation.py",
+  "description": "Nightly sleep job: replay -> EWC anchor -> G: snapshot"
+ },
+ "SpanTracer": {
+  "module": "CORE.WORMS.expansion.telemetry",
+  "category": "telemetry",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "telemetry.py",
+  "description": "Span tracer \u2014 OpenTelemetry-compatible span creation, trace context propagation"
+ },
+ "SpikeEncoderWorm": {
+  "module": "CORE.WORMS.expansion.axon",
+  "category": "axon",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "axon.py",
+  "description": "Rate/temporal spike encoder for metric streams"
+ },
+ "SpineCycleWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "orchestration",
+  "priority": 9,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "One-entry self-improvement cycle: map -> homeostat -> red queen -> persist"
+ },
+ "SpineGossipWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "sync",
+  "priority": 6,
+  "cooldown_seconds": 120.0,
+  "version": "2.0.0",
+  "source": "spine.py",
+  "description": "Cross-env spine gossip: publish/merge learned state via shared-filesystem drop"
+ },
+ "SpineMapperWorm": {
+  "module": "CORE.WORMS.expansion.spine",
+  "category": "mesh",
+  "priority": 8,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "spine.py",
+  "description": "Self-maps the mesh: registry x nature-graph x queen status -> shared spine map"
+ },
+ "SplitBrainResolverWorm": {
+  "module": "CORE.WORMS.expansion.consensus",
+  "category": "consensus",
+  "priority": 7,
+  "cooldown_seconds": 120.0,
+  "version": "1.0.0",
+  "source": "consensus.py",
+  "description": "Resolves ModelVersioner forks after partition (keeps highest reward + hash)"
+ },
+ "SqlmapWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat SQL injection testing via sqlmap"
+ },
+ "StateSnapshotter": {
+  "module": "CORE.WORMS.expansion.backup",
+  "category": "backup",
+  "priority": 7,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "backup.py",
+  "description": "State snapshotter \u2014 periodic full-state snapshots with compression and retention"
+ },
+ "SubfinderWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "network",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Passive subdomain discovery via subfinder"
+ },
+ "SynapseWeightWorm": {
+  "module": "CORE.WORMS.expansion.synapse",
+  "category": "synapse",
+  "priority": 8,
+  "cooldown_seconds": 30.0,
+  "version": "3.0.0",
+  "source": "synapse.py",
+  "description": "Maintains edge weights env<->env, worm<->worm; unified with spine_registry Q-table (G1)"
+ },
+ "SystemZ": {
+  "module": "CORE.WORMS.SYSTEMZ",
+  "category": "monitor",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "SYSTEMZ.py",
+  "description": "System resource monitor (CPU, memory, disk, processes)"
+ },
+ "ThalamicGateWorm": {
+  "module": "CORE.WORMS.expansion.thalamus",
+  "category": "thalamus",
+  "priority": 8,
+  "cooldown_seconds": 15.0,
+  "version": "1.0.0",
+  "source": "thalamus.py",
+  "description": "First-pass filter: drops low-salience inputs pre-cortex"
+ },
+ "TheHarvesterWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "analysis",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Email/subdomain harvest via theHarvester"
+ },
+ "ThermalThrottleWorm": {
+  "module": "CORE.WORMS.expansion.metabolic",
+  "category": "metabolic",
+  "priority": 7,
+  "cooldown_seconds": 30.0,
+  "version": "2.0.0",
+  "source": "metabolic.py",
+  "description": "Thermal backoff: reads WMI/tmp sysfs, throttles threads"
+ },
+ "ThreatIntelMonitorWorm": {
+  "module": "CORE.WORMS.expansion.threatmon",
+  "category": "monitor",
+  "priority": 6,
+  "cooldown_seconds": 900.0,
+  "version": "1.0.0",
+  "source": "threatmon.py",
+  "description": "Live threat-intel vitals: feeds, quorum, urlscan, ebpf, ledger"
+ },
+ "TimelineViz": {
+  "module": "CORE.WORMS.expansion.visualization",
+  "category": "visualization",
+  "priority": 4,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "visualization.py",
+  "description": "Timeline visualizer \u2014 Gantt/timeline chart generation from worm execution histories"
+ },
+ "TrainingOrchestrator": {
+  "module": "CORE.WORMS.expansion.scheduling",
+  "category": "learning",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "1.0.0",
+  "source": "scheduling.py",
+  "description": "SB3 deep RL orchestrator \u2014 DataPipelineWorm -> SB3Agent (PPO/DQN/A2C) -> ModelVersioner on configurable schedule"
+ },
+ "TrufflehogWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Leaked-credential scanning via trufflehog"
+ },
+ "VectorShardWorm": {
+  "module": "CORE.WORMS.expansion.engram",
+  "category": "engram",
+  "priority": 7,
+  "cooldown_seconds": 60.0,
+  "version": "2.0.0",
+  "source": "engram.py",
+  "description": "Semantic shard store: real embeddings + ANN index; shard map on G:"
+ },
+ "VideoAnalyzerWorm": {
+  "module": "CORE.WORMS.VIDEO_ANALYZER_WORM",
+  "category": "diagnostic",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "VIDEO_ANALYZER_WORM.py",
+  "description": "Video analyzer \u2014 runs ffprobe on target videos and reports encoding compliance against CAIN standards"
+ },
+ "VulnScanner": {
+  "module": "CORE.WORMS.expansion.security",
+  "category": "security",
+  "priority": 8,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "security.py",
+  "description": "Vulnerability scanner \u2014 CVE lookup, dependency audit, known-vulnerability detection"
+ },
+ "WORMZ": {
+  "module": "CORE.WORMS.WORMZ",
+  "category": "utility",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "WORMZ.py",
+  "description": "Generative code crawler for BIBL lexicon management"
+ },
+ "WORMZ_ML": {
+  "module": "CORE.WORMS.WORMZ_ML",
+  "category": "ml",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "WORMZ_ML.py",
+  "description": "ML-enhanced BIBL crawler with predictive file prioritization"
+ },
+ "WSLRecovery": {
+  "module": "worms.wsl_recovery",
+  "category": "defense",
+  "priority": 8,
+  "cooldown_seconds": 90.0,
+  "version": "1.0.0",
+  "source": "wsl_recovery.py",
+  "description": "WSL health & recovery \u2014 auto-restart Kali, e2fsck VHDX, KaliHealth integration"
+ },
+ "WapitiWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat Web app scanning via wapiti3"
+ },
+ "WebhookRelay": {
+  "module": "CORE.WORMS.expansion.communication",
+  "category": "communication",
+  "priority": 5,
+  "cooldown_seconds": 30.0,
+  "version": "1.0.0",
+  "source": "communication.py",
+  "description": "Webhook relay \u2014 dispatch HTTP callbacks with retry and batching"
+ },
+ "WeeklyCodeAuditWorm": {
+  "module": "CORE.WORMS.expansion.code_audit",
+  "category": "monitor",
+  "priority": 7,
+  "cooldown_seconds": 3600.0,
+  "version": "1.0.0",
+  "source": "code_audit.py",
+  "description": "Weekly codebase audit \u2014 pyflakes scan, error-delta series, and automatic reasoning-trace registration for recurring error classes"
+ },
+ "WinBridgeWorm": {
+  "module": "CORE.WORMS.expansion.envmesh",
+  "category": "envmesh",
+  "priority": 8,
+  "cooldown_seconds": 20.0,
+  "version": "1.0.0",
+  "source": "envmesh.py",
+  "description": "Windows 11 host bridge: tasklist, G: mount, wsl -l -v"
+ },
+ "WormFleet": {
+  "module": "CORE.WORMS.WORM_FLEET",
+  "category": "orchestration",
+  "priority": 6,
+  "cooldown_seconds": 30.0,
+  "version": "0.0.0",
+  "source": "WORM_FLEET.py",
+  "description": "Parallel multi-worm scanner with 12 specialized detection worms"
+ },
+ "WormSelectorWorm": {
+  "module": "CORE.WORMS.WORM_SELECTOR",
+  "category": "learning",
+  "priority": 5,
+  "cooldown_seconds": 60.0,
+  "version": "1.0.0",
+  "source": "WORM_SELECTOR.py",
+  "description": "GRPO-based worm selector -- learns optimal worm selection from execution history"
+ },
+ "WpscanWorm": {
+  "module": "CORE.WORMS.KALIWORMS",
+  "category": "security",
+  "priority": 5,
+  "cooldown_seconds": 300.0,
+  "version": "0.0.0",
+  "source": "KALIWORMS.py",
+  "description": "White Hat WordPress scanning via wpscan"
+ },
+ "WslKaliWorm": {
+  "module": "CORE.WORMS.expansion.envmesh",
+  "category": "envmesh",
+  "priority": 7,
+  "cooldown_seconds": 20.0,
+  "version": "1.0.0",
+  "source": "envmesh.py",
+  "description": "WSL2 Kali worker: recon-gated, quiet by default (arousal=recon)"
+ },
+ "WslUbuntuWorm": {
+  "module": "CORE.WORMS.expansion.envmesh",
+  "category": "envmesh",
+  "priority": 8,
+  "cooldown_seconds": 20.0,
+  "version": "1.0.0",
+  "source": "envmesh.py",
+  "description": "WSL2 Ubuntu-26.04 worker: 3.14t FT training, /mnt/g bridge"
+ }
 }

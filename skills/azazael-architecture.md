@@ -22,16 +22,16 @@ azazael/src/
 ```
 
 ## Key Numbers
-- **77 worms** across **17 categories**
+- **226 worms** across **35 categories** (2026-09-14)
 - **62%** of worms defined in `ECOSYSTEM_EXPANSION.py`
-- **46 routes**, **264 paths** in MetaCluster routing engine
+- **70 routes**, **594 paths** in MetaCluster routing engine
 - **256** syntax-clean Python files
 - **0** spawns on all worms (fresh registry)
 
 ## Worm Registry
 - `@register_worm` decorator registers worms at import time
 - `discover_worms()` scans all `.py` files in `azazael/src/`
-- 17 categories, 77 registered worms
+- 35 categories, 226 registered worms
 - See `azazael-registry` skill for full API details
 
 ## Path System

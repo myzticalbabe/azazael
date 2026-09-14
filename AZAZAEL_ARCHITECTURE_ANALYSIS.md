@@ -55,7 +55,7 @@ src/
 │   ├── azazael_logging.py   Logging
 │   ├── safe_sql.py          SQL injection prevention
 │   ├── agent_registry.py    Agent discovery
-│   └── WORMS/               ← 77 worms, 17 categories
+│   └── WORMS/               ← 226 worms, 35 categories
 │       ├── CLUSTERWORMS.py      Dynamic resolution engine
 │       ├── NATURE_CLUSTERS.py   Category auto-discovery
 │       ├── METACLUSTER.py       Cross-nature routing
@@ -78,7 +78,7 @@ src/
 ROOT ENTRY POINTS (30+ standalone *.py files)
     │
     ▼
-CORE/worm_registry.py ←── CORE/WORMS/* (77 worms)
+CORE/worm_registry.py ←── CORE/WORMS/* (226 worms)
 CORE/paths.py         ←── ALL modules
 CORE/freethreading.py ←── CORE/Agent.py, CORE/WORMS/*, CODEX/*
     │
@@ -191,7 +191,7 @@ The DEI measures how efficiently modules are organized. A score of 1.0 is perfec
 
 ### Phase C: Testing & Quality (3-5 sessions)
 1. Achieve 60%+ test coverage via pytest-cov
-2. Add integration tests for all 77 worms
+2. Add integration tests for all 226 worms
 3. Create regression test suite for worm registry
 4. Add CI pipeline with mypy + autoflake gates
 

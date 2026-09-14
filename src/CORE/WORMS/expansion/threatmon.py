@@ -1,0 +1,190 @@
+# coding: utf-8
+"""
+LIVE THREAT MONITOR — Category: MONITOR (1 worm)
+Represents the threat-intel picture live: feed vitals, quorum findings,
+urlscan corroboration, eBPF forests, ledger training flow.
+
+House pattern (mirrors BerksMonitorWorm/DatabaseMonitorWorm): snapshot +
+alert dataclasses, check_health(), PAMS + MemoryBus, start_monitor daemon.
+Reads local model files only (no network in the worm; feeds pulled by jobs).
+
+ThreatIntelMonitorWorm
+"""
+
+import json
+import os
+import threading
+import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any
+
+try:
+    from CORE.worm_registry import register_worm
+except ImportError:
+    def register_worm(**kw):
+        return lambda cls: cls
+
+_PamsRecorderCls = None
+_pams_lock = threading.Lock()
+_MemoryBusCls = None
+_bus_lock = threading.Lock()
+_mem_bus = None
+
+
+def _pams():
+    global _PamsRecorderCls
+    if _PamsRecorderCls is None:
+        with _pams_lock:
+            if _PamsRecorderCls is None:
+                try:
+                    from CORE.PamsRecorder import PamsRecorder
+                    _PamsRecorderCls = PamsRecorder
+                except ImportError:
+                    return None
+    try:
+        return _PamsRecorderCls()
+    except Exception:
+        return None
+
+
+def _bus():
+    global _MemoryBusCls, _mem_bus
+    if _mem_bus is None:
+        with _bus_lock:
+            if _mem_bus is None:
+                try:
+                    from CORE.MemoryBus import MemoryBus
+                    _MemoryBusCls = MemoryBus
+                    _mem_bus = MemoryBus()
+                except ImportError:
+                    return None
+    return _mem_bus
+
+
+@dataclass
+class ThreatSnapshot:
+    timestamp: str
+    feed_rows: int = 0
+    online_malicious: int = 0
+    quorum_decided: int = 0
+    ledger_triage_samples: int = 0
+    urlscan_corroborated_hosts: int = 0
+    ebpf_comms_baselined: int = 0
+    healthy: bool = False
+
+
+@dataclass
+class ThreatAlert:
+    alert_id: str
+    severity: str
+    message: str
+    metric: str
+    value: float
+    threshold: float
+    timestamp: str
+
+
+MODELS = "G:/source-of-truth/azazael_models"
+
+
+def _load(name: str, default):
+    try:
+        p = os.path.join(MODELS, name)
+        if os.path.exists(p):
+            return json.load(open(p, encoding="utf-8"))
+    except Exception:
+        pass
+    return default
+
+
+@register_worm(category="monitor", priority=6, cooldown_seconds=900.0,
+    description="Live threat-intel vitals: feeds, quorum, urlscan, ebpf, ledger")
+class ThreatIntelMonitorWorm:
+    """Live picture of the threat investigation. Local reads only."""
+
+    VERSION = "1.0.0"
+
+    def __init__(self):
+        self._history: list = []
+        self._lock = threading.Lock()
+
+    def check_health(self) -> tuple:
+        ts = datetime.now(timezone.utc).isoformat()
+        v2 = _load("threat_triage_v2.json", {})
+        findings = _load("threat_findings_v2.json", [])
+        v1 = _load("urlhaus_findings.json", {})
+        v1_list = v1 if isinstance(v1, list) else v1.get("findings", [])
+        corrob = _load("urlscan_corrob.json", {})
+        bcc = _load("bcc_baseline.json", {}).get("baselines", {})
+        kali = _load("bcc_iforest_kali.json", {})
+        feed_rows = int(v2.get("n", 0))
+        online = 0
+        if isinstance(findings, list):
+            online += sum(1 for f in findings if f.get("status") == "online")
+        online += sum(1 for f in v1_list if f.get("status") == "online")
+        snap = ThreatSnapshot(
+            timestamp=ts, feed_rows=feed_rows, online_malicious=online,
+            quorum_decided=len(findings) if isinstance(findings, list) else 0,
+            ledger_triage_samples=self._ledger_samples(),
+            urlscan_corroborated_hosts=len(corrob.get("hosts", {})),
+            ebpf_comms_baselined=len(bcc) + len(kali.get("features", [])) - (1 if "bio_per_s" in kali.get("features", []) else 0),
+            healthy=feed_rows > 0,
+        )
+        alerts = []
+        if not feed_rows:
+            alerts.append(ThreatAlert("threat-nofeed", "warning", "no triage model present",
+                                      "feed_rows", 0.0, 1.0, ts))
+        if online > 0:
+            alerts.append(ThreatAlert("threat-online", "info", f"{online} live-malicious URLs voted",
+                                      "online_malicious", float(online), 1.0, ts))
+        with self._lock:
+            self._history.append(snap.__dict__)
+            self._history = self._history[-200:]
+        try:
+            p = _pams()
+            if p is not None and hasattr(p, "record"):
+                p.record("threat_check", snap.__dict__)
+        except Exception:
+            pass
+        try:
+            b = _bus()
+            if b is not None and hasattr(b, "publish"):
+                b.publish("monitor.threat", {"snapshot": snap.__dict__,
+                                             "alerts": [a.__dict__ for a in alerts]})
+        except Exception:
+            pass
+        return snap, alerts
+
+    def _ledger_samples(self) -> int:
+        try:
+            from CORE import spine_registry as sp
+            try:
+                if hasattr(sp, "load_spine_state"):
+                    sp.load_spine_state()
+            except Exception:
+                pass
+            view = sp.get_homeostat_view() if hasattr(sp, "get_homeostat_view") else {}
+            return sum(v.get("successes", 0) + v.get("failures", 0)
+                       for k, v in view.items() if k.startswith("triage:"))
+        except Exception:
+            return 0
+
+    def start_monitor(self, interval_seconds: float = 3600.0):
+        stop = threading.Event()
+
+        def loop():
+            while not stop.wait(interval_seconds):
+                try:
+                    self.check_health()
+                except Exception:
+                    pass
+        t = threading.Thread(target=loop, name="threat-monitor", daemon=True)
+        t.start()
+        return stop
+
+    def execute(self) -> dict[str, Any]:
+        snap, alerts = self.check_health()
+        return {"success": True, "method": "execute",
+                "result": {"snapshot": snap.__dict__,
+                           "alerts": [a.__dict__ for a in alerts]}}
