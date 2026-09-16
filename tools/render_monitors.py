@@ -45,6 +45,7 @@ from monitor_data import (  # noqa: E402
     collect_clock_data,
     collect_exmachina_data,
     collect_fabric_data,
+    collect_failure_data,
     collect_mesh_cycle,
     collect_mesh_facts,
     collect_registry_data,
@@ -216,17 +217,23 @@ def _card(idx: int, theme_css: str, title: str, content: str) -> str:
 
 def render_azazael(spine: dict, registry: dict, facts: dict | None = None,
                    fabric: dict | None = None, clock: dict | None = None,
-                   cycle: dict | None = None) -> str:
+                   cycle: dict | None = None,
+                   failure: dict | None = None) -> str:
     """Mesh-wide monitor. Every value is a live read — see `monitor_data`.
 
     The restructure added the three cards whose absence made this monitor
     contradict the running system: the cross-env quarantine ledger, the
     fabric's persisted operational state, and the hybrid logical clock.
+
+    `failure` adds a fourth: the ledgers that record NEGATIVES. See the card
+    below — it is the only place on the page that can show a fault defined by
+    something that did not happen.
     """
     facts = facts or {}
     fabric = fabric or {}
     clock = clock or {}
     cycle = cycle or {}
+    failure = failure or {}
 
     qw = spine.get("q_weights", {})
     q = q_summary(spine)
@@ -464,10 +471,96 @@ def render_azazael(spine: dict, registry: dict, facts: dict | None = None,
     cards.append(_card(i, "card-theme-metrics", "Spine Events", ev_html))
     i += 1
 
+    # Failure visibility (2026-09-16 per-function audit). The three primitives
+    # the audit built -- `silence` (swallowed exceptions), `fencing` (stale
+    # writers rejected) and `liveness` (obligations with deadlines) -- all
+    # record NEGATIVES. Every defect that audit found was an event that did not
+    # happen, which no occurrence card on this page can display at any sample
+    # rate. This is the card that can.
+    #
+    # `unobserved` is a distinct state from `ok`, and deliberately not green:
+    # an empty ledger and an unwatched one look identical, and only one of them
+    # is good news. Reporting the first as the second is the exact defect this
+    # whole session was spent removing.
+    fv = failure or {}
+    sil = fv.get("silence") or {}
+    fences = fv.get("fences") or {}
+    live = fv.get("liveness") or {}
+    fv_tripped = list(sil.get("tripped") or [])
+    fv_overdue = list(live.get("overdue") or [])
+    fv_rejects = sum(int(f.get("rejections") or 0) for f in fences.values())
+    fv_claims = sum(int(f.get("claims") or 0) for f in fences.values())
+    fv_faults = len(fv_tripped) + len(fv_overdue) + fv_rejects
+    fv_observed = bool(fv.get("observed"))
+    if not fv_observed:
+        fv_state, fv_head, fv_label = "unknown", "unobserved", (
+            "failure visibility unobserved")
+        fv_sub = ("no process has published state/failure_visibility.json — "
+                  "nothing is watching for silent failure")
+    elif fv.get("stale"):
+        # A publisher that stopped IS the non-occurrence this card exists for:
+        # the snapshot is present and green, and stale by hours.
+        fv_state, fv_head, fv_label = "warn", "stale", (
+            "failure visibility publisher stopped")
+        fv_sub = (f"last published {fv.get('age') or 'unknown'} by "
+                  f"{fv.get('written_by') or 'unknown'} — the ledgers are no "
+                  f"longer being updated")
+    elif fv_faults:
+        fv_state, fv_head = "error", str(fv_faults)
+        fv_label = f"{fv_faults} failure-visibility fault(s)"
+        fv_sub = (f"{len(fv_tripped)} tag(s) over budget &middot; "
+                  f"{len(fv_overdue)} obligation(s) unmet &middot; "
+                  f"{fv_rejects} stale write(s) rejected")
+    else:
+        fv_state, fv_head = "ok", "0"
+        fv_label = "failure visibility clear"
+        fv_sub = (f"{sil.get('tags', 0)} swallowed-failure tag(s) within budget &middot; "
+                  f"{live.get('declared_ever', 0)} obligation(s) declared")
+    fv_status = ("error" if fv_state == "error"
+                 else "warn" if fv_state == "warn" else "ok")
+    fv_rows = ""
+    for o in fv_overdue[:4]:
+        fv_rows += (
+            f'<div class="row"><span class="label" style="color:{semantic("error")[0]}">'
+            f'{str(o.get("name"))[:24]} &middot; {o.get("kind")}</span>'
+            f'<span class="value">{fmt(o.get("overdue_by"), 2)}s late</span></div>')
+    for tag in fv_tripped[:3]:
+        fv_rows += (
+            f'<div class="row"><span class="label" style="color:{semantic("warn")[0]}">'
+            f'{str(tag)[:24]}</span><span class="value">over budget</span></div>')
+    for note in (fv.get("unobservable") or [])[:2]:
+        fv_rows += (
+            f'<div class="row"><span class="label" style="color:{semantic("warn")[0]}">'
+            f'blind spot</span><span class="value" style="font-size:11px">{note[:52]}</span></div>')
+    cards.append(_card(i, "card-theme-dead", "Failure Visibility (silence / fencing / liveness)",
+        f'<div class="val status-{"down" if fv_status != "ok" else "ok"}" '
+        f'style="color:{semantic(fv_state)[0]}">{fv_head}</div>'
+        f'<div class="sub">{fv_sub}</div>'
+        f'<div class="mini-bar"><div class="fill {"purple" if fv_state == "ok" else "red"}" '
+        f'style="width:{100 if fv_observed else 0:.0f}%"></div></div>'
+        f'<br><div class="row"><span class="label">Swallowed failures absorbed</span>'
+        f'<span class="value">{sil.get("total_ignored", "unknown")}</span></div>'
+        f'<div class="row"><span class="label">Distinct failure signatures</span>'
+        f'<span class="value">{sum(int(n) for n in (sil.get("signatures") or {}).values())}</span></div>'
+        f'<div class="row"><span class="label">Fences claimed / rejected</span>'
+        f'<span class="value">{fv_claims} / {fv_rejects}</span></div>'
+        f'<div class="row"><span class="label">Obligations overdue</span>'
+        f'<span class="value" style="color:{semantic("error" if fv_overdue else "ok")[0]}">{len(fv_overdue)}</span></div>'
+        f'<div class="row"><span class="label">Beats recorded</span>'
+        f'<span class="value">{live.get("beats_total", "unknown")}</span></div>'
+        f'<div class="row"><span class="label">Publisher</span>'
+        f'<span class="value">{fv.get("written_by") or "none"} &middot; {fv.get("age") or "n/a"}</span></div>'
+        f'<br>{fv_rows}{source_line("failure_visibility.json", extra=fv.get("_error") or "")}'))
+    i += 1
+
     # The header badge used to read "Health: ok" as a literal, which is the
     # exact class of claim this restructure exists to remove.
-    overall = ("ok" if (h_rate < 0.1 and (rejected or 0) == 0)
-               else "down" if h_rate >= 0.3 else "degraded")
+    # A published failure fault outranks the fail-rate heuristic: the whole
+    # point of those ledgers is to catch what the homeostat rate cannot see.
+    overall = ("down" if (h_rate >= 0.3 or fv_state == "error")
+               else "unknown" if fv_state == "unknown"
+               else "ok" if (h_rate < 0.1 and (rejected or 0) == 0)
+               else "degraded")
     mesh_accent, mesh_glow = theme_accent("mesh")
     return _wrap("Azazael Observability", "Neural Mesh Observatory", mesh_accent,
                  mesh_glow, cards,
@@ -475,6 +568,8 @@ def render_azazael(spine: dict, registry: dict, facts: dict | None = None,
                  f'({q["measured"]} measured) &middot; {fabric.get("published", "unknown")} fabric providers',
                  f'<span class="badge badge-{overall}"><span class="live-dot {"ok" if overall == "ok" else "down"}"></span>Health: {overall}</span>'
                  f'<span class="badge badge-neutral">{h_rate:.1%} fail rate</span>'
+                 f'<span class="badge badge-{"down" if fv_status != "ok" else "neutral"}">'
+                 f'{fv_label}</span>'
                  f'<span class="badge badge-{"down" if (rejected or 0) else "ok"}">{clock.get("rejected", "unknown")} remote stamps rejected</span>'
                  f'<span class="badge badge-neutral">skew {skew if skew is not None else "unknown"}ms</span>'
                  f'<span class="badge badge-purple">{q["keys"]} Q</span>',
@@ -777,14 +872,21 @@ def main():
     fabric = collect_fabric_data()
     clock = collect_clock_data()
     cycle = collect_mesh_cycle()
+    # The failure ledgers are in-process, and THIS process owns none of them --
+    # so read what a mesh process published rather than importing the ledgers
+    # here and drawing a green panel from three empty dictionaries.
+    failure = collect_failure_data()
     if spine.get("_error"):
         print(f"  ! spine read failed: {spine['_error']}")
     if facts.get("_error"):
         print(f"  ! mesh facts unavailable: {facts['_error']}")
+    if not failure.get("observed"):
+        print("  ! failure visibility unobserved"
+              " (no publisher has written state/failure_visibility.json)")
 
     if do_all or args.azazael:
         html = render_azazael(spine, registry, facts=facts, fabric=fabric,
-                              clock=clock, cycle=cycle)
+                              clock=clock, cycle=cycle, failure=failure)
         p = OUT_DIR / "monitor_azazael.html"
         p.write_text(html, encoding="utf-8")
         print(f"  Azazael:    {p}")

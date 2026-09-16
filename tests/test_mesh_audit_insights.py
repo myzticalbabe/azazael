@@ -1,7 +1,7 @@
 # coding: utf-8
 """Tests for the 2026-09-16 mesh per-function audit findings and their fixes.
 
-Three groups:
+Four groups:
 
 1. ``fencing`` -- the stale-writer primitive added because ``evolve()`` lost a
    whole generation to a read-modify-write across a lock boundary.
@@ -10,6 +10,9 @@ Three groups:
    indistinguishable.
 3. The three concrete ``evolution`` fixes: the lost-update race, the elite-slot
    ``IndexError``, and MOEA/D fallback weights that did not sum to 1.
+4. ``liveness`` -- obligations with deadlines, added because all three defects
+   above were events that did NOT happen, which no occurrence-driven monitor
+   can observe at any sample rate.
 
 The concurrency tests assert an *invariant* (generation advances exactly once
 per committed round) rather than a specific interleaving, so they stay honest
@@ -18,6 +21,7 @@ whether or not a given run actually loses the race.
 
 import sys
 import threading
+import time
 import unittest
 from pathlib import Path
 
@@ -30,6 +34,7 @@ from CORE.WORMS.expansion.fencing import (
 from CORE.WORMS.expansion.silence import (
     ignoring, record, silence_report, silence_reset, tripped, signatures,
 )
+from CORE.WORMS.expansion import liveness as lv
 from CORE.WORMS.expansion.evolution import (
     EvolutionEngine, generate_reference_points, moead_weights,
 )
@@ -251,6 +256,151 @@ class TestEvolutionAuditFixes(unittest.TestCase):
         self.assertEqual(len(weights), 5)
         for w in weights:
             self.assertAlmostEqual(sum(w), 1.0, places=9)
+
+
+class TestLivenessObligations(unittest.TestCase):
+    """Absence is observable: a promised event that never arrives is a fault.
+
+    Every defect this audit found was an expected event that did not occur, so
+    the tests care most about the three ways an obligation can be unmet, and
+    about the ambiguity the report is built to remove -- a green panel with
+    nothing declared is UNKNOWN, not an all-clear.
+    """
+
+    def setUp(self):
+        lv.liveness_reset(clear_declarations=True)
+
+    def tearDown(self):
+        lv.liveness_reset(clear_declarations=True)
+
+    def test_discharged_in_time_is_not_a_miss(self):
+        lv.expect("generation.commit", ttl=10.0)
+        self.assertTrue(lv.fulfill("generation.commit"))
+        self.assertEqual(lv.overdue(), [])
+
+    def test_armed_but_never_discharged_is_unfulfilled(self):
+        lv.expect("generation.commit", ttl=0.02, detail="generation 7")
+        time.sleep(0.05)
+        misses = lv.overdue()
+        self.assertEqual([m["kind"] for m in misses], ["unfulfilled"])
+        self.assertEqual(misses[0]["detail"], "generation 7")
+        self.assertGreater(misses[0]["overdue_by"], 0.0)
+
+    def test_required_but_never_beaten_is_never_beaten(self):
+        """The producer never started -- the failure an occurrence monitor
+        cannot see, and the reason require() starts its own clock."""
+        lv.require("spine.cycle", every=0.02)
+        time.sleep(0.05)
+        self.assertEqual([m["kind"] for m in lv.overdue()], ["never_beaten"])
+
+    def test_beating_then_stopping_is_silent(self):
+        lv.beat("spine.cycle", every=0.02)
+        self.assertEqual(lv.overdue(), [], "an on-time beat must not report")
+        time.sleep(0.05)
+        self.assertEqual([m["kind"] for m in lv.overdue()], ["silent"])
+
+    def test_context_manager_discharges_only_on_success(self):
+        with lv.obliged("block.ok", ttl=0.02):
+            pass
+        self.assertEqual(lv.overdue(), [])
+
+        with self.assertRaises(ValueError):
+            with lv.obliged("block.raises", ttl=0.02):
+                raise ValueError("boom")
+        time.sleep(0.05)
+        self.assertEqual([m["kind"] for m in lv.overdue()], ["unfulfilled"])
+
+    def test_grace_scales_the_deadline(self):
+        lv.require("slack.cycle", every=0.05)
+        time.sleep(0.07)
+        self.assertEqual(lv.overdue(grace=1.0), lv.overdue(grace=1.0))
+        self.assertEqual(lv.overdue(grace=10.0), [], "grace must absorb lateness")
+
+    def test_green_with_nothing_declared_is_unknown_not_healthy(self):
+        report = lv.liveness_report()
+        self.assertTrue(report["healthy"])
+        self.assertFalse(report["observable"],
+                         "an empty ledger reported as healthy is the bug")
+        lv.beat("now.watched", every=60)
+        self.assertTrue(lv.liveness_report()["observable"])
+
+    def test_overdue_is_idempotent_so_a_polling_monitor_cannot_be_blinded(self):
+        """A miss must be reported on EVERY poll while it is unmet.
+
+        An earlier version consumed it (reported once, then returned clean), so
+        a monitor polling every 60s saw the fault once and a healthy board
+        afterwards -- output that decays is indistinguishable from a system
+        that repaired itself.
+        """
+        lv.expect("late.commit", ttl=0.02)
+        time.sleep(0.05)
+        first = lv.overdue()
+        second = lv.overdue()
+        third = lv.overdue()
+        self.assertEqual(len(first), 1)
+        self.assertEqual(len(second), 1, "a persisting miss vanished on poll 2")
+        self.assertEqual(len(third), 1)
+        self.assertEqual(first[0]["name"], second[0]["name"])
+        # ...and the miss log still counts misses, not polls.
+        self.assertEqual(lv.liveness_report()["misses_total"], 1)
+
+    def test_discharging_clears_the_miss_and_it_stays_cleared(self):
+        lv.expect("heal.now", ttl=0.02)
+        time.sleep(0.05)
+        self.assertEqual(len(lv.overdue()), 1)
+        lv.fulfill("heal.now")
+        self.assertEqual(lv.overdue(), [])
+        self.assertEqual(lv.overdue(), [])
+
+    def test_a_late_discharge_heals_the_recorded_miss(self):
+        lv.expect("heal.commit", ttl=0.02)
+        time.sleep(0.05)
+        lv.overdue()
+        self.assertTrue(lv.fulfill("heal.commit"),
+                        "a late discharge must be recorded, not dropped")
+
+    def test_unmonitored_names_a_producer_that_stopped_being_armed(self):
+        lv.require("gone.cycle", every=0.02)
+        lv.LEDGER._required.pop("gone.cycle")
+        self.assertIn("gone.cycle", lv.unmonitored())
+
+    def test_garbage_never_raises(self):
+        self.assertEqual(lv.expect(None, ttl="not-a-number"), 0.0)
+        self.assertIsInstance(lv.beat(object(), every=None), bool)
+        self.assertFalse(lv.fulfill(None))
+        self.assertIsInstance(lv.liveness_report(), dict)
+
+    def test_concurrent_beats_and_polls_do_not_corrupt_the_ledger(self):
+        stop = threading.Event()
+        errors = []
+
+        def beater():
+            while not stop.is_set():
+                try:
+                    lv.beat("race.cycle", every=30)
+                except Exception as exc:      # pragma: no cover
+                    errors.append(exc)
+
+        def poller():
+            while not stop.is_set():
+                try:
+                    lv.overdue()
+                    lv.liveness_report()
+                except Exception as exc:      # pragma: no cover
+                    errors.append(exc)
+
+        threads = ([threading.Thread(target=beater) for _ in range(4)]
+                   + [threading.Thread(target=poller) for _ in range(2)])
+        for t in threads:
+            t.start()
+        time.sleep(0.3)
+        stop.set()
+        for t in threads:
+            t.join()
+        self.assertEqual(errors, [])
+        self.assertEqual(lv.overdue(), [],
+                         "an on-time beat must never be reported as silent")
+        self.assertGreater(lv.liveness_report()["beats_total"], 0)
 
 
 if __name__ == "__main__":

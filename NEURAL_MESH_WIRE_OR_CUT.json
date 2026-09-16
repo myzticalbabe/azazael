@@ -1,0 +1,811 @@
+{
+ "generated_at": "2026-09-16T02:04:26.470267",
+ "probe": "PF16",
+ "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
+ "counts": {
+  "wired": 0,
+  "retired": 0,
+  "pending": 114
+ },
+ "total": 114,
+ "declared": {
+  "NeuralPipeline:NeuralPipeline.__repr__": {
+   "module": "NeuralPipeline",
+   "qualname": "NeuralPipeline.__repr__",
+   "line": 713,
+   "status": "pending",
+   "reason": ""
+  },
+  "NeuralPipeline:NeuralPipeline.replay_failed": {
+   "module": "NeuralPipeline",
+   "qualname": "NeuralPipeline.replay_failed",
+   "line": 709,
+   "status": "pending",
+   "reason": ""
+  },
+  "allocation:ThompsonAllocator.choose_with_bonus": {
+   "module": "allocation",
+   "qualname": "ThompsonAllocator.choose_with_bonus",
+   "line": 240,
+   "status": "pending",
+   "reason": ""
+  },
+  "arena:Environment.__repr__": {
+   "module": "arena",
+   "qualname": "Environment.__repr__",
+   "line": 115,
+   "status": "pending",
+   "reason": ""
+  },
+  "axon:LatencyCompensatorWorm.compensate": {
+   "module": "axon",
+   "qualname": "LatencyCompensatorWorm.compensate",
+   "line": 121,
+   "status": "pending",
+   "reason": ""
+  },
+  "axon:MyelinSheathWorm.boost_for": {
+   "module": "axon",
+   "qualname": "MyelinSheathWorm.boost_for",
+   "line": 37,
+   "status": "pending",
+   "reason": ""
+  },
+  "axon:MyelinSheathWorm.myelinate": {
+   "module": "axon",
+   "qualname": "MyelinSheathWorm.myelinate",
+   "line": 32,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:CheckpointWorm.restore_checkpoint": {
+   "module": "backup",
+   "qualname": "CheckpointWorm.restore_checkpoint",
+   "line": 200,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:IncrementalBackupWorm.compute_manifest": {
+   "module": "backup",
+   "qualname": "IncrementalBackupWorm.compute_manifest",
+   "line": 91,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:IncrementalBackupWorm.find_changes": {
+   "module": "backup",
+   "qualname": "IncrementalBackupWorm.find_changes",
+   "line": 102,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:RecoveryTester.test_restore": {
+   "module": "backup",
+   "qualname": "RecoveryTester.test_restore",
+   "line": 136,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:RecoveryTester.verify_archive": {
+   "module": "backup",
+   "qualname": "RecoveryTester.verify_archive",
+   "line": 124,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:StateSnapshotter.create_snapshot": {
+   "module": "backup",
+   "qualname": "StateSnapshotter.create_snapshot",
+   "line": 54,
+   "status": "pending",
+   "reason": ""
+  },
+  "backup:StateSnapshotter.list_snapshots": {
+   "module": "backup",
+   "qualname": "StateSnapshotter.list_snapshots",
+   "line": 73,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:IPCBridge.create_channel": {
+   "module": "communication",
+   "qualname": "IPCBridge.create_channel",
+   "line": 161,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:IPCBridge.receive": {
+   "module": "communication",
+   "qualname": "IPCBridge.receive",
+   "line": 176,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:ProtocolNegotiator.deserialize": {
+   "module": "communication",
+   "qualname": "ProtocolNegotiator.deserialize",
+   "line": 226,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:ProtocolNegotiator.negotiate": {
+   "module": "communication",
+   "qualname": "ProtocolNegotiator.negotiate",
+   "line": 205,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:ProtocolNegotiator.register_peer": {
+   "module": "communication",
+   "qualname": "ProtocolNegotiator.register_peer",
+   "line": 202,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:ProtocolNegotiator.serialize": {
+   "module": "communication",
+   "qualname": "ProtocolNegotiator.serialize",
+   "line": 220,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:RPCEndpoint.list_methods": {
+   "module": "communication",
+   "qualname": "RPCEndpoint.list_methods",
+   "line": 105,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:RPCEndpoint.register_method": {
+   "module": "communication",
+   "qualname": "RPCEndpoint.register_method",
+   "line": 87,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:WebhookRelay.deliver": {
+   "module": "communication",
+   "qualname": "WebhookRelay.deliver",
+   "line": 125,
+   "status": "pending",
+   "reason": ""
+  },
+  "communication:WebhookRelay.register_webhook": {
+   "module": "communication",
+   "qualname": "WebhookRelay.register_webhook",
+   "line": 121,
+   "status": "pending",
+   "reason": ""
+  },
+  "config:ConfigLinter.lint_yaml": {
+   "module": "config",
+   "qualname": "ConfigLinter.lint_yaml",
+   "line": 67,
+   "status": "pending",
+   "reason": ""
+  },
+  "config:DotfileSync.get_checksums": {
+   "module": "config",
+   "qualname": "DotfileSync.get_checksums",
+   "line": 129,
+   "status": "pending",
+   "reason": ""
+  },
+  "config:FeatureFlagCtrl.is_enabled": {
+   "module": "config",
+   "qualname": "FeatureFlagCtrl.is_enabled",
+   "line": 177,
+   "status": "pending",
+   "reason": ""
+  },
+  "config:FeatureFlagCtrl.set_flag": {
+   "module": "config",
+   "qualname": "FeatureFlagCtrl.set_flag",
+   "line": 173,
+   "status": "pending",
+   "reason": ""
+  },
+  "config:SecretRotator.rotate_secret": {
+   "module": "config",
+   "qualname": "SecretRotator.rotate_secret",
+   "line": 144,
+   "status": "pending",
+   "reason": ""
+  },
+  "consensus:SplitBrainResolverWorm.report_fork": {
+   "module": "consensus",
+   "qualname": "SplitBrainResolverWorm.report_fork",
+   "line": 231,
+   "status": "pending",
+   "reason": ""
+  },
+  "consolidation:EngramIndexerWorm.lookup": {
+   "module": "consolidation",
+   "qualname": "EngramIndexerWorm.lookup",
+   "line": 100,
+   "status": "pending",
+   "reason": ""
+  },
+  "consolidation:SharpWaveReplayWorm.replay_batch": {
+   "module": "consolidation",
+   "qualname": "SharpWaveReplayWorm.replay_batch",
+   "line": 44,
+   "status": "pending",
+   "reason": ""
+  },
+  "consolidation:SleepConsolidatorWorm.sleep_cycle": {
+   "module": "consolidation",
+   "qualname": "SleepConsolidatorWorm.sleep_cycle",
+   "line": 69,
+   "status": "pending",
+   "reason": ""
+  },
+  "container:ImageAuditor.audit_image": {
+   "module": "container",
+   "qualname": "ImageAuditor.audit_image",
+   "line": 148,
+   "status": "pending",
+   "reason": ""
+  },
+  "container:RegistryPoller.check_latest": {
+   "module": "container",
+   "qualname": "RegistryPoller.check_latest",
+   "line": 180,
+   "status": "pending",
+   "reason": ""
+  },
+  "container:ResourceQuotaWatch.check_usage": {
+   "module": "container",
+   "qualname": "ResourceQuotaWatch.check_usage",
+   "line": 210,
+   "status": "pending",
+   "reason": ""
+  },
+  "container:ResourceQuotaWatch.set_quota": {
+   "module": "container",
+   "qualname": "ResourceQuotaWatch.set_quota",
+   "line": 206,
+   "status": "pending",
+   "reason": ""
+  },
+  "dendrite:AttentionGateWorm.set_bias": {
+   "module": "dendrite",
+   "qualname": "AttentionGateWorm.set_bias",
+   "line": 71,
+   "status": "pending",
+   "reason": ""
+  },
+  "dendrite:ContextConcatWorm.merge": {
+   "module": "dendrite",
+   "qualname": "ContextConcatWorm.merge",
+   "line": 93,
+   "status": "pending",
+   "reason": ""
+  },
+  "dendrite:DendriteAggregatorWorm.integrate": {
+   "module": "dendrite",
+   "qualname": "DendriteAggregatorWorm.integrate",
+   "line": 38,
+   "status": "pending",
+   "reason": ""
+  },
+  "dendrite:DendriteAggregatorWorm.set_gain": {
+   "module": "dendrite",
+   "qualname": "DendriteAggregatorWorm.set_gain",
+   "line": 33,
+   "status": "pending",
+   "reason": ""
+  },
+  "dreaming:DreamingModule.get_dream_stats": {
+   "module": "dreaming",
+   "qualname": "DreamingModule.get_dream_stats",
+   "line": 921,
+   "status": "pending",
+   "reason": ""
+  },
+  "dreaming:HypnagogicSynthesizer.ingest_domains": {
+   "module": "dreaming",
+   "qualname": "HypnagogicSynthesizer.ingest_domains",
+   "line": 976,
+   "status": "pending",
+   "reason": ""
+  },
+  "driver:GemmaDriverWorm.judge_dream": {
+   "module": "driver",
+   "qualname": "GemmaDriverWorm.judge_dream",
+   "line": 182,
+   "status": "pending",
+   "reason": ""
+  },
+  "driver:GemmaDriverWorm.propose_goal": {
+   "module": "driver",
+   "qualname": "GemmaDriverWorm.propose_goal",
+   "line": 100,
+   "status": "pending",
+   "reason": ""
+  },
+  "engram:_VectorIndex.has": {
+   "module": "engram",
+   "qualname": "_VectorIndex.has",
+   "line": 227,
+   "status": "pending",
+   "reason": ""
+  },
+  "evidence:EraEvidence.era_counts": {
+   "module": "evidence",
+   "qualname": "EraEvidence.era_counts",
+   "line": 104,
+   "status": "pending",
+   "reason": ""
+  },
+  "evidence:evidence_from_rows": {
+   "module": "evidence",
+   "qualname": "evidence_from_rows",
+   "line": 247,
+   "status": "pending",
+   "reason": ""
+  },
+  "evolution:EvolutionEngine.get_generation_history": {
+   "module": "evolution",
+   "qualname": "EvolutionEngine.get_generation_history",
+   "line": 1238,
+   "status": "pending",
+   "reason": ""
+  },
+  "evolution:GeneticOptimizer.optimize_multi": {
+   "module": "evolution",
+   "qualname": "GeneticOptimizer.optimize_multi",
+   "line": 1389,
+   "status": "pending",
+   "reason": ""
+  },
+  "evolution:tchebycheff": {
+   "module": "evolution",
+   "qualname": "tchebycheff",
+   "line": 1846,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:_mad": {
+   "module": "exmachina",
+   "qualname": "_mad",
+   "line": 950,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:_tpm": {
+   "module": "exmachina",
+   "qualname": "_tpm",
+   "line": 1348,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:collect_state": {
+   "module": "exmachina",
+   "qualname": "collect_state",
+   "line": 448,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:conformal_interval": {
+   "module": "exmachina",
+   "qualname": "conformal_interval",
+   "line": 358,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:matrix_inverse": {
+   "module": "exmachina",
+   "qualname": "matrix_inverse",
+   "line": 1158,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:novelty_ncd": {
+   "module": "exmachina",
+   "qualname": "novelty_ncd",
+   "line": 313,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina:solve_linear": {
+   "module": "exmachina",
+   "qualname": "solve_linear",
+   "line": 1154,
+   "status": "pending",
+   "reason": ""
+  },
+  "federated:RewardShaperMeshWorm.local_score": {
+   "module": "federated",
+   "qualname": "RewardShaperMeshWorm.local_score",
+   "line": 313,
+   "status": "pending",
+   "reason": ""
+  },
+  "glia:MicrogliaWorm.check_path": {
+   "module": "glia",
+   "qualname": "MicrogliaWorm.check_path",
+   "line": 113,
+   "status": "pending",
+   "reason": ""
+  },
+  "immune:AttestationWorm.attest_file": {
+   "module": "immune",
+   "qualname": "AttestationWorm.attest_file",
+   "line": 176,
+   "status": "pending",
+   "reason": ""
+  },
+  "immune:QuarantineWorm.is_quarantined": {
+   "module": "immune",
+   "qualname": "QuarantineWorm.is_quarantined",
+   "line": 154,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_versioner:ModelVersioner.compare_versions": {
+   "module": "learning_versioner",
+   "qualname": "ModelVersioner.compare_versions",
+   "line": 112,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:CodeMigrator.detect_python2_patterns": {
+   "module": "migration",
+   "qualname": "CodeMigrator.detect_python2_patterns",
+   "line": 51,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:CodeMigrator.run_2to3": {
+   "module": "migration",
+   "qualname": "CodeMigrator.run_2to3",
+   "line": 67,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:DepUpgrader.check_outdated": {
+   "module": "migration",
+   "qualname": "DepUpgrader.check_outdated",
+   "line": 111,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:DepUpgrader.parse_requirements": {
+   "module": "migration",
+   "qualname": "DepUpgrader.parse_requirements",
+   "line": 93,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:ImportPathFixWorm.add_mapping": {
+   "module": "migration",
+   "qualname": "ImportPathFixWorm.add_mapping",
+   "line": 168,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:LegacyShimGen.generate_shim": {
+   "module": "migration",
+   "qualname": "LegacyShimGen.generate_shim",
+   "line": 203,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:LegacyShimGen.write_shim": {
+   "module": "migration",
+   "qualname": "LegacyShimGen.write_shim",
+   "line": 215,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:SchemaVersioner.detect_breaking_changes": {
+   "module": "migration",
+   "qualname": "SchemaVersioner.detect_breaking_changes",
+   "line": 143,
+   "status": "pending",
+   "reason": ""
+  },
+  "migration:SchemaVersioner.register_schema": {
+   "module": "migration",
+   "qualname": "SchemaVersioner.register_schema",
+   "line": 136,
+   "status": "pending",
+   "reason": ""
+  },
+  "morph:Genome.__repr__": {
+   "module": "morph",
+   "qualname": "Genome.__repr__",
+   "line": 268,
+   "status": "pending",
+   "reason": ""
+  },
+  "oracle:FitnessOracle.acquisition": {
+   "module": "oracle",
+   "qualname": "FitnessOracle.acquisition",
+   "line": 252,
+   "status": "pending",
+   "reason": ""
+  },
+  "oracle:FitnessOracle.era_robust_probability": {
+   "module": "oracle",
+   "qualname": "FitnessOracle.era_robust_probability",
+   "line": 258,
+   "status": "pending",
+   "reason": ""
+  },
+  "profiling:CPUFlameProfiler.to_flamegraph_data": {
+   "module": "profiling",
+   "qualname": "CPUFlameProfiler.to_flamegraph_data",
+   "line": 214,
+   "status": "pending",
+   "reason": ""
+  },
+  "profiling:CodeProfiler.detect_hotspots": {
+   "module": "profiling",
+   "qualname": "CodeProfiler.detect_hotspots",
+   "line": 68,
+   "status": "pending",
+   "reason": ""
+  },
+  "profiling:CodeProfiler.profile_function": {
+   "module": "profiling",
+   "qualname": "CodeProfiler.profile_function",
+   "line": 51,
+   "status": "pending",
+   "reason": ""
+  },
+  "profiling:GILContentionProbe.measure_contention": {
+   "module": "profiling",
+   "qualname": "GILContentionProbe.measure_contention",
+   "line": 167,
+   "status": "pending",
+   "reason": ""
+  },
+  "profiling:IOBottleneckFinder.detect_bottleneck": {
+   "module": "profiling",
+   "qualname": "IOBottleneckFinder.detect_bottleneck",
+   "line": 149,
+   "status": "pending",
+   "reason": ""
+  },
+  "profiling:MemoryLeakDetector.compare_snapshots": {
+   "module": "profiling",
+   "qualname": "MemoryLeakDetector.compare_snapshots",
+   "line": 111,
+   "status": "pending",
+   "reason": ""
+  },
+  "race_detector:_TracedLock.__getattr__": {
+   "module": "race_detector",
+   "qualname": "_TracedLock.__getattr__",
+   "line": 73,
+   "status": "pending",
+   "reason": ""
+  },
+  "security:CertMonitor.check_cert": {
+   "module": "security",
+   "qualname": "CertMonitor.check_cert",
+   "line": 133,
+   "status": "pending",
+   "reason": ""
+  },
+  "security:CertMonitor.get_expiring_soon": {
+   "module": "security",
+   "qualname": "CertMonitor.get_expiring_soon",
+   "line": 157,
+   "status": "pending",
+   "reason": ""
+  },
+  "security:FirewallAudit.find_overly_permissive": {
+   "module": "security",
+   "qualname": "FirewallAudit.find_overly_permissive",
+   "line": 198,
+   "status": "pending",
+   "reason": ""
+  },
+  "security:PortAuditor.audit_exposure": {
+   "module": "security",
+   "qualname": "PortAuditor.audit_exposure",
+   "line": 111,
+   "status": "pending",
+   "reason": ""
+  },
+  "session_state:SessionStateManager.import_snapshots": {
+   "module": "session_state",
+   "qualname": "SessionStateManager.import_snapshots",
+   "line": 511,
+   "status": "pending",
+   "reason": ""
+  },
+  "session_state:SessionStateManager.list_registered": {
+   "module": "session_state",
+   "qualname": "SessionStateManager.list_registered",
+   "line": 187,
+   "status": "pending",
+   "reason": ""
+  },
+  "session_state:SessionStateManager.register_migration": {
+   "module": "session_state",
+   "qualname": "SessionStateManager.register_migration",
+   "line": 197,
+   "status": "pending",
+   "reason": ""
+  },
+  "session_state:SessionStateManager.register_worm_state": {
+   "module": "session_state",
+   "qualname": "SessionStateManager.register_worm_state",
+   "line": 130,
+   "status": "pending",
+   "reason": ""
+  },
+  "session_state:SessionStateManager.restore_all": {
+   "module": "session_state",
+   "qualname": "SessionStateManager.restore_all",
+   "line": 435,
+   "status": "pending",
+   "reason": ""
+  },
+  "session_state:SessionStateManager.unregister_worm_state": {
+   "module": "session_state",
+   "qualname": "SessionStateManager.unregister_worm_state",
+   "line": 178,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:_iso_or": {
+   "module": "spine_registry",
+   "qualname": "_iso_or",
+   "line": 1967,
+   "status": "pending",
+   "reason": ""
+  },
+  "synapse:MoEDispatcherWorm.top_expert": {
+   "module": "synapse",
+   "qualname": "MoEDispatcherWorm.top_expert",
+   "line": 230,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:AlertEscalator.check_threshold": {
+   "module": "telemetry",
+   "qualname": "AlertEscalator.check_threshold",
+   "line": 208,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:AlertEscalator.clear_alert": {
+   "module": "telemetry",
+   "qualname": "AlertEscalator.clear_alert",
+   "line": 221,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:EventRouter.get_recent_events": {
+   "module": "telemetry",
+   "qualname": "EventRouter.get_recent_events",
+   "line": 187,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:LogStreamer.read_new_lines": {
+   "module": "telemetry",
+   "qualname": "LogStreamer.read_new_lines",
+   "line": 138,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:LogStreamer.watch_file": {
+   "module": "telemetry",
+   "qualname": "LogStreamer.watch_file",
+   "line": 129,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:SpanTracer.end_span": {
+   "module": "telemetry",
+   "qualname": "SpanTracer.end_span",
+   "line": 64,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:SpanTracer.get_trace_tree": {
+   "module": "telemetry",
+   "qualname": "SpanTracer.get_trace_tree",
+   "line": 75,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:SpanTracer.start_span": {
+   "module": "telemetry",
+   "qualname": "SpanTracer.start_span",
+   "line": 53,
+   "status": "pending",
+   "reason": ""
+  },
+  "thalamus:SensoryRelayWorm.relay": {
+   "module": "thalamus",
+   "qualname": "SensoryRelayWorm.relay",
+   "line": 68,
+   "status": "pending",
+   "reason": ""
+  },
+  "visualization:DashboardGen.add_panel": {
+   "module": "visualization",
+   "qualname": "DashboardGen.add_panel",
+   "line": 52,
+   "status": "pending",
+   "reason": ""
+  },
+  "visualization:HeatmapBuilder.get_busiest_hours": {
+   "module": "visualization",
+   "qualname": "HeatmapBuilder.get_busiest_hours",
+   "line": 187,
+   "status": "pending",
+   "reason": ""
+  },
+  "visualization:ReportCompiler.add_section": {
+   "module": "visualization",
+   "qualname": "ReportCompiler.add_section",
+   "line": 134,
+   "status": "pending",
+   "reason": ""
+  },
+  "visualization:ReportCompiler.compile_html": {
+   "module": "visualization",
+   "qualname": "ReportCompiler.compile_html",
+   "line": 138,
+   "status": "pending",
+   "reason": ""
+  },
+  "visualization:TimelineViz.add_span": {
+   "module": "visualization",
+   "qualname": "TimelineViz.add_span",
+   "line": 209,
+   "status": "pending",
+   "reason": ""
+  },
+  "visualization:TimelineViz.to_timeline_html": {
+   "module": "visualization",
+   "qualname": "TimelineViz.to_timeline_html",
+   "line": 214,
+   "status": "pending",
+   "reason": ""
+  },
+  "xenomorph:ChestbursterWorm.burst": {
+   "module": "xenomorph",
+   "qualname": "ChestbursterWorm.burst",
+   "line": 154,
+   "status": "pending",
+   "reason": ""
+  },
+  "xenomorph:DroneWorm.carry": {
+   "module": "xenomorph",
+   "qualname": "DroneWorm.carry",
+   "line": 178,
+   "status": "pending",
+   "reason": ""
+  },
+  "xenomorph:OvomorphWorm.hatch": {
+   "module": "xenomorph",
+   "qualname": "OvomorphWorm.hatch",
+   "line": 102,
+   "status": "pending",
+   "reason": ""
+  },
+  "xenomorph:OvomorphWorm.lay": {
+   "module": "xenomorph",
+   "qualname": "OvomorphWorm.lay",
+   "line": 94,
+   "status": "pending",
+   "reason": ""
+  },
+  "xenomorph:ResinWorm.secrete": {
+   "module": "xenomorph",
+   "qualname": "ResinWorm.secrete",
+   "line": 410,
+   "status": "pending",
+   "reason": ""
+  }
+ }
+}

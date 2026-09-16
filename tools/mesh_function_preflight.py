@@ -14,6 +14,10 @@ Usage:
     python tools/mesh_function_preflight.py --stdout        # print, do not write
     python tools/mesh_function_preflight.py --summary       # counts only
     python tools/mesh_function_preflight.py --module spine  # one module
+    python tools/mesh_function_preflight.py --verdict       # PF16 decisions
+
+`--verdict` writes NEURAL_MESH_WIRE_OR_CUT.json: every function nothing in the
+repo reaches, with a declared disposition. See `wire_or_cut`.
 """
 
 from __future__ import annotations
@@ -611,15 +615,95 @@ def render(funcs: list[Func], counts: Counter, module_filter: str | None) -> str
     return "\n".join(out) + "\n"
 
 
+# ---------------------------------------------------------------------------
+# Wire-or-cut verdict (PF16), as data
+# ---------------------------------------------------------------------------
+#
+# PF16 is the probe that answers "does anything reach this function?" and it is
+# the one whose findings cannot be fixed by editing the function: a function
+# nothing calls cannot regress visibly, so it can neither be trusted nor repaired
+# by observation. There are only two honest resolutions -- wire it to a caller,
+# or retire it -- and that is a DECISION, not a patch.
+#
+# `evolution.py` already encodes exactly this for the v2 engines as
+# `SERVED_ENGINES` / `UNSERVED_ENGINES`, with a test asserting no UNSERVED name
+# is referenced. This generalises that pattern to every PF16 finding in the mesh
+# so the decision is reviewable data instead of a silent 114-item blind spot.
+#
+# `pending` is a first-class status on purpose: an unreviewed function is not the
+# same as a decided one, and collapsing the two is how a backlog becomes a lie.
+
+VERDICT_OUT = REPO / "NEURAL_MESH_WIRE_OR_CUT.json"
+
+#: Declared dispositions. `wired` means a production caller exists (so PF16 must
+#: NOT fire), `retired` means it should be deleted (`retired_reason` required),
+#: `pending` means the decision has not been made.
+VERDICT_STATUSES = ("wired", "retired", "pending")
+
+
+def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
+    """The PF16 findings as a declaration table, preserving prior decisions.
+
+    Passing the existing table in means a re-run never discards a decision
+    someone already made and wrote down -- the same reason the TODO is
+    regenerated rather than rewritten.
+    """
+    prior = dict(declared or {})
+    entries: dict[str, dict] = {}
+    for fn in funcs:
+        if "PF16" not in fn.failures:
+            continue
+        key = fn.label
+        old = prior.get(key) or {}
+        entries[key] = {
+            "module": fn.module,
+            "qualname": fn.qualname,
+            "line": fn.lineno,
+            "status": str(old.get("status") or "pending"),
+            "reason": str(old.get("reason") or ""),
+        }
+    tally = Counter(e["status"] for e in entries.values())
+    return {
+        "generated_at": __import__("datetime").datetime.now().isoformat(),
+        "probe": "PF16",
+        "rule": ("Every unreferenced mesh function must be declared wired, "
+                 "retired or pending. tests/test_mesh_wire_or_cut.py asserts "
+                 "that no finding is undeclared, that no declaration is "
+                 "stale, and that a `wired` declaration is actually wired."),
+        "counts": {s: tally.get(s, 0) for s in VERDICT_STATUSES},
+        "total": len(entries),
+        "declared": dict(sorted(entries.items())),
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--module", default=None, help="filter to modules matching this")
     ap.add_argument("--stdout", action="store_true", help="print instead of writing")
     ap.add_argument("--summary", action="store_true", help="counts only")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
+    ap.add_argument("--verdict", action="store_true",
+                    help="write the PF16 wire-or-cut declaration table instead")
     args = ap.parse_args()
 
     funcs, counts = build(args.module)
+    if args.verdict:
+        import json
+
+        prior = {}
+        if VERDICT_OUT.exists():
+            try:
+                prior = (json.loads(VERDICT_OUT.read_text(encoding="utf-8"))
+                         or {}).get("declared") or {}
+            except Exception:
+                prior = {}
+        table = wire_or_cut(funcs, prior)
+        if args.stdout:
+            sys.stdout.write(json.dumps(table, indent=1) + "\n")
+            return 0
+        VERDICT_OUT.write_text(json.dumps(table, indent=1), encoding="utf-8")
+        print(f"wrote {VERDICT_OUT} ({table['total']} unreferenced: {table['counts']})")
+        return 0
     if args.summary:
         print(f"functions: {len(funcs)}")
         for pid, _ in PROBE_HELP:

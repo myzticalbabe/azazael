@@ -241,12 +241,176 @@ already has all the data for.
 
 ---
 
-## 6. Status of the TODO
+## 6. Second pass — the `spine_registry` P0 block
 
-Worked this pass: the P0 triage top of the list, plus the probe battery itself.
-The remaining P0 items are dominated by PF14/PF15 on `spine_registry`'s
-load/merge/gossip path (`load_spine_state` c=61, `merge_spine_gossip` c=55,
-`_merge_disk_state` c=36) — the highest-complexity, highest-blast-radius
-functions in the mesh, and the natural next block. They are the functions where
-the silence ledger's `budget=0` and the fencing token are most likely to be
-worth wiring directly.
+The first pass left the highest-complexity functions untouched:
+`load_spine_state` (c=61), `merge_spine_gossip` (c=55), `_merge_disk_state`
+(c=36), `record_outcome` (c=29). Working them found four defects, and the
+strongest finding of the session is not any one of them — it is that **two of
+them are a matched pair, and the code was consistent only by accident.**
+
+### 6.1 `load_spine_state` blind-assigns the Q-table (silent reversion)
+
+The restore path did `_Q_WEIGHTS[k] = clamp(w)` for every restored weight, while
+its sibling `_merge_disk_state` — the merge-on-save path — adopted them only
+when absent. `load_spine_state()` is public and reachable mid-process, so a live
+adaptation was overwritten by the disk copy:
+
+```
+saved weight -0.3312  ->  learned to 0.6672  ->  load_spine_state()  ->  -0.3312
+```
+
+Both calls report success. The module's own comment above `policy_latest`
+states the rule — *"an in-memory adaptation is always newer than the disk one.
+Blind assignment would roll a live adaptation back"* — and the weights were the
+one table that ignored it. Fixed with `setdefault`.
+
+### 6.2 `_ensure_loaded` latches a skip when memory is non-empty — the pair
+
+Its guard was the emptiness heuristic `not _HOMEOSTAT and not _Q_WEIGHTS`. Any
+process that recorded one outcome, or dreamed once, before its first getter set
+`_LOADED_ONCE` **without restoring anything**, then ran its whole life on an
+empty brainstem. The file existed, `load_spine_state()` was never called, and
+nothing anywhere said so.
+
+This is the pair. The emptiness heuristic was safe **only because of 6.1**:
+blind assignment plus "load only when empty" is self-consistent. Changing
+either alone makes it strictly worse — fix 6.1 alone and the heuristic starts
+clobbering live state on every call; fix 6.2 alone and 6.1 fires constantly.
+The correct move is both at once, because loading *merges* (setdefault / MAX)
+rather than clobbers. A defect that is only a defect in company is invisible to
+any per-function review that treats functions as independent — which is exactly
+what the TODO's structure encourages.
+
+### 6.3 `dream_reinforce` has no docstring
+
+`_ensure_loaded()` sat **above** the docstring, making it a dead expression
+statement and leaving `__doc__` as `None`. The function's entire contract was
+unreachable from `help()`, the audit probes and any doc-driven tooling.
+
+### 6.4 `merge_spine_gossip` promises a recency rule it does not implement
+
+Docstring: *"q_weights: the value whose homeostat record is newer wins"*.
+Code: `if k not in _Q_WEIGHTS: adopt` — never compares records at all, so once
+an env knows a key it refuses a better-informed peer's value forever, and two
+envs diverge permanently on that key. The inline comment claimed to check
+"newer evidence" too; neither did.
+
+Implemented rather than reworded, because the module's whole design is
+convergence (HLC ordering, trust gate, anomaly model adopted only when
+better-trained). One subtlety: the comparison must use the *pre-merge* ledger
+stamps, since the homeostat loop above replaces those records wholesale and
+makes the comparison vacuous — which is likely how the shortcut survived.
+Strictly-newer plus counting only real changes keeps the documented idempotency
+(idempotency matters here: a re-merge adopting a weight with no ledger record on
+either side would otherwise fire forever).
+
+### 6.5 Verified, and verified to fail
+
+Eight regression tests in `tests/test_spine_brainstem_persistence.py`. Run
+against the **pre-fix** source, exactly the four tests corresponding to the four
+defects fail and the four "must still work" guards pass — restoring absent keys,
+peer-newer adoption, one-time adoption, and an unstamped peer that cannot
+displace local evidence. A guard that passes before and after is doing its job;
+a regression test that passes on the broken code is not.
+
+---
+
+## 7. The liveness primitive, built
+
+§4.1 proposed it; this pass built it: `CORE/WORMS/expansion/liveness.py`.
+
+Three sorts of miss, because they mean different things: `unfulfilled` (a
+one-shot's deadline passed — something specific did not complete), `silent` (a
+heartbeat beat at least once and then stopped — something that was working
+died), and `never_beaten` (a requirement never beat within its own period — the
+producer never started, which is the most common real cause and the one an
+occurrence monitor structurally cannot see).
+
+Two design decisions carry the module:
+
+- **`observable` is reported beside `healthy`.** Green with nothing declared is
+  *unknown*, not all-clear — the same ambiguity as the 118 silent swallows in
+  `silence.py`, one level up. `unmonitored()` names obligations that were
+  declared and have since stopped being armed at all, which is invisible to both
+  an occurrence monitor and a heartbeat.
+- **A miss is reported on every poll while it is unmet.**
+
+That second point is a bug I introduced and then found: the first version
+consumed each miss (reported once, then returned a clean board). A monitor
+polling every 60s would have seen a fault on one poll and health on the next —
+output that decays is indistinguishable from a system that repaired itself,
+which is the exact failure class this audit exists to remove. The latch is now
+history only (`misses_total` counts distinct misses, not polls).
+
+Wired into the one scheduled entry point (`scripts/run_azazael_chain.py`): a due
+job that never starts is the canonical non-occurrence, so arming an obligation
+before `_start_slow` and discharging it only on success turns `START-FAIL` from
+a log line into machine-readable state.
+
+---
+
+## 8. Wiring the negatives into the monitors
+
+All three ledgers are **in-process by design**, which is a trap for a monitor:
+the renderer is a different process, so importing them there would read empty
+dicts and draw a green panel. That is "success-shaped reporting" one level up,
+so the contract is explicit instead:
+
+- `publish_failure_visibility()` writes an atomic snapshot; latched misses are
+  carried forward so a short-lived publisher's clean run cannot erase another
+  process's evidence, bounded by `CARRY_FORWARD_SECONDS` so a fixed fault does
+  not linger forever.
+- `collect_failure_data()` reports `observed: False` when nothing has published.
+- The card renders four states, not two: **faults** (red), **stale publisher**
+  (amber — a publisher that stopped *is* the non-occurrence the card exists
+  for), **clear** (green), and **unobserved** (grey, explicitly not green).
+
+Two bugs in my own wiring, both caught by reading the rendered panel rather
+than trusting the code:
+
+1. `state_age()`'s second value is `is_stale`, not `is-fresh`. I named it
+   `fresh` and then tested `not fresh`, so a snapshot published one second ago
+   was labelled "publisher stopped". The variable is now `stale`.
+2. The consumption bug in §7 only surfaced through the publish path, because
+   the producer's own `snapshot()` call consumed the miss before writing it.
+
+---
+
+## 9. Wire-or-cut, generalised to every unreferenced function
+
+§4.2 proposed generalising the `evolution.py` pattern; this pass did it.
+`tools/mesh_function_preflight.py --verdict` regenerates
+`NEURAL_MESH_WIRE_OR_CUT.json`: all **114** PF16 findings, each with a declared
+disposition — `wired`, `retired` or `pending` — and re-running preserves
+decisions already made.
+
+`pending` is a first-class status on purpose. An unreviewed function is not the
+same as a decided one, and collapsing the two is how a backlog becomes a lie;
+the count is published so it can be trended rather than assumed zero.
+
+`tests/test_mesh_wire_or_cut.py` asserts the table agrees with reality: no PF16
+finding undeclared, no declaration for a function that no longer exists, no
+`wired` declaration that nothing actually reaches, no `retired` declaration that
+something now depends on (and a retirement must state its reason), and no
+unknown statuses. Verified to fail: deleting one declaration fails three of the
+eight checks.
+
+This is the general answer to PF16 — the decision is data, and a test holds the
+data against the code.
+
+---
+
+## 10. Status
+
+Worked so far: the probe battery itself (4 miscalibrated probes fixed), the
+`evolution` P0 findings, the `spine_registry` P0 block (4 defects, one of them a
+matched pair), and two of the three inferred insights built (`fencing`,
+`silence`, `liveness` are now all live and wired to a monitor); the third
+(wire-or-cut) is declared data with a test.
+
+Still open: PF14/PF15 on `record_outcome`'s reflex path, the 300
+`Exception`-alone handlers, the 114 `pending` dispositions, and — the largest
+remaining signal — **PF17 = 530**. The census after this pass: PF04 1106,
+PF02 692, PF17 530, PF14 300, PF15 118, PF16 114, PF18 15, PF09 6, PF19 4,
+PF20/PF21 1/4.
