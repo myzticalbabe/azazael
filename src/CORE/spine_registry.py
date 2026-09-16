@@ -747,7 +747,19 @@ def _ensure_loaded() -> None:
             return
         _LOADED_ONCE = True
         try:
-            if not _HOMEOSTAT and not _Q_WEIGHTS and _STATE_FILE.exists():
+            # Load whenever there is something to load, NOT only when memory
+            # happens to be empty. The old guard was `not _HOMEOSTAT and not
+            # _Q_WEIGHTS`, so any process that wrote a single outcome (or
+            # dreamed) before its first getter latched `_LOADED_ONCE` without
+            # restoring anything -- and then ran its whole life on an empty
+            # brainstem while `load_spine_state()` reported the file present.
+            # Loading is safe to do at any point because it MERGES (setdefault
+            # / MAX) rather than clobbers.
+            #
+            # This and the setdefault in `load_spine_state` are one change: the
+            # assignment there was the only reason the emptiness heuristic was
+            # safe, so either half alone is worse than neither.
+            if _STATE_FILE.exists():
                 load_spine_state()
         except Exception:
             pass
@@ -1042,7 +1054,6 @@ def get_q_weights() -> Dict[str, float]:
 
 
 def dream_reinforce(nature: str, worm: str, reward: float) -> bool:
-    _ensure_loaded()
     """Offline-learning channel: move Q without touching the live ledger.
 
     Used by ConsolidationWorm (sleep phase) to replay dream-derived
@@ -1050,7 +1061,13 @@ def dream_reinforce(nature: str, worm: str, reward: float) -> bool:
     successes/failures — dreams are simulations, not executions — so
     homeostat fail-rate statistics stay grounded in reality while the
     routing substrate still benefits from offline experience.
+
+    The `_ensure_loaded()` call used to sit ABOVE this docstring, which made
+    the string a dead expression statement and left `__doc__` as None: the
+    function's entire contract was unreachable from help(), the audit probes
+    and any doc-driven tooling.
     """
+    _ensure_loaded()
     try:
         key = f"{nature}:{worm}"
         with _q_stripe(key):
@@ -1306,9 +1323,18 @@ def load_spine_state() -> Dict[str, Any]:
             for k, v in homeostat.items():
                 if isinstance(v, dict):
                     _HOMEOSTAT.setdefault(k, v)
+            # setdefault, not assignment -- the same rule the policy map and
+            # the variance below already follow. `load_spine_state()` is
+            # callable mid-process (it is public, and `_ensure_loaded` calls
+            # it), and an in-memory adaptation is always newer than the disk
+            # copy. Blind assignment silently rolled a live Q-weight back to
+            # the last saved value: save at -0.33, learn to +0.67, load, and
+            # the learner is at -0.33 again with both sides reporting success.
+            # That is the exact silent reversion the policy_latest comment
+            # below calls out -- it just was not applied to the weights.
             for k, w in q_weights.items():
                 try:
-                    _Q_WEIGHTS[k] = max(_Q_MIN, min(_Q_MAX, float(w)))
+                    _Q_WEIGHTS.setdefault(k, max(_Q_MIN, min(_Q_MAX, float(w))))
                 except (TypeError, ValueError):
                     pass
             # Counts are monotone observations: take MAX so N parallel
@@ -2098,6 +2124,16 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     del _SPINE_EVENTS[:len(_SPINE_EVENTS) - _SPINE_EVENTS_MAX]
 
         with _HOMEOSTAT_LOCK:
+            # Local ledger stamps, captured BEFORE the loop below replaces
+            # those records wholesale. The q merge needs to know whether the
+            # peer's evidence was newer than ours *before* the merge; after it,
+            # local and remote are the same record and the comparison is
+            # vacuous -- which is how the q merge came to ignore evidence
+            # entirely and keep local on every known key forever.
+            local_ledger_stamps = {
+                k: _rec_stamp(v, "last_at") for k, v in _HOMEOSTAT.items()
+                if isinstance(v, dict)
+            }
             for k, v in (remote_home or {}).items():
                 if not isinstance(v, dict):
                     continue
@@ -2115,9 +2151,25 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     wv = max(_Q_MIN, min(_Q_MAX, float(w)))
                 except (TypeError, ValueError):
                     continue
-                # conservative: adopt remote Q only when our ledger has no
-                # newer evidence; if the key is unknown locally, adopt it.
-                if k not in _Q_WEIGHTS:
+                # Recency decides, which is what this function's docstring has
+                # always claimed and what the old "conservative" comment only
+                # appeared to do: the peer's value is adopted when the peer's
+                # LEDGER record for that key is newer than the local record we
+                # held before this merge, and a key we have no record for is
+                # adopted outright. An empty remote stamp never wins
+                # (`_stamp_newer` refuses empties), so a peer that ships
+                # weights without evidence still cannot displace our value.
+                #
+                # Strictly-newer plus counting only CHANGES keeps a re-merge a
+                # true no-op even for keys adopted with no ledger record on
+                # either side, which the idempotency contract requires.
+                remote_rec = (remote_home or {}).get(k)
+                remote_stamp = (_rec_stamp(remote_rec, "last_at")
+                                if isinstance(remote_rec, dict) else "")
+                local_stamp = local_ledger_stamps.get(k)
+                adopt = (local_stamp is None
+                         or _stamp_newer(remote_stamp, local_stamp))
+                if adopt and _Q_WEIGHTS.get(k) != wv:
                     _Q_WEIGHTS[k] = wv
                     stats["q_weights"] += 1
             # Counts are evidence, not a value: take the MAX so a key adopted

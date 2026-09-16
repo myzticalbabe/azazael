@@ -147,3 +147,150 @@ def test_gossip_merge_never_lowers_a_local_count():
         assert sr.get_q_updates("mesh", "PinnedWorm") == 3, "peer lowered our count"
     finally:
         os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+# ── load/merge reversion (2026-09-16 per-function audit) ─────────────
+#
+# `load_spine_state()` ASSIGNED every restored Q-weight, while its sibling
+# `_merge_disk_state()` adopted them only when absent. The difference is a
+# silent reversion: the module's own comments already state the rule for the
+# policy map and the variance -- an in-memory adaptation is always newer than
+# the disk copy, so adopt, never overwrite -- and the weights were the one
+# table that ignored it. Reproduced by saving at -0.33, learning to +0.67, then
+# loading: the learner came back at -0.33 with both sides reporting success.
+#
+# The companion defect is in `_ensure_loaded()`, whose guard was the emptiness
+# heuristic `not _HOMEOSTAT and not _Q_WEIGHTS`. Any process that recorded one
+# outcome (or dreamed) before its first getter set `_LOADED_ONCE` WITHOUT
+# restoring anything, then ran its whole life on an empty brainstem. The two
+# are one change: the assignment above is the only reason the heuristic was
+# safe, so fixing either alone is worse than fixing neither.
+
+def test_load_spine_state_does_not_roll_back_live_q_weights():
+    for i in range(6):
+        sr.record_outcome("mesh", "RollWorm", i % 2 == 0, 1.0)
+    assert sr.save_spine_state()["saved"] is True
+    saved = sr.get_q_weight("mesh", "RollWorm")
+
+    sr.dream_reinforce("mesh", "RollWorm", 1.0)
+    sr.dream_reinforce("mesh", "RollWorm", 1.0)
+    live = sr.get_q_weight("mesh", "RollWorm")
+    assert live != saved, "the dream must actually move the weight"
+
+    sr.load_spine_state()
+    assert sr.get_q_weight("mesh", "RollWorm") == pytest.approx(live), \
+        "load_spine_state() reverted a live adaptation to the saved value"
+
+
+def test_load_spine_state_still_restores_keys_it_does_not_have():
+    """Adopt-when-absent must still adopt: the fix is not 'never load'."""
+    sr.record_outcome("mesh", "AbsentWorm", True, 1.0)
+    sr.save_spine_state()
+    sr.spine_reset()
+    assert sr.get_q_weight("mesh", "AbsentWorm") == 0.0
+    sr.load_spine_state()
+    assert sr.get_q_weight("mesh", "AbsentWorm") != 0.0
+    assert sr.get_q_updates("mesh", "AbsentWorm") >= 1
+
+
+def test_ensure_loaded_restores_even_when_memory_is_not_empty(monkeypatch):
+    sr.record_outcome("mesh", "LatchedWorm", True, 1.0)
+    sr.save_spine_state()
+    sr.spine_reset()
+
+    # One in-process write before any getter: the old emptiness guard latched
+    # `_LOADED_ONCE` here and never restored the file.
+    sr._Q_WEIGHTS["mesh:Unrelated"] = 0.5
+    monkeypatch.setattr(sr, "_LOADED_ONCE", False)
+    sr._ensure_loaded()
+    assert sr.get_q_weight("mesh", "LatchedWorm") != 0.0, \
+        "_ensure_loaded() latched the skip and restored nothing"
+
+
+def test_dream_reinforce_docstring_is_reachable():
+    """`_ensure_loaded()` sat above the docstring, so `__doc__` was None."""
+    doc = sr.dream_reinforce.__doc__
+    assert doc and "dream" in doc.lower()
+
+
+# ── gossip Q recency rule ────────────────────────────────────────────
+
+
+def _seed_ledger(worm, local_iso, weight):
+    """A local ledger record with a chosen stamp, and a chosen local weight."""
+    sr.record_outcome("mesh", worm, True, 1.0)
+    rec = sr._HOMEOSTAT["mesh:" + worm]
+    rec.pop("hlc", None)          # compare on the ISO field, as legacy rows do
+    rec["last_at"] = local_iso
+    sr._Q_WEIGHTS["mesh:" + worm] = weight
+
+
+def _peer_payload(**overrides):
+    base = {"gossip_from": "peer-env", "seq": 99, "spine_map": {},
+            "homeostat": {}, "q_weights": {}, "spine_events": []}
+    base.update(overrides)
+    return base
+
+
+def test_gossip_adopts_a_peer_weight_when_the_peer_ledger_is_newer():
+    """The docstring's rule: the value whose ledger record is newer wins."""
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        _seed_ledger("PeerNewer", "2026-09-01T00:00:00", 0.0)
+        res = sr.merge_spine_gossip(_peer_payload(
+            homeostat={"mesh:PeerNewer": {"successes": 9, "failures": 0,
+                                          "last_at": "2026-09-10T00:00:00"}},
+            q_weights={"mesh:PeerNewer": 0.75}))
+        assert res["merged"] is True
+        assert sr.get_q_weight("mesh", "PeerNewer") == pytest.approx(0.75)
+        assert res["q_weights"] == 1
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+def test_gossip_keeps_the_local_weight_when_our_ledger_is_newer():
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        _seed_ledger("LocalNewer", "2026-09-10T00:00:00", 0.25)
+        res = sr.merge_spine_gossip(_peer_payload(
+            homeostat={"mesh:LocalNewer": {"successes": 1, "failures": 0,
+                                           "last_at": "2026-09-01T00:00:00"}},
+            q_weights={"mesh:LocalNewer": 0.9}))
+        assert sr.get_q_weight("mesh", "LocalNewer") == pytest.approx(0.25)
+        assert res["q_weights"] == 0
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+def test_gossip_weight_without_ledger_evidence_is_adopted_exactly_once():
+    """Unknown locally -> adopt; re-merging the same payload is a true no-op.
+
+    Counting only real CHANGES is what keeps this idempotent: a key adopted
+    with no ledger record on either side still has no record on the second
+    merge, so an adoption counter would fire again forever.
+    """
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        payload = _peer_payload(q_weights={"mesh:NoEvidence": 0.4})
+        first = sr.merge_spine_gossip(payload)
+        second = sr.merge_spine_gossip(payload)
+        assert sr.get_q_weight("mesh", "NoEvidence") == pytest.approx(0.4)
+        assert first["q_weights"] == 1 and second["q_weights"] == 0
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+def test_gossip_weight_without_evidence_cannot_displace_our_ledger():
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        _seed_ledger("Evidenced", "2026-09-05T00:00:00", 0.25)
+        res = sr.merge_spine_gossip(
+            _peer_payload(q_weights={"mesh:Evidenced": 0.99}))
+        assert sr.get_q_weight("mesh", "Evidenced") == pytest.approx(0.25)
+        assert res["q_weights"] == 0
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)

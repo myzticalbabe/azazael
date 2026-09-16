@@ -317,6 +317,149 @@ def collect_fabric_data() -> Dict[str, Any]:
     return d
 
 
+# ── Failure visibility: silence / fencing / liveness ─────────────
+#
+# The three primitives added by the 2026-09-16 per-function audit are all
+# IN-PROCESS by design (see their module docstrings), which creates a trap for
+# a monitor: the renderer is a different process, so importing the ledgers here
+# would read three empty dictionaries and draw a green panel. That is the same
+# "success-shaped reporting" defect the audit spent the session removing, one
+# level up.
+#
+# So the contract is explicit. A process that owns the ledgers calls
+# `publish_failure_visibility()`, and the monitor READS the published snapshot.
+# No published snapshot means `observed: False` -- reported as unknown, never as
+# healthy, because an empty ledger and an unwatched one look identical and only
+# one of them is good news.
+FAILURE_VISIBILITY_STATE = "failure_visibility.json"
+
+#: How long a latched miss survives a later publish that does not know about it.
+#: Short-lived processes (a chain tick, a CLI run) each own their own ledger, so
+#: a fault found by one tick would be erased by the next tick's empty snapshot
+#: before any human read it. Carrying the entry forward fixes that; the bound is
+#: what stops a since-fixed fault from being reported forever.
+CARRY_FORWARD_SECONDS = 7200.0
+
+
+def publish_failure_visibility(path: Optional[Path] = None) -> Dict[str, Any]:
+    """Write this process's silence/fence/liveness ledgers where a monitor can read them.
+
+    Called by a mesh process that actually owns the ledgers. Atomic (tmp +
+    replace) so a monitor reading concurrently never sees a torn file. Returns
+    the payload; never raises -- a monitor must not be the reason a mesh job
+    fails.
+
+    Latched `liveness` misses that this process does not know about are carried
+    forward from the previous snapshot (see CARRY_FORWARD_SECONDS), because the
+    ledgers are in-process and a short-lived publisher would otherwise erase
+    another process's evidence simply by having a clean run.
+    """
+    target = Path(path) if path else (STATE_DIR / FAILURE_VISIBILITY_STATE)
+    payload: Dict[str, Any] = {"written_at": None, "written_by": "",
+                               "silence": {}, "fences": {}, "liveness": {}}
+    try:
+        from CORE.WORMS.expansion.silence import silence_report
+        from CORE.WORMS.expansion.fencing import fence_report
+        from CORE.WORMS.expansion.liveness import liveness_report
+        import os as _os
+
+        previous = {}
+        try:
+            if target.exists():
+                previous = json.loads(target.read_text(encoding="utf-8")) or {}
+                prev_age = (datetime.now() - datetime.fromtimestamp(
+                    target.stat().st_mtime)).total_seconds()
+                if prev_age > CARRY_FORWARD_SECONDS:
+                    previous = {}
+        except Exception:
+            previous = {}
+
+        payload["written_at"] = datetime.now().isoformat()
+        try:
+            from CORE.env_id import env_id
+            payload["written_by"] = str(_safe(env_id, "unknown"))
+        except ImportError:
+            payload["written_by"] = "unknown"
+        payload["pid"] = _os.getpid()
+        payload["silence"] = silence_report()
+        payload["fences"] = fence_report()
+        live = liveness_report()
+
+        mine = {str(m.get("name")) for m in (live.get("overdue") or [])}
+        carried = [dict(m) for m in ((previous.get("liveness") or {})
+                                     .get("overdue") or [])
+                   if str(m.get("name")) not in mine]
+        if carried:
+            live = dict(live)
+            live["overdue"] = list(live.get("overdue") or []) + carried
+            live["healthy"] = False
+            for miss in carried:
+                miss["carried_from"] = previous.get("written_at") or "previous publish"
+            payload["carried_misses"] = len(carried)
+        payload["liveness"] = live
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        tmp = target.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(payload), encoding="utf-8")
+        _os.replace(str(tmp), str(target))
+        payload["published"] = True
+    except Exception as exc:
+        payload["published"] = False
+        payload["error"] = str(exc)[:120]
+    return payload
+
+
+def collect_failure_data() -> Dict[str, Any]:
+    """The published failure-visibility snapshot, with its age.
+
+    `observed=False` is a distinct state from `healthy` and the renderer must
+    treat it as such: it means no process has published, i.e. nothing in the
+    mesh is watching for silent failures yet -- an unknown, not an all-clear.
+    """
+    d: Dict[str, Any] = {
+        "_source": f"state/{FAILURE_VISIBILITY_STATE}", "_error": None,
+        "observed": False, "age": "", "stale": True,
+        "written_by": "", "written_at": "", "pid": None,
+        "silence": {}, "fences": {}, "liveness": {},
+        "faults": 0, "unobservable": [],
+    }
+    try:
+        raw = load_state(FAILURE_VISIBILITY_STATE)
+        # `state_age`'s second value is is_STALE, not is-fresh -- naming it
+        # `fresh` here once caused the renderer to label a just-published
+        # snapshot "publisher stopped".
+        if not raw:
+            d["age"], d["stale"] = state_age(FAILURE_VISIBILITY_STATE)
+            return d
+        d["observed"] = True
+        d["written_by"] = raw.get("written_by") or "unknown"
+        d["written_at"] = raw.get("written_at") or ""
+        d["pid"] = raw.get("pid")
+        d["age"], d["stale"] = state_age(FAILURE_VISIBILITY_STATE)
+        d["silence"] = raw.get("silence") or {}
+        d["fences"] = raw.get("fences") or {}
+        d["liveness"] = raw.get("liveness") or {}
+
+        sil = d["silence"]
+        tripped = list(sil.get("tripped") or [])
+        fences = d["fences"] or {}
+        rejected = sum(int(f.get("rejections") or 0) for f in fences.values())
+        live = d["liveness"] or {}
+        over = list(live.get("overdue") or [])
+        d["faults"] = len(tripped) + len(over) + (1 if rejected else 0)
+
+        # The two ways a green panel can mean nothing at all.
+        if not live.get("observable"):
+            d["unobservable"].append(
+                "no obligations declared: nothing is watching for a missing event")
+        if not tripped and not sil.get("tags"):
+            d["unobservable"].append(
+                "no swallowed-failure tags recorded in this process")
+    except Exception as exc:
+        d["_error"] = str(exc)[:120]
+    return d
+
+
 def collect_registry_data() -> Dict[str, Any]:
     """Registered worms and categories."""
     d: Dict[str, Any] = {"_source": "CORE.worm_registry", "_error": None,
