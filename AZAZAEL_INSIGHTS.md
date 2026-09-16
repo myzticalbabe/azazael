@@ -280,3 +280,64 @@ Full per-worm configuration audit completed: `WORM_CONFIG_TRACE.md` + `worm_conf
 | 5 | 23 |
 | 4 | 16 |
 | 3 | 7 (utility/infrastructure) |
+
+---
+
+## 12. Per-Function Mesh Audit (2026-09-16)
+
+Full per-function pre-flight audit of the mesh: **1411 functions across 63
+modules**, 21 automated probes (PF01-PF21) plus 6 manual checks (M1-M6).
+Generator: `tools/mesh_function_preflight.py` (deterministic, re-runnable).
+Checklist: `NEURAL_MESH_FUNCTION_TODO.md`. Analysis: `NEURAL_MESH_FUNCTION_AUDIT_ANALYSIS_2026-09-16.md`.
+Census: P0 130 / P1 319 / P2 890; 72 functions pass every probe.
+
+### The census, re-ranked by risk not count
+
+| probe | failing | reads as |
+|-------|---------|----------|
+| PF04 | 1106 | annotation debt (review cost, no risk) |
+| PF02 | 693 | docstring debt (review cost, no risk) |
+| PF17 | 532 | **38% of the mesh is reached by no test** |
+| PF14 | 300 | catches `Exception` alone |
+| PF15 | 118 | **swallows the evidence** |
+| PF16 | 114 | **nothing in the repo references it** |
+| PF18 | 15 | writes module-level state (concurrency) |
+
+PF02+PF04 (1799) dominate the counts and carry no risk. The probes describing
+functions the mesh cannot test, cannot reach, or cannot see failing total 764 -
+and every real bug found this session came from that set.
+
+### Bugs found and fixed (all P0, all silent)
+
+| Function | Defect | Why monitoring missed it |
+|----------|--------|--------------------------|
+| `EvolutionEngine.evolve` | snapshot taken outside the lock, blind write-back -> a whole generation of offspring discarded while `_generation` advanced twice | produced plausible output, only faster |
+| `EvolutionEngine.optimize_multi_objective` | elite slot `-(obj_idx+1)` walks off the list when objectives > survivors -> `IndexError` escapes the whole optimisation | only reachable when a caller adds an objective |
+| `moead_weights` | fallback drew twice for `n_obj == 2`, so Tchebycheff weights did not sum to 1 -> every comparison mis-scaled | wrong output is still output |
+| `save_checkpoint` / `_get_store` / `restore_checkpoint` | success-shaped return while persisting nothing; relevance-ranked search could return a STALE checkpoint | stale state looks like state |
+
+Common signature: **the code reported success without establishing the
+precondition for it.** None produced a traceback, a log line, or a red monitor.
+
+### New primitives (built because the shapes recurred)
+
+- **`CORE/WORMS/expansion/fencing.py`** - Kleppmann fencing tokens reapplied from distributed locks to in-process shared state. A writer mints a monotonic token before starting, works unlocked, and only the commit path writes; a stale token cannot commit. Process-wide on purpose (an instance lock cannot see a sibling instance). Never blocks, never raises; `fence_report()` makes contention trendable. Justified by PF18 = 15 module-level writers.
+- **`CORE/WORMS/expansion/silence.py`** - silent-failure ledger. `pass` destroys a measurement: "the fabric healed" and "the fabric failed to load its learning every start for a week" are byte-identical. Two moves beyond a counter: **signature clustering** is the alarm (a rising count is a flaky peer; a NEW exception type is an unpredicted failure mode), and **budgets** make "graceful" checkable (`budget=0` = this failure is a fault). Bounded at 24 signatures and 512 tags. Justified by PF15 = 118.
+
+Tests: `tests/test_mesh_audit_insights.py` (21).
+
+### Inferred, recorded, not yet built
+
+1. **Non-occurrence monitoring.** All 4 defects above are events that did *not* happen, and every existing monitor is occurrence-driven. More occurrence telemetry is structurally incapable of catching them. The missing primitive is a **liveness obligation**: a named expectation with a deadline, minted by the code that should cause it and discharged when it fires. `fence_report()` rejections and `silence_report()` tripped() are the only two places in the mesh that record a negative today.
+2. **Coverage obligation as data.** PF16 = 114 should be resolved by generalising the `SERVED_ENGINES` / `UNSERVED_ENGINES` wire-or-cut pattern from `evolution.py` - a decision recorded as data with a test asserting the data matches reality - rather than by writing tests for code nothing calls.
+3. **Auditor precision as a trended quantity.** 4 of 21 probes were miscalibrated on first run (PF13, PF15, PF20, PF21); every cleared finding was a human judgement that the process currently discards. Persisting the census per session and recording rejected findings turns a one-off audit into a time series and makes auditor drift observable.
+
+### Method lessons
+
+1. Calibrate the instrument before acting on its reading - acting first would have manufactured 13 fake "unbounded loop" fixes.
+2. Sort the backlog by consequence-if-live, not by count.
+3. Promote a recurring fix shape to a primitive; a fix applied N times is a fix that will be forgotten N times.
+4. If a function cannot fail, its caller cannot know - report the side effect's fate in the return value.
+5. Verify the verifier - tests written to demonstrate a fix encode the author's model of the bug, not an independent check of it.
+
+Reasoning traces (13) recorded for training: `data/training/neural_mesh_function_audit_2026-09-16.jsonl`.

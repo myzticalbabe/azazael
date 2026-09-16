@@ -311,11 +311,24 @@ class ASTAntiPatternScanner:
                 break
 
         # 4. os.system() calls
+        #
+        # A match inside a string BODY is not a call: `os.system(` can only be
+        # invoked when the identifier is code. What lives inside a string
+        # literal is a detector -- this scanner's own rule table, an auditor
+        # looking for the pattern, or a test sample. Flagging those forced the
+        # detectors to obfuscate the very pattern they detect. Note this cannot
+        # hide a real call inside an f-string expression: from 3.12 those are
+        # tokenized as FSTRING_* plus ordinary NAME/OP tokens, not as one
+        # STRING span, so `f"{os.system(x)}"` is still reported.
+        # Deliberately NOT applied to rule 5: a hardcoded path IS a string.
         for i, line in enumerate(lines, 1):
             for m in _PATTERN_OS_SYSTEM.finditer(line):
-                if not _in_documentation(i, m.start(), doc_spans):
-                    findings.append((i, "os_system", line.strip()[:80]))
-                    break
+                if _in_documentation(i, m.start(), doc_spans):
+                    continue
+                if _in_string_body(i, m.start(), string_spans):
+                    continue
+                findings.append((i, "os_system", line.strip()[:80]))
+                break
 
         # 5. Hardcoded C:\\ paths
         for i, line in enumerate(lines, 1):
