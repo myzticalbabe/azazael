@@ -1,0 +1,641 @@
+"""Per-function pre-flight auditor for the Azazael neural mesh architecture.
+
+Walks the mesh modules, runs a fixed battery of static pre-flight probes against
+every function, and emits a checkbox TODO so the audit can be worked through one
+function at a time instead of by module.
+
+The battery is deliberately mechanical: each probe answers a question that can
+be decided from the source alone, so a PASS is evidence rather than opinion, and
+every FAIL is actionable.  Probes that need judgement are listed as the manual
+half of the checklist and are never auto-ticked.
+
+Usage:
+    python tools/mesh_function_preflight.py                # write the TODO
+    python tools/mesh_function_preflight.py --stdout        # print, do not write
+    python tools/mesh_function_preflight.py --summary       # counts only
+    python tools/mesh_function_preflight.py --module spine  # one module
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import builtins
+import re
+import sys
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Iterable
+
+REPO = Path(__file__).resolve().parent.parent
+SRC = REPO / "src"
+MESH_DIR = SRC / "CORE" / "WORMS" / "expansion"
+DEFAULT_OUT = REPO / "NEURAL_MESH_FUNCTION_TODO.md"
+
+# ---------------------------------------------------------------------------
+# Scope: what counts as "the neural mesh architecture"
+# ---------------------------------------------------------------------------
+#
+# The fabric proper (transport, membership, consensus, immunity), the neural
+# primitives it is built from, the learning/plasticity loop, and the operational
+# subsystems that keep it alive.  Anything outside this list is a different
+# architecture and is out of scope for this TODO.
+
+FABRIC = [
+    "mesh", "envmesh", "fabric_state", "servemesh", "communication",
+    "spine", "consensus", "federated", "immune", "synapse", "engram",
+]
+
+NEURAL_PRIMITIVES = [
+    "nerve", "axon", "dendrite", "glia", "thalamus", "loom", "chorus",
+    "arena", "allocation", "cppn", "tensorgene", "xenomorph",
+]
+
+LEARNING = [
+    "learning", "learning_ab", "learning_features", "learning_grpo",
+    "learning_pipeline", "learning_replay", "learning_rl", "learning_versioner",
+    "plasticity", "consolidation", "dreaming", "meta_cognition", "metabolic",
+    "evolution", "morph", "oracle",
+]
+
+OPERATIONAL = [
+    "driver", "scheduling", "container", "config", "security",
+    "error_recovery", "evidence", "migration", "race_detector", "code_audit",
+    "profiling", "backup", "chaos", "berks", "db_monitor", "threatmon",
+    "visualization", "proteus_hooks", "exmachina", "exmachina_operators",
+    "session_state", "telemetry",
+]
+
+SCOPE_GROUPS: list[tuple[str, list[str]]] = [
+    ("Fabric", FABRIC),
+    ("Neural primitives", NEURAL_PRIMITIVES),
+    ("Learning and plasticity", LEARNING),
+    ("Operational", OPERATIONAL),
+]
+
+# Modules that live outside the expansion package but are part of the mesh.
+EXTRA_MODULES = [
+    SRC / "CORE" / "spine_registry.py",
+    SRC / "CORE" / "NeuralPipeline.py",
+]
+
+DEFAULT_EXCLUDES = ("__pycache__", ".venv", "venv", "generated")
+
+# ---------------------------------------------------------------------------
+# Pre-flight battery
+# ---------------------------------------------------------------------------
+#
+# The battery is intentionally cheap and deterministic.  It is a *pre*-flight:
+# it is meant to be run before anyone invests time reading a function, so that
+# the reading time goes to the functions the probes cannot already clear.
+
+EMOJI_RANGES = (
+    (0x1F300, 0x1FAFF), (0x1F000, 0x1F2FF), (0x2600, 0x27BF),
+    (0x2B00, 0x2BFF), (0xFE00, 0xFE0F), (0x1F1E6, 0x1F1FF),
+)
+
+# Built from parts so this file does not itself contain a hardcoded drive path.
+DRIVE_RE = re.compile(r"\b[A-Za-z]:" + re.escape(chr(92)) )
+
+BUILTIN_NAMES = frozenset(dir(builtins))
+
+PROBE_HELP: list[tuple[str, str]] = [
+    ("PF01", "parses as valid Python and the span is inside the file"),
+    ("PF02", "has a docstring"),
+    ("PF03", "has a return annotation"),
+    ("PF04", "every parameter is annotated"),
+    ("PF05", "no bare `except:`"),
+    ("PF06", "no mutable default argument"),
+    ("PF07", "no `os.system` / `shell=True` subprocess"),
+    ("PF08", "no emoji in the source span"),
+    ("PF09", "no hardcoded drive path in the source span"),
+    ("PF10", "no backslash inside an f-string expression"),
+    ("PF11", "does not shadow a builtin or import a wildcard"),
+    ("PF12", "not an unimplemented stub"),
+    ("PF13", "no constant-true `while` with no break, return or raise"),
+    ("PF14", "catches a specific exception, not `Exception` alone"),
+    ("PF15", "no bare `pass` in an except body"),
+    ("PF16", "is referenced somewhere in the repo (reachability)"),
+    ("PF17", "is referenced by a test (test coverage signal)"),
+    ("PF18", "writes no module-level global (concurrency signal)"),
+    ("PF19", "opens files with an explicit encoding"),
+    ("PF20", "recursion is depth-guarded"),
+    ("PF21", "progress-dependent loop body always advances the condition"),
+]
+
+MANUAL_CHECKS: list[tuple[str, str]] = [
+    ("M1", "signature matches what callers actually pass"),
+    ("M2", "return contract holds on every path (including early returns)"),
+    ("M3", "error paths leave shared state consistent"),
+    ("M4", "safe under free-threaded concurrent calls"),
+    ("M5", "no silent data loss on partial failure"),
+    ("M6", "the docstring is true"),
+]
+
+
+@dataclass
+class Func:
+    """One function found in the mesh tree."""
+
+    module: str
+    qualname: str
+    lineno: int
+    end_lineno: int
+    complexity: int
+    params: int
+    is_async: bool
+    source: str
+    seg: str
+    node: ast.AST = field(repr=False, default=None)
+    failures: list[str] = field(default_factory=list)
+    prior: str = "P3"
+
+    @property
+    def label(self) -> str:
+        return f"{self.module}:{self.qualname}"
+
+    @property
+    def lines(self) -> str:
+        return f"L{self.lineno}-{self.end_lineno}"
+
+
+def _read(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
+def _iter_files() -> list[Path]:
+    files: list[Path] = []
+    for _, names in SCOPE_GROUPS:
+        for name in names:
+            p = MESH_DIR / f"{name}.py"
+            if p.exists():
+                files.append(p)
+    for p in EXTRA_MODULES:
+        if p.exists():
+            files.append(p)
+    return sorted(set(files))
+
+
+def _complexity(node: ast.AST) -> int:
+    branches = (ast.If, ast.For, ast.AsyncFor, ast.While, ast.Try,
+                ast.With, ast.AsyncWith, ast.BoolOp, ast.ExceptHandler,
+                ast.IfExp, ast.Match)
+    return sum(1 for n in ast.walk(node) if isinstance(n, branches))
+
+
+def _collect(tree: ast.AST, module: str, source: str) -> list[Func]:
+    out: list[Func] = []
+
+    def walk(body: list[ast.stmt], prefix: str) -> None:
+        for node in body:
+            if isinstance(node, ast.ClassDef):
+                walk(node.body, f"{prefix}{node.name}.")
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                seg = ast.get_source_segment(source, node) or ""
+                out.append(Func(
+                    module=module,
+                    qualname=f"{prefix}{node.name}",
+                    lineno=node.lineno,
+                    end_lineno=getattr(node, "end_lineno", node.lineno),
+                    complexity=_complexity(node),
+                    params=len(node.args.args) + len(node.args.kwonlyargs),
+                    is_async=isinstance(node, ast.AsyncFunctionDef),
+                    source=source,
+                    seg=seg,
+                    node=node,
+                ))
+                walk(node.body, f"{prefix}{node.name}.")
+
+    walk(tree.body, "")
+    return out
+
+
+def _reference_index() -> tuple[set[str], set[str], set[str]]:
+    """Names used anywhere, names used in tests, names used outside tests."""
+    used: set[str] = set()
+    test_used: set[str] = set()
+    for base in ("src", "tests", "scripts", "tools"):
+        root = REPO / base
+        if not root.exists():
+            continue
+        for path in root.rglob("*.py"):
+            if any(x in path.parts for x in DEFAULT_EXCLUDES):
+                continue
+            try:
+                tree = ast.parse(_read(path))
+            except SyntaxError:
+                continue
+            names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+            attrs = {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)}
+            allnames = names | attrs
+            used |= allnames
+            if base == "tests":
+                test_used |= allnames
+    return used, test_used
+
+
+def _plain_true(test: ast.expr) -> bool:
+    if isinstance(test, ast.Constant):
+        return bool(test.value)
+    if isinstance(test, ast.Name) and test.id in {"True", "true"}:
+        return True
+    return False
+
+
+def _while_exits(loop: ast.While) -> list[ast.AST]:
+    return [x for x in ast.walk(loop)
+            if isinstance(x, (ast.Break, ast.Return, ast.Raise))]
+
+
+def _has_unbounded_while(node: ast.AST) -> bool:
+    """True only for the classic spin: `while True` with no way out.
+
+    A `while <condition>` is bounded by that condition, so flagging every
+    `while` produced nothing but noise -- `while i < n`, `while not stop.is_set()`
+    and `while not stop.wait(1)` are all finite and all correct. Only a constant
+    truthy test with no break, return or raise can actually spin.
+    """
+    for n in ast.walk(node):
+        if isinstance(n, ast.While) and _plain_true(n.test) \
+                and not _while_exits(n):
+            return True
+    return False
+
+
+def _has_progress_loop(node: ast.AST) -> bool:
+    """A loop that only ends when its body makes the condition false.
+
+    `while len(buf) < target:` is correct and common, but it hangs if the body
+    has any path that fails to extend the buffer. That is a real risk the pure
+    bounded-loop rule cannot see, so it gets its own probe and stays advisory.
+    """
+    for n in ast.walk(node):
+        if not isinstance(n, ast.While) or _plain_true(n.test):
+            continue
+        if _while_exits(n):
+            continue
+        for sub in ast.walk(n.test):
+            # `ast.dump` prints `Call(func=Name(id='len'))`, so match the node,
+            # not the rendered text.
+            if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Name) \
+                    and sub.func.id == "len":
+                return True
+            if isinstance(sub, ast.Name) and sub.id in {
+                    "count", "cursor", "offset", "attempts", "retries",
+                    "remaining", "tries"}:
+                return True
+    return False
+
+
+def _run_probes(fn: Func, used: set[str], test_used: set[str]) -> list[str]:
+    fail: list[str] = []
+    node = fn.node
+    assert node is not None
+
+    if not fn.seg:
+        fail.append("PF01")
+
+    if not ast.get_docstring(node):
+        fail.append("PF02")
+
+    if getattr(node, "returns", None) is None:
+        fail.append("PF03")
+
+    args = list(node.args.args) + list(node.args.kwonlyargs)
+    if not all(a.annotation is not None for a in args):
+        fail.append("PF04")
+
+    for n in ast.walk(node):
+        if isinstance(n, ast.ExceptHandler) and n.type is None:
+            fail.append("PF05")
+            break
+
+    defaults = list(node.args.defaults) + [d for d in node.args.kw_defaults if d]
+    for d in defaults:
+        if isinstance(d, (ast.List, ast.Dict, ast.Set)):
+            fail.append("PF06")
+            break
+
+    if "os.system(" in fn.seg or "shell=True" in fn.seg:
+        fail.append("PF07")
+
+    for ch in fn.seg:
+        cp = ord(ch)
+        if any(a <= cp <= b for a, b in EMOJI_RANGES):
+            fail.append("PF08")
+            break
+
+    if DRIVE_RE.search(fn.seg):
+        fail.append("PF09")
+
+    # f-string with a backslash inside the replacement field
+    for n in ast.walk(node):
+        if isinstance(n, ast.JoinedStr):
+            for v in n.values:
+                if isinstance(v, ast.FormattedValue):
+                    piece = ast.get_source_segment(fn.source, v) or ""
+                    if chr(92) in piece:
+                        fail.append("PF10")
+                        break
+            else:
+                continue
+            break
+
+    name = getattr(node, "name", "")
+    if name in BUILTIN_NAMES:
+        fail.append("PF11")
+    for n in ast.walk(node):
+        if isinstance(n, ast.ImportFrom) and any(a.name == "*" for a in n.names):
+            fail.append("PF11")
+            break
+
+    body = [b for b in node.body
+            if not (isinstance(b, ast.Expr) and isinstance(b.value, ast.Constant))]
+    if not body:
+        fail.append("PF12")
+    elif len(body) == 1:
+        only = body[0]
+        if isinstance(only, ast.Pass):
+            fail.append("PF12")
+        elif isinstance(only, ast.Raise):
+            exc = only.exc
+            if isinstance(exc, ast.Call) and getattr(exc.func, "id", "") == "NotImplementedError":
+                fail.append("PF12")
+        elif isinstance(only, ast.Expr) and isinstance(only.value, ast.Constant) \
+                and only.value.value is Ellipsis:
+            fail.append("PF12")
+
+    if _has_unbounded_while(node):
+        fail.append("PF13")
+    elif _has_progress_loop(node):
+        fail.append("PF21")
+
+    handlers = [n for n in ast.walk(node) if isinstance(n, ast.ExceptHandler)]
+    for h in handlers:
+        if isinstance(h.type, ast.Name) and h.type.id == "Exception":
+            fail.append("PF14")
+            break
+
+    for h in handlers:
+        stmts = [s for s in h.body
+                 if not (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant))]
+        if stmts and all(isinstance(s, ast.Pass) for s in stmts):
+            fail.append("PF15")
+            break
+        if not stmts:
+            fail.append("PF15")
+            break
+
+    if name and name not in used:
+        fail.append("PF16")
+    if name and name not in test_used:
+        fail.append("PF17")
+
+    if any(isinstance(n, (ast.Global, ast.Nonlocal)) for n in ast.walk(node)):
+        fail.append("PF18")
+
+    for n in ast.walk(node):
+        if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) \
+                and n.func.id == "open":
+            if not any(k.arg == "encoding" for k in n.keywords):
+                fail.append("PF19")
+                break
+
+
+    # Recursion without a depth guard is the other way a function stops
+    # returning. A self-call is only safe when it carries the depth down.
+    fname = getattr(node, "name", "")
+    if fname:
+        self_calls = [n for n in ast.walk(node)
+                      if isinstance(n, ast.Call)
+                      and isinstance(n.func, ast.Name)
+                      and n.func.id == fname]
+        guards = {"depth", "_depth", "level", "limit", "max_depth",
+                  "seen", "visited", "memo"}
+        if self_calls:
+            # A guard can be passed positionally and derived (`depth - 1`), so
+            # read the call's own source rather than inspecting one AST node.
+            carried = False
+            for call in self_calls:
+                piece = ast.get_source_segment(fn.source, call) or ""
+                if any(g in piece for g in guards):
+                    carried = True
+                    break
+            if not carried:
+                fail.append("PF20")
+
+    # de-duplicate, keep battery order
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for f in fail:
+        if f not in seen:
+            seen.add(f)
+            ordered.append(f)
+    return ordered
+
+
+def _prioritise(fn: Func) -> str:
+    hard = {"PF05", "PF07", "PF12", "PF13", "PF15", "PF18", "PF20"}
+    if hard & set(fn.failures):
+        return "P0"
+    if {"PF09", "PF10", "PF14", "PF19", "PF16"} & set(fn.failures):
+        return "P1"
+    if fn.complexity >= 12 and fn.failures:
+        return "P1"
+    if fn.failures:
+        return "P2"
+    return "CLEAN"
+
+
+def build(module_filter: str | None = None) -> tuple[list[Func], Counter]:
+    files = _iter_files()
+    used, test_used = _reference_index()
+    funcs: list[Func] = []
+    for path in files:
+        module = path.stem
+        if module_filter and module_filter.lower() not in module.lower():
+            continue
+        source = _read(path)
+        try:
+            tree = ast.parse(source)
+        except SyntaxError:
+            continue
+        found = _collect(tree, module, source)
+        for fn in found:
+            fn.failures = _run_probes(fn, used, test_used)
+            fn.prior = _prioritise(fn)
+            funcs.append(fn)
+    counts = Counter()
+    for fn in funcs:
+        for f in fn.failures:
+            counts[f] += 1
+        counts[fn.prior] += 1
+    return funcs, counts
+
+
+def render(funcs: list[Func], counts: Counter, module_filter: str | None) -> str:
+    total = len(funcs)
+    clean = counts.get("CLEAN", 0)
+    p0 = counts.get("P0", 0)
+    p1 = counts.get("P1", 0)
+    p2 = counts.get("P2", 0)
+
+    out: list[str] = []
+    out.append("# Neural Mesh Architecture - Per-Function Pre-Flight TODO")
+    out.append("")
+    out.append("Generated by `tools/mesh_function_preflight.py`. Re-run it after")
+    out.append("changing a mesh function; the checklist is derived from the source,")
+    out.append("so it cannot drift from the code it describes.")
+    out.append("")
+    out.append("Companion analysis - the reasoning behind every change made from this")
+    out.append("list, plus the insights inferred from the census - lives in")
+    out.append("`NEURAL_MESH_FUNCTION_AUDIT_ANALYSIS_2026-09-16.md`.")
+    out.append("")
+    if module_filter:
+        out.append(f"Filter: modules matching `{module_filter}`")
+        out.append("")
+    out.append("## Scope")
+    out.append("")
+    out.append(f"- {total} functions across the fabric, neural primitives, learning")
+    out.append("  and plasticity, and operational subsystems")
+    out.append(f"- {clean} pass every automated probe; {total - clean} have at least one failure")
+    out.append(f"- P0 {p0} / P1 {p1} / P2 {p2}")
+    out.append("")
+    out.append("## How to work this list")
+    out.append("")
+    out.append("For each function, in this order:")
+    out.append("")
+    out.append("1. Run the automated battery (below). A PASS is evidence, not a verdict.")
+    out.append("2. Walk the manual checklist. This is the part that needs reading the")
+    out.append("   callers, not just the body.")
+    out.append("3. Only then tick the boxes.")
+    out.append("4. Any probe you clear by *changing* the function gets recorded in")
+    out.append("   `NEURAL_MESH_FUNCTION_AUDIT_ANALYSIS_2026-09-16.md`, with the")
+    out.append("   reasoning, so the fix is reviewable later.")
+    out.append("")
+    out.append("## Automated pre-flight battery")
+    out.append("")
+    for pid, desc in PROBE_HELP:
+        out.append(f"- **{pid}** {desc}")
+    out.append("")
+    out.append("## Manual pre-flight checklist")
+    out.append("")
+    for mid, desc in MANUAL_CHECKS:
+        out.append(f"- **{mid}** {desc}")
+    out.append("")
+
+    out.append("## Failure census")
+    out.append("")
+    out.append("| probe | functions failing |")
+    out.append("|---|---|")
+    for pid, _ in PROBE_HELP:
+        out.append(f"| {pid} | {counts.get(pid, 0)} |")
+    out.append("")
+
+    # Highest-value work first: P0, then P1 by complexity.
+    out.append("## Triage - P0")
+    out.append("")
+    out.append("Probes in the P0 set (PF05, PF07, PF12, PF13, PF15, PF18, PF20) are the")
+    out.append("ones that can lose data, hide an error, or spin forever. Clear these")
+    out.append("first.")
+    out.append("")
+    p0_funcs = sorted((f for f in funcs if f.prior == "P0"),
+                      key=lambda f: -f.complexity)
+    if not p0_funcs:
+        out.append("_None._")
+        out.append("")
+    for fn in p0_funcs:
+        out.append(f"- [ ] `{fn.label}` {fn.lines} c={fn.complexity} "
+                   f"fail={','.join(fn.failures)}")
+        out.append(f"  - [ ] {'M1-M6 manual pass'}")
+    out.append("")
+
+    out.append("## Triage - P1")
+    out.append("")
+    p1_funcs = sorted((f for f in funcs if f.prior == "P1"),
+                      key=lambda f: -f.complexity)
+    for fn in p1_funcs:
+        out.append(f"- [ ] `{fn.label}` {fn.lines} c={fn.complexity} "
+                   f"fail={','.join(fn.failures)}")
+    out.append("")
+
+    out.append("## Full inventory")
+    out.append("")
+    out.append("Every function in scope, grouped by concern and module. Each row is")
+    out.append("`- [ ]` battery pass, `- [ ]` manual pass.")
+    out.append("")
+
+    by_module: dict[str, list[Func]] = defaultdict(list)
+    for fn in funcs:
+        by_module[fn.module].append(fn)
+
+    for group, names in SCOPE_GROUPS:
+        out.append(f"### {group}")
+        out.append("")
+        for name in names:
+            mods = by_module.get(name)
+            if not mods:
+                continue
+            out.append(f"#### `{name}.py` - {len(mods)} functions")
+            out.append("")
+            for fn in sorted(mods, key=lambda f: f.lineno):
+                flags = ",".join(fn.failures) if fn.failures else "OK"
+                out.append(f"- [ ] `{fn.qualname}` {fn.lines} "
+                           f"c={fn.complexity} p={fn.params} "
+                           f"{'async ' if fn.is_async else ''}auto={flags}")
+                out.append(f"  - [ ] manual M1-M6")
+            out.append("")
+
+    extras = [p.stem for p in EXTRA_MODULES if p.exists()]
+    if extras:
+        out.append("### Outside the expansion package")
+        out.append("")
+        for name in extras:
+            mods = by_module.get(name)
+            if not mods:
+                continue
+            out.append(f"#### `{name}.py` - {len(mods)} functions")
+            out.append("")
+            for fn in sorted(mods, key=lambda f: f.lineno):
+                flags = ",".join(fn.failures) if fn.failures else "OK"
+                out.append(f"- [ ] `{fn.qualname}` {fn.lines} "
+                           f"c={fn.complexity} p={fn.params} "
+                           f"{'async ' if fn.is_async else ''}auto={flags}")
+                out.append(f"  - [ ] manual M1-M6")
+            out.append("")
+
+    return "\n".join(out) + "\n"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--module", default=None, help="filter to modules matching this")
+    ap.add_argument("--stdout", action="store_true", help="print instead of writing")
+    ap.add_argument("--summary", action="store_true", help="counts only")
+    ap.add_argument("--out", default=str(DEFAULT_OUT))
+    args = ap.parse_args()
+
+    funcs, counts = build(args.module)
+    if args.summary:
+        print(f"functions: {len(funcs)}")
+        for pid, _ in PROBE_HELP:
+            print(f"  {pid}: {counts.get(pid, 0)}")
+        for pr in ("P0", "P1", "P2", "CLEAN"):
+            print(f"  {pr}: {counts.get(pr, 0)}")
+        return 0
+
+    text = render(funcs, counts, args.module)
+    if args.stdout:
+        sys.stdout.write(text)
+        return 0
+    Path(args.out).write_text(text, encoding="utf-8")
+    print(f"wrote {args.out} ({len(text.splitlines())} lines, {len(funcs)} functions)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

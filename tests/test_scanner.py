@@ -208,6 +208,26 @@ class TestScannerPrecision:
     def test_real_os_call_is_still_flagged(self):
         assert "os_system" in self._categories(_OS_CALL + chr(10))
 
+    def test_detector_string_is_not_an_os_call(self):
+        """A match inside a string body is a detector, not a call.
+
+        `os.system(` can only be invoked when the identifier is code. What sits
+        inside a string literal is a detector: this scanner's rule table, an
+        auditor searching for the pattern (tools/mesh_function_preflight.py),
+        or a sample like this one.
+        """
+        src = 'found = ' + chr(34) + _OS_CALL + chr(34) + ' in line' + chr(10)
+        assert "os_system" not in self._categories(src)
+
+    def test_os_call_inside_an_fstring_is_still_flagged(self):
+        """The exemption must not create a hole: an f-string expression is code.
+
+        From 3.12 those are tokenized as FSTRING_* plus ordinary NAME/OP
+        tokens rather than one STRING span, so the call stays visible.
+        """
+        src = 'def f(x):' + chr(10) + '    return f"{' + _OS_CALL[:10] + 'x)}"' + chr(10)
+        assert "os_system" in self._categories(src)
+
     def test_emoji_in_a_string_literal_is_still_flagged(self):
         src = 'icon = "' + chr(0x1F4CA) + '"' + chr(10)
         assert "unicode_emoji" in self._categories(src)

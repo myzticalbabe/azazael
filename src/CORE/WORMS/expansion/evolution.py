@@ -39,8 +39,75 @@ except ImportError:
     def register_worm(**kw):
         return lambda cls: cls
 
+try:
+    from CORE.WORMS.expansion.fencing import fence_for
+    _FENCING_OK = True
+except ImportError:
+    _FENCING_OK = False
+    def fence_for(name):  # type: ignore[misc]
+        """Fallback fence that never rejects, for a partially-imported tree."""
+        class _NoFence:
+            def claim(self):
+                return 0
+
+            def commit(self, token, apply):
+                return True, apply()
+        return _NoFence()
+
 
 import uuid as _uuid
+
+
+# ===========================================================================
+# WIRE-OR-CUT VERDICT (ROADMAP 3.2/3.3)
+# ===========================================================================
+# An engine that LOOKS wired but is reached by nothing is exercised by nothing:
+# it cannot regress visibly and it cannot be trusted in production. The verdict
+# is recorded as DATA so it is enforced rather than documented, and so that a
+# half-wiring fails a test instead of passing unnoticed.
+#
+# Derivation: a name is SERVED when a production driver under `scripts/`
+# actually reaches it (import + call), not merely when it exists. Everything
+# else is declared UNSERVED with the reason it stays.
+#
+# `tests/test_v2_engines.py::TestWireOrCutVerdict` asserts that no UNSERVED
+# name is referenced by `scripts/evolution_cycle.py` — so the honest ways to
+# silence a failure are to wire the engine and move it to SERVED_ENGINES, or to
+# stop referencing it. Adding a name to SERVED_ENGINES without wiring it just
+# moves the lie.
+SERVED_ENGINES: tuple[str, ...] = (
+    "Genome",              # scripts/evolution_cycle.py + run_training_orchestrator.py
+    "EvolutionEngine",     # scripts/evolution_cycle.py (the GA arm + the checkpoint drill)
+    "GeneticOptimizer",    # scripts/run_training_orchestrator.py (cma/de wrappers)
+    "SepCMAES",            # scripts/evolution_cycle.py (second arm)
+    "DifferentialEvolution",  # scripts/evolution_cycle.py (third arm)
+    "TPESurrogate",        # scripts/evolution_cycle.py (the surrogate/seed arm)
+)
+
+UNSERVED_ENGINES: dict[str, str] = {
+    "MAPElites": (
+        "Implemented and tested (tests/test_v2_engines.py) but no production "
+        "driver instantiates it: the cycle's arms are GA, SepCMAES, DE and the "
+        "TPE surrogate. Quality-diversity needs a behaviour descriptor the "
+        "fitness function does not produce, so wiring it before that exists "
+        "would put a second, unexplained optimiser on the same objective."
+    ),
+    "IslandModel": (
+        "Implemented and tested (tests/test_v2_engines.py) but unreferenced by "
+        "production: it is a wrapper for running SEVERAL engines with migration, "
+        "and the cycle already runs its arms as an explicit per-cycle choice. "
+        "Wiring it would duplicate arm scheduling rather than extend it."
+    ),
+}
+
+# The NSGA-III / MOEA-D helpers are unreferenced too, and saying so keeps the
+# audit honest instead of quietly counting them as part of a wired engine.
+UNSERVED_HELPERS: dict[str, str] = {
+    "generate_reference_points": "NSGA-III reference directions; only exercised by tests.",
+    "hypervolume_2d": "Pareto hypervolume metric; only exercised by tests.",
+    "moead_weights": "MOEA/D weight vectors; no production caller and no test.",
+    "tchebycheff": "MOEA/D scalarisation; no production caller and no test.",
+}
 
 
 @dataclass
@@ -97,6 +164,9 @@ class EvolutionEngine:
                  eta_c: float = 15.0, eta_m: float = 20.0):
         self._lock = threading.Lock()
         self._memory_store = memory_store  # Injected store (None = use global, "none" = disabled)
+        # Why the store could not be resolved, so an unpersisted checkpoint can
+        # say why instead of returning a success-shaped dict. See _get_store.
+        self._store_error = ""
         self.population_size = population_size
         self.elitism_count = elitism_count
         self.crossover_rate = crossover_rate
@@ -362,6 +432,13 @@ class EvolutionEngine:
             current_pop = list(self._population)
             gene_bounds = dict(self._gene_bounds)
 
+        # Mint a fencing token BEFORE doing any work. The write below presents
+        # this token; a round that lost the race cannot commit it. Two engines
+        # with separate locks still cannot clobber each other, because the fence
+        # is process-wide rather than per-instance.
+        fence = fence_for("evolution.population")
+        token = fence.claim()
+
         # -- Elitism: keep best N genomes unchanged --
         new_population = current_pop[:self.elitism_count]
 
@@ -390,10 +467,22 @@ class EvolutionEngine:
             )
             new_population.append(child)
 
-        # Replace old population
-        with self._lock:
+        # Replace old population.
+        #
+        # The snapshot above is taken outside this lock, so a concurrent evolve()
+        # can finish first. A hand-written re-check would fix that case but would
+        # have to be remembered by every future author; the token makes the stale
+        # write unrepresentable instead. See CORE.WORMS.expansion.fencing.
+        def _publish() -> int:
             self._population = new_population[:self.population_size]
             self._generation += 1
+            return self._generation
+
+        with self._lock:
+            committed, _gen = fence.commit(token, _publish)
+        if not committed:
+            return {"error": "Generation superseded by a concurrent evolve",
+                    "generation": self._generation}
 
         # Persist generation
         self._persist_generation()
@@ -564,16 +653,31 @@ class EvolutionEngine:
 
         Thread-safe under 3.14t free-threading — all imports at module level.
         Uses sys.modules lookup pattern from Lesson #29 to avoid import deadlocks.
+
+        RETRIES a transient failure. A single swallowed exception used to be
+        indistinguishable from "there is no store": `save_checkpoint` returned a
+        success-shaped dict while persisting nothing, and the only symptom was a
+        restore drill that silently kept its OLD state. One transient SQLite
+        lock meant a permanently missing checkpoint. On success `_store_error`
+        is cleared; on final failure it records WHY, so the caller can report it.
         """
+        self._store_error = ""
         if self._memory_store == "none":
             return None
         if self._memory_store is not None:
             return self._memory_store
         if _LOCAL_MEMORY_OK and _get_memory_store_global is not None:
-            try:
-                return _get_memory_store_global()
-            except Exception:
-                return None
+            last_exc = None
+            for attempt in range(3):
+                try:
+                    return _get_memory_store_global()
+                except Exception as exc:      # transient lock / busy timeout
+                    last_exc = exc
+                    if attempt < 2:
+                        time.sleep(0.05 * (attempt + 1))
+            self._store_error = ("memory store unavailable after 3 attempts: "
+                                 "%s" % last_exc)
+            return None
         return None
 
     def _persist_generation(self) -> None:
@@ -720,9 +824,16 @@ class EvolutionEngine:
                 "free_threaded": True,
             }
 
-        # Persist to LocalMemoryStore
+        # Persist to LocalMemoryStore. `persisted` is reported honestly: a
+        # checkpoint that lives only in this return value is not a checkpoint,
+        # and a caller running a restore drill needs to be told so.
         store = self._get_store()
-        if store is not None:
+        persisted = False
+        persist_error = ""
+        if store is None:
+            persist_error = (self._store_error
+                             or "no memory store available (state not persisted)")
+        else:
             try:
                 store.record_event(
                     source="EvolutionEngine",
@@ -731,8 +842,9 @@ class EvolutionEngine:
                     severity="info",
                     tags=["evolution", "checkpoint", f"gen_{self._generation}"],
                 )
-            except Exception:
-                pass
+                persisted = True
+            except Exception as exc:
+                persist_error = "record_event failed: %s" % exc
 
         return {
             "checkpoint_label": checkpoint["label"],
@@ -740,6 +852,8 @@ class EvolutionEngine:
             "population_count": len(checkpoint["population"]),
             "best_fitness": checkpoint["best_genome"]["fitness"] if checkpoint["best_genome"] else 0.0,
             "saved_at": checkpoint["saved_at"],
+            "persisted": persisted,
+            "persist_error": persist_error,
         }
 
     def load_checkpoint(self, label: (str | None) = None) -> bool:
@@ -755,9 +869,20 @@ class EvolutionEngine:
         if store is None:
             return False
         try:
-            events = store.search_memories(
-                "checkpoint_saved", source="EvolutionEngine", limit=50
-            )
+            # `query_memories` filters by source+event_type and returns NEWEST
+            # FIRST. `search_memories` ranks by full-text relevance, so on a
+            # store holding 59 stale `test_checkpoint` rows the checkpoint that
+            # was just written could fall outside the window and a STALE one
+            # would win — a restore drill that silently kept the old state.
+            if hasattr(store, "query_memories"):
+                events = store.query_memories(
+                    source="EvolutionEngine", event_type="checkpoint_saved",
+                    limit=200,
+                )
+            else:
+                events = store.search_memories(
+                    "checkpoint_saved", source="EvolutionEngine", limit=200
+                )
             if not events:
                 return False
 
@@ -1014,7 +1139,10 @@ class EvolutionEngine:
                         if best_in_obj not in new_population:
                             # Place in a unique slot, working backwards from end
                             slot = -(obj_idx + 1)
-                            if slot not in elite_slots:
+                            # A negative slot needs at least obj_idx + 1 members.
+                            # With more objectives than survivors this used to
+                            # raise IndexError out of the whole optimization.
+                            if slot not in elite_slots and len(new_population) > obj_idx:
                                 new_population[slot] = best_in_obj
                                 elite_slots.add(slot)
 
@@ -1320,10 +1448,19 @@ class SepCMAES:
 
     VERSION = "2.0.0"
 
-    def __init__(self, gene_bounds: dict[str, tuple[float, float]],
+    def __init__(self, gene_bounds: (dict | None) = None,
                  sigma0_frac: float = 0.3, popsize: int = 0,
                  seed_genes: (dict | None) = None,
                  rng: (Any | None) = None):
+        # Standby default (bare instantiation by the cluster runner): the
+        # canonical 4-D RL genes. Real optimizations pass explicit bounds
+        # via optimize_cma(); optimize() still requires a fitness_fn.
+        gene_bounds = gene_bounds or {
+            "learning_rate": (1e-5, 1e-1),
+            "epsilon": (0.0, 0.5),
+            "discount": (0.9, 0.999),
+            "clip_range": (0.05, 0.4),
+        }
         import math as _m
         self._lock = threading.Lock()
         self.names = list(gene_bounds.keys())
@@ -1532,8 +1669,13 @@ class MAPElites:
 
     VERSION = "2.0.0"
 
-    def __init__(self, behavior_dims: list[tuple[str, int, float, float]],
+    def __init__(self, behavior_dims: (list | None) = None,
                  gene_bounds: (dict | None) = None):
+        # Standby default (bare instantiation by the cluster runner): 2-D
+        # 4x4 QD grid matching the wallboard convention. Real searches pass
+        # explicit dims.
+        behavior_dims = behavior_dims or [("novelty", 4, 0.0, 1.0),
+                                          ("quality", 4, 0.0, 1.0)]
         self._lock = threading.Lock()
         self.dims = [(n, int(b), float(lo), float(hi)) for n, b, lo, hi in behavior_dims]
         self.gene_bounds = dict(gene_bounds or {})
@@ -1682,16 +1824,21 @@ def hypervolume_2d(pareto_pts: list[tuple[float, float]],
 def moead_weights(pop_size: int, n_obj: int) -> list[tuple]:
     """Uniform simplex weights for MOEA/D (Tchebycheff). Falls back to
     Dirichlet-ish random weights when Das-Dennis under/overshoots."""
-    import math as _m
     p = 1
     while True:
         pts = generate_reference_points(n_obj, p)
         if len(pts) >= pop_size:
             return pts[:pop_size]
         if p > 12:
-            return [(random.random(), 1.0 - random.random())[:n_obj]
-                    if n_obj == 2 else
-                    tuple(random.random() for _ in range(n_obj))
+            # One draw per pair. `(a, 1 - a)` sums to 1, which is exactly what the
+            # Tchebycheff scalarization assumes; drawing twice made the weights sum
+            # to something arbitrary, silently mis-scaling every comparison. The
+            # old `[:n_obj]` also sliced a 2-tuple on a path only reached for
+            # n_obj == 2, which hid the mismatch.
+            if n_obj == 2:
+                return [(a, 1.0 - a)
+                        for a in (random.random() for _ in range(pop_size))]
+            return [tuple(random.random() for _ in range(n_obj))
                     for _ in range(pop_size)]
         p += 1
 
