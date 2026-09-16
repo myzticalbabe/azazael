@@ -206,6 +206,70 @@ _Q_MIN, _Q_MAX = -1.0, 1.0
 _Q_VARIANCE: Dict[str, float] = {}  # key -> running variance of Q-values
 _Q_UPDATE_COUNTS: Dict[str, int] = {}  # key -> number of updates seen
 
+# ── EVIDENCE SHRINKAGE (playing-field TODO G1) ──────────────────────
+# The EMA reaches its clip in ~22 pulls at the default adaptive alpha
+# (variance 0.25 -> alpha 0.4), and the mesh's live keys carry 21-31 pulls.
+# 29 of 76 keys were measured pinned at |q| > 0.999999, up from 3 at the
+# previous save: the table saturates inside a single process lifetime, and
+# `q_order()` -- which decides which worm a nature runs first -- was sorting
+# primarily on that plateau. Ranking on `q * n/(n+K)` instead restores a
+# strict ordering, because the factor scales with evidence: a 4-pull -1.0
+# key contributes -0.33, a 40-pull -0.9 key contributes -0.75. Shrinkage is
+# the standard Laplace/Jeffreys answer to "how much do I trust a mean from n
+# observations", and it makes the pull count load-bearing rather than
+# advisory -- so losing one is visibly a lost RANKING, not a silent 0.0.
+_Q_SHRINK_K = 8.0
+
+# ── ROUTE WEIGHT BOUNDS (playing-field TODO G5) ─────────────────────
+# `route()` and `get_route_usage()` each hardcoded `clamp(base_w * (1+q),
+# 0.1, 5.0)`. With q in [-1, 1] the factor is [0, 2], so for the only
+# registered base_w (1.0) the reachable ceiling is 2.0 -- the declared 5.0
+# was unreachable and both docstrings advertised a 50x range the arithmetic
+# cannot visit. The bounds now live here and the ceiling is DERIVED from the
+# inputs (see `route_weight_range`), so the two cannot drift apart again.
+_ROUTE_WEIGHT_MIN = 0.1
+_ROUTE_WEIGHT_MAX = 5.0
+
+# ── FIXTURE DECLARATION (playing-field TODO G3) ─────────────────────
+# The live store at ~/.azazael/spine_state.json carries synthetic keys in the
+# SAME namespaces as production worms (mesh:BadWorm, mesh:W0..W3, mesh:T0..T2,
+# immune:W0/W1, learning:W0/W1). tests/conftest.py documents the cause -- a
+# test run against a live 76-record homeostat replaced it with fixtures -- and
+# the fixture fixed the mechanism for FUTURE runs. Nothing purged the damage,
+# and nothing distinguishes a fabricated key from a measured one, so the
+# question "is my brainstem trustworthy" is unanswerable after the fact.
+#
+# Declared, not inferred. A name-shape heuristic is the wrong tool here: a
+# first cut flagged diagnostic:ChaosWorm and learning:EvolutionEngine on the
+# grounds that they had no pull count -- both are real worms (expansion/chaos.py,
+# expansion/evolution.py). And a "not in WORM_REGISTRY" probe over-flags 48
+# keys, because synapse:/route:/aoa_route:/monitor: key on EDGES and SITES, not
+# worms. Importing the registry here is also forbidden (this module is
+# stdlib-only by design). So the set is explicit, and a test asserts every
+# declared name still appears under tests/ -- a declaration with no fixture
+# behind it is rot.
+_FIXTURE_WORMS = frozenset({
+    "BadWorm", "W", "W0", "W1", "W2", "W3", "T0", "T1", "T2",
+    "ReflexTestWorm",
+})
+
+# The subset the suite STILL creates -- i.e. the ones a reader can go and look
+# at. Kept separate from the purge set on purpose, because the two are
+# different claims and only one of them is checkable:
+#
+#   `_FIXTURE_WORMS`          -> "purge these" (an act)
+#   `_FIXTURE_WORMS_WITNESSED` -> "the test suite creates these" (a fact)
+#
+# The difference is the interesting part. `mesh:T0/T1/T2` sit in the live store
+# at +/-0.9217 -- an exact mirrored triple, which is a fixture signature if
+# anything is -- and grep finds no test or script that creates them: their
+# fixture is gone and the keys are ORPHANED SYNTHETIC DATA, which is precisely
+# the state `audit_state()` exists to expose. Asserting that every declared
+# name has a living fixture would have failed, and forcing the list to match
+# the grep would have left the orphans in the brainstem. Test-backing is
+# asserted for the witnessed subset only.
+_FIXTURE_WORMS_WITNESSED = frozenset({"BadWorm", "ReflexTestWorm"})
+
 # ── REFLEX ARC + SCARS (autonomic response, no worm in the loop) ────
 # record_outcome() reacts INSTANTLY to consecutive failures: demotes
 # priority, inflates cooldown, and opens a "scar" that demotes the worm
@@ -670,6 +734,69 @@ def _merge_quarantine(remote: Any) -> int:
 # ── PERSISTENCE (restart-safe, gossip-ready) ────────────────────────
 _STATE_FILE = Path.home() / ".azazael" / "spine_state.json"
 
+# Persisted-payload schema version, deliberately separate from __version__
+# (the module version, which moves for reasons unrelated to the file format).
+# This field did not exist, and the payload's "version" carried __version__ and
+# stayed "1.0.0" across the change that ADDED `q_update_counts` to the saved
+# shape. So there was no hook to hang a backfill on, and rows written before
+# the field existed restored as "never measured" -- including the two routes
+# with the most successes in the system (`route:windows>windows` at 27,
+# `route:windows>g_archive` at 32, both reporting a pull count of zero).
+# A schema change with no backfill does not lose data; it RELABELS it, which is
+# worse, because the consumer cannot tell the label is a lie.
+_STATE_SCHEMA_VERSION = 2
+
+
+def _migrate_state(payload: Any) -> Dict[str, Any]:
+    """Bring a payload up to `_STATE_SCHEMA_VERSION` in place; return a report.
+
+    The v1 -> v2 repair is a **re-derivation, not a guess**: a key can carry a
+    Q-weight with no pull count for exactly one reason -- it was written before
+    the count table existed -- and its evidence was never actually lost. It sat
+    in the homeostat the whole time as ``successes + failures``. So the
+    migration reads the payload's own ledger and materialises the missing
+    counts, which makes it idempotent and makes the next save converge the
+    file to the new schema.
+
+    A key with neither a count nor a ledger record is left alone: it has no
+    evidence to recover and is reported as such by `audit_state()` rather than
+    invented here.
+    """
+    report: Dict[str, Any] = {"to_version": _STATE_SCHEMA_VERSION,
+                              "from_version": 0, "previous_schema": False,
+                              "backfilled": []}
+    if not isinstance(payload, dict):
+        return report
+    try:
+        report["from_version"] = int(payload.get("schema_version") or 0)
+    except (TypeError, ValueError):
+        report["from_version"] = 0
+    report["previous_schema"] = report["from_version"] < _STATE_SCHEMA_VERSION
+    qw = payload.get("q_weights")
+    if not isinstance(qw, dict):
+        return report
+    counts = payload.get("q_update_counts")
+    if not isinstance(counts, dict):
+        counts = {}
+        payload["q_update_counts"] = counts
+    homeo = payload.get("homeostat")
+    if not isinstance(homeo, dict):
+        homeo = {}
+    for key in qw:
+        if key in counts:
+            continue
+        rec = homeo.get(key)
+        if not isinstance(rec, dict):
+            continue
+        try:
+            n = int(rec.get("successes") or 0) + int(rec.get("failures") or 0)
+        except (TypeError, ValueError):
+            continue
+        if n > 0:
+            counts[key] = n
+            report["backfilled"].append({"key": str(key), "evidence": n})
+    return report
+
 # Load-once guard: separate cron/script processes used to start empty and
 # save() OVERWROTE each other's ledgers (found 2026-09-14: state file held
 # 3 keys after 60+ samples fed across runs). First write in a process with
@@ -690,6 +817,11 @@ def _merge_disk_state() -> None:
         payload = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
     except Exception:
         return
+    # Read-path migration. Both readers (`load_spine_state` is the other) run
+    # it, so the file is interpreted identically whichever entry point touches
+    # it first; the repair is the re-derivation of missing evidence from the
+    # payload's own ledger, which makes it idempotent.
+    _migrate_state(payload)
     try:
         with _HOMEOSTAT_LOCK:
             for k, v in (payload.get("homeostat") or {}).items():
@@ -855,18 +987,32 @@ def record_spine_event(kind: str, detail: Dict[str, Any]) -> None:
 def record_outcome(nature: str, worm: str, success: bool,
                    duration_ms: float = 0.0,
                    error: Optional[str] = None,
-                   reward: Optional[float] = None) -> None:
+                   reward: Optional[float] = None,
+                   delta: Optional[float] = None) -> None:
     """Record one worm execution outcome. Called from NatureCluster.execute().
 
     Thread-safe, never raises (feedback must not break execution).
 
-    `reward` (optional) is the SIGNED reinforcement magnitude for the
-    brainstem. When omitted the signal is the boolean sign (+1/-1) — the
-    original behaviour. Callers that computed a real learning signal (a TD
-    error, a shaped reward) pass it here so **magnitude survives the
-    hand-off**: the ledger counters still key off `success` (a boolean is
-    the right unit for fail-rate statistics), but the Q-table learns from
-    the caller's magnitude instead of a sign bit.
+    TWO LEARNING-SIGNAL CONVENTIONS, and the caller must pick the right one:
+
+    * ``reward`` -- a signed TARGET. ``q += alpha * (reward - q)``, i.e. q
+      converges toward it. This is what the boolean path means by +1/-1, and
+      it is the default when neither argument is given.
+    * ``delta`` -- a signed DELTA (a TD error). ``q += alpha * delta``, the
+      textbook tabular update. This is what a TD learner actually computes.
+
+    They are the same update only when ``reward == q + delta``. This docstring
+    previously said "callers that computed a real learning signal (a TD error,
+    a shaped reward) pass it here so magnitude survives the hand-off" -- i.e.
+    it promised DELTA semantics while the implementation applied TARGET
+    semantics. Both call sites read a different half of that sentence and
+    neither was wrong about the half it read; the result was a table that was
+    saturated at the clip for the sign callers (22 pulls at alpha 0.4) and
+    flat for the TD caller (31 synapse edges collapsed to 3 distinct values).
+    Naming the delta operation explicitly is what makes the two separable.
+
+    The ledger counters still key off ``success`` (a boolean is the right unit
+    for fail-rate statistics) regardless of which learning signal is used.
     """
     _ensure_loaded()
     key = f"{nature}:{worm}"
@@ -900,17 +1046,34 @@ def record_outcome(nature: str, worm: str, success: bool,
             # sign (success ~ +1, failure ~ -1); callers that computed a real
             # reward (e.g. a TD error) supply a signed magnitude instead, so
             # the Q-table is not quantised to one bit.
-            if reward is None:
-                signal = 1.0 if success else -1.0
-            else:
+            if delta is not None:
+                # DELTA convention: q accumulates the error, so a NaN/garbage
+                # delta is a NO-OP rather than a sign fallback -- falling back
+                # to `success` here would silently substitute a target for the
+                # delta the caller asked for, which is the exact confusion
+                # this parameter exists to remove.
                 try:
-                    signal = max(_Q_MIN, min(_Q_MAX, float(reward)))
+                    signal = max(_Q_MIN, min(_Q_MAX, float(delta)))
                 except (TypeError, ValueError):
+                    signal = 0.0
+                rec["last_reward"] = round(signal, 4)
+                rec["last_signal_kind"] = "delta"
+                # _reinforce_q_delta takes that key's Q stripe itself
+                # (homeostat stripe is held here, canonical H→Q order).
+                _reinforce_q_delta(key, signal)
+            else:
+                if reward is None:
                     signal = 1.0 if success else -1.0
-            rec["last_reward"] = round(signal, 4)
-            # _reinforce_q takes that key's Q stripe itself (homeostat
-            # stripe is held here, which is the canonical H→Q order).
-            _reinforce_q(key, signal)
+                else:
+                    try:
+                        signal = max(_Q_MIN, min(_Q_MAX, float(reward)))
+                    except (TypeError, ValueError):
+                        signal = 1.0 if success else -1.0
+                rec["last_reward"] = round(signal, 4)
+                rec["last_signal_kind"] = "target"
+                # _reinforce_q takes that key's Q stripe itself
+                # (homeostat stripe is held here, canonical H→Q order).
+                _reinforce_q(key, signal)
             # Capture everything the reflex needs so the reflex can run
             # OUTSIDE this stripe. F9: the reflex used to do a
             # `from CORE.worm_registry import WORM_REGISTRY` — an import and
@@ -1028,8 +1191,52 @@ def _reinforce_q(key: str, reward: float) -> None:
         _reinforce_q_unlocked(key, reward)
 
 
+def _reinforce_q_delta(key: str, delta: float) -> None:
+    """DELTA form of ``_reinforce_q``. Takes ``_q_stripe(key)`` itself.
+
+    Same lock discipline by construction (F9): both call sites acquire that
+    key's Q stripe, so neither can address a key under the wrong lock.
+    Homeostat→Q remains the canonical acquisition order.
+    """
+    with _q_stripe(key):
+        _reinforce_q_delta_unlocked(key, delta)
+
+
 def _reinforce_q_unlocked(key: str, reward: float) -> None:
-    """Body of ``_reinforce_q``. Caller must hold ``_q_stripe(key)``."""
+    """TARGET form. Body of ``_reinforce_q``. Caller holds ``_q_stripe(key)``.
+
+    ``q += alpha * (reward - q)`` -- ``reward`` is the value q converges
+    TOWARD, which is what the boolean (+1/-1) callers mean by it.
+    """
+    _q_observe_unlocked(key, signal=reward - _Q_WEIGHTS.get(key, 0.0))
+
+
+def _reinforce_q_delta_unlocked(key: str, delta: float) -> None:
+    """DELTA form. Body of ``_reinforce_q_delta``. Caller holds the stripe.
+
+    ``q += alpha * delta`` -- the textbook tabular update for a TD learner,
+    where ``delta`` IS the TD error and the edge accumulates it.
+
+    Kept as its own function rather than a flag on the target form so the two
+    conventions cannot be confused at a call site: a reader sees which is
+    meant. They are the same update only when ``target == q + delta``, so
+    using one where the other belongs is not a small unit error -- it changes
+    what the stored number means. That confusion was live: 31 synapse edges
+    had collapsed to 3 distinct values (25 of them at exactly +0.0909)
+    because a TD delta was being applied as a target.
+    """
+    _q_observe_unlocked(key, signal=delta)
+
+
+def _q_observe_unlocked(key: str, signal: float) -> None:
+    """Shared kernel: adaptive alpha, Welford variance, clipped step.
+
+    ``signal`` is the amount to move q by, scaled by alpha. Both public forms
+    reduce to this, so variance tracking and the clip cannot diverge between
+    them. Variance is measured over the signal actually applied, which for
+    the target form is exactly the EMA error the original implementation
+    tracked -- the pre-existing adaptive-alpha behaviour is unchanged.
+    """
     q = _Q_WEIGHTS.get(key, 0.0)
     n = _Q_UPDATE_COUNTS.get(key, 0)
     # Adaptive alpha: scale by sqrt of running variance
@@ -1039,10 +1246,9 @@ def _reinforce_q_unlocked(key: str, reward: float) -> None:
     # Update running variance via Welford's online algorithm
     n += 1
     _Q_UPDATE_COUNTS[key] = n
-    delta = reward - q
     old_var = _Q_VARIANCE.get(key, 0.0)
-    _Q_VARIANCE[key] = old_var + (delta * delta - old_var) / n
-    q = q + adaptive_alpha * (reward - q)
+    _Q_VARIANCE[key] = old_var + (signal * signal - old_var) / n
+    q = q + adaptive_alpha * signal
     _Q_WEIGHTS[key] = max(_Q_MIN, min(_Q_MAX, q))
 
 
@@ -1143,6 +1349,313 @@ def get_q_update_counts() -> Dict[str, int]:
         return dict(_Q_UPDATE_COUNTS)
 
 
+def _evidence_unlocked(key: str) -> int:
+    """Observations behind a key's Q value. Caller holds the ledger barrier.
+
+    Presence in ``_Q_UPDATE_COUNTS`` is the marker, not a non-zero value: a
+    key that has been explicitly invalidated sits at 0 evidence ON PURPOSE and
+    must not fall through to the homeostat totals, or invalidation would
+    resurrect exactly the evidence it discounted.
+
+    The homeostat fallback exists for the migration case (playing-field TODO
+    G4): ``_Q_UPDATE_COUNTS`` was added to the persisted schema with no
+    backfill, so six live keys -- including the two routes with the most
+    successes in the system (`route:windows>windows` at 27, `g_archive` at 32)
+    -- report a pull count of zero. Their evidence was never lost, it was
+    RELABELLED, and ``successes + failures`` is the re-derivation.
+    """
+    n = _Q_UPDATE_COUNTS.get(key)
+    if n is not None:
+        try:
+            return max(0, int(n))
+        except (TypeError, ValueError):
+            return 0
+    rec = _HOMEOSTAT.get(key)
+    if isinstance(rec, dict):
+        try:
+            return max(0, int(rec.get("successes") or 0)
+                       + int(rec.get("failures") or 0))
+        except (TypeError, ValueError):
+            return 0
+    return 0
+
+
+def q_effective_from(q: float, n: int, k: float = _Q_SHRINK_K) -> float:
+    """Shrink a Q-value by its evidence: ``q * n / (n + k)``.
+
+    Pure and public so a caller can score a hypothetical without touching the
+    table (and so the shrinkage can be unit-tested without a live spine).
+    """
+    try:
+        qf = float(q)
+        nf = max(0, int(n))
+    except (TypeError, ValueError):
+        return 0.0
+    if nf <= 0:
+        return 0.0
+    kk = max(1e-9, float(k))
+    return max(_Q_MIN, min(_Q_MAX, qf * (nf / (nf + kk))))
+
+
+def get_q_effective() -> Dict[str, float]:
+    """Evidence-shrunk Q-table, keyed "nature:worm". Copy. Thread-safe.
+
+    This -- not ``get_q_weights()`` -- is the table to RANK on. Raw weights
+    are a plateau at the clip for the mesh's busiest keys, so an ordering
+    built on them is decided by the scar band and by input order rather than
+    by reliability. The raw table is still exposed and documented as raw.
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        return {k: q_effective_from(v, _evidence_unlocked(k))
+                for k, v in _Q_WEIGHTS.items()}
+
+
+def q_effective(nature: str, worm: str) -> float:
+    """Evidence-shrunk Q for one key. 0.0 when it has no evidence."""
+    _ensure_loaded()
+    key = f"{nature}:{worm}"
+    with _HOMEOSTAT_LOCK:
+        return q_effective_from(_Q_WEIGHTS.get(key, 0.0),
+                                _evidence_unlocked(key))
+
+
+def get_q_evidence(key: str) -> Dict[str, Any]:
+    """How much evidence stands behind one key, and where it came from.
+
+    ``source`` is ``measured`` (a real pull count), ``homeostat`` (a
+    re-derivation -- the key predates the count table), or ``none``.
+    """
+    _ensure_loaded()
+    key = str(key or "")
+    with _HOMEOSTAT_LOCK:
+        raw = _Q_UPDATE_COUNTS.get(key)
+        n = _evidence_unlocked(key)
+        source = ("measured" if raw is not None
+                  else ("homeostat" if n else "none"))
+        return {"key": key, "evidence": n, "source": source,
+                "q": float(_Q_WEIGHTS.get(key, 0.0)),
+                "q_effective": q_effective_from(_Q_WEIGHTS.get(key, 0.0), n),
+                "count_recorded": raw is not None}
+
+
+def invalidate_q(key: str, reason: str = "", factor: float = 0.5) -> Dict[str, Any]:
+    """Discount half the evidence behind a key, because its cause was fixed.
+
+    Playing-field TODO G2. The brainstem has no forgetting curve, so a penalty
+    outlives its cause and cannot be cleared by the key that carries it: a
+    deprioritised route is never re-chosen, so it never produces the successes
+    that would raise it. The live store still carries `route:windows>mesh` at
+    the floor on 27/27 failures and `route:windows>wsl2-ubuntu` below neutral
+    on 30 failures at exactly 8000ms -- a TIMEOUT signature belonging to the
+    sync path-doubling bug fixed in commit 56c15679. Nothing told the ledger.
+
+    ``get_q_updates()``'s docstring already names this failure mode for
+    *never-tried* arms and solves it with a pull count. That is one half. The
+    *tried-then-broken-then-fixed* arm is the other, and it is strictly worse:
+    a never-tried arm scores neutral 0 and only needs a chance, while a fixed
+    arm carries a negative score that is exactly as stale as the bug, and no
+    quota helps it -- it needs its HISTORY invalidated, not its turn.
+
+    Halving (not zeroing) is deliberate: the old evidence was true when it was
+    recorded, so it is discounted rather than erased, and the key stays in the
+    count table so `_evidence_unlocked`'s homeostat fallback cannot undo this.
+    Journalled so `revert_policy()` can see it and the monitors can count it.
+    """
+    _ensure_loaded()
+    key = str(key or "")
+    if not key:
+        return {"success": False, "error": "key required"}
+    try:
+        f = float(factor)
+    except (TypeError, ValueError):
+        return {"success": False, "error": "factor must be numeric"}
+    f = max(0.0, min(1.0, f))
+    with _HOMEOSTAT_LOCK:
+        before_n = _evidence_unlocked(key)
+        before_q = float(_Q_WEIGHTS.get(key, 0.0))
+        before_eff = q_effective_from(before_q, before_n)
+        new_n = int(before_n * f) if before_n else 0
+        _Q_UPDATE_COUNTS[key] = new_n
+        after_eff = q_effective_from(before_q, new_n)
+    try:
+        journal_policy("invalidate", "q_invalidated", key, {
+            "evidence": {"from": before_n, "to": new_n},
+            "q_effective": {"from": round(before_eff, 6),
+                            "to": round(after_eff, 6)},
+            "reason": str(reason or "")[:120],
+        })
+    except Exception:
+        pass
+    try:
+        record_spine_event("q_invalidated", {
+            "key": key, "evidence_from": before_n, "evidence_to": new_n,
+            "reason": str(reason or "")[:120],
+        })
+    except Exception:
+        pass
+    return {"success": True, "key": key, "evidence_from": before_n,
+            "evidence_to": new_n, "q": round(before_q, 6),
+            "q_effective_from": round(before_eff, 6),
+            "q_effective_to": round(after_eff, 6),
+            "reason": str(reason or "")[:120]}
+
+
+def _is_fixture_key(key: str) -> bool:
+    """True when a key addresses a declared synthetic worm."""
+    nature, _, worm = str(key or "").partition(":")
+    # A composite name (an edge or a site) is never a bare fixture worm, even
+    # when its shape looks like one -- synapse:"W0>W1" is a real edge over
+    # synthetic endpoints, and treating it as a fixture would delete data.
+    if any(ch in worm for ch in ">/"):
+        return False
+    return worm in _FIXTURE_WORMS
+
+
+def audit_state() -> Dict[str, Any]:
+    """Classify every Q key by provenance. The trustworthiness is a number.
+
+    Playing-field TODO G3. `tests/conftest.py` reasons correctly about
+    CONTAINMENT -- "a test must not be able to damage the machine it is
+    testing" -- and then stops at the boundary. Containment prevents NEW
+    damage; it says nothing about EXISTING damage, and it leaves the evidence
+    of past damage indistinguishable from production data. The missing third
+    leg is provenance.
+
+    Classes: ``measured`` (has a pull count), ``bootstrapped`` (no count but
+    real homeostat evidence -- the G4 migration), ``unwitnessed`` (no count
+    and no ledger record -- nothing ever observed it), and ``fabricated``
+    (a declared fixture name; counted separately as well, because a fixture
+    that somehow accumulated a count is still a fixture).
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        qw = dict(_Q_WEIGHTS)
+        counts = dict(_Q_UPDATE_COUNTS)
+        homeo = {k: dict(v) for k, v in _HOMEOSTAT.items()}
+    buckets: Dict[str, List[str]] = {
+        "measured": [], "bootstrapped": [], "unwitnessed": [],
+        "fabricated": [],
+    }
+    for key in qw:
+        if _is_fixture_key(key):
+            buckets["fabricated"].append(key)
+        elif key in counts:
+            buckets["measured"].append(key)
+        elif key in homeo:
+            buckets["bootstrapped"].append(key)
+        else:
+            buckets["unwitnessed"].append(key)
+    total = len(qw) or 1
+    return {
+        "keys": len(qw),
+        "buckets": {k: sorted(v) for k, v in buckets.items()},
+        "counts": {k: len(v) for k, v in buckets.items()},
+        "fabricated_share": round(len(buckets["fabricated"]) / total, 4),
+        "trustworthy": len(buckets["fabricated"]) == 0,
+        "clip_keys": sorted(k for k, v in qw.items() if abs(v) > 0.999999),
+    }
+
+
+def purge_fixtures() -> Dict[str, Any]:
+    """Remove declared fixture keys from every learning table. Reports what went.
+
+    Removal is reported, never silent -- the whole point of G3 is that the
+    damage was invisible. Touches Q weights, counts, variance, homeostat,
+    scars and the outcome-derived views; leaves every non-fixture key exactly
+    as it was.
+    """
+    _ensure_loaded()
+    removed: Dict[str, List[str]] = {}
+    with _HOMEOSTAT_LOCK:
+        for table, name in ((_Q_WEIGHTS, "q_weights"),
+                            (_Q_UPDATE_COUNTS, "q_update_counts"),
+                            (_Q_VARIANCE, "q_variance"),
+                            (_HOMEOSTAT, "homeostat")):
+            hit = sorted(k for k in list(table) if _is_fixture_key(k))
+            for k in hit:
+                table.pop(k, None)
+            if hit:
+                removed[name] = hit
+        with _SCAR_LOCK:
+            hit = sorted(k for k in list(_SCARS) if _is_fixture_key(k))
+            for k in hit:
+                _SCARS.pop(k, None)
+            if hit:
+                removed["scars"] = hit
+    try:
+        record_spine_event("fixtures_purged", {
+            "keys": sum(len(v) for v in removed.values()),
+            "tables": {k: len(v) for k, v in removed.items()},
+        })
+    except Exception:
+        pass
+    return {"success": True, "removed": removed,
+            "removed_count": sum(len(v) for v in removed.values())}
+
+
+def route_weight(q_effective: float, base_w: float = 1.0) -> float:
+    """The ONE place a route's effective weight is computed.
+
+    ``route()`` and ``get_route_usage()`` each carried their own copy of
+    ``clamp(base_w * (1 + q), 0.1, 5.0)``, which is how two files came to
+    advertise the same unreachable bound. Consolidated so the telemetry and
+    the router cannot disagree, and so the claim has one place to be wrong.
+
+    Expects the **evidence-shrunk** q (``q_effective_from``), not the raw EMA.
+    Route weight is a decision, and ranking a 4-pull observation against a
+    40-pull one as if they were equal claims is the same mistake that made
+    ``q_order`` sort a plateau. ``route_weight_learned`` is the callers' entry
+    point; this is the pure arithmetic behind it.
+    """
+    try:
+        bw = float(base_w)
+    except (TypeError, ValueError):
+        bw = 1.0
+    return round(max(_ROUTE_WEIGHT_MIN,
+                     min(_ROUTE_WEIGHT_MAX, bw * (1.0 + float(q_effective)))), 4)
+
+
+def route_weight_learned(src_env: str, dst_env: str,
+                        base_w: float = 1.0) -> Dict[str, Any]:
+    """Learned route weight + the evidence behind it, in one lock.
+
+    The single entry point for a router that wants to act on route learning.
+    It returns the evidence and the shrunk value alongside the weight, so the
+    decision is auditable rather than a bare float: "weight 0.67" and "weight
+    0.67 from 4 observations" are different claims, and a caller that can only
+    see the first cannot tell them apart.
+    """
+    _ensure_loaded()
+    key = f"route:{src_env}>{dst_env}"
+    with _HOMEOSTAT_LOCK:
+        q = float(_Q_WEIGHTS.get(key, 0.0))
+        n = _evidence_unlocked(key)
+        q_eff = q_effective_from(q, n)
+    return {"key": key, "q": round(q, 4), "evidence": n,
+            "q_effective": round(q_eff, 4),
+            "effective_weight": route_weight(q_eff, base_w)}
+
+
+def route_weight_range(base_w: float = 1.0) -> Dict[str, float]:
+    """The weight range that is actually REACHABLE for ``base_w``.
+
+    With q in [_Q_MIN, _Q_MAX] the factor is [0, 2], so for the only
+    registered base_w (1.0) the real ceiling is 2.0 and the declared 5.0 is
+    unreachable. Derived rather than declared so the two cannot drift: a
+    changed clip or a registered heavy route moves this automatically.
+    """
+    try:
+        bw = float(base_w)
+    except (TypeError, ValueError):
+        bw = 1.0
+    return {"base_weight": bw, "q_min": _Q_MIN, "q_max": _Q_MAX,
+            "min_reachable": route_weight(_Q_MIN, bw),
+            "max_reachable": route_weight(_Q_MAX, bw),
+            "declared_min": _ROUTE_WEIGHT_MIN,
+            "declared_max": _ROUTE_WEIGHT_MAX}
+
+
 def q_order(nature: str, worm_names: List[str]) -> List[str]:
     """Order worm names by descending Q-weight (healthy first).
 
@@ -1163,7 +1676,16 @@ def q_order(nature: str, worm_names: List[str]) -> List[str]:
         with _SCAR_LOCK:  # reflex writes scars outside the ledger barrier
             ranked = [(positions[n],
                        0 if f"{nature}:{n}" in _SCARS else 1,  # scar demotion band
-                       _Q_WEIGHTS.get(f"{nature}:{n}", 0.0), n)
+                       # Rank on the EVIDENCE-SHRUNK weight, not the raw one.
+                       # The raw EMA is a plateau at the clip for the busiest
+                       # keys (29 of 76 live, up from 3 at the previous save),
+                       # so ordering on it degrades to scar-band then input
+                       # order exactly where reliability matters most. The
+                       # factor scales with evidence, so a 4-pull -1.0 key
+                       # ranks above a 40-pull -0.9 key -- which is the honest
+                       # reading of "I have barely tested this".
+                       q_effective_from(_Q_WEIGHTS.get(f"{nature}:{n}", 0.0),
+                                        _evidence_unlocked(f"{nature}:{n}")), n)
                       for n in worm_names]
     ranked.sort(key=lambda t: (-t[1], -t[2], t[0]))
     return [n for _, _, _, n in ranked]
@@ -1186,20 +1708,30 @@ def get_route_usage() -> Dict[str, Dict[str, Any]]:
         homeo = {k: dict(v) for k, v in _HOMEOSTAT.items()
                  if str(k).startswith("route:")}
         q_weights = dict(_Q_WEIGHTS)
+        q_counts = dict(_Q_UPDATE_COUNTS)
     out: Dict[str, Dict[str, Any]] = {}
     for key, rec in homeo.items():
         route = str(key)[len("route:"):]
         s = int(rec.get("successes") or 0)
         f = int(rec.get("failures") or 0)
         q = float(q_weights.get(key, 0.0))
+        # Same evidence rule as the brainstem: a recorded count wins, else the
+        # homeostat totals stand in (the migration case -- the two routes with
+        # the most successes in the system had NO recorded count).
+        n = int(q_counts[key]) if key in q_counts else (s + f)
         out[route] = {
             "successes": s, "failures": f, "total": s + f,
             "q": round(q, 4),
             "last_at": rec.get("last_at", ""),
             "last_ms": rec.get("last_ms", 0.0),
-            # Same formula MeshRouterWorm.route() applies, so the telemetry
-            # reports the weight routing would actually use.
-            "effective_weight": round(max(0.1, min(5.0, 1.0 * (1.0 + q))), 4),
+            # One shared formula (`route_weight`), so the telemetry cannot
+            # drift from what MeshRouterWorm.route() actually applies. This
+            # docstring used to claim that while carrying its own copy that
+            # hardcoded an unreachable 5.0 ceiling.
+            "effective_weight": route_weight(q_effective_from(q, n)),
+            # The same weight from 4 pulls and from 40 are not the same claim.
+            "evidence": n,
+            "q_effective": round(q_effective_from(q, n), 4),
         }
     return out
 
@@ -1261,6 +1793,9 @@ def save_spine_state() -> Dict[str, Any]:
             fabric_state = {k: dict(v) for k, v in _FABRIC_STATE.items()}
         payload = {
             "version": __version__,
+            # The FILE FORMAT version, so a future schema change has somewhere
+            # to declare itself and somewhere for a backfill to hang.
+            "schema_version": _STATE_SCHEMA_VERSION,
             "saved_at": _now_iso(),
             "spine_map": spine_map,
             "spine_events": spine_events,
@@ -1303,6 +1838,19 @@ def load_spine_state() -> Dict[str, Any]:
         if not _STATE_FILE.exists():
             return {"restored": False, "reason": "no_state_file"}
         payload = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
+        migration = _migrate_state(payload)
+        if migration.get("backfilled"):
+            # Visible, not silent: a migration that repairs evidence should say
+            # so, or the next reader has no way to know the counts it sees were
+            # derived rather than observed.
+            try:
+                record_spine_event("state_migrated", {
+                    "from_version": migration.get("from_version"),
+                    "to_version": migration.get("to_version"),
+                    "backfilled": len(migration.get("backfilled") or []),
+                })
+            except Exception:
+                pass
         spine_map = payload.get("spine_map") or {}
         spine_events = payload.get("spine_events") or []
         homeostat = payload.get("homeostat") or {}

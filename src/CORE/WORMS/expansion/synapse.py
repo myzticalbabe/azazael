@@ -10,7 +10,16 @@ SynapseWeightWorm, MoEDispatcherWorm, SSMSequenceWorm, ActivationRouterWorm
   passed `abs(reward)*100` as a fake duration, so the "batch Q-learning" claim
   was a 1-bit sign update. It is now a genuine TD(0) update whose lr-scaled
   error reaches the brainstem with its magnitude intact
-  (spine_registry.record_outcome(..., reward=...)).
+  (spine_registry.record_outcome(..., delta=...)).
+  2026-09-16 correction: the magnitude reached the brainstem, but through the
+  wrong OPERATION. `reward=` is applied as a TARGET (`q += a*(reward - q)`),
+  whereas a TD error is a DELTA (`q += a*error`). Every edge was therefore
+  dragged toward `lr*td_error` rather than accumulating it, and the live table
+  showed 31 edges collapsed to 3 distinct values (25 at exactly +0.0909). The
+  parameter is now named for the operation it implements.
+- G3 (2026-09-16): `MoEDispatcherWorm.feedback()` deliberately still uses
+  `reward=`. An outcome quality in [-1, 1] is a target -- "this expert is
+  good" -- not an increment, so the target form is the correct one there.
 - G1: `MoEDispatcherWorm` advertised three experts, none of which it could
   resolve, and `dispatch()` ranked a static table. It now resolves experts
   against the real modules, ranks them by the shared Q-table, and its
@@ -75,9 +84,19 @@ class SynapseWeightWorm:
 
         `V(s)` is the edge's current Q-weight, `V(s')` is `next_value`
         (0.0 for a terminal/ungrounded edge), and the lr-scaled error is
-        passed to the brainstem as `reward=` so its MAGNITUDE survives —
-        `success` stays boolean because the ledger's fail-rate statistics
-        need a boolean. Returns the post-update edge weight.
+        passed to the brainstem as **`delta=`**, which implements the textbook
+        `Q += alpha * TD-error`. `success` stays boolean because the ledger's
+        fail-rate statistics need a boolean. Returns the post-update edge
+        weight.
+
+        This used to pass the error as `reward=`, which the brainstem applies
+        as a TARGET ("q converges toward this") rather than a DELTA ("add this
+        to q"). The result was not a small unit error: q was dragged toward
+        `lr * td_error` on every update instead of accumulating the error, so
+        the edge never kept what it had learned. The live table showed the
+        consequence precisely -- 31 synapse edges collapsed to 3 distinct
+        values, 25 of them at exactly +0.0909 -- and a routing table that
+        cannot produce more than three distinct values cannot route.
         """
         key = f"{src}>{dst}"
         current = self.weight(src, dst)
@@ -90,9 +109,13 @@ class SynapseWeightWorm:
             self._last_td_error = round(td_error, 6)
         if self._spine is not None:
             try:
+                # `delta`, not `reward`: this is a TD error, and the brainstem's
+                # two conventions are separate operations (Q += a*d vs
+                # Q += a*(target - Q)). Passing a delta as a target made every
+                # edge converge to lr*td_error instead of accumulating it.
                 self._spine.record_outcome("synapse", key, td_error > 0.0,
                                            float(duration_ms),
-                                           reward=self._lr * td_error)
+                                           delta=self._lr * td_error)
             except Exception:
                 pass  # learning is best-effort; callers must not fail on it
         return self.weight(src, dst)
@@ -231,6 +254,41 @@ class MoEDispatcherWorm:
         """Convenience: the highest-ranked resolvable expert instance."""
         ranked = self.dispatch(prompt_len, needs_vision).get("experts") or []
         return self.get_expert(ranked[0]) if ranked else None
+
+    def dispatch_cascade(self, task, run_fn, threshold: float = 0.65,
+                         prompt_len: int = 100,
+                         needs_vision: bool = False) -> dict[str, Any]:
+        """Walk ranked experts, escalating while confidence < threshold.
+
+        run_fn(expert_instance, task) -> (answer, confidence).
+        Each attempt feeds feedback() (+1 ok / -1 fail) so the Q-table
+        learns which expert handles what. Returns answer + trail.
+        """
+        ranked = self.dispatch(prompt_len, needs_vision).get("experts") or []
+        trail = []
+        for name in ranked:
+            inst = self.get_expert(name)
+            if inst is None:
+                continue
+            try:
+                answer, conf = run_fn(inst, task)
+                conf = 0.0 if conf is None else float(conf)
+            except Exception as e:
+                self.feedback(name, -1.0)
+                trail.append({"expert": name, "error": str(e)[:100]})
+                continue
+            ok = conf >= float(threshold)
+            self.feedback(name, 1.0 if ok else -0.5)
+            trail.append({"expert": name, "confidence": round(conf, 3),
+                          "accepted": ok})
+            if ok:
+                return {"success": True, "answer": answer, "via": name,
+                        "escalations": len(trail) - 1, "trail": trail}
+        if not trail:
+            return {"success": False, "error": "no_resolvable_experts"}
+        return {"success": True, "answer": answer, "via": name,
+                "escalations": len(trail) - 1, "trail": trail,
+                "note": "best_effort_last_expert"}
 
     def feedback(self, expert: str, reward: float) -> None:
         """Report an expert outcome; updates the local score AND the Q-table."""

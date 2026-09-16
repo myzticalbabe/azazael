@@ -175,28 +175,62 @@ class MeshRouterWorm:
         The learning signal lives in CORE.spine_registry's Q-table under
         nature="route", worm="<src>><dst>": every record_route_result()
         call is auto-reinforced by the brainstem (success +1 / failure -1,
-        EMA). route() multiplies the static registered weight by
-        (1 + q) clamped to [0.1, 5.0] — routes that keep failing get
-        starved, reliable routes get promoted. Fails open to the static
-        weight when the spine ledger is unavailable.
+        EMA). route() multiplies the static registered weight by (1 + q).
+        Fails open to the static weight when the spine ledger is unavailable.
+
+        The bound is applied by `spine_registry.route_weight`, not here, and
+        the q it receives is the EVIDENCE-SHRUNK value. This docstring used to
+        promise a [0.1, 5.0] range, which is unreachable: with q in [-1, 1] the
+        factor is [0, 2], so for the only registered base_w (1.0) the honest
+        ceiling is 2.0. The advertised 50x range was a claim about capacity the
+        arithmetic could not deliver -- and it was duplicated in
+        `get_route_usage`, which is how two files agreed on the same wrong
+        number. Both now call the one implementation.
         """
         with self._lock:
             key = self._route_key(self._env, dst_env)
             w = self._routes.get(key, {"weight": 1.0})
         base_w = float(w.get("weight", 1.0))
-        q = 0.0
+        learned: Dict[str, Any] = {"q": 0.0, "evidence": 0,
+                                   "q_effective": 0.0,
+                                   "effective_weight": base_w}
         try:
             from CORE import spine_registry as _spine
-            q = _spine.get_q_weight("route", f"{self._env}>{dst_env}")
+            learned = _spine.route_weight_learned(self._env, dst_env, base_w)
         except Exception:
-            q = 0.0
-        eff_w = round(max(0.1, min(5.0, base_w * (1.0 + q))), 3)
+            pass  # fail open on the static weight; routing must not fail on learning
         return {
             "success": True, "src": self._env, "dst": dst_env,
-            "weight": base_w, "effective_weight": eff_w, "q": round(q, 3),
+            "weight": base_w,
+            "effective_weight": learned.get("effective_weight", base_w),
+            "q": learned.get("q", 0.0),
+            "q_effective": learned.get("q_effective", 0.0),
+            "evidence": learned.get("evidence", 0),
             "hops": 1 if is_known_env(dst_env) else -1,
             "payload_keys": list(payload.keys())[:10],
         }
+
+    def invalidate_route(self, dst_env: str, reason: str = "") -> Dict[str, Any]:
+        """Discount the learned penalty on one route, because its cause is fixed.
+
+        A deprioritised route is never re-chosen, so it never produces the
+        successes that would raise it: a penalty outlives its cause and is
+        self-sustaining. This is the explicit act that breaks the loop, and it
+        belongs at the ROUTER level rather than in a repair script, because the
+        learned state is the router's and a standalone scheduled script has no
+        import path to `spine_registry` to reach it.
+
+        Called by whoever fixed the fault. Halves evidence rather than zeroing
+        it: `route:windows>wsl2-ubuntu` sat below neutral on 30 failures at
+        exactly 8000ms -- a timeout signature belonging to the sync path bug
+        fixed in commit 56c15679 -- and that history was true when recorded.
+        """
+        try:
+            from CORE import spine_registry as _spine
+            return _spine.invalidate_q(f"route:{self._env}>{dst_env}",
+                                       reason or f"route repair: {dst_env}")
+        except Exception as exc:
+            return {"success": False, "error": str(exc)[:120]}
 
     def record_route_result(self, dst_env: str, success: bool,
                             duration_ms: float = 0.0) -> None:
@@ -207,6 +241,30 @@ class MeshRouterWorm:
                                   bool(success), float(duration_ms))
         except Exception:
             pass  # learning is best-effort; routing must not fail on it
+
+    def send(self, dst_env: str, payload: dict,
+             timeout: float = 10.0) -> dict[str, Any]:
+        """Score via route(), deliver bytes via MeshTransport, learn outcome.
+
+        This is the data-plane counterpart to route(): same scoring dict
+        plus delivery proof. The Q-table learns real successes/failures.
+        """
+        import time as _time
+        scored = self.route(dst_env, payload)
+        t0 = _time.time()
+        try:
+            from CORE.mesh_transport import MeshTransport
+            res = MeshTransport(self._env).send(dst_env, payload,
+                                                timeout=timeout)
+        except Exception as e:
+            res = {"success": False, "error": str(e)[:120]}
+        self.record_route_result(
+            dst_env, bool(res.get("success")),
+            duration_ms=(_time.time() - t0) * 1000.0)
+        scored.update({"delivered": bool(res.get("success")),
+                       "receipt": res.get("receipt"),
+                       "error": res.get("error")})
+        return scored
 
     def get_routing_table(self) -> dict:
         with self._lock:
@@ -340,10 +398,36 @@ class PartitionHealerWorm:
 
     def detect(self) -> dict[str, Any]:
         import os
+        import subprocess
         issues = []
         if os.name == 'nt':
             if not os.path.exists(r'G:\source-of-truth'):
                 issues.append("g_unmounted")
+            # WSL distro liveness (best-effort, 10s cap)
+            try:
+                r = subprocess.run(["wsl", "-l", "-v"], capture_output=True,
+                                   text=True, timeout=10)
+                out = (r.stdout or "") + (r.stderr or "")
+                if "kali-linux" in out and "Running" not in out:
+                    issues.append("kali_stopped")
+                if "Ubuntu" in out and "Running" not in out:
+                    issues.append("ubuntu_stopped")
+            except Exception:
+                issues.append("wsl_probe_failed")
+            # transport peer ports (mesh data plane)
+            try:
+                import socket as _sock
+                for _env, _port in (("wsl2-kali", 18212), ("wsl2-ubuntu", 18211)):
+                    _s = _sock.socket()
+                    _s.settimeout(1)
+                    try:
+                        _s.connect(("127.0.0.1", _port))
+                    except Exception:
+                        issues.append(f"peer_down:{_env}")
+                    finally:
+                        _s.close()
+            except Exception:
+                pass
         else:
             if not os.path.exists('/mnt/g'):
                 issues.append("g_unmounted")
@@ -357,13 +441,44 @@ class PartitionHealerWorm:
             return {"success": True, "partitioned": bool(issues),
                     "issues": issues, "events": len(self._partitions)}
 
-    def heal(self) -> dict[str, Any]:
+    @staticmethod
+    def _registry_execute(worm_name: str, config: dict) -> dict[str, Any]:
+        """Default DLQ replay driver: instantiate from WORM_REGISTRY, execute."""
+        try:
+            from CORE.worm_registry import WORM_REGISTRY
+            info = WORM_REGISTRY.get(worm_name) or {}
+            cls = info.get("class")
+            if cls is None:
+                return {"success": False,
+                        "error": f"unregistered worm {worm_name}"}
+            inst = cls()
+            res = inst.execute() if hasattr(inst, "execute") else {}
+            if not isinstance(res, dict):
+                res = {"success": True, "result": res}
+            res.setdefault("success", True)
+            return res
+        except Exception as e:
+            return {"success": False, "error": str(e)[:200]}
+
+    def heal(self, execute_fn=None) -> dict[str, Any]:
+        """Really heal: replay the DeadLetterQueue, then clear partitions.
+
+        Returns actual replay counts — no more fake 'queued'.
+        """
+        try:
+            from CORE.WORMS.dead_letter_queue import DeadLetterQueue
+            dlq = DeadLetterQueue()
+            results = dlq.replay_all(execute_fn or self._registry_execute)
+            ok = sum(1 for r in results if r.get("success"))
+        except Exception as e:
+            return {"success": False, "error": str(e)[:200]}
         with self._lock:
             n = len(self._partitions)
             self._partitions.clear()
             publish(self, self.PROVIDER, self._STATE_ATTRS)
             return {"success": True, "replayed_partitions": n,
-                    "dlq_replay": "queued"}
+                    "dlq_attempted": len(results), "dlq_ok": ok,
+                    "dlq_failed": len(results) - ok}
 
     def execute(self) -> dict[str, Any]:
         d = self.detect()
