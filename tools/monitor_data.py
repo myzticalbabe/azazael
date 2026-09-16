@@ -200,7 +200,8 @@ def collect_spine_data() -> Dict[str, Any]:
     d: Dict[str, Any] = {
         "_source": "CORE.spine_registry",
         "_error": None,
-        "q_weights": {}, "q_updates": {}, "scars": {}, "homeostat": {},
+        "q_weights": {}, "q_effective": {}, "q_updates": {},
+        "scars": {}, "homeostat": {},
         "spine_map": {}, "events": [], "policy_journal": [],
         "quarantine_votes": {}, "fabric": {}, "fabric_record": {},
         "clock": {}, "route_usage": {}, "anomaly_meta": {},
@@ -209,6 +210,10 @@ def collect_spine_data() -> Dict[str, Any]:
         from CORE import spine_registry as sp
 
         d["q_weights"] = _safe(sp.get_q_weights, {})
+        # The table the mesh actually RANKS on. The raw EMA is a plateau at the
+        # clip for the busiest keys, so a card that shows only the raw values
+        # renders a tie where the system has a decision.
+        d["q_effective"] = _safe(sp.get_q_effective, {})
         d["q_updates"] = _safe(sp.get_q_update_counts, {})
         d["scars"] = _safe(sp.get_scars, {})
         d["homeostat"] = _safe(sp.get_homeostat_view, {})
@@ -602,6 +607,13 @@ def q_summary(spine: Dict[str, Any]) -> Dict[str, Any]:
                   and abs(num(weights.get(k)) or 0.0) >= 1e-9]
     settled = [k for k in pulled if abs(num(weights.get(k)) or 0.0) < 1e-9]
     vals = [num(v) or 0.0 for v in weights.values()]
+    # `top` is ranked on the EVIDENCE-SHRUNK value, which is what q_order sorts
+    # by. Ranking the card on the raw weight showed a plateau as a ranking: 29
+    # of 76 live keys sit within 1e-5 of the clip, so the old "top" list was
+    # decided by dict order. `top_raw` is kept for the contrast, and `clip_keys`
+    # is the measured size of that plateau.
+    eff = spine.get("q_effective") or {}
+    ranked = [(k, num(eff.get(k, weights.get(k))) or 0.0) for k in weights]
     return {
         "keys": len(weights), "count_keys": len(counts),
         "measured": len(pulled), "starved": len(starved),
@@ -610,10 +622,13 @@ def q_summary(spine: Dict[str, Any]) -> Dict[str, Any]:
         "positive": sum(1 for v in vals if v > 0),
         "negative": sum(1 for v in vals if v < 0),
         "mean": (sum(vals) / len(vals)) if vals else None,
+        "clip_keys": sorted(k for k, v in weights.items()
+                            if abs(num(v) or 0.0) > 0.999999),
         "starved_keys": sorted(starved)[:10],
         "unmeasured_keys": sorted(unmeasured)[:10],
-        "top": sorted(((k, num(v) or 0.0) for k, v in weights.items()),
-                      key=lambda kv: -kv[1])[:6],
+        "top": sorted(ranked, key=lambda kv: -kv[1])[:6],
+        "top_raw": sorted(((k, num(v) or 0.0) for k, v in weights.items()),
+                          key=lambda kv: -kv[1])[:6],
     }
 
 

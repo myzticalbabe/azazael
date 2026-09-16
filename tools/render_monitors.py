@@ -266,6 +266,13 @@ def render_azazael(spine: dict, registry: dict, facts: dict | None = None,
     # proven-neutral one, and a starved arm stayed invisible forever.
     starved = q["starved"]
     starve_state = "ok" if not starved else "warn"  # same rule as the RL monitor
+    # Ranked on the evidence-shrunk value, i.e. the ordering q_order uses.
+    # The raw table is a plateau at the clip for the busiest keys, so a card
+    # built on it showed dict order where the mesh has a decision. The clipped
+    # COUNT is shown beside it, because a plateau is a property of the table
+    # and not of any one row.
+    clipped = len(q.get("clip_keys") or [])
+    clip_state = "ok" if clipped * 4 <= max(1, q["keys"]) else "warn"
     top_html = "".join(
         f'<div class="row"><span class="label" style="color:#bc8cff">{k}</span>'
         f'<span class="value">{v:+.4f}</span></div>' for k, v in q["top"][:5])
@@ -279,7 +286,9 @@ def render_azazael(spine: dict, registry: dict, facts: dict | None = None,
         f'<div class="row"><span class="label">Settled neutral</span><span class="value">{q["settled_neutral"]}</span></div>'
         f'<div class="row"><span class="label">Positive / Negative</span><span class="value">{q["positive"]} / {q["negative"]}</span></div>'
         f'<div class="row"><span class="label">Mean</span><span class="value">{fmt(q["mean"])}</span></div>'
-        f'<br>{top_html}'))
+        f'<div class="row"><span class="label">At the clip (raw plateau)</span><span class="value" style="color:{semantic(clip_state)[0]}">{clipped}</span></div>'
+        f'<br><div class="sub">Ranked by evidence-shrunk q &middot; q &middot; n/(n+8)</div>'
+        f'{top_html}'))
     i += 1
 
     # Cross-env quarantine ledger (audit finding #1). The old card printed

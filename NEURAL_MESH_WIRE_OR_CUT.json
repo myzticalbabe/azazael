@@ -1,13 +1,13 @@
 {
- "generated_at": "2026-09-16T02:04:26.470267",
+ "generated_at": "2026-09-16T02:25:35.383209",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 0,
-  "pending": 114
+  "pending": 117
  },
- "total": 114,
+ "total": 117,
  "declared": {
   "NeuralPipeline:NeuralPipeline.__repr__": {
    "module": "NeuralPipeline",
@@ -415,10 +415,17 @@
    "status": "pending",
    "reason": ""
   },
+  "federated:FederatedAggregatorWorm.run_round": {
+   "module": "federated",
+   "qualname": "FederatedAggregatorWorm.run_round",
+   "line": 183,
+   "status": "pending",
+   "reason": ""
+  },
   "federated:RewardShaperMeshWorm.local_score": {
    "module": "federated",
    "qualname": "RewardShaperMeshWorm.local_score",
-   "line": 313,
+   "line": 372,
    "status": "pending",
    "reason": ""
   },
@@ -447,6 +454,13 @@
    "module": "learning_versioner",
    "qualname": "ModelVersioner.compare_versions",
    "line": 112,
+   "status": "pending",
+   "reason": ""
+  },
+  "mesh:MeshRouterWorm.invalidate_route": {
+   "module": "mesh",
+   "qualname": "MeshRouterWorm.invalidate_route",
+   "line": 213,
    "status": "pending",
    "reason": ""
   },
@@ -656,14 +670,21 @@
   "spine_registry:_iso_or": {
    "module": "spine_registry",
    "qualname": "_iso_or",
-   "line": 1967,
+   "line": 2515,
+   "status": "pending",
+   "reason": ""
+  },
+  "synapse:MoEDispatcherWorm.dispatch_cascade": {
+   "module": "synapse",
+   "qualname": "MoEDispatcherWorm.dispatch_cascade",
+   "line": 258,
    "status": "pending",
    "reason": ""
   },
   "synapse:MoEDispatcherWorm.top_expert": {
    "module": "synapse",
    "qualname": "MoEDispatcherWorm.top_expert",
-   "line": 230,
+   "line": 253,
    "status": "pending",
    "reason": ""
   },

@@ -341,3 +341,61 @@ Tests: `tests/test_mesh_audit_insights.py` (21).
 5. Verify the verifier - tests written to demonstrate a fix encode the author's model of the bug, not an independent check of it.
 
 Reasoning traces (13) recorded for training: `data/training/neural_mesh_function_audit_2026-09-16.jsonl`.
+
+## 13. The Brainstem Playing Field (2026-09-16)
+
+Audited `CORE/spine_registry.py` (the Q brainstem), `expansion/mesh.py` (route learning) and
+`expansion/synapse.py` (the TD edge learner) by reading the **live artifacts** rather than the code's
+claims about them. Six findings, tracked in `NEURAL_MESH_BRAINSTEM_TODO.md`.
+
+### The measurements that reframed the subsystem
+
+| Quantity | Value |
+|---|---|
+| Q-weights live | 76 |
+| Keys pinned at the clip (\|q\| > 0.999999) | **29 of 76 = 38 %** |
+| Keys pinned at the clip in the *previous* save | **3** |
+| `synapse:` edges / distinct values among them | **31 / 3** (25 at exactly +0.0909) |
+| Keys carrying a weight with no pull count | 6 (incl. the two routes with the most successes) |
+| Fixture keys in the live store | 14 |
+
+The 3 -> 29 delta is the finding in one number: saturation is not a steady state, it is a **trend**,
+and it completed inside a single process lifetime.
+
+### The four insights worth keeping
+
+1. **An adaptive parameter whose target state is absorbing selects for the inputs it was built to
+   handle, then destroys their signal.** Adaptive alpha raises responsiveness for high-variance keys,
+   which drives them to the clip sooner -- and the clip is a state in which a key cannot express the
+   variance that selected the alpha. The feature and the defect are the same mechanism.
+2. **A penalty outlives its cause, and cannot be cleared by the thing carrying it.** A deprioritised
+   route is never re-chosen, so it never produces the successes that would raise it. The module's own
+   docstring already solved this for *never-tried* arms (a pull count) and could not see the
+   *tried-then-broken-then-fixed* arm, which is strictly worse: it carries a negative score exactly
+   as stale as the bug, and no quota helps it because it needs its history invalidated, not a turn.
+3. **One parameter, two incompatible conventions.** `reward` was applied as a TARGET and documented as
+   a DELTA, so sign callers saturated at the clip while the TD caller collapsed to `lr*td_error`.
+   The table was simultaneously saturated and flat, and both call sites read a different half of the
+   same sentence -- each locally correct. Naming the operation (`delta=`) is the fix; reshaping the
+   number is not.
+4. **A stored value and the evidence behind it must travel together.** "weight 0.667" and "weight
+   0.667 from 4 observations" are different claims. So are "pulls 0 because unmeasured" and "pulls 0
+   because a migration erased it". Shrinkage `q * n/(n+K)` is the compact form: a number that cannot
+   be read without its evidence.
+
+### Method lessons
+
+1. For any subsystem with a persisted table, measure the table first and read the code second -- the
+   table accumulates the consequences of every past decision; the code shows only the current one.
+2. A test that passes on the broken code is not a test of the fix. The G6 regression test passed
+   pre-fix (distinctness is satisfied by the defect); only deliberately reverting the fix surfaced
+   that magnitude, not distinctness, is the discriminator (0.4000 vs 0.0364 -- an 11x underestimate).
+3. Containment is not cleanup. `conftest.py` prevents the NEXT clobber correctly and says nothing
+   about the existing damage, which then stays indistinguishable from production data. The missing
+   third leg is provenance, and it has to be *declared*, not inferred: a name-shape heuristic flagged
+   two real worms, and a registry-membership probe over-flagged 48 keys that are edges and sites.
+4. When two files carry the same formula, neither copy is wrong on its own -- the pair is. The
+   duplicated `clamp(..., 5.0)` is how two docstrings came to advertise a range the arithmetic
+   cannot reach.
+
+Reasoning traces (10) recorded for training: `data/training/neural_mesh_brainstem_2026-09-16.jsonl`.
