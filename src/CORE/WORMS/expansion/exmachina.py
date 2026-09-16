@@ -1706,6 +1706,13 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     for r in source:
         if not isinstance(r, dict):
             continue
+        if not r.get("gene"):
+            # A row carrying NO gene is a no-op cycle, not a trial: it cannot
+            # speak about selection, and counting it as a non-inert trial
+            # biased the share DOWN. On the live ledger the same data read
+            # 0.5862 over every row (68/116) and 0.7640 over the rows that
+            # actually trialled a gene (68/89).
+            continue
         f, b = r.get("fitness"), r.get("baseline_fitness")
         if f is None or b is None:
             continue
@@ -1906,8 +1913,17 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
         strength = 1.0 if p is None else max(0.0, 1.0 - min(1.0, float(p) / 0.05))
         fg = out["inert_share"] * strength
         out["free_growth"] = round(min(1.0, max(0.0, fg)), 4)
-        out["verdict"] = ("free growth" if out["free_growth"] >= 0.35
-                          else ("drift" if out["free_growth"] >= 0.15
+        # The bands MIRROR the producer's actuator thresholds
+        # (proteus_hooks.MORPH_FREE_GROWTH_PAUSE / MORPH_DRIFT_BAND). The tier
+        # is deliberately loadable as a bare directory — it cannot always
+        # import the producer — so the numbers are repeated here and pinned by
+        # TestFreeGrowthMirrorsTheProducer, which requires this literal to
+        # appear in this function's source. The tier DISPLAYS the verdict; the
+        # actuator ACTS on it, so a drift here would be silent.
+        _pause_band = 0.35      # == proteus_hooks.MORPH_FREE_GROWTH_PAUSE
+        _drift_band = 0.15      # == proteus_hooks.MORPH_DRIFT_BAND
+        out["verdict"] = ("free growth" if out["free_growth"] >= _pause_band
+                          else ("drift" if out["free_growth"] >= _drift_band
                                 else "selection active"))
     return out
 

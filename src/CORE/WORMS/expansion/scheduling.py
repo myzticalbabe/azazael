@@ -224,6 +224,12 @@ class ScheduledTrainingWorm:
         reward within 2% means nothing left to learn. Returns reason or None.
         Read-only; fails open (None) on any error.
         """
+        if not self.config.record_to_memory:
+            # The plateau signal is read from `training_run_complete` rows,
+            # which execute() only writes when record_to_memory is on. With
+            # recording off there is no history to compare, so any skip
+            # would be based on rows this config never produced.
+            return None
         try:
             import json as _json
             store = self._get_store()
@@ -242,6 +248,14 @@ class ScheduledTrainingWorm:
                         return None
                 datas.append(d if isinstance(d, dict) else {})
             a, b = datas[0], datas[1]
+            # A plateau is only evidence about the config that produced it.
+            # Comparing the newest two rows regardless of the requested
+            # episodes made a run with a different config skip on evidence
+            # from an unrelated one (e.g. `train --episodes 5` declining
+            # because two 50-episode runs converged).
+            if (a.get("episodes") != self.config.n_episodes
+                    or b.get("episodes") != self.config.n_episodes):
+                return None
             if a.get("records") != b.get("records"):
                 return None
             ra, rb = float(a.get("avg_reward", 0) or 0), float(b.get("avg_reward", 0) or 0)
@@ -268,7 +282,10 @@ class ScheduledTrainingWorm:
         skip_reason = self._plateau_skip_reason()
         if skip_reason:
             print(f"[train] {run_id} SKIPPED ({skip_reason})", flush=True)
-            return TrainingRun(
+            # A skip is still a run. Record it in history so the operator
+            # (and get_status().total_runs) can see that scheduled training
+            # ran and deliberately declined to retrain.
+            _skipped_run = TrainingRun(
                 run_id=run_id, started_at=started_at,
                 completed_at=datetime.now().isoformat(),
                 duration_ms=round((time.perf_counter() - start) * 1000, 2),
@@ -277,6 +294,10 @@ class ScheduledTrainingWorm:
                 success=False, error=None,
                 skipped=True, skip_reason=skip_reason,
             )
+            self._run_history.append(_skipped_run)
+            if len(self._run_history) > 50:
+                self._run_history = self._run_history[-50:]
+            return _skipped_run
 
         _synthetic = False  # bound before try: exception paths below read it
         try:

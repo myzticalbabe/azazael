@@ -209,10 +209,35 @@ class DreamingModule:
                 if not self._scenario_memory:
                     scenarios = []
                 else:
-                    scenarios = random.sample(
-                        self._scenario_memory,
-                        min(scenario_count, len(self._scenario_memory)),
-                    )
+                    # G12: Temporal discounting — recent scenarios get higher weight
+                    # G9: Curriculum learning — sort by difficulty (error severity)
+                    age_weights = []
+                    for i, s in enumerate(self._scenario_memory):
+                        age_frac = i / max(1, len(self._scenario_memory))
+                        recency = 0.5 + 0.5 * age_frac  # recent = higher weight
+                        severity_boost = 1.5 if s.get("severity") == "error" else 1.0
+                        age_weights.append(recency * severity_boost)
+                    total_w = sum(age_weights) or 1.0
+                    probs = [w / total_w for w in age_weights]
+                    indices = []
+                    n = min(scenario_count, len(self._scenario_memory))
+                    # Weighted sampling without replacement
+                    available = list(range(len(self._scenario_memory)))
+                    for _ in range(n):
+                        if not available:
+                            break
+                        avail_probs = [probs[i] for i in available]
+                        p_sum = sum(avail_probs) or 1.0
+                        r = random.random() * p_sum
+                        cum = 0.0
+                        chosen_idx = 0
+                        for j, idx in enumerate(available):
+                            cum += avail_probs[j]
+                            if cum >= r:
+                                chosen_idx = j
+                                break
+                        indices.append(available.pop(chosen_idx))
+                    scenarios = [self._scenario_memory[i] for i in indices]
                     scenarios = self._anchor_error_neighbors(scenarios)
 
             # Build state sequence from scenarios

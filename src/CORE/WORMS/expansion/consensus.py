@@ -13,6 +13,25 @@ from datetime import datetime
 from typing import Any
 from collections import Counter
 
+# Fabric operational state (audit 2026-09-15, finding #7): votes, elected
+# leader + term and model-fork history used to die with the instance.
+try:
+    from CORE.WORMS.expansion.fabric_state import (
+        hydrate, publish, cap_list, cap_map,
+    )
+except ImportError:  # pragma: no cover - defensive
+    def hydrate(instance, provider, attrs):
+        return 0
+
+    def publish(instance, provider, attrs):
+        return False
+
+    def cap_list(seq, limit):
+        return seq
+
+    def cap_map(d, limit):
+        return d
+
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
@@ -23,38 +42,106 @@ except ImportError:
 @register_worm(category="consensus", priority=9, cooldown_seconds=30.0,
     description="Majority vote on VulnScanner/RaceDetector findings across envs")
 class QuorumVoterWorm:
-    """Cross-env majority voter."""
+    """Cross-env majority voter — quorum counts DISTINCT ENVS.
 
-    VERSION = "1.0.0"
+    Audit 2026-09-15: votes used to live only in this instance's dict, and
+    `RedQueenWorm.order_quarantine()` built a FRESH voter per call and cast
+    one local vote, so `decided` (count >= quorum) was unreachable — the
+    quarantine gate was dead code. The authoritative tally now lives in
+    `CORE.spine_registry.cast_quarantine_vote()`, which:
+
+      * dedups by env (an env changing its mind replaces its own vote, it
+        cannot stuff the ballot),
+      * persists and gossips, so a peer env's vote is visible in-process, and
+      * requires `quorum` DISTINCT envs — so one env still can never
+        quarantine alone (the original safety intent, preserved).
+
+    The instance dict is kept as a local mirror for callers that read
+    `tally()`, and as the fallback when the ledger is unavailable.
+    """
+
+    VERSION = "1.1.0"
+
+    PROVIDER = "QuorumVoterWorm"
+    _STATE_ATTRS = ("_votes",)
+    # finding #8: the instance mirror is unbounded in a long-lived process.
+    # (The authoritative ledger in spine_registry has its own caps.)
+    FINDINGS_MAX = 256
+    VOTES_PER_FINDING_MAX = 50
 
     def __init__(self, quorum: int = 2):
         self._quorum = quorum
         self._votes: dict[str, list] = {}
         self._lock = threading.Lock()
+        hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     def vote(self, finding_id: str, env: str, verdict: str) -> dict[str, Any]:
         with self._lock:
             box = self._votes.setdefault(finding_id, [])
             box.append({"env": env, "verdict": verdict,
                         "at": datetime.now().isoformat()})
+            cap_list(box, self.VOTES_PER_FINDING_MAX)
+            cap_map(self._votes, self.FINDINGS_MAX)
             counts = Counter(v["verdict"] for v in box)
             top, n = counts.most_common(1)[0]
-            decided = n >= self._quorum
-            return {"success": True, "finding": finding_id, "votes": len(box),
-                    "top": top, "count": n, "decided": decided,
-                    "quorum": self._quorum}
+            result = {"success": True, "finding": finding_id, "votes": len(box),
+                      "top": top, "count": n, "decided": n >= self._quorum,
+                      "quorum": self._quorum}
+
+        # Authoritative cross-env tally (distinct envs, persisted, gossiped).
+        shared = None
+        try:
+            from CORE import spine_registry as _spine
+            shared = _spine.cast_quarantine_vote(
+                finding_id, env, verdict, quorum=self._quorum)
+        except Exception:
+            shared = None
+        if shared and shared.get("success"):
+            result.update({
+                "decided": bool(shared.get("decided")),
+                "count": int(shared.get("count") or 0),
+                "top": shared.get("top") or result["top"],
+                "envs": shared.get("envs"),
+                "env_count": shared.get("env_count"),
+                "tally": shared.get("tally"),
+                "source": "spine_ledger",
+            })
+        else:
+            result["source"] = "instance"
+        publish(self, self.PROVIDER, self._STATE_ATTRS)
+        return result
 
     def tally(self, finding_id: str) -> dict:
+        """Per-env verdict tally from the shared ledger (falls back to local)."""
+        try:
+            from CORE import spine_registry as _spine
+            ledger = _spine.get_quarantine_votes(finding_id).get(str(finding_id)) or {}
+            if ledger:
+                counts: dict[str, int] = {}
+                for rec in ledger.values():
+                    counts[rec.get("verdict", "?")] = (
+                        counts.get(rec.get("verdict", "?"), 0) + 1)
+                return {"finding": finding_id, "votes": len(ledger),
+                        "tally": counts, "envs": sorted(ledger),
+                        "source": "spine_ledger"}
+        except Exception:
+            pass
         with self._lock:
             box = self._votes.get(finding_id, [])
             counts = dict(Counter(v["verdict"] for v in box))
-            return {"finding": finding_id, "votes": len(box), "tally": counts}
+            return {"finding": finding_id, "votes": len(box), "tally": counts,
+                    "source": "instance"}
 
     def execute(self) -> dict[str, Any]:
-        with self._lock:
-            return {"success": True, "method": "execute",
-                    "result": {"open_findings": len(self._votes),
-                               "quorum": self._quorum}}
+        try:
+            from CORE import spine_registry as _spine
+            open_findings = len(_spine.get_quarantine_votes())
+        except Exception:
+            with self._lock:
+                open_findings = len(self._votes)
+        return {"success": True, "method": "execute",
+                "result": {"open_findings": open_findings,
+                           "quorum": self._quorum}}
 
 
 @register_worm(category="consensus", priority=8, cooldown_seconds=30.0,
@@ -62,14 +149,19 @@ class QuorumVoterWorm:
 class LeaderElectorWorm:
     """Lightweight leader election."""
 
-    VERSION = "1.0.0"
+    VERSION = "1.1.0"
     ROLES = ("trainer", "server", "scanner", "archiver")
+    PROVIDER = "LeaderElectorWorm"
+    # `_term` matters most here: a restart that reset it to 0 would let a
+    # stale leader claim a newer term than the live one (audit finding #7).
+    _STATE_ATTRS = ("_nodes", "_leader", "_term")
 
     def __init__(self):
         self._nodes: dict[str, dict] = {}
         self._leader: dict | None = None
         self._term = 0
         self._lock = threading.Lock()
+        hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     def nominate(self, env: str, role: str, priority: int = 5) -> dict[str, Any]:
         with self._lock:
@@ -79,6 +171,7 @@ class LeaderElectorWorm:
             if self._leader is None or best[0] != self._leader.get("env"):
                 self._term += 1
             self._leader = {"env": best[0], **best[1], "term": self._term}
+            publish(self, self.PROVIDER, self._STATE_ATTRS)
             return {"success": True, "leader": self._leader,
                     "nodes": len(self._nodes)}
 
@@ -124,17 +217,25 @@ class LeaderElectorWorm:
 class SplitBrainResolverWorm:
     """Fork resolver: highest reward wins, hash breaks ties."""
 
-    VERSION = "1.0.0"
+    VERSION = "1.1.0"
+    PROVIDER = "SplitBrainResolverWorm"
+    _STATE_ATTRS = ("_forks",)
+    FORKS_MAX = 256        # finding #8
+    BRANCHES_PER_MODEL_MAX = 50
 
     def __init__(self):
         self._forks: dict[str, list] = {}
         self._lock = threading.Lock()
+        hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     def report_fork(self, model: str, env: str, reward: float, version_hash: str) -> dict[str, Any]:
         with self._lock:
             box = self._forks.setdefault(model, [])
             box.append({"env": env, "reward": reward, "hash": version_hash,
                         "at": datetime.now().isoformat()})
+            cap_list(box, self.BRANCHES_PER_MODEL_MAX)
+            cap_map(self._forks, self.FORKS_MAX)
+            publish(self, self.PROVIDER, self._STATE_ATTRS)
             return {"success": True, "model": model, "branches": len(box)}
 
     def resolve(self, model: str) -> dict[str, Any]:
@@ -145,6 +246,7 @@ class SplitBrainResolverWorm:
                         "reason": "no_forks"}
             winner = sorted(box, key=lambda b: (-b["reward"], b["hash"]))[0]
             self._forks[model] = [winner]
+            publish(self, self.PROVIDER, self._STATE_ATTRS)
             return {"success": True, "model": model, "resolved": True,
                     "winner": winner, "dropped": len(box) - 1}
 

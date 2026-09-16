@@ -36,6 +36,44 @@ except ImportError:
     _get_memory_store_global = None
 
 
+class _TracedLock:
+    """Transparent proxy around a real lock that records acquisitions.
+
+    `threading.Lock()` returns a builtin `_thread.lock` whose attributes are
+    READ-ONLY, so `lock.acquire = traced_acquire` raises
+    `AttributeError: '_thread.lock' object attribute 'acquire' is read-only`.
+    A C-level lock cannot be monkey-patched at all; wrapping it is the only way
+    to trace acquisition. The proxy delegates every lock operation and keeps
+    the wrapped lock usable as a context manager.
+    """
+
+    __slots__ = ("_lock", "_trace")
+
+    def __init__(self, lock, trace):
+        self._lock = lock
+        self._trace = trace
+
+    def acquire(self, *args, **kwargs):
+        self._trace()
+        return self._lock.acquire(*args, **kwargs)
+
+    def release(self):
+        return self._lock.release()
+
+    def locked(self):
+        return self._lock.locked()
+
+    def __enter__(self):
+        self._trace()
+        return self._lock.__enter__()
+
+    def __exit__(self, *exc_info):
+        return self._lock.__exit__(*exc_info)
+
+    def __getattr__(self, name):
+        return getattr(self._lock, name)
+
+
 @register_worm(
     category="security", priority=9, cooldown_seconds=60.0,
     description="Race condition detector — monitors shared-state access under 3.14t free-threading, flags unguarded concurrent writes"
@@ -94,22 +132,23 @@ class RaceConditionDetector:
         worm_type = type(worm_instance)
         instrumented = []
 
-        # Instrument lock acquisition (instance-level replacement)
-        if hasattr(worm_instance, '_lock') and isinstance(worm_instance._lock, threading.Lock):
-            orig_acquire = worm_instance._lock.acquire
-
-            def traced_acquire(*a, **kw):
-                trace = {
-                    "worm": worm_id,
+        # Instrument lock acquisition by wrapping the lock object.
+        # The lock itself cannot be patched (builtin read-only attributes),
+        # so the instance's `_lock` is swapped for a tracing proxy and the
+        # original is kept for exact restoration on uninstrument.
+        original_lock = getattr(worm_instance, '_lock', None)
+        if original_lock is not None and hasattr(original_lock, 'acquire'):
+            def _trace_acquire(_worm_id=worm_id):
+                self._record_access({
+                    "worm": _worm_id,
                     "action": "lock_acquire",
                     "thread": threading.current_thread().name,
                     "timestamp": datetime.now().isoformat(),
-                }
-                self._record_access(trace)
-                return orig_acquire(*a, **kw)
+                })
 
-            worm_instance._lock.acquire = traced_acquire
-            object.__setattr__(worm_instance, '_rcd_orig_acquire', orig_acquire)
+            object.__setattr__(worm_instance, '_lock',
+                               _TracedLock(original_lock, _trace_acquire))
+            object.__setattr__(worm_instance, '_rcd_orig_lock', original_lock)
             instrumented.append("_lock.acquire")
 
         # Instrument __setattr__ via class-level patch + per-instance registry
@@ -118,12 +157,15 @@ class RaceConditionDetector:
             instance_id = id(worm_instance)
             with self._lock:
                 if worm_type not in self._setattr_registry:
-                    self._install_class_tracer(worm_type)
-                self._setattr_registry[worm_type][instance_id] = {
-                    "shared_attrs": _shared_attrs,
-                    "worm_id": worm_id,
-                }
-            instrumented.append("__setattr__")
+                    if not self._install_class_tracer(worm_type):
+                        _shared_attrs = set()  # immutable type — no tracing
+                if _shared_attrs:
+                    self._setattr_registry[worm_type][instance_id] = {
+                        "shared_attrs": _shared_attrs,
+                        "worm_id": worm_id,
+                    }
+            if _shared_attrs:
+                instrumented.append("__setattr__")
 
         with self._lock:
             self._instrumented[worm_id] = instrumented
@@ -134,24 +176,29 @@ class RaceConditionDetector:
             "shared_attrs": list(_shared_attrs),
         }
 
-    def _install_class_tracer(self, worm_type: type) -> None:
+    def _install_class_tracer(self, worm_type: type) -> bool:
         """Install a class-level __setattr__ tracer for a worm type.
 
         Patches the class once; all future attribute writes to registered
         instances trigger tracing. Only called under self._lock.
-        
-        Returns silently if the type is immutable (e.g., C extensions).
-        Callers should check that _rcd_original_setattr exists on the type
-        to confirm installation succeeded.
+
+        Returns True when the tracer is installed, False for immutable types
+        (e.g. C extensions), whose attribute writes cannot be intercepted.
+
+        NOTE: `object.__setattr__` CANNOT be used on a class — it raises
+        `TypeError: can't apply this __setattr__ to type object`, which the old
+        bare `except TypeError: return` swallowed, so the tracer silently never
+        installed and attribute-write tracing produced zero events.
+        `type.__setattr__` is the correct primitive for a class object.
         """
         original_setattr = worm_type.__setattr__
         # Store original on the type for later restoration
         if not hasattr(worm_type, '_rcd_original_setattr'):
             try:
-                object.__setattr__(worm_type, '_rcd_original_setattr', original_setattr)
+                type.__setattr__(worm_type, '_rcd_original_setattr', original_setattr)
             except TypeError:
                 # C extension types don't allow attribute setting — tracing unavailable
-                return
+                return False
 
         detector_ref = self  # Capture reference for the closure
 
@@ -170,7 +217,8 @@ class RaceConditionDetector:
                 detector_ref._record_access(trace)
             return original_setattr(obj, name, value)
 
-        worm_type.__setattr__ = traced_class_setattr
+        type.__setattr__(worm_type, '__setattr__', traced_class_setattr)
+        return True
 
     def uninstrument_worm(self, worm_instance) -> dict[str, Any]:
         """Restore a worm's original methods, removing all tracing.
@@ -185,10 +233,10 @@ class RaceConditionDetector:
         worm_type = type(worm_instance)
         restored = []
 
-        # Restore lock.acquire
-        if hasattr(worm_instance, '_rcd_orig_acquire'):
-            worm_instance._lock.acquire = worm_instance._rcd_orig_acquire
-            object.__delattr__(worm_instance, '_rcd_orig_acquire')
+        # Restore the original (unwrapped) lock object
+        if hasattr(worm_instance, '_rcd_orig_lock'):
+            worm_instance._lock = worm_instance._rcd_orig_lock
+            object.__delattr__(worm_instance, '_rcd_orig_lock')
             restored.append("_lock.acquire")
 
         # Remove instance from class-level __setattr__ registry
@@ -198,7 +246,7 @@ class RaceConditionDetector:
                 # Restore original __setattr__ if no more instances are traced
                 if not self._setattr_registry[worm_type] and hasattr(worm_type, '_rcd_original_setattr'):
                     worm_type.__setattr__ = worm_type._rcd_original_setattr
-                    object.__delattr__(worm_type, '_rcd_original_setattr')
+                    type.__delattr__(worm_type, '_rcd_original_setattr')
                     del self._setattr_registry[worm_type]
                     restored.append("__setattr__")
 

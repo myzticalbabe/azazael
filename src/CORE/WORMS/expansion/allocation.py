@@ -47,6 +47,11 @@ _OUTCOME_REWARD = {
     "flat": (False, 0.3),
     "holdout_fail": (False, 1.0),
     "error": (False, 1.0),
+    # Generic aliases (2026-09-14): callers passing plain success/fail used
+    # to fall through to the (False, 1.0) default — success recorded as
+    # failure with full weight. Never again.
+    "success": (True, 1.0),
+    "fail": (False, 1.0),
 }
 
 
@@ -88,6 +93,10 @@ class ThompsonAllocator:
         self._wins: Dict[str, int] = {a: 0 for a in self.arms}
 
     # -- allocation --------------------------------------------------------
+    def select(self, k: int = 1):
+        """Alias for choose() — backward-compat for thompson_env.py."""
+        return self.choose(k)[0] if k == 1 else self.choose(k)
+
     def choose(self, k: int = 1) -> List[str]:
         """Top-k arms by posterior draw (Thompson sampling)."""
         if k <= 0:
@@ -141,7 +150,7 @@ class ThompsonAllocator:
         return out
 
     # -- feedback ----------------------------------------------------------
-    def update(self, arm: str, success: bool, weight: float = 1.0,
+    def update(self, arm: str, success=True, weight: float = 1.0,
                decays: Optional[Dict[str, float]] = None) -> None:
         """Record an outcome for `arm`.
 
@@ -149,7 +158,19 @@ class ThompsonAllocator:
         (e.g. holdout-passed counts 1.0, beat-baseline counts 0.2). `decays`
         optionally multiplies every arm's pseudo-counts first, so old evidence
         fades in a non-stationary regime.
+
+        Backward-compat: thompson_env.py calls update(arm, reward_float).
+        If `success` is a float, treat as weight w/ success=(w>0.5).
+        If reward_for_outcome tuple (ok, w) passed as success, unwrap.
         """
+        # unwrap (ok, w) tuple
+        if isinstance(success, tuple) and len(success) == 2:
+            success, weight = bool(success[0]), float(success[1])
+        elif isinstance(success, (int, float)) and not isinstance(success, bool):
+            w = float(success)
+            # FG-lite optimism: never-promoted arms get +0.1 exploration bonus
+            # via weight floor handled in choose_with_bonus; here map float->bool
+            weight, success = (w if w > 0 else 1.0), (w > 0.5)
         if decays:
             for a in self.arms:
                 self._s[a] = max(self._prior[0], self._s[a] * decays.get(a, 1.0))
@@ -214,3 +235,129 @@ class ThompsonAllocator:
     def load(cls, path: str) -> "ThompsonAllocator":
         with open(path, encoding="utf-8") as fh:
             return cls.from_dict(json.load(fh))
+
+    # -- FG-lite + propensity (2026-09-15 P0) --------------------------------
+    def choose_with_bonus(self, k: int = 1, fg_lambda: float = 0.1) -> List[str]:
+        """Thompson draw + Feel-Good optimism for never-promoted arms."""
+        base = self.choose(k)
+        # if top arm has <2 pulls, mix in least-pulled arm for exploration
+        if self._pulls and min(self._pulls.values()) < 2 and k == 1:
+            least = min(self._pulls, key=lambda a: self._pulls[a])
+            if least not in base and self._rng.random() < fg_lambda * 5:
+                return [least]
+        return base
+
+
+class LinUCBAllocator:
+    """Contextual LinUCB (2026-09-15 P0) — auditable alternative to Thompson.
+
+    E[r|x] = x^T theta_a + alpha * sqrt(x^T A_a^-1 x). Stdlib-only.
+    Use for routing with features [ms_ema, fail_rate, load, arm_onehot].
+    """
+
+    def __init__(self, arms, dim: int = 4, alpha: float = 1.0):
+        self.arms = list(arms)
+        self.dim = dim
+        self.alpha = alpha
+        import copy
+        self._A = {a: [[1.0 if i == j else 0.0 for j in range(dim)]
+                       for i in range(dim)] for a in self.arms}
+        self._b = {a: [0.0] * dim for a in self.arms}
+
+    def _solve(self, A, b):
+        # Gauss-Jordan for tiny dim (<=8); no numpy needed
+        n = len(A)
+        M = [row[:] + [bb] for row, bb in zip(A, b)]
+        for c in range(n):
+            piv = max(range(c, n), key=lambda r: abs(M[r][c])) if n else c
+            M[c], M[piv] = M[piv], M[c]
+            d = M[c][c] or 1e-9
+            M[c] = [v / d for v in M[c]]
+            for r in range(n):
+                if r != c:
+                    f = M[r][c]
+                    M[r] = [rv - f * cv for rv, cv in zip(M[r], M[c])]
+        return [row[-1] for row in M]
+
+    def choose(self, x, k: int = 1):
+        scored = []
+        for a in self.arms:
+            theta = self._solve(self._A[a], self._b[a])
+            mean = sum(t * xi for t, xi in zip(theta, x))
+            # var = x^T A^-1 x via solve A y = x
+            y = self._solve(self._A[a], list(x))
+            var = max(0.0, sum(xi * yi for xi, yi in zip(x, y)))
+            scored.append((mean + self.alpha * (var ** 0.5), a))
+        scored.sort(reverse=True)
+        return [a for _, a in scored[:k]]
+
+    def update(self, arm: str, x, reward: float):
+        A, b = self._A[arm], self._b[arm]
+        for i in range(self.dim):
+            for j in range(self.dim):
+                A[i][j] += x[i] * x[j]
+            b[i] += x[i] * reward
+
+
+class SuccessiveHalvingPruner:
+    """BOHB-lite fidelity pruner (2026-09-15 P0): 10->20->80 eps, keep 1/3."""
+
+    def __init__(self, rungs=(10, 20, 80), eta: int = 3):
+        self.rungs = list(rungs)
+        self.eta = eta
+
+    def promote(self, scored):
+        """scored: [(id, score)] -> ids promoted to next rung (top 1/eta)."""
+        scored = sorted(scored, key=lambda t: t[1], reverse=True)
+        n = max(1, len(scored) // self.eta)
+        return [i for i, _ in scored[:n]]
+
+
+class MCTSPlanner:
+    """P1-3 ToolTree-lite MCTS over PROTEUS arms (pre-eval=TPE proxy, post=holdout).
+
+    Node = arm sequence; UCT select, expand 1 child, rollout=allocator draw,
+    backprop mean value. Stdlib-only, depth<=2 for CPU box.
+    """
+
+    def __init__(self, arms, alloc=None, c: float = 1.4, depth: int = 2):
+        self.arms = list(arms)
+        self.alloc = alloc
+        self.c = c
+        self.depth = depth
+        self._N = {}
+        self._Q = {}
+
+    def _uct(self, seq):
+        import math
+        n_p = sum(self._N.get(seq + (a,), 0) for a in self.arms) or 1
+        best, best_v = None, -1e18
+        for a in self.arms:
+            k = seq + (a,)
+            q = self._Q.get(k, 0.0)
+            n = self._N.get(k, 0)
+            v = q + self.c * math.sqrt(math.log(n_p + 1) / (n + 1))
+            if v > best_v:
+                best, best_v = a, v
+        return best
+
+    def plan(self, pre_score, post_eval, iters: int = 20):
+        """pre_score(seq)->float proxy, post_eval(seq)->float verify."""
+        best, best_v = (), -1e18
+        for _ in range(iters):
+            seq, d = (), 0
+            while d < self.depth:
+                a = self._uct(seq)
+                # pre-prune: skip arms scoring < 0.3 proxy
+                if pre_score(seq + (a,)) < 0.3 and d == 0:
+                    break
+                seq = seq + (a,)
+                d += 1
+            v = post_eval(seq) if seq else 0.0
+            k = seq
+            self._N[k] = self._N.get(k, 0) + 1
+            self._Q[k] = self._Q.get(k, 0.0) + (v - self._Q.get(k, 0.0)) / self._N[k]
+            if v > best_v:
+                best, best_v = seq, v
+        return {"best_seq": list(best), "value": best_v,
+                "visits": dict(self._N)}

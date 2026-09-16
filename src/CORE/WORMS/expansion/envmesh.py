@@ -44,28 +44,29 @@ def _read(path: str) -> str:
 def env_id_v2() -> str:
     """5-way env id: windows | wsl2-ubuntu | wsl2-kali | bare | kali.
 
-    Fixes mesh.py _env_id() which returned 'wsl2' for BOTH Ubuntu-26.04 and
-    Kali under WSL2 (checked /proc/version microsoft first, never looked at
-    /etc/os-release). Order here: WSL check + os-release kali check together.
+    This name is the historical origin of the 5-way split (it fixed
+    mesh._env_id() conflating Ubuntu-26.04 and Kali under WSL2 into one
+    'wsl2' bucket). As of the 2026-09-15 audit it delegates to
+    CORE.env_id.env_id() — the single canonical implementation — so the
+    name survives for callers but the logic exists exactly once.
+
     - wsl2-ubuntu: /proc/version has microsoft, os-release NOT kali
     - wsl2-kali:   /proc/version has microsoft AND os-release has kali
     - kali:        bare (non-WSL) Kali
     - bare:        generic non-WSL non-Kali Linux (true bare metal OR vm;
                    use BarePassthroughWorm.probe() to split bare vs vm)
     """
-    if os.name == "nt":
-        return "windows"
-    ver = _read("/proc/version").lower()
-    rel = _read("/etc/os-release").lower()
-    is_wsl = "microsoft" in ver
-    is_kali = "kali" in rel
-    if is_wsl and is_kali:
-        return "wsl2-kali"
-    if is_wsl:
-        return "wsl2-ubuntu"
-    if is_kali:
-        return "kali"
-    return "bare"
+    try:
+        from CORE.env_id import env_id
+        return env_id()
+    except Exception:  # pragma: no cover - defensive
+        if os.name == "nt":
+            return "windows"
+        ver = _read("/proc/version").lower()
+        is_kali = "kali" in _read("/etc/os-release").lower()
+        if "microsoft" in ver:
+            return "wsl2-kali" if is_kali else "wsl2-ubuntu"
+        return "kali" if is_kali else "bare"
 
 
 @register_worm(category="envmesh", priority=8, cooldown_seconds=20.0,

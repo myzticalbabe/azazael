@@ -69,9 +69,14 @@ class GemmaDriverWorm:
         self._calls = 0
         self._fallbacks = 0
 
-    def _chat(self, prompt: str, max_tokens: int = 96) -> str | None:
-        body = json.dumps({"messages": [{"role": "user", "content": prompt}],
-                           "max_tokens": max_tokens, "temperature": 0.2}).encode()
+    def _chat(self, prompt: str, max_tokens: int = 96, want_json: bool = False) -> str | None:
+        msg: dict = {"messages": [{"role": "user", "content": prompt}],
+                      "max_tokens": max_tokens, "temperature": 0.2}
+        if want_json:
+            # json_object mode is honored; schema-constrained format yields
+            # empty output on this server build (verified 2026-09-15).
+            msg["response_format"] = {"type": "json_object"}
+        body = json.dumps(msg).encode()
         try:
             r = urllib.request.urlopen(
                 urllib.request.Request(BASE, data=body,
@@ -101,7 +106,7 @@ class GemmaDriverWorm:
                   '{"objective":"raise q_move via chaos drills",'
                   '"target_metric":"q_move","target_value":0.5}. '
                   "target_metric MUST be one of growth, fail_band, q_move.")
-        txt = self._chat(prompt)
+        txt = self._chat(prompt, want_json=True)
         if txt:
             try:
                 start = txt.find("{")
@@ -144,14 +149,52 @@ class GemmaDriverWorm:
             return {"success": True, "src": "gemma-e2b", "order": ordered}
         return {"success": True, "src": "heuristic", "order": list(candidates)}
 
+    def _judge_once(self, dream: str) -> tuple:
+        """Single judgment with top-1 confidence. Returns (keep|None, conf)."""
+        body = json.dumps({"messages": [
+            {"role": "user", "content": "Is this a coherent system-dream worth "
+             f"remembering? Reply ONLY yes or no. Dream: {dream[:300]}"}],
+            "max_tokens": 8, "temperature": 0.0,
+            "logprobs": 3}).encode()
+        try:
+            import math as _math
+            import urllib.request as _url
+            r = _url.urlopen(_url.Request(BASE, data=body,
+                                          headers={"Content-Type": "application/json"}),
+                             timeout=self._timeout)
+            ch = json.loads(r.read())["choices"][0]
+            with self._lock:
+                self._calls += 1
+            txt = (ch["message"].get("content") or "").strip()
+            lp = (ch.get("logprobs") or {}).get("content") or []
+            conf = 0.0
+            if lp and lp[0].get("top_logprobs"):
+                conf = round(_math.exp(lp[0]["top_logprobs"][0]["logprob"]), 3)
+            self._log_call("judge:" + dream[:200], txt)
+            if not txt:
+                return None, conf
+            return txt.lower().startswith("y"), conf
+        except Exception:
+            with self._lock:
+                self._fallbacks += 1
+            return None, 0.0
+
     def judge_dream(self, dream: str) -> dict[str, Any]:
-        """Keep/reject a synthetic dream. Model judge, heuristic fallback."""
-        txt = self._chat("Is this a coherent system-dream worth remembering? "
-                         f"Reply ONLY yes or no. Dream: {dream[:300]}",
-                         max_tokens=8)
-        if txt:
-            return {"success": True, "src": "gemma-e2b",
-                    "keep": txt.lower().startswith("y")}
+        """Entropy-gated judgment (EASD spirit): uncertain first calls get a
+        second sample; keep only on agreement. Else heuristic fallback."""
+        keep, conf = self._judge_once(dream)
+        if keep is None or conf < 0.6:
+            keep2, _ = self._judge_once(dream)
+            if keep is None:
+                keep = keep2
+            elif keep2 is not None and keep2 != keep:
+                return {"success": True, "src": "gemma-e2b-easd",
+                        "keep": False, "conf": conf, "note": "disagreement->reject"}
+            keep = keep if keep is not None else keep2
+        if keep is None:
+            ok = len(dream.strip()) >= 40 and " " in dream.strip()
+            return {"success": True, "src": "heuristic", "keep": ok}
+        return {"success": True, "src": "gemma-e2b-easd", "keep": keep, "conf": conf}
         ok = len(dream.strip()) >= 40 and " " in dream.strip()
         return {"success": True, "src": "heuristic", "keep": ok}
 
