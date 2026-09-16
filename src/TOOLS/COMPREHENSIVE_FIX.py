@@ -90,7 +90,7 @@ class ComprehensiveFix:
                     issues.append("Old-style print formatting")
                 
                 # Path issues
-                if re.search(r"C:\\Users.*?Desktop", content):
+                if re.search(r"C:\\Users.*?Desktop", content):  # scanner:ignore deliberate: this detector looks for those paths
                     issues.append("Hardcoded Windows paths")
                 
                 if issues:
@@ -128,7 +128,7 @@ class ComprehensiveFix:
                     content = content.encode("utf-8-sig").decode("utf-8")
                 
                 # Fix hardcoded paths (WSL-friendly)
-                win_path = re.search(r'["\']C:\\Users[^"\']+["\']', content)
+                win_path = re.search(r'["\']C:\\Users[^"\']+["\']', content)  # scanner:ignore deliberate: this detector looks for those paths
                 if win_path:
                     # Don't auto-fix paths - mark for manual review
                     self.log(f"  Hardcoded path in: {error['file']}", "WARN")

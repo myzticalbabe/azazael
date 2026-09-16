@@ -86,43 +86,43 @@ def run_healing():
     modules_to_fix = {
         "HYDRA/hydra_launcher.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent / "ml_platforms"))',
             ),
         ],
         "HYDRA/hydra_protocols.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent / "ml_platforms"))',
             ),
         ],
         "META/HYDRA_CONTAINER.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent.parent / "HYDRA" / "ml_platforms"))',
             ),
         ],
         "META/HYDRAMETA.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent.parent / "HYDRA" / "ml_platforms"))',
             ),
         ],
         "CORE/WORMS/WORMZ.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent.parent.parent / "HYDRA" / "ml_platforms"))',
             ),
         ],
         "CORE/WORMS/SYSTEMZ.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent.parent.parent / "HYDRA" / "ml_platforms"))',
             ),
         ],
         "CORE/WORMS/CLUSTERWORMS.py": [
             (
-                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",
+                r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)",  # scanner:ignore deliberate: pattern this fixer rewrites
                 'sys.path.insert(0, str(Path(__file__).parent.parent.parent / "HYDRA" / "ml_platforms"))',
             ),
         ],

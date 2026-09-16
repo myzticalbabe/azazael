@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Comprehensive Analysis of ALL Python Modules on C:\ Drive
+Comprehensive Analysis of ALL Python Modules on the System Drive
 - Complete module discovery and analysis
 - Full dependency mapping
 - Error detection and fixes
@@ -93,11 +93,11 @@ class CompleteModuleFinder:
         print("=" * 70)
         print("COMPLETE PYTHON MODULE DISCOVERY")
         print("=" * 70)
-        print("\nScanning C:\\ drive for Python modules...")
+        print("\nScanning " + os.environ.get("SystemDrive", "C:") + "\\ drive for Python modules...")
         print("This may take several minutes for 5000+ modules...\n")
 
         count = 0
-        for root, dirs, files in os.walk("C:\\"):
+        for root, dirs, files in os.walk(os.environ.get("SystemDrive", "C:") + "\\"):
             # Update progress
             self.scan_stats["directories_scanned"] += 1
             if self.scan_stats["directories_scanned"] % 1000 == 0:
@@ -599,7 +599,7 @@ def main():
                 print("\n" + "=" * 70)
                 print("ANALYSIS COMPLETE - FINAL SUMMARY")
                 print("=" * 70)
-                print(f"\nTotal Python modules on C:\\: {len(modules):,}")
+                print("\nTotal Python modules on " + os.environ.get("SystemDrive", "C:") + "\\: " + f"{len(modules):,}")
                 print(
                 f"Total size: {summary['statistics']['summary']['total_size_bytes'] / 1024 / 1024:.1f} MB"
                 )

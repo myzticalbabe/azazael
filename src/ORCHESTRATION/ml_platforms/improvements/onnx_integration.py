@@ -88,7 +88,7 @@ def _ensure_openvino_path():
 
     # oneAPI OpenVINO installation
     oneapi_ov = os.path.join(
-        os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"),
+        os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"),  # scanner:ignore deliberate: env var wins; literal is a fallback
         "Intel", "oneAPI", "runtime", "bin", "intel64"
     )
     if os.path.isdir(oneapi_ov):

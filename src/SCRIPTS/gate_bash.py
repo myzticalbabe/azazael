@@ -92,11 +92,11 @@ DESTRUCTIVE_PATTERNS: list[dict[str, Any]] = [
     {
         "category": "system_write",
         "patterns": [
-            r"\bcp\s+.*(?:site-packages|Program\s+Files|Program\s+Files\s+\(x86\)|/usr/(?:local/)?(?:bin|lib|include|share)|/etc/|C:\\Windows)",
-            r"\bcopy\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",
-            r"\bmv\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",
-            r"\bmove\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",
-            r"\brobocopy\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",
+            r"\bcp\s+.*(?:site-packages|Program\s+Files|Program\s+Files\s+\(x86\)|/usr/(?:local/)?(?:bin|lib|include|share)|/etc/|C:\\Windows)",  # scanner:ignore deliberate: detects writes into system dirs
+            r"\bcopy\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",  # scanner:ignore deliberate: detects writes into system dirs
+            r"\bmv\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",  # scanner:ignore deliberate: detects writes into system dirs
+            r"\bmove\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",  # scanner:ignore deliberate: detects writes into system dirs
+            r"\brobocopy\s+.*(?:site-packages|Program\s+Files|C:\\Windows)",  # scanner:ignore deliberate: detects writes into system dirs
         ],
         "severity": "critical",
     },

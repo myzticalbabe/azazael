@@ -203,7 +203,7 @@ def _dlq_alerts(summary):
     """Check DLQ alert thresholds and print warnings.
 
     - Warning (⚠): > 5 failed executions in the last hour
-    - Critical (🔴): > 20 failed executions in the last hour
+    - Critical: > 20 failed executions in the last hour
     - Per-worm warning: any single worm has failed > 3 times
     """
     recent = summary.get("recent_errors", [])
@@ -215,7 +215,7 @@ def _dlq_alerts(summary):
     hourly_count = len(hourly_failures)
 
     if hourly_count > 20:
-        print(f"  🔴 CRITICAL: {hourly_count} failed executions in the last hour!")
+        print(f"  CRITICAL: {hourly_count} failed executions in the last hour!")
     elif hourly_count > 5:
         print(f"  ⚠ WARNING: {hourly_count} failed executions in the last hour")
 
@@ -223,7 +223,7 @@ def _dlq_alerts(summary):
     if summary.get("per_worm"):
         for worm, count in sorted(summary["per_worm"].items(), key=lambda x: -x[1]):
             if count > 10:
-                print(f"  🔴 CRITICAL: {worm} has failed {count} times (threshold: 10)")
+                print(f"  CRITICAL: {worm} has failed {count} times (threshold: 10)")
             elif count > 3:
                 print(f"  ⚠ WARNING: {worm} has failed {count} times (threshold: 3)")
 
@@ -372,7 +372,7 @@ def cmd_failed(args):
                     summary = ncm.get_dead_letter_summary(lookback_seconds=3600)
                     if summary["total_failed"] > last_notify_count and summary["total_failed"] > 5:
                         _send_notification(
-                            f"🔴 {summary['total_failed']} DLQ Failures",
+                            f"{summary['total_failed']} DLQ Failures",
                             f"{summary['affected_natures']} natures affected in last hour"
                         )
                         last_notify_count = summary["total_failed"]
@@ -390,7 +390,7 @@ def cmd_failed(args):
         summary = ncm.get_dead_letter_summary(lookback_seconds=3600)
         if summary["total_failed"] > 5:
             _send_notification(
-                f"🔴 {summary['total_failed']} DLQ Failures",
+                f"{summary['total_failed']} DLQ Failures",
                 f"{summary['affected_natures']} natures affected in last hour. "
                 f"Use --failed --retry-all to retry."
             )

@@ -995,23 +995,23 @@ class SessionMemory:
         hot_spots = ctx["hot_spot_files"]
         goals = ctx["pending_goals"]
 
-        print(f"\n  {GREEN}📋 Previous Sessions ({len(sessions)}):{RST}")
+        print(f"\n  {GREEN}Previous Sessions ({len(sessions)}):{RST}")
         for s in sessions[:3]:
             summary = s["summary"][:60] if s["summary"] else "(no summary)"
             print(f"    {DIM}#{s['id']}{RST} {summary}")
 
         if lessons:
-            print(f"\n  {GREEN}🧠 High-Confidence Lessons ({len(lessons)}):{RST}")
+            print(f"\n  {GREEN}High-Confidence Lessons ({len(lessons)}):{RST}")
             for l in lessons[:5]:
                 print(f"    [{l['category']}] {l['pattern']} → {l['lesson'][:60]}")
 
         if hot_spots:
-            print(f"\n  {YELLOW}🔥 Hot-Spot Files ({len(hot_spots)}):{RST}")
+            print(f"\n  {YELLOW}Hot-Spot Files ({len(hot_spots)}):{RST}")
             for h in hot_spots[:5]:
                 print(f"    {h['path']} ({h['sessions']} sessions: {h['changes']})")
 
         if goals:
-            print(f"\n  {YELLOW}🎯 Pending Goals ({len(goals)}):{RST}")
+            print(f"\n  {YELLOW}Pending Goals ({len(goals)}):{RST}")
             for g in goals[:5]:
                 priority = g.get('priority', '')
                 print(f"    [{g['status']}] [{priority}] {g['goal']}")

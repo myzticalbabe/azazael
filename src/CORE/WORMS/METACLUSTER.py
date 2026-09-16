@@ -782,7 +782,7 @@ def main():
         for insight in result.insights:
             print(f"  {insight}")
         for rec in result.recommendations:
-            print(f"  💡 {rec}")
+            print(f"  {rec}")
     
     elif args.adaptive > 0:
         result = mc.orchestrate_adaptive(max_natures=args.adaptive, parallel=args.parallel)

@@ -614,9 +614,9 @@ if __name__ == "__main__":
 
     logger.log_python_scan(
         [
-            {"path": "C:\\Python314\\python.exe", "version": "3.14.3"},
-            {"path": "C:\\Program Files\\Python311\\python.exe", "version": "3.11.9"},
-            {"path": "C:\\Users\\clint\\anaconda3\\python.exe", "version": "3.13.9"},
+            {"path": "C:\\Python314\\python.exe", "version": "3.14.3"},  # scanner:ignore deliberate: __main__ sample scan payload
+            {"path": "C:\\Program Files\\Python311\\python.exe", "version": "3.11.9"},  # scanner:ignore deliberate: __main__ sample scan payload
+            {"path": "C:\\Users\\clint\\anaconda3\\python.exe", "version": "3.13.9"},  # scanner:ignore deliberate: __main__ sample scan payload
         ]
     )
 

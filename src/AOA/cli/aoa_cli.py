@@ -92,10 +92,10 @@ def cmd_init(args):
         pass
     try:
         import arms.support_arms
-    try:
-        import arms.kali_arm
     except Exception:
         pass
+    try:
+        import arms.kali_arm
     except Exception:
         pass
     registry = ArmRegistry()
@@ -143,10 +143,10 @@ def cmd_arms_list(args):
         pass
     try:
         import arms.support_arms
-    try:
-        import arms.kali_arm
     except Exception:
         pass
+    try:
+        import arms.kali_arm
     except Exception:
         pass
     registry = ArmRegistry()
@@ -198,10 +198,10 @@ def cmd_arms_status(args):
         pass
     try:
         import arms.support_arms
-    try:
-        import arms.kali_arm
     except Exception:
         pass
+    try:
+        import arms.kali_arm
     except Exception:
         pass
     registry = ArmRegistry()
@@ -239,10 +239,10 @@ def cmd_run(args):
         pass
     try:
         import arms.support_arms
-    try:
-        import arms.kali_arm
     except Exception:
         pass
+    try:
+        import arms.kali_arm
     except Exception:
         pass
     registry = ArmRegistry()
@@ -358,10 +358,10 @@ def cmd_workflow_start(args):
         pass
     try:
         import arms.support_arms
-    try:
-        import arms.kali_arm
     except Exception:
         pass
+    try:
+        import arms.kali_arm
     except Exception:
         pass
     registry = ArmRegistry()

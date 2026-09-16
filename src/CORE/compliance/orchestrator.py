@@ -782,7 +782,7 @@ def self_test() -> bool:
     clean_code = """def hello():\n    return "Hello, world!"\n"""
     result = scanner.scan_source("test.py", clean_code)
     assert result.passed, f"Clean code should pass: {result.findings}"
-    dirty_code = 'def bad():\n    subprocess.run("ls", shell=True)\n    x = "C:\\\\path"\n'
+    dirty_code = 'def bad():\n    subprocess.run("ls", shell=True)\n    x = "C:\\\\path"\n'  # scanner:ignore deliberate: fixture that must trip the scanner
     result2 = scanner.scan_source("bad.py", dirty_code)
     assert not result2.passed, f"Dirty code should fail: {result2.findings}"
     print(f"  PASS: Clean={result.passed}, Dirty found={result2.finding_count} issues")

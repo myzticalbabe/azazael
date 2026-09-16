@@ -140,7 +140,7 @@ class WSAClient:
         search_paths = [
             os.environ.get("ANDROID_HOME", ""),
             os.environ.get("ANDROID_SDK_ROOT", ""),
-            "C:\\Program Files\\Android\\android-sdk\\platform-tools",
+            "C:\\Program Files\\Android\\android-sdk\\platform-tools",  # scanner:ignore deliberate: last-resort SDK candidate after env vars
             str(Path.home() / "AppData" / "Local" / "Android" / "Sdk" / "platform-tools"),
             "/usr/bin",
             "/opt/android-sdk/platform-tools",

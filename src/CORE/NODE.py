@@ -46,7 +46,7 @@ class AzazaelNode:
                 content = py_file.read_text(encoding="utf-8-sig")
                 if content.startswith("\ufeff"):
                     issues["bom_files"].append(str(py_file))
-                if "sys.path.insert" in content and "C:\\Users" in content:
+                if "sys.path.insert" in content and "C:\\Users" in content:  # scanner:ignore deliberate: detector for this anti-pattern
                     issues["syntax_errors"].append(str(py_file))
             except Exception:
                 issues["syntax_errors"].append(str(py_file))
@@ -78,7 +78,7 @@ class AzazaelNode:
             else:
                 new_pattern = 'sys.path.insert(0, str(Path(__file__).parent.parent.parent / "HYDRA" / "ml_platforms"))'
 
-            old_pattern = r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)"
+            old_pattern = r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)"  # scanner:ignore deliberate: pattern this fixer rewrites
 
             if re.search(old_pattern, content):
                 new_content = re.sub(old_pattern, new_pattern, content)

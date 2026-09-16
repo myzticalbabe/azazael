@@ -67,7 +67,7 @@ def fix_syspath_imports():
                     new_import = 'sys.path.insert(0, str(Path(__file__).parent.parent / "HYDRA" / "ml_platforms"))'
 
                 old_pattern = (
-                    r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)"
+                    r"sys\.path\.insert\(0, str\(C:\\\\Users.*?ml_platforms\)\)"  # scanner:ignore deliberate: pattern this fixer rewrites
                 )
 
                 if re.search(old_pattern, text):

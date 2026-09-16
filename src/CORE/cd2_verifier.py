@@ -100,7 +100,9 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
         "result": classification,
         "smt2": smt2,
         "statistics": stats,
-        "time_ms": int(stats.get("time", 0)),
+        # z3 reports statistics such as `time` as float-valued strings
+        # (e.g. "0.001"); int() on that raises ValueError.
+        "time_ms": int(float(stats.get("time", 0))),
         "memory_mb": round(float(stats.get("memory", 0)) / 1024, 2) if "memory" in stats else 0.0,
     }
 

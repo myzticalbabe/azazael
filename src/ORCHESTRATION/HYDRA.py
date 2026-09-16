@@ -385,7 +385,7 @@ class HYDRACluster:
             """Run the 6 pipeline stages in a background thread."""
             _log("=" * 60)
             _log("HYDRA CLUSTER - 10 MINUTE TEST")
-            _log("Target: C:\\")
+            _log("Target: " + os.environ.get("SystemDrive", "C:") + "\\")
             _log(f"Duration: {duration_seconds} seconds")
             _log("=" * 60)
 
