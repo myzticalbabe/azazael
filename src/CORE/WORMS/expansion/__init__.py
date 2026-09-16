@@ -35,6 +35,18 @@ from .evolution import EvolutionEngine, GeneticOptimizer
 from .dreaming import DreamingModule, HypnagogicSynthesizer
 from .race_detector import RaceConditionDetector
 from .error_recovery import ErrorRecoveryOrchestrator
+from .mesh import MeshRouterWorm, GossipSyncWorm, PartitionHealerWorm, EnvBeaconWorm
+from .synapse import SynapseWeightWorm, MoEDispatcherWorm, SSMSequenceWorm, ActivationRouterWorm
+from .consensus import QuorumVoterWorm, LeaderElectorWorm, SplitBrainResolverWorm
+from .engram import VectorShardWorm, RecallRouterWorm, CoherenceValidatorWorm, DreamConsolidatorWorm
+from .federated import FederatedAggregatorWorm, NASMeshSearcherWorm, RewardShaperMeshWorm
+from .servemesh import InferenceLoadBalancerWorm, ProviderFailoverMeshWorm, ModelShardServerWorm
+from .immune import ImmuneSentinelWorm, QuarantineWorm, AttestationWorm, SelfHealWorm
+from .xenomorph import (OvomorphWorm, FacehuggerWorm, ChestbursterWorm, DroneWorm,
+                        PraetorianWorm, Lilith, ResinWorm)
+from .spine import (SpineMapperWorm, HomeostatWorm, RedQueenWorm,
+                    SpineCycleWorm, SpineGossipWorm, MorphogenesisWorm,
+                    ConsolidationWorm, MeshArchitectWorm)
 
 __all__ = [
     # security
@@ -68,6 +80,23 @@ __all__ = [
     "DreamingModule", "HypnagogicSynthesizer",
     # infrastructure (race detection, error recovery)
     "RaceConditionDetector", "ErrorRecoveryOrchestrator",
+    # neural mesh fabric (25 worms, 7 natures)
+    "MeshRouterWorm", "GossipSyncWorm", "PartitionHealerWorm", "EnvBeaconWorm",
+    "SynapseWeightWorm", "MoEDispatcherWorm", "SSMSequenceWorm", "ActivationRouterWorm",
+    "QuorumVoterWorm", "LeaderElectorWorm", "SplitBrainResolverWorm",
+    "VectorShardWorm", "RecallRouterWorm", "CoherenceValidatorWorm", "DreamConsolidatorWorm",
+    "FederatedAggregatorWorm", "NASMeshSearcherWorm", "RewardShaperMeshWorm",
+    "InferenceLoadBalancerWorm", "ProviderFailoverMeshWorm", "ModelShardServerWorm",
+    "ImmuneSentinelWorm", "QuarantineWorm", "AttestationWorm", "SelfHealWorm",
+    # xenomorph hive (7 worms)
+    "OvomorphWorm", "FacehuggerWorm", "ChestbursterWorm", "DroneWorm",
+    "PraetorianWorm", "Lilith", "ResinWorm",
+    # spine (7 worms): self-mapping + homeostat feedback + red-team driver
+    # + gossip sync + one-entry self-improvement cycle + morphogenesis
+    # (grows specialists from chronic failures) + consolidation (sleep-phase
+    # dreaming wired to the Q-table)
+    "SpineMapperWorm", "HomeostatWorm", "RedQueenWorm",
+    "MeshArchitectWorm",
 ]
 
 

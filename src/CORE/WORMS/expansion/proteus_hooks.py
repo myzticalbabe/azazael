@@ -49,10 +49,13 @@ older rows so the correction is retroactive.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import os
 import random
+import sys
+from datetime import datetime
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from .allocation import ThompsonAllocator, PROTEUS_ARMS, reward_for_outcome
@@ -816,4 +819,401 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
                      "no informative trial: every row resolved to the trainer "
                      "default, so the ledger cannot say what this gene does"),
         }
+    return out
+
+
+# --------------------------------------------------------------------------
+# The MUTAGEN actuator — the CONSUMER the signal never had
+# --------------------------------------------------------------------------
+# `morph_dimension_summary` above DESCRIBES the morph rotation; the epistemic
+# tier `exmachina.mutagenesis` SCORES it. Until these existed nothing ever
+# ACTED on the verdict, so a rotation that had stopped producing information
+# kept appending one gene per cycle forever. On 2026-09-12 that is exactly what
+# the ledger showed: 89 trials, 68 of them provably inert (the trialled gene
+# resolved to the trainer's own default, so the trial arm could not have
+# differed), and 68/89 of them nevertheless "won" (free_growth 0.764).
+#
+# A gene added by a trial that cannot have tested it is not a gain. The rule is
+# stated as data so the tier's band and this actuator cannot drift in silence:
+# `exmachina.mutagenesis` carries the same numbers and
+# `TestFreeGrowthMirrorsTheProducer` pins the two together.
+MORPH_FREE_GROWTH_PAUSE = 0.35   # at/above this share, growth is unattributable
+MORPH_DRIFT_BAND = 0.15          # between the two bands: drift, not selection
+MORPH_MIN_TRIALS = 6             # below this, no verdict at all
+MORPH_ADMIT_WIN_RATE = 0.75      # a candidate must win this often to be funded
+MORPH_RETIRE_WIN_RATE = 0.25     # ...and lose this often to be retired
+MORPH_MIN_N = 4                  # evidence floor before either verdict
+MORPH_DECISIVE_P = 0.05          # the "decisive" tail probability
+
+
+def _binomial_tail(k: int, n: int) -> Optional[float]:
+    """P(>= k successes in n fair trials). None when n is not usable.
+
+    Mirrors `exmachina._binomial_tail` exactly: the producer computes the
+    strength of the "they all won anyway" claim, and the tier recomputes it, so
+    a difference here is a difference the panel would display as fact.
+    """
+    try:
+        n = int(n)
+        if n <= 0:
+            return None
+        k = max(0, min(int(k), n))
+        num = 0
+        for i in range(k, n + 1):
+            num += math.comb(n, i)
+        return num / float(2 ** n)
+    except Exception:
+        return None
+
+
+def _morph_read_rows(history_path: str) -> List[dict]:
+    """Read a morph ledger, skipping unreadable lines. Never raises."""
+    out: List[dict] = []
+    try:
+        with open(history_path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except (ValueError, TypeError):
+                    continue
+                if isinstance(row, dict):
+                    out.append(row)
+    except OSError:
+        return []
+    return out
+
+
+def _morph_default_for(name: str) -> Tuple[Any, bool]:
+    """(default, known) for a candidate gene, via its trainer kwarg."""
+    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    if kwarg is None or kwarg not in MORPH_TRAINER_DEFAULTS:
+        return None, False
+    return MORPH_TRAINER_DEFAULTS[kwarg], True
+
+
+def morph_free_growth(history_path: str) -> Dict[str, Any]:
+    """Was the genome GROWN, or was the gain given away? Never raises.
+
+    `trials` counts only rows that actually carried a gene. A no-op cycle
+    cannot speak about selection, and counting one as a non-inert trial biases
+    the share DOWN: on the live artifact the same ledger read 0.5862 over every
+    row and 0.7640 over the rows that trialled a gene.
+
+    `free_growth` is the share of trials that are provably unattributable — the
+    trialled gene resolved to the trainer's own default, so the arms cannot have
+    differed — discounted by how strong the evidence is that those trials all
+    "won" anyway. A high value means the ledger is recording the surrounding
+    search, not the gene, and adding more of it buys nothing.
+
+    Returns the same keys as `exmachina.mutagenesis` so the panel and the
+    actuator cannot disagree: n, trials, inert_trials, inert_share,
+    inert_positive, inert_p, free_growth, verdict.
+    """
+    rules = {"pause": MORPH_FREE_GROWTH_PAUSE, "drift": MORPH_DRIFT_BAND,
+             "min_trials": MORPH_MIN_TRIALS, "decisive_p": MORPH_DECISIVE_P}
+    reading: Dict[str, Any] = {"source": "producer", "rules": rules,
+                               "n": 0, "trials": 0, "inert_trials": 0,
+                               "inert_share": None, "inert_positive": 0,
+                               "inert_p": None, "free_growth": None,
+                               "verdict": "unavailable"}
+
+    trials = [r for r in _morph_read_rows(history_path) if r.get("gene")]
+    reading["n"] = len(trials)
+    reading["trials"] = len(trials)
+    if len(trials) < MORPH_MIN_TRIALS:
+        return reading
+
+    inert_deltas: List[float] = []
+    positives = 0
+    for row in trials:
+        raw = None
+        extra = row.get("extra")
+        if isinstance(extra, dict) and extra:
+            raw = next(iter(extra.values()))
+        stamped = row.get("inert")
+        if isinstance(stamped, bool):
+            # The producer's own stamp is the authority; only rows written
+            # before it existed are re-derived here (same rule as the tier).
+            is_inert: Optional[bool] = stamped
+        else:
+            _default, known = _morph_default_for(str(row.get("gene") or ""))
+            if not known:
+                # Unknown is NOT inert, and it is not a measured treatment
+                # either: it stays in the denominator but is never credited.
+                is_inert = None
+            else:
+                try:
+                    # `MORPH_TRAINER_DEFAULTS` is keyed by TRAINER KWARG, which
+                    # is what morph_is_inert looks up — never by gene name.
+                    is_inert = bool(morph_is_inert(str(row.get("gene")),
+                                                   {str(row.get("gene")): raw},
+                                                   MORPH_TRAINER_DEFAULTS))
+                except Exception:
+                    is_inert = None
+        if is_inert is None:
+            continue
+        if not is_inert:
+            continue
+        try:
+            delta = float(row.get("fitness")) - float(row.get("baseline_fitness"))
+        except (TypeError, ValueError):
+            delta = 0.0
+        inert_deltas.append(delta)
+        if delta > 0.0:
+            positives += 1
+
+    reading["inert_trials"] = len(inert_deltas)
+    reading["inert_positive"] = positives
+    reading["inert_share"] = round(len(inert_deltas) / float(len(trials)), 4)
+    reading["inert_p"] = _binomial_tail(positives, len(inert_deltas))
+
+    if not inert_deltas:
+        reading["free_growth"] = 0.0
+        reading["verdict"] = "selection active"
+        return reading
+
+    p = reading["inert_p"]
+    # `p` is None only when the tail is unrepresentable, which is the strongest
+    # possible evidence, so it counts as p -> 0.
+    strength = 1.0 if p is None else max(0.0, 1.0 - min(1.0, float(p) / MORPH_DECISIVE_P))
+    fg = reading["inert_share"] * strength
+    reading["free_growth"] = round(min(1.0, max(0.0, fg)), 4)
+    reading["verdict"] = ("free growth" if reading["free_growth"] >= MORPH_FREE_GROWTH_PAUSE
+                          else ("drift" if reading["free_growth"] >= MORPH_DRIFT_BAND
+                                else "selection active"))
+    return reading
+
+
+def morph_rotation_paused(history_path: str) -> Tuple[bool, Dict[str, Any]]:
+    """(paused, reading): should this cycle stop adding genes?
+
+    Fails OPEN on absent evidence. A ledger too small to judge is "unavailable",
+    not "paused": absence of evidence is not evidence, and pausing the rotation
+    on it would silently end the experiment.
+    """
+    reading = morph_free_growth(history_path)
+    paused = (reading.get("free_growth") is not None
+              and reading.get("verdict") == "free growth")
+    return bool(paused), reading
+
+
+def morph_rotation_verdict(evidence: Optional[Dict[str, Any]],
+                           rules: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Fundable, retired by evidence, or undetermined. Never a default verdict.
+
+    `undetermined` is NOT a verdict and must never be reported as one: middling
+    evidence means the experiment has not answered the question yet, which is a
+    different statement from "the gene does not pay".
+    """
+    rules = rules or {}
+    admit = float(rules.get("admit_win_rate", MORPH_ADMIT_WIN_RATE))
+    retire_at = float(rules.get("retire_win_rate", MORPH_RETIRE_WIN_RATE))
+    decisive = float(rules.get("decisive_p", MORPH_DECISIVE_P))
+    min_n = int(rules.get("min_n", MORPH_MIN_N))
+
+    admitted: Dict[str, Any] = {}
+    retired: List[str] = []
+    undetermined: List[str] = []
+    for gene, ev in (evidence or {}).items():
+        if not isinstance(ev, dict):
+            undetermined.append(str(gene))
+            continue
+        try:
+            n = int(ev.get("n") or 0)
+            win = float(ev.get("win_rate"))
+        except (TypeError, ValueError):
+            undetermined.append(str(gene))
+            continue
+        p_pays, p_hurts = ev.get("p_pays"), ev.get("p_hurts")
+        if n < min_n:
+            undetermined.append(str(gene))
+        elif win >= admit and p_pays is not None and float(p_pays) <= decisive:
+            admitted[str(gene)] = ev
+        elif win <= retire_at and p_hurts is not None and float(p_hurts) <= decisive:
+            retired.append(str(gene))
+        else:
+            undetermined.append(str(gene))
+    return {"admitted": admitted, "retired": sorted(retired),
+            "undetermined": sorted(undetermined)}
+
+
+def morph_rotation_retired(policy_path: str) -> Dict[str, Any]:
+    """Read the morph policy, re-derive the rotation verdict, write it back.
+
+    Retirement is the evidence's decision, not the code's: the machinery stays
+    in place so a future candidate re-opens the rotation with no code change.
+    Idempotent — two calls on the same policy return the same verdict.
+    """
+    out: Dict[str, Any] = {"retired": False, "retired_genes": [], "active": [],
+                           "admitted": {}, "search_space_closed": False,
+                           "reason": ""}
+    try:
+        with open(policy_path, encoding="utf-8") as fh:
+            policy = json.load(fh)
+    except (OSError, ValueError):
+        out["reason"] = "no readable policy: rotation state is undetermined"
+        return out
+    if not isinstance(policy, dict):
+        out["reason"] = "policy is not a JSON object: rotation state is undetermined"
+        return out
+
+    verdict = morph_rotation_verdict(policy.get("evidence"), policy.get("rules"))
+    retired_genes = list(verdict["retired"])
+    candidates = list(policy.get("candidates") or []) + list(verdict["admitted"])
+    active = [g for g in dict.fromkeys(candidates) if g not in retired_genes]
+    closed = bool((policy.get("search_space") or {}).get("closed"))
+
+    out.update({"retired": bool(retired_genes) or (closed and not active),
+                "retired_genes": retired_genes,
+                "active": active,
+                "admitted": verdict["admitted"],
+                "undetermined": verdict["undetermined"],
+                "search_space_closed": closed})
+    if closed and not active:
+        out["reason"] = "no active candidate and the search space is closed"
+    elif retired_genes and not active:
+        out["reason"] = "every candidate was retired by evidence"
+    elif active:
+        out["reason"] = "candidate(s) still active"
+
+    policy["rotation"] = out
+    if not _morph_write_policy(policy_path, policy):
+        # The verdict is still returned; only the write-back failed.
+        out["write_error"] = True
+    return out
+
+
+def _morph_write_policy(policy_path: str, policy: dict) -> bool:
+    """Write the policy atomically-ish, under the audit hook if it is loaded."""
+    _wc = sys.modules.get("CORE.sentinel_enforcer")
+    try:
+        ctx = (_wc.authorized_write("morph policy") if _wc is not None
+               else contextlib.nullcontext())
+        with ctx:
+            with open(policy_path, "w", encoding="utf-8") as fh:
+                json.dump(policy, fh, indent=2, sort_keys=True)
+        return True
+    except OSError:
+        return False
+
+
+def morph_evidence_from_ledger(history_path: str) -> Dict[str, Any]:
+    """Per-gene evidence from the MATCHED A/B pairs in the morph ledger.
+
+    Only the matched pair is admissible here. The row's
+    `fitness - baseline_fitness` compares the trial against the production
+    snapshot, so it conflates the gene with which search happened to run; the
+    `ab` block holds the same champion and same pools with ONE gene moved, which
+    is the attributable reading. Measured on 2026-09-12: across all rows
+    `by_session` looked like 45/46 wins at +0.96, while its 11 matched pairs ran
+    4/11 at -0.5408 and `use_schema_features`' 8 pairs went 0/8 at -10.6423.
+    The row-level delta credited both genes every cycle; the pair did not.
+
+    `p_pays` = P(>= wins) and `p_hurts` = P(<= wins) under a fair-coin null, so
+    a SMALL p_pays is evidence the gene pays and a small p_hurts is evidence it
+    hurts. Never raises; a ledger with no pairs yields {}.
+    """
+    by_gene: Dict[str, List[float]] = {}
+    for row in _morph_read_rows(history_path):
+        gene = row.get("gene")
+        if not gene:
+            continue
+        ab = row.get("ab")
+        if not isinstance(ab, dict):
+            continue
+        delta = ab.get("delta")
+        if delta is None:
+            continue
+        try:
+            by_gene.setdefault(str(gene), []).append(float(delta))
+        except (TypeError, ValueError):
+            continue
+
+    evidence: Dict[str, Any] = {}
+    for gene, deltas in sorted(by_gene.items()):
+        n = len(deltas)
+        if not n:
+            continue
+        wins = sum(1 for d in deltas if d > 0.0)
+        evidence[gene] = {
+            "gene": gene,
+            "n": n,
+            "positive": wins,
+            "mean": round(sum(deltas) / float(n), 4),
+            "win_rate": round(wins / float(n), 4),
+            # A small p_pays means the gene pays; a small p_hurts means it hurts.
+            "p_pays": _binomial_tail(wins, n),
+            "p_hurts": _binomial_tail(n - wins, n),
+        }
+    return evidence
+
+
+def morph_policy_refresh(policy_path: str, history_path: str,
+                         cycle_index: Optional[int] = None) -> Dict[str, Any]:
+    """Re-derive `state/morph_policy.json` from the ledger. Never raises.
+
+    The artifact is the DECISION, so it must be re-derived rather than carried:
+    evidence comes from the matched A/B pairs, the verdict from the evidence, and
+    the verdict is written into `rotation` by `morph_rotation_retired` (which is
+    idempotent). The rotation's candidate slot follows the round-robin, so the
+    file says which gene the NEXT cycle would add and whether it is still active.
+
+    `search_space` is PRESERVED exactly as written: it is a hand-audited record
+    of which trainer kwargs can actually move the computation, and re-deriving
+    it from a signature would replace an audit with a guess.
+    """
+    out: Dict[str, Any] = {"refreshed": False, "written": False,
+                           "evidence": {}, "rotation": {}}
+    policy: Dict[str, Any] = {}
+    try:
+        with open(policy_path, encoding="utf-8") as fh:
+            loaded = json.load(fh)
+        if isinstance(loaded, dict):
+            policy = loaded
+    except (OSError, ValueError):
+        policy = {}
+
+    rules = policy.get("rules") if isinstance(policy.get("rules"), dict) else None
+    if not rules:
+        rules = {"admit_win_rate": MORPH_ADMIT_WIN_RATE,
+                 "decisive_p": MORPH_DECISIVE_P,
+                 "min_n": MORPH_MIN_N,
+                 "retire_win_rate": MORPH_RETIRE_WIN_RATE}
+
+    evidence = morph_evidence_from_ledger(history_path)
+    verdict = morph_rotation_verdict(evidence, rules)
+    for gene, ev in evidence.items():
+        ev["status"] = ("admit" if gene in verdict["admitted"]
+                        else ("retire" if gene in verdict["retired"]
+                              else "undetermined"))
+
+    candidates = list(policy.get("candidates") or [])
+    if cycle_index is not None:
+        gene = morph_candidate_gene(int(cycle_index))
+        candidates = [gene["name"]] if gene else []
+
+    paused, reading = morph_rotation_paused(history_path)
+    policy.update({
+        "rules": rules,
+        "evidence": evidence,
+        "candidates": candidates,
+        "retired": verdict["retired"],
+        "admitted": verdict["admitted"],
+        "active": [g for g in candidates if g not in verdict["retired"]],
+        "actuator": {
+            "threshold": MORPH_FREE_GROWTH_PAUSE,
+            "paused": paused,
+            "verdict": reading.get("verdict"),
+            "free_growth": reading.get("free_growth"),
+            "reading": reading,
+        },
+        "saved_at": datetime.now().isoformat(timespec="seconds"),
+    })
+    out["written"] = _morph_write_policy(policy_path, policy)
+    out["evidence"] = evidence
+    out["rotation"] = morph_rotation_retired(policy_path)
+    out["refreshed"] = True
     return out

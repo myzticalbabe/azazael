@@ -446,8 +446,17 @@ class MetaCognitionWorm:
                 )
         else:
             # Observation channel: 15% improvement threshold.
-            best_strategy = max(scores, key=scores.get)
-            best_score = scores[best_strategy]
+            # Empty scores (cold start, no observations yet) hold steady
+            # instead of max()-on-empty crashing the cycle.
+            if not scores:
+                best_strategy = current_strategy
+                best_score = current_score
+                rationale = (
+                    f"Keep {current_strategy}: no scores yet (cold start)"
+                )
+            else:
+                best_strategy = max(scores, key=scores.get)
+                best_score = scores[best_strategy]
             if best_strategy != current_strategy and best_score > current_score * 1.15:
                 should_adapt = True
                 rationale = (
@@ -568,9 +577,12 @@ class MetaCognitionWorm:
         }
         top_offenders = sorted(worm_error_counts.items(), key=lambda x: -x[1])[:5]
 
-        # Strategy summary
+        # Strategy summary (skip empty score dicts: cold-start worms record
+        # a key before any observation lands — same max()-on-empty class)
         strategy_summary = {}
         for wt, strategies in self._strategy_scores.items():
+            if not strategies:
+                continue
             best = max(strategies, key=strategies.get)
             strategy_summary[wt] = {
                 "best_strategy": best,

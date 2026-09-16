@@ -102,18 +102,26 @@ class DataPipelineWorm:
     def extract_from_memory(self, source: Optional[str] = None, event_type: Optional[str] = None,
                             severity: Optional[str] = None, limit: int = 200,
                             since: Optional[str] = None, max_age_days: Optional[int] = None,
-                            session_id: Optional[str] = None) -> List[Dict]:
+                            session_id: Optional[str] = None,
+                            exclude_sources: Optional[List[str]] = None) -> List[Dict]:
         """Extract data from LocalMemoryStore with filters.
         
         This is the primary data source for the ML training pipeline.
         11,633 memories are available for training (as of June 1, 2026).
+
+        Args:
+            exclude_sources: Skip events whose ``source`` is in this list.
+                RLTrainLoop/ScheduledTrainingWorm pass the monitor sources
+                (see EXCLUDED_TRAINING_SOURCES) so training never learns
+                from the telemetry that observes training.
         """
         store = self._get_store()
         if not store:
             self._record_fallback("extract", {"error": "LocalMemoryStore unavailable"})
             return []
 
-        cache_key = f"memory:{source}:{event_type}:{severity}:{limit}:{since}"
+        cache_key = (f"memory:{source}:{event_type}:{severity}:{limit}:{since}:"
+                     f"{','.join(sorted(exclude_sources or []))}")
         with self._lock:
             if cache_key in self._cache:
                 return self._cache[cache_key]
@@ -123,6 +131,7 @@ class DataPipelineWorm:
             severity=severity, limit=limit,
             since=since, max_age_days=max_age_days,
             session_id=session_id,
+            exclude_sources=exclude_sources,
         )
 
         with self._lock:

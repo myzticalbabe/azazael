@@ -182,25 +182,24 @@ class GRPOTrainer:
 
         return rewards
 
-    def compute_advantages(self, rewards: list[float]) -> list[float]:
-        """Compute group-normalized advantages.
+    def compute_advantages(self, rewards: list[float],
+                             global_stats: tuple | None = None) -> list[float]:
+        """Group-normalized advantages + REINFORCE++ global-norm fallback.
 
-        advantage_i = (reward_i - mean(rewards)) / std(rewards)
-        This is the core GRPO insight: no critic needed.
-
-        Args:
-            rewards: list of rewards for the group.
-
-        Returns:
-            list of advantage floats.
+        DAPO: if std_r < 1e-4 (zero-variance group) return [] to signal skip.
+        REINFORCE++: if global_stats (mean, std) given, use global std.
         """
         if not rewards:
             return []
         mean_r = sum(rewards) / len(rewards)
         variance = sum((r - mean_r) ** 2 for r in rewards) / len(rewards)
         std_r = variance ** 0.5
-        if std_r < 1e-8:
-            return [0.0] * len(rewards)
+        if std_r < 1e-4:
+            return []  # DAPO: drop zero-gradient group, resample task
+        if global_stats is not None:
+            _, gstd = global_stats
+            if gstd and gstd > 1e-8:
+                std_r = gstd  # REINFORCE++ unbiased global norm
         return [(r - mean_r) / std_r for r in rewards]
 
     def update_policy(self, group: list[str], rewards: list[float],
@@ -217,6 +216,10 @@ class GRPOTrainer:
         """
         advantages = self.compute_advantages(rewards)
 
+        # DAPO: skip no-signal groups instead of no-op update
+        if not advantages:
+            return {"skipped": True, "reason": "zero-variance"}
+
         with self._lock:
             if context_key not in self._policy:
                 self._policy[context_key] = {}
@@ -228,13 +231,25 @@ class GRPOTrainer:
                 if worm not in policy:
                     policy[worm] = 0.0
 
-            # Policy gradient update with KL penalty
+            # TR-GRPO token-regulate analogue: downweight fluke winners.
+            # w = clip(1.5*sigmoid((p-0.3)/0.1), 0.5, 1.5) on softmax scores.
+            import math
+            exps = {w: math.exp(policy[w]) for w in group}
+            denom = sum(exps.values()) or 1.0
+            probs = {w: exps[w] / denom for w in group}
+
+            def tr_w(p):
+                return min(1.5, max(0.5, 1.5 / (1.0 + math.exp(-(p - 0.3) / 0.1))))
+
+            # Policy gradient update with KL penalty (k2 form: 0.5*(s-ref)^2)
+            ref = getattr(self, "_ref_policy", {}).get(context_key, {})
             for worm, advantage in zip(group, advantages):
                 old_score = policy[worm]
                 # KL penalty: penalize large changes from old policy
                 kl_penalty = self._beta * old_score
+                w = tr_w(probs[worm])
                 # Update: move in direction of advantage, penalized by KL
-                policy[worm] += self._lr * (advantage - kl_penalty)
+                policy[worm] += self._lr * (w * advantage - kl_penalty)
 
             # Normalize scores to prevent drift
             scores = list(policy.values())

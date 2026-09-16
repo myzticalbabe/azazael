@@ -80,15 +80,38 @@ class ImmuneSentinelWorm:
             cls._EBPF_BASELINE = {}
         return cls._EBPF_BASELINE
 
+    _ADWIN = None  # per-metric ADWIN drift detectors (river, lazy)
+
+    @classmethod
+    def _adwin_for(cls, metric: str):
+        """River ADWIN per metric; None when river is unavailable (e.g. WSL).
+        Verified 2026-09-15: flags mean shifts ~23 samples in."""
+        if cls._ADWIN is None:
+            cls._ADWIN = {}
+        if metric not in cls._ADWIN:
+            try:
+                from river.drift import ADWIN
+                cls._ADWIN[metric] = ADWIN()
+            except ImportError:
+                cls._ADWIN[metric] = False
+        return cls._ADWIN[metric] or None
+
     def check_ebpf(self, comm: str, per_sec: float) -> dict[str, Any]:
         """Score a live per-comm syscall rate against the eBPF baseline.
 
         Uses baseline mean/std (no warm-up needed) AND feeds the rolling
         observe() window, so both the fitted model and online adaptation
-        see every sample.
+        see every sample. ADWIN drift state rides along when available.
         """
         base = (self._load_ebpf().get("baselines") or {}).get(comm)
         r = self.observe(f"ebpf:{comm}", per_sec)
+        det = self._adwin_for(f"ebpf:{comm}")
+        if det is not None:
+            try:
+                det.update(per_sec)
+                r["drift"] = bool(det.drift_detected)
+            except Exception:
+                pass
         if base is None:
             return {**r, "src": "online-only", "comm": comm}
         mu = base["per_sec_mean"]
