@@ -5,6 +5,7 @@
 > Last Updated: September 14, 2026 — recounted from disk (`C:\Users\clint\.agents\skills`: 1,224 dirs, all with SKILL.md). Prior Aug-23 claim of 1,259 was stale (+35 over actual).
 > Current: 1,224 total = 968 `azazael-pkg-*` + 74 `azazael-pkg314t-*` + 46 `azazael-bin-*` + 133 core `azazael-*` + 3 misc (`azazael_314t_master`, `azazael_314t_optimum`, `azazael_insights_2026-05-28`). (Historical note: Aug-23 edition listed 1,259 incl. 39 session skills #1221–#1259; numbering below predates this recount — full table regeneration via `skills_staging/regenerate_catalog.py` still pending.)
 > Purpose: Single source of truth for all available Azazael skills
+> Reconciliation: **the Inventory Summary near the top is stale.** It claims 1,224 while the Skill Quick Reference table holds 1,259 rows and the mirror holds 1,261 entries. Measured numbers, bucket-sum, and the unresolved 2-entry gap are in the final section of this file (2026-09-16).
 
 ---
 
@@ -1499,3 +1500,39 @@ Based on the May 29, 2026 session findings, these skills should be created:
 | `azazael-shims` | Deprecation shim pattern, UserWarning usage, testing procedure | High |
 | `azazael-g-sync` | G: drive sync procedure — what to copy, when, verification | Medium |
 | `azazael-separation` | Monolith separation plan — 6 layers, 27 programs, migration steps | High |
+
+---
+
+## Reconciliation — Measured 2026-09-16 (the summary above was stale)
+
+Counted from disk, not from a prior session's number: the cascade undercount is
+silent, so only a fresh count is trustworthy (`skill("azazael-catalog-reconciliation")`).
+
+| Source | Count |
+|---|---|
+| `.agents/skills` entries (mirror) | **1,261** = 1,224 dirs with `SKILL.md` + 37 flat legacy `.md` |
+| `skills/` entries (canonical) | **1,226** files = 1,225 skill files + `__init__.py` |
+| Rows in the Skill Quick Reference table | **1,259** |
+| Inventory Summary claim (this file) | 1,224 — **stale, undercounts its own table by 35** |
+
+Bucket-sum for the mirror, by name prefix:
+
+```
+968 azazael-pkg-*  +  74 azazael-pkg314t-*  +  46 azazael-bin-*  +  139 azazael-* core
+  +  34 non-azazael (aoa-*, investigation-*, pre-action-gate-lite, misc)
+  = 1,261   matches the mirror listing exactly
+```
+
+Per the reconciliation rule the **table wins**, so the Inventory Summary should read
+**1,259**, not 1,224. The residual 2-entry gap between the table (1,259) and the
+mirror (1,261) is named rather than rounded away: the likely cause is the 37 flat
+legacy files, some of which (`azazael-catalog-reconciliation.md`,
+`pre-action-gate-lite.md`) exist only in flat form and may not all appear as rows.
+
+**New since the Sep-14 recount:** `azazael-mesh-resilience-primitives` (2026-09-16) —
+canonical `skills/azazael-mesh-resilience-primitives.md`, mirrored to
+`.agents/skills/azazael-mesh-resilience-primitives/SKILL.md`. Documents the four mesh
+resilience primitives (fencing tokens, the silent-failure ledger, liveness
+obligations, store tombstones) and the method that produced them. The next full table
+regeneration must add its row and bump the total **in the same edit** — a row added
+without the count bump is exactly how the cascade starts.

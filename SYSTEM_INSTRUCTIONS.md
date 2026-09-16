@@ -2449,3 +2449,32 @@ is Cerulean Hat (Blue) by default. No other designations are used.
 the Kali audit arsenal is White Hat under authorization; Red Hat is a
 reserved designation for unauthorized use only.
 **Canon:** `HAT_TAXONOMY.md` (repo root, 57 tools explicitly listed).
+
+---
+
+## Addendum — 2026-09-16: Primitives, Enforcement Scope, Capability Honesty
+
+**New primitives (load-bearing, not optional):** `CORE/WORMS/expansion/fencing.py`,
+`CORE/WORMS/expansion/silence.py`, `CORE/WORMS/expansion/liveness.py`, and the store
+tombstones in `CORE/spine_registry.py` (`_PURGED_KEYS`, `purge_fixtures`,
+`audit_state`, `purged_blocked_writes`). See
+`skill("azazael-mesh-resilience-primitives")`.
+
+**Enforcement scope (applies to any invariant on a merging store):** enforce on the
+**write** paths as well as the merge paths. Merge-only enforcement holds against disk
+and against peers and *not* against the live process — a purge could report success
+while the next `save_spine_state()` restored exactly what it removed, verified on the
+live store.
+
+**Capability honesty (restates RULE 0A).** Where a mandated mechanism is not exposed
+in the running environment — e.g. no `spawn_agents` / inference-spawn tool, no
+code-reviewer agent — the gate assertion must state **N/A, capability absent** and
+disclose it. It must NOT fabricate a Gemini verdict, an inference-cache path, or an
+agent count. A substituted verification (`py_compile`, the scanner gate, pytest, a
+rendered artifact, a two-process reproduction) is named as a **substitution**, never
+presented as the mandated check.
+
+**Test adequacy.** A fix is not verified by a test that the broken code also passes.
+Where a guard exists, ship the test that **removes the guard** and shows the defect
+returning. Precedent: the G6 distinctness assertion passed pre-fix, and only
+reverting the fix exposed that *magnitude*, not distinctness, was the discriminator.

@@ -240,3 +240,18 @@ Lessons from this session: **#1, #17, #25, #28, #27, #26** — see [`LESSONS_MAS
 - **Code hygiene**: Removed unused `PurePosixPath` import from `WORMZ.py` (was listed under TRIMZ.py in TODO).
 - **Hardcoded paths fixed**: All hardcoded `C:\Users\clint\Desktop\...` paths in `ORCHESTRATION/scripts/` replaced with dynamic resolution using `CORE.paths` (get_project_root, get_src_dir, get_desktop_dir) or `Path.home()`. 8 files fixed: fix_syntax_errors.py, generate_docstrings.py, improve_bat_files.py, consistency_checker.py (including regex patterns), run_tests.py, bat_analysis.py, comprehensive_analysis.py, azazael_wsa.py. 0 remaining hardcoded Desktop paths. BAT templates now use `%USERPROFILE%`.
 - **AOA Architecture Disclosure**: 7-section whitepaper built July 2, 2026. 14 Mermaid diagrams with 12-color WCAG AA semantic palette. 2 videos (85s + 34s HEVC 1080p). Distributed to WSL Ubuntu, Kali Linux, G:, Windows Desktop. New skill: aoa-disclosure-build.md. Key numbers: 226 worms, 35 cats, 8 arms, 13 compliance components, 49 EXEs, 25 skills, 4 Quartet pillars, 8 canonical docs, 70 routes, 594 paths.
+
+---
+
+## Staleness Note — 2026-09-16
+
+This file is **superseded** (see the banner at the top) and is retained for reference
+only. Its remaining figures are historical: it reports 129 registered worms and 23
+categories where the 2026-09-14 rebuild measured **226 worms / 35 categories**, and
+"pytest still unavailable on 3.14t (Error #48)" no longer holds — pytest runs, though
+`tests/test_spine_mesh.py` currently **hangs** (attributed away from the 2026-09-16
+tombstone guard; see `AZAZAEL_INSIGHTS.md` section 14).
+
+Living plans, in priority order: `CODEBASE_AUDIT_TODO.md` (primary),
+`NEURAL_MESH_FUNCTION_TODO.md`, `NEURAL_MESH_BRAINSTEM_TODO.md`,
+`LIVE_MONITOR_RESTRUCTURE_TODO.md`.

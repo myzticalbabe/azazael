@@ -204,7 +204,17 @@ _Q_ALPHA_BASE = 0.2
 _Q_MIN, _Q_MAX = -1.0, 1.0
 # Adaptive alpha: per-key variance tracking for G2
 _Q_VARIANCE: Dict[str, float] = {}  # key -> running variance of Q-values
-_Q_UPDATE_COUNTS: Dict[str, int] = {}  # key -> number of updates seen
+_Q_UPDATE_COUNTS: Dict[str, int] = {}  # key -> number of OBSERVED updates
+# Key -> number of SIMULATED updates (dreams). Separate from the count above
+# because the two are not the same claim, and the distinction became
+# load-bearing the moment `q_effective` started ranking on the count.
+# `dream_reinforce()` documents that it does not touch the live ledger -- which
+# was true of `_HOMEOSTAT` and false of `_Q_UPDATE_COUNTS`, so a key that had
+# only ever been DREAMED about reported `source="measured"` and earned a
+# shrinkage weight from evidence that no worm ever produced. A simulation must
+# not be able to create a routing preference out of nothing; it may only nudge
+# a value that real observation already established.
+_Q_DREAM_COUNTS: Dict[str, int] = {}
 
 # ── EVIDENCE SHRINKAGE (playing-field TODO G1) ──────────────────────
 # The EMA reaches its clip in ~22 pulls at the default adaptive alpha
@@ -219,6 +229,104 @@ _Q_UPDATE_COUNTS: Dict[str, int] = {}  # key -> number of updates seen
 # observations", and it makes the pull count load-bearing rather than
 # advisory -- so losing one is visibly a lost RANKING, not a silent 0.0.
 _Q_SHRINK_K = 8.0
+
+# ── FORGETTING CURVE (playing-field TODO G2, fixed 2026-09-16) ─────────
+# A penalty with no timestamp is a life sentence: a route that failed 27/27
+# during a since-fixed bug stays at the floor forever. Staleness shrinks the
+# effective value toward neutral with a 7-day half-life, alongside the
+# evidence shrinkage in q_effective_from. Fresh evidence re-asserts instantly
+# (last_at updates on every outcome); unknown age counts as fresh so the
+# G4 no-backfill keys are never punished for missing timestamps.
+_Q_STALE_HALF_LIFE_S = 7.0 * 86400.0
+
+# ── CONFIDENCE-AWARE SELECTION (audit 2026-09-16) ───────────────────
+# `_Q_VARIANCE` has been maintained by Welford's algorithm on EVERY update
+# since adaptive alpha was added, and read by nothing except the two lines
+# that set alpha. It is the only uncertainty estimate in the module and it was
+# treated as a tuning input rather than as information.
+#
+# That matters because the value scale saturates before the interesting
+# range. Measured on live traffic (60 pulls each):
+#
+#     true rate 0.95 -> q_eff = +0.8791
+#     true rate 1.00 -> q_eff = +0.8824     (gap: 0.0032 = 0.32% of the scale)
+#
+# so a 95% arm and a perfect arm are indistinguishable to any selector ranking
+# on the value. The uncertainty separates them immediately: the applied signal
+# for a Bernoulli(1.0) key is always 0 (sigma = 0.0000) while for Bernoulli(0.95)
+# it is 0.436. The clip destroys the top of the VALUE range; the variance is
+# what survives it.
+#
+# `c` is the bandit-style exploration constant: a lower confidence bound is the
+# standard conservative score for choosing among arms, and it subsumes the
+# shrinkage heuristic rather than competing with it (a thin-evidence key is
+# also a wide-interval key).
+_Q_LCB_C = 1.0
+
+# Bound on the brainstem's own table growth. Every other table in this module
+# carries a _MAX and prunes; the four Q tables did not, and they are persisted
+# AND gossiped, so an unbounded key space grows the state file and every wire
+# payload with it. Pruning is reported as a spine event, never silent.
+_Q_KEYS_MAX = 4096
+
+# ── TOMBSTONES (deletion in a monotone store) ───────────────────────
+# Every read path in this module MERGES (adopt-if-absent; counters take MAX)
+# and every write merges the disk in first. That is deliberate -- it is what
+# makes N save-then-exit processes compose instead of clobbering each other --
+# but it means the store is MONOTONE: it can express "this key has a value"
+# and cannot express "this key is gone".
+#
+# Observed, not theorised. `purge_fixtures()` removed 56 entries across five
+# tables and the very next `save_spine_state()` restored all 14 fixture keys,
+# because the save folds the disk in before writing and the disk still had
+# them. So deletion was impossible by construction, and a "purge" reported
+# success while changing nothing durable -- which is the same defect class as
+# the four silent defects from the previous audit, in the store itself.
+#
+# A tombstone is the standard answer for a monotone CRDT-like store: record the
+# removal as a fact, so every merge that sees an absent key can ask whether it
+# was never written or deliberately removed. Bounded, persisted, and checked on
+# both read paths.
+_PURGED_KEYS: Dict[str, str] = {}
+_PURGED_MAX = 4096
+
+
+def _purged_blocked(key: str) -> bool:
+    """True when `key` was deliberately removed and must not be re-adopted."""
+    return key in _PURGED_KEYS
+
+
+# A tombstone was enforced on every MERGE path (both disk loads, the gossip
+# merge, and `audit_state`) -- and only there. That made the deletion hold
+# against the filesystem and against peers but NOT against this process: a
+# live `record_outcome` for a purged key re-created it in the very tables the
+# purge had cleared, and the next save wrote it back out. The guard therefore
+# belongs on the WRITE path too, one per table at the single choke point each
+# table has -- `_q_observe_unlocked` for Q, `record_outcome` for the homeostat.
+#
+# Blocked writes are COUNTED, never silently dropped. A purge that keeps having
+# to refuse writes is a fixture still being exercised, which is exactly the
+# signal an operator wants (the same reasoning as `silence.py`: a swallowed
+# no-op is indistinguishable from a healthy key).
+_PURGED_BLOCKED_WRITES: Dict[str, int] = {}
+
+
+def _note_blocked_write(key: str) -> None:
+    """Record that an observation was refused by a tombstone. Never raises."""
+    try:
+        _PURGED_BLOCKED_WRITES[key] = _PURGED_BLOCKED_WRITES.get(key, 0) + 1
+    except Exception:
+        pass
+
+
+def purged_blocked_writes() -> Dict[str, int]:
+    """Keys whose writes a tombstone refused, and how many times each.
+
+    Non-zero means a declared-removed key is still being exercised by live
+    code. That is not a fault in the tombstone; it is a finding about the
+    caller.
+    """
+    return dict(_PURGED_BLOCKED_WRITES)
 
 # ── ROUTE WEIGHT BOUNDS (playing-field TODO G5) ─────────────────────
 # `route()` and `get_route_usage()` each hardcoded `clamp(base_w * (1+q),
@@ -824,8 +932,19 @@ def _merge_disk_state() -> None:
     _migrate_state(payload)
     try:
         with _HOMEOSTAT_LOCK:
+            # Tombstones first, so a purge recorded in a previous session
+            # blocks re-adoption in this one.
+            for k in (payload.get("purged_keys") or {}):
+                _PURGED_KEYS.setdefault(str(k), "fixture")
+            for k, n in (payload.get("q_dream_counts") or {}).items():
+                if _purged_blocked(k):
+                    continue
+                try:
+                    _Q_DREAM_COUNTS[k] = max(_Q_DREAM_COUNTS.get(k, 0), int(n))
+                except (TypeError, ValueError):
+                    pass
             for k, v in (payload.get("homeostat") or {}).items():
-                if not isinstance(v, dict):
+                if _purged_blocked(k) or not isinstance(v, dict):
                     continue
                 cur = _HOMEOSTAT.get(k)
                 if cur is None:
@@ -843,22 +962,30 @@ def _merge_disk_state() -> None:
                         if f in v:
                             cur[f] = v[f]
             for k, w in (payload.get("q_weights") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 if k not in _Q_WEIGHTS:
                     try:
                         _Q_WEIGHTS[k] = max(_Q_MIN, min(_Q_MAX, float(w)))
                     except (TypeError, ValueError):
                         pass
             for k, n in (payload.get("q_update_counts") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 try:
                     _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
                 except (TypeError, ValueError):
                     pass
             for k, var in (payload.get("q_variance") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 try:
                     _Q_VARIANCE.setdefault(k, float(var))
                 except (TypeError, ValueError):
                     pass
             for k, v in (payload.get("scars") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 if isinstance(v, dict):
                     _SCARS.setdefault(k, v)
         with _SPINE_LOCK:
@@ -1016,6 +1143,11 @@ def record_outcome(nature: str, worm: str, success: bool,
     """
     _ensure_loaded()
     key = f"{nature}:{worm}"
+    if _purged_blocked(key):
+        # Homeostat choke point. `_q_observe_unlocked` is Q's. A purge must
+        # hold against a live writer, not only against disk and peers.
+        _note_blocked_write(key)
+        return
     try:
         with _homeostat_stripe(key):
             rec = _HOMEOSTAT.setdefault(key, {
@@ -1082,6 +1214,13 @@ def record_outcome(nature: str, worm: str, success: bool,
             reflex_fired = rec["consec_fail"] == _REFLEX_FAIL_THRESHOLD
             consec_fail = rec["consec_fail"]
             last_at = rec["last_at"]
+
+        # ── TABLE BOUND (outside every stripe: `cap_q_tables` takes the whole
+        # barrier, and acquiring homeostat stripes while holding a Q stripe
+        # would invert the documented lock order). Cheap length check first,
+        # so this costs a dict len on the hot path.
+        if len(_Q_WEIGHTS) > _Q_KEYS_MAX:
+            cap_q_tables()
 
         # ── REFLEX ARC: instant autonomic response ──────────────────
         # Fires at the failure threshold with no scheduler, no worm and no
@@ -1202,6 +1341,19 @@ def _reinforce_q_delta(key: str, delta: float) -> None:
         _reinforce_q_delta_unlocked(key, delta)
 
 
+def _reinforce_q_simulated(key: str, reward: float) -> None:
+    """SIMULATION form: moves Q without earning observation credit.
+
+    Used by ``dream_reinforce``. Same target semantics as ``_reinforce_q``,
+    but the update lands in ``_Q_DREAM_COUNTS``, so ``_evidence_unlocked`` --
+    and therefore ``q_effective``, ``q_order`` and ``route_weight_learned`` --
+    never treats a replay of a scenario as a measurement of the world.
+    """
+    with _q_stripe(key):
+        _q_observe_unlocked(key, signal=reward - _Q_WEIGHTS.get(key, 0.0),
+                            simulated=True)
+
+
 def _reinforce_q_unlocked(key: str, reward: float) -> None:
     """TARGET form. Body of ``_reinforce_q``. Caller holds ``_q_stripe(key)``.
 
@@ -1228,24 +1380,41 @@ def _reinforce_q_delta_unlocked(key: str, delta: float) -> None:
     _q_observe_unlocked(key, signal=delta)
 
 
-def _q_observe_unlocked(key: str, signal: float) -> None:
+def _q_observe_unlocked(key: str, signal: float,
+                        simulated: bool = False) -> None:
     """Shared kernel: adaptive alpha, Welford variance, clipped step.
 
-    ``signal`` is the amount to move q by, scaled by alpha. Both public forms
-    reduce to this, so variance tracking and the clip cannot diverge between
-    them. Variance is measured over the signal actually applied, which for
-    the target form is exactly the EMA error the original implementation
+    ``signal`` is the amount to move q by, scaled by alpha. All three public
+    forms reduce to this, so variance tracking and the clip cannot diverge
+    between them. Variance is measured over the signal actually applied, which
+    for the target form is exactly the EMA error the original implementation
     tracked -- the pre-existing adaptive-alpha behaviour is unchanged.
+
+    ``simulated`` routes the update count into ``_Q_DREAM_COUNTS`` instead of
+    ``_Q_UPDATE_COUNTS``. The Welford denominator still spans both, because
+    variance is a property of the value's history; but only OBSERVED updates
+    count as evidence, because only they are evidence.
     """
+    if _purged_blocked(key):
+        # Q's choke point: every public reinforce form (target, delta,
+        # simulated) reduces to this kernel, so one guard here covers all
+        # three rather than three guards that can drift apart.
+        _note_blocked_write(key)
+        return
     q = _Q_WEIGHTS.get(key, 0.0)
-    n = _Q_UPDATE_COUNTS.get(key, 0)
+    observed = _Q_UPDATE_COUNTS.get(key, 0)
+    dreamed = _Q_DREAM_COUNTS.get(key, 0)
+    n = observed + dreamed
     # Adaptive alpha: scale by sqrt of running variance
     var = _Q_VARIANCE.get(key, 0.25)  # default variance ~ moderate
     adaptive_alpha = _Q_ALPHA_BASE * (1.0 + min(2.0, (var ** 0.5) * 2.0))
     adaptive_alpha = max(0.05, min(0.5, adaptive_alpha))
     # Update running variance via Welford's online algorithm
     n += 1
-    _Q_UPDATE_COUNTS[key] = n
+    if simulated:
+        _Q_DREAM_COUNTS[key] = dreamed + 1
+    else:
+        _Q_UPDATE_COUNTS[key] = observed + 1
     old_var = _Q_VARIANCE.get(key, 0.0)
     _Q_VARIANCE[key] = old_var + (signal * signal - old_var) / n
     q = q + adaptive_alpha * signal
@@ -1272,12 +1441,20 @@ def dream_reinforce(nature: str, worm: str, reward: float) -> bool:
     the string a dead expression statement and left `__doc__` as None: the
     function's entire contract was unreachable from help(), the audit probes
     and any doc-driven tooling.
+
+    2026-09-16 correction: "does NOT count" was true of the success/failure
+    ledger and FALSE of the pull count, so a dream incremented the very number
+    that ``q_effective`` now ranks on. A key that had only ever been dreamed
+    about reported ``source="measured"`` and earned a shrinkage weight from
+    evidence no worm produced. Dreams are still evidence, but weaker evidence,
+    and the split makes that explicit instead of implicit: the update moves q
+    and is counted in ``_Q_DREAM_COUNTS``, while `_evidence_unlocked` reads
+    only observed updates.
     """
     _ensure_loaded()
     try:
         key = f"{nature}:{worm}"
-        with _q_stripe(key):
-            _reinforce_q_unlocked(key, max(_Q_MIN, min(_Q_MAX, float(reward))))
+        _reinforce_q_simulated(key, max(_Q_MIN, min(_Q_MAX, float(reward))))
         return True
     except Exception:
         return False
@@ -1397,6 +1574,141 @@ def q_effective_from(q: float, n: int, k: float = _Q_SHRINK_K) -> float:
     return max(_Q_MIN, min(_Q_MAX, qf * (nf / (nf + kk))))
 
 
+def q_stale_discount(last_at_iso: str,
+                     half_life_s: float = _Q_STALE_HALF_LIFE_S) -> float:
+    """Forgetting-curve factor in (0, 1]: ``0.5 ** (age / half_life)``.
+
+    Pure and public for the same reasons as q_effective_from. Unknown or
+    unparsable timestamps count as fresh (1.0) — see the G2 note above.
+    """
+    try:
+        import datetime as _dt
+        ts = _dt.datetime.fromisoformat(str(last_at_iso or ""))
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=_dt.timezone.utc)
+        age = (_dt.datetime.now(_dt.timezone.utc) - ts).total_seconds()
+    except Exception:
+        return 1.0
+    if age <= 0:
+        return 1.0
+    try:
+        hl = max(1.0, float(half_life_s))
+    except (TypeError, ValueError):
+        hl = _Q_STALE_HALF_LIFE_S
+    return 0.5 ** (age / hl)
+
+
+def get_q_variance() -> Dict[str, float]:
+    """Copy of the per-key variance of the applied learning signal.
+
+    Exposed because it is the module's only uncertainty estimate and it was
+    previously unreachable from outside -- computed on every update, persisted,
+    gossiped, and readable by nothing but adaptive alpha. A caller that wants
+    to know *how well measured* a value is needs this; `get_q_weights()` cannot
+    express it.
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        return dict(_Q_VARIANCE)
+
+
+def selection_score_from(q: float, n: int, var: float,
+                        k: float = _Q_SHRINK_K,
+                        c: float = _Q_LCB_C) -> float:
+    """Conservative value for SELECTION: a lower confidence bound.
+
+    ``score = shrink(q, n) - c * sigma / sqrt(n + 1)``
+
+    Two discounts doing different jobs:
+
+    * ``shrink(q, n) = q * n/(n+K)`` discounts a value whose **evidence** is
+      thin (a 4-pull -1.0 is not a verdict).
+    * the confidence term discounts a value whose **measurement** is noisy,
+      using the Welford variance the module already maintains.
+
+    Only the second one can separate a 95% arm from a perfect arm, because
+    they differ by 0.32% of the value scale while their uncertainties differ
+    from 0.436 to 0.0. Pure and public so the ranking can be unit-tested
+    without a live spine.
+    """
+    eff = q_effective_from(q, n, k)
+    try:
+        v = max(0.0, float(var))
+    except (TypeError, ValueError):
+        v = 0.0
+    try:
+        obs = max(0, int(n))
+    except (TypeError, ValueError):
+        obs = 0
+    if v > 0.0:
+        eff -= abs(float(c)) * (v ** 0.5) / ((obs + 1) ** 0.5)
+    return max(_Q_MIN, min(_Q_MAX, eff))
+
+
+def selection_band(q: float) -> int:
+    """Which class a key belongs to for ranking: 0 negative, 1 neutral, 2 positive.
+
+    A single conservative scalar CANNOT order across this boundary, and the
+    failure that proved it is worth recording. Applying the lower confidence
+    bound to an UNOBSERVED key makes it score exactly 0.0, because its
+    variance is zero -- an unmeasured arm looks infinitely certain. So a cold
+    key outranked a healthy one whose interval was merely wide, which is
+    backwards and which the existing suite caught immediately
+    (`test_q_order_healthy_first_cold_middle`).
+
+    The general lesson: a bound is only meaningful AMONG measurements. Across
+    the observed/unobserved line it rewards ignorance, because "no data" is
+    not "no uncertainty" -- it is unbounded uncertainty that happens to be
+    represented as zero. Bands keep the documented contract (healthy first,
+    cold middle, failing last) and let the confidence term do its work inside
+    the two observed classes, which is where it was needed.
+    """
+    try:
+        qf = float(q)
+    except (TypeError, ValueError):
+        return 1
+    if qf > 0.0:
+        return 2
+    if qf < 0.0:
+        return 0
+    return 1
+
+
+def selection_rank(q: float, n: int, var: float,
+                   scarred: bool = False) -> tuple:
+    """The exact sort key ``q_order`` uses, exposed so it can be tested.
+
+    ``(scar_band, value_band, score)`` -- three keys, compared in that order.
+    A scar still demotes below every healthy peer regardless of value (the
+    reflex-arc contract), then the value class, then the conservative score.
+    """
+    return (0 if scarred else 1, selection_band(q),
+            selection_score_from(q, n, var))
+
+
+def q_confidence(nature: str, worm: str) -> Dict[str, Any]:
+    """Everything the brainstem knows about one key's measurement quality.
+
+    Reports the estimate AND its uncertainty, because a selector that can only
+    see the estimate cannot tell "reliable" from "lucky", which is precisely
+    how a clipped table came to look like a ranking.
+    """
+    _ensure_loaded()
+    key = f"{nature}:{worm}"
+    with _HOMEOSTAT_LOCK:
+        q = float(_Q_WEIGHTS.get(key, 0.0))
+        n = _evidence_unlocked(key)
+        var = float(_Q_VARIANCE.get(key, 0.0))
+        dreamed = int(_Q_DREAM_COUNTS.get(key, 0))
+    sigma = var ** 0.5
+    return {"key": key, "q": round(q, 6), "evidence": n,
+            "dream_evidence": dreamed, "variance": round(var, 6),
+            "sigma": round(sigma, 6),
+            "q_effective": round(q_effective_from(q, n), 6),
+            "selection_score": round(selection_score_from(q, n, var), 6),
+            "half_width": round(sigma / ((n + 1) ** 0.5), 6)}
+
+
 def get_q_effective() -> Dict[str, float]:
     """Evidence-shrunk Q-table, keyed "nature:worm". Copy. Thread-safe.
 
@@ -1424,16 +1736,30 @@ def get_q_evidence(key: str) -> Dict[str, Any]:
     """How much evidence stands behind one key, and where it came from.
 
     ``source`` is ``measured`` (a real pull count), ``homeostat`` (a
-    re-derivation -- the key predates the count table), or ``none``.
+    re-derivation -- the key predates the count table), ``simulated`` (dreams
+    only: the value exists but nothing ever observed it), or ``none``.
+
+    ``dream_evidence`` is reported BESIDE the observed count rather than
+    folded into it. A simulated pull and an observed pull are different
+    claims, and only the second can establish a preference from nothing.
     """
     _ensure_loaded()
     key = str(key or "")
     with _HOMEOSTAT_LOCK:
         raw = _Q_UPDATE_COUNTS.get(key)
+        dreamed = int(_Q_DREAM_COUNTS.get(key, 0))
         n = _evidence_unlocked(key)
-        source = ("measured" if raw is not None
-                  else ("homeostat" if n else "none"))
+        if raw is not None:
+            source = "measured"
+        elif n:
+            source = "homeostat"
+        elif dreamed:
+            source = "simulated"
+        else:
+            source = "none"
         return {"key": key, "evidence": n, "source": source,
+                "dream_evidence": dreamed,
+                "observed": bool(n),
                 "q": float(_Q_WEIGHTS.get(key, 0.0)),
                 "q_effective": q_effective_from(_Q_WEIGHTS.get(key, 0.0), n),
                 "count_recorded": raw is not None}
@@ -1522,28 +1848,39 @@ def audit_state() -> Dict[str, Any]:
     of past damage indistinguishable from production data. The missing third
     leg is provenance.
 
-    Classes: ``measured`` (has a pull count), ``bootstrapped`` (no count but
-    real homeostat evidence -- the G4 migration), ``unwitnessed`` (no count
-    and no ledger record -- nothing ever observed it), and ``fabricated``
-    (a declared fixture name; counted separately as well, because a fixture
-    that somehow accumulated a count is still a fixture).
+    Classes: ``measured`` (has an observed pull count), ``bootstrapped`` (no
+    count but real homeostat evidence -- the G4 migration), ``simulated``
+    (dreams only: a value exists and nothing ever observed it, so it earns no
+    ranking weight), ``unwitnessed`` (no count, no ledger record, no dreams),
+    and ``fabricated`` (a declared fixture name; counted separately as well,
+    because a fixture that somehow accumulated a count is still a fixture).
     """
     _ensure_loaded()
     with _HOMEOSTAT_LOCK:
         qw = dict(_Q_WEIGHTS)
         counts = dict(_Q_UPDATE_COUNTS)
         homeo = {k: dict(v) for k, v in _HOMEOSTAT.items()}
+        dreams = dict(_Q_DREAM_COUNTS)
     buckets: Dict[str, List[str]] = {
         "measured": [], "bootstrapped": [], "unwitnessed": [],
-        "fabricated": [],
+        "fabricated": [], "simulated": [],
     }
     for key in qw:
-        if _is_fixture_key(key):
+        if _purged_blocked(key):
+            # Cannot happen through the public API (a purged key is removed),
+            # but a merge racing the purge could re-introduce one, and a
+            # tombstoned key must never be counted as measured.
+            buckets["fabricated"].append(key)
+        elif _is_fixture_key(key):
             buckets["fabricated"].append(key)
         elif key in counts:
             buckets["measured"].append(key)
         elif key in homeo:
             buckets["bootstrapped"].append(key)
+        elif dreams.get(key):
+            # A value with no observation behind it: dreams are the only thing
+            # holding it up, and it earns no ranking weight anywhere.
+            buckets["simulated"].append(key)
         else:
             buckets["unwitnessed"].append(key)
     total = len(qw) or 1
@@ -1557,19 +1894,27 @@ def audit_state() -> Dict[str, Any]:
     }
 
 
-def purge_fixtures() -> Dict[str, Any]:
+def purge_fixtures(persist: bool = False) -> Dict[str, Any]:
     """Remove declared fixture keys from every learning table. Reports what went.
 
     Removal is reported, never silent -- the whole point of G3 is that the
     damage was invisible. Touches Q weights, counts, variance, homeostat,
     scars and the outcome-derived views; leaves every non-fixture key exactly
     as it was.
+
+    ``persist`` also saves, and it records a TOMBSTONE for every removed key
+    first. Without the tombstone the purge is not durable and not even
+    observable: the save path folds the disk in before writing, so the next
+    save re-adopts every fixture that was just deleted (verified: 56 entries
+    removed, all 14 keys back on the following save). Use ``persist=True`` when
+    the removal is meant to stick.
     """
     _ensure_loaded()
     removed: Dict[str, List[str]] = {}
     with _HOMEOSTAT_LOCK:
         for table, name in ((_Q_WEIGHTS, "q_weights"),
                             (_Q_UPDATE_COUNTS, "q_update_counts"),
+                            (_Q_DREAM_COUNTS, "q_dream_counts"),
                             (_Q_VARIANCE, "q_variance"),
                             (_HOMEOSTAT, "homeostat")):
             hit = sorted(k for k in list(table) if _is_fixture_key(k))
@@ -1583,15 +1928,29 @@ def purge_fixtures() -> Dict[str, Any]:
                 _SCARS.pop(k, None)
             if hit:
                 removed["scars"] = hit
+    # Tombstone BEFORE anything can re-merge, and for every key seen in any
+    # table -- not just the ones in `removed`, so a key that only ever existed
+    # on disk cannot slip back in either.
+    purged = sorted({k for keys in removed.values() for k in keys})
+    for k in purged:
+        _PURGED_KEYS[k] = "fixture"
+    if len(_PURGED_KEYS) > _PURGED_MAX:
+        for k in list(_PURGED_KEYS)[:len(_PURGED_KEYS) - _PURGED_MAX]:
+            _PURGED_KEYS.pop(k, None)
+    saved: Dict[str, Any] = {"saved": False, "reason": "persist=False"}
+    if persist:
+        saved = save_spine_state()
     try:
         record_spine_event("fixtures_purged", {
             "keys": sum(len(v) for v in removed.values()),
             "tables": {k: len(v) for k, v in removed.items()},
+            "tombstoned": len(purged), "persisted": bool(saved.get("saved")),
         })
     except Exception:
         pass
     return {"success": True, "removed": removed,
-            "removed_count": sum(len(v) for v in removed.values())}
+            "removed_count": sum(len(v) for v in removed.values()),
+            "tombstoned": purged, "persisted": bool(saved.get("saved"))}
 
 
 def route_weight(q_effective: float, base_w: float = 1.0) -> float:
@@ -1616,6 +1975,51 @@ def route_weight(q_effective: float, base_w: float = 1.0) -> float:
                      min(_ROUTE_WEIGHT_MAX, bw * (1.0 + float(q_effective)))), 4)
 
 
+def cap_q_tables() -> int:
+    """Prune the lowest-evidence Q keys when the brainstem exceeds its bound.
+
+    Takes the ledger barrier itself, so it must be called with NO stripe held.
+    Pruning by EVIDENCE rather than by age or insertion order is deliberate:
+    the keys worth keeping are the ones with something behind them, and a
+    low-evidence key is by construction the cheapest to lose, because its
+    contribution to any ranking is already shrunk toward neutral.
+
+    Returns the number of keys dropped (and records a spine event when it is
+    non-zero -- a silently shrinking brainstem is the defect, not the fix).
+    """
+    dropped = 0
+    try:
+        with _HOMEOSTAT_LOCK:
+            if len(_Q_WEIGHTS) <= _Q_KEYS_MAX:
+                return 0
+            ranked = sorted(_Q_WEIGHTS,
+                            key=lambda k: (_evidence_unlocked(k),
+                                           abs(float(_Q_WEIGHTS.get(k, 0.0)))))
+            dropped = len(_Q_WEIGHTS) - _Q_KEYS_MAX
+            for k in ranked[:dropped]:
+                for table in (_Q_WEIGHTS, _Q_UPDATE_COUNTS, _Q_DREAM_COUNTS,
+                              _Q_VARIANCE):
+                    table.pop(k, None)
+    except Exception:
+        return 0
+    if dropped:
+        try:
+            record_spine_event("q_tables_capped", {"dropped": dropped,
+                                                  "keys": len(_Q_WEIGHTS),
+                                                  "bound": _Q_KEYS_MAX})
+        except Exception:
+            pass
+    return dropped
+
+
+def route_last_at(src_env: str, dst_env: str) -> str:
+    """ISO last-outcome timestamp for a route key, "" if never observed."""
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        rec = _HOMEOSTAT.get(f"route:{src_env}>{dst_env}") or {}
+        return str(rec.get("last_at", ""))
+
+
 def route_weight_learned(src_env: str, dst_env: str,
                         base_w: float = 1.0) -> Dict[str, Any]:
     """Learned route weight + the evidence behind it, in one lock.
@@ -1632,8 +2036,12 @@ def route_weight_learned(src_env: str, dst_env: str,
         q = float(_Q_WEIGHTS.get(key, 0.0))
         n = _evidence_unlocked(key)
         q_eff = q_effective_from(q, n)
+        rec = _HOMEOSTAT.get(key) or {}
+        stale = q_stale_discount(rec.get("last_at", ""))
+        q_eff = max(_Q_MIN, min(_Q_MAX, q_eff * stale))
     return {"key": key, "q": round(q, 4), "evidence": n,
             "q_effective": round(q_eff, 4),
+            "stale_discount": round(stale, 4),
             "effective_weight": route_weight(q_eff, base_w)}
 
 
@@ -1673,22 +2081,34 @@ def q_order(nature: str, worm_names: List[str]) -> List[str]:
     for i, n in enumerate(worm_names):
         positions.setdefault(n, i)
     with _HOMEOSTAT_LOCK:
+        # Rank on the CONSERVATIVE key (`selection_rank`), not the raw EMA.
+        # Three keys, and each fixes a defect the previous one exposed:
+        #
+        #   * the raw EMA is a plateau at the clip for the busiest keys (29 of
+        #     76 live, up from 3 at the previous save), so ordering on it
+        #     degrades to scar-band then input order exactly where reliability
+        #     matters most;
+        #   * shrinkage fixes that, but still separates a 95% arm from a
+        #     perfect one by 0.32% of the scale;
+        #   * the confidence term uses the Welford variance -- measured on
+        #     every update and previously read by nothing -- to put the noisy
+        #     arm below the certain one, which was the decision that was
+        #     actually impossible before.
+        #
+        # The VALUE BAND sits between the scar band and the score because a
+        # bound cannot order across the observed/unobserved line: an
+        # unobserved key has zero variance and would score 0.0, outranking a
+        # healthy key with a merely wide interval.
         with _SCAR_LOCK:  # reflex writes scars outside the ledger barrier
             ranked = [(positions[n],
-                       0 if f"{nature}:{n}" in _SCARS else 1,  # scar demotion band
-                       # Rank on the EVIDENCE-SHRUNK weight, not the raw one.
-                       # The raw EMA is a plateau at the clip for the busiest
-                       # keys (29 of 76 live, up from 3 at the previous save),
-                       # so ordering on it degrades to scar-band then input
-                       # order exactly where reliability matters most. The
-                       # factor scales with evidence, so a 4-pull -1.0 key
-                       # ranks above a 40-pull -0.9 key -- which is the honest
-                       # reading of "I have barely tested this".
-                       q_effective_from(_Q_WEIGHTS.get(f"{nature}:{n}", 0.0),
-                                        _evidence_unlocked(f"{nature}:{n}")), n)
-                      for n in worm_names]
-    ranked.sort(key=lambda t: (-t[1], -t[2], t[0]))
-    return [n for _, _, _, n in ranked]
+                       selection_rank(
+                           _Q_WEIGHTS.get(f"{nature}:{n}", 0.0),
+                           _evidence_unlocked(f"{nature}:{n}"),
+                           _Q_VARIANCE.get(f"{nature}:{n}", 0.0),
+                           scarred=f"{nature}:{n}" in _SCARS),
+                       n) for n in worm_names]
+    ranked.sort(key=lambda t: (-t[1][0], -t[1][1], -t[1][2], t[0]))
+    return [t[2] for t in ranked]
 
 
 def get_route_usage() -> Dict[str, Dict[str, Any]]:
@@ -1780,6 +2200,7 @@ def save_spine_state() -> Dict[str, Any]:
             # get_q_updates(), whose entire purpose is telling a proven-neutral
             # key (weight 0.0, pulls > 0) from a starved one (both 0).
             q_update_counts = {k: int(v) for k, v in _Q_UPDATE_COUNTS.items()}
+            q_dream_counts = {k: int(v) for k, v in _Q_DREAM_COUNTS.items()}
             q_variance = {k: float(v) for k, v in _Q_VARIANCE.items()}
         with _POLICY_LOCK:
             policy_journal = [dict(e) for e in _POLICY_JOURNAL]
@@ -1802,7 +2223,12 @@ def save_spine_state() -> Dict[str, Any]:
             "homeostat": homeostat,
             "q_weights": q_weights,
             "q_update_counts": q_update_counts,
+            "q_dream_counts": q_dream_counts,
             "q_variance": q_variance,
+            # Deletion is a fact that has to be persisted, or the next merge
+            # re-adopts what a purge removed (verified: 56 entries removed,
+            # all 14 keys restored by the following save).
+            "purged_keys": dict(_PURGED_KEYS),
             "scars": _scars_snapshot(),
             "policy_journal": policy_journal,
             "policy_latest": policy_latest,
@@ -1868,7 +2294,11 @@ def load_spine_state() -> Dict[str, Any]:
             if len(_SPINE_EVENTS) > _SPINE_EVENTS_MAX:
                 del _SPINE_EVENTS[:len(_SPINE_EVENTS) - _SPINE_EVENTS_MAX]
         with _HOMEOSTAT_LOCK:
+            for k in (payload.get("purged_keys") or {}):
+                _PURGED_KEYS.setdefault(str(k), "fixture")
             for k, v in homeostat.items():
+                if _purged_blocked(k):
+                    continue
                 if isinstance(v, dict):
                     _HOMEOSTAT.setdefault(k, v)
             # setdefault, not assignment -- the same rule the policy map and
@@ -1881,6 +2311,8 @@ def load_spine_state() -> Dict[str, Any]:
             # That is the exact silent reversion the policy_latest comment
             # below calls out -- it just was not applied to the weights.
             for k, w in q_weights.items():
+                if _purged_blocked(k):
+                    continue
                 try:
                     _Q_WEIGHTS.setdefault(k, max(_Q_MIN, min(_Q_MAX, float(w))))
                 except (TypeError, ValueError):
@@ -1889,18 +2321,31 @@ def load_spine_state() -> Dict[str, Any]:
             # save-then-exit processes compose instead of overwriting (same
             # rule as successes/failures in _merge_disk_state).
             for k, n in (payload.get("q_update_counts") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 try:
                     _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
+                except (TypeError, ValueError):
+                    pass
+            for k, n in (payload.get("q_dream_counts") or {}).items():
+                if _purged_blocked(k):
+                    continue
+                try:
+                    _Q_DREAM_COUNTS[k] = max(_Q_DREAM_COUNTS.get(k, 0), int(n))
                 except (TypeError, ValueError):
                     pass
             # Variance: adopt only when we have none; a restored value must not
             # overwrite variance this process has already measured.
             for k, var in (payload.get("q_variance") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 try:
                     _Q_VARIANCE.setdefault(k, float(var))
                 except (TypeError, ValueError):
                     pass
             for k, v in (payload.get("scars") or {}).items():
+                if _purged_blocked(k):
+                    continue
                 if isinstance(v, dict):
                     with _SCAR_LOCK:
                         _SCARS.setdefault(k, v)
@@ -2043,6 +2488,9 @@ def spine_reset() -> None:
         _HOMEOSTAT.clear()
         _clear_outcome_events()
         _Q_WEIGHTS.clear()
+        _Q_DREAM_COUNTS.clear()
+        _PURGED_KEYS.clear()
+        _PURGED_BLOCKED_WRITES.clear()
         # The brainstem is three tables, not one. Clearing only the weights
         # left the pull-count and the Welford variance behind, so a "reset"
         # produced a Q-table that was empty of values but full of evidence:
@@ -2546,6 +2994,16 @@ def export_spine_gossip() -> Dict[str, Any]:
         # a starved key on the receiving monitor (the counts are the evidence
         # behind the weight).
         q_update_counts = dict(_Q_UPDATE_COUNTS)
+        # And deletions travel with the state, for the same reason and one
+        # level up. The tombstone made a purge durable against DISK; it did
+        # nothing against the mesh, so a peer that still held the key
+        # re-adopted it on the next exchange and the next save wrote it back
+        # -- the resurrection this mechanism exists to stop, moved from the
+        # disk path to the wire. Signed with everything else, so a tombstone
+        # cannot be forged or edited in transit, and only ever created for
+        # DECLARED fixture keys, which is what bounds what one env can delete
+        # on another.
+        purged_keys = dict(_PURGED_KEYS)
     with _GOSSIP_TRUST_LOCK:
         _GOSSIP_SEQ_LOCAL += 1
         seq = _GOSSIP_SEQ_LOCAL
@@ -2574,6 +3032,7 @@ def export_spine_gossip() -> Dict[str, Any]:
         # is what stops the mesh forgetting its routing/consensus on restart.
         "quarantine_votes": quarantine_votes,
         "fabric_state": fabric_state,
+        "purged_keys": purged_keys,
     }
     crypto = _gossip_crypto()
     if crypto is not None:
@@ -2604,7 +3063,8 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
     Idempotent: re-merging the same payload changes nothing.
     """
     stats: Dict[str, Any] = {"merged": False, "spine_nodes": 0, "homeostat_worms": 0,
-                             "q_weights": 0, "events": 0}
+                             "q_weights": 0, "events": 0, "tombstoned": 0,
+                             "purged_blocked": 0, "purged_rejected": 0}
     try:
         if not isinstance(payload, dict):
             return stats
@@ -2647,6 +3107,9 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
             for k, v in (remote_map or {}).items():
                 if not isinstance(v, dict):
                     continue
+                if _purged_blocked(k):
+                    stats["purged_blocked"] += 1
+                    continue
                 cur = _SPINE_MAP.get(k)
                 if cur is None:
                     _SPINE_MAP[k] = v
@@ -2672,6 +3135,34 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     del _SPINE_EVENTS[:len(_SPINE_EVENTS) - _SPINE_EVENTS_MAX]
 
         with _HOMEOSTAT_LOCK:
+            # Adopt the peer's tombstones BEFORE the record loops, and drop
+            # any local copy of a key they name. A deletion that does not
+            # delete is the defect; without this block a peer's payload
+            # re-adopts a key this env already purged, and the purge is not
+            # durable against the network.
+            #
+            # Validated, not trusted: only a DECLARED fixture key may be
+            # tombstoned by a peer. The set is bounded by a static declaration
+            # both sides can check independently, so gossip cannot be used to
+            # delete real learned weights, and the union is safe because "this
+            # key is synthetic" is a fact rather than an opinion.
+            remote_purged = payload.get("purged_keys") or {}
+            if isinstance(remote_purged, dict):
+                for raw in remote_purged:
+                    key = str(raw)
+                    if not _is_fixture_key(key):
+                        stats["purged_rejected"] += 1
+                        continue
+                    if key in _PURGED_KEYS:
+                        continue
+                    _PURGED_KEYS[key] = "fixture"
+                    stats["tombstoned"] += 1
+                    for table in (_Q_WEIGHTS, _Q_UPDATE_COUNTS,
+                                  _Q_DREAM_COUNTS, _Q_VARIANCE, _HOMEOSTAT):
+                        table.pop(key, None)
+                if len(_PURGED_KEYS) > _PURGED_MAX:
+                    for k in list(_PURGED_KEYS)[:len(_PURGED_KEYS) - _PURGED_MAX]:
+                        _PURGED_KEYS.pop(k, None)
             # Local ledger stamps, captured BEFORE the loop below replaces
             # those records wholesale. The q merge needs to know whether the
             # peer's evidence was newer than ours *before* the merge; after it,
@@ -2685,6 +3176,9 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
             for k, v in (remote_home or {}).items():
                 if not isinstance(v, dict):
                     continue
+                if _purged_blocked(k):
+                    stats["purged_blocked"] += 1
+                    continue
                 cur = _HOMEOSTAT.get(k)
                 if cur is None:
                     _HOMEOSTAT[k] = v
@@ -2695,6 +3189,12 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     _HOMEOSTAT[k] = v
                     stats["homeostat_worms"] += 1
             for k, w in (remote_q or {}).items():
+                if _purged_blocked(k):
+                    # A peer that has not heard the tombstone yet still ships
+                    # the weight. Refusing it here is what makes the deletion
+                    # hold without requiring both envs to be purged by hand.
+                    stats["purged_blocked"] += 1
+                    continue
                 try:
                     wv = max(_Q_MIN, min(_Q_MAX, float(w)))
                 except (TypeError, ValueError):
@@ -2725,6 +3225,8 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
             # never-pulled. Never lowers a local count.
             if isinstance(remote_counts, dict):
                 for k, n in remote_counts.items():
+                    if _purged_blocked(k):
+                        continue
                     try:
                         _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
                     except (TypeError, ValueError):
