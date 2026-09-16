@@ -1,7 +1,7 @@
 # AZAZAEL MANDATES — Complete Codification
 
 > *Canonical reference: All active mandates governing Codebuff sessions on the Azazael codebase.*
-> *Created: Jun 12, 2026 — Comprehensive listing of all 30 mandates.*
+> *Created: Jun 12, 2026 — Comprehensive listing of all 37 mandates. (Corrected 2026-09-16: this line read "30" while this file's own footer already read "37". The document contradicted itself; the footer was right. Cross-check the summary against the body before declaring a canonical doc current — see the 2026-09-16 addendum in SOP.md.)*
 > *Canonical sources: `azazael/SYSTEM_INSTRUCTIONS.md`, `azazael/SOP.md`*
 > *Reading order (RULE 0K): SYSTEM_INSTRUCTIONS.md → SOP.md → ERROR_LOG.md → MEMORIES.md → SESSION_STARTUP.md → LESSONS_MASTER.md → PRODUCTION_TODO.md*
 

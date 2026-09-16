@@ -1138,3 +1138,38 @@ See `azazael-error-prevention` skill for the full DO-NOT-REPEAT catalog.
 ---
 
 **This SOP is mandatory for all Codebuff agents operating on the Azazael codebase. Failure to record an error before proceeding is a process violation.**
+
+---
+
+## Addendum — 2026-09-16: Primitives, Enforcement Scope, and Document Currency
+
+Recorded because the canonical quartet drifted while the code moved.
+
+**1. Four resilience primitives now exist and are load-bearing.** `fencing.py`
+(fencing tokens for in-process shared state), `silence.py` (silent-failure ledger),
+`liveness.py` (obligations with deadlines), and the store tombstones in
+`CORE/spine_registry.py`. Reference: `skill("azazael-mesh-resilience-primitives")`.
+They came from the 2026-09-16 per-function audit
+(`NEURAL_MESH_FUNCTION_AUDIT_ANALYSIS_2026-09-16.md`) and the brainstem playing-field
+audit (`NEURAL_MESH_BRAINSTEM_TODO.md`), and each was promoted from a **recurring
+defect shape** rather than written from a design: a fix applied N times is a fix that
+will be forgotten N times.
+
+**2. Enforcement-scope rule (new; it cost a session to learn).** When enforcing an
+invariant on a store that merges on both read and write, enumerate the paths that can
+**violate** it (write paths) — not the paths that can **propagate** it (merge paths).
+Tombstones were enforced on every merge path and the write path was left open, so a
+live `record_outcome` re-created what a purge had removed and the next save wrote it
+back out. A guard belongs at the narrowest point every violator must cross: one per
+table, not one per call site.
+
+**3. Document-currency rule.** Before declaring a canonical document current, check it
+against **itself** first. A document that contradicts its own summary, table, or footer
+is stale regardless of what the world says, and the check costs seconds. Observed
+2026-09-16: `AZAZAEL_INSIGHTS.md` section 1 said 226 worms / 35 categories while
+section 7 said 104 / 18; `MANDATES.md` said 30 mandates in its header and 37 in its own
+footer; `SKILLS_CATALOG.md` claimed 1,224 total against 1,259 table rows.
+
+**4. Corrections carry provenance.** Superseded figures are annotated where they
+stand, not overwritten, so that the drift stays visible — a corrected number with no
+record of its predecessor is indistinguishable from one that was always right.

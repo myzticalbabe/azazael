@@ -1,6 +1,7 @@
 # AZAZAEL INSIGHTS — Session Memories & Architectural Reflections
 
-> *Generated: May 28, 2026 — Last updated: July 6, 2026 (DirectMemory v1.1.0)*
+> *Generated: May 28, 2026 — Last updated: September 16, 2026 (Neural Mesh consolidation; sections 12-14)*
+> *Prior: July 6, 2026 (DirectMemory v1.1.0). Earlier figures are left in place so metric drift stays visible — see section 14.*
 
 ---
 
@@ -183,9 +184,9 @@ G:\AZAZAEL\
 
 | Metric | Value |
 |--------|-------|
-| Total Python files (syntax-clean) | 256 |
-| Worms in registry | 104 (runtime verified July 6, 2026) |
-| Categories | 18 (runtime verified) |
+| Total Python files (syntax-clean) | 300+ (2026-09-16; was 256 at July 6) |
+| Worms in registry | **226** (2026-09-14 rebuild) — the July-6 figure of 104 is superseded, not deleted; see section 14 |
+| Categories | **35** (2026-09-14 rebuild) — was 18 at July 6 |
 | DirectMemory version | **v1.1.0** (37 _V types, learning loop, 14 static methods) |
 | DirectMemory DB | 1,116 MB, 79,189 sessions, 646,755 events |
 | Cross-nature routes | 46 |
@@ -399,3 +400,70 @@ and it completed inside a single process lifetime.
    cannot reach.
 
 Reasoning traces (10) recorded for training: `data/training/neural_mesh_brainstem_2026-09-16.jsonl`.
+
+## 14. The Monotone Store, and the Cost of Merge-on-Both-Sides (2026-09-16)
+
+### The finding
+
+Every read of the spine store merges, and every write merges first. That is
+deliberate — it is what lets N save-then-exit processes compose instead of
+clobbering each other — and it has a consequence that was never written down: the
+store is **monotone**. It can express "this key has a value" and cannot express
+"this key is gone".
+
+Observed, not reasoned. `purge_fixtures()` removed 56 entries across five tables
+and the *very next* `save_spine_state()` restored all 14 fixture keys, because the
+save folds the disk in before writing and the disk still had them. A purge reported
+success and changed nothing durable. Deletion was not buggy; it was
+**unrepresentable**.
+
+### The fix, and the half-measure inside it
+
+A tombstone (`_PURGED_KEYS`) records the removal as a fact, is persisted in the
+payload, and rides the gossip envelope so peers adopt the deletion. That part is
+the standard CRDT answer and it holds.
+
+The half-measure was its **scope**. The first pass enforced the tombstone on every
+*merge* path — both disk loads, the gossip merge, `audit_state` — and it was written
+up as done. Merge-only enforcement holds against the filesystem and against a peer,
+and *not* against this process: a live `record_outcome` for a purged key re-created
+it in the tables the purge had just cleared, and the next save wrote it back out.
+
+> So a test asserted the purge *ran* rather than that the removal *held*. The
+generalisation is the useful part: **for any invariant, enumerate the paths that
+can violate it (write paths), not the paths that can propagate it (merge paths).**
+The second had been audited and called the first.
+
+Guards now sit at **choke points, one per table**: `_q_observe_unlocked` for Q — so
+the target, delta, and simulated forms are all covered by one guard, and
+`dream_reinforce` is covered without a guard of its own because it reaches that
+kernel — and `record_outcome` for the homeostat. Refused writes are **counted**
+(`purged_blocked_writes()`), never swallowed, because a deleted key that keeps being
+written is a finding about the caller.
+
+### Metrics reconciliation (section 7 was stale)
+
+Section 1 has said 226 worms / 35 categories since the 2026-09-14 rebuild; section 7
+still said 104 / 18 from July 6. Both were in the same file, so **the file
+disagreed with itself** — which makes staleness answerable in seconds, before any
+count against the world is taken. Section 7's rows are annotated in place rather
+than silently corrected: a corrected figure with no record of its predecessor is
+indistinguishable from a figure that was always right, and the drift is the
+evidence. Deleting it would destroy the only proof that the metrics move.
+
+### Test discipline, and one honest gap
+
+`tests/test_spine_tombstone_enforcement.py` (8 tests) ships the absence assertions
+*and* the test that **disables the guard** and shows the key returning — precisely
+the pre-fix behaviour. Absence assertions are the shape that passed on the broken
+code in G6 whenever no writer happened to run; the load-bearing test is what
+converts "the key stayed away" into "the guard is why the key stayed away".
+
+`tests/test_spine_mesh.py` **hangs**, and it is not caused by this work: patching
+`_purged_blocked` to always `False` makes the new guard inert (exact pre-fix
+behaviour) and the suite hangs identically. That attributes the failure away from
+the guard; it does not identify the cause. Recorded rather than omitted, because a
+suite that cannot finish is why the previous session's "431 passed" baseline is no
+longer reproducible from the test tree alone.
+
+Reasoning traces recorded for training: `data/training/neural_mesh_consolidation_2026-09-16.jsonl`.
