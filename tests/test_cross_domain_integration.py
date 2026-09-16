@@ -22,6 +22,9 @@ import sys
 import json
 import time
 import hashlib
+import uuid
+
+import pytest
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, Sequence
@@ -52,6 +55,19 @@ def check(label: str, condition: bool, detail: str = ""):
         print(f"  [FAIL] {label} {detail}")
         failed += 1
         errors.append(f"{label}: {detail}")
+
+
+@pytest.fixture
+def correlation_id() -> str:
+    """Correlation id linking CD2/CD3/CD5 back to the CD1 ledger row.
+
+    CD1 captures the id it actually wrote; when a later test is collected on
+    its own the global is still empty, so mint one rather than skip.
+    """
+    global _CD_CORRELATION_ID
+    if not _CD_CORRELATION_ID:
+        _CD_CORRELATION_ID = str(uuid.uuid4())
+    return _CD_CORRELATION_ID
 
 
 # ====================================================================
@@ -482,7 +498,7 @@ def test_cd4_compiled_validation() -> dict[str, Any]:
     # Execute the build script's target registry
     import importlib.util
     spec = importlib.util.spec_from_file_location("build_all_concurrent", build_script)
-    DESKTOP_RELEASE = Path("C:/Users/clint/Desktop/AZAZAEL_Standalone")
+    DESKTOP_RELEASE = Path.home() / "Desktop" / "AZAZAEL_Standalone"
     if spec and spec.loader:
         build_mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(build_mod)
@@ -523,7 +539,7 @@ def test_cd4_compiled_validation() -> dict[str, Any]:
     # --- Verify Desktop standalone deployment target ---
     desktop_path = DESKTOP_RELEASE
     check("CD4: Desktop target path configured",
-          str(desktop_path) == "C:\\Users\\clint\\Desktop\\AZAZAEL_Standalone")
+          str(desktop_path) == str(Path.home() / "Desktop" / "AZAZAEL_Standalone"))
     
     # --- Verify output filename pattern (azazael-*.exe) ---
     valid_outputs = all(

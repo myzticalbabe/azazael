@@ -201,7 +201,7 @@ class SMARTDISK:
 
         smartctl_path = "smartctl"
         if platform.system() == "Windows":
-            program_files = os.environ.get("ProgramFiles", "C:\\Program Files")
+            program_files = os.environ.get("ProgramFiles", "C:\\Program Files")  # scanner:ignore deliberate: env var wins; literal is a fallback
             smartctl_path = f"{program_files}\\smartmontools\\bin\\smartctl.exe"
         try:
             result = subprocess.run(

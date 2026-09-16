@@ -61,7 +61,7 @@ def find_jdk():
         exe = os.path.join(base, "bin", "java.exe")
         if os.path.isfile(exe):
             return exe
-    for root in (os.environ.get("LOCALAPPDATA", ""), "C:\\Program Files\\Eclipse Adoptium"):
+    for root in (os.environ.get("LOCALAPPDATA", ""), "C:\\Program Files\\Eclipse Adoptium"):  # scanner:ignore deliberate: env var first, literal is a last-resort candidate
         if not root:
             continue
         for cand in glob.glob(os.path.join(root, "**", "bin", "java.exe"), recursive=True):

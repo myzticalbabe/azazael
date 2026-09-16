@@ -85,12 +85,16 @@ ENVIRONMENTS: Dict[str, Dict] = {
     },
     "kali": {
         "label": "Kali Linux (WSL2)",
-        "root": Path("E:/Kali/azazael"),
-        "src": Path("E:/Kali/azazael/src"),
-        "docs": Path("E:/Kali/azazael/docs"),
-        "tests": Path("E:/Kali/azazael/tests"),
+        # The tree lives inside the distro. `E:/Kali/azazael` was never a real
+        # path — E:\Kali holds only the distro's ext4.vhdx and an icon — so the
+        # environment reported as missing while it was running with a full tree.
+        "root": Path("/root/azazael"),
+        "src": Path("/root/azazael/src"),
+        "docs": Path("/root/azazael/docs"),
+        "tests": Path("/root/azazael/tests"),
         "type": "wsl",
         "wsl_distro": "kali-linux",
+        "wsl_root_user": True,
     },
 }
 
@@ -137,13 +141,16 @@ def _resolve_path(p: Path, env_type: str) -> Path:
 def run_wsl(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     """Run a command inside WSL2 (Ubuntu-26.04).
     
-    Uses shell=True because wsl.exe is a Windows PE binary.
+    Execs wsl.exe directly rather than through a shell. `shell=True` on Windows
+    means cmd.exe, which does not treat single quotes as quoting and reads
+    `2>/dev/null` as a redirection to a file named /dev/null, so every probe came
+    back rc=255 "The system cannot find the path specified." and the
+    cross-environment verdict was decided by a shell parse error rather than by
+    the files. wsl.exe is an ordinary PE binary and execs fine without a shell.
     """
     try:
-        escaped = cmd.replace("'", "'\\''")
-        wsl_cmd = f"wsl.exe -d Ubuntu-26.04 -e bash -c '{escaped}'"
         result = subprocess.run(
-            wsl_cmd, shell=True,
+            ["wsl.exe", "-d", "Ubuntu-26.04", "-e", "bash", "-c", cmd],
             capture_output=True, text=True, timeout=timeout,
         )
         return result.returncode, result.stdout, result.stderr
@@ -258,6 +265,22 @@ def sync_wsl_to_windows(dry_run: bool = False) -> Dict[str, Any]:
     return {"synced": synced, "errors": errors, "count": len(synced), "target": "windows"}
 
 
+def _is_mounted_windows_drive(p: Path) -> bool:
+    """True when `p` sits on a mounted Windows drive rather than on the distro's
+    own root filesystem.
+
+    `/mnt/g` existed only as an ordinary directory on the WSL root device —
+    `/proc/mounts` had /mnt/c and /mnt/e but no /mnt/g. `sync_wsl_to_g` therefore
+    copied its whole file set into the distro and reported success, while the
+    real G: archives stayed months out of date and nothing failed. Comparing the
+    device id is what distinguishes an actual drvfs mount from that trap.
+    """
+    try:
+        return p.stat().st_dev != Path("/").stat().st_dev
+    except OSError:
+        return False
+
+
 def sync_wsl_to_g(dry_run: bool = False) -> Dict[str, Any]:
     """Sync WSL2 -> G: archives (both source-of-truth and AZAZAEL_SOURCE_OF_TRUTH).
     
@@ -276,6 +299,13 @@ def sync_wsl_to_g(dry_run: bool = False) -> Dict[str, Any]:
     for g_root in g_targets:
         if not g_root.exists():
             total_errors.append(f"G: target {g_root} not found")
+            continue
+        if not _is_mounted_windows_drive(g_root):
+            total_errors.append(
+                f"G: target {g_root} is not a mounted Windows drive (same device "
+                f"as /) — refusing to write the archive into the distro's own "
+                f"filesystem; mount it with: mount -t drvfs G: /mnt/g"
+            )
             continue
         
         for pattern in all_patterns:
@@ -360,16 +390,13 @@ def sync_wsl_to_kali(dry_run: bool = False) -> Dict[str, Any]:
 def run_wsl_kali(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     """Run a command inside Kali WSL2 distro.
     
-    Uses shell=True because wsl.exe is a Windows PE binary — subprocess
-    must route through the shell (which uses binfmt_misc) rather than
-    attempting to exec the Windows binary directly.
+    Execs wsl.exe directly rather than through a shell, for the same reason as
+    `run_wsl`: cmd.exe mangles the quoting and the `2>/dev/null` redirect, so a
+    shell-routed probe reports rc=255 while looking like a filesystem problem.
     """
     try:
-        # Single-escape: bash -c gets the cmd string as its argument
-        escaped = cmd.replace("'", "'\\''")
-        wsl_cmd = f"wsl.exe -d kali-linux -u root -e bash -c '{escaped}'"
         result = subprocess.run(
-            wsl_cmd, shell=True,
+            ["wsl.exe", "-d", "kali-linux", "-u", "root", "-e", "bash", "-c", cmd],
             capture_output=True, text=True, timeout=timeout,
         )
         return result.returncode, result.stdout, result.stderr
@@ -408,23 +435,27 @@ def get_env_status(env_name: str, env_info: Dict) -> Dict[str, Any]:
     """Get status of an environment — works from both Windows and WSL."""
     env_type = env_info["type"]
     
-    # Kali WSL2 uses wsl.exe to probe its filesystem (ext4.vhdx, not directly mounted)
-    if env_name == "kali" and IS_WSL:
-        rc, _, _ = run_wsl_kali("test -d /root/azazael")
-        available = (rc == 0)
+    # A WSL2 distro keeps its tree inside the distro, so a host-side stat() of the
+    # root always fails and the generic branch below would report a running
+    # distro as unavailable purely because of where the script was launched.
+    # Probe through wsl.exe instead, from Windows as well as from WSL.
+    if env_type == "wsl" and not IS_WSL:
+        runner = run_wsl_kali if env_info.get("wsl_distro") == "kali-linux" else run_wsl
+        tree = str(env_info["root"]).replace("\\", "/")
         status: dict[str, Any] = {
             "name": env_name,
             "label": env_info["label"],
             "type": env_type,
-            "available": available,
         }
-        if not available:
-            status["warning"] = "Kali /root/azazael not accessible via wsl.exe"
+        rc, _, _ = runner(f"test -d {tree}")
+        status["available"] = (rc == 0)
+        if not status["available"]:
+            status["warning"] = f"{tree} not accessible via wsl.exe"
             return status
         # Count via wsl.exe
-        rc_py, out_py, _ = run_wsl_kali("find /root/azazael/src -name '*.py' 2>/dev/null | wc -l")
+        rc_py, out_py, _ = runner(f"find {tree}/src -name '*.py' 2>/dev/null | wc -l")
         status["py_files"] = int(out_py.strip()) if rc_py == 0 and out_py.strip().isdigit() else 0
-        rc_docs, out_docs, _ = run_wsl_kali("ls /root/azazael/docs/*.md 2>/dev/null | wc -l")
+        rc_docs, out_docs, _ = runner(f"ls {tree}/docs/*.md 2>/dev/null | wc -l")
         status["docs"] = int(out_docs.strip()) if rc_docs == 0 and out_docs.strip().isdigit() else 0
         return status
     

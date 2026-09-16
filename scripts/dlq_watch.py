@@ -121,7 +121,7 @@ def show(ncm, interval: int, color: bool, auto_retry: bool, prev_buckets: deque)
     hourly = [e for e in summary.get("recent_errors", [])
               if e.get("timestamp", 0) >= time.time() - 3600]
     if len(hourly) > 20:
-        print(f"  {c.RED}{c.BOLD}🔴 CRITICAL:{c.RESET} {len(hourly)} failures in last hour")
+        print(f"  {c.RED}{c.BOLD}CRITICAL:{c.RESET} {len(hourly)} failures in last hour")
     elif len(hourly) > 5:
         print(f"  {c.YELLOW}⚠ WARNING:{c.RESET} {len(hourly)} failures in last hour")
 

@@ -128,13 +128,13 @@ class ConsistencyIssue:
                                     content = file_path.read_text(encoding="utf-8", errors="ignore")
 
                                     # Check for mixed path styles
-                                    has_windows = bool(re.search(r"C:\\\\\\\\Users\\\\\\\\" + username, content))
+                                    has_windows = bool(re.search(r"C:\\\\\\\\Users\\\\\\\\" + username, content))  # scanner:ignore deliberate: Windows path regex used only for comparison
                                     has_wsl = bool(re.search(r"/mnt/c/Users/" + username, content))
 
                                     if has_windows and has_wsl:
                                         # Check if both refer to same location
                                         windows_matches = re.findall(
-                                        r"C:\\\\\\\\Users\\\\\\\\" + username + r"\\\\Desktop\\\\(\w+)", content
+                                        r"C:\\\\\\\\Users\\\\\\\\" + username + r"\\\\Desktop\\\\(\w+)", content  # scanner:ignore deliberate: Windows path regex used only for comparison
                                         )
                                         wsl_matches = re.findall(r"/mnt/c/Users/" + username + r"/Desktop/(\w+)", content)
 

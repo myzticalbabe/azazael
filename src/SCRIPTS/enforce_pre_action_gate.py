@@ -165,7 +165,7 @@ def main():
     elif result.get("reverted"):
         print(f"❌ GATE FAILED — edit REVERTED from backup: {result.get('error', '')}", file=sys.stderr)
     else:
-        print(f"🚫 GATE DENIED — {result.get('error', '')}", file=sys.stderr)
+        print(f"GATE DENIED - {result.get('error', '')}", file=sys.stderr)
 
     sys.exit(result["exit_code"])
 

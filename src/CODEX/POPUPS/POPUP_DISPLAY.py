@@ -181,11 +181,11 @@ Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 --------------------------------------------------------------------------------
                           FILES GENERATED
 --------------------------------------------------------------------------------
-  [OK] C:\\Users\\clint\\Desktop\\CODEX\\ANALYSIS_REPORT.html
-  [OK] C:\\Users\\clint\\Desktop\\CODEX\\ANALYSIS_REPORT_DIVERSE.html
-  [OK] C:\\Users\\clint\\Desktop\\CODEX\\ANALYSIS_REPORT_V2.html
-  [OK] C:\\Users\\clint\\Desktop\\CODEX\\ANIMATION_PROTOCOLS.py
-  [OK] C:\\Users\\clint\\Desktop\\CODEX\\HORUS_INTEGRATION.py
+  [OK] ~\\Desktop\\CODEX\\ANALYSIS_REPORT.html
+  [OK] ~\\Desktop\\CODEX\\ANALYSIS_REPORT_DIVERSE.html
+  [OK] ~\\Desktop\\CODEX\\ANALYSIS_REPORT_V2.html
+  [OK] ~\\Desktop\\CODEX\\ANIMATION_PROTOCOLS.py
+  [OK] ~\\Desktop\\CODEX\\HORUS_INTEGRATION.py
 
 --------------------------------------------------------------------------------
                        HORUS INTEGRATION

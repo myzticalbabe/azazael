@@ -442,9 +442,10 @@ class SystemManagerGUI:
         self._set_status("Optimization complete")
 
     def _build_python_tree(self) -> FileNode:
-        root = FileNode("System", "C:\\", NodeType.DISK)
+        system_drive = os.environ.get("SystemDrive", "C:") + "\\"
+        root = FileNode("System", system_drive, NodeType.DISK)
 
-        python_root = FileNode("Python", "C:\\Python", NodeType.FOLDER)
+        python_root = FileNode("Python", system_drive + "Python", NodeType.FOLDER)
         root.children.append(python_root)
 
         installations = self._find_python_installations()
@@ -480,7 +481,7 @@ class SystemManagerGUI:
                 )
             elif inst["type"] == "conda":
                 conda_root = FileNode(
-                    "Conda", "C:\\Users\\clint\\anaconda3", NodeType.CONDA
+                    "Conda", str(Path.home() / "anaconda3"), NodeType.CONDA
                 )
                 root.children.append(conda_root)
 
@@ -556,7 +557,7 @@ class SystemManagerGUI:
         return processes[:100]
 
     def _get_disk_info(self) -> dict:
-        total, used, free = shutil.disk_usage("C:\\")
+        total, used, free = shutil.disk_usage(os.environ.get("SystemDrive", "C:") + "\\")
         return {
             "total_gb": total // (1024**3),
             "used_gb": used // (1024**3),

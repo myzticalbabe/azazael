@@ -462,7 +462,7 @@ def cmd_serve(args) -> int:
     async def shutdown():
         engine.shutdown()
 
-    print(f"🚀 Eve Unleashed Inference API starting on http://{args.host}:{args.port}")
+    print(f"Eve Unleashed Inference API starting on http://{args.host}:{args.port}")
     print(f"   Frameworks: {engine.available_frameworks}")
     print(f"   Docs:       http://{args.host}:{args.port}/docs")
     print(f"   Health:     http://{args.host}:{args.port}/health")

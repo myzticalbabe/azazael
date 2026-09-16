@@ -40,7 +40,7 @@ Date: 2026-02-10
 # coding: utf-8
 """
 Comprehensive Python Module Analysis and BAT Improvement System
-- Find all Python modules on C:\ drive
+- Find all Python modules on the system drive
 - Run comprehensive tests
 - Fix errors with debuggable solutions
 - Dependency analysis
@@ -98,7 +98,7 @@ class FixResult:
 
 
 class PythonModuleFinder:
-    """Find all Python modules on C:\\ drive."""
+    """Find all Python modules on the system drive."""
 
     def __init__(self):
         self.modules: dict[str, ModuleInfo] = {}
@@ -123,10 +123,11 @@ class PythonModuleFinder:
         }
 
     def find_all_modules(self) -> dict[str, ModuleInfo]:
-        """Find all Python modules on C:\\ drive."""
-        print("Scanning C:\\ drive for Python modules...")
+        """Find all Python modules on the system drive."""
+        system_drive = os.environ.get("SystemDrive", "C:") + "\\"
+        print("Scanning " + system_drive + " drive for Python modules...")
 
-        for root, dirs, files in os.walk("C:\\"):
+        for root, dirs, files in os.walk(system_drive):
             # Skip excluded directories
             dirs[:] = [
                 d

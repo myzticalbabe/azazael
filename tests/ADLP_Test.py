@@ -29,8 +29,8 @@ logger.log(LogCategory.SYSTEM, LogLevel.ERROR, "test", "Error test entry")
 print("\n[2] Logging Python environment...")
 logger.log_python_scan(
     [
-        {"path": "C:\\Python314\\python.exe", "version": "3.14.3"},
-        {"path": "C:\\Program Files\\Python311\\python.exe", "version": "3.11.9"},
+        {"path": "C:\\Python314\\python.exe", "version": "3.14.3"},  # scanner:ignore deliberate: sample scan payload
+        {"path": "C:\\Program Files\\Python311\\python.exe", "version": "3.11.9"},  # scanner:ignore deliberate: sample scan payload
     ]
 )
 
