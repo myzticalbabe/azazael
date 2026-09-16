@@ -16,11 +16,13 @@ Anti-patterns detected:
 """
 
 import ast
+import io
 import json
 import os
 import re
 import sys
 import threading
+import tokenize
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,8 +62,8 @@ FINDING_EXPLANATIONS = {
     "unicode_emoji": "Emoji in source code causes encoding issues on different platforms. Use ASCII alternatives.",
     "fstring_backslash": "Backslash escapes inside f-string expressions are illegal in Python 3.12+. Pre-extract the value.",
     "t_string": "t-strings are a PEP 750 draft proposal, not valid Python syntax. Will cause SyntaxError at runtime.",
-    "os_system": "os.system() spawns a subshell vulnerable to shell injection. Use subprocess.run() instead.",
-    "hardcoded_win_path": "Hardcoded C:\\ paths break on non-Windows systems and different user profiles.",
+    "os_system": "Shelling out through the os module is vulnerable to shell injection and discards the exit code. Use subprocess.run() instead.",
+    "hardcoded_win_path": "An absolute drive path hardcodes one machine's layout; it breaks on other systems and user profiles.",
     "import_inside_function": "Import inside functions slows performance and confuses static analysis.",
 }
 
@@ -121,10 +123,121 @@ class AntiPatternResult:
 # Regex patterns for non-AST-detectable anti-patterns
 _PATTERN_EMOJI = re.compile(r"[\U0001F300-\U0010FFFF]")  # Unicode emoji range
 _PATTERN_FSTRING_BACKSLASH = re.compile(r'f["\'].*?\{.*?\\\\.*?\}.*?["\']')
-_PATTERN_TSTRING = re.compile(r'\bt["\']')  # "..." or '...'
+# A t-prefix must directly precede the quote AND must not itself be the tail of
+# an identifier, of a quoted character, or of a backslash escape. The obvious
+# \bt["'] form false-positives on tab escapes and on a one-character string
+# compared against sys.version, neither of which is a t-string.
+_PATTERN_TSTRING = re.compile("(?<![\\w\"'\\\\])t[\"']")  # literal t-prefixed string
 _PATTERN_OS_SYSTEM = re.compile(r'\bos\.system\s*\(')
 _PATTERN_WIN_PATH = re.compile(r'[Cc]:\\\\')
 _PATTERN_CLS_NEW = re.compile(r'cls\(\)\.__new__\(')
+
+# Per-line opt-out, in the spirit of `# noqa`. Some lines *have* to contain a
+# pattern as data: this scanner's own test suite passes sample sources into
+# scan_source(), so a repo-wide sweep gates those samples as violations. An
+# auditable per-line opt-out is honest about that; a file- or rule-level
+# exemption would also hide real violations.
+_SUPPRESSION_MARKER = "# scanner:ignore"
+
+
+def _documentation_spans(source: str) -> list[tuple[int, int, int, int]]:
+    """Spans (start_line, start_col, end_line, end_col) of comments + docstrings.
+
+    A content rule must not fire on prose that merely *names* a pattern: the
+    module docstring lists the rules this scanner detects, and a comment saying
+    "do not shell out here" is guidance, not a violation. Without this the rule
+    file could never pass its own gate.
+    """
+    spans: list[tuple[int, int, int, int]] = []
+
+    # Comments. tokenize gives exact columns, and a file that does not lex must
+    # still be scannable for the line-level rules below.
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(source).readline):
+            if tok.type == tokenize.COMMENT:
+                spans.append((tok.start[0], tok.start[1], tok.end[0], tok.end[1]))
+    except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
+        pass
+
+    # Docstrings, meaning only the leading string of a module/class/function body.
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return spans
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        body = getattr(node, "body", None)
+        if not body or not isinstance(body[0], ast.Expr):
+            continue
+        value = body[0].value
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            spans.append((
+                value.lineno, value.col_offset,
+                getattr(value, "end_lineno", value.lineno) or value.lineno,
+                getattr(value, "end_col_offset", 0) or 0,
+            ))
+    return spans
+
+
+def _string_literal_spans(source: str) -> list[tuple[int, int, int, int]]:
+    """Spans of every string literal in the source."""
+    spans: list[tuple[int, int, int, int]] = []
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(source).readline):
+            if tok.type == tokenize.STRING:
+                spans.append((tok.start[0], tok.start[1], tok.end[0], tok.end[1]))
+    except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
+        pass
+    return spans
+
+
+def _in_string_body(line: int, col: int, spans: list[tuple[int, int, int, int]]) -> bool:
+    """True if (line, col) is inside a string literal, past its opening quote.
+
+    A real prefix sits *at* the start of its own literal, so it survives; a
+    tab escape or a "-t" CLI argument does not.
+    """
+    # A line can hold several literals, so a non-containing span must not end the
+    # search: an early `return False` on the first one leaks the pattern through.
+    for start_line, start_col, end_line, end_col in spans:
+        if line < start_line or line > end_line:
+            continue
+        if start_line == end_line:
+            if start_col < col < end_col:
+                return True
+            continue
+        if line == start_line:
+            if col > start_col:
+                return True
+            continue
+        if line == end_line:
+            if col < end_col:
+                return True
+            continue
+        return True
+    return False
+
+
+def _in_documentation(line: int, col: int, spans: list[tuple[int, int, int, int]]) -> bool:
+    """True if (line, col) falls inside a comment or docstring span."""
+    for start_line, start_col, end_line, end_col in spans:
+        if line < start_line or line > end_line:
+            continue
+        if start_line == end_line:
+            if start_col <= col < end_col:
+                return True
+            continue
+        if line == start_line:
+            if col >= start_col:
+                return True
+            continue
+        if line == end_line:
+            if col < end_col:
+                return True
+            continue
+        return True
+    return False
 
 
 class ASTAntiPatternScanner:
@@ -164,6 +277,8 @@ class ASTAntiPatternScanner:
         findings = []
         lines = source.split("\n")
         line_count = len(lines)
+        doc_spans = _documentation_spans(source)
+        string_spans = _string_literal_spans(source)
 
         # 1. Unicode emoji / non-ASCII in code (not comments)
         for i, line in enumerate(lines, 1):
@@ -174,28 +289,40 @@ class ASTAntiPatternScanner:
             if matches:
                 findings.append((i, "unicode_emoji", matches[0] if len(matches[0]) < 50 else matches[0][:50]))
 
-        # 2. f-string backslash escapes
+        # 2. f-string backslash escapes (prose naming the pattern is not one)
         for i, line in enumerate(lines, 1):
-            matches = _PATTERN_FSTRING_BACKSLASH.findall(line)
-            for m in matches[:3]:
-                findings.append((i, "fstring_backslash", m[:80]))
+            reported = 0
+            for m in _PATTERN_FSTRING_BACKSLASH.finditer(line):
+                if reported >= 3:
+                    break
+                if _in_documentation(i, m.start(), doc_spans):
+                    continue
+                findings.append((i, "fstring_backslash", m.group(0)[:80]))
+                reported += 1
 
         # 3. t-strings
         for i, line in enumerate(lines, 1):
-            if _PATTERN_TSTRING.search(line):
+            for m in _PATTERN_TSTRING.finditer(line):
+                if _in_documentation(i, m.start(), doc_spans):
+                    continue
+                if _in_string_body(i, m.start(), string_spans):
+                    continue
                 findings.append((i, "t_string", line.strip()[:80]))
+                break
 
         # 4. os.system() calls
         for i, line in enumerate(lines, 1):
-            matches = _PATTERN_OS_SYSTEM.findall(line)
-            if matches:
-                findings.append((i, "os_system", line.strip()[:80]))
+            for m in _PATTERN_OS_SYSTEM.finditer(line):
+                if not _in_documentation(i, m.start(), doc_spans):
+                    findings.append((i, "os_system", line.strip()[:80]))
+                    break
 
         # 5. Hardcoded C:\\ paths
         for i, line in enumerate(lines, 1):
-            matches = _PATTERN_WIN_PATH.findall(line)
-            if matches:
-                findings.append((i, "hardcoded_win_path", line.strip()[:80]))
+            for m in _PATTERN_WIN_PATH.finditer(line):
+                if not _in_documentation(i, m.start(), doc_spans):
+                    findings.append((i, "hardcoded_win_path", line.strip()[:80]))
+                    break
 
         # 6. AST-based: import inside function bodies
         try:
@@ -220,10 +347,15 @@ class ASTAntiPatternScanner:
             if matches:
                 findings.append((i, "cls_new_factory", line.strip()[:80]))
 
+        # 8. Explicit per-line suppression (covers every rule above).
+        suppressed = {i for i, line in enumerate(lines, 1) if _SUPPRESSION_MARKER in line}
+
         # Remove duplicates (same line, same category)
         seen = set()
         unique_findings = []
         for ln, cat, sn in findings:
+            if ln in suppressed:
+                continue
             key = (ln, cat)
             if key not in seen:
                 seen.add(key)

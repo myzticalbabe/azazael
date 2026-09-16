@@ -222,8 +222,10 @@ class TestBackupConfig:
 class TestBuildConfig:
     def test_defaults(self):
         cfg = BuildConfig()
-        assert cfg.python_version == "3.13"
-        assert cfg.output_dir == "Desktop/AZAZAEL_Standalone"
+        # 3.14 since the free-threading migration (CORE/config.py default).
+        assert cfg.python_version == "3.14"
+        # Builds land on the G: archive, not the Desktop (CORE/config.py default).
+        assert cfg.output_dir == "G:/AZAZAEL_Standalone"
         assert "torch" in cfg.nofollow_imports
         assert "optree" in cfg.nofollow_imports
 
@@ -426,15 +428,32 @@ class TestAzazaelConfigNatures:
         assert nature.max_retries is None
 
     def test_get_nature_config_from_yaml(self):
-        """get_nature_config from loaded YAML should have overrides."""
+        """get_nature_config reads the per-nature block from azazael.yaml.
+
+        These values were previously asserted as 45 / 3 / None / 'defense',
+        which is the **security** block, not **monitor**. When the yaml was
+        edited (monitor retuned, security added) the test kept the old numbers
+        and so was asserting the wrong nature's config. Both blocks are pinned
+        now, which also proves the values are per-nature rather than global.
+        """
         reset_config()
         cfg = get_config()
         monitor = cfg.get_nature_config("monitor")
-        # Values come from azazael.yaml
-        assert monitor.timeout == 45
-        assert monitor.max_retries == 3
-        assert monitor.parallel is None  # not set in yaml
-        assert "defense" in monitor.feeds_into
+        assert monitor.timeout == 30
+        assert monitor.max_retries == 2
+        assert monitor.parallel is True
+        assert monitor.feeds_into == ["orchestration"]
+
+        security = cfg.get_nature_config("security")
+        assert security.timeout == 45
+        assert security.max_retries == 3
+        assert security.parallel is False
+        assert security.feeds_into == ["defense"]
+
+        # A nature with no yaml block falls back to the dataclass defaults.
+        unknown = cfg.get_nature_config("not_in_yaml")
+        assert unknown.timeout is None
+        assert unknown.parallel is None
 
     def test_natures_from_dict(self):
         """AzazaelConfig.from_dict should parse natures."""

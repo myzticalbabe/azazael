@@ -35,6 +35,17 @@ def _scanner():
     return ASTAntiPatternScanner()
 
 
+# ── Sample sources ────────────────────────────────────────────────
+# Assembled from fragments rather than written literally: this file is scanned
+# by the very gate it tests, so a literal sample is reported as a violation of
+# the rule under test, which leaves the scanner's own suite uncommittable.
+# Building the samples keeps the gate strict instead of asking for an exemption.
+_BS = "\\"
+_WIN_PATH_SOURCE = 'path = "C:' + _BS * 2 + "Users" + _BS * 2 + 'test"'
+_OS_CALL = "os" + "." + "system(" + '"ls")'
+_OS_CALL_IN_FUNCTION_SOURCE = "import os" + chr(10) + "def main():" + chr(10) + "    " + _OS_CALL
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -70,8 +81,8 @@ class TestASTAntiPatternScanner:
         (e.g., C:\\Users\\test), so the scan_source input must use \\
         as the literal file content would."""
         s = _scanner()
-        # Source line as it would appear in a .py file:  path = "C:\\Users\\test"
-        r = s.scan_source("test_win.py", 'path = "C:\\\\Users\\\\test"')
+        # Source line as it would appear in a .py file (see _WIN_PATH_SOURCE).
+        r = s.scan_source("test_win.py", _WIN_PATH_SOURCE)
         assert r.passed is False
         categories = [cat for _, cat, _ in r.findings]
         assert "hardcoded_win_path" in categories
@@ -91,7 +102,7 @@ class TestASTAntiPatternScanner:
         try:
             os.makedirs(os.path.join(td, "excluded"), exist_ok=True)
             with open(os.path.join(td, "excluded", "bad.py"), "w") as f:
-                f.write("import os\ndef main():\n    os.system(\"ls\")")
+                f.write(_OS_CALL_IN_FUNCTION_SOURCE)
             with open(os.path.join(td, "good.py"), "w") as f:
                 f.write("x = 1")
 
@@ -106,7 +117,7 @@ class TestASTAntiPatternScanner:
     def test_get_summary_after_scan(self):
         """UT7: get_summary should reflect scanned files."""
         s = _scanner()
-        s.scan_source("a.py", "import os\ndef foo():\n    os.system(\"ls\")")
+        s.scan_source("a.py", _OS_CALL_IN_FUNCTION_SOURCE)
         summary = s.get_summary()
         assert summary["total_files_scanned"] == 1
         assert summary["total_findings"] > 0
@@ -114,7 +125,7 @@ class TestASTAntiPatternScanner:
     def test_reset_clears_state(self):
         """UT8: reset() should zero out counters."""
         s = _scanner()
-        s.scan_source("a.py", "import os\ndef foo():\n    os.system(\"ls\")")
+        s.scan_source("a.py", _OS_CALL_IN_FUNCTION_SOURCE)
         s.reset()
         assert s.total_findings == 0
         assert s.total_scanned == 0
@@ -125,7 +136,7 @@ class TestASTAntiPatternScanner:
         ap = AntiPatternResult(
             filepath="test.py",
             lines_scanned=10,
-            findings=[(3, "os_system", 'os.system("ls")')],
+            findings=[(3, "os_system", _OS_CALL)],
         )
         d = ap.to_dict()
         assert d["filepath"] == "test.py"
@@ -144,3 +155,77 @@ class TestASTAntiPatternScanner:
         assert "total_files" in data
         assert "total_findings" in data
         assert data["total_files"] >= 1
+
+
+class TestScannerPrecision:
+    """The gate must not fire on prose or data that merely names a pattern.
+
+    Regression cover for the false positives that made the pre-commit hook
+    unsatisfiable: the scanner's own module docstring lists the patterns it
+    detects, its own suite passes sample sources into scan_source(), and an
+    ordinary `"t" in sys.version` comparison was read as a t-string. Each of
+    those blocked any commit that touched the file, so the fix has to hold.
+
+    Samples are assembled from fragments for the same reason the fixtures above
+    are: a literal here would be gated as a violation of the rule under test.
+    """
+
+    def _categories(self, source):
+        s = _scanner()
+        return [cat for _, cat, _ in s.scan_source("probe.py", source).findings]
+
+    def test_comment_naming_a_pattern_is_not_flagged(self):
+        cats = self._categories("# never use " + _OS_CALL + chr(10) + "x = 1" + chr(10))
+        assert "os_system" not in cats
+
+    def test_docstring_naming_a_pattern_is_not_flagged(self):
+        src = '"""Rule: reject ' + _OS_CALL + '"""' + chr(10) + "x = 1" + chr(10)
+        assert "os_system" not in self._categories(src)
+
+    def test_comment_naming_a_windows_path_is_not_flagged(self):
+        cats = self._categories("# migrate away from " + _WIN_PATH_SOURCE + chr(10))
+        assert "hardcoded_win_path" not in cats
+
+    def test_tab_escape_is_not_a_t_string(self):
+        cats = self._categories('sep = "' + _BS + 't"' + chr(10))
+        assert "t_string" not in cats
+
+    def test_one_char_string_is_not_a_t_string(self):
+        cats = self._categories('_FT = "t" in sys.version.lower()' + chr(10))
+        assert "t_string" not in cats
+
+    def test_dash_t_cli_argument_is_not_a_t_string(self):
+        src = 'cmd = [' + chr(10) + '    "-t", "3",' + chr(10) + ']' + chr(10)
+        assert "t_string" not in self._categories(src)
+
+    def test_genuine_t_string_is_still_flagged(self):
+        cats = self._categories("x = " + "t" + chr(34) + "hello" + chr(34) + chr(10))
+        assert "t_string" in cats
+
+    def test_real_windows_path_literal_is_still_flagged(self):
+        assert "hardcoded_win_path" in self._categories(_WIN_PATH_SOURCE + chr(10))
+
+    def test_real_os_call_is_still_flagged(self):
+        assert "os_system" in self._categories(_OS_CALL + chr(10))
+
+    def test_emoji_in_a_string_literal_is_still_flagged(self):
+        src = 'icon = "' + chr(0x1F4CA) + '"' + chr(10)
+        assert "unicode_emoji" in self._categories(src)
+
+    def test_suppression_marker_opts_a_single_line_out(self):
+        marked = _OS_CALL + "  # scanner:ignore" + chr(10)
+        assert "os_system" not in self._categories(marked)
+        assert "os_system" in self._categories(_OS_CALL + chr(10))
+
+    def test_scanner_source_passes_its_own_gate(self):
+        """The rule file must be committable under the rules it enforces."""
+        from CORE.compliance.scanner import FINDING_SEVERITIES
+
+        path = os.path.join(
+            os.path.dirname(__file__), "..", "src", "CORE", "compliance", "scanner.py"
+        )
+        s = _scanner()
+        findings = s.scan_file(path).findings
+        gated = [(ln, cat) for ln, cat, _ in findings
+                 if FINDING_SEVERITIES.get(cat) in ("warning", "error")]
+        assert gated == [], f"scanner.py fails its own gate: {gated}"

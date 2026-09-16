@@ -260,6 +260,413 @@ def get_policy_latest() -> Dict[str, Dict[str, Any]]:
     with _POLICY_LOCK:
         return {k: dict(v) for k, v in _POLICY_LATEST.items()}
 
+# ── QUARANTINE VOTE LEDGER (cross-env quorum that can actually decide) ──
+# Audit 2026-09-15: RedQueenWorm.order_quarantine() built a FRESH
+# QuorumVoterWorm(quorum=2) on every call and cast exactly ONE vote from the
+# local env, so `decided` (distinct count >= 2) could never become True — the
+# quarantine gate was structurally dead code. Two changes make it live while
+# preserving the original safety intent (one env must never quarantine alone):
+#   1. votes are counted per DISTINCT ENV, not per call, and
+#   2. the ledger is persisted AND gossiped, so a peer env's vote arrives
+#      in-process instead of dying in another process's memory.
+# A single env still cannot reach quorum. Two envs can.
+_QUARANTINE_VOTES: Dict[str, Dict[str, Dict[str, Any]]] = {}
+_QUARANTINE_LOCK = threading.RLock()
+_QUARANTINE_FINDINGS_MAX = 256
+
+
+def cast_quarantine_vote(finding: str, env: str, verdict: str = "quarantine",
+                         quorum: int = 2) -> Dict[str, Any]:
+    """Record one env's vote on `finding`; decide on DISTINCT envs.
+
+    Later votes from the same env replace that env's earlier vote (an env
+    changing its mind must not stuff the ballot). Returns the tally plus
+    `decided` = the leading verdict has >= `quorum` distinct envs.
+    Thread-safe; never raises.
+    """
+    finding = str(finding or "")[:160]
+    env = str(env or "")[:40]
+    verdict = str(verdict or "quarantine")[:40]
+    if not finding or not env:
+        return {"success": False, "error": "finding and env are required"}
+    # Fold any persisted votes in first, so a second env's vote that arrived
+    # via gossip (or a previous session) counts toward this quorum.
+    _ensure_loaded()
+    with _QUARANTINE_LOCK:
+        box = _QUARANTINE_VOTES.setdefault(finding, {})
+        # `at` stays human-readable ISO (it is displayed and parsed by
+        # callers); `hlc` is the ordering stamp the merge uses. Additive on
+        # purpose: no time-based consumer of `at` changes behaviour.
+        box[env] = {"verdict": verdict, "at": _now_iso(), "hlc": _hlc_now()}
+        if len(_QUARANTINE_VOTES) > _QUARANTINE_FINDINGS_MAX:
+            oldest = min(_QUARANTINE_VOTES.items(),
+                         key=lambda kv: max((v.get("at", "") for v in kv[1].values()),
+                                            default=""))
+            _QUARANTINE_VOTES.pop(oldest[0], None)
+        tally: Dict[str, int] = {}
+        for rec in box.values():
+            tally[rec["verdict"]] = tally.get(rec["verdict"], 0) + 1
+        top, count = ("", 0)
+        if tally:
+            top, count = max(tally.items(), key=lambda kv: kv[1])
+        return {"success": True, "finding": finding, "envs": sorted(box),
+                "env_count": len(box), "tally": tally, "top": top,
+                "count": count, "quorum": int(quorum),
+                "decided": count >= int(quorum)}
+
+
+def get_quarantine_votes(finding: Optional[str] = None) -> Dict[str, Any]:
+    """Read the quarantine ledger (one finding, or the whole ledger). Copy."""
+    _ensure_loaded()
+    with _QUARANTINE_LOCK:
+        if finding is not None:
+            return {str(finding): dict(_QUARANTINE_VOTES.get(str(finding), {}))}
+        return {k: {e: dict(v) for e, v in box.items()}
+                for k, box in _QUARANTINE_VOTES.items()}
+
+
+# ── FABRIC STATE STORE (the mesh's operational memory) ──────────────
+# Audit 2026-09-15 (finding #7): save_spine_state() persisted the spine's
+# *learning* (map, ledger, Q, scars, policy, trust, anomaly model) but
+# NOTHING persisted the fabric natures' *operational* state — routing
+# tables, elected leader + term, quorum tallies, federated clients, model
+# shard catalogue, endpoint loads. All of it lived in per-instance dicts,
+# cached in NatureCluster.instances, so it was lost on every new
+# NatureClusterManager() and on restart. The mesh remembered how to feel
+# and forgot what it knew.
+#
+# The fabric worms live in CORE.WORMS.expansion.*, which this module must
+# not import (cycle). So they publish *through* this store: hydrate in
+# __init__, publish on mutation. Keyed by provider (class name), bounded,
+# persisted, and gossiped with the rest of the spine payload.
+# Each record is `{provider, updated_at, state, field_stamps}`. `state` is the
+# flattened attribute map callers already expect; `field_stamps` carries one
+# HLC stamp per attribute. Per-FIELD stamps are what make two envs that each
+# publish a different subset of a provider's attributes converge to the union
+# instead of clobbering each other (deep dive 2026-09-15).
+_FABRIC_STATE: Dict[str, Dict[str, Any]] = {}
+_FABRIC_LOCK = threading.RLock()
+_FABRIC_STATE_MAX = 256
+
+
+def _hlc_now() -> str:
+    """A fresh stamp from the process-wide hybrid logical clock."""
+    try:
+        from CORE.hlc import hlc
+        return hlc().stamp()
+    except Exception:  # pragma: no cover - defensive
+        return _now_iso()
+
+
+def _observe_stamp(stamp: Any) -> None:
+    """Fold a remote stamp into the local clock (causal ordering).
+
+    Without this the local clock could hand out a stamp lower than one it has
+    already seen, which is the inversion the HLC exists to prevent.
+    """
+    try:
+        from CORE.hlc import hlc
+        hlc().observe(str(stamp or ""))
+    except Exception:  # pragma: no cover - defensive
+        pass
+
+
+def get_clock_skew_ms() -> int:
+    """> 0 when the newest observed peer clock is ahead of ours.
+
+    Diagnostic only — ordering never consults it. The mesh could not measure
+    clock skew before, so skew-induced divergence was indistinguishable from
+    a real disagreement.
+    """
+    try:
+        from CORE.hlc import hlc
+        return int(hlc().skew_ms())
+    except Exception:  # pragma: no cover - defensive
+        return 0
+
+
+def _fabric_field_stamp(rec: Dict[str, Any], attr: str) -> str:
+    """Ordering stamp for one attribute, falling back to the record-level one.
+
+    The fallback is the migration path: a record written before per-field
+    stamps existed has only `updated_at`, and treating it as the stamp for
+    every field is the best available reading of it.
+    """
+    try:
+        from CORE.hlc import normalize_stamp
+        stamps = rec.get("field_stamps") or {}
+        own = stamps.get(attr)
+        if own:
+            return normalize_stamp(str(own))
+        return _rec_stamp(rec, "updated_at")
+    except Exception:  # pragma: no cover - defensive
+        return str(rec.get("updated_at") or "")
+
+
+def _rec_stamp(rec: Any, iso_field: str) -> str:
+    """Ordering stamp for a record: its HLC sidecar, else the legacy field.
+
+    The additive half of the migration. Every record that participates in a
+    cross-env merge carries BOTH a human-readable ISO field (`updated_at`,
+    `last_at`, `at` — parsed and displayed by existing callers) and an `hlc`
+    sidecar. Ordering consults the sidecar; nothing else changes. A record
+    written before the sidecar existed normalises from its ISO field, so old
+    and new records still compare correctly during the upgrade window.
+    """
+    if not isinstance(rec, dict):
+        return ""
+    stamp = rec.get("hlc")
+    if not stamp:
+        stamp = rec.get(iso_field)
+    try:
+        from CORE.hlc import normalize_stamp
+        return normalize_stamp(str(stamp or ""))
+    except Exception:  # pragma: no cover - defensive
+        return str(stamp or "")
+
+
+def _stamp_adoptable(stamp: str) -> bool:
+    """False when a stamp is too far in the future to be trusted for ordering.
+
+    The HLC refuses a remote physical time beyond its drift window so that a
+    broken peer clock cannot pin the LOCAL clock (`HybridLogicalClock.observe`).
+    Ordering is a separate path that uses the peer's stamp directly, so without
+    this guard the same poisoned value still won every merge it took part in:
+
+    * a real store was found carrying 98 stamps at year 2999
+      (`032472162000000-04631-windows`, ~+30,682,668,693,692ms) that had been
+      written before the drift bound existed;
+    * those records would have won every future merge of that field until
+      real time reached year 2999, i.e. permanently, with no way for a correct
+      peer's later write to displace them.
+
+    Refusing at the ordering chokepoint makes such a value inert: it cannot
+    win, and it cannot propagate (a peer receives our poisoned stamp as a
+    candidate and refuses it too, so the era stops spreading). An unparseable
+    or legacy stamp is NOT refused here — it is handled by normalisation, and
+    refusing it would re-break the migration path.
+    """
+    try:
+        from CORE.hlc import MAX_DRIFT_MS, unpack_stamp
+        import time as _t
+        u = unpack_stamp(str(stamp or ""))
+        if u is None:
+            return True
+        return u[0] <= int(_t.time() * 1000) + MAX_DRIFT_MS
+    except Exception:  # pragma: no cover - defensive
+        return True
+
+
+def _stamp_newer(candidate: Any, current: Any) -> bool:
+    """True when `candidate` is strictly newer than `current`, HLC-aware.
+
+    Both sides are normalised before comparison, which is what lets a legacy
+    naive-ISO timestamp persisted by an older build coexist with a new HLC
+    stamp. A raw string compare would order *every* HLC stamp before *every*
+    ISO one (HLC stamps begin with a zero-padded millisecond count, so they
+    start with `0`), silently handing the win to the older write during the
+    whole migration window.
+
+    An empty candidate never wins, preserving the original guard's behaviour.
+
+    Beyond-drift stamps are handled in BOTH directions, and the asymmetry is
+    deliberate:
+
+    * a candidate from beyond the drift window never wins, and the refusal is
+      recorded on the shared clock so the diagnostic reports it even when the
+      merge is what saw the stamp first; and
+    * a *stored* value from beyond the window does not win either — otherwise a
+      poisoned record would be frozen in place until real time caught up with
+      it (year 2999), and a correct peer's later write could never displace it.
+      Treating it as "not newer" means the first trustworthy write heals it.
+
+    See `_stamp_adoptable`.
+    """
+    # Emptiness is judged on the RAW value, not the normalised one:
+    # `normalize_stamp("")` is a perfectly valid zero stamp, so normalising
+    # first makes an absent candidate look like a real one — and against a
+    # poisoned incumbent that would let "no stamp at all" win.
+    raw = str(candidate if candidate is not None else "").strip()
+    if not raw:
+        return False
+    try:
+        from CORE.hlc import normalize_stamp
+        a = normalize_stamp(raw)
+        b = normalize_stamp(str(current if current is not None else ""))
+    except Exception:  # pragma: no cover - defensive
+        a = raw
+        b = str(current or "")
+    if not _stamp_adoptable(a):
+        _observe_stamp(candidate)
+        return False
+    if not _stamp_adoptable(b):
+        # The incumbent is the untrustworthy one: an adoptable candidate wins
+        # by default, which is how a poisoned record gets repaired.
+        return True
+    return a > b
+
+
+def publish_fabric_state(provider: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge one fabric worm's snapshot in, per field. Never raises.
+
+    This used to *replace* the provider record wholesale. Because a provider
+    key is shared by every env (each env's ``Lilith``, ``ModelShardServerWorm``
+    ... publishes under the same name), a peer with a newer stamp erased the
+    other env's fields entirely — which is why a catalogue meant to hold two
+    envs' shards could only ever hold one. Fields are now merged individually
+    and a publish only touches the attributes it actually carries.
+    """
+    provider = str(provider or "")[:80]
+    if not provider or not isinstance(state, dict):
+        return {"success": False, "error": "provider and dict state required"}
+    stamp = _hlc_now()
+    try:
+        with _FABRIC_LOCK:
+            rec = _FABRIC_STATE.get(provider)
+            if rec is None:
+                if len(_FABRIC_STATE) >= _FABRIC_STATE_MAX:
+                    oldest = min(_FABRIC_STATE.items(),
+                                 key=lambda kv: _rec_stamp(kv[1], "updated_at"))
+                    _FABRIC_STATE.pop(oldest[0], None)
+                rec = {"provider": provider, "updated_at": _now_iso(),
+                       "hlc": stamp, "state": {}, "field_stamps": {}}
+                _FABRIC_STATE[provider] = rec
+            fields = rec.setdefault("state", {})
+            stamps = rec.setdefault("field_stamps", {})
+            for k, v in dict(state).items():
+                key = str(k)[:120]
+                fields[key] = v
+                stamps[key] = stamp
+            if _stamp_newer(stamp, _rec_stamp(rec, "updated_at")):
+                rec["hlc"] = stamp
+                rec["updated_at"] = _now_iso()
+        return {"success": True, "provider": provider,
+                "keys": sorted(state.keys())[:12]}
+    except Exception as exc:
+        return {"success": False, "error": str(exc)[:120]}
+
+
+def get_fabric_state(provider: str) -> Optional[Dict[str, Any]]:
+    """Flattened last-known state for `provider` (copy), or None if unseen.
+
+    Deliberately does NOT call `_ensure_loaded()`: this is called from every
+    fabric worm's ``__init__``, so an auto-load here would mean a disk read
+    per construction and would let a stale on-disk snapshot shadow in-process
+    state. Disk restore happens on the explicit startup path
+    (``startup_warm.restore_spine_state``) which is the one place it belongs.
+    """
+    with _FABRIC_LOCK:
+        rec = _FABRIC_STATE.get(str(provider))
+        return dict(rec.get("state") or {}) if rec else None
+
+
+def get_fabric_record(provider: str) -> Optional[Dict[str, Any]]:
+    """Full record including per-field stamps (diagnostics / merge debugging)."""
+    with _FABRIC_LOCK:
+        rec = _FABRIC_STATE.get(str(provider))
+        return dict(rec) if rec else None
+
+
+def get_fabric_view() -> Dict[str, Any]:
+    """Introspection: which fabric providers have persisted state."""
+    with _FABRIC_LOCK:
+        return {k: {"updated_at": v.get("updated_at", ""),
+                    "keys": sorted((v.get("state") or {}).keys()),
+                    "stamped_fields": len(v.get("field_stamps") or {})}
+                for k, v in _FABRIC_STATE.items()}
+
+
+def _merge_fabric(remote: Any) -> int:
+    """Fold a remote fabric collection in, per FIELD, HLC-ordered.
+
+    Two changes over the previous per-provider recency merge:
+
+    * **Per field.** A peer publishing `_lease_env` no longer erases our
+      `_genome_version`; both survive, keyed by their own stamps.
+    * **HLC ordering.** "Newer" is decided by a hybrid logical clock rather
+      than by comparing naive local-time strings, so a timezone offset or a
+      skewed clock can no longer invert the winner (or delay it by hours).
+
+    Returns the number of individual field writes applied.
+    """
+    merged = 0
+    if not isinstance(remote, dict):
+        return 0
+    with _FABRIC_LOCK:
+        for provider, rec in remote.items():
+            if not isinstance(rec, dict):
+                continue
+            r_state = rec.get("state")
+            if not isinstance(r_state, dict):
+                continue
+            name = str(provider)[:80]
+            cur = _FABRIC_STATE.get(name)
+            if cur is None:
+                if len(_FABRIC_STATE) >= _FABRIC_STATE_MAX:
+                    oldest = min(_FABRIC_STATE.items(),
+                                 key=lambda kv: _rec_stamp(kv[1], "updated_at"))
+                    _FABRIC_STATE.pop(oldest[0], None)
+                cur = {"provider": name, "updated_at": "", "hlc": "",
+                       "state": {}, "field_stamps": {}}
+                _FABRIC_STATE[name] = cur
+            fields = cur.setdefault("state", {})
+            stamps = cur.setdefault("field_stamps", {})
+            for attr, value in r_state.items():
+                key = str(attr)[:120]
+                r_ts = _fabric_field_stamp(rec, attr)
+                l_ts = _fabric_field_stamp(cur, key)
+                # Via `_stamp_newer`, not a raw `>`: this comparison used to
+                # bypass the drift guard entirely, which is how a poisoned
+                # year-2999 field stamp could still win a fabric merge after
+                # the clock itself had learned to refuse it.
+                if key not in fields or _stamp_newer(r_ts, l_ts):
+                    fields[key] = value
+                    if r_ts:
+                        stamps[key] = r_ts
+                    merged += 1
+            r_top = _rec_stamp(rec, "updated_at")
+            if _stamp_newer(r_top, _rec_stamp(cur, "updated_at")):
+                cur["hlc"] = r_top
+                cur["updated_at"] = str(rec.get("updated_at") or "")
+            # Fold the peer's clock into ours so nothing we stamp after this
+            # can be ordered before a value we just adopted (causality). Only
+            # stamps we would actually trust are folded in: taking a raw `max`
+            # here would pick a poisoned value over a valid one and drop the
+            # valid observation entirely.
+            candidates = [r_top] + [str(v) for v in (stamps.values()
+                                                     if isinstance(stamps, dict) else [])]
+            adoptable = [c for c in candidates if c and _stamp_adoptable(c)]
+            _observe_stamp(max(adoptable) if adoptable else (r_top or ""))
+    return merged
+
+
+def _merge_quarantine(remote: Any) -> int:
+    """Fold remote quarantine votes in, per (finding, env) recency wins."""
+    merged = 0
+    if not isinstance(remote, dict):
+        return 0
+    with _QUARANTINE_LOCK:
+        for finding, box in remote.items():
+            if not isinstance(box, dict):
+                continue
+            local = _QUARANTINE_VOTES.setdefault(str(finding)[:160], {})
+            for env, rec in box.items():
+                if not isinstance(rec, dict):
+                    continue
+                cur = local.get(str(env))
+                if cur is None or _stamp_newer(_rec_stamp(rec, "at"),
+                                               _rec_stamp(cur, "at")):
+                    local[str(env)[:40]] = {"verdict": rec.get("verdict", "quarantine"),
+                                           "at": rec.get("at", ""),
+                                           "hlc": rec.get("hlc", "")}
+                    merged += 1
+            if len(_QUARANTINE_VOTES) > _QUARANTINE_FINDINGS_MAX:
+                overflow = len(_QUARANTINE_VOTES) - _QUARANTINE_FINDINGS_MAX
+                for k in list(_QUARANTINE_VOTES)[:overflow]:
+                    _QUARANTINE_VOTES.pop(k, None)
+    return merged
+
+
 # ── PERSISTENCE (restart-safe, gossip-ready) ────────────────────────
 _STATE_FILE = Path.home() / ".azazael" / "spine_state.json"
 
@@ -297,9 +704,10 @@ def _merge_disk_state() -> None:
                         cur[f] = max(int(cur.get(f, 0)), int(v.get(f, 0)))
                     except (TypeError, ValueError):
                         pass
-                if str(v.get("last_at", "")) > str(cur.get("last_at", "")):
+                if _stamp_newer(_rec_stamp(v, "last_at"),
+                                _rec_stamp(cur, "last_at")):
                     for f in ("last_ms", "last_at", "last_error", "hist_ms",
-                              "consec_fail"):
+                              "consec_fail", "hlc"):
                         if f in v:
                             cur[f] = v[f]
             for k, w in (payload.get("q_weights") or {}).items():
@@ -308,12 +716,24 @@ def _merge_disk_state() -> None:
                         _Q_WEIGHTS[k] = max(_Q_MIN, min(_Q_MAX, float(w)))
                     except (TypeError, ValueError):
                         pass
+            for k, n in (payload.get("q_update_counts") or {}).items():
+                try:
+                    _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
+                except (TypeError, ValueError):
+                    pass
+            for k, var in (payload.get("q_variance") or {}).items():
+                try:
+                    _Q_VARIANCE.setdefault(k, float(var))
+                except (TypeError, ValueError):
+                    pass
             for k, v in (payload.get("scars") or {}).items():
                 if isinstance(v, dict):
                     _SCARS.setdefault(k, v)
         with _SPINE_LOCK:
             for k, v in (payload.get("spine_map") or {}).items():
                 _SPINE_MAP.setdefault(k, v if isinstance(v, dict) else {})
+        _merge_quarantine(payload.get("quarantine_votes"))
+        _merge_fabric(payload.get("fabric_state"))
     except Exception:
         pass
 
@@ -339,11 +759,35 @@ def _now_iso() -> str:
 
 # ── SPINE MAP API ────────────────────────────────────────────────────
 
+def _ordering_stamp(info: Dict[str, Any]) -> str:
+    """Pick the HLC sidecar for a new record.
+
+    A caller that explicitly pinned `hlc` or `updated_at` in `info` is
+    asserting when the content became true (tests, backfill, a record imported
+    from a peer), and the ordering sidecar must AGREE with that pin —
+    otherwise the pin is silently ignored and the merge orders by wall clock,
+    which is the exact failure this sidecar exists to remove.
+    """
+    pinned = info.get("hlc") or info.get("updated_at")
+    if pinned:
+        try:
+            from CORE.hlc import normalize_stamp
+            return normalize_stamp(str(pinned))
+        except Exception:  # pragma: no cover - defensive
+            return str(pinned)
+    return _hlc_now()
+
+
 def record_spine_node(env: str, worm: str, info: Dict[str, Any]) -> None:
     """Record/refresh one spine node (env:worm). Thread-safe."""
     key = f"{env}:{worm}"
+    # `updated_at` stays ISO for the many readers that parse it; `hlc` is the
+    # sidecar that decides cross-env recency in merge_spine_gossip, so a
+    # timezone offset or a skewed clock cannot invert the winner.
+    info = dict(info or {})
     rec: Dict[str, Any] = {"env": env, "worm": worm, "updated_at": _now_iso()}
     rec.update(info)
+    rec.setdefault("hlc", _ordering_stamp(info))
     with _SPINE_LOCK:
         if key not in _SPINE_MAP and len(_SPINE_MAP) >= _SPINE_MAP_MAX:
             # Evict oldest-updated node (simple bounded-growth policy)
@@ -430,6 +874,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                 rec["last_error"] = (error or "")[:120]
             rec["last_ms"] = round(float(duration_ms), 2)
             rec["last_at"] = _now_iso()
+            rec["hlc"] = _hlc_now()
             hist: List[float] = rec["hist_ms"]
             hist.append(round(float(duration_ms), 2))
             if len(hist) > _HIST_MAX:
@@ -639,6 +1084,48 @@ def get_q_weight(nature: str, worm: str) -> float:
         return _Q_WEIGHTS.get(f"{nature}:{worm}", 0.0)
 
 
+def get_q_updates(nature: str, worm: str) -> int:
+    """How many times this key has ever been reinforced. 0 if never.
+
+    Added 2026-09-14 for elastic AOA arm selection. ``get_q_weight()``
+    returns 0.0 for an unknown key and for a known key that has settled on
+    a neutral 0.0 -- so a *proven neutral* arm is indistinguishable from a
+    *never-tried* one by Q alone. Any selector that ranks on Q therefore
+    starves untried arms permanently: they score 0, are never chosen, and
+    so are never scored (the cold-start collapse four live inference
+    providers independently flagged).
+
+    The count already existed as ``_Q_UPDATE_COUNTS`` (used to drive the
+    Welford variance in ``_reinforce_q_unlocked``); this exposes it
+    read-only so a caller can distinguish "unknown" from "measured" and
+    apply a minimum-pull quota before trusting Q.
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        return int(_Q_UPDATE_COUNTS.get(f"{nature}:{worm}", 0))
+
+
+def get_q_update_counts() -> Dict[str, int]:
+    """Copy of the WHOLE update-count table, keyed "nature:worm".
+
+    Added 2026-09-15 for the RL monitor. ``get_q_updates()`` is per-key, so a
+    caller that wants to render the entire Q-table had to either loop over
+    every key (one lock acquisition each) or -- as the first cut of the RL
+    monitor did -- call it with no arguments, raise ``TypeError``, and get
+    swallowed by a defensive ``except``. That produced a card which silently
+    reported "0 measured" for a populated brainstem while claiming the spine
+    as its source, which is exactly the failure mode the monitor exists to
+    prevent.
+
+    Read-only copy, so a caller can pair it with ``get_q_weights()`` and tell
+    a *proven neutral* key (weight 0.0, pulls > 0) from a *starved* one
+    (weight 0.0, pulls == 0).
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        return dict(_Q_UPDATE_COUNTS)
+
+
 def q_order(nature: str, worm_names: List[str]) -> List[str]:
     """Order worm names by descending Q-weight (healthy first).
 
@@ -737,6 +1224,14 @@ def save_spine_state() -> Dict[str, Any]:
                              for kk, vv in v.items()}
                          for k, v in _HOMEOSTAT.items()}
             q_weights = dict(_Q_WEIGHTS)
+            # The pull-count and the Welford variance are as much a part of the
+            # learned brainstem as the weights are. Persisting the weights
+            # alone (pre-2026-09-15) reset adaptive alpha to its default and
+            # made every key look never-pulled on each restart -- which defeats
+            # get_q_updates(), whose entire purpose is telling a proven-neutral
+            # key (weight 0.0, pulls > 0) from a starved one (both 0).
+            q_update_counts = {k: int(v) for k, v in _Q_UPDATE_COUNTS.items()}
+            q_variance = {k: float(v) for k, v in _Q_VARIANCE.items()}
         with _POLICY_LOCK:
             policy_journal = [dict(e) for e in _POLICY_JOURNAL]
             policy_latest = {k: dict(v) for k, v in _POLICY_LATEST.items()}
@@ -744,6 +1239,9 @@ def save_spine_state() -> Dict[str, Any]:
             gossip = {"seq": _GOSSIP_SEQ_LOCAL,
                       "seq_seen": dict(_GOSSIP_SEQ_SEEN),
                       "keys": dict(_GOSSIP_KEYS)}
+        quarantine_votes = get_quarantine_votes()
+        with _FABRIC_LOCK:
+            fabric_state = {k: dict(v) for k, v in _FABRIC_STATE.items()}
         payload = {
             "version": __version__,
             "saved_at": _now_iso(),
@@ -751,10 +1249,14 @@ def save_spine_state() -> Dict[str, Any]:
             "spine_events": spine_events,
             "homeostat": homeostat,
             "q_weights": q_weights,
+            "q_update_counts": q_update_counts,
+            "q_variance": q_variance,
             "scars": _scars_snapshot(),
             "policy_journal": policy_journal,
             "policy_latest": policy_latest,
             "gossip": gossip,
+            "quarantine_votes": quarantine_votes,
+            "fabric_state": fabric_state,
         }
         _STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
         tmp = _STATE_FILE.with_suffix(".json.tmp")
@@ -763,7 +1265,10 @@ def save_spine_state() -> Dict[str, Any]:
         summary = {"saved": True, "path": str(_STATE_FILE),
                    "spine_nodes": len(spine_map),
                    "homeostat_worms": len(homeostat),
-                   "q_weights": len(q_weights)}
+                   "q_weights": len(q_weights),
+                   "q_update_counts": len(q_update_counts),
+                   "quarantine_findings": len(quarantine_votes),
+                   "fabric_providers": len(fabric_state)}
     except Exception as exc:
         summary = {"saved": False, "error": str(exc)[:120]}
     return summary
@@ -804,6 +1309,21 @@ def load_spine_state() -> Dict[str, Any]:
             for k, w in q_weights.items():
                 try:
                     _Q_WEIGHTS[k] = max(_Q_MIN, min(_Q_MAX, float(w)))
+                except (TypeError, ValueError):
+                    pass
+            # Counts are monotone observations: take MAX so N parallel
+            # save-then-exit processes compose instead of overwriting (same
+            # rule as successes/failures in _merge_disk_state).
+            for k, n in (payload.get("q_update_counts") or {}).items():
+                try:
+                    _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
+                except (TypeError, ValueError):
+                    pass
+            # Variance: adopt only when we have none; a restored value must not
+            # overwrite variance this process has already measured.
+            for k, var in (payload.get("q_variance") or {}).items():
+                try:
+                    _Q_VARIANCE.setdefault(k, float(var))
                 except (TypeError, ValueError):
                     pass
             for k, v in (payload.get("scars") or {}).items():
@@ -852,10 +1372,16 @@ def load_spine_state() -> Dict[str, Any]:
                 for env, key in (gossip.get("keys") or {}).items():
                     if isinstance(key, str) and key:
                         _GOSSIP_KEYS.setdefault(str(env), key)
+        # Fabric operational state + quarantine votes: the mesh's memory of
+        # *what it knew*, not just how it felt (audit 2026-09-15, finding #7).
+        _merge_quarantine(payload.get("quarantine_votes"))
+        _merge_fabric(payload.get("fabric_state"))
         restored = {"restored": True,
                     "spine_nodes": len(spine_map),
                     "homeostat_worms": len(homeostat),
-                    "q_weights": len(q_weights)}
+                    "q_weights": len(q_weights),
+                    "quarantine_findings": len(payload.get("quarantine_votes") or {}),
+                    "fabric_providers": len(payload.get("fabric_state") or {})}
     except Exception as exc:
         restored = {"restored": False, "error": str(exc)[:120]}
     return restored
@@ -943,6 +1469,13 @@ def spine_reset() -> None:
         _HOMEOSTAT.clear()
         _clear_outcome_events()
         _Q_WEIGHTS.clear()
+        # The brainstem is three tables, not one. Clearing only the weights
+        # left the pull-count and the Welford variance behind, so a "reset"
+        # produced a Q-table that was empty of values but full of evidence:
+        # every arm immediately read as proven, and the variance kept driving
+        # adaptive alpha from data the weights no longer had (2026-09-15).
+        _Q_UPDATE_COUNTS.clear()
+        _Q_VARIANCE.clear()
     with _SCAR_LOCK:
         _SCARS.clear()
     with _POLICY_LOCK:
@@ -955,6 +1488,88 @@ def spine_reset() -> None:
         _ANOMALY_MODEL.clear()
         global _ANOMALY_MODEL_SOURCE
         _ANOMALY_MODEL_SOURCE = "local"
+    with _QUARANTINE_LOCK:
+        _QUARANTINE_VOTES.clear()
+    with _FABRIC_LOCK:
+        _FABRIC_STATE.clear()
+
+
+def purge_implausible_stamps(dry_run: bool = True) -> Dict[str, Any]:
+    """Repair ordering stamps that sit beyond the clock's drift window.
+
+    Opt-in, never automatic. Refusal (see `_stamp_adoptable`) makes a poisoned
+    stamp harmless — it cannot win a merge and cannot propagate — but it stays
+    in the store, and therefore in every gossip payload, forever. A real store
+    was found carrying 98 year-2999 stamps
+    (``032472162000000-04631-windows``) written before the drift bound existed.
+
+    Each implausible ``hlc`` sidecar is REPLACED with a stamp derived from the
+    record's own human-readable ISO field, not deleted: deleting it would make
+    the record look older than every real write and lose its next merge, which
+    is a different bug from the one being fixed. ``field_stamps`` on fabric
+    records are repaired the same way.
+
+    ``dry_run=True`` (the default) reports what would change and touches
+    nothing. Returns per-area counts plus `repaired` / `scanned`. Never raises.
+
+    Operator usage:
+        python -c "from CORE import spine_registry as s; print(s.purge_implausible_stamps(False))"
+    """
+    report: Dict[str, Any] = {"dry_run": bool(dry_run), "repaired": 0,
+                              "scanned": 0, "areas": {}, "examples": []}
+
+    def _fix(rec: Any, iso_field: str, area: str) -> None:
+        if not isinstance(rec, dict):
+            return
+        report["scanned"] += 1
+        stamp = rec.get("hlc")
+        if not stamp or _stamp_adoptable(str(stamp)):
+            return
+        report["repaired"] += 1
+        report["areas"][area] = report["areas"].get(area, 0) + 1
+        if len(report["examples"]) < 5:
+            report["examples"].append({"area": area, "stamp": str(stamp)[:40],
+                                      "from": str(rec.get(iso_field) or "")[:32]})
+        if dry_run:
+            return
+        try:
+            from CORE.hlc import normalize_stamp
+            rec["hlc"] = normalize_stamp(str(rec.get(iso_field) or ""))
+        except Exception:  # pragma: no cover - defensive
+            rec.pop("hlc", None)
+
+    try:
+        with _HOMEOSTAT_LOCK:
+            for rec in _HOMEOSTAT.values():
+                _fix(rec, "last_at", "homeostat")
+        with _SPINE_LOCK:
+            for rec in _SPINE_MAP.values():
+                _fix(rec, "last_at", "spine_map")
+        with _QUARANTINE_LOCK:
+            for box in _QUARANTINE_VOTES.values():
+                for rec in (box or {}).values():
+                    _fix(rec, "at", "quarantine_votes")
+        with _FABRIC_LOCK:
+            for rec in _FABRIC_STATE.values():
+                _fix(rec, "updated_at", "fabric_state")
+                stamps = rec.get("field_stamps") if isinstance(rec, dict) else None
+                if not isinstance(stamps, dict):
+                    continue
+                for key, stamp in list(stamps.items()):
+                    if stamp and not _stamp_adoptable(str(stamp)):
+                        report["repaired"] += 1
+                        report["areas"]["fabric_field_stamps"] = \
+                            report["areas"].get("fabric_field_stamps", 0) + 1
+                        if not dry_run:
+                            try:
+                                from CORE.hlc import normalize_stamp
+                                stamps[key] = normalize_stamp(
+                                    str(rec.get("updated_at") or ""))
+                            except Exception:  # pragma: no cover - defensive
+                                stamps.pop(key, None)
+    except Exception as exc:  # pragma: no cover - defensive
+        report["error"] = str(exc)[:160]
+    return report
 
 
 def get_module_health() -> Dict[str, Any]:
@@ -965,12 +1580,18 @@ def get_module_health() -> Dict[str, Any]:
     with _HOMEOSTAT_LOCK:
         homeostat_worms = len(_HOMEOSTAT)
         outcome_events = _outcome_event_count()
+    with _QUARANTINE_LOCK:
+        quarantine_findings = len(_QUARANTINE_VOTES)
+    with _FABRIC_LOCK:
+        fabric_providers = len(_FABRIC_STATE)
     return {
         "version": __version__,
         "spine_nodes": spine_nodes,
         "spine_events": spine_events,
         "homeostat_worms": homeostat_worms,
         "outcome_events": outcome_events,
+        "quarantine_findings": quarantine_findings,
+        "fabric_providers": fabric_providers,
     }
 
 
@@ -1347,9 +1968,16 @@ def export_spine_gossip() -> Dict[str, Any]:
                          for kk, vv in v.items()}
                      for k, v in _HOMEOSTAT.items()}
         q_weights = dict(_Q_WEIGHTS)
+        # Travel with the weights so a peer adopting a Q value does not read as
+        # a starved key on the receiving monitor (the counts are the evidence
+        # behind the weight).
+        q_update_counts = dict(_Q_UPDATE_COUNTS)
     with _GOSSIP_TRUST_LOCK:
         _GOSSIP_SEQ_LOCAL += 1
         seq = _GOSSIP_SEQ_LOCAL
+    quarantine_votes = get_quarantine_votes()
+    with _FABRIC_LOCK:
+        fabric_state = {k: dict(v) for k, v in _FABRIC_STATE.items()}
     payload: Dict[str, Any] = {
         "version": __version__,
         "exported_at": _now_iso(),
@@ -1361,10 +1989,17 @@ def export_spine_gossip() -> Dict[str, Any]:
         "spine_events": spine_events,
         "homeostat": homeostat,
         "q_weights": q_weights,
+        "q_update_counts": q_update_counts,
         # Inside the signed envelope: `_gossip_canonical` covers every field
         # except the signature itself, so the model needs no extra trust
         # machinery and cannot be edited in transit.
         "anomaly_model": get_anomaly_model(),
+        # Cross-env quorum votes and fabric operational state travel with the
+        # same signed payload: a peer's quarantine vote is what lets the
+        # quorum gate on THIS host actually reach `decided`, and fabric state
+        # is what stops the mesh forgetting its routing/consensus on restart.
+        "quarantine_votes": quarantine_votes,
+        "fabric_state": fabric_state,
     }
     crypto = _gossip_crypto()
     if crypto is not None:
@@ -1419,6 +2054,7 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
         remote_map = payload.get("spine_map")
         remote_home = payload.get("homeostat")
         remote_q = payload.get("q_weights")
+        remote_counts = payload.get("q_update_counts")
         remote_events = payload.get("spine_events")
         if not all(isinstance(x, dict) for x in
                    (remote_map or {}, remote_home or {}, remote_q or {})):
@@ -1444,8 +2080,8 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     continue
                 # recency wins; strictly-newer only so re-merging the
                 # same payload is a true no-op (idempotency contract).
-                new_ts, cur_ts = v.get("updated_at", ""), cur.get("updated_at", "")
-                if new_ts and new_ts > cur_ts:
+                if _stamp_newer(_rec_stamp(v, "updated_at"),
+                                _rec_stamp(cur, "updated_at")):
                     _SPINE_MAP[k] = v
                     stats["spine_nodes"] += 1
             if isinstance(remote_events, list):
@@ -1470,8 +2106,8 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     _HOMEOSTAT[k] = v
                     stats["homeostat_worms"] += 1
                     continue
-                new_ts, cur_ts = v.get("last_at", ""), cur.get("last_at", "")
-                if new_ts and new_ts > cur_ts:
+                if _stamp_newer(_rec_stamp(v, "last_at"),
+                                _rec_stamp(cur, "last_at")):
                     _HOMEOSTAT[k] = v
                     stats["homeostat_worms"] += 1
             for k, w in (remote_q or {}).items():
@@ -1484,6 +2120,15 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                 if k not in _Q_WEIGHTS:
                     _Q_WEIGHTS[k] = wv
                     stats["q_weights"] += 1
+            # Counts are evidence, not a value: take the MAX so a key adopted
+            # from a peer still shows why it is trusted rather than reading as
+            # never-pulled. Never lowers a local count.
+            if isinstance(remote_counts, dict):
+                for k, n in remote_counts.items():
+                    try:
+                        _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
+                    except (TypeError, ValueError):
+                        continue
 
         # Shared anomaly model. Only reached after the trust gate, so this is
         # an authenticated, non-replayed, key-pinned model — and it is
@@ -1505,6 +2150,15 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                         stats["anomaly_model"] = "adopted"
                     else:
                         stats["anomaly_model"] = "kept_local"
+        # Cross-env quorum votes + fabric operational state (authenticated: we
+        # are past the trust gate). Both merge per-key with recency wins, so
+        # re-merging the same payload stays a no-op.
+        q_merged = _merge_quarantine(payload.get("quarantine_votes"))
+        f_merged = _merge_fabric(payload.get("fabric_state"))
+        if q_merged:
+            stats["quarantine_votes"] = q_merged
+        if f_merged:
+            stats["fabric_state"] = f_merged
         # Acceptance commits the seq high-water mark and pins the env's key.
         _remember_gossip(trust)
         stats["merged"] = True
@@ -1528,25 +2182,25 @@ _GOSSIP_MAX_AGE_S = 24 * 3600.0  # ignore peer files older than 24h
 
 
 def _local_env_name() -> str:
-    """Local env id for gossip file naming (AZAZAEL_ENV override first).
+    """Local env id for gossip file naming — canonical (CORE.env_id).
 
-    Kept independent of spine.py's _local_env() to avoid a circular
-    import (spine.py imports this module). Same env-detection logic.
+    Audit 2026-09-15 (finding #4): this was a third stale 3-way copy whose
+    docstring claimed it matched spine.py's _local_env(). Both returned
+    "wsl2" while envmesh had split the bucket in two, so the gossip file this
+    host wrote could never be matched by a peer's Kademlia lookup, which
+    keyed on the 5-way id. Delegation, not a copy — and CORE.env_id is
+    stdlib-only, so it stays safe for this module's "no heavy imports" rule.
+    AZAZAEL_ENV still wins (that is the supported way to run two logical envs
+    on one machine for gossip testing).
     """
-    env = os.environ.get("AZAZAEL_ENV")
-    if env:
-        return env[:40]
-    import platform as _p
-    if os.name != "nt":
-        return "wsl2" if "microsoft" in _p.release().lower() else "bare"
     try:
-        import winreg
-        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
-                            r"SYSTEM\\CurrentControlSet\\Control") as k:
-            val, _ = winreg.QueryValueEx(k, "SystemStartOptions")
-        return "bare" if "SERVER" in str(val).upper() else "windows"
-    except Exception:
-        return "windows"
+        from CORE.env_id import env_id
+        return env_id()[:40]
+    except Exception:  # pragma: no cover - defensive
+        env = os.environ.get("AZAZAEL_ENV")
+        if env:
+            return env[:40]
+        return "windows" if os.name == "nt" else "bare"
 
 
 def gossip_exchange(publish: bool = True) -> Dict[str, Any]:

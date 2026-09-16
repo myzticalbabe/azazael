@@ -1,23 +1,11 @@
 # coding: utf-8
-"""
-
-
-__all__ = [
-    "check_breakers_and_alert",
-    "check_drift_and_alert",
-    "check_health_and_alert",
-    "get_webhook_url",
-    "main",
-    "run_check",
-    "send_slack_alert",
-    "start_watcher",
-]
-
-CORE/notifier.py — Alert notification system for Azazael Observability.
+"""CORE/notifier.py — Alert notification system for Azazael Observability.
 
 Sends Slack webhook notifications when:
     - Health check status degrades (overall becomes "down" or "degraded")
     - Drift alerts fire (critical severity)
+    - Clock trust degrades (a peer skews past the threshold, or its stamps are
+      refused for being outside the drift bound — audit §5 item 5)
     - Circuit breakers trip or accumulate dead letters
 
 Usage:
@@ -34,6 +22,23 @@ Configuration via environment variables:
     SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
     AZAZAEL_NOTIFIER_INTERVAL=60  (default check interval in seconds)
 """
+
+# NOTE (2026-09-15): this assignment used to sit *inside* the module docstring
+# above, which made it dead text — the module had no `__all__` at all, so
+# `from CORE.notifier import *` exported nothing and `notifier.__all__` raised
+# AttributeError. Found by a test that asserted `check_clock_and_alert` was on
+# the notifier's public surface; the docstring was already opening before it.
+__all__ = [
+    "check_breakers_and_alert",
+    "check_clock_and_alert",
+    "check_drift_and_alert",
+    "check_health_and_alert",
+    "get_webhook_url",
+    "main",
+    "run_check",
+    "send_slack_alert",
+    "start_watcher",
+]
 
 import json
 import os
@@ -258,11 +263,91 @@ def check_breakers_and_alert(webhook_url: (str | None) = None) -> int:
     return total
 
 
+def check_clock_and_alert(webhook_url: (str | None) = None) -> int:
+    """Check hybrid-logical-clock health and send notifications.
+
+    Closes audit §5 item 5: clock trust became *measurable* on 2026-09-15
+    (``get_clock_skew_ms()``, ``rejected()``) and the monitor renders it, but
+    nothing alerted on it — so a peer with a broken clock was visible only to
+    somebody already looking at the dashboard.
+
+    Two distinct signals, alerted separately because they mean different
+    things:
+
+    * **Real skew** (``skew_ms``) — an accepted peer's clock runs ahead of
+      ours. Tolerable, and expected: a few seconds is network latency. Alert
+      above ``AZAZAEL_CLOCK_SKEW_ALERT_MS`` (default 60s).
+    * **Refused stamps** (``rejected`` / ``rejected_skew_ms``) — a peer is
+      *outside* the drift bound, so its stamps are not adopted for ordering at
+      all. One is a curiosity (a legacy store being loaded); a continuing rate
+      means a clock is wrong and cross-env ordering against that peer is
+      effectively disabled.
+
+    Env knobs:
+        AZAZAEL_CLOCK_SKEW_ALERT_MS=60000     accepted-skew threshold
+        AZAZAEL_CLOCK_REJECT_ALERT=1          refused count that triggers
+
+    Returns:
+        Number of critical clock issues found (0 = healthy).
+    """
+    try:
+        from CORE.hlc import hlc
+        clock = hlc()
+        skew_ms = int(clock.skew_ms())
+        refused = int(clock.rejected())
+        refused_skew_ms = int(clock.rejected_skew_ms())
+        observed = int(clock.observations())
+        node = clock.node
+    except Exception as e:
+        print(f"  [NOTIFIER] Clock check failed: {e}")
+        return 0
+
+    try:
+        skew_limit = int(os.environ.get("AZAZAEL_CLOCK_SKEW_ALERT_MS", "60000"))
+        refuse_limit = int(os.environ.get("AZAZAEL_CLOCK_REJECT_ALERT", "1"))
+    except ValueError:
+        skew_limit, refuse_limit = 60000, 1
+
+    critical = 0
+    # A refused stamp is the harder failure: the peer's stamps are being
+    # discarded, so any value ordered by them loses deterministically.
+    if refused >= refuse_limit:
+        critical += 1
+        mins = refused_skew_ms / 60000.0
+        send_slack_alert(
+            f":clock1: *{refused} peer stamp(s) refused* on `{node}`\n"
+            f"> Worst offset: {refused_skew_ms:,}ms (~{mins:,.0f} min beyond the "
+            f"bound)\n"
+            f"> Refused stamps are NOT adopted for ordering, so they cannot win "
+            f"a merge or propagate — but a peer outside the bound cannot be "
+            f"ordered against at all.\n"
+            f"> Repair a store that already holds them: "
+            f"`spine_registry.purge_implausible_stamps(dry_run=False)`",
+            webhook_url, title="Clock Trust Alert",
+        )
+
+    if abs(skew_ms) > skew_limit:
+        critical += 1
+        direction = "ahead of" if skew_ms > 0 else "behind"
+        send_slack_alert(
+            f":hourglass: *Clock skew {skew_ms:+,}ms* on `{node}`\n"
+            f"> Newest accepted peer clock is {abs(skew_ms):,}ms {direction} ours "
+            f"(limit {skew_limit:,}ms, {observed} stamp(s) observed)\n"
+            f"> Ordering is unaffected — the HLC is logical, not wall-clock — but "
+            f"this is the number that predicts divergence.",
+            webhook_url, title="Clock Skew Warning",
+        )
+
+    print(f"  [NOTIFIER] Clock: skew {skew_ms:+,}ms, {refused} refused "
+          f"(worst {refused_skew_ms:,}ms), {observed} observed")
+    return critical
+
+
 def run_check(
     webhook_url: (str | None) = None,
     last_state: (dict[str, Any] | None) = None,
 ) -> (dict[str, Any] | None):
-    """Run a single check cycle: health, drift, breakers.
+    """Run a single check cycle: health, drift, breakers, clock.
 
     Args:
         webhook_url: Optional Slack webhook URL
@@ -275,6 +360,7 @@ def run_check(
     state = check_health_and_alert(webhook_url, last_state)
     check_drift_and_alert(webhook_url)
     check_breakers_and_alert(webhook_url)
+    check_clock_and_alert(webhook_url)
     return state
 
 

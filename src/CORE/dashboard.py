@@ -116,6 +116,11 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
     except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
         report["health"] = {"overall": "down", "error": str(e)}
 
+    # The mesh is part of this report now (TODO P2 item 9): `--json`, the
+    # Prometheus/health server and the web dashboard all read `get_report()`, so
+    # one entry here makes the mesh visible to every one of them at once.
+    report["mesh"] = _mesh_report()
+
     try:
         from CORE.metrics import metrics_collector
         snap = metrics_collector.snapshot()
@@ -260,6 +265,147 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
         pass
 
     return report
+
+
+def _mesh_report() -> dict[str, Any]:
+    """The neural mesh's own state, read from `spine_registry`.
+
+    This dashboard predates the mesh entirely: it reported health, metrics,
+    drift and circuit breakers with no reference to `spine_registry`, `NATURE`
+    or the fabric (LIVE_MONITOR_RESTRUCTURE_TODO.md §3, P2 item 9 — "decide
+    dashboard.py's fate"). Decision: **keep it, rebase its data on the spine.**
+    Retiring a working 34 KB terminal dashboard would lose the Prometheus/JSON
+    surfaces that nothing else provides, and rebasing costs one function.
+
+    Every block degrades to an `error` string exactly like the rest of this
+    report — a dashboard that raises is a dashboard nobody runs.
+    """
+    mesh: dict[str, Any] = {"timestamp": datetime.now().isoformat()}
+    try:
+        from CORE import spine_registry as sp
+
+        q = sp.get_q_weights()
+        counts = sp.get_q_update_counts()
+        pulled = {k for k, c in counts.items() if int(c or 0) > 0}
+        starved = [k for k, v in q.items()
+                   if k not in pulled and abs(float(v or 0.0)) < 1e-9]
+        mesh["q"] = {
+            "keys": len(q), "measured": len(pulled), "starved": len(starved),
+            "seeded": max(0, len(q) - len(pulled) - len(starved)),
+            "positive": sum(1 for v in q.values() if v > 0),
+            "negative": sum(1 for v in q.values() if v < 0),
+        }
+
+        # Quorum is counted over DISTINCT ENVS in the shared ledger (audit #1),
+        # not by a local majority, so report envs rather than votes.
+        votes = sp.get_quarantine_votes() or {}
+        decided, envs = 0, set()
+        for box in votes.values():
+            tally: dict[str, int] = {}
+            for env, rec in (box or {}).items():
+                envs.add(env)
+                verdict = (rec or {}).get("verdict", "?")
+                tally[verdict] = tally.get(verdict, 0) + 1
+            if tally and max(tally.values()) >= 2:
+                decided += 1
+        mesh["quarantine"] = {"findings": len(votes), "decided": decided,
+                              "envs": sorted(envs)}
+
+        fabric = sp.get_fabric_view() or {}
+        mesh["fabric"] = {"providers": sorted(fabric),
+                          "count": len(fabric),
+                          "updated_at": {k: v.get("updated_at", "")
+                                         for k, v in fabric.items()}}
+
+        clock: dict[str, Any] = {"skew_ms": sp.get_clock_skew_ms()}
+        try:
+            from CORE.hlc import hlc
+            h = hlc()
+            clock["node"] = h.node
+            clock["refused"] = h.rejected()
+            clock["refused_skew_ms"] = h.rejected_skew_ms()
+            clock["observations"] = h.observations()
+        except Exception:  # pragma: no cover - defensive
+            pass
+        mesh["clock"] = clock
+        mesh["queue"] = sp.get_spine_summary()
+    except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
+        mesh["error"] = str(e)
+
+    # `state/mesh_cycle.json` had no monitor anywhere; it is the only per-nature
+    # ok/fail/ms record of what the last sweep actually executed.
+    try:
+        root = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))
+        path = os.path.join(root, "state", "mesh_cycle.json")
+        if os.path.exists(path):
+            with open(path, encoding="utf-8", errors="ignore") as fh:
+                cycle = json.load(fh)
+            mesh["cycle"] = {
+                "at": cycle.get("at"), "ok": cycle.get("ok"),
+                "fail": cycle.get("fail"),
+                "duration_s": cycle.get("duration_s"),
+                "complete": cycle.get("complete"),
+                "natures": len(cycle.get("natures") or {}),
+                "worst": sorted(
+                    ((n, (r or {}).get("ms")) for n, r in (cycle.get("natures") or {}).items()),
+                    key=lambda kv: -(kv[1] or 0))[:5],
+            }
+    except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
+        mesh["cycle"] = {"error": str(e)}
+    return mesh
+
+
+def render_mesh():
+    """Render the neural-mesh panel."""
+    mesh = _mesh_report()
+    render_header("NEURAL MESH  [--]  spine brainstem + fabric + clock + cycle")
+    if mesh.get("error"):
+        print(f"  [!!] mesh unavailable: {mesh['error']}")
+        return
+
+    q = mesh.get("q", {})
+    starved = q.get("starved", 0)
+    print(f"  Q brainstem: {q.get('keys', 0)} keys, {q.get('measured', 0)} measured, "
+          f"{starved} starved, {q.get('seeded', 0)} seeded")
+    if starved:
+        print("       starved = weight 0.0 AND never pulled (the cold-start collapse)")
+    print(f"       positive {q.get('positive', 0)} / negative {q.get('negative', 0)}")
+
+    qua = mesh.get("quarantine", {})
+    print(f"  Quarantine ledger: {qua.get('decided', 0)} decided of "
+          f"{qua.get('findings', 0)} findings across "
+          f"{len(qua.get('envs', []))} env(s) {qua.get('envs', [])}")
+    # ASCII only in console output: an em dash here renders as garbage on a
+    # cp1252 Windows console (seen in the first run of this panel).
+    print("       quorum counts DISTINCT ENVS - a local majority cannot quarantine")
+
+    clock = mesh.get("clock", {})
+    print(f"  Clock: skew {clock.get('skew_ms', 0):+,}ms on {clock.get('node', '?')}, "
+          f"{clock.get('refused', 0)} refused "
+          f"(worst {clock.get('refused_skew_ms', 0):,}ms), "
+          f"{clock.get('observations', 0)} observed")
+
+    fab = mesh.get("fabric", {})
+    providers = fab.get("providers", [])
+    print(f"  Fabric: {fab.get('count', 0)} provider(s) with persisted state")
+    for name in providers[:8]:
+        print(f"       - {name}")
+    if len(providers) > 8:
+        print(f"       ... and {len(providers) - 8} more")
+
+    cyc = mesh.get("cycle", {})
+    if cyc.get("error"):
+        print(f"  Cycle: unreadable ({cyc['error']})")
+    elif cyc:
+        print(f"  Cycle: {cyc.get('ok', '?')} ok / {cyc.get('fail', '?')} fail, "
+              f"{cyc.get('duration_s', '?')}s, {cyc.get('natures', 0)} natures, "
+              f"complete={cyc.get('complete')}, at {cyc.get('at')}")
+        for name, ms in cyc.get("worst", []):
+            print(f"       slowest: {name} {ms}ms")
+    else:
+        print("  Cycle: state/mesh_cycle.json not present")
+    print()
 
 
 def render_health():
@@ -681,6 +827,8 @@ def run_dashboard(args):
 
     if args.health:
         render_health()
+    elif args.mesh:
+        render_mesh()
     elif args.metrics:
         render_metrics()
     elif args.drift:
@@ -693,6 +841,7 @@ def run_dashboard(args):
         render_header(f"AZAZAEL OBSERVABILITY DASHBOARD  ({datetime.now().strftime('%Y-%m-%d %H:%M:%S')})")
         render_config()
         render_health()
+        render_mesh()
         render_metrics()
         render_dead_letters()
         render_drift()
@@ -712,6 +861,8 @@ def main():
         description="Azazael Observability Dashboard — health, metrics, drift",
     )
     parser.add_argument("--health", action="store_true", help="Health check only")
+    parser.add_argument("--mesh", action="store_true",
+                        help="Neural mesh only (brainstem, quarantine, fabric, clock, cycle)")
     parser.add_argument("--metrics", action="store_true", help="Metrics only")
     parser.add_argument("--drift", action="store_true", help="Drift alert only")
     parser.add_argument("--db-health", action="store_true", dest="db_health",

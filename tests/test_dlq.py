@@ -21,8 +21,22 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 # ── Simple failing worm class ────────────────────────────────────
 
 class FailingWorm:
-    """A worm that always fails — has no standard methods."""
+    """A worm that always fails.
+
+    Previously this class had *no methods at all*, relying on the old
+    behaviour that a method-less worm was an error. `NatureCluster` no longer
+    treats that as a failure: a healthy instance with no safe zero-arg entry
+    point reports `standby` (a real state, not an error), which is what
+    `_SAFE_METHODS` and `_execute_single_worm` step 4 implement. So a worm that
+    must exercise the dead-letter queue has to actually raise.
+
+    This is a test-fixture fix, not a behaviour change: a genuinely failing
+    worm still lands in `_failed_executions` (verified).
+    """
     VERSION = "1.0.0"
+
+    def execute(self):
+        raise RuntimeError("FailingWorm always fails")
 
 class SometimesFailingWorm:
     """A worm that succeeds after 2 initial failures.

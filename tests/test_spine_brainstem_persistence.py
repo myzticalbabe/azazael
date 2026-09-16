@@ -1,0 +1,149 @@
+# coding: utf-8
+"""Brainstem persistence tests (2026-09-15).
+
+Found while building the RL monitor: the Q-table is three tables
+(`_Q_WEIGHTS`, `_Q_UPDATE_COUNTS`, `_Q_VARIANCE`), and only the first was ever
+persisted, restored, or reset. Every restart therefore:
+
+* reset the **pull-count** to zero for every key, so `get_q_updates()` --
+  whose documented purpose is telling a *proven-neutral* arm (weight 0.0,
+  pulls > 0) from a *never-tried* one (both 0) -- reported every arm as
+  untried. Any selector applying a minimum-pull quota to cold arms re-explored
+  proven ones forever, which is the exact cold-start collapse the counter was
+  added to prevent.
+* reset the **Welford variance**, so adaptive alpha silently fell back to its
+  0.25 default and the learning-rate schedule restarted on every boot.
+
+`spine_reset()` had the mirror-image bug: it cleared the weights but left the
+counts and variance in place, producing a Q-table that was empty of values and
+full of evidence.
+
+State is isolated to a tmp dir so the developer's real
+`~/.azazael/spine_state.json` is never touched.
+"""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+import pytest
+
+from CORE import spine_registry as sr
+
+
+@pytest.fixture(autouse=True)
+def isolated_spine_state(tmp_path, monkeypatch):
+    monkeypatch.setattr(sr, "_STATE_FILE", tmp_path / "spine_state.json")
+    monkeypatch.setattr(sr, "_GOSSIP_DIR", tmp_path / "gossip")
+    sr.spine_reset()
+    yield
+    sr.spine_reset()
+
+
+# ── the bug: counts and variance were not part of the round-trip ─────
+
+def test_pull_counts_survive_a_disk_roundtrip():
+    for _ in range(4):
+        sr.record_outcome("mesh", "PulledWorm", True, 1.0)
+    assert sr.get_q_updates("mesh", "PulledWorm") == 4
+    assert sr.save_spine_state()["q_update_counts"] >= 1
+
+    sr.spine_reset()
+    assert sr.get_q_updates("mesh", "PulledWorm") == 0  # reset really resets
+    assert sr.load_spine_state()["restored"] is True
+    assert sr.get_q_updates("mesh", "PulledWorm") == 4, "pull history was lost"
+
+
+def test_variance_survives_a_disk_roundtrip():
+    for i in range(6):
+        sr.record_outcome("mesh", "VarWorm", i % 2 == 0, 1.0)
+    saved_var = dict(sr._Q_VARIANCE)
+    assert saved_var.get("mesh:VarWorm") is not None
+    assert sr.save_spine_state()["saved"] is True
+
+    sr.spine_reset()
+    assert sr._Q_VARIANCE == {}, "reset must clear the variance too"
+    sr.load_spine_state()
+    assert sr._Q_VARIANCE.get("mesh:VarWorm") == pytest.approx(saved_var["mesh:VarWorm"])
+
+
+def test_reset_clears_all_three_brainstem_tables():
+    """A partial reset left values gone but evidence present."""
+    sr.record_outcome("mesh", "ResetWorm", True, 1.0)
+    assert sr.get_q_weights()
+    assert sr.get_q_update_counts()
+    assert sr._Q_VARIANCE
+    sr.spine_reset()
+    assert sr.get_q_weights() == {}
+    assert sr.get_q_update_counts() == {}
+    assert sr._Q_VARIANCE == {}
+
+
+# ── the distinction the counter exists to make ──────────────────────
+
+def test_bulk_accessor_matches_the_per_key_accessor():
+    sr.record_outcome("mesh", "BulkWorm", True, 1.0)
+    sr.record_outcome("synapse", "BulkWorm", False, 1.0)
+    counts = sr.get_q_update_counts()
+    assert counts["mesh:BulkWorm"] == sr.get_q_updates("mesh", "BulkWorm")
+    assert counts["synapse:BulkWorm"] == sr.get_q_updates("synapse", "BulkWorm")
+    # A copy, not the live table.
+    counts["mesh:BulkWorm"] = 999
+    assert sr.get_q_updates("mesh", "BulkWorm") == 1
+
+
+def test_starved_key_is_distinguishable_from_proven_neutral():
+    """weight 0.0 means 'neutral' only when pulls > 0."""
+    r_unknown = sr.get_q_weight("mesh", "NeverTried")
+    assert r_unknown == 0.0
+    assert sr.get_q_updates("mesh", "NeverTried") == 0      # starved
+
+    # Drive a key to a neutral weight with real evidence behind it.
+    for _ in range(8):
+        sr.record_outcome("mesh", "Measured", True, 1.0)
+        sr.record_outcome("mesh", "Measured", False, 1.0)
+    assert sr.get_q_updates("mesh", "Measured") == 16       # proven, not starved
+    assert sr.get_q_updates("mesh", "Measured") != sr.get_q_updates("mesh", "NeverTried")
+
+
+# ── merge semantics ────────────────────────────────────────────────
+
+def test_counts_take_max_across_a_disk_merge():
+    """Counts are monotone: a parallel save must not lower them."""
+    sr.record_outcome("mesh", "MergeWorm", True, 1.0)
+    sr.record_outcome("mesh", "MergeWorm", True, 1.0)
+    assert sr.get_q_updates("mesh", "MergeWorm") == 2
+
+    # Simulate a second process whose file recorded fewer observations.
+    sr.save_spine_state()
+    with sr._HOMEOSTAT_LOCK:
+        sr._Q_UPDATE_COUNTS["mesh:MergeWorm"] = 1
+        sr._Q_WEIGHTS.pop("mesh:MergeWorm", None)
+    sr.load_spine_state()
+    assert sr.get_q_updates("mesh", "MergeWorm") == 2, "disk merge lowered a count"
+
+
+def test_counts_travel_in_the_gossip_payload():
+    sr.record_outcome("mesh", "GossipWorm", True, 1.0)
+    payload = sr.export_spine_gossip()
+    assert payload.get("q_update_counts", {}).get("mesh:GossipWorm") == 1
+
+
+def test_gossip_merge_never_lowers_a_local_count():
+    sr.record_outcome("mesh", "PinnedWorm", True, 1.0)
+    sr.record_outcome("mesh", "PinnedWorm", True, 1.0)
+    sr.record_outcome("mesh", "PinnedWorm", True, 1.0)
+    assert sr.get_q_updates("mesh", "PinnedWorm") == 3
+
+    # Build a peer payload by hand (trust policy off keeps this deterministic).
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        peer = sr.export_spine_gossip()
+        peer["gossip_from"] = "peer-env"
+        peer["seq"] = int(peer.get("seq") or 0) + 50
+        peer["q_update_counts"] = {"mesh:PinnedWorm": 1}
+        sr.merge_spine_gossip(peer)
+        assert sr.get_q_updates("mesh", "PinnedWorm") == 3, "peer lowered our count"
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)

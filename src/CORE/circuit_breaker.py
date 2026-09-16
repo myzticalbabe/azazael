@@ -71,6 +71,12 @@ class CircuitBreaker:
         self.last_success_time = 0.0
         self.half_open_requests = 0
         self.dead_letters: deque = deque(maxlen=self.config.dead_letter_max)
+        # Operator-trip provenance. `test_circuit_breaker_integration.py` has
+        # called `force_trip()` since the file was written, but the method was
+        # never implemented, so the documented operator channel did not exist.
+        self.trip_reason = ""
+        self.tripped_at = 0.0
+        self.tripped_by_operator = False
         self._lock = threading.Lock()
         self._cancelled = threading.Event()
 
@@ -93,17 +99,65 @@ class CircuitBreaker:
         with self._lock:
             self._cancelled.set()
 
+    def force_trip(self, reason: str = "operator") -> dict:
+        """Trip the breaker OPEN by operator decision. Thread-safe.
+
+        An automatic trip needs `failure_threshold` real failures; an operator
+        needs a way to take an unhealthy dependency out of service *now*
+        (a known-bad deploy, a provider being drained, a security hold).
+        Without this the only path to OPEN was to provoke real failures.
+
+        This is deliberately a state change and not a fake failure: no dead
+        letter is written, because the DLQ is a record of failed executions
+        and a trip has no execution to record. The provenance lives in
+        `trip_reason` / `tripped_at`, which `stats()` surfaces, so the
+        decision is still auditable.
+
+        `last_failure_time` is stamped so the OPEN -> HALF_OPEN cooldown is
+        measured from the trip, which is what makes the trip recoverable.
+        """
+        reason = str(reason or "operator")[:200]
+        with self._lock:
+            self.state = CircuitState.OPEN
+            self.last_failure_time = time.time()
+            self.half_open_requests = 0
+            # Keep the counters consistent with the state, so health_score and
+            # the failure threshold cannot contradict `state == OPEN`.
+            self.failure_count = max(self.failure_count,
+                                    self.config.failure_threshold)
+            self.trip_reason = reason
+            self.tripped_at = self.last_failure_time
+            self.tripped_by_operator = True
+            log.warning(f"CircuitBreaker({self.name}): FORCE TRIP -> OPEN ({reason})")
+        return {"success": True, "name": self.name, "state": self.state.value,
+                "reason": reason, "retry_in": self.config.recovery_timeout}
+
+    def hold(self) -> bool:
+        """True while an operator trip is still in force.
+
+        An operator trip must not be silently undone by the ordinary
+        HALF_OPEN -> CLOSED success path: `reset()` is the documented way to
+        release a hold, so callers that want automatic recovery can read this
+        and decide. Thread-safe.
+        """
+        with self._lock:
+            return bool(self.tripped_by_operator)
+
     def reset(self):
         """Reset the circuit breaker. Thread-safe.
 
         Clears the cancellation flag, resets state to CLOSED,
-        and zeros failure/request counts.
+        and zeros failure/request counts. Also releases an operator trip —
+        this is the documented way to clear a `force_trip()` hold.
         """
         with self._lock:
             self._cancelled.clear()
             self.state = CircuitState.CLOSED
             self.failure_count = 0
             self.half_open_requests = 0
+            self.trip_reason = ""
+            self.tripped_at = 0.0
+            self.tripped_by_operator = False
 
     def execute(self, func: Callable, *args, **kwargs) -> Any:
         """Execute with circuit breaker protection."""
@@ -198,6 +252,9 @@ class CircuitBreaker:
                 "dead_letters": len(self.dead_letters),
                 "last_failure": self.last_failure_time,
                 "cancelled": self._cancelled.is_set(),
+                "trip_reason": self.trip_reason,
+                "tripped_at": self.tripped_at,
+                "held": self.tripped_by_operator,
             }
 
 

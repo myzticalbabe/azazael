@@ -78,14 +78,14 @@ class TestStep45ExactCode:
 class TestStateTransitions:
     """Verify the state machine transitions correctly from Step 4.5 init."""
 
-    def test_starts_at_idle(self):
-        """A fresh ComplianceOrchestrator should start in IDLE state."""
+    def test_starts_pre_initialized_to_code_edit(self):
+        """__init__ walks IDLE -> GATE_ASSERT -> CODE_EDIT so a fresh instance is ready to edit."""
         from CORE.compliance.orchestrator import ComplianceOrchestrator
         from CORE.compliance.state_machine import ComplianceState
 
         co = ComplianceOrchestrator()
-        assert co.state_machine.state == ComplianceState.IDLE, (
-            f"Expected IDLE, got {co.state_machine.state}"
+        assert co.state_machine.state == ComplianceState.CODE_EDIT, (
+            f"Expected CODE_EDIT, got {co.state_machine.state}"
         )
 
     def test_idle_to_gate_assert_is_legal(self):
@@ -104,9 +104,9 @@ class TestStateTransitions:
         from CORE.compliance.state_machine import ComplianceState
 
         co = ComplianceOrchestrator()
-        assert co.state_machine.transition_count == 0
+        assert co.state_machine.transition_count == 2  # GATE_ASSERT + CODE_EDIT on __init__
         co.state_machine.transition_to(ComplianceState.GATE_ASSERT)
-        assert co.state_machine.transition_count == 1
+        assert co.state_machine.transition_count == 3
 
     def test_double_transition_to_gate_assert_raises_error(self):
         """Transitioning from GATE_ASSERT -> GATE_ASSERT should raise StateMachineError."""
@@ -139,7 +139,7 @@ class TestStateTransitions:
         summary = co.state_machine.get_summary()
 
         assert summary["current_state"] == "GATE_ASSERT"
-        assert summary["transitions"] == 1
+        assert summary["transitions"] == 3
         assert summary["history_length"] >= 1
 
 
@@ -287,9 +287,9 @@ class TestMultipleInstances:
         co1.state_machine.transition_to(ComplianceState.GATE_ASSERT)
 
         co2 = ComplianceOrchestrator()
-        # co2 should be fresh (IDLE)
-        assert co2.state_machine.state == ComplianceState.IDLE, (
-            "Second orchestrator should start fresh at IDLE"
+        # co2 is pre-initialized by __init__ as well
+        assert co2.state_machine.state == ComplianceState.CODE_EDIT, (
+            "Second orchestrator should also be pre-initialized to CODE_EDIT"
         )
 
     def test_second_instance_can_transition_independently(self):
@@ -307,8 +307,8 @@ class TestMultipleInstances:
 
         assert co1.state_machine.state == ComplianceState.CODE_EDIT
         assert co2.state_machine.state == ComplianceState.CODE_EDIT
-        assert co1.state_machine.transition_count == 2
-        assert co2.state_machine.transition_count == 2
+        assert co1.state_machine.transition_count == 4  # 2 on init + 2 explicit
+        assert co2.state_machine.transition_count == 4  # 2 on init + 2 explicit
 
 
 # ── Per-component pass/fail checkers ───────────────────────────────
