@@ -11,6 +11,7 @@ Shows, live, with plain-English interpretation (detail in the log file):
   - META: meta-evolution champion search-params, margin EMA, live candidate
   - STEER: active strategy + dream/adapt activity, width-adaptive
   - TRAIN: fixed compact grid of all 15 tracks (reward + trend arrow)
+  - MESH: fleet cycle health (state/mesh_cycle.json) + cpu/mem/db trend
   - Verdict: one line; STALE/HARDPOOL alerts only when firing
 
 Fixed frame, truncate-never-wrap: the layout is bounded by construction
@@ -279,6 +280,30 @@ AOA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 _AOA_IMPORT = {}  # cached adapter import check (once per process)
 
 
+def _days_since_epoch(epoch):
+    """Age in days of a POSIX timestamp, or None if it is not one."""
+    try:
+        return max(0.0, (time.time() - float(epoch)) / 86400.0)
+    except (TypeError, ValueError):
+        return None
+
+
+def _days_since_iso(iso):
+    """Age in days of an ISO date/timestamp, or None if it will not parse.
+
+    Used instead of file mtime for artifacts that a producer rewrites: the
+    mtime moves whenever the file is touched, so it answers "when was this
+    written to" rather than "how old is what is in it".
+    """
+    if not iso:
+        return None
+    try:
+        import datetime as _dt
+        return _days_since_epoch(_dt.datetime.fromisoformat(str(iso)).timestamp())
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def aoa_status():
     """Armorie-of-Anubis umbrella orchestrator: adapters + milestone + bench.
 
@@ -288,46 +313,112 @@ def aoa_status():
     """
     out = {"adapters": None, "unexported": [], "ms_ver": None,
            "ms_n": None, "ms_age_d": None, "bench_age_d": None,
-           "eve_models": None}
+           "eve_models": None,
+           # Split out of the old single "adapters" number. `dir(arms)` only
+           # sees what arms/__init__ re-exports, which is NOT the same thing as
+           # "how many arms exist": KaliArm is defined in kali_arm.py and is
+           # registered and running (the AOA board lists it, tools 39/39), yet
+           # it is absent from dir(arms). Counting only the re-exports made the
+           # board report a working arm as "unexported" and disagree with the
+           # AOA monitor's own arms count.
+           "arm_classes": None, "reexported": None, "not_reexported": []}
     try:
+        import ast as _ast
         import glob as _glob
-        files = [os.path.basename(p)[:-3]
-                 for p in _glob.glob(os.path.join(AOA_DIR, "arms", "*_arm.py"))]
-        if "support_arms" in files:
-            files.remove("support_arms")
-        if "azazael_arm" in files:
-            pass
-        if not _AOA_IMPORT:
+        # What each arm file actually DEFINES, read statically. This is
+        # side-effect-free and does not depend on the package __init__ deciding
+        # to re-export anything, so it answers the question the line claims to
+        # answer: how many arm classes exist on disk.
+        arm_files = sorted(_glob.glob(os.path.join(AOA_DIR, "arms", "*.py")))
+        defined = {}
+        for _p in arm_files:
+            _stem = os.path.basename(_p)[:-3]
+            # `support_arms.py` is NOT skippable: it holds four registered arms
+            # (PamsArm, PerformanceMonitorArm, LlamaServerArm, AgentSelectorArm).
+            # Skipping it made this line report "5 arm classes defined" while
+            # the AOA board — reading the same registry — listed 9 arms, so the
+            # two panels disagreed about the same subsystem.
+            if _stem == "__init__":
+                continue
+            try:
+                with open(_p, encoding="utf-8") as _fh:
+                    _tree = _ast.parse(_fh.read())
+                defined[_stem] = [n.name for n in _tree.body
+                                  if isinstance(n, _ast.ClassDef)
+                                  and n.name.endswith("Arm")]
+            except (OSError, SyntaxError):
+                defined[_stem] = []
+        out["arm_classes"] = sum(len(v) for v in defined.values())
+        # Genuinely nothing to export == a real finding. An arm that exists but
+        # is simply not re-exported by __init__ is a different, milder fact.
+        out["unexported"] = sorted(k for k, v in defined.items() if not v)
+
+        # Cache is keyed on the directory it was resolved against, and a
+        # failed import is retried rather than latched. `if not _AOA_IMPORT`
+        # cached whatever the FIRST call happened to see — including a
+        # resolution against a different AOA_DIR, or a transient ImportError —
+        # and then reported that number for the rest of the process, which is
+        # a stale claim wearing a live label.
+        if _AOA_IMPORT.get("dir") != AOA_DIR or _AOA_IMPORT.get("error"):
+            _AOA_IMPORT.clear()
             try:
                 sys.path.insert(0, os.path.join(AOA_DIR))
+                # A previously imported `arms` from another root would answer
+                # for the wrong tree, so drop it when the path does not match.
+                _mod = sys.modules.get("arms")
+                if _mod is not None:
+                    _mp = os.path.normcase(os.path.abspath(
+                        os.path.dirname(getattr(_mod, "__file__", "") or "")))
+                    _want = os.path.normcase(os.path.abspath(
+                        os.path.join(AOA_DIR, "arms")))
+                    if _mp != _want:
+                        sys.modules.pop("arms", None)
                 import arms as _arms
                 _AOA_IMPORT["names"] = [n for n in dir(_arms) if n.endswith("Arm")]
             except Exception as e:
                 _AOA_IMPORT["error"] = str(e)[:80]
-        names = _AOA_IMPORT.get("names")
-        out["adapters"] = len(names) if names else 0
-        # files on disk with no exported class (e.g. kali_arm.py)
-        if names:
-            lowered = "".join(names).lower()
-            out["unexported"] = [f for f in files
-                                 if f not in ("support_arms", "__init__")
-                                 and f.lower().replace("_", "") not in
-                                 lowered.replace("_", "")]
+            _AOA_IMPORT["dir"] = AOA_DIR
+        names = _AOA_IMPORT.get("names") or []
+        out["adapters"] = len(names)
+        # A failed `import arms` used to be recorded in _AOA_IMPORT["error"]
+        # and then never read, so the board rendered a count of *zero* names as
+        # "0 adapters import-ok", or worse kept reporting the pre-failure count.
+        # Carry the error so the line can say what actually happened.
+        out["import_error"] = _AOA_IMPORT.get("error")
+        out["arms_n"] = len(names) or None
+        out["reexported"] = len(names)
+        _exposed = {n.lower() for n in names}
+        out["not_reexported"] = sorted(
+            k for k, v in defined.items()
+            if v and not any(c.lower() in _exposed for c in v))
+        # Age these by their own recorded dates, NOT by file mtime. Both files
+        # now have a producer that rewrites them (refresh_aoa_data.py), so
+        # mtime is the refresh time while the history and the baseline inside
+        # them stay old — mtime reported "0d ago" for 76-day-old milestones.
         try:
-            with open(os.path.join(AOA_DIR, "AOA_MILESTONE.json"), encoding="utf-8") as f:
+            _mp = os.path.join(AOA_DIR, "AOA_MILESTONE.json")
+            with open(_mp, encoding="utf-8") as f:
                 ms = json.load(f)
             out["ms_ver"] = ms.get("version")
             sess = ms.get("session") or {}
             out["ms_n"] = sess.get("milestone_count")
-            out["ms_age_d"] = (time.time() - os.path.getmtime(
-                os.path.join(AOA_DIR, "AOA_MILESTONE.json"))) / 86400.0
+            out["ms_mtime_d"] = _days_since_epoch(os.path.getmtime(_mp))
+            _mts = [m.get("timestamp") for m in (sess.get("milestones") or [])
+                    if m.get("timestamp")]
+            out["ms_age_d"] = (_days_since_iso(max(_mts)) if _mts
+                               else out["ms_mtime_d"])
         except Exception:
             pass
         try:
             _bp = os.path.join(AOA_DIR, "benchmark_data.json")
-            out["bench_age_d"] = (time.time() - os.path.getmtime(_bp)) / 86400.0
             with open(_bp, encoding="utf-8") as f:
                 bd = json.load(f)
+            # The baseline's own date beats the file's touch time.
+            _bdate = ((bd.get("_meta") or {}).get("baseline_date")
+                      or (bd.get("eve") or {}).get("benchmark_date"))
+            out["bench_age_d"] = (_days_since_iso(_bdate) if _bdate
+                                  else _days_since_epoch(os.path.getmtime(_bp)))
+            out["bench_baseline_date"] = _bdate
             out["eve_models"] = (bd.get("eve") or {}).get("discovery_total_models")
         except Exception:
             pass
@@ -504,6 +595,83 @@ def sb3_training(con, n=3):
     }
     out["counts"] = counts
     out["next_rotation"] = TRAIN_ALGOS[int(time.time()) // 300 % len(TRAIN_ALGOS)]
+    return out
+
+
+MESH_STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "..", "state", "mesh_cycle.json")
+MESH_TELEMETRY = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "..", "state", "cycle_telemetry.jsonl")
+
+
+def mesh_status():
+    """Latest fleet mesh cycle + cpu/mem/db telemetry tail, aged.
+
+    This board had no mesh awareness at all, so a stalled or failing fleet
+    cycle was invisible here while the HTML monitors showed it. File reads
+    only (this module stays stdlib-only), and every field is optional: a
+    missing or partial artifact renders as `--`, never as a plausible
+    invented number.
+
+    `mesh_cycle.json` holds one entry per nature (worms/ok/fail/ms) and a
+    telemetry block; the jsonl is one sample per cycle, which is what the
+    cpu trend strip is drawn from. The two are read independently so a dead
+    summary writer does not hide the history and vice versa.
+    """
+    out = {"at": None, "age": None, "ok": None, "fail": None,
+           "natures": None, "failed": [], "slowest": [], "complete": None,
+           "retried": None, "discovered": None, "dur_s": None,
+           "cpu": None, "mem": None, "db_mb": None, "cpu_trend": [],
+           "samples": 0}
+    try:
+        with open(MESH_STATE, encoding="utf-8") as f:
+            d = json.load(f)
+        out["at"] = d.get("at")
+        out["ok"] = d.get("ok")
+        out["fail"] = d.get("fail")
+        out["complete"] = bool(d.get("complete"))
+        out["dur_s"] = d.get("duration_s")
+        out["retried"] = (d.get("retried") or {}).get("retried")
+        out["discovered"] = (d.get("discovered") or {}).get("worms")
+        # `natures: {}` and "no natures key at all" are different facts: only
+        # report a count when the artifact actually carries the mapping, or a
+        # truncated write reads as "zero natures", which looks like a finding.
+        _raw_nats = d.get("natures")
+        nats = ({n: v for n, v in _raw_nats.items() if isinstance(v, dict)}
+                if isinstance(_raw_nats, dict) else {})
+        if isinstance(_raw_nats, dict):
+            out["natures"] = len(nats)
+        out["failed"] = sorted(n for n, v in nats.items() if (v.get("fail") or 0))
+        out["slowest"] = [n for n, _ in sorted(
+            ((n, v.get("ms") or 0.0) for n, v in nats.items()),
+            key=lambda kv: -kv[1])[:3]]
+        tel = d.get("telemetry") or {}
+        out["cpu"], out["mem"] = tel.get("cpu"), tel.get("mem")
+        out["db_mb"] = tel.get("db_mb")
+        out["age"] = age_min(out["at"])
+    except Exception:
+        pass
+    try:
+        with open(MESH_TELEMETRY, encoding="utf-8") as f:
+            tail = f.readlines()[-40:]
+        for line in tail:
+            try:
+                s = json.loads(line)
+            except Exception:
+                continue
+            out["samples"] += 1
+            c = s.get("cpu")
+            if isinstance(c, (int, float)):
+                out["cpu_trend"].append(float(c))
+            if out["at"] is None and s.get("at"):
+                out["at"] = s.get("at")
+                out["age"] = age_min(s["at"])
+        if out["cpu"] is None and out["cpu_trend"]:
+            out["cpu"] = out["cpu_trend"][-1]
+        if out["db_mb"] is None and out["samples"]:
+            out["db_mb"] = s.get("db_mb") if isinstance(s, dict) else None
+    except Exception:
+        pass
     return out
 
 
@@ -1077,6 +1245,17 @@ def collect(con):
             pass
     except Exception:
         pass
+
+    # mesh fabric: the fleet cycle is the architecture the rest of the
+    # system now runs on, yet this board had no mesh row at all, so a dead
+    # mesh read as a healthy board. Folded into `freshness` so staleness
+    # reaches the alert line and the verdict, not just a panel (2026-09-15).
+    data["mesh"] = mesh_status()
+    _m = data["mesh"]
+    data["freshness"].append({
+        "label": "mesh", "ts": _m.get("at"), "age": _m.get("age"),
+        "ok": _m.get("age") is not None and _m["age"] < 15,
+    })
     return data
 
 
@@ -1091,7 +1270,8 @@ def explain(data):
     # --- freshness verdict ---
     stale = [f for f in data["freshness"] if not f["ok"]]
     if not stale:
-        out.append(("OK", "All 4 loops are firing on their 5-min cadence - training is live."))
+        out.append(("OK", f"All {len(data['freshness'])} loops are firing on their "
+                           "5-min cadence - training is live."))
     else:
         names = ", ".join(f["label"] for f in stale)
         out.append(("WARN", f"{names} stale (>15 min) - check Windows Task Scheduler; "
@@ -1219,7 +1399,23 @@ def bottom_line(data):
         parts.append(f"training lead {best} ({scored[best]:.1f})")
     if not parts:
         return "No data yet - waiting for the first cycle to fire."
-    return "Training is live: " + "; ".join(parts) + "."
+    # The lead phrase has to follow the data. It used to be an unconditional
+    # "Training is live", which printed alongside the monitor's own
+    # "STALE evolution >15 min - check Task Scheduler." line while every cycle
+    # was ~21h old and three of four were stale. A verdict that asserts health
+    # regardless of what the rest of the board shows is the same defect class as
+    # a hardcoded one, just quieter.
+    all_fresh = data["freshness"]
+    if stale and len(stale) == len(all_fresh):
+        lead = "Training is stalled (every cycle stale)"
+    elif any(not f["ok"] and f["label"].lower() in ("training", "evolution")
+             for f in all_fresh):
+        lead = "Training is stalled"
+    elif stale:
+        lead = "Training is live but partially stale"
+    else:
+        lead = "Training is live"
+    return f"{lead}: " + "; ".join(parts) + "."
 
 
 # Display names that are shorter than the registry algo keys.
@@ -1365,7 +1561,7 @@ def render(data, now):
     Every section has a data-independent line budget and every line is
     truncated (never wrapped) to the window width, so the frame height is
     bounded by construction: header 3 + LOOPS 1 + EVO 2 + STEER 1 +
-    TRAIN head 1 + grid ceil(15/ncols) + VERDICT 1 + alerts 0..2.
+    TRAIN head 1 + grid ceil(15/ncols) + MESH 1 + VERDICT 1 + alerts 0..2.
     Small windows show the same sections narrower — never scrolled.
     The plain-English interpretation moved to the log file (append_log).
     """
@@ -1404,6 +1600,35 @@ def render(data, now):
         bits.append((label, C_GRN if ok else C_RED))
     L(_fit("LOOPS  " + "   ".join(f"{c}{t}{C_RST}" if c else t for t, c in bits), width))
 
+    # --- mesh fabric: one line from the fleet cycle (2026-09-15) ---
+    m = data.get("mesh") or {}
+    if m.get("at") or m.get("samples"):
+        _age = m.get("age")
+        _acol = (C_RED if _age is None else
+                 (C_GRN if _age <= 15 else (C_YEL if _age <= 60 else C_RED)))
+        _ok = m.get("ok")
+        _fl = m.get("fail") or 0
+        _tot = (_ok or 0) + _fl
+        mbits = [f"{C_GRN if not _fl else C_RED}{_ok if _ok is not None else '--'}"
+                 f"/{_tot or '--'} ok{C_RST}"]
+        if m.get("natures"):
+            mbits.append(f"{m['natures']}n")
+        # cpu first (with its spark immediately after it, so the trend can
+        # never be the part _fit truncates away), then the rest.
+        if m.get("cpu") is not None:
+            _sp = sparkline(m.get("cpu_trend") or [], 12) if m.get("cpu_trend") else ""
+            mbits.append(f"cpu {float(m['cpu']):.0f}% "
+                         + (f"{C_CYN}{_sp}{C_RST}" if _sp else ""))
+            mbits.append(f"mem {float(m.get('mem') or 0):.0f}%")
+            mbits.append(f"db {float(m.get('db_mb') or 0):.0f}MB")
+        if m.get("failed"):
+            mbits.append(f"{C_RED}FAIL: {','.join(m['failed'][:3])}{C_RST}")
+        if m.get("retried"):
+            mbits.append(f"{C_YEL}retried {m['retried']}{C_RST}")
+        _mage = f"{_age:.1f}m" if _age is not None else "--"
+        L(_fit(f"MESH   {(m.get('at') or '--')[5:16]} {_acol}{_mage}{C_RST}  "
+                 + "  ".join(mbits), width))
+
     # --- evolution ---
     evo = data["evo"]
     hard_stale = None  # hours since newest hard example (None = unknown/absent)
@@ -1437,6 +1662,50 @@ def render(data, now):
                     f"alert={e['alert'] if e['alert'] is not None else '?'}"
                     if e.get("info") is not None or e.get("alert") is not None else "")
                  + prom_txt + sprt_txt, width))
+        # --- advancement honesty (2026-09-13): funnel deaths by gate, oracle
+        # age, cooldown, best trend. This board stayed green through a day-long
+        # promotion deadlock (stale oracle + absolute bar production itself
+        # failed); the killer gate is now named every frame. 1 line, 0 scroll.
+        _sp24 = _dp = _dh = _do = _pr24 = 0
+        _bnew = _bold = None
+        for _er in evo:
+            _tr = _er.get("traj") or []
+            if _tr:
+                _bb = max(_tr)
+                if _bnew is None:
+                    _bnew = _bb
+                _bold = _bb
+            if (_er.get("sprt") or {}).get("decision") != "promote":
+                continue
+            _sp24 += 1
+            if _er.get("promoted"):
+                _pr24 += 1
+                continue
+            _pg = _er.get("pareto") or {}
+            _ho = _er.get("holdout")
+            _ho_pass = _ho if isinstance(_ho, bool) else (_ho or {}).get("passed")
+            if _pg.get("passed") is not True:
+                _dp += 1
+            elif not _ho_pass:
+                _dh += 1
+            else:
+                _do += 1
+        _oage = None
+        try:
+            _op = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "..", "state", "fitness_oracle.json")
+            if os.path.exists(_op):
+                _oage = (time.time() - os.path.getmtime(_op)) / 3600.0
+        except Exception:
+            pass
+        _otxt = "--" if _oage is None else (f"{_oage:.1f}h" + (" STALE" if _oage > 6 else ""))
+        _trend = "--"
+        if _bnew is not None and _bold is not None:
+            _trend = f"{_bnew - _bold:+.2f}"
+        _adv_col = C_GRN if _pr24 > 0 else (C_RED if _sp24 >= 5 else C_YEL)
+        L(_fit(f"ADVANCE sprt={_sp24} prom={_adv_col}{_pr24}{C_RST} "
+               f"die(p={_dp}/h={_dh}/post={_do}) "
+               f"best {_bold}->{_bnew} ({_trend}) oracle={_otxt}", width))
         # --- the three learners together: META + GOSP beside EVO ---
         _m = data.get("meta") or {}
         _mp = _m.get("params") or {}
@@ -1525,14 +1794,26 @@ def render(data, now):
         # --- Armorie-of-Anubis umbrella orchestrator (1 line, file reads) ---
         _aoa = aoa_status()
         _asegs = []
-        if _aoa.get("adapters") is not None:
-            _asegs.append(f"{_aoa['adapters']} adapters import-ok")
+        if _aoa.get("import_error"):
+            # Don't dress a failed import up as a healthy count.
+            _asegs.append(f"arms import FAILED ({_aoa['import_error']})")
+        elif _aoa.get("arm_classes") is not None:
+            # Report the two different facts separately instead of collapsing
+            # them into one number: arm classes that exist on disk, and how
+            # many the package re-exports. "8 arm classes exported" was read as
+            # the fleet size while the AOA board showed 9 registered arms.
+            _asegs.append(f"{_aoa['arm_classes']} arm classes defined"
+                          f" ({_aoa.get('reexported', 0)} re-exported)")
         if _aoa.get("unexported"):
             _asegs.append(f"+{','.join(_aoa['unexported'])} unexported")
+        if _aoa.get("not_reexported"):
+            _asegs.append("not in arms/__init__: "
+                          f"{','.join(_aoa['not_reexported'])}")
         if _aoa.get("ms_n") is not None:
             _asegs.append(f"ms v{_aoa.get('ms_ver', '?')} x{_aoa['ms_n']}")
+            # "newest" so the number cannot be read as "the file was touched".
             if isinstance(_aoa.get("ms_age_d"), (int, float)):
-                _asegs.append(f"{_aoa['ms_age_d']:.0f}d ago")
+                _asegs.append(f"newest {_aoa['ms_age_d']:.0f}d")
         if isinstance(_aoa.get("bench_age_d"), (int, float)):
             _btxt = f"bench {_aoa['bench_age_d']:.0f}d ago"
             if isinstance(_aoa.get("eve_models"), int):
@@ -1797,7 +2078,16 @@ def render(data, now):
             _sr = _e.get("success_rate")
             _cells.append(f"{_ab.get(_w, _w[:3])} {int(round(_sr * 100))}%" if isinstance(_sr, (int, float)) else f"{_ab.get(_w, _w[:3])} ?")
         _wfit = f" fit={_wb['fit']:.3f}" if isinstance(_wb.get("fit"), (int, float)) else ""
-        L(_fit("WORMS  " + "  ".join(_cells) + _wfit, width))
+        # These are the WORMGA leaderboard's `success_rate` values from the last
+        # genetic run -- an evaluation of those worms, NOT their live health. The
+        # line was labelled "WORMS", so "SYS 100%" sat two rows above "SRV DOWN"
+        # and read as a contradiction. It also carried no age, unlike every other
+        # line here, although the board is only as current as that GA run.
+        _wage = _wb.get("age")
+        _wage_txt = (f", {_wage / 60:.0f}h old"
+                     if isinstance(_wage, (int, float)) else "")
+        L(_fit("WBOARD " + "  ".join(_cells) + _wfit
+               + f"  (WORMGA eval{_wage_txt})", width))
 
     # --- cycle processes: scheduler tasks proven alive by their own logs ---
     # Per-task freshness thresholds (followup: maintenance.log is nightly —
@@ -1992,6 +2282,11 @@ def append_log(data, now):
             for fr in data["freshness"]:
                 a = fr["age"] if fr["age"] is not None else -1
                 f.write(f"  {fr['label']:<18} age {a:>6} min  {'OK' if fr['ok'] else 'STALE'}\n")
+            _m = data.get("mesh") or {}
+            f.write(f"  mesh               cycle {_m.get('at')} age {_m.get('age')} min  "
+                    f"ok {_m.get('ok')}/{(_m.get('ok') or 0) + (_m.get('fail') or 0)}  "
+                    f"natures {_m.get('natures')}  failed {_m.get('failed')}  "
+                    f"cpu {_m.get('cpu')} mem {_m.get('mem')} db {_m.get('db_mb')}\n")
             evo = data["evo"]
             if evo:
                 e = evo[0]

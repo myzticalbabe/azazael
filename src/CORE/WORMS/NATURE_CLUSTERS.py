@@ -46,7 +46,7 @@ import threading
 from datetime import datetime
 from typing import Dict, List, Set, Tuple, Optional, Any, Callable
 from dataclasses import dataclass, field
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 
 # ── Worm Registry ──────────────────────────────────────────────────
 try:
@@ -74,6 +74,36 @@ except ImportError:
         description: str = "",
         tags: Optional[set[str]] = None,
         **kwargs: Any) -> Callable[..., Any]: return lambda f: f
+
+
+# ── OpenTelemetry tracing (lazy, fail-open) ────────────────────
+# Every cluster run and every worm inside it becomes a span written to
+# memory_store.db via the existing CD3 SQLiteSpanExporter, so a worm's
+# execution can be correlated with the DirectMemory events that surround
+# it (the exporter already indexes on correlation_id for exactly this).
+# Tracing is strictly observational: if OTel or the exporter is missing,
+# the cluster runs exactly as before.
+_cluster_tracer: Any = None
+_tracer_lock = threading.Lock()
+_tracer_ready = False
+
+
+def _get_cluster_tracer():
+    """Lazy tracer singleton. Returns None when tracing is unavailable."""
+    global _cluster_tracer, _tracer_ready
+    if _tracer_ready:
+        return _cluster_tracer
+    with _tracer_lock:
+        if _tracer_ready:
+            return _cluster_tracer
+        try:
+            from CORE.cd3_exporter import configure_otel_tracing
+            _cluster_tracer = configure_otel_tracing(
+                service_name="azazael-nature-clusters")
+        except Exception:
+            _cluster_tracer = None
+        _tracer_ready = True
+    return _cluster_tracer
 
 
 # ── PAMS Memory Recording (lazy, thread-safe) ─────────────────
@@ -207,25 +237,41 @@ NATURE_DEFINITIONS = {
         "purpose": "System resource monitoring and health tracking",
         "triggers": "high CPU, memory pressure, disk alerts",
         "feeds_into": ["defense", "orchestration", "telemetry"],
-        "icon": "📊",
+        "icon": "MON",
+        "data_contracts": {
+            "emits": {"cpu_pct": "float", "mem_pct": "float", "disk_io": "float", "timestamp": "iso"},
+            "requires": {},
+        },
     },
     "diagnostic": {
         "purpose": "Deep system analysis and problem diagnosis",
         "triggers": "anomalies detected, health degradation",
         "feeds_into": ["repair", "defense", "orchestration"],
-        "icon": "🔍",
+        "icon": "DIAG",
+        "data_contracts": {
+            "emits": {"diagnosis": "str", "severity": "str", "affected": "list[str]"},
+            "requires": {"metrics": "dict"},
+        },
     },
     "analysis": {
         "purpose": "Code and data pattern analysis",
         "triggers": "new code, scheduled scans, exploration",
         "feeds_into": ["optimization", "defense", "visualization"],
-        "icon": "🧠",
+        "icon": "ANLY",
+        "data_contracts": {
+            "emits": {"patterns": "list[dict]", "score": "float"},
+            "requires": {"source": "str"},
+        },
     },
     "defense": {
         "purpose": "Error detection, health checks, security auditing",
         "triggers": "errors above threshold, security alerts",
         "feeds_into": ["repair", "orchestration", "telemetry"],
-        "icon": "🛡️",
+        "icon": "DEF",
+        "data_contracts": {
+            "emits": {"findings": "list[dict]", "verdict": "str"},
+            "requires": {"target": "str"},
+        },
     },
     "optimization": {
         "purpose": "Performance tuning and resource optimization",
@@ -237,43 +283,43 @@ NATURE_DEFINITIONS = {
         "purpose": "Worm coordination, spawn management, cluster control",
         "triggers": "fleet status changes, mode transitions",
         "feeds_into": ["monitor", "defense", "telemetry"],
-        "icon": "🎯",
+        "icon": "ORCH",
     },
     "sync": {
         "purpose": "Time synchronization, clock management, scheduling",
         "triggers": "time drift, scheduled intervals",
         "feeds_into": ["monitor", "orchestration"],
-        "icon": "🕐",
+        "icon": "SYNC",
     },
     "repair": {
         "purpose": "Automated code repair and auto-fix application",
         "triggers": "errors detected, defense alerts",
         "feeds_into": ["defense", "orchestration"],
-        "icon": "🔧",
+        "icon": "REPR",
     },
     "security": {
         "purpose": "Vulnerability scanning, port auditing, cert monitoring",
         "triggers": "new deployments, scheduled security audits",
         "feeds_into": ["defense", "orchestration", "telemetry"],
-        "icon": "🔒",
+        "icon": "SEC",
     },
     "profiling": {
         "purpose": "Code profiling, memory leak detection, bottleneck analysis",
         "triggers": "performance degradation, scheduled profiling",
         "feeds_into": ["optimization", "visualization", "telemetry"],
-        "icon": "📈",
+        "icon": "PROF",
     },
     "telemetry": {
         "purpose": "Span tracing, metric aggregation, event routing, alerting",
         "triggers": "always active — continuous telemetry pipeline",
         "feeds_into": ["visualization", "orchestration", "defense"],
-        "icon": "📡",
+        "icon": "TELE",
     },
     "container": {
         "purpose": "Container lifecycle, compose validation, image auditing",
         "triggers": "container deployments, registry updates",
         "feeds_into": ["monitor", "security", "orchestration"],
-        "icon": "📦",
+        "icon": "CONT",
     },
     "config": {
         "purpose": "Config linting, env validation, secret rotation, feature flags",
@@ -285,31 +331,79 @@ NATURE_DEFINITIONS = {
         "purpose": "State snapshots, incremental backups, recovery testing",
         "triggers": "scheduled intervals, pre-deployment",
         "feeds_into": ["orchestration", "defense"],
-        "icon": "💾",
+        "icon": "BAK",
     },
     "migration": {
         "purpose": "Code migration, dependency upgrades, schema versioning",
         "triggers": "version bumps, scheduled upgrades",
         "feeds_into": ["analysis", "orchestration"],
-        "icon": "🚚",
+        "icon": "MIGR",
     },
     "communication": {
         "purpose": "Message brokering, RPC, webhooks, IPC, protocol negotiation",
         "triggers": "inter-worm communication, external integrations",
         "feeds_into": ["orchestration", "telemetry"],
-        "icon": "📨",
+        "icon": "COMM",
     },
     "learning": {
         "purpose": "RL training, model versioning, data pipelines, A/B testing",
         "triggers": "scheduled training, data availability",
         "feeds_into": ["optimization", "visualization", "orchestration"],
-        "icon": "🤖",
+        "icon": "LEARN",
     },
     "visualization": {
         "purpose": "Dashboard generation, graph rendering, report compilation",
         "triggers": "data availability, scheduled reporting",
         "feeds_into": ["orchestration"],
-        "icon": "🎨",
+        "icon": "VIS",
+    },
+    "mesh": {
+        "purpose": "Cross-env fabric transport Win<->WSL2<->Bare<->Kali<->G:",
+        "triggers": "cross-env send, partition detected, beacon interval",
+        "feeds_into": ["orchestration", "consensus", "telemetry"],
+        "icon": "MESH",
+    },
+    "synapse": {
+        "purpose": "Neural edge weights, MoE dispatch, gating, long-context sequencing",
+        "triggers": "inference request, route scoring, log flood",
+        "feeds_into": ["orchestration", "learning", "servemesh"],
+        "icon": "SYNA",
+    },
+    "consensus": {
+        "purpose": "Quorum votes, leader election, fork resolution across envs",
+        "triggers": "multi-env finding, partition heal, model fork",
+        "feeds_into": ["mesh", "orchestration", "immune"],
+        "icon": "CONS",
+    },
+    "engram": {
+        "purpose": "Distributed memory shards, recall routing, dream consolidation",
+        "triggers": "memory write/recall, nightly consolidation",
+        "feeds_into": ["learning", "mesh", "telemetry"],
+        "icon": "ENGR",
+    },
+    "federated": {
+        "purpose": "FedAvg aggregation, mesh NAS, multi-provider reward shaping",
+        "triggers": "training round complete, arch proposal",
+        "feeds_into": ["learning", "synapse", "mesh"],
+        "icon": "FEDR",
+    },
+    "servemesh": {
+        "purpose": "Inference endpoint LB, provider failover, model shard catalogue",
+        "triggers": "inference request, provider down, model publish",
+        "feeds_into": ["synapse", "telemetry", "mesh"],
+        "icon": "SRVM",
+    },
+    "immune": {
+        "purpose": "Anomaly sentinel, quarantine, attestation, self-heal",
+        "triggers": "metric anomaly, integrity failure, poisoned shard",
+        "feeds_into": ["defense", "orchestration", "mesh"],
+        "icon": "IMMU",
+    },
+    "xenomorph": {
+        "purpose": "Hostile-adaptive red team lifecycle; Queen prefers bare, interim degraded elsewhere",
+        "triggers": "red-team round, quorum-approved injection, leader term expiry",
+        "feeds_into": ["immune", "consensus", "mesh"],
+        "icon": "XENO",
     },
 }
 
@@ -522,8 +616,35 @@ class NatureCluster:
         
         start = time.perf_counter()
         
-        # Sort by priority from registry
-        targets.sort(key=lambda x: WORM_REGISTRY.get(x[0], {}).get("priority", 5), reverse=True)
+        # ── Spine feedback ledger ────────────────────────────────────
+        # Every outcome recorded to CORE.spine_registry so HomeostatWorm
+        # can Q-reinforce and propose cooldown/priority shifts. Best-effort:
+        # if the ledger is missing/unavailable, execution proceeds as before.
+        _spine_ledger = None
+        try:
+            from CORE import spine_registry as _spine_ledger
+        except ImportError:
+            _spine_ledger = None
+
+        # ── Q-weighted execution ordering (LEAP A) ─────────────────
+        # Primary key: spine Q-weight (EMA of execution outcomes) so
+        # healthy worms run first and failing ones are demoted — the
+        # mesh adapts execution order from its own history. Secondary:
+        # registry priority. Python's stable sort keeps cold worms
+        # (q=0.0) in priority order. Fails open to priority-only if the
+        # ledger is unavailable or errors.
+        _priority_key = lambda x: WORM_REGISTRY.get(x[0], {}).get("priority", 5)  # noqa: E731
+        if _spine_ledger is not None:
+            try:
+                _qmap = _spine_ledger.get_q_weights()
+                targets.sort(key=lambda x: (
+                    -_qmap.get(f"{self.nature}:{x[0]}", 0.0),
+                    -_priority_key(x),
+                ))
+            except Exception:
+                targets.sort(key=_priority_key, reverse=True)
+        else:
+            targets.sort(key=_priority_key, reverse=True)
         
         if self._parallel and len(targets) > 1:
             self._execute_parallel(targets, result)
@@ -533,9 +654,25 @@ class NatureCluster:
         result.duration_ms = round((time.perf_counter() - start) * 1000, 2)
         result.completed_at = datetime.now().isoformat()
         
+        # ── Feed the homeostat ledger (per-worm outcomes) ─────────────
+        if _spine_ledger is not None:
+            for name, _ in targets:
+                wr = result.worm_results.get(name)
+                if wr is None:
+                    continue
+                _spine_ledger.record_outcome(
+                    self.nature, name,
+                    bool(wr.get("success", False)),
+                    float(wr.get("duration_ms", 0.0) or 0.0),
+                    (wr.get("error") or None),
+                )
+
         # Mark all as spawned
         for name, _ in targets:
             mark_spawned(name)
+
+        # ── OTel spans (observational, never fatal) ──────────────────
+        self._emit_traces(targets, result)
         
         self._record("nature_cluster_executed", {
             "nature": self.nature, "worms": len(targets),
@@ -544,6 +681,41 @@ class NatureCluster:
         })
         
         return result
+
+    def _emit_traces(self, targets: List[Tuple[str, type]], result: NatureResult) -> None:
+        """Emit one cluster span plus a child span per worm to the CD3 exporter.
+
+        Attributes mirror the fields the ledger and PAMS already record
+        (nature, worm, success, duration_ms, error) so a trace can be joined
+        against the memory events for the same run. Best-effort by
+        construction: any failure here is swallowed, because observability
+        must never be able to break execution.
+        """
+        tracer = _get_cluster_tracer()
+        if tracer is None:
+            return
+        try:
+            with tracer.start_as_current_span("nature_cluster.execute") as span:
+                span.set_attribute("nature", self.nature)
+                span.set_attribute("cluster_id", self.cluster_id)
+                span.set_attribute("worms", len(targets))
+                span.set_attribute("success_count", result.success_count)
+                span.set_attribute("failure_count", result.failure_count)
+                span.set_attribute("duration_ms", float(result.duration_ms or 0.0))
+                for name, _ in targets:
+                    wr = result.worm_results.get(name) or {}
+                    with tracer.start_as_current_span("worm.execute") as wspan:
+                        wspan.set_attribute("nature", self.nature)
+                        wspan.set_attribute("worm", name)
+                        wspan.set_attribute("success", bool(wr.get("success", False)))
+                        wspan.set_attribute(
+                            "duration_ms", float(wr.get("duration_ms", 0.0) or 0.0))
+                        err = wr.get("error")
+                        if err:
+                            wspan.set_attribute("error", True)
+                            wspan.set_attribute("error.message", str(err)[:200])
+        except Exception:
+            pass  # tracing is observational; execution already succeeded
     def _execute_sequential(self, targets: List[Tuple[str, type]], result: NatureResult):
         """Execute worms one at a time, with circuit breaker protection."""
         for name, cls in targets:
@@ -554,27 +726,80 @@ class NatureCluster:
             else:
                 result.failure_count += 1
                 result.errors.append(f"{name}: {worm_result.get('error', 'unknown')}")
+    def _record_parallel_result(self, result: NatureResult, name: str,
+                                worm_result: Dict[str, Any]) -> None:
+        """Fold one parallel worm outcome into the cluster result."""
+        result.worm_results[name] = worm_result
+        if worm_result.get("success", False):
+            result.success_count += 1
+        else:
+            result.failure_count += 1
+            result.errors.append(
+                f"{name}: {worm_result.get('error', 'unknown')}")
+
     def _execute_parallel(self, targets: List[Tuple[str, type]], result: NatureResult):
-        """Execute worms in parallel using thread pool."""
-        futures = {}
-        with ThreadPoolExecutor(max_workers=min(len(targets), 8)) as executor:
+        """Execute worms in parallel, enforcing `_timeout` for real.
+
+        Deep dive 2026-09-15: the per-worm timeout was DEAD CODE, the same
+        class of defect as the audit's findings #3/#6 — a safety rail that
+        could not fire. The old body iterated `as_completed(futures)`, and
+        `as_completed` only ever yields futures that have ALREADY completed,
+        so the following `fut.result(timeout=self._timeout)` never blocked and
+        `_timeout` was never consulted. A single hung worm therefore stalled
+        the entire nature — and, via `SpineCycleWorm`, the autonomic cycle
+        driving it — for as long as the worm chose.
+
+        Two things are required for a timeout that actually bounds wall time:
+
+        1. Bound the **wait**, not just the result read. `wait(timeout=...)`
+           returns as soon as the batch is done or the budget expires.
+        2. Do **not** use the executor as a context manager. `__exit__` calls
+           `shutdown(wait=True)`, which joins the running task anyway, so the
+           method would still block for the full hung duration despite having
+           "timed out". Shutdown is explicit and non-joining instead.
+
+        `_timeout = None` keeps the historical unbounded behaviour.
+        """
+        if not targets:
+            return
+        timeout = getattr(self, "_timeout", None)
+        executor = ThreadPoolExecutor(max_workers=min(len(targets), 8))
+        futures: Dict[Any, str] = {}
+        try:
             for name, cls in targets:
-                fut = executor.submit(self._execute_single_worm, name, cls)
-                futures[fut] = name
-            
-            for fut in as_completed(futures.keys()):
+                futures[executor.submit(self._execute_single_worm, name, cls)] = name
+
+            done, pending = wait(list(futures), timeout=timeout)
+            for fut in done:
                 name = futures[fut]
                 try:
-                    worm_result = fut.result(timeout=self._timeout)
+                    # Already complete, so this cannot block. A non-zero
+                    # timeout here would have been masking the bug.
+                    worm_result = fut.result(timeout=0)
                 except Exception as e:
                     worm_result = {"success": False, "error": str(e)}
-                
-                result.worm_results[name] = worm_result
-                if worm_result.get("success", False):
-                    result.success_count += 1
-                else:
-                    result.failure_count += 1
-                    result.errors.append(f"{name}: {worm_result.get('error', 'unknown')}")
+                self._record_parallel_result(result, name, worm_result)
+
+            for fut in pending:
+                name = futures[fut]
+                # Best effort: a task already running cannot be interrupted,
+                # but an unstarted one is genuinely dropped.
+                try:
+                    fut.cancel()
+                except Exception:
+                    pass
+                self._record_parallel_result(result, name, {
+                    "success": False,
+                    "error": f"timeout after {timeout}s",
+                    "timed_out": True,
+                })
+        finally:
+            # Never join a hung worm.
+            try:
+                executor.shutdown(wait=False, cancel_futures=True)
+            except TypeError:  # pragma: no cover - Python < 3.9 signature
+                executor.shutdown(wait=False)
+
     def _execute_single_worm(self, name: str, cls: type) -> Dict[str, Any]:
         """Execute a single worm (used by parallel executor).
         
@@ -643,28 +868,97 @@ class NatureCluster:
                     self.instances[name] = None
         return self.instances[name]
     
+    # Read-only zero-arg entry points for healthy worms whose API does not
+    # match the standard names (none inherit BaseWormMixin). Calling an
+    # arbitrary method here would risk side effects (train/rotate/rollback),
+    # so every entry below was hand-verified read-only. Worms with no safe
+    # zero-arg method get an honest "standby" report instead of an error.
+    _SAFE_METHODS = {
+        "CainWorm": "run_complete_analysis",
+        "RPCEndpoint": "list_methods",
+        "SecretRotator": "generate_password",
+        "EnvValidator": "scan_env_files",
+        "DotfileSync": "get_checksums",
+        "DiagnosticWorm": "scan_all_modules",
+        "GILContentionProbe": "measure_contention",
+        "MemoryLeakDetector": "take_snapshot",
+        "IOBottleneckFinder": "measure_io",
+        "PortAuditor": "scan_local_ports",
+        "VulnScanner": "scan_requirements",
+        "CLOCKZ": "get_utc",
+        "MetricAggregator": "get_snapshot",
+        "SpanTracer": "get_trace_tree",
+        "RLTrainLoop": "get_training_stats",
+        "ReportCompiler": "compile_html",
+        "HeatmapBuilder": "get_busiest_hours",
+        "GraphRenderer": "to_dot",
+        "TimelineViz": "to_timeline_html",
+    }
+
+    # Orchestrator/manager worms must NEVER execute inside a cycle: they fan
+    # out into sub-executions of the whole architecture (MetaCluster and
+    # NatureClusterManager re-run all natures recursively — 300s+ and
+    # self-amplifying). The cycle IS the orchestration; report standby.
+    # `SpineCycleWorm` joined this set on 2026-09-15 (audit finding #2). It
+    # is registered `orchestration` and exposes execute() -> run_cycle(), so a
+    # generic nature sweep would instantiate a SECOND cycle besides the
+    # autonomic heart's and run it concurrently against process-global state.
+    # Its own module-level gate makes that safe; this makes it not happen.
+    _NO_EXECUTE = frozenset({
+        "ClusterWORMZ", "MetaCluster", "NatureClusterManager", "WormFleet",
+        "ConcurrencyManager", "ErrorRecoveryOrchestrator", "SpineCycleWorm",
+    })
+
     def _run_worm_method(self, name: str, instance: Any) -> Dict[str, Any]:
         """Run the appropriate method on a worm instance."""
         if instance is None:
             return {"success": False, "error": "Failed to instantiate"}
-        
-        # Try common method names in priority order
-        methods = ["get_summary", "get_status", "run", "execute", "scan", "check", "analyze"]
-        
-        for method_name in methods:
+
+        if name in self._NO_EXECUTE:
+            return {"success": True, "method": "standby-orchestrator",
+                    "result": {"mode": "standby",
+                               "reason": "orchestrator fans out; cycle is the orchestration"}}
+        def _call(method_name: str) -> Dict[str, Any]:
+            try:
+                method = getattr(instance, method_name)
+                _t0 = time.perf_counter()
+                result = method()
+                _ms = round((time.perf_counter() - _t0) * 1000, 2)
+                # Convert to dict if dataclass
+                if hasattr(result, "__dict__"):
+                    result = result.__dict__
+                return {"success": True, "method": method_name, "result": result,
+                        "duration_ms": _ms}
+            except Exception as e:
+                return {"success": False, "error": str(e), "method": method_name,
+                        "duration_ms": 0.0}
+
+        # 1. Declared schema first (BaseWormMixin present + future worms)
+        declared = getattr(instance, "__summary_method__", "")
+        if declared and callable(getattr(instance, declared, None)):
+            return _call(declared)
+
+        # 2. Common method names in priority order
+        for method_name in ["get_summary", "get_status", "run", "execute",
+                            "scan", "check", "analyze"]:
             if hasattr(instance, method_name):
-                try:
-                    method = getattr(instance, method_name)
-                    result = method()
-                    # Convert to dict if dataclass
-                    if hasattr(result, "__dict__"):
-                        result = result.__dict__
-                    return {"success": True, "method": method_name, "result": result}
-                except Exception as e:
-                    return {"success": False, "error": str(e), "method": method_name}
-        
-        return {"success": False, "error": f"No standard method found on {name}"}
-    
+                return _call(method_name)
+
+        # 3. Hand-verified read-only entry point for known non-standard worms
+        safe = self._SAFE_METHODS.get(name)
+        if safe and callable(getattr(instance, safe, None)):
+            return _call(safe)
+
+        # 4. Healthy instance, no safe zero-arg behavior: standby, not error
+        try:
+            methods = sorted(m for m in dir(instance)
+                             if not m.startswith("_")
+                             and callable(getattr(instance, m, None)))
+        except Exception:
+            methods = []
+        return {"success": True, "method": "standby",
+                "result": {"mode": "standby", "methods": methods[:12]}}
+
     # ── Status ─────────────────────────────────────────────────────
     
     def get_status(self) -> Dict[str, Any]:
@@ -1096,7 +1390,7 @@ class NatureClusterManager:
         their worms, and cross-Nature routing.
         """
         lines = ["graph TB"]
-        lines.append("    title[\"🌐 AZAZAEL NATURE CLUSTERS\"]")
+        lines.append("    title[\"AZAZAEL NATURE CLUSTERS\"]")
         lines.append("    style title fill:#1a1a2e,stroke:#00d9ff,color:#00d9ff")
         lines.append("")
         
