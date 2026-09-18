@@ -680,9 +680,22 @@ def _discover_worms_impl(
         try:
             # Lazy import to avoid module-level import cycle with cache module
             _, save_cache = _get_cache_funcs()
-            save_cache(WORM_REGISTRY, worms_dir)
-        except Exception:
-            pass  # Non-fatal — cache save failed, but discovery succeeded
+            report = save_cache(WORM_REGISTRY, worms_dir)
+            if isinstance(report, dict) and report.get("excluded"):
+                # Reported, not swallowed. Entries that cannot be pickled are
+                # excluded so that one locally-defined class cannot cost the
+                # whole cache; the names are what makes that actionable.
+                _log_event("discovery_cache_entries_excluded",
+                           excluded=report["excluded"],
+                           registered=report.get("registered"),
+                           declared=report.get("declared"))
+        except Exception as _save_exc:
+            # Non-fatal — discovery succeeded and the next process simply
+            # rebuilds. Logged rather than silently swallowed, because a save
+            # that fails every run leaves an older cache answering for a fleet
+            # it no longer describes, with nothing reporting a problem.
+            _log_event("discovery_cache_save_failed",
+                       error=repr(_save_exc)[:200])
 
     return new_count
 

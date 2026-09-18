@@ -365,9 +365,59 @@ class DedupAnalyzer:
         "get_summary", "get_status", "summarize",
     })
 
+    # -- Methods that state the fleet's shared interface, not a capability --
+    #
+    # Measured on the live registry (2026-09-18): `execute` appears on 114/202
+    # worms and is their only compared method for 86 of them; `get_summary` on
+    # 53 (sole for 36), `scan` on 37 (sole for 35), `get_status` on 20 (sole for
+    # 7). A name carried by a large fraction of the fleet cannot distinguish one
+    # worm from another, so it is evidence of the *interface*, not of
+    # duplication. Excluded from the comparison for that reason.
+    #
+    # This was not a cosmetic threshold. `BlackQueenWorm` consumes this score to
+    # decide retirements, and with the degenerate matches below it proposed
+    # retiring 35 worms -- including `EvolutionEngine`, `DreamingModule` and
+    # `GeneticOptimizer` -- whose "twins" were unrelated security, profiling and
+    # migration worms. A retirement sets `lifecycle_state='retired'`, which
+    # `NatureCluster` honours, so the mistake would have removed the learning
+    # subsystem from the pipeline.
+    UNIVERSAL_METHODS = frozenset({
+        "execute", "get_summary", "get_status", "scan",
+    })
+
+    # -- What is allowed to carry a duplication match --
+    #
+    # A match must be carried by at least one shared method that is NOT part of
+    # the common interface. Sharing `execute` proves both worms are worms; it
+    # says nothing about whether they do the same work, and with it as the only
+    # evidence the Jaccard score collapses to a degenerate 1.0:
+    # Jaccard({x}, {x}) is 1.0 and Jaccard({x}, {y}) is 0.0, so comparing
+    # singleton sets is a same-verb test, not a similarity.
+    #
+    # Deliberately NOT a minimum set width. An earlier revision of this fix
+    # required two shared methods and thereby rejected a genuinely identical
+    # pair that shared `execute` + `run`, because only those two of its four
+    # methods are whitelisted -- a false negative traded for a false positive,
+    # which is the wrong direction but still wrong. The rule that separates the
+    # cases is *distinctive support*, not set size: a real duplicate shares
+    # something specific, a coincidental one shares only the interface.
+    MIN_DISTINCTIVE_SHARED = 1
+
+    # -- How alike two IMPLEMENTATIONS must be before they are called duplicates --
+    #
+    # Method names are a weak signal on their own: `CertMonitor` and
+    # `FirewallAudit` share the reporting call every worm has and nothing else,
+    # and a whitelist of 28 generic verbs cannot tell that apart from a real
+    # copy. So a name-level match is necessary but not sufficient -- the bodies
+    # must agree too, on the identifiers, strings and numbers they actually use.
+    # A duplicate is a copy and scores near 1.0; a coincidence scores near 0.0.
+    MIN_IMPLEMENTATION_SIMILARITY = 0.5
+
     def __init__(self):
         # Cache: class id -> {method_name: [param_names]}
         self._sig_cache: dict[int, dict[str, list[str]]] = {}
+        # Cache: class id -> frozenset of implementation tokens
+        self._impl_cache: dict[int, frozenset] = {}
 
     def _get_method_signatures(self, cls: type) -> dict[str, list[str]]:
         """
@@ -414,6 +464,56 @@ class DedupAnalyzer:
             return 0.0
         return len(set_a & set_b) / len(union)
 
+    # Names that describe Python itself rather than the worm's work, so they
+    # carry no signal about whether two worms do the same thing.
+    _IMPL_STOPWORDS = frozenset({
+        "self", "cls", "none", "true", "false", "return", "dict", "list",
+        "str", "int", "float", "bool", "any", "len", "print", "super",
+        "success", "method", "result", "error",
+    })
+
+    def _implementation_tokens(self, cls: type) -> frozenset:
+        """Vocabulary of the class's OWN code: identifiers, strings, numbers.
+
+        This is the signal the name whitelist throws away. Comparing what the
+        bodies say keeps `_TwinAlpha`/`_TwinBeta` (same four bodies) at 1.0 while
+        dropping `CertMonitor`/`FirewallAudit` to near 0, which is the
+        distinction the retirement verdict depends on.
+
+        Returns an empty set when the source cannot be read, and an empty set
+        never matches -- unreadable source is "no evidence", not "duplicate".
+        """
+        cls_id = id(cls)
+        cached = self._impl_cache.get(cls_id)
+        if cached is not None:
+            return cached
+        tokens: set[str] = set()
+        try:
+            import io
+            import keyword
+            import tokenize
+
+            src = inspect.getsource(cls)
+            for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+                if tok.type == tokenize.NAME:
+                    low = tok.string.lower()
+                    if keyword.iskeyword(low) or low in self._IMPL_STOPWORDS:
+                        continue
+                    tokens.add(low)
+                elif tok.type in (tokenize.STRING, tokenize.NUMBER):
+                    tokens.add(tok.string.strip().lower()[:40])
+        except Exception:
+            tokens = set()
+        result = frozenset(tokens)
+        self._impl_cache[cls_id] = result
+        return result
+
+    def _implementation_similarity(self, cls_a: type, cls_b: type) -> float:
+        """Jaccard over the two classes' implementation vocabularies."""
+        return self._jaccard_similarity(
+            set(self._implementation_tokens(cls_a)),
+            set(self._implementation_tokens(cls_b)))
+
     def compare_worms(self, name_a: str, info_a: dict,
                       name_b: str, info_b: dict) -> (DedupMatch | None):
         """
@@ -442,6 +542,21 @@ class DedupAnalyzer:
             return None
 
         shared_methods = sorted(methods_a & methods_b)
+
+        # The match must rest on something beyond the shared interface, or the
+        # score is measuring "these are both worms" rather than "these do the
+        # same work" (see MIN_DISTINCTIVE_SHARED).
+        distinctive = [m for m in shared_methods
+                       if m not in self.UNIVERSAL_METHODS]
+        if len(distinctive) < self.MIN_DISTINCTIVE_SHARED:
+            return None
+
+        # Necessary is not sufficient: a shared method name with unrelated
+        # bodies is a coincidence, not a duplicate (see
+        # MIN_IMPLEMENTATION_SIMILARITY).
+        if self._implementation_similarity(cls_a, cls_b) \
+                < self.MIN_IMPLEMENTATION_SIMILARITY:
+            return None
 
         cat_a = info_a.get("category", "")
         cat_b = info_b.get("category", "")
@@ -477,6 +592,168 @@ class DedupAnalyzer:
             shared_methods=shared_methods,
             recommendation=recommendation,
         )
+
+    def self_check(self, live: bool = False, registry: dict | None = None) -> dict:
+        """Validate this comparator on control pairs before anything destructive trusts it.
+
+        Why this exists: `BlackQueenWorm` decides a retirement from this score
+        ALONE, and the score shipped once with a metric that could not separate
+        "identical" from "coincidental". `Jaccard({x}, {x})` is 1.0, so any two of
+        the 86 worms whose only compared method is `execute` scored
+        `exact_signature` at 1.0; on the live fleet the consumer proposed
+        retiring 35 worms -- including `EvolutionEngine`, `DreamingModule` and
+        `GeneticOptimizer` -- in favour of unrelated security and profiling
+        worms, and a retirement sets `lifecycle_state='retired'`, which
+        `NatureCluster` honours.
+
+        An instrument that judges must first be shown to work on cases whose
+        answer is already known. Three controls, each pinning one rule:
+
+        * `interface_only`            -- two worms sharing only `execute`. Must
+          NOT match: this is the degenerate pair the calibration exists for.
+        * `same_name_different_work`  -- shares a distinctive method name but
+          the bodies are unrelated. Must NOT match: a shared name is necessary,
+          never sufficient.
+        * `genuine_twins`             -- identical bodies. MUST match at 1.0, or
+          the two rules above have been made so strict that real duplicates are
+          missed, which is the opposite failure.
+
+        `live=True` additionally measures how often the rules reject a pair on
+        the REAL registry. That figure is evidence for the report and never a
+        gate: it varies legitimately with the fleet, while the controls do not.
+        Source that cannot be read yields no implementation tokens, so the
+        `genuine_twins` control fails and the verdict is NOT trustworthy -- an
+        unreadable tree is "no evidence", never "no duplicates".
+        """
+        # Controls are defined locally on purpose: the wire-or-cut census flags a
+        # bare name that nothing outside its defining scope mentions, and these
+        # are used only inside this method.
+        class _CtlExecOnlyA:
+            def execute(self):
+                return {"alpha": 1}
+
+        class _CtlExecOnlyB:
+            def execute(self):
+                return {"beta": 2}
+
+        class _CtlSameNameA:
+            def execute(self):
+                return {"alpha": 1}
+
+            def audit(self):
+                return {"rules": 7, "hosts": ["a"]}
+
+        class _CtlSameNameB:
+            def execute(self):
+                return {"beta": 2}
+
+            def audit(self):
+                return {"invoice_total": "unrelated"}
+
+        class _CtlTwinA:
+            def execute(self):
+                return {"alpha": 1}
+
+            def audit(self):
+                return {"rules": 7, "hosts": ["a"]}
+
+            def detect(self):
+                return {"found": 3}
+
+        class _CtlTwinB:
+            def execute(self):
+                return {"alpha": 1}
+
+            def audit(self):
+                return {"rules": 7, "hosts": ["a"]}
+
+            def detect(self):
+                return {"found": 3}
+
+        def _info(cls):
+            return {"class": cls, "category": "control"}
+
+        controls: dict = {}
+        failures: list[str] = []
+
+        def _check(label, cls_a, cls_b, expect_match):
+            try:
+                match = self.compare_worms(label, _info(cls_a),
+                                           label + "_b", _info(cls_b))
+            except Exception as exc:
+                controls[label] = {"passed": False, "raised": repr(exc)[:160]}
+                failures.append(label)
+                return
+            matched = match is not None
+            record = {
+                "expect_match": expect_match,
+                "matched": matched,
+                "similarity": (match.similarity if match else None),
+                "match_type": (match.match_type if match else None),
+                "shared_methods": (match.shared_methods if match else []),
+            }
+            record["passed"] = (matched == expect_match)
+            controls[label] = record
+            if not record["passed"]:
+                failures.append(label)
+
+        _check("interface_only", _CtlExecOnlyA, _CtlExecOnlyB, False)
+        _check("same_name_different_work", _CtlSameNameA, _CtlSameNameB, False)
+        _check("genuine_twins", _CtlTwinA, _CtlTwinB, True)
+
+        report = {
+            "success": True,
+            "controls": controls,
+            "failures": failures,
+            "trustworthy": not failures,
+            "rules": {"distinctive_support": self.MIN_DISTINCTIVE_SHARED,
+                       "implementation": self.MIN_IMPLEMENTATION_SIMILARITY,
+                       "threshold": self.NEAR_MATCH_THRESHOLD},
+        }
+        if live:
+            report["live"] = self._live_rule_activity(registry)
+        report["summary"] = (
+            "%d/%d controls pass; %s" % (
+                len(controls) - len(failures), len(controls),
+                ("FAILED: " + ", ".join(failures)) if failures
+                else "comparator separates identical from coincidental")
+        )
+        return report
+
+    def _live_rule_activity(self, registry: dict | None = None) -> dict:
+        """Measure how often the calibration rejects a raw-threshold match.
+
+        Counts pairs whose raw method-name Jaccard reaches the threshold but
+        which the full decision refuses -- i.e. exactly the matches the
+        pre-calibration comparator acted on. Measured rather than asserted.
+        """
+        if registry is None:
+            try:
+                from CORE.worm_registry import WORM_REGISTRY as registry
+            except Exception as exc:
+                return {"available": False, "reason": repr(exc)[:160]}
+        names = [n for n, i in registry.items()
+                 if isinstance(i, dict) and i.get("class")]
+        pairs = 0
+        raw_matches = 0
+        rejected = 0
+        for idx, name_a in enumerate(names):
+            methods_a = set(self._get_method_signatures(
+                registry[name_a]["class"]).keys())
+            for name_b in names[idx + 1:]:
+                methods_b = set(self._get_method_signatures(
+                    registry[name_b]["class"]).keys())
+                pairs += 1
+                if self._jaccard_similarity(methods_a, methods_b) \
+                        < self.NEAR_MATCH_THRESHOLD:
+                    continue
+                raw_matches += 1
+                if self.compare_worms(name_a, registry[name_a],
+                                      name_b, registry[name_b]) is None:
+                    rejected += 1
+        return {"available": True, "worms": len(names), "pairs": pairs,
+                "raw_threshold_matches": raw_matches,
+                "rejected_by_calibration": rejected}
 
     def analyze_registry(self, registry: dict[str, dict]) -> DedupReport:
         """
@@ -877,6 +1154,78 @@ class WormGovernor:
             source_file=info.get("source_file", ""),
             governance_score=governance_score,
         )
+
+    # ── POLICY RATIFICATION (White team, audit §5.7) ─────────────────
+    #
+    # The reflex arc mutates the process-global WORM_REGISTRY (cooldown x3,
+    # priority -1) and `spine_registry.journal_policy()` is the only durable
+    # record; `revert_policy()` exists to undo it. Governance was therefore
+    # REQUIRED and entirely manual: 1042 lines of this module had no runtime
+    # consumer at all. `ratify_policy()` is that consumer — every journalled
+    # adaptation must be ratified before it is replayed into a fresh process.
+
+    #: Actions whose replayed effect on the live registry must be ratified.
+    RATIFIABLE_ACTIONS = frozenset({"policy_adjust", "emergency_backoff",
+                                    "q_invalidated"})
+
+    def ratify_policy(self, entry: dict,
+                      registry: dict[str, dict] | None = None) -> dict[str, Any]:
+        """Ratify or refuse one journalled policy change (never raises).
+
+        Returns ``{"approved": bool, "reasons": [...], "worm": str}``.
+
+        A change is REFUSED when:
+
+        * the entry is not a dict / has no worm — nothing to govern;
+        * the worm is not in the registry — replaying would resurrect an
+          adjustment for an organ that no longer exists (the drift ratchet:
+          a deleted worm's stale policy would otherwise re-attach to a
+          same-named successor);
+        * the worm is ``retired`` — a Black-Queen retirement must not be undone
+          by a policy journal that predates it;
+        * the class name fails naming validation AND is not a grandfathered
+          legacy name — this is the one check that makes the validator real;
+        * the requested values are out of range (priority outside 1..10, a
+          non-positive cooldown) — replay applies these verbatim.
+
+        Refusals are reversible by an operator: the entry is left in the
+        journal, only the *replay* is skipped, so nothing is destroyed.
+        """
+        reasons: list[str] = []
+        if not isinstance(entry, dict):
+            return {"approved": False, "reasons": ["not_a_dict"], "worm": ""}
+        name = str(entry.get("worm") or "")
+        if not name:
+            return {"approved": False, "reasons": ["no_worm"], "worm": ""}
+        reg = registry if registry is not None else {}
+        info = reg.get(name)
+        if info is None:
+            reasons.append("worm_not_registered")
+        else:
+            if info.get("lifecycle_state") == "retired":
+                reasons.append("worm_retired")
+            try:
+                naming = self.naming_validator.validate_name(
+                    name, info.get("category", ""))
+                if not naming.valid:
+                    legacy = (name.upper() == name or
+                              name in self.naming_validator.LEGACY_VERSION_SUFFIX)
+                    if not legacy:
+                        reasons.append("naming_violation")
+            except Exception:
+                reasons.append("naming_check_error")
+        changes = entry.get("changes") or {}
+        if isinstance(changes, dict):
+            pr = (changes.get("priority") or {}).get("to")
+            cd = (changes.get("cooldown_seconds") or {}).get("to")
+            if pr is not None and not (isinstance(pr, int) and 1 <= pr <= 10):
+                reasons.append("priority_out_of_range")
+            if cd is not None and not (isinstance(cd, (int, float)) and cd > 0):
+                reasons.append("cooldown_out_of_range")
+        # An unrecognised action is ratified by default, so a future journal
+        # writer cannot be silently blocked by a stale allow-list; the checks
+        # above are the ones that protect the live registry.
+        return {"approved": not reasons, "reasons": reasons, "worm": name}
 
     def get_category_health(self, registry: dict[str, dict],
                             category: str) -> dict[str, Any]:
