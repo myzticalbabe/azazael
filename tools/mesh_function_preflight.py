@@ -137,6 +137,32 @@ MANUAL_CHECKS: list[tuple[str, str]] = [
     ("M6", "the docstring is true"),
 ]
 
+# Methods the interpreter invokes implicitly.  PF16 asks "does the bare name
+# appear as a Name or Attribute anywhere?", which no correct explicit reference
+# can satisfy for these: `__repr__` is reached by `repr()` and the debugger,
+# `__bool__` by `bool()`, `__getattr__` by any attribute miss.  Flagging them is
+# a *measured* false positive rather than dead code.  The evidence that forced
+# this calibration: `nerve._LazyTorch.__bool__` was reported unreachable while
+# `bool(_torch)` is called at four sites in the same file, and `_torch.xpu` /
+# `_torch.Generator` / `_torch.nn` all dispatch through `_LazyTorch.__getattr__`.
+#
+# Calibrated here rather than silenced by adding a caller, because inventing a
+# call site to satisfy a probe is exactly the anti-pattern the wire-or-cut table
+# exists to prevent.  PF17 (test reference) shares this blind spot but is left
+# alone deliberately: it is a coverage *signal*, not a disposition, and changing
+# two probes at once would make the census diff unattributable.
+PROTOCOL_METHODS = frozenset({
+    "__repr__", "__str__", "__format__", "__bytes__",
+    "__bool__", "__len__", "__length_hint__", "__index__",
+    "__int__", "__float__", "__complex__", "__hash__",
+    "__eq__", "__ne__", "__lt__", "__le__", "__gt__", "__ge__",
+    "__iter__", "__next__", "__reversed__", "__contains__",
+    "__getattr__", "__getattribute__", "__setattr__", "__delattr__",
+    "__enter__", "__exit__", "__await__", "__aiter__", "__anext__",
+    "__call__", "__init_subclass__", "__class_getitem__",
+    "__getnewargs__", "__reduce__", "__reduce_ex__",
+})
+
 
 @dataclass
 class Func:
@@ -219,9 +245,25 @@ def _collect(tree: ast.AST, module: str, source: str) -> list[Func]:
 
 
 def _reference_index() -> tuple[set[str], set[str], set[str]]:
-    """Names used anywhere, names used in tests, names used outside tests."""
+    """(used anywhere, used by tests, used OUTSIDE tests).
+
+    The third set is the one PF16 must use, and the docstring has promised it
+    since the probe was written without ever returning it -- so PF16 was reading
+    a set that included ``tests/``. That made a test-only caller look like
+    reachability, which contradicts the wire-or-cut table's own definition of
+    `wired`: "a production caller exists (so PF16 must NOT fire)". A function
+    called only from a test would have satisfied `wired` with no production
+    caller at all.
+
+    Measured, on this probe: adding a regression test that calls
+    `MoEDispatcherWorm.dispatch_cascade` silently removed it from the PF16
+    findings without any production caller existing. PF17 already covers test
+    reference, so the two probes now measure different things instead of
+    overlapping on the weaker one.
+    """
     used: set[str] = set()
     test_used: set[str] = set()
+    prod_used: set[str] = set()
     for base in ("src", "tests", "scripts", "tools"):
         root = REPO / base
         if not root.exists():
@@ -239,7 +281,9 @@ def _reference_index() -> tuple[set[str], set[str], set[str]]:
             used |= allnames
             if base == "tests":
                 test_used |= allnames
-    return used, test_used
+            else:
+                prod_used |= allnames
+    return used, test_used, prod_used
 
 
 def _plain_true(test: ast.expr) -> bool:
@@ -394,7 +438,7 @@ def _run_probes(fn: Func, used: set[str], test_used: set[str]) -> list[str]:
             fail.append("PF15")
             break
 
-    if name and name not in used:
+    if name and name not in PROTOCOL_METHODS and name not in used:
         fail.append("PF16")
     if name and name not in test_used:
         fail.append("PF17")
@@ -457,7 +501,7 @@ def _prioritise(fn: Func) -> str:
 
 def build(module_filter: str | None = None) -> tuple[list[Func], Counter]:
     files = _iter_files()
-    used, test_used = _reference_index()
+    _used, test_used, prod_used = _reference_index()
     funcs: list[Func] = []
     for path in files:
         module = path.stem
@@ -470,7 +514,10 @@ def build(module_filter: str | None = None) -> tuple[list[Func], Counter]:
             continue
         found = _collect(tree, module, source)
         for fn in found:
-            fn.failures = _run_probes(fn, used, test_used)
+            # PF16 = production reachability; PF17 = test reachability. Passing
+            # `prod_used` here is what makes `wired` mean "a production caller
+            # exists" rather than "something somewhere mentions it".
+            fn.failures = _run_probes(fn, prod_used, test_used)
             fn.prior = _prioritise(fn)
             funcs.append(fn)
     counts = Counter()

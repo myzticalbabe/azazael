@@ -131,9 +131,24 @@ except ImportError:  # pragma: no cover
     NASMeshSearcherWorm = None
     RewardShaperMeshWorm = None
 try:
-    from CORE.WORMS.expansion.immune import QuarantineWorm
+    from CORE.WORMS.expansion.immune import QuarantineWorm, AttestationWorm
 except ImportError:  # pragma: no cover
     QuarantineWorm = None
+    AttestationWorm = None
+
+# Colour queens (audit §5). ScoutBeeWorm is the probe-scheduling policy
+# `_probe_candidates` consults; GrayQueenWorm (entrenchment) and
+# BlackQueenWorm (retirement) are driven by SpineCycleWorm's governance stage.
+# Before this, the ONLY colour queen in the mesh was RedQueenWorm and the other
+# three mechanisms lived in a standalone numpy toy nothing here imports.
+try:
+    from CORE.WORMS.expansion.queens import (
+        ScoutBeeWorm, GrayQueenWorm, BlackQueenWorm,
+    )
+except ImportError:  # pragma: no cover
+    ScoutBeeWorm = None
+    GrayQueenWorm = None
+    BlackQueenWorm = None
 try:
     from CORE.WORMS.expansion.synapse import (
         SynapseWeightWorm, MoEDispatcherWorm, SSMSequenceWorm,
@@ -469,14 +484,76 @@ class RedQueenWorm:
     PROBE_NATURES = ("mesh", "synapse", "immune", "consensus", "federated",
                      "servemesh", "engram")
     PROBE_LIMIT = 4
+    # A probe may not be able to hang the loop that regulates the fleet.
+    # See pressure_probe(); this is the systemic half of the fix whose local
+    # half is the pipe deadlock in PartitionHealerWorm.detect().
+    PROBE_TIMEOUT_S = 10.0
+    # A hung member is an AVAILABILITY fault, not a correctness one, and its
+    # thread cannot be killed. Re-probing it every cycle therefore leaked one
+    # daemon thread and one identical failure per cycle, which the reflex arc
+    # re-punished forever (audit 2026-09-16, R7). A hung member is held out of
+    # selection for this long instead.
+    HUNG_COOLDOWN_S = 300.0
     QUARANTINE_MIN_FAILURES = 3
     QUARANTINE_FAIL_RATE = 0.6
     QUORUM = 2
+
+    # ── Hostile probe corpus (audit 2026-09-16, R1) ─────────────────────
+    # The loop used to probe with a zero-argument `execute()` on a fresh
+    # instance, and every fabric worm's `execute()` returns `success: True` on
+    # every path — 14 probes, 14 successes, 0 failures, measured. That makes it
+    # a heartbeat, not a red team. These entries call the worms' REAL entry
+    # points with inputs a healthy caller would never send (degenerate sizes,
+    # NaN/inf streams, empty context, empty ids).
+    #
+    # Constraints on every entry, because the red team runs on a schedule:
+    #   * safe on a FRESH instance (no mesh state to corrupt);
+    #   * no shared-state write — methods that touch the Q-table, the vote
+    #     ledger, or the filesystem are deliberately NOT here; and
+    #   * bounded work (no network, no subprocess).
+    # A method missing from this map is contract-checked only, which is honest:
+    # an operator can see which worms receive real adversarial input.
+    HOSTILE_PROBES = {
+        "MoEDispatcherWorm": (
+            ("dispatch", (), {"prompt_len": -1}),
+            ("dispatch", (), {"prompt_len": 0}),
+            ("dispatch", (), {"prompt_len": 10 ** 9, "needs_vision": True}),
+        ),
+        "SSMSequenceWorm": (
+            ("ingest", ([],), {}),
+            ("ingest", ([float("nan")],), {}),
+            ("ingest", ([float("inf"), -1e308],), {}),
+        ),
+        "AttentionRouterWorm": (
+            ("attend", (None,), {}),
+            ("attend", ({},), {}),
+        ),
+        "VectorShardWorm": (
+            ("shard_for", ("",), {}),
+        ),
+    }
 
     def __init__(self):
         self._lock = threading.Lock()
         self._cycles = 0
         self._last_probe: dict[str, Any] = {}
+        # Selection state: when each member was last probed, so coverage can
+        # ROTATE instead of being the first N of the registry every cycle.
+        self._last_probed: dict[str, float] = {}
+        # Members currently held out for hanging, and how long that lasts.
+        self._hung_until: dict[str, float] = {}
+        # Scout Bee policy (audit §5.3): the exploration quota that replaced
+        # registration-order truncation. None disables it (fallback = old sort).
+        self._scout = ScoutBeeWorm() if ScoutBeeWorm is not None else None
+        # Names chosen by the scout quota on the last selection pass.
+        self._last_scouts: list[str] = []
+        # Per (worm, hostile case) consecutive-failure streak, so a single
+        # environment-dependent case cannot demote a healthy member.
+        self._hostile_streak: dict[str, int] = {}
+        self._stats: dict[str, int] = {"probed": 0, "passed": 0, "failed": 0,
+                                       "hung": 0, "contract": 0, "raise": 0,
+                                       "hostile_cases": 0,
+                                       "hostile_failures": 0}
 
     def _queen_check(self) -> dict[str, Any]:
         peers: dict | list | None = None
@@ -490,6 +567,140 @@ class RedQueenWorm:
         except Exception as exc:
             return {"role": "error", "reason": str(exc)[:80], "env": _local_env()}
 
+    def _probe_candidates(self, nature: str,
+                          limit: int) -> tuple[list, list, list, list]:
+        """Eligible members of `nature`: least-recently-probed first.
+
+        G16: the probe set is defined by nature, but *protection* is not.
+        HomeostatWorm lives in `synapse` and AutoencoderAnomalyWorm in
+        `immune` — both are probed natures, and probing a regulator writes into
+        the homeostat ledger that regulator then acts on. Declared fleet
+        governors (and whole protected natures) are skipped, so the limit is
+        filled by the next non-governor instead of silently including the organ
+        being regulated.
+
+        R4 (2026-09-16): selection used to be the first `limit` entries of
+        WORM_REGISTRY — a fixed subset of ~28 of 226 worms, the same every
+        cycle, chosen by registration order. Ordering by (never probed, then
+        oldest probe) makes coverage rotate, which is what turns a health check
+        into a survey. Members in a hung cooldown are held out (R7).
+        """
+        now = time.time()
+        eligible: list[tuple] = []
+        protected_skipped: list[str] = []
+        hung_skipped: list[str] = []
+        retired_skipped: list[str] = []
+        for name, info in WORM_REGISTRY.items():
+            if info.get("category") != nature:
+                continue
+            # BlackQueenWorm's retirements are ENFORCED here (and in
+            # NatureCluster.execute), not merely recorded: a retired worm that
+            # the queen keeps probing is the same decorative-gate mistake the
+            # quarantine store was fixed out of on 2026-09-16.
+            if info.get("lifecycle_state") == "retired":
+                retired_skipped.append(name)
+                continue
+            if is_protected_worm(info):
+                protected_skipped.append(name)
+                continue
+            if self._hung_until.get(name, 0.0) > now:
+                hung_skipped.append(name)
+                continue
+            eligible.append((name, info))
+
+        # Scout quota (audit §5.3, fixing R4/R2). Selection used to be the
+        # first `limit` entries in registration order. ScoutBeeWorm reserves a
+        # forced share of the slots for never/longest-unprobed members, so
+        # coverage rotates and no fixed subset collects a guaranteed +1. The
+        # local sort stays as the fallback if the policy is unavailable.
+        if self._scout is not None:
+            try:
+                picked = self._scout.select(eligible, limit, self._last_probed)
+                chosen = list(picked["chosen"])
+                self._last_scouts = list(picked.get("scout") or [])
+            except Exception:
+                self._scout = None
+        if self._scout is None:
+            eligible.sort(key=lambda kv: (self._last_probed.get(kv[0], 0.0),
+                                          kv[0]))
+            chosen = eligible[:limit]
+            self._last_scouts = [n for n, _ in chosen]
+        chosen = chosen[:limit]
+        return chosen, protected_skipped, hung_skipped, retired_skipped
+
+    def _run_probe(self, cls) -> tuple[bool, float, str, str]:
+        """Run one member's zero-arg `execute()`. Returns (ok, ms, err, kind).
+
+        BOUNDED. `cls().execute()` used to be called inline, so ONE blocking
+        member hung the caller forever. Verified live: PartitionHealerWorm
+        deadlocked in `subprocess.run(["wsl", "-l", "-v"])` after its own
+        timeout, and that single frame hung the ENTIRE test suite instead of
+        failing one test -- a regulator disabled by one of the things it
+        regulates. Every member now runs on its own daemon thread with a join
+        timeout, and a member that does not return is recorded as a TIMEOUT
+        FAILURE.
+
+        Deliberate trade-off: a hanging thread cannot be killed, so it is left
+        as a daemon and reported. Creating a hang is therefore still possible
+        for a buggy member -- what is no longer possible is that it silences the
+        whole probe loop.
+        """
+        box: dict[str, Any] = {}
+
+        def _run(cls=cls, box=box) -> None:
+            try:
+                box["result"] = cls().execute()
+            except Exception as exc:
+                box["error"] = exc
+
+        worker = threading.Thread(target=_run, daemon=True)
+        t0 = time.perf_counter()
+        worker.start()
+        worker.join(self.PROBE_TIMEOUT_S)
+        ms = round((time.perf_counter() - t0) * 1000, 2)
+        if worker.is_alive():
+            return False, ms, ("probe_timeout after %gs" % self.PROBE_TIMEOUT_S), "hung"
+        if "error" in box:
+            return False, ms, str(box["error"])[:100], "raise"
+        r = box.get("result")
+        # R3 (2026-09-16): the result must be the documented contract — a dict
+        # carrying `success`. The previous default recorded a NON-dict as
+        # `{"success": True}`, so a worm returning None, a string or a list was
+        # indistinguishable from one that passed, which inverts the single
+        # probe a red team must be strict about.
+        if not isinstance(r, dict) or "success" not in r:
+            got = type(r).__name__
+            return False, ms, "contract_violation: execute() -> %s" % got, "contract"
+        ok = bool(r.get("success"))
+        err = str(r.get("error", ""))[:100]
+        if not ok and not err:
+            err = "execute() reported failure"
+        return ok, ms, err, ("ok" if ok else "failure")
+
+    def _hostile_probe(self, cls, name: str) -> list[dict]:
+        """Call a member's real API with hostile inputs (R1). Never raises.
+
+        Reported as findings. A case that fails twice consecutively is treated
+        as a real defect and reaches the ledger; a single failure is reported
+        only, so one environment-dependent case cannot demote a healthy worm.
+        """
+        spec = self.HOSTILE_PROBES.get(getattr(cls, "__name__", "") or name)
+        if not spec:
+            return []
+        out: list[dict] = []
+        for method, args, kwargs in spec:
+            case = "%s(%s)" % (method, ", ".join(
+                [repr(a) for a in args] + ["%s=%r" % kv for kv in kwargs.items()]))
+            try:
+                res = getattr(cls(), method)(*args, **kwargs)
+                ok = isinstance(res, dict)
+                err = "" if ok else "non-dict return: %s" % type(res).__name__
+            except Exception as exc:
+                ok = False
+                err = "%s: %s" % (type(exc).__name__, str(exc)[:80])
+            out.append({"case": case, "ok": ok, "error": err})
+        return out
+
     def pressure_probe(self, nature: str | None = None,
                        limit: int = PROBE_LIMIT) -> dict[str, Any]:
         """Execute up to `limit` worms of `nature`, ledger their outcomes."""
@@ -501,48 +712,82 @@ class RedQueenWorm:
         # fleet governors (and whole protected natures) are skipped, so the
         # limit is filled by the next non-governor instead of silently
         # including the organ being regulated.
-        candidates: list[tuple] = []
-        protected_skipped: list[str] = []
-        for name, info in WORM_REGISTRY.items():
-            if info.get("category") != nat:
-                continue
-            if is_protected_worm(info):
-                protected_skipped.append(name)
-                continue
-            if len(candidates) < limit:
-                candidates.append((name, info))
+        candidates, protected_skipped, hung_skipped, retired_skipped = \
+            self._probe_candidates(nat, limit)
 
         results: list[dict] = []
+        hostile: list[dict] = []
         for name, info in candidates:
             cls = info.get("class")
-            ok, ms, err = False, 0.0, ""
-            t0 = time.perf_counter()
-            try:
-                inst = cls()
-                r = inst.execute()
-                ok = bool(r.get("success"))
-                err = str(r.get("error", ""))[:100]
-            except Exception as exc:
-                err = str(exc)[:100]
-            ms = round((time.perf_counter() - t0) * 1000, 2)
-            results.append({"worm": name, "success": ok, "ms": ms})
-            if _spine is not None:
-                _spine.record_outcome(nat, name, ok, ms, err or None)
+            ok, ms, err, kind = self._run_probe(cls)
+            self._last_probed[name] = time.time()
+            if kind == "hung":
+                self._hung_until[name] = time.time() + self.HUNG_COOLDOWN_S
+            self._stats["probed"] = self._stats.get("probed", 0) + 1
+            self._stats["passed" if kind == "ok" else "failed"] = \
+                self._stats.get("passed" if kind == "ok" else "failed", 0) + 1
+            if kind not in ("ok", "failure"):
+                self._stats[kind] = self._stats.get(kind, 0) + 1
+            results.append({"worm": name, "success": ok, "ms": ms,
+                            "timed_out": kind == "hung", "kind": kind})
+            # R2 (2026-09-16): a PASSING availability probe records NOTHING.
+            # It used to record a success every cycle for the same fixed subset,
+            # which reinforced Q and promoted those worms into healthy-first
+            # scheduling for passing a test that cannot fail. Failures still
+            # record, so the reflex arc and the quarantine gate keep working.
+            if _spine is not None and kind != "ok":
+                _spine.record_outcome(nat, name, False, ms, err or None)
+            for h in self._hostile_probe(cls, name):
+                h["worm"] = name
+                self._stats["hostile_cases"] = self._stats.get("hostile_cases", 0) + 1
+                key = "%s::%s" % (name, h["case"])
+                if h["ok"]:
+                    self._hostile_streak.pop(key, None)
+                else:
+                    streak = self._hostile_streak.get(key, 0) + 1
+                    self._hostile_streak[key] = streak
+                    h["streak"] = streak
+                    h["recorded"] = streak >= 2
+                    self._stats["hostile_failures"] = \
+                        self._stats.get("hostile_failures", 0) + 1
+                    if streak >= 2 and _spine is not None:
+                        _spine.record_outcome(nat, name, False, 0.0,
+                                              "hostile:%s" % h["case"][:80])
+                hostile.append(h)
 
         failures = sum(1 for r in results if not r["success"])
         return {"nature": nat, "probed": len(results),
                 "failures": failures, "protected_skipped": protected_skipped,
+                "hung_skipped": hung_skipped,
+                "retired_skipped": retired_skipped,
+                # Which slots the scout quota spent on ignorance this pass. An
+                # operator can see the exploration term, not infer it.
+                "scouts": list(self._last_scouts),
+                "hostile": hostile,
+                "hostile_failures": sum(1 for h in hostile if not h["ok"]),
                 "results": results}
 
-    def order_quarantine(self) -> list[dict]:
-        """Quorum-ordered quarantine for chronically failing worms."""
+    def order_quarantine(self, force: bool = False,
+                         env: str | None = None) -> list[dict]:
+        """Quorum-ordered quarantine for chronically failing worms.
+
+        `force=True` is the operator channel (audit R6, 2026-09-17). On a
+        single-env host `peers == []`, so the cross-env quorum can never be
+        reached and the *entire* adversarial -> quarantine path was
+        unreachable — the gate was correct in intent and had no operator way
+        in. `force` records an explicit `operator` vote (so the decision stays
+        auditable rather than invisible) and quarantines without waiting for a
+        second env: the same shape as `MorphogenesisWorm.promote(force=True)`
+        and `Lilith.request_moult(force=True)`. Without it, a lone env still
+        cannot quarantine — the original safety intent is preserved.
+        """
         ordered: list[dict] = []
         if _spine is None or QuorumVoterWorm is None or QuarantineWorm is None:
             return ordered
 
         voter = QuorumVoterWorm(quorum=self.QUORUM)
         qz = QuarantineWorm()
-        env = _local_env()
+        env = env or _local_env()
 
         for key, rec in _spine.get_homeostat_view().items():
             nature, _, worm = key.partition(":")
@@ -553,17 +798,19 @@ class RedQueenWorm:
             if (rec["failures"] >= self.QUARANTINE_MIN_FAILURES
                     and fail_rate >= self.QUARANTINE_FAIL_RATE):
                 finding = f"quarantine:{worm}"
-                vote = voter.vote(finding, env, "quarantine")
-                if vote.get("decided"):
+                vote = voter.vote(finding, "operator" if force else env,
+                                  "quarantine")
+                if force or vote.get("decided"):
                     qz.quarantine(worm, f"fail_rate={fail_rate:.2f}")
                     ordered.append({"worm": worm, "nature": nature,
                                     "fail_rate": round(fail_rate, 2),
+                                    "forced": bool(force),
                                     "envs": vote.get("envs"),
                                     "env_count": vote.get("env_count"),
                                     "votes": vote.get("count")})
                     if _spine is not None:
                         _spine.record_spine_event("quarantine_ordered", {
-                            "worm": worm,
+                            "worm": worm, "forced": bool(force),
                             "envs": vote.get("envs"),
                             "quorum": self.QUORUM})
         return ordered
@@ -603,6 +850,13 @@ class RedQueenWorm:
                 "coverage": coverage,
                 "natures_probed": sorted(coverage),
                 "cycles": self._cycles,
+                # Probe quality, not just quantity. `hostile_cases` counts real
+                # adversarial inputs delivered; `contract_violations` counts
+                # members whose execute() broke the documented return shape.
+                "probe_stats": dict(self._stats),
+                "hung_skipped": sorted(self._hung_until),
+                "hostile_failures": sum(p.get("hostile_failures", 0)
+                                        for p in probes),
             },
         }
 
@@ -1413,6 +1667,12 @@ class SpineCycleWorm:
             self._morphogenesis = MorphogenesisWorm()
         except ImportError:
             pass
+        # Colour queens (audit §5.1/§5.2): Gray (entrenchment delta) and Black
+        # (quorum-gated retirement). Their named consumer is the governance
+        # stage below — without a caller they would be exactly the orphan
+        # organs §5.9 forbids adding to the fleet.
+        self._gray = GrayQueenWorm() if GrayQueenWorm is not None else None
+        self._black = BlackQueenWorm() if BlackQueenWorm is not None else None
         # Audit #6: shard catalogue shared between the servemesh sub-stage
         # (which fills it) and the consensus sub-stage (which scans it for
         # real split-brain forks).
@@ -1529,6 +1789,17 @@ class SpineCycleWorm:
                 report["morphogenesis"] = {"success": False,
                                            "error": str(exc)[:100]}
 
+            # 2j. Colour-queen governance (audit §5.2 / §5.1) — Gray reads the
+            #     PF16 census, diffs it against the persisted session snapshot
+            #     and reports the delta (new / resolved / entrenched); Black
+            #     proposes quorum-gated retirement for a worm whose capability a
+            #     registered twin already covers. Both PROPOSE unless apply.
+            try:
+                report["governance"] = self._governance_stage(apply)
+            except Exception as exc:
+                report["governance"] = {"success": False,
+                                        "error": str(exc)[:100]}
+
             # 3. Red Queen — pressure probes; stands down if not queen.
             #    Probe load is shed when the metabolic stage says the host is
             #    over budget (the PowerBudgetWorm docstring's promise, kept).
@@ -1570,6 +1841,13 @@ class SpineCycleWorm:
                     "attention_top": (
                         report.get("synapse_routing", {})
                               .get("attention", {}).get("top_natures") or [])[:3],
+                    "entrenchment_delta": (
+                        (report.get("governance", {})
+                                .get("entrenchment", {}) or {})
+                        .get("counts", {}).get("delta")),
+                    "retirements_proposed": (
+                        report.get("governance", {})
+                              .get("retirement", {}).get("retired")),
                 })
 
             with self._lock:
@@ -1580,6 +1858,30 @@ class SpineCycleWorm:
         finally:
             _GLOBAL_CYCLE_GATE.release()
             self._busy.release()
+
+    def _governance_stage(self, apply: bool) -> dict[str, Any]:
+        """Gray (entrenchment delta) + Black (quorum-gated retirement).
+
+        Both queens are inert without a caller, so the cycle drives them and
+        their mutations obey this class's existing rule: propose-only unless
+        the caller passed ``apply=True`` ("really change policy"). Gray's
+        snapshot IS persisted every cycle even when apply is False — a diff
+        needs a baseline, and the baseline is the observation, not a mutation.
+        """
+        out: dict[str, Any] = {}
+        if self._gray is not None:
+            try:
+                out["entrenchment"] = self._gray.detect(persist=True)
+            except Exception as exc:
+                out["entrenchment"] = {"success": False,
+                                       "error": str(exc)[:100]}
+        if self._black is not None:
+            try:
+                out["retirement"] = self._black.propose(apply=bool(apply))
+            except Exception as exc:
+                out["retirement"] = {"success": False,
+                                     "error": str(exc)[:100]}
+        return out
 
     def _apply_plasticity(self) -> dict[str, Any]:
         """Apply the learning rules through the persistent weight store.
@@ -1737,12 +2039,36 @@ class SpineCycleWorm:
                                   "fleet_rate": None if rate is None else round(rate, 3)}
             except Exception as exc:
                 out["settled"] = {"error": str(exc)[:80]}
+            # NOTE: `invalidate_route()` is deliberately NOT called on failure
+            # here, although a first draft did exactly that. Its contract is
+            # "discount the learned penalty on one route, because its cause is
+            # FIXED ... called by whoever fixed the fault" -- it exists to break
+            # a self-sustaining penalty once the fault is gone. Firing it on a
+            # failed route would do the opposite: erase the route's history at
+            # the moment the evidence says the route is still bad. It stays
+            # unwired until a real repair path exists to call it, which is a
+            # better outcome than a caller that looks wired and inverts the
+            # contract.
 
         # Phase 2 — propose the next route to the least-healthy live nature.
         try:
             rates = self._nature_rates()
             if rates:
                 dst = min(rates, key=lambda n: rates[n])
+                # `add_route()` had no caller anywhere either, so `_routes` was
+                # always empty and `route()` fell through to its default
+                # `{"weight": 1.0}` for EVERY destination. The static topology
+                # prior therefore could not be expressed at all: `ROUTES_MAX`,
+                # the route-key derivation and the weight itself were inert, and
+                # `effective_weight` was decided by the Q-term alone. Register
+                # the leg before routing it, with the fleet's own observed rate
+                # as the prior -- the same cycle-closing move this method already
+                # made for `record_route_result()`.
+                try:
+                    self._router.add_route(_local_env(), dst,
+                                           float(rates.get(dst, 1.0)))
+                except Exception as exc:
+                    out["registered"] = {"error": str(exc)[:80]}
                 routed = self._router.route(dst, {"probe": "spine_cycle"})
                 self._pending_route = {"dst": dst, "ms": 0.0}
                 out["proposed"] = {"dst": dst, "effective_weight": routed.get("effective_weight"),
@@ -2058,11 +2384,13 @@ class SpineCycleWorm:
     FORK_SCAN_MAX = 32
 
     def _fabric_stage(self) -> dict[str, Any]:
-        """Run the consensus / federated / servemesh organs on real input."""
+        """Run the consensus / federated / servemesh / resilience organs on
+        real input."""
         out: dict[str, Any] = {}
         for name, fn in (("servemesh", self._fabric_servemesh),
                          ("consensus", self._fabric_consensus),
-                         ("federated", self._fabric_federated)):
+                         ("federated", self._fabric_federated),
+                         ("resilience", self._fabric_resilience)):
             try:
                 out[name] = fn()
             except Exception as exc:  # never let one organ break the cycle
@@ -2089,7 +2417,8 @@ class SpineCycleWorm:
         Reports `{chain_name: usable}` for the CHAIN entries the registry can
         actually speak to. A provider is reported unusable ONLY when all three
         hold: it declares an `env_var`, it has a real remote `base_url`
-        (non-empty, not loopback), and that variable is unset.
+        (non-empty, not loopback), and no credential is resolvable for it
+        (env var unset AND no `~/.azazael/{id}_config.json`).
 
         That guard matters. `ollama` and `lmstudio` declare a key for a
         *localhost* endpoint where the key is optional, and
@@ -2102,7 +2431,10 @@ class SpineCycleWorm:
         """
         import os
         try:
-            from CORE.inference.providers import PROVIDER_REGISTRY
+            from CORE.inference.providers import (
+                PROVIDER_REGISTRY,
+                provider_credential_configured,
+            )
         except Exception:
             return {}
         loopback = ("localhost", "127.0.0.1", "0.0.0.0", "[::1]")
@@ -2116,7 +2448,14 @@ class SpineCycleWorm:
                 continue
             if any(h in base for h in loopback):
                 continue
-            out[str(name)] = bool(os.environ.get(str(var)))
+            # Resolved through providers.py so this agrees with the layer that
+            # actually makes the request. Checking os.environ alone reported a
+            # provider with its key in ~/.azazael/{id}_config.json as unusable,
+            # which silently dropped a working provider from the chain.
+            try:
+                out[str(name)] = bool(provider_credential_configured(pid))
+            except Exception:  # pragma: no cover - defensive
+                out[str(name)] = bool(os.environ.get(str(var)))
         return out
 
     def _publish_local_shards(self, shards) -> int:
@@ -2129,17 +2468,28 @@ class SpineCycleWorm:
         """
         import hashlib
         from pathlib import Path
-        root = None
-        for cand in self.MODEL_ROOTS:
-            try:
-                p = Path(cand)
-                if p.is_dir():
-                    root = p
-                    break
-            except Exception:
-                continue
-        if root is None:
+        try:
+            from CORE.fs_probe import bounded_first_dir
+        except Exception:  # pragma: no cover - probe helper optional
+            def bounded_first_dir(cands, timeout_s=2.5):  # type: ignore
+                for c in cands or ():
+                    try:
+                        if Path(c).is_dir():
+                            return c
+                    except Exception:
+                        continue
+                return None
+        # Bounded, CONCURRENT probe. An unreachable root answers None (= "the
+        # probe did not answer"), and unknown is treated as UNAVAILABLE rather
+        # than healthy. The previous `try/except` around a bare `p.is_dir()`
+        # could never work: a hang is not an exception. And the candidates are
+        # alternatives for one decision, so probing them in parallel charges
+        # the max timeout instead of the sum -- sequentially they cost 2 x 5s
+        # and put a 10s floor under every first heartbeat. See CORE/fs_probe.py.
+        first = bounded_first_dir(self.MODEL_ROOTS)
+        if first is None:
             return 0
+        root = Path(first)
         published = 0
         try:
             entries = sorted(root.iterdir())[: self.SHARD_PUBLISH_MAX]
@@ -2323,7 +2673,23 @@ class SpineCycleWorm:
             res["forks_reported"] = len(forks)
             if forks:
                 sb = SplitBrainResolverWorm()
+                # `resolve()` reads `_forks[model]` and answers
+                # `{"resolved": False, "reason": "no_forks"}` when that box is
+                # empty -- and `report_fork()` is the ONLY writer, with no
+                # caller anywhere in the tree. So this stage was live but
+                # structurally unable to resolve anything: every fork came back
+                # `no_forks` on every cycle, which reads as "there was nothing
+                # to resolve" rather than "the input was never fed in". That is
+                # the shape of defect B8 -- a claimed control that is not in the
+                # control path. The tuple unpacked below is exactly
+                # `report_fork`'s signature (model, env, reward, version_hash).
+                for model, env, reward, vhash in forks:
+                    sb.report_fork(model, env, reward, vhash)
                 res["forks"] = [sb.resolve(m) for m, _e, _r, _h in forks]
+                # Observable outcome, so a stage that silently resolves zero is
+                # visible in the report instead of looking like a clean cycle.
+                res["forks_resolved"] = sum(
+                    1 for f in res["forks"] if f.get("resolved"))
         return res
 
     def _fabric_federated(self) -> dict[str, Any]:
@@ -2397,6 +2763,160 @@ class SpineCycleWorm:
             res["federated_dim"] = out.get("dim")
             res["federated_avg_head"] = out.get("avg_head")
             res["federated_envs"] = len(per_env)
+        return res
+
+    def _fabric_resilience(self) -> dict[str, Any]:
+        """Snapshot this spine's own state and prove the snapshot restorable.
+
+        Six organs in `backup.py` had zero callers (integration map §5.1):
+        StateSnapshotter.create_snapshot/list_snapshots,
+        IncrementalBackupWorm.compute_manifest/find_changes and
+        RecoveryTester.verify_archive/test_restore. The integration graph was
+        asked for a consumer and found none — every edge from those classes
+        terminates inside their own module — so the stage is the consumer:
+        create -> verify -> dry-run restore, chained in one cycle. A snapshot
+        that is taken and never opened is indistinguishable from no backup at
+        all, which is why the verifier reads what the snapshotter just wrote
+        rather than merely reporting that a file appeared.
+
+        Scope: the load-bearing state files one level under the state dir,
+        not the state dir itself (see the staging note below).
+        """
+        import json
+        import shutil
+        import tempfile
+        from pathlib import Path
+
+        try:
+            from CORE.WORMS.expansion.backup import (IncrementalBackupWorm,
+                                                     RecoveryTester,
+                                                     StateSnapshotter)
+        except Exception as exc:
+            return {"success": False, "reason": "backup_organs_unavailable",
+                    "error": str(exc)[:100]}
+
+        max_staged, max_file, keep = 32 * 1024 * 1024, 4 * 1024 * 1024, 5
+        state_dir = Path.home() / ".azazael"
+        # Snapshots live beside the state dir, never inside it: a snapshot
+        # store inside its own source grows without bound, and each snapshot
+        # would then contain the previous one.
+        root = Path.home() / ".azazael_snapshots"
+        if not state_dir.is_dir():
+            return {"success": False, "reason": "no_state_dir",
+                    "path": str(state_dir)}
+        started = time.time()
+        # Stage the load-bearing state instead of the whole home. Measured on
+        # this machine the live state dir is 5.59 GB (session recordings and
+        # media), so a wholesale snapshot made the organ decline on EVERY
+        # real cycle while still passing in a synthetic home — inert in
+        # production, which is the defect this organ exists to close. One
+        # level deep, state-file suffixes only, per-file and total caps.
+        stage = root / "state"
+        stage.mkdir(parents=True, exist_ok=True)
+        staged, staged_bytes, skipped = 0, 0, 0
+        for f in sorted(state_dir.iterdir()):
+            try:
+                if not f.is_file() or f.suffix not in (".pkl", ".json", ".jsonl"):
+                    continue
+                size = f.stat().st_size
+                if size > max_file or staged_bytes + size > max_staged:
+                    skipped += 1
+                    continue
+                shutil.copy2(f, stage / f.name)
+                staged += 1
+                staged_bytes += size
+            except OSError:
+                continue
+        res: dict[str, Any] = {"staged_files": staged,
+                               "staged_bytes": staged_bytes,
+                               "staged_skipped": skipped}
+        if not staged:
+            res.update({"success": False, "reason": "no_stageable_state",
+                        "path": str(state_dir)})
+            return res
+        snap = StateSnapshotter()
+        made = snap.create_snapshot(str(stage), str(root), label="cycle")
+        if not made.get("success"):
+            res.update({"success": False, "snapshot_ok": False,
+                        "error": made.get("error")})
+            return res
+        archive = str((made.get("snapshot") or {}).get("path") or "")
+        res["snapshot_ok"] = True
+        # Invariant, not decoration: if create_snapshot reports success while
+        # its own index is empty, the class' two halves disagree and that is
+        # worth surfacing rather than hiding behind the disk listing.
+        if not snap.list_snapshots():
+            res["index_inconsistent"] = True
+
+        # Retention from the directory, not from list_snapshots(): the
+        # accessor only knows the instances in this process, and the store
+        # outlives the process. A store that only grows is the failure this
+        # stage exists to prevent.
+        try:
+            zips = sorted(root.glob("snapshot_*.zip"),
+                          key=lambda p: p.stat().st_mtime)
+            for old in zips[:-keep]:
+                old.unlink()
+            res["snapshots_kept"] = min(len(zips), keep)
+        except OSError as exc:
+            res["prune_error"] = str(exc)[:100]
+
+        # Change detection across the process boundary. The previous manifest
+        # is read back from disk, not from self._file_db: an in-memory
+        # manifest is empty in every new process, so the first cycle after
+        # each restart would report every file as newly added — and
+        # resume-after-failure is exactly that boundary.
+        inc = IncrementalBackupWorm()
+        current = inc.compute_manifest(str(stage))
+        manifest_path = root / "manifest.json"
+        previous: dict = {}
+        if manifest_path.is_file():
+            try:
+                previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                previous = {}
+        if previous:
+            delta = inc.find_changes(previous, current)
+            res["changes"] = delta.get("total_changes")
+            res["added"] = len(delta.get("added") or [])
+            res["modified"] = len(delta.get("modified") or [])
+            res["deleted"] = len(delta.get("deleted") or [])
+        else:
+            res["changes"] = None  # first manifest: nothing to diff against
+            res["first_manifest"] = True
+        try:
+            manifest_path.write_text(json.dumps(current), encoding="utf-8")
+        except OSError as exc:
+            res["manifest_persist_error"] = str(exc)[:100]
+
+        tester = RecoveryTester()
+        ver = tester.verify_archive(archive)
+        res["verified"] = bool(ver.get("valid"))
+        res["archive_files"] = ver.get("file_count")
+        if not res["verified"]:
+            res.update({"success": False,
+                        "verify_error": ver.get("error")
+                        or ver.get("corrupted_file")})
+            return res
+        tmp = tempfile.mkdtemp(prefix="azazael_restore_")
+        try:
+            rest = tester.test_restore(archive, tmp)
+            res["restore_ok"] = bool(rest.get("success"))
+            if not res["restore_ok"]:
+                res["restore_error"] = rest.get("error")
+            else:
+                restored = 0
+                for p in Path(tmp).rglob("*"):
+                    try:
+                        if p.is_file():
+                            restored += 1
+                    except OSError:
+                        continue
+                res["restored_files"] = restored
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+        res["elapsed_s"] = round(time.time() - started, 3)
+        res["success"] = bool(res.get("restore_ok"))
         return res
 
     def execute(self) -> dict[str, Any]:
@@ -2607,9 +3127,12 @@ class {cls}:
         2. **Vote** — `spine_registry.cast_quarantine_vote()` records this
            env's "promote" verdict in the shared, persisted, gossiped ledger
            and decides on **distinct envs**, so a peer env's approval that
-           arrived over gossip counts.
-        3. **Promote** — only on a decided vote, the file is moved into the
-           discovery-visible `generated/` directory.
+           arrived over gossip counts.        3. **Attest** — `AttestationWorm.attest_file()` compiles the candidate,
+           hashes it and records the digest (audit §5.6, Yellow team). A file
+           that does not compile is held, so the docstring's claim that
+           promotion is attested is now true instead of aspirational.
+        4. **Promote** — only on a decided vote AND a passing attestation, the
+           file is moved into the discovery-visible `generated/` directory.
 
         `force=True` is the operator channel: it records an explicit
         `operator` vote (so the decision stays auditable rather than
@@ -2628,6 +3151,16 @@ class {cls}:
             qz = QuarantineWorm() if QuarantineWorm is not None else None
         except Exception:  # pragma: no cover - defensive
             qz = None
+        # Yellow team (audit §5.6): AttestationWorm.attest_file() already does
+        # py_compile + SHA-256 + a free-threading check and had ZERO consumers —
+        # it was named as a lifecycle gate in this module's own docstring and
+        # consulted nowhere. Compiled-and-hashed BEFORE the file can become
+        # discoverable: a staged candidate that fails to compile must not be
+        # promotable.
+        try:
+            att = AttestationWorm() if AttestationWorm is not None else None
+        except Exception:  # pragma: no cover - defensive
+            att = None
         for cand in candidates:
             name = cand["file"]
             finding = f"promote:{name}"
@@ -2650,6 +3183,34 @@ class {cls}:
                              "env_count": vote.get("env_count"),
                              "reason": "awaiting_quorum"})
                 continue
+            # Yellow gate: attest before publish. Fails CLOSED here — the whole
+            # point is that a file which cannot be verified does not become
+            # discoverable, so an attestor that raises is a refusal, not a
+            # waiver. (The quarantine gate elsewhere fails open on purpose: its
+            # job is to keep the fleet running, this one's is to keep the tree
+            # honest.)
+            attestation: dict[str, Any] | None = None
+            if att is not None:
+                try:
+                    att_out = att.attest_file(cand["path"])
+                    attestation = att_out.get("attestation")
+                except Exception as exc:
+                    held.append({"file": name,
+                                 "error": "attestation_error: %s" % str(exc)[:80]})
+                    continue
+                if not (attestation and attestation.get("pass")):
+                    held.append({"file": name, "reason": "attestation_failed",
+                                 "compiles": (attestation or {}).get("compiles"),
+                                 "sha": (attestation or {}).get("sha")})
+                    if _spine is not None:
+                        try:
+                            _spine.record_spine_event(
+                                "morphogenesis_attestation_refused", {
+                                    "file": name,
+                                    "compiles": (attestation or {}).get("compiles")})
+                        except Exception:
+                            pass
+                    continue
             try:
                 dest_dir = _generated_dir()
                 dest_dir.mkdir(parents=True, exist_ok=True)
@@ -2658,11 +3219,13 @@ class {cls}:
                 if qz is not None:
                     qz.release(name)
                 promoted.append({"file": name, "envs": vote.get("envs"),
-                                 "forced": bool(force)})
+                                 "forced": bool(force),
+                                 "sha": (attestation or {}).get("sha")})
                 if _spine is not None:
                     _spine.record_spine_event("morphogenesis_promoted", {
                         "file": name, "forced": bool(force),
-                        "envs": vote.get("envs"), "quorum": quorum})
+                        "envs": vote.get("envs"), "quorum": quorum,
+                        "sha": (attestation or {}).get("sha")})
             except Exception as exc:
                 held.append({"file": name, "error": str(exc)[:80]})
         return {"success": True, "staged": len(candidates),

@@ -414,3 +414,241 @@ Still open: PF14/PF15 on `record_outcome`'s reflex path, the 300
 remaining signal — **PF17 = 530**. The census after this pass: PF04 1106,
 PF02 692, PF17 530, PF14 300, PF15 118, PF16 114, PF18 15, PF09 6, PF19 4,
 PF20/PF21 1/4.
+
+---
+
+## 11. Pass of 2026-09-18 — PF16 calibration, and what the backlog is made of
+
+### 11.1 PF16 was miscalibrated for protocol methods (instrument fault, not dead code)
+
+**PF16 = 119 live** on this pass, against 117 declared in a table generated
+2026-09-16, and `tests/test_mesh_wire_or_cut.py` was **red**: four findings
+(`learning_grpo:GRPOTrainer.rewards_from_elo`, `nerve:_LazyTorch.__bool__`,
+`nerve:_LazyTorch.__getattr__`, `spine_registry:route_last_at`) had no
+declaration, while two declared rows (`immune:AttestationWorm.attest_file`,
+`immune:QuarantineWorm.is_quarantined`) had been **wired by §5.6** and so no
+longer fired. The table was stale in both directions at once, which is the
+failure mode a generated table is supposed to make impossible.
+
+Six of the findings were protocol methods the interpreter invokes itself, and
+PF16's model — *does the bare name appear as a `Name` or `Attribute`?* — cannot
+see such a call **in principle**, because no correct program writes
+`obj.__repr__()`. The decisive evidence:
+
+| finding | why the flag is wrong |
+|---|---|
+| `nerve:_LazyTorch.__bool__` | `bool(_torch)` is called at **four** sites in the same file (L162, 206, 220, 239) |
+| `nerve:_LazyTorch.__getattr__` | `_torch.xpu`, `_torch.Generator`, `_torch.nn` all dispatch through it |
+| `race_detector:_TracedLock.__getattr__` | delegation proxy; every undecorated attribute access routes through it |
+| `NeuralPipeline.__repr__`, `arena:Environment.__repr__`, `morph:Genome.__repr__` | reached by `repr()` and by every debugger/log renderer |
+
+Calibrated with an explicit `PROTOCOL_METHODS` name-set rather than silenced by
+inventing callers, because adding a call site to satisfy a probe is exactly the
+anti-pattern this table exists to prevent. PF16 fell **119 → 113**; no
+non-protocol finding changed. Three tests hold it, including one that reads
+`nerve.py` and fails if `bool(_torch)` ever disappears — because the exemption
+is only honest while the method is genuinely invoked.
+
+`PF17` has the same blind spot and was **deliberately left alone**: it is a
+coverage *signal*, not a disposition, and moving two probes in one pass would
+make the census diff unattributable.
+
+### 11.2 B6 fixed — and it was two defects, not one
+
+`synapse:MoEDispatcherWorm.dispatch_cascade` had no caller, so neither half of
+B6 had ever executed:
+
+1. **Crash.** `answer` is bound only on a *successful* attempt, but the
+   below-threshold fall-through read it unconditionally. Every resolvable expert
+   raising therefore produced `UnboundLocalError` — on the one path the
+   "best effort" behaviour was written for.
+2. **False claim.** The `best_effort_last_expert` note asserted the last expert
+   *tried*. After the loop `name` is merely whatever was ranked last, which is
+   unrelated to which attempt scored best.
+
+Fixed to return `{"success": False, "error": "all_experts_failed"}` when no
+attempt produced an answer, and otherwise to report the **highest-confidence**
+attempt as `best_effort_best_expert`. Both halves are pinned by regression tests
+in `tests/test_spine_mesh.py`.
+
+### 11.3 The disposition backlog is 32/166, and it is a class problem
+
+> **Refreshed 2026-09-18.** The 21/91 split below was measured against the
+> pre-calibration 113. The current census (`--verdict`) is **166 findings**, and
+> `tools/nature_integration_map.py` splits them four ways. The two rows that
+> matter are the first two; `module_level` and `unresolved` are not class
+> problems at all.
+
+Applying §3's legitimate-service test to all 166 findings separates two very
+different jobs, and this is the measured answer to "wire the mesh":
+
+| category | count | what wiring it would take |
+|---|---|---|
+| class **reachable** in production, method not called | **32** | a real call at an existing site — a bounded, local change |
+| class **never referenced outside its own module** | **93** | the *class* must first become reachable |
+| module-level function (no class in the qualname) | 35 | per-function decision |
+| unregistered and unreferenced | 6 | nothing declares a contract for them |
+| protocol methods (calibrated out in §11.1) | 6 | done in that pass |
+
+Owner assignment is derived, not invented: each finding is grouped by the stage
+whose nature declares it `requires` what the finding's nature `emits`
+(`NATURE_DEFINITIONS`). Current grouping: orchestration 17, optimization 13,
+visualization 10, analysis 9, monitor 8, security 7, defense 6, immune 5,
+learning 1.
+
+Twenty of the 21 have a production referrer today (`spine.py` for
+`SplitBrainResolverWorm.report_fork`, `FederatedAggregatorWorm.run_round`,
+`RewardShaperMeshWorm.local_score` and `MeshRouterWorm.invalidate_route`;
+`CROSS_NATURE_ROUTER.py` for `MoEDispatcherWorm.top_expert`; the training scripts
+for `EvolutionEngine.get_generation_history` and
+`GRPOTrainer.rewards_from_elo`). The twenty-first,
+`NeuralPipeline.replay_failed`, is referenced nowhere, not even by a test.
+
+The remaining **91 are the §3 orphan surface**: `NatureCluster.execute()`
+constructs each registered worm and calls its zero-arg `execute()`, so the class
+runs and returns a counter report while the capability never does. Wiring a
+method on one of those classes changes nothing observable until the class itself
+has a consumer, which is why "wire 100%" is an **integration** task (make 35
+orphan classes reachable) and not a wiring task. `pending` is the correct status
+for them in the meantime, and the count is published precisely so this stays
+visible instead of being read as zero.
+
+The designed route out already exists: §5.1's `BlackQueenWorm` names this table
+as its consumer, and `GrayQueenWorm` supplies the candidates. `GrayQueenWorm`
+has now been pointed at them: `detect(persist=True)` reports
+`current=166, previous=174, new=0, resolved=8, entrenched=158` -- the 8
+resolved are the real call sites wired on 2026-09-18 (§12.5), and the 158
+entrenched are the rows the PF16 calibration left visible. This is the delta
+being reported by the mechanism's own consumer rather than by hand.
+
+---
+
+## §12. Instrument validation and the stale-artifact audit (2026-09-18)
+
+Applying "this should be able to fix all of this" to the machinery itself found
+that four of the numbers the machinery acts on were wrong, and that the two
+consumers of the census had never been pointed at it.
+
+### 12.1 The comparator could not tell a duplicate from a coincidence
+
+`DedupAnalyzer` scored worm pairs by Jaccard over method-name sets.
+`Jaccard({x}, {x})` is **1.0**, so any two worms sharing a single generic verb
+scored `exact_signature` at 1.0 -- and `execute` alone is the whole compared
+method set for **86 of 202** worms (`get_summary` 36 more, `scan` 35,
+`get_status` 7). Measured on the live fleet: of 6105 pairs, **1529 reached the
+threshold and 1529 were rejected by the calibration -- every one a false
+positive.** The consumer is the retirement decision, and it proposed retiring
+**35 worms including `EvolutionEngine`, `DreamingModule`, `GeneticOptimizer`
+and `HypnagogicSynthesizer`**.
+
+Fixed by making a name-level match necessary but not sufficient:
+`UNIVERSAL_METHODS` (interface, not capability), `MIN_DISTINCTIVE_SHARED`
+(distinctive support), and `MIN_IMPLEMENTATION_SIMILARITY` (the bodies' own
+identifier/string/number vocabulary must agree). Candidates: **35 -> 0**.
+
+`DedupAnalyzer.self_check()` now validates the comparator on control pairs whose
+answer is known -- `interface_only` and `same_name_different_work` must NOT
+match, `genuine_twins` MUST match at 1.0 -- and `BlackQueenWorm.propose()`
+fails closed when it cannot be validated. A control that cannot run is a
+failure, not a pass.
+
+### 12.2 The registry cache was serving half a fleet
+
+`~/.azazael/worm_registry_cache.pkl` held **111 worms across 24 categories**
+while a real scan registers **229 across 35**. It loaded as fresh, so the fleet
+came up missing `axon`, `dendrite`, `glia`, `envmesh`, `ml` and `network` with
+nothing reporting a problem -- and every consumer inherited it, the queens and
+this census included.
+
+Three separate holes:
+
+1. **Freshness was mtime-only.** A registry built from unchanged sources is
+   self-consistently "fresh". `_registry_fingerprint()` (content md5 over
+   `_REGISTRY_SOURCE_FILES`) now closes it -- the contract
+   `test_worm_registry_cache_freshness.py` specified on 09-14 and which had
+   **never been implemented** (6 tests red, `_registry_fingerprint` absent).
+2. **Currency was mistaken for safety.** `save_cache` now records
+   `_coverage = {declared_on_disk, registered, excluded_unpicklable, complete}`
+   and `_load_cache_readonly` refuses a cache that cannot represent the
+   registry, however current it is.
+3. **A swallowed exception produced the staleness.** `save_cache` did a bare
+   `pickle.dump`, so one unpicklable entry raised `PicklingError`; the caller
+   treated that as non-fatal (`except Exception: pass`) and the cache silently
+   kept the registry it held BEFORE. Unpicklable entries are now excluded
+   per-entry and reported, and a failed save is logged.
+
+### 12.3 Counts the calibration changed
+
+The honest denominator for "wire the mesh" is **166**, not 117/119/112/174:
+117 was a stale table, 6 were protocol methods no correct program calls
+implicitly (`_LazyTorch.__bool__` was flagged while `bool(_torch)` is called at
+four sites in the same file), **62 were counted as production-reachable only
+because a test mentioned them** -- the probe's own docstring promised "names
+used outside tests" and never returned it -- and 8 fell to real call sites
+wired on 2026-09-18 (§12.5). The full derivation is reproducible in one command:
+`python tools/mesh_function_preflight.py --verdict` then
+`python tools/nature_integration_map.py`.
+
+### 12.4 Also fixed this pass
+
+* **B6, both halves.** Nothing had ever called `dispatch_cascade`, so neither
+  defect had executed: an `UnboundLocalError` on the documented "best effort"
+  path, and a note asserting a selection the code never performed (it named the
+  last-ranked expert, not the highest-confidence attempt).
+
+### 12.5 Correction to §11, and one wiring that closed a real defect
+
+§11 says "twenty of the 21 have a production referrer today (`spine.py` for
+`SplitBrainResolverWorm.report_fork`, `FederatedAggregatorWorm.run_round`,
+`RewardShaperMeshWorm.local_score` and `MeshRouterWorm.invalidate_route` ...)".
+**That was wrong, and the error was the same one PF16 had.** Re-measured with
+`src/tests/` excluded (a test reference is not a production consumer):
+
+| | count |
+|---|---|
+| findings on a class WITH a production referrer | 39, across 25 classes |
+| findings on a class with NO production referrer | 100, across 61 classes |
+| findings with no class in the qualname (module-level) | 35 |
+
+Those "referrers" are references to the **class** -- an import, an
+instantiation -- not to the method. `spine.py` imports and constructs
+`SplitBrainResolverWorm` and then calls `resolve()`; it never called
+`report_fork`, which is exactly why `report_fork` was `pending`.
+
+**And that made the stage structurally incapable of working.** `resolve()` reads
+`self._forks[model]` and answers `{"resolved": False, "reason": "no_forks"}`
+when the box is empty. `report_fork()` is the only writer, and it had no caller
+in the tree -- and `spine.py` built a fresh resolver each cycle, so `_forks` was
+empty every time. The model-fork stage therefore reported `no_forks` for every
+fork, every cycle, which reads as "there was nothing to resolve" rather than
+"the input was never fed in". That is defect B8's shape again: a claimed control
+that is not in the control path.
+
+Fixed by reporting each fork before resolving it -- the tuple the stage already
+unpacks is exactly `report_fork`'s signature -- and by publishing
+`forks_resolved` so a stage that resolves zero is visible instead of looking
+like a clean cycle. Verified:
+
+```
+before: {'success': True, 'model': 'm1', 'resolved': False, 'reason': 'no_forks'}
+after : {'success': True, 'model': 'm1', 'resolved': True,
+         'winner': {'env': 'wsl2-ubuntu', 'reward': 0.9, 'hash': 'h1'}, 'dropped': 1}
+```
+
+130 passed across the four fabric test files afterwards.
+
+The remaining 38 findings on reachable classes are NOT a mechanical wiring job:
+each needs a per-site decision about which stage genuinely consumes the value,
+and adding a caller that nothing reads is decoration, which is the anti-pattern
+the provider review named. They stay `pending` until that decision is made per
+method.
+
+### 12.6 Still open, with the reason
+
+The **91 findings on classes nothing instantiates** remain `pending`, and that
+is the correct status: `NatureCluster.execute()` constructs every registered
+worm and calls its zero-arg `execute()`, so the class runs and returns a counter
+while the capability never does. Adding a caller to a method on a class nobody
+instantiates changes nothing observable. This is the §3 orphan surface -- an
+integration problem (make the classes reachable), not a wiring one. No call
+sites were fabricated to make the probe green.
