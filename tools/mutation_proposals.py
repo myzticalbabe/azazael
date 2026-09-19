@@ -33,7 +33,9 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCES = ("NEURAL_MESH_WIRE_OR_CUT.json", "NEURAL_MESH_INTEGRATION_MAP.json")
+WIRE_NAME = "NEURAL_MESH_WIRE_OR_CUT.json"
+MAP_NAME = "NEURAL_MESH_INTEGRATION_MAP.json"
+SOURCES = (WIRE_NAME, MAP_NAME)
 QUEUE = ROOT / "logs" / "mutation_queue.jsonl"
 
 NAME_KEYS = ("function", "name", "func", "qualname", "symbol", "id")
@@ -53,7 +55,17 @@ def _pick(row: dict, keys: Iterable[str], default: str = "") -> str:
 
 
 def _looks_like_id(key: Any) -> bool:
-    return isinstance(key, str) and ":" in key and "." in key
+    """Is this dict key an identity, or is it metadata?
+
+    The first version required BOTH ':' and '.', which silently dropped the 35
+    `module_level` findings: those are keyed by module path, not by
+    `nature:Class.method`, so they never reached a proposal row at all and the
+    control showed a bucket that could not be matched. A findings block is keyed
+    by identity throughout, so paths and dotted names count too.
+    """
+    if not isinstance(key, str) or not key.strip():
+        return False
+    return any(sep in key for sep in (":", ".", "/", "\\"))
 
 
 def _id_keyed(obj: Any, path: str = "") -> list[tuple[str, dict]]:
@@ -108,25 +120,54 @@ def _walk_ids(val: Any) -> list[tuple[str, Any]]:
     return found
 
 
-def _dispositions() -> dict[str, dict]:
-    """id -> disposition, joined from the integration map.
+DISPOSITION_KEYS = ("disposition", "verdict", "status", "resolution",
+                    "action", "decision", "state")
 
-    The map keeps its buckets (unresolved, wire_at_site, integrate_via_stage,
-    module_level) separate from the findings themselves, so the queue needs a
-    join. Without it all 428 rows read "review" and the queue could not say
-    which findings are actionable -- a queue that cannot prioritise is a list.
+
+def _counts() -> dict[str, int]:
+    """The map's disposition buckets, used as a CONTROL rather than an input.
+
+    Measured 2026-09-18: they are integers -- {"unresolved": int,
+    "wire_at_site": int, ...}. There is no id -> disposition mapping in that
+    block at all, which is why the first join missed every row and all 428 read
+    "review". They still earn their place: the histogram this file derives has
+    to agree with them, and if it does not, the join is wrong and the control
+    says so instead of the queue quietly lying.
     """
-    src = ROOT / "NEURAL_MESH_INTEGRATION_MAP.json"
-    out: dict[str, dict] = {}
+    doc = _load(MAP_NAME)
+    return {k: v for k, v in (doc.get("dispositions") or {}).items()
+            if isinstance(v, int)}
+
+
+def _load(name: str) -> dict:
+    src = ROOT / name
     if not src.is_file():
-        return out
+        return {}
     try:
         doc = json.loads(src.read_text(encoding="utf-8", errors="replace"))
     except ValueError:
-        return out
-    for bucket, val in (doc.get("dispositions") or {}).items():
-        for ident, payload in _walk_ids(val):
-            out[ident] = {"disposition": bucket, "payload": payload}
+        return {}
+    return doc if isinstance(doc, dict) else {}
+
+
+def _dispositions() -> dict[str, str]:
+    """id -> disposition, read from the finding payloads themselves.
+
+    The buckets are counts, so the per-finding disposition has to come from the
+    finding. Without it every row reads "review" and the queue cannot say which
+    findings are actionable -- and a queue that cannot prioritise is a list.
+    """
+    out: dict[str, str] = {}
+    for name, field in ((MAP_NAME, "findings"), (WIRE_NAME, "declared")):
+        for ident, payload in (_load(name).get(field) or {}).items():
+            if not _looks_like_id(ident):
+                continue
+            if isinstance(payload, dict):
+                found = _pick(payload, DISPOSITION_KEYS)
+                if found:
+                    out[ident] = found.lower()
+            elif isinstance(payload, str) and payload.strip():
+                out[ident] = payload.strip().lower()
     return out
 
 
@@ -161,11 +202,22 @@ def build() -> list[dict]:
                              _pick(row, VERDICT_KEYS, "unstated").lower(), row))
 
         for ident, symbol, nature, verdict, detail in rows:
-            joined = disp.get(ident)
+            # Disposition resolution, in order of trust. The row's OWN evidence
+            # payload is read first: it demonstrably carries 'disposition'
+            # (measured on a real finding), and two earlier attempts that relied
+            # on the id-keyed join alone produced 428/428 "review" while the
+            # control showed declared={wire_at_site: 33, integrate_via_stage: 92,
+            # ...} -- so the join was not reaching these rows. Reading the
+            # payload the row was built from cannot miss for that reason.
+            joined = None
+            evidence = detail.get("evidence")
+            if isinstance(evidence, dict):
+                joined = _pick(evidence, DISPOSITION_KEYS)
+            if not joined:
+                joined = disp.get(ident)
             if joined:
-                verdict = joined["disposition"].lower()
-                detail = {"target": detail.get("target"),
-                          "disposition": joined["disposition"],
+                verdict = joined.lower()
+                detail = {"target": detail.get("target"), "disposition": verdict,
                           "declared": detail}
             # cut before wire: a verdict can carry both words, and retiring is
             # the decision that must not be softened into a rewiring proposal.
@@ -198,9 +250,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     rows = build()
     by_action = Counter(r["proposed_action"] for r in rows)
     by_nature = Counter(r["nature"] for r in rows)
+    declared = _counts()
+    derived = Counter(r["verdict"] for r in rows if r["verdict"] in declared)
     summary = {"proposals": len(rows),
                "by_action": dict(by_action),
                "by_nature": dict(by_nature.most_common(12)),
+               "control_declared": declared,
+               "control_derived": dict(derived),
+               "control_match": bool(declared) and dict(derived) == declared,
                "generated": datetime.now(timezone.utc).isoformat()}
 
     if not args.summary:
@@ -218,6 +275,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     for action, n in by_action.most_common():
         print("  %-8s %d" % (action, n))
     print("  top natures: %s" % dict(by_nature.most_common(6)))
+    print("  control: declared=%s" % declared)
+    print("           derived =%s" % dict(derived))
     if not args.summary:
         print("queue: %s" % args.out)
         print("work it with: python tools/self_modify.py --patch <patch>")
