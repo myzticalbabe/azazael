@@ -96,6 +96,13 @@ graphify-out/
 native/*/target/
 target/
 
+# Cold store -- retired graph snapshots and oversized artifacts moved out of the
+# working tree by `tools/fs_hygiene.py --kinds graph-snapshots --execute`.
+# Regenerable, and it must never be committed. Same reasoning as graphify-out/
+# above: it is a snapshot of the graph, not a source of truth. Kept ignored
+# because fs_hygiene recreates var/cold on any future compaction.
+var/
+
 # Diagnostic dumps (regenerable, keep on disk)
 pyright_*.txt
 _pyright_*.txt
