@@ -279,7 +279,7 @@ class NetworkCrawler(SystemCrawler):
             {
                 "type": "connections",
                 "count": len(connections),
-                "connections": connections[:100],
+                "connections": connections[:800],
             }
         )
 

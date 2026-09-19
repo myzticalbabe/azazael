@@ -186,9 +186,26 @@ class LeaderElectorWorm:
         import json as _json
         import os as _os
         try:
-            assign = _json.load(open(path, encoding="utf-8"))
+            from CORE.fs_probe import bounded_read_text
+        except Exception:  # pragma: no cover - probe helper optional
+            def bounded_read_text(p, timeout_s=5.0, label="fs-read"):  # type: ignore
+                try:
+                    return open(p, encoding="utf-8").read()
+                except Exception:
+                    return None
+        # Bounded read. The default `path` lives on G:, and against an
+        # unreachable mount a bare `open()` blocks inside the syscall for
+        # minutes -- long enough to hang the whole fabric cycle, which is
+        # exactly what happened (hang #4). None means "no answer in time",
+        # and that is reported as unreadable rather than retried blindly.
+        raw = bounded_read_text(path)
+        if raw is None:
+            return {"success": False,
+                    "error": "placement unreadable: probe timed out"}
+        try:
+            assign = _json.loads(raw)
         except Exception as exc:
-            return {"success": False, "error": f"placement unreadable: {str(exc)[:100]}"}
+            return {"success": False, "error": f"placement unreadable: {str(exc)[:800]}"}
         remapped = {}
         try:
             from CORE.WORMS.expansion.envmesh import BarePassthroughWorm

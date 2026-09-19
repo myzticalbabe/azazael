@@ -268,7 +268,7 @@ class PlatformHealthMonitor:
             try:
                 importlib.import_module(pkg.replace("-", "_"))
             except Exception as e:
-                errors.append(f"{pkg}: {str(e)[:100]}")
+                errors.append(f"{pkg}: {str(e)[:800]}")
 
         if errors:
             return HealthCheck(

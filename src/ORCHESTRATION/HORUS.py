@@ -580,7 +580,7 @@ def run_ml_analysis(cluster: Any = None) -> HORUSOutput:
                 if '"""' in content:
                     lines = content.split('"""')
                     if len(lines) >= 2:
-                        docstring = lines[1].strip().split("\n")[0][:100]
+                        docstring = lines[1].strip().split("\n")[0][:800]
                 functions = [l.strip() for l in content.split("\n") if l.strip().startswith("def ")]
                 classes = [l.strip() for l in content.split("\n") if l.strip().startswith("class ")]
                 modules[rel] = {
@@ -626,7 +626,7 @@ def run_ml_analysis(cluster: Any = None) -> HORUSOutput:
                 module=info["name"],
                 group=group,
                 status=status,
-                message=(info.get("docstring") or "No description")[:100],
+                message=(info.get("docstring") or "No description")[:800],
                 metrics={
                     "functions": len(info.get("functions", [])),
                     "classes": len(info.get("classes", [])),

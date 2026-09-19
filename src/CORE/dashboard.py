@@ -632,7 +632,7 @@ def render_db_health():
     if real["errors"]:
         render_subheader("Recent real errors")
         for e in real["errors"][:5]:
-            data_preview = str(e.get("data", ""))[:100]
+            data_preview = str(e.get("data", ""))[:800]
             ts = str(e.get("timestamp", ""))[:19]
             print(f"  [{ts}] {e['source']} / {e['event_type']}")
             print(f"       {data_preview}")

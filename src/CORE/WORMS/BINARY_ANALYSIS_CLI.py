@@ -103,7 +103,7 @@ def main():
         if args.json:
             print(json.dumps([s.__dict__ for s in syms], indent=2))
         else:
-            for s in syms[:100]:
+            for s in syms[:800]:
                 addr = f"{s.address:016X}" if s.address else "        U"
                 print(f"{addr} {s.symbol_type} {s.name}")
     elif args.command == "objdump":

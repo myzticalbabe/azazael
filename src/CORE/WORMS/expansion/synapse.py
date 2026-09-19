@@ -265,7 +265,8 @@ class MoEDispatcherWorm:
         learns which expert handles what. Returns answer + trail.
         """
         ranked = self.dispatch(prompt_len, needs_vision).get("experts") or []
-        trail = []
+        trail: list[dict[str, Any]] = []
+        best: dict[str, Any] | None = None
         for name in ranked:
             inst = self.get_expert(name)
             if inst is None:
@@ -275,7 +276,7 @@ class MoEDispatcherWorm:
                 conf = 0.0 if conf is None else float(conf)
             except Exception as e:
                 self.feedback(name, -1.0)
-                trail.append({"expert": name, "error": str(e)[:100]})
+                trail.append({"expert": name, "error": str(e)[:800]})
                 continue
             ok = conf >= float(threshold)
             self.feedback(name, 1.0 if ok else -0.5)
@@ -284,11 +285,27 @@ class MoEDispatcherWorm:
             if ok:
                 return {"success": True, "answer": answer, "via": name,
                         "escalations": len(trail) - 1, "trail": trail}
+            if best is None or conf > best["confidence"]:
+                best = {"expert": name, "answer": answer, "confidence": conf}
         if not trail:
             return {"success": False, "error": "no_resolvable_experts"}
-        return {"success": True, "answer": answer, "via": name,
+        if best is None:
+            # Every resolvable expert raised. The previous revision fell through
+            # to a return that read `answer`, which is never bound on this path,
+            # so the documented "best effort" outcome was an UnboundLocalError
+            # (audit 2026-09-16, B6). A trial that produced no answer is a
+            # failure, not a best effort.
+            return {"success": False, "error": "all_experts_failed",
+                    "escalations": len(trail) - 1, "trail": trail}
+        # Below-threshold fallback reports the HIGHEST-confidence attempt, not
+        # the last one tried: `name` after the loop is merely whichever expert
+        # happened to be ranked last, which the old `best_effort_last_expert`
+        # note asserted but did not deliver (B6, second half).
+        return {"success": True, "answer": best["answer"],
+                "via": best["expert"],
                 "escalations": len(trail) - 1, "trail": trail,
-                "note": "best_effort_last_expert"}
+                "below_threshold": round(best["confidence"], 3),
+                "note": "best_effort_best_expert"}
 
     def feedback(self, expert: str, reward: float) -> None:
         """Report an expert outcome; updates the local score AND the Q-table."""

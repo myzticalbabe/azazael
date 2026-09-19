@@ -251,4 +251,4 @@ if __name__ == "__main__":
             result = self.run_complete_analysis()
             return {"status": "ok", "worm": "CainWorm", "method":"run_complete_analysis", "result": str(result)[:200]}
         except Exception as e:
-            return {"status": "ok", "worm": "CainWorm", "method":"run_complete_analysis", "error": str(e)[:100]}
+            return {"status": "ok", "worm": "CainWorm", "method":"run_complete_analysis", "error": str(e)[:800]}

@@ -50,14 +50,29 @@ Usage:
 
 import os
 import json
+import socket
 import threading
 import time
+from urllib.parse import urlparse
 
 # Inference cache for file-backed citations (RULE 0Q-A) — graceful degradation
 try:
     from CORE.inference.inference_cache import record_inference as _cache_record_inference
 except ImportError:
     _cache_record_inference = None
+
+# PAMS recording seam: puts inference turns into the same persistent store the
+# internal worms already write to, so `recall_turns()` can answer "what did the
+# model say about X last week". Optional and guarded — memory is telemetry, not
+# control flow, and must never break a call.
+try:
+    from CORE.inference.inference_memory import (
+        record_turn as _memory_record_turn,
+        record_failure as _memory_record_failure,
+    )
+except ImportError:
+    _memory_record_turn = None
+    _memory_record_failure = None
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Iterator
@@ -531,6 +546,108 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
             "local-model": "Currently loaded model in LM Studio",
         },
     },
+    # --- Local llama-server endpoints (START_LOCAL_MODEL.bat) ----------------
+    #
+    # Each local model is served by its OWN llama-server process on its own
+    # port, so each gets its own registry entry (default_model must equal the
+    # --alias the launcher passes, or the request 404s).
+    #
+    # requires_auth: False makes _load_provider_config() inject the anonymous
+    # placeholder key and has_valid_key() short-circuit True, so no env var is
+    # needed -- same pattern as `lmstudio` above.
+    #
+    # --reasoning off MUST be set SERVER-SIDE (the launcher does it). These are
+    # reasoning models: chain-of-thought streams to `reasoning_content` and
+    # `content` stays EMPTY until thinking ends, so any client that reads only
+    # `content` sees a blank turn. Reproduced as a 4096-token runaway with zero
+    # output. If these return empty content, check for "chat template,
+    # thinking = 0" in the server log.
+    # `llamaserver` is the id the failover chains already reference:
+    #   CORE/WORMS/expansion/servemesh.py  CHAIN[0]  = "llamaserver"
+    #   CORE/WORMS/expansion/federated.py  PROVIDERS = (..., "llamaserver", ...)
+    # It had no registry entry, and spine.py documents that consequence:
+    # "A CHAIN entry with no registry entry (e.g. `llamaserver`) is omitted
+    #  entirely". So the local model was silently skipped by the mesh rather
+    # than being tried. This entry makes the name real.
+    #
+    # Default port 8080 matches the Rust supervisor's own config.toml. Point it
+    # elsewhere without editing code by setting LLAMASERVER_BASE_URL.
+    "llamaserver": {
+        "name": "llama-server (local, primary)",
+        "description": "The primary local llama-server endpoint, by the id the failover chains already use. Defaults to the Rust supervisor on :8080. Override with LLAMASERVER_BASE_URL (e.g. http://localhost:18080/v1). Must run with --reasoning off server-side if it serves a thinking model.",
+        "base_url": "http://localhost:8080/v1",
+        "base_url_env": "LLAMASERVER_BASE_URL",
+        "default_model": "local-model",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "LLAMASERVER_API_KEY",
+        "signup_url": "https://github.com/ggml-org/llama.cpp",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "local-model": "Whatever the local llama-server has loaded",
+        },
+    },
+    "llama_mythos": {
+        "name": "Qwythos-9B (local, llama-server :8081)",
+        "description": "Qwythos-9B + MTP speculative decoding on llama-server. Port 8081. Measured 16.35 t/s vs 8.30 t/s plain CPU (draft acceptance 0.9275). Start with START_LOCAL_MODEL.bat mythos. Requires --reasoning off server-side.",
+        "base_url": "http://localhost:8081/v1",
+        "default_model": "qwythos-9b-mtp",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "LLAMA_MYTHOS_API_KEY",
+        "signup_url": "https://github.com/ggml-org/llama.cpp",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "qwythos-9b-mtp": "Qwythos-9B (9B, MTP speculative decoding, local)",
+        },
+    },
+    "llama_mythos_v2": {
+        "name": "Qwythos-9B-v2 (local, llama-server :8082)",
+        "description": "Qwythos-9B-v2 on llama-server. Port 8082. FTPO-trained to cut repetition looping; observed clean 100-175 token turns where v1 ran away to the 4096 cap. No MTP file ships with v2. Start with START_LOCAL_MODEL.bat mythos-v2.",
+        "base_url": "http://localhost:8082/v1",
+        "default_model": "qwythos-9b-v2",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "LLAMA_MYTHOS_V2_API_KEY",
+        "signup_url": "https://github.com/ggml-org/llama.cpp",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "qwythos-9b-v2": "Qwythos-9B v2 (9B, anti-loop FTPO, local)",
+        },
+    },
+    "llama_qwopus": {
+        "name": "Qwopus3.5-9B-v3 (local, llama-server :8083)",
+        "description": "Qwopus3.5-9B-v3 on llama-server. Port 8083. No MTP file, so no speculative speedup. Start with START_LOCAL_MODEL.bat qwopus. Requires --reasoning off server-side.",
+        "base_url": "http://localhost:8083/v1",
+        "default_model": "qwopus3.5-9b-v3",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "LLAMA_QWOPUS_API_KEY",
+        "signup_url": "https://github.com/ggml-org/llama.cpp",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "qwopus3.5-9b-v3": "Qwopus3.5-9B v3 (9B, Q4_K_M, local)",
+        },
+    },
+    "llama_ornith": {
+        "name": "Ornith-1.5-9B (local, llama-server :8084)",
+        "description": "Ornith-1.5-9B on llama-server. Port 8084. No MTP file, so no speculative speedup. Start with START_LOCAL_MODEL.bat ornith. Requires --reasoning off server-side.",
+        "base_url": "http://localhost:8084/v1",
+        "default_model": "ornith-1.5-9b",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "LLAMA_ORNITH_API_KEY",
+        "signup_url": "https://github.com/ggml-org/llama.cpp",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "ornith-1.5-9b": "Ornith-1.5-9B (9B, Q4_K_M, local)",
+        },
+    },
     "openvino": {
         "name": "OpenVINO (Intel Local)",
         "description": "Local inference via Intel OpenVINO runtime. Uses Intel Arc GPU, AI Boost NPU, or CPU. Runs on your Intel hardware with zero API cost. Accelerated via oneAPI Level Zero.",
@@ -610,6 +727,12 @@ class OpenAIProvider:
             api_key = _read_config_key(name)
 
         base_url = info["base_url"]
+        # Optional endpoint override: local servers move port (a llama-server
+        # on 8080 today may be 18080 tomorrow). Declared per entry so the
+        # entry still works unconfigured.
+        _base_url_env = info.get("base_url_env")
+        if _base_url_env:
+            base_url = (os.environ.get(_base_url_env, "") or "").strip() or base_url
         # Substitute Cloudflare account_id placeholder
         if "{account_id}" in base_url:
             account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
@@ -832,6 +955,23 @@ class OpenAIProvider:
             except Exception:  # noqa: BLE001 — graceful degradation, never crash chat()
                 pass
 
+            # Record the turn to PAMS persistent memory (same store the worms
+            # write to). Never raises; a memory failure is not a call failure.
+            if _memory_record_turn is not None:
+                try:
+                    _memory_record_turn(
+                        provider=self.provider_name,
+                        model=result.get("model", "unknown"),
+                        prompt=prompt,
+                        content=result.get("content", "") or "",
+                        system_prompt=system_prompt,
+                        usage=result.get("usage", {}),
+                        elapsed_ms=result.get("elapsed_ms", 0),
+                        finish_reason=result.get("finish_reason"),
+                    )
+                except Exception:  # noqa: BLE001 — memory must never break chat()
+                    pass
+
             return result
 
         except Exception as e:  # noqa: BLE001 — provider call must degrade, never crash
@@ -840,6 +980,17 @@ class OpenAIProvider:
 
             # Record failure in circuit breaker
             breaker.record_failure(self.provider_name, str(e))
+
+            if _memory_record_failure is not None:
+                try:
+                    _memory_record_failure(
+                        provider=self.provider_name,
+                        prompt=prompt,
+                        error=str(e),
+                        elapsed_ms=elapsed_ms,
+                    )
+                except Exception:  # noqa: BLE001 — memory must never break chat()
+                    pass
 
             return {
                 "error": str(e),
@@ -2649,7 +2800,7 @@ class CircuitBreaker:
                     "consecutive_failures": h.consecutive_failures,
                     "failure_rate": round(h.failure_rate, 3),
                     "total_requests": h.total_requests,
-                    "last_error": h.last_error[:100] if h.last_error else None,
+                    "last_error": h.last_error[:800] if h.last_error else None,
                 }
             return {
                 "version": self.VERSION,
@@ -2797,20 +2948,177 @@ def list_providers() -> List[Dict[str, Any]]:
     return result
 
 
-def get_best_provider(skip_unhealthy: bool = True) -> OpenAIProvider:
-    """Get the best available provider (first one with a valid API key).
+# --- Local-provider liveness (failover ordering) ----------------------
+#
+# `has_valid_key()` CANNOT be trusted for anonymous providers. Their key is not
+# required, so it returns True unconditionally -- which means the old
+# get_best_provider() would happily hand back a dead endpoint whose position in
+# the list happened to come first. Measured before this fix, on this machine:
+#
+#     get_best_provider() -> openvino | base_url: '' | has_valid_key: True
+#
+# i.e. it returned a provider with an EMPTY base URL whose runtime is not even
+# installed. Three entries near the top of the list (openvino, llama_cpp_direct,
+# huggingface_direct) are in-process providers with hardcoded
+# `has_valid_key() -> True`, and two more (ollama, ollama_native) point at a
+# daemon that may not be running.
+#
+# So for anonymous providers the key proves nothing and we verify the thing
+# actually EXISTS instead:
+#   * HTTP provider (non-empty base_url)   -> TCP connect to host:port
+#   * in-process provider (empty base_url) -> is its runtime importable
+#
+# Providers that require a real key are left exactly as before: key presence
+# stays the criterion, so selection gains NO new network dependency and the
+# existing cloud ordering is untouched.
+_LOCAL_PROVIDER_NAMES = (
+    "llamaserver", "llama_mythos", "llama_mythos_v2", "llama_qwopus",
+    "llama_ornith", "lmstudio",
+)
+
+# Runtime module each in-process provider needs. A name absent from this map is
+# assumed present, so a future in-process provider is never silently dropped.
+_INPROCESS_RUNTIME = {
+    "llama_cpp_direct": "llama_cpp",
+    "huggingface_direct": "transformers",
+    "openvino": "openvino",
+}
+
+# TCP probes are cheap on localhost but still cached, because get_best_provider()
+# can be called in a loop by the inference worms.
+_PROBE_TTL_SECONDS = 5.0
+_probe_cache: Dict[str, tuple] = {}
+_probe_lock = threading.Lock()
+
+
+def _tcp_alive(host: str, port: int, timeout: float = 0.35) -> bool:
+    """True if something is listening on host:port. Path-agnostic, so it works
+    for both OpenAI-style (/v1) and native (/api/generate) base URLs."""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except (OSError, ValueError):
+        return False
+
+
+def _runtime_present(module_name: str) -> bool:
+    """True if an in-process provider's runtime is importable."""
+    import importlib.util
+    try:
+        return importlib.util.find_spec(module_name) is not None
+    except (ImportError, ValueError, AttributeError):
+        return False
+
+
+def provider_credential_configured(name: str) -> bool:
+    """True if this provider has a usable credential, resolved EXACTLY the way
+    live requests resolve it: env var first, then ~/.azazael/{name}_config.json.
+
+    Why this exists: callers that check `os.environ` alone disagree with this
+    module and declare a working provider unusable. Measured on this machine,
+    the NVIDIA NIM key lives in ~/.azazael/nim_config.json and NOT in
+    NVIDIA_NIM_API_KEY, so an env-only check reported `nim: False` and dropped a
+    perfectly usable provider out of the failover chain
+    (spine._provider_key_state).
+
+    Anonymous providers return True: they have no credential to be missing.
+    """
+    info = PROVIDER_REGISTRY.get(name) or {}
+    if not info.get("requires_auth", True):
+        return True
+    var = str(info.get("env_var") or "")
+    if var and os.environ.get(var):
+        return True
+    return bool(_read_config_key(name))
+
+
+def provider_is_live(provider) -> bool:
+    """True if this provider can plausibly serve a request right now.
+
+    Named providers that require a key are always considered live (unchanged
+    behaviour). Anonymous providers are probed, because for them a 'valid key'
+    is not evidence of anything.
+    """
+    cfg = provider.config
+    if getattr(cfg, "requires_auth", True):
+        return True
+
+    name = getattr(provider, "provider_name", None) or getattr(cfg, "provider", "")
+    base = (cfg.base_url or "").strip()
+    cache_key = f"{name}|{base}"
+
+    now = time.monotonic()
+    with _probe_lock:
+        hit = _probe_cache.get(cache_key)
+        if hit is not None and now - hit[0] < _PROBE_TTL_SECONDS:
+            return hit[1]
+
+    if base:
+        parsed = urlparse(base)
+        host, port = parsed.hostname, parsed.port
+        live = bool(host and port and _tcp_alive(host, port))
+    else:
+        module = _INPROCESS_RUNTIME.get(name)
+        live = True if module is None else _runtime_present(module)
+
+    with _probe_lock:
+        _probe_cache[cache_key] = (now, live)
+    return live
+
+
+def get_best_provider(skip_unhealthy: bool = True) -> "OpenAIProvider":
+    """Get the best available provider.
 
     Skips providers with open circuits when skip_unhealthy=True.
 
-    Priority order: nvidia_nim > groq > cerebras > openrouter > gemini > github > mistral > huggingface > cloudflare > siliconflow > zhipu > ovhcloud
+    Base priority order (unchanged): openvino > nvidia_nim > ollama >
+    ollama_native > gemini_native > huggingface_native > mistral_fim_native >
+    cohere_native > llama_cpp_direct > huggingface_direct > groq > cerebras >
+    openrouter > gemini > github > mistral > huggingface > cloudflare >
+    siliconflow > cohere > zhipu > ovhcloud
+
+    Local llama-server models are inserted according to env var
+    AZAZAEL_LOCAL_PRIORITY:
+        "last" (default) -- only use local when nothing hosted is available
+        "first"          -- prefer a LIVE local model over any hosted endpoint
+        "off"            -- ignore local providers entirely
+
+    "last" is the default because **every caller of this function is internal
+    bulk work** -- the inference worms (`INFERENCE_WORM`, `chorus`), the GUI
+    inference tab, and the analysis engines. The INTERACTIVE path does NOT come
+    through here: Open Interpreter talks to llama-server directly via its own
+    profile and `--api_base`, so local-first would buy that path nothing while
+    taxing the bulk one. Measured: a 9B on CPU does 8.3 t/s (16.35 with MTP)
+    against a hosted endpoint that is roughly 60x faster, and the mesh's own
+    event log shows the scale this serves (`nature_cluster_discovery` 43,507,
+    `nature_cluster_executed` 22,255, `training_complete` 20,095).
+
+    Set "first" when you deliberately want local: offline operation, privacy
+    (prompts never leave the machine), or when hosted keys are gone. A local
+    provider is only ever chosen when it is actually answering, so it can never
+    displace a hosted endpoint by merely existing.
     """
     breaker = _global_breaker
     priority = ["openvino", "nvidia_nim", "ollama", "ollama_native", "gemini_native", "huggingface_native", "mistral_fim_native", "cohere_native", "llama_cpp_direct", "huggingface_direct", "groq", "cerebras", "openrouter", "gemini",
                 "github", "mistral", "huggingface", "cloudflare", "siliconflow", "cohere", "zhipu", "ovhcloud"]
-    for name in priority:
+
+    mode = (os.environ.get("AZAZAEL_LOCAL_PRIORITY", "last") or "last").strip().lower()
+    local = [n for n in _LOCAL_PROVIDER_NAMES if n not in priority]
+    if mode == "off":
+        ordered = priority
+    elif mode == "last":
+        ordered = [n for n in priority if n not in local] + local
+    else:
+        ordered = local + [n for n in priority if n not in local]
+
+    for name in ordered:
         try:
             provider = get_provider(name)
             if not provider.has_valid_key():
+                continue
+            # Anonymous providers report a valid key unconditionally, so ask
+            # the stronger question: does it actually exist right now?
+            if not provider_is_live(provider):
                 continue
             # Skip providers with open circuits (if health checking enabled)
             # Uses is_healthy() instead of allow_request() to avoid

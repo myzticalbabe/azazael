@@ -124,7 +124,7 @@ class BerksMonitorWorm:
             rec["dns_ip"] = socket.gethostbyname(host)
             rec["dns_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         except Exception as e:
-            rec["dns_error"] = str(e)[:100]
+            rec["dns_error"] = str(e)[:800]
         # TLS cert expiry
         try:
             ctx = ssl.create_default_context()
@@ -141,7 +141,7 @@ class BerksMonitorWorm:
             except Exception:
                 rec["tls_days_left"] = None
         except Exception as e:
-            rec["tls_error"] = str(e)[:100]
+            rec["tls_error"] = str(e)[:800]
         # HTTP: HEAD first (cheap); some hosts (e.g. berkscc.org) 405
         # HEAD but serve GET fine — fall back instead of crying DOWN.
         try:

@@ -47,7 +47,7 @@ def fix_syntax_errors(errors: list[dict]) -> dict:
             original = content
 
             # Fix 1: Add encoding declaration
-            if not content.startswith("#") and any(ord(c) > 127 for c in content[:100]):
+            if not content.startswith("#") and any(ord(c) > 127 for c in content[:800]):
                 content = "# coding: utf-8\n" + content
 
             # Fix 2: Remove invalid characters

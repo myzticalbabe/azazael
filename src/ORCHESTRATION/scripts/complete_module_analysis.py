@@ -218,7 +218,7 @@ class CompleteModuleAnalyzer:
             module.errors.append(f"Syntax error at line {e.lineno}: {e.msg}")
             self.analyze_stats["syntax_errors"] += 1
         except Exception as e:
-            module.errors.append(f"Analysis error: {str(e)[:100]}")
+            module.errors.append(f"Analysis error: {str(e)[:800]}")
 
         return module
 
@@ -580,7 +580,7 @@ def main():
         for m in modules.values()
         ],
         key=lambda x: -x[2],  # Sort by size (index 2)
-        )[:100]
+        )[:800]
 
         with open("TOP_100_MODULES.txt", "w", encoding="utf-8") as f:
             f.write("TOP 100 PYTHON MODULES BY SIZE\n")

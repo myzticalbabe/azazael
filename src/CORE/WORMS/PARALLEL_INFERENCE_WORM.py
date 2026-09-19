@@ -244,7 +244,7 @@ class ParallelInferenceWorm:
 
             self._record(
                 "execute.complete",
-                {"strategy": strategy, "prompt": prompt[:100],
+                {"strategy": strategy, "prompt": prompt[:800],
                  "providers": providers, "elapsed_ms": elapsed},
                 tags=["inference", strategy],
             )
@@ -342,7 +342,7 @@ class ParallelInferenceWorm:
 
         self._record(
             "benchmark_local.start",
-            {"prompt": prompt[:100], "models": len(local_tasks),
+            {"prompt": prompt[:800], "models": len(local_tasks),
              "auto_detected_ollama": len(ollama_models)},
             tags=["benchmark", "local"],
         )
@@ -522,7 +522,7 @@ class ParallelInferenceWorm:
 
         self._record(
             "benchmark_lmstudio.start",
-            {"prompt": prompt[:100], "server_running": server_running,
+            {"prompt": prompt[:800], "server_running": server_running,
              "api_models": api_models, "disk_models": len(disk_models)},
             tags=["benchmark", "lmstudio"],
         )

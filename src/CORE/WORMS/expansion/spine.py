@@ -30,6 +30,13 @@ import threading
 from datetime import datetime
 from typing import Any
 
+# Diagnostic text cap. This was 100 characters at 30 sites in this module (90
+# repo-wide), which turned 400-character tracebacks into 100 and cut off the
+# root cause -- a constraint that negated the diagnosability the field exists
+# for. Long enough to carry a real traceback, still bounded so a pathological
+# exception cannot flood a report.
+_ERR_CAP = 800
+
 try:
     from CORE.worm_registry import (register_worm, WORM_REGISTRY,
                                     is_protected_worm, PROTECTED_NATURES)
@@ -661,7 +668,7 @@ class RedQueenWorm:
         if worker.is_alive():
             return False, ms, ("probe_timeout after %gs" % self.PROBE_TIMEOUT_S), "hung"
         if "error" in box:
-            return False, ms, str(box["error"])[:100], "raise"
+            return False, ms, str(box["error"])[:_ERR_CAP], "raise"
         r = box.get("result")
         # R3 (2026-09-16): the result must be the documented contract — a dict
         # carrying `success`. The previous default recorded a NON-dict as
@@ -672,7 +679,7 @@ class RedQueenWorm:
             got = type(r).__name__
             return False, ms, "contract_violation: execute() -> %s" % got, "contract"
         ok = bool(r.get("success"))
-        err = str(r.get("error", ""))[:100]
+        err = str(r.get("error", ""))[:_ERR_CAP]
         if not ok and not err:
             err = "execute() reported failure"
         return ok, ms, err, ("ok" if ok else "failure")
@@ -988,7 +995,7 @@ class SpineGossipWorm:
         try:
             legacy = _spine.gossip_exchange(publish=publish) or {}
         except Exception as exc:
-            legacy = {"error": str(exc)[:100]}
+            legacy = {"error": str(exc)[:_ERR_CAP]}
         merged = kademlia_merges + len(legacy.get("merges") or {})
         with self._lock:
             self._exchanges += 1
@@ -1685,6 +1692,46 @@ class SpineCycleWorm:
         self._last_run_at = now
         return False
 
+    def _self_image_stale(self) -> str:
+        """Why this process must not APPLY, if its own maps are stale.
+
+        Proprioception before authority. Every derived number this cycle acts
+        on -- the census, the wire-or-cut table, the integration map, the
+        knowledge graph -- is a map of the system, and a map older than the
+        system is a false one. The 2026-09-18 audit found four such maps being
+        acted on, so an applying cycle now has to show its self-image is
+        current first.
+
+        Observation-only cycles are always allowed: looking cannot harm, and
+        gating them would stop the very audit that decides whether applying is
+        safe. Returns "" when the self-image is current, else the reason.
+
+        Fail-closed on purpose: if the audit cannot run at all, that is
+        "cannot verify", which is not the same as "verified", so the write is
+        refused and the reason names what was missing.
+        """
+        import sys as _sys
+        from pathlib import Path as _Path
+
+        root = _Path(__file__).resolve().parents[4]
+        tools_dir = str(root / "tools")
+        if tools_dir not in _sys.path:
+            _sys.path.insert(0, tools_dir)
+        try:
+            import artifact_freshness as af
+        except Exception as exc:  # pragma: no cover - environment dependent
+            return "freshness_audit_unavailable: %s" % str(exc)[:80]
+        try:
+            stale = [r["artifact"] for r in af.audit(root) if r["stale"]]
+            mismatch = af.graph_report_mismatch(root)
+        except Exception as exc:  # pragma: no cover - defensive
+            return "freshness_audit_failed: %s" % str(exc)[:80]
+        if stale:
+            return "stale artifacts: %s" % ", ".join(stale[:4])
+        if mismatch.get("mismatch"):
+            return str(mismatch.get("reason") or "graph/report mismatch")
+        return ""
+
     def run_cycle(self, apply: bool = False) -> dict[str, Any]:
         """Run one full self-improvement cycle. Never raises."""
         # Per-instance non-reentrancy: nested calls on the same object skip.
@@ -1709,25 +1756,35 @@ class SpineCycleWorm:
                     return {"success": True, "skipped": "min_interval",
                             "cycles": self._cycles}
 
+            # 0. Proprioception gate: only a WRITING cycle needs a current
+            #    self-image. Refuse rather than act on a stale map of itself.
+            if apply:
+                stale_reason = self._self_image_stale()
+                if stale_reason:
+                    with self._lock:
+                        self._skipped += 1
+                    return {"success": False, "skipped": "stale_self_image",
+                            "reason": stale_reason, "cycles": self._cycles}
+
             report: dict[str, Any] = {}
             # 1. Map — refresh the shared topology snapshot
             try:
                 report["map"] = self._mapper.map_topology()
             except Exception as exc:
-                report["map"] = {"success": False, "error": str(exc)[:100]}
+                report["map"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2. Homeostat — Q-reinforce from ledger; apply proposals only
             #    when explicitly asked (deterministic default).
             try:
                 report["homeostat"] = self._homeostat.cycle(apply=apply)
             except Exception as exc:
-                report["homeostat"] = {"success": False, "error": str(exc)[:100]}
+                report["homeostat"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2b. G6: Plasticity — apply Hebbian/STDP learning rules
             try:
                 report["plasticity"] = self._apply_plasticity()
             except Exception as exc:
-                report["plasticity"] = {"success": False, "error": str(exc)[:100]}
+                report["plasticity"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2c. Synapse layer — attention prior + SSM over the outcome
             #     stream + MoE expert preference (G1 wiring)
@@ -1735,7 +1792,7 @@ class SpineCycleWorm:
                 report["synapse_routing"] = self._route_synapse_layer()
             except Exception as exc:
                 report["synapse_routing"] = {"success": False,
-                                             "error": str(exc)[:100]}
+                                             "error": str(exc)[:_ERR_CAP]}
 
             # 2d. Mesh route feedback — G3: record_route_result() had zero
             #     callers, so route learning never happened (the route Q-table
@@ -1743,7 +1800,7 @@ class SpineCycleWorm:
             try:
                 report["mesh_routes"] = self._mesh_route_feedback()
             except Exception as exc:
-                report["mesh_routes"] = {"success": False, "error": str(exc)[:100]}
+                report["mesh_routes"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2e. Anomaly detector — G13: observes the real ledger vector.
             #     The autoencoder was orphaned (zero callers) and its decoder
@@ -1752,7 +1809,7 @@ class SpineCycleWorm:
             try:
                 report["anomaly"] = self._anomaly_stage()
             except Exception as exc:
-                report["anomaly"] = {"success": False, "error": str(exc)[:100]}
+                report["anomaly"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2f. Metabolic — G19: real load, estimated draw, thread advice.
             #     Runs BEFORE the Red Queen so a shed decision can reduce the
@@ -1760,7 +1817,7 @@ class SpineCycleWorm:
             try:
                 report["metabolic"] = self._metabolic_stage()
             except Exception as exc:
-                report["metabolic"] = {"success": False, "error": str(exc)[:100]}
+                report["metabolic"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2g. Mesh Architect (F8) — proposes topology edits from the
             #     per-edge telemetry. Propose-only unless the caller passed
@@ -1769,7 +1826,7 @@ class SpineCycleWorm:
             try:
                 report["topology"] = self._topology_stage(apply)
             except Exception as exc:
-                report["topology"] = {"success": False, "error": str(exc)[:100]}
+                report["topology"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2h. Fabric organs — consensus / federated / servemesh, driven
             #     from real config (audit finding #6: 8 worms had no caller,
@@ -1778,7 +1835,7 @@ class SpineCycleWorm:
             try:
                 report["fabric"] = self._fabric_stage()
             except Exception as exc:
-                report["fabric"] = {"success": False, "error": str(exc)[:100]}
+                report["fabric"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 2i. Morphogenesis gate (audit finding #3) — stage specialists
             #     from chronic failures behind quarantine + quorum. The method
@@ -1787,7 +1844,7 @@ class SpineCycleWorm:
                 report["morphogenesis"] = self._process_morphogenesis_output(apply)
             except Exception as exc:
                 report["morphogenesis"] = {"success": False,
-                                           "error": str(exc)[:100]}
+                                           "error": str(exc)[:_ERR_CAP]}
 
             # 2j. Colour-queen governance (audit §5.2 / §5.1) — Gray reads the
             #     PF16 census, diffs it against the persisted session snapshot
@@ -1798,7 +1855,7 @@ class SpineCycleWorm:
                 report["governance"] = self._governance_stage(apply)
             except Exception as exc:
                 report["governance"] = {"success": False,
-                                        "error": str(exc)[:100]}
+                                        "error": str(exc)[:_ERR_CAP]}
 
             # 3. Red Queen — pressure probes; stands down if not queen.
             #    Probe load is shed when the metabolic stage says the host is
@@ -1810,14 +1867,14 @@ class SpineCycleWorm:
                 if shed:
                     report["red_queen"]["probe_limit_reduced"] = True
             except Exception as exc:
-                report["red_queen"] = {"success": False, "error": str(exc)[:100]}
+                report["red_queen"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             # 4. Persist — restart-safe state for the next session
             if _spine is not None:
                 try:
                     report["persisted"] = _spine.save_spine_state()
                 except Exception as exc:
-                    report["persisted"] = {"saved": False, "error": str(exc)[:100]}
+                    report["persisted"] = {"saved": False, "error": str(exc)[:_ERR_CAP]}
 
             # 5. Gossip — publish + merge peer env state (after persist so
             #    the payload reflects everything merged this cycle). The quota
@@ -1827,7 +1884,7 @@ class SpineCycleWorm:
             try:
                 report["gossip"] = self._gossip.exchange(publish=publish)
             except Exception as exc:
-                report["gossip"] = {"success": False, "error": str(exc)[:100]}
+                report["gossip"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
             if _spine is not None:
                 _spine.record_spine_event("spine_cycle", {
@@ -1874,13 +1931,13 @@ class SpineCycleWorm:
                 out["entrenchment"] = self._gray.detect(persist=True)
             except Exception as exc:
                 out["entrenchment"] = {"success": False,
-                                       "error": str(exc)[:100]}
+                                       "error": str(exc)[:_ERR_CAP]}
         if self._black is not None:
             try:
                 out["retirement"] = self._black.propose(apply=bool(apply))
             except Exception as exc:
                 out["retirement"] = {"success": False,
-                                     "error": str(exc)[:100]}
+                                     "error": str(exc)[:_ERR_CAP]}
         return out
 
     def _apply_plasticity(self) -> dict[str, Any]:
@@ -1912,7 +1969,7 @@ class SpineCycleWorm:
         try:
             result = self._plasticity.learn(chronology)
         except Exception as exc:
-            return {"success": False, "error": str(exc)[:100]}
+            return {"success": False, "error": str(exc)[:_ERR_CAP]}
         result["gate"] = {"applied": gate_applied, "input": raw_events,
                           "kept": len(gated)}
         if self._plasticity._updates % 5 == 0:
@@ -1987,7 +2044,7 @@ class SpineCycleWorm:
                         nature, rate >= 0.5, strength=abs(rate - 0.5) * 2.0)
                 out["attention"] = self._attention.attend()
             except Exception as exc:
-                out["attention"] = {"success": False, "error": str(exc)[:100]}
+                out["attention"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
         if self._sequence is not None:
             try:
@@ -1999,13 +2056,13 @@ class SpineCycleWorm:
                     out["sequence"] = {"success": True,
                                        "skipped": "no_events"}
             except Exception as exc:
-                out["sequence"] = {"success": False, "error": str(exc)[:100]}
+                out["sequence"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
         if self._moe is not None:
             try:
                 out["moe"] = self._moe.dispatch()
             except Exception as exc:
-                out["moe"] = {"success": False, "error": str(exc)[:100]}
+                out["moe"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
 
         return out
 
@@ -2287,7 +2344,7 @@ class SpineCycleWorm:
                 out["overlay_size"] = res.get("overlay_size")
                 out["mutated_config"] = res.get("mutated_config")
             except Exception as exc:
-                out["apply_error"] = str(exc)[:100]
+                out["apply_error"] = str(exc)[:_ERR_CAP]
         return out
 
     def _nature_rates(self) -> dict[str, float]:
@@ -2364,7 +2421,7 @@ class SpineCycleWorm:
                     out["discovered"] = {"error": str(exc)[:80]}
             return out
         except Exception as exc:
-            return {"success": False, "error": str(exc)[:100]}
+            return {"success": False, "error": str(exc)[:_ERR_CAP]}
 
     # ── FABRIC STAGE — drive the organs that had no caller (finding #6) ──
     #
@@ -2390,11 +2447,12 @@ class SpineCycleWorm:
         for name, fn in (("servemesh", self._fabric_servemesh),
                          ("consensus", self._fabric_consensus),
                          ("federated", self._fabric_federated),
+                         ("variation", self._fabric_variation),
                          ("resilience", self._fabric_resilience)):
             try:
                 out[name] = fn()
             except Exception as exc:  # never let one organ break the cycle
-                out[name] = {"success": False, "error": str(exc)[:100]}
+                out[name] = {"success": False, "error": str(exc)[:_ERR_CAP]}
         return out
 
     # ProviderFailoverMeshWorm.CHAIN uses short names; the RULE 0D registry
@@ -2765,6 +2823,120 @@ class SpineCycleWorm:
             res["federated_envs"] = len(per_env)
         return res
 
+    def _fabric_variation(self) -> dict[str, Any]:
+        """Run the evolutionary operators on the mesh's own measured state.
+
+        Measured 2026-09-18 with a traced cycle: variation was the one role that
+        never executed -- 1 of 87 functions entered, no operator invoked -- while
+        selection entered 47. The loop was therefore open exactly where change is
+        produced: selection ran every cycle with nothing to select, and the
+        architecture could report on itself but never vary itself.
+
+        Input is measured rather than synthetic. The search space is one gene per
+        nature the spine has actually recorded Q for, and the objective is the
+        expected quality of a priority vector against that recorded Q:
+        sum(gene[n] * q[n]) / sum(q). The population is seeded with the measured
+        vector, so generation 0 IS the current state and any improvement reported
+        is an improvement over measured reality rather than over a guess.
+
+        Output is consumed: the best genome is checkpointed and reported so the
+        next cycle can compare against it. Applying a genome to live worm
+        priorities is deliberately NOT done here -- that writes, and writing
+        belongs behind the queen/quorum path, not inside a fabric stage.
+        """
+        try:
+            from CORE.WORMS.expansion.evolution import EvolutionEngine
+        except Exception as exc:
+            return {"success": False, "reason": "engine_unavailable",
+                    "error": str(exc)[:_ERR_CAP]}
+
+        q_raw: dict = {}
+        if _spine is not None:
+            try:
+                q_raw = _spine.get_q_weights() or {}
+            except Exception:
+                q_raw = {}
+        q_by_nature: dict[str, float] = {}
+        for key, val in q_raw.items():
+            nature = str(key).split(":", 1)[0]
+            try:
+                q_by_nature[nature] = q_by_nature.get(nature, 0.0) + float(val)
+            except (TypeError, ValueError):
+                continue
+        if not q_by_nature:
+            # No measured signal means no honest objective. Reporting that is
+            # better than optimizing against a number nothing produced.
+            return {"success": False, "reason": "no_measured_q"}
+
+        import math
+
+        genes = sorted(q_by_nature)
+        total_q = sum(q_by_nature.values()) or 1.0
+        bounds = {g: (0.0, 1.0) for g in genes}
+        seed = {g: max(0.0, min(1.0, q_by_nature[g] / total_q)) for g in genes}
+        q_norm = math.sqrt(sum(v * v for v in q_by_nature.values())) or 1.0
+
+        # SCALE-INVARIANT objective. The first revision divided the weighted sum
+        # by total_q, which made the optimum "set every gene to 1.0": the engine
+        # reported a 3.3x improvement every single run (0.218 -> 0.714) while
+        # telling us nothing about the mesh. That is the same degenerate-metric
+        # defect this audit found in the worm comparator (Jaccard 1.0 on
+        # singleton method sets) and in PF16 -- an instrument whose value is
+        # constant carries no information. Cosine similarity is maximal exactly
+        # when the genome points along the measured Q vector, so "improved" now
+        # means the search found a better SHAPE against recorded outcomes, and
+        # uniform scaling gains nothing.
+        def _cosine_from(values: list[float]) -> float:
+            xnorm = math.sqrt(sum(v * v for v in values)) or 1.0
+            dot = sum(values[i] * q_by_nature[genes[i]] for i in range(len(genes)))
+            return dot / (xnorm * q_norm)
+
+        def _fitness(genome: Any) -> float:
+            g = getattr(genome, "genes", None) or {}
+            return _cosine_from([float(g.get(n, 0.0)) for n in genes])
+
+        seed_fitness = _cosine_from([seed[n] for n in genes])
+
+        engine = EvolutionEngine(population_size=8, elitism_count=2,
+                                 tournament_size=2, early_stop_patience=2)
+        engine.initialize_population(gene_bounds=bounds, seed_genomes=[seed])
+
+        history: list[dict] = []
+        for _ in range(2):
+            # use_curative=False: the fabric stage drives the operators raw.
+            # Routing evaluation through CurativePool is a governance decision
+            # and must not be silently taken here on the engine's behalf.
+            engine.evaluate_population(_fitness, use_curative=False, workers=1)
+            stats = engine.evolve() or {}
+            # Record the keys the engine ACTUALLY returns rather than the ones
+            # assumed: the first revision read best_fitness/mean_fitness and
+            # logged None for every generation -- an instrument that reports
+            # nothing while looking like it reports something.
+            history.append({"generation": stats.get("generation"),
+                            "stats": {k: stats[k] for k in list(stats)[:8]}})
+
+        best = engine.get_best_genome()
+        best_fitness = float(getattr(best, "fitness", 0.0) or 0.0)
+        checkpoint = ""
+        try:
+            saved = engine.save_checkpoint(label="fabric_variation") or {}
+            checkpoint = str(saved.get("label") or saved.get("path")
+                             or saved.get("error") or "saved")
+        except Exception as exc:
+            checkpoint = "checkpoint_failed: %s" % str(exc)[:80]
+        return {
+            "success": True,
+            "genes": len(genes),
+            "generations": len(history),
+            "seed_fitness": round(seed_fitness, 6),
+            "best_fitness": round(best_fitness, 6),
+            "improved": best_fitness > seed_fitness + 1e-9,
+            "converged": bool(engine.has_converged()),
+            "checkpoint": checkpoint,
+            "history": history,
+            "best_genes": dict(getattr(best, "genes", None) or {}),
+        }
+
     def _fabric_resilience(self) -> dict[str, Any]:
         """Snapshot this spine's own state and prove the snapshot restorable.
 
@@ -2793,7 +2965,7 @@ class SpineCycleWorm:
                                                      StateSnapshotter)
         except Exception as exc:
             return {"success": False, "reason": "backup_organs_unavailable",
-                    "error": str(exc)[:100]}
+                    "error": str(exc)[:_ERR_CAP]}
 
         max_staged, max_file, keep = 32 * 1024 * 1024, 4 * 1024 * 1024, 5
         state_dir = Path.home() / ".azazael"
@@ -2859,7 +3031,7 @@ class SpineCycleWorm:
                 old.unlink()
             res["snapshots_kept"] = min(len(zips), keep)
         except OSError as exc:
-            res["prune_error"] = str(exc)[:100]
+            res["prune_error"] = str(exc)[:_ERR_CAP]
 
         # Change detection across the process boundary. The previous manifest
         # is read back from disk, not from self._file_db: an in-memory
@@ -2887,7 +3059,7 @@ class SpineCycleWorm:
         try:
             manifest_path.write_text(json.dumps(current), encoding="utf-8")
         except OSError as exc:
-            res["manifest_persist_error"] = str(exc)[:100]
+            res["manifest_persist_error"] = str(exc)[:_ERR_CAP]
 
         tester = RecoveryTester()
         ver = tester.verify_archive(archive)

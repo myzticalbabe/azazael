@@ -61,7 +61,7 @@ class ChaosWorm:
             else:
                 return {"success": False, "error": f"unknown drill {kind}"}
         except Exception as e:
-            return {"success": False, "error": str(e)[:100]}
+            return {"success": False, "error": str(e)[:800]}
         ms = round((time.perf_counter() - t0) * 1000, 1)
         with self._lock:
             self._drills += 1

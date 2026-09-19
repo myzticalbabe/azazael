@@ -164,7 +164,7 @@ class EnvironmentalVariableInspector:
         for var in list(os.environ.keys()):
             if "PATH" in var or "PYTHON" in var:
                 results["env_vars"][var] = (
-                    os.environ[var][:100] + "..."
+                    os.environ[var][:800] + "..."
                     if len(os.environ[var]) > 100
                     else os.environ[var]
                 )

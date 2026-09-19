@@ -333,7 +333,7 @@ class AssistantLogProtocol:
                 [e.id if hasattr(e, "id") else e.get("id", "") for e in entries]
                 + index["recent"]
             )
-        ][:100]
+        ][:800]
         index["last_update"] = datetime.datetime.now().isoformat()
 
         self._write_json(self.index_file, dict(index))

@@ -284,7 +284,7 @@ def cmd_monitor():
         if result.returncode == 0:
             log("Live monitor launched", "OK")
         else:
-            log(f"Monitor launch issue: {result.stderr[:100]}", "WARN")
+            log(f"Monitor launch issue: {result.stderr[:800]}", "WARN")
     except Exception as e:
         log(f"Could not launch monitor: {e}", "ERROR")
 

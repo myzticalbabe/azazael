@@ -420,7 +420,7 @@ class HyperOptimizer:
                               f"({result.elapsed_ms}ms, conf={result.confidence:.2f})")
 
                     if not result.success:
-                        batch.errors.append(f"{key}: {result.error[:100]}")
+                        batch.errors.append(f"{key}: {result.error[:800]}")
 
                 except Exception as e:
                     key = f"{step.provider}/{step.model}"

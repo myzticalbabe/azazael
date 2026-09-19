@@ -37,6 +37,32 @@ from pathlib import Path
 from typing import Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
+LEDGER = ROOT / "logs" / "mutation_ledger.jsonl"
+
+
+def attempts() -> dict:
+    """Recent self-modification attempts -- so a failed one is not re-derived.
+
+    The memory side of the loop. A system that forgets it already tried and
+    reverted something does not learn -- it spends the same effort again and
+    reaches the same conclusion. Reading the ledger at startup is what makes
+    attempts cumulative instead of episodic.
+    """
+    empty = {"total": 0, "kept": 0, "reverted": [], "rejected": []}
+    if not LEDGER.is_file():
+        return empty
+    rows: list[dict] = []
+    for line in LEDGER.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                continue
+    return {"total": len(rows),
+            "kept": sum(1 for r in rows if r.get("verdict") == "kept"),
+            "reverted": [r for r in rows if r.get("verdict") == "reverted"],
+            "rejected": [r for r in rows if r.get("verdict") == "rejected"]}
+
 
 # (argv tail, human label). Order is the dependency chain.
 STEPS: tuple[tuple[tuple[str, ...], str], ...] = (
@@ -90,6 +116,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             if not args.json:
                 state = "ok" if res["rc"] == 0 else "FAILED(rc=%s)" % res["rc"]
                 print("[refresh] %-14s %s  %s" % (state, label, res.get("last", "")))
+
+    att = attempts()
+    if not args.json and att["total"]:
+        print("[startup] mutation ledger: %d attempt(s), %d kept, %d reverted, %d rejected"
+              % (att["total"], att["kept"], len(att["reverted"]), len(att["rejected"])))
+        for r in (att["reverted"] + att["rejected"])[-3:]:
+            print("          %s %s -- %s" % (r.get("verdict"), r.get("patch_hash"),
+                                               str(r.get("reason"))[:70]))
 
     rc, report = audit()
     if args.json:

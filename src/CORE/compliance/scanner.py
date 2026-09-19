@@ -1599,7 +1599,7 @@ def _print_junit_xml(results, total_files, total_findings):
             print(f'  <testcase classname="scanner" name="{r.filepath}">')
             for ln, cat, sn in r.findings[:5]:
                 # Escape XML special chars in message content
-                esc = sn[:100].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                esc = sn[:800].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
                 print(f'    <failure message="{cat}" type="anti-pattern">Line {ln}: {esc}</failure>')
             if r.finding_count > 5:
                 print(f'    <failure message="... +{r.finding_count - 5} more" type="truncated" />')

@@ -231,7 +231,7 @@ class AzazaelOptimizer:
             status_icon = "\u2713" if result.success else "\u2717"
             print(f"[{status_icon}] {script_name}: {result.duration_ms:.0f}ms")
             if result.error:
-                print(f"    Error: {result.error[:100]}...")
+                print(f"    Error: {result.error[:800]}...")
 
         report["total_duration_ms"] = (time.time() - start) * 1000
         report["summary"]["avg_duration_ms"] = report["total_duration_ms"] / len(

@@ -6,10 +6,44 @@ Fabric transport for all environments: Windows 11 <-> WSL2 <-> Bare Metal <-> Ka
 MeshRouterWorm, GossipSyncWorm, PartitionHealerWorm, EnvBeaconWorm
 """
 
+import os
 import threading
 import platform
 from datetime import datetime
 from typing import Any
+
+def _bounded_exists(path: str, timeout_s: float = 5.0) -> bool | None:
+    """`os.path.exists` with a deadline. None means the probe never returned.
+
+    A MISSING path answers instantly. An UNREACHABLE one does not: a
+    disconnected network drive, a stale SMB share or a spun-down disk blocks
+    inside the filesystem call for minutes, and `os.path.exists` takes no
+    timeout argument. Verified live -- `os.path.exists(r"G:\\source-of-truth")`
+    hung the entire test suite on this host (a fault dump placed the frame at
+    mesh.py:406 in `detect`), because G: is unreachable here. That is a worm
+    disabling the caller that invoked it, and it is the second instance of this
+    shape found today (the first was piping `wsl -l -v` into `communicate()`).
+
+    Returns True/False when the probe answers and None when it does not.
+    Callers decide what "unknown" means: for a partition check it is treated as
+    unmounted, because the fabric genuinely cannot use a path it cannot reach
+    -- and silence would read as healthy.
+    """
+    box: dict[str, Any] = {}
+
+    def _probe() -> None:
+        try:
+            box["exists"] = bool(os.path.exists(path))
+        except Exception:
+            box["exists"] = False
+
+    worker = threading.Thread(target=_probe, name="exists-probe", daemon=True)
+    worker.start()
+    worker.join(timeout_s)
+    if worker.is_alive():
+        return None
+    return box.get("exists")
+
 
 # Single canonical env identity (audit 2026-09-15, finding #4). Env id is a
 # primary key for spine-map nodes, gossip filenames, route Q-keys and beacon
@@ -206,6 +240,7 @@ class MeshRouterWorm:
             "q": learned.get("q", 0.0),
             "q_effective": learned.get("q_effective", 0.0),
             "evidence": learned.get("evidence", 0),
+            "stale_discount": learned.get("stale_discount", 1.0),
             "hops": 1 if is_known_env(dst_env) else -1,
             "payload_keys": list(payload.keys())[:10],
         }
@@ -331,7 +366,7 @@ class GossipSyncWorm:
             try:
                 from CORE import spine_registry as _spine
             except Exception as exc:  # pragma: no cover - defensive
-                return {"success": False, "error": str(exc)[:100]}
+                return {"success": False, "error": str(exc)[:800]}
             trust = _spine.check_gossip_trust(peer_state)
             out["trust"] = trust.get("signature", "?")
             out["env"] = trust.get("env", "")
@@ -399,21 +434,48 @@ class PartitionHealerWorm:
     def detect(self) -> dict[str, Any]:
         import os
         import subprocess
+        import tempfile
         issues = []
         if os.name == 'nt':
-            if not os.path.exists(r'G:\source-of-truth'):
+            # BOUNDED, and this is the call that hung the suite. An unreachable
+            # G: blocked `os.path.exists` for minutes with no timeout; "unknown"
+            # is reported as unmounted because the fabric cannot use a path it
+            # cannot reach.
+            if _bounded_exists(r'G:\source-of-truth', timeout_s=5.0) is not True:
                 issues.append("g_unmounted")
-            # WSL distro liveness (best-effort, 10s cap)
+            # WSL distro liveness (best-effort, 10s cap).
+            #
+            # Output goes to TEMP FILES, not pipes. With capture_output=True this
+            # call could hang FOREVER on Windows: `wsl.exe` is a launcher, so a
+            # grandchild inherits the stdout pipe, and when the 10s TimeoutExpired
+            # fires `subprocess.run` kills the direct child and then reaps it with
+            # `communicate()` **without a timeout** -- which blocks while the
+            # grandchild still holds that pipe. Verified live: this was the exact
+            # frame the test suite stopped in (RedQueenWorm.pressure_probe ->
+            # detect() -> here), and it hung the entire run rather than failing one
+            # test. A file handle cannot deadlock the same way, because no pipe has
+            # to be drained to EOF.
+            # Delegation, not a second copy. `mesh.py` grew the temp-file
+            # shape below first; `envmesh.WinBridgeWorm.wsl_distros()` kept the
+            # buggy `capture_output=True` version and hung the test process at
+            # shutdown (2026-09-17). Both now call the one bounded helper, which
+            # also runs on a daemon thread so an unkillable `wsl.exe` cannot pin
+            # the interpreter, and decodes the UTF-16LE redirect case.
             try:
-                r = subprocess.run(["wsl", "-l", "-v"], capture_output=True,
-                                   text=True, timeout=10)
-                out = (r.stdout or "") + (r.stderr or "")
+                from CORE.fs_probe import bounded_subprocess_output
+            except Exception:  # pragma: no cover - helper optional
+                bounded_subprocess_output = None
+            probe = (bounded_subprocess_output(["wsl", "-l", "-v"], timeout_s=10.0)
+                     if bounded_subprocess_output else
+                     {"ok": False, "out": "", "timeout": True, "error": "no_helper"})
+            if not probe.get("ok") or probe.get("timeout"):
+                issues.append("wsl_probe_failed")
+            else:
+                out = probe.get("out", "")
                 if "kali-linux" in out and "Running" not in out:
                     issues.append("kali_stopped")
                 if "Ubuntu" in out and "Running" not in out:
                     issues.append("ubuntu_stopped")
-            except Exception:
-                issues.append("wsl_probe_failed")
             # transport peer ports (mesh data plane)
             try:
                 import socket as _sock
@@ -429,7 +491,7 @@ class PartitionHealerWorm:
             except Exception:
                 pass
         else:
-            if not os.path.exists('/mnt/g'):
+            if _bounded_exists('/mnt/g', timeout_s=5.0) is not True:
                 issues.append("g_unmounted")
         with self._lock:
             if issues:
