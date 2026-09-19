@@ -101,12 +101,41 @@ _session_started = datetime.now(timezone.utc).isoformat(timespec="seconds")
 # Backup creation
 # ---------------------------------------------------------------------------
 
+def _backup_path(filepath: str) -> str:
+    """Where a pre-gate backup lives.
+
+    This used to be f"{filepath}.pre_gate_backup", which put the enforcer's
+    backups INSIDE the source tree -- 14 of them were sitting in src/ next to
+    their originals (spine.py.pre_gate_backup, providers.py.pre_gate_backup,
+    CLUSTERWORMS.py.pre_gate_backup, ...). That is clutter, and it is a
+    provenance hazard: a backup of a source file, named as a source file, in a
+    source directory, is one glob away from being imported, packaged or
+    graphed as if it were real code.
+
+    Backups now live under var/backups/gate/<relative path>. Fails safe: any
+    problem at all returns the old path rather than raising, because this runs
+    inside enforce() and a raise here would block every gated write.
+    """
+    try:
+        import os as _os  # noqa: PLC0415 -- local, so a missing import cannot break enforce()
+        root = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+        target = _os.path.abspath(filepath)
+        if not target.startswith(root + _os.sep):
+            return filepath + ".pre_gate_backup"
+        out = _os.path.join(root, "var", "backups", "gate",
+                            _os.path.relpath(target, root)) + ".pre_gate_backup"
+        _os.makedirs(_os.path.dirname(out), exist_ok=True)
+        return out
+    except Exception:
+        return filepath + ".pre_gate_backup"
+
+
 def _create_backup(filepath: str) -> str:
     """Create a .pre_gate_backup of a file before editing."""
     fp = Path(filepath)
     if not fp.exists():
         return ""
-    backup_path = f"{filepath}.pre_gate_backup"
+    backup_path = _backup_path(filepath)
     try:
         content = fp.read_text(encoding="utf-8")
         Path(backup_path).write_text(content, encoding="utf-8")
@@ -272,7 +301,7 @@ def rollback(filepath: str) -> bool:
     Called after post-edit validation fails. Restores the pre-edit state.
     """
     global _rollback_count
-    backup_path = f"{filepath}.pre_gate_backup"
+    backup_path = _backup_path(filepath)
     if not os.path.exists(backup_path):
         return False
 
