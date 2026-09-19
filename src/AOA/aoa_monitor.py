@@ -297,6 +297,24 @@ class AOAState:
             out["write_backs"] = stats.get("write_backs", 0)
             out["suppressed"] = stats.get("write_backs_suppressed", 0)
             out["contract"] = stats.get("contract", {})
+            # Durability is the other half of the loop. The write-back above is
+            # real and bounded, but until something calls save_spine_state() it
+            # lives only in this process's dict and the PROV line reports a
+            # PERSIST GAP forever. Nothing else saves it: the spine cycle runs
+            # in a DIFFERENT process and never sees an Arm outcome, so an
+            # aoa_route: key could only ever be durable if an AOA process wrote
+            # it out. Measured before this: 0 `aoa_route:` keys on disk while
+            # an in-process routed call produced 1 -- the exact state the
+            # tripwire test pinned. Persist only when a write landed, so an
+            # idle refresh still costs nothing.
+            if out.get("write_backs") and spine is not None:
+                try:
+                    _saved = spine.save_spine_state()
+                    out["persisted"] = bool(_saved.get("saved"))
+                    out["persist_error"] = _saved.get("error")
+                except Exception as _pe:  # noqa: BLE001
+                    out["persisted"] = False
+                    out["persist_error"] = str(_pe)[:120]
         except Exception as e:  # noqa: BLE001 -- wallboard must never crash
             out["error"] = str(e)[:120]
             return out
@@ -324,7 +342,7 @@ class AOAState:
             st = inst.get_status() if hasattr(inst, "get_status") else {}
             return aid, {"ok": True, "data": st if isinstance(st, dict) else {}}
         except Exception as e:  # noqa: BLE001
-            return aid, {"ok": False, "error": str(e)[:100]}
+            return aid, {"ok": False, "error": str(e)[:800]}
 
     @staticmethod
     def _run_workflow():
@@ -361,7 +379,7 @@ class AOAState:
             out["steps"] = steps
             out["passed"] = ("BENCHMARK WORKFLOW PASSED" in txt)
         except Exception as e:  # noqa: BLE001
-            out["error"] = str(e)[:100]
+            out["error"] = str(e)[:800]
         out["at"] = time.time()
         return out
 

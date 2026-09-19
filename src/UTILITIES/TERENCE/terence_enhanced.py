@@ -248,7 +248,7 @@ class TerenceEnhanced:
                             incompatability = Incompatability(
                                 category=conflict_data["category"],
                                 source_pattern=pattern,
-                                conflicting_pattern=line.strip()[:100],
+                                conflicting_pattern=line.strip()[:800],
                                 conflict_type=conflict_name,
                                 files_affected=[str(file_path)],
                                 lines_affected=[line_num],

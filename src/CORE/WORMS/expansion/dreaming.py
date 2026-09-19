@@ -473,7 +473,7 @@ class DreamingModule:
             if curr_severity == "error" and next_severity == "info" and curr_source == next_source:
                 error_msg = curr_data.get("error", curr_data.get("msg", "unknown")) or "unknown"
                 recovery_action = next_data.get("action", next_data.get("strategy", "retry_with_backoff")) or "retry_with_backoff"
-                key = (curr_source, error_msg[:100])
+                key = (curr_source, error_msg[:800])
 
                 if key not in recovery_patterns:
                     recovery_patterns[key] = {

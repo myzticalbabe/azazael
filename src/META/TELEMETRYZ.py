@@ -323,7 +323,7 @@ class TELEMETRYZ:
     <div class="legend">Width = Total Time | Hover for details</div>
 """
 
-        for func, duration in sorted_funcs[:100]:
+        for func, duration in sorted_funcs[:800]:
             width = max(1, int((duration / max_time) * 100))
             hue = int(200 - (duration / max_time) * 100)
             html += f'<div class="frame"><span style="background: hsl({hue}, 70%, 40%); width: {width}px;" title="{func}: {duration:.2f}ms">{func.split(".")[-1]}</span></div>\n'

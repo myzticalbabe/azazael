@@ -217,7 +217,7 @@ except Exception as e:
             for line in result.stdout.strip().split("\n"):
                 print(f"        {line}")
         else:
-            print(f"        [--] Heavy ML subprocess failed: {result.stderr[:100]}")
+            print(f"        [--] Heavy ML subprocess failed: {result.stderr[:800]}")
     else:
         print("      [--] Heavy ML frameworks: skip subprocess in compiled mode")
 

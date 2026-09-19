@@ -205,7 +205,7 @@ class SystemToolExecutor:
             category=LogCategory.CMD_EXECUTION,
             level=LogLevel.INFO if success else LogLevel.ERROR,
             source="SystemToolExecutor",
-            message=f"Executed: {command[:100]}",
+            message=f"Executed: {command[:800]}",
             data={
                 "command": command,
                 "success": success,

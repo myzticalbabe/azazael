@@ -172,7 +172,7 @@ class ColdArchivist:
             with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
                 for rel_path, abs_path in archived:
                     zf.write(abs_path, rel_path)
-        return {"archived_count": len(archived), "files": [a[0] for a in archived[:100]]}
+        return {"archived_count": len(archived), "files": [a[0] for a in archived[:800]]}
     def get_summary(self):
         return {"success": True, "status": "OK", "worm": "ColdArchivist"}
 

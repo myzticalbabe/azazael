@@ -209,7 +209,7 @@ class InferenceSubscriberWorm:
         for e in events:
             cat = e.get("category", "unknown")
             category_counts[cat] = category_counts.get(cat, 0) + 1
-            content_preview = str(e.get("content", ""))[:100]
+            content_preview = str(e.get("content", ""))[:800]
             event_summary.append(f"[{cat}] {content_preview}")
 
         prompt = (

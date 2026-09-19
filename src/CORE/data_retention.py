@@ -219,7 +219,7 @@ def newest_backup() -> dict:
                 "mb": round(latest.stat().st_size / 1e6, 1),
                 "age_h": round((_time.time() - latest.stat().st_mtime) / 3600.0, 1)}
     except Exception as e:
-        return {"exists": False, "error": str(e)[:100]}
+        return {"exists": False, "error": str(e)[:800]}
 
 
 def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
@@ -261,7 +261,7 @@ def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
             else:
                 result["mirror_crc"] = "mirror missing"
         except Exception as e:
-            result["mirror_crc"] = "CRC FAIL: %s" % str(e)[:100]
+            result["mirror_crc"] = "CRC FAIL: %s" % str(e)[:800]
             result["status"] = "FAIL"
         state.write_text(json.dumps(
             {"at": _time.time(), "at_str": result["at_str"],
@@ -341,7 +341,7 @@ def backup_database(keep: int = 3) -> dict:
                     break
             out["mirror"] = str(_dest)
         except Exception as e:
-            out["mirror"] = "skipped: %s" % str(e)[:100]
+            out["mirror"] = "skipped: %s" % str(e)[:800]
         # Restore drill (light): re-read the gz (CRC check) so a
         # bit-rotted archive is caught here, not at 3am during an
         # actual incident.
@@ -352,14 +352,14 @@ def backup_database(keep: int = 3) -> dict:
                     _n += 1
             out["verified"] = True
         except Exception as e:
-            out["verified"] = "CRC FAIL: %s" % str(e)[:100]
+            out["verified"] = "CRC FAIL: %s" % str(e)[:800]
         # Full drill, monthly (2026-09-10): gunzip to temp + real
         # integrity_check proves the archive actually restores, not just
         # CRC-passes. Gated by last-drill state so nightly stays fast.
         try:
             out["full_drill"] = _maybe_full_drill(gz)
         except Exception as e:
-            out["full_drill"] = "drill error: %s" % str(e)[:100]
+            out["full_drill"] = "drill error: %s" % str(e)[:800]
         return out
     except Exception as e:
         try:

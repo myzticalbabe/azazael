@@ -56,7 +56,7 @@ def scan_file(filepath: str, verbose: bool = False) -> list:
         violations.append({
             "file": filepath,
             "type": "sequential_read_files",
-            "match": match[:100],
+            "match": match[:800],
         })
 
     return violations

@@ -32,7 +32,7 @@ def test_module_syntax(path: str) -> dict:
     except SyntaxError as e:
         result["error"] = f"Syntax: {e.msg}"
     except Exception as e:
-        result["error"] = str(e)[:100]
+        result["error"] = str(e)[:800]
     return result
 
 
@@ -52,7 +52,7 @@ def test_module_import(path: str) -> dict:
     except subprocess.TimeoutExpired:
         result["error"] = "Timeout"
     except Exception as e:
-        result["error"] = str(e)[:100]
+        result["error"] = str(e)[:800]
     return result
 
 

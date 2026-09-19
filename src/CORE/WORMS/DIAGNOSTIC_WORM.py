@@ -291,4 +291,4 @@ if __name__ == "__main__":
             r = self.scan_all_modules()
             return {"status":"ok","worm":"DiagnosticWorm","method":"scan_all_modules","result":str(r)[:200]}
         except Exception as e:
-            return {"status":"ok","worm":"DiagnosticWorm","method":"scan_all_modules","error":str(e)[:100]}
+            return {"status":"ok","worm":"DiagnosticWorm","method":"scan_all_modules","error":str(e)[:800]}

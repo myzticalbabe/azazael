@@ -68,7 +68,7 @@ class AzazaelStressTest:
                     test_name=name,
                     passed=False,
                     duration_ms=duration,
-                    errors=[result.stderr[:100]],
+                    errors=[result.stderr[:800]],
                 )
         except Exception as e:
             return StressResult(

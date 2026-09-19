@@ -116,7 +116,7 @@ class MicrogliaWorm:
         try:
             size = _os.stat(path).st_size
         except OSError as exc:
-            return {"success": False, "path": path, "error": str(exc)[:100]}
+            return {"success": False, "path": path, "error": str(exc)[:800]}
         model = self._load_density()
         # match by topdir name fragment, else global fallback
         entry = None

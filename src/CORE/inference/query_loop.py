@@ -291,7 +291,7 @@ class QueryInLoop:
                     current_synthesis = content
                     self._log(f"    -> OK ({elapsed}ms, {tokens} tok, conf={confidence:.2f})")
                 else:
-                    self._log(f"    -> FAIL: {error[:100]}")
+                    self._log(f"    -> FAIL: {error[:800]}")
                     result.errors.append(
                         f"Round {round_num}, Step {step_key}: {error[:200]}"
                     )

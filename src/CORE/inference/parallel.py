@@ -976,7 +976,7 @@ class ParallelInferenceEngine:
                     "model": r.model,
                     "success": r.success,
                     "elapsed_ms": r.elapsed_ms,
-                    "content_preview": r.content[:100],
+                    "content_preview": r.content[:800],
                     "error": r.error,
                 }
                 for r in results_list
@@ -1072,7 +1072,7 @@ class ParallelInferenceEngine:
                     "success": r.success,
                     "elapsed_ms": r.elapsed_ms,
                     "tokens_per_second": round(r.tokens_per_second, 1),
-                    "content_preview": r.content[:100] + ("..." if len(r.content) > 100 else ""),
+                    "content_preview": r.content[:800] + ("..." if len(r.content) > 100 else ""),
                     "error": r.error,
                 }
                 for r in results_list

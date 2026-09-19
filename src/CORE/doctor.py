@@ -65,7 +65,7 @@ def check_index_usage() -> list:
             plan = conn.execute(f"EXPLAIN QUERY PLAN {query}").fetchall()
             plan_str = " ".join(str(r[2]) if len(r) > 2 else str(r) for r in plan)
             uses_index = expected_index in plan_str
-            results.append({"query": query[:60], "expected_index": expected_index, "uses_index": uses_index, "plan": plan_str[:100]})
+            results.append({"query": query[:60], "expected_index": expected_index, "uses_index": uses_index, "plan": plan_str[:800]})
         conn.close()
     except Exception:
         pass

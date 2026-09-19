@@ -404,11 +404,11 @@ def main():
         if verdict["destructive"]:
             print(
                 f"DESTRUCTIVE [{verdict['severity']}] {verdict['category']}: "
-                f"{args.check[:100]}"
+                f"{args.check[:800]}"
             )
             sys.exit(1)
         else:
-            print(f"NON-DESTRUCTIVE ({verdict['category']}): {args.check[:100]}")
+            print(f"NON-DESTRUCTIVE ({verdict['category']}): {args.check[:800]}")
             sys.exit(0)
 
     if args.gate:

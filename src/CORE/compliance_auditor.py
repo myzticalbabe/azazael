@@ -785,7 +785,7 @@ def test_eca():
     # Test /status
     resp = http_get("/status")
     status = json.loads(resp)
-    assert "version" in status, f"Expected version in status: {resp[:100]}"
+    assert "version" in status, f"Expected version in status: {resp[:800]}"
     print(f"  [OK] HTTP /status: v{status['version']}  checks={status['total_checks']}")
 
     # Test POST /halt

@@ -34,7 +34,7 @@ def run_pip_install(packages):
     if result.returncode == 0:
         print("  [OK]")
     else:
-        print(f"  [FAIL]: {result.stderr[:100]}")
+        print(f"  [FAIL]: {result.stderr[:800]}")
 
 
 def main():

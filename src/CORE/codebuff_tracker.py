@@ -482,7 +482,7 @@ class CodebuffTracker:
         summary.update({
             "event_count": self._event_count,
             "files_changed_count": len(self._files_changed),
-            "files_changed": self._files_changed[:100],  # Cap at 100 filenames
+            "files_changed": self._files_changed[:800],  # Cap at 100 filenames
             "event_type_breakdown": dict(sorted(self._event_types_used.items())),
         })
         self.store.record_event(

@@ -554,7 +554,7 @@ class SystemManagerGUI:
                     processes.append(
                         {"name": parts[0].strip('"'), "pid": parts[1].strip('"')}
                     )
-        return processes[:100]
+        return processes[:800]
 
     def _get_disk_info(self) -> dict:
         total, used, free = shutil.disk_usage(os.environ.get("SystemDrive", "C:") + "\\")

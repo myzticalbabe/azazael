@@ -626,7 +626,7 @@ class SequentialAnalyzer:
                 previous_content = content
                 self._log(f"  -> OK ({elapsed}ms, {tokens} tokens, confidence={confidence:.2f})")
             else:
-                self._log(f"  -> FAIL: {error[:100]}")
+                self._log(f"  -> FAIL: {error[:800]}")
                 result.errors.append(f"Step {step_idx + 1} ({step.provider}/{step.model}): {error[:200]}")
                 # Continue chain even if one model fails
 
