@@ -13,6 +13,11 @@ map last because it consumes the verdict table. Running them out of order
 produces a map built on a previous census -- which is exactly how the table
 went stale in the first place (section 12 of the audit analysis).
 
+The hygiene step is a regression guard, not a clean-up: it fails on a new
+duplicate basename under src/, a new file over 20 MB, or a new top-level path,
+and passes on the legacy bulk that was baselined. A check that fails on facts
+gets switched off, so the facts were recorded once and only deltas fail now.
+
 The graph is *not* rebuilt here on purpose: a graphify pass is minutes long,
 needs its own interpreter, and is the one artifact whose rebuild has a
 side-effect budget. `--audit-only` reports its staleness instead.
@@ -69,6 +74,7 @@ STEPS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("tools/mesh_function_preflight.py",), "census -> NEURAL_MESH_FUNCTION_TODO.md"),
     (("tools/mesh_function_preflight.py", "--verdict"), "verdict -> NEURAL_MESH_WIRE_OR_CUT.json"),
     (("tools/nature_integration_map.py",), "map -> MAP.json + INTEROP.mmd + dataset"),
+    (("tools/fs_hygiene.py", "--check"), "hygiene -> regression guard"),
 )
 
 

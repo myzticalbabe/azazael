@@ -122,6 +122,18 @@ def tier2_band(targets: Sequence[str], timeout: int = 600) -> dict[str, Any]:
             "summary": tail[0][:160]}
 
 
+# The full suite is the third tier: a band can stay green while something far
+# from the mutation breaks. Opt-in because it doubles the cost -- it runs before
+# the mutation to establish a baseline and again after, and the baseline is not
+# optional: 73 tests fail in this suite for pre-existing reasons, so "the suite
+# passed" is not a usable signal. Only the delta is.
+FULL_SUITE = ("tests",)
+
+
+def tier3_suite(timeout: int = 3600) -> dict[str, Any]:
+    return tier2_band(FULL_SUITE, timeout)
+
+
 def worse_than(new: dict[str, Any], base: dict[str, Any]) -> str:
     """The retention rule, stated once so it can be argued with.
 
@@ -160,7 +172,8 @@ def record(row: dict[str, Any]) -> None:
 
 
 def self_modify(patch: Path, targets: Sequence[str],
-                keep_on_tie: bool = True, tier2_timeout: int = 600) -> dict[str, Any]:
+                keep_on_tie: bool = True, tier2_timeout: int = 600,
+                tier3: bool = False) -> dict[str, Any]:
     started = time.time()
     patch_text = patch.read_text(encoding="utf-8", errors="replace")
     row: dict[str, Any] = {
@@ -216,6 +229,9 @@ def self_modify(patch: Path, targets: Sequence[str],
 
     base = tier2_band(targets, tier2_timeout)
     row["baseline"] = base
+    base3 = tier3_suite() if tier3 else None
+    if base3 is not None:
+        row["baseline_full"] = base3
 
     # core.autocrlf=false is load-bearing: with it on, git normalises the patch
     # to CRLF before matching, so a byte-faithful LF diff fails against an LF
@@ -259,6 +275,16 @@ def self_modify(patch: Path, targets: Sequence[str],
         record(row)
         return row
 
+    if base3 is not None:
+        t3 = tier3_suite()
+        row["tier3"] = t3
+        regression3 = worse_than(t3, base3)
+        if regression3:
+            revert("tier3")
+            row.update({"verdict": "reverted", "reason": "tier3: %s" % regression3})
+            record(row)
+            return row
+
     row.update({"verdict": "kept",
                 "reason": "tier1 ok; tier2 no regression"
                           + (" (tie accepted)" if keep_on_tie and
@@ -277,6 +303,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     help="pytest targets for the behaviour tier")
     ap.add_argument("--strict", action="store_true",
                     help="require a strict improvement, not merely no regression")
+    ap.add_argument("--tier3", action="store_true",
+                    help="also evaluate against the full tests/ suite (slower, stronger)")
     ap.add_argument("--ledger", action="store_true", help="print the attempt ledger")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
@@ -300,7 +328,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.patch:
         ap.error("--patch is required unless --ledger")
     row = self_modify(Path(args.patch), args.tier2,
-                      keep_on_tie=not args.strict, tier2_timeout=600)
+                      keep_on_tie=not args.strict, tier2_timeout=600,
+                      tier3=args.tier3)
     if args.json:
         print(json.dumps(row, indent=2, default=str))
     else:
@@ -310,6 +339,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("tier2  : baseline=%s -> %s"
               % (row.get("baseline", {}).get("passed"),
                  (row.get("tier2") or {}).get("passed")))
+        if row.get("tier3"):
+            print("tier3  : baseline=%s -> %s"
+                  % (row.get("baseline_full", {}).get("passed"),
+                     row["tier3"].get("passed")))
         print("ledger : %s" % LEDGER)
     return 0 if row.get("verdict") == "kept" else 1
 
