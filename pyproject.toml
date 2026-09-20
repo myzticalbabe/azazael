@@ -42,6 +42,11 @@ exclude = [
     "src/update_docs_paths.py",
 ]
 
+# sklearn ships no py.typed marker; any importer would trip import-untyped.
+[[tool.mypy.overrides]]
+module = "sklearn.*"
+ignore_missing_imports = true
+
 [project.scripts]
 azazael-ctl = "CORE.azazael_ctl:main"
 azazael-doctor = "CORE.doctor:cmd_doctor"
