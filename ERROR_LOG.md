@@ -7731,3 +7731,95 @@ not found` leaves the log at 49 bytes, which reads like an instant crash).
 **Related:** Error #190, Error #203, ADR-018,
 `tools/mesh_function_preflight.py`, `graphify-out/graph.json`,
 `tools/artifact_freshness.py`
+
+---
+
+## Error #208 — The Refresh Path Ran the One graphify Install Its Own Patch Cannot Apply To (September 22, 2026)
+
+### Symptom
+`graphify-out/graph.json` and `GRAPH_REPORT.md` were the only two `STALE` rows in
+the artifact gate, and they had been un-refreshable for sessions. Attempts died
+after full extraction with `rc=-1` and no error text.
+
+The version warning printed on every invocation instead of being read:
+
+```
+warning: skill is from graphify 0.9.55, package is 0.8.8. Run 'graphify install' to update.
+```
+
+### Root cause
+There are **three** graphify artifacts on this host, three versions apart, and
+the refresh path was pinned to the wrong one.
+
+| Install | Version | `exporters/html.py` | huge-mode patch |
+|---|---|---|---|
+| `~/.local/bin/graphify.exe` (uv tool) | 0.9.50 | present | **applied** |
+| Python314 `site-packages` (pip) | 0.8.8 | **absent** (flat package) | cannot apply |
+| `~/.claude/skills/graphify` (skill) | 0.9.55 | — | — |
+
+`scripts/graph_refresh_no_llm.py` hard-coded `GRAPHIFY_PY` to the **middle row**.
+That choice was argued for in the script's own comment -- "graphify lives in the
+system interpreter, not the venv" -- and the premise was right: the 3.14t venv has
+no graphify at all, so `sys.executable -m graphify` reaches nothing. The
+conclusion was wrong. The pip install is a *flat* package with no `exporters/`
+directory, which is exactly what `scripts/graphify_node_limit_patch.py` rewrites
+(`exporters/html.py`, `cli.py`), and `scripts/graphify_huge_mode.py` -- the
+renderer for a 688k-node graph -- is read OUT of that file. So the documented
+refresh path ran an engine its own renderer does not target, and huge mode was
+unreachable from it. The install that *is* patched, 0.9.50, was not a candidate.
+
+A second finding fell out of the same investigation: my own ad-hoc
+`graphify update .` completed successfully -- `graph.json` and `GRAPH_REPORT.md`
+both rewritten -- while writing **95 bytes** to its log. It bypassed the script's
+ordering, marker and per-step dumps, so a successful 17-minute run left a log
+that reads like an instant crash. The script's `logs/graph_refresh_step*.log`
+exists for exactly this and was not used because the script was not used.
+
+### Fix
+Resolution is now by **capability**, not by path.
+`resolve_graphify_python()` walks `GRAPHIFY_PY` (env override) → uv tool layouts
+(Windows and POSIX) → the historical Python314 path → `sys.executable`, and
+accepts only an install that has `REQUIRED_INSTALL_PARTS`
+(`exporters/`, `exporters/html.py`). A patched install outranks an unpatched one
+*even when the unpatched one is newer*, because the patch is the only thing that
+decides whether this tree's graph renders at all. When nothing qualifies it
+returns `None` and the caller refuses -- a fallback would write a 688k-node page
+through the small-graph code path, which is the wrong artifact rather than an
+error. The skill/package skew is reported with the command that ends it.
+
+Measured on the real path, first run after the fix:
+
+```
+resolving the graphify install (capability, not path):
+  skip C:\...\Python314\python.exe (graphify 0.8.8): no exporters,
+       exporters/html.py -- cannot carry the huge-mode patch
+  graphify 0.9.50 (patched) at C:\Users\clint\AppData\Roaming\uv\tools\graphifyy\Lib\site-packages\graphify
+  WARNING: version skew -- skill 0.9.55 vs package 0.9.50. Align them (pin the
+           package to the skill: uv tool install graphifyy==0.9.55 --force, ...)
+start (interpreter=C:\Users\clint\AppData\Roaming\uv\tools\graphifyy\Scripts\python.exe pid=5880)
+```
+
+`tests/test_graphify_refresh_interpreter.py` (7 tests) pins it. Falsified: with
+the preference order inverted, `test_a_patched_install_beats_a_newer_unpatched_one`
+is the one that fails, and it passes again on restore. `graph.html` was verified
+untouched (`update` rewrites only the JSON and the report), so the ad-hoc run did
+not overwrite the huge-mode page with a truncated one.
+
+### Prevention
+- A hard-coded interpreter is a decision that outlives its reasoning. When the
+  comment says *why the default is wrong*, the right fix is a resolver, not a
+  better constant.
+- Resolve a dependency by the capability the repo actually depends on -- the file
+  it patches -- and refuse rather than fall back. "Newest" is not the same as
+  "usable", and here it was actively worse: 0.8.8 is newer than nothing and
+  cannot render this tree.
+- When a documented entry point exists, use it. It carries the ordering, the
+  marker, and the per-step dumps that make a 17-minute run diagnosable; a manual
+  invocation that succeeds with a 95-byte log is strictly less information for
+  the same wall-clock time.
+- Read the warning. It named the exact package, the exact version and the exact
+  command across multiple sessions before anyone acted on it.
+
+**Related:** Error #207, Lesson #100, Lesson #101, ADR-019,
+`scripts/graph_refresh_no_llm.py`, `scripts/graphify_node_limit_patch.py`,
+`tests/test_graphify_refresh_interpreter.py`

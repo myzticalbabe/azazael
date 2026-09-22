@@ -866,6 +866,49 @@ is the weakest of the three facts and the only one whose error deletes capabilit
 `_resolve_module` returns `None` on an ambiguous stem instead of picking the first
 candidate, so one `db_monitor.py` cannot lend another its dispatch evidence.
 
+### 7.21 The refresh path ran the one graphify install its own patch cannot apply to (new, Error #208)
+
+The two stale artifacts from 7.19 were not un-refreshable. Three graphify installs
+exist on this host and the refresh path was pinned to the wrong one:
+
+| Install | Version | `exporters/html.py` | huge-mode patch |
+|---|---|---|---|
+| `~/.local/bin/graphify.exe` (uv tool) | 0.9.50 | present | **applied** |
+| Python314 `site-packages` (pip) | 0.8.8 | **absent** (flat package) | cannot apply |
+| `~/.claude/skills/graphify` (skill) | 0.9.55 | — | — |
+
+`scripts/graph_refresh_no_llm.py` hard-coded its interpreter to the middle row. Its
+own comment defended it correctly on the premise (the 3.14t venv has no graphify)
+and wrongly on the target: `graphify_node_limit_patch.py` rewrites
+`exporters/html.py`, `graphify_huge_mode.py` is read out of that file, and the pip
+install is a flat package with no `exporters/` at all. The patched install was not
+even a candidate.
+
+Resolution is now by capability -- the install must hold
+`exporters/html.py`, a patched one outranks an unpatched one regardless of version,
+and `None` is returned rather than falling back. Measured on the real path:
+
+```
+resolving the graphify install (capability, not path):
+  skip C:\...\Python314\python.exe (graphify 0.8.8): no exporters,
+       exporters/html.py -- cannot carry the huge-mode patch
+  graphify 0.9.50 (patched) at C:\Users\clint\AppData\Roaming\uv\tools\graphifyy\Lib\site-packages\graphify
+  WARNING: version skew -- skill 0.9.55 vs package 0.9.50 ...
+start (interpreter=...\uv\tools\graphifyy\Scripts\python.exe pid=5880)
+```
+
+`tests/test_graphify_refresh_interpreter.py` (7 tests, all passing); with the
+preference order inverted exactly one test fails, which is the one that asserts a
+patched install beats a newer unpatched one.
+
+Artifact freshness is now **8 of 8 current** (`nodes=688918 clustered=True`), from
+6 of 8. A caveat recorded rather than smoothed over: the JSON and report that are
+current *right now* were produced by the 0.8.8 engine during this session's
+investigation (my ad-hoc `update .`, which completed while writing only **95 bytes**
+of log -- it bypassed the script that writes per-step dumps). `graph.html` was
+verified untouched (11:58, 523 MB), so nothing was truncated, and the refresh is
+re-run through the fixed entry point so the artifacts and the engine agree.
+
 ## 8. Architecture quality scorecard
 
 | Dimension | Score | Assessment |
