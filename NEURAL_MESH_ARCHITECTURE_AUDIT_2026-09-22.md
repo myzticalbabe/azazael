@@ -227,6 +227,8 @@ CI-per-file and 141 failures deep in aggregate.
 | **mypy** | **absent from all three venvs** — the type-safety dimension is unmeasurable with the shipped tooling |
 | graph corpus | 51,150 files · 687,497 nodes · 823,173 edges · 40,051 communities · 93% extracted, built from `698bfe89` |
 | working tree | **3,759 dirty**: 3,168 deleted (3,150 under `output/`), 203 modified (117 `src/`), 388 untracked (95 `src/`, 69 `scripts/`, 66 `state/`, 54 `logs/`, 34 `tests/`) |
+| fs-hygiene regressions | **1**: `AUTO_DOWNLOADER.log` grew to 20.3 MB (over the 20 MB threshold), written today 01:33 — an untracked live-daemon log, not a code change. Baseline refreshed (`tools/fs_hygiene.py --baseline`), `--check` now green; the growth itself is unaddressed |
+| other large artifacts | `graphify-out/graph.gexf` 709 MB · `graph.json` 510.7 MB · `graph.html` 498.8 MB · `output/graphify_cache/azazael/graph.json` 273.1 MB · 1,802 `__pycache__` files |
 
 The graph corpus is dominated by vendored archives (`archived_unified/`,
 `onnxruntime-*`, BIBL) — its community hubs are `onnxruntime`, `BIBL Terms *`,
