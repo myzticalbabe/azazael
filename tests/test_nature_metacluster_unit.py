@@ -33,6 +33,8 @@ from unittest import mock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 # ── Modules Under Test ────────────────────────────────────────────
+import CORE.WORMS.NATURE_CLUSTERS as NC          # the OBJECT the imports below bind
+
 from CORE.WORMS.NATURE_CLUSTERS import (
     NatureCluster,
     NatureClusterManager,
@@ -133,19 +135,29 @@ class TestNatureDefinitions:
 
 
 def _patch_registry_discovery(get_worms=None, categories=None):
-    """Patch module-level registry functions for hermetic discovery tests."""
+    """Patch module-level registry functions for hermetic discovery tests.
+
+    Patched through the module OBJECT this file imported, not by name. A string
+    target is resolved against `sys.modules` at patch time, and this module is a
+    WORM HOST — so `worm_registry.reset_registry()` re-imports it and the name
+    then resolves to a different object than the one whose classes this file
+    holds. Measured 2026-09-22: with a string target the patch landed on the
+    re-imported module, the classes under test fell through to the REAL
+    `get_worms_by_category`, and 13 tests failed in-suite (74 passed alone) with
+    counts of 25 instead of 2. `CORE.WORMS.NATURE_CLUSTERS` is the same object
+    the `from ... import` above bound, so `mock.patch.object` cannot drift.
+    """
     patchers = [
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS.discover_worms",
-                   return_value=0),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS.get_worms_by_category",
-                   side_effect=get_worms if get_worms else (lambda c: {})),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS.get_all_categories",
-                   return_value=categories if categories is not None else set()),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS.mark_spawned"),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS._get_pams", return_value=None),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS._get_breakers", return_value=None),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS._get_config", return_value=None),
-        mock.patch("CORE.WORMS.NATURE_CLUSTERS._get_log", return_value=None),
+        mock.patch.object(NC, "discover_worms", return_value=0),
+        mock.patch.object(NC, "get_worms_by_category",
+                          side_effect=get_worms if get_worms else (lambda c: {})),
+        mock.patch.object(NC, "get_all_categories",
+                          return_value=categories if categories is not None else set()),
+        mock.patch.object(NC, "mark_spawned"),
+        mock.patch.object(NC, "_get_pams", return_value=None),
+        mock.patch.object(NC, "_get_breakers", return_value=None),
+        mock.patch.object(NC, "_get_config", return_value=None),
+        mock.patch.object(NC, "_get_log", return_value=None),
     ]
     for p in patchers:
         p.start()

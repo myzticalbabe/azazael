@@ -27,7 +27,7 @@ import inspect
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Set, Optional, Any, Callable
+from typing import Dict, List, Set, Optional, Any, Callable, Iterable, Tuple
 from dataclasses import dataclass
 import threading
 
@@ -159,6 +159,15 @@ _VALID_CATEGORIES = frozenset({
     "dendrite", "axon", "glia", "plasticity",
     "thalamus", "consolidation", "envmesh", "metabolic",
 })
+
+#: Public alias for the vocabulary `register_worm` actually enforces.
+#: Added 2026-09-21 because `tests/test_worm_regression.py` kept its own copy of
+#: this set, frozen at 17 categories from before the mesh/immune/xenomorph
+#: expansions, so the suite failed against a registry that was correct: measured
+#: 40 valid categories in the registry and 0 off-vocabulary worms, while the test
+#: reported five "invalid category" failures. A duplicated constant can only
+#: drift, so consumers read this one.
+VALID_CATEGORIES = _VALID_CATEGORIES
 
 
 # ── FLEET-AUTHORITY INVARIANT (audit G16, 2026-09-14) ────────────────
@@ -350,6 +359,55 @@ def _validate_registry_params(category: str, priority: int, cooldown_seconds: fl
                 raise ValueError(f"Tag '{tag}' contains dangerous characters")
 
 
+def _ensure_summary_contract(cls: type) -> str:
+    """Guarantee every registered class can report its state. Returns provenance.
+
+    2026-09-21: measured 174 of 218 registered classes had NO `get_summary` at
+    all — 53 did. There is no single place to add it to the 145 that are plain
+    `object` subclasses, so the choice was to redefine which entries the contract
+    covers, invent 174 interfaces, or have the registry enforce what it already
+    documents. The registry is the only thing that knows what is registered, and
+    it already normalises on the way in (`@register_worm` fixes bare module names
+    and refuses a governor re-filed into another nature), so it enforces this too.
+
+    The default is `BaseWormMixin.get_summary`, which is SAFE by construction for
+    this use: with no `__summary_method__`/`__summary_fields__` declared it takes
+    the metadata branch and calls nothing. That matters — `tests/test_worm_smoke.py`
+    skips `RLTrainLoop` and `ScheduledTrainingWorm` precisely because calling into
+    them is expensive, so a default that invoked `run()` would convert 174 quick
+    failures into 174 hangs.
+
+    Returns "declared" when the class (or a base) already implemented it, else
+    "default". The distinction is recorded in the registry entry rather than
+    discarded, because a fleet where 174 organs report an identical stub is not
+    the same fleet as one where they report real state, and the provenance column
+    is what keeps that visible after the test goes green.
+    """
+    try:
+        existing = getattr(cls, "get_summary", None)
+        if callable(existing):
+            return "declared"
+    except Exception:
+        pass
+    try:
+        # The mixin's implementation reads its two schema attributes, and a class
+        # that does not inherit the mixin has neither — attaching only the method
+        # produced `AttributeError: 'AmassWorm' object has no attribute
+        # '__summary_method__'`. Both are dunders with trailing underscores, so
+        # neither name is mangled. Existing values are left alone: a class that
+        # already declares a schema keeps it.
+        if not hasattr(cls, "__summary_method__"):
+            cls.__summary_method__ = ""       # type: ignore[attr-defined]
+        if not hasattr(cls, "__summary_fields__"):
+            cls.__summary_fields__ = []       # type: ignore[attr-defined]
+        cls.get_summary = BaseWormMixin.get_summary  # type: ignore[attr-defined]
+        return "default"
+    except Exception:
+        # Builtin / C-extension types refuse attribute assignment. Nothing to do
+        # here, and refusing to register a worm over it would be worse.
+        return "unavailable"
+
+
 def register_worm(
     category: str = "utility",
     priority: int = 5,
@@ -439,6 +497,12 @@ def register_worm(
                 # asserted it via @register_worm(category=...).
                 "registration_source": "decorator",
                 "category_source": "declared",
+                # "declared" = the class implements get_summary itself;
+                # "default" = the registry attached BaseWormMixin's metadata
+                # summary; "unavailable" = a C type refused the assignment.
+                # Recorded so "every worm can be summarized" cannot be mistaken
+                # for "every worm reports real state".
+                "summary_source": _ensure_summary_contract(cls),
             }
 
         _log_event("worm_registered", worm_name=name, category=category, priority=priority)
@@ -885,6 +949,116 @@ def _get_cache_funcs() -> tuple:
     return _cache_funcs_cache
 
 
+def _new_decision_id() -> Optional[str]:
+    """Canonical decision id, minted by `spawn_credit` so both taps agree.
+
+    Imported lazily: `worm_registry` is imported by the expansion package, so a
+    module-level import would risk a cycle. Falls back to a local mint rather
+    than returning None, because a missing id would silently degrade the join
+    back to statistical.
+    """
+    try:
+        from CORE.WORMS.expansion.spawn_credit import new_decision_id
+        return new_decision_id()
+    except Exception:
+        try:
+            return "d-%d" % time.time_ns()
+        except Exception:
+            return None
+
+
+#: Where the L1 wiring cycle publishes an ACCEPTED genome. Absent means no
+#: promotion has ever passed the gate, which is the correct initial state.
+WIRING_PROMOTED_PATH = os.environ.get("AZAZAEL_WIRING_PROMOTED") or os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "state", "wiring_promoted.json")
+
+_wiring_cache: Optional[Dict[str, Any]] = None
+_wiring_cache_stamp: Optional[Tuple[float, int]] = None
+_wiring_lock = threading.Lock()
+
+
+def _load_promoted_wiring() -> Optional[Dict[str, Any]]:
+    """The accepted L1 wiring genome, or None. NEVER raises, NEVER stale.
+
+    This is the consumer that makes the wiring genome an effector rather than a
+    report: `decide_execution_order` reads it to rank the fleet. Without a reader
+    the genotype would be one more learner with nothing to act on - the defect
+    that left the hyperparameter loop closing inside the trainer.
+
+    Cache is keyed on (mtime_ns, size), not a TTL. A promotion must take effect
+    on the next dispatch without a restart, and a TTL would either serve a stale
+    genome after a promotion or re-read the file on every hot dispatch call.
+    Fail-open everywhere: a corrupt or missing file yields None and the caller
+    falls back to registry priority, so dispatch can never be blocked by state.
+    """
+    global _wiring_cache, _wiring_cache_stamp
+    try:
+        st = os.stat(WIRING_PROMOTED_PATH)
+        stamp = (st.st_mtime, st.st_size)
+    except OSError:
+        return None
+
+    if _wiring_cache is not None and _wiring_cache_stamp == stamp:
+        return _wiring_cache
+
+    with _wiring_lock:
+        if _wiring_cache is not None and _wiring_cache_stamp == stamp:
+            return _wiring_cache
+        try:
+            import json as _json
+            with open(WIRING_PROMOTED_PATH, "r", encoding="utf-8") as fh:
+                data = _json.load(fh)
+            if not isinstance(data, dict):
+                return None
+            _wiring_cache = data
+            _wiring_cache_stamp = stamp
+            return data
+        except Exception:
+            return None
+
+
+def _decision_versions() -> Dict[str, Any]:
+    """Versions of every LEARNED artifact that produced this decision.
+
+    Added 2026-09-21 for the same reason `decision_id` was: without it, a
+    promoted calibration and its effect are indistinguishable in the ledger from
+    any other change in the fleet. The choice rows carry `decision_id` and the
+    outcome rows carry the same id, so a version block written here is inherited
+    by every outcome that decision caused -- which is what makes "did the L2
+    promotion help?" a question the recorded data can answer instead of one that
+    only the loop's own average can assert.
+
+    Three artifacts are stamped, because three things steer a dispatch and each
+    can move independently of the others: the hyperparameter set (`hp`), the L1
+    wiring genome (`wg`, plus its `wg_gen`), and the spine Q-table size.
+
+    Fail-soft PER FIELD, and None means "not readable", never "absent": a
+    missing genome is a real state (no promotion has passed the gate) and is
+    reported as None in exactly the same slot, so a reader can tell that the
+    field was written and had nothing to say.
+    """
+    out: Dict[str, Any] = {"hp": None, "wg": None, "wg_gen": None,
+                           "spine_edges": None}
+    try:
+        from CORE.WORMS.expansion import hyperopt as _hyp
+        out["hp"] = _hyp.fingerprint(_hyp.load())
+    except Exception:
+        pass
+    try:
+        data = _load_promoted_wiring() or {}
+        out["wg"] = data.get("fingerprint")
+        out["wg_gen"] = data.get("generation")
+    except Exception:
+        pass
+    try:
+        from CORE import spine_registry as _sr
+        out["spine_edges"] = len(_sr.get_q_weights())
+    except Exception:
+        pass
+    return out
+
+
 def _get_pams_recorder():
     """Lazy PAMS recorder — double-checked locking for Python 3.14t free-threading."""
     global _pams_instance
@@ -1234,6 +1408,136 @@ class SpawnDiversityEngine:
 
         return pick
 
+    def decide_execution_order(
+        self,
+        nature: str,
+        candidates: Iterable[str],
+        q_weights: Optional[Dict[str, float]] = None,
+        credit: Optional[Dict[str, float]] = None,
+        reason: str = "nature-order",
+        record: bool = True,
+    ) -> Tuple[List[str], Optional[str]]:
+        """THE DISPATCH DECISION: order a Nature's worms for execution.
+
+        Until 2026-09-21 this engine was instantiated by `NatureClusterManager`
+        and never called. It wrote 608 `spawn_selected` rows describing choices
+        that nothing executed, while the executions that DID happen were
+        recorded by a different component that never logged a choice. Measured
+        consequence: of 13 chosen worms and 28 executed worms, they had ONE in
+        common - so no join between the two logs existed at any level.
+
+        This method supplies the missing half. It makes the decision, records
+        it with a `decision_id`, and returns that same id to the caller so the
+        executions it causes carry it too. Choice and outcome then describe one
+        decision instead of two unrelated populations.
+
+        ORDERING ONLY - every candidate is returned. A policy able to drop a
+        worm could starve the fleet, including the worms that keep this loop
+        alive, so demotion is the strongest action available here.
+
+        Ranking, descending:
+          1. grounded credit from observed outcomes (`credit`)
+          2. spine Q-weight - EMA of this nature's execution history
+          3. registry priority - the hand-authored fallback
+          4. name - deterministic tie-break
+
+        ``record=False`` ranks WITHOUT writing the `spawn_selected` row per worm
+        (2026-09-21, added for the genome adaptation audit). A caller that is
+        asking a HYPOTHETICAL -- "what order would this genome produce?" -- must
+        not be able to answer it only by injecting phantom decisions into the one
+        ledger that exists to join choices to executions. Replicating the ranking
+        key outside would have been the other option and it is the worse one: two
+        copies of one formula is how telemetry comes to disagree with the thing it
+        describes. Default True, so every existing caller is unaffected, and a
+        `record=False` call returns a decision_id that is deliberately NOT
+        joinable because nothing was written for it to join to.
+
+        Returns ``(ordered_names, decision_id)``. ``decision_id`` is None only
+        when there is nothing to decide.
+        """
+        names = [n for n in dict.fromkeys(candidates) if n]  # dedupe, keep order
+        if not names:
+            return [], None
+
+        q_weights = q_weights or {}
+        credit = credit or {}
+        decision_id = _new_decision_id()
+
+        # ── L1 effector: the promoted wiring genome steers this ranking ────
+        # 2026-09-21. Before this, the L1 genotype had no consumer: a promoted
+        # wiring genome would have been written to state and read by nothing --
+        # the same "learner with no effector" defect this repo already had at the
+        # hyperparameter layer. The genome's `priority` replaces the hand-authored
+        # registry priority, and an organ the genome deactivated keeps running but
+        # is demoted to the tail.
+        #
+        # STILL ORDERING ONLY - every candidate is returned, and "inactive" is a
+        # demotion rather than a deletion, because the invariant above holds: a
+        # policy able to drop a worm could starve the fleet. A soft-disable is the
+        # strongest action L1 is allowed to take.
+        # Wrapped even though the loader documents itself as fail-open: a
+        # learner that can raise into the dispatch path can stop the whole
+        # fleet, and that is a strictly worse failure than an unordered one.
+        # Found by the test that hands this a loader that raises -- the
+        # docstring said "NEVER raises" and nothing enforced it on the caller.
+        try:
+            wiring = _load_promoted_wiring()
+        except Exception:
+            wiring = None
+        wiring_priority = (wiring or {}).get("priority") or {}
+        wiring_active = (wiring or {}).get("active")
+        active_set = set(wiring_active) if isinstance(wiring_active, list) else None
+
+        def _key(name: str) -> Tuple[float, float, float, str]:
+            reg = WORM_REGISTRY.get(name, {}) or {}
+            priority = reg.get("priority", 5) or 5
+            if name in wiring_priority:
+                try:
+                    priority = int(wiring_priority[name])
+                except (TypeError, ValueError):
+                    pass
+            # Demoted-out organs rank below every ranked one, deterministically.
+            demoted = 1 if (active_set is not None and name not in active_set) else 0
+            return (
+                demoted,
+                -float(credit.get(name, 0.0) or 0.0),
+                -float(q_weights.get(f"{nature}:{name}",
+                                     q_weights.get(name, 0.0)) or 0.0),
+                -float(priority),
+                name,
+            )
+
+        ordered = sorted(names, key=_key)
+
+        # One row per worm - the schema `spawn_selected` already used, plus the
+        # decision_id and rank that make it joinable to the outcome tap.
+        # Skipped entirely when `record=False`: a hypothetical ranking must not
+        # appear in the ledger as a decision that was taken.
+        if record:
+            # Resolved ONCE per decision, not per worm: every row of one choice
+            # must name the same versions, or the ledger would claim a decision
+            # was partly made by one calibration and partly by another.
+            versions = _decision_versions()
+            for rank, name in enumerate(ordered):
+                reg = WORM_REGISTRY.get(name, {}) or {}
+                category = reg.get("category", nature)
+                priority = int(reg.get("priority", 5) or 5)
+                self._record_pams("spawn_selected", {
+                    "worm_type": name,
+                    "category": category,
+                    "priority": priority,
+                    "reason": reason,
+                    "decision_id": decision_id,
+                    "rank": rank,
+                    "n_targets": len(ordered),
+                    "nature": nature,
+                    "credit": round(float(credit.get(name, 0.0) or 0.0), 4),
+                    "versions": versions,
+                })
+                self.record_spawn(name, category, priority, reason)
+
+        return ordered, decision_id
+
     def pick_diverse_batch(self, count: int, fleet_status: Any = None) -> List[Dict[str, Any]]:
         """
         Pick a diverse batch of 'count' worm types, each from different categories.
@@ -1544,10 +1848,13 @@ def repair_registry() -> Dict[str, Any]:
     importlib.invalidate_caches()  # clear importlib metadata caches too
 
     with _registry_lock:
+        # Captured BEFORE the clear: the purge needs to know which modules host
+        # worms, and the registry is the only record of that.
+        _module_targets = _registered_worm_modules()
         WORM_REGISTRY.clear()
         global _discovery_done
         _discovery_done = False
-    _purge_worm_modules()
+    _purge_worm_modules(_module_targets)
 
     try:
         discover_worms()
@@ -1568,20 +1875,85 @@ def repair_registry() -> Dict[str, Any]:
     }
 
 
-def _purge_worm_modules() -> None:
-    """Purge imported worm modules from sys.modules.
+def _registered_worm_modules() -> set:
+    """The modules that host a registered worm class.
+
+    Derived from the registry, which stores the package-qualified module for
+    every class it registered (`register_worm` normalizes bare names). This is
+    the authority on which modules must be re-imported for the decorators to
+    re-fire, so callers read it BEFORE they clear the registry.
+    """
+    with _registry_lock:
+        return {str(entry.get("module") or "")
+                for entry in WORM_REGISTRY.values() if entry.get("module")}
+
+
+def _hosts_worms(mod_name: str, mod: Any, targets: Set[str]) -> bool:
+    """Whether a cached module must be re-imported for the fleet to rebuild.
+
+    Two ways to qualify, deliberately unioned:
+
+    * the registry NAMES this module (precise), and
+    * the module's SOURCE mentions `register_worm` — the safety net for a module
+      whose registry entry was overwritten by a same-named class elsewhere, and
+      for registrations made indirectly.
+
+    A module matching neither is a HELPER (`wiring_genome`, `hyperopt`,
+    `spawn_credit`, ...) and is left cached. That distinction is the fix for a
+    measured defect: deleting helpers replaced the module object, so every
+    holder kept a different `wiring_genome` than the next importer
+    (`wg0 is wg1 -> False`, 2026-09-22), which silently disarmed every
+    `monkeypatch`/`mock.patch` that named a helper — 8 gate tests failed in-suite
+    while passing alone, and `test_nature_metacluster_unit`'s 13 failures came
+    from `mock.patch("CORE.WORMS.NATURE_CLUSTERS.get_worms_by_category")`
+    patching the re-imported module while the classes under test read the old
+    one.
+    """
+    if mod_name in targets:
+        return True
+    source = getattr(mod, "__file__", None)
+    if not source:
+        # A synthetic/exec'd module with no file: nothing to re-read, and it
+        # cannot be a worm host discovered from disk.
+        return False
+    try:
+        with open(source, "r", encoding="utf-8", errors="ignore") as fh:
+            return "register_worm" in fh.read()
+    except OSError:
+        # Unreadable source: prefer re-import over serving a stale fleet.
+        return True
+
+
+def _purge_worm_modules(worm_modules: Optional[Set[str]] = None) -> None:
+    """Purge imported WORM-HOSTING modules from sys.modules.
 
     Without the purge, re-discovery cannot re-fire @register_worm
     decorators (modules import as cached no-ops) and worms rebuild via
     the dir()-fallback with heuristic metadata — fewer natures, wrong
     categories, wrong cooldowns, and expansion/ subpackages dropped
     entirely. Shared by reset_registry() and repair_registry().
+
+    `worm_modules` is the registry's module set captured BEFORE the caller
+    cleared it; when omitted it is read from the live registry (the
+    `repair_registry()` path, where the registry is still populated). Only
+    modules that host worms are purged — see `_hosts_worms` for why the helpers
+    must keep their identity.
     """
-    # expansion/ package modules (recursively discovered) —
+    targets = _registered_worm_modules() if worm_modules is None else set(worm_modules)
+    # Every module the registry names is a target regardless of package, because
+    # the fleet spans TWO roots: `CORE.WORMS.*` and a top-level `worms.*`
+    # (measured 2026-09-22: KaliHealth / MetasploitBridge / NmapScanner live in
+    # `worms.*`, and a prefix-only filter silently lost those three on every
+    # reset). The source-mention fallback stays scoped to the worm packages.
     for mod_name in list(sys.modules):
-        if mod_name == "expansion" or mod_name.startswith("expansion."):
+        if mod_name in targets:
             del sys.modules[mod_name]
-        elif mod_name.startswith("CORE.WORMS."):
+            continue
+        if not (mod_name == "expansion" or mod_name.startswith("expansion.")
+                or mod_name.startswith("CORE.WORMS.")
+                or mod_name == "worms" or mod_name.startswith("worms.")):
+            continue
+        if _hosts_worms(mod_name, sys.modules.get(mod_name), targets):
             del sys.modules[mod_name]
     # Also bare-named worm modules (discovery imports WORMS dir flat names
     # when running against an ad-hoc worms_dir): heuristic — names that
@@ -1597,26 +1969,109 @@ def _purge_worm_modules() -> None:
         pass
 
 
-def reset_registry():
+def reset_registry(purge_modules: bool = True):
     """Reset the registry (for testing).
 
-    Clears WORM_REGISTRY and ALSO purges already-imported worm modules
-    from sys.modules (see _purge_worm_modules). Without the purge,
-    re-discovery after a reset cannot re-fire @register_worm decorators
-    (modules import as no-ops), and worms rebuild via the dir()-fallback
-    with heuristic metadata — fewer natures, wrong categories, wrong
-    cooldowns.
+    Clears WORM_REGISTRY, re-arms discovery, and (by default) ALSO purges
+    already-imported worm modules from sys.modules (see
+    _purge_worm_modules). Without the purge, re-discovery after a reset
+    cannot re-fire @register_worm decorators (modules import as no-ops),
+    and worms rebuild via the dir()-fallback with heuristic metadata —
+    fewer natures, wrong categories, wrong cooldowns.
 
     trade-off (accepted): classes from the purged modules become
     distinct objects from pre-reset ones; any test holding a direct
     class reference across a reset must re-discover.
+
+    `purge_modules=False` gives the other half of that trade-off: the
+    registry is emptied and discovery re-armed, but every already-imported
+    module object stays identical. Use it when a test needs a small or
+    empty registry and other test modules in the same process hold direct
+    references to worm classes. Two limits are real and measured:
+
+      * Emptying WORM_REGISTRY WITHOUT re-arming `_discovery_done` is not a
+        usable state. `discover_worms()` short-circuits on the still-True
+        flag and returns 0, so the registry can never be repopulated
+        (2026-09-21: a test file that cleared only the dict left the next
+        module an EMPTY fleet it had no way to rebuild — 9 failures in
+        tests/test_spine_mesh.py, which passes 62/62 alone).
+      * A subsequent re-discovery with modules still cached is LOSSY: the
+        `@register_worm` decorators in `expansion.*` never re-fire, so those
+        worms are absent from the rebuilt registry (2026-09-21 measurement:
+        SpineCycleWorm / MeshArchitectWorm / GossipSyncWorm all gone).
+        To restore full contents without the purge use
+        `snapshot_registry()` / `restore_registry()` instead.
     """
     global _discovery_done, _vf_already_discovered
     with _registry_lock:
+        # Captured BEFORE the clear — see repair_registry().
+        _module_targets = _registered_worm_modules()
         WORM_REGISTRY.clear()
         _discovery_done = False
         _vf_already_discovered = False
-    _purge_worm_modules()
+    if purge_modules:
+        _purge_worm_modules(_module_targets)
+
+
+def discovery_completed() -> bool:
+    """True once a full discovery pass has populated WORM_REGISTRY.
+
+    Public because it is the predicate a caller needs BEFORE treating
+    registry contents as the fleet. Before the first discovery pass the
+    registry holds only whatever registered at import time (measured
+    2026-09-21: two probe worms from a test module, with `_discovery_done`
+    False) — and a save/restore pair that treated those two as the fleet
+    then left the process with a two-worm registry and 9 failures in a
+    later module.
+    """
+    return bool(_discovery_done)
+
+
+def snapshot_registry() -> Dict[str, Dict[str, Any]]:
+    """Copy WORM_REGISTRY contents for later `restore_registry()`.
+
+    Entry dicts are copied — including the `tags` set — so mutating a live
+    entry afterwards cannot reach into the snapshot. The `class` value is
+    shared on purpose: identity is what makes a restore faithful.
+
+    Contents are NOT necessarily the fleet: check `discovery_completed()`
+    first if the snapshot is going to be restored as one.
+    """
+    with _registry_lock:
+        return {
+            name: {**entry, "tags": set(entry.get("tags") or ())}
+            for name, entry in WORM_REGISTRY.items()
+        }
+
+
+def restore_registry(snapshot: Dict[str, Dict[str, Any]]) -> int:
+    """Replace registry CONTENTS with a `snapshot_registry()` copy.
+
+    Exists because both alternatives are unusable for an in-process save and
+    restore:
+
+      * `reset_registry()` empties the registry and purges `CORE.WORMS.*` and
+        `expansion.*` from sys.modules, so every module imported afterwards
+        sees a DIFFERENT class object than the one callers already hold.
+      * Clearing WORM_REGISTRY alone cannot repopulate (see reset_registry's
+        docstring), and a no-purge re-discovery is lossy for `expansion.*`.
+
+    A contents restore does neither: class identity is preserved, nothing is
+    re-imported, and `_discovery_done` is left True because the restored
+    contents genuinely ARE the populated fleet that flag describes.
+
+    Returns:
+        Number of entries in the restored registry.
+    """
+    global _discovery_done
+    with _registry_lock:
+        WORM_REGISTRY.clear()
+        WORM_REGISTRY.update({
+            name: {**entry, "tags": set(entry.get("tags") or ())}
+            for name, entry in snapshot.items()
+        })
+        _discovery_done = bool(WORM_REGISTRY)
+        return len(WORM_REGISTRY)
 
 
 # Auto-discover on import
