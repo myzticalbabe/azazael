@@ -7399,15 +7399,35 @@ The same shape was already recorded for a different instrument (Error #193: a
 dimension scored 3.0 because it could not be measured). Here the instrument
 measures the diff of a file rather than the state of a type.
 
-### Fix / decision
-Not changed in this pass, and the reason is worth writing down rather than
-leaving as an omission: a line-insensitive identity (file + rule + a source-line
-hash, or a normalized context window) is the right fix, and it changes what the
-committed baseline means, so it belongs with the next baseline revision rather
-than inside a session that is already re-recording 1,386 ids. The baseline was
-therefore re-recorded (`--baseline`: 1,377 -> **1,386 known**), the gate is green
-(`OK: no new diagnostics`), and the +9 is stated here as what it is -- nine
-files that are not mine, recorded as known so the count does not lie by accident.
+### Fix
+Identity is now `relpath:rule:anchor`, where `anchor` is the whitespace-normalised
+SOURCE LINE the diagnostic points at, plus an ordinal when one file repeats a
+`(rule, anchor)` pair so nothing collapses silently. Consequences, all measured:
+
+* inserting lines above a finding changes no id -- the file that reported "15 new
+  and 6 gone" now reports neither;
+* the path is repo-relative, so the baseline is portable across the W11 / WSL /
+  bare-metal checkouts, which the absolute `file` field made impossible;
+* a diagnostic on an unreadable file falls back to `@pos:line:col`, marked so the
+  fallback is visible rather than silently reintroducing the old instability.
+
+The baseline records `identity_scheme`, and `--check` **refuses to diff across
+schemes** instead of reporting thousands of false NEW ids -- that refusal is the
+upgrade path, and it is what allowed this change to land mid-session.
+
+Also in this pass: `pyrightconfig.json` excludes `**/generated/_staging`, the
+morphogenesis containment pen that `CORE/WORMS/expansion/spine.py:3782` documents
+as a directory discovery deliberately cannot see. 68 generated scratch files were
+being type-checked and had entered the baseline as known debt.
+
+### Verification
+- `pytest tests/test_type_check_gate.py` -> **17 passed** (3 new: the identity
+  survives lines inserted above; two same-rule findings on identical text stay
+  two ids; the baseline records its scheme).
+- `--baseline` under the new scheme -> **1,384 known**, `--check` -> `OK: no new
+  diagnostics (1384 known, 1384 unchanged)`.
+- Files analysed 699 -> **631** (the 68 staging files), which is the exclusion
+  working rather than the tree shrinking.
 
 ### Prevention
 - A baseline key must be stable under edits that do not change the finding. Line numbers are not.

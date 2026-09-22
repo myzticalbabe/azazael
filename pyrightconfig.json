@@ -1,6 +1,7 @@
 {
     "include": ["src"],
     "exclude": [
+        "**/generated/_staging",
         "**/__pycache__",
         "**/node_modules",
         "**/.git",

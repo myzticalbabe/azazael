@@ -597,7 +597,9 @@ location rather than a claim.
 | `test_config_and_breaker` + `test_ncm_integration` + `test_brainstem_playing_field` | ✅ 100 passed |
 | timing-assertion trio `test_pool` + `test_mesh_audit_insights` + `test_compliance_deadlock_regression` (ADR-015) | ✅ 70 passed |
 | isolation profile (`--profile isolation`, CI-blocking) | ✅ **308 passed, 0 failed, 0 errors, 1 skipped** — baseline re-recorded at 0 ids (was 299) |
-| `tools/type_check_gate.py --check` | ✅ OK: no new diagnostics (**1,386 known**, was 1,377 — the +9 is another process's `expansion/generated/_staging/gen_*.py`, and the baseline is line-numbered, see Error #203) |
+| `tools/type_check_gate.py --check` | ✅ OK: no new diagnostics — the baseline is now **content-anchored** (`relpath:rule:anchor`, 1,384 known), the staging pen is excluded by path (699 → 631 files analysed), and the scheme is recorded so a future identity change cannot be diffed across (Error #203, ADR-016) |
+| `tests/test_type_check_gate.py` | ✅ 17 passed — including "lines inserted above a finding change no id" |
+| `NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md` | ✅ new derived artifact (registered in `artifact_freshness.py`): 101 pending rows in take-order with per-row evidence |
 | `tools/aggregate_suite_gate.py --check` | ✅ OK: no new aggregate failures |
 | `tools/artifact_freshness.py` | ✅ **all 7 derived artifacts current** — "OK: every derived artifact is at least as new as its sources"; `graphify update` + `cluster-only` rc=0 in 1,741 s; graph/report consistent (nodes=688,627 clustered=True) |
 | `tools/audit_parseable_files.py --check --deep` | ✅ no new mislabelled files |
@@ -703,6 +705,27 @@ it. The rebuild now carries the whole prior disposition forward and overlays onl
 what must track the tree, and the new regression test pins the rebuild rather
 than the transition -- **falsified by the pre-fix code** (`KeyError: 'evidence'`).
 Recorded as Error #202 / Lesson #96.
+
+### 7.16 The priority list, worked (2026-09-22, after run 8)
+
+Every item the audit's own priority list named, and what happened to it:
+
+| Priority | Item | Outcome |
+|---|---|---|
+| P0 | full suite with every fix landed | **run 9** launched with the marker registered; see the verification table |
+| P0 | WSL2 drift (3 test files) | ✅ `--sync-to wsl2` then `--verify` -> **PASS, tests 196/196 in sync** (was 193/196) |
+| P1 | type gate baseline is line-numbered | ✅ **implemented** — content-anchored identity, scheme recorded, cross-scheme diff refused (Error #203, ADR-016) |
+| P1 | 101 pending PF16 dispositions | ✅ **made actionable** — `--worklist` writes `NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md`: 101 rows in take-order, each `test_reached_only` row carrying the test location that reaches it. Statuses are deliberately NOT written: a class is a measurement, and inventing 101 dispositions would be Error #190 again. **The decisions themselves remain the operator's** |
+| P2 | generated output inside the analysed tree | ✅ excluded by path in `pyrightconfig.json`; files analysed 699 -> 631 |
+| P2 | neural loop's untested half (`act`, `l1`, `l2`) | ⚠️ **contract pinned, fleet not fired** — `test_the_act_stage_and_the_executor_agree_on_the_summary_line` asserts the executor still prints the ` cycle ` line and `ok=%d` token that `_stage_act` scans for, closing the one silent failure mode an honest zero shares with a broken parser. Firing `run_mesh_cycle.py` (real fleet) and the genetic promotion rungs writes outside any containment this session has, so it is left as an operator command rather than folded into a green claim |
+| P2 | `AZAZAEL_TEST_SHARED_PERMIT=0` | ✅ isolation profile run with the compatibility swap **off** — **310 passed, 0 failed, 0 errors, 1 skipped**, and 2 MORE tests pass than with the swap on, because the real thread-local token is what they exercise. ADR-013 asked whether the swap was masking a gap in the probe path: on this profile it was not. The swap stays until a FULL run with it off is green, which is a 25-minute measurement and is stated as outstanding rather than assumed |
+| P3 | structural debt (561 untested functions, 1,386 diagnostics, 17 `shell=True`, 7 circular groups, 166-edge `worm_registry`) | ❌ unchanged, and unchanged by design — none of it is a session-sized fix, and the instruments that point at it are only now trustworthy |
+
+Also fixed while working the list: `pytest.mark.slow` was applied 9 times and never
+registered, so every run emitted `PytestUnknownMarkWarning`. It is registered in
+`pytest.ini` now, with the reason it matters beyond tidiness: two suites
+(`test_parallel_integration.py:450`, `test_inference_integration.py:1054`) filter on
+that mark BY NAME, so a typo would silently stop applying it rather than fail.
 
 ## 8. Architecture quality scorecard
 

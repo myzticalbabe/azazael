@@ -39,6 +39,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY: tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...] = (
     ("NEURAL_MESH_FUNCTION_TODO.md", ("src",), ("*.py",)),
     ("NEURAL_MESH_WIRE_OR_CUT.json", ("src",), ("*.py",)),
+    ("NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md", ("src",), ("*.py",)),
     ("NEURAL_MESH_INTEGRATION_MAP.json", ("src",), ("*.py",)),
     ("NEURAL_MESH_INTEROP.mmd", ("src",), ("*.py",)),
     ("logs/capability_wiring_dataset.jsonl", ("src",), ("*.py",)),

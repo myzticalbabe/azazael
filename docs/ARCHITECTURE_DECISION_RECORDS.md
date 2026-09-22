@@ -686,4 +686,62 @@ Lesson #95, `tests/test_compliance_deadlock_regression.py`,
 
 ---
 
+## ADR-016 — A Baseline Key Is Content-Anchored, and Its Scheme Is Recorded So It Cannot Be Diffed Across
+
+**Status:** Accepted · **Date:** 2026-09-22 · **Supersedes:** the positional
+identity chosen for the type gate (ADR-011)
+
+### Context
+
+ADR-011 chose `file:line:col:rule` as the type gate's diagnostic identity and
+recorded the trade-off it knew about: two diagnostics sharing a position and a
+rule collapse into one id (1,443 diagnostics -> 1,377 ids). The trade-off it did
+not anticipate is the opposite failure, and it is worse. Error #203 measured it:
+a session that introduced **no type defect** reported **15 new diagnostics and 6
+gone**, because six findings had moved down their files by unrelated edits. The
+id also carried an ABSOLUTE path, so the committed baseline could not be shared
+with the WSL or bare-metal checkouts -- it did not contain one comparable id.
+
+Nothing about that is specific to types. Every gate in this repo keys findings
+somehow (`tools/aggregate_suite_gate.py` keys by nodeid, which IS an identity; the
+artifact gate keys by path), and the rule now has a worked example.
+
+### Decision
+
+1. **Identity is `relpath:rule:anchor`**, where `anchor` is the whitespace-
+   normalised SOURCE LINE the diagnostic points at. Lines inserted above a finding
+   change no id; the path is repo-relative, so the baseline is portable.
+2. **An ordinal disambiguates identical text** (`...:anchor#2`), so two same-rule
+   findings on the same line text remain two ids -- the collapse ADR-011 chose to
+   accept is no longer accepted.
+3. **An unreadable file falls back to `@pos:line:col`, visibly.** A silent
+   fallback would reintroduce the instability for exactly the files the gate
+   cannot read.
+4. **The baseline records `identity_scheme`, and `--check` refuses to diff across
+   schemes.** That refusal is what lets the scheme change at all: without it, the
+   conversion would have reported every id as new and every baseline id as gone.
+5. **Generated scratch is excluded by path, not by baseline entry.**
+   `**/generated/_staging` is the morphogenesis containment pen, documented at
+   `CORE/WORMS/expansion/spine.py:3782` as a directory discovery cannot see; 68
+   generated files were being analysed and 9 of their diagnostics had been
+   baselined as known debt. Files analysed went 699 -> 631.
+
+### Consequences
+
+**Positive:** the gate now reports the code rather than the diff of the file it
+lives in, and the same baseline is meaningful on every checkout. The scheme guard
+makes a future identity change a deliberate, announced migration.
+
+**Negative:** the baseline is 1,384 ids rather than 1,377, because nothing
+collapses any more -- that is the point, but it means the number is not comparable
+with the previous one and the entry says so. Reading a source line per diagnostic
+adds file I/O for the files that already have findings (134-odd), cached per run.
+
+### Related
+
+Error #203, Lesson #97, ADR-010, ADR-011, ADR-012, `tools/type_check_gate.py`,
+`tests/test_type_check_gate.py`
+
+---
+
 *Generated: 2026-02-11*
