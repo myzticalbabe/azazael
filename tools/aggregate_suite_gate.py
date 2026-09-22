@@ -46,9 +46,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import queue as queue_mod
 import re
 import subprocess
 import sys
+import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
@@ -163,8 +166,145 @@ def load_ids(path: Path) -> List[str]:
                   | set(payload.get("error_ids") or []))
 
 
+#: Return codes that mean "the run did not produce a verdict". 124 is the hard
+#: cap; 126 is a stall. Neither is a pass, and neither may be read as one.
+NO_VERDICT_CODES = (124, 126)
+
+#: A run whose output has not advanced for this many seconds is STALLED, not
+#: slow. Measured 2026-09-22: a run sat at 9% for over ten minutes with a
+#: byte-frozen output file while four of the files in that region passed in 75
+#: seconds on their own, and the only way to learn that was to watch the file and
+#: kill it by hand. A wall-clock cap alone cannot report this -- it fires 40
+#: minutes later and says "timeout", which is true and useless.
+DEFAULT_STALL_SECONDS = 240.0
+
+
+def _stream_command(cmd: Sequence[str], timeout: int,
+                    raw_path: Optional[Path] = None,
+                    stall_seconds: float = DEFAULT_STALL_SECONDS,
+                    ) -> Tuple[int, str]:
+    """Run a command, tee its output to disk, and fail on a stall.
+
+    Returns (returncode, output). 124 = hard timeout, 126 = stall detected.
+
+    Output is teed LINE BY LINE into `raw_path` so the evidence exists even when
+    the run is killed -- the alternative (read it all at the end) is what made a
+    killed run leave nothing behind.
+    """
+    chunks: List[str] = []
+    handle = None
+    if raw_path is not None:
+        try:
+            raw_path.parent.mkdir(parents=True, exist_ok=True)
+            handle = open(raw_path, "w", encoding="utf-8", errors="replace")
+        except OSError:
+            handle = None
+    started = time.monotonic()
+    last_progress = started
+    last_line = ""
+    try:
+        proc = subprocess.Popen(cmd, cwd=str(REPO), stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True,
+                                errors="replace", bufsize=1)
+    except OSError as exc:
+        if handle:
+            handle.close()
+        return 126, "could not start: %s" % exc
+
+    def _record(text: str) -> None:
+        chunks.append(text)
+        if handle is not None:
+            handle.write(text)
+            handle.flush()
+
+    # The pipe is drained by a THREAD, not by readline() in the loop below.
+    # Measured 2026-09-22: a blocking readline() makes the watchdog dead code --
+    # it parks until the child writes again, so the first check happens only
+    # after the child has already produced the output that was supposed to
+    # reveal the stall (the test above took 30 s for a 1.5 s stall threshold).
+    # A queue is used instead of `selectors` because Windows cannot select on a
+    # pipe.
+    queue: "queue.Queue" = queue_mod.Queue()
+
+    def _drain(stream) -> None:
+        try:
+            for raw_line in stream:
+                queue.put(raw_line)
+        except Exception:
+            pass
+        finally:
+            queue.put(None)          # sentinel: the child's output is closed
+
+    reader = None
+    if proc.stdout is not None:
+        reader = threading.Thread(target=_drain, args=(proc.stdout,),
+                                  name="aggregate-gate-reader", daemon=True)
+        reader.start()
+
+    stall_reason = ""
+    try:
+        while True:
+            try:
+                line = queue.get(timeout=0.25)
+            except queue_mod.Empty:
+                line = ""
+            if line is None:
+                break                     # EOF: the child closed its output
+            if line:
+                _record(line)
+                stripped = line.strip()
+                # pytest's progress line is dots/percent; the last line that
+                # names something is the best available "where was it".
+                if stripped and not stripped.endswith("%"):
+                    last_line = stripped[:200]
+                last_progress = time.monotonic()
+                continue
+            if proc.poll() is not None:
+                break
+            now = time.monotonic()
+            if now - started > timeout:
+                stall_reason = "TIMEOUT after %ss" % timeout
+                proc.kill()
+                break
+            if stall_seconds and now - last_progress > stall_seconds:
+                stall_reason = ("STALL: no output for %.0fs after %s"
+                                % (now - last_progress, last_line or "start"))
+                proc.kill()
+                break
+    finally:
+        try:
+            # Short on purpose. The verdict is already decided; this only reaps
+            # the child, and measured on Windows a kill() is not always
+            # immediate, so waiting 30 s here added 30 s to every stall and
+            # timeout test while changing nothing about the answer.
+            proc.wait(timeout=5)
+        except Exception:
+            pass
+        if handle is not None:
+            handle.close()
+
+    output = "".join(chunks)
+    if stall_reason:
+        # The reason goes into the output AND the raw file: a killed run's last
+        # line is the only clue to where it stopped, and it must survive the kill.
+        trailer = "\n%s\n" % stall_reason
+        output += trailer
+        if raw_path is not None:
+            try:
+                with open(raw_path, "a", encoding="utf-8", errors="replace") as fh:
+                    fh.write(trailer)
+                    fh.flush()
+            except OSError:
+                pass
+        return (124 if stall_reason.startswith("TIMEOUT") else 126), output
+    return (proc.returncode or 0), output
+
+
 def run_pytest(select: Optional[Sequence[str]] = None,
-               timeout: int = 2400) -> Tuple[int, str]:
+               timeout: int = 2400,
+               raw_path: Optional[Path] = None,
+               stall_seconds: float = DEFAULT_STALL_SECONDS,
+               ) -> Tuple[int, str]:
     """One aggregate pytest process. Returns (returncode, combined output).
 
     A single process on purpose: chunking it would recreate exactly the
@@ -175,12 +315,24 @@ def run_pytest(select: Optional[Sequence[str]] = None,
         cmd += list(select)
     else:
         cmd += ["tests/"]
-    try:
-        proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True,
-                              text=True, timeout=timeout)
-    except subprocess.TimeoutExpired as exc:
-        return 124, "TIMEOUT after %ss\n%s" % (timeout, exc)
-    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+    return _stream_command(cmd, timeout, raw_path, stall_seconds)
+
+
+def _last_evidence_line(output: str) -> str:
+    """The last line that names a test, for the killed-run message."""
+    for line in reversed(output.splitlines()):
+        stripped = line.strip()
+        # `::` alone is not enough: the STALL/TIMEOUT line quotes a nodeid too,
+        # so it would name itself as the last test and hide the real one.
+        if stripped.startswith(("STALL", "TIMEOUT")):
+            continue
+        if stripped and "::" in stripped:
+            return "last named test: %s" % stripped[:200]
+    for line in reversed(output.splitlines()):
+        stripped = line.strip()
+        if stripped:
+            return "last output: %s" % stripped[:200]
+    return "last output: (none)"
 
 
 def _write_json(path: Path, payload: Dict[str, object]) -> None:
@@ -223,6 +375,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                              "(default: %s)" % REPORT.name)
     parser.add_argument("--timeout", type=int, default=2400,
                         help="seconds for the whole aggregate run")
+    parser.add_argument("--stall-seconds", type=float,
+                        default=DEFAULT_STALL_SECONDS,
+                        help="report STALL if output does not advance for this "
+                             "long (0 disables); a stalled run is not a slow one")
     args = parser.parse_args(argv)
 
     # Module-level names, overridable: `--check` MUST read the same file
@@ -259,11 +415,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parsed = parse_pytest_output(out)
         rc = 0
     else:
-        rc, out = run_pytest(select, args.timeout)
+        rc, out = run_pytest(select, args.timeout,
+                             REPORT.with_suffix(".raw.txt"),
+                             args.stall_seconds)
         parsed = parse_pytest_output(out)
-        if rc == 124:
-            print("TIMEOUT: the aggregate run did not finish -- treated as a "
-                  "failure, because a killed run is not a pass", file=sys.stderr)
+        if rc in NO_VERDICT_CODES:
+            verdict = "TIMEOUT" if rc == 124 else "STALL"
+            print("%s: the aggregate run produced no verdict -- treated as a "
+                  "failure, because a killed run is not a pass" % verdict,
+                  file=sys.stderr)
+            print(_last_evidence_line(out), file=sys.stderr)
             return 1
 
     # The RAW OUTPUT is persisted next to the report, unconditionally.

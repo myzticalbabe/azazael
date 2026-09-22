@@ -117,7 +117,7 @@ def test_the_isolation_profile_pins_its_own_files_and_baseline(
     """
     seen = {}
 
-    def fake_run(select, timeout):
+    def fake_run(select, *a, **k):
         seen["select"] = select
         return 0, "500 passed in 9s"
 
@@ -132,7 +132,8 @@ def test_the_isolation_profile_pins_its_own_files_and_baseline(
 def test_an_explicit_only_still_wins_over_the_profile(tmp_path, monkeypatch):
     seen = {}
     monkeypatch.setattr(gate, "run_pytest",
-                        lambda s, t: (seen.update(select=s), (0, "1 passed in 1s"))[1])
+                        lambda s, *a, **k: (seen.update(select=s),
+                                            (0, "1 passed in 1s"))[1])
     monkeypatch.setattr(gate, "REPORT", tmp_path / "r.json")
     assert gate.main(["--report", "--profile", "isolation",
                       "--only", "tests/test_x.py"]) == 0
@@ -193,6 +194,50 @@ def test_parse_from_a_missing_file_fails_instead_of_passing(
     assert gate.main(["--check", "--parse-from",
                       str(tmp_path / "absent.txt")]) == 1
     assert "cannot read raw output" in capsys.readouterr().err
+
+
+def test_a_stalled_run_is_killed_and_named(tmp_path):
+    """A frozen output pipe must become a NAMED failure, not a long wait.
+
+    Measured 2026-09-22: a run sat at 9% for over ten minutes with a byte-frozen
+    output file while the files in that region passed in 75 s alone. The only way
+    to learn that was to watch the file and kill it by hand -- which is the reason
+    this watchdog exists rather than a wall-clock cap alone. The child below is
+    real: it prints one nodeid and then blocks.
+    """
+    raw = tmp_path / "stall.raw.txt"
+    cmd = [sys.executable, "-c",
+           "import sys, time; print('tests/test_x.py::test_a'); "
+           "sys.stdout.flush(); time.sleep(30)"]
+    rc, out = gate._stream_command(cmd, timeout=60, raw_path=raw,
+                                   stall_seconds=1.5)
+    assert rc == 126, "a stalled run must not report a verdict code"
+    assert "STALL" in out
+    assert "tests/test_x.py::test_a" in out
+    written = raw.read_text(encoding="utf-8")
+    assert "STALL" in written, "the reason must survive the kill, in the raw file"
+    assert "test_a" in written
+
+
+def test_a_hard_timeout_is_distinct_from_a_stall():
+    cmd = [sys.executable, "-c", "import time; time.sleep(30)"]
+    rc, out = gate._stream_command(cmd, timeout=1, raw_path=None,
+                                   stall_seconds=0)
+    assert rc == 124
+    assert "TIMEOUT" in out
+
+
+def test_a_stall_exits_nonzero_and_reports_the_last_named_test(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "b.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "r.json")
+    monkeypatch.setattr(gate, "run_pytest", lambda *a, **k: (
+        126, "....\ntests/test_y.py::test_c\nSTALL: no output for 240s after "
+             "tests/test_y.py::test_c\n"))
+    assert gate.main(["--check"]) == 1
+    err = capsys.readouterr().err
+    assert "STALL" in err
+    assert "last named test: tests/test_y.py::test_c" in err
 
 
 def test_the_isolation_profile_names_only_files_that_exist():
