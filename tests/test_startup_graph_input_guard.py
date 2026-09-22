@@ -100,6 +100,29 @@ class TestStartupGraphInputGuard(unittest.TestCase):
         self.assertIn("deep-parsed pdfs: 3", res["note"])
         self.assertTrue(res["ok"])
 
+    def test_missing_pdf_engine_is_degraded_but_not_fatal(self):
+        """A missing pypdf must be visible, not a silent OK.
+
+        The deep pass is the part that catches truncated PDFs; when its engine
+        is absent the check did nothing, yet the old code reported success. It
+        is reported as degraded -- and must NOT fail startup, since it rests on
+        an optional third-party dependency.
+        """
+        class _Degraded:
+            returncode = 0
+            stdout = ("checked 500 parseable-binary file(s)\n"
+                      "deep-unavailable: pypdf is not importable\n"
+                      "deep-parsed pdfs: 0\n"
+                      "OK: no new mislabelled files\n")
+            stderr = ""
+
+        with mock.patch.object(check_tooling.subprocess, "run",
+                               lambda *a, **k: _Degraded()):
+            res = check_tooling.check_graph_input_hygiene()
+        self.assertTrue(res["ok"], "a missing optional dep must not fail startup")
+        self.assertTrue(res["degraded"], "but it must be reported as degraded")
+        self.assertIn("deep-unavailable", res["note"])
+
     def test_a_new_mislabel_is_reported_as_not_ok(self):
         class _Fail:
             returncode = 1

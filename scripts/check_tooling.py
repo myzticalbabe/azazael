@@ -138,16 +138,23 @@ def check_graph_input_hygiene(timeout: int = 300) -> dict:
     out = (proc.stdout + proc.stderr).strip().splitlines()
     new_line = next((ln.strip() for ln in out if ln.strip().startswith("NEW mislabels")), "")
     pdf_line = next((ln.strip() for ln in out if ln.strip().startswith("deep-parsed pdfs")), "")
+    unavail = next((ln.strip() for ln in out if ln.strip().startswith("deep-unavailable")), "")
     note = new_line or (out[-1].strip() if out else "")
     if pdf_line:
         # Surface how much the deep pass actually read. A tree with PDFs makes
         # the deep scan legitimately slow, and reporting the count keeps that
         # from looking like a stalled startup.
         note = f"{note} [{pdf_line}]" if note else pdf_line
+    if unavail:
+        note = f"{note} [{unavail}]" if note else unavail
     return {
         "available": True,
         "ok": proc.returncode == 0,
         "note": note,
+        # The deep check ran but its engine (pypdf) was missing, so it checked
+        # nothing. Reported as degraded rather than OK, and never as a hard
+        # failure -- startup must not depend on an optional third-party dep.
+        "degraded": bool(unavail),
     }
 
 
@@ -362,7 +369,13 @@ def main():
     hygiene = check_graph_input_hygiene()
     if hygiene["available"]:
         status = "[OK]" if hygiene["ok"] else "[!!]"
+        if hygiene.get("degraded"):
+            status = "[~~]"
         print(f"    {status} parseable files: {hygiene['note']}")
+        if hygiene.get("degraded"):
+            print("         deep PDF check UNAVAILABLE (pypdf not importable) --")
+            print("         truncated PDFs would NOT be caught; install pypdf")
+            print("         in this interpreter to restore the check.")
         if not hygiene["ok"]:
             print("         a new mislabelled file can abort `graphify update .`;")
             print("         run: python tools/audit_parseable_files.py")
