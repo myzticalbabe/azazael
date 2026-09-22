@@ -43,11 +43,13 @@ def _loud(message: str) -> None:
     """Emit an operator-visible warning that survives a global logging.disable.
 
     `logging` is the idiomatic channel, but an entry point can switch the whole
-    module off for the process -- and the one that matters here does:
-    `scripts/spine_cycle_apply.py` calls `logging.disable(logging.CRITICAL)` at
-    import (line 23), and that is the process the hourly scheduler runs. A
-    warning the scheduler's own process suppresses is not loud, which is how a
-    ~30-hour refusal went unnoticed.
+    module off for the process. That happened: `scripts/spine_cycle_apply.py`
+    used to call `logging.disable(logging.CRITICAL)` at import -- the very
+    process the hourly scheduler runs -- which swallowed this WARNING and let a
+    ~30-hour refusal go unnoticed. The disable has since been narrowed to the
+    noisy `worm_registry` logger, but the fallback below stays: any caller can
+    reintroduce a process-wide disable, and a warning that a whole module got
+    switched off must not simply vanish.
 
     So the record still goes to `logging`, and when the process-wide disable
     threshold would swallow a WARNING the same text is written to stderr too --
