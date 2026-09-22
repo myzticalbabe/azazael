@@ -20,7 +20,14 @@ import sys
 import time
 from datetime import datetime
 
-logging.disable(logging.CRITICAL)
+# Quiet the registry's one-INFO-per-worm import chatter by NAME rather than
+# with a process-wide `logging.disable(logging.CRITICAL)`. That blanket switch
+# also swallowed this process's own operator warnings -- notably the spine
+# gate's `_loud` WARNING (CORE.WORMS.expansion.spine) -- and this is the exact
+# process the hourly scheduler runs, so a ~30h self-image refusal went unseen.
+# Silencing the noisy logger by name keeps the log clean while leaving
+# WARNING+ live, so a refusal still reaches stderr and the chain's per-job log.
+logging.getLogger("worm_registry").setLevel(logging.WARNING)
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 LOG = os.path.expanduser("~/.azazael/spine_cycle.log")

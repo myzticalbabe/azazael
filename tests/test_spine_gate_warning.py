@@ -12,10 +12,13 @@ The fix is at the gate. `SpineCycleWorm.run_cycle` calls `_loud`, which emits a
 WARNING through `logging` -- and, crucially, ALSO writes to stderr when the
 process has globally disabled logging. That second path is not hypothetical:
 `scripts/spine_cycle_apply.py` -- the exact process the hourly scheduler runs --
-calls `logging.disable(logging.CRITICAL)` at import, so a logging-only warning
-is swallowed in the one place it has to be seen. These tests pin all of it: the
-record, the reason text, the stderr fallback under a process-wide disable, and
-that the observation-only path is never refused.
+used to call `logging.disable(logging.CRITICAL)` at import, so a logging-only
+warning was swallowed in the one place it had to be seen. That blanket switch
+has since been narrowed to the noisy `worm_registry` logger (see
+`TestEntryPointDoesNotDisableLogging`), but the stderr fallback stays as
+defence-in-depth for any caller that reintroduces one. These tests pin all of
+it: the record, the reason text, the stderr fallback under a process-wide
+disable, and that the observation-only path is never refused.
 """
 from __future__ import annotations
 
@@ -105,6 +108,37 @@ class TestGateRefusalIsLoud(unittest.TestCase):
                           "an observation-only cycle must not be refused")
         self.assertFalse(any("REFUSED" in m for m in records),
                          "no refusal warning on the observation path")
+
+
+class TestEntryPointDoesNotDisableLogging(unittest.TestCase):
+    """The silent-refusal regression lived in the entry point, not the gate.
+
+    `scripts/spine_cycle_apply.py` runs in the scheduler's own process, and it
+    used a process-wide `logging.disable(logging.CRITICAL)`. That hid every
+    WARNING in the process -- including the gate's -- which is how a ~30h
+    refusal read as success. The switch is now narrowed to the one logger that
+    was actually noisy (`worm_registry`, one INFO per worm at import). These
+    tests fail if the blanket switch ever comes back.
+    """
+
+    def test_importing_the_entry_point_leaves_logging_on(self):
+        import importlib
+        importlib.import_module("spine_cycle_apply")
+        self.assertLess(
+            logging.root.manager.disable, logging.WARNING,
+            "importing the scheduler entry point must not disable logging: "
+            "a blanket disable swallows the gate's own refusal warning",
+        )
+
+    def test_registry_chatter_is_silenced_by_name(self):
+        import importlib
+        entry = importlib.import_module("spine_cycle_apply")
+        self.assertIsNotNone(entry)
+        level = logging.getLogger("worm_registry").level
+        self.assertGreaterEqual(
+            level, logging.WARNING,
+            "the one noisy logger must stay quiet at INFO by name",
+        )
 
 
 if __name__ == "__main__":
