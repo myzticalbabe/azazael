@@ -352,6 +352,68 @@ def test_a_verdict_rebuild_keeps_the_evidence_too():
     assert entry["line"] == 205 and entry["module"] == "communication"
 
 
+def test_the_worklist_carries_every_pending_row_with_its_evidence(table):
+    """The backlog must be work, not a count with a shape.
+
+    `--triage` records a class and its evidence onto every pending row, but only
+    into the JSON. The rendered worklist is what a reviewer reads, so this pins
+    four properties of it: every pending row appears exactly once, the two
+    classes are kept apart, a `test_reached_only` row carries the test location
+    that reaches it (checking a row must not start with a search), and -- the
+    one that matters most -- rendering the worklist changes no status.
+    """
+    triaged = mfp.triage(json.loads(json.dumps(table)))
+    pending = {k: v for k, v in (triaged.get("declared") or {}).items()
+               if str(v.get("status")) == "pending"}
+    markdown = mfp.worklist_markdown(triaged)
+
+    rows = [ln for ln in markdown.splitlines() if ln.startswith("- [ ] ")]
+    assert len(rows) == len(pending), (
+        "the worklist dropped or duplicated a pending row: %d rows for %d rows"
+        % (len(rows), len(pending)))
+    for label in pending:
+        assert label.count(".") >= 0 and label in markdown, (
+            "%s is pending but is not on the worklist" % label)
+
+    reached = {k for k, v in pending.items()
+               if str(v.get("triage")) == "test_reached_only"}
+    for label in reached:
+        row = [ln for ln in rows if label in ln]
+        assert row, label
+        assert "reached by tests/" in row[0], (
+            "%s is test-reached and the worklist did not say where: %r"
+            % (label, row[0]))
+
+    # Rendering is read-only: a class is a measurement, and a worklist that
+    # wrote a status would be an inferred disposition presented as a decision.
+    after = json.loads(json.dumps(triaged))
+    assert {k: str(v.get("status")) for k, v in after["declared"].items()} == \
+           {k: str(v.get("status")) for k, v in triaged["declared"].items()}
+
+
+def test_the_worklist_refuses_to_guess_a_disposition():
+    """A class must not become a status anywhere in the render."""
+    table_in = {"declared": {
+        "m:a": {"module": "m", "qualname": "a", "line": 1,
+                "status": "pending", "triage": "no_reference_anywhere",
+                "triage_evidence": []},
+        "m:b": {"module": "m", "qualname": "b", "line": 2,
+                "status": "pending", "triage": "test_reached_only",
+                "triage_evidence": ["tests/t.py:7"]},
+    }, "triage_counts": {"test_reached_only": 1, "no_reference_anywhere": 1}}
+    markdown = mfp.worklist_markdown(table_in)
+    # The page says what it did not do, and nothing in it assigns a status: the
+    # two classes name their candidate decisions in prose (`retirement`, `wiring`)
+    # and must not read as having taken one.
+    assert "does not change a status" in markdown
+    for status in mfp.VERDICT_STATUSES:
+        if status == "pending":
+            continue
+        assert ("status: `%s`" % status) not in markdown
+        assert ("-> %s" % status) not in markdown
+    assert "`m:b`" in markdown and "tests/t.py:7" in markdown
+
+
 def test_triage_labels_the_pending_backlog_without_deciding_it(table):
     """A class is not a disposition: `triage` must never touch `status`."""
     labelled = mfp.triage(json.loads(json.dumps(table)))

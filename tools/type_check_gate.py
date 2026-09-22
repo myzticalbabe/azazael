@@ -36,9 +36,29 @@ that a check failing on facts gets switched off. So the gate compares against
 * a baseline identity no longer reported     -> reported, exit 0, with a hint,
 * a checker that could not run               -> exit 1 (no output is not a pass).
 
-Identity is `file:line:col:rule` -- the message text is deliberately NOT part of
-it, so rewording a message is not a "fix" and a changed message is not a
-regression.
+Identity is `relpath:rule:anchor`, where `anchor` is the source line the
+diagnostic points at, whitespace-normalised, plus an ordinal when a file repeats
+the same `(rule, anchor)` pair. The message text is deliberately NOT part of it,
+so rewording a message is not a "fix" and a changed message is not a regression.
+
+Why not `file:line:col:rule` (the first scheme, and what Error #203 measured)
+----------------------------------------------------------------------------
+Positional ids are invalidated by any edit above a finding. A session that
+introduced no type defect at all reported **15 new diagnostics and 6 gone**; the
+six "new" ones were the six "gone" ones, moved down six files by unrelated
+edits, and only reading both lists told you so. Worse, the id carried an
+ABSOLUTE path, so the same tree on another machine or user account shares not one
+id with the baseline. A key that an unrelated edit can change is a position, not
+an identity (Lesson #97).
+
+Anchoring on the source line fixes both: lines inserted above a finding change no
+id, and the path is repo-relative. The ordinal keeps the collapsing honest -- two
+diagnostics of one rule pointing at identical text are still two findings, and
+one of them disappearing still shows up as a missing id rather than passing.
+
+A scheme change cannot be compared across, so the baseline records which scheme
+produced it and `--check` refuses to diff across schemes instead of reporting
+thousands of false NEW ids. That refusal is the upgrade path.
 
 Usage
 -----
@@ -131,30 +151,78 @@ def run_checker(targets: Optional[Sequence[str]] = None,
     return proc.returncode, proc.stdout or ""
 
 
+#: Bumped whenever `diagnostic_ids` changes shape. A baseline recorded under a
+#: different scheme cannot be diffed against, and `--check` says so instead of
+#: reporting every id as new and every baseline id as gone.
+IDENTITY_SCHEME = "content-anchored-v1"
+
+#: `path -> {line: normalised source}`. Reading each diagnosed file once keeps the
+#: identity cheap: only files that already have a diagnostic are opened.
+_LINE_CACHE: Dict[str, Dict[int, str]] = {}
+
+
+def _repo_relative(path: str) -> str:
+    """Repo-relative, forward-slashed. Absolute paths made ids machine-specific."""
+    raw = str(path or "").replace("\\", "/")
+    try:
+        return str(Path(raw).resolve().relative_to(REPO)).replace("\\", "/")
+    except (ValueError, OSError):
+        return raw
+
+
+def _source_lines(relpath: str) -> Dict[int, str]:
+    """Line number -> whitespace-normalised text, for one file, cached."""
+    cached = _LINE_CACHE.get(relpath)
+    if cached is not None:
+        return cached
+    out: Dict[int, str] = {}
+    try:
+        text = (REPO / relpath).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        text = ""
+    for index, line in enumerate(text.splitlines(), start=1):
+        out[index] = " ".join(line.split())
+    _LINE_CACHE[relpath] = out
+    return out
+
+
+def _anchor(relpath: str, line: int, character: int) -> str:
+    """The source line as identity text; falls back to the position when unread.
+
+    The fallback is a position and carries a marker saying so, because a silent
+    fallback would reintroduce exactly the instability this scheme removed for
+    every unreadable file.
+    """
+    text = _source_lines(relpath).get(line)
+    if text:
+        return text
+    return "@pos:%d:%d" % (line, character)
+
+
 def diagnostic_ids(payload: Dict[str, object]) -> Set[str]:
-    """Stable identity per diagnostic: file:line:col:rule (never the message).
+    """Stable identity per diagnostic: relpath:rule:anchor[#ordinal].
 
     A message is prose; prose gets reworded, and a gate that treats rewording as
-    a change teaches people to ignore it.
+    a change teaches people to ignore it. A LINE NUMBER is not prose but it is
+    just as unstable -- see the module docstring and Error #203.
 
-    ACCEPTED TRADE-OFF, measured: identity is positional, so two diagnostics
-    sharing a position AND a rule collapse into one id -- 1,443 diagnostics
-    became 1,377 ids on the 2026-09-22 run. The alternative (an index per
-    position) would renumber every later diagnostic in a file whenever one is
-    added or removed, turning one real change into hundreds of false "NEW"
-    reports. A gate that cries wolf gets switched off, so the collapsing form is
-    chosen knowingly: a second diagnostic at a position that already has one of
-    the same rule is not counted as new. The severity counts recorded alongside
-    the ids are what still make a growing pile visible.
+    Ordinals: diagnostics are numbered per `(relpath, rule, anchor)`, so two
+    same-rule findings on identical text stay two ids, and one of them being
+    fixed shows up as a missing id. Nothing collapses silently.
     """
     out: Set[str] = set()
+    seen: Dict[str, int] = {}
     for diag in payload.get("generalDiagnostics") or []:  # type: ignore[union-attr]
         rng = diag.get("range") or {}
         start = rng.get("start") or {}
-        out.add("%s:%s:%s:%s" % (
-            str(diag.get("file") or "").replace("\\", "/"),
-            start.get("line", -1), start.get("character", -1),
-            diag.get("rule") or "no-rule"))
+        line = int(start.get("line", -1))
+        col = int(start.get("character", -1))
+        relpath = _repo_relative(str(diag.get("file") or ""))
+        rule = str(diag.get("rule") or "no-rule")
+        head = "%s:%s:%s" % (relpath, rule, _anchor(relpath, line + 1, col + 1))
+        ordinal = seen.get(head, 0)
+        seen[head] = ordinal + 1
+        out.add(head if ordinal == 0 else "%s#%d" % (head, ordinal + 1))
     return out
 
 
@@ -193,6 +261,7 @@ def contract_summary(payload: Dict[str, object]) -> Dict[str, object]:
 def baseline_payload(payload: Dict[str, object]) -> Dict[str, object]:
     return {
         "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "identity_scheme": IDENTITY_SCHEME,
         "checker": "basedpyright (pyrightconfig.json, typeCheckingMode basic)",
         "summary": contract_summary(payload),
         "severity_counts": severity_counts(payload),
@@ -201,12 +270,16 @@ def baseline_payload(payload: Dict[str, object]) -> Dict[str, object]:
     }
 
 
-def load_ids(path: Path) -> Set[str]:
+def load_baseline(path: Path) -> Dict[str, object]:
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        return set()
-    return set(data.get("diagnostic_ids") or ())
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def load_ids(path: Path) -> Set[str]:
+    return set(load_baseline(path).get("diagnostic_ids") or ())
 
 
 def diff_against_baseline(current: Iterable[str],
@@ -311,10 +384,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not args.check:
         return 0
 
-    known = load_ids(BASELINE)
+    baseline_doc = load_baseline(BASELINE)
+    known = set(baseline_doc.get("diagnostic_ids") or ())
     if not known and not BASELINE.exists():
         print("no baseline at %s -- run --baseline first" % BASELINE,
               file=sys.stderr)
+        return 1
+
+    # A baseline recorded under a different identity scheme shares no ids with
+    # this run, so diffing it would report every diagnostic as new AND every
+    # baseline id as fixed -- two lists of a thousand lines that describe the
+    # scheme, not the code. Refusing is the honest upgrade path.
+    recorded_scheme = str(baseline_doc.get("identity_scheme") or "positional-v0")
+    if recorded_scheme != IDENTITY_SCHEME:
+        print(
+            "baseline %s was recorded under identity scheme %r, this gate now "
+            "uses %r -- re-run --baseline to convert (the ids are not "
+            "comparable, so nothing here is reported as new)"
+            % (BASELINE, recorded_scheme, IDENTITY_SCHEME), file=sys.stderr)
         return 1
 
     delta = diff_against_baseline(ids, known)

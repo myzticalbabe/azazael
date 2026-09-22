@@ -38,6 +38,14 @@ def _diag(line, char, rule, message, severity="error"):
                       "end": {"line": line, "character": char + 1}}}
 
 
+def _diag_at(path, line, char, rule, severity="error"):
+    """A diagnostic on a REAL file, for the tests about identity anchoring."""
+    return {"file": str(path), "severity": severity, "rule": rule,
+            "message": "m",
+            "range": {"start": {"line": line, "character": char},
+                      "end": {"line": line, "character": char + 1}}}
+
+
 PAYLOAD = {
     "summary": {"filesAnalyzed": 690, "errorCount": 2, "warningCount": 1,
                 "informationCount": 0, "timeInSec": 51.6},
@@ -60,11 +68,73 @@ def test_identity_ignores_the_message_so_rewording_is_not_a_fix():
 def test_identity_separates_rule_and_position():
     ids = gate.diagnostic_ids(PAYLOAD)
     assert len(ids) == 3
-    assert "src/CORE/x.py:10:4:reportUndefinedVariable" in ids
-    # Same position, different rule -> a different diagnostic (this is the case
-    # the collapsing trade-off deliberately keeps distinct).
+    # `src/CORE/x.py` has no source line at position 11, so the anchor falls back
+    # to an explicitly-marked position rather than a bare number: a silent
+    # fallback would be the instability this scheme exists to remove, for every
+    # file the gate cannot read.
+    assert "src/CORE/x.py:reportUndefinedVariable:@pos:11:5" in ids
+    # Same position, different rule -> a different diagnostic.
     other = {"generalDiagnostics": [_diag(10, 4, "reportAssignmentType", "m")]}
-    assert gate.diagnostic_ids(other) != {i for i in ids if ":10:" in i}
+    assert gate.diagnostic_ids(other) != {i for i in ids if "@pos:11:5" in i}
+
+
+def test_identity_survives_lines_inserted_above(tmp_path, monkeypatch):
+    """The defect Error #203 measured: a positional id is invalidated by any edit.
+
+    Six diagnostics read as "15 new and 6 gone" after a session that introduced
+    no type defect, because inserting lines moves them. Anchoring on the source
+    line means the same finding reports the same id -- and lines inserted ABOVE a
+    finding do not change the text of the line it points at.
+    """
+    monkeypatch.setattr(gate, "REPO", tmp_path)
+    gate._LINE_CACHE.clear()
+    probe = tmp_path / "probe.py"
+    probe.write_text("x = 1\ny = 2\nz = 3\n", encoding="utf-8")
+
+    # `y = 2` is source line 2, i.e. 0-based index 1.
+    before = gate.diagnostic_ids({"generalDiagnostics": [
+        _diag_at(probe, 1, 0, "reportAssignmentType")]})
+    assert before == {"probe.py:reportAssignmentType:y = 2"}, before
+
+    # A blank line is inserted at the top. Nothing about the finding changed; its
+    # REPORTED position moved by one.
+    probe.write_text("\nx = 1\ny = 2\nz = 3\n", encoding="utf-8")
+    gate._LINE_CACHE.clear()
+    after = gate.diagnostic_ids({"generalDiagnostics": [
+        _diag_at(probe, 2, 0, "reportAssignmentType")]})
+    assert after == before, (
+        "inserting a blank line above a diagnostic changed its id, so the gate "
+        "would report it as a regression: %r vs %r" % (after, before))
+
+    # ...and the anchor still tracks a real change to the line it names, so a
+    # finding cannot be renamed out of the baseline.
+    probe.write_text("\nx = 1\ny = 3\nz = 3\n", encoding="utf-8")
+    gate._LINE_CACHE.clear()
+    changed = gate.diagnostic_ids({"generalDiagnostics": [
+        _diag_at(probe, 2, 0, "reportAssignmentType")]})
+    assert changed != before, "a rewritten line kept the old id"
+
+
+def test_two_findings_of_one_rule_on_identical_text_stay_two(tmp_path, monkeypatch):
+    """No silent collapsing: identical text is disambiguated by an ordinal."""
+    monkeypatch.setattr(gate, "REPO", tmp_path)
+    gate._LINE_CACHE.clear()
+    probe = tmp_path / "same.py"
+    probe.write_text("return None\nreturn None\n", encoding="utf-8")
+    ids = gate.diagnostic_ids({"generalDiagnostics": [
+        _diag_at(probe, 0, 0, "reportReturnType"),
+        _diag_at(probe, 1, 0, "reportReturnType")]})
+    assert ids == {"same.py:reportReturnType:return None",
+                   "same.py:reportReturnType:return None#2"}, ids
+
+
+def test_the_baseline_records_its_identity_scheme():
+    """A scheme change must be refusable, not reported as a thousand regressions."""
+    recorded = gate.baseline_payload(PAYLOAD)["identity_scheme"]
+    assert recorded == gate.IDENTITY_SCHEME
+    assert recorded != "positional-v0", (
+        "the scheme must not read as the positional one, or an old baseline "
+        "would be diffed against the new ids without a word")
 
 
 def test_severity_counts_and_top_rules_are_reported():
@@ -100,7 +170,7 @@ def test_a_new_diagnostic_blocks_and_a_known_one_does_not(
     monkeypatch.setattr(gate, "run_checker",
                         lambda *a, **k: (1, json.dumps(grown)))
     assert gate.main(["--check"]) == 1
-    assert ("NEW DIAGNOSTIC: src/CORE/x.py:99:0:reportUndefinedVariable"
+    assert ("NEW DIAGNOSTIC: src/CORE/x.py:reportUndefinedVariable:@pos:100:1"
             in capsys.readouterr().out)
 
 
