@@ -106,8 +106,15 @@ def _head(path: Path, n: int = 16) -> bytes:
         return fh.read(n)
 
 
-def scan(deep: bool = False) -> dict:
-    """One bounded walk. Returns findings grouped by kind."""
+def scan(deep: bool = False, root: Path | None = None) -> dict:
+    """One bounded walk. Returns findings grouped by kind.
+
+    `root` defaults to the repo root but is overridable so the deep-parse path
+    can be exercised against a synthetic tree in tests -- a truncated PDF is
+    the case the shallow signature check cannot see, and it needs a file that
+    really fails to parse to prove the deep pass catches it.
+    """
+    base = Path(root) if root is not None else ROOT
     mismatched: list[dict] = []
     corrupt_pdf: list[dict] = []
     #: PDFs pypdf actually OPENED. Reported so a slow deep pass is attributable
@@ -115,7 +122,19 @@ def scan(deep: bool = False) -> dict:
     deep_pdfs: list[str] = []
     checked = 0
     deep = deep or False
-    for dirpath, dirnames, filenames in os.walk(ROOT):
+    # Resolve the PDF engine ONCE, and REMEMBER when it is missing. A missing
+    # engine used to be swallowed per-file (`except ImportError: pass`), which
+    # made `--deep` a silent no-op reporting success -- the same class of defect
+    # this whole audit exists to catch.
+    pdf_reader = None
+    deep_unavailable = False
+    if deep:
+        try:
+            from pypdf import PdfReader  # noqa: PLC0415
+            pdf_reader = PdfReader
+        except ImportError:
+            deep_unavailable = True
+    for dirpath, dirnames, filenames in os.walk(base):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for name in filenames:
             ext = Path(name).suffix.lower()
@@ -131,21 +150,18 @@ def scan(deep: bool = False) -> dict:
             if not pred(head):
                 hint = _looks_textual(head)
                 mismatched.append({
-                    "path": str(path.relative_to(ROOT)).replace("\\", "/"),
+                    "path": str(path.relative_to(base)).replace("\\", "/"),
                     "ext": ext,
                     "head": head[:8].hex(),
                     "looks_like": ("text/" + hint) if hint else "binary (unknown)",
                 })
                 continue
-            if deep and ext == ".pdf":
-                rel = str(path.relative_to(ROOT)).replace("\\", "/")
+            if deep and ext == ".pdf" and pdf_reader is not None:
+                rel = str(path.relative_to(base)).replace("\\", "/")
                 try:
-                    from pypdf import PdfReader  # noqa: PLC0415
-                    reader = PdfReader(str(path))
+                    reader = pdf_reader(str(path))
                     _ = len(reader.pages)          # force a real parse
                     deep_pdfs.append(rel)
-                except ImportError:
-                    pass
                 except Exception as exc:
                     corrupt_pdf.append({
                         "path": rel,
@@ -153,7 +169,8 @@ def scan(deep: bool = False) -> dict:
                         "detail": str(exc)[:120],
                     })
     return {"checked": checked, "mismatched": mismatched,
-            "corrupt_pdf": corrupt_pdf, "deep_pdfs": deep_pdfs}
+            "corrupt_pdf": corrupt_pdf, "deep_pdfs": deep_pdfs,
+            "deep_unavailable": deep_unavailable}
 
 
 def _load_baseline() -> set[str]:
@@ -216,6 +233,10 @@ def main(argv: list[str] | None = None) -> int:
         # Name what was opened as well as what failed. A deep pass over a tree
         # full of PDFs is legitimately slow, and without this the run is
         # indistinguishable from a hang.
+        if res["deep_unavailable"]:
+            print("deep-unavailable: pypdf is not importable with this "
+                  f"interpreter ({sys.executable}) -- the deep PDF check was "
+                  "SKIPPED, so truncated PDFs would NOT be caught")
         pdfs = res["deep_pdfs"]
         print(f"deep-parsed pdfs: {len(pdfs)}")
         for p in pdfs[:10]:
