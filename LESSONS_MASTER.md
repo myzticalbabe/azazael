@@ -3164,4 +3164,145 @@ pinned by path, scope shrinkable by `--paths`)
 
 ---
 
+## Lesson #90 — A Half-Restore Is a Leak: Restore the State You Changed, Not the Name You Changed It Through
+
+**Date:** September 22, 2026
+**Source:** Error #196 (memory DB path), aggregate run — 52 failed / 3,628 passed
+
+A suite that redirects a module-level path does the right thing in `_setup` —
+env var **and** global — and half of it in `_teardown` — env var only. The env
+var was never the thing the code read; the global was. Restoring the env var
+therefore restored *nothing*, while `rmtree` deleted the directory the global
+still named. Four files did this; the failures surfaced in five other files that
+had the misfortune to run later.
+
+**The two-part tell that this class always shows:**
+
+1. **Every blamed file passes alone.** An aggregate-only failure whose victims
+   are individually green is not a flake and not a slow test — it is state that
+   outlived the test that set it. Blame is a *search direction*, not a verdict:
+   the file that names the resource and the file that pointed at it are usually
+   different files.
+2. **The error names a resource, so the question is "who pointed at it".**
+   `unable to open database file` at a `Temp\tmp_XXXX\...` path is a statement
+   about a *deleted directory*, not about sqlite, disk space, or permissions.
+   Reading it as "the DB is broken" sends the search into `direct_memory`; the
+   fix was in the tests.
+
+**Permanent mandate:**
+- When a test mutates module state to redirect something, the restore must
+  recompute the SAME derived value through the module's own resolver, after the
+  environment is restored. Restoring one of two coupled names is not a restore.
+- Prefer a mechanism over a checklist. `conftest` now restores every derived DB
+  path after **every** test, autouse — so the five files that never thought about
+  it are covered, and no future file can opt out of being right.
+- When you fix a leak, pin it with an order-dependent pair of tests and then
+  **falsify the pair**: run both functions with the mechanism removed and confirm
+  the second one fails. A regression test that has never failed proves nothing.
+- The audit number to distrust: an aggregate run whose failures are all green
+  individually. Count the *victims* to size the damage, then hunt the *cause*
+  among the files that ran before them — not among the files that broke.
+
+**Related:** Error #196, Error #190 (same class: `_purge_worm_modules` duplicating
+helper modules), Lesson #85, `tests/conftest.py`,
+`tests/test_memory_db_isolation.py`
+
+---
+
+## Lesson #91 — "I Permitted It" Is Not a Process-Wide Fact: Per-Thread State Gates Are Invisible Until a Worker Runs
+
+**Date:** September 22, 2026
+**Source:** Error #197 — `test_fs_probe_backend` 10/10 aggregate failures, 4-second repro
+
+`sentinel_enforcer` gates file writes with `_GATED_CALL = threading.local()`. The
+permit is granted on whichever thread happens to ask. `fs_probe` then runs its
+child probe on a **new** worker thread and opens a temp file there — so once the
+guard was armed, every delegated probe failed, and the API returned `None`.
+`None` means "unknown", so the caller could not tell "blocked by our own security
+control" from "the path did not answer".
+
+Two facts make this worse than it looks:
+
+1. **The symptom is a quiet `None`, not an exception.** An Optional return is a
+   claim that `None` is a legitimate answer. Here it swallowed a `PermissionError`
+   raised by the process's own guard, across an entire subsystem.
+2. **The failing tests were not the ones that armed the guard.** They were two
+   files later, and green alone — the same aggregate-only shape as Errors #191
+   and #196.
+
+**Permanent mandate:**
+- When a gate uses per-thread (or per-task, or per-coroutine) state, the fact to
+  check is "who is asking", not "did anyone permit". A permit that does not
+  propagate to the code that runs is not a permit; it is a race with a schedule.
+- A probe that returns `Optional` must let the caller see why it is `None`.
+  Distinguish *denied* from *did not answer* — otherwise a security control's
+  denial is indistinguishable from a slow disk, and both read as "unknown".
+- Fix the mechanism, never the victim file. Three times today the failing file
+  was innocent and the cause was a mechanism armed by an earlier file.
+- If a fix is made only in the test environment, state the production
+  consequence in the same breath. A thread-local guard is an *operator-visible*
+  design question (does the guard cover worker threads?), not a test detail.
+
+**Related:** Error #197, Error #191 (same guard, earlier instance), Error #196,
+Lesson #90, `src/CORE/fs_probe.py`, `tests/test_sentinel_thread_permit.py`
+
+---
+
+## Lesson #92 — A Cap Applied Before a Filter Is a Cap on Nothing, and "Complete" Must Not Be Reachable With an Empty Record
+
+**Session:** 2026-09-22 · **Trigger:** Error #198
+
+`orchestrate(max_natures=1)` ran zero Natures and reported `phase="complete"`.
+The cap was applied to a ranked list, and a filter one step later could delete
+the very item the cap had just paid for:
+
+```python
+natures = ranked[:max_natures]                    # spends the budget
+...
+execution_order = [n for n in order if n not in circular]   # refunds nothing
+```
+
+Three transferable facts came out of it:
+
+1. **Order of operations is semantics.** "Limit to N" is a promise about what
+   RUNS. If anything downstream can discard, the limit must be applied to what
+   survives, or the caller receives less than it asked for and no error.
+2. **A terminal success state must carry its own proof.** `phase="complete"`
+   with `completed_natures == failed_natures == set()` is a contradiction the
+   type system will not catch. Every such state needs a count that cannot be
+   zero when work was done — or an explicit "nothing was eligible" error.
+3. **In-file order dependence looks like a neighbour problem and is not.**
+   Every individual test in the failing class passed; every pair passed; the
+   file passed in a fresh process. The poison was cumulative (a dozen prior
+   orchestrations moved a ranking). Cumulative causes need a *value* watch, not
+   a file bisection — `tools/pytest_fixture_watch.py` named it in one run.
+
+**Permanent mandate:**
+- Apply a limit to the set that can actually execute, and re-check the limit after every filter that can discard.
+- If a result claims completion, it must name what completed. Do not let "ran nothing" and "ran clean" be the same object.
+- When a failure is cumulative rather than positional, watch a value across the suite instead of bisecting files.
+
+**Related:** Error #198, Error #194, `tools/pytest_fixture_watch.py`, `src/CORE/WORMS/METACLUSTER.py`
+
+---
+
+## Lesson #93 — A Measurement Written Inside a Transition Is a Cache With No Rebuild Path
+
+**Session:** 2026-09-22 · **Trigger:** Error #199
+
+A triage wrote `evidence` only in the branch that moved a row from `pending` to
+`dispatched`. The table is regenerated by re-running the tool, so the second run
+saw `dispatched`, skipped the branch, and produced 62 decisions with no
+locations. Nothing consumed the field except a contract test, so the loss was
+silent for as long as that test was failing for another reason.
+
+**Permanent mandate:**
+- An instrument that is meant to be re-run must be idempotent, and idempotence must be a TEST (`propose` twice, same evidence), not an intention.
+- Write measurements outside the decision branch. The transition is not the fact.
+- If a generated artifact loses a field on regeneration, treat it as data loss even when no consumer notices yet.
+
+**Related:** Error #199, Error #190, `tools/mesh_function_preflight.py`, `tests/test_mesh_wire_or_cut.py`
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*
