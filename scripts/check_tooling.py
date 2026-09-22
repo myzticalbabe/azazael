@@ -6,6 +6,10 @@ MANDATORY: Run at the start of every Azazael session.
 Records session_start and tooling_verify events in LocalMemoryStore.
 See azazael-sop skill Rule 5 and azazael-startup skill Step 2.
 
+Also guards graph inputs (section [8]): a file whose bytes do not match its
+extension can abort a ~40-minute `graphify update .` run, so the mislabel audit
+(`tools/audit_parseable_files.py --check`) runs here, before the graph is built.
+
 Usage:
     python scripts/check_tooling.py
 
@@ -97,6 +101,39 @@ def check_pip_package(name: str, import_name: str = None) -> dict:
         return {"name": name, "available": False, "error": "not installed"}
     except Exception as e:
         return {"name": name, "available": False, "error": str(e)}
+
+
+def check_graph_input_hygiene(timeout: int = 120) -> dict:
+    """Catch a mislabelled file BEFORE a ~40-minute graph extraction runs.
+
+    `graphify update .` chooses a parser from a file's SUFFIX alone. A suffix
+    that lies -- an HTML block page saved as .pdf, as on 2026-09-21 -- sends the
+    wrong parser at the bytes and aborts the whole extraction, which then reads
+    as an unexplained stalled refresh. The audit is fast (it reads only the
+    first few KB of each binary file), so running it at startup is cheap
+    insurance against losing the run. `--check` fails only on NEW mislabels;
+    known vendored ones are baselined and stay quiet.
+    """
+    tool = os.path.join(os.path.dirname(__file__), "..", "tools",
+                        "audit_parseable_files.py")
+    if not os.path.exists(tool):
+        return {"available": False, "ok": True, "note": "audit tool not found"}
+    try:
+        proc = subprocess.run(
+            [sys.executable, tool, "--check"],
+            capture_output=True, text=True, timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return {"available": False, "ok": True, "note": f"timed out after {timeout}s"}
+    except Exception as e:  # noqa: BLE001 -- startup must never hard-fail on this
+        return {"available": False, "ok": True, "note": str(e)}
+    out = (proc.stdout + proc.stderr).strip().splitlines()
+    new_line = next((ln.strip() for ln in out if ln.strip().startswith("NEW mislabels")), "")
+    return {
+        "available": True,
+        "ok": proc.returncode == 0,
+        "note": new_line or (out[-1].strip() if out else ""),
+    }
 
 
 def _record_with_timeout(results: dict, timeout_seconds: int = 45) -> bool:
@@ -305,9 +342,21 @@ def main():
     else:
         print("    [??] No freebuff_ready events found")
 
-    # -- 8. Auto-record session events (Rule 5 mandate) --
+    # -- 8. Graph input hygiene (would a bad file abort the next graph run?) --
+    print("\n  [8] Graph Input Hygiene (mislabel guard):")
+    hygiene = check_graph_input_hygiene()
+    if hygiene["available"]:
+        status = "[OK]" if hygiene["ok"] else "[!!]"
+        print(f"    {status} parseable files: {hygiene['note']}")
+        if not hygiene["ok"]:
+            print("         a new mislabelled file can abort `graphify update .`;")
+            print("         run: python tools/audit_parseable_files.py")
+    else:
+        print(f"    [--] parseable-file audit skipped ({hygiene['note']})")
+
+    # -- 9. Auto-record session events (Rule 5 mandate) --
     # Uses timeout guard: get_tracker() triggers discover_worms() (~38s cold)
-    print("\n  [8] Session Recording (mandatory):")
+    print("\n  [9] Session Recording (mandatory):")
     recorded = _record_with_timeout(results, timeout_seconds=60)
     if recorded:
         print("    [OK] session_start + tooling_verify recorded in LocalMemoryStore")
