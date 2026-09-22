@@ -423,20 +423,18 @@ def test_thin_evidence_is_reported_but_never_promoted(wc, monkeypatch):
     assert report["streak"]["wins"] == 0
 
 
-def test_the_gate_still_gates_after_a_registry_reset(tmp_path, monkeypatch):
+def test_a_registry_reset_spares_helpers_and_the_gate_still_gates(tmp_path, monkeypatch):
     """Regression for the in-suite failure that was invisible when run alone.
 
-    `worm_registry.reset_registry()` deletes every `CORE.WORMS.*` module from
-    `sys.modules` so the `@register_worm` decorators can re-fire, which also
-    re-imports the HELPER modules (measured 2026-09-22: `wiring_genome` comes back
-    as a different object — the purge's docstring only warns about worm CLASS
-    identity). So after any earlier module reset, this file's `wg` and the
-    cycle's are different objects, and a test that patches this file's `wg`
-    patches something the cycle never calls: the forced winner was ignored, the
-    gate reported `no candidate beat the incumbent`, and eight gate tests failed
+    `worm_registry.reset_registry()` must re-import the modules that HOST worms
+    so the `@register_worm` decorators re-fire — but it must not replace the
+    HELPER modules. When it did (measured 2026-09-22), this file's `wg` and the
+    cycle's were different objects, so patching this file's `wg` patched
+    something the cycle never calls: the forced winner was ignored, the gate
+    reported `no candidate beat the incumbent`, and eight tests here failed
     in-suite while passing alone.
 
-    Here the cycle is loaded AFTER the reset, which is the in-suite order.
+    The cycle is loaded AFTER the reset, which is the in-suite order.
     """
     import importlib
 
@@ -446,16 +444,16 @@ def test_the_gate_still_gates_after_a_registry_reset(tmp_path, monkeypatch):
     before = importlib.import_module(mod_name)
     wr.reset_registry()
     after = importlib.import_module(mod_name)
-    assert after is not before, \
-        "fixture precondition: a reset must re-import the helper module"
+    assert after is before, \
+        "a reset must not replace a helper module's identity"
 
     post_reset = _load_wiring_cycle(tmp_path, monkeypatch)
     monkeypatch.setattr(post_reset, "load_registry", lambda: dict(REGISTRY))
     monkeypatch.setattr(post_reset, "eligible_organs", lambda r: list(ELIGIBLE))
     monkeypatch.setattr(post_reset, "load_credit",
                         lambda: SimpleCredit(CREDIT))
-    assert _cycle_wg(post_reset) is not wg, \
-        "the cycle must hold the re-imported module, not this file's"
+    assert _cycle_wg(post_reset) is wg, \
+        "the cycle and this file must hold the same helper module"
 
     _force_winner(post_reset, monkeypatch)
     report = post_reset.run_cycle(apply_promotion=True, candidates=1, seed=1)
