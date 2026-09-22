@@ -12,6 +12,7 @@ import os
 import pathlib
 import sys
 import tempfile
+import threading
 
 import pytest
 
@@ -72,6 +73,94 @@ _MEMORY_DIR_OVERRIDE = None
 if not os.environ.get("AZAZAEL_MEMORY_DIR"):
     _MEMORY_DIR_OVERRIDE = tempfile.mkdtemp(prefix="azazael_memory_")
     os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_OVERRIDE
+
+
+# ── Memory DB path restore (audit 2026-09-22) ───────────────────────
+# The override above pins `AZAZAEL_MEMORY_DIR` for the session, but every module
+# that derives a DB path from it computes that path ONCE, at import, into a
+# module global (`CORE/direct_memory.py:73  DB_PATH = _get_db_path()`, same shape
+# in `local_memory`, `record_session`, `MemoryBus`). Legacy unittest-style suites
+# redirect themselves by mutating BOTH:
+#
+#     os.environ["AZAZAEL_MEMORY_DIR"] = str(tmpdir)      # setUp
+#     direct_memory.DB_PATH = direct_memory._get_db_path()
+#     ...
+#     shutil.rmtree(str(tmpdir))                          # tearDown
+#
+# ...and restore only the env var. The global is left pointing INTO THE DELETED
+# temp dir, so every later `DirectMemory()` in the process dies:
+#
+#   RuntimeError: Failed to initialize database at
+#   C:\Users\clint\AppData\Local\Temp\tmp_1cocc4t\memory_store.db:
+#   unable to open database file
+#
+# Measured 2026-09-22 on the aggregate suite (52 failed / 3,628 passed): four
+# files leak this way (`test_cli`, `test_doctor`, `test_concurrency_200`,
+# `test_perf*`) while the failures land in a DIFFERENT file
+# (`test_cross_domain_integration::test_cd1_record_event`,
+# `test_worm_smoke::test_every_worm_instantiable` -> ParallelInferenceWorm).
+# Reproduced in 18s with:
+#
+#   pytest tests/test_cli.py tests/test_doctor.py \
+#          tests/test_cross_domain_integration.py::test_cd1_record_event
+#
+# Every one of those files passes when run alone, which is why per-file suites
+# and per-file CI never saw it. Restoring after EVERY test — autouse, not
+# opt-in — is the same mechanism as the other isolation blocks in this file, for
+# the same reason: "remember to patch this" is not a mechanism.
+_MEMORY_DIR_BASELINE = os.environ.get("AZAZAEL_MEMORY_DIR", "")
+
+#: (module, that module's own zero-arg resolver, the global it fills).
+_MEMORY_DB_RESOLVERS = (
+    ("CORE.direct_memory", "_get_db_path", "DB_PATH"),
+    ("CORE.local_memory", "_get_store_path", "DB_PATH"),
+    ("CORE.record_session", "_get_db_path", "DB_PATH"),
+    ("CORE.MemoryBus", "_get_memorybus_db_path", "_MEMORYBUS_DB_PATH"),
+)
+
+#: Modules that cache MORE than one value from the env dir, so one resolver
+#: cannot express the restore: they own a reloader that recomputes all of them.
+_MEMORY_DB_RELOADERS = (
+    ("CORE.backup", "_reload_paths"),
+    ("CORE.cd3_exporter", "_reload_paths"),
+)
+
+#: Modules that cache a path read from `AZAZAEL_MEMORY_DIR` at import time.
+#: `tests/test_memory_dir_caching.py` rediscovers this set by AST and FAILS when
+#: a module is missing here, so the list cannot silently rot.
+MEMORY_DIR_CACHING_MODULES = tuple(
+    [entry[0] for entry in _MEMORY_DB_RESOLVERS]
+    + [entry[0] for entry in _MEMORY_DB_RELOADERS]
+)
+
+
+@pytest.fixture(autouse=True)
+def _restore_memory_db_globals():
+    """Put the memory dir and every derived DB-path global back after a test.
+
+    Only touches modules that are already imported, so a suite that never
+    reaches memory code pays nothing. The env var is restored FIRST, because each
+    resolver recomputes from it.
+    """
+    yield
+    if _MEMORY_DIR_BASELINE:
+        os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_BASELINE
+    else:
+        os.environ.pop("AZAZAEL_MEMORY_DIR", None)
+    for _mod_name, _resolver, _attr in _MEMORY_DB_RESOLVERS:
+        _module = sys.modules.get(_mod_name)
+        if _module is None:
+            continue
+        _fn = getattr(_module, _resolver, None)
+        if _fn is not None:
+            setattr(_module, _attr, _fn())
+    for _mod_name, _reloader in _MEMORY_DB_RELOADERS:
+        _module = sys.modules.get(_mod_name)
+        if _module is None:
+            continue
+        _fn = getattr(_module, _reloader, None)
+        if _fn is not None:
+            _fn()
 
 
 def pytest_unconfigure(config):
@@ -168,6 +257,25 @@ def _isolate_hlc_clock(monkeypatch):
 #
 # Deliberately lazy: it only engages once the hook has actually been armed, so a
 # suite that never touches compliance code keeps running exactly as before.
+class _SharedWriteToken:
+    """Process-wide stand-in for `sentinel_enforcer._GATED_CALL`.
+
+    The real token is `threading.local()` (`sentinel_enforcer.py:40`) and the
+    audit hook reads it per thread (`:53`). This one is deliberately SHARED, so a
+    permit granted on the main thread also covers threads the code under test
+    starts. A test that wants to observe blocking still can: it sets
+    `_GATED_CALL.is_active = False` on this same object.
+    """
+
+    is_active = True
+
+
+#: `AZAZAEL_TEST_SHARED_PERMIT=0` keeps the REAL `threading.local()` token, so
+#: the production permit-carrying is what makes worker writes pass.
+_SHARED_PERMIT_ENABLED = os.environ.get(
+    "AZAZAEL_TEST_SHARED_PERMIT", "1").strip().lower() not in ("0", "false", "no")
+
+
 def _permit_sentinel_writes() -> bool:
     """Latch the sentinel write token open if the guard is armed.
 
@@ -180,6 +288,33 @@ def _permit_sentinel_writes() -> bool:
     if token is None:
         return False
     token.is_active = True
+    # The latch above only covers the THREAD that ran it. Any worker thread the
+    # code under test starts arrives with `is_active` unset and is blocked.
+    # Measured 2026-09-22: `fs_probe.bounded_subprocess_output` runs its child on
+    # a `bounded-subprocess` thread and opens `tempfile.TemporaryFile()` there:
+    #
+    #   {"ok": false, "out": "", "timeout": false,
+    #    "error": "CRITICAL: Unauthorized write to
+    #              C:\\Users\\clint\\AppData\\Local\\Temp. All edits MUST route..."}
+    #
+    # so every delegated probe answered `_UNANSWERED` and returned None. That is
+    # the whole of `test_fs_probe_backend`'s 10 aggregate failures, reproduced in
+    # 4 seconds with `pytest tests/test_compliance_step45_init.py
+    # tests/test_fs_probe_backend.py` (10 failed / 28 passed) while every one of
+    # those tests passes alone. Swapping the thread-local for a shared token makes
+    # the session permit hold for every thread. It is a test-environment change;
+    # the guard's own semantics are untouched, and the production consequence of
+    # the thread-locality is recorded separately (Error #197).
+    # Belt-and-braces, and now provably redundant for the probe path:
+    # `fs_probe._carried_permit` carries the starter's permit onto the worker
+    # (production fix, guarded by `tests/test_sentinel_thread_permit.py`), so the
+    # delegated probes answer without this swap. Set
+    # `AZAZAEL_TEST_SHARED_PERMIT=0` to run the suite against the real
+    # thread-local token and prove it. The swap stays ON by default until a full
+    # run with it off is green, because other legacy suites write from worker
+    # threads through paths this fix does not cover.
+    if _SHARED_PERMIT_ENABLED and isinstance(token, threading.local):
+        module._GATED_CALL = _SharedWriteToken()
     return True
 
 

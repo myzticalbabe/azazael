@@ -25,9 +25,10 @@ import os
 import re
 import sys
 import threading
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 # ===========================================================================
 # PERMANENT ENFORCEMENT: sys.addaudithook — CPython-level I/O interception
@@ -39,6 +40,54 @@ from typing import Any
 
 _GATED_CALL = threading.local()
 _GATED_CALL.is_active = False
+
+
+def permit_active() -> bool:
+    """Is THIS thread inside an authorized (gated) region?"""
+    return bool(getattr(_GATED_CALL, 'is_active', False))
+
+
+@contextmanager
+def permit_here(reason: str = "") -> Iterator[bool]:
+    """Hold the permit on this thread for the duration of the block.
+
+    Restores the PREVIOUS value rather than clearing the flag, so nested
+    regions compose: with the old `= True` / `finally: = False` pattern an
+    inner region ended the outer region's authority the moment it exited, and
+    every write after it was denied with no visible cause.
+    """
+    previous = permit_active()
+    _GATED_CALL.is_active = True
+    try:
+        yield True
+    finally:
+        _GATED_CALL.is_active = previous
+
+
+@contextmanager
+def worker_permit(held: bool) -> Iterator[bool]:
+    """Re-establish, on a worker thread, the permit its STARTER held.
+
+    The token is thread-local by design, so a thread started inside an
+    authorized region begins with no permit and every write it makes is denied
+    -- measured 2026-09-22 as Error #197: `fs_probe` runs its delegated child on
+    a `bounded-subprocess` thread and opens `tempfile.TemporaryFile()` there, so
+    all delegated probes answered "denied by our own guard" and the whole probe
+    backend reported `unknown` for paths that were perfectly reachable.
+
+    `held` must be read on the STARTER thread, which is why this takes it as an
+    argument. A worker is the same logical operation as the code that started
+    it, so it inherits exactly that permit and nothing more: pass `held=False`
+    and this is inert, so the guard cannot be widened by merely using a thread.
+    """
+    previous = permit_active()
+    if held:
+        _GATED_CALL.is_active = True
+    try:
+        yield held
+    finally:
+        _GATED_CALL.is_active = previous
+
 
 def _global_audit_hook(event, args):
     """Intercept all file writes at the CPython interpreter level — ABSOLUTE, NO EXEMPTIONS.
@@ -165,11 +214,8 @@ def enforce(
     """
     global _enforcement_count, _denial_count
 
-    _GATED_CALL.is_active = True
-    try:
+    with permit_here("enforce"):
         return _enforce_impl(filepath, old_content, new_content, action)
-    finally:
-        _GATED_CALL.is_active = False
 
 
 def _enforce_impl(
@@ -305,19 +351,17 @@ def rollback(filepath: str) -> bool:
     if not os.path.exists(backup_path):
         return False
 
-    _GATED_CALL.is_active = True
     try:
-        with open(backup_path, "r", encoding="utf-8") as src:
-            content = src.read()
-        with open(filepath, "w", encoding="utf-8", newline="") as dst:
-            dst.write(content)
-        with _lock:
-            _rollback_count += 1
-        return True
+        with permit_here("rollback"):
+            with open(backup_path, "r", encoding="utf-8") as src:
+                content = src.read()
+            with open(filepath, "w", encoding="utf-8", newline="") as dst:
+                dst.write(content)
+            with _lock:
+                _rollback_count += 1
+            return True
     except Exception:
         return False
-    finally:
-        _GATED_CALL.is_active = False
 
 
 def post_validate(filepath: str) -> tuple[bool, str]:
@@ -435,8 +479,7 @@ git diff --cached --name-only --diff-filter=ACM | grep '\\.py$' | while read f; 
 echo "=== All checks passed ==="
 """
 
-    _GATED_CALL.is_active = True  # Authorized admin operation
-    try:
+    with permit_here("install_git_hooks"):  # Authorized admin operation
         pre_commit_path = hooks_dir / "pre-commit"
         if pre_commit_path.exists():
             existing = pre_commit_path.read_text()
@@ -448,8 +491,6 @@ echo "=== All checks passed ==="
 
         pre_commit_path.chmod(0o755)
         return True
-    finally:
-        _GATED_CALL.is_active = False
 
 
 # ---------------------------------------------------------------------------
@@ -488,15 +529,13 @@ def self_test() -> bool:
     # "File not found". The token is set so the audit hook permits the raw
     # write; Tests 1-3 operate on this file and all artifacts are cleaned up
     # in the finally block below.
-    _GATED_CALL.is_active = True  # Authorized self-test fixture setup
     try:
-        with open("test.py", "w") as f:
-            f.write("x = 1\n")
+        with permit_here("self_test fixture"):
+            with open("test.py", "w") as f:
+                f.write("x = 1\n")
     except PermissionError:
         print("FAIL: audit-hook blocked fixture creation")
         return False
-    finally:
-        _GATED_CALL.is_active = False
 
     # Backups left behind by Phase 0 of tests 1-3
     _backup_cleanup = []
@@ -535,16 +574,13 @@ def self_test() -> bool:
 
         # Test 4: Rollback works
         print("[4/5] Rollback mechanism...", end=" ")
-        _GATED_CALL.is_active = True  # Authorized test fixture setup
-        try:
+        with permit_here("self_test fixture"):
             with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
                 f.write("original content")
                 tmp_path = f.name
             backup_path = f"{tmp_path}.pre_gate_backup"
             with open(backup_path, "w") as f:
                 f.write("backup content")
-        finally:
-            _GATED_CALL.is_active = False
         result = rollback(tmp_path)
         restored = Path(tmp_path).read_text()
         os.unlink(tmp_path)

@@ -27,8 +27,26 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 
-_backup_base = Path(os.environ.get("AZAZAEL_MEMORY_DIR", Path.home() / ".azazael"))
+def _get_backup_base() -> Path:
+    """Resolve the backup root from the environment, fresh on every call.
+
+    Named for the same reason `direct_memory._get_db_path` is: the module-level
+    values below are a CACHE of this answer, and a caller that redirects
+    `AZAZAEL_MEMORY_DIR` (a test, or a Docker split) needs a way to recompute
+    them. Without a resolver the cached global is a one-way door.
+    """
+    return Path(os.environ.get("AZAZAEL_MEMORY_DIR", Path.home() / ".azazael"))
+
+
+_backup_base = _get_backup_base()
 BACKUP_DIR = _backup_base / "backups"
+
+
+def _reload_paths() -> None:
+    """Recompute the cached paths after `AZAZAEL_MEMORY_DIR` changed."""
+    global _backup_base, BACKUP_DIR
+    _backup_base = _get_backup_base()
+    BACKUP_DIR = _backup_base / "backups"
 
 
 def _ensure_backup_dir():
