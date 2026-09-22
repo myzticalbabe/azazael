@@ -181,23 +181,32 @@ Run of all 183 files, single process, `-p no:randomly`:
 | Run | Result | Wall |
 |---|---|---|
 | before today's fixes | **72 failed, 3,508 passed, 38 skipped, 69 errors** | 1,411 s (23:31) |
-| after | see §7.5 | — |
+| after today's fixes | **65 failed, 3,584 passed, 38 skipped, 0 errors** | 1,269 s (21:08) |
+
+Net effect of the two isolation fixes: **69 errors → 0**, 8 gate failures → 0,
+and **74 more tests pass** in the same aggregate run. `test_wiring_cycle`,
+`test_import_map` and `test_evolution_gates` are absent from the failure list
+entirely.
 
 Failure buckets from the "before" run (with standalone results for each):
 
-| File | Fails | Passes alone? | Cause |
+| File | Fails (before → after) | Passes alone? | Cause |
 |---|---|---|---|
-| `test_sb3_agent` | 17 | ✅ 42 passed | order/state |
-| `test_nature_metacluster_unit` | 13 | ✅ 74 passed | order/state (registry re-discovery) |
-| `test_fs_probe_backend` | 10 | ✅ 13 passed | load → child-probe deadline missed → `None` |
-| `test_wiring_cycle` | 8 | ✅ 19 passed | **fixed** — see §7.1 |
-| `test_eve_unleashed` | 5 | ✅ 21 passed | order/state |
-| `test_morphogenesis_opportunity` | 3 | ✅ 14 passed | order/state |
-| `test_worm_smoke` | 2 | ✅ 5 passed | order/state |
-| `test_inference` | 2 | — | torch/transformers path |
-| 10 further files | 1 each | — | mixed |
-| `test_evolution_gates` | **61 errors** | ✅ 61 passed | **fixed** — see §7.2 |
-| `test_import_map` | **8 errors** | ✅ 8 passed | **fixed** — see §7.2 |
+| `test_sb3_agent` | 17 → 17 | ✅ 42 passed | order/state |
+| `test_nature_metacluster_unit` | 13 → 13 | ✅ 74 passed | order/state (registry re-discovery) |
+| `test_fs_probe_backend` | 10 → 10 | ✅ 13 passed | load → child-probe deadline missed → `None` |
+| `test_wiring_cycle` | 8 → **0** | ✅ 20 passed | **fixed** — see §7.1 |
+| `test_eve_unleashed` | 5 → 5 | ✅ 21 passed | order/state |
+| `test_morphogenesis_opportunity` | 3 → 3 | ✅ 14 passed | order/state |
+| `test_worm_smoke` | 2 → 2 | ✅ 5 passed | order/state |
+| `test_inference` | 2 → 2 | — | torch/transformers path |
+| `test_evolution_gates` | **61 errors → 0** | ✅ 61 passed | **fixed** — see §7.2 |
+| `test_import_map` | **8 errors → 0** | ✅ 8 passed | **fixed** — see §7.2 |
+| 12 further files | 1–2 each → 1–2 | — | mixed (two of them new: `test_dm_advanced`, `test_mesh_audit_insights`) |
+
+**Remaining: 65 failures across 18 files, zero errors.** Every one of the eight
+primary files still passes alone, so the isolation debt that produced the
+aggregate red is reduced, not eliminated.
 
 The headline fact: **every failing file passes green when run alone.** The
 suite's dominant defect class is *test isolation*, not product code — and it is
@@ -302,6 +311,8 @@ it measures**.
 | `test_wiring_cycle` (20 tests, incl. the new reset regression) | ✅ pass |
 | reset-first order (`registry_importable` + `metacluster` + `learning_closure` + `wiring_cycle`) | ✅ 108 passed |
 | sentinel-triple (`compliance_step45_init` + `evolution_gates` + `import_map`) | ✅ 105 passed |
+| **aggregate suite, before** | 72 failed · 3,508 passed · **69 errors** · 1,411 s |
+| **aggregate suite, after** | 65 failed · 3,584 passed · **0 errors** · 1,269 s |
 | `tools/artifact_freshness.py` | ✅ all 7 derived artifacts current; graph/report consistent (nodes=687,497 clustered=True) |
 | `tools/audit_parseable_files.py --check --deep` | ✅ no new mislabelled files |
 | derived maps rebuilt | TODO 1,487 functions · verdict 164 unreferenced · interop 482 edges |
@@ -333,7 +344,7 @@ it still holds.
 | ID | Item | Effort | Impact | Priority |
 |---|---|---|---|---|
 | AR-1 | Narrow `_purge_worm_modules` to worm-hosting modules (or restore identity at test setup) so helper-module identity survives a reset | 3h | 🔴 | P0 |
-| AR-2 | Make the suite isolation-clean: fix the 8 order-dependent files (reproducers in §5) | 1–2d | 🔴 | P0 |
+| AR-2 | Make the suite isolation-clean: the remaining 65 failures in 18 files, all of which pass alone (reproducers in §5) | 1–2d | 🔴 | P0 |
 | AR-3 | Install mypy and record a baseline error count — type safety is currently unmeasured | 1h | 🟠 | P1 |
 | AR-4 | Add a CI gate that runs the **aggregate** suite; per-file green hides 141 failures | 2h | 🔴 | P0 |
 | AR-5 | Break the `learning_*` SCC (4 modules) — no module in the group imports in isolation | 1d | 🟠 | P1 |
