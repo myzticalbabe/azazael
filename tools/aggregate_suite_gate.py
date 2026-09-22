@@ -33,6 +33,19 @@ Usage
     python tools/aggregate_suite_gate.py --check --only test_wiring  # subset
     python tools/aggregate_suite_gate.py --diff-from logs/report.json
 
+A narrowed run writes somewhere else, on purpose
+-------------------------------------------------
+`--only` selects a SUBSET, so its report is not the profile's report and its
+baseline is not the profile's baseline. Measured 2026-09-22: a one-file smoke
+test of the stall watchdog (`--only tests/test_aggregate_suite_gate.py --profile
+isolation`) overwrote `logs/aggregate_isolation_report.json` with
+`1 passed in 1s`, replacing a 299-passed baseline with a run that never touched
+seven of the eight profile files -- a success-shaped artifact answering for a
+profile it no longer described. So a narrowed run with no explicit
+`--report-file` / `--baseline-file` is redirected to a `.partial` sibling and
+says so, which also makes a narrowed `--check` refuse rather than compare
+against a baseline it does not correspond to.
+
 CI uses the isolation profile, which is the same contract over the
  dependency-light subset whose cross-file failures are reproducible off the
 development machine (see ISOLATION_PROFILE for the selection rule):
@@ -55,6 +68,11 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+
+#: `tools/` is sys.path[0] when this file is run directly, and the tests that
+#: import it put `tools/` on sys.path first -- so the shared ADR-012 rule resolves
+#: the same way from both entry points.
+import evidence_paths as evidence
 
 REPO = Path(__file__).resolve().parent.parent
 BASELINE = REPO / "logs" / "aggregate_suite_baseline.json"
@@ -93,6 +111,61 @@ _SUMMARY_RE = re.compile(
     r"(?P<failed>\d+) failed|(?P<passed>\d+) passed|(?P<errors>\d+) error|"
     r"(?P<skipped>\d+) skipped")
 _FINAL_RE = re.compile(r"^(?P<line>.*\b(?:failed|passed|error).*)\s+in\s+[\d.]+s")
+
+
+def profile_targets(profile: str) -> List[str]:
+    """The target set a profile run MUST cover to be that profile's evidence."""
+    return list(ISOLATION_PROFILE) if profile == "isolation" else ["tests/"]
+
+
+def is_narrowed(profile: str, select: Optional[Sequence[str]]) -> bool:
+    """True when an explicit selection is smaller than the profile's own set.
+
+    Thin wrapper over the shared rule (ADR-012), so the profile's declared target
+    set is the only thing this gate has to know about.
+    """
+    return evidence.is_narrowed(profile_targets(profile), select)
+
+
+#: One place where a profile's evidence files are named. Two environments (no
+#: torch in CI, the full stack locally) must not compare against each other's
+#: baseline, so the profile -- not the caller -- chooses the file.
+DEFAULT_EVIDENCE = {
+    "full": {"report": "aggregate_suite_report.json",
+             "baseline": "aggregate_suite_baseline.json"},
+    "isolation": {"report": "aggregate_isolation_report.json",
+                  "baseline": "aggregate_isolation_baseline.json"},
+}
+
+
+def default_evidence(kind: str, profile: str) -> Path:
+    """Where a WHOLE-profile run of `profile` writes its `kind` evidence.
+
+    A single function so tests can redirect it: a test that writes a tracked
+    report is how `logs/aggregate_isolation_report.json` came to hold
+    `1 passed in 1s` for a real profile.
+    """
+    if kind not in ("report", "baseline"):
+        raise ValueError("unknown evidence kind %r" % (kind,))
+    if profile not in DEFAULT_EVIDENCE:
+        raise ValueError("unknown profile %r" % (profile,))
+    return REPO / "logs" / DEFAULT_EVIDENCE[profile][kind]
+
+
+def evidence_path(kind: str, profile: str, narrowed: bool) -> Path:
+    """`default_evidence`, as a narrowed run is allowed to name it.
+
+    A narrowed run gets a `.partial` sibling so it cannot leave a subset's
+    counts in the file a whole-profile run reads (module docstring, "A narrowed
+    run writes somewhere else").
+    """
+    path = default_evidence(kind, profile)
+    return _partial(path) if narrowed else path
+
+
+def _partial(path: Path) -> Path:
+    """The sibling a narrowed run is allowed to write (ADR-012)."""
+    return evidence.partial(path)
 
 
 def parse_pytest_output(text: str) -> Dict[str, object]:
@@ -384,18 +457,34 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Module-level names, overridable: `--check` MUST read the same file
     # `--baseline` wrote, including when a profile pinned it elsewhere, so the
     # two resolve through one place rather than repeating the default.
-    if args.baseline_file:
-        BASELINE = Path(args.baseline_file).resolve()
-    elif args.profile == "isolation":
-        BASELINE = REPO / "logs" / "aggregate_isolation_baseline.json"
-    if args.report_file:
-        REPORT = Path(args.report_file).resolve()
-    elif args.profile == "isolation":
-        REPORT = REPO / "logs" / "aggregate_isolation_report.json"
-
     select = args.only
     if select is None and args.profile == "isolation":
         select = list(ISOLATION_PROFILE)
+
+    # A subset run must not answer for the profile (module docstring): it would
+    # otherwise leave `logs/aggregate_isolation_report.json` claiming to describe
+    # a run of all eight profile files while having executed one of them.
+    # Only the DEFAULT paths are redirected -- an explicit --report-file /
+    # --baseline-file is obeyed as written, because then the caller has said
+    # where the evidence is meant to live.
+    narrowed = is_narrowed(args.profile, select)
+    if args.baseline_file:
+        BASELINE = Path(args.baseline_file).resolve()
+    elif args.profile == "isolation":
+        BASELINE = default_evidence("baseline", args.profile)
+    if args.report_file:
+        REPORT = Path(args.report_file).resolve()
+    elif args.profile == "isolation":
+        REPORT = default_evidence("report", args.profile)
+    if narrowed:
+        # Applied AFTER the profile/default resolution, so it narrows whatever
+        # path was chosen (including a monkeypatched one) rather than a lookup.
+        if not args.baseline_file:
+            BASELINE = _partial(BASELINE)
+        if not args.report_file:
+            REPORT = _partial(REPORT)
+    if narrowed:
+        print(evidence.narrowed_note(args.profile, REPORT, BASELINE))
 
     if args.diff_from:
         parsed = {"failed_ids": load_ids(Path(args.diff_from)), "error_ids": []}

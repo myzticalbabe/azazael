@@ -132,6 +132,77 @@ def test_no_baseline_refuses_to_reassure(tmp_path, monkeypatch, capsys):
     assert "no baseline" in capsys.readouterr().err
 
 
+# ---------------------------------------------------------------------------
+# ADR-012: the path follows the scope it measured
+# ---------------------------------------------------------------------------
+# Measured 2026-09-22 on the sibling aggregate gate: a one-file smoke test wrote
+# `1 passed in 1s` over a 301-test profile run, under the filename that still
+# claimed to describe the profile (Error #195). This gate has the same shape --
+# `--only` narrows the check, the paths stayed pinned -- so `--baseline --only
+# src/CORE/` would have replaced the whole-tree baseline with one subtree's
+# diagnostics and called every other diagnostic in the tree a regression.
+
+def test_the_configured_scope_is_read_rather_than_assumed():
+    assert gate.configured_targets() == ["src"], (
+        "pyrightconfig.json's include is the default scope; if it changed, the "
+        "narrowing rule below is measuring against a stale set")
+
+
+def test_a_narrowed_baseline_does_not_replace_the_whole_tree_baseline(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "basedpyright_baseline.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "basedpyright_report.json")
+    monkeypatch.setattr(gate, "run_checker",
+                        lambda *a, **k: (1, json.dumps(PAYLOAD)))
+
+    assert gate.main(["--baseline", "--only", "src/CORE/x.py"]) == 0
+    assert (tmp_path / "basedpyright_baseline.partial.json").exists()
+    assert not (tmp_path / "basedpyright_baseline.json").exists()
+    assert not (tmp_path / "basedpyright_report.json").exists()
+    assert "a narrowed run is not" in capsys.readouterr().out
+
+
+def test_a_narrow_check_refuses_instead_of_borrowing_a_baseline(
+        tmp_path, monkeypatch, capsys):
+    """A subtree compared against the whole tree's baseline is not a gate."""
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "basedpyright_baseline.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "basedpyright_report.json")
+    monkeypatch.setattr(gate, "run_checker",
+                        lambda *a, **k: (0, json.dumps(PAYLOAD)))
+    assert gate.main(["--check", "--only", "src/CORE/x.py"]) == 1
+    assert "no baseline" in capsys.readouterr().err
+
+
+def test_the_configured_scope_itself_is_not_a_narrowed_run(
+        tmp_path, monkeypatch):
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "basedpyright_baseline.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "basedpyright_report.json")
+    monkeypatch.setattr(gate, "run_checker",
+                        lambda *a, **k: (1, json.dumps(PAYLOAD)))
+    assert gate.main(["--baseline", "--only"] + gate.configured_targets()) == 0
+    assert (tmp_path / "basedpyright_baseline.json").exists()
+
+
+def test_an_unreadable_config_counts_as_narrowed(tmp_path, monkeypatch, capsys):
+    """No declared scope must not mean "anything goes".
+
+    With nothing to compare against, an explicit selection is treated as
+    narrowed: the safe direction is to write a `.partial` file, not to replace
+    the recorded baseline of a scope nobody can name. (`evidence_paths` returns
+    False for an empty expected set -- the subset test is vacuously true -- so
+    the fail-closed branch has to live in the gate, and this is the only test
+    that would notice if it were dropped.)
+    """
+    monkeypatch.setattr(gate, "configured_targets", lambda: [])
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "basedpyright_baseline.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "basedpyright_report.json")
+    monkeypatch.setattr(gate, "run_checker",
+                        lambda *a, **k: (1, json.dumps(PAYLOAD)))
+    assert gate.main(["--baseline", "--only", "src/CORE"]) == 0
+    assert (tmp_path / "basedpyright_baseline.partial.json").exists()
+    assert "a narrowed run is not" in capsys.readouterr().out
+
+
 def test_the_committed_baseline_agrees_with_the_committed_report():
     """A baseline that drifted from the run it claims to describe is fiction.
 

@@ -47,6 +47,17 @@ Usage
     python tools/type_check_gate.py --report     # run, write report, no gate
     python tools/type_check_gate.py --check --only src/CORE/neural_loop.py
     python tools/type_check_gate.py --diff-from logs/type_report.json
+
+A narrowed run writes somewhere else (ADR-012)
+----------------------------------------------
+`--only` selects a SUBSET, so its diagnostics are not the whole-tree baseline's
+diagnostics. Without this rule `--baseline --only src/CORE/` would replace
+`logs/basedpyright_baseline.json` with one subtree's findings under a filename
+that claims the whole tree, and the next `--check` would call every diagnostic
+outside that subtree a regression. So a narrowed run with no explicit
+`--baseline-file` / `--report-file` is redirected to a `.partial` sibling and
+says so; an explicit path is obeyed as written. Same rule, one implementation:
+`tools/evidence_paths.py`.
 """
 from __future__ import annotations
 
@@ -58,6 +69,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+
+#: Shared ADR-012 rule: a derived artifact's path follows the scope it measured.
+import evidence_paths as evidence
 
 REPO = Path(__file__).resolve().parent.parent
 BASELINE = REPO / "logs" / "basedpyright_baseline.json"
@@ -83,6 +97,20 @@ def resolve_checker() -> Optional[List[str]]:
     if shutil.which("npx"):
         return ["npx", "--yes", "pyright"]
     return None
+
+
+def configured_targets() -> List[str]:
+    """The default scope: what `pyrightconfig.json` includes.
+
+    Read rather than copied, so `--only` is measured against the scope the
+    checker actually uses by default.
+    """
+    try:
+        config = json.loads((REPO / "pyrightconfig.json").read_text("utf-8"))
+    except (OSError, ValueError):
+        return []
+    include = config.get("include")
+    return [str(x) for x in include] if isinstance(include, list) else []
 
 
 def run_checker(targets: Optional[Sequence[str]] = None,
@@ -213,10 +241,28 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--timeout", type=int, default=1200)
     args = parser.parse_args(argv)
 
+    # ADR-012: a path follows the scope it measured. `--only` narrows the check
+    # to a subtree, so its baseline and report are a subtree's evidence and are
+    # redirected unless the caller named them explicitly -- otherwise
+    # `--baseline --only src/CORE/` would replace the whole-tree baseline with
+    # the diagnostics of one subtree under a filename that claims the whole tree.
+    expected = configured_targets()
+    # An unreadable config must not let a narrowed run take the whole-tree path:
+    # with no declared scope to compare against, an explicit selection counts as
+    # narrowed. (Fail-closed, because the alternative is the defect it guards.)
+    narrowed = (evidence.is_narrowed(expected, args.only) if expected
+                else bool(args.only))
     if args.baseline_file:
         BASELINE = Path(args.baseline_file).resolve()
     if args.report_file:
         REPORT = Path(args.report_file).resolve()
+    if narrowed:
+        if not args.baseline_file:
+            BASELINE = evidence.partial(BASELINE)
+        if not args.report_file:
+            REPORT = evidence.partial(REPORT)
+        print(evidence.narrowed_note("the configured type-check scope", REPORT,
+                                     BASELINE))
 
     if args.diff_from:
         payload = {"generalDiagnostics": [
