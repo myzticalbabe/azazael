@@ -3350,4 +3350,45 @@ three passed alone. All three were reading contention.
 
 ---
 
+## Lesson #96 — Regenerate an Artifact the Way the Refresh Path Regenerates It
+
+**Session:** 2026-09-22 · **Trigger:** Error #202
+
+`wire_or_cut` rebuilt every declaration from four hand-picked keys, so a plain
+`--verdict` run dropped `evidence` (and `triage`). `--propose` had been fixed for
+the same field the day before, and the suite went green -- because the file that
+test run produced was written *with* `--propose`. The refresh path does not pass
+`--propose`, so the next refresh rewrote 62 `dispatched` rows with 0 locations,
+and the contract test failed against an artifact nothing had edited by hand.
+
+**Permanent mandate:**
+- A rebuild preserves every field it did not compute. Overlay and carry forward; never re-constructor a record from the keys you happen to need.
+- The same fact can be lost in two places on two paths -- inside a transition, and inside a rebuild. Fixing the transition is not fixing the class; enumerate the paths that write the artifact and test each one.
+- Test the artifact through the command the ROUTINE runs, not the command your fix runs. "Green after I ran the fixed command" is evidence about your command.
+- When a generated file is found wrong, ask who regenerates it and when, before asking who edited it.
+
+**Related:** Error #202, Error #199, Lesson #93, `tools/mesh_function_preflight.py`, `tools/artifact_freshness.py`, `tests/test_mesh_wire_or_cut.py`
+
+---
+
+## Lesson #97 — A Baseline Key That an Unrelated Edit Can Change Is Not an Identity
+
+**Session:** 2026-09-22 · **Trigger:** Error #203
+
+The type gate keys each diagnostic as `path:line:col:rule`. Inserting lines above
+a finding changes the key, so a session that introduced no type defect reported
+**15 new diagnostics and 6 gone** -- the six "new" ones were the six "gone" ones
+moved, and only reading both lists told you so. Nine of the fifteen were real and
+belonged to a different process's generated output under `_staging/`.
+
+**Permanent mandate:**
+- A baseline key must survive any edit that does not change the finding. Line and column numbers are positions, not identities; anchor on the file, the rule, and content that the finding is about.
+- When a gate reports a similar-sized list of new and gone ids, diff the lists before believing either. That pattern is a key change, not a regression.
+- Generated output inside the analysed tree enters every source-based gate. Exclude it by path, or state that it is now counted as known -- but never let it enter the count silently.
+- Re-record a baseline deliberately and say what the new number contains. A baseline recorded to make a gate green is a claim about the code, not a formality.
+
+**Related:** Error #203, Error #193, Error #202, `tools/type_check_gate.py`
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*

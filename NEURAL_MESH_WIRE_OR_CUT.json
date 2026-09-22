@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-22T11:28:25.745933",
+ "generated_at": "2026-09-22T11:54:15.549434",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -78,63 +78,96 @@
    "qualname": "ProtocolNegotiator.deserialize",
    "line": 226,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1143"
+   ]
   },
   "communication:ProtocolNegotiator.negotiate": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.negotiate",
    "line": 205,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:387, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:387, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:387",
+    "src/CORE/worm_governance.py:364",
+    "src/CORE/worm_registry.py:1112"
+   ]
   },
   "communication:ProtocolNegotiator.register_peer": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.register_peer",
    "line": 202,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:388",
+    "src/CORE/worm_registry.py:1114"
+   ]
   },
   "communication:ProtocolNegotiator.serialize": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.serialize",
    "line": 220,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1143"
+   ]
   },
   "communication:RPCEndpoint.list_methods": {
    "module": "communication",
    "qualname": "RPCEndpoint.list_methods",
    "line": 105,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:989), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:989), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:989"
+   ]
   },
   "communication:RPCEndpoint.register_method": {
    "module": "communication",
    "qualname": "RPCEndpoint.register_method",
    "line": 87,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:388",
+    "src/CORE/worm_registry.py:1114"
+   ]
   },
   "communication:WebhookRelay.deliver": {
    "module": "communication",
    "qualname": "WebhookRelay.deliver",
    "line": 125,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:386, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:386, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:386",
+    "src/CORE/worm_governance.py:364",
+    "src/CORE/worm_registry.py:1112"
+   ]
   },
   "communication:WebhookRelay.register_webhook": {
    "module": "communication",
    "qualname": "WebhookRelay.register_webhook",
    "line": 121,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1139), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1139), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1139"
+   ]
   },
   "config:ConfigLinter.lint_json": {
    "module": "config",
    "qualname": "ConfigLinter.lint_json",
    "line": 52,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/config.py:82), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/config.py:82), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/config.py:82"
+   ]
   },
   "config:ConfigLinter.lint_yaml": {
    "module": "config",
@@ -148,35 +181,52 @@
    "qualname": "DotfileSync.get_checksums",
    "line": 129,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:992, src/CORE/worm_registry.py:1153), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:992, src/CORE/worm_registry.py:1153), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:992",
+    "src/CORE/worm_registry.py:1153"
+   ]
   },
   "config:EnvValidator.scan_env_files": {
    "module": "config",
    "qualname": "EnvValidator.scan_env_files",
    "line": 93,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:991, src/CORE/worm_registry.py:1123), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:991, src/CORE/worm_registry.py:1123), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:991",
+    "src/CORE/worm_registry.py:1123"
+   ]
   },
   "config:FeatureFlagCtrl.is_enabled": {
    "module": "config",
    "qualname": "FeatureFlagCtrl.is_enabled",
    "line": 177,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1145"
+   ]
   },
   "config:FeatureFlagCtrl.set_flag": {
    "module": "config",
    "qualname": "FeatureFlagCtrl.set_flag",
    "line": 173,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1145"
+   ]
   },
   "config:SecretRotator.rotate_secret": {
    "module": "config",
    "qualname": "SecretRotator.rotate_secret",
    "line": 144,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1132), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1132), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1132"
+   ]
   },
   "consolidation:EngramIndexerWorm.lookup": {
    "module": "consolidation",
@@ -204,21 +254,32 @@
    "qualname": "ImageAuditor.audit_image",
    "line": 148,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1127"
+   ]
   },
   "container:RegistryPoller.check_latest": {
    "module": "container",
    "qualname": "RegistryPoller.check_latest",
    "line": 180,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:389",
+    "src/CORE/worm_registry.py:1115"
+   ]
   },
   "container:ResourceQuotaWatch.check_usage": {
    "module": "container",
    "qualname": "ResourceQuotaWatch.check_usage",
    "line": 210,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:389",
+    "src/CORE/worm_registry.py:1115"
+   ]
   },
   "container:ResourceQuotaWatch.set_quota": {
    "module": "container",
@@ -246,14 +307,22 @@
    "qualname": "ContextConcatWorm.merge",
    "line": 93,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/mesh.py:362, src/CORE/WORMS/expansion/mesh.py:365, src/CORE/cli_completion.py:26), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/mesh.py:362, src/CORE/WORMS/expansion/mesh.py:365, src/CORE/cli_completion.py:26), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/mesh.py:362",
+    "src/CORE/WORMS/expansion/mesh.py:365",
+    "src/CORE/cli_completion.py:26"
+   ]
   },
   "dendrite:DendriteAggregatorWorm.integrate": {
    "module": "dendrite",
    "qualname": "DendriteAggregatorWorm.integrate",
    "line": 38,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (tools/mutation_proposals.py:225), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (tools/mutation_proposals.py:225), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "tools/mutation_proposals.py:225"
+   ]
   },
   "dendrite:DendriteAggregatorWorm.set_gain": {
    "module": "dendrite",
@@ -323,7 +392,10 @@
    "qualname": "evidence_from_rows",
    "line": 247,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evidence.py:38), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evidence.py:38), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evidence.py:38"
+   ]
   },
   "evolution:EvolutionEngine.get_generation_history": {
    "module": "evolution",
@@ -358,21 +430,30 @@
    "qualname": "hypervolume_2d",
    "line": 1812,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evolution.py:107"
+   ]
   },
   "evolution:moead_weights": {
    "module": "evolution",
    "qualname": "moead_weights",
    "line": 1824,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evolution.py:108"
+   ]
   },
   "evolution:tchebycheff": {
    "module": "evolution",
    "qualname": "tchebycheff",
    "line": 1846,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evolution.py:109"
+   ]
   },
   "exmachina:_mad": {
    "module": "exmachina",
@@ -393,49 +474,70 @@
    "qualname": "collect_state",
    "line": 448,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:105), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:105), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:105"
+   ]
   },
   "exmachina:conformal_interval": {
    "module": "exmachina",
    "qualname": "conformal_interval",
    "line": 358,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:63), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:63), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:63"
+   ]
   },
   "exmachina:matrix_inverse": {
    "module": "exmachina",
    "qualname": "matrix_inverse",
    "line": 1158,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:89), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:89), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:89"
+   ]
   },
   "exmachina:novelty_ncd": {
    "module": "exmachina",
    "qualname": "novelty_ncd",
    "line": 313,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:61), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:61), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:61"
+   ]
   },
   "exmachina:solve_linear": {
    "module": "exmachina",
    "qualname": "solve_linear",
    "line": 1154,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:88), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:88), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:88"
+   ]
   },
   "exmachina_operators:operator_report": {
    "module": "exmachina_operators",
    "qualname": "operator_report",
    "line": 1010,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:91), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:91), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina_operators.py:91"
+   ]
   },
   "exmachina_operators:rank_candidates": {
    "module": "exmachina_operators",
    "qualname": "rank_candidates",
    "line": 963,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:89), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:89), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina_operators.py:89"
+   ]
   },
   "federated:FederatedAggregatorWorm.run_round": {
    "module": "federated",
@@ -463,14 +565,20 @@
    "qualname": "FeatureEngineer.impute_missing",
    "line": 425,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1155"
+   ]
   },
   "learning_features:FeatureEngineer.one_hot_encode": {
    "module": "learning_features",
    "qualname": "FeatureEngineer.one_hot_encode",
    "line": 415,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1155"
+   ]
   },
   "learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report": {
    "module": "learning_features",
@@ -561,7 +669,11 @@
    "qualname": "RLTrainLoop.train_episode",
    "line": 782,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:391",
+    "src/CORE/worm_registry.py:1118"
+   ]
   },
   "learning_rl:RLTrainLoop.tune_and_train": {
    "module": "learning_rl",
@@ -582,7 +694,11 @@
    "qualname": "ModelVersioner.compare_versions",
    "line": 215,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:390",
+    "src/CORE/worm_registry.py:1116"
+   ]
   },
   "loom:NoveltyDrive.novelty_weight": {
    "module": "loom",
@@ -617,7 +733,10 @@
    "qualname": "CodeMigrator.detect_python2_patterns",
    "line": 51,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/migration.py:82), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/migration.py:82), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/migration.py:82"
+   ]
   },
   "migration:CodeMigrator.run_2to3": {
    "module": "migration",
@@ -631,28 +750,41 @@
    "qualname": "DepUpgrader.check_outdated",
    "line": 111,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:389",
+    "src/CORE/worm_registry.py:1115"
+   ]
   },
   "migration:DepUpgrader.parse_requirements": {
    "module": "migration",
    "qualname": "DepUpgrader.parse_requirements",
    "line": 93,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1154), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1154), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1154"
+   ]
   },
   "migration:ImportPathFixWorm.add_mapping": {
    "module": "migration",
    "qualname": "ImportPathFixWorm.add_mapping",
    "line": 168,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1152"
+   ]
   },
   "migration:LegacyShimGen.generate_shim": {
    "module": "migration",
    "qualname": "LegacyShimGen.generate_shim",
    "line": 203,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1133), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1133), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1133"
+   ]
   },
   "migration:LegacyShimGen.write_shim": {
    "module": "migration",
@@ -666,14 +798,21 @@
    "qualname": "SchemaVersioner.detect_breaking_changes",
    "line": 143,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1129), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1129), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1129"
+   ]
   },
   "migration:SchemaVersioner.register_schema": {
    "module": "migration",
    "qualname": "SchemaVersioner.register_schema",
    "line": 136,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:388",
+    "src/CORE/worm_registry.py:1114"
+   ]
   },
   "morph:Genome.to_trainer_kwargs": {
    "module": "morph",
@@ -736,35 +875,51 @@
    "qualname": "GILContentionProbe.measure_contention",
    "line": 167,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:994, src/CORE/worm_registry.py:1130), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:994, src/CORE/worm_registry.py:1130), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:994",
+    "src/CORE/worm_registry.py:1130"
+   ]
   },
   "profiling:IOBottleneckFinder.detect_bottleneck": {
    "module": "profiling",
    "qualname": "IOBottleneckFinder.detect_bottleneck",
    "line": 149,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1128), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1128), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1128"
+   ]
   },
   "profiling:MemoryLeakDetector.compare_snapshots": {
    "module": "profiling",
    "qualname": "MemoryLeakDetector.compare_snapshots",
    "line": 111,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1137), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1137), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1137"
+   ]
   },
   "proteus_hooks:morph_dimension_summary": {
    "module": "proteus_hooks",
    "qualname": "morph_dimension_summary",
    "line": 716,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:80), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:80), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/proteus_hooks.py:80"
+   ]
   },
   "proteus_hooks:morph_treatment_value": {
    "module": "proteus_hooks",
    "qualname": "morph_treatment_value",
    "line": 560,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:77), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:77), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/proteus_hooks.py:77"
+   ]
   },
   "race_detector:RaceConditionDetector.instrument_worm": {
    "module": "race_detector",
@@ -813,14 +968,20 @@
    "qualname": "FirewallAudit.find_overly_permissive",
    "line": 198,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1140), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1140), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1140"
+   ]
   },
   "security:PortAuditor.audit_exposure": {
    "module": "security",
    "qualname": "PortAuditor.audit_exposure",
    "line": 111,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1127"
+   ]
   },
   "session_state:SessionStateManager.import_snapshots": {
    "module": "session_state",
@@ -855,7 +1016,10 @@
    "qualname": "SessionStateManager.restore_all",
    "line": 435,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/session_state.py:459), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/session_state.py:459), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/session_state.py:459"
+   ]
   },
   "session_state:SessionStateManager.unregister_worm_state": {
    "module": "session_state",
@@ -897,7 +1061,10 @@
    "qualname": "get_policy_latest",
    "line": 438,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:297), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:297), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:297"
+   ]
   },
   "spine_registry:get_q_evidence": {
    "module": "spine_registry",
@@ -995,7 +1162,10 @@
    "qualname": "AlertEscalator.check_threshold",
    "line": 208,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/telemetry.py:229), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/telemetry.py:229), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/telemetry.py:229"
+   ]
   },
   "telemetry:AlertEscalator.clear_alert": {
    "module": "telemetry",
@@ -1016,28 +1186,41 @@
    "qualname": "LogStreamer.read_new_lines",
    "line": 138,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1138"
+   ]
   },
   "telemetry:LogStreamer.watch_file": {
    "module": "telemetry",
    "qualname": "LogStreamer.watch_file",
    "line": 129,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1138"
+   ]
   },
   "telemetry:MetricAggregator.get_snapshot": {
    "module": "telemetry",
    "qualname": "MetricAggregator.get_snapshot",
    "line": 108,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1000, src/CORE/worm_registry.py:1121), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1000, src/CORE/worm_registry.py:1121), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1000",
+    "src/CORE/worm_registry.py:1121"
+   ]
   },
   "telemetry:MetricAggregator.inc_counter": {
    "module": "telemetry",
    "qualname": "MetricAggregator.inc_counter",
    "line": 94,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1122), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1122), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1122"
+   ]
   },
   "telemetry:SpanTracer.end_span": {
    "module": "telemetry",
@@ -1051,7 +1234,10 @@
    "qualname": "SpanTracer.get_trace_tree",
    "line": 75,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1001), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1001), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1001"
+   ]
   },
   "telemetry:SpanTracer.start_span": {
    "module": "telemetry",
@@ -1065,7 +1251,10 @@
    "qualname": "dedupe_observations",
    "line": 128,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/tensorgene.py:48), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/tensorgene.py:48), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/tensorgene.py:48"
+   ]
   },
   "thalamus:SensoryRelayWorm.relay": {
    "module": "thalamus",
@@ -1086,35 +1275,54 @@
    "qualname": "HeatmapBuilder.get_busiest_hours",
    "line": 187,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1004), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1004), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1004"
+   ]
   },
   "visualization:ReportCompiler.add_section": {
    "module": "visualization",
    "qualname": "ReportCompiler.add_section",
    "line": 134,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1151, src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1151, src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1151",
+    "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886"
+   ]
   },
   "visualization:ReportCompiler.compile_html": {
    "module": "visualization",
    "qualname": "ReportCompiler.compile_html",
    "line": 138,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/WORMS/NATURE_CLUSTERS.py:1003, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/WORMS/NATURE_CLUSTERS.py:1003, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:390",
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1003",
+    "src/CORE/worm_registry.py:1116"
+   ]
   },
   "visualization:TimelineViz.add_span": {
    "module": "visualization",
    "qualname": "TimelineViz.add_span",
    "line": 209,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1152"
+   ]
   },
   "visualization:TimelineViz.to_timeline_html": {
    "module": "visualization",
    "qualname": "TimelineViz.to_timeline_html",
    "line": 214,
    "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1006, src/CORE/worm_registry.py:1135), so a static caller cannot exist; wire it explicitly or delete it"
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1006, src/CORE/worm_registry.py:1135), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1006",
+    "src/CORE/worm_registry.py:1135"
+   ]
   },
   "xenomorph:ChestbursterWorm.burst": {
    "module": "xenomorph",

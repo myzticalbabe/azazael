@@ -590,14 +590,16 @@ location rather than a claim.
 | **aggregate suite, after the two isolation fixes** | 65 failed · 3,584 passed · **0 errors** · 1,269 s |
 | **aggregate suite, after the purge narrowing** | **50 failed · 3,606 passed · 0 errors · 1,329 s** |
 | **aggregate suite, after the memory-DB, thread-permit and cap fixes (run 6)** | **11 failed · 3,681 passed · 39 skipped · 1 error · 1,511 s** |
+| **aggregate suite, run 8 — every fix above landed (not clean-load: the graph rebuild shared the CPU)** | **2 failed · 3,698 passed · 38 skipped · 0 errors · 1,525 s** |
+| run 8's two failures | both fixed after the run: the `--verdict` rebuild dropping `evidence` (Error #202) and the 2-worker speedup assertion (Error #201) |
 | torch-state instrument, armed on run 6 | ✅ **11,219 phases observed, 0 partial-`torch`** (run 5: 25 occurrences) |
 | `test_mutation` teardown + `test_dm_advanced` (ADR-014) | ✅ 17 passed (was 1 failed / 1 error) |
 | `test_config_and_breaker` + `test_ncm_integration` + `test_brainstem_playing_field` | ✅ 100 passed |
 | timing-assertion trio `test_pool` + `test_mesh_audit_insights` + `test_compliance_deadlock_regression` (ADR-015) | ✅ 70 passed |
-| isolation profile (`--profile isolation`, CI-blocking) | ✅ 299 passed, 0 failed, 1 skipped — baseline 0 ids |
-| `tools/type_check_gate.py --check` | ✅ OK: no new diagnostics (1,377 known) |
+| isolation profile (`--profile isolation`, CI-blocking) | ✅ **308 passed, 0 failed, 0 errors, 1 skipped** — baseline re-recorded at 0 ids (was 299) |
+| `tools/type_check_gate.py --check` | ✅ OK: no new diagnostics (**1,386 known**, was 1,377 — the +9 is another process's `expansion/generated/_staging/gen_*.py`, and the baseline is line-numbered, see Error #203) |
 | `tools/aggregate_suite_gate.py --check` | ✅ OK: no new aggregate failures |
-| `tools/artifact_freshness.py` | ✅ all 7 derived artifacts current; graph/report consistent (nodes=687,497 clustered=True) |
+| `tools/artifact_freshness.py` | ✅ **all 7 derived artifacts current** — "OK: every derived artifact is at least as new as its sources"; `graphify update` + `cluster-only` rc=0 in 1,741 s; graph/report consistent (nodes=688,627 clustered=True) |
 | `tools/audit_parseable_files.py --check --deep` | ✅ no new mislabelled files |
 | derived maps rebuilt | TODO 1,487 functions · verdict 164 unreferenced · interop 482 edges |
 | memory-DB leak repro pair | ✅ `1 failed, 13 passed` → `14 passed` (before → after) |
@@ -673,6 +675,34 @@ failure, the grace test compares *what is late* and bounds the lateness delta,
 and the benchmark is best-of-3 over a workload that amortises fixed overhead.
 Recorded as ADR-015, including the deliberate cost: a genuine slowdown that
 completes inside 30 s is now a report a reader must read, not a red build.
+
+The benchmark needed one more step than the first fix. Raising the workload and
+taking the best of 3 attempts still read **0.687** on run 8, because a 31-minute
+graph rebuild was sharing the processor. That is the point the two earlier
+attempts missed: a *timing* signal cannot tell "the pool serialised its workers"
+from "something else wanted the CPU", so no sampling scheme fixes it. The claim
+was replaced by the property it stood for -- two workers in flight at once --
+proved with a two-party `threading.Barrier` that returns at the same speed on an
+idle box and a busy one. The speedup number is still measured and printed; it is
+just no longer what the build fails on.
+
+### 7.15 A rebuild dropped a field the transition had already been fixed to keep (new, Error #202)
+
+`tests/test_mesh_wire_or_cut.py` failed in run 8 against
+`NEURAL_MESH_WIRE_OR_CUT.json` with **62 `dispatched` rows and 0 carrying
+evidence** -- the exact symptom of Error #199, whose fix was committed earlier
+the same day and verified. The cause was one layer out: `wire_or_cut()` (the
+rebuild `--verdict` runs) re-constructed every entry from four hand-picked keys,
+so it discarded `evidence` and `triage`. The earlier fix had been verified with
+`--verdict --propose`; the refresh path runs `--verdict` alone, so the next
+refresh rewrote the file without the field.
+
+This is worth stating as a class rather than an incident: the same fact was lost
+in two places on two different paths, and fixing the transition was not fixing
+it. The rebuild now carries the whole prior disposition forward and overlays only
+what must track the tree, and the new regression test pins the rebuild rather
+than the transition -- **falsified by the pre-fix code** (`KeyError: 'evidence'`).
+Recorded as Error #202 / Lesson #96.
 
 ## 8. Architecture quality scorecard
 
