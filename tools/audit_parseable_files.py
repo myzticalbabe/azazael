@@ -110,6 +110,9 @@ def scan(deep: bool = False) -> dict:
     """One bounded walk. Returns findings grouped by kind."""
     mismatched: list[dict] = []
     corrupt_pdf: list[dict] = []
+    #: PDFs pypdf actually OPENED. Reported so a slow deep pass is attributable
+    #: to a named file rather than looking like the audit simply hanging.
+    deep_pdfs: list[str] = []
     checked = 0
     deep = deep or False
     for dirpath, dirnames, filenames in os.walk(ROOT):
@@ -135,19 +138,22 @@ def scan(deep: bool = False) -> dict:
                 })
                 continue
             if deep and ext == ".pdf":
+                rel = str(path.relative_to(ROOT)).replace("\\", "/")
                 try:
                     from pypdf import PdfReader  # noqa: PLC0415
                     reader = PdfReader(str(path))
                     _ = len(reader.pages)          # force a real parse
+                    deep_pdfs.append(rel)
                 except ImportError:
                     pass
                 except Exception as exc:
                     corrupt_pdf.append({
-                        "path": str(path.relative_to(ROOT)).replace("\\", "/"),
+                        "path": rel,
                         "error": type(exc).__name__,
                         "detail": str(exc)[:120],
                     })
-    return {"checked": checked, "mismatched": mismatched, "corrupt_pdf": corrupt_pdf}
+    return {"checked": checked, "mismatched": mismatched,
+            "corrupt_pdf": corrupt_pdf, "deep_pdfs": deep_pdfs}
 
 
 def _load_baseline() -> set[str]:
@@ -207,6 +213,15 @@ def main(argv: list[str] | None = None) -> int:
         if len(paths) > 3:
             print(f"        ... and {len(paths) - 3} more")
     if args.deep:
+        # Name what was opened as well as what failed. A deep pass over a tree
+        # full of PDFs is legitimately slow, and without this the run is
+        # indistinguishable from a hang.
+        pdfs = res["deep_pdfs"]
+        print(f"deep-parsed pdfs: {len(pdfs)}")
+        for p in pdfs[:10]:
+            print(f"  ok {p}")
+        if len(pdfs) > 10:
+            print(f"  ... and {len(pdfs) - 10} more")
         print(f"corrupt pdfs: {len(res['corrupt_pdf'])}")
         for r in res["corrupt_pdf"]:
             print(f"  {r['path']}  ({r['error']}: {r['detail']})")

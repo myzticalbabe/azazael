@@ -103,7 +103,7 @@ def check_pip_package(name: str, import_name: str = None) -> dict:
         return {"name": name, "available": False, "error": str(e)}
 
 
-def check_graph_input_hygiene(timeout: int = 120) -> dict:
+def check_graph_input_hygiene(timeout: int = 300) -> dict:
     """Catch a mislabelled file BEFORE a ~40-minute graph extraction runs.
 
     `graphify update .` chooses a parser from a file's SUFFIX alone. A suffix
@@ -113,6 +113,14 @@ def check_graph_input_hygiene(timeout: int = 120) -> dict:
     first few KB of each binary file), so running it at startup is cheap
     insurance against losing the run. `--check` fails only on NEW mislabels;
     known vendored ones are baselined and stay quiet.
+
+    `--deep` is requested as well. Magic bytes catch a file wearing the WRONG
+    suffix, but a truncated PDF still claims `%PDF` in its header and only a
+    real pypdf parse rejects it -- and pypdf is precisely the parser graphify
+    hands a `.pdf` to. A cheap magic-byte scan would wave through the exact
+    class of file that killed the 2026-09-21 run, so the deeper check is on by
+    default here. It measured under a second on a tree with no PDFs, and the
+    extra cost is bounded by the number of PDFs present.
     """
     tool = os.path.join(os.path.dirname(__file__), "..", "tools",
                         "audit_parseable_files.py")
@@ -120,7 +128,7 @@ def check_graph_input_hygiene(timeout: int = 120) -> dict:
         return {"available": False, "ok": True, "note": "audit tool not found"}
     try:
         proc = subprocess.run(
-            [sys.executable, tool, "--check"],
+            [sys.executable, tool, "--check", "--deep"],
             capture_output=True, text=True, timeout=timeout,
         )
     except subprocess.TimeoutExpired:
@@ -129,10 +137,17 @@ def check_graph_input_hygiene(timeout: int = 120) -> dict:
         return {"available": False, "ok": True, "note": str(e)}
     out = (proc.stdout + proc.stderr).strip().splitlines()
     new_line = next((ln.strip() for ln in out if ln.strip().startswith("NEW mislabels")), "")
+    pdf_line = next((ln.strip() for ln in out if ln.strip().startswith("deep-parsed pdfs")), "")
+    note = new_line or (out[-1].strip() if out else "")
+    if pdf_line:
+        # Surface how much the deep pass actually read. A tree with PDFs makes
+        # the deep scan legitimately slow, and reporting the count keeps that
+        # from looking like a stalled startup.
+        note = f"{note} [{pdf_line}]" if note else pdf_line
     return {
         "available": True,
         "ok": proc.returncode == 0,
-        "note": new_line or (out[-1].strip() if out else ""),
+        "note": note,
     }
 
 
