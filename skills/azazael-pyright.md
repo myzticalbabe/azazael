@@ -1,6 +1,6 @@
 ---
 name: azazael-pyright
-description: Pyright static type checking for the Azazael codebase — complements mypy on optionals, unbound variables, attribute access.
+description: basedpyright (the type checker of record; gate at tools/type_check_gate.py) for the Azazael codebase — complements mypy on optionals, unbound variables, attribute access.
 metadata:
   category: quality
   project: azazael

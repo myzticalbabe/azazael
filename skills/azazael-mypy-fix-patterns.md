@@ -1,6 +1,6 @@
 ---
 name: azazael-mypy-fix-patterns
-description: Common mypy fix patterns — no-redef, Optional annotations, type narrowing, float casts, union-attr ignores. Catalog of 10 graduated file patterns.
+description: Common mypy fix patterns (mypy is a second opinion; the type-checking gate is basedpyright -- see tools/type_check_gate.py) — no-redef, Optional annotations, type narrowing, float casts, union-attr ignores. Catalog of 10 graduated file patterns.
 auto_load: false
 ---
 

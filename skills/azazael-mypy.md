@@ -1,6 +1,6 @@
 ---
 name: azazael-mypy
-description: Documents mypy static type checking usage for the Azazael codebase — configuration, error patterns, free-threading considerations, canonical type-check command.
+description: mypy as a SECOND OPINION only (the gate is basedpyright, tools/type_check_gate.py) -- mypy static type checking usage for the Azazael codebase — configuration, error patterns, free-threading considerations, canonical type-check command.
 metadata:
   category: quality
   project: azazael

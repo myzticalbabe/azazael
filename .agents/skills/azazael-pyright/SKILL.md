@@ -1,7 +1,26 @@
 # azazael-pyright
 **Category:** Quality / Type Checking
 **Priority:** HIGH
-**Dependencies:** pyright>=1.1.410 (via npx), Node.js
+**Dependencies:** **basedpyright 1.40.1 (pip, already installed in `venv-314t`)**; `pyright` via `npx` is a fallback
+
+> **REORIENTED 2026-09-22: basedpyright is the type checker of record.**
+>
+> It is already installed (no setup, no Node) and already reads the repo's
+> committed `pyrightconfig.json`. Run it through the gate:
+>
+> ```bash
+> python tools/type_check_gate.py --check    # exit 1 on NEW diagnostics
+> python tools/type_check_gate.py --report   # run + write logs/basedpyright_report.json
+> basedpyright src/path/file.py              # single file, ad hoc
+> ```
+>
+> Measured 2026-09-22: **1,191 errors + 252 warnings over 690 files in 64 s**
+> (mypy: 655 errors over `src/CORE/`, ~6 min). The baseline in
+> `logs/basedpyright_baseline.json` holds 1,377 diagnostic identities, so
+> pre-existing findings are recorded debt rather than a reason to disable the
+> check. See `docs/ARCHITECTURE_DECISION_RECORDS.md` ADR-010 and ADR-011.
+>
+> The `npx pyright` commands below still work when Node is available.
 **Created:** June 14, 2026
 
 ## Purpose
