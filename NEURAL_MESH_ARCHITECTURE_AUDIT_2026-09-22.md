@@ -158,21 +158,45 @@ condition — a bare `except:` — currently **0**.
 
 ### 4.1 Unreferenced capability — `NEURAL_MESH_WIRE_OR_CUT.json`
 
-**164** functions nothing in the repo reaches. Dispositions:
+**164** functions nothing in the repo reaches. Triaged 2026-09-22 by
+`tools/mesh_function_preflight.py --verdict --propose`, which measures one thing
+per finding instead of guessing:
 
-| Disposition | Count |
-|---|---|
-| `integrate_via_stage` | 92 |
-| `module_level` | 34 |
-| `wire_at_site` | 32 |
-| `unresolved` | 6 |
+| Disposition | Count | Evidence |
+|---|---|---|
+| `dispatched` | **62** | the name exists in production code only as an identifier-like STRING literal (`getattr`, a registry key, a dispatch table) — `file:line` recorded per entry |
+| `pending` | **102** | no production reference of any kind: not a `Name`, not an attribute, not a string |
+| `wired` | 0 | — |
+| `retired` | 0 | — |
 
-Orphans grouped by the stage that should drive them: orchestration 17,
-optimization 12, visualization 10, analysis 9, monitor 8, security 7, defense 6,
-immune 5, learning 1. The per-function checklist
-(`NEURAL_MESH_FUNCTION_TODO.md`, 3,940 lines) has **2,009 open items, 0
-completed** — the audit apparatus exists and is wired into
-`tools/artifact_freshness.py`, but nobody has worked the list.
+**This required a new status, and that is the finding.** `wired` cannot be
+written down for a dynamic-only name: PF16 still fires (it reads `ast.Name` /
+`ast.Attribute` and a string is neither), so the entry would fail
+`test_a_wired_declaration_is_actually_wired` — the table had no way to record a
+fact the triage had just measured. `dispatched` is that status, and it carries
+verified evidence: the contract test re-derives each hit from source and fails an
+unbacked declaration, and a second test asserts the entry is *still* a PF16
+finding (so the status cannot be used to claim reachability that does not exist).
+What it does **not** claim: that anything calls the function. It claims the probe
+cannot decide, by construction, and the review action is the same — wire it
+visibly or delete it.
+
+Independent check of the same measurement: a separate AST pass over
+`src`/`scripts`/`tools` (docstrings and prose excluded) counted **62** names with
+an identifier-like string reference — the same 62.
+
+**Correction.** An earlier revision of this section listed
+`integrate_via_stage 92 / module_level 34 / wire_at_site 32 / unresolved 6` as
+dispositions. No such statuses existed in the file — all 164 read `pending` — and
+no evidence for those groupings was recorded. They were inference presented in a
+results table, and they are removed rather than restated. The 92
+`integrate_via_stage` figure in AR-6 was the same inference.
+
+The per-function checklist (`NEURAL_MESH_FUNCTION_TODO.md`, 3,940 lines) has
+**2,009 open items, 0 completed** — the audit apparatus exists and is wired into
+`tools/artifact_freshness.py`, but the list is unworked. The 164 above are now
+catalogued with evidence; the 102 `pending` are the part that still needs a
+human wire-or-delete decision.
 
 ## 5. Test infrastructure — suite truth
 
@@ -403,7 +427,7 @@ unnoticed: nobody re-checks a conclusion that sounds like a fact about the code.
 | AR-3 | ~~Install mypy and record a baseline error count~~ **DONE, with a better instrument** — basedpyright was already installed and already configured; baseline 1,191 errors + 252 warnings over 690 files (ADR-011, `tools/type_check_gate.py`) | — | — | ✅ |
 | AR-4 | ~~Add a CI gate that runs the **aggregate** suite~~ **DONE** — `tools/aggregate_suite_gate.py`, blocking in CI via `--profile isolation` (8 files, 299 tests, 0 failures); the full-suite baseline lives in `logs/aggregate_isolation_baseline.json` for the profile, full-suite report for the rest | — | — | ✅ |
 | AR-5 | Break the `learning_*` SCC (4 modules) — no module in the group imports in isolation | 1d | 🟠 | P1 |
-| AR-6 | Work the 164 `wire_or_cut` orphans (92 `integrate_via_stage` are actionable) | 3–5d | 🟠 | P1 |
+| AR-6 | Work the 102 `pending` `wire_or_cut` orphans (the 62 `dispatched` need a visible caller or deletion too, but the probe cannot decide them) | 3–5d | 🟠 | P1 |
 | AR-7 | Clear the 1,133 + 700 annotation/docstring failures, module by module | 2–3d | 🟡 | P2 |
 | AR-8 | Reduce `worm_registry` from 166 inbound edges (facade + narrow imports) | 2d | 🟠 | P1 |
 | AR-9 | Triage the 255 write-swallowing handlers (PRESSURE on data-loss paths) | 1d | 🟠 | P1 |

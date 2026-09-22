@@ -3128,4 +3128,40 @@ for the *gate's* decision (new id vs known id) and the evidence needed for the
 
 ---
 
+## Lesson #89 — An Artifact Must Not Answer for a Scope It Did Not Measure
+
+**Date:** 2026-09-22
+
+`tools/aggregate_suite_gate.py` writes `logs/aggregate_isolation_report.json`
+for the CI profile. The path was fixed by **profile**, but `--only` could shrink
+the **scope** — so a one-file smoke test replaced a `301 passed` run of all eight
+profile files with `1 passed in 1s`. Nothing failed. The JSON stayed valid, the
+pass rate stayed plausible, and it named a profile it no longer described.
+
+This is the same defect class as Lesson #88 one layer up. There, the gate stored
+the count and not the diagnosis; here it stored the diagnosis of a run that did
+not happen. Both are a report whose *shape* is correct and whose *referent* is
+wrong — the hardest kind to notice, because every check on the artifact's format
+passes.
+
+**Permanent mandate:**
+- When a knob can narrow a measurement, the artifact path must follow the scope,
+  not the profile label. A subset run writes a subset file and says so.
+- A gate's baseline and report are **evidence**, so the same rule as any evidence:
+  it must be produced by the run it claims to describe. Redirect the artifact
+  root in tests rather than exercising the real path.
+- Prefer a refusal to a borrowed baseline. A narrowed `--check` with no matching
+  baseline now exits 1 (`no baseline`) instead of comparing against the profile's
+  set, which would have reported every unrun file as "no longer failing" — the
+  gate reading green because it looked at less.
+- The tell to look for: an artifact that is *tracked* and whose filename encodes a
+  scope (a profile, an environment, a matrix row) but whose producer accepts a
+  narrower input.
+
+**Related:** Error #195, ADR-012, Lesson #88, Error #194,
+`tools/aggregate_suite_gate.py`, `tools/type_check_gate.py` (same shape: profile
+pinned by path, scope shrinkable by `--paths`)
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*
