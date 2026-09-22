@@ -31,9 +31,9 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from log_hygiene import quiet_noisy_loggers
+from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 
 quiet_noisy_loggers()
 

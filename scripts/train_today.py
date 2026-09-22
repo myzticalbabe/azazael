@@ -18,11 +18,13 @@ import socket
 import subprocess
 import sys
 import time
+from pathlib import Path
 
-from log_hygiene import quiet_noisy_loggers
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 
 quiet_noisy_loggers()
-sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 FIT = "G:/source-of-truth/azazael_models/fitness.jsonl"
 CYCLES = int(sys.argv[1]) if len(sys.argv) > 1 else 12

@@ -10,11 +10,13 @@ import os
 import sys
 from collections import Counter
 from datetime import datetime, timezone
+from pathlib import Path
 
-from log_hygiene import quiet_noisy_loggers
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 
 quiet_noisy_loggers()
-sys.path.insert(0, "C:/Users/clint/azazael/src")
 from CORE.worm_registry import discover_worms, WORM_REGISTRY
 
 ROOT = "C:/Users/clint/azazael"

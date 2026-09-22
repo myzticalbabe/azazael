@@ -7,14 +7,27 @@ script only READS local ledger and writes one JSON file.
 """
 import json
 import sys
+from pathlib import Path
 
-sys.path.insert(0, "/mnt/c/Users/clint/azazael/src")
+# Resolve src/ from this file's location (works from Windows and from WSL, where
+# this script runs as /mnt/c/.../scripts/gossip_export.py), no hardcoded user path.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+# Quiet the noisy loggers by NAME. Best-effort and at module scope so the smoke
+# test exercises it, but guarded: this script's contract is to NEVER raise for
+# its WSL caller (it prints {} on failure), so a hygiene-import failure must not
+# abort the export.
+try:
+    from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
+
+    quiet_noisy_loggers()
+except Exception:  # noqa: BLE001 -- hygiene is best-effort, never fatal here
+    pass
+
 DROP = "/mnt/c/Users/clint/azazael/output/gossip"
 
 
 def main():
-    from log_hygiene import quiet_noisy_loggers
-    quiet_noisy_loggers()
     try:
         from CORE.WORMS.expansion.envmesh import env_id_v2
         from CORE import spine_registry as sp
