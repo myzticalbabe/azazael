@@ -13,7 +13,6 @@ Schedule (user-level, no admin):
 Logs to ~/.azazael/spine_cycle.log. Checkpoint models stay on G:.
 """
 import json
-import logging
 import os
 import subprocess
 import sys
@@ -27,7 +26,10 @@ from datetime import datetime
 # process the hourly scheduler runs, so a ~30h self-image refusal went unseen.
 # Silencing the noisy logger by name keeps the log clean while leaving
 # WARNING+ live, so a refusal still reaches stderr and the chain's per-job log.
-logging.getLogger("worm_registry").setLevel(logging.WARNING)
+# The logger list lives in scripts/log_hygiene.py, shared by the whole family.
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 LOG = os.path.expanduser("~/.azazael/spine_cycle.log")

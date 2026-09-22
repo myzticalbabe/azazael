@@ -6,11 +6,14 @@ up/down into the spine ledger (downtime becomes training signal).
 Schedule (user-level): every 30 min.
 """
 import json
-import logging
 import sys
 from datetime import datetime, timezone
 
-logging.disable(logging.CRITICAL)
+# Silence the registry chatter by NAME (never `logging.disable`): a blanket
+# switch would also swallow this process's operator warnings.
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 LOG = "G:/source-of-truth/azazael_models/bcc_status.jsonl"

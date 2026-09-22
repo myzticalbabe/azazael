@@ -13,8 +13,8 @@ DROP = "/mnt/c/Users/clint/azazael/output/gossip"
 
 
 def main():
-    import logging
-    logging.disable(logging.CRITICAL)
+    from log_hygiene import quiet_noisy_loggers
+    quiet_noisy_loggers()
     try:
         from CORE.WORMS.expansion.envmesh import env_id_v2
         from CORE import spine_registry as sp

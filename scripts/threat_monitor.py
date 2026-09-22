@@ -4,11 +4,12 @@
 Schedule (user-level): hourly.
 """
 import json
-import logging
 import sys
 from datetime import datetime, timezone
 
-logging.disable(logging.CRITICAL)
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 LOG = "G:/source-of-truth/azazael_models/threat_status.jsonl"
