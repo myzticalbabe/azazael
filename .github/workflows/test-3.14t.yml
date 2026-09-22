@@ -4,8 +4,15 @@
 # Uses run_tests.py with --skip-slow for quick CI feedback (~3 min).
 # The full suite (including MetaCluster orchestration) takes ~6 min.
 #
-# Note: pytest is incompatible with Python 3.14t (Error #48).
-# All tests run via standalone python tests/test_*.py execution.
+# Note on pytest and 3.14t: the earlier claim that "pytest segfaults on 3.14t
+# (Error #48)" no longer holds and is corrected here rather than left standing.
+# Measured 2026-09-22 on the canonical interpreter
+# (3.14.7 free-threading build, cp314t-win_amd64, sys._is_gil_enabled() False):
+# pytest 9.1.1 runs the whole tests/ tree in one process, 3,606 passed. The
+# standalone runner is still what --skip-slow uses (it needs no pytest and it
+# is how the per-file suite has always run), but the AGGREGATE isolation gate
+# below needs pytest, because the defect it exists to catch only appears when
+# many files share one interpreter.
 #
 # Note on 3.14t CI availability:
 # GitHub Actions setup-python may not yet support "3.14t" (free-threading)
@@ -51,13 +58,49 @@ jobs:
           # Force psutil cp314t wheel for free-threading compatibility
           pip install --force-reinstall --no-deps psutil
           python -c "import psutil; print(f'psutil {psutil.__version__}: OK (cpu={psutil.cpu_count()})')"
+          # basedpyright is the type checker (mypy cannot read this tree).
+          # pytest is needed by the aggregate isolation gate below.
+          pip install basedpyright pytest
 
-      - name: Static type checking (mypy)
+      - name: Static type checking (basedpyright, baseline-gated)
         shell: pwsh
         run: |
-          pip install mypy
-          python -m mypy src/CORE/ --ignore-missing-imports --check-untyped-defs
+          python tools/type_check_gate.py --check
+        # NON-BLOCKING, and the reason matters: the committed baseline
+        # (logs/basedpyright_baseline.json) was recorded on the canonical 3.14t
+        # venv WITH the ML stack installed. This runner installs psutil only, so
+        # an unresolvable `import torch` changes inferred types downstream and
+        # shifts the diagnostic set -- a diff here is not (yet) evidence of a
+        # regression in the code. Make it blocking when this job installs the
+        # same dependency set the baseline was recorded against.
         continue-on-error: true
+
+      - name: Aggregate isolation gate (single process)
+        shell: pwsh
+        run: |
+          python tools/aggregate_suite_gate.py --check --profile isolation
+        # BLOCKING, and deliberately so. A per-file runner cannot see a defect
+        # that only exists across files inside one interpreter, which is the
+        # failure shape this repository actually has: on 2026-09-22 the suite
+        # returned 72 failures in one process while every one of those files
+        # passed alone. The isolation profile is the dependency-light subset
+        # that reproduces that class (8 files, 299 tests, currently 0 failures),
+        # so it is stable enough to gate on.
+        #   logs/aggregate_isolation_baseline.json holds the known set;
+        #   exit 1 means a diagnostic id appeared that was not known.
+        # Re-baseline only with: --baseline --profile isolation
+
+      - name: Upload gate reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-reports
+          path: |
+            logs/aggregate_isolation_report.json
+            logs/aggregate_isolation_report.raw.txt
+            logs/basedpyright_report.json
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Quick test suite (--skip-slow)
         shell: pwsh
