@@ -35,17 +35,96 @@ the real host, to prove the walk is not vacuous where it runs.
 """
 from __future__ import annotations
 
+import ast
 import sys
 from pathlib import Path
 
 import pytest
 
 _ROOT = Path(__file__).resolve().parents[1]
-for _p in (_ROOT / "scripts", _ROOT):
+for _p in (_ROOT / "tools", _ROOT / "scripts", _ROOT):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-import graph_refresh_no_llm as g  # noqa: E402
+#: The implementation lives in one module now; both entry points call it. The
+#: tests target the implementation, not a re-export, so patching the module
+#: under test cannot silently patch a copy that nothing calls.
+import graphify_interpreter as g  # noqa: E402
+import graph_refresh_no_llm as refresh  # noqa: E402
+
+
+def test_both_entry_points_share_one_implementation():
+    """A re-export must BE the implementation, not a second copy of it.
+
+    Error #208 was one hard-coded interpreter; the same class of bug arrived
+    twice because two call sites each decided for themselves. This asserts the
+    identity, so a future "just inline it here" lands as a failure.
+    """
+    assert refresh.resolve_graphify_python is g.resolve_graphify_python
+    assert refresh.HUGEMODE_MARKER == g.HUGEMODE_MARKER
+    assert refresh.REQUIRED_INSTALL_PARTS == g.REQUIRED_INSTALL_PARTS
+
+
+def _graphify_exec_lists(src: str) -> list[int]:
+    """Line numbers of `[...sys.executable..., "graphify"...]` literals.
+
+    Read from the AST, not from the text. The first version of this check was a
+    substring search and it failed on its OWN subject's comment, which quotes
+    the bad pattern while explaining it -- the same prose-vs-code confusion the
+    isolation-profile test in `test_aggregate_suite_gate.py` had to solve the
+    same way.
+    """
+    bad: list[int] = []
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+            continue
+        uses_sys_executable = any(
+            isinstance(e, ast.Attribute) and e.attr == "executable"
+            and isinstance(e.value, ast.Name) and e.value.id == "sys"
+            for e in node.elts)
+        names_graphify = any(
+            isinstance(e, ast.Constant) and e.value == "graphify"
+            for e in node.elts)
+        if uses_sys_executable and names_graphify:
+            bad.append(getattr(node, "lineno", 0))
+    return bad
+
+
+def test_graph_rebuild_resolves_instead_of_using_bare_sys_executable():
+    """`tools/graph_rebuild.py` ran `sys.executable -m graphify` -- a venv with
+    no graphify at all -- so its rounds and cluster pass could only ever fail.
+
+    Both halves are asserted because either alone is satisfiable by the broken
+    code: the probe must be gone AND the resolver must be the thing that runs.
+    """
+    import graph_rebuild
+
+    src = (_ROOT / "tools" / "graph_rebuild.py").read_text(
+        encoding="utf-8", errors="replace")
+    assert _graphify_exec_lists(src) == [], (
+        "bare sys.executable graphify invocation still present at %s"
+        % _graphify_exec_lists(src))
+    assert callable(graph_rebuild.graphify_cmd), "no graphify_cmd helper"
+
+    # And the helper must refuse, not substitute an interpreter of its own.
+    graph_rebuild._GRAPHIFY_PY_RESOLVED = True
+    graph_rebuild.GRAPHIFY_PY = None
+    try:
+        graph_rebuild.graphify_cmd(("update", "."), report=lambda _m: None)
+        raise AssertionError("graphify_cmd fell back instead of refusing")
+    except RuntimeError as exc:
+        assert "exporters/html.py" in str(exc), exc
+    finally:
+        graph_rebuild._GRAPHIFY_PY_RESOLVED = False
+
+    # Positive control: a resolved interpreter yields a well-formed command.
+    graph_rebuild._GRAPHIFY_PY_RESOLVED = True
+    graph_rebuild.GRAPHIFY_PY = Path(sys.executable)
+    try:
+        cmd = graph_rebuild.graphify_cmd(("update", "."), report=lambda _m: None)
+        assert cmd[1:] == ["-m", "graphify", "update", "."], cmd
+    finally:
+        graph_rebuild._GRAPHIFY_PY_RESOLVED = False
 
 
 def _fake_install(tmp_path: Path, name: str, *, patched: bool) -> Path:

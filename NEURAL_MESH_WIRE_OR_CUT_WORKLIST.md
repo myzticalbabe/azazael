@@ -14,9 +14,10 @@ The same rows, by the fact that decides them. A class is how the row was measure
 | Decider | Pending | What it means |
 |---|---|---|
 | `protocol_or_override` | 0 | the same name is defined by another class in the tree, so a caller can reach it through a base or an interface -- keep or retire, but a name-based reference search can never settle it |
+| `declared_in_data` | 9 | a non-Python artifact names it -- a registry cache, capability map, stage manifest or config. The reference index reads Python source only, so this is a wire the probe structurally cannot see, and the row must not be cut on its evidence |
 | `dynamic_call` | 5 | the defining module builds a call target at runtime (`getattr` with a computed name), so 'no reference' is the probe's limit, not proof of death -- wire explicitly or leave, but do not cut on this evidence |
-| `test_is_the_wire` | 40 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
-| `dead_candidate` | 56 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
+| `test_is_the_wire` | 38 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
+| `dead_candidate` | 49 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
 
 ## test_reached_only (44)
 
@@ -27,7 +28,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `error_recovery:ErrorRecoveryOrchestrator.reset_circuit` (`error_recovery:316`) -- reached by tests/test_error_recovery.py:193, tests/test_p0_worms.py:261, tests/test_p0_worms.py:286 [test_is_the_wire: tests/test_error_recovery.py:193; tests/test_p0_worms.py:261; tests/test_p0_worms.py:286]
 - [ ] `evolution:GeneticOptimizer.optimize_cma` (`evolution:1300`) -- reached by tests/test_v2_engines.py:187 [test_is_the_wire: tests/test_v2_engines.py:187]
 - [ ] `evolution:GeneticOptimizer.optimize_de` (`evolution:1313`) -- reached by tests/test_v2_engines.py:194 [test_is_the_wire: tests/test_v2_engines.py:194]
-- [ ] `learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report` (`learning_features:342`) -- reached by tests/test_learning_worms.py:593, tests/test_learning_worms.py:611 [test_is_the_wire: tests/test_learning_worms.py:593; tests/test_learning_worms.py:611]
+- [ ] `learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report` (`learning_features:342`) -- reached by tests/test_learning_worms.py:593, tests/test_learning_worms.py:611 [declared_in_data: named by worm_execution_matrix.json:2536]
 - [ ] `learning_pipeline:DataPipelineWorm.extract_field` (`learning_pipeline:189`) -- reached by tests/test_learning_worms.py:68 [test_is_the_wire: tests/test_learning_worms.py:68]
 - [ ] `learning_pipeline:DataPipelineWorm.extract_recent` (`learning_pipeline:147`) -- reached by tests/test_learning_worms.py:42 [test_is_the_wire: tests/test_learning_worms.py:42]
 - [ ] `learning_pipeline:DataPipelineWorm.filter_by_severity` (`learning_pipeline:204`) -- reached by tests/test_learning_worms.py:79 [test_is_the_wire: tests/test_learning_worms.py:79]
@@ -37,7 +38,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `learning_pipeline:DataPipelineWorm.process_batches` (`learning_pipeline:262`) -- reached by tests/test_learning_worms.py:128 [test_is_the_wire: tests/test_learning_worms.py:128]
 - [ ] `learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh` (`learning_pipeline:540`) -- reached by tests/test_learning_worms.py:544, tests/test_learning_worms.py:553, tests/test_learning_worms.py:564 [test_is_the_wire: tests/test_learning_worms.py:544; tests/test_learning_worms.py:553; tests/test_learning_worms.py:564]
 - [ ] `learning_pipeline:DataPipelineWorm.search_memory` (`learning_pipeline:140`) -- reached by tests/test_learning_worms.py:37 [test_is_the_wire: tests/test_learning_worms.py:37]
-- [ ] `learning_replay:PrioritizedReplayBuffer.add_from_memories` (`learning_replay:163`) -- reached by tests/test_learning_evolution.py:98, tests/test_learning_evolution.py:109 [test_is_the_wire: tests/test_learning_evolution.py:98; tests/test_learning_evolution.py:109]
+- [ ] `learning_replay:PrioritizedReplayBuffer.add_from_memories` (`learning_replay:163`) -- reached by tests/test_learning_evolution.py:98, tests/test_learning_evolution.py:109 [declared_in_data: named by worm_execution_matrix.json:2185]
 - [ ] `learning_rl:RLTrainLoop.tune_and_train` (`learning_rl:731`) -- reached by tests/test_learning_worms.py:354, tests/test_learning_worms.py:367 [test_is_the_wire: tests/test_learning_worms.py:354; tests/test_learning_worms.py:367]
 - [ ] `learning_rl:RLTrainLoop.tune_history` (`learning_rl:811`) -- reached by tests/test_learning_worms.py:382, tests/test_learning_worms.py:395 [test_is_the_wire: tests/test_learning_worms.py:382; tests/test_learning_worms.py:395]
 - [ ] `loom:NoveltyDrive.novelty_weight` (`loom:261`) -- reached by tests/test_proteus_organs.py:530, tests/test_proteus_organs.py:531 [test_is_the_wire: tests/test_proteus_organs.py:530; tests/test_proteus_organs.py:531]
@@ -67,16 +68,16 @@ The same rows, by the fact that decides them. A class is how the row was measure
 
 ## no_reference_anywhere (57)
 
-- [ ] `NeuralPipeline:NeuralPipeline.replay_failed` (`NeuralPipeline:747`) [dead_candidate]
-- [ ] `allocation:ThompsonAllocator.choose_with_bonus` (`allocation:240`) [dead_candidate]
-- [ ] `axon:LatencyCompensatorWorm.compensate` (`axon:121`) [dead_candidate]
-- [ ] `axon:MyelinSheathWorm.boost_for` (`axon:37`) [dead_candidate]
+- [ ] `NeuralPipeline:NeuralPipeline.replay_failed` (`NeuralPipeline:747`) [declared_in_data: named by worm_execution_matrix.json:1301]
+- [ ] `allocation:ThompsonAllocator.choose_with_bonus` (`allocation:240`) [declared_in_data: named by worm_execution_matrix.json:1301]
+- [ ] `axon:LatencyCompensatorWorm.compensate` (`axon:121`) [declared_in_data: named by worm_execution_matrix.json:1301]
+- [ ] `axon:MyelinSheathWorm.boost_for` (`axon:37`) [declared_in_data: named by worm_execution_matrix.json:1301]
 - [ ] `axon:MyelinSheathWorm.myelinate` (`axon:32`) [dead_candidate]
 - [ ] `backup:CheckpointWorm.restore_checkpoint` (`backup:200`) [dead_candidate]
 - [ ] `communication:IPCBridge.create_channel` (`communication:161`) [dead_candidate]
 - [ ] `communication:IPCBridge.receive` (`communication:176`) [dead_candidate]
 - [ ] `config:ConfigLinter.lint_yaml` (`config:67`) [dead_candidate]
-- [ ] `consolidation:EngramIndexerWorm.lookup` (`consolidation:100`) [dead_candidate]
+- [ ] `consolidation:EngramIndexerWorm.lookup` (`consolidation:100`) [declared_in_data: named by worm_config_trace.json:1926]
 - [ ] `consolidation:SharpWaveReplayWorm.replay_batch` (`consolidation:44`) [dead_candidate]
 - [ ] `consolidation:SleepConsolidatorWorm.sleep_cycle` (`consolidation:69`) [dead_candidate]
 - [ ] `container:ResourceQuotaWatch.set_quota` (`container:206`) [dead_candidate]
@@ -94,7 +95,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `federated:FederatedAggregatorWorm.run_round` (`federated:183`) [dead_candidate]
 - [ ] `federated:RewardShaperMeshWorm.local_score` (`federated:372`) [dead_candidate]
 - [ ] `glia:MicrogliaWorm.check_path` (`glia:113`) [dead_candidate]
-- [ ] `learning_grpo:GRPOTrainer.rewards_from_elo` (`learning_grpo:210`) [dead_candidate]
+- [ ] `learning_grpo:GRPOTrainer.rewards_from_elo` (`learning_grpo:210`) [declared_in_data: named by worm_execution_matrix.json:1210]
 - [ ] `mesh:MeshRouterWorm.invalidate_route` (`mesh:248`) [dead_candidate]
 - [ ] `migration:CodeMigrator.run_2to3` (`migration:67`) [dead_candidate]
 - [ ] `migration:LegacyShimGen.write_shim` (`migration:215`) [dead_candidate]
@@ -117,7 +118,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `telemetry:EventRouter.get_recent_events` (`telemetry:187`) [dead_candidate]
 - [ ] `telemetry:SpanTracer.end_span` (`telemetry:64`) [dead_candidate]
 - [ ] `telemetry:SpanTracer.start_span` (`telemetry:53`) [dead_candidate]
-- [ ] `thalamus:SensoryRelayWorm.relay` (`thalamus:68`) [dead_candidate]
+- [ ] `thalamus:SensoryRelayWorm.relay` (`thalamus:68`) [declared_in_data: named by worm_config_trace.json:1971]
 - [ ] `visualization:DashboardGen.add_panel` (`visualization:52`) [dead_candidate]
 - [ ] `xenomorph:ChestbursterWorm.burst` (`xenomorph:154`) [dead_candidate]
 - [ ] `xenomorph:DroneWorm.carry` (`xenomorph:178`) [dead_candidate]

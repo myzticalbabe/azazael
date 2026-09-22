@@ -7823,3 +7823,88 @@ not overwrite the huge-mode page with a truncated one.
 **Related:** Error #207, Lesson #100, Lesson #101, ADR-019,
 `scripts/graph_refresh_no_llm.py`, `scripts/graphify_node_limit_patch.py`,
 `tests/test_graphify_refresh_interpreter.py`
+
+---
+
+## Error #209 — The Retirement Probe Read Its Own Inventory as Wiring (September 22, 2026)
+
+### Symptom
+Adding a `declared_in_data` decider -- a wire that lives in a JSON/YAML/TOML
+file rather than in Python, which the name probe cannot see -- resolved **101 of
+101** pending wire-or-cut rows to that decider on its first run:
+
+```
+decider {'protocol_or_override': 0, 'declared_in_data': 101,
+         'dynamic_call': 0, 'test_is_the_wire': 0, 'dead_candidate': 0}
+  NeuralPipeline.replay_failed        ['named by function_inventory.json:1391',
+                                       'named by NEURAL_MESH_ENTRENCHMENT.json:5',
+                                       'named by NEURAL_MESH_INTEGRATION_MAP.json:66']
+```
+
+Every hit was on `NEURAL_MESH_INTEGRATION_MAP.json`,
+`NEURAL_MESH_ENTRENCHMENT.json`, `NEURAL_MESH_WIRE_OR_CUT.json` or
+`function_inventory.json` -- **artifacts this probe family generates**. The
+tool was reading its own report back as evidence.
+
+### Root cause
+Two distinct mistakes, in the same direction, each hidden by the previous one.
+
+1. **A derived artifact is not an input.** `NEURAL_MESH_INTEGRATION_MAP.json`
+is *built by* `tools/nature_integration_map.py` from the same functions PF16
+finds. A file that records the tree cannot be a dispatcher for the tree, but a
+name search over file contents cannot tell a census from a capability map.
+2. **A cache is not a dispatcher either.** After excluding the audit's own
+outputs, the second run again returned 101 of 101 -- now on the strength of
+`src/graphify-out/cache/ast/<sha>.json`, graphify's AST cache: one file per
+source file, each naming whatever its source names. The same trap one layer
+down, where the reader is a different tool with the same blind spot.
+
+The consequence if it had shipped: the entire backlog retires in one afternoon,
+with the audit that produced it cited as the reason. `dead_candidate` would have
+gone from 56 to 0 without a line of code changing.
+
+### Fix
+Two guards, each independently falsified:
+
+| Guard | Rule | What it rejects |
+|---|---|---|
+| read-by-code | a data file counts only if a string constant under `src/scripts/tools` names it | graphify's AST cache, orphan files |
+| share | a file naming `>= max(4, 20% of candidates)` is an inventory | `NEURAL_MESH_INTEGRATION_MAP.json` (101/101) |
+
+Measured after both (101 pending rows):
+
+```
+decider {'protocol_or_override': 0, 'declared_in_data': 9, 'dynamic_call': 5,
+         'test_is_the_wire': 38, 'dead_candidate': 49}
+excluded files: 66
+```
+
+Sanity-checked rather than assumed: `worm_execution_matrix.json` -- which
+decides 4 of the 9 -- is genuinely loaded by `src/CORE/compliance/broker.py`,
+which resolves its path and parses it for worm health. That is a real data wire.
+The weaker case is recorded honestly: `worm_config_trace.json` is written by
+`scripts/regen_config_trace.py` and read back only by that same script, so
+classifying on it is defensible **only** because the trace is a dump of the live
+registry, and registry membership is the dynamic wire a name probe cannot see.
+
+Falsification, both guards, one at a time: replacing either condition with
+`if False:` makes
+`test_the_probes_own_artifacts_are_excluded_on_this_repo` fail; restoring both
+makes it pass.
+
+### Prevention
+- A probe must never treat its own output as evidence. When a new decider
+  resolves *everything*, the first hypothesis is self-reference, not success.
+- Ask of any data file: who WRITES it? A generator in the same toolchain is
+  disqualifying, and "no production code loads it" is a fact that can be
+  measured rather than judged.
+- Two instruments with the same blind spot (the audit, and the AST cache of the
+  same tree) fail twice in a row. Fixing the first instance did not generalise,
+  which is why the second was written as a rule about *readers* rather than a
+  denylist about files.
+- Bias a non-destructive decider toward over-inclusion and say so: this one can
+  only prevent a cut, so a false positive costs a review and a false negative
+  costs a function.
+
+**Related:** Error #190, Error #207, Lesson #100, Lesson #102, ADR-020,
+`tools/mesh_function_preflight.py`, `tests/test_mesh_wire_or_cut.py`

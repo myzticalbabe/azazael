@@ -37,9 +37,67 @@ from typing import Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "logs" / "graph_rebuild_report.json"
-SITE = Path("/c/Users/clint/AppData/Local/Programs/Python/Python314/Lib/site-packages/graphify")
-if not SITE.is_dir():
-    SITE = Path(sys.prefix) / "Lib" / "site-packages" / "graphify"
+
+#: Resolve the engine by capability, the same way the no-LLM refresh does
+#: (Error #208). This tool used bare `[sys.executable, "-m", "graphify", ...]`
+#: -- `sys.executable` here is the 3.14t venv, which has no graphify at all --
+#: so `--rounds` and the cluster pass could only ever fail, and the hard-coded
+#: `SITE` inspected a *different* install than the commands would have run.
+#: Two entry points each deciding for themselves is how this class of bug
+#: arrived twice; now they share one resolver.
+for _p in (ROOT / "tools",):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
+from graphify_interpreter import resolve_graphify_python  # noqa: E402
+
+#: Cached so the resolve (a few subprocess probes) happens once per process.
+GRAPHIFY_PY: Path | None = None
+_GRAPHIFY_PY_RESOLVED = False
+
+
+def graphify_cmd(step: Sequence[str], report=print) -> list[str]:
+    """`[interpreter, -m graphify, *step]`, resolving the engine on first use.
+
+    Raises rather than falling back. A command run through an install that
+    cannot carry this repo's huge-mode patch writes the wrong artifact, and the
+    wrong artifact at the end of a long run is worse than a refusal at the
+    start -- the failure mode Error #206 already cost a session.
+    """
+    global GRAPHIFY_PY, _GRAPHIFY_PY_RESOLVED
+    if not _GRAPHIFY_PY_RESOLVED:
+        _GRAPHIFY_PY_RESOLVED = True
+        report("resolving the graphify interpreter (capability, not path):")
+        GRAPHIFY_PY = resolve_graphify_python(report=report)
+    if GRAPHIFY_PY is None:
+        raise RuntimeError(
+            "no graphify install on this box can render this tree (wanted an "
+            "install holding exporters/html.py). Fix: 'uv tool install "
+            "graphifyy --force', then 'python "
+            "scripts/graphify_node_limit_patch.py'.")
+    return [str(GRAPHIFY_PY), "-m", "graphify", *step]
+
+
+def site_dir() -> Path:
+    """The install directory to inspect, taken from the resolved engine."""
+    global GRAPHIFY_PY, _GRAPHIFY_PY_RESOLVED
+    if not _GRAPHIFY_PY_RESOLVED:
+        _GRAPHIFY_PY_RESOLVED = True
+        GRAPHIFY_PY = resolve_graphify_python(report=lambda _m: None)
+    if GRAPHIFY_PY is not None:
+        probe = ("import importlib.util as u, pathlib; "
+                 "s = u.find_spec('graphify'); "
+                 "print(pathlib.Path(s.submodule_search_locations[0]) if s and "
+                 "s.submodule_search_locations else '')")
+        try:
+            proc = subprocess.run([str(GRAPHIFY_PY), "-c", probe],
+                                  capture_output=True, text=True, timeout=60)
+            line = (proc.stdout or "").strip().splitlines()
+            if line and line[-1]:
+                return Path(line[-1])
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    return Path(sys.prefix) / "Lib" / "site-packages" / "graphify"
 
 CHUNK_FAIL = re.compile(r"chunk (\d+)/(\d+) failed")
 ROUND_DONE = re.compile(r"Deduplicated (\d+) node")
@@ -49,8 +107,9 @@ def local_backend() -> dict:
     """Does the installed package offer a local inference path?"""
     hits: list[str] = []
     files: list[str] = []
-    if SITE.is_dir():
-        for p in SITE.rglob("*.py"):
+    site = site_dir()
+    if site.is_dir():
+        for p in site.rglob("*.py"):
             try:
                 body = p.read_text(encoding="utf-8", errors="replace")
             except OSError:
@@ -63,7 +122,7 @@ def local_backend() -> dict:
                         hits.append("%s: %s" % (p.name, line))
                     if len(hits) > 12:
                         break
-    return {"site_packages": str(SITE), "package_present": SITE.is_dir(),
+    return {"site_packages": str(site), "package_present": site.is_dir(),
             "files_with_ollama": sorted(set(files)), "sample": hits[:12]}
 
 
@@ -71,7 +130,7 @@ def rounds(count: int, sleep_s: int, out: str, timeout: int) -> dict:
     history: list[dict] = []
     for i in range(1, count + 1):
         started = time.time()
-        cmd = [sys.executable, "-m", "graphify", "extract", "src", "--out", out]
+        cmd = graphify_cmd(("extract", "src", "--out", out))
         try:
             proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
                                   text=True, timeout=timeout)
@@ -104,8 +163,8 @@ def cluster_pass(out: str, timeout: int = 1800) -> dict:
     rebuild does both halves now, in one command.
     """
     try:
-        res = subprocess.run([sys.executable, "-m", "graphify", "cluster-only",
-                              "--out", out], cwd=str(ROOT), capture_output=True,
+        res = subprocess.run(graphify_cmd(("cluster-only", "--out", out)),
+                             cwd=str(ROOT), capture_output=True,
                              text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return {"rc": None, "tail": ["timeout"]}
