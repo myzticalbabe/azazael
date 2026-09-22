@@ -6792,3 +6792,65 @@ Expectations now derive from the live module attributes (`wc.L1_MIN_WINS`, `wc.L
 - A value read through a tuner is configuration, not a constant. Tests may assert **properties** (`min_wins > 1`, `elite must be beaten by a real margin`) and derived values; they must never assert a tuned default literal.
 
 **Related:** Error #190, `tools/mesh_function_preflight.py` PF16/PF17, `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §7.3
+
+
+## Error #193 — Two Literal `nul` Files Made the Type Checker Unusable, and "type safety is unmeasured" Read as a Code Problem (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟠 High
+**File(s):** `nul`, `src/CORE/WORMS/nul` (both removed), `.github/workflows/test-3.14t.yml`
+
+**Cause:** `python -m mypy src/CORE/` aborted before reporting anything:
+
+```
+ValueError: path is on mount '\\.\nul', start on mount 'C:'
+  File "mypy\\find_sources.py", line 121, in find_sources_in_dir
+```
+
+The tree contained two literal files named `nul` — 178 and 51 bytes, holding
+`dir: cannot access '/b': No such file or directory`. They are the residue of
+running a cmd.exe command from **Git Bash**, where `dir /b src\CORE\... > nul` is
+not a command with a device redirect: `dir` is not a shell builtin there, so its
+error output became a real file with the reserved device name. Both were
+untracked (git does not match a pathspec named `nul`), so nothing in the repo
+ever referenced them and no test could see them.
+
+**Fix:** Removed both with `rm -f ./nul ./src/CORE/WORMS/nul` — MSYS `rm`
+handles the name that cmd.exe cannot — and then re-ran the checker, which worked
+immediately: 655 errors in 134 files over `src/CORE/`.
+
+### Verification
+- `find . -iname nul -not -path "*/.git/*"` → empty.
+- `mypy src/CORE/ --ignore-missing-imports --check-untyped-defs` → `Found 655 errors in 134 files (checked 329 source files)` (was: hard crash, 0 errors reported).
+- `basedpyright --outputjson` → 690 files, 1,191 errors, 252 warnings.
+
+### Prevention
+- **A reserved Windows device name as a filename is a landmine, not a curiosity:** it is invisible to `git status`, unopenable by most tooling, and it silently disables any tool that walks the tree. If a checker crashes on a mount/path error, look for `nul`, `con`, `aux`, `prn` before assuming the tool is broken.
+- **Never redirect to `nul` from Git Bash.** Use `/dev/null`, or `2>/dev/null` when cmd.exe syntax was intended.
+- Corollary, and the reason this was filed as High rather than Low: the standing conclusion "type safety is unmeasured" had been treated as a *code* finding. It was an *environment* finding. Removing two junk files turned a hard crash into a baseline, so the first question about an unmeasurable metric is what prevents the measurement.
+
+**Related:** Error #188 (interpreter chain), `tools/type_check_gate.py`, `logs/basedpyright_baseline.json`
+
+
+## Error #194 — The Aggregate Gate Counted Failures It Could Not Read (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟡 Medium
+**File(s):** `tools/aggregate_suite_gate.py`
+
+**Cause:** The gate stored only failing nodeids in
+`logs/aggregate_suite_report.json`. A nodeid names a failure; it does not explain
+one. Five separate aggregate runs therefore produced a *countable* ~50 failures
+and zero readable assertion messages, because the only copy of the failure text
+lived in a `subprocess.run(capture_output=True)` pipe that the gate closed on
+exit. Diagnosing any single one of them cost another 22-minute run.
+
+**Fix:** The gate now writes the raw pytest output beside the report
+(`logs/aggregate_suite_report.raw.txt`) and records `profile`, `targets` and the
+raw filename in the report JSON.
+
+### Verification
+- `tests/test_aggregate_suite_gate.py` asserts the raw file exists, contains the assertion text, and is named in the report.
+
+### Prevention
+- A report that supports a decision must carry the evidence for that decision, not a key to it. "Re-run to find out" is a cost that is paid every time, in full, by whoever asks next.
+
+**Related:** Error #191, `tools/aggregate_suite_gate.py`, `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §5

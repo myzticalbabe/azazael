@@ -188,25 +188,36 @@ and **74 more tests pass** in the same aggregate run. `test_wiring_cycle`,
 `test_import_map` and `test_evolution_gates` are absent from the failure list
 entirely.
 
+A third run, after the `_purge_worm_modules` narrowing (§7.1, AR-1), measured
+**50 failed / 3,606 passed / 38 skipped / 0 errors in 22:09** — a further 15
+failures and 22 passes, with `test_nature_metacluster_unit` (13 failures) gone
+from the list completely. Cumulative: **72 → 50 failures, 69 → 0 errors,
+3,508 → 3,606 passing.**
+
 Failure buckets from the "before" run (with standalone results for each):
 
 | File | Fails (before → after) | Passes alone? | Cause |
 |---|---|---|---|
 | `test_sb3_agent` | 17 → 17 | ✅ 42 passed | order/state |
-| `test_nature_metacluster_unit` | 13 → 13 | ✅ 74 passed | order/state (registry re-discovery) |
+| `test_nature_metacluster_unit` | 13 → **0** | ✅ 74 passed | **fixed** — module identity (§7.1) |
 | `test_fs_probe_backend` | 10 → 10 | ✅ 13 passed | load → child-probe deadline missed → `None` |
 | `test_wiring_cycle` | 8 → **0** | ✅ 20 passed | **fixed** — see §7.1 |
 | `test_eve_unleashed` | 5 → 5 | ✅ 21 passed | order/state |
 | `test_morphogenesis_opportunity` | 3 → 3 | ✅ 14 passed | order/state |
 | `test_worm_smoke` | 2 → 2 | ✅ 5 passed | order/state |
-| `test_inference` | 2 → 2 | — | torch/transformers path |
+| `test_inference` | 2 → 2 | ✅ passes alone | torch/transformers path |
 | `test_evolution_gates` | **61 errors → 0** | ✅ 61 passed | **fixed** — see §7.2 |
 | `test_import_map` | **8 errors → 0** | ✅ 8 passed | **fixed** — see §7.2 |
-| 12 further files | 1–2 each → 1–2 | — | mixed (two of them new: `test_dm_advanced`, `test_mesh_audit_insights`) |
+| 10 further files | 1–2 each → 1–2 | — | mixed: `test_cross_domain_integration` 2, then 8 files at 1 (`compliance_deadlock_regression`, `config_and_breaker`, `cross_nature_orchestration`, `exmachina_monitor_split`, `mesh_fabric_followups`, `ncm_integration`, `pool`, `training_orchestrator`, `worm_execute_all_integration`) |
 
-**Remaining: 65 failures across 18 files, zero errors.** Every one of the eight
+**Remaining: 50 failures across 16 files, zero errors.** Every one of the eight
 primary files still passes alone, so the isolation debt that produced the
-aggregate red is reduced, not eliminated.
+aggregate red is much reduced but not eliminated. The residual is concentrated:
+`test_sb3_agent` 17 and `test_fs_probe_backend` 10 are 27 of the 50, and both
+were verified to pass alone (42/42 and 13/13) **and** in pairs with each other
+(55 passed, 34 passed) — so the polluter is not in that pair and the interaction
+is long-range, which is why naming it needs the streamed raw output rather than
+another guess.
 
 The headline fact: **every failing file passes green when run alone.** The
 suite's dominant defect class is *test isolation*, not product code — and it is
@@ -224,7 +235,8 @@ CI-per-file and 141 failures deep in aggregate.
 | deep-parsed PDFs | 0 (no PDFs in tree) |
 | interpreters | `venv-314t` (session), `venv-313-tools`, `venv-interpreter`, system Python 3.14 |
 | deps present in `venv-314t` | pypdf 6.19.0, pytest 9.1.1, stable_baselines3 2.9.0, torch 2.14.0, transformers 5.17.0 |
-| **mypy** | **absent from all three venvs** — the type-safety dimension is unmeasurable with the shipped tooling |
+| **type checker** | **basedpyright 1.40.1** — already in `venv-314t`, reads the committed `pyrightconfig.json`: **1,191 errors + 252 warnings over 690 files in 64 s**, recorded in `logs/basedpyright_baseline.json` and gated by `tools/type_check_gate.py` (ADR-011). mypy 2.3.1 is also present and reports 655 errors over `src/CORE/` in ~6 min, but it could not read the tree until two literal `nul` files were removed, and it asks a narrower question |
+| junk filenames | **2 literal `nul` files** (`./nul`, `src/CORE/WORMS/nul`), untracked and invisible to `git status`, residue of a cmd.exe redirect run inside Git Bash. They made `mypy src/CORE/` abort with `path is on mount '\\.\nul'`, which is why "type safety is unmeasured" was recorded as a code finding. Removed (Error #193) |
 | graph corpus | 51,150 files · 687,497 nodes · 823,173 edges · 40,051 communities · 93% extracted, built from `698bfe89` |
 | working tree | **3,759 dirty**: 3,168 deleted (3,150 under `output/`), 203 modified (117 `src/`), 388 untracked (95 `src/`, 69 `scripts/`, 66 `state/`, 54 `logs/`, 34 `tests/`) |
 | fs-hygiene regressions | **1**: `AUTO_DOWNLOADER.log` grew to 20.3 MB (over the 20 MB threshold), written today 01:33 — an untracked live-daemon log, not a code change. Baseline refreshed (`tools/fs_hygiene.py --baseline`), `--check` now green; the growth itself is unaddressed |
@@ -306,15 +318,47 @@ guarded (`if not WORM_REGISTRY`), matching every other call site. Same theme as
 7.1 and §4's `l1_wiring_audit` snapshot fix: **a measurement that mutates what
 it measures**.
 
-### 7.5 Verification
+### 7.5 Two literal `nul` files disabled the type checker (new, Error #193)
+`mypy src/CORE/` did not report findings or complain about config — it aborted
+with `ValueError: path is on mount '\\.\nul'`. Two files literally named `nul`
+(178 and 51 bytes, holding `dir: cannot access '/b'`) sat at the repo root and in
+`src/CORE/WORMS/`. They are the residue of a cmd.exe command run **from Git
+Bash**, where `dir` is not a builtin and `> nul` creates a real file rather than
+redirecting to the Windows device.
+
+Three consequences, in order of importance:
+
+1. **The expensive one:** type safety had been recorded as unmeasurable, and
+   therefore as a low score about the *code*. It was an environment fact. After
+   removing 229 bytes of junk, mypy reported 655 errors immediately.
+2. Git cannot match a pathspec named `nul`, so both files were invisible to
+   `git status`, to the dirty-tree accounting (§6 counts 388 untracked) and to
+   every review that used git as the window onto the tree.
+3. A tool that dies on a *path* rather than a *symbol* is reporting on the
+   filesystem, not the code. The crash should have been read as a stop sign, not
+   as the finding.
+
+### 7.6 The gate counted failures it could not read (new, Error #194)
+`aggregate_suite_gate.py` stored only failing nodeids, while the assertion text
+lived in a captured `subprocess` pipe that closed on exit. Five runs produced ~50
+countable, unreadable failures; the only way to read one was to re-pay the full
+22 minutes. The gate now writes the raw pytest output beside its report and
+records the profile, targets and raw filename in it. A report that supports a
+decision must carry the evidence for it.
+
+### 7.7 Verification
 
 | Check | Result |
 |---|---|
 | `test_wiring_cycle` (20 tests, incl. the new reset regression) | ✅ pass |
-| reset-first order (`registry_importable` + `metacluster` + `learning_closure` + `wiring_cycle`) | ✅ 108 passed |
+| reset-first order (`registry_importable` + `metacluster` + `learning_closure` + `wiring_cycle`) | ✅ pass |
 | sentinel-triple (`compliance_step45_init` + `evolution_gates` + `import_map`) | ✅ 105 passed |
 | **aggregate suite, before** | 72 failed · 3,508 passed · **69 errors** · 1,411 s |
-| **aggregate suite, after** | 65 failed · 3,584 passed · **0 errors** · 1,269 s |
+| **aggregate suite, after the two isolation fixes** | 65 failed · 3,584 passed · **0 errors** · 1,269 s |
+| **aggregate suite, after the purge narrowing** | **50 failed · 3,606 passed · 0 errors · 1,329 s** |
+| isolation profile (`--profile isolation`, CI-blocking) | ✅ 299 passed, 0 failed, 1 skipped — baseline 0 ids |
+| `tools/type_check_gate.py --check` | ✅ OK: no new diagnostics (1,377 known) |
+| `tools/aggregate_suite_gate.py --check` | ✅ OK: no new aggregate failures |
 | `tools/artifact_freshness.py` | ✅ all 7 derived artifacts current; graph/report consistent (nodes=687,497 clustered=True) |
 | `tools/audit_parseable_files.py --check --deep` | ✅ no new mislabelled files |
 | derived maps rebuilt | TODO 1,487 functions · verdict 164 unreferenced · interop 482 edges |
@@ -326,10 +370,10 @@ it measures**.
 | Modular cohesion | 6.5 | `WORMS/expansion` (128 files / 40k lines) is well-named but flat; the learning cluster is mutually recursive |
 | Inter-module coupling | 5.0 | `worm_registry` at 166 inbound edges is a hard single point of failure; `spine.py` at 24 outbound |
 | Dependency hygiene | 6.0 | 7 circular groups; `ECOSYSTEM_EXPANSION` shim still warns on import |
-| Type safety | 3.0 | 1,133 unannotated-param + 349 missing-return functions; **mypy not installed anywhere** |
+| Type safety | **3.5** | 1,133 unannotated-param + 349 missing-return functions; now **measured** — basedpyright 1,191 errors + 252 warnings over 690 files, baseline-gated. Raised from 3.0 only for measurability: an instrument exists, the debt is unchanged |
 | Test coverage | 6.0 | 3,508 passing tests, strong invariant-style prose; but 561 mesh functions have no test reference and the suite is not isolation-clean |
 | Documentation | 8.0 | exceptional in-source reasoning (post-mortems embedded in the code they guard), 24-skill catalog, ADRs |
-| Build system | 6.5 | scripted (`tools/refresh_all.py`, Nuitka suite), no CI gate that runs the *aggregate* suite |
+| Build system | **7.5** | scripted (`tools/refresh_all.py`, Nuitka suite); the aggregate suite and the type checker are now gated (ADR-010) — the isolation profile blocks in CI, the type gate reports |
 | 3.14t readiness | 7.5 | free-threading throughout, thread-limits pinned in conftest; isolation debt still bites |
 | Shell-injection safety | 6.5 | 17 `shell=True` (3 `scripts/`, 2 `tools/`, 4 `src/CORE`, 1 `src/INTERPRETERS`…) |
 | Package management | 5.0 | `azazael.egg-info` + console scripts exist; `sys.path.insert` remains the norm |
@@ -337,18 +381,27 @@ it measures**.
 | **Overall** | **6.0/10** | Strong engineering *reasoning*, weak *aggregate verification* |
 
 The gap between the reasoning quality (8.0 documentation) and the verification
-quality (3.0 type safety, 6.0 coverage) is the single most useful sentence in
+quality (3.5 type safety, 6.0 coverage) is the single most useful sentence in
 this audit: this codebase documents what it learned better than it checks that
 it still holds.
+
+**Update, same session.** The two verification dimensions were not merely weak,
+they were **instruments that did not exist**: the CI type step was mypy, which
+hard-crashed on two junk files named `nul` (Error #193), and no gate ran the
+suite in the one shape that can see cross-file defects (ADR-010). Both now exist
+and both are baseline-gated. A dimension scored low because it *could not be
+measured* is a different finding from one scored low because the code is bad —
+and the first kind is the cheaper to fix, which is exactly why it had gone
+unnoticed: nobody re-checks a conclusion that sounds like a fact about the code.
 
 ## 9. Improvement items
 
 | ID | Item | Effort | Impact | Priority |
 |---|---|---|---|---|
-| AR-1 | Narrow `_purge_worm_modules` to worm-hosting modules (or restore identity at test setup) so helper-module identity survives a reset | 3h | 🔴 | P0 |
-| AR-2 | Make the suite isolation-clean: the remaining 65 failures in 18 files, all of which pass alone (reproducers in §5) | 1–2d | 🔴 | P0 |
-| AR-3 | Install mypy and record a baseline error count — type safety is currently unmeasured | 1h | 🟠 | P1 |
-| AR-4 | Add a CI gate that runs the **aggregate** suite; per-file green hides 141 failures | 2h | 🔴 | P0 |
+| AR-1 | ~~Narrow `_purge_worm_modules` to worm-hosting modules so helper-module identity survives a reset~~ **DONE** — `_hosts_worms`, both halves pinned in `tests/test_registry_importable.py`; 65 → 50 failures | — | — | ✅ |
+| AR-2 | Make the suite isolation-clean: the remaining 50 failures in 16 files, all of which pass alone (reproducers in §5). Concentration: `test_sb3_agent` 17, `test_fs_probe_backend` 10 | 1–2d | 🔴 | P0 |
+| AR-3 | ~~Install mypy and record a baseline error count~~ **DONE, with a better instrument** — basedpyright was already installed and already configured; baseline 1,191 errors + 252 warnings over 690 files (ADR-011, `tools/type_check_gate.py`) | — | — | ✅ |
+| AR-4 | ~~Add a CI gate that runs the **aggregate** suite~~ **DONE** — `tools/aggregate_suite_gate.py`, blocking in CI via `--profile isolation` (8 files, 299 tests, 0 failures); the full-suite baseline lives in `logs/aggregate_isolation_baseline.json` for the profile, full-suite report for the rest | — | — | ✅ |
 | AR-5 | Break the `learning_*` SCC (4 modules) — no module in the group imports in isolation | 1d | 🟠 | P1 |
 | AR-6 | Work the 164 `wire_or_cut` orphans (92 `integrate_via_stage` are actionable) | 3–5d | 🟠 | P1 |
 | AR-7 | Clear the 1,133 + 700 annotation/docstring failures, module by module | 2–3d | 🟡 | P2 |
@@ -367,3 +420,10 @@ it still holds.
 | `test_learning_closure.py::_objective_stub` | verdict tests do not read live telemetry |
 | `test_learning_closure.py::test_verdict_is_OBJECTIVE_PINNED_before_the_effector_questions` | the objective check outranks the effector questions (previously untested branch) |
 | `tests/conftest.py::pytest_runtest_setup` | the sentinel guard cannot block a test process's writes, at any fixture scope |
+| `test_registry_importable.py::test_a_purge_reset_keeps_helper_module_identity` | a purge must replace worm hosts and must NOT replace helpers, asserted together so a test that pins only one cannot accept the pre-fix code |
+| `test_registry_importable.py::test_the_purge_still_rebuilds_a_full_fleet_including_expansion` | two consecutive purges rebuild the same fleet (>100 worms, expansion included) — the identity fix must not have bought identity by losing re-registration |
+| `test_aggregate_suite_gate.py::test_a_new_id_blocks_and_a_known_one_does_not` | a new aggregate failure is a regression; a known one is not |
+| `test_aggregate_suite_gate.py::test_the_isolation_profile_stays_dependency_light` | the CI profile cannot gain a heavy import (AST-level: it *discusses* torch in a docstring, which a substring check cannot tell from importing it) |
+| `test_aggregate_suite_gate.py::test_the_raw_output_is_persisted_so_a_failure_can_be_diagnosed` | the gate's evidence travels with its verdict (Error #194) |
+| `test_type_check_gate.py::test_a_missing_checker_is_a_failure_not_a_clean_tree` | an unchecked tree cannot read as clean; likewise non-JSON output and a missing baseline |
+| `test_type_check_gate.py::test_identity_ignores_the_message_so_rewording_is_not_a_fix` | a reworded diagnostic is not a repaired one |

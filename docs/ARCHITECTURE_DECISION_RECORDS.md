@@ -331,4 +331,115 @@ appears (one edit, in one file).
 
 ---
 
+## ADR-010 — Quality Gates Compare Against a Committed Baseline, and Persist Their Evidence
+
+**Status:** Accepted (2026-09-22)
+
+### Context
+
+Two quality dimensions were effectively unenforced. The per-file test runner
+cannot see a defect that only exists across files in one interpreter — measured
+2026-09-22, one process returned 72 failures and 69 errors while every failing
+file passed alone. And type checking had no working instrument at all (see
+ADR-011).
+
+Both dimensions have large pre-existing counts (50 aggregate failures, 1,377
+type diagnostics). A plain "exit non-zero on any finding" gate would be red on
+day one and would be switched off on day two, which is how a quality gate dies.
+
+### Decision
+
+1. **Baseline, not zero.** `tools/aggregate_suite_gate.py` and
+   `tools/type_check_gate.py` each compare against a committed baseline under
+   `logs/`. A finding **not** in the baseline exits 1; a baseline finding that
+   disappeared is reported and exits 0, with a hint to re-baseline.
+2. **Identity excludes prose.** Diagnostic identity is
+   `file:line:col:rule` (or the failing `nodeid`) — never the message. Rewording
+   a message must not read as a fix, and a changed message must not read as a
+   regression.
+3. **Not running is failing.** A timeout, a missing checker, and non-JSON
+   output each exit 1. An unmeasured tree must never read as a clean one.
+4. **A missing baseline is not a pass.** With no baseline file the gate refuses
+   to reassure.
+5. **The evidence travels with the report.** The aggregate gate writes the raw
+   pytest output beside its JSON (Error #194: five runs' worth of failures were
+   counted and unreadable because the text died in a captured pipe).
+6. **CI profiles are explicit and dependency-light.**
+   `--profile isolation` names the 8 files that reproduce the cross-file defect
+   class without the ML stack, so the same baseline is valid on a laptop and a
+   runner. The full-suite run stays a local/self-hosted instrument because its
+   failures are environment-specific.
+
+### Enforcement
+
+- `tests/test_aggregate_suite_gate.py` — new id blocks, disappeared id only
+  reports, timeout blocks, missing baseline refuses, message rewording is not a
+  change, the isolation profile's files exist and import nothing heavy (AST-level
+  check: the profile *discusses* `torch` in one docstring, which a substring test
+  cannot tell from importing it).
+- `tests/test_type_check_gate.py` — the same set, plus a committed-baseline vs
+  committed-report agreement check.
+- `.github/workflows/test-3.14t.yml` — the isolation gate is **blocking**; the
+  type gate is non-blocking *with its condition written in the step* (the
+  baseline was recorded against a venv with the ML stack installed, so a CI
+  runner's diff is not yet evidence of a regression).
+
+### Consequences
+
+**Positive:** both dimensions are now measurable, adversarially pinned, and can
+only get better — a new finding blocks, a fixed one is reported, and the count
+trends where a monitor can read it.
+
+**Negative:** the baselines must be re-recorded when a fix lands, or the gate
+keeps a stale id and reports it as "no longer failing" until someone re-runs
+`--baseline`. That is deliberate: tightening a gate should be a decision.
+
+---
+
+## ADR-011 — Types Are Checked With basedpyright, Not mypy
+
+**Status:** Accepted (2026-09-22). Supersedes the mypy step in
+`.github/workflows/test-3.14t.yml`.
+
+### Context
+
+mypy could not be made to work on this tree, and the reasons were not cosmetic:
+
+- **It could not read the repository.** `mypy src/CORE/` aborted with
+  `ValueError: path is on mount '\\.\nul'` — two literal files named `nul`,
+  residue of a cmd.exe redirect run inside Git Bash, both invisible to git.
+  (Removed; see Error #193.)
+- **It asks a narrower question.** On the same tree: 655 errors over `src/CORE/`
+  (329 files) in ~6 minutes, versus **1,191 errors + 252 warnings over 690 files
+  in 64 seconds** from basedpyright. The classes basedpyright adds are the ones
+  this codebase suffers from: `reportUndefinedVariable` 94,
+  `reportOptionalMemberAccess` 120, `reportPossiblyUnboundVariable` 17.
+- **Nothing new was needed.** `basedpyright 1.40.1` was already installed in the
+  canonical 3.14t venv, and the repo already commits `pyrightconfig.json` with
+  `typeCheckingMode: "basic"` and the excludes it needs.
+
+### Decision
+
+`basedpyright` is the type checker of record, driven through
+`tools/type_check_gate.py` (baseline-compared per ADR-010). mypy stays installed
+and remains a valid *second opinion* on a single file; it is no longer the gate.
+
+### Enforcement
+
+- `tests/test_type_check_gate.py`, and the `Type safety` row of
+  `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` now reports a measured baseline
+  instead of "cannot be measured".
+
+### Consequences
+
+**Positive:** a type-check run costs ~1 minute instead of ~6, which is short
+enough to be run per change rather than per session, and produces findings in
+categories that map to this codebase's actual failure modes.
+
+**Negative:** 1,377 diagnostics are now a recorded number that will be quoted.
+A recorded number that nobody reduces is still a liability; the baseline gate
+prevents *growth*, not debt. The debt is tracked in the audit as AR-7.
+
+---
+
 *Generated: 2026-02-11*

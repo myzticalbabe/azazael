@@ -3053,4 +3053,79 @@ dirty working tree.
 
 ---
 
+## Lesson #87 — An Unmeasurable Metric Is Usually an Environment Bug, Not a Code Bug
+
+**Date:** 2026-09-22
+
+Lesson #86 concluded, from the same session, that type safety *"cannot even be
+measured with the shipped tooling"* and scored it 3.0/10. Both halves of that
+sentence were wrong, and the audited number was the problem:
+
+**1. The tool was never the problem.** `mypy src/CORE/` did not report "no
+findings" or "bad config" — it hard-crashed with
+`ValueError: path is on mount '\\.\nul'`. Two literal files named `nul`
+(residue of a cmd.exe `dir /b ... > nul` run from Git Bash, where the redirect
+creates a real file) sat in the tree. They are invisible to `git status` — a
+pathspec named `nul` cannot be matched — so no review, hook or test had ever
+surfaced them. **Removing 229 bytes of junk turned a crash into a baseline:**
+655 mypy errors over `src/CORE/`, immediately.
+
+**2. The tool was also the wrong tool.** On the same tree:
+
+| | files | findings | wall |
+|---|---|---|---|
+| mypy (`src/CORE/`, `--check-untyped-defs`) | 329 | 655 errors | ~6 min |
+| basedpyright (repo `pyrightconfig.json`) | 690 | 1,191 errors + 252 warnings | 64 s |
+
+basedpyright is already installed in the canonical venv (1.40.1) and reads the
+config the repo already committed. Its extra classes are the ones this codebase
+actually suffers from: `reportUndefinedVariable` 94,
+`reportOptionalMemberAccess` 120, `reportPossiblyUnboundVariable` 17 — the
+`try/except ImportError` and `Optional` patterns that dominate `src/CORE/`.
+
+**Permanent mandate:**
+- Before recording a metric as unmeasured, reproduce the *attempt* and read the
+  error. "No tooling available" and "tool says nothing" and "tool crashes on a
+  junk filename" are three different findings with three different fixes.
+- A crash-to-clean transition of this shape means the previously stated score
+  was measuring the environment. Restate it, and say which number moved.
+- Prefer the instrument already installed and already configured. Adding a tool
+  is a cost; discovering the tree already had a better one is a finding.
+- When a check is adopted, adopt it **with a baseline** (`tools/type_check_gate.py`),
+  so 1,191 pre-existing findings do not justify switching the check off.
+
+**Related:** Lesson #86, Error #193, `tools/type_check_gate.py`,
+`logs/basedpyright_baseline.json`
+
+---
+
+## Lesson #88 — A Gate Must Carry the Diagnosis, Not Just the Count
+
+**Date:** 2026-09-22
+
+`tools/aggregate_suite_gate.py` was built to catch what a per-file runner cannot
+see, and it worked on the first try: it found 72 failures and 69 errors where
+every failing file passed alone. Its first five runs were still nearly useless —
+the report stored only failing **nodeids**, and the assertion text lived in a
+`capture_output=True` pipe that closed when the gate exited. The project could
+count its 50 remaining failures and could not read a single one; diagnosing one
+of them meant paying 22 minutes again, in full, every time.
+
+The fix is one file write. The lesson is the ordering: the report was designed
+for the *gate's* decision (new id vs known id) and the evidence needed for the
+*human's* decision was treated as a detail to re-derive on demand.
+
+**Permanent mandate:**
+- Persist the raw evidence next to every derived report. If the next question
+  requires re-running the expensive step, the artifact is incomplete.
+- Generalised to any baseline-compare gate: it must state **what it compared**
+  (profile, targets, baseline path) and **where the detail is** (raw output). A
+  gate trusted for its number and distrusted for its reason is the worst possible
+  combination — it is obeyed and not believed.
+
+**Related:** Error #194, `tools/aggregate_suite_gate.py`,
+`NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §5, Lesson #84
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*

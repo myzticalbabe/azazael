@@ -23,8 +23,15 @@ PyYAML>=6.0
 # - psutil 7.2.2: confirmed working cp314t wheel. If segfaults, reinstall:
 #   pip install --force-reinstall --no-deps psutil
 # - numpy 2.4.6: cp314t wheel available
-# - pytest 9.1.0: run tests standalone via `python tests/test_*.py`
-#   (pytest segfaults on 3.14t — Error #48 — use standalone runner)
+# - pytest: CORRECTED 2026-09-22. This note previously said pytest segfaults on
+#   3.14t (Error #48) and that tests must run standalone. Measured on the
+#   canonical interpreter (3.14.7 free-threading build, cp314t-win_amd64,
+#   sys._is_gil_enabled() False): pytest 9.1.1 runs the whole tests/ tree in ONE
+#   process — 3,606 passed, 38 skipped, 0 errors, 22 minutes. The standalone
+#   runner is still what run_tests.py --skip-slow uses (faster per file, needs no
+#   pytest), but the claim that pytest cannot run here is false. Repeating it is
+#   what kept the aggregate isolation defects invisible: a per-file runner cannot
+#   see a defect that exists only across files inside one interpreter.
 # - Additional packages (torch, scipy, sklearn, transformers, etc.)
 #   are NOT included — they have known 3.14t wheel issues.
 #   See BUILD.md for 3.14t incompatibilities.
