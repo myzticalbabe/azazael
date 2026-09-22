@@ -3486,4 +3486,56 @@ invites you to check.
 
 ---
 
+## Lesson #101 — The Right Instinct About the Wrong Target (September 22, 2026)
+
+`scripts/graph_refresh_no_llm.py` hard-coded its graphify interpreter to the pip
+install in the system Python 3.14, and defended it in a comment: *"graphify lives
+in the system interpreter, not the venv. Hard-coded rather than inherited from
+`sys.executable` because inheriting it is the bug."* The premise is correct — the
+3.14t venv has no graphify, so inheriting reaches nothing. The target is wrong,
+and the comment's confidence is what kept anyone from looking: that install is a
+flat package with no `exporters/`, so it cannot carry
+`scripts/graphify_node_limit_patch.py` (which rewrites `exporters/html.py`), and
+`graphify_huge_mode.py` — the renderer for 688k nodes — is read out of that very
+file. The patched install (0.9.50, uv tool) was never a candidate.
+
+Measured, all three, same box: uv tool 0.9.50 patched · pip 0.8.8 with no
+`exporters/` at all · skill 0.9.55. The path ran the only one that cannot work.
+
+**What I did with it**
+- Replaced the constant with a resolver that accepts an install only if it has
+  the file the repo patches, prefers a patched install over a newer unpatched one,
+  and returns `None` rather than falling back — because the fallback writes a
+  688k-node page through the small-graph code path: the wrong artifact, not an
+  error.
+- Falsified the preference order: inverted, exactly one test fails; restored, all
+  seven pass.
+- Checked what the ad-hoc run had actually touched before trusting it: `graph.html`
+  was still 11:58 and 523 MB, so `update` rewrites only the JSON and the report,
+  and no huge-mode page had been truncated in the meantime.
+
+**A 95-byte log from a successful run**
+My own `graphify update .` finished — JSON and report both rewritten — and left
+95 bytes of log, because it bypassed the script that writes per-step dumps. The
+run worked and the *record* of it was indistinguishable from a crash. Wall-clock
+cost was identical either way; only the documented entry point keeps the
+evidence.
+
+**Permanent mandate**
+- When a hard-coded path has a comment explaining why the default is wrong, the
+  bug is the constant, not the reasoning. Write the resolver.
+- Resolve third-party tooling by the capability you depend on, and refuse when
+  nothing qualifies. Prefer patched over newest: "latest" is meaningless for a
+  package whose internals you patch.
+- Use the documented entry point. It carries the ordering, the in-flight marker
+  and the per-step logs, and a manual equivalent that succeeds quietly is strictly
+  less information for the same time.
+- Before acting on an artifact, check what wrote it and when. Two files can be
+  `current` and still have been produced by the engine the repo does not target.
+
+**Related:** Error #208, Error #207, Lesson #100, ADR-019,
+`scripts/graph_refresh_no_llm.py`, `tests/test_graphify_refresh_interpreter.py`
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*

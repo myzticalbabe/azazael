@@ -879,4 +879,64 @@ Error #190, Error #199, Error #202, Error #207, Lesson #100,
 
 ---
 
+## ADR-019 — Resolve Third-Party Tooling by Capability, and Refuse Rather Than Fall Back (September 22, 2026)
+
+### Context
+
+`scripts/graph_refresh_no_llm.py` hard-coded the interpreter that runs graphify
+to the pip install in the system Python 3.14. The reasoning in its comment was
+correct (the 3.14t venv has no graphify, so `sys.executable -m graphify` reaches
+nothing) and the choice was wrong. Three installs exist on this host:
+
+| Install | Version | `exporters/html.py` | huge-mode patch |
+|---|---|---|---|
+| `~/.local/bin/graphify.exe` (uv tool) | 0.9.50 | present | applied |
+| Python314 `site-packages` (pip) | 0.8.8 | **absent** | cannot apply |
+| `~/.claude/skills/graphify` (skill) | 0.9.55 | — | — |
+
+The refresh path was pinned to the only install that cannot carry this repo's
+patch. `scripts/graphify_node_limit_patch.py` rewrites `exporters/html.py` and
+`cli.py`; 0.8.8 is a flat package with neither. `scripts/graphify_huge_mode.py`
+— the renderer for a 688k-node graph — is read FROM `exporters/html.py`. So the
+repo's own refresh path ran an engine its own renderer does not target.
+
+### Decision
+
+`resolve_graphify_python()` resolves the interpreter by **capability**:
+
+1. candidates in order — `GRAPHIFY_PY` env override, uv tool layouts (Windows and
+   POSIX), the historical Python314 path, `sys.executable`;
+2. accept only an install holding `REQUIRED_INSTALL_PARTS`
+   (`exporters/`, `exporters/html.py`);
+3. among the capable, a **patched** install (`HUGE_MODE_NODES` present) outranks
+   an unpatched one, and version is only a tie-breaker;
+4. return `None` when nothing qualifies; the caller refuses and exits 2.
+
+The skill/package version skew is reported with the exact command that ends it.
+
+### Consequences
+
+- The refresh path now names the install it chose, and names what it rejected and
+  why, so the next skew is visible in the log rather than in a warning nobody
+  reads.
+- Refusing is the load-bearing half. A fallback to an unpatched install produces
+  a page that is *wrong* rather than *absent*: a 688k-node graph routed through
+  the small-graph renderer, discovered when someone opens it.
+- The upgrade procedure is now three named steps — pin the package to the skill
+  (`uv tool install graphifyy==<skill version> --force`), re-run
+  `graphify_node_limit_patch.py`, re-verify the markers — because the patch is a
+  property of the install, not of the version pin.
+- `tools/graph_rebuild.py` and `scripts/graphify_refresh_all.sh` still reach
+graphify by two different routes (venv `sys.executable`, and
+`~/.local/bin/graphify.exe`). They are left as they are, but the capability probe
+is the pattern to apply when either is next touched.
+
+### Related
+
+Error #208, Error #207, Lesson #101, `scripts/graph_refresh_no_llm.py`,
+`scripts/graphify_node_limit_patch.py`,
+`tests/test_graphify_refresh_interpreter.py`
+
+---
+
 *Generated: 2026-02-11*
