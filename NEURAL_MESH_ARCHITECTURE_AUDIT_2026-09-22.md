@@ -897,17 +897,67 @@ resolving the graphify install (capability, not path):
 start (interpreter=...\uv\tools\graphifyy\Scripts\python.exe pid=5880)
 ```
 
-`tests/test_graphify_refresh_interpreter.py` (7 tests, all passing); with the
+`tests/test_graphify_refresh_interpreter.py` (9 tests, all passing); with the
 preference order inverted exactly one test fails, which is the one that asserts a
 patched install beats a newer unpatched one.
 
-Artifact freshness is now **8 of 8 current** (`nodes=688918 clustered=True`), from
-6 of 8. A caveat recorded rather than smoothed over: the JSON and report that are
-current *right now* were produced by the 0.8.8 engine during this session's
-investigation (my ad-hoc `update .`, which completed while writing only **95 bytes**
-of log -- it bypassed the script that writes per-step dumps). `graph.html` was
-verified untouched (11:58, 523 MB), so nothing was truncated, and the refresh is
-re-run through the fixed entry point so the artifacts and the engine agree.
+The same class of bug was then found **twice** on this box, so the fix is one
+shared resolver (`tools/graphify_interpreter.py`) rather than two local choices:
+`tools/graph_rebuild.py` built its commands from bare `sys.executable`, i.e. the
+3.14t venv, which has no graphify at all, so its `--rounds` and cluster pass
+could only ever fail. A test asserts the identity
+(`refresh.resolve_graphify_python is g.resolve_graphify_python`) so a future
+"just inline it here" lands as a failure.
+
+Artifact freshness is **8 of 8 current** (`nodes=689089 clustered=True`), from
+6 of 8, and the refresh that produced them ran through the fixed entry point --
+its own log names the interpreter it chose and the one it rejected. Caveats
+left standing rather than smoothed: the JSON and report current at 16:16 were
+written by the patched 0.9.50 engine, but `graphify-out/graph.html` (16:01,
+524 MB, **0** chunk sidecars) was written before it by the 0.8.8 process that
+was still running from the ad-hoc invocation, so **the huge-mode renderer did
+not produce the current graph.html**. That is the pre-existing page, not a
+regression, and it is the reason the patch marker is checked by the resolver
+rather than assumed.
+
+### 7.22 The retirement probe read its own inventory as wiring (new, Error #209)
+
+A `declared_in_data` decider was added, because the reference index reads Python
+source only and a wire living in JSON is invisible to it. It resolved **101 of
+101** pending rows on the first run, and again 101 of 101 on the second run after
+the first fix -- on the strength of `NEURAL_MESH_INTEGRATION_MAP.json`,
+`NEURAL_MESH_ENTRENCHMENT.json`, `NEURAL_MESH_WIRE_OR_CUT.json`,
+`function_inventory.json`, and then `src/graphify-out/cache/ast/<sha>.json`:
+the audit's own outputs and graphify's AST cache, i.e. records OF the tree read
+as inputs TO it. Unchecked this retires the whole backlog by citing the audit
+that produced it, and makes every function in the mesh immortal.
+
+Two guards, each falsified independently (`if False:` on either makes the
+self-reference test fail):
+
+| Guard | Rule |
+|---|---|
+| read-by-code | a data file counts only if a string constant under `src/scripts/tools` names it |
+| share | a file naming `>= max(4, 20% of candidates)` is an inventory, not a wire |
+
+| Decider | Before the decider | Final |
+|---|---|---|
+| `declared_in_data` | 0 | 9 |
+| `dynamic_call` | 5 | 5 |
+| `test_is_the_wire` | 40 | 38 |
+| `dead_candidate` | 56 | 49 |
+| files excluded as non-wiring | 0 | 66 |
+
+So 2 rows moved out of `test_is_the_wire` and 7 out of `dead_candidate`: nine
+rows that the name probe called unreferenced are named by a data file that
+production code actually loads. The two intermediate runs -- 101 of 101 twice,
+with a different artefact each time -- are in Error #209 and are the part worth
+remembering.
+
+One surviving hit was sanity-checked rather than assumed: 4 of the 9 rest on
+`worm_execution_matrix.json`, which `src/CORE/compliance/broker.py` genuinely
+resolves and parses. The weak case is stated: `worm_config_trace.json` is
+written by the script that reads it back.
 
 ## 8. Architecture quality scorecard
 

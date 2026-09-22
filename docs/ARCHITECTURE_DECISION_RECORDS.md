@@ -939,4 +939,75 @@ Error #208, Error #207, Lesson #101, `scripts/graph_refresh_no_llm.py`,
 
 ---
 
+## ADR-020 — A Data File Wires a Function Only If Production Code Loads It (September 22, 2026)
+
+### Context
+
+PF16's reference index reads Python source only -- `Name`, `Attribute` and
+identifier-like string constants. A function named in `state/*.json`, a registry
+cache or a capability map is therefore invisible to it and reads as unreferenced.
+A `declared_in_data` decider was added to close that blind spot. Its first run
+resolved **101 of 101** pending rows, every one of them on
+`NEURAL_MESH_INTEGRATION_MAP.json`, `NEURAL_MESH_ENTRENCHMENT.json`,
+`NEURAL_MESH_WIRE_OR_CUT.json` or `function_inventory.json` -- artifacts this
+probe family generates. Its second run, after excluding those, again resolved
+101 of 101 on `src/graphify-out/cache/ast/<sha>.json`, graphify's AST cache.
+
+A rule that reads the tree's own records as evidence for the tree's wiring makes
+every function immortal: the backlog would have retired itself by citing the
+audit that produced it (Error #209).
+
+### Decision
+
+Two guards, both required, both falsified independently:
+
+1. **read-by-code.** A data file is considered only if a string constant under
+   `src/scripts/tools` names it (`data_files_read_by_code`). If nothing in
+   production loads the file, nothing can be reached through it, whatever its
+   contents say. This rejects the AST cache and orphan files without naming
+   either.
+2. **share.** A file naming `>= max(DATA_INVENTORY_MIN, 20% of candidates)`
+   candidates is an **inventory**, not a wiring declaration, and is excluded
+   (`data_inventory_threshold`). A capability map names a handful of entry
+   points; a census names all of them.
+
+Rejected files are reported (`data_inventory_exclusions`) so the exclusions a
+run applied are the exclusions it states.
+
+### Measured outcome
+
+| | Before | After |
+|---|---|---|
+| `declared_in_data` | 101 | 9 |
+| `dead_candidate` | 0 | 49 |
+| files excluded as non-wiring | 0 | 66 |
+
+Falsification: replacing either condition with `if False:` makes
+`test_the_probes_own_artifacts_are_excluded_on_this_repo` fail; restoring both
+passes. The first guard's first fix was a denylist of the audit's own outputs;
+the AST cache walked through it, which is why the durable form is a rule about
+readers rather than a list of files.
+
+### Consequences
+
+- `declared_in_data` is non-destructive -- it can only prevent a cut -- so it is
+intentionally biased toward over-inclusion. A false positive costs a review; a
+false negative costs a function. The bias is stated in `DECIDER_MEANING` rather
+than left implicit.
+- The weakest surviving hit is recorded rather than smoothed: 4 of the 9 rest on
+`worm_execution_matrix.json`, which `src/CORE/compliance/broker.py` genuinely
+loads; 1 rests on `worm_config_trace.json`, which is written by the script that
+reads it and is defensible only because it dumps the live registry, and registry
+membership is itself a wire.
+- The same question now has one rule for both cases (charts, caches, traces,
+configs): who writes it, and who reads it. Anything that fails both is a record,
+not an input.
+
+### Related
+
+Error #209, Error #190, Error #207, Lesson #102, ADR-018,
+`tools/mesh_function_preflight.py`, `tests/test_mesh_wire_or_cut.py`
+
+---
+
 *Generated: 2026-02-11*

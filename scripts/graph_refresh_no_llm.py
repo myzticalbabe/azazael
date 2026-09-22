@@ -44,134 +44,35 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-#: graphify lives outside the venv, and WHICH install is not a detail -- it is
+#: graphify lives outside the venv, and WHICH install is not a detail -- it was
 #: the whole defect this comment used to paper over. The interpreter was
 #: hard-coded to the pip install in the system Python 3.14, chosen because
-#: inheriting `sys.executable` (the 3.14t venv) reaches nothing. That was the
-#: right instinct about the venv and the wrong conclusion about the target.
-#:
-#: Measured 2026-09-22, three installs, three versions:
-#:
-#:   ~/.local/bin/graphify.exe             0.9.50  exporters/html.py present
-#:                                                  and PATCHED (huge mode)
-#:   Python314 site-packages (pip)         0.8.8   NO exporters package at all
-#:   ~/.claude/skills/graphify (skill)     0.9.55
-#:
-#: The hard-coded value was the middle row: the only install whose layout
-#: cannot carry `scripts/graphify_node_limit_patch.py`, because that patch
-#: rewrites `exporters/html.py` and `cli.py` and 0.8.8 is a flat package with
-#: neither. So the refresh path ran an engine its own renderer does not target,
-#: and `graphify_huge_mode.py` -- which is read FROM that file -- could never
-#: be reached. Hence: resolve by CAPABILITY. An install without
-#: `exporters/html.py` cannot render this tree's graph, and a refresh that
-#: silently uses it produces the wrong artifact rather than an error.
-REQUIRED_INSTALL_PARTS = ("exporters", "exporters/html.py")
+#: inheriting `sys.executable` (the 3.14t venv) reaches nothing. Right instinct
+#: about the venv, wrong conclusion about the target: that install is a flat
+#: package with no `exporters/` directory, which is exactly what
+#: `scripts/graphify_node_limit_patch.py` rewrites and where
+#: `graphify_huge_mode.py` is read from. `tools/graph_rebuild.py` had the same
+#: class of bug from the other side (bare `sys.executable`). Both now call the
+#: one resolver, so neither can drift: capability, not path. See Error #208.
+for _p in (ROOT / "tools",):
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
 
-#: Marker proving the huge-mode renderer patch is applied to an install.
-HUGEMODE_MARKER = "HUGE_MODE_NODES"
+from graphify_interpreter import (  # noqa: E402
+    HUGEMODE_MARKER,
+    LEGACY_GRAPHIFY_PY,
+    REQUIRED_INSTALL_PARTS,
+    SKILL_VERSION_FILE,
+    graphify_argv,
+    graphify_python_candidates,
+    resolve_graphify_python,
+)
 
-#: The skill the agent reads declares the engine version it expects. A skew
-#: between the two is reported, never silently tolerated: two installs three
-#: releases apart is how this was found.
-SKILL_VERSION_FILE = Path.home() / ".claude" / "skills" / "graphify" / ".graphify_version"
-
-#: Kept as the last-resort candidate so the historical path still resolves if
-#: it is the only capable install on the box.
-LEGACY_GRAPHIFY_PY = Path(r"C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe")
-
-
-def graphify_python_candidates() -> list[Path]:
-    """Interpreters that might carry graphify, explicit override first."""
-    home = Path.home()
-    out: list[Path] = []
-    env = os.environ.get("GRAPHIFY_PY")
-    if env:
-        out.append(Path(env))
-    # uv tool installs, Windows and POSIX layouts
-    out += [
-        home / "AppData/Roaming/uv/tools/graphifyy/Scripts/python.exe",
-        home / ".local/share/uv/tools/graphifyy/Scripts/python.exe",
-        home / ".local/share/uv/tools/graphifyy/bin/python",
-    ]
-    out.append(LEGACY_GRAPHIFY_PY)
-    out.append(Path(sys.executable))
-    return out
-
-
-def _graphify_install_dir(py: Path) -> Path | None:
-    """Ask the interpreter where its graphify package lives. None if absent."""
-    probe = ("import importlib.util as u, pathlib, sys; "
-             "s = u.find_spec('graphify'); "
-             "print(pathlib.Path(s.submodule_search_locations[0]) if s and "
-             "s.submodule_search_locations else '')")
-    try:
-        proc = subprocess.run([str(py), "-c", probe], capture_output=True,
-                              text=True, timeout=60)
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    line = (proc.stdout or "").strip().splitlines()
-    return Path(line[-1]) if line and line[-1] else None
-
-
-def _graphify_version(py: Path) -> str:
-    """The package version as the interpreter reports it, or '?'."""
-    try:
-        proc = subprocess.run(
-            [str(py), "-c", "import importlib.metadata as m; print(m.version('graphifyy'))"],
-            capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.TimeoutExpired):
-        return "?"
-    return (proc.stdout or "?").strip() or "?"
-
-
-def resolve_graphify_python(report=print) -> Path | None:
-    """The interpreter whose graphify install can render this tree.
-
-    Preference: a PATCHED capable install beats an unpatched one, because only
-    the patched one has the huge-mode renderer, and every other difference here
-    is cosmetic. Returns None when nothing qualifies -- refusing is the point;
-    the caller must not fall back to an install that would write the wrong
-    artifact.
-    """
-    seen: set[str] = set()
-    capable: list[tuple[bool, Path, str, Path]] = []
-    for py in graphify_python_candidates():
-        key = str(py).lower()
-        if key in seen or not py.exists():
-            continue
-        seen.add(key)
-        install = _graphify_install_dir(py)
-        if install is None:
-            continue
-        missing = [p for p in REQUIRED_INSTALL_PARTS if not (install / p).exists()]
-        ver = _graphify_version(py)
-        if missing:
-            report("  skip %s (graphify %s): no %s -- cannot carry the "
-                   "huge-mode patch" % (py, ver, ", ".join(missing)))
-            continue
-        patched = HUGEMODE_MARKER in (install / "exporters" / "html.py").read_text(
-            encoding="utf-8", errors="replace")
-        capable.append((patched, py, ver, install))
-    if not capable:
-        return None
-    capable.sort(key=lambda row: (row[0], row[2]), reverse=True)
-    patched, py, ver, install = capable[0]
-    report("  graphify %s (%s) at %s" % (ver, "patched" if patched else "UNPATCHED", install))
-    if not patched:
-        report("  WARNING: no candidate has the huge-mode patch (%s). Run "
-               "scripts/graphify_node_limit_patch.py before trusting "
-               "graph.html for this tree." % HUGEMODE_MARKER)
-    try:
-        skill = SKILL_VERSION_FILE.read_text(encoding="utf-8").strip()
-    except OSError:
-        skill = ""
-    if skill and ver != "?" and skill != ver:
-        report("  WARNING: version skew -- skill %s vs package %s. Align them "
-               "(pin the package to the skill: uv tool install "
-               "graphifyy==%s --force, then re-run "
-               "scripts/graphify_node_limit_patch.py and re-verify the "
-               "markers)." % (skill, ver, skill))
-    return py
+__all__ = [
+    "HUGEMODE_MARKER", "LEGACY_GRAPHIFY_PY", "REQUIRED_INSTALL_PARTS",
+    "SKILL_VERSION_FILE", "graphify_argv", "graphify_python_candidates",
+    "resolve_graphify_python",
+]
 
 #: The cycle drops this while a pass is in flight so the next fire does not
 #: start a second one. Cleared here on every exit path.

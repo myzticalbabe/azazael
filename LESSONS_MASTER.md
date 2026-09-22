@@ -3538,4 +3538,56 @@ evidence.
 
 ---
 
+## Lesson #102 — The Probe That Read Its Own Report as Evidence (September 22, 2026)
+
+I added a `declared_in_data` decider -- a wire that lives in JSON rather than
+Python, invisible to a name probe -- and it resolved **101 of 101** pending rows
+on the first run. That is the shape of a bug, not a result: a rule that fires on
+everything has not found a pattern, it has found its own reflection.
+
+Every hit was on `NEURAL_MESH_INTEGRATION_MAP.json`,
+`NEURAL_MESH_ENTRENCHMENT.json`, `NEURAL_MESH_WIRE_OR_CUT.json` or
+`function_inventory.json` -- files **this probe family generates**. Had it
+shipped, `dead_candidate` would have gone 56 → 0 in one afternoon with the audit
+that produced it cited as the reason, and every function in the mesh would have
+become immortal.
+
+Then it happened *again*, one layer down: after excluding the audit's own
+outputs, the run again returned 101 of 101, now on `src/graphify-out/cache/ast/
+<sha>.json` -- graphify's AST cache, one file per source file, each naming
+whatever its source names. A different tool, the same blind spot, the same trap.
+Two guards finally made it honest: a data file counts only if production code
+loads it, and a file naming >=20% of the candidates is a census, not a
+capability map. Result: 9 / 5 / 38 / 49 instead of 0 / 0 / 0 / 101.
+
+**What I did with it**
+- Treated "the new rule explains everything" as a failure signal and went
+  looking for the reader, not for more matches.
+- Fixed the *class* on the second attempt rather than the instance: the first
+  fix was a denylist of audit files, which the AST cache walked straight
+  through. The durable rule is about who reads the file.
+- Falsified both guards one at a time (`if False:`) and watched the
+  self-reference test fail, so I know which half does the work.
+- Sanity-checked a surviving hit instead of trusting the survivors:
+  `worm_execution_matrix.json` is loaded by `src/CORE/compliance/broker.py`.
+  And recorded the weak one honestly -- `worm_config_trace.json` is written by
+  the script that reads it, and is defensible only because it dumps the live
+  registry.
+
+**Permanent mandate**
+- A decider that resolves everything is evidence of self-reference until proven
+  otherwise. Check the provenance of the evidence before the count.
+- Never let a probe consume its own artifacts, at any depth. Caches of the tree
+  are not dispatchers for the tree.
+- When the first fix is a denylist, expect the next instance to route around it.
+  Ask what property makes a file an *input* rather than a *record*.
+- Bias non-destructive signals toward over-inclusion, and say which direction
+  the error runs: this decider can only prevent a cut, so a false positive costs
+  a review and a false negative costs a function.
+
+**Related:** Error #209, Error #190, Error #207, Lesson #100, Lesson #101,
+ADR-020, `tools/mesh_function_preflight.py`
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*

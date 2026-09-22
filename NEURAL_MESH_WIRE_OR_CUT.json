@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-22T15:46:41.628577",
+ "generated_at": "2026-09-22T16:26:16.930081",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -19,8 +19,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def replay_failed(self, max_concurrent: int = 2) -> Dict[str, Any]:\n        \"\"\"Replay failed pipeline runs from DeadLetterQueue.\"\"\"\n        return self.dlq.replay_all(max_concurrent=max_concurrent)",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_execution_matrix.json:1301"
+   ]
   },
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "module": "allocation",
@@ -31,8 +33,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def choose_with_bonus(self, k: int = 1, fg_lambda: float = 0.1) -> List[str]:\n        \"\"\"Thompson draw + Feel-Good optimism for never-promoted arms.\"\"\"\n        base = self.choose(k)\n        # if top arm has <2 pulls, mix in least-pulled arm for exploration\n        if self._pulls and min(self._pulls.values()) < 2 and k == 1:\n            least = min(self._pulls, key=lambda a: self._pulls[a])\n            if least not in base and self._rng.random() < fg_lambda * 5:\n                return [least]\n        return base",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_execution_matrix.json:1301"
+   ]
   },
   "axon:LatencyCompensatorWorm.compensate": {
    "module": "axon",
@@ -43,8 +47,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def compensate(self, route: str) -> dict[str, Any]:\n        with self._lock:\n            ema = self._ema.get(route, 50.0)\n            return {\"success\": True, \"route\": route, \"ema_ms\": ema,\n                    \"deadline_pad_ms\": round(ema * 1.5, 1)}",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_execution_matrix.json:1301"
+   ]
   },
   "axon:MyelinSheathWorm.boost_for": {
    "module": "axon",
@@ -55,8 +61,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def boost_for(self, src: str, dst: str) -> float:\n        with self._lock:\n            return self._fast.get((src, dst), 1.0)",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_execution_matrix.json:1301"
+   ]
   },
   "axon:MyelinSheathWorm.myelinate": {
    "module": "axon",
@@ -305,8 +313,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def lookup(self, key: str) -> dict[str, Any]:\n        with self._lock:\n            hit = self._index.get(key)\n            return {\"success\": True, \"key\": key, \"hit\": hit is not None,\n                    \"entry\": hit}",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_config_trace.json:1926"
+   ]
   },
   "consolidation:SharpWaveReplayWorm.replay_batch": {
    "module": "consolidation",
@@ -838,10 +848,9 @@
     "tests/test_learning_worms.py:611"
    ],
    "seg": "def fallback_accuracy_report(self, records: List[Dict]) -> Dict[str, Any]:\n        \"\"\"Compare static vs dynamic shape extraction accuracy.\n\n        Runs extract() twice per record: first using only static DATA_SHAPES,\n        then using the DYNAMIC_SHAPES fallback. Reports how many event_types\n        would have been unknown without dynamic shapes and how many\n        additional features are extracted via the fallback.\n\n        Args:\n            records: List of memory dicts from LocalMemoryStore.\n\n        Returns:\n            Dict with comparison stats.\n        \"\"\"\n        from CORE.WORMS.expansion.learning import DATA_SHAPES, DYNAMIC_SHAPES\n\n        total = len(records)\n        static_unknown = 0\n        dynamic_known = 0\n        dynamic_feature_dims: List[float] = []\n\n        for r in records:\n            et = r.get(\"event_type\", \"unknown\")\n            in_static = et in DATA_SHAPES\n            in_dynamic = et in DYNAMIC_SHAPES\n\n            if not in_static:\n                static_unknown += 1\n                if in_dynamic:\n                    dynamic_known += 1\n\n        # Run full extract to compare feature dimensions\n        static_features, static_meta = self.extract(records)\n\n        if static_features:\n            [len(f) for f in static_features]\n\n        return {\n            \"total_records\": total,\n            \"static_unknown\": static_unknown,\n            \"dynamic_recovered\": dynamic_known,\n            \"recovery_rate\": round(dynamic_known / max(static_unknown, 1), 3) if static_unknown else 1.0,\n            \"static_feature_dim\": static_meta.get(\"dim\", 0),\n            \"dynamic_shapes_count\": len(DYNAMIC_SHAPES),\n            \"static_shapes_count\": len(DATA_SHAPES),\n            \"unknown_shapes_count\": static_meta.get(\"unknown_shapes\", 0),\n            \"shapes_used\": static_meta.get(\"shapes_used\", []),\n        }",
-   "decider": "test_is_the_wire",
+   "decider": "declared_in_data",
    "decider_evidence": [
-    "tests/test_learning_worms.py:593",
-    "tests/test_learning_worms.py:611"
+    "named by worm_execution_matrix.json:2536"
    ]
   },
   "learning_grpo:GRPOTrainer.rewards_from_elo": {
@@ -853,8 +862,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def rewards_from_elo(self, league, group: list[str],\n                           fallback=None) -> tuple[list[float], str]:\n        \"\"\"Endogenous rewards: league Elo-velocity, RPS-guarded.\n\n        Returns (rewards, source) where source is \"elo\" or \"fallback\".\n        When the league reports a cycle (None), uses fallback() if given,\n        else zeros. This is the AlphaZero-style wiring: no hand numbers.\n        \"\"\"\n        try:\n            r = league.to_rewards(list(group))\n        except Exception:\n            r = None\n        if r is not None:\n            return list(r), \"elo\"\n        if fallback is not None:\n            try:\n                return list(fallback()), \"fallback\"\n            except Exception:\n                pass\n        return [0.0] * len(group), \"zeros\"",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_execution_matrix.json:1210"
+   ]
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
    "module": "learning_pipeline",
@@ -1016,10 +1027,9 @@
     "tests/test_learning_evolution.py:109"
    ],
    "seg": "def add_from_memories(self, records: list[dict],\n                          q_table: dict[str, dict[int, float]] = None) -> int:\n        \"\"\"Bulk-add experiences from LocalMemoryStore records.\n\n        Converts memory records into (state, action, reward, next_state, done)\n        tuples using the same state/reward logic as RLTrainLoop.\n\n        Args:\n            records: list of memory dicts from DataPipelineWorm.\n            q_table: Optional Q-table for computing TD-errors as initial priorities.\n\n        Returns:\n            Number of experiences added.\n        \"\"\"\n        count = 0\n        for i, record in enumerate(records):\n            src = record.get(\"source\", \"unknown\")\n            sev = record.get(\"severity\", \"info\")\n            state = f\"{src}:{sev}\"\n\n            # Next state from next record (wraps around)\n            next_record = records[(i + 1) % len(records)]\n            next_src = next_record.get(\"source\", \"unknown\")\n            next_sev = next_record.get(\"severity\", \"info\")\n            next_state = f\"{next_src}:{next_sev}\"\n\n            # Reward: same as RLTrainLoop\n            data = record.get(\"data\", {})\n            if isinstance(data, dict):\n                duration = data.get(\"duration_ms\", 0)\n                success = sev != \"error\"\n                reward = 1.0 if success else -1.0\n                if duration:\n                    reward -= duration / 10000.0\n            else:\n                reward = 0.0\n\n            # Action: epsilon-greedy from Q-table or random\n            if q_table and state in q_table:\n                action = max(q_table[state], key=q_table[state].get)\n            else:\n                action = random.randint(0, 3)\n\n            # Compute initial priority from TD-error if Q-table available\n            if q_table and state in q_table:\n                old_q = q_table[state].get(action, 0.0)\n                next_max_q = max(q_table[next_state].values(), default=0.0) if next_state in q_table else 0.0\n                td_error = abs(reward + 0.9 * next_max_q - old_q)\n            else:\n                td_error = 1.0  # Unknown state = high priority\n\n            experience = (state, action, reward, next_state,\n                          (i == len(records) - 1))\n            with self._lock:\n                if len(self._buffer) < self._capacity:\n                    self._buffer.append(experience)\n                    self._priorities.append(td_error + 1e-6)\n                else:\n                    self._buffer[self._position] = experience\n                    self._priorities[self._position] = td_error + 1e-6\n                self._position = (self._position + 1) % self._capacity\n            count += 1\n\n        return count",
-   "decider": "test_is_the_wire",
+   "decider": "declared_in_data",
    "decider_evidence": [
-    "tests/test_learning_evolution.py:98",
-    "tests/test_learning_evolution.py:109"
+    "named by worm_execution_matrix.json:2185"
    ]
   },
   "learning_rl:RLTrainLoop.train_episode": {
@@ -2051,8 +2061,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def relay(self, modality: str) -> dict[str, Any]:\n        with self._lock:\n            self._relays += 1\n            target = self._map.get(modality, \"MetaCluster\")\n            return {\"success\": True, \"modality\": modality, \"target\": target,\n                    \"relays\": self._relays}",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by worm_config_trace.json:1971"
+   ]
   },
   "visualization:DashboardGen.add_panel": {
    "module": "visualization",
@@ -2192,8 +2204,9 @@
  },
  "decider_counts": {
   "protocol_or_override": 0,
+  "declared_in_data": 9,
   "dynamic_call": 5,
-  "test_is_the_wire": 40,
-  "dead_candidate": 56
+  "test_is_the_wire": 38,
+  "dead_candidate": 49
  }
 }

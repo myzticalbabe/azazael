@@ -503,3 +503,94 @@ def test_an_overridden_name_is_not_allowed_to_read_as_dead(table):
     row = decided["declared"]["synthetic:X.run"]
     assert row["decider"] == "protocol_or_override", row
     assert row["decider_evidence"], row
+
+
+def _fresh_data_caches():
+    """Drop the module caches so a synthetic tree is actually re-scanned."""
+    mfp._DATA_INDEX.clear()
+    mfp._DATA_FILES_READ = None
+
+
+def test_a_config_that_production_code_loads_counts_as_a_wire(tmp_path, monkeypatch):
+    """A data file is a dispatcher only if code reads it."""
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "wiring.json").write_text(
+        '{"alpha": "resolved-by-config"}', encoding="utf-8")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "loader.py").write_text(
+        'PATH = "state/wiring.json"\n', encoding="utf-8")
+    monkeypatch.setattr(mfp, "REPO", tmp_path)
+    _fresh_data_caches()
+    try:
+        hits = mfp.data_index({"alpha"})
+        assert hits.get("alpha"), "a code-loaded config did not count as a wire"
+        assert "wiring.json" in hits["alpha"][0]
+    finally:
+        _fresh_data_caches()
+
+
+def test_a_data_file_no_code_loads_is_not_a_wire(tmp_path, monkeypatch):
+    """Negative control: the same file, with nothing loading it, wires nothing.
+
+    This is the rule that ended the first two attempts: the probe's own
+    `NEURAL_MESH_INTEGRATION_MAP.json`, and then graphify's AST cache, each
+    named 101 of 101 candidates because they are records OF the tree rather
+    than inputs TO it.
+    """
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "orphan.json").write_text(
+        '{"alpha": 1}', encoding="utf-8")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "unrelated.py").write_text("X = 1\n", encoding="utf-8")
+    monkeypatch.setattr(mfp, "REPO", tmp_path)
+    _fresh_data_caches()
+    try:
+        assert mfp.data_index({"alpha"}) == {}, "an unread file wired a function"
+    finally:
+        _fresh_data_caches()
+
+
+def test_an_inventory_naming_every_candidate_is_not_a_wire(tmp_path, monkeypatch):
+    """Naming many candidates at once is a census, not a wiring declaration."""
+    (tmp_path / "state").mkdir()
+    names = ["alpha", "bravo", "charlie", "delta", "echo", "foxtrot"]
+    (tmp_path / "state" / "inventory.json").write_text(
+        json.dumps({n: 1 for n in names}), encoding="utf-8")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "reader.py").write_text(
+        'P = "state/inventory.json"\n', encoding="utf-8")
+    monkeypatch.setattr(mfp, "REPO", tmp_path)
+    _fresh_data_caches()
+    try:
+        assert mfp.data_index(set(names)) == {}, "an inventory was read as a wire"
+        excluded = mfp.data_inventory_exclusions(set(names))
+        assert any("inventory.json" in e for e in excluded), excluded
+    finally:
+        _fresh_data_caches()
+
+
+def test_the_threshold_scales_with_the_candidate_count():
+    assert mfp.data_inventory_threshold(101) == 20
+    assert mfp.data_inventory_threshold(3) == mfp.DATA_INVENTORY_MIN
+
+
+def test_the_probes_own_artifacts_are_excluded_on_this_repo():
+    """The regression that matters: the probe must not read its own report.
+
+    Non-vacuous on the real tree. If either guard is removed, this repository's
+    audit artifacts come back as wiring for 101 of 101 rows -- which would
+    retire the entire backlog in one run, by citing the audit that produced it.
+    """
+    table = json.loads((Path(mfp.__file__).resolve().parents[1]
+                        / "NEURAL_MESH_WIRE_OR_CUT.json").read_text(encoding="utf-8"))
+    names = {str(v.get("qualname") or "").rsplit(".", 1)[-1]
+             for v in (table.get("declared") or {}).values()
+             if str(v.get("status")) == "pending"}
+    assert names, "no pending rows; this assertion would be vacuous"
+    excluded = " | ".join(mfp.data_inventory_exclusions(names))
+    assert "NEURAL_MESH_INTEGRATION_MAP.json" in excluded, excluded
+    assert "NEURAL_MESH_WIRE_OR_CUT.json" in excluded, excluded
+    hits = mfp.data_index(names)
+    assert len(hits) < len(names), (
+        "every candidate came back data-declared: the probe is reading its own "
+        "inventory again (%d of %d)" % (len(hits), len(names)))
