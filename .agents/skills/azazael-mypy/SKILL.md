@@ -3,6 +3,39 @@
 **Priority:** HIGH
 **Dependencies:** mypy>=2.1.0, Python 3.14t
 **Created:** June 14, 2026
+**Reoriented:** 2026-09-22 — SECOND OPINION ONLY; the gate is basedpyright (`azazael-pyright`, `tools/type_check_gate.py`)
+
+> **This skill is no longer the type-checking gate.**
+>
+> `tools/type_check_gate.py` runs **basedpyright 1.40.1** (already installed in
+> `venv-314t`, already configured by the committed `pyrightconfig.json`) and
+> compares against a committed baseline. Measured 2026-09-22, same tree:
+>
+> | tool | files | findings | wall |
+> |---|---|---|---|
+> | basedpyright | 690 | 1,191 errors + 252 warnings | **64 s** |
+> | mypy (`src/CORE/`, `--check-untyped-defs`) | 329 | 655 errors | ~6 min |
+>
+> Two reasons mypy stopped being the gate, both measured:
+>
+> 1. **It could not read the tree.** `mypy src/CORE/` aborted with a `ValueError:
+>    path is on mount` naming the Windows null device, because two literal files
+>    named `nul` sat at the repo root and in `src/CORE/WORMS/` — residue of a
+>    cmd.exe redirect run inside Git Bash, untracked and unmatchable by any git
+>    pathspec. Both were removed 2026-09-22 (`ERROR_LOG.md` #193); mypy then
+>    reported 655 errors immediately.
+> 2. **It answers a narrower question.** The findings only basedpyright reports
+>    are the ones this codebase has: `reportUndefinedVariable` 94,
+>    `reportOptionalMemberAccess` 120, `reportPossiblyUnboundVariable` 17.
+>
+> mypy is still installed and the patterns in this skill remain valid for it.
+> Use it for a second opinion on one file:
+>
+> ```bash
+> python -m mypy src/CORE/path/file.py --ignore-missing-imports --check-untyped-defs
+> ```
+>
+> See `docs/ARCHITECTURE_DECISION_RECORDS.md` ADR-011.
 
 ## Purpose
 Documents mypy static type checking usage for the Azazael codebase. Covers configuration, common error patterns, free-threading considerations, and the canonical command for type-checking the project.
