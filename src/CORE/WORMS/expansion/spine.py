@@ -25,6 +25,7 @@ All three register under existing validated categories and follow the
 standard worm contract (VERSION attr, execute() -> dict, thread-safe).
 """
 
+import os
 import time
 import threading
 from datetime import datetime
@@ -166,6 +167,34 @@ except ImportError:  # pragma: no cover
     MoEDispatcherWorm = None
     SSMSequenceWorm = None
     AttentionRouterWorm = None
+
+
+# ── OUTER-LOOP CALIBRATION (hyperopt) ────────────────────────────────
+# Class-body constants below are read at import time, so these helpers are
+# module level and swallow every failure: with the hyper-optimizer missing,
+# unreadable, or switched off, the spine behaves exactly as it shipped. A
+# tuning loop must never be able to stop the spine from starting.
+
+def _tuned(name: str, default: Any) -> Any:
+    try:
+        from CORE.WORMS.expansion import hyperopt
+        return hyperopt.get(name, default)
+    except Exception:
+        return default
+
+
+def _tuned_int(name: str, default: int) -> int:
+    try:
+        return int(_tuned(name, default))
+    except Exception:
+        return int(default)
+
+
+def _tuned_float(name: str, default: float) -> float:
+    try:
+        return float(_tuned(name, default))
+    except Exception:
+        return float(default)
 
 
 def _local_env() -> str:
@@ -361,14 +390,47 @@ class HomeostatWorm:
     scale cooldown beyond [0.5x, 4x] of the registered value. Applying
     is explicit (apply=True); default is propose-only so the registry
     stays deterministic under concurrent fleets.
+
+    How it LEARNS -- the evidence floor, the failure band and the sizes of the
+    corrections -- is read from the outer loop's PARAM_SPACE, so the learner's
+    own sensitivity is calibratable instead of frozen. See the class constants
+    below; each falls back to the literal this class shipped with.
     """
 
     VERSION = "1.0.0"
-    MIN_SAMPLES = 5
-    FAIL_RATE_HIGH = 0.5
-    FAIL_RATE_LOW = 0.1
-    COOLDOWN_MIN_SCALE = 0.5
-    COOLDOWN_MAX_SCALE = 4.0
+    #: The EVIDENCE FLOOR and the failure band are learning dynamics, not
+    #: constants. How much a system must observe before it acts, and what it
+    #: calls a failure, decide how fast it learns and what it learns; as
+    #: literals in this class they froze the learner's own sensitivity while
+    #: everything it controls kept moving -- the same missing recursion the outer
+    #: loop exists to close, one level down. Each reads the outer loop when it is
+    #: available and falls back to the shipped literal, so the homeostat behaves
+    #: identically with `hyperopt` absent, unreadable, or switched off.
+    MIN_SAMPLES = _tuned_int("spine.homeostat_min_samples", 5)
+    FAIL_RATE_HIGH = _tuned_float("spine.fail_rate_high", 0.5)
+    FAIL_RATE_LOW = _tuned_float("spine.fail_rate_low", 0.1)
+    #: The band must not invert. A `fail_rate_low` above `fail_rate_high` makes a
+    #: 30%-failing organ read as HEALTHY and shortens its cooldown -- strictly
+    #: worse than the untuned literal, so the ordering is enforced at read time
+    #: rather than trusted to two independent bounds that do not know about each
+    #: other.
+    if FAIL_RATE_LOW >= FAIL_RATE_HIGH:
+        FAIL_RATE_LOW = max(0.0, FAIL_RATE_HIGH - 0.05)
+    #: How hard an organ is backed off, and how far a priority nudge moves it.
+    #: `PRIORITY_STEP` is a calibration AND a lever: the L1 genome's `priority`
+    #: axis carries an empty map because a single-step child moves the
+    #: priority-weighted objective by ~1.7e-5, below the measured effect floor.
+    #: The step size is what decides whether that axis can express anything.
+    BACKOFF_FACTOR = _tuned_float("spine.backoff_factor", 2.0)
+    RECOVER_FACTOR = _tuned_float("spine.recover_factor", 0.75)
+    PRIORITY_STEP = _tuned_int("spine.priority_step", 1)
+    #: The back-off clamp. How fast a failing organ is throttled is exactly the
+    #: kind of hand-typed sensitivity the outer loop exists to calibrate, so
+    #: these read it when it is available and fall back to the shipped values
+    #: otherwise. A too-narrow clamp starves recovery; a too-wide one lets a
+    #: broken organ retry at full rate -- neither is verifiable by inspection.
+    COOLDOWN_MIN_SCALE = _tuned_float("spine.cooldown_min_scale", 0.5)
+    COOLDOWN_MAX_SCALE = _tuned_float("spine.cooldown_max_scale", 4.0)
 
     def __init__(self):
         self._lock = threading.Lock()
@@ -410,16 +472,18 @@ class HomeostatWorm:
                 proposals.append({
                     "worm": worm, "nature": nature,
                     "fail_rate": round(fail_rate, 3),
-                    "cooldown_to": self._adjust_cooldown(info, 2.0),
-                    "priority_to": self._clamp_priority(info.get("priority", 5), -1),
+                    "cooldown_to": self._adjust_cooldown(info, self.BACKOFF_FACTOR),
+                    "priority_to": self._clamp_priority(info.get("priority", 5),
+                                                       -self.PRIORITY_STEP),
                     "last_error": rec.get("last_error", ""),
                 })
             elif fail_rate < self.FAIL_RATE_LOW:
                 proposals.append({
                     "worm": worm, "nature": nature,
                     "fail_rate": round(fail_rate, 3),
-                    "cooldown_to": self._adjust_cooldown(info, 0.75),
-                    "priority_to": self._clamp_priority(info.get("priority", 5), 1),
+                    "cooldown_to": self._adjust_cooldown(info, self.RECOVER_FACTOR),
+                    "priority_to": self._clamp_priority(info.get("priority", 5),
+                                                       self.PRIORITY_STEP),
                 })
 
         if apply:
@@ -1732,8 +1796,59 @@ class SpineCycleWorm:
             return str(mismatch.get("reason") or "graph/report mismatch")
         return ""
 
-    def run_cycle(self, apply: bool = False) -> dict[str, Any]:
-        """Run one full self-improvement cycle. Never raises."""
+    def _record_beat(self, phase: str, ran: bool, reason: str = "",
+                     extra: Optional[dict[str, Any]] = None) -> None:
+        """Record that the heart BEAT, whatever the cycle then decided.
+
+        Why this exists (2026-09-21). `spine_cycle` was written ONLY on the
+        success path, at the very end of the cycle. Every other exit - refused,
+        skipped, crashed - left no trace at all. So the autonomous heartbeat
+        could be dead for days while its own event stream showed nothing, and it
+        was: measured live, the stage-0 proprioception gate refused EVERY beat
+        because four NEURAL_MESH artifacts were stale, so `run_cycle(apply=True)`
+        returned `success=False` before running a single stage, and the worker
+        below logged nothing on a non-success report. Zero `spine_cycle` events,
+        ever, on a running heart.
+
+        An event that exists only on success cannot distinguish "never ran" from
+        "refused" from "still running" - which is the first question an operator
+        asks, and the one this project keeps paying for when it cannot be
+        answered. So a beat now records its phase whether or not it acted.
+
+        Fail-soft by construction: recording a beat must never break the beat.
+        """
+        if _spine is None:
+            return
+        try:
+            payload: dict[str, Any] = {"phase": phase, "ran": bool(ran)}
+            if reason:
+                payload["reason"] = str(reason)[:_ERR_CAP]
+            if extra:
+                payload.update(extra)
+            _spine.record_spine_event("spine_cycle", payload)
+        except Exception:
+            pass
+
+    def run_cycle(self, apply: bool = False,
+                  degrade_to_observe: bool = False) -> dict[str, Any]:
+        """Run one full self-improvement cycle. Never raises.
+
+        `degrade_to_observe` decides what a REFUSED write means for a
+        CONTINUOUS caller. When the self-image is stale the applying cycle is
+        refused - correctly - but the refusal used to end the beat entirely, so
+        a heartbeat whose maps had aged out did nothing at all: no outcomes
+        recorded, no maps refreshed, nothing that would let it learn or clear
+        its own gate. The refusal was self-perpetuating.
+
+        `_self_image_stale` already states the policy that resolves this:
+        "Observation-only cycles are always allowed: looking cannot harm, and
+        gating them would stop the very audit that decides whether applying is
+        safe." So the heart asks to degrade and keeps observing; a one-shot
+        caller (`scripts/spine_cycle_apply.py`) does NOT, because its non-zero
+        exit is a signal the scheduler and the loop-liveness auditor rely on -
+        turning a refusal into a success there would hide the very condition the
+        gate exists to surface.
+        """
         # Per-instance non-reentrancy: nested calls on the same object skip.
         if not self._busy.acquire(blocking=False):
             with self._lock:
@@ -1750,6 +1865,7 @@ class SpineCycleWorm:
                     "skipped": "cycle_already_running_global",
                     "cycles": self._cycles}
         try:
+            degraded_reason = ""
             with self._lock:
                 if self._throttled():
                     self._skipped += 1
@@ -1761,10 +1877,39 @@ class SpineCycleWorm:
             if apply:
                 stale_reason = self._self_image_stale()
                 if stale_reason:
-                    with self._lock:
-                        self._skipped += 1
-                    return {"success": False, "skipped": "stale_self_image",
-                            "reason": stale_reason, "cycles": self._cycles}
+                    # A REFUSED beat must still be visible. The gate is right to
+                    # refuse - an applying cycle on a stale self-image is exactly
+                    # what the 2026-09-18 audit removed - but silence here is
+                    # indistinguishable from a dead heartbeat.
+                    self._record_beat("refused", ran=False, reason=stale_reason,
+                                      extra={"apply": True,
+                                             "degraded_to_observe":
+                                                 bool(degrade_to_observe)})
+                    # A refusal must be LOUD, not merely recorded. The event
+                    # store is not stdout, so a scheduler reading the cycle's
+                    # own output saw a success-shaped line ("proposals=0") and
+                    # nothing red for ~30h. Every caller -- night_shift,
+                    # train_today, the chain job -- now gets a warning it cannot
+                    # miss, whether or not it inspects the returned dict.
+                    try:
+                        import logging as _logging
+                        _logging.getLogger(__name__).warning(
+                            "spine cycle REFUSED the write (stale_self_image): %s%s",
+                            stale_reason,
+                            " -- degrading to observe" if degrade_to_observe else "")
+                    except Exception:
+                        pass
+                    if not degrade_to_observe:
+                        with self._lock:
+                            self._skipped += 1
+                        return {"success": False,
+                                "skipped": "stale_self_image",
+                                "reason": stale_reason,
+                                "cycles": self._cycles}
+                    # Degrade instead of idling: keep the write refused, do the
+                    # observation anyway.
+                    degraded_reason = stale_reason
+                    apply = False
 
             report: dict[str, Any] = {}
             # 1. Map — refresh the shared topology snapshot
@@ -1888,7 +2033,10 @@ class SpineCycleWorm:
 
             if _spine is not None:
                 _spine.record_spine_event("spine_cycle", {
+                    "phase": "complete",
+                    "ran": True,
                     "apply": bool(apply),
+                    "degraded_from_apply": degraded_reason or None,
                     "map_ok": bool(report.get("map", {}).get("success")),
                     "homeostat_proposals": len(
                         report.get("homeostat", {}).get("proposals") or []),
@@ -1910,6 +2058,11 @@ class SpineCycleWorm:
             with self._lock:
                 self._cycles += 1
                 report["cycles"] = self._cycles
+            if degraded_reason:
+                # Reported, not hidden: the caller must be able to tell a cycle
+                # that applied from one that only observed.
+                report["degraded"] = True
+                report["degraded_from_apply"] = degraded_reason
             report["success"] = True
             return report
         finally:
@@ -3137,6 +3290,31 @@ class MorphogenesisWorm:
     MIN_CONSEC = 4
     MAX_GENERATED = 24
 
+    #: Per-cycle write budget. Chronic gets its own budget AND runs first,
+    #: because breakage outranks exploration; opportunity gets a separate one so
+    #: that a permanently-limping nature cannot consume the whole allowance and
+    #: silently starve the exploring path.
+    CHRONIC_WRITE_CAP = 3
+    #: How many opportunity-driven components may be staged per cycle. Read
+    #: from the outer loop so the exploring path's allowance is measured rather
+    #: than assumed; the literal is the fallback.
+    MAX_OPPORTUNITY = _tuned_int("morph.max_opportunity", 2)
+
+    #: A nature is an opportunity when this many of its organs were chosen for
+    #: execution and never reported an outcome. One is a hiccup; two is a
+    #: capability the fleet is being asked for and cannot deliver.
+    NATURE_UNREALISED_MIN = 2
+
+    #: Opportunity generation switch. Default ON: a generator that only ever
+    #: fires on failure can bandage wounds but can never propose anything, and
+    #: "cannot propose anything" is why the generated organ count was 1.
+    #: Disable with `AZAZAEL_MORPH_OPPORTUNITY=0`. It is a kill switch rather
+    #: than a preference because the trigger reads the memory store inside the
+    #: cycle path, so an operator needs a way to take it out without a code edit
+    #: if that read ever proves too slow for the heartbeat.
+    OPPORTUNITY_ENABLED = (str(os.environ.get("AZAZAEL_MORPH_OPPORTUNITY", "1"))
+                           .strip().lower() not in ("0", "false", "no", ""))
+
     def __init__(self):
         self._lock = threading.Lock()
         self._generated = 0
@@ -3171,20 +3349,123 @@ class MorphogenesisWorm:
         chronic.sort(key=lambda e: -e["fails"])
         return chronic
 
-    def _scaffold(self, worm: str, nature: str, sig: str) -> str:
-        """Return the source of a non-autonomous specialist worm."""
+    def _opportunity_patterns(self) -> list[dict[str, Any]]:
+        """Capability gaps — what the system ASKS FOR and cannot deliver.
+
+        The chronic scan above fires only on `fail_rate >= 0.75`, so generation
+        was failure-driven: it bandaged wounds and never proposed anything, which
+        is why a repo with a full morphogenesis pipeline had produced ONE file.
+        A system that only ever reacts to breakage cannot explore.
+
+        The signal here needs no new instrumentation, because the two taps
+        already record both halves. `spawn_credit` joins the decisions against
+        the outcomes and reports what was CHOSEN and never ran — a capability the
+        dispatcher demands that nothing in the fleet delivers. Before the
+        `decision_id` work those two halves could not be joined at all (13 chosen
+        vs 28 executed had ONE worm in common), so this trigger was not merely
+        unimplemented, it was unimplementable.
+
+        Grouped per nature and thresholded at `NATURE_UNREALISED_MIN`, so a fleet
+        gap yields one proposal rather than a proposal per worm.
+        """
+        out: list[dict[str, Any]] = []
+        try:
+            from CORE.WORMS.expansion.spawn_credit import live_spawn_credit
+            from CORE.worm_registry import WORM_REGISTRY
+        except Exception:
+            return out
+        try:
+            credit = live_spawn_credit()
+            chosen_never = credit.chosen_but_never_run()
+        except Exception:
+            return out
+        if not chosen_never:
+            return out
+
+        by_nature: dict[str, list[str]] = {}
+        # A name the registry does NOT have is a bad RECORD, not a capability
+        # gap. Measured 2026-09-21: every such name in the choice tap was written
+        # by a unit test in `src/tests/` (`FleetOrch`, `NetDiag`, `DivWorm`, ...),
+        # and because an unregistered name silently fell through to the
+        # `"expansion"` default this trigger reported the gap as
+        # "12 chosen-never-run organs in expansion" - it was about to generate
+        # twelve specialists for twelve components that do not exist. Emitting
+        # source in response to a corrupted bookkeeping entry is the most
+        # expensive possible reaction to a bookkeeping error, so the record is
+        # rejected here and named in the warning rather than absorbed.
+        skipped: list[str] = []
+        for name in chosen_never:
+            try:
+                reg = WORM_REGISTRY.get(name)
+            except Exception:
+                reg = None
+            if reg is None:
+                skipped.append(str(name))
+                continue
+            try:
+                nature = str(reg.get("category") or "expansion")
+            except Exception:
+                nature = "expansion"
+            by_nature.setdefault(nature, []).append(name)
+
+        if skipped:
+            try:
+                import logging as _logging
+                _logging.getLogger(__name__).warning(
+                    "opportunity trigger skipped %d chosen name(s) absent from "
+                    "the registry (bad records, not capability gaps): %s",
+                    len(skipped), ", ".join(sorted(skipped)[:6]))
+            except Exception:
+                pass
+
+        for nature, worms in sorted(by_nature.items()):
+            if len(worms) < self.NATURE_UNREALISED_MIN:
+                continue
+            members = sorted(worms)
+            out.append({
+                "worm": members[0],
+                "nature": nature,
+                "sig": "unrealised:chosen-not-run",
+                "gap": "chosen-not-run",
+                "members": members[:8],
+                "n_members": len(members),
+                "trigger": "opportunity",
+            })
+        out.sort(key=lambda e: -e["n_members"])
+        return out
+
+    def _scaffold(self, worm: str, nature: str, sig: str,
+                  trigger: str = "chronic-failure") -> str:
+        """Return the source of a non-autonomous specialist worm.
+
+        `trigger` is carried into the emitted docstring so a file in the pen
+        states WHY it exists. Without it, a gap-derived specialist is
+        indistinguishable from a breakage-derived one on inspection, and the two
+        have different meanings (one proposes, one repairs).
+        """
         cls = "Gen" + "".join(w.capitalize() for w in
                               __import__("re").sub(r"[^A-Za-z0-9]+", " ",
                                                    f"{worm} {sig}").split()[:4])
+        if trigger == "opportunity":
+            headline = ("Specialist for a CAPABILITY GAP (opportunity-driven):\n"
+                        "  requested by:  {n}\n"
+                        "  nature:        {nat}\n"
+                        "  gap:           {sig}\n\n"
+                        "It closes a gap that was CHOSEN and never delivered.\n"
+                        "NON-AUTONOMOUS by construction: execute() only records\n"
+                        "evidence - it proposes, it does not repair.")
+        else:
+            headline = ("Specialist for chronic failure pattern:\n"
+                        "  worm:    {w}\n"
+                        "  nature:  {nat}\n"
+                        "  error:   {sig}\n\n"
+                        "NON-AUTONOMOUS by construction: execute() only records\n"
+                        "evidence.")
+        headline = headline.format(w=worm, nat=nature, sig=sig, n=worm)
         return f'''# coding: utf-8
 """Auto-generated by MorphogenesisWorm — do not edit by hand.
 
-Specialist for chronic failure pattern:
-  worm:    {worm}
-  nature:  {nature}
-  error:   {sig}
-
-NON-AUTONOMOUS by construction: execute() only records evidence.
+{headline}
 """
 
 import time
@@ -3230,47 +3511,86 @@ class {cls}:
 
     # -- action ---------------------------------------------------------
 
+    def _stage(self, entries: list[dict[str, Any]], limit: int,
+               trigger: str, proposals: list[dict[str, Any]]) -> int:
+        """Write up to `limit` entries into the containment pen.
+
+        ONE path for every trigger, deliberately: dedup by signature, atomic
+        temp-then-replace, a spine event, and the same pen. Opportunity-driven
+        generation must not become a second, laxer route into the tree — the
+        containment boundary is a property of the mechanism, not of the trigger
+        that called it.
+        """
+        if not entries or limit <= 0:
+            return 0
+        gen_dir = _staging_dir()
+        written = 0
+        for e in entries[: self.MAX_GENERATED]:
+            if written >= limit:
+                break
+            safe = __import__("re").sub(r"[^A-Za-z0-9]+", "_",
+                                        f"{e['worm']}_{e['sig']}")[:60]
+            path = gen_dir / f"gen_{safe}.py"
+            if path.exists():
+                continue  # dedup: one specialist per signature
+            try:
+                gen_dir.mkdir(parents=True, exist_ok=True)
+                src = self._scaffold(e["worm"], e["nature"], e["sig"],
+                                     trigger=trigger)
+                tmp = path.with_suffix(".py.tmp")
+                tmp.write_text(src, encoding="utf-8")
+                import os
+                os.replace(str(tmp), str(path))
+                written += 1
+                proposals.append({"file": path.name, "worm": e["worm"],
+                                  "sig": e["sig"], "trigger": trigger})
+                if _spine is not None:
+                    _spine.record_spine_event("morphogenesis_staged", {
+                        "file": path.name, "source_worm": e["worm"],
+                        "trigger": trigger})
+            except Exception:
+                continue
+        return written
+
     def morph(self, dry_run: bool = False) -> dict[str, Any]:
-        """Generate specialist worms for unhandled chronic patterns.
+        """Generate specialist worms for chronic patterns AND capability gaps.
 
         Writes into the **containment pen** (`_staging_dir()`), never into
         the discovery-visible directory. Promotion is a separate, gated step
         (`promote()`) — so no caller, present or future, can bypass the gate.
+
+        Two triggers, in priority order: chronic failure (repair) then
+        opportunity (explore). The second is the 2026-09-21 addition — with
+        failure as the ONLY trigger, generation could bandage breakage but never
+        propose anything, so its lifetime output was a single file. Breakage
+        still goes first and keeps its own budget, because a limping fleet is a
+        more urgent fact than an unexplored one.
         """
-        patterns = self._chronic_patterns()
-        proposals = []
+        chronic = self._chronic_patterns()
+        opportunity: list[dict[str, Any]] = []
+        if self.OPPORTUNITY_ENABLED:
+            try:
+                opportunity = self._opportunity_patterns()
+            except Exception:
+                opportunity = []
+
+        proposals: list[dict[str, Any]] = []
         written = 0
-        if not dry_run and patterns:
-            gen_dir = _staging_dir()
-            for e in patterns[: self.MAX_GENERATED]:
-                safe = __import__("re").sub(r"[^A-Za-z0-9]+", "_",
-                                            f"{e['worm']}_{e['sig']}")[:60]
-                path = gen_dir / f"gen_{safe}.py"
-                if path.exists():
-                    continue  # dedup: one specialist per signature
-                if written >= 3:  # per-cycle write cap
-                    break
-                try:
-                    gen_dir.mkdir(parents=True, exist_ok=True)
-                    src = self._scaffold(e["worm"], e["nature"], e["sig"])
-                    tmp = path.with_suffix(".py.tmp")
-                    tmp.write_text(src, encoding="utf-8")
-                    import os
-                    os.replace(str(tmp), str(path))
-                    written += 1
-                    proposals.append({"file": path.name, "worm": e["worm"],
-                                      "sig": e["sig"]})
-                    if _spine is not None:
-                        _spine.record_spine_event("morphogenesis_staged", {
-                            "file": path.name, "source_worm": e["worm"]})
-                except Exception:
-                    continue
+        if not dry_run:
+            written += self._stage(chronic, self.CHRONIC_WRITE_CAP,
+                                   "chronic-failure", proposals)
+            written += self._stage(opportunity, self.MAX_OPPORTUNITY,
+                                   "opportunity", proposals)
         with self._lock:
             self._generated += written
-        return {"success": True, "patterns": len(patterns),
+        return {"success": True,
+                "patterns": len(chronic) + len(opportunity),
+                "patterns_chronic": len(chronic),
+                "patterns_opportunity": len(opportunity),
                 "generated": written, "staged": written,
                 "staging": str(_staging_dir()),
                 "proposals": proposals,
+                "opportunity_enabled": bool(self.OPPORTUNITY_ENABLED),
                 "total_generated": self._generated,
                 "dry_run": bool(dry_run)}
 
@@ -3491,29 +3811,98 @@ class ConsolidationWorm:
                     "cycles": self._cycles}
 
         reinforced = 0
+        # WHY nothing was reinforced is counted, not dropped. `reinforced: 0`
+        # alone cannot be told apart from a healthy quiet channel, and the live
+        # measurement is the reason this matters: the offline channel had
+        # written NOTHING for the life of the system (the dream-count table was
+        # empty), and it did so while reporting `reinforced: 0` with no reason
+        # at all.
+        #
+        # The cause was a JOIN, not a dead channel. A suggestion's `source` is
+        # the EMITTER (`NatureCluster.xenomorph`, `DreamingModule`, and for the
+        # distilled-knowledge type literally `pattern_memory`) -- never an organ,
+        # so keying on it would invent one. The organ lives in the evidence
+        # record's `data`, where the fleet writes it. Measured over the live
+        # store: 256 of 400 records carry both `data.worm` and `data.nature`,
+        # and all 256 name an edge that ALREADY EXISTS in Q (230 distinct real
+        # organs, 0 fabricated). The two evidence-mined suggestion types now
+        # carry that pair; the two generic types (`strategy_exploration`,
+        # `pattern_grounded`) still name no organ, which is reported rather than
+        # papered over by mapping `source` into the key.
+        skipped: dict[str, int] = {}
+
+        def _skip(reason: str) -> None:
+            skipped[reason] = skipped.get(reason, 0) + 1
+
         for d in dreams or []:
             try:
                 if float(getattr(d, "quality_score", 0.0)) < self.QUALITY_GATE:
+                    _skip("below_quality_gate")
                     continue
                 for s in (getattr(d, "policy_suggestions", None) or [])[:4]:
                     if not isinstance(s, dict):
+                        _skip("not_a_dict")
                         continue
                     worm = s.get("worm") or s.get("target") or ""
                     if not worm:
+                        # No organ is named, so there is no `nature:organ` key
+                        # this suggestion can move.
+                        _skip("no_organ_target")
                         continue
-                    reward = max(-1.0, min(1.0, float(s.get("reward", 0.3))))
-                    if _spine.dream_reinforce("dream", worm, reward):
+                    # The organ's REAL nature. Hard-coding "dream" here (what
+                    # this call used to pass) wrote `dream:<worm>`, and `dream`
+                    # is not a nature in the live table -- measured: 38 real
+                    # natures, no `dream:` key among them. So the channel would
+                    # have reinforced a phantom namespace that routing never
+                    # reads, and reported success while doing it.
+                    nature = str(s.get("nature") or "")
+                    if not nature:
+                        _skip("no_organ_nature")
+                        continue
+                    # The reward must come from the suggestion's OWN measured
+                    # quantity. The old constant fallback (0.3) would push every
+                    # dreamed edge to the same value, which carries no ordering
+                    # information for `q_effective` to rank on -- the same
+                    # defect as a flat reward anywhere else in the loop.
+                    reward = float(s.get("confidence", 0.0) or 0.0)
+                    if reward <= 0.0:
+                        _skip("no_reward_signal")
+                        continue
+                    reward = max(-1.0, min(1.0, reward))
+                    if _spine.dream_reinforce(nature, worm, reward):
                         reinforced += 1
+                    else:
+                        _skip("reinforce_rejected")
             except Exception:
+                _skip("dream_error")
                 continue
         with self._lock:
             self._cycles += 1
             self._total_reinforced += reinforced
+        # PERSIST. Without this the reinforcement above is lost at interpreter
+        # exit and the worm reports `reinforced=N` every run while the durable
+        # brainstem never changes -- the same defect that made a full learning
+        # cycle move the table 56 -> 264 edges in memory and leave a fresh
+        # process reading 56. `dream_reinforce()` is safe to persist: it moves q
+        # and the dream-count table and deliberately does NOT touch the
+        # success/failure ledger, so nothing here claims an execution happened.
+        persisted: Any = {"saved": False, "reason": "nothing_reinforced"}
+        if reinforced and _spine is not None:
+            try:
+                persisted = _spine.save_spine_state()
+            except Exception:
+                persisted = {"saved": False, "reason": "save_failed"}
         if _spine is not None:
             _spine.record_spine_event("consolidation", {
-                "dreams": len(dreams or []), "reinforced": reinforced})
+                "dreams": len(dreams or []), "reinforced": reinforced,
+                "skipped": skipped,
+                "persisted": bool(isinstance(persisted, dict)
+                                  and persisted.get("saved"))})
         return {"success": True, "dreams": len(dreams or []),
-                "reinforced": reinforced, "cycles": self._cycles}
+                "reinforced": reinforced, "cycles": self._cycles,
+                "skipped": skipped,
+                "persisted": bool(isinstance(persisted, dict)
+                                  and persisted.get("saved"))}
 
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute",

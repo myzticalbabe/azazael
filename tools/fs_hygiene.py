@@ -72,14 +72,24 @@ def scan() -> dict:
             per_top_bytes[top] += size
             if size > LARGE_MB * 1024 * 1024:
                 large.append({"path": os.path.relpath(p, ROOT), "mb": round(size / 1048576, 1)})
-            dup[name].add(dirpath)
-            if is_src:
-                dup_src[name].add(dirpath)
+            # __pycache__ is excluded from the duplicate check: .pyc artifacts
+            # regenerate on every test run, so counting them means the guard
+            # fires on a clean tree and gets switched off. It has its own
+            # counter and its own compaction kind instead.
+            if not is_cache:
+                dup[name].add(dirpath)
+                if is_src:
+                    dup_src[name].add(dirpath)
     return {
         "generated": _now(),
         "files": files,
         "mb": round(sum(per_top_bytes.values()) / 1048576, 1),
-        "top_level": sorted(per_top_files),
+        # __pycache__ is a byte-cache, not a structural path. It is (re)created
+        # by any test run -- including a root-level one next to conftest.py --
+        # so listing it here makes the guard fire on a clean tree for a reason
+        # that says nothing about how the project is organised. It keeps its
+        # own `pycache_files` counter and its own compaction kind instead.
+        "top_level": sorted(t for t in per_top_files if t != "__pycache__"),
         "top_table": [[t, per_top_files[t], round(per_top_bytes[t] / 1048576, 1)]
                       for t, _ in per_top_files.most_common()],
         "large_files": sorted(large, key=lambda r: -r["mb"]),
