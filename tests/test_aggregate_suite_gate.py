@@ -161,6 +161,40 @@ def test_the_raw_output_is_persisted_so_a_failure_can_be_diagnosed(
     assert "raw output:" in capsys.readouterr().out
 
 
+def test_a_streamed_run_can_be_parsed_instead_of_re_run(
+        tmp_path, monkeypatch, capsys):
+    """The expensive step must not have to be repeated to read its own evidence.
+
+    A run whose progress needs watching has to stream its output somewhere other
+    than the gate's pipe; without this option the only way to gate on it would be
+    to pay the full wall-clock again.
+    """
+    streamed = tmp_path / "stream.txt"
+    streamed.write_text(SAMPLE, encoding="utf-8")
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "b.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "report.json")
+
+    def must_not_run(*a, **k):
+        raise AssertionError("run_pytest was called for a --parse-from run")
+
+    monkeypatch.setattr(gate, "run_pytest", must_not_run)
+    assert gate.main(["--report", "--parse-from", str(streamed)]) == 0
+    payload = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
+    assert payload["failed_ids"] == ["tests/test_a.py::TestB::test_two",
+                                     "tests/test_a.py::test_one"]
+    assert payload["error_ids"] == ["tests/test_c.py::test_three"]
+    assert "parsed from:" in capsys.readouterr().out
+
+
+def test_parse_from_a_missing_file_fails_instead_of_passing(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(gate, "BASELINE", tmp_path / "b.json")
+    monkeypatch.setattr(gate, "REPORT", tmp_path / "report.json")
+    assert gate.main(["--check", "--parse-from",
+                      str(tmp_path / "absent.txt")]) == 1
+    assert "cannot read raw output" in capsys.readouterr().err
+
+
 def test_the_isolation_profile_names_only_files_that_exist():
     """A renamed test file must break the gate, not silently shrink it."""
     missing = [p for p in gate.ISOLATION_PROFILE if not (gate.REPO / p).exists()]

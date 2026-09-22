@@ -203,6 +203,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                        help="run and write the report without gating")
     group.add_argument("--diff-from", metavar="JSON",
                        help="skip the run and diff a saved report/baseline")
+    # Deliberately NOT in the mutually-exclusive group: this one selects the
+    # INPUT (a saved run instead of a fresh one) and composes with --check,
+    # --baseline and --report, which select what to DO with it.
+    parser.add_argument("--parse-from", metavar="RAW",
+                        help="parse a saved RAW pytest output instead of "
+                             "running; composes with --check/--baseline/--report")
     parser.add_argument("--only", nargs="+", metavar="PATH",
                         help="pytest targets (default: tests/)")
     parser.add_argument("--profile", choices=("full", "isolation"),
@@ -239,6 +245,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         parsed = {"failed_ids": load_ids(Path(args.diff_from)), "error_ids": []}
         rc = 0
         out = ""
+    elif args.parse_from:
+        # A run that was streamed to a file (so its progress was watchable) is
+        # the same evidence as a captured one; re-running it just to re-parse it
+        # is the cost this option exists to remove -- ADR-010 rule 5.
+        raw_path = Path(args.parse_from)
+        try:
+            out = raw_path.read_text(encoding="utf-8", errors="replace")
+        except OSError as exc:
+            print("cannot read raw output %s: %s" % (raw_path, exc),
+                  file=sys.stderr)
+            return 1
+        parsed = parse_pytest_output(out)
+        rc = 0
     else:
         rc, out = run_pytest(select, args.timeout)
         parsed = parse_pytest_output(out)
@@ -252,11 +271,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # says nothing about its cause -- so the previous runs left ~50 failures that
     # could be counted and not diagnosed, and re-paying 22 minutes was the only
     # way to read an assertion message. 1.5 MB of text is cheaper than that.
-    if out:
+    if not args.diff_from and not args.parse_from:
         raw = REPORT.with_suffix(".raw.txt")
         raw.parent.mkdir(parents=True, exist_ok=True)
         raw.write_text(out, encoding="utf-8", errors="replace")
         print("raw output: %s" % raw)
+    elif args.parse_from:
+        # Not copied: the streamed file IS the evidence, and duplicating it under
+        # the report's name would suggest the gate had produced it.
+        print("parsed from: %s" % args.parse_from)
 
     counts = parsed.get("counts") or {}
     ids = all_ids(parsed)
