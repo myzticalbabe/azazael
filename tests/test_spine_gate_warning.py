@@ -8,14 +8,19 @@ one caller. `night_shift.py`, `train_today.py` and any future caller read the
 report dict and would each have to remember to special-case `skipped` -- and two
 of them did not, so a refused write read there as "proposals=0": success-shaped.
 
-The fix is at the gate. `SpineCycleWorm.run_cycle` now emits a WARNING through
-`logging` on the refusal path, so every caller surfaces it whether or not it
-inspects the returned dict. These tests pin that the warning is emitted, names
-the skip and the reason, and does NOT fire on the observation-only path (the
-gate is only supposed to hold back WRITES).
+The fix is at the gate. `SpineCycleWorm.run_cycle` calls `_loud`, which emits a
+WARNING through `logging` -- and, crucially, ALSO writes to stderr when the
+process has globally disabled logging. That second path is not hypothetical:
+`scripts/spine_cycle_apply.py` -- the exact process the hourly scheduler runs --
+calls `logging.disable(logging.CRITICAL)` at import, so a logging-only warning
+is swallowed in the one place it has to be seen. These tests pin all of it: the
+record, the reason text, the stderr fallback under a process-wide disable, and
+that the observation-only path is never refused.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import logging
 import os
 import sys
@@ -35,6 +40,16 @@ _REASON = "stale artifacts: graphify-out/graph.json"
 
 class TestGateRefusalIsLoud(unittest.TestCase):
 
+    def setUp(self):
+        # A sibling entry point (spine_cycle_apply) disables logging globally at
+        # import, which would hide the record from assertLogs. Undo it, and
+        # restore the previous threshold afterwards so the test does not leak.
+        self._prev_disable = logging.root.manager.disable
+        logging.disable(logging.NOTSET)
+
+    def tearDown(self):
+        logging.disable(self._prev_disable)
+
     def _worm_refusing(self) -> SpineCycleWorm:
         w = SpineCycleWorm(min_interval_seconds=0)
         # Shadow the probe so the refusal is deterministic and offline: the test
@@ -53,6 +68,25 @@ class TestGateRefusalIsLoud(unittest.TestCase):
         self.assertIn("stale_self_image", blob)
         self.assertIn("graphify-out/graph.json", blob,
                       "the reason must reach the log, not be dropped")
+
+    def test_warning_survives_a_process_wide_logging_disable(self):
+        """The scheduler's process disables logging; the refusal must still land.
+
+        This is the regression that a logging-only warning would have missed:
+        spine_cycle_apply.py silences the whole module before the gate runs.
+        """
+        w = self._worm_refusing()
+        logging.disable(logging.CRITICAL)
+        try:
+            buf = io.StringIO()
+            with contextlib.redirect_stderr(buf):
+                rep = w.run_cycle(apply=True)
+        finally:
+            logging.disable(self._prev_disable)
+        self.assertEqual(rep.get("skipped"), "stale_self_image")
+        self.assertIn("REFUSED", buf.getvalue(),
+                      "a disabled process must still get the refusal on stderr")
+        self.assertIn("graphify-out/graph.json", buf.getvalue())
 
     def test_observation_only_cycle_does_not_refuse(self):
         """Looking cannot harm: the gate must not hold back an apply=False cycle."""
