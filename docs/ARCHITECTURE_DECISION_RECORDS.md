@@ -744,4 +744,139 @@ Error #203, Lesson #97, ADR-010, ADR-011, ADR-012, `tools/type_check_gate.py`,
 
 ---
 
+## ADR-017 — A Native Wheel's First Import Happens Once, in the Caller's Thread, Behind a Probe That Can Be Killed
+
+**Date:** 2026-09-22 · **Status:** Accepted · **Supersedes:** the daemon-thread
+bounded import in `CORE/WORMS/expansion/nerve.py`
+
+### Context
+
+`expansion/spine.py:1248` constructs a `Neuromodulator`, whose default is
+`use_torch=True`. The loader behind it has had three shapes in one session, and
+the first two were wrong in opposite directions:
+
+| shape | what it protected | how it failed |
+|---|---|---|
+| module-level `try: import torch` (HEAD) | nothing | a hang inside `_load_dll_libraries -> platform.machine()` made the whole expansion package unimportable; `tests/test_spine_mesh.py` timed out instead of failing |
+| daemon thread + 25 s join, then walk away | the caller's latency | the abandoned thread kept importing; `sys.modules['torch']` became a half-built module and **25 unrelated torch tests failed across four files** (Error #205) |
+| probe, then import in the caller's thread (this) | both | caller waits for a *healthy* import (0.87 s measured); a sick host declines and never touches torch |
+
+The deciding fact is not latency: two threads first-importing torch at once is
+unsafe on this interpreter, reproduced standalone as
+`ValueError: module functions cannot set METH_CLASS or METH_STATIC`. An abandoned
+importer *is* a second first-import that nobody is waiting for.
+
+### Decision
+
+1. **No background first-import, anywhere.** A native wheel's import runs on the
+   thread that asked for it, under a process-wide lock held across the load, so
+   concurrent callers share one import instead of racing it.
+2. **The bound is a subprocess, because a subprocess can be killed.**
+   `sys.executable -c "import torch"` with `IMPORT_TIMEOUT_S = 25.0` and
+   stdin/stdout/stderr on DEVNULL (pipe-free, so the kill cannot be followed by a
+   blocking reap -- `CORE/fs_probe.py` hazard 1). A failed probe means `timeout`:
+   numpy fallback, and torch is never touched in this process.
+3. **The decline is observable.** States are `unloaded | ready | absent |
+   timeout`, and `.seconds` records the in-process import duration, so "slow but
+   successful" is a measurement rather than an inference from a timeout.
+4. **Generated artifacts link vendored assets, document-relatively.**
+   `lib/vis-9.1.2/vis-network.min.js` replaces the unpkg reference in
+   `tools/gephi_mesh_pipeline.py`, which raises instead of falling back. Error
+   #206 was the same defect as #205 seen from the other side: a passing check
+   conditional on something outside the repo.
+
+### Consequences
+
+**Positive:** the interpreter-poisoning path no longer exists; the loader costs
+~2.1 s once per process (probe + import) instead of up to 25 s of a thread nobody
+watches; `tests/test_nerve_torch_import.py` fails three of four against the
+abandoning implementation, so the property is pinned rather than described.
+
+**Negative:** a *slow but honest* import now blocks its caller for its real
+duration -- the probe proves the host is not pathological, not that the next
+import is fast. That is the same contract every other importer in this package
+(`cppn.py:149`, `oracle.py:474`, `ML/torch_bridge.py`) already has, and it is the
+reason the bound moved rather than disappeared. Cost is also doubled once per
+process when the probe succeeds.
+
+### Related
+
+Error #205, Error #206, Lesson #98, Lesson #99, ADR-013,
+`src/CORE/WORMS/expansion/nerve.py`, `tools/gephi_mesh_pipeline.py`,
+`tests/test_nerve_torch_import.py`, `tests/test_mesh_html_view.py`
+
+---
+
+## ADR-018 — A Triage Class Is a Measurement; a Decider Is the Question (September 22, 2026)
+
+### Context
+
+PF16's `triage()` labels every `pending` row with a class
+(`test_reached_only`, `no_reference_anywhere`) and never writes a status — the
+right call, because Error #190 was exactly a probe inventing dispositions. But
+101 rows then sat for a full session carrying a class and nothing else. A class
+says *how the row was measured*; it does not say *what to act on*. Read as a
+worklist, that is a backlog. Read closely, it is a list of questions nobody has
+been handed.
+
+### Decision
+
+Add a second, disjoint label: `decider`, one of four, computed from facts about
+the defining module and the tree, and rendered in the worklist beside each row.
+
+| Decider | Fact | Action |
+|---|---|---|
+| `protocol_or_override` | the same method name is defined by another class | keep or retire — a name search can never settle it |
+| `dynamic_call` | the defining module builds a call target at runtime (`getattr` with a computed name) | do **not** cut on this evidence |
+| `test_is_the_wire` | a test is the only caller | accept the test as the wire, or give production a caller |
+| `dead_candidate` | no caller, no override, no computed dispatch | the retirement pool |
+
+Three properties are load-bearing:
+
+1. **Order.** The destructive decider is last. An override and a computed
+dispatch are both checked before `dead_candidate` may be assigned, because "the
+probe found no name" is the weakest of the three facts and the only one whose
+wrong answer deletes capability.
+2. **No status.** `decide()` writes `decider` and `decider_evidence` and never
+touches `status` — asserted, in both directions, alongside the same assertion for
+`triage`.
+3. **A validated index.** The method index must be measured before its zero
+means anything: `test_the_decider_index_is_not_silently_empty` requires >1000
+names, `run` defined by >1 class, `detect` by >1, and at least one file with a
+computed `getattr`. A broken walk returns 0 overrides for everything, which reads
+exactly like "nothing is overridden".
+
+`_resolve_module` ties the defining file to a stem using the discovery path
+segment, and returns `None` when a stem is genuinely ambiguous rather than
+picking the first candidate — attaching another module's `getattr` to a row is
+the same error class as reading a test caller as a production one.
+
+### Measured outcome (2026-09-22)
+
+`101 pending` = `test_is_the_wire` 40 · `dead_candidate` 56 · `dynamic_call` 5 ·
+`protocol_or_override` 0. The 0 is a finding, not a failure: PF16 excludes
+`PROTOCOL_METHODS` at discovery, so the rows that survive are single-definition
+names by construction — the override decider exists to catch the *next* one.
+
+### Consequences
+
+- The backlog is now 56 retirement candidates and 40 "who should own this"
+decisions, instead of 101 undifferentiated rows. The decisions remain the
+operator's; nothing was invented.
+- `dynamic_call` is a *file-level* fact attributed to a function. It is
+intentionally coarse: its only job is to say "do not cut on this evidence", so
+over-attributing costs a review, while under-attributing costs a function.
+- `wire_or_cut` carries `seg` into the table. It is read with `getattr(fn,
+"seg", "")` because the contract tests drive the rebuild with a stub `Func`, and
+a rebuild that demands more of its caller than the previous one did is the shape
+of the field-loss this method has already produced twice (Error #199, #202).
+
+### Related
+
+Error #190, Error #199, Error #202, Error #207, Lesson #100,
+`tools/mesh_function_preflight.py`, `NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md`,
+`tests/test_mesh_wire_or_cut.py`
+
+---
+
 *Generated: 2026-02-11*

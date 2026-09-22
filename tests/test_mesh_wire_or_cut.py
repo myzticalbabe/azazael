@@ -434,3 +434,72 @@ def test_triage_labels_the_pending_backlog_without_deciding_it(table):
     before = {k: str(v.get("status")) for k, v in (table.get("declared") or {}).items()}
     after = {k: str(v.get("status")) for k, v in entries.items()}
     assert before == after, "triage changed a status; a class is not a disposition"
+
+
+def test_every_pending_row_carries_a_decider_not_just_a_class(table):
+    """A class says how a row was measured; a decider says what to act on.
+
+    101 rows sat for a session with a class and nothing else, which reads as a
+    backlog but is really a list of questions nobody had been handed. `decide`
+    attaches the fact -- and must still not write a status (Error #190).
+    """
+    labelled = mfp.triage(json.loads(json.dumps(table)))
+    entries = labelled.get("declared") or {}
+    pending = [e for e in entries.values() if str(e.get("status")) == "pending"]
+    assert pending, "fixture has no pending rows; the assertion below would be vacuous"
+    for entry in pending:
+        assert entry.get("decider") in mfp.DECIDERS, (
+            entry.get("qualname"), entry.get("decider"))
+        assert "decider_evidence" in entry
+    counts = labelled.get("decider_counts") or {}
+    assert sum(counts.values()) == len(pending), (counts, len(pending))
+    assert set(counts) == set(mfp.DECIDERS)
+
+    # A decider pass is a measurement: it must not touch a status either.
+    before = {k: str(v.get("status")) for k, v in (table.get("declared") or {}).items()}
+    after = {k: str(v.get("status")) for k, v in entries.items()}
+    assert before == after, "decide changed a status; a decider is not a disposition"
+
+
+def test_the_decider_index_is_not_silently_empty():
+    """`protocol_or_override == 0` is only a finding if the index is populated.
+
+    A broken walk returns 0 overrides for everything, which reads exactly like
+    "nothing is overridden" -- the shape of every unvalidated instrument in this
+    repo. So the index is measured, not assumed: it must find the generic hooks
+    that are defined in many classes by construction.
+    """
+    methods, dynamic, by_stem = mfp._decider_index()
+    assert len(methods) > 1000, len(methods)
+    assert len(by_stem) > 100, len(by_stem)
+    assert len(methods.get("run", ())) > 1, methods.get("run")
+    assert len(methods.get("detect", ())) > 1, methods.get("detect")
+    assert dynamic, "no file reported a computed getattr; the scan is not running"
+
+
+def test_resolve_module_refuses_to_guess_between_same_stem_modules():
+    """Two `db_monitor.py` files must not lend one another's dispatch evidence."""
+    by_stem = {"spine": ["src/a/spine.py", "src/b/spine.py"]}
+    assert mfp._resolve_module("spine", "a", by_stem) == "src/a/spine.py"
+    assert mfp._resolve_module("spine", "", by_stem) is None
+    assert mfp._resolve_module("spine", "nope", by_stem) is None
+    assert mfp._resolve_module("absent", "", by_stem) is None
+
+
+def test_an_overridden_name_is_not_allowed_to_read_as_dead(table):
+    """The destructive decider must be last. Falsified against the real index.
+
+    `run` is defined by many classes here, so a pending row named `X.run` must
+    come back `protocol_or_override`, never `dead_candidate`. If the order in
+    `decide` is ever rearranged, this fails.
+    """
+    mutated = json.loads(json.dumps(table))
+    mutated["declared"] = dict(mutated.get("declared") or {})
+    mutated["declared"]["synthetic:X.run"] = {
+        "module": "spine", "qualname": "X.run", "line": 1, "status": "pending",
+        "triage": "no_reference_anywhere", "triage_evidence": [],
+    }
+    decided = mfp.decide(mutated)
+    row = decided["declared"]["synthetic:X.run"]
+    assert row["decider"] == "protocol_or_override", row
+    assert row["decider_evidence"], row

@@ -3391,4 +3391,99 @@ belonged to a different process's generated output under `_staging/`.
 
 ---
 
+## Lesson #98 — A Bound You Enforce by Walking Away Is a Fork, Not a Bound
+
+**Session:** 2026-09-22 · **Trigger:** Error #205
+
+`nerve._LazyTorch` bounded a torch import with a 25 s join on a daemon thread and
+returned `timeout` when the join expired. On a contended box the expiry fired, the
+thread kept importing, and the half-built module in `sys.modules` was handed to the
+next `import torch` anywhere in the process: **25 torch tests failed with
+`partially initialized module 'torch' ... has no attribute 'distributed'`**, in two
+separate long runs, while every uncontended run of the same suite was green.
+
+**Permanent mandate:**
+- If work mutates process-global state (an import, a registry, a cache, a global), abandoning the thread that performs it does not bound the work -- it leaves the mutation running while everything downstream reads a half-finished result. Bound it with something you can kill (a subprocess), or do not bound it.
+- Before calling a timeout a degradation, ask what the abandoned work is still doing. "It returned in 25 s" and "it stopped in 25 s" are different claims.
+- A two-thread first-import of a native wheel is a process-level hazard on the free-threaded interpreter, not a test artefact: reproduced standalone as `ValueError: module functions cannot set METH_CLASS or METH_STATIC`. Serialise the first import and do it on the thread that wants it.
+- Five to forty-five failures that share one error message and cross unrelated files are process state, not test quality. Arm a state probe (`tools/torch_state_watch.py`) before re-running -- a polluter names itself, a bisection by file only finds nearest neighbours.
+- A test that "passes alone and in every prefix" is not exonerated; it is waiting for load. Contention is a variable the suite does not control, so record it in the run.
+
+**Related:** Error #205, Error #197, Lesson #94, `src/CORE/WORMS/expansion/nerve.py`, `tools/torch_state_watch.py`
+
+---
+
+## Lesson #99 — A Check Inherits Its Subject's Dependencies
+
+**Session:** 2026-09-22 · **Trigger:** Error #206
+
+`test_mesh_html_view` failed with `ReferenceError: vis is not defined` because the
+generated artifact linked vis.js from unpkg and the box had no route there. The
+harness reported precisely what it saw; the defect was that *the check had inherited
+the artifact's dependency on the network*. A corpus scan then found **52 generated
+views** in the same position (`unpkg`, `cdnjs`, `jsdelivr`) -- and only the mesh view
+has a verifier, so the other 51 fail silently wherever offline.
+
+**Permanent mandate:**
+- Vendor what a generated artifact needs and link it document-relatively. "Does it work" must be a property of the repo, not of the host's connectivity.
+- When a check fails with a reason that is not about its subject (network, browser, clock, DNS), fix the *subject*, not the assertion. Recording a skip there turns an offline machine into a green suite.
+- A gate that can only pass online is a gate on the network. If a required asset is missing, raise -- a silent CDN fallback moves the same failure one run further away.
+- When an artifact gains a sibling dependency, its negative control must copy the *layout*, not just the file: a bare copy loses the asset and the control then fails for the opposite of the injected reason.
+- Scan by class, not by instance. One artifact needing the network means asking which others do before declaring it fixed.
+
+**Related:** Error #206, Error #190, Lesson #96, `tools/gephi_mesh_pipeline.py`, `tests/test_mesh_html_view.py`
+
+---
+
+## Lesson #100 — A Map You Have Not Measured Is a Map You Cannot Read (September 22, 2026)
+
+The largest artifact in the repository was the one I trusted least, and I had the
+reason backwards. `graphify-out/graph.json` is 688,627 nodes over 51,186 files —
+so when 101 rows needed one question answered (*is this function reachable from
+production?*), it looked like the instrument to reach for. It is not. Asked
+`explain "create_backup"` it returned `bibl_c_create_backup`, a prose entry from
+`src/ORCHESTRATION/BIBL/C.md L8356`, degree 1. Asked who calls
+`DatabaseMonitorWorm.create_backup` it returned three nodes and no callers, having
+resolved the *name* to the bibliography stub and the *class* to the right file.
+
+Every one of those answers was well-formed. That is the whole lesson: a wrong
+answer shaped like a right one is worse than an error, because nothing in it
+invites you to check.
+
+**What I did with it**
+- Measured the map against a question whose answer I already knew, before
+  building anything on top of it. Cheap, and it is the only thing that separates
+  a graph from a graph drawing.
+- Same measurement, second instrument: `protocol_or_override` came back **0** for
+  all 101 rows. A zero from a fresh index is indistinguishable from a zero from a
+  broken walk, so the index itself was measured — 3,371 method names, `run`
+  defined by 28 classes, `detect` by 7, 45 files with a computed `getattr`. Only
+  then is the 0 a finding (the 101 rows are single-definition names, because PF16
+  already excludes `PROTOCOL_METHODS`).
+- Recorded the map as out of scope for code reachability, in the error log, so the
+  next session does not pay the same ten minutes for the same wrong node.
+
+**What this changes about reading a repo at scale**
+- Size is not scope. 51,182 files including `archived/` and `nuitka_build_backup/`
+  makes a graph about the *corpus*, and a corpus is not a call graph.
+- A backlog with a class and no decider is not work, it is a list of questions
+  nobody has been handed. `triage` said how each row was measured; nothing said
+  what to act on, so 101 rows sat for a session looking like progress.
+- Order the destructive decider last. `dead_candidate` is only assigned after an
+  override and a computed dispatch have both been ruled out, because "the probe
+  found no name" is the weakest of the three facts and the only one that ends a
+  function's life.
+
+**Permanent mandate**
+- Never build on a derived map without one known-answer probe through it first.
+- Report a zero only alongside the measurement that proves the counter works.
+- When a gate is red for capacity (3.6 GB free vs a 536 MB graph to rebuild),
+  record the measurement next to the red row; "stale" and "cannot rebuild here"
+  are different next actions, and only one of them is a code problem.
+
+**Related:** Error #207, Error #190, Lesson #97, ADR-018,
+`tools/mesh_function_preflight.py`, `graphify-out/graph.json`
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*
