@@ -18,6 +18,13 @@ duplicate basename under src/, a new file over 20 MB, or a new top-level path,
 and passes on the legacy bulk that was baselined. A check that fails on facts
 gets switched off, so the facts were recorded once and only deltas fail now.
 
+The parseable-file step is the same shape, and closes a hole this chain left
+open: on 2026-09-21 one HTML page saved as `.pdf` aborted a 41-minute graphify
+run, because graphify dispatches on the suffix alone. This step re-checks every
+parseable-binary file's magic bytes and fails only on offenders NEW since
+`logs/parseable_files_baseline.json`, so a lie that would abort the next graph
+pass becomes a named file here instead of a dead refresh.
+
 The graph is *not* rebuilt here on purpose: a graphify pass is minutes long,
 needs its own interpreter, and is the one artifact whose rebuild has a
 side-effect budget. `--audit-only` reports its staleness instead.
@@ -75,6 +82,8 @@ STEPS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("tools/mesh_function_preflight.py", "--verdict"), "verdict -> NEURAL_MESH_WIRE_OR_CUT.json"),
     (("tools/nature_integration_map.py",), "map -> MAP.json + INTEROP.mmd + dataset"),
     (("tools/fs_hygiene.py", "--check"), "hygiene -> regression guard"),
+    (("tools/audit_parseable_files.py", "--check"),
+     "parseable files -> mislabel regression guard"),
 )
 
 
