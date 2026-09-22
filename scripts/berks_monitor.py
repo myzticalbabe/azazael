@@ -30,15 +30,26 @@ def main() -> int:
             f.write(line + "\n")
     except OSError as e:
         print(f"log write failed: {e}")
+    # These writes are the script's stated purpose ("per-site up/down into the
+    # spine ledger; downtime becomes training signal"). Swallowing a failure
+    # here meant the training signal could stop accumulating while every run
+    # still exited successfully. Count them and say so.
+    spine_written = 0
+    spine_failed = []
     for r in rep["results"]:
         try:
             sp.record_outcome("monitor", f"berks:{r['host']}", bool(r["up"]), 0.0)
-        except Exception:
-            pass
+            spine_written += 1
+        except Exception as e:  # noqa: BLE001
+            spine_failed.append(f"{r['host']}: {type(e).__name__}")
     try:
         sp.save_spine_state()
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        spine_failed.append(f"save_spine_state: {type(e).__name__}")
+    if spine_failed:
+        print(f"WARN spine ledger not updated for {len(spine_failed)} of "
+              f"{len(rep['results'])} outcomes ({'; '.join(spine_failed[:3])})"
+              f" -- downtime is NOT becoming training signal")
     for r in rep["results"]:
         state = "UP" if r["up"] else "DOWN"
         print(f"{state} {r['host']} http={r.get('http_status')} "
