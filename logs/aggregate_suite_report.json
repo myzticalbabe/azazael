@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-09-22T16:03:26+00:00",
+  "profile": "full",
+  "targets": [
+    "tests/"
+  ],
+  "raw_output": "aggregate_suite_report.raw.txt",
+  "counts": {
+    "failed": 2,
+    "passed": 3698,
+    "errors": 0,
+    "skipped": 38
+  },
+  "summary_line": "2 failed, 3698 passed, 38 skipped, 38 warnings, 59 subtests passed in 1524.90s (0:25:24)",
+  "failed_ids": [
+    "tests/test_mesh_wire_or_cut.py::test_a_dispatched_declaration_states_where_and_why",
+    "tests/test_pool.py::test_benchmark_speedup"
+  ],
+  "error_ids": []
+}

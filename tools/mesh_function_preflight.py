@@ -793,13 +793,22 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
             continue
         key = fn.label
         old = prior.get(key) or {}
-        entries[key] = {
-            "module": fn.module,
-            "qualname": fn.qualname,
-            "line": fn.lineno,
-            "status": str(old.get("status") or "pending"),
-            "reason": str(old.get("reason") or ""),
-        }
+        # Carry the WHOLE prior disposition forward, not a hand-picked subset of
+        # it. This used to rebuild each entry with exactly four keys, so a
+        # `--verdict` re-run discarded every other recorded field -- including
+        # `evidence`, which `--propose` had filled. Measured 2026-09-22: the
+        # refresh path (`--verdict` without `--propose`) rewrote a table of 62
+        # `dispatched` rows with 0 of them carrying locations, and the contract
+        # test that requires them failed in the aggregate run against an
+        # artifact no test had touched (Error #202 -- the same field-loss as
+        # #199, one layer out: not inside a transition, but inside a rebuild).
+        entry = dict(old)
+        entry["module"] = fn.module
+        entry["qualname"] = fn.qualname
+        entry["line"] = fn.lineno
+        entry["status"] = str(entry.get("status") or "pending")
+        entry["reason"] = str(entry.get("reason") or "")
+        entries[key] = entry
     tally = Counter(e["status"] for e in entries.values())
     return {
         "generated_at": __import__("datetime").datetime.now().isoformat(),

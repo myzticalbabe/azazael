@@ -318,6 +318,40 @@ def test_proposing_twice_keeps_the_evidence():
         "a re-run dropped the evidence it had already measured: %r" % entry)
 
 
+def test_a_verdict_rebuild_keeps_the_evidence_too():
+    """The rebuild path must preserve a disposition, not just the transition.
+
+    `wire_or_cut` is what `--verdict` runs, and the refresh path runs it WITHOUT
+    `--propose`. It rebuilt each entry with four hand-picked keys, so every field
+    a disposition had accumulated -- `evidence` among them -- was discarded on a
+    plain regeneration. Measured 2026-09-22: the shipped table came back with 62
+    `dispatched` rows and 0 of them carrying locations, and the contract test
+    failed in the aggregate run against an artifact nothing had edited by hand
+    (Error #202). `--propose` twice is the earlier, narrower version of this
+    test; this one names the rebuild.
+    """
+    label = "communication:ProtocolNegotiator.negotiate"
+    fn = type("F", (), {})()
+    fn.module = "communication"
+    fn.qualname = "ProtocolNegotiator.negotiate"
+    fn.lineno = 205
+    fn.label = label
+    fn.failures = ["PF16"]
+
+    triaged = mfp.propose(mfp.wire_or_cut([fn]))
+    assert triaged["declared"][label]["evidence"], (
+        "nothing to preserve -- the first pass recorded no evidence")
+
+    rebuilt = mfp.wire_or_cut([fn], triaged["declared"])
+    entry = rebuilt["declared"][label]
+    assert entry["status"] == "dispatched"
+    assert entry["evidence"], (
+        "a --verdict rebuild dropped the evidence it had not measured: %r" % entry)
+    assert entry["reason"], "a --verdict rebuild dropped the recorded reason"
+    # ...while the fields that must track the tree are still refreshed.
+    assert entry["line"] == 205 and entry["module"] == "communication"
+
+
 def test_triage_labels_the_pending_backlog_without_deciding_it(table):
     """A class is not a disposition: `triage` must never touch `status`."""
     labelled = mfp.triage(json.loads(json.dumps(table)))

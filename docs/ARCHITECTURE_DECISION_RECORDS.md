@@ -659,7 +659,14 @@ the failure message reports.
 3. **Never compare a `now()`-derived value for equality across two calls.**
    Compare the reported fields; bound the delta of the quantity that moves.
 4. **A performance claim on a shared machine needs best-of-N and a workload
-   large enough that fixed overhead is a small fraction of it.**
+   large enough that fixed overhead is a small fraction of it** -- and if it
+   still reports the load, replace the proxy with the property it stood for.
+   The 2-worker speedup assertion survived best-of-N at a raised workload and
+   then read 0.687 with a graph rebuild on the CPU. What it was really claiming
+   is "two workers are in flight at once", which a two-party
+   `threading.Barrier` proves at the same speed on an idle box and a busy one
+   (`test_two_workers_run_concurrently`). The throughput numbers are still
+   measured and printed; they are simply not the thing the build fails on.
 
 ### Consequences
 
