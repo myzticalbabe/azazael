@@ -11,6 +11,8 @@ wolf gets switched off). These tests pin both directions on synthetic bytes.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import os
 import sys
 import unittest
@@ -20,6 +22,7 @@ _ROOT = os.path.dirname(_HERE)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+from tools import audit_parseable_files as ap  # noqa: E402
 from tools.audit_parseable_files import (  # noqa: E402
     SIGNATURES, TEXT_EXTS, _looks_textual)
 
@@ -69,6 +72,28 @@ class TestTextualProbe(unittest.TestCase):
         # graphify reads these as text, so a mislabel cannot abort a parse.
         for ext in (".md", ".html", ".txt"):
             self.assertIn(ext, TEXT_EXTS)
+
+
+class TestDeepReporting(unittest.TestCase):
+    """A deep pass must say WHAT it opened, not just what failed.
+
+    `--deep` opens every PDF with pypdf. On a tree full of PDFs that is
+    legitimately slow, and a run that only printed the corrupt count would be
+    indistinguishable from a hang -- so the count of opened PDFs is part of the
+    contract the startup guard reports on.
+    """
+
+    def test_scan_exposes_the_deep_pdf_contract(self):
+        res = ap.scan(deep=False)
+        self.assertIn("deep_pdfs", res)
+        self.assertEqual(res["deep_pdfs"], [],
+                         "without --deep nothing should be deep-parsed")
+
+    def test_deep_pass_reports_the_number_it_opened(self):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            ap.main(["--check", "--deep"])
+        self.assertIn("deep-parsed pdfs:", buf.getvalue())
 
 
 if __name__ == "__main__":

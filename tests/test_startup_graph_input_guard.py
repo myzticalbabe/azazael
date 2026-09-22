@@ -12,9 +12,13 @@ session -- a guard that can itself stop the session is worse than no guard.
 """
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import os
+import re
 import sys
+import types
 import unittest
 from unittest import mock
 
@@ -56,6 +60,46 @@ class TestStartupGraphInputGuard(unittest.TestCase):
         self.assertIn("--check", seen["cmd"])
         self.assertTrue(any("audit_parseable_files" in str(a) for a in seen["cmd"]))
 
+    def test_guard_requests_the_deep_pdf_check(self):
+        """Magic bytes alone miss a TRUNCATED PDF -- only a real parse rejects it.
+
+        A truncated PDF still starts with `%PDF`, so the shallow signature check
+        passes it, yet pypdf (the parser graphify picks for `.pdf`) aborts on it
+        -- exactly the 2026-09-21 failure. The startup guard must therefore ask
+        for `--deep`, not just `--check`.
+        """
+        seen = {}
+
+        class _Done:
+            returncode = 0
+            stdout = "OK: no new mislabelled files\n"
+            stderr = ""
+
+        with mock.patch.object(check_tooling.subprocess, "run",
+                               lambda cmd, **kw: (seen.__setitem__("cmd", cmd), _Done())[1]):
+            check_tooling.check_graph_input_hygiene()
+        self.assertIn("--deep", seen["cmd"],
+                      "startup must deep-parse PDFs, not just check magic bytes")
+
+    def test_guard_surfaces_the_deep_pdf_count(self):
+        """The note must say how many PDFs the deep pass read.
+
+        A deep scan over a PDF-heavy tree is legitimately slow; reporting only
+        pass/fail would make a slow startup look like a stalled one.
+        """
+        class _Done:
+            returncode = 0
+            stdout = ("checked 500 parseable-binary file(s)\n"
+                      "deep-parsed pdfs: 3\n"
+                      "OK: no new mislabelled files\n")
+            stderr = ""
+
+        with mock.patch.object(check_tooling.subprocess, "run",
+                               lambda *a, **k: _Done()):
+            res = check_tooling.check_graph_input_hygiene()
+        self.assertIn("deep-parsed pdfs: 3", res["note"])
+        self.assertTrue(res["ok"])
+
     def test_a_new_mislabel_is_reported_as_not_ok(self):
         class _Fail:
             returncode = 1
@@ -75,6 +119,80 @@ class TestStartupGraphInputGuard(unittest.TestCase):
             res = check_tooling.check_graph_input_hygiene()
         self.assertTrue(res["ok"], "a broken guard must fail SAFE, not fail startup")
         self.assertFalse(res["available"])
+
+
+class TestStartupSequenceOrder(unittest.TestCase):
+    """Section [8] must run DURING startup, before the graph is ever built.
+
+    The guard is worthless if it lands after `graphify update .` has already
+    aborted -- the whole point is to catch the bad input before the ~40-minute
+    run starts. Nothing in the startup path builds the graph itself (that is
+    the later maintenance chain), so the property worth pinning is that the
+    check is invoked by `main()` at all, and that it fires before the session's
+    later steps. If a future refactor moves the check out of startup (e.g. into
+    the refresh chain, i.e. after the graph), these tests fail.
+    """
+
+    def _run_main_with_order(self) -> list:
+        order: list = []
+
+        class _Store:
+            def integrity_check(self):
+                return {"ok": True}
+
+            def query_memories(self, **kw):
+                return []
+
+        fake_mem = types.ModuleType("CORE.local_memory")
+        fake_mem.get_memory_store = lambda: _Store()
+
+        class _Proc:
+            returncode = 0
+            stdout = "3.14.0\n"
+            stderr = ""
+
+        def _hygiene(*a, **k):
+            order.append("hygiene")
+            return {"available": True, "ok": True, "note": "ok"}
+
+        def _record(*a, **k):
+            order.append("record")
+            return True
+
+        with mock.patch.dict(sys.modules, {"CORE.local_memory": fake_mem}), \
+                mock.patch.object(check_tooling, "check_cli",
+                                  lambda *a, **k: {"name": "x", "available": True,
+                                                   "version": "1"}), \
+                mock.patch.object(check_tooling, "check_pip_package",
+                                  lambda *a, **k: {"name": "x", "available": True}), \
+                mock.patch.object(check_tooling, "check_npm_package",
+                                  lambda *a, **k: {"name": "x", "available": True}), \
+                mock.patch.object(check_tooling.subprocess, "run",
+                                  lambda *a, **k: _Proc()), \
+                mock.patch.object(check_tooling, "check_graph_input_hygiene", _hygiene), \
+                mock.patch.object(check_tooling, "_record_with_timeout", _record), \
+                contextlib.redirect_stdout(io.StringIO()):
+            check_tooling.main()
+        return order
+
+    def test_main_invokes_the_graph_input_guard(self):
+        order = self._run_main_with_order()
+        self.assertIn("hygiene", order,
+                      "startup must run the graph-input guard, not just define it")
+
+    def test_guard_runs_before_the_later_session_steps(self):
+        order = self._run_main_with_order()
+        self.assertEqual(order, ["hygiene", "record"],
+                         "the graph-input check must precede session recording; "
+                         "anything that builds a graph comes after both")
+
+    def test_guard_call_site_lives_inside_main(self):
+        """Cheap structural backstop: exactly one call site, and it is in main."""
+        src = open(_CHECK_TOOLING, encoding="utf-8").read()
+        self.assertEqual(src.count("check_graph_input_hygiene()"), 1,
+                         "the guard should have exactly one call site (in main)")
+        main_body = src[src.index("def main()"):]
+        self.assertRegex(main_body, re.compile(r"check_graph_input_hygiene\(\)"))
 
 
 if __name__ == "__main__":
