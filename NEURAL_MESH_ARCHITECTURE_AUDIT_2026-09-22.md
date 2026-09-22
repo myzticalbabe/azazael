@@ -610,6 +610,17 @@ location rather than a claim.
 | `tests/test_memory_db_isolation.py` | ✅ 2 passed (and falsified without the fixture) |
 | fs_probe guard repro pair | ✅ `10 failed, 28 passed` → **38 passed** |
 | `tests/test_sentinel_thread_permit.py` | ✅ 2 passed (and falsified without the swap) |
+| **aggregate suite, run 10 (contended box)** | ⚠️ **27 failed · 3,680 passed · 0 errors · 1,468 s** — 25 of the 27 were one defect (Error #205); the other 2 were Error #206 |
+| **aggregate suite, run 11 — both defects fixed, clean load** | ✅ **0 failed · 3,712 passed · 38 skipped · 0 errors · 1,528.7 s (0:25:28)**. Session arc: **45 failed / 69 errors → 11 → 2 → 1 → 27 (contended) → 0** |
+| torch-state instrument, armed on run 11 | ✅ **NO partial torch observed in 11,276 phases** — run 10 saw 7 broken phases of 11,261, run 6 saw 0 of 11,219. The polluter is gone and the instrument that named it now reports absence, which is the evidence the fix needed |
+| `tools/type_check_gate.py --check` after the fixes | ✅ OK: no new diagnostics (1,384 known, **1,384 unchanged** — no churn either way, so the edits added and moved nothing) |
+| `tools/artifact_freshness.py` after refreshing the mesh maps | **6 of 8 current** (`FUNCTION_TODO`, `WIRE_OR_CUT`, `WIRE_OR_CUT_WORKLIST`, `INTEGRATION_MAP`, `INTEROP.mmd`, `capability_wiring_dataset`); the two `graphify-out/` artifacts are **still stale** — see below |
+| `scripts/graph_refresh_no_llm.py` (graph pair) | ❌ **failed**: `update .` extracted **51,186/51,186 files** then died `rc=4294967295` (-1) after 1,024 s with no error text, and `cluster-only` re-clustered the *old* graph (rc=0, 7 s). Retrying is a ~17-minute gamble on a 536 MB output; the version warning in the log (`skill is from graphify 0.9.55, package is 0.8.8`) is the first thing to rule out. Stated as outstanding, not folded into a green claim |
+| torch-state instrument, armed on run 10 | ✅ **it named the polluter**: `13:12:02 FIRST PARTIAL torch ... missing=nn,Tensor,optim,autograd submodules=184`, 7 of 11,261 phases. Run 6 with the same instrument saw 0 of 11,219 — the difference between the runs is contention, which is the variable the earlier diagnosis was missing |
+| `tests/test_nerve_torch_import.py` (new) | ✅ 4 passed — and **3 of the 4 fail against the daemon-thread implementation** (verified by re-installing it and re-running) |
+| torch-dependent family, one process, after the fix | ✅ **195 passed** (`test_eve_unleashed` + `test_inference` + `test_sb3_agent` + `test_training_orchestrator` + `test_nerve_torch_import` + `test_proteus_organs`) — the same six files that held 25 of run 10's 27 failures |
+| `tests/test_mesh_html_view.py` after vendoring vis.js | ✅ **6 passed in 3.9 s** (was 4 passed / 1 failed in 29 s — most of the old wall time was waiting on DNS for a library that was already in the repo) |
+| isolation batch after both fixes (`spine_mesh`, `fs_probe_backend`, `sentinel_thread_permit`, memory-DB pair, `mesh_wire_or_cut`, `type_check_gate`, `compliance_deadlock_regression`, `pool`) | ✅ **157 passed · 1 skipped** |
 
 ### 7.10 The neural loop, end to end (measured 2026-09-22, not inferred)
 
@@ -729,6 +740,132 @@ registered, so every run emitted `PytestUnknownMarkWarning`. It is registered in
 (`test_parallel_integration.py:450`, `test_inference_integration.py:1054`) filter on
 that mark BY NAME, so a typo would silently stop applying it rather than fail.
 
+### 7.17 An abandoned import thread poisoned every later `import torch` (new, Error #205)
+
+Run 10 reported **27 failed / 3,680 passed**, and 25 of the 27 were the same
+failure in four unrelated files: `partially initialized module 'torch' ... has no
+attribute 'distributed'`. Every one of those files passes alone, passes as a pair,
+and passed in run 9 on the same code.
+
+The cause is one line of intent in `CORE/WORMS/expansion/nerve.py`. The lazy torch
+loader bounded its import by running it on a daemon thread and returning after a
+25 s join -- **and leaving the thread running** if the join expired. Walking away
+from a live importer does not bound the import, it forks it: the thread keeps
+executing torch's module body while `sys.modules['torch']` is the module object
+mid-construction, so the next `import torch` anywhere in the process is handed the
+corpse instead of importing.
+
+The instrument that had been armed for two runs named it rather than leaving it to
+inference: `missing=nn,Tensor,optim,autograd submodules=184` is not a first import
+in progress, it is a *second* import running beside 184 registered children of a
+previous one. Root cause reproduced standalone in eight seconds -- three threads
+first-importing torch after purging `sys.modules` fail on attempt 2 with
+`ValueError: module functions cannot set METH_CLASS or METH_STATIC`.
+
+Fixed by removing the thread entirely: a **killable subprocess probe** establishes
+whether torch imports on this host at all, and if it does, the load happens in the
+caller's thread under a process-wide lock (ADR-017). Measured: probe 1.2 s, import
+0.87 s, `state=ready`, no `torch-import` thread, three concurrent first users share
+one module object.
+
+Blast radius, verified before changing it: `expansion/nerve.py` has exactly four
+import sites -- `spine.py:135` (production), `tests/test_proteus_organs.py`,
+`tests/test_nerve_torch_import.py`, `scripts/verify_proteus.py`.
+
+### 7.18 The mesh view needed the internet, so its verifier graded the network (new, Error #206)
+
+The other two failures in run 10 were `ReferenceError: vis is not defined`: the
+generated artifact linked vis.js from `unpkg.com`, the box had no route there, and
+the page never initialised. `tools/verify_mesh_html.py` reported exactly what it
+saw -- "the graph never initialised" -- and the defect was that a *passing check
+was conditional on the network*. The 9.1.2 UMD build the CDN serves was already
+vendored at `lib/vis-9.1.2/vis-network.min.js`.
+
+Fixed at the generator (`tools/gephi_mesh_pipeline.py` computes a
+document-relative href and **raises** rather than falling back to the CDN), arti-
+fact regenerated, and pinned by `test_the_view_links_a_bundle_that_is_actually_there`.
+The negative control had to change with it: a bare copy of a sibling-linked
+artifact loses the library, so the copy now reproduces the layout and the only
+difference from the real artifact is the injected dangling edge.
+
+**Scanning the class rather than the instance** found **52** generated views in the
+same position under `graphify-out/`, `graphs/`, `dashboard/` and `output/`
+(`unpkg`, `cdnjs`, `jsdelivr`). Only the mesh view has a verifier, so the other 51
+fail silently wherever they are opened offline -- recorded as AR-13 rather than
+folded into this fix.
+
+Also measured here, for AR-11: the corpus graph is built over **51,182 files /
+203M words including `archived/` and `nuitka_build_backup/`**, so its top hub is
+`BIBL Terms: F` at 367,598 edges and its top *code* hubs are C macros from vendored
+onnxruntime (`HAS_ERROR_OCCURRED()`, 1,557). Its centrality answers questions about
+the corpus, not about this repository.
+
+### 7.19 The corpus map, asked a code question (new, Error #207)
+
+The two commands were run against a question whose answer was already known --
+whether anything reaches `db_monitor:DatabaseMonitorWorm.create_backup`, one of
+the 101 pending PF16 rows:
+
+```
+$ graphify explain "create_backup"
+Node: create_backup
+  ID:        bibl_c_create_backup
+  Source:    src/ORCHESTRATION/BIBL/C.md L8356
+  Type:      document
+  Degree:    1
+Connections (1):
+  <-- 4 = Dry run [contains] [EXTRACTED]
+
+$ graphify query "who calls DatabaseMonitorWorm create_backup backup" --budget 700
+Traversal: BFS depth=2 | 3 nodes found
+NODE create_backup        [src=src/ORCHESTRATION/BIBL/C.md loc=L8356]
+NODE DatabaseMonitorWorm  [src=src/CORE/WORMS/expansion/db_monitor.py loc=L93]
+NODE DatabaseMonitorWorm  [src=src/CORE/.registry_cache.json loc=L1]
+```
+
+The name resolved to a prose entry (`Type: document`), the class resolved correctly,
+and there are no call edges in the result at all. Node load is 10.7 s, so this is not
+a budget or phrasing problem: `explain` and `query` share one node space, and that
+space is the corpus. AR-11 said the centrality was about the corpus; this says the
+*reachability* is too, and it says it with a wrong answer rather than an inference.
+
+Consequence: PF16 reachability stays with the AST probe (`_reference_index`,
+`string_references`), whose subject is this tree. The map is recorded out of scope
+for code reachability so the next session does not re-spend the ten minutes.
+
+Artifact freshness, measured in the same pass: **6 of 8 current**; the two stale rows
+are `graphify-out/graph.json` and `GRAPH_REPORT.md`, both owed to this session's
+`nerve.py` edit, and the rebuild needs more memory than this host has free --
+**3.6 GB available of 15.4 GB** against a 536 MB graph that is held whole and
+re-serialised. Recorded as capacity, not code, and the gate stays red.
+
+### 7.20 101 pending rows now carry the fact that decides them (new, ADR-018)
+
+`triage()` gave every pending row a *class* -- how it was measured -- and no
+decider, so the backlog was 101 questions nobody had been handed. A second disjoint
+label is now computed per row from the tree itself:
+
+| Decider | Pending | Fact |
+|---|---|---|
+| `test_is_the_wire` | 40 | a test is the only caller |
+| `dead_candidate` | 56 | no caller, no override, no computed dispatch |
+| `dynamic_call` | 5 | the defining module builds a call target at runtime |
+| `protocol_or_override` | 0 | the name is defined by another class |
+
+Total 101, disjoint, and `status` is untouched -- asserted in both directions, the
+same way `triage` is. The zero is a validated finding rather than an empty scan: the
+index behind it was measured first (**3,371** method names, `run` in 28 classes,
+`detect` in 7, 45 files with a computed `getattr`), because a broken walk returns 0
+overrides for everything and reads exactly like "nothing is overridden". PF16 excludes
+`PROTOCOL_METHODS` at discovery, so the surviving rows are single-definition names by
+construction; the override decider exists to catch the next one.
+
+The destructive decider is assigned **last**: an override and a computed dispatch are
+both ruled out before `dead_candidate` may be written, since "the probe found no name"
+is the weakest of the three facts and the only one whose error deletes capability.
+`_resolve_module` returns `None` on an ambiguous stem instead of picking the first
+candidate, so one `db_monitor.py` cannot lend another its dispatch evidence.
+
 ## 8. Architecture quality scorecard
 
 | Dimension | Score | Assessment |
@@ -774,7 +911,8 @@ unnoticed: nobody re-checks a conclusion that sounds like a fact about the code.
 | AR-8 | Reduce `worm_registry` from 166 inbound edges (facade + narrow imports) | 2d | 🟠 | P1 |
 | AR-9 | Triage the 255 write-swallowing handlers (PRESSURE on data-loss paths) | 1d | 🟠 | P1 |
 | AR-10 | Retire the 17 `shell=True` sites to argv lists | 2h | 🟡 | P2 |
-| AR-11 | Exclude vendored archives from the graph corpus so hubs describe this repo | 2h | 🟡 | P2 |
+| AR-11 | Exclude vendored archives from the graph corpus so hubs describe this repo — **measured 2026-09-22**: 51,182 files / 203M words, top hub `BIBL Terms: F` (367,598 edges), top code hubs are vendored onnxruntime C macros. Its centrality is not a statement about this codebase | 2h | 🟡 | P2 |
+| AR-13 | Vendor the renderer for the other **52** generated views that still fetch from unpkg / cdnjs / jsdelivr (only `mesh_gephi_interactive.html` has a verifier, so the rest fail silently offline) — Error #206 | 3h | 🟡 | P2 |
 | AR-12 | Commit or discard the 3,759-entry dirty tree (3,150 `output/` deletions) | 2h | 🟠 | P1 |
 
 ## 10. Enforced invariants added this session
@@ -798,3 +936,9 @@ unnoticed: nobody re-checks a conclusion that sounds like a fact about the code.
 | `test_memory_dir_caching.py::test_the_scan_finds_the_known_cachers` | the scanner itself is checked against five modules it must find, so a silent scan cannot pass |
 | `test_mesh_wire_or_cut.py::test_proposing_twice_keeps_the_evidence` | a re-runnable instrument keeps the measurements it made |
 | `test_mesh_wire_or_cut.py::test_triage_labels_the_pending_backlog_without_deciding_it` | a triage pass cannot change a status, and the class counts must add up |
+| `test_nerve_torch_import.py::test_the_import_runs_on_the_calling_thread` | no helper thread is constructed for the import, so none can be abandoned (three of these four fail against the daemon-thread version) |
+| `test_nerve_torch_import.py::test_a_failed_probe_declines_without_importing` | an unproven host means numpy **and** nothing left running to race (`seconds == 0.0`) |
+| `test_nerve_torch_import.py::test_a_ready_module_is_complete` | "loaded" must mean the attributes a completed import has, and the duration must be recorded |
+| `test_nerve_torch_import.py::test_concurrent_first_users_share_one_import` | three threads get one module object and no error -- the interpreter-level race the lock exists for |
+| `test_mesh_html_view.py::test_the_view_links_a_bundle_that_is_actually_there` | a generated view may not fetch its renderer over the network, and the href it does use must resolve |
+| `tools/mesh_function_preflight.py` (stderr guard) | `--propose/--triage/--worklist` without `--verdict` now say they were ignored; before, `--triage --worklist` silently wrote nothing and left a 3-hour-old worklist on disk, which reads like "the backlog is empty" |

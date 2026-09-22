@@ -7482,3 +7482,252 @@ and says so instead of waiting out a timeout and blaming the loop.
 - If a test can detect a stopped component, assert the component is still alive during the wait, so the failure names the component rather than the clock.
 
 **Related:** Error #201, Error #197, Lesson #95, `tests/test_spine_mesh.py`, `src/CORE/startup_warm.py`
+
+---
+
+## Error #205 — An Abandoned Import Thread Poisons `sys.modules` for Every Later Importer (September 22, 2026)
+
+### Symptom
+Aggregate run 10 (14:18 EDT, 24:28 wall) reported **27 failed / 3,680 passed**. 25 of
+the 27 are torch-family tests, all with the same message:
+
+```
+AttributeError: partially initialized module 'torch' from
+'...\site-packages\torch\__init__.py' has no attribute 'distributed'
+```
+
+| file | failed |
+|---|---|
+| `tests/test_eve_unleashed.py` | 5 |
+| `tests/test_inference.py` | 2 |
+| `tests/test_sb3_agent.py` | 17 |
+| `tests/test_training_orchestrator.py` | 1 |
+
+Every one of those files passes alone, passes as a pair, and passed in run 9 (1
+failed / 3,700 passed) on the same code. The first chronologically is
+`test_model_loader_detect_frameworks`, whose traceback ends inside
+`torch/_jit_internal.py` at its own `import torch.distributed.rpc` -- the circular
+import that file's header comment says exists to *avoid* the error.
+
+### Evidence
+`tools/torch_state_watch.py` was armed for the run (`-p torch_state_watch`) and
+names the state, not a neighbour:
+
+```
+13:12:02 FIRST PARTIAL torch after call
+  tests/test_training_orchestrator.py::TestSchedulingCardDataFlow::test_build_html_all_cards_present
+  : missing=nn,Tensor,optim,autograd submodules=184
+13:14:36 SUMMARY ... (broken phases: 7 of 11261)
+```
+
+`submodules=184` with a parent missing `nn`/`Tensor`/`optim`/`autograd` is not a
+module being imported for the first time -- it is a *second* import running while
+184 children of a previous one are already registered.
+
+### Root cause
+`src/CORE/WORMS/expansion/nerve.py` bounded its lazy torch import like this:
+
+```python
+worker = threading.Thread(target=_load, name="torch-import", daemon=True)
+worker.start()
+worker.join(self.IMPORT_TIMEOUT_S)          # 25 s
+if worker.is_alive():
+    self._state = "timeout"                 # ...and the thread is left running
+```
+
+Walking away from a live importer does not bound the import, it forks it. The
+abandoned thread keeps executing torch's module body, so `sys.modules['torch']`
+is a module object mid-construction; the next `import torch` in the process --
+from any thread, any test, any library -- is handed that object instead of
+importing, and every attribute torch has not yet set is an `AttributeError`.
+`expansion/spine.py:1248` constructs a `Neuromodulator` (default
+`use_torch=True`), so the suite reaches this loader; a contended box is what
+stretches the import past 25 s, which is why runs 5 and 10 (both contended) show
+25 failures and the uncontended runs show none.
+
+Reproduced outside pytest, in eight seconds, with three threads first-importing
+torch after purging `sys.modules`:
+
+```
+attempt 1: errors=none
+attempt 2: errors=['threadA: ValueError: module functions cannot set METH_CLASS
+                    or METH_STATIC', 'main: ...', 'threadB: ...']
+```
+
+A different message, the same class: this interpreter does not tolerate two
+first-imports of torch at once, and an abandoned importer is exactly a second
+first-import that nobody is waiting for.
+
+### Fix
+`_LazyTorch` no longer imports on a helper thread at all:
+
+* `_probe()` runs `sys.executable -c "import torch"` in a **killable subprocess**
+  with `IMPORT_TIMEOUT_S` as the bound, and with stdin/stdout/stderr on DEVNULL
+  rather than pipes (a pipe-free child cannot outlive the kill -- `fs_probe.py`
+  hazard 1). A probe that fails or times out means this process never touches
+  torch: state `timeout`, numpy fallback, nothing left running to race;
+* a probe that succeeds is followed by `import torch` **in the caller's thread**,
+  which is what `cppn.py:149`, `oracle.py:474` and the rest of the package already
+  do, under a process-wide `_lock` so two callers cannot start together;
+* the measured duration is kept as `.seconds`, so "slow but successful" is now
+  observable instead of inferred from a timeout.
+
+Measured here: probe 1.2 s, in-process import 0.87 s, `state=ready`, no
+`torch-import` thread, and three concurrent first users all receive one module
+object. `tests/test_nerve_torch_import.py` pins each property and **fails three
+of four** against the daemon-thread implementation.
+
+### Prevention
+- Never bound work by abandoning a thread you cannot kill. If the work mutates
+  process state (an import, a registry, a global), the walk-away is the bug.
+- An import is a probe. Bound it with a *process* you can kill, not a thread you
+  cannot (`CORE/fs_probe.py` exists for exactly this reason and already lists
+  this file as case 5).
+- A flaky 25-test cluster that no prefix reproduces is evidence of process state,
+  not of test interference. Arm a state probe before re-running.
+
+**Related:** Error #197, Error #200, Lesson #98, ADR-017,
+`src/CORE/WORMS/expansion/nerve.py`, `tools/torch_state_watch.py`,
+`tests/test_nerve_torch_import.py`
+
+---
+
+## Error #206 — A Generated Artifact Depended on the Internet, So Its Verifier Graded the Network (September 22, 2026)
+
+### Symptom
+Two `tests/test_mesh_html_view.py` failures in the same run, while the artifact was
+structurally fine:
+
+```
+console   : 1 error/warning
+    network: Failed to load resource: net::ERR_NAME_NOT_RESOLVED
+pageerror : 1
+    ReferenceError: vis is not defined
+      at .../graphify-out/mesh_gephi_interactive.html:24:15
+FAIL
+  - the graph never initialised (window.__mesh was never set)
+  -   typeof vis='undefined', typeof __mesh='undefined'
+```
+
+`tools/verify_mesh_html.py` was right about what it saw, and the failure has
+nothing to do with the mesh: the page could not fetch its graph library.
+
+### Root cause
+The generator templated a CDN reference into every artifact:
+
+```html
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+```
+
+With no route to unpkg the page never initialises, so a passing check was
+conditional on the network of whichever machine ran it. The same run that found
+this also passed the *positive* checks the day before on the same artifact -- the
+only variable was connectivity. `lib/vis-9.1.2/vis-network.min.js` (the 9.1.2 UMD
+build, the same file the CDN serves) was already vendored in the repo.
+
+### Fix
+* `tools/gephi_mesh_pipeline.py` links the vendored bundle by a
+  document-relative href computed from `out_dir` (`../lib/vis-9.1.2/...`), and
+  raises rather than falling back to the CDN if the bundle is missing -- a
+  missing asset is a packaging defect, and a silent fallback would move the
+  failure back to a machine's network.
+* `test_the_view_links_a_bundle_that_is_actually_there` asserts no
+  `unpkg`/`cdnjs`/`jsdelivr` in the artifact and that the href resolves to a file
+  >100 KB. Falsified by the CDN template, which is what run 10 ran.
+* The negative control had to change with it: a bare copy of a sibling-linked
+  artifact loses the library, so the copy now reproduces the *layout*
+  (`<tmp>/graphify-out/broken_mesh.html` beside `<tmp>/lib/...`) and the only
+  difference from the real artifact is the injected dangling edge.
+
+Artifact regenerated (`--html`, 304 nodes / 343 edges); the file moved 6 passed
+in 3.9 s, down from 29 s, because nothing waits on DNS any more.
+
+### Prevention
+- A check inherits its subject's dependencies. If the subject needs the network,
+  the check is measuring the network.
+- Vendor what a generated artifact needs, and link it relatively, so "does it
+  work" is a property of the repo and not of the host.
+- When the artifact gains a sibling dependency, the negative control must copy the
+  layout, not just the file -- otherwise the control fails for the injected
+  reason's opposite.
+
+**Related:** Error #190, Lesson #96, Lesson #99, ADR-017,
+`tools/gephi_mesh_pipeline.py`, `tests/test_mesh_html_view.py`
+
+---
+
+## Error #207 — The Corpus Map Is a Document Index, and It Answered a Call Question with a Bibliography Entry (September 22, 2026)
+
+### Symptom
+The wire-or-cut probe (PF16) has 101 pending rows whose decision depends on one
+question: *does production reach this function?* The derived corpus graph was
+asked that question directly, because it is the largest and most complete map in
+the repository and it sat unused.
+
+```
+$ graphify explain "create_backup"
+Node: create_backup
+  ID:        bibl_c_create_backup
+  Source:    src/ORCHESTRATION/BIBL/C.md L8356
+  Type:      document
+  Degree:    1
+Connections (1):
+  <-- 4 = Dry run [contains] [EXTRACTED]
+
+$ graphify query "who calls DatabaseMonitorWorm create_backup backup" --budget 700
+Traversal: BFS depth=2 | 3 nodes found
+NODE create_backup        [src=src/ORCHESTRATION/BIBL/C.md loc=L8356]
+NODE DatabaseMonitorWorm  [src=src/CORE/WORMS/expansion/db_monitor.py loc=L93]
+NODE DatabaseMonitorWorm  [src=src/CORE/.registry_cache.json loc=L1]
+```
+
+Both commands returned a confident, well-formed answer that is wrong about the
+subject. The name `create_backup` resolved to a prose entry in a bibliography
+file; the *class* resolved correctly to `src/CORE/WORMS/expansion/db_monitor.py`.
+Three nodes, no callers, and not one of them is the function being asked about.
+
+### Root cause
+`graphify-out/graph.json` is a corpus index, not a code graph. Its extraction
+space is dominated by prose and vendored sources, so a bare identifier that
+exists in both a document and a module collides, and the document node wins. Its
+edges (`contains`, membership, `EXTRACTED`) encode document structure; a Python
+call is not one of them. The earlier centrality measurement was the same fact
+seen from the other end -- "the top hub is `BIBL Terms: F` with 367,598 edges"
+is not a surprising graph, it is a different graph than the one being read.
+
+### Consequence, and what is correct
+- Reachability questions are answered by the AST probes
+  (`tools/mesh_function_preflight.py`: `_reference_index`, `string_references`),
+  which read `Name`, `Attribute` and identifier-like string constants in this
+  tree. That instrument is what PF16 already uses, and this measurement is why
+  it is the right one.
+- The corpus graph remains correct for what it is: corpus provenance,
+  cross-document links, and "where is this discussed". It is now recorded as
+  out of scope for code reachability so the next session does not spend the same
+  ten minutes and get the same wrong node.
+- `--budget` and `--context` do not change this; `explain` and `query` share the
+  same node space, so a re-phrased question returns the same collision.
+
+### Also measured (same session)
+- The graph artifacts are the only two `STALE` rows in the freshness gate, and
+the rebuild that would clear them needs memory this host does not have:
+**3.6 GB available of 15.4 GB**, against a 536 MB `graph.json` that must be held
+and re-serialised. The gate stays red and the reason is capacity, not code —
+recorded rather than silenced by dropping the artifacts from the gate.
+- A `setsid nohup` launch silently does nothing in this shell (`setsid: command
+not found` leaves the log at 49 bytes, which reads like an instant crash).
+`(cmd &)` in a subshell is what actually detaches here.
+
+### Prevention
+- Before using a map, measure it against a question whose answer you already
+  know. An instrument that returns a well-formed wrong answer is more dangerous
+  than one that errors, because the output looks exactly like success.
+- Ask what the node space *contains*, not how large it is. 688,627 nodes and
+  51,186 files said nothing about whether the graph holds call edges.
+- When a gate is red for a capacity reason, record the capacity measurement next
+  to the red row; "stale" and "cannot be rebuilt on this host" need different
+  next actions.
+
+**Related:** Error #190, Error #203, ADR-018,
+`tools/mesh_function_preflight.py`, `graphify-out/graph.json`,
+`tools/artifact_freshness.py`

@@ -712,6 +712,32 @@ WORKLIST_OUT = REPO / "NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md"
 #: means for the DECISION (not for the status).
 TRIAGE_CLASSES = ("test_reached_only", "no_reference_anywhere")
 
+#: The fact that DECIDES a pending row, as opposed to the class that records how
+#: it was measured. A class is what the probe saw; a decider is which fact the
+#: operator has to act on. Still not a disposition -- `dead_candidate` is a
+#: candidate, and Error #190 is what happens when a probe writes the status.
+#: Added 2026-09-22: 101 rows sat with a class and no decider, which reads as a
+#: backlog but is really a list of questions nobody has been handed.
+DECIDERS = ("protocol_or_override", "dynamic_call", "test_is_the_wire",
+            "dead_candidate")
+
+DECIDER_MEANING = {
+    "protocol_or_override": (
+        "the same name is defined by another class in the tree, so a caller can "
+        "reach it through a base or an interface -- keep or retire, but a "
+        "name-based reference search can never settle it"),
+    "dynamic_call": (
+        "the defining module builds a call target at runtime (`getattr` with a "
+        "computed name), so 'no reference' is the probe's limit, not proof of "
+        "death -- wire explicitly or leave, but do not cut on this evidence"),
+    "test_is_the_wire": (
+        "a test is the only caller: accept the test as the wire, or give "
+        "production a caller -- either way it is a decision, not a defect"),
+    "dead_candidate": (
+        "no caller of any kind, no override, no computed dispatch anywhere in "
+        "the defining module -- the retirement pool"),
+}
+
 #: How each class reads as an action, so the worklist says what to do rather
 #: than only how the row was measured. A class is still not a disposition.
 TRIAGE_MEANING = {
@@ -825,6 +851,13 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
         entry["module"] = fn.module
         entry["qualname"] = fn.qualname
         entry["line"] = fn.lineno
+        # The path segment disambiguates two modules with the same stem, which
+        # is what a name-based reference index cannot do (there are several
+        # `db_monitor`/`spine`-style stems across the tree). Read defensively:
+        # the contract tests drive this with a stub Func, and a rebuild that
+        # demands more of its caller than the previous one did is the same
+        # shape as the field-loss this method already produced twice.
+        entry["seg"] = getattr(fn, "seg", "")
         entry["status"] = str(entry.get("status") or "pending")
         entry["reason"] = str(entry.get("reason") or "")
         entries[key] = entry
@@ -972,6 +1005,118 @@ def triage(table: dict) -> dict:
         entry["triage_evidence"] = hits[:3]
         tally[klass] += 1
     table["triage_counts"] = {k: tally.get(k, 0) for k in TRIAGE_CLASSES}
+    decide(table)
+    return table
+
+
+_METHOD_INDEX: dict[str, set[str]] | None = None
+_DYNAMIC_CALL_FILES: set[str] | None = None
+_FILES_BY_STEM: dict[str, list[str]] | None = None
+
+
+def _decider_index() -> tuple[dict[str, set[str]], set[str], dict[str, list[str]]]:
+    """(method name -> classes defining it, files with a computed call, files).
+
+    One cached pass over the same bases `_reference_index` reads. The method map
+    is the point: a name defined by two classes is reached through a base, and a
+    reference search is the wrong instrument for it. `PROTOCOL_METHODS` already
+    admits that for the known hooks; this extends the same admission to whatever
+    the tree actually overrides, which is the difference between a question the
+    operator can answer and a verdict the probe cannot support.
+    """
+    global _METHOD_INDEX, _DYNAMIC_CALL_FILES, _FILES_BY_STEM
+    if (_METHOD_INDEX is not None and _DYNAMIC_CALL_FILES is not None
+            and _FILES_BY_STEM is not None):
+        return _METHOD_INDEX, _DYNAMIC_CALL_FILES, _FILES_BY_STEM
+    methods: dict[str, set[str]] = {}
+    dynamic: set[str] = set()
+    by_stem: dict[str, list[str]] = {}
+    for base in ("src", "scripts", "tools"):
+        root = REPO / base
+        if not root.exists():
+            continue
+        for path in root.rglob("*.py"):
+            if any(x in path.parts for x in DEFAULT_EXCLUDES):
+                continue
+            try:
+                tree = ast.parse(_read(path))
+            except SyntaxError:
+                continue
+            rel = path.relative_to(REPO).as_posix()
+            by_stem.setdefault(path.stem, []).append(rel)
+            for node in ast.walk(tree):
+                if (isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Name)
+                        and node.func.id == "getattr"
+                        and len(node.args) >= 2
+                        and not (isinstance(node.args[1], ast.Constant)
+                                 and isinstance(node.args[1].value, str))):
+                    dynamic.add(rel)
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                for sub in node.body:
+                    if isinstance(sub, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        methods.setdefault(sub.name, set()).add(node.name)
+    _METHOD_INDEX = methods
+    _DYNAMIC_CALL_FILES = dynamic
+    _FILES_BY_STEM = by_stem
+    return methods, dynamic, by_stem
+
+
+def _resolve_module(module: str, seg: str,
+                    by_stem: dict[str, list[str]]) -> str | None:
+    """The one file a stem names, or None when the stem is genuinely ambiguous.
+
+    `seg` (the path segment the discovery walked) breaks the tie. If more than
+    one candidate survives, the honest answer is None: picking the first one
+    would attach another module's `getattr` to this row, which is the same class
+    of error as reading a test caller as a production one.
+    """
+    cands = by_stem.get(module) or []
+    if seg:
+        narrowed = [c for c in cands if seg in c.split("/")]
+        if narrowed:
+            cands = narrowed
+    return cands[0] if len(cands) == 1 else None
+
+
+def decide(table: dict) -> dict:
+    """Attach the fact that decides each pending row. Writes no status.
+
+    Order matters, and it is deliberately the order that protects life over
+    tidiness: an override or a computed dispatch is checked BEFORE the row is
+    allowed to be called a retirement candidate, because 'the probe found no
+    name' is the weakest of the three facts and the only destructive one.
+    """
+    methods, dynamic, by_stem = _decider_index()
+    for entry in (table.get("declared") or {}).values():
+        if str(entry.get("status")) != "pending":
+            continue
+        qualname = str(entry.get("qualname") or "")
+        name = qualname.rsplit(".", 1)[-1]
+        cls = qualname.rsplit(".", 1)[0] if "." in qualname else ""
+        rel = _resolve_module(str(entry.get("module") or ""),
+                              str(entry.get("seg") or ""), by_stem)
+        evidence: list[str] = []
+        owners = sorted(methods.get(name, set()) - {cls})
+        if owners:
+            klass = "protocol_or_override"
+            evidence = ["also defined by: %s" % ", ".join(owners[:3])]
+        elif rel and rel in dynamic:
+            klass = "dynamic_call"
+            evidence = [rel]
+        elif str(entry.get("triage")) == "test_reached_only":
+            klass = "test_is_the_wire"
+            evidence = [str(h) for h in (entry.get("triage_evidence") or [])]
+        else:
+            klass = "dead_candidate"
+        entry["decider"] = klass
+        entry["decider_evidence"] = evidence[:3]
+    counts: Counter = Counter()
+    for entry in (table.get("declared") or {}).values():
+        if str(entry.get("status")) == "pending":
+            counts[str(entry.get("decider"))] += 1
+    table["decider_counts"] = {k: counts.get(k, 0) for k in DECIDERS}
     return table
 
 
@@ -1009,6 +1154,18 @@ def worklist_markdown(table: dict) -> str:
         lines.append("| `%s` | %d | %s |"
                      % (klass, counts.get(klass, 0), TRIAGE_MEANING[klass]))
     lines.append("")
+    deciders = table.get("decider_counts") or {}
+    if any(deciders.get(k) for k in DECIDERS):
+        lines.append("The same rows, by the fact that decides them. A class is "
+                     "how the row was measured; a decider is what to act on:")
+        lines.append("")
+        lines.append("| Decider | Pending | What it means |")
+        lines.append("|---|---|---|")
+        for klass in DECIDERS:
+            lines.append("| `%s` | %d | %s |"
+                         % (klass, deciders.get(klass, 0),
+                            DECIDER_MEANING[klass]))
+        lines.append("")
     for klass in TRIAGE_CLASSES:
         rows = [e for e in entries.values()
                 if str(e.get("status")) == "pending"
@@ -1024,9 +1181,12 @@ def worklist_markdown(table: dict) -> str:
         for entry in rows:
             evidence = [str(h) for h in (entry.get("triage_evidence") or [])]
             where = " -- reached by %s" % ", ".join(evidence) if evidence else ""
-            lines.append("- [ ] `%s:%s` (`%s:%s`)%s"
+            decider = str(entry.get("decider") or "")
+            why = [str(h) for h in (entry.get("decider_evidence") or [])]
+            note = " [%s%s]" % (decider, ": " + "; ".join(why) if why else "")
+            lines.append("- [ ] `%s:%s` (`%s:%s`)%s%s"
                          % (entry.get("module"), entry.get("qualname"),
-                            entry.get("module"), entry.get("line"), where))
+                            entry.get("module"), entry.get("line"), where, note))
         lines.append("")
     return "\n".join(lines) + "\n"
 
@@ -1091,6 +1251,17 @@ def main() -> int:
             pending = sum(int(v) for v in (table.get("triage_counts") or {}).values())
             print(f"wrote {WORKLIST_OUT} ({pending} pending rows, status unchanged)")
         return 0
+    # Every table operation lives inside `--verdict`, and the fall-through here
+    # accepted them silently. Measured 2026-09-22: `--triage --worklist` wrote
+    # the TODO file, printed nothing about the backlog, and left a 3-hour-old
+    # worklist on disk untouched -- which reads exactly like "the worklist is
+    # empty". A flag that does nothing is worse than a flag that refuses.
+    stray = [f for f in ("propose", "triage", "worklist", "stdout")
+             if getattr(args, f, False)]
+    if stray:
+        print("--" + "/--".join(stray) + " only apply with --verdict; "
+              "ignoring them", file=sys.stderr)
+
     if args.summary:
         print(f"functions: {len(funcs)}")
         for pid, _ in PROBE_HELP:
