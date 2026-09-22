@@ -103,10 +103,16 @@ def main():
               f"samples={samples} fails={fails} spread={spread}", flush=True)
         if c % 4 == 0:
             rep = SpineCycleWorm(min_interval_seconds=0).run_cycle(apply=True)
-            home = rep.get("homeostat", {})
-            print(f"  apply-cycle: scanned={home.get('scanned')} "
-                  f"proposals={len(home.get('proposals') or [])} "
-                  f"applied={home.get('applied')}", flush=True)
+            # Surface a refused write instead of printing a success-shaped
+            # "proposals=0" -- the shape that hid the ~30h refusal.
+            if rep.get("skipped"):
+                print(f"  apply-cycle REFUSED: {rep.get('skipped')} -- "
+                      f"{rep.get('reason')}", flush=True)
+            else:
+                home = rep.get("homeostat", {})
+                print(f"  apply-cycle: scanned={home.get('scanned')} "
+                      f"proposals={len(home.get('proposals') or [])} "
+                      f"applied={home.get('applied')}", flush=True)
     sp.save_spine_state()
     print(f"DONE samples={hist[-1]['samples']} fails={hist[-1]['fails']} "
           f"spread={hist[0]['q_spread']}->{hist[-1]['q_spread']}")
