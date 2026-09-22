@@ -246,6 +246,34 @@ def _audit_env(monkeypatch, tmp_path, genome):
     return wa, state
 
 
+def _objective_stub(monkeypatch, *, reachable, ok=True, pinned=()):
+    """Pin the objective block so a verdict test does not read live telemetry.
+
+    `objective_health()` measures the real spawn-credit store, and a healthy
+    process accumulates rows until `coverage` and `success` sit at their clamps
+    (measured 2026-09-21: after `test_chain_refactor` the terms read
+    `pinned=[coverage, success]`, `reachable=False`). A verdict test that reads
+    that state asserts on whatever ran before it in the same process, not on the
+    ordering it claims to check. The branches are pinned explicitly instead.
+    """
+    from CORE import l1_wiring_audit as wa
+    block = {
+        "ok": ok,
+        "reachable": reachable,
+        "reason": ("at least one term can move" if reachable
+                   else "every measured term is pinned at a bound: %s"
+                        % ", ".join(pinned)),
+        "value": 0.5,
+        "movable_terms": [] if not reachable else ["coverage"],
+        "pinned_terms": list(pinned),
+        "unmeasured_terms": [],
+        "warnings": [],
+        "historical": {},
+    }
+    monkeypatch.setattr(wa, "objective_health", lambda: dict(block))
+    return wa
+
+
 def _genome(**over):
     base = {"fingerprint": "wg-test", "generation": 3, "parent": "wg-parent",
             "origin": "drop:SomeWorm", "paired_delta": 0.002,
@@ -353,6 +381,7 @@ def test_verdict_is_MAINTENANCE_when_the_genome_changes_nothing(
         tmp_path, monkeypatch):
     from CORE import worm_registry as wr
     wa, _ = _audit_env(monkeypatch, tmp_path, _genome(active=["A", "B"]))
+    _objective_stub(monkeypatch, reachable=True)
     monkeypatch.setattr(wr, "WORM_REGISTRY", {
         "A": {"category": "mesh", "priority": 5},
         "B": {"category": "mesh", "priority": 5},
@@ -362,6 +391,35 @@ def test_verdict_is_MAINTENANCE_when_the_genome_changes_nothing(
     monkeypatch.setattr(wr.SpawnDiversityEngine, "record_spawn",
                         lambda self, *a, **k: None)
     assert wa.audit(q_weights={})["verdict"] == "MAINTENANCE"
+
+
+def test_verdict_is_OBJECTIVE_PINNED_before_the_effector_questions(
+        tmp_path, monkeypatch):
+    """A pinned objective outranks "the genome reordered N natures".
+
+    The genome here DOES change what gets done -- it demotes `Extra` out of the
+    active set, so the effector measures a real reorder. If the objective check
+    were not ordered first, that reorder would be reported as adaptation while
+    every candidate the search scores is judged against an objective that cannot
+    move. The ordering is the property, so the stub makes the objective the only
+    pinned variable.
+    """
+    from CORE import worm_registry as wr
+    wa, _ = _audit_env(monkeypatch, tmp_path, _genome(active=["Keep", "Drop"]))
+    _objective_stub(monkeypatch, reachable=False,
+                    pinned=("coverage", "success"))
+    monkeypatch.setattr(wr, "WORM_REGISTRY", {
+        "Keep": {"category": "mesh", "priority": 5},
+        "Drop": {"category": "mesh", "priority": 5},
+        "Extra": {"category": "mesh", "priority": 5},
+    })
+    monkeypatch.setattr(wr.SpawnDiversityEngine, "_record_pams",
+                        lambda self, ev, data: None)
+    monkeypatch.setattr(wr.SpawnDiversityEngine, "record_spawn",
+                        lambda self, *a, **k: None)
+    assert wa.audit(q_weights={})["effector"]["positions_changed"] > 0, (
+        "fixture precondition: the genome must move the effector")
+    assert wa.audit(q_weights={})["verdict"] == "NOT_LEARNING_OBJECTIVE_PINNED"
 
 
 def test_verdict_is_NO_GENOME_when_nothing_was_ever_promoted(

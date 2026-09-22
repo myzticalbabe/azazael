@@ -9,7 +9,9 @@ See: Error #156, Lesson #82, azazael-fix-python-314t skill.
 """
 
 import os
+import pathlib
 import sys
+import tempfile
 
 import pytest
 
@@ -37,13 +39,51 @@ if not os.environ.get("AZAZAEL_GENERATED_DIR"):
     _GENERATED_DIR_OVERRIDE = tempfile.mkdtemp(prefix="azazael_generated_")
     os.environ["AZAZAEL_GENERATED_DIR"] = _GENERATED_DIR_OVERRIDE
 
+# ── Entrenchment snapshot (colour queens, 2026-09-17) ───────────────
+# `GrayQueenWorm.detect()` persists its census snapshot so the NEXT session can
+# report a delta instead of a total. `SpineCycleWorm._governance_stage()` calls
+# it on every cycle, so without a redirect a test run would write
+# `NEURAL_MESH_ENTRENCHMENT.json` into the repository it is testing — and would
+# also overwrite the operator's real baseline, destroying the diff it exists to
+# produce. Same redirect, same reason as the containment pen above.
+_ENTRENCHMENT_OVERRIDE = None
+if not os.environ.get("AZAZAEL_ENTRENCHMENT_PATH"):
+    _ENTRENCHMENT_OVERRIDE = pathlib.Path(
+        tempfile.mkdtemp(prefix="azazael_entrenchment_")) / "entrenchment.json"
+    os.environ["AZAZAEL_ENTRENCHMENT_PATH"] = str(_ENTRENCHMENT_OVERRIDE)
+
+# ── Memory store isolation (audit 2026-09-21) ───────────────────────
+# The SAME hole the spine-state fixture below was written for, still open for
+# the memory store. `_record_cluster_worm_telemetry` calls
+# `get_memory_store()`, so `tests/test_clusterworms_unit.py` and
+# `tests/test_parallel_integration.py` — which execute worms literally named
+# `NONEXISTENT` and `NONEXISTENT_RETRY` — wrote their failures into the
+# DEVELOPER'S live `~/.azazael/memory_store.db` as if they were real fleet
+# telemetry. Measured 2026-09-21: 45 such rows (36 + 9, all failing) sitting in
+# the production outcome tap, plus a `TAPTEST` row, where any learner reading
+# per-worm reliability would grade them as genuine executions.
+#
+# Must be set BEFORE `CORE.local_memory` is imported, because that module
+# computes `DB_PATH` from this env var at import time — the same
+# set-at-collection-reason as the two redirects above. Global rather than
+# opt-in, for the reason already stated there: "remember to patch this" is not
+# a mechanism.
+_MEMORY_DIR_OVERRIDE = None
+if not os.environ.get("AZAZAEL_MEMORY_DIR"):
+    _MEMORY_DIR_OVERRIDE = tempfile.mkdtemp(prefix="azazael_memory_")
+    os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_OVERRIDE
+
 
 def pytest_unconfigure(config):
-    """Remove the session's redirected containment pen."""
+    """Remove the session's redirected containment pen, snapshot, and store."""
     import shutil
 
     if _GENERATED_DIR_OVERRIDE:
         shutil.rmtree(_GENERATED_DIR_OVERRIDE, ignore_errors=True)
+    if _ENTRENCHMENT_OVERRIDE:
+        shutil.rmtree(str(_ENTRENCHMENT_OVERRIDE.parent), ignore_errors=True)
+    if _MEMORY_DIR_OVERRIDE:
+        shutil.rmtree(_MEMORY_DIR_OVERRIDE, ignore_errors=True)
 
 
 # ── Spine state isolation (audit 2026-09-15) ────────────────────────
@@ -128,20 +168,74 @@ def _isolate_hlc_clock(monkeypatch):
 #
 # Deliberately lazy: it only engages once the hook has actually been armed, so a
 # suite that never touches compliance code keeps running exactly as before.
-@pytest.fixture(autouse=True)
-def _permit_sentinel_test_writes():
-    """Hold the sentinel write token open for the duration of each test."""
+def _permit_sentinel_writes() -> bool:
+    """Latch the sentinel write token open if the guard is armed.
+
+    Returns True when the guard was found (so the caller can distinguish
+    "permitted" from "not armed yet"). The latch is deliberately not restored:
+    see `pytest_runtest_setup` below.
+    """
     module = sys.modules.get("CORE.sentinel_enforcer")
     token = getattr(module, "_GATED_CALL", None) if module is not None else None
     if token is None:
-        yield
-        return
-    previous = getattr(token, "is_active", False)
+        return False
     token.is_active = True
-    try:
-        yield
-    finally:
-        token.is_active = previous
+    return True
+
+
+# ── Sentinel write-guard: armed BEFORE any fixture of any scope ─────
+# The block above fixes the guard leaking into per-test temp writes, but its
+# fixture is FUNCTION-scoped, and pytest sets up module/class-scoped fixtures
+# FIRST. So a module-scoped fixture that imports a script which opens its log
+# file at import time (e.g. `scripts/evolution_cycle.py:48`) is blocked before
+# the function-scoped permit ever runs. Measured 2026-09-22 on a full-suite run:
+# 207 `PermissionError: CRITICAL: Unauthorized write` — 69 collection errors in
+# `test_evolution_gates.py` (61) and `test_import_map.py` (8) and a share of the
+# 72 failures, while every one of those files passed when run alone.
+#
+# `pytest_runtest_setup` is called before fixture setup of ANY scope, which is
+# the earliest hook a conftest gets, and the latch is left ON for the session:
+# the guard exists to gate the assistant's tool writes, not a test process's
+# temp/log files, and nothing under `tests/` asserts that it blocks. A test that
+# wants to observe blocking can still set `_GATED_CALL.is_active = False` itself.
+def pytest_runtest_setup(item):  # noqa: ARG001 - pytest hook signature
+    _permit_sentinel_writes()
+
+
+@pytest.fixture(autouse=True)
+def _permit_sentinel_test_writes():
+    """Hold the sentinel write token open for the duration of each test."""
+    _permit_sentinel_writes()
+    yield
+
+# ── Standalone-script runner (audit 2026-09-21) ─────────────────────
+# Seven files under `tests/` are named `test_*.py` and are STANDALONE SCRIPTS:
+# every assertion in them sits under `if __name__ == "__main__"`, with `PASS`/
+# `FAIL` counters and `sys.exit(1)` on failure. pytest therefore collected ZERO
+# tests from them and reported `rc=5`, "no tests collected" -- measured
+# 2026-09-21, `test_algorithm_coverage`, `test_cloud_tab_error_handling`,
+# `test_full_integration`, `test_observability`, `test_provider_failover`,
+# `test_secrets_manager_thread_safety` and `test_calc`.
+#
+# The consequence is worth stating plainly: **none of those checks has ever run
+# in CI**, and the files look green because they fail to collect rather than
+# because they pass. Rewriting each script body into test functions would be six
+# separate refactors of working code; running the script the way its author
+# intended, and asserting its exit code, makes the existing assertions execute
+# today and does not touch the logic.
+@pytest.fixture
+def run_standalone_script():
+    """Run a `tests/test_*.py` script and return its CompletedProcess."""
+    import subprocess
+
+    def _run(path: str, timeout: float = 300.0):
+        return subprocess.run(
+            [sys.executable, str(path)],
+            capture_output=True, text=True, timeout=timeout, cwd=str(pathlib.Path(__file__).parent.parent),
+        )
+
+    return _run
+
 
 # ── Detect Python 3.14t free-threading ─────────────────────────
 try:
