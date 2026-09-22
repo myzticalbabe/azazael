@@ -17,6 +17,7 @@
 | ADR-006 | HORUS Animation System | ACCEPTED |
 | ADR-007 | TERENCE Pattern Matching | ACCEPTED |
 | ADR-008 | KLINK CLI Design | ACCEPTED |
+| ADR-009 | Entry-point logging hygiene | ACCEPTED |
 
 ---
 
@@ -267,6 +268,66 @@ Commands:
 **Positive:**
 - Consistent interface
 - Easy to extend
+
+---
+
+---
+
+## ADR-009: Entry-point Logging Hygiene
+
+**Status:** ACCEPTED  
+**Date:** 2026-09-21
+
+### Context
+
+Entry points that import the worm registry used to quiet its one-INFO-per-worm
+import chatter with `logging.disable(logging.CRITICAL)`. That switch is
+process-wide: it silences WARNING and ERROR too. On 2026-09-21 the
+proprioception gate refused to write for ~30 hours and emitted a WARNING from
+inside exactly such a process, so the refusal read as success and nothing was
+red. A sweep found ten entry points carrying the same blanket switch.
+
+### Decision
+
+1. **No entry point may call `logging.disable(...)`.** Silence noisy loggers by
+   NAME instead, via `CORE.log_hygiene.quiet_noisy_loggers()`, which sets the
+   known-chatty loggers (currently `worm_registry`) to WARNING and leaves
+   WARNING+ live for the rest of the process.
+2. **The canonical helper lives in `src/CORE/log_hygiene.py`** and imports only
+   stdlib `logging`, so it is safe to import before the rest of CORE. Entry
+   points reach it via the standard src path:
+
+   ```python
+   sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+   from CORE.log_hygiene import quiet_noisy_loggers
+   quiet_noisy_loggers()
+   ```
+
+3. **No hardcoded user paths for the src root.** Entry points resolve src/
+   from their own location (above) rather than `C:/Users/<user>/...`, so the
+   same file works from Windows and from WSL (`/mnt/c/...`).
+4. **A refusal must be visible.** A script that drives
+   `SpineCycleWorm.run_cycle(apply=True)` must read `rep.get("skipped")` and
+   report it; a refusal is not a success and must not print a success-shaped
+   line.
+
+### Enforcement
+
+- `tests/test_logging_hygiene_sweep.py` fails on any AST-level `logging.disable`
+  in `scripts/` or `src/`, and confines module-scope `logging.basicConfig` in
+  `src/` to a documented allowlist.
+- `tests/test_entry_point_smoke.py` runpy-executes every entry point and asserts
+  logging is left on and `worm_registry` is quieted by name.
+- `tests/test_spine_caller_refusals.py` fails if a gate caller omits the
+  `skipped` check.
+
+### Consequences
+
+**Positive:** operator warnings survive in every scheduled process; a stalled
+loop cannot read as green; the noisy-logger list has one home.
+
+**Negative:** the known-noisy logger list must be maintained when a new chatter
+appears (one edit, in one file).
 
 ---
 
