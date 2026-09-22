@@ -156,13 +156,24 @@ def dimensions(genome: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def effector_effect(q_weights: Optional[Dict[str, float]] = None,
-                    examples: int = 3) -> Dict[str, Any]:
+                    examples: int = 3,
+                    registry: Optional[Dict[str, Dict[str, Any]]] = None,
+                    ) -> Dict[str, Any]:
     """A/B the real ranking with the promoted genome and without it.
 
     "Without it" is produced by resolving `WIRING_PROMOTED_PATH` to a path that
     does not exist, so the genome loader returns None through its own fail-open
     path. The comparison therefore exercises the production code on both arms
     rather than re-implementing the ranking here.
+
+    `registry` is the settled fleet to measure. Callers that run other stages
+    first (see `audit()`) pass the snapshot they took at entry, because the
+    live `WORM_REGISTRY` global does not hold still: importing a `CORE.WORMS`
+    package registers worms through `@register_worm` (worm_registry.py:479) and
+    `discover_worms()` writes the remainder. MEASURED 2026-09-21: an audit of a
+    2-worm registry read 113 organs here and left 234 behind, so it reported 111
+    organs demoted by a genome that could touch neither of its two worms. A
+    measurement that rewrites the table it reads is not a measurement.
     """
     result: Dict[str, Any] = {
         "ok": False, "natures_with_choices": 0, "natures_reordered": 0,
@@ -173,22 +184,24 @@ def effector_effect(q_weights: Optional[Dict[str, float]] = None,
     try:
         from CORE import worm_registry as wr
         from CORE.worm_registry import WORM_REGISTRY, discover_worms
-        if not WORM_REGISTRY:
-            discover_worms()
-        if not WORM_REGISTRY:
+        if registry is None:
+            if not WORM_REGISTRY:
+                discover_worms()
+            registry = dict(WORM_REGISTRY)
+        if not registry:
             result["reason"] = "registry empty after discover_worms()"
             return result
-        result["registry_size"] = len(WORM_REGISTRY)
+        result["registry_size"] = len(registry)
 
         genome = load_promoted()
         active = genome.get("active") if isinstance(genome, dict) else None
         if isinstance(active, list) and active:
             aset = set(active)
-            result["demoted_organs"] = sum(1 for n in WORM_REGISTRY
+            result["demoted_organs"] = sum(1 for n in registry
                                            if n not in aset)
 
         by_nature: Dict[str, List[str]] = {}
-        for name, entry in WORM_REGISTRY.items():
+        for name, entry in registry.items():
             nat = (entry or {}).get("category") or "unknown"
             by_nature.setdefault(str(nat), []).append(name)
 
@@ -362,12 +375,27 @@ def margin_reachability(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
 
 
 def audit(q_weights: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
-    """The full report. Never raises."""
+    """The full report. Never raises.
+
+    Every stage below reports on ONE registry view, snapshotted here before any
+    stage runs. This is not tidiness: `dimensions()` imports
+    `CORE.WORMS.expansion.wiring_genome`, which drags in the worm packages, and
+    their `@register_worm` decorators register the fleet into whatever dict is
+    bound to the global. Stages that read the live global therefore disagreed
+    with each other and with the registry they were handed (measured
+    2026-09-21: 2 at entry, 113 in `effector`, 234 at exit), which is how a
+    genome that changed nothing was reported as having demoted 111 organs.
+    """
+    from CORE.worm_registry import WORM_REGISTRY, discover_worms
+    if not WORM_REGISTRY:
+        discover_worms()
+    registry = dict(WORM_REGISTRY)
+
     genome = load_promoted()
     lineage = load_lineage()
     hist = history_summary(lineage)
     dims = dimensions(genome)
-    eff = effector_effect(q_weights)
+    eff = effector_effect(q_weights, registry=registry)
     margin = margin_reachability(lineage)
     objective_block = objective_health()
 
