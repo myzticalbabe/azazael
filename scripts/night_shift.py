@@ -15,7 +15,6 @@ RAM guard: heavy steps skip if <2GB free. Never raises out of main.
 Logs: G:/source-of-truth/azazael_models/nightshift.log + summary.json
 """
 import json
-import logging
 import os
 import shutil
 import subprocess
@@ -23,7 +22,9 @@ import sys
 import time
 from datetime import datetime, timezone
 
-logging.disable(logging.CRITICAL)
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 BASE = "G:/source-of-truth/azazael_models"

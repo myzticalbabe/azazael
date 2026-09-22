@@ -25,7 +25,6 @@ summary event with coverage counts.
 """
 import hashlib
 import json
-import logging
 import sys
 import time
 from collections import defaultdict
@@ -33,7 +32,10 @@ from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-logging.disable(logging.CRITICAL)
+
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 
 from CORE.worm_registry import discover_worms, WORM_REGISTRY
 from CORE.WORMS.expansion.learning_grpo import GRPOTrainer

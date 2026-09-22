@@ -10,12 +10,13 @@ Safe: exports are read-only snapshots; merge is setdefault/MAX semantics
 inside merge_spine_gossip; per-distro timeouts; never raises.
 """
 import json
-import logging
 import os
 import subprocess
 import sys
 
-logging.disable(logging.CRITICAL)
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 DROP = "C:/Users/clint/azazael/output/gossip"

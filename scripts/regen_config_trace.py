@@ -6,13 +6,14 @@ single-file factory that no longer exists. Run after adding/removing worms:
     python azazael/scripts/regen_config_trace.py
 """
 import json
-import logging
 import os
 import sys
 from collections import Counter
 from datetime import datetime, timezone
 
-logging.disable(logging.CRITICAL)
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 from CORE.worm_registry import discover_worms, WORM_REGISTRY
 

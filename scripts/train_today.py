@@ -12,7 +12,6 @@
 Usage: python C:/Users/clint/azazael/scripts/train_today.py [cycles=12]
 """
 import json
-import logging
 import os
 import random
 import socket
@@ -20,7 +19,9 @@ import subprocess
 import sys
 import time
 
-logging.disable(logging.CRITICAL)
+from log_hygiene import quiet_noisy_loggers
+
+quiet_noisy_loggers()
 sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 FIT = "G:/source-of-truth/azazael_models/fitness.jsonl"
