@@ -2,7 +2,7 @@
 # coding: utf-8
 """Shared logging hygiene for Azazael entry points.
 
-Why this exists (2026-09-21). Nine entry points silenced the worm registry's
+Why this exists (2026-09-21). Ten entry points silenced the worm registry's
 one-INFO-per-worm import chatter with a process-wide
 `logging.disable(logging.CRITICAL)`. That switch does not only mute chatter: it
 mutes WARNING and ERROR across the entire process. When the proprioception gate
@@ -12,12 +12,19 @@ red.
 
 The narrow fix -- silence the KNOWN-noisy loggers by NAME and leave WARNING+
 live -- is what `scripts/spine_cycle_apply.py` adopted first. This module is
-that fix's single source of truth, so the rest of the family can adopt it
-without re-deriving the logger list (and so a future noisy logger is muted in
-one place instead of a dozen).
+that fix's single source of truth, so the whole family adopts it without
+re-deriving the logger list (and so a future noisy logger is muted in one place
+instead of a dozen).
 
-    from log_hygiene import quiet_noisy_loggers
+It lives in CORE rather than scripts/ so every consumer resolves it the standard
+way, without depending on the scripts/ directory happening to be on sys.path:
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from CORE.log_hygiene import quiet_noisy_loggers
     quiet_noisy_loggers()
+
+It imports only stdlib `logging`, so it is safe to import before the rest of
+CORE (which it must be -- it exists to quiet the chatter those imports emit).
 """
 from __future__ import annotations
 

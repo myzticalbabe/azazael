@@ -21,11 +21,13 @@ import subprocess
 import sys
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 
-from log_hygiene import quiet_noisy_loggers
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 
 quiet_noisy_loggers()
-sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 BASE = "G:/source-of-truth/azazael_models"
 LOG = os.path.join(BASE, "nightshift.log")

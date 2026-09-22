@@ -9,7 +9,7 @@ read as success and nothing was red. A sweep found nine sibling entry points
 carrying the same blanket switch, each one a latent copy of the same silent
 failure waiting for a warning that mattered.
 
-The narrow replacement lives in `scripts/log_hygiene.py`: silence the KNOWN
+The narrow replacement lives in `src/CORE/log_hygiene.py`: silence the KNOWN
 chatty loggers by NAME and leave WARNING+ live for the rest of the process.
 These tests keep the sweep from being undone -- across `scripts/` AND `src/`,
 not just the entry points:
@@ -35,7 +35,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
 _SCRIPTS = os.path.join(_ROOT, "scripts")
 _SRC = os.path.join(_ROOT, "src")
-for _p in (_ROOT, _SCRIPTS):
+for _p in (_ROOT, _SCRIPTS, _SRC):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
@@ -139,7 +139,7 @@ class TestLogHygieneHelper(unittest.TestCase):
         logging.disable(self._prev_disable)
 
     def test_helper_quiets_the_known_noisy_loggers_by_name(self):
-        import log_hygiene
+        from CORE import log_hygiene
         self.assertTrue(log_hygiene.NOISY_LOGGERS,
                         "the helper must name at least one noisy logger")
         log_hygiene.quiet_noisy_loggers()
@@ -155,7 +155,7 @@ class TestLogHygieneHelper(unittest.TestCase):
             )
 
     def test_helper_never_disables_logging_globally(self):
-        import log_hygiene
+        from CORE import log_hygiene
         log_hygiene.quiet_noisy_loggers()
         self.assertLess(
             logging.root.manager.disable, logging.WARNING,
@@ -163,7 +163,7 @@ class TestLogHygieneHelper(unittest.TestCase):
         )
 
     def test_helper_leaves_unrelated_loggers_alone(self):
-        import log_hygiene
+        from CORE import log_hygiene
         other = logging.getLogger("CORE.WORMS.expansion.spine")
         before = other.level
         log_hygiene.quiet_noisy_loggers()

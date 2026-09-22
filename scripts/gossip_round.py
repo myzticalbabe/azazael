@@ -13,11 +13,13 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
-from log_hygiene import quiet_noisy_loggers
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from CORE.log_hygiene import quiet_noisy_loggers  # noqa: E402
 
 quiet_noisy_loggers()
-sys.path.insert(0, "C:/Users/clint/azazael/src")
 
 DROP = "C:/Users/clint/azazael/output/gossip"
 DISTROS = {"wsl2-ubuntu": "Ubuntu-26.04", "wsl2-kali": "kali-linux"}
