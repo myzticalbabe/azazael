@@ -2951,4 +2951,106 @@ is the loudest possible smell.
 
 ---
 
+---
+
+## Lesson #84 — Aggregate Verification Is Its Own Instrument: Every Failing File Passed Alone
+
+**Date:** 2026-09-22
+
+A full-suite run (183 files, single process) returned
+**72 failed / 3,508 passed / 38 skipped / 69 errors** in 23.5 minutes. Every
+failing *file*, run alone, was green: `test_sb3_agent` 42 passed,
+`test_nature_metacluster_unit` 74 passed, `test_fs_probe_backend` 13 passed,
+`test_wiring_cycle` 19 passed, `test_eve_unleashed` 21 passed,
+`test_morphogenesis_opportunity` 14 passed, `test_worm_smoke` 5 passed,
+`test_evolution_gates` 61 passed, `test_import_map` 8 passed.
+
+The 141 aggregate failures were therefore **not product defects** — they were
+isolation defects, and no per-file run can see them. Two of the three root
+causes found were genuine product-level hazards that only exist *across* time in
+one process:
+
+1. `reset_registry()` re-imports helper modules, so two `wiring_genome` objects
+   exist and a patch lands on the wrong one (Error #190).
+2. A process-global write guard armed mid-session blocked module-scoped fixture
+   setup (Error #191).
+
+**Permanent mandate:**
+- The aggregate suite is the instrument. Per-file green is not evidence about
+  the suite; it is evidence about one file.
+- When a test passes alone and fails in aggregate, the *order* is the input.
+  Name the exact prefix that reproduces it (here: `reset_registry()`-calling
+  files sorted before `test_wiring_cycle`; `test_compliance_step45_init` before
+  `test_evolution_gates`) before changing anything.
+- When a global (registry, guard, clock, cache) is mutated mid-session, ask
+  "what else did that mutate that I am not measuring?" — the answer was *module
+  identity* and *fixture scope*, neither of which appears in any stack trace.
+
+**Related:** Error #190, Error #191, Error #192,
+`NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §5, §7
+
+---
+
+## Lesson #85 — A Measurement That Changes What It Measures Is Not a Measurement (third instance)
+
+**Date:** 2026-09-22
+
+This session found the *third* instance of the same defect class in the same
+subsystem, so it is a pattern rather than three bugs:
+
+| # | Instrument | What it mutated | Effect |
+|---|---|---|---|
+| 1 | `l1_wiring_audit.audit()` | read the live registry through five stages | 2 worms at entry, 113 in the effector stage, 234 at exit — a genome that changed nothing was reported as demoting 111 organs |
+| 2 | `hyperopt.measure()` | called unguarded `discover_worms()` to read a count | registry repopulated mid-measurement; the audit's report disagreed with the table it had just read |
+| 3 | `worm_registry._purge_worm_modules()` | deletes `CORE.WORMS.*` from `sys.modules` | a reset performed for one caller silently re-creates module objects under other callers |
+
+**Permanent mandate:**
+- An instrument must snapshot its input **once, at entry**, and report on that
+  snapshot (this is what `l1_wiring_audit` was fixed to do).
+- A "read" path must never be able to write. A count-of-registry call may
+  lazy-init (`if not WORM_REGISTRY`), never repopulate.
+- A destructive helper (`purge`, `reset`, `clear`) must record **identity
+  changes** it causes, not just the data change it was written for — the
+  docstring here warned about classes while modules were also replaced.
+
+**Related:** Error #190, `src/CORE/WORMS/expansion/hyperopt.py` (`measure`),
+`src/CORE/l1_wiring_audit.py` (`audit`), `src/CORE/worm_registry.py`
+
+---
+
+## Lesson #86 — This Codebase Documents What It Learned Better Than It Checks It Still Holds
+
+**Date:** 2026-09-22
+
+Measured architecture audit of the whole tree (`NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md`):
+
+- **Documentation 8.0/10** — post-mortems embedded in the code they guard,
+  calibrated PARAM_SPACE entries carrying their own failure history, 24-skill
+  catalog, ADRs, per-function static battery.
+- **Type safety 3.0/10** — 1,133 mesh functions with unannotated parameters,
+  349 with no return annotation, and **mypy is installed in none of the three
+  venvs**, so the dimension cannot even be measured with the shipped tooling.
+- **Test coverage 6.0/10** — 3,508 passing tests, but 561 mesh functions have no
+  test reference and the aggregate suite carried 141 isolation failures.
+
+Supporting facts: 1,487 mesh functions, only **77 clean** on all 21 pre-flight
+probes; **164 unreferenced** functions (`integrate_via_stage` 92,
+`module_level` 34, `wire_at_site` 32, `unresolved` 6); 2,009 open checklist
+items with 0 completed; 7 circular-import groups; `worm_registry` at 166 inbound
+imports; 17 `shell=True`; 255 write-swallowing `except` bodies; 3,759-entry
+dirty working tree.
+
+**Permanent mandate:**
+- Reasoning quality and verification quality are separate scores. This project
+  is excellent at the first and has not applied it to the second.
+- A checklist with 2,009 open items and 0 completed is a **maintenance
+  liability wearing the costume of an instrument**: wire it to a cadence or cut
+  it (the wire-or-cut dispositions exist for exactly this).
+- Do not trust a graph built over vendored archives to describe this codebase —
+  the top hubs were `onnxruntime`, `BIBL Terms *`, `nuitka/*.h` and `TEST_F`.
+
+**Related:** `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §4, §6, §8, §9
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*
