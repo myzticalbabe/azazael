@@ -350,7 +350,23 @@ class MetaCluster:
         if max_natures > 0:
             scores = self.ncm._score_natures()
             sorted_natures = sorted(scores, key=scores.get, reverse=True)
-            natures = [n for n in sorted_natures if n in natures][:max_natures]
+            ranked = [n for n in sorted_natures if n in natures]
+            # `max_natures` must cap what can actually RUN. A circular Nature
+            # (the orchestration infrastructure itself) is dropped by the filter
+            # below, so letting it consume the budget made a request for one
+            # Nature execute ZERO -- and the run still reported `complete`, so a
+            # caller could not tell "nothing was eligible" from "everything was
+            # fine". Measured 2026-09-22 in test_cross_nature_orchestration.py:
+            # the 23rd test, `TestMetaClusterState::test_state_phases`, once the
+            # ranking had promoted `orchestration` to the top (`active_natures`
+            # came out empty, no execution history entry, phase "complete"); the
+            # same call in a fresh process selected `analysis` and ran.
+            eligible = [n for n in ranked if not self._is_circular_nature(n)]
+            # If EVERY requested Nature is circular, keep the old selection so
+            # the circular filter below still reports and marks them: an empty
+            # request must stay visible as a no-op, not be replaced by a
+            # different Nature the caller never asked for.
+            natures = (eligible or ranked)[:max_natures]
         
         # Compute routing order (topological sort may append all remaining
         # Natures; honor the requested/capped set)
@@ -358,6 +374,21 @@ class MetaCluster:
         requested = set(natures)
         execution_order = [n for n in execution_order if n in requested]
         
+        # ── Drop circular Natures ──────────────────────────────────────
+        # A Nature holding the orchestration infrastructure would re-enter this
+        # method or deadlock. That infrastructure is running right now, so mark
+        # its worms spawned to keep "never spawned" alerts honest.
+        circular_natures = [n for n in execution_order if self._is_circular_nature(n)]
+        if circular_natures:
+            execution_order = [n for n in execution_order if n not in circular_natures]
+            for nature in circular_natures:
+                cluster = self.ncm.clusters.get(nature)
+                for worm_name in (getattr(cluster, "worms", None) or {}):
+                    try:
+                        mark_spawned(worm_name)
+                    except Exception:  # noqa: BLE001 — bookkeeping is best-effort
+                        pass
+
         self.state.phase = "executing"
         self.state.active_natures = set(execution_order)
         
@@ -372,6 +403,17 @@ class MetaCluster:
         total_ok = 0
         total_fail = 0
         errors = []
+
+        # A run that executes nothing must SAY so. Everything below is a loop
+        # over `execution_order`, so an empty order produced a result object with
+        # phase "complete", zero errors and zero natures -- indistinguishable
+        # from a clean full pass. `active_natures` is already empty here; this
+        # makes it countable by a caller that only reads `errors`.
+        if not execution_order:
+            errors.append(
+                "no Nature was eligible to execute: the requested set collapsed "
+                "to nothing after the orchestration-infrastructure filter "
+                "(circular=%s)" % (sorted(circular_natures) or "none"))
         cross_nature_paths = []
         
         log = _get_log()
@@ -498,6 +540,67 @@ class MetaCluster:
         })
         
         return result
+
+    def _is_circular_nature(self, nature: str, feeds: Optional[Dict[str, List[str]]] = None) -> bool:
+        """Report whether executing ``nature`` would be circular.
+
+        "Circular" means two different things in this class, so the caller
+        picks by whether it supplies a feed graph:
+
+        * ``feeds`` given — reachability over that graph. True when a DFS from
+          ``nature`` follows ``feeds`` back into a node already on the current
+          path, i.e. ``nature`` can reach — or sit in — a cycle.
+        * ``feeds`` omitted — the orchestration-safety check: True when the
+          Nature contains the orchestration infrastructure itself
+          (MetaCluster, NatureClusterManager, ClusterWORMZ,
+          ErrorRecoveryOrchestrator). Executing those recurses or deadlocks,
+          which is why :meth:`orchestrate` filters them out.
+        """
+        if feeds is not None:
+            return self._reaches_cycle(nature, feeds)
+        return self._contains_orchestration_infrastructure(nature)
+
+    @staticmethod
+    def _reaches_cycle(nature: str, feeds: Dict[str, List[str]]) -> bool:
+        """Iterative DFS: does any path out of ``nature`` revisit a node on it?"""
+        on_path: Set[str] = set()
+        # (node, is_exit) — children are pushed ahead of the exit marker, so a
+        # node only leaves the path once its whole subtree has been walked.
+        stack: List[tuple] = [(nature, False)]
+        while stack:
+            node, leaving = stack.pop()
+            if leaving:
+                on_path.discard(node)
+                continue
+            if node in on_path:
+                return True
+            on_path.add(node)
+            stack.append((node, True))
+            for downstream in feeds.get(node) or []:
+                stack.append((downstream, False))
+        return False
+
+    def _contains_orchestration_infrastructure(self, nature: str) -> bool:
+        """True when the Nature itself holds the orchestration classes."""
+        if not self.ncm:
+            return False
+        cluster = self.ncm.clusters.get(nature)
+        if not cluster:
+            return False
+        # Class name -> the module that must own it. Matched by module path
+        # rather than identity so METACLUSTER does not have to import the
+        # orchestrators back, which would close an import cycle.
+        orchestrators = {
+            "MetaCluster": "METACLUSTER",
+            "NatureClusterManager": "NATURE_CLUSTERS",
+            "ClusterWORMZ": "CLUSTERWORMS",
+            "ErrorRecoveryOrchestrator": "ERROR_RECOVERY",
+        }
+        for worm_cls in (getattr(cluster, "worms", None) or {}).values():
+            owner = orchestrators.get(getattr(worm_cls, "__name__", ""))
+            if owner and owner in getattr(worm_cls, "__module__", "").upper():
+                return True
+        return False
 
     def orchestrate_nature(self, nature: str, parallel: bool = False) -> Optional[MetaClusterResult]:
         """Orchestrate a single Nature (convenience method)."""

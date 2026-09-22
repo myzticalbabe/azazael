@@ -65,7 +65,25 @@ from opentelemetry.sdk.trace.export import SpanExportResult
 # Default to same DB as DirectMemory for cross-ledger queries.
 # Override via AZAZAEL_MEMORY_DIR env var (for Docker split config).
 _DEFAULT_DB_DIR = Path.home() / ".azazael"
-_DB_DIR = Path(os.environ.get("AZAZAEL_MEMORY_DIR", str(_DEFAULT_DB_DIR)))
+
+
+def _get_db_dir() -> Path:
+    """Resolve the memory dir from the environment, fresh on every call.
+
+    The module-level `_DB_DIR` / `DB_PATH` below are a CACHE of this answer;
+    this is the resolver a caller uses after redirecting `AZAZAEL_MEMORY_DIR`.
+    """
+    return Path(os.environ.get("AZAZAEL_MEMORY_DIR", str(_DEFAULT_DB_DIR)))
+
+
+def _reload_paths() -> None:
+    """Recompute the cached paths after `AZAZAEL_MEMORY_DIR` changed."""
+    global _DB_DIR, DB_PATH
+    _DB_DIR = _get_db_dir()
+    DB_PATH = _DB_DIR / "memory_store.db"
+
+
+_DB_DIR = _get_db_dir()
 DB_PATH = _DB_DIR / "memory_store.db"
 
 
@@ -290,9 +308,22 @@ def configure_otel_tracing(
     })
 
     provider = TracerProvider(resource=resource)
-    processor = BatchSpanProcessor(exporter, max_queue_size=batch_size)
+    # BatchSpanProcessor validates max_export_batch_size <= max_queue_size,
+    # but max_export_batch_size *defaults to 512*. Passing only
+    # max_queue_size=batch_size therefore raised
+    # "max_export_batch_size must be less than or equal to max_queue_size"
+    # for every batch_size below 512 — including the default of 64 — so
+    # this function could never succeed. Set both from the same value.
+    batch = max(1, int(batch_size))
+    processor = BatchSpanProcessor(
+        exporter, max_queue_size=batch, max_export_batch_size=batch)
     provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
+    try:
+        trace.set_tracer_provider(provider)
+    except Exception:
+        # The provider is process-global and settable once; if one is already
+        # installed we use whatever is active instead of failing the caller.
+        pass
 
     return trace.get_tracer(__name__)
 

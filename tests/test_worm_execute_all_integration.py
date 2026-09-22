@@ -121,9 +121,17 @@ class TestExecuteAllEndToEnd:
         assert r["name"] == "NatureClusterManager"
         assert r["success"] is True
         res = r["result"]
-        # Environment-dependent natures count, but must be a real dict report
+        # Environment-dependent natures count, but must be a real dict report.
+        # A class-level resolution arrives as an ENVELOPE that names the method
+        # and carries its output one level down -- measured 2026-09-22:
+        # {"success": True, "method": "get_summary",
+        #  "result": {"class": "NatureClusterManager", "version": "1.0.0"}}
+        # so the report is inside `result`, and asserting at the top level reads
+        # the envelope instead of the report.
         assert isinstance(res, dict)
-        assert "version" in res
+        payload = res.get("result") if "result" in res else res
+        assert isinstance(payload, dict)
+        assert "version" in payload
 
     def test_execute_all_parallel_and_sequential_agree(self):
         """Sequential and parallel execution both resolve the same real worms."""

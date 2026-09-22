@@ -81,11 +81,36 @@ class TestPanelHasItsOwnMonitor(unittest.TestCase):
 
     def test_panel_renders_the_mutagen_organ(self):
         """MUTAGEN reads the ledger that decides the genome's SHAPE; it must be
-        reachable at the default window, not gated behind a taller terminal."""
+        reachable at the default window, not gated behind a taller terminal.
+
+        The organ is computed by the panel's EPISTEMIC TIER from the outcome
+        series in the store -- and this harness redirects
+        `AZAZAEL_MEMORY_DIR` to an empty temp dir (conftest), which
+        `exmachina_live_monitor.DB` caches at IMPORT (`:37`). Under the default
+        environment the tier therefore cannot run at all: every `readings`-based
+        organ is absent, MUTAGEN included, and the assertion below would measure
+        the redirect rather than the render.
+
+        Measured 2026-09-22: fails in 9.25s against the redirected store, passes
+        in 0.32s against the real one. So this test points at the real store for
+        its own duration -- read-only queries, the same file the panel reads in
+        production -- and skips when this checkout has no outcome series at all,
+        exactly as it already does for the ledger.
+        """
         ledger = os.path.join(_project_root, "state", "proteus_morph.jsonl")
         if not os.path.exists(ledger):
             self.skipTest("no morph ledger on this checkout")
-        frame = ex.render(size=(118, 40))
+        real_db = os.path.join(os.path.expanduser("~"), ".azazael",
+                               "memory_store.db")
+        if not os.path.exists(real_db):
+            self.skipTest("no outcome store on this checkout: %s" % real_db)
+
+        saved = ex.DB
+        ex.DB = real_db
+        try:
+            frame = ex.render(size=(118, 40))
+        finally:
+            ex.DB = saved
         self.assertIn("MUTAGEN", frame.upper(),
                       "the genome-selection organ never reached the panel")
 
@@ -118,6 +143,62 @@ class TestPanelHasItsOwnMonitor(unittest.TestCase):
             con.close()
         self.assertNotIn("EX MACHINA", frame.upper(),
                          "the Azazael wallboard is rendering the Ex Machina panel")
+
+
+class TestLivePaintPath(unittest.TestCase):
+    """The paint loop is what a WINDOW runs; `--once` never calls it.
+
+    History: `_paint_in_place` sliced the frame with `max_rows`, a name defined
+    nowhere in the module, so every live paint raised NameError and the
+    wallboard crash-looped -- the launcher retried every 10s and nothing was
+    ever drawn. `--once` stayed green throughout, because it only prints
+    render(), so the break could ship unseen. Both halves are pinned here.
+    """
+
+    def test_paint_in_place_draws_a_frame_without_raising(self):
+        import io
+        from unittest.mock import patch
+        buf = io.StringIO()
+        with patch.object(sys, "stdout", buf):
+            ex._paint_in_place(["first row", "second row"])
+        out = buf.getvalue()
+        self.assertIn("first row", out)
+        self.assertIn("second row", out)
+        self.assertTrue(out.startswith("\033[H"), "paint must home the cursor")
+        self.assertFalse(out.endswith("\n"),
+                         "a newline past the bottom row scrolls the console")
+
+    def test_paint_in_place_fills_the_window_height(self):
+        import io
+        import shutil
+        from unittest.mock import patch
+        rows = max(1, shutil.get_terminal_size((100, 30)).lines)
+        buf = io.StringIO()
+        with patch.object(sys, "stdout", buf):
+            ex._paint_in_place(["only one row"])
+        out = buf.getvalue()
+        self.assertEqual(out.count("\r\n"), rows - 1,
+                         "the frame must be padded to the full window height")
+
+    def test_log_writer_lands_frames_and_rotates(self):
+        """LOG_PATH and --log existed with nothing writing them."""
+        import tempfile
+        original, original_max = ex.LOG_PATH, ex.LOG_MAX
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                ex.LOG_PATH = os.path.join(d, "sub", "exmachina.log")
+                ex.LOG_MAX = 10 ** 9
+                ex.append_log("\033[91mred\033[0m frame", datetime.now())
+                with open(ex.LOG_PATH, encoding="utf-8") as f:
+                    body = f.read()
+                self.assertIn("red frame", body)
+                self.assertNotIn("\x1b", body, "the log must stay greppable")
+                ex.LOG_MAX = 1
+                ex.append_log("second frame", datetime.now())
+                self.assertTrue(os.path.exists(ex.LOG_PATH + ".1"),
+                                "the log must rotate, not grow without bound")
+        finally:
+            ex.LOG_PATH, ex.LOG_MAX = original, original_max
 
 
 class TestScheduledHealthAlert(unittest.TestCase):
