@@ -1,25 +1,18 @@
 {
- "generated_at": "2026-09-16T02:25:35.383209",
+ "generated_at": "2026-09-22T01:11:17.293963",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 0,
-  "pending": 117
+  "pending": 164
  },
- "total": 117,
+ "total": 164,
  "declared": {
-  "NeuralPipeline:NeuralPipeline.__repr__": {
-   "module": "NeuralPipeline",
-   "qualname": "NeuralPipeline.__repr__",
-   "line": 713,
-   "status": "pending",
-   "reason": ""
-  },
   "NeuralPipeline:NeuralPipeline.replay_failed": {
    "module": "NeuralPipeline",
    "qualname": "NeuralPipeline.replay_failed",
-   "line": 709,
+   "line": 747,
    "status": "pending",
    "reason": ""
   },
@@ -27,13 +20,6 @@
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
    "line": 240,
-   "status": "pending",
-   "reason": ""
-  },
-  "arena:Environment.__repr__": {
-   "module": "arena",
-   "qualname": "Environment.__repr__",
-   "line": 115,
    "status": "pending",
    "reason": ""
   },
@@ -65,45 +51,10 @@
    "status": "pending",
    "reason": ""
   },
-  "backup:IncrementalBackupWorm.compute_manifest": {
-   "module": "backup",
-   "qualname": "IncrementalBackupWorm.compute_manifest",
-   "line": 91,
-   "status": "pending",
-   "reason": ""
-  },
-  "backup:IncrementalBackupWorm.find_changes": {
-   "module": "backup",
-   "qualname": "IncrementalBackupWorm.find_changes",
-   "line": 102,
-   "status": "pending",
-   "reason": ""
-  },
-  "backup:RecoveryTester.test_restore": {
-   "module": "backup",
-   "qualname": "RecoveryTester.test_restore",
-   "line": 136,
-   "status": "pending",
-   "reason": ""
-  },
-  "backup:RecoveryTester.verify_archive": {
-   "module": "backup",
-   "qualname": "RecoveryTester.verify_archive",
-   "line": 124,
-   "status": "pending",
-   "reason": ""
-  },
-  "backup:StateSnapshotter.create_snapshot": {
-   "module": "backup",
-   "qualname": "StateSnapshotter.create_snapshot",
-   "line": 54,
-   "status": "pending",
-   "reason": ""
-  },
-  "backup:StateSnapshotter.list_snapshots": {
-   "module": "backup",
-   "qualname": "StateSnapshotter.list_snapshots",
-   "line": 73,
+  "chorus:FailureDigest.from_analysis": {
+   "module": "chorus",
+   "qualname": "FailureDigest.from_analysis",
+   "line": 76,
    "status": "pending",
    "reason": ""
   },
@@ -177,6 +128,13 @@
    "status": "pending",
    "reason": ""
   },
+  "config:ConfigLinter.lint_json": {
+   "module": "config",
+   "qualname": "ConfigLinter.lint_json",
+   "line": 52,
+   "status": "pending",
+   "reason": ""
+  },
   "config:ConfigLinter.lint_yaml": {
    "module": "config",
    "qualname": "ConfigLinter.lint_yaml",
@@ -188,6 +146,13 @@
    "module": "config",
    "qualname": "DotfileSync.get_checksums",
    "line": 129,
+   "status": "pending",
+   "reason": ""
+  },
+  "config:EnvValidator.scan_env_files": {
+   "module": "config",
+   "qualname": "EnvValidator.scan_env_files",
+   "line": 93,
    "status": "pending",
    "reason": ""
   },
@@ -209,13 +174,6 @@
    "module": "config",
    "qualname": "SecretRotator.rotate_secret",
    "line": 144,
-   "status": "pending",
-   "reason": ""
-  },
-  "consensus:SplitBrainResolverWorm.report_fork": {
-   "module": "consensus",
-   "qualname": "SplitBrainResolverWorm.report_fork",
-   "line": 231,
    "status": "pending",
    "reason": ""
   },
@@ -268,6 +226,13 @@
    "status": "pending",
    "reason": ""
   },
+  "db_monitor:DatabaseMonitorWorm.create_backup": {
+   "module": "db_monitor",
+   "qualname": "DatabaseMonitorWorm.create_backup",
+   "line": 201,
+   "status": "pending",
+   "reason": ""
+  },
   "dendrite:AttentionGateWorm.set_bias": {
    "module": "dendrite",
    "qualname": "AttentionGateWorm.set_bias",
@@ -299,14 +264,14 @@
   "dreaming:DreamingModule.get_dream_stats": {
    "module": "dreaming",
    "qualname": "DreamingModule.get_dream_stats",
-   "line": 921,
+   "line": 1003,
    "status": "pending",
    "reason": ""
   },
   "dreaming:HypnagogicSynthesizer.ingest_domains": {
    "module": "dreaming",
    "qualname": "HypnagogicSynthesizer.ingest_domains",
-   "line": 976,
+   "line": 1058,
    "status": "pending",
    "reason": ""
   },
@@ -324,10 +289,31 @@
    "status": "pending",
    "reason": ""
   },
+  "engram:RecallRouterWorm.route_recall": {
+   "module": "engram",
+   "qualname": "RecallRouterWorm.route_recall",
+   "line": 344,
+   "status": "pending",
+   "reason": ""
+  },
   "engram:_VectorIndex.has": {
    "module": "engram",
    "qualname": "_VectorIndex.has",
    "line": 227,
+   "status": "pending",
+   "reason": ""
+  },
+  "error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery": {
+   "module": "error_recovery",
+   "qualname": "ErrorRecoveryOrchestrator.execute_with_recovery",
+   "line": 89,
+   "status": "pending",
+   "reason": ""
+  },
+  "error_recovery:ErrorRecoveryOrchestrator.reset_circuit": {
+   "module": "error_recovery",
+   "qualname": "ErrorRecoveryOrchestrator.reset_circuit",
+   "line": 316,
    "status": "pending",
    "reason": ""
   },
@@ -352,10 +338,38 @@
    "status": "pending",
    "reason": ""
   },
+  "evolution:GeneticOptimizer.optimize_cma": {
+   "module": "evolution",
+   "qualname": "GeneticOptimizer.optimize_cma",
+   "line": 1300,
+   "status": "pending",
+   "reason": ""
+  },
+  "evolution:GeneticOptimizer.optimize_de": {
+   "module": "evolution",
+   "qualname": "GeneticOptimizer.optimize_de",
+   "line": 1313,
+   "status": "pending",
+   "reason": ""
+  },
   "evolution:GeneticOptimizer.optimize_multi": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_multi",
    "line": 1389,
+   "status": "pending",
+   "reason": ""
+  },
+  "evolution:hypervolume_2d": {
+   "module": "evolution",
+   "qualname": "hypervolume_2d",
+   "line": 1812,
+   "status": "pending",
+   "reason": ""
+  },
+  "evolution:moead_weights": {
+   "module": "evolution",
+   "qualname": "moead_weights",
+   "line": 1824,
    "status": "pending",
    "reason": ""
   },
@@ -415,6 +429,20 @@
    "status": "pending",
    "reason": ""
   },
+  "exmachina_operators:operator_report": {
+   "module": "exmachina_operators",
+   "qualname": "operator_report",
+   "line": 1010,
+   "status": "pending",
+   "reason": ""
+  },
+  "exmachina_operators:rank_candidates": {
+   "module": "exmachina_operators",
+   "qualname": "rank_candidates",
+   "line": 963,
+   "status": "pending",
+   "reason": ""
+  },
   "federated:FederatedAggregatorWorm.run_round": {
    "module": "federated",
    "qualname": "FederatedAggregatorWorm.run_round",
@@ -436,31 +464,157 @@
    "status": "pending",
    "reason": ""
   },
-  "immune:AttestationWorm.attest_file": {
-   "module": "immune",
-   "qualname": "AttestationWorm.attest_file",
-   "line": 176,
+  "learning_features:FeatureEngineer.impute_missing": {
+   "module": "learning_features",
+   "qualname": "FeatureEngineer.impute_missing",
+   "line": 425,
    "status": "pending",
    "reason": ""
   },
-  "immune:QuarantineWorm.is_quarantined": {
-   "module": "immune",
-   "qualname": "QuarantineWorm.is_quarantined",
-   "line": 154,
+  "learning_features:FeatureEngineer.one_hot_encode": {
+   "module": "learning_features",
+   "qualname": "FeatureEngineer.one_hot_encode",
+   "line": 415,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report": {
+   "module": "learning_features",
+   "qualname": "SchemaAwareFeatureExtractor.fallback_accuracy_report",
+   "line": 342,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_grpo:GRPOTrainer.rewards_from_elo": {
+   "module": "learning_grpo",
+   "qualname": "GRPOTrainer.rewards_from_elo",
+   "line": 210,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.extract_field": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.extract_field",
+   "line": 189,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.extract_recent": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.extract_recent",
+   "line": 147,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.filter_by_severity": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.filter_by_severity",
+   "line": 204,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.filter_by_source": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.filter_by_source",
+   "line": 209,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.get_memory_stats": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.get_memory_stats",
+   "line": 153,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.load_to_memory": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.load_to_memory",
+   "line": 246,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.process_batches": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.process_batches",
+   "line": 262,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.schedule_dynamic_refresh",
+   "line": 540,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_pipeline:DataPipelineWorm.search_memory": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.search_memory",
+   "line": 140,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_replay:PrioritizedReplayBuffer.add_from_memories": {
+   "module": "learning_replay",
+   "qualname": "PrioritizedReplayBuffer.add_from_memories",
+   "line": 163,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_rl:RLTrainLoop.train_episode": {
+   "module": "learning_rl",
+   "qualname": "RLTrainLoop.train_episode",
+   "line": 782,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_rl:RLTrainLoop.tune_and_train": {
+   "module": "learning_rl",
+   "qualname": "RLTrainLoop.tune_and_train",
+   "line": 731,
+   "status": "pending",
+   "reason": ""
+  },
+  "learning_rl:RLTrainLoop.tune_history": {
+   "module": "learning_rl",
+   "qualname": "RLTrainLoop.tune_history",
+   "line": 811,
    "status": "pending",
    "reason": ""
   },
   "learning_versioner:ModelVersioner.compare_versions": {
    "module": "learning_versioner",
    "qualname": "ModelVersioner.compare_versions",
-   "line": 112,
+   "line": 215,
+   "status": "pending",
+   "reason": ""
+  },
+  "loom:NoveltyDrive.novelty_weight": {
+   "module": "loom",
+   "qualname": "NoveltyDrive.novelty_weight",
+   "line": 261,
+   "status": "pending",
+   "reason": ""
+  },
+  "loom:descriptors_from_archive": {
+   "module": "loom",
+   "qualname": "descriptors_from_archive",
+   "line": 309,
    "status": "pending",
    "reason": ""
   },
   "mesh:MeshRouterWorm.invalidate_route": {
    "module": "mesh",
    "qualname": "MeshRouterWorm.invalidate_route",
-   "line": 213,
+   "line": 248,
+   "status": "pending",
+   "reason": ""
+  },
+  "meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation": {
+   "module": "meta_cognition",
+   "qualname": "MetaCognitionWorm.compute_cross_worm_correlation",
+   "line": 857,
    "status": "pending",
    "reason": ""
   },
@@ -527,10 +681,24 @@
    "status": "pending",
    "reason": ""
   },
-  "morph:Genome.__repr__": {
+  "morph:Genome.to_trainer_kwargs": {
    "module": "morph",
-   "qualname": "Genome.__repr__",
-   "line": 268,
+   "qualname": "Genome.to_trainer_kwargs",
+   "line": 248,
+   "status": "pending",
+   "reason": ""
+  },
+  "morph:load_genome": {
+   "module": "morph",
+   "qualname": "load_genome",
+   "line": 488,
+   "status": "pending",
+   "reason": ""
+  },
+  "morph:save_genome": {
+   "module": "morph",
+   "qualname": "save_genome",
+   "line": 480,
    "status": "pending",
    "reason": ""
   },
@@ -590,10 +758,45 @@
    "status": "pending",
    "reason": ""
   },
-  "race_detector:_TracedLock.__getattr__": {
+  "proteus_hooks:morph_dimension_summary": {
+   "module": "proteus_hooks",
+   "qualname": "morph_dimension_summary",
+   "line": 716,
+   "status": "pending",
+   "reason": ""
+  },
+  "proteus_hooks:morph_treatment_value": {
+   "module": "proteus_hooks",
+   "qualname": "morph_treatment_value",
+   "line": 560,
+   "status": "pending",
+   "reason": ""
+  },
+  "race_detector:RaceConditionDetector.instrument_worm": {
    "module": "race_detector",
-   "qualname": "_TracedLock.__getattr__",
-   "line": 73,
+   "qualname": "RaceConditionDetector.instrument_worm",
+   "line": 117,
+   "status": "pending",
+   "reason": ""
+  },
+  "race_detector:RaceConditionDetector.uninstrument_worm": {
+   "module": "race_detector",
+   "qualname": "RaceConditionDetector.uninstrument_worm",
+   "line": 223,
+   "status": "pending",
+   "reason": ""
+  },
+  "scheduling:ScheduledTrainingWorm._get_ab": {
+   "module": "scheduling",
+   "qualname": "ScheduledTrainingWorm._get_ab",
+   "line": 263,
+   "status": "pending",
+   "reason": ""
+  },
+  "scheduling:TrainingOrchestrator.get_run_history": {
+   "module": "scheduling",
+   "qualname": "TrainingOrchestrator.get_run_history",
+   "line": 1130,
    "status": "pending",
    "reason": ""
   },
@@ -670,7 +873,105 @@
   "spine_registry:_iso_or": {
    "module": "spine_registry",
    "qualname": "_iso_or",
-   "line": 2515,
+   "line": 3239,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:audit_state": {
+   "module": "spine_registry",
+   "qualname": "audit_state",
+   "line": 2004,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:get_gossip_trust_state": {
+   "module": "spine_registry",
+   "qualname": "get_gossip_trust_state",
+   "line": 3115,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:get_module_health": {
+   "module": "spine_registry",
+   "qualname": "get_module_health",
+   "line": 2873,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:get_policy_latest": {
+   "module": "spine_registry",
+   "qualname": "get_policy_latest",
+   "line": 438,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:get_q_evidence": {
+   "module": "spine_registry",
+   "qualname": "get_q_evidence",
+   "line": 1898,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:homeostat_reset": {
+   "module": "spine_registry",
+   "qualname": "homeostat_reset",
+   "line": 2684,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:purge_fixtures": {
+   "module": "spine_registry",
+   "qualname": "purge_fixtures",
+   "line": 2060,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:purge_implausible_stamps": {
+   "module": "spine_registry",
+   "qualname": "purge_implausible_stamps",
+   "line": 2795,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:purged_blocked_writes": {
+   "module": "spine_registry",
+   "qualname": "purged_blocked_writes",
+   "line": 330,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:q_confidence": {
+   "module": "spine_registry",
+   "qualname": "q_confidence",
+   "line": 1852,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:revert_policy": {
+   "module": "spine_registry",
+   "qualname": "revert_policy",
+   "line": 2716,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:route_last_at": {
+   "module": "spine_registry",
+   "qualname": "route_last_at",
+   "line": 2283,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:route_weight_range": {
+   "module": "spine_registry",
+   "qualname": "route_weight_range",
+   "line": 2316,
+   "status": "pending",
+   "reason": ""
+  },
+  "spine_registry:spine_reset": {
+   "module": "spine_registry",
+   "qualname": "spine_reset",
+   "line": 2757,
    "status": "pending",
    "reason": ""
   },
@@ -685,6 +986,13 @@
    "module": "synapse",
    "qualname": "MoEDispatcherWorm.top_expert",
    "line": 253,
+   "status": "pending",
+   "reason": ""
+  },
+  "synapse:SSMSequenceWorm.train_error": {
+   "module": "synapse",
+   "qualname": "SSMSequenceWorm.train_error",
+   "line": 450,
    "status": "pending",
    "reason": ""
   },
@@ -723,6 +1031,20 @@
    "status": "pending",
    "reason": ""
   },
+  "telemetry:MetricAggregator.get_snapshot": {
+   "module": "telemetry",
+   "qualname": "MetricAggregator.get_snapshot",
+   "line": 108,
+   "status": "pending",
+   "reason": ""
+  },
+  "telemetry:MetricAggregator.inc_counter": {
+   "module": "telemetry",
+   "qualname": "MetricAggregator.inc_counter",
+   "line": 94,
+   "status": "pending",
+   "reason": ""
+  },
   "telemetry:SpanTracer.end_span": {
    "module": "telemetry",
    "qualname": "SpanTracer.end_span",
@@ -741,6 +1063,13 @@
    "module": "telemetry",
    "qualname": "SpanTracer.start_span",
    "line": 53,
+   "status": "pending",
+   "reason": ""
+  },
+  "tensorgene:dedupe_observations": {
+   "module": "tensorgene",
+   "qualname": "dedupe_observations",
+   "line": 128,
    "status": "pending",
    "reason": ""
   },

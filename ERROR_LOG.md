@@ -6716,3 +6716,79 @@ Additionally, root's `.bashrc` contained `alias python3='python3.14t'` which com
 3. **After building a custom Python, verify** `/usr/bin/python3` still points to the system version: `readlink -f /usr/bin/python3`
 
 **Related:** Error #52 (original python3-apt fix), Error #188 (9 cascading interpreter failures)
+
+
+
+## Error #190 — `_purge_worm_modules` Re-Imports Helper Modules: Duplicate `wiring_genome` Breaks Patching and `isinstance` (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟠 High
+**File(s):** `src/CORE/worm_registry.py` (`_purge_worm_modules`), `tests/test_wiring_cycle.py`
+
+**Cause:** `reset_registry()` deletes every `CORE.WORMS.*` entry from `sys.modules` so the `@register_worm` decorators can re-fire on re-discovery. The docstring warns only that **worm classes** become distinct objects. Measured this session, **whole helper modules** come back as different objects too:
+
+```
+import CORE.WORMS.expansion.wiring_genome as wg0
+worm_registry.reset_registry()
+import CORE.WORMS.expansion.wiring_genome as wg1
+wg0 is wg1   ->   False        # two live module objects under the same name
+```
+
+Consequence: a consumer that imported before the reset and one that imports after hold different module objects, so `monkeypatch`/`setattr` on one never reaches the other and `isinstance` across the boundary is false. In the suite it presented as **8 gate tests failing in-suite while passing alone**, the gate reporting `no candidate beat the incumbent` for a candidate forced to win by 0.5. A probe run immediately before the file printed the proof: `wc_wg_is_test_wg: false`, `wg_is_sysmod: false`.
+
+### Fix
+1. `tests/test_wiring_cycle.py` gained `_cycle_wg(mod)`, which returns the `wiring_genome` object **the cycle under test actually calls**; `_force_winner`, `_decayed_canary` and the elite-displacement test patch that object, not the module imported at the top of the file.
+2. New regression test `test_the_gate_still_gates_after_a_registry_reset` reproduces the in-suite order (load the cycle *after* a reset), asserts the module identity genuinely changed, and then asserts the gate still gates.
+
+### Verification
+- `tests/test_wiring_cycle.py` → 20 passed.
+- Reset-first order (`test_registry_importable` + `test_metacluster` + `test_learning_closure` + `test_wiring_cycle`) → 108 passed.
+
+### Prevention
+- A module-level `setattr`/`monkeypatch` is only valid against the object the code under test resolves. In this repo, `reset_registry()` invalidates every `CORE.WORMS.*` identity, so tests must patch **through the loaded module** (`mod.wg`) rather than through their own import.
+- Narrowing the purge was deliberately **not** done: deciding at purge time which modules host worms, and getting it wrong, re-creates the documented lossy re-discovery (SpineCycleWorm / MeshArchitectWorm / GossipSyncWorm absent). Logged as improvement item AR-1.
+
+**Related:** Error #191, `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §7.1
+
+
+
+## Error #191 — Sentinel Write-Guard Mitigation Was Function-Scoped; Failures Were Module-Scoped (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟠 High
+**File(s):** `tests/conftest.py`, `src/CORE/sentinel_enforcer.py`, `scripts/evolution_cycle.py`
+
+**Cause:** `CORE/sentinel_enforcer.py` installs a process-global `sys.addaudithook` at import time that raises `PermissionError` on any `open(..., 'w'/'a'/'+'/'x')` without a thread-local token. `tests/conftest.py` already held the token open per test — but with a **function-scoped** autouse fixture, and pytest sets up module/class-scoped fixtures **first**. A `@pytest.fixture(scope="module")` that imports a script opening its log file at import (`scripts/evolution_cycle.py:48`) was therefore blocked before the permit ever ran.
+
+Measured on a full-suite run: **207** `PermissionError: CRITICAL: Unauthorized write` lines → **69 collection errors** (`test_evolution_gates` 61, `test_import_map` 8) plus a share of the 72 failures. Both files pass 61/61 and 8/8 when run alone.
+
+### Fix
+`tests/conftest.py` gained a `pytest_runtest_setup(item)` hook calling `_permit_sentinel_writes()`. That hook runs before fixture setup of **any** scope, which is the earliest point a conftest can act. The latch is deliberately left on for the session: the guard exists to gate the assistant's tool writes, not a test process's temp/log files, and nothing under `tests/` asserts that it blocks. A test wanting to observe blocking can still set `_GATED_CALL.is_active = False` itself. The function-scoped autouse fixture is kept (now latching) for per-test clarity.
+
+### Verification
+- Repro before fix: `pytest tests/test_compliance_step45_init.py tests/test_evolution_gates.py` → `25 passed, 61 errors`.
+- After fix: `… + test_import_map.py` → **105 passed, 0 errors**.
+
+### Prevention
+- A test-harness mitigation whose scope is narrower than the fixture scopes it must cover is not a mitigation. When a global guard is armed mid-session, the permit must be installed at the earliest hook (`pytest_runtest_setup`), not in a function fixture.
+- **Run the aggregate suite, not per-file runs**: every one of these files was green alone.
+
+**Related:** Error #190, `tests/conftest.py` (sentinel write-guard block), `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §7.2
+
+
+
+## Error #192 — Tests Asserted the Shipped Literal Where the Module Documented It as a Fallback (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟡 Medium
+**File(s):** `tests/test_wiring_cycle.py`, `scripts/wiring_cycle.py`
+
+**Cause:** `scripts/wiring_cycle.py` reads its gate thresholds through `_tuned()`, whose literal is explicitly documented in-source as *"the literals here are the fallback, not the truth"*. `tests/test_wiring_cycle.py` hardcoded the fallbacks: `"awaiting 3 consecutive wins"`, the sequence `(1, 2, 3)`, and a `0.9 vs 0.5` delta to displace the carried elite. Live tuned values are `wiring.min_wins = 2` and `wiring.elite_replace_ratio = 0.8625` (floor `0.5 × 1.8625 = 0.93125 > 0.9`), so four gate tests failed the moment a tuned value landed.
+
+### Fix
+Expectations now derive from the live module attributes (`wc.L1_MIN_WINS`, `wc.L1_ELITE_REPLACE_RATIO`), and `wc.L1_MIN_WINS > 1` is asserted so a degenerate tuned value cannot silently void the "one winning draw must not promote" property. The elite-displacement test computes the newcomer's delta as `0.5 × (1 + ratio) + 0.01`.
+
+### Verification
+- `tests/test_wiring_cycle.py` → 20 passed (was 15 passed / 4 failed).
+
+### Prevention
+- A value read through a tuner is configuration, not a constant. Tests may assert **properties** (`min_wins > 1`, `elite must be beaten by a real margin`) and derived values; they must never assert a tuned default literal.
+
+**Related:** Error #190, `tools/mesh_function_preflight.py` PF16/PF17, `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §7.3
