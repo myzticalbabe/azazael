@@ -313,7 +313,19 @@ class TestLivenessObligations(unittest.TestCase):
     def test_grace_scales_the_deadline(self):
         lv.require("slack.cycle", every=0.05)
         time.sleep(0.07)
-        self.assertEqual(lv.overdue(grace=1.0), lv.overdue(grace=1.0))
+        first = lv.overdue(grace=1.0)
+        second = lv.overdue(grace=1.0)
+        # Compare WHAT is reported, not how late it was measured to be. The two
+        # polls are microseconds apart, so `overdue_by` advances between them by
+        # design; asserting float equality on it made this test measure the
+        # clock instead of the ledger and fail under aggregate load (measured
+        # 2026-09-22: 0.020 vs 0.021, Error #199).
+        self.assertEqual(len(first), 1, "the lateness must still be reported")
+        self.assertEqual([(m["name"], m["kind"]) for m in first],
+                         [(m["name"], m["kind"]) for m in second],
+                         "two polls must agree on what is late")
+        self.assertLess(abs(first[0]["overdue_by"] - second[0]["overdue_by"]), 0.05,
+                        "two polls apart in time must not disagree wildly")
         self.assertEqual(lv.overdue(grace=10.0), [], "grace must absorb lateness")
 
     def test_green_with_nothing_declared_is_unknown_not_healthy(self):

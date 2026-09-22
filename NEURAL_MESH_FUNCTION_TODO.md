@@ -13,7 +13,7 @@ list, plus the insights inferred from the census - lives in
 - 1487 functions across the fabric, neural primitives, learning
   and plasticity, and operational subsystems
 - 77 pass every automated probe; 1410 have at least one failure
-- P0 142 / P1 380 / P2 888
+- P0 142 / P1 379 / P2 889
 
 ## How to work this list
 
@@ -79,8 +79,8 @@ For each function, in this order:
 | PF13 | 0 |
 | PF14 | 338 |
 | PF15 | 130 |
-| PF16 | 164 |
-| PF17 | 559 |
+| PF16 | 163 |
+| PF17 | 558 |
 | PF18 | 15 |
 | PF19 | 4 |
 | PF20 | 1 |
@@ -465,7 +465,7 @@ first.
 - [ ] `NeuralPipeline:NeuralPipeline.run_end_to_end` L245-387 c=10 fail=PF04,PF14,PF17
 - [ ] `spine_registry:publish_fabric_state` L786-823 c=10 fail=PF14
 - [ ] `chorus:parse_proposals` L174-199 c=10 fail=PF14
-- [ ] `code_audit:WeeklyCodeAuditWorm._scan` L73-104 c=10 fail=PF04,PF14,PF17
+- [ ] `code_audit:WeeklyCodeAuditWorm._scan` L73-104 c=10 fail=PF04,PF14
 - [ ] `driver:GemmaDriverWorm._judge_once` L152-180 c=10 fail=PF04,PF14,PF17
 - [ ] `engram:_VectorIndex._ensure_backend` L135-160 c=10 fail=PF04,PF14,PF17
 - [ ] `fabric_state:publish` L154-180 c=10 fail=PF14
@@ -711,7 +711,6 @@ first.
 - [ ] `dendrite:DendriteAggregatorWorm.integrate` L38-43 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `dendrite:AttentionGateWorm.set_bias` L71-74 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `dreaming:DreamingModule.get_dream_stats` L1003-1006 c=1 fail=PF04,PF16,PF17
-- [ ] `engram:_VectorIndex.has` L227-229 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `error_recovery:ErrorRecoveryOrchestrator.reset_circuit` L316-326 c=1 fail=PF04,PF16
 - [ ] `evolution:EvolutionEngine.get_generation_history` L1238-1241 c=1 fail=PF04,PF16,PF17
 - [ ] `evolution:GeneticOptimizer.optimize_cma` L1300-1311 c=1 fail=PF04,PF16
@@ -1449,7 +1448,7 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `_VectorIndex.vector` L222-225 c=2 p=2 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `_VectorIndex.has` L227-229 c=1 p=2 auto=PF02,PF04,PF16,PF17
+- [ ] `_VectorIndex.has` L227-229 c=1 p=2 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
 - [ ] `_VectorIndex.stats` L231-239 c=3 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
@@ -3023,7 +3022,7 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `WeeklyCodeAuditWorm.__init__` L64-69 c=1 p=2 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `WeeklyCodeAuditWorm._scan` L73-104 c=10 p=1 auto=PF04,PF14,PF17
+- [ ] `WeeklyCodeAuditWorm._scan` L73-104 c=10 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
 - [ ] `WeeklyCodeAuditWorm._register_trace` L108-139 c=4 p=3 auto=PF04,PF14,PF15,PF17
   - [ ] manual M1-M6

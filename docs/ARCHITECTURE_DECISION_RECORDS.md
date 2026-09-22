@@ -507,4 +507,176 @@ is what makes the scope explicit.
 
 ---
 
+## ADR-013 — Authority Crosses a Thread Boundary Only When It Is Carried, and a Limit Applies After Every Filter
+
+**Status:** Accepted · **Date:** 2026-09-22 · **Supersedes:** the operator
+decision left open by Error #197
+
+### Context
+
+Two defects, one shared shape: a mechanism that was correct in isolation and
+wrong about *when* it applied.
+
+1. `sentinel_enforcer` gates writes with `_GATED_CALL = threading.local()`
+   (`:40`), read per thread by a process-global audit hook (`:53`). `fs_probe`
+   delegates its first probe of a path to a worker thread and opens
+   `tempfile.TemporaryFile()` there, so **every delegated probe was denied by our
+   own guard** and reported `None` — which the module documents as "unknown".
+   The first fix (Error #197) was in `tests/conftest.py`, which made the suite
+   green and left the subsystem broken wherever the guard is armed.
+2. `MetaCluster.orchestrate(max_natures=N)` applied `[:N]` to the ranked Nature
+   list *before* removing natures that contain the orchestration infrastructure,
+   so a request for one Nature could execute zero and still return
+   `phase="complete"` with `errors=[]`.
+
+Both were found by watching a *value* rather than bisecting files
+(`tools/pytest_fixture_watch.py`), and both had been invisible to per-file runs.
+
+### Decision
+
+1. **Authority is carried explicitly, never inferred from the process.**
+   `worker_permit(held)` takes the permit state read on the STARTER thread and
+   re-establishes it on the worker. A worker started with no permit is still
+   denied, so using a thread cannot widen authority. `permit_here(reason)`
+   replaces the bare `is_active = True` / `finally: is_active = False` pattern at
+   every internal call site, restoring the previous value so nested authorized
+   regions compose. `fs_probe._carried_permit()` reads the guard out of
+   `sys.modules` instead of importing it, because importing `sentinel_enforcer`
+   ARMS the audit hook, and returns a factory because `bounded_first_dir` starts
+   N threads.
+2. **A denial is its own outcome.** `bounded_subprocess_output` returns
+   `denied`; `probe_backend_stats()["denied_probes"]` counts it; `is_denied()`
+   reads it. A probe that reports "unknown" for a path it was forbidden to look
+   at is reporting our own control as a filesystem fact.
+3. **Limits apply after the filters that can discard.** `max_natures` caps the
+   natures that can RUN; if every requested Nature is circular the selection is
+   kept as-is so the no-op stays visible, and an empty execution order now
+   appends an explicit error naming the circular set. A result may not report
+   completion without a record of what completed.
+
+### Consequences
+
+**Positive:** the probe backend answers in the assistant's own session, not only
+in the test process; the regression test pins both directions of the permit
+boundary by rebinding the REAL thread-local token (so `conftest`'s compatibility
+swap cannot satisfy it); and a caller can no longer mistake "nothing was
+eligible" for "everything was fine".
+
+**Negative:** two new conceptual pieces to know — a carried permit and a denial
+counter. Both are named after the thing they measure, and both are asserted by
+tests that fail without them (`test_sentinel_thread_permit.py`,
+`test_cross_nature_orchestration.py::TestMetaClusterState::test_state_phases`).
+
+**Left open here (deliberate):** `conftest`'s process-shared token is now
+redundant for the probe path and is kept only until a full run with
+`AZAZAEL_TEST_SHARED_PERMIT=0` is green; other legacy suites write from worker
+threads through paths this decision does not cover.
+
+### Related
+
+Error #197, Error #198, Error #199, Lesson #91, Lesson #92, Lesson #93,
+`tests/test_memory_dir_caching.py` (the same rule for a cached path: discover
+the set by AST so the list cannot rot).
+
+---
+
+## ADR-014 — A Test's Restore Is a Snapshot of the Value, Never a Recomputation of It
+
+**Status:** Accepted · **Date:** 2026-09-22 · **Supersedes:** the restore
+mechanism chosen for Error #196
+
+### Context
+
+`tests/conftest.py` repairs the leaked memory-dir globals of Error #196 by
+restoring, after every test, four module attributes
+(`CORE.direct_memory.DB_PATH`, `CORE.local_memory.DB_PATH`,
+`CORE.record_session.DB_PATH`, `CORE.MemoryBus._MEMORYBUS_DB_PATH`) plus two
+reloaders (`CORE/backup.py:45`, `CORE/cd3_exporter.py:79`).
+
+The first implementation restored by **recomputing** each value from
+`AZAZAEL_MEMORY_DIR`. That is correct for the leak it was written for, and wrong
+for a different, equally legitimate case: `tests/test_mutation.py:13` and
+`tests/test_dm_advanced.py:13` redirect `direct_memory.DB_PATH` to their own temp
+file in `setup_module()`, which is deliberately not derived from the environment.
+The recompute therefore replaced their redirect with the shared session store
+after the first test — and `test_mutation.py::teardown_module` then called
+`.unlink()` on the live session store (Error #200: reported as a `WinError 32`
+teardown ERROR only because the file happened to still be open).
+
+### Decision
+
+`_restore_memory_db_globals()` snapshots `(module, attribute, value)` for every
+known global before the test and restores those exact values afterwards.
+Recomputation survives in exactly one place: a module that was **imported during
+the test** had no snapshot, has no deliberate redirect to preserve, and is still
+computed from the restored environment.
+
+`_MEMORY_DB_RELOADERS` entries carry an explicit attribute tuple, because
+`backup` and `cd3_exporter` each recompute two globals and a single resolver name
+could not express that; `tests/test_memory_dir_caching.py::test_the_restore_list_is_not_stale`
+asserts every named attribute is still AST-visible as an env-derived global.
+
+### Consequences
+
+**Positive:** one mechanism now covers both shapes — a leaked global is repaired,
+and a deliberate redirect is preserved. The rule generalises: restoring "the
+state you changed" is what makes a fixture composable, and only the snapshot
+knows what that state was.
+
+**Negative:** the fixture holds references across the test, so a test that
+rebinds a module by `importlib.reload` is not covered by the snapshot (it is
+covered by the late-import recompute). The fixture is also no longer a pure
+function of the environment, which is the point.
+
+### Related
+
+Error #200, Error #196, Lesson #94, `tests/conftest.py`,
+`tests/test_memory_db_isolation.py`, `tests/test_memory_dir_caching.py`
+
+---
+
+## ADR-015 — A Timing Assertion States One Claim: "It Returns" or "It Is Fast", Never Both
+
+**Status:** Accepted · **Date:** 2026-09-22
+
+### Context
+
+Three suite files asserted on wall-clock measurements and failed in the
+aggregate run while passing alone (Error #201): a 3.112s call against a 3.0s
+"probable deadlock" bound whose message said "Expected < 1s"; two `overdue()`
+polls compared for float equality on a value computed from `now()` (0.020 vs
+0.021); and a 2-worker benchmark that lost to its own 1-worker baseline with a
+workload small enough that thread spawn dominated it.
+
+### Decision
+
+1. **Deadlock detection is a liveness claim, not a performance claim.** A
+   re-entered `threading.Lock` never returns, so the guard only has to outlive
+   any plausible load: `_DEADLOCK_TIMEOUT = 30.0`, with the reason in the source.
+2. **Slow-but-complete is recorded, not asserted.** Calls at or above the
+documented 1s hot-path budget append to a module-level `SLOW_CALLS` ledger that
+the failure message reports.
+3. **Never compare a `now()`-derived value for equality across two calls.**
+   Compare the reported fields; bound the delta of the quantity that moves.
+4. **A performance claim on a shared machine needs best-of-N and a workload
+   large enough that fixed overhead is a small fraction of it.**
+
+### Consequences
+
+**Positive:** a green suite no longer requires an idle machine, so the gate's
+signal is the code again. The deadlock regression the file exists for is still
+caught — 30s is exceeded by any real recurrence.
+
+**Negative:** a genuine slowdown that completes inside 30s no longer fails the
+suite; it appears in `SLOW_CALLS` instead. That is a deliberate trade, and it
+means `SLOW_CALLS` is a report a reader must actually read.
+
+### Related
+
+Error #201, Error #193 (an unmeasured dimension read as a code problem),
+Lesson #95, `tests/test_compliance_deadlock_regression.py`,
+`tests/test_mesh_audit_insights.py`, `tests/test_pool.py`
+
+---
+
 *Generated: 2026-02-11*

@@ -3305,4 +3305,49 @@ silent for as long as that test was failing for another reason.
 
 ---
 
+## Lesson #94 — A Repair That Recomputes the Old Value Is Not a Restore; It Is a Second Leak
+
+**Session:** 2026-09-22 · **Trigger:** Error #200
+
+The isolation fixture that repaired Error #196 recomputed each module's DB-path
+global from the environment. But two test modules redirect that global
+deliberately, to a path the environment does not describe -- so the repair
+replaced their redirect with the shared session store after the first test.
+
+One cause, two symptoms in files that were never the leaker: a teardown that
+called `unlink()` on the LIVE session store (it reported the lock instead of the
+deletion), and a test whose `DirectMemory` adopted another test's session id
+through the documented reconnect merge, so no `session_start` was recorded.
+
+**Permanent mandate:**
+- Restore by SNAPSHOT, not by re-derivation. The environment is an input; it is not memory of what the value was.
+- Recomputing is correct only for state that did not exist when the snapshot was taken (a module imported during the test). Say so in the comment, so the two cases are not conflated again.
+- Any cleanup that unlinks or rmtrees a module global must first prove the global is still the one it expects. Mutable process-wide paths are shared attacker surface between tests.
+- Two symptoms in unrelated files that both pass alone: suspect a shared process-global before suspecting either test.
+
+**Related:** Error #200, Error #196 (the leak this repair was for), `tests/conftest.py`, `src/CORE/direct_memory.py`
+
+---
+
+## Lesson #95 — A Wall-Clock Assertion on a Shared Machine Grades the Machine
+
+**Session:** 2026-09-22 · **Trigger:** Error #201
+
+Three assertions failed together in the aggregate run and none of them was
+about the code: a 3.112s call against a 3.0s "probable deadlock" bound, two
+`overdue()` polls whose clock-derived `overdue_by` read 0.020 then 0.021, and a
+benchmark whose 2-worker run beat its 1-worker run by less than nothing. All
+three passed alone. All three were reading contention.
+
+**Permanent mandate:**
+- Decide which of two things a timing test is checking -- "it returns" or "it is fast" -- and never check both with one constant.
+- A deadlock is UNBOUNDED. A tight bound is not a stricter deadlock test; it is a stricter machine test. Set the bound to outlive any plausible load and say so in the source.
+- Never assert equality on a value derived from `now()`. Compare what is reported; bound the delta if the quantity itself matters.
+- A benchmark on a loaded box needs best-of-N and a workload large enough that thread-spawn overhead is a small fraction of it. If `speedup < 1` is systematic, the workload is the bug, not the noise.
+- Prefer a recorded ledger for slow-but-complete observations. A gate that fails on load teaches the team to ignore it.
+
+**Related:** Error #201, Error #193, `tests/test_compliance_deadlock_regression.py`, `tests/test_mesh_audit_insights.py`, `tests/test_pool.py`
+
+---
+
 *Lesson #83: August 29, 2026 — stale-pickle force_rebuild no-op session*

@@ -7160,3 +7160,138 @@ if hits and str(entry.get("status")) == "dispatched":
 - Evidence belongs to the fact, not to the transition that discovered it. Anything written inside a `pending -> decided` branch is a cache with no way to rebuild itself.
 
 **Related:** Error #190 (an inferred triage table presented as results), `tools/mesh_function_preflight.py`, `tests/test_mesh_wire_or_cut.py`
+
+---
+
+## Error #200 — The Isolation Fixture Recovered a Global by Recomputing It, Which Overwrote the Redirect a Test Had Deliberately Made (September 22, 2026)
+
+### Symptom
+Two files, one cause, and neither symptom named it:
+
+1. `ERROR at teardown of TestMutationDetection.test_mapping_summary_structure`:
+
+   ```
+   PermissionError: [WinError 32] The process cannot access the file because
+   it is being used by another process:
+   'C:\Users\clint\AppData\Local\Temp\azazael_memory_fd_dtgau\memory_store.db'
+   ```
+
+2. `tests/test_dm_advanced.py::TestFilteredQuery::test_replay_session`:
+
+   ```
+   AssertionError: 'session_start' in ['cd5_benchmark', 'session_end',
+   'session_end', 'message_start', 'file_read', 'message_end', ...]
+   ```
+
+Both passed when their file ran alone. In the aggregate run the teardown error
+landed on a test that has no teardown of its own, and the second failure was
+about a *session id* the test never chose.
+
+### Root cause
+The fixture written for Error #196 restored the memory-dir globals by
+RECOMPUTING them from the environment:
+
+```python
+for _mod_name, _resolver, _attr in _MEMORY_DB_RESOLVERS:
+    setattr(_module, _attr, _fn())        # recompute from AZAZAEL_MEMORY_DIR
+```
+
+`tests/test_mutation.py:13` and `tests/test_dm_advanced.py:13` both redirect the
+module themselves in `setup_module()`:
+
+```python
+dm_mod.DB_PATH = Path(tempfile.mktemp(suffix='_test_mut.db'))
+```
+
+That redirect is deliberately NOT derived from the env var, so the first test's
+teardown recompute replaced it with the SHARED session store. After that:
+
+- `test_mutation.py::teardown_module` saw `dm_mod.DB_PATH.exists()` was True,
+  and called `.unlink()` on **the live session store**. Only the open SQLite
+  handle stopped it -- the run reported the lock as a teardown ERROR. Had the
+  handle been closed first, the suite would have deleted the store it was
+  running against, mid-run, with no error at all.
+- `test_dm_advanced.py` built its `DirectMemory` against a store holding other
+  tests' rows, so `_find_recent_session()` (`direct_memory.py:537`, the Phase-2
+  reconnect merge) adopted an existing open session id. `_start_session()` then
+  did `INSERT OR IGNORE` against a session row that already existed, so no
+  `session_start` event was recorded for it. "If the window is open, open it;
+  otherwise select the last open window" -- the documented reconnect behaviour,
+  observed as a failure only because the test was handed a polluted store.
+
+### Fix
+The fixture now SNAPSHOTS the values in effect at test start and restores those
+(`_snapshot_memory_globals()` in `tests/conftest.py`), and recomputes only for
+modules that were imported DURING the test -- they never had a deliberate
+redirect to preserve, which is the one case the old behaviour was ever right
+for. `_MEMORY_DB_RELOADERS` gained an explicit attribute list, because
+`CORE/backup.py:45` and `CORE/cd3_exporter.py:79` each recompute two globals and
+a single resolver name could not express that.
+
+### Verification
+- `pytest tests/test_mutation.py tests/test_dm_advanced.py tests/test_memory_dir_caching.py tests/test_memory_db_isolation.py tests/test_sentinel_thread_permit.py` -> **17 passed** (was 1 failed / 1 error).
+- `tests/test_memory_db_isolation.py` still fails without the fixture, so the Error #196 repair is still covered.
+- `tests/test_memory_dir_caching.py::test_the_restore_list_is_not_stale` now also asserts every named snapshot attribute is still AST-visible as an env-derived global, so the new attribute list cannot rot silently.
+
+### Prevention
+- A repair that derives the old value again is not a restore. Snapshot the value; the environment is an input, not memory.
+- A cleanup path that calls `unlink()`/`rmtree()` on a module global must first prove that global is still the one it thinks it is. `DB_PATH` is mutable process-wide state.
+- When two symptoms appear in unrelated files and both pass alone, look for a shared process-global before looking at either test.
+
+**Related:** Error #196 (the leak this fixture was written for), Error #197, `tests/conftest.py`, `src/CORE/direct_memory.py`, `tests/test_mutation.py`, `tests/test_dm_advanced.py`
+
+---
+
+## Error #201 — Three Assertions on Wall Clock Reported a Loaded Machine as a Defect (September 22, 2026)
+
+### Symptom
+Three different files, three different words for the same mistake:
+
+| file | assertion | aggregate reading |
+|---|---|---|
+| `test_compliance_deadlock_regression.py::test_both_with_orchestrator` | call returns in `< 3.0`s | **3.112s** -- "probable deadlock! Expected < 1s" |
+| `test_mesh_audit_insights.py::test_grace_scales_the_deadline` | two `overdue()` polls are equal | `overdue_by` **0.020** vs **0.021** |
+| `test_pool.py::test_benchmark_speedup` | 2 workers are `>= 1.0`x 1 worker | speedup **< 1.0** |
+
+Every one passed when its file ran alone. Nothing was deadlocked, the two polls
+agreed, and the pool did not serialize.
+
+### Root cause
+All three asserted on a wall-clock measurement taken on a machine with 3,600
+other tests in the same process:
+
+- The deadlock bound was 3.0s. But a `threading.Lock` re-entered by its holder
+  does not slow down, it NEVER returns -- so a tight bound is not a stricter
+  deadlock test, it is a stricter machine test. The call had completed.
+- `overdue(grace=1.0)` returns the lateness measured AT CALL TIME, so two polls
+  microseconds apart must differ by design. The test compared floats for
+  equality and therefore measured the clock, while claiming to test that the
+  ledger reports persistently.
+- The benchmark's workload was 200 tasks of `sum(i**2 for i in range(5000))`
+  (~10 ms total), so spawning the level-2 worker cost more than the parallelism
+  bought: `speedup < 1` was systematic under contention rather than noise.
+
+### Fix
+- **Deadlock guard:** bound raised to 30s with the reason stated in the source
+  (a deadlock is unbounded, so the bound only has to outlive any plausible
+  load). Calls at or above the documented 1s hot-path budget are now appended to
+  a module-level `SLOW_CALLS` ledger and reported in the failure message instead
+  of failing the run: slow-but-complete is recorded, not asserted.
+- **Grace test:** compares `(name, kind)` -- what is late -- and bounds the
+  lateness delta at 0.05s, so two polls must agree on the report without having
+  to agree on a stopwatch. The sibling idempotence test already covers the
+  "reports on every poll" claim.
+- **Benchmark:** workload raised to `range(20000)` so thread spawn is a small
+  fraction of the measured work, and the assertion is best-of-3, the standard
+  treatment for a noisy timing signal. The claim is unchanged.
+
+### Verification
+- `pytest tests/test_pool.py tests/test_mesh_audit_insights.py tests/test_compliance_deadlock_regression.py` -> **70 passed**.
+- The deadlock regression the file exists for is still detected: a non-reentrant `Lock` hangs, and 30s is exceeded by any real recurrence.
+
+### Prevention
+- A wall-clock assertion on a shared machine measures the machine. State which of the two you are testing, and never both with one number.
+- If a value is derived from `now()`, do not assert equality on it across two calls.
+- `Expected < 1s` in a message whose bound is 3.0s is a bound nobody chose; make the message and the constant the same claim.
+
+**Related:** Error #193 (an unmeasured dimension read as a code problem), Error #199, `tests/test_compliance_deadlock_regression.py`, `tests/test_mesh_audit_insights.py`, `tests/test_pool.py`
