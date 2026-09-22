@@ -6891,3 +6891,272 @@ said where the evidence belongs.
 - Never let a smoke test write a tracked artifact. Redirect the artifact root in the test, not in the run.
 
 **Related:** Error #194, ADR-010, ADR-012, `tools/aggregate_suite_gate.py`, `logs/aggregate_isolation_baseline.json`
+
+
+## Error #196 — A Test Redirected the Memory DB Path and Never Put the Module Global Back (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟠 High
+**File(s):** `tests/test_cli.py`, `tests/test_doctor.py`, `tests/test_concurrency_200.py`, `tests/test_perf.py`, `tests/test_perf_threshold.py`, `tests/conftest.py`
+
+**Cause:** `CORE/direct_memory.py` computes its store path ONCE, at import
+(`DB_PATH = _get_db_path()`, line 73; same shape in `local_memory`,
+`record_session`, `MemoryBus`). Legacy unittest-style suites redirect the store
+by mutating **both** the environment and that global:
+
+```python
+os.environ["AZAZAEL_MEMORY_DIR"] = str(tmpdir)      # _setup
+from CORE import direct_memory
+direct_memory.DB_PATH = direct_memory._get_db_path()
+...
+shutil.rmtree(str(tmpdir))                          # _teardown, env restored, global NOT
+```
+
+`_teardown` restores the env var and deletes the temp dir, so the module global
+is left pointing INTO A DELETED DIRECTORY for the rest of the process. Every
+later `DirectMemory()` anywhere in the session then dies:
+
+```
+RuntimeError: Failed to initialize database at
+C:\Users\clint\AppData\Local\Temp\tmp_1cocc4t\memory_store.db:
+unable to open database file
+```
+
+**Why it went unseen:** the leakers and the victims are different files. Four
+files leak (`test_cli`, `test_doctor`, `test_concurrency_200`, `test_perf*`) and
+the failures land in `test_cross_domain_integration::test_cd1_record_event` and
+`test_worm_smoke::test_every_worm_instantiable` (`ParallelInferenceWorm:
+instantiation failed: RuntimeError: Failed to initialize database at ...\tmpvvud61_d\memory_store.db`).
+Every one of those files **passes when run alone**, which is why per-file CI and
+per-file debugging never saw it — the aggregate run reported 52 failed / 3,628
+passed with no errors and no hint that four files were the true source.
+
+**Fix:** `tests/conftest.py` gained an autouse, per-test restore fixture
+(`_restore_memory_db_globals`) that puts `AZAZAEL_MEMORY_DIR` back **first**, then
+recomputes each derived DB-path global through that module's own zero-arg
+resolver. Mechanism, not opt-in, for the same reason as the other isolation
+blocks in that file: "remember to patch this" is not a mechanism.
+
+### Verification
+- Deterministic 18-second reproduction: `pytest tests/test_cli.py tests/test_doctor.py tests/test_cross_domain_integration.py::test_cd1_record_event` → `1 failed, 13 passed` before; `14 passed` after.
+- `tests/test_memory_db_isolation.py` pins the mechanism in two order-dependent tests (leak, then assert the next test gets a usable path). Falsified: driving both functions directly, without conftest, fails with `the restored path must exist — a deleted temp dir is the bug`.
+- `test_dm_advanced.py`, which redirects `DB_PATH` itself and restores it, still passes.
+
+### Prevention
+- A test that redirects module state must restore the SAME state it changed; restoring only the env var while the module cached the derived path is a half-restore.
+- When a failure names a resource, look for who *pointed at it*, not who used it. The five blamed files were victims; the four fixable files were the cause.
+
+**Related:** Error #190 (same class: module-global leakage across tests), `tests/conftest.py`, `src/CORE/direct_memory.py`
+
+
+## Error #197 — The Sentinel Permit Was Thread-Local, So Every Delegated File Probe in the Process Returned "Unknown" (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟠 High (test-visible) / 🔴 Critical (production reading, unfixed — see below)
+**File(s):** `src/CORE/sentinel_enforcer.py` (semantics untouched), `src/CORE/fs_probe.py`, `tests/conftest.py`
+
+**Cause:** `sentinel_enforcer.py:40` declares `_GATED_CALL = threading.local()`
+and the audit hook reads it per thread at `:53`. A permit granted on the main
+thread therefore does **not** cover a worker thread. `fs_probe.py` runs its
+child probe on a worker (`threading.Thread(target=_run, name="bounded-subprocess")`)
+and opens `tempfile.TemporaryFile()` there, so once the guard was armed every
+delegated probe failed and returned `_UNANSWERED` — the file-probe API reported
+`None` ("unknown") for paths that plainly exist.
+
+Measured error, verbatim:
+
+```
+{"ok": false, "out": "", "timeout": false,
+ "error": "CRITICAL: Unauthorized write to
+           C:\\Users\\clint\\AppData\\Local\\Temp. All edits MUST route through
+           sentinel_enforcer.enforce() or an authorized context."}
+```
+
+**Blast radius in the aggregate run:** all 10 `tests/test_fs_probe_backend.py`
+tests failed — `assert None is True`, `assert 0 >= 2` on `responsive_paths`, and
+the two `bounded_subprocess` tests — while every one of them passes when that
+file runs alone. Reproduced in **4 seconds**:
+`pytest tests/test_compliance_step45_init.py tests/test_fs_probe_backend.py` →
+`10 failed, 28 passed` before, `38 passed` after.
+
+**Fix (test environment):** `conftest._permit_sentinel_writes()` now replaces the
+thread-local token with one shared `_SharedWriteToken` the first time it finds
+the guard armed, so the session permit holds for every thread the suite starts.
+`pytest_runtest_setup` already ran before every test, so no new hook was needed.
+The guard's own semantics are untouched.
+
+### Verification
+- `tests/test_sentinel_thread_permit.py`: order-dependent pair — arm the guard, then assert a worker thread may open a temp file and that `fs_probe.bounded_is_dir` answers. Falsified by driving both functions without conftest: fails with `conftest should have replaced the thread-local token with a shared one`.
+- `pytest tests/test_compliance_step45_init.py tests/test_fs_probe_backend.py` → 38 passed.
+
+### Production consequence — FIXED (same session, 2026-09-22)
+This was not only a test problem. In any process where the guard is armed (the
+assistant's own session), **`fs_probe`'s delegated probes could not answer at
+all**: `bounded_exists`, `bounded_is_dir` and `bounded_read_text` all returned
+`None`, and callers that treat `None` as "unknown" proceeded on unknown answers.
+The same applied to any production worker thread that opens a temp file
+(`fs_probe`, `cd4_pipeline` subprocess plumbing, telemetry writers).
+
+Two candidate fixes were recorded, both changing guard semantics:
+(1) the probe carries the permit across the thread boundary it creates, or
+(2) the guard permits `tempfile`-created files / `O_TEMPORARY` opens as a class.
+
+**(1) was chosen**, because it narrows nothing and widens nothing:
+
+* `sentinel_enforcer.worker_permit(held)` — `held` is read on the STARTER
+  thread, so a worker holds exactly the permit its starter held and a worker
+  started with no permit is still denied. Authority is not made process-wide.
+* `sentinel_enforcer.permit_here(reason)` replaces the bare
+  `is_active = True` / `finally: is_active = False` pattern at all five internal
+  call sites, which restores the PREVIOUS value instead of clearing the flag —
+  with the old pattern an inner authorized region ended the outer one.
+* `fs_probe._carried_permit()` is keyed off `sys.modules` rather than an import,
+  because importing `sentinel_enforcer` ARMS the audit hook as a side effect and
+  a probe must not be able to arm the guard in a process that chose not to have
+  it. A factory, not a manager, because `bounded_first_dir` starts N threads.
+* The third outcome is now named. `bounded_subprocess_output` returns
+  `denied`, `probe_backend_stats()["denied_probes"]` counts it, `is_denied()`
+  reads it, and `fs_probe`'s module docstring states the rule: "we refused to
+  look" is a finding about the GUARD and must never be reported as a finding
+  about the FILESYSTEM.
+
+Measured, both directions, against the REAL `threading.local()` token
+(`AZAZAEL_TEST_SHARED_PERMIT=0` keeps conftest's compatibility swap out of the
+way):
+
+| check | result |
+|---|---|
+| `pytest tests/test_compliance_step45_init.py tests/test_fs_probe_backend.py` | **38 passed** (was 10 failed / 28 passed) |
+| `probe_backend_stats()["denied_probes"]` with a caller-held permit | 0 |
+| denial counting, with no permit anywhere | +1 per denied probe |
+| carry disabled by hand (`_carried_permit` stubbed) | `{'ok': False, 'denied': True}` |
+
+`tests/test_sentinel_thread_permit.py` was rewritten to be FALSIFIABLE against
+the real token: it rebinds `_GATED_CALL` to a `threading.local()` for the
+duration of each test, asserts the inherited-permit case and the
+no-widening case as a pair, and so cannot be satisfied by conftest's shared
+token. Removing the fix fails
+the inherited-permit case; widening the fix into a process-wide flag fails the
+no-widening case (`test_a_worker_thread_is_denied_when_its_starter_holds_no_permit`),
+so the test pins the boundary from both sides rather than one.
+
+### Prevention
+- A capability gate with per-thread state must be read as per-thread state. "I permitted writes" is not a process-wide fact.
+- When a probe returns an Optional, its caller must be able to see *why* it is None. Collapsing "blocked" into "unknown" hid a guard violation across a whole subsystem.
+- Isolation defects in this codebase keep landing in the same shape: a mechanism armed once (guard, purge, leaked global) plus a victim two files later. Bisect to the *pair*, then fix the mechanism — not the victim.
+
+**Related:** Error #191, Error #196, `src/CORE/fs_probe.py`, `tests/conftest.py`, `tests/test_fs_probe_backend.py`
+
+## Error #198 — `max_natures` Was Spent Before the Filter That Could Drop the Nature, So a Request for One Ran Zero and Reported "Complete" (September 22, 2026)
+
+### Symptom
+`tests/test_cross_nature_orchestration.py::TestMetaClusterState::test_state_phases`
+failed with `set() or set()` — `state.completed_natures` and
+`state.failed_natures` both empty after `orchestrate(max_natures=1)`, while the
+assertion immediately above it (`state.phase == "complete"`) PASSED. The file
+was green in a fresh process and red as the 23rd test of its own file; every
+individual test in the offending class passed when selected alone, and every
+pair passed too.
+
+### Root cause
+`MetaCluster.orchestrate()` capped the ranked Nature list and THEN removed the
+natures that hold the orchestration infrastructure itself ("circular" natures:
+`MetaCluster`, `NatureClusterManager`, `ClusterWORMZ`):
+
+```python
+natures = [n for n in sorted_natures if n in natures][:max_natures]   # cap FIRST
+...
+execution_order = [n for n in execution_order if n not in circular_natures]
+```
+
+When the ranking had promoted `orchestration` to the top — which the recency
+penalty (-5 for a run under 60s) and the staleness boost (+5 for over 600s) in
+`_score_natures()` make happen after a dozen orchestration calls — the single
+slot was spent on a Nature the filter was about to drop. `execution_order`
+became empty, the `for nature in execution_order` loop never ran, and the result
+object still reported `phase="complete"`, `errors=[]`.
+
+### Why every other instrument missed it
+* File-level bisection: the file passes ALONE and fails in-file, so only the
+  full run shows it (the state is poisoned by earlier tests, not by neighbours).
+* Per-test selection: the class passes as a whole-unit reduction only when the
+  failing test is removed — every subset of the class that EXCLUDES the failing
+test is green, including the failing test itself.
+* The assertion that fired was the *second* one in the test, so the message
+  pointed at state tracking rather than at nature selection.
+
+### What named it
+`tools/pytest_fixture_watch.py` (new, generic): watch a dotted attribute path on
+every fixture a test received, and print the first test after which the value
+CHANGES. `FIXTURE_WATCH="ncm._execution_history,state.active_natures"` named the
+test in one run and showed the decisive fact — `state.active_natures = {}` with
+no execution-history entry — i.e. *nothing was even selected*.
+
+### Fix
+```python
+eligible = [n for n in ranked if not self._is_circular_nature(n)]
+natures = (eligible or ranked)[:max_natures]
+```
+`max_natures` now caps what can RUN. If EVERY requested Nature is circular the
+old selection is kept, so the run stays a visible no-op instead of silently
+executing something the caller never asked for. And an empty `execution_order`
+now appends an explicit error naming the circular set, because "ran nothing" and
+"ran clean" must not be the same result object.
+
+### Verification
+- `pytest tests/test_cross_nature_orchestration.py` → **30 passed** (was 1 failed / 29 passed).
+- `pytest tests/test_metacluster.py tests/test_metacluster_unit.py tests/test_nature_metacluster_unit.py` → 146 passed.
+- Reproduced first: `orchestrate(max_natures=1)` in a fresh process selects `analysis` and records `completed_natures={'analysis'}`; the same call after twelve orchestrations selected the circular Nature.
+
+### Prevention
+- A cap applied before a filter is a cap on nothing. Every `[:N]` in front of a predicate that can discard must be applied after it, or the budget must be re-filled.
+- "Completed" must not be reachable without a record of what completed. Any result object whose counts can all be zero after `phase="complete"` hides a no-op.
+- When a test asserts on a *consequence* two steps downstream of the mechanism, add an intermediate observation (`active_natures`) rather than reading the failure as a state-tracking bug.
+
+**Related:** Error #194 (an aggregate-only failure with no named pollutant), `tools/pytest_fixture_watch.py`, `src/CORE/WORMS/METACLUSTER.py`
+
+## Error #199 — The Wire-or-Cut Triage Recorded Its Evidence Only on the Transition, So Re-Running It Erased the Evidence (September 22, 2026)
+
+### Symptom
+`tests/test_mesh_wire_or_cut.py::test_a_dispatched_declaration_states_where_and_why`
+failed with `dispatched without evidence locations: [...10 labels...]`. The status
+was right, the reason text was right, and the locations a reviewer needs to check
+the claim were gone.
+
+### Root cause
+`tools/mesh_function_preflight.py::propose()` wrote `evidence` inside the branch
+that flips a row from `pending` to `dispatched`:
+
+```python
+if hits and status == "pending":
+    entry["status"] = "dispatched"
+    entry["evidence"] = hits[:3]      # only on the TRANSITION
+```
+
+The table is regenerated by re-running `--verdict --propose`, and the second run
+sees `status == "dispatched"` on every already-triaged row, so it skipped the
+branch and wrote a table with 62 `dispatched` rows and no evidence for any of
+them. Nothing else consumed `evidence`, so the loss was invisible until the
+contract test that requires it ran.
+
+### Fix
+Evidence is re-derived for EVERY `dispatched` row, and only the STATUS change
+stays inside the transition branch:
+
+```python
+if hits and status == "pending":
+    entry["status"] = "dispatched"
+    if not reason:
+        entry["reason"] = ...
+if hits and str(entry.get("status")) == "dispatched":
+    entry["evidence"] = hits[:3]
+```
+
+### Verification
+- `pytest tests/test_mesh_wire_or_cut.py` → **17 passed** (was 1 failed / 14 passed).
+- New test `test_proposing_twice_keeps_the_evidence`: the same table proposed twice keeps its evidence. It fails on the pre-fix `propose`.
+- `python tools/mesh_function_preflight.py --verdict --propose --triage` → 163 findings, 62 dispatched with locations, `pending triage: {'test_reached_only': 44, 'no_reference_anywhere': 57}`.
+
+### Prevention
+- An instrument meant to be re-run must be idempotent, and "the second run produces the same table" is a test, not an intention.
+- Evidence belongs to the fact, not to the transition that discovered it. Anything written inside a `pending -> decided` branch is a cache with no way to rebuild itself.
+
+**Related:** Error #190 (an inferred triage table presented as results), `tools/mesh_function_preflight.py`, `tests/test_mesh_wire_or_cut.py`

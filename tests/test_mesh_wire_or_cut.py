@@ -279,3 +279,62 @@ def test_the_lazytorch_false_positive_that_forced_the_calibration(tree):
         "exemption is now hiding dead code and must be revisited")
     assert "nerve:_LazyTorch.__bool__" not in unc
     assert "nerve:_LazyTorch.__getattr__" not in unc
+
+
+# ---------------------------------------------------------------------------
+# `--propose` is re-runnable, and the triage labels are a measurement
+# ---------------------------------------------------------------------------
+
+def test_proposing_twice_keeps_the_evidence():
+    """Evidence belongs to the FACT, not to the transition that recorded it.
+
+    The first version of `propose` wrote `evidence` only when it flipped a row
+    from `pending` to `dispatched`, so a second run -- which is how the table is
+    regenerated -- left every already-dispatched row with a reason and no
+    locations. `test_a_dispatched_declaration_states_where_and_why` caught it,
+    and this test names the cause: run the triage twice over the same data and
+    the measurement must survive.
+    """
+    label = "communication:ProtocolNegotiator.negotiate"
+    pending = {
+        "declared": {
+            label: {
+                "module": "communication",
+                "qualname": "ProtocolNegotiator.negotiate",
+                "line": 205,
+                "status": "pending",
+            }
+        }
+    }
+    first = mfp.propose(json.loads(json.dumps(pending)))
+    assert first["declared"][label]["status"] == "dispatched"
+    assert first["declared"][label]["evidence"], (
+        "the first pass recorded no evidence, so there is nothing to preserve")
+
+    second = mfp.propose(json.loads(json.dumps(first)))
+    entry = second["declared"][label]
+    assert entry["status"] == "dispatched"
+    assert entry["evidence"], (
+        "a re-run dropped the evidence it had already measured: %r" % entry)
+
+
+def test_triage_labels_the_pending_backlog_without_deciding_it(table):
+    """A class is not a disposition: `triage` must never touch `status`."""
+    labelled = mfp.triage(json.loads(json.dumps(table)))
+    entries = labelled.get("declared") or {}
+    for label, entry in entries.items():
+        if str(entry.get("status")) != "pending":
+            assert "triage" not in entry or entry["status"] == "pending"
+            continue
+        assert entry.get("triage") in mfp.TRIAGE_CLASSES, (label, entry.get("triage"))
+        if entry["triage"] == "test_reached_only":
+            assert entry.get("triage_evidence"), (
+                "test_reached_only needs the test location that reaches it: %s" % label)
+    counts = labelled.get("triage_counts") or {}
+    pending = sum(1 for e in entries.values() if str(e.get("status")) == "pending")
+    assert sum(counts.values()) == pending, (counts, pending)
+
+    # And the STATUS must be untouched by a triage pass.
+    before = {k: str(v.get("status")) for k, v in (table.get("declared") or {}).items()}
+    after = {k: str(v.get("status")) for k, v in entries.items()}
+    assert before == after, "triage changed a status; a class is not a disposition"

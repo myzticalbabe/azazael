@@ -701,6 +701,9 @@ VERDICT_OUT = REPO / "NEURAL_MESH_WIRE_OR_CUT.json"
 #: it"), kept as data rather than folded into the probe's filter.
 VERDICT_STATUSES = ("wired", "retired", "dispatched", "pending")
 
+#: Evidence classes for the `pending` backlog -- see `triage()`.
+TRIAGE_CLASSES = ("test_reached_only", "no_reference_anywhere")
+
 #: Where a name-based reference can come from: production only, because a string
 #: in a test is test reachability and PF17 already measures that.
 STRING_SCOPES = ("src", "scripts", "tools")
@@ -832,18 +835,115 @@ def propose(table: dict) -> dict:
         reason = str(entry.get("reason") or "")
         if hits and status == "pending":
             entry["status"] = "dispatched"
-            entry["evidence"] = hits[:3]
             if not reason:
                 entry["reason"] = (
                     "only production reference is a string literal (%s), so a "
                     "static caller cannot exist; wire it explicitly or delete "
                     "it" % ", ".join(hits[:3]))
+        # Evidence is re-derived for EVERY dispatched entry, not only the one
+        # being flipped. `--propose` is meant to be re-runnable, and the first
+        # version recorded the locations only on the transition: a second run
+        # left every already-dispatched row with a reason and no evidence, which
+        # `tests/test_mesh_wire_or_cut.py::
+        # test_a_dispatched_declaration_states_where_and_why` correctly rejects.
+        if hits and str(entry.get("status")) == "dispatched":
+            entry["evidence"] = hits[:3]
         elif not hits and status == "pending" and not reason:
             entry["reason"] = (
                 "no production reference of any kind -- not as a Name, an "
                 "attribute, or a string; wire it or delete it (PF16)")
     tally = Counter(str(e.get("status")) for e in entries.values())
     table["counts"] = {s: tally.get(s, 0) for s in VERDICT_STATUSES}
+    return table
+
+
+# ---------------------------------------------------------------------------
+# Triage of the `pending` backlog -- a class, not a disposition
+# ---------------------------------------------------------------------------
+# 102 findings have no production reference of any KIND: not a name, not an
+# attribute, not a string literal. `status` cannot be set from that (a class is
+# not a decision -- see VERDICT_STATUSES), but the NEXT ACTION can be, and the
+# evidence for it is one cheap question: **does the test suite reach it?**
+#
+#  * `test_reached_only` -- a test calls it and production does not. The
+#    decision is about intent: public API (wire a production caller) or
+#    scaffolding (retire it). PF17 already measures test reachability, so this
+#    is the same fact stated where the decision is made.
+#  * `no_reference_anywhere` -- nothing in this repository reaches it at all.
+#    That is the deletion queue, and it is a claim the probe can check.
+#
+# The label is stored in its own field (`triage`, `triage_evidence`) and never
+# in `status`, so no review can mistake a measurement for a disposition.
+TEST_SCOPES = ("tests",)
+
+_test_refs: dict[str, list[str]] | None = None
+
+
+def test_references() -> dict[str, list[str]]:
+    """name -> `["tests/test_x.py:123"]` for every TEST-side mention.
+
+    Counts whatever a test can use to reach a name: an `ast.Name`, an
+    `ast.Attribute` (``profiler.profile_function()``), or an identifier-like
+    string literal. Cached for the same reason as `string_references`.
+    """
+    global _test_refs
+    if _test_refs is not None:
+        return _test_refs
+
+    found: dict[str, list[str]] = {}
+
+    def note(name: str, where: str) -> None:
+        if not name or name.startswith("__"):
+            return
+        bucket = found.setdefault(name, [])
+        if len(bucket) < 8 and where not in bucket:
+            bucket.append(where)
+
+    for scope in TEST_SCOPES:
+        root = REPO / scope
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*.py")):
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
+            except SyntaxError:
+                continue
+            docstrings = _docstring_nodes(tree)
+            rel = path.relative_to(REPO).as_posix()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Name):
+                    note(node.id, "%s:%d" % (rel, node.lineno))
+                elif isinstance(node, ast.Attribute):
+                    note(node.attr, "%s:%d" % (rel, node.lineno))
+                elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+                    if id(node) in docstrings:
+                        continue
+                    text = node.value.strip()
+                    if _IDENTIFIER_LIKE.match(text):
+                        note(text.rsplit(".", 1)[-1], "%s:%d" % (rel, node.lineno))
+    _test_refs = found
+    return found
+
+
+def triage(table: dict) -> dict:
+    """Label the still-`pending` findings with the class that decides them.
+
+    Never changes `status`: this is the ordering a reviewer needs, not a
+    verdict, and collapsing the two is how a backlog becomes a lie.
+    """
+    refs = test_references()
+    entries = table.get("declared") or {}
+    tally: Counter = Counter()
+    for entry in entries.values():
+        if str(entry.get("status")) != "pending":
+            continue
+        qualname = str(entry.get("qualname") or "")
+        hits = refs.get(qualname.rsplit(".", 1)[-1]) or refs.get(qualname) or []
+        klass = "test_reached_only" if hits else "no_reference_anywhere"
+        entry["triage"] = klass
+        entry["triage_evidence"] = hits[:3]
+        tally[klass] += 1
+    table["triage_counts"] = {k: tally.get(k, 0) for k in TRIAGE_CLASSES}
     return table
 
 
@@ -859,6 +959,11 @@ def main() -> int:
                     help="with --verdict: fill the statuses the evidence "
                          "decides (string-only references become `dispatched`) "
                          "and record the measurement for the rest")
+    ap.add_argument("--triage", action="store_true",
+                    help="with --verdict: label every still-`pending` finding with "
+                         "the evidence class that decides its next action "
+                         "(test-reached / no-reference-anywhere); status is NOT "
+                         "changed, because a class is not a disposition")
     args = ap.parse_args()
 
     funcs, counts = build(args.module)
@@ -875,11 +980,15 @@ def main() -> int:
         table = wire_or_cut(funcs, prior)
         if args.propose:
             table = propose(table)
+        if args.triage:
+            table = triage(table)
         if args.stdout:
             sys.stdout.write(json.dumps(table, indent=1) + "\n")
             return 0
         VERDICT_OUT.write_text(json.dumps(table, indent=1), encoding="utf-8")
         print(f"wrote {VERDICT_OUT} ({table['total']} unreferenced: {table['counts']})")
+        if args.triage:
+            print(f"  pending triage: {table.get('triage_counts')}")
         return 0
     if args.summary:
         print(f"functions: {len(funcs)}")
