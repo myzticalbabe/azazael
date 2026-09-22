@@ -80,7 +80,7 @@ For each function, in this order:
 | PF14 | 338 |
 | PF15 | 130 |
 | PF16 | 164 |
-| PF17 | 561 |
+| PF17 | 559 |
 | PF18 | 15 |
 | PF19 | 4 |
 | PF20 | 1 |
@@ -545,7 +545,7 @@ first.
 - [ ] `backup:StateSnapshotter.create_snapshot` L54-71 c=5 fail=PF04,PF14,PF17
 - [ ] `container:ContainerOrch.launch` L51-65 c=5 fail=PF04,PF14
 - [ ] `container:RegistryPoller.check_latest` L180-189 c=5 fail=PF04,PF14,PF16,PF17
-- [ ] `envmesh:WslKaliWorm.profile` L153-168 c=5 fail=PF02,PF04,PF14,PF17
+- [ ] `envmesh:WslKaliWorm.profile` L153-168 c=5 fail=PF02,PF04,PF14
 - [ ] `exmachina:_tpm` L1348-1363 c=5 fail=PF16,PF17
 - [ ] `federated:RewardShaperMeshWorm.local_score` L372-388 c=5 fail=PF04,PF16,PF17
 - [ ] `immune:ImmuneSentinelWorm._load_ebpf` L64-81 c=5 fail=PF02,PF04,PF14,PF17
@@ -840,11 +840,11 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `WinBridgeWorm.execute` L121-124 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `WslUbuntuWorm.profile` L134-139 c=0 p=1 auto=PF02,PF04,PF17
+- [ ] `WslUbuntuWorm.profile` L134-139 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
 - [ ] `WslUbuntuWorm.execute` L141-142 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `WslKaliWorm.profile` L153-168 c=5 p=2 auto=PF02,PF04,PF14,PF17
+- [ ] `WslKaliWorm.profile` L153-168 c=5 p=2 auto=PF02,PF04,PF14
   - [ ] manual M1-M6
 - [ ] `WslKaliWorm.execute` L170-171 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6

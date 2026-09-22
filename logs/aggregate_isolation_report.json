@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-09-22T06:49:40+00:00",
+  "recorded_at": "2026-09-22T07:26:31+00:00",
   "profile": "isolation",
   "targets": [
     "tests/test_nature_metacluster_unit.py",
@@ -14,11 +14,11 @@
   "raw_output": "aggregate_isolation_report.raw.txt",
   "counts": {
     "failed": 0,
-    "passed": 299,
+    "passed": 301,
     "errors": 0,
     "skipped": 1
   },
-  "summary_line": "299 passed, 1 skipped, 1 warning in 169.90s (0:02:49)",
+  "summary_line": "301 passed, 1 skipped, 1 warning in 116.42s (0:01:56)",
   "failed_ids": [],
   "error_ids": []
 }

@@ -682,10 +682,98 @@ def render(funcs: list[Func], counts: Counter, module_filter: str | None) -> str
 
 VERDICT_OUT = REPO / "NEURAL_MESH_WIRE_OR_CUT.json"
 
-#: Declared dispositions. `wired` means a production caller exists (so PF16 must
-#: NOT fire), `retired` means it should be deleted (`retired_reason` required),
-#: `pending` means the decision has not been made.
-VERDICT_STATUSES = ("wired", "retired", "pending")
+#: Declared dispositions.
+#:
+#: * `wired`      -- a STATIC production caller exists (so PF16 must NOT fire)
+#: * `retired`    -- it should be deleted (`reason` required)
+#: * `dispatched` -- its only production reference is a STRING (name-based
+#:                   lookup: `getattr`, a registry key, a dispatch table), so an
+#:                   explicit reference cannot exist and PF16 cannot decide it.
+#:                   Verified against `string_references()`, not asserted.
+#: * `pending`    -- the decision has not been made
+#:
+#: `dispatched` exists because a triage measured it: of 164 findings, 62 are
+#: named by a string literal in production code while PF16 (which reads
+#: `ast.Name` / `ast.Attribute`) can see none of them. Before this status the
+#: table could only say `pending` about a fact it had already measured, or lie --
+#: `wired` fails its own contract test while PF16 still fires. This is the same
+#: distinction as `PROTOCOL_METHODS` ("no explicit reference can ever satisfy
+#: it"), kept as data rather than folded into the probe's filter.
+VERDICT_STATUSES = ("wired", "retired", "dispatched", "pending")
+
+#: Where a name-based reference can come from: production only, because a string
+#: in a test is test reachability and PF17 already measures that.
+STRING_SCOPES = ("src", "scripts", "tools")
+
+_STRING_REFS: dict[str, list[str]] | None = None
+
+#: A literal that could name something: `deliver`, `Worm.deliver`. A sentence
+#: (`"we deliver the mail"`) is not a dispatch site and is not counted.
+_IDENTIFIER_LIKE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$")
+
+
+def _docstring_nodes(tree: ast.AST) -> set[int]:
+    """`id()` of every docstring constant, so prose is not read as a reference."""
+    out: set[int] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef,
+                                 ast.AsyncFunctionDef)):
+            continue
+        body = getattr(node, "body", None) or []
+        if body and isinstance(body[0], ast.Expr) \
+                and isinstance(body[0].value, ast.Constant) \
+                and isinstance(body[0].value.value, str):
+            out.add(id(body[0].value))
+    return out
+
+
+def string_references() -> dict[str, list[str]]:
+    """name -> `["src/.../file.py:123"]` for every production string literal.
+
+    Cached, because the wire-or-cut tests ask about one name at a time and the
+    walk covers several thousand files.
+
+    Only IDENTIFIER-LIKE literals count -- `"deliver"`, `"Worm.deliver"`, and
+    docstrings are skipped -- because a sentence that happens to contain the
+    word is not a dispatch site, and a docstring that names a function is a
+    description of code, not a reference to it from code. Being conservative is
+    the safe direction here: a miss leaves the entry `pending` (the truth being
+    "not measured") whereas a false hit would claim reachability that does not
+    exist.
+    """
+    global _STRING_REFS
+    if _STRING_REFS is not None:
+        return _STRING_REFS
+    found: dict[str, list[str]] = defaultdict(list)
+    for base in STRING_SCOPES:
+        root = REPO / base
+        if not root.exists():
+            continue
+        for path in root.rglob("*.py"):
+            if any(x in path.parts for x in DEFAULT_EXCLUDES):
+                continue
+            try:
+                tree = ast.parse(_read(path))
+            except SyntaxError:
+                continue
+            rel = path.relative_to(REPO).as_posix()
+            docstrings = _docstring_nodes(tree)
+            for node in ast.walk(tree):
+                if not (isinstance(node, ast.Constant)
+                        and isinstance(node.value, str)):
+                    continue
+                if id(node) in docstrings:
+                    continue
+                literal = node.value
+                if not _IDENTIFIER_LIKE.match(literal):
+                    continue
+                for token in {literal} | set(re.split(r"\.", literal)):
+                    if token.isidentifier():
+                        where = "%s:%d" % (rel, node.lineno)
+                        if where not in found[token]:
+                            found[token].append(where)
+    _STRING_REFS = {k: sorted(v) for k, v in found.items()}
+    return _STRING_REFS
 
 
 def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
@@ -723,6 +811,42 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
     }
 
 
+def propose(table: dict) -> dict:
+    """Fill in the statuses the EVIDENCE decides, and leave the rest pending.
+
+    Deliberately not a classifier that guesses: it sets exactly one status
+    (`dispatched`, when the only production trace of a name is a string) and
+    writes the measurement into `reason` for everything else, so the remaining
+    backlog states what is missing instead of being a bare count. An existing
+    `reason` is never overwritten -- a human's note outranks a probe's.
+
+    Returns the table unchanged in shape, with `counts` recomputed.
+    """
+    refs = string_references()
+    entries = table.get("declared") or {}
+    for entry in entries.values():
+        qualname = str(entry.get("qualname") or "")
+        name = qualname.rsplit(".", 1)[-1]
+        hits = refs.get(name) or refs.get(qualname) or []
+        status = str(entry.get("status") or "pending")
+        reason = str(entry.get("reason") or "")
+        if hits and status == "pending":
+            entry["status"] = "dispatched"
+            entry["evidence"] = hits[:3]
+            if not reason:
+                entry["reason"] = (
+                    "only production reference is a string literal (%s), so a "
+                    "static caller cannot exist; wire it explicitly or delete "
+                    "it" % ", ".join(hits[:3]))
+        elif not hits and status == "pending" and not reason:
+            entry["reason"] = (
+                "no production reference of any kind -- not as a Name, an "
+                "attribute, or a string; wire it or delete it (PF16)")
+    tally = Counter(str(e.get("status")) for e in entries.values())
+    table["counts"] = {s: tally.get(s, 0) for s in VERDICT_STATUSES}
+    return table
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--module", default=None, help="filter to modules matching this")
@@ -731,6 +855,10 @@ def main() -> int:
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     ap.add_argument("--verdict", action="store_true",
                     help="write the PF16 wire-or-cut declaration table instead")
+    ap.add_argument("--propose", action="store_true",
+                    help="with --verdict: fill the statuses the evidence "
+                         "decides (string-only references become `dispatched`) "
+                         "and record the measurement for the rest")
     args = ap.parse_args()
 
     funcs, counts = build(args.module)
@@ -745,6 +873,8 @@ def main() -> int:
             except Exception:
                 prior = {}
         table = wire_or_cut(funcs, prior)
+        if args.propose:
+            table = propose(table)
         if args.stdout:
             sys.stdout.write(json.dumps(table, indent=1) + "\n")
             return 0

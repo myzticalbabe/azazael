@@ -1,11 +1,12 @@
 {
- "generated_at": "2026-09-22T01:11:17.293963",
+ "generated_at": "2026-09-22T03:32:32.834529",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 0,
-  "pending": 164
+  "dispatched": 62,
+  "pending": 102
  },
  "total": 164,
  "declared": {
@@ -14,1148 +15,1356 @@
    "qualname": "NeuralPipeline.replay_failed",
    "line": 747,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
    "line": 240,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "axon:LatencyCompensatorWorm.compensate": {
    "module": "axon",
    "qualname": "LatencyCompensatorWorm.compensate",
    "line": 121,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "axon:MyelinSheathWorm.boost_for": {
    "module": "axon",
    "qualname": "MyelinSheathWorm.boost_for",
    "line": 37,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "axon:MyelinSheathWorm.myelinate": {
    "module": "axon",
    "qualname": "MyelinSheathWorm.myelinate",
    "line": 32,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "backup:CheckpointWorm.restore_checkpoint": {
    "module": "backup",
    "qualname": "CheckpointWorm.restore_checkpoint",
    "line": 200,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "chorus:FailureDigest.from_analysis": {
    "module": "chorus",
    "qualname": "FailureDigest.from_analysis",
    "line": 76,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "communication:IPCBridge.create_channel": {
    "module": "communication",
    "qualname": "IPCBridge.create_channel",
    "line": 161,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "communication:IPCBridge.receive": {
    "module": "communication",
    "qualname": "IPCBridge.receive",
    "line": 176,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "communication:ProtocolNegotiator.deserialize": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.deserialize",
    "line": 226,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1143"
+   ]
   },
   "communication:ProtocolNegotiator.negotiate": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.negotiate",
    "line": 205,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:387, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:387",
+    "src/CORE/worm_governance.py:364",
+    "src/CORE/worm_registry.py:1112"
+   ]
   },
   "communication:ProtocolNegotiator.register_peer": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.register_peer",
    "line": 202,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:388",
+    "src/CORE/worm_registry.py:1114"
+   ]
   },
   "communication:ProtocolNegotiator.serialize": {
    "module": "communication",
    "qualname": "ProtocolNegotiator.serialize",
    "line": 220,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1143"
+   ]
   },
   "communication:RPCEndpoint.list_methods": {
    "module": "communication",
    "qualname": "RPCEndpoint.list_methods",
    "line": 105,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:989), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:989"
+   ]
   },
   "communication:RPCEndpoint.register_method": {
    "module": "communication",
    "qualname": "RPCEndpoint.register_method",
    "line": 87,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:388",
+    "src/CORE/worm_registry.py:1114"
+   ]
   },
   "communication:WebhookRelay.deliver": {
    "module": "communication",
    "qualname": "WebhookRelay.deliver",
    "line": 125,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:386, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:386",
+    "src/CORE/worm_governance.py:364",
+    "src/CORE/worm_registry.py:1112"
+   ]
   },
   "communication:WebhookRelay.register_webhook": {
    "module": "communication",
    "qualname": "WebhookRelay.register_webhook",
    "line": 121,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1139), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1139"
+   ]
   },
   "config:ConfigLinter.lint_json": {
    "module": "config",
    "qualname": "ConfigLinter.lint_json",
    "line": 52,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/config.py:82), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/config.py:82"
+   ]
   },
   "config:ConfigLinter.lint_yaml": {
    "module": "config",
    "qualname": "ConfigLinter.lint_yaml",
    "line": 67,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "config:DotfileSync.get_checksums": {
    "module": "config",
    "qualname": "DotfileSync.get_checksums",
    "line": 129,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:992, src/CORE/worm_registry.py:1153), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:992",
+    "src/CORE/worm_registry.py:1153"
+   ]
   },
   "config:EnvValidator.scan_env_files": {
    "module": "config",
    "qualname": "EnvValidator.scan_env_files",
    "line": 93,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:991, src/CORE/worm_registry.py:1123), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:991",
+    "src/CORE/worm_registry.py:1123"
+   ]
   },
   "config:FeatureFlagCtrl.is_enabled": {
    "module": "config",
    "qualname": "FeatureFlagCtrl.is_enabled",
    "line": 177,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1145"
+   ]
   },
   "config:FeatureFlagCtrl.set_flag": {
    "module": "config",
    "qualname": "FeatureFlagCtrl.set_flag",
    "line": 173,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1145"
+   ]
   },
   "config:SecretRotator.rotate_secret": {
    "module": "config",
    "qualname": "SecretRotator.rotate_secret",
    "line": 144,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1132), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1132"
+   ]
   },
   "consolidation:EngramIndexerWorm.lookup": {
    "module": "consolidation",
    "qualname": "EngramIndexerWorm.lookup",
    "line": 100,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "consolidation:SharpWaveReplayWorm.replay_batch": {
    "module": "consolidation",
    "qualname": "SharpWaveReplayWorm.replay_batch",
    "line": 44,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "consolidation:SleepConsolidatorWorm.sleep_cycle": {
    "module": "consolidation",
    "qualname": "SleepConsolidatorWorm.sleep_cycle",
    "line": 69,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "container:ImageAuditor.audit_image": {
    "module": "container",
    "qualname": "ImageAuditor.audit_image",
    "line": 148,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1127"
+   ]
   },
   "container:RegistryPoller.check_latest": {
    "module": "container",
    "qualname": "RegistryPoller.check_latest",
    "line": 180,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:389",
+    "src/CORE/worm_registry.py:1115"
+   ]
   },
   "container:ResourceQuotaWatch.check_usage": {
    "module": "container",
    "qualname": "ResourceQuotaWatch.check_usage",
    "line": 210,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:389",
+    "src/CORE/worm_registry.py:1115"
+   ]
   },
   "container:ResourceQuotaWatch.set_quota": {
    "module": "container",
    "qualname": "ResourceQuotaWatch.set_quota",
    "line": 206,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "db_monitor:DatabaseMonitorWorm.create_backup": {
    "module": "db_monitor",
    "qualname": "DatabaseMonitorWorm.create_backup",
    "line": 201,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "dendrite:AttentionGateWorm.set_bias": {
    "module": "dendrite",
    "qualname": "AttentionGateWorm.set_bias",
    "line": 71,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "dendrite:ContextConcatWorm.merge": {
    "module": "dendrite",
    "qualname": "ContextConcatWorm.merge",
    "line": 93,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/mesh.py:362, src/CORE/WORMS/expansion/mesh.py:365, src/CORE/cli_completion.py:26), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/mesh.py:362",
+    "src/CORE/WORMS/expansion/mesh.py:365",
+    "src/CORE/cli_completion.py:26"
+   ]
   },
   "dendrite:DendriteAggregatorWorm.integrate": {
    "module": "dendrite",
    "qualname": "DendriteAggregatorWorm.integrate",
    "line": 38,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (tools/mutation_proposals.py:225), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "tools/mutation_proposals.py:225"
+   ]
   },
   "dendrite:DendriteAggregatorWorm.set_gain": {
    "module": "dendrite",
    "qualname": "DendriteAggregatorWorm.set_gain",
    "line": 33,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "dreaming:DreamingModule.get_dream_stats": {
    "module": "dreaming",
    "qualname": "DreamingModule.get_dream_stats",
    "line": 1003,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "dreaming:HypnagogicSynthesizer.ingest_domains": {
    "module": "dreaming",
    "qualname": "HypnagogicSynthesizer.ingest_domains",
    "line": 1058,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "driver:GemmaDriverWorm.judge_dream": {
    "module": "driver",
    "qualname": "GemmaDriverWorm.judge_dream",
    "line": 182,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "driver:GemmaDriverWorm.propose_goal": {
    "module": "driver",
    "qualname": "GemmaDriverWorm.propose_goal",
    "line": 100,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "engram:RecallRouterWorm.route_recall": {
    "module": "engram",
    "qualname": "RecallRouterWorm.route_recall",
    "line": 344,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "engram:_VectorIndex.has": {
    "module": "engram",
    "qualname": "_VectorIndex.has",
    "line": 227,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery": {
    "module": "error_recovery",
    "qualname": "ErrorRecoveryOrchestrator.execute_with_recovery",
    "line": 89,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "error_recovery:ErrorRecoveryOrchestrator.reset_circuit": {
    "module": "error_recovery",
    "qualname": "ErrorRecoveryOrchestrator.reset_circuit",
    "line": 316,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "evidence:EraEvidence.era_counts": {
    "module": "evidence",
    "qualname": "EraEvidence.era_counts",
    "line": 104,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "evidence:evidence_from_rows": {
    "module": "evidence",
    "qualname": "evidence_from_rows",
    "line": 247,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evidence.py:38), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evidence.py:38"
+   ]
   },
   "evolution:EvolutionEngine.get_generation_history": {
    "module": "evolution",
    "qualname": "EvolutionEngine.get_generation_history",
    "line": 1238,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "evolution:GeneticOptimizer.optimize_cma": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_cma",
    "line": 1300,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "evolution:GeneticOptimizer.optimize_de": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_de",
    "line": 1313,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "evolution:GeneticOptimizer.optimize_multi": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_multi",
    "line": 1389,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "evolution:hypervolume_2d": {
    "module": "evolution",
    "qualname": "hypervolume_2d",
    "line": 1812,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evolution.py:107"
+   ]
   },
   "evolution:moead_weights": {
    "module": "evolution",
    "qualname": "moead_weights",
    "line": 1824,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evolution.py:108"
+   ]
   },
   "evolution:tchebycheff": {
    "module": "evolution",
    "qualname": "tchebycheff",
    "line": 1846,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/evolution.py:109"
+   ]
   },
   "exmachina:_mad": {
    "module": "exmachina",
    "qualname": "_mad",
    "line": 950,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "exmachina:_tpm": {
    "module": "exmachina",
    "qualname": "_tpm",
    "line": 1348,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "exmachina:collect_state": {
    "module": "exmachina",
    "qualname": "collect_state",
    "line": 448,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:105), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:105"
+   ]
   },
   "exmachina:conformal_interval": {
    "module": "exmachina",
    "qualname": "conformal_interval",
    "line": 358,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:63), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:63"
+   ]
   },
   "exmachina:matrix_inverse": {
    "module": "exmachina",
    "qualname": "matrix_inverse",
    "line": 1158,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:89), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:89"
+   ]
   },
   "exmachina:novelty_ncd": {
    "module": "exmachina",
    "qualname": "novelty_ncd",
    "line": 313,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:61), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:61"
+   ]
   },
   "exmachina:solve_linear": {
    "module": "exmachina",
    "qualname": "solve_linear",
    "line": 1154,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina.py:88), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina.py:88"
+   ]
   },
   "exmachina_operators:operator_report": {
    "module": "exmachina_operators",
    "qualname": "operator_report",
    "line": 1010,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:91), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina_operators.py:91"
+   ]
   },
   "exmachina_operators:rank_candidates": {
    "module": "exmachina_operators",
    "qualname": "rank_candidates",
    "line": 963,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/exmachina_operators.py:89), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/exmachina_operators.py:89"
+   ]
   },
   "federated:FederatedAggregatorWorm.run_round": {
    "module": "federated",
    "qualname": "FederatedAggregatorWorm.run_round",
    "line": 183,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "federated:RewardShaperMeshWorm.local_score": {
    "module": "federated",
    "qualname": "RewardShaperMeshWorm.local_score",
    "line": 372,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "glia:MicrogliaWorm.check_path": {
    "module": "glia",
    "qualname": "MicrogliaWorm.check_path",
    "line": 113,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_features:FeatureEngineer.impute_missing": {
    "module": "learning_features",
    "qualname": "FeatureEngineer.impute_missing",
    "line": 425,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1155"
+   ]
   },
   "learning_features:FeatureEngineer.one_hot_encode": {
    "module": "learning_features",
    "qualname": "FeatureEngineer.one_hot_encode",
    "line": 415,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1155"
+   ]
   },
   "learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report": {
    "module": "learning_features",
    "qualname": "SchemaAwareFeatureExtractor.fallback_accuracy_report",
    "line": 342,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_grpo:GRPOTrainer.rewards_from_elo": {
    "module": "learning_grpo",
    "qualname": "GRPOTrainer.rewards_from_elo",
    "line": 210,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.extract_field",
    "line": 189,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.extract_recent": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.extract_recent",
    "line": 147,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.filter_by_severity": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.filter_by_severity",
    "line": 204,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.filter_by_source": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.filter_by_source",
    "line": 209,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.get_memory_stats": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.get_memory_stats",
    "line": 153,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.load_to_memory": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.load_to_memory",
    "line": 246,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.process_batches": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.process_batches",
    "line": 262,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.schedule_dynamic_refresh",
    "line": 540,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.search_memory": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.search_memory",
    "line": 140,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_replay:PrioritizedReplayBuffer.add_from_memories": {
    "module": "learning_replay",
    "qualname": "PrioritizedReplayBuffer.add_from_memories",
    "line": 163,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_rl:RLTrainLoop.train_episode": {
    "module": "learning_rl",
    "qualname": "RLTrainLoop.train_episode",
    "line": 782,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:391",
+    "src/CORE/worm_registry.py:1118"
+   ]
   },
   "learning_rl:RLTrainLoop.tune_and_train": {
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_and_train",
    "line": 731,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_rl:RLTrainLoop.tune_history": {
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_history",
    "line": 811,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_versioner:ModelVersioner.compare_versions": {
    "module": "learning_versioner",
    "qualname": "ModelVersioner.compare_versions",
    "line": 215,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:390",
+    "src/CORE/worm_registry.py:1116"
+   ]
   },
   "loom:NoveltyDrive.novelty_weight": {
    "module": "loom",
    "qualname": "NoveltyDrive.novelty_weight",
    "line": 261,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "loom:descriptors_from_archive": {
    "module": "loom",
    "qualname": "descriptors_from_archive",
    "line": 309,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "mesh:MeshRouterWorm.invalidate_route": {
    "module": "mesh",
    "qualname": "MeshRouterWorm.invalidate_route",
    "line": 248,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation": {
    "module": "meta_cognition",
    "qualname": "MetaCognitionWorm.compute_cross_worm_correlation",
    "line": 857,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "migration:CodeMigrator.detect_python2_patterns": {
    "module": "migration",
    "qualname": "CodeMigrator.detect_python2_patterns",
    "line": 51,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/migration.py:82), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/migration.py:82"
+   ]
   },
   "migration:CodeMigrator.run_2to3": {
    "module": "migration",
    "qualname": "CodeMigrator.run_2to3",
    "line": 67,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "migration:DepUpgrader.check_outdated": {
    "module": "migration",
    "qualname": "DepUpgrader.check_outdated",
    "line": 111,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:389",
+    "src/CORE/worm_registry.py:1115"
+   ]
   },
   "migration:DepUpgrader.parse_requirements": {
    "module": "migration",
    "qualname": "DepUpgrader.parse_requirements",
    "line": 93,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1154), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1154"
+   ]
   },
   "migration:ImportPathFixWorm.add_mapping": {
    "module": "migration",
    "qualname": "ImportPathFixWorm.add_mapping",
    "line": 168,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1152"
+   ]
   },
   "migration:LegacyShimGen.generate_shim": {
    "module": "migration",
    "qualname": "LegacyShimGen.generate_shim",
    "line": 203,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1133), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1133"
+   ]
   },
   "migration:LegacyShimGen.write_shim": {
    "module": "migration",
    "qualname": "LegacyShimGen.write_shim",
    "line": 215,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "migration:SchemaVersioner.detect_breaking_changes": {
    "module": "migration",
    "qualname": "SchemaVersioner.detect_breaking_changes",
    "line": 143,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1129), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1129"
+   ]
   },
   "migration:SchemaVersioner.register_schema": {
    "module": "migration",
    "qualname": "SchemaVersioner.register_schema",
    "line": 136,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:388",
+    "src/CORE/worm_registry.py:1114"
+   ]
   },
   "morph:Genome.to_trainer_kwargs": {
    "module": "morph",
    "qualname": "Genome.to_trainer_kwargs",
    "line": 248,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "morph:load_genome": {
    "module": "morph",
    "qualname": "load_genome",
    "line": 488,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "morph:save_genome": {
    "module": "morph",
    "qualname": "save_genome",
    "line": 480,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "oracle:FitnessOracle.acquisition": {
    "module": "oracle",
    "qualname": "FitnessOracle.acquisition",
    "line": 252,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "oracle:FitnessOracle.era_robust_probability": {
    "module": "oracle",
    "qualname": "FitnessOracle.era_robust_probability",
    "line": 258,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "profiling:CPUFlameProfiler.to_flamegraph_data": {
    "module": "profiling",
    "qualname": "CPUFlameProfiler.to_flamegraph_data",
    "line": 214,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "profiling:CodeProfiler.detect_hotspots": {
    "module": "profiling",
    "qualname": "CodeProfiler.detect_hotspots",
    "line": 68,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "profiling:CodeProfiler.profile_function": {
    "module": "profiling",
    "qualname": "CodeProfiler.profile_function",
    "line": 51,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "profiling:GILContentionProbe.measure_contention": {
    "module": "profiling",
    "qualname": "GILContentionProbe.measure_contention",
    "line": 167,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:994, src/CORE/worm_registry.py:1130), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:994",
+    "src/CORE/worm_registry.py:1130"
+   ]
   },
   "profiling:IOBottleneckFinder.detect_bottleneck": {
    "module": "profiling",
    "qualname": "IOBottleneckFinder.detect_bottleneck",
    "line": 149,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1128), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1128"
+   ]
   },
   "profiling:MemoryLeakDetector.compare_snapshots": {
    "module": "profiling",
    "qualname": "MemoryLeakDetector.compare_snapshots",
    "line": 111,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1137), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1137"
+   ]
   },
   "proteus_hooks:morph_dimension_summary": {
    "module": "proteus_hooks",
    "qualname": "morph_dimension_summary",
    "line": 716,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:80), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/proteus_hooks.py:80"
+   ]
   },
   "proteus_hooks:morph_treatment_value": {
    "module": "proteus_hooks",
    "qualname": "morph_treatment_value",
    "line": 560,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:77), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/proteus_hooks.py:77"
+   ]
   },
   "race_detector:RaceConditionDetector.instrument_worm": {
    "module": "race_detector",
    "qualname": "RaceConditionDetector.instrument_worm",
    "line": 117,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "race_detector:RaceConditionDetector.uninstrument_worm": {
    "module": "race_detector",
    "qualname": "RaceConditionDetector.uninstrument_worm",
    "line": 223,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "scheduling:ScheduledTrainingWorm._get_ab": {
    "module": "scheduling",
    "qualname": "ScheduledTrainingWorm._get_ab",
    "line": 263,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "scheduling:TrainingOrchestrator.get_run_history": {
    "module": "scheduling",
    "qualname": "TrainingOrchestrator.get_run_history",
    "line": 1130,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "security:CertMonitor.check_cert": {
    "module": "security",
    "qualname": "CertMonitor.check_cert",
    "line": 133,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "security:CertMonitor.get_expiring_soon": {
    "module": "security",
    "qualname": "CertMonitor.get_expiring_soon",
    "line": 157,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "security:FirewallAudit.find_overly_permissive": {
    "module": "security",
    "qualname": "FirewallAudit.find_overly_permissive",
    "line": 198,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1140), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1140"
+   ]
   },
   "security:PortAuditor.audit_exposure": {
    "module": "security",
    "qualname": "PortAuditor.audit_exposure",
    "line": 111,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1127"
+   ]
   },
   "session_state:SessionStateManager.import_snapshots": {
    "module": "session_state",
    "qualname": "SessionStateManager.import_snapshots",
    "line": 511,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "session_state:SessionStateManager.list_registered": {
    "module": "session_state",
    "qualname": "SessionStateManager.list_registered",
    "line": 187,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "session_state:SessionStateManager.register_migration": {
    "module": "session_state",
    "qualname": "SessionStateManager.register_migration",
    "line": 197,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "session_state:SessionStateManager.register_worm_state": {
    "module": "session_state",
    "qualname": "SessionStateManager.register_worm_state",
    "line": 130,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "session_state:SessionStateManager.restore_all": {
    "module": "session_state",
    "qualname": "SessionStateManager.restore_all",
    "line": 435,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/session_state.py:459), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/session_state.py:459"
+   ]
   },
   "session_state:SessionStateManager.unregister_worm_state": {
    "module": "session_state",
    "qualname": "SessionStateManager.unregister_worm_state",
    "line": 178,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:_iso_or": {
    "module": "spine_registry",
    "qualname": "_iso_or",
    "line": 3239,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:audit_state": {
    "module": "spine_registry",
    "qualname": "audit_state",
    "line": 2004,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:get_gossip_trust_state": {
    "module": "spine_registry",
    "qualname": "get_gossip_trust_state",
    "line": 3115,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:get_module_health": {
    "module": "spine_registry",
    "qualname": "get_module_health",
    "line": 2873,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:get_policy_latest": {
    "module": "spine_registry",
    "qualname": "get_policy_latest",
    "line": 438,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:297), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:297"
+   ]
   },
   "spine_registry:get_q_evidence": {
    "module": "spine_registry",
    "qualname": "get_q_evidence",
    "line": 1898,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:homeostat_reset": {
    "module": "spine_registry",
    "qualname": "homeostat_reset",
    "line": 2684,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:purge_fixtures": {
    "module": "spine_registry",
    "qualname": "purge_fixtures",
    "line": 2060,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:purge_implausible_stamps": {
    "module": "spine_registry",
    "qualname": "purge_implausible_stamps",
    "line": 2795,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:purged_blocked_writes": {
    "module": "spine_registry",
    "qualname": "purged_blocked_writes",
    "line": 330,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:q_confidence": {
    "module": "spine_registry",
    "qualname": "q_confidence",
    "line": 1852,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:revert_policy": {
    "module": "spine_registry",
    "qualname": "revert_policy",
    "line": 2716,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:route_last_at": {
    "module": "spine_registry",
    "qualname": "route_last_at",
    "line": 2283,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:route_weight_range": {
    "module": "spine_registry",
    "qualname": "route_weight_range",
    "line": 2316,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "spine_registry:spine_reset": {
    "module": "spine_registry",
    "qualname": "spine_reset",
    "line": 2757,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "synapse:MoEDispatcherWorm.dispatch_cascade": {
    "module": "synapse",
    "qualname": "MoEDispatcherWorm.dispatch_cascade",
    "line": 258,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "synapse:MoEDispatcherWorm.top_expert": {
    "module": "synapse",
    "qualname": "MoEDispatcherWorm.top_expert",
    "line": 253,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "synapse:SSMSequenceWorm.train_error": {
    "module": "synapse",
    "qualname": "SSMSequenceWorm.train_error",
    "line": 450,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "telemetry:AlertEscalator.check_threshold": {
    "module": "telemetry",
    "qualname": "AlertEscalator.check_threshold",
    "line": 208,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/telemetry.py:229), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/telemetry.py:229"
+   ]
   },
   "telemetry:AlertEscalator.clear_alert": {
    "module": "telemetry",
    "qualname": "AlertEscalator.clear_alert",
    "line": 221,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "telemetry:EventRouter.get_recent_events": {
    "module": "telemetry",
    "qualname": "EventRouter.get_recent_events",
    "line": 187,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "telemetry:LogStreamer.read_new_lines": {
    "module": "telemetry",
    "qualname": "LogStreamer.read_new_lines",
    "line": 138,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1138"
+   ]
   },
   "telemetry:LogStreamer.watch_file": {
    "module": "telemetry",
    "qualname": "LogStreamer.watch_file",
    "line": 129,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1138"
+   ]
   },
   "telemetry:MetricAggregator.get_snapshot": {
    "module": "telemetry",
    "qualname": "MetricAggregator.get_snapshot",
    "line": 108,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1000, src/CORE/worm_registry.py:1121), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1000",
+    "src/CORE/worm_registry.py:1121"
+   ]
   },
   "telemetry:MetricAggregator.inc_counter": {
    "module": "telemetry",
    "qualname": "MetricAggregator.inc_counter",
    "line": 94,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1122), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1122"
+   ]
   },
   "telemetry:SpanTracer.end_span": {
    "module": "telemetry",
    "qualname": "SpanTracer.end_span",
    "line": 64,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "telemetry:SpanTracer.get_trace_tree": {
    "module": "telemetry",
    "qualname": "SpanTracer.get_trace_tree",
    "line": 75,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1001), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1001"
+   ]
   },
   "telemetry:SpanTracer.start_span": {
    "module": "telemetry",
    "qualname": "SpanTracer.start_span",
    "line": 53,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "tensorgene:dedupe_observations": {
    "module": "tensorgene",
    "qualname": "dedupe_observations",
    "line": 128,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/tensorgene.py:48), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/tensorgene.py:48"
+   ]
   },
   "thalamus:SensoryRelayWorm.relay": {
    "module": "thalamus",
    "qualname": "SensoryRelayWorm.relay",
    "line": 68,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "visualization:DashboardGen.add_panel": {
    "module": "visualization",
    "qualname": "DashboardGen.add_panel",
    "line": 52,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "visualization:HeatmapBuilder.get_busiest_hours": {
    "module": "visualization",
    "qualname": "HeatmapBuilder.get_busiest_hours",
    "line": 187,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1004), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1004"
+   ]
   },
   "visualization:ReportCompiler.add_section": {
    "module": "visualization",
    "qualname": "ReportCompiler.add_section",
    "line": 134,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1151, src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1151",
+    "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886"
+   ]
   },
   "visualization:ReportCompiler.compile_html": {
    "module": "visualization",
    "qualname": "ReportCompiler.compile_html",
    "line": 138,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/WORMS/NATURE_CLUSTERS.py:1003, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/CLUSTERWORMS.py:390",
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1003",
+    "src/CORE/worm_registry.py:1116"
+   ]
   },
   "visualization:TimelineViz.add_span": {
    "module": "visualization",
    "qualname": "TimelineViz.add_span",
    "line": 209,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/worm_registry.py:1152"
+   ]
   },
   "visualization:TimelineViz.to_timeline_html": {
    "module": "visualization",
    "qualname": "TimelineViz.to_timeline_html",
    "line": 214,
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1006, src/CORE/worm_registry.py:1135), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:1006",
+    "src/CORE/worm_registry.py:1135"
+   ]
   },
   "xenomorph:ChestbursterWorm.burst": {
    "module": "xenomorph",
    "qualname": "ChestbursterWorm.burst",
    "line": 154,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "xenomorph:DroneWorm.carry": {
    "module": "xenomorph",
    "qualname": "DroneWorm.carry",
    "line": 178,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "xenomorph:OvomorphWorm.hatch": {
    "module": "xenomorph",
    "qualname": "OvomorphWorm.hatch",
    "line": 102,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "xenomorph:OvomorphWorm.lay": {
    "module": "xenomorph",
    "qualname": "OvomorphWorm.lay",
    "line": 94,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "xenomorph:ResinWorm.secrete": {
    "module": "xenomorph",
    "qualname": "ResinWorm.secrete",
    "line": 410,
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   }
  }
 }

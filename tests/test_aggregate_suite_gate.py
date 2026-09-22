@@ -114,7 +114,20 @@ def test_the_isolation_profile_pins_its_own_files_and_baseline(
     Two different environments (no torch in CI, the full stack locally) would
     otherwise report each other's failures as regressions. The profile is the
     one place that mapping is written down.
+
+    The mapping is asserted through `evidence_path` rather than by letting the
+    run write at the default location: a test that writes a tracked artifact is
+    how the isolation report came to hold `1 passed in 1s` for a real profile.
     """
+    assert gate.evidence_path("baseline", "isolation", False).name == \
+        "aggregate_isolation_baseline.json"
+    assert gate.evidence_path("report", "isolation", False).name == \
+        "aggregate_isolation_report.json"
+    assert gate.evidence_path("report", "full", False).name == \
+        "aggregate_suite_report.json"
+    assert gate.evidence_path("report", "isolation", True).name == \
+        "aggregate_isolation_report.partial.json"
+
     seen = {}
 
     def fake_run(select, *a, **k):
@@ -122,11 +135,12 @@ def test_the_isolation_profile_pins_its_own_files_and_baseline(
         return 0, "500 passed in 9s"
 
     monkeypatch.setattr(gate, "run_pytest", fake_run)
-    monkeypatch.setattr(gate, "BASELINE", tmp_path / "full.json")
-    assert gate.main(["--report", "--profile", "isolation"]) == 0
+    assert gate.main(["--report", "--profile", "isolation",
+                      "--report-file", str(tmp_path / "r.json"),
+                      "--baseline-file", str(tmp_path / "b.json")]) == 0
     assert seen["select"] == list(gate.ISOLATION_PROFILE)
-    assert gate.BASELINE.name == "aggregate_isolation_baseline.json"
-    assert gate.REPORT.name == "aggregate_isolation_report.json"
+    assert gate.BASELINE == tmp_path / "b.json"
+    assert gate.REPORT == tmp_path / "r.json"
 
 
 def test_an_explicit_only_still_wins_over_the_profile(tmp_path, monkeypatch):
@@ -134,10 +148,74 @@ def test_an_explicit_only_still_wins_over_the_profile(tmp_path, monkeypatch):
     monkeypatch.setattr(gate, "run_pytest",
                         lambda s, *a, **k: (seen.update(select=s),
                                             (0, "1 passed in 1s"))[1])
-    monkeypatch.setattr(gate, "REPORT", tmp_path / "r.json")
     assert gate.main(["--report", "--profile", "isolation",
-                      "--only", "tests/test_x.py"]) == 0
+                      "--only", "tests/test_x.py",
+                      "--report-file", str(tmp_path / "r.json")]) == 0
     assert seen["select"] == ["tests/test_x.py"]
+    assert gate.REPORT == tmp_path / "r.json"
+
+
+@pytest.fixture
+def profile_logs(tmp_path, monkeypatch):
+    """Redirect a profile's evidence files into tmp_path.
+
+    The gate's isolation paths are fixed names under `logs/`, and a test that
+    lets a run reach them replaces a real profile's baseline with fake counts --
+    which is the defect these tests exist for, so they must not re-create it.
+    """
+    monkeypatch.setattr(gate, "default_evidence",
+                        lambda kind, profile: tmp_path / gate.DEFAULT_EVIDENCE[
+                            profile][kind])
+    return tmp_path
+
+
+def test_a_narrowed_run_cannot_take_the_profile_report(profile_logs, monkeypatch,
+                                                       capsys):
+    tmp_path = profile_logs
+    """A subset run must not answer for the profile it did not run.
+
+    Measured 2026-09-22: a one-file smoke test of the stall watchdog replaced
+    `logs/aggregate_isolation_report.json` with `1 passed in 1s`, seven of the
+    eight profile files never executed. The next `--check` would then have read
+    a baseline from a run that did not happen.
+    """
+    monkeypatch.setattr(gate, "run_pytest", lambda *a, **k: (0, "1 passed in 1s"))
+    assert gate.main(["--report", "--profile", "isolation",
+                      "--only", "tests/test_aggregate_suite_gate.py"]) == 0
+    out = capsys.readouterr().out
+    assert (tmp_path / "aggregate_isolation_report.partial.json").exists(), \
+        "a narrowed run must not write the profile's report"
+    assert not (tmp_path / "aggregate_isolation_report.json").exists()
+    assert not (tmp_path / "aggregate_isolation_baseline.json").exists()
+    assert "a narrowed run is not" in out
+    assert "subset of isolation" in out
+
+
+def test_narrowing_is_membership_not_equality(profile_logs, monkeypatch):
+    """Passing the profile's own files in another order is still the profile."""
+    tmp_path = profile_logs
+    monkeypatch.setattr(gate, "run_pytest", lambda *a, **k: (0, "500 passed in 9s"))
+    reordered = list(reversed(gate.ISOLATION_PROFILE))
+    assert gate.main(["--report", "--profile", "isolation",
+                      "--only"] + reordered) == 0
+    assert (tmp_path / "aggregate_isolation_report.json").exists()
+
+
+def test_a_narrowed_check_refuses_rather_than_borrowing_a_baseline(
+        profile_logs, monkeypatch, capsys):
+    tmp_path = profile_logs
+    """The failure must be a refusal, not a vacuous pass.
+
+    Comparing a subset against the profile's baseline would report every
+    unrun file as "no longer failing" -- the gate reading green because it
+    looked at less.
+    """
+    monkeypatch.setattr(gate, "run_pytest", lambda *a, **k: (0, "1 passed in 1s"))
+    assert gate.main(["--check", "--profile", "isolation",
+                      "--only", "tests/test_aggregate_suite_gate.py"]) == 1
+    assert "no baseline" in capsys.readouterr().err
+    assert not list(tmp_path.glob("aggregate_isolation_report*.json")) or \
+        not (tmp_path / "aggregate_isolation_report.json").exists()
 
 
 def test_the_raw_output_is_persisted_so_a_failure_can_be_diagnosed(

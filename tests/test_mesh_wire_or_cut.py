@@ -123,6 +123,84 @@ def test_statuses_are_known(table):
         unknown, sorted(known))
 
 
+# ---------------------------------------------------------------------------
+# `dispatched`: the measurement that made this status necessary
+# ---------------------------------------------------------------------------
+# Triaged 2026-09-22: of 164 findings, 62 were named by an identifier-like STRING
+# in production code -- `getattr(obj, "deliver")`, a registry key, a dispatch
+# table -- while PF16 reads only `ast.Name` / `ast.Attribute` and therefore
+# cannot see any of them. The table had no way to say that: `wired` fails its own
+# contract test while PF16 still fires, and `pending` would have discarded a fact
+# the triage had already measured. These tests hold the new status to evidence in
+# both directions, so it cannot become a bin for whatever is inconvenient.
+
+def test_a_dispatched_declaration_is_backed_by_a_string_reference(table):
+    """`dispatched` is a measurement, so an unbacked one is a lie."""
+    refs = mfp.string_references()
+    declared = table.get("declared") or {}
+    unbacked = []
+    for label, entry in declared.items():
+        if str(entry.get("status")) != "dispatched":
+            continue
+        qual = str(entry.get("qualname") or "")
+        if not (refs.get(qual.rsplit(".", 1)[-1]) or refs.get(qual)):
+            unbacked.append(label)
+    assert not unbacked, (
+        "declared dispatched with no string reference in production code: %s"
+        % sorted(unbacked)[:10])
+
+
+def test_a_dispatched_declaration_states_where_and_why(table):
+    """A disposition a reviewer cannot check is not a disposition."""
+    declared = table.get("declared") or {}
+    silent = sorted(k for k, v in declared.items()
+                    if str(v.get("status")) == "dispatched"
+                    and not str(v.get("reason") or "").strip())
+    assert not silent, "dispatched without a reason: %s" % silent[:10]
+    missing = sorted(k for k, v in declared.items()
+                     if str(v.get("status")) == "dispatched"
+                     and not v.get("evidence"))
+    assert not missing, "dispatched without evidence locations: %s" % missing[:10]
+
+
+def test_dispatched_is_not_a_way_to_hide_a_static_caller(table, tree):
+    """The status must stay a FINDING, not an exemption.
+
+    If a static production caller existed, PF16 would not have reported the
+    function at all and it would not be in this table -- so every `dispatched`
+    entry must still be unreferenced. (This is the same property `wired` is held
+    to, from the other side: `wired` may not be unreferenced, `dispatched` may
+    not stop being one.)
+    """
+    _funcs, unreferenced = tree
+    declared = table.get("declared") or {}
+    hidden = sorted(k for k, v in declared.items()
+                    if str(v.get("status")) == "dispatched" and k not in unreferenced)
+    assert not hidden, (
+        "declared dispatched but a static caller now reaches them -- declare "
+        "wired instead: %s" % hidden[:10])
+
+
+def test_the_string_index_finds_name_lookup_and_ignores_prose():
+    """The evidence source itself, calibrated in both directions.
+
+    A false hit would claim reachability that does not exist, so prose and
+    docstrings are excluded by construction; a miss only leaves the entry
+    `pending`, which is the truth ("not measured").
+    """
+    refs = mfp.string_references()
+    # A real dispatch site: the worm registry names its entry points as strings.
+    assert refs.get("rotate_secret"), (
+        "the string index no longer sees a known registry name; the evidence "
+        "for every `dispatched` declaration is now unverified")
+    assert all(":" in hit for hit in refs["rotate_secret"])
+    # Prose must not be read as a reference. `zebra_quixotic_vernacular` occurs
+    # nowhere in the source, and a sentence containing a name is not a caller.
+    assert "zebra_quixotic_vernacular" not in refs
+    assert "a function that nothing calls cannot regress" not in refs, (
+        "docstring prose is being indexed as a reference")
+
+
 def test_counts_agree_with_the_table(table):
     declared = table.get("declared") or {}
     tally = Counter(str(v.get("status")) for v in declared.values())
@@ -140,3 +218,64 @@ def test_pending_is_visible_rather_than_hidden(table):
     # Not an assertion on the SIZE (the backlog is real work), but the number
     # must be reported rather than inferred, so a monitor can trend it.
     assert isinstance(table["counts"].get("pending"), int)
+
+
+# ---------------------------------------------------------------------------
+# PF16 calibration: implicitly-invoked protocol methods
+# ---------------------------------------------------------------------------
+# PF16 asks whether the bare name appears as a Name or Attribute anywhere.  For a
+# method the interpreter invokes itself -- `__repr__` via `repr()`, `__bool__` via
+# `bool()`, `__getattr__` via any attribute miss -- no explicit reference can
+# exist, so the probe reported a measured false positive rather than dead code.
+# These tests hold that calibration in both directions: the protocol methods are
+# exempt, and the exemption does not swallow ordinary unreferenced functions.
+
+def test_pf16_never_reports_a_protocol_method(tree):
+    """The exemption is by name-set, so no protocol name may survive as a finding."""
+    _funcs, unreferenced = tree
+    leaked = sorted(
+        lbl for lbl in unreferenced
+        if lbl.rsplit(":", 1)[-1].rsplit(".", 1)[-1] in mfp.PROTOCOL_METHODS)
+    assert not leaked, (
+        "PF16 reported implicitly-invoked protocol method(s), which no explicit "
+        "reference can ever satisfy: %s" % leaked[:10])
+
+
+def test_the_calibration_does_not_swallow_the_real_backlog(tree):
+    """The exemption must not be a blanket silence.
+
+    If it were too broad the findings would vanish and the probe would look
+    clean for the wrong reason -- the failure mode this whole table exists to
+    prevent.  So: protocol names are exempt, plain methods are not.
+    """
+    _funcs, unreferenced = tree
+    assert unreferenced, "PF16 found nothing at all; the exemption is too broad"
+    non_protocol = [
+        lbl for lbl in unreferenced
+        if lbl.rsplit(":", 1)[-1].rsplit(".", 1)[-1] not in mfp.PROTOCOL_METHODS]
+    assert non_protocol, "every finding was exempted; the exemption is too broad"
+    assert len(mfp.PROTOCOL_METHODS) > 20, (
+        "PROTOCOL_METHODS looks truncated (%d names)" % len(mfp.PROTOCOL_METHODS))
+
+
+def test_the_lazytorch_false_positive_that_forced_the_calibration(tree):
+    """The concrete evidence, asserted against the real source.
+
+    `nerve._LazyTorch.__bool__` was reported unreachable while `bool(_torch)` is
+    called in the same file, and the module's other attribute accesses route
+    through `_LazyTorch.__getattr__`.  If this file ever stops invoking them by
+    protocol the exemption would be hiding dead code, so the test reads the
+    source rather than trusting the name-set.
+    """
+    unc = tree[1]
+    nerve_src = (REPO / "src" / "CORE" / "WORMS" / "expansion" / "nerve.py")
+    if not nerve_src.exists():
+        pytest.skip("nerve.py not present")
+    text = nerve_src.read_text(encoding="utf-8", errors="replace")
+    if "_torch" not in text:
+        pytest.skip("nerve.py no longer defines a _torch proxy")
+    assert "bool(_torch)" in text or "bool(use_torch and bool(_torch))" in text, (
+        "nerve.py no longer invokes _LazyTorch.__bool__ by protocol; the "
+        "exemption is now hiding dead code and must be revisited")
+    assert "nerve:_LazyTorch.__bool__" not in unc
+    assert "nerve:_LazyTorch.__getattr__" not in unc
