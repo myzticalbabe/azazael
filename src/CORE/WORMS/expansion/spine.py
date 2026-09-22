@@ -38,6 +38,40 @@ from typing import Any
 # exception cannot flood a report.
 _ERR_CAP = 800
 
+
+def _loud(message: str) -> None:
+    """Emit an operator-visible warning that survives a global logging.disable.
+
+    `logging` is the idiomatic channel, but an entry point can switch the whole
+    module off for the process -- and the one that matters here does:
+    `scripts/spine_cycle_apply.py` calls `logging.disable(logging.CRITICAL)` at
+    import (line 23), and that is the process the hourly scheduler runs. A
+    warning the scheduler's own process suppresses is not loud, which is how a
+    ~30-hour refusal went unnoticed.
+
+    So the record still goes to `logging`, and when the process-wide disable
+    threshold would swallow a WARNING the same text is written to stderr too --
+    the one channel the scheduled chain always redirects into its per-job log.
+    """
+    try:
+        import logging as _logging
+        _logging.getLogger(__name__).warning("%s", message)
+    except Exception:
+        return
+    try:
+        import logging as _logging
+        if _logging.root.manager.disable < _logging.WARNING:
+            return  # a handler (or lastResort -> stderr) already has it
+    except Exception:
+        return
+    try:
+        import sys as _sys
+        _sys.stderr.write(message + "\n")
+        _sys.stderr.flush()
+    except Exception:
+        pass
+
+
 try:
     from CORE.worm_registry import (register_worm, WORM_REGISTRY,
                                     is_protected_worm, PROTECTED_NATURES)
@@ -1891,14 +1925,10 @@ class SpineCycleWorm:
                     # nothing red for ~30h. Every caller -- night_shift,
                     # train_today, the chain job -- now gets a warning it cannot
                     # miss, whether or not it inspects the returned dict.
-                    try:
-                        import logging as _logging
-                        _logging.getLogger(__name__).warning(
-                            "spine cycle REFUSED the write (stale_self_image): %s%s",
-                            stale_reason,
-                            " -- degrading to observe" if degrade_to_observe else "")
-                    except Exception:
-                        pass
+                    _loud("spine cycle REFUSED the write (stale_self_image): %s%s"
+                          % (stale_reason,
+                             " -- degrading to observe" if degrade_to_observe
+                             else ""))
                     if not degrade_to_observe:
                         with self._lock:
                             self._skipped += 1
