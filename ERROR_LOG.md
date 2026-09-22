@@ -6854,3 +6854,40 @@ raw filename in the report JSON.
 - A report that supports a decision must carry the evidence for that decision, not a key to it. "Re-run to find out" is a cost that is paid every time, in full, by whoever asks next.
 
 **Related:** Error #191, `tools/aggregate_suite_gate.py`, `NEURAL_MESH_ARCHITECTURE_AUDIT_2026-09-22.md` §5
+
+
+## Error #195 — A One-File Smoke Test Replaced the Isolation Profile's Evidence (September 22, 2026)
+**Timestamp:** 2026-09-22
+**Severity:** 🟠 High
+**File(s):** `tools/aggregate_suite_gate.py`, `logs/aggregate_isolation_report.json`
+
+**Cause:** `--only` narrows the pytest selection, but the gate wrote its report to
+the profile's fixed path anyway. A one-file smoke test of the stall watchdog
+(`--only tests/test_aggregate_suite_gate.py --profile isolation`) therefore
+replaced `logs/aggregate_isolation_report.json` — `301 passed, 1 skipped` from a
+run of all eight profile files — with `1 passed in 1s`, seven of eight files
+never executed. No error was raised, no `--baseline` was run, and the file was
+tracked, so the next `--check` would have compared against a baseline produced by
+a run that did not happen.
+
+**Why it matters more than an overwritten log:** the artifact is the *evidence*
+for a blocking CI gate. Its schema stayed valid, its counts stayed plausible
+(100% pass), and it named a profile it no longer described — the exact
+success-shaped-artifact failure mode this gate was built to catch, produced by the
+gate itself.
+
+**Fix:** `is_narrowed()` compares the effective selection against the profile's
+own target set (membership, not equality — the same files in another order are
+still the profile). When narrowed, and only when no explicit `--report-file` /
+`--baseline-file` was given, the run is redirected to a `.partial` sibling and
+prints why. An explicit path is obeyed as written, because then the caller has
+said where the evidence belongs.
+
+### Verification
+- `tests/test_aggregate_suite_gate.py`: a narrowed `--report` writes `*.partial.json` and leaves the profile's report and baseline absent; a reordered full profile still writes the profile report; a narrowed `--check` exits 1 with `no baseline` instead of borrowing one. The tests redirect `default_evidence` into `tmp_path`, so no test can reach the tracked files — the earlier suite *did* reach them (`test_the_isolation_profile_pins_its_own_files_and_baseline` ran `--report` at the default path), which is how the same corruption almost happened twice.
+
+### Prevention
+- An evidence file must be written by a run whose scope matches the file's name. When a knob (`--only`) can shrink the scope, the *path* must follow the scope, not the profile label.
+- Never let a smoke test write a tracked artifact. Redirect the artifact root in the test, not in the run.
+
+**Related:** Error #194, ADR-010, ADR-012, `tools/aggregate_suite_gate.py`, `logs/aggregate_isolation_baseline.json`
