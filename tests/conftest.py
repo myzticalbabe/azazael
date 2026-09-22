@@ -118,11 +118,14 @@ _MEMORY_DB_RESOLVERS = (
     ("CORE.MemoryBus", "_get_memorybus_db_path", "_MEMORYBUS_DB_PATH"),
 )
 
-#: Modules that cache MORE than one value from the env dir, so one resolver
-#: cannot express the restore: they own a reloader that recomputes all of them.
+#: Modules that cache MORE than one value from the env dir. The third element
+#: names every global that must be snapshotted and restored, because one
+#: resolver cannot express it: `CORE/backup.py:45 _reload_paths` recomputes
+#: `_backup_base` and `BACKUP_DIR`, `CORE/cd3_exporter.py:79 _reload_paths`
+#: recomputes `_DB_DIR` and `DB_PATH`.
 _MEMORY_DB_RELOADERS = (
-    ("CORE.backup", "_reload_paths"),
-    ("CORE.cd3_exporter", "_reload_paths"),
+    ("CORE.backup", "_reload_paths", ("_backup_base", "BACKUP_DIR")),
+    ("CORE.cd3_exporter", "_reload_paths", ("_DB_DIR", "DB_PATH")),
 )
 
 #: Modules that cache a path read from `AZAZAEL_MEMORY_DIR` at import time.
@@ -134,29 +137,74 @@ MEMORY_DIR_CACHING_MODULES = tuple(
 )
 
 
+_MISSING = object()
+
+
+def _snapshot_memory_globals():
+    """Return [(module, attr, value)] for every cached path global present now."""
+    snap = []
+    for _mod_name, _resolver, _attr in _MEMORY_DB_RESOLVERS:
+        _module = sys.modules.get(_mod_name)
+        if _module is not None:
+            snap.append((_module, _attr, getattr(_module, _attr, _MISSING)))
+    for _mod_name, _reloader, _attrs in _MEMORY_DB_RELOADERS:
+        _module = sys.modules.get(_mod_name)
+        if _module is None:
+            continue
+        for _attr in _attrs:
+            snap.append((_module, _attr, getattr(_module, _attr, _MISSING)))
+    return snap
+
+
 @pytest.fixture(autouse=True)
 def _restore_memory_db_globals():
-    """Put the memory dir and every derived DB-path global back after a test.
+    r"""Snapshot the memory dir + derived DB-path globals, then restore them.
 
-    Only touches modules that are already imported, so a suite that never
-    reaches memory code pays nothing. The env var is restored FIRST, because each
-    resolver recomputes from it.
+    Snapshot-and-restore, NOT recompute-from-env. The first version of this
+    fixture recomputed each global from the env var after every test, which
+    silently *overwrote a redirect the test module had deliberately made*:
+    `tests/test_mutation.py:13` and `tests/test_dm_advanced.py:13` both point
+    `direct_memory.DB_PATH` at their own temp file in `setup_module()`, so the
+    recompute put it back on the SHARED session store after the very first test.
+    Measured 2026-09-22, two symptoms, one cause:
+
+      * `test_mutation.py::teardown_module` then saw `DB_PATH.exists()` True and
+        called `.unlink()` on the live session store -- `PermissionError:
+        [WinError 32] ... azazael_memory_fd_dtgau\memory_store.db` reported as an
+        ERROR at teardown of `TestMutationDetection.test_mapping_summary_structure`,
+        and only the open handle prevented the run from deleting its own store.
+      * `test_dm_advanced.py::test_replay_session` then built its `DirectMemory`
+        against a store full of other tests' rows, so `_find_recent_session()`
+        (the Phase-2 reconnect merge, `direct_memory.py:537`) adopted an existing
+        session id and no `session_start` event was recorded for it.
+
+    Restoring the value that was in effect at test start repairs a leak (the
+    Error #196 shape: a test leaves `DB_PATH` pointing into a directory it then
+    deletes) *and* preserves a deliberate redirect. Modules imported DURING the
+    test have no snapshot, so for those the env-derived recompute is still the
+    right answer -- that is the only case the old behaviour was ever correct for.
     """
+    _snap = _snapshot_memory_globals()
+    _known = {(id(_m), _a) for _m, _a, _v in _snap}
     yield
     if _MEMORY_DIR_BASELINE:
         os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_BASELINE
     else:
         os.environ.pop("AZAZAEL_MEMORY_DIR", None)
+    for _module, _attr, _value in _snap:
+        if _value is not _MISSING:
+            setattr(_module, _attr, _value)
+    # Late imports: never had a deliberate redirect to preserve, so recompute.
     for _mod_name, _resolver, _attr in _MEMORY_DB_RESOLVERS:
         _module = sys.modules.get(_mod_name)
-        if _module is None:
+        if _module is None or (id(_module), _attr) in _known:
             continue
         _fn = getattr(_module, _resolver, None)
         if _fn is not None:
             setattr(_module, _attr, _fn())
-    for _mod_name, _reloader in _MEMORY_DB_RELOADERS:
+    for _mod_name, _reloader, _attrs in _MEMORY_DB_RELOADERS:
         _module = sys.modules.get(_mod_name)
-        if _module is None:
+        if _module is None or all((id(_module), _a) in _known for _a in _attrs):
             continue
         _fn = getattr(_module, _reloader, None)
         if _fn is not None:

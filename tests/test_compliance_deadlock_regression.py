@@ -8,7 +8,7 @@ Verifies that the Lock→RLock fix resolves the non-reentrant deadlock where:
   - BehavioralGraphAnalyzer.get_graph_summary() acquires self._lock then calls
     check_anomalies() which re-acquires the same lock
 
-All tests use a timeout guard (< 3s) to detect if the deadlock reappears.
+All tests use a timeout guard to detect if the deadlock reappears.
 """
 
 import sys
@@ -19,17 +19,35 @@ import pytest  # type: ignore[import-not-found]
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-_DEADLOCK_TIMEOUT = 3.0  # seconds — any call taking longer means deadlock
+# A `threading.Lock` re-entered by its own holder does not slow down, it NEVER
+# returns. So the guard only has to outlive any plausible load, and a tight
+# bound is not a stricter test of the deadlock -- it is a test of the machine.
+# Measured 2026-09-22 on the aggregate suite (`check_rule_0y` through a real
+# orchestrator, 3,600 other tests in the same process): 3.112s against the old
+# 3.0s bound, reported as "probable deadlock! Expected < 1s" (Error #199). The
+# call had returned -- the deadlock was still fixed -- and the wall clock was
+# reporting contention. Detection stays; load stops being a verdict.
+_DEADLOCK_TIMEOUT = 30.0
+
+#: The documented hot-path budget. Calls at or above it are RECORDED, not
+#: asserted: a loaded machine is not a deadlock and not a defect, but a silent
+#: one is, so the ledger below is what a reader checks when the suite got slow.
+_PERF_EXPECTED = 1.0
+SLOW_CALLS: list = []
 
 
 def _assert_no_deadlock(fn, *args, **kwargs):
-    """Run fn(args) with a timeout guard. Raises if it takes too long."""
+    """Run fn(args) with a timeout guard. Raises if it does not return."""
     t0 = time.perf_counter()
     result = fn(*args, **kwargs)
     elapsed = time.perf_counter() - t0
+    if elapsed >= _PERF_EXPECTED:
+        SLOW_CALLS.append((fn.__name__, round(elapsed, 3)))
     assert elapsed < _DEADLOCK_TIMEOUT, (
-        f"{fn.__name__} took {elapsed:.1f}s (>{_DEADLOCK_TIMEOUT}s) — "
-        f"probable deadlock! Expected < 1s."
+        f"{fn.__name__} took {elapsed:.1f}s (>{_DEADLOCK_TIMEOUT}s) — the call "
+        f"did not return, so the non-reentrant Lock→RLock deadlock is back "
+        f"(hot-path budget is {_PERF_EXPECTED}s; slow-but-complete calls seen "
+        f"this session: {SLOW_CALLS})"
     )
     return result
 

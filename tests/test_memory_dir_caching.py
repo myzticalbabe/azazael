@@ -159,10 +159,19 @@ def test_the_restore_list_is_not_stale():
             % (mod_name, resolver, attr))
         assert attr in scanned.get(mod_name, set()), (
             "%s.%s is no longer a cached env-derived global" % (mod_name, attr))
-    for mod_name, reloader in conftest._MEMORY_DB_RELOADERS:
+    for mod_name, reloader, attrs in conftest._MEMORY_DB_RELOADERS:
         module = sys.modules.get(mod_name)
         if module is None:
             continue
         assert callable(getattr(module, reloader, None)), (
             "%s.%s no longer exists, so conftest cannot restore its cached paths"
             % (mod_name, reloader))
+        # The snapshot/restore fixture names every global by hand, so the names
+        # must still be the ones the module actually reloads, and must still be
+        # env-derived globals the AST scan can see.
+        assert attrs, "%s declares no snapshot attributes" % mod_name
+        for attr in attrs:
+            assert attr in scanned.get(mod_name, set()), (
+                "%s.%s is no longer a cached env-derived global, so the "
+                "snapshot would restore a name that no longer exists"
+                % (mod_name, attr))

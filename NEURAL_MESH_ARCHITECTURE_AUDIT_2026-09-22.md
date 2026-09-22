@@ -218,13 +218,35 @@ failures and 22 passes, with `test_nature_metacluster_unit` (13 failures) gone
 from the list completely. Cumulative: **72 → 50 failures, 69 → 0 errors,
 3,508 → 3,606 passing.**
 
+A fourth run — **before** the two fixes in §7.7 and §7.8 landed but **with** the
+memory-DB restore active — measured **45 failed / 3,643 passed / 39 skipped /
+1 error in 24:35** and named the causes of both remaining clusters:
+
+- **25 of the 45 are one root cause.** `test_sb3_agent` (17),
+  `test_eve_unleashed` (5), `test_inference` (2) and `test_training_orchestrator`
+  (1) all report the same traceback: `AttributeError: partially initialized
+  module 'torch' ... has no attribute 'distributed' (most likely due to a
+  circular import)` from `torch/_jit_internal.py:1249`, reached via
+  `torch/__init__.py:2650` → `torch/functional.py` → `torch/nn/...`. The count
+  (25) matches the family exactly. **Still open** — see AR-3.
+- **10 of the 45 are the sentinel thread-local permit** (§7.8, now fixed and
+  verified: `10 failed, 28 passed` → `38 passed` in 4 s).
+- The `test_cross_domain_integration` pair (2), `test_worm_smoke` (2),
+  `test_morphogenesis_opportunity` (3), `test_spine_mesh` (1) and
+  `test_mesh_wire_or_cut` (1) that the third run still listed are **gone** — the
+  memory-DB path leak (§7.7).
+- Three items are **new or newly visible**: `test_brainstem_playing_field::
+  test_cap_prunes_the_lowest_evidence_keys_first` (passes in its own file subset),
+  `test_dm_advanced::test_replay_session`, and an **error** in
+  `test_mutation::test_mapping_summary_structure` where the third run had none.
+
 Failure buckets from the "before" run (with standalone results for each):
 
 | File | Fails (before → after) | Passes alone? | Cause |
 |---|---|---|---|
 | `test_sb3_agent` | 17 → 17 | ✅ 42 passed | order/state |
 | `test_nature_metacluster_unit` | 13 → **0** | ✅ 74 passed | **fixed** — module identity (§7.1) |
-| `test_fs_probe_backend` | 10 → 10 | ✅ 13 passed | load → child-probe deadline missed → `None` |
+| `test_fs_probe_backend` | 10 → **0** | ✅ 13 passed | **fixed** — the sentinel permit was thread-local, so the probe's worker thread was blocked (§7.8). The earlier guess ("child-probe deadline missed") was wrong and is corrected here |
 | `test_wiring_cycle` | 8 → **0** | ✅ 20 passed | **fixed** — see §7.1 |
 | `test_eve_unleashed` | 5 → 5 | ✅ 21 passed | order/state |
 | `test_morphogenesis_opportunity` | 3 → 3 | ✅ 14 passed | order/state |
@@ -234,14 +256,28 @@ Failure buckets from the "before" run (with standalone results for each):
 | `test_import_map` | **8 errors → 0** | ✅ 8 passed | **fixed** — see §7.2 |
 | 10 further files | 1–2 each → 1–2 | — | mixed: `test_cross_domain_integration` 2, then 8 files at 1 (`compliance_deadlock_regression`, `config_and_breaker`, `cross_nature_orchestration`, `exmachina_monitor_split`, `mesh_fabric_followups`, `ncm_integration`, `pool`, `training_orchestrator`, `worm_execute_all_integration`) |
 
-**Remaining: 50 failures across 16 files, zero errors.** Every one of the eight
-primary files still passes alone, so the isolation debt that produced the
-aggregate red is much reduced but not eliminated. The residual is concentrated:
-`test_sb3_agent` 17 and `test_fs_probe_backend` 10 are 27 of the 50, and both
-were verified to pass alone (42/42 and 13/13) **and** in pairs with each other
-(55 passed, 34 passed) — so the polluter is not in that pair and the interaction
-is long-range, which is why naming it needs the streamed raw output rather than
-another guess.
+**Remaining after both fixes: an estimated 35 failures across 15 files, one
+error.** The count is an estimate because the fourth run started before the
+sentinel fix was written; the 10 `test_fs_probe_backend` failures are measured
+gone from the same process (`28 passed` alongside 10 failures → `38 passed` on the
+pair that reproduced them)
+and nothing else in that file's bucket changed.
+
+Every failing file still passes alone, so the residual is concentrated in **one
+named cause** (25 torch failures) plus 10 singletons. Named cause first:
+
+- **AR-3 (open): the torch import.** A fresh `python -c "import torch"` in the
+  same venv works and `torch.distributed` is present (torch 2.14.0+cpu), so the
+  failure is state, not a broken install. In `torch/__init__.py` `distributed` is
+  bound at line 2703 — *after* the line-2650 chain that reaches
+  `_jit_internal:1249` — so a healthy first import must resolve `torch.distributed`
+  some way this run does not. Decisive next step (not yet run): **pytest imports
+  every test module at COLLECTION, before the first test runs**, so a polluter's
+  *module-level* side effect can land before `test_eve_unleashed` executes even
+  though its own tests run much later — which is why the victim's file, and every
+  prefix subset that contains it, stays green. Instrument collection with a
+  `pytest_collection_modifyitems` plugin that records `sys.modules` torch state
+  per imported module, and bisect that list.
 
 The headline fact: **every failing file passes green when run alone.** The
 suite's dominant defect class is *test isolation*, not product code — and it is
@@ -370,7 +406,180 @@ countable, unreadable failures; the only way to read one was to re-pay the full
 records the profile, targets and raw filename in it. A report that supports a
 decision must carry the evidence for it.
 
-### 7.7 Verification
+### 7.7 A half-restore leaked the memory DB path, and five innocent files took the blame (new, Error #196)
+
+The largest single cause of the remaining aggregate-only failures was **test-side
+module-global leakage**, not product code. `CORE/direct_memory.py` resolves its
+store path once at import (`DB_PATH = _get_db_path()`); four legacy-style suites
+redirect it by setting `AZAZAEL_MEMORY_DIR` **and** `direct_memory.DB_PATH`, then
+restore only the env var and `rmtree` the directory. The global went on naming a
+deleted temp dir, and every later `DirectMemory()` in the process raised
+`unable to open database file`.
+
+Measured shape of the defect: the **leakers** (`test_cli`, `test_doctor`,
+`test_concurrency_200`, `test_perf*`) are never the files that fail, and the
+**victims** (`test_cross_domain_integration::test_cd1_record_event`,
+`test_cross_domain_integration::test_cd5_docker_benchmark`,
+`test_worm_smoke::test_every_worm_instantiable` → ParallelInferenceWorm) are all
+green when run alone. Reproduced deterministically in 18 s —
+`pytest tests/test_cli.py tests/test_doctor.py tests/test_cross_domain_integration.py::test_cd1_record_event`:
+`1 failed, 13 passed` before, `14 passed` after — and fixed at the mechanism
+rather than per-file: `conftest._restore_memory_db_globals` is autouse and
+recomputes each derived DB-path global through its own module's resolver after
+restoring the environment. `tests/test_memory_db_isolation.py` pins it, and the
+pin was falsified (with the fixture absent, the second test fails).
+
+### 7.8 A thread-local security permit made every delegated file probe answer "unknown" (new, Error #197)
+
+The second cluster of aggregate-only failures was also an isolation defect, and
+this one had a production reading. `sentinel_enforcer.py:40` gates writes with
+`_GATED_CALL = threading.local()` and the audit hook reads it per thread (`:53`).
+`fs_probe` runs its child probe on a **new worker thread** and opens
+`tempfile.TemporaryFile()` there, so once the guard had been armed by an earlier
+file, every delegated probe was blocked:
+
+```
+{"ok": false, "timeout": false,
+ "error": "CRITICAL: Unauthorized write to C:\\Users\\clint\\AppData\\Local\\Temp. ..."}
+```
+
+`bounded_exists` / `bounded_is_dir` / `bounded_read_text` then return `None` —
+and `None` is documented as "unknown", so the caller cannot tell *denied by our
+own guard* from *did not answer*. All 10 `tests/test_fs_probe_backend.py` tests
+failed in aggregate and passed alone; reproduced in **4 seconds** with
+`pytest tests/test_compliance_step45_init.py tests/test_fs_probe_backend.py`
+(`10 failed, 28 passed` → `38 passed`).
+
+**The production half is now fixed too.** The first mitigation was in `conftest`
+(a shared token), which fixed the suite and left the subsystem broken in the
+assistant's own session: with the guard armed, `fs_probe`'s delegated probes
+could not answer at all. Two candidate fixes had been recorded as an operator
+decision; the one taken is the narrower:
+
+* `sentinel_enforcer.worker_permit(held)` — `held` is read on the **starter**
+  thread, so a worker holds exactly its starter's permit and a worker started
+  with no permit is still denied. Authority is not made process-wide.
+* `permit_here(reason)` replaces the bare `is_active = True` / `finally: False`
+  pattern at all five internal call sites, restoring the PREVIOUS value — with
+  the old pattern an inner authorized region ended the outer one on exit.
+* `fs_probe._carried_permit()` reads the guard out of `sys.modules` rather than
+  importing it (importing `sentinel_enforcer` ARMS the audit hook, and a probe
+  must not be able to arm a guard the process chose not to have), and returns a
+  *factory* because `bounded_first_dir` starts N threads.
+* Denial is now its own outcome: `bounded_subprocess_output` returns `denied`,
+  `probe_backend_stats()["denied_probes"]` counts it, `is_denied()` reads it.
+  "We refused to look" can no longer be reported as a filesystem finding.
+
+Verified against the REAL `threading.local()` token, with `conftest`'s
+compatibility swap disabled (`AZAZAEL_TEST_SHARED_PERMIT=0`): the repro pair is
+**38 passed**, one stubbed `_carried_permit` returns `{'ok': False, 'denied':
+True}`, and `tests/test_sentinel_thread_permit.py` was rewritten so it rebinds
+the token itself — the inherited-permit case and the no-widening case are a pair,
+so neither the pre-fix code nor a process-wide flag can satisfy it.
+
+### 7.9 `max_natures` was spent before the filter that could drop the nature (new, Error #198)
+
+`test_cross_nature_orchestration.py::TestMetaClusterState::test_state_phases`
+failed on `set() or set()` while the assertion above it (`phase == "complete"`)
+passed. `MetaCluster.orchestrate()` capped the ranked Nature list and *then*
+dropped the natures that contain the orchestration infrastructure:
+
+```python
+natures = ranked[:max_natures]                                     # cap first
+...
+execution_order = [n for n in order if n not in circular_natures]  # drops the cap
+```
+
+When the ranking promoted `orchestration` to the top — which `_score_natures()`
+recency (-5 under 60 s) and staleness (+5 over 600 s) terms do after a dozen
+calls — the single slot was spent on a Nature the filter was about to remove.
+`execution_order` emptied, the loop never ran, and the result still reported
+`phase="complete"` with `errors=[]`: **a no-op indistinguishable from a clean
+pass**. Every file-level instrument missed it (green alone, green in every
+prefix, and every subset of the class excluding the failing test was green).
+
+`tools/pytest_fixture_watch.py` (new) named it in one run: watch a dotted
+attribute path across a suite and print the first test after which the value
+CHANGES. `FIXTURE_WATCH="ncm._execution_history,state.active_natures"` showed
+`state.active_natures = {}` with no history entry — nothing was even selected.
+
+Fixed: the cap is applied to the natures that can RUN (`eligible or ranked`), and
+an empty `execution_order` now appends an explicit error naming the circular set.
+`30 passed` (was 1 failed / 29 passed); the three other metacluster suites are
+`146 passed`.
+
+### 7.10 The wire-or-cut triage erased its own evidence on re-run (new, Error #199)
+
+`--propose` wrote `evidence` inside the `pending -> dispatched` branch, so
+regenerating the table — which is how it is maintained — left all 62 dispatched
+rows with a reason and no locations, failing
+`test_a_dispatched_declaration_states_where_and_why`. Evidence is now re-derived
+for every dispatched row; `test_proposing_twice_keeps_the_evidence` proposes the
+same table twice and fails on the old code. `17 passed` (was 1 failed / 14).
+
+### 7.11 The 101 findings no probe can decide now have an order (not a verdict)
+
+`--triage` labels each still-`pending` finding with the class that decides its
+next action, measured from a test-side reference scan (Name / Attribute /
+identifier-like literal, docstrings excluded):
+
+| Class | Count | The decision it needs |
+|---|---|---|
+| `test_reached_only` | **44** | the only caller is a test: public API (wire a production caller) or scaffolding (retire it) |
+| `no_reference_anywhere` | **57** | nothing in the repository reaches it: the deletion queue |
+
+The label lives in its own field (`triage`, `triage_evidence`) and **`status` is
+never touched** — a class is not a disposition, and collapsing the two is how the
+earlier inferred `integrate_via_stage` table came to be presented as results.
+
+#### The 57 with no reference anywhere (the deletion queue)
+
+`NeuralPipeline.replay_failed` · `ThompsonAllocator.choose_with_bonus` ·
+`LatencyCompensatorWorm.compensate` · `MyelinSheathWorm.boost_for` ·
+`MyelinSheathWorm.myelinate` · `CheckpointWorm.restore_checkpoint` ·
+`IPCBridge.create_channel` · `IPCBridge.receive` · `ConfigLinter.lint_yaml` ·
+`EngramIndexerWorm.lookup` · `SharpWaveReplayWorm.replay_batch` ·
+`SleepConsolidatorWorm.sleep_cycle` · `ResourceQuotaWatch.set_quota` ·
+`AttentionGateWorm.set_bias` · `DendriteAggregatorWorm.set_gain` ·
+`DreamingModule.get_dream_stats` · `HypnagogicSynthesizer.ingest_domains` ·
+`GemmaDriverWorm.judge_dream` · `GemmaDriverWorm.propose_goal` ·
+`EraEvidence.era_counts` · `EvolutionEngine.get_generation_history` ·
+`GeneticOptimizer.optimize_multi` · `exmachina._mad` · `exmachina._tpm` ·
+`FederatedAggregatorWorm.run_round` · `RewardShaperMeshWorm.local_score` ·
+`MicrogliaWorm.check_path` · `GRPOTrainer.rewards_from_elo` ·
+`MeshRouterWorm.invalidate_route` · `CodeMigrator.run_2to3` ·
+`LegacyShimGen.write_shim` · `FitnessOracle.acquisition` ·
+`FitnessOracle.era_robust_probability` · `CPUFlameProfiler.to_flamegraph_data` ·
+`CodeProfiler.detect_hotspots` · `CodeProfiler.profile_function` ·
+`CertMonitor.check_cert` · `CertMonitor.get_expiring_soon` ·
+`SessionStateManager.import_snapshots` · `SessionStateManager.list_registered` ·
+`SessionStateManager.register_migration` ·
+`SessionStateManager.register_worm_state` ·
+`SessionStateManager.unregister_worm_state` · `spine_registry._iso_or` ·
+`spine_registry.route_last_at` · `MoEDispatcherWorm.top_expert` ·
+`AlertEscalator.clear_alert` · `EventRouter.get_recent_events` ·
+`SpanTracer.end_span` · `SpanTracer.start_span` · `SensoryRelayWorm.relay` ·
+`DashboardGen.add_panel` · `ChestbursterWorm.burst` · `DroneWorm.carry` ·
+`OvomorphWorm.hatch` · `OvomorphWorm.lay` · `ResinWorm.secrete`
+
+Two clusters stand out and neither is a surprise: the **`SessionStateManager`
+family (5)** is a snapshot/migration API with no caller, and the **`xenomorph`
+family (5)** is a metamorphosis lifecycle nothing drives — both are capabilities
+that exist and are never invoked, which is the definition of this finding.
+
+#### The 44 reached only by a test
+
+The largest single group is `DataPipelineWorm` (**8 members**, all reached from
+`tests/test_learning_worms.py`) plus the `spine_registry` maintenance surface
+(**10 members**, from `test_spine_mesh.py` / `test_brainstem_playing_field.py` /
+`test_mesh_clock_poison.py` / `test_spine_tombstone_enforcement.py` /
+`test_colour_queens.py`). Each needs one question answered by a person: is this
+**public API** (then give it a production caller) or **test scaffolding** (then
+retire it)? The full list with the reaching test and line is in
+`NEURAL_MESH_WIRE_OR_CUT.json` under `triage_evidence`, so the review reads a
+location rather than a claim.
+
+### 7.12 Verification
 
 | Check | Result |
 |---|---|
@@ -380,12 +589,90 @@ decision must carry the evidence for it.
 | **aggregate suite, before** | 72 failed · 3,508 passed · **69 errors** · 1,411 s |
 | **aggregate suite, after the two isolation fixes** | 65 failed · 3,584 passed · **0 errors** · 1,269 s |
 | **aggregate suite, after the purge narrowing** | **50 failed · 3,606 passed · 0 errors · 1,329 s** |
+| **aggregate suite, after the memory-DB, thread-permit and cap fixes (run 6)** | **11 failed · 3,681 passed · 39 skipped · 1 error · 1,511 s** |
+| torch-state instrument, armed on run 6 | ✅ **11,219 phases observed, 0 partial-`torch`** (run 5: 25 occurrences) |
+| `test_mutation` teardown + `test_dm_advanced` (ADR-014) | ✅ 17 passed (was 1 failed / 1 error) |
+| `test_config_and_breaker` + `test_ncm_integration` + `test_brainstem_playing_field` | ✅ 100 passed |
+| timing-assertion trio `test_pool` + `test_mesh_audit_insights` + `test_compliance_deadlock_regression` (ADR-015) | ✅ 70 passed |
 | isolation profile (`--profile isolation`, CI-blocking) | ✅ 299 passed, 0 failed, 1 skipped — baseline 0 ids |
 | `tools/type_check_gate.py --check` | ✅ OK: no new diagnostics (1,377 known) |
 | `tools/aggregate_suite_gate.py --check` | ✅ OK: no new aggregate failures |
 | `tools/artifact_freshness.py` | ✅ all 7 derived artifacts current; graph/report consistent (nodes=687,497 clustered=True) |
 | `tools/audit_parseable_files.py --check --deep` | ✅ no new mislabelled files |
 | derived maps rebuilt | TODO 1,487 functions · verdict 164 unreferenced · interop 482 edges |
+| memory-DB leak repro pair | ✅ `1 failed, 13 passed` → `14 passed` (before → after) |
+| `tests/test_memory_db_isolation.py` | ✅ 2 passed (and falsified without the fixture) |
+| fs_probe guard repro pair | ✅ `10 failed, 28 passed` → **38 passed** |
+| `tests/test_sentinel_thread_permit.py` | ✅ 2 passed (and falsified without the swap) |
+
+### 7.10 The neural loop, end to end (measured 2026-09-22, not inferred)
+
+The question "does the neural net work end to end" now has a measurement behind
+each of its three parts, and the parts are kept separate because they have
+different evidence:
+
+| Path | Instrument | Result |
+|---|---|---|
+| **Read path (dry)** | `scripts/neural_loop.py --json` | ✅ **14/14 stages ok**, `verdict DRY`, `failed_stages []`, 9 write stages blocked *with reason*, 6,415 ms. `load` 472 edges / 114 distinct / l2 6.024407 · `perceive` 232 observed of 20,000 outcome rows, 2 chosen-never-run · `credit` 232 resolved, 0 unresolved |
+| **Learning closure (apply)** | real stages, `LoopContext(apply=True)`, only `spine_registry._STATE_FILE` redirected to a temp file; `act`/`l1`/`l2` replaced by honest stubs | ✅ `verdict OK`, `ok True`, `changed [plasticity, consolidate, verify]`. `plasticity` 232 updates / 0 no-evidence (alpha 0.15, spread 0.082546) · `consolidate` 3 dreams, 8 reinforced · `prune` "nothing to forget: every edge carries evidence" · `grow` gate held 62 · `verify` **0 edges → 232 edges** read back off disk |
+| **Cross-process durability** | second process, same state file | ✅ fresh process **loaded 232 edges** from disk; cycle 2 ran `OK`, `verify` sum 0.96454 → 1.770251, distinct 42 → 47. This is precisely the failure `_stage_persist` documents ("a fresh process afterwards still read 56 edges") and it is gone |
+| **Fleet execution (`act`)** | `scripts/run_mesh_cycle.py` | ⚠️ **not exercised.** An applying cycle invokes the real fleet as a subprocess. Reported as unverified rather than claimed |
+| **Promotion rungs (`l1`, `l2`)** | wiring genome / `hyperopt_cycle.step` | ⚠️ **not exercised.** `l2` appends a lineage row even when only proposing |
+
+So: the loop **closes** — credit is read from the live tap, written as an
+advantage, persisted, and independently re-read from disk by `verify`, across
+processes. The fleet execution path is a separate system with a separate blast
+radius and is stated as untested here instead of folded into a green verdict.
+
+### 7.13 The repair for the leak was itself a leak, in the other direction (new, Error #200)
+
+Two symptoms, one cause, and neither symptom named the leaker — the same shape
+as #196, one layer up.
+
+| Symptom | Where it was reported | Why it looked unrelated |
+|---|---|---|
+| `PermissionError [WinError 32]` on `azazael_memory_fd_dtgau\memory_store.db` | ERROR at teardown of `TestMutationDetection.test_mapping_summary_structure` | that test has no teardown of its own |
+| `'session_start' not in ['cd5_benchmark', 'session_end', 'message_start', …]` | `test_dm_advanced::test_replay_session` | the test never chose a session id |
+
+The restore fixture added for #196 recomputed each DB-path global from
+`AZAZAEL_MEMORY_DIR`. But `tests/test_mutation.py:13` and
+`tests/test_dm_advanced.py:13` redirect `direct_memory.DB_PATH` themselves, in
+`setup_module()`, to a path the environment does not describe. The first test's
+teardown therefore replaced their redirect with the **shared session store**.
+
+What that then did is worth stating exactly, because the suite's own error
+message understated it: `test_mutation.py::teardown_module` saw
+`DB_PATH.exists()` was `True` and called `.unlink()` on **the live session
+store**. The `WinError 32` was the open SQLite handle saving the run from
+deleting the database it was running against — with no error at all if the
+handle had been closed first. `test_dm_advanced`'s half was the documented
+Phase-2 reconnect merge (`direct_memory.py:537`) adopting an existing open
+session id, so `_start_session`'s `INSERT OR IGNORE` found the row and no
+`session_start` was recorded.
+
+Fixed by snapshotting the values in effect and restoring those, with the env
+derivation kept only for modules imported *during* the test (which never had a
+deliberate redirect to preserve). Recorded as ADR-014; the fixture's own test now
+asserts the snapshot attribute names are still AST-visible, so the list cannot
+rot.
+
+### 7.14 Three wall-clock assertions graded the machine (new, Error #201)
+
+| File | Assertion | Aggregate reading | Passing alone |
+|---|---|---|---|
+| `test_compliance_deadlock_regression` | call returns in `< 3.0 s` | **3.112 s** — "probable deadlock! Expected < 1s" | ✅ |
+| `test_mesh_audit_insights` | two `overdue()` polls are equal | `overdue_by` **0.020** vs **0.021** | ✅ |
+| `test_pool::test_benchmark_speedup` | 2 workers ≥ 1.0× 1 worker | speedup **< 1.0** | ✅ |
+
+A re-entered `threading.Lock` does not slow down, it *never returns*, so the 3.0 s
+bound was not a strict deadlock test — it was a strict test of the machine. The
+other two asserted on quantities derived from `now()` and on 10 ms of work where
+thread spawn dominated. Detection is kept (30 s, with the reason in the source),
+the documented 1 s hot-path budget now feeds a `SLOW_CALLS` ledger instead of a
+failure, the grace test compares *what is late* and bounds the lateness delta,
+and the benchmark is best-of-3 over a workload that amortises fixed overhead.
+Recorded as ADR-015, including the deliberate cost: a genuine slowdown that
+completes inside 30 s is now a report a reader must read, not a red build.
 
 ## 8. Architecture quality scorecard
 
@@ -451,3 +738,8 @@ unnoticed: nobody re-checks a conclusion that sounds like a fact about the code.
 | `test_aggregate_suite_gate.py::test_the_raw_output_is_persisted_so_a_failure_can_be_diagnosed` | the gate's evidence travels with its verdict (Error #194) |
 | `test_type_check_gate.py::test_a_missing_checker_is_a_failure_not_a_clean_tree` | an unchecked tree cannot read as clean; likewise non-JSON output and a missing baseline |
 | `test_type_check_gate.py::test_identity_ignores_the_message_so_rewording_is_not_a_fix` | a reworded diagnostic is not a repaired one |
+| `test_sentinel_thread_permit.py` (4 tests, all against a rebound REAL `threading.local()`) | a worker holds its starter's permit and **only** its starter's permit |
+| `test_memory_dir_caching.py::test_every_cached_path_global_is_restored` | a module that caches a path read from `AZAZAEL_MEMORY_DIR` at import cannot be missing from conftest's restore list (discovered by AST, not by hand) |
+| `test_memory_dir_caching.py::test_the_scan_finds_the_known_cachers` | the scanner itself is checked against five modules it must find, so a silent scan cannot pass |
+| `test_mesh_wire_or_cut.py::test_proposing_twice_keeps_the_evidence` | a re-runnable instrument keeps the measurements it made |
+| `test_mesh_wire_or_cut.py::test_triage_labels_the_pending_backlog_without_deciding_it` | a triage pass cannot change a status, and the class counts must add up |
