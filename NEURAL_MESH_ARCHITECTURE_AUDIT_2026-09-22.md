@@ -592,6 +592,8 @@ location rather than a claim.
 | **aggregate suite, after the memory-DB, thread-permit and cap fixes (run 6)** | **11 failed · 3,681 passed · 39 skipped · 1 error · 1,511 s** |
 | **aggregate suite, run 8 — every fix above landed (not clean-load: the graph rebuild shared the CPU)** | **2 failed · 3,698 passed · 38 skipped · 0 errors · 1,525 s** |
 | run 8's two failures | both fixed after the run: the `--verdict` rebuild dropping `evidence` (Error #202) and the 2-worker speedup assertion (Error #201) |
+| **aggregate suite, run 9 — everything from run 8's failures plus the marker registration** | **1 failed · 3,700 passed · 38 skipped · 0 errors · 1,472 s** |
+| run 9's one failure | the heartbeat's 15s deadline, which its own first cycle needs 13.28s of: fixed to 60s with a named early failure for a stopped heart (Error #204), verified `62 passed` in `test_spine_mesh.py` |
 | torch-state instrument, armed on run 6 | ✅ **11,219 phases observed, 0 partial-`torch`** (run 5: 25 occurrences) |
 | `test_mutation` teardown + `test_dm_advanced` (ADR-014) | ✅ 17 passed (was 1 failed / 1 error) |
 | `test_config_and_breaker` + `test_ncm_integration` + `test_brainstem_playing_field` | ✅ 100 passed |
@@ -712,7 +714,7 @@ Every item the audit's own priority list named, and what happened to it:
 
 | Priority | Item | Outcome |
 |---|---|---|
-| P0 | full suite with every fix landed | **run 9** launched with the marker registered; see the verification table |
+| P0 | full suite with every fix landed | ✅ **run 9: 1 failed / 3,700 passed / 0 errors in 24:32** (was 2/3,698 in run 8, 11/3,681 in run 6, 45 in run 4). The one failure was Error #204, fixed and verified. Over the session the failure count went **72 → 0 errors, 45 → 1 → 0** |
 | P0 | WSL2 drift (3 test files) | ✅ `--sync-to wsl2` then `--verify` -> **PASS, tests 196/196 in sync** (was 193/196) |
 | P1 | type gate baseline is line-numbered | ✅ **implemented** — content-anchored identity, scheme recorded, cross-scheme diff refused (Error #203, ADR-016) |
 | P1 | 101 pending PF16 dispositions | ✅ **made actionable** — `--worklist` writes `NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md`: 101 rows in take-order, each `test_reached_only` row carrying the test location that reaches it. Statuses are deliberately NOT written: a class is a measurement, and inventing 101 dispositions would be Error #190 again. **The decisions themselves remain the operator's** |

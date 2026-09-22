@@ -7435,3 +7435,50 @@ being type-checked and had entered the baseline as known debt.
 - Generated output landing inside the analysed tree (`_staging/`) enters every source-based gate. If it is not meant to ship, it needs an exclusion, not a baseline entry.
 
 **Related:** Error #193, Error #202, Error #201, `tools/type_check_gate.py`, `logs/basedpyright_baseline.json`
+
+---
+
+## Error #204 — A Liveness Property Was Graded by a Stopwatch Its Own First Cycle Already Exceeded (September 22, 2026)
+
+### Symptom
+Run 9 of the aggregate suite: **1 failed / 3,700 passed / 0 errors**, and the one
+failure was the heartbeat's liveness check.
+
+```
+tests\test_spine_mesh.py:762: in test_spine_heart_starts_and_stops
+    assert beats, "heart did not record a beat"
+E   AssertionError: heart did not record a beat
+E   assert []
+```
+
+### Root cause
+The test starts the heart at `interval=1.5` and waits **15s** for a
+`spine_cycle` event. Measured alone, that test takes **13.28 s** -- the FIRST
+cycle is the expensive one (it loads state, then refuses or runs), so the beat
+lands ~13s in, inside a 15s deadline by about two seconds. Under the aggregate
+suite's load the first cycle passed 15s and `beats` stayed empty.
+
+The tell is not the failure, it is the margin: a timing test that passes at
+13.3s against a 15s bound is reporting that its bound is inside its own noise.
+This is the Error #201 class -- a liveness property (`it returns`, and here `it
+beats`) graded by a stopwatch -- and the same fix applies: the deadline only has
+to outlive the operation, and the property that can actually fail on its own must
+fail by name.
+
+### Fix
+Deadline raised to 60s with the 13.28s measurement written next to it, and the
+poll now asserts `spine_heart_status()["beating"] is True` on every iteration, so
+a heart that STOPPED -- the real defect this test can detect -- fails immediately
+and says so instead of waiting out a timeout and blaming the loop.
+
+### Verification
+- `pytest tests/test_spine_mesh.py::test_spine_heart_starts_and_stops` -> **1 passed in 13.28s** (alone, both before and after the change: the failure needs the long run).
+- `pytest tests/test_spine_mesh.py` -> **62 passed, 1 skipped in 29.46s**.
+- `pytest tests/test_compliance_step45_init.py tests/test_spine_mesh.py::test_spine_heart_starts_and_stops` -> **26 passed**, so this is NOT the Error #197 worker-thread-without-a-permit class; the heart's thread is not being denied a write.
+
+### Prevention
+- When a timing test PASSES close to its own deadline, that margin is the finding. Put the measured duration in the source next to the bound.
+- Separate "it happens" from "it happens quickly". Only the first belongs to a liveness assertion, and only the second to a benchmark.
+- If a test can detect a stopped component, assert the component is still alive during the wait, so the failure names the component rather than the clock.
+
+**Related:** Error #201, Error #197, Lesson #95, `tests/test_spine_mesh.py`, `src/CORE/startup_warm.py`
