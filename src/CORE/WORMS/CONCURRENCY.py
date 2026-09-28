@@ -85,6 +85,21 @@ class ExecutionResult:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
+def _record_execution(name: str, result: "ExecutionResult") -> bool:
+    """Route one execution result to the canonical telemetry tap.
+
+    Module-level entry point so tests and sibling producers share one
+    schema (see tests/test_worm_telemetry.py::test_every_producer_writes_
+    the_same_schema). Fail-soft: returns False instead of raising.
+    """
+    try:
+        from CORE.WORMS.worm_telemetry import emit_worm_outcome_from_result
+        return bool(emit_worm_outcome_from_result(
+            name, result, source="ConcurrencyWormExecutor"))
+    except Exception:
+        return False
+
+
 @dataclass
 class ConcurrencyConfig:
     """Configuration for concurrent execution."""
@@ -258,27 +273,32 @@ class WormExecutor:
         """Execute a single worm."""
         start = time.time()
 
+        def _emit(result: ExecutionResult) -> ExecutionResult:
+            # Every exit path emits via the module helper (single schema).
+            _record_execution(worm_name, result)
+            return result
+
         if worm_name not in self.worm_modules:
-            return ExecutionResult(
+            return _emit(ExecutionResult(
                 task_id=str(time.time()),
                 task_name=worm_name,
                 success=False,
                 duration_ms=0,
                 error="Worm not loaded",
-            )
+            ))
 
         # Check cancellation before executing
         if cancellation_token is not None and hasattr(cancellation_token, 'raise_if_cancelled'):
             try:
                 cancellation_token.raise_if_cancelled()
             except TaskCancelledError:
-                return ExecutionResult(
+                return _emit(ExecutionResult(
                     task_id=str(time.time()),
                     task_name=worm_name,
                     success=False,
                     duration_ms=0,
                     error="Cancelled",
-                )
+                ))
 
         module, class_name = self.worm_modules[worm_name]
         try:
@@ -291,14 +311,14 @@ class WormExecutor:
             output = None
             error = str(e)
 
-        return ExecutionResult(
+        return _emit(ExecutionResult(
             task_id=str(time.time()),
             task_name=worm_name,
             success=success,
             duration_ms=(time.time() - start) * 1000,
             result=output,
             error=error if not success else None,
-        )
+        ))
 
     def execute_all_parallel(self, worm_names: list[str], cancellation_token: Any = None) -> list[ExecutionResult]:
         """Execute multiple worms in parallel."""
