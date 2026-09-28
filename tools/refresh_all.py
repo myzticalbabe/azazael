@@ -5,7 +5,9 @@
 The refresh order is the measured dependency chain, not a guess:
 
     mesh_function_preflight.py             -> NEURAL_MESH_FUNCTION_TODO.md
-    mesh_function_preflight.py --verdict   -> NEURAL_MESH_WIRE_OR_CUT.json
+    mesh_function_preflight.py --verdict --propose --triage --worklist
+                                           -> NEURAL_MESH_WIRE_OR_CUT.json
+                                           + NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md
     nature_integration_map.py              -> MAP.json + INTEROP.mmd + dataset
 
 The census must run first because `--verdict` reads the probe results, and the
@@ -79,7 +81,19 @@ def attempts() -> dict:
 # (argv tail, human label). Order is the dependency chain.
 STEPS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("tools/mesh_function_preflight.py",), "census -> NEURAL_MESH_FUNCTION_TODO.md"),
-    (("tools/mesh_function_preflight.py", "--verdict"), "verdict -> NEURAL_MESH_WIRE_OR_CUT.json"),
+    # `--propose` fills the statuses the evidence decides and `--triage` labels
+    # the ones it cannot. Without both, the table keeps the previous run's labels
+    # while its findings have changed -- a reviewed row quietly described by a
+    # stale class, which is the same failure ADR-010 exists to prevent for the
+    # gates. Both are idempotent by test
+    # (`tests/test_mesh_wire_or_cut.py::test_proposing_twice_keeps_the_evidence`).
+    # `--worklist` regenerates the pending-backlog markdown from the same table:
+    # 2026-09-28 forensic found spine's self-heal rebuilding every map EXCEPT
+    # the worklist, so a WORKLIST-stale refusal ("still refused") could never
+    # clear without a human running the trio by hand. Status unchanged.
+    (("tools/mesh_function_preflight.py", "--verdict", "--propose", "--triage",
+      "--worklist"),
+     "verdict + triage + worklist -> NEURAL_MESH_WIRE_OR_CUT.json + WORKLIST.md"),
     (("tools/nature_integration_map.py",), "map -> MAP.json + INTEROP.mmd + dataset"),
     (("tools/fs_hygiene.py", "--check"), "hygiene -> regression guard"),
     (("tools/audit_parseable_files.py", "--check"),

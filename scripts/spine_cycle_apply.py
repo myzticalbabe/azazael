@@ -257,8 +257,10 @@ def _refresh_derived_maps(timeout: float = 900.0) -> None:
     Then, because refresh_all.py does not touch graphify-out/, it checks whether
     the graph is still the thing blocking and launches that pass detached. The
     two halves together are what make the refusal self-healing instead of
-    permanent: before this, 5 of the 7 artifacts could be repaired automatically
-    and the loop stayed shut on the other 2.
+    permanent: refresh_all covers every hard-gate map including the worklist
+    (--worklist added 2026-09-28; before that a WORKLIST-stale refusal could
+    never clear without a human), leaving only the graphify-out pair to the
+    detached pass.
     """
     script = "C:/Users/clint/azazael/tools/refresh_all.py"
     try:
