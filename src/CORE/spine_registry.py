@@ -30,7 +30,7 @@ import os
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterable, List, Optional
 
 __version__ = "1.0.0"
 
@@ -40,7 +40,15 @@ _SPINE_MAP: Dict[str, Dict[str, Any]] = {}
 _SPINE_LOCK = threading.RLock()
 _SPINE_MAP_MAX = 4096  # bound memory under gossip storms
 _SPINE_EVENTS: List[Dict[str, Any]] = []
-_SPINE_EVENTS_MAX = 200
+# Sized against the observed per-cycle volume, not picked as a round number.
+# Measured 2026-09-21: ONE observe cycle emits ~200 spine events (175 of them
+# `nature_edge` alone), so a cap of 200 held exactly one cycle of history -- and
+# therefore the log could never show anything ACROSS cycles. That is not a
+# theoretical concern: it evicted the heartbeat's own `spine_cycle` beat record
+# within one cycle of writing it, which is why a refused beat stayed effectively
+# invisible even after it started being recorded. 5000 holds ~25 cycles at the
+# measured rate, and each entry is a small dict.
+_SPINE_EVENTS_MAX = 5000
 
 # ── HOMEOSTAT (feedback ledger) ──────────────────────────────────────
 # key: "nature:worm" -> {"successes": int, "failures": int, ...}
@@ -497,6 +505,103 @@ def get_quarantine_votes(finding: Optional[str] = None) -> Dict[str, Any]:
                 for k, box in _QUARANTINE_VOTES.items()}
 
 
+# ── QUARANTINE ITEMS (the ACTIVE quarantine, as distinct from the votes) ──
+# Audit 2026-09-16: `QuarantineWorm` kept `self._quarantined` as a per-instance
+# dict, and `RedQueenWorm.order_quarantine()` built a FRESH `QuarantineWorm()`
+# on every call (`spine.py:582`) — so the record was written, the object was
+# dropped, and the record went with it. `is_quarantined()` had ZERO callers in
+# the tree, and no scheduling path consulted quarantine at all. The vote ledger
+# above could therefore "decide" to quarantine a worm and change nothing.
+#
+# The fix is the same shape as the vote ledger: the *state* moves to a single
+# process-global, persisted, gossiped store that the execution path can consult,
+# and `QuarantineWorm` becomes a view over it. A release is recorded as a
+# tombstone (not a delete) so it propagates across envs instead of being
+# silently re-adopted from a peer's older payload.
+_QUARANTINE_ITEMS: Dict[str, Dict[str, Any]] = {}
+_QUARANTINE_ITEMS_MAX = 512
+
+
+def quarantine_item(item: str, reason: str = "", env: Optional[str] = None) -> Dict[str, Any]:
+    """Actively quarantine `item` (a worm name, or a staged filename).
+
+    Process-global and persisted, so the very next scheduling pass can see it
+    regardless of which `QuarantineWorm` instance asked. Idempotent: a repeat
+    call refreshes the reason and the stamp without lengthening anything.
+    Thread-safe; never raises.
+    """
+    item = str(item or "")[:160]
+    if not item:
+        return {"success": False, "error": "item is required"}
+    record = {"reason": str(reason or "")[:200],
+              "by": str(env or _local_env_name())[:40],
+              "at": _now_iso(), "hlc": _hlc_now(),
+              "released": False, "released_at": ""}
+    with _QUARANTINE_LOCK:
+        _QUARANTINE_ITEMS[item] = record
+        if len(_QUARANTINE_ITEMS) > _QUARANTINE_ITEMS_MAX:
+            oldest = min(_QUARANTINE_ITEMS.items(),
+                         key=lambda kv: _rec_stamp(kv[1], "released_at") or
+                         _rec_stamp(kv[1], "at"))
+            _QUARANTINE_ITEMS.pop(oldest[0], None)
+        return {"success": True, "item": item, "quarantined": len(
+            [v for v in _QUARANTINE_ITEMS.values() if not v.get("released")]),
+            "record": dict(record)}
+
+
+def release_item(item: str, by: Optional[str] = None) -> Dict[str, Any]:
+    """Lift a quarantine. Written as a TOMBSTONE so gossip cannot undo it.
+
+    Deleting the key instead would let a peer's older payload re-adopt the
+    quarantine on the next merge (the resurrection pattern the purged-key
+    tombstones exist to stop). A released tombstone is still an *active list*
+    exclusion and is evicted by the same bound as everything else.
+    """
+    item = str(item or "")[:160]
+    if not item:
+        return {"success": False, "error": "item is required"}
+    with _QUARANTINE_LOCK:
+        cur = _QUARANTINE_ITEMS.get(item)
+        was = bool(cur) and not cur.get("released")
+        _QUARANTINE_ITEMS[item] = {
+            "reason": (cur or {}).get("reason", ""),
+            "by": str(by or (cur or {}).get("by") or _local_env_name())[:40],
+            "at": (cur or {}).get("at", ""),
+            "hlc": (cur or {}).get("hlc", ""),
+            "released": True, "released_at": _now_iso(),
+            "release_hlc": _hlc_now()}
+        return {"success": True, "item": item, "released": was,
+                "quarantined": len([v for v in _QUARANTINE_ITEMS.values()
+                                    if not v.get("released")])}
+
+
+def is_quarantined(item: str) -> bool:
+    """True when `item` is actively quarantined right now.
+
+    The one call the execution path needs. Read-only, lock-guarded, and
+    deliberately cheap: it is consulted per worm per cluster run.
+    """
+    item = str(item or "")
+    if not item:
+        return False
+    with _QUARANTINE_LOCK:
+        rec = _QUARANTINE_ITEMS.get(item)
+    return bool(rec) and not rec.get("released")
+
+
+def get_quarantine_items(active_only: bool = True) -> Dict[str, Dict[str, Any]]:
+    """Read the quarantine store (copy). `active_only` hides released ones."""
+    with _QUARANTINE_LOCK:
+        return {k: dict(v) for k, v in _QUARANTINE_ITEMS.items()
+                if not (active_only and v.get("released"))}
+
+
+def quarantine_count() -> int:
+    """Number of actively quarantined items."""
+    with _QUARANTINE_LOCK:
+        return len([v for v in _QUARANTINE_ITEMS.values() if not v.get("released")])
+
+
 # ── FABRIC STATE STORE (the mesh's operational memory) ──────────────
 # Audit 2026-09-15 (finding #7): save_spine_state() persisted the spine's
 # *learning* (map, ledger, Q, scars, policy, trust, anomaly model) but
@@ -839,6 +944,47 @@ def _merge_quarantine(remote: Any) -> int:
     return merged
 
 
+def _quarantine_item_stamp(rec: Any) -> str:
+    """Ordering stamp for a quarantine record: newest of its two events.
+
+    A quarantine record has two moments that matter — when it was applied and
+    when it was released — and the LATEST one wins, so a release always beats
+    the older quarantine it is lifting (and vice versa). Without this, a
+    release tombstone and the quarantine it replaced would compare on the same
+    field and the older event could win on a peer.
+    """
+    if not isinstance(rec, dict):
+        return ""
+    applied = _rec_stamp(rec, "at")
+    released = _rec_stamp({"hlc": rec.get("release_hlc") or "",
+                           "released_at": rec.get("released_at", "")}, "released_at")
+    if released and applied:
+        return max(released, applied)
+    return released or applied
+
+
+def _merge_quarantine_items(remote: Any) -> int:
+    """Fold remote quarantine records in; newest event per item wins."""
+    merged = 0
+    if not isinstance(remote, dict):
+        return 0
+    with _QUARANTINE_LOCK:
+        for item, rec in remote.items():
+            if not isinstance(rec, dict):
+                continue
+            key = str(item)[:160]
+            cur = _QUARANTINE_ITEMS.get(key)
+            if cur is None or _stamp_newer(_quarantine_item_stamp(rec),
+                                           _quarantine_item_stamp(cur)):
+                _QUARANTINE_ITEMS[key] = dict(rec)
+                merged += 1
+        if len(_QUARANTINE_ITEMS) > _QUARANTINE_ITEMS_MAX:
+            overflow = len(_QUARANTINE_ITEMS) - _QUARANTINE_ITEMS_MAX
+            for k in list(_QUARANTINE_ITEMS)[:overflow]:
+                _QUARANTINE_ITEMS.pop(k, None)
+    return merged
+
+
 # ── PERSISTENCE (restart-safe, gossip-ready) ────────────────────────
 _STATE_FILE = Path.home() / ".azazael" / "spine_state.json"
 
@@ -992,6 +1138,7 @@ def _merge_disk_state() -> None:
             for k, v in (payload.get("spine_map") or {}).items():
                 _SPINE_MAP.setdefault(k, v if isinstance(v, dict) else {})
         _merge_quarantine(payload.get("quarantine_votes"))
+        _merge_quarantine_items(payload.get("quarantined_items"))
         _merge_fabric(payload.get("fabric_state"))
     except Exception:
         pass
@@ -1115,7 +1262,8 @@ def record_outcome(nature: str, worm: str, success: bool,
                    duration_ms: float = 0.0,
                    error: Optional[str] = None,
                    reward: Optional[float] = None,
-                   delta: Optional[float] = None) -> None:
+                   delta: Optional[float] = None,
+                   censored: bool = False) -> None:
     """Record one worm execution outcome. Called from NatureCluster.execute().
 
     Thread-safe, never raises (feedback must not break execution).
@@ -1140,6 +1288,16 @@ def record_outcome(nature: str, worm: str, success: bool,
 
     The ledger counters still key off ``success`` (a boolean is the right unit
     for fail-rate statistics) regardless of which learning signal is used.
+
+    A THIRD convention (2026-09-27, mesh forensic): ``censored=True`` marks an
+    outcome that is NOT an observation of the thing being learned -- the
+    canonical case is infrastructure noise (a refused connection because no
+    listener was running, a timeout in an unrelated subsystem). A censored
+    outcome is counted in its own bucket and changes NOTHING else: no
+    success/failure counters (it would poison fail-rate stats too), no Q
+    update, no consec_fail reflex. Callers that blur signal and noise create
+    the poison loop where a missing dependency self-sustains a learned
+    penalty against the policy that was never actually exercised.
     """
     _ensure_loaded()
     key = f"{nature}:{worm}"
@@ -1155,6 +1313,19 @@ def record_outcome(nature: str, worm: str, success: bool,
                 "last_ms": 0.0, "last_at": "", "last_error": "",
                 "hist_ms": [], "consec_fail": 0,
             })
+            if censored:
+                rec["censored"] = rec.get("censored", 0) + 1
+                rec["last_at"] = _now_iso()
+                rec["hlc"] = _hlc_now()
+                if error:
+                    rec["last_error"] = str(error)[:120]
+                _append_outcome_event({
+                    "nature": nature, "worm": worm,
+                    "success": bool(success), "censored": True,
+                    "ms": round(float(duration_ms), 2),
+                    "at": rec["last_at"],
+                })
+                return
             if success:
                 rec["successes"] += 1
                 rec["consec_fail"] = 0
@@ -1524,6 +1695,22 @@ def get_q_update_counts() -> Dict[str, int]:
     _ensure_loaded()
     with _HOMEOSTAT_LOCK:
         return dict(_Q_UPDATE_COUNTS)
+
+
+def get_q_dream_counts() -> Dict[str, int]:
+    """Copy of the WHOLE dream-count table, keyed "nature:worm".
+
+    The counterpart to ``get_q_update_counts()`` for the offline channel, and
+    the reason it is public: ``dream_reinforce()`` moves q while counting in a
+    SEPARATE table, so an observer that reads only the observed-update counts
+    cannot tell a key that was never dreamed about from one that has been
+    dreamed about many times. The consolidation stage needs exactly that
+    distinction to prove a dream actually wrote something, rather than reading
+    a weight delta that some other stage produced.
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        return dict(_Q_DREAM_COUNTS)
 
 
 def _evidence_unlocked(key: str) -> int:
@@ -1953,6 +2140,91 @@ def purge_fixtures(persist: bool = False) -> Dict[str, Any]:
             "tombstoned": purged, "persisted": bool(saved.get("saved"))}
 
 
+def purge_edges(keys: Iterable[str], reason: str = "unevidenced",
+                persist: bool = False,
+                require_no_evidence: bool = True) -> Dict[str, Any]:
+    """Remove named Q edges from every learning table. Reports what went.
+
+    The public prune `neural_loop`'s forgetting stage needed. ``purge_fixtures``
+    removes *declared* keys and ``cap_q_tables`` drops by capacity; neither is
+    a prune, and neither lets a caller say which specific edges should go.
+
+    Two safety properties, both load-bearing:
+
+    * **Evidence gate (default on).** A key with any observed update OR any
+      dream count is REFUSED, not removed, and the refusal is reported. The
+      edges a learning pass just created start near the neutral value by
+      construction, so a magnitude-only prune deletes the very learning it was
+      called after. "Carries no signal" and "is small" are different questions,
+      and this is the API that refuses to conflate them: it can only ever
+      remove an edge that nothing has ever observed or dreamed about.
+    * **Tombstone before persist.** Without it the removal is neither durable
+      nor observable: the save path folds the disk in before writing, so the
+      next save re-adopts every key just deleted (verified on the fixture path:
+      56 entries removed, all back on the following save). `cap_q_tables`
+      demonstrated the same trap -- its drops were re-adopted on the next save,
+      so the cap it enforced did not hold.
+
+    ``persist=True`` saves after tombstoning. ``require_no_evidence=False``
+    removes regardless -- available for an operator-facing repair, and the only
+    way to delete learning on purpose.
+    """
+    _ensure_loaded()
+    wanted = []
+    for k in keys or ():
+        try:
+            ks = str(k)
+        except Exception:
+            continue
+        if ks and ks not in wanted:
+            wanted.append(ks)
+    removed: List[str] = []
+    refused: List[str] = []
+    with _HOMEOSTAT_LOCK:
+        for k in wanted:
+            if require_no_evidence:
+                n_obs = _evidence_unlocked(k)
+                try:
+                    n_dream = int(_Q_DREAM_COUNTS.get(k, 0) or 0)
+                except (TypeError, ValueError):
+                    n_dream = 0
+                if n_obs > 0 or n_dream > 0:
+                    refused.append(k)
+                    continue
+            present = any(k in t for t in (_Q_WEIGHTS, _Q_UPDATE_COUNTS,
+                                           _Q_DREAM_COUNTS, _Q_VARIANCE))
+            for table in (_Q_WEIGHTS, _Q_UPDATE_COUNTS, _Q_DREAM_COUNTS,
+                          _Q_VARIANCE):
+                table.pop(k, None)
+            if present:
+                removed.append(k)
+        with _SCAR_LOCK:
+            for k in removed:
+                _SCARS.pop(k, None)
+    # Tombstone BEFORE anything can re-merge -- this is what makes the removal
+    # hold against the next save and against a live writer for the same key.
+    for k in removed:
+        _PURGED_KEYS[k] = reason or "purged"
+    if len(_PURGED_KEYS) > _PURGED_MAX:
+        for k in list(_PURGED_KEYS)[:len(_PURGED_KEYS) - _PURGED_MAX]:
+            _PURGED_KEYS.pop(k, None)
+    saved: Dict[str, Any] = {"saved": False, "reason": "persist=False"}
+    if persist and removed:
+        saved = save_spine_state()
+    if removed or refused:
+        try:
+            record_spine_event("edges_purged", {
+                "reason": reason, "removed": len(removed),
+                "refused": len(refused), "persisted": bool(saved.get("saved")),
+            })
+        except Exception:
+            pass
+    return {"success": True, "removed": removed, "removed_count": len(removed),
+            "refused": refused, "refused_count": len(refused),
+            "tombstoned": len(removed), "persisted": bool(saved.get("saved")),
+            "reason": reason}
+
+
 def route_weight(q_effective: float, base_w: float = 1.0) -> float:
     """The ONE place a route's effective weight is computed.
 
@@ -1986,8 +2258,19 @@ def cap_q_tables() -> int:
 
     Returns the number of keys dropped (and records a spine event when it is
     non-zero -- a silently shrinking brainstem is the defect, not the fix).
+
+    2026-09-21 correction: this dropped keys WITHOUT tombstoning them, so the
+    bound it enforced did not hold. MEASURED, and the exact shape of the bug
+    `purge_fixtures` already documented on the fixture path: with disk holding
+    6 keys and a bound of 3, the cap dropped 3 in memory and the very next
+    ``save_spine_state()`` wrote all 6 back out, because the save folds the disk
+    in before writing and nothing marked those 3 as deliberately removed. A cap
+    that reports ``dropped=3`` while the table stays at 6 is worse than no cap:
+    it makes the bound look enforced. Each dropped key is now tombstoned before
+    the save can re-adopt it.
     """
     dropped = 0
+    gone: List[str] = []
     try:
         with _HOMEOSTAT_LOCK:
             if len(_Q_WEIGHTS) <= _Q_KEYS_MAX:
@@ -1996,15 +2279,24 @@ def cap_q_tables() -> int:
                             key=lambda k: (_evidence_unlocked(k),
                                            abs(float(_Q_WEIGHTS.get(k, 0.0)))))
             dropped = len(_Q_WEIGHTS) - _Q_KEYS_MAX
-            for k in ranked[:dropped]:
+            gone = [str(k) for k in ranked[:dropped]]
+            for k in gone:
                 for table in (_Q_WEIGHTS, _Q_UPDATE_COUNTS, _Q_DREAM_COUNTS,
                               _Q_VARIANCE):
                     table.pop(k, None)
     except Exception:
         return 0
+    # Tombstone, or the fold-in on the next save re-adopts every key just
+    # dropped and the bound silently reverts.
+    for k in gone:
+        _PURGED_KEYS[k] = "capped"
+    if len(_PURGED_KEYS) > _PURGED_MAX:
+        for k in list(_PURGED_KEYS)[:len(_PURGED_KEYS) - _PURGED_MAX]:
+            _PURGED_KEYS.pop(k, None)
     if dropped:
         try:
             record_spine_event("q_tables_capped", {"dropped": dropped,
+                                                  "tombstoned": len(gone),
                                                   "keys": len(_Q_WEIGHTS),
                                                   "bound": _Q_KEYS_MAX})
         except Exception:
@@ -2210,6 +2502,7 @@ def save_spine_state() -> Dict[str, Any]:
                       "seq_seen": dict(_GOSSIP_SEQ_SEEN),
                       "keys": dict(_GOSSIP_KEYS)}
         quarantine_votes = get_quarantine_votes()
+        quarantined_items = get_quarantine_items(active_only=False)
         with _FABRIC_LOCK:
             fabric_state = {k: dict(v) for k, v in _FABRIC_STATE.items()}
         payload = {
@@ -2234,6 +2527,9 @@ def save_spine_state() -> Dict[str, Any]:
             "policy_latest": policy_latest,
             "gossip": gossip,
             "quarantine_votes": quarantine_votes,
+            # The ACTIVE quarantine, without which a red-team "decided" vote
+            # survives a restart but the isolation it ordered does not.
+            "quarantined_items": quarantined_items,
             "fabric_state": fabric_state,
         }
         _STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -2246,6 +2542,7 @@ def save_spine_state() -> Dict[str, Any]:
                    "q_weights": len(q_weights),
                    "q_update_counts": len(q_update_counts),
                    "quarantine_findings": len(quarantine_votes),
+                   "quarantined_items": quarantine_count(),
                    "fabric_providers": len(fabric_state)}
     except Exception as exc:
         summary = {"saved": False, "error": str(exc)[:120]}
@@ -2394,12 +2691,14 @@ def load_spine_state() -> Dict[str, Any]:
         # Fabric operational state + quarantine votes: the mesh's memory of
         # *what it knew*, not just how it felt (audit 2026-09-15, finding #7).
         _merge_quarantine(payload.get("quarantine_votes"))
+        _merge_quarantine_items(payload.get("quarantined_items"))
         _merge_fabric(payload.get("fabric_state"))
         restored = {"restored": True,
                     "spine_nodes": len(spine_map),
                     "homeostat_worms": len(homeostat),
                     "q_weights": len(q_weights),
                     "quarantine_findings": len(payload.get("quarantine_votes") or {}),
+                    "quarantined_items": quarantine_count(),
                     "fabric_providers": len(payload.get("fabric_state") or {})}
     except Exception as exc:
         restored = {"restored": False, "error": str(exc)[:120]}
@@ -2512,6 +2811,7 @@ def spine_reset() -> None:
         _ANOMALY_MODEL_SOURCE = "local"
     with _QUARANTINE_LOCK:
         _QUARANTINE_VOTES.clear()
+        _QUARANTINE_ITEMS.clear()
     with _FABRIC_LOCK:
         _FABRIC_STATE.clear()
 
@@ -2630,6 +2930,16 @@ def get_module_health() -> Dict[str, Any]:
 #   warn             — verify when present, admit unsigned (legacy peers)
 #   off              — no signature checks (seq rollback checks always apply)
 #
+# Known-signer allowlist (2026-09-28): a VALID signature only proves the
+# key, not the identity — with the listener LAN-bound anyone can mint an
+# Ed25519 pair and sign whatever they like. `verified` is therefore reserved
+# for KNOWN signers: our own key, or a key on the operator-pinned allowlist
+# (env AZAZAEL_GOSSIP_TRUSTED_KEYS = JSON path or inline JSON, plus
+# ~/.azazael/mesh_trusted_keys.json). Unknown signers fail closed under
+# `strict` (reason `unknown_signer`); under `warn` they are admitted
+# legacy-style but earn `unpinned`, never `verified` — so the transport's
+# fail-closed gate (which demands exactly `verified`) still refuses them.
+#
 # When cryptography is unavailable or broken, `strict` degrades to
 # seq-only enforcement and the merge result says so explicitly
 # ("signature": "unavailable") instead of implying the payload was
@@ -2640,6 +2950,8 @@ _GOSSIP_SEQ_LOCAL = 0                 # our own outgoing counter
 _GOSSIP_SEQ_SEEN: Dict[str, int] = {}  # env -> highest seq accepted
 _GOSSIP_KEYS: Dict[str, str] = {}      # env -> pinned base64 public key (TOFU)
 _GOSSIP_TRUST_LOCK = threading.RLock()
+_GOSSIP_TRUSTED_KEYS_ENV = "AZAZAEL_GOSSIP_TRUSTED_KEYS"
+_TRUSTED_KEYS_FILE = Path.home() / ".azazael" / "mesh_trusted_keys.json"
 
 
 def _gossip_policy() -> str:
@@ -2723,6 +3035,67 @@ def _peer_env(payload: Dict[str, Any]) -> str:
     return env or "peer"
 
 
+def _load_trusted_keys() -> tuple:
+    """Operator-pinned known-signer allowlist -> ({env: key}, {keys}).
+
+    Sources are merged: ``AZAZAEL_GOSSIP_TRUSTED_KEYS`` (a path to a JSON
+    file, or inline JSON) and ``~/.azazael/mesh_trusted_keys.json``.
+    Accepted shapes:
+
+      {"keys": ["<pub>", ...], "envs": {"<env>": "<pub>"}}
+      {"<env>": "<pub>", ...}          (bare env -> key map)
+
+    ``keys`` entries are env-agnostic identities; ``envs`` entries bind a
+    key to one claimed env. Any parse failure yields an EMPTY allowlist:
+    an unreadable allowlist must fail closed (unknown signer), never open.
+    """
+    env_map: Dict[str, str] = {}
+    key_set: set = set()
+    sources = []
+    raw = (os.environ.get(_GOSSIP_TRUSTED_KEYS_ENV) or "").strip()
+    if raw:
+        try:
+            p = Path(raw)
+            sources.append(p.read_text(encoding="utf-8") if p.is_file() else raw)
+        except Exception:
+            sources.append(raw)
+    try:
+        if _TRUSTED_KEYS_FILE.exists():
+            sources.append(_TRUSTED_KEYS_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    for src in sources:
+        try:
+            data = json.loads(src)
+        except Exception:
+            continue  # unreadable source: fail closed (empty contribution)
+        if not isinstance(data, dict):
+            continue
+        for k in (data.get("keys") or []):
+            if isinstance(k, str) and k:
+                key_set.add(k)
+        envs = data.get("envs") if isinstance(data.get("envs"), dict) else data
+        for env, val in (envs or {}).items():
+            if str(env) in ("version", "keys", "envs", "updated_at"):
+                continue
+            for v in (val if isinstance(val, list) else [val]):
+                if isinstance(v, str) and v:
+                    env_map[str(env)[:40]] = v
+    return env_map, key_set
+
+
+def _signer_is_known(env: str, pub: str) -> bool:
+    """True when ``pub`` is a pinned known signer for this mesh.
+
+    Membership is (env-bound key match) or (env-agnostic key list); the
+    caller separately treats OUR OWN key as known.
+    """
+    if not pub:
+        return False
+    env_map, key_set = _load_trusted_keys()
+    return env_map.get(env) == pub or pub in key_set
+
+
 def check_gossip_trust(payload: Any,
                        policy: Optional[str] = None) -> Dict[str, Any]:
     """Validate a peer payload's provenance before it may be merged.
@@ -2737,6 +3110,10 @@ def check_gossip_trust(payload: Any,
          the env's TOFU-pinned public key. First key seen for an env wins;
          a later payload from the same env presenting a different key is
          refused as impersonation.
+      3. **Known-signer allowlist.** A cryptographically valid signature
+         earns `verified` only when the signer is our own key or an
+         operator-pinned key; otherwise the verdict is `unpinned` and,
+         under strict, the payload is refused (`unknown_signer`).
 
     Returns {ok, reason, env, seq, signature, policy, key_pinned}.
     Never raises — a malformed payload is simply untrusted.
@@ -2807,7 +3184,18 @@ def check_gossip_trust(payload: Any,
             return res
 
         if _verify(_gossip_canonical(payload), sig, pub):
-            res["signature"] = "verified"
+            # A valid signature proves the KEY, not the identity: on a
+            # LAN-bound port anyone can mint a key. `verified` is reserved
+            # for KNOWN signers (own key / operator-pinned allowlist).
+            if (_local_pub and pub == _local_pub) or _signer_is_known(env, pub):
+                res["signature"] = "verified"
+                res["ok"] = True
+                return res
+            res["signature"] = "unpinned"
+            if pol == "strict":
+                res["reason"] = "unknown_signer"
+                return res
+            res["reason"] = "unknown_signer_admitted"
             res["ok"] = True
             return res
 
@@ -2839,12 +3227,15 @@ def _remember_gossip(trust: Dict[str, Any]) -> None:
 def get_gossip_trust_state() -> Dict[str, Any]:
     """Introspection: local sequence, per-env high-water marks, pinned keys."""
     with _GOSSIP_TRUST_LOCK:
+        env_map, key_set = _load_trusted_keys()
         return {
             "policy": _gossip_policy(),
             "local_seq": _GOSSIP_SEQ_LOCAL,
             "seq_seen": dict(_GOSSIP_SEQ_SEEN),
             "pinned_keys": {k: v[:16] + "..." for k, v in _GOSSIP_KEYS.items()},
             "crypto_available": _gossip_crypto() is not None,
+            "trusted_envs": {k: v[:16] + "..." for k, v in env_map.items()},
+            "trusted_key_count": len(key_set),
         }
 
 
@@ -3008,12 +3399,20 @@ def export_spine_gossip() -> Dict[str, Any]:
         _GOSSIP_SEQ_LOCAL += 1
         seq = _GOSSIP_SEQ_LOCAL
     quarantine_votes = get_quarantine_votes()
+    quarantined_items = get_quarantine_items(active_only=False)
     with _FABRIC_LOCK:
         fabric_state = {k: dict(v) for k, v in _FABRIC_STATE.items()}
     payload: Dict[str, Any] = {
         "version": __version__,
         "exported_at": _now_iso(),
-        "gossip_from": os.environ.get("AZAZAEL_ENV", "local"),
+        # Canonical env id, not a stale literal. `os.environ.get("AZAZAEL_ENV",
+        # "local")` claimed "local" for EVERY host that does not set the env
+        # var, so the provenance this payload SIGNED and a peer recorded was
+        # wrong by construction (a Windows host said "local", never
+        # "windows"). `_local_env_name()` is the audit-2026-09-15 resolver:
+        # AZAZAEL_ENV still wins (two logical envs on one machine for gossip
+        # testing), else CORE.env_id's canonical name.
+        "gossip_from": _local_env_name(),
         "seq": seq,
         "signer_pub": "",
         "signature": "",   # filled below when crypto is available
@@ -3031,6 +3430,10 @@ def export_spine_gossip() -> Dict[str, Any]:
         # quorum gate on THIS host actually reach `decided`, and fabric state
         # is what stops the mesh forgetting its routing/consensus on restart.
         "quarantine_votes": quarantine_votes,
+        # Inside the signed envelope for the same reason the votes are: a
+        # quarantine ORDERED by quorum on a peer must actually isolate the worm
+        # on this host, and a release must travel as fast as the order did.
+        "quarantined_items": quarantined_items,
         "fabric_state": fabric_state,
         "purged_keys": purged_keys,
     }
@@ -3256,9 +3659,12 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
         # are past the trust gate). Both merge per-key with recency wins, so
         # re-merging the same payload stays a no-op.
         q_merged = _merge_quarantine(payload.get("quarantine_votes"))
+        qi_merged = _merge_quarantine_items(payload.get("quarantined_items"))
         f_merged = _merge_fabric(payload.get("fabric_state"))
         if q_merged:
             stats["quarantine_votes"] = q_merged
+        if qi_merged:
+            stats["quarantined_items"] = qi_merged
         if f_merged:
             stats["fabric_state"] = f_merged
         # Acceptance commits the seq high-water mark and pins the env's key.

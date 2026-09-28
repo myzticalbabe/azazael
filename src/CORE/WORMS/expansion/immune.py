@@ -138,28 +138,89 @@ class QuarantineWorm:
         self._quarantined: dict[str, dict] = {}
         self._lock = threading.Lock()
 
+    @staticmethod
+    def _shared_store():
+        """The process-global quarantine store, or None if it is unavailable.
+
+        Delegation, not a copy: `QuarantineWorm` used to keep the only copy of
+        the quarantine in `self._quarantined`, and `RedQueenWorm` constructed a
+        FRESH instance per call, so the record was discarded with the object
+        and no scheduling path could ever see it (audit 2026-09-16). The local
+        dict is kept below as a mirror so this class still behaves if the
+        registry cannot be imported.
+        """
+        try:
+            from CORE import spine_registry as _sr
+            return _sr
+        except Exception:
+            return None
+
     def quarantine(self, item_id: str, reason: str) -> dict[str, Any]:
         with self._lock:
             self._quarantined[item_id] = {"reason": reason,
                                           "at": datetime.now().isoformat()}
-            return {"success": True, "item": item_id,
-                    "quarantined": len(self._quarantined)}
+            local = len(self._quarantined)
+        spine = self._shared_store()
+        shared = False
+        count = local
+        if spine is not None:
+            try:
+                spine.quarantine_item(item_id, reason)
+                count = spine.quarantine_count()
+                shared = True
+            except Exception:
+                shared = False
+        return {"success": True, "item": item_id,
+                "quarantined": count, "shared": shared}
 
     def release(self, item_id: str) -> dict[str, Any]:
         with self._lock:
             gone = self._quarantined.pop(item_id, None) is not None
-            return {"success": True, "item": item_id, "released": gone,
-                    "quarantined": len(self._quarantined)}
+            local = len(self._quarantined)
+        spine = self._shared_store()
+        shared = False
+        count = local
+        if spine is not None:
+            try:
+                spine.release_item(item_id)
+                count = spine.quarantine_count()
+                shared = True
+            except Exception:
+                shared = False
+        return {"success": True, "item": item_id, "released": gone,
+                "quarantined": count, "shared": shared}
 
     def is_quarantined(self, item_id: str) -> bool:
+        """True when `item_id` is actively quarantined.
+
+        The shared store is authoritative when present, because the caller
+        asking may not be the instance that quarantined (that was the bug).
+        """
+        spine = self._shared_store()
+        if spine is not None:
+            try:
+                return bool(spine.is_quarantined(item_id))
+            except Exception:
+                pass
         with self._lock:
             return item_id in self._quarantined
 
-    def execute(self) -> dict[str, Any]:
+    def active(self) -> dict[str, Any]:
+        """Actively quarantined items from the shared store, else the mirror."""
+        spine = self._shared_store()
+        if spine is not None:
+            try:
+                return dict(spine.get_quarantine_items())
+            except Exception:
+                pass
         with self._lock:
-            return {"success": True, "method": "execute",
-                    "result": {"quarantined": len(self._quarantined),
-                               "items": list(self._quarantined.keys())[:10]}}
+            return {k: dict(v) for k, v in self._quarantined.items()}
+
+    def execute(self) -> dict[str, Any]:
+        items = self.active()
+        return {"success": True, "method": "execute",
+                "result": {"quarantined": len(items),
+                           "items": list(items.keys())[:10]}}
 
 
 @register_worm(category="immune", priority=6, cooldown_seconds=120.0,

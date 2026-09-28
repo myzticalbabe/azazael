@@ -224,19 +224,33 @@ def run_check(db, minutes):
     if ev_row:
         d = _as_dict(ev_row[1])
         traj = d.get("trajectory") or []
+        traj_avg = d.get("trajectory_avg") or []
         genes = d.get("best_genes") or {}
-        flat = bool(traj) and len(set(round(float(x), 4) for x in traj)) == 1
+        # EV-8 semantics: with elitism, best_fitness is flat BY CONSTRUCTION
+        # until a child beats the elite, so a flat best alone is not evidence
+        # of a no-gradient stall -- the population MEAN is. Only when BOTH
+        # are flat is the fitness genuinely gradient-free. (Measured
+        # 2026-09-28: best=[16.276]*6 while mean moved 14.42->15.38; the
+        # old best-only check cried 'no gradient' on a healthy search.)
+        def _flat(vals):
+            return bool(vals) and len(set(round(float(x), 4)
+                                          for x in vals)) == 1
+        flat_best = _flat(traj)
+        flat_mean = _flat(traj_avg)
+        flat = (flat_best and flat_mean) if traj_avg else flat_best
         report["signals"]["evolution"] = {
             "timestamp": ev_row[0],
             "seeded_from_prior": bool(d.get("seeded_from_prior")),
             "generations": d.get("generations"),
             "best_genes": genes,
             "flat_trajectory": flat,
+            "flat_best_only": flat_best and not flat_mean,
             "trajectory": traj[-6:],
+            "trajectory_avg": traj_avg[-6:],
         }
         if flat and traj:
-            issues.append(("WARN", "evolution trajectory flat (all gens same reward - "
-                                   "fitness has no gradient)"))
+            issues.append(("WARN", "evolution trajectory flat (best AND mean unchanged "
+                                   "across gens - fitness has no gradient)"))
     tr_row = latest_event("training_run_complete")
     if tr_row is None:
         tr_row = latest_event("training_complete")
