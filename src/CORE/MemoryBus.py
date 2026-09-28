@@ -32,7 +32,7 @@ import re
 import sqlite3
 import itertools
 from CORE.uuid7 import uuid7
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List, Tuple
@@ -66,6 +66,109 @@ except ImportError:
 
 PAMS_URL = os.environ.get("PAMS_URL", "http://127.0.0.1:21434")
 PAMS_TIMEOUT = float(os.environ.get("PAMS_TIMEOUT", "2.0"))
+#: Promote does server-side classification – seconds, not milliseconds.
+#: The 2s check timeout never fit it: every post timed out client-side
+#: (server may still have stored it → retry duplicates). 2026-09-28.
+PAMS_POST_TIMEOUT = float(os.environ.get("PAMS_POST_TIMEOUT", "30.0"))
+#: Bound per flush_local_queue call so a 5k backlog drains progressively
+#: across nightly runs instead of hanging one task for hours.
+FLUSH_MAX_ROWS = int(os.environ.get("PAMS_FLUSH_MAX_ROWS", "250"))
+#: Cap on the posted envelope: queued rows average ~41KB (max 31MB) and
+#: PAMS embeds/classifies every promote, so full payloads take minutes or
+#: time out. PAMS keeps the digest; the full row stays in the local queue
+#: table. 2026-09-28.
+PAMS_POST_MAX_CHARS = int(os.environ.get("PAMS_POST_MAX_CHARS", "8000"))
+#: Flushed rows are IN PAMS already -- delete them after this many days so
+#: the queue table cannot grow forever (was 214MB, zero rows ever flushed).
+FLUSHED_TTL_DAYS = int(os.environ.get("PAMS_FLUSHED_TTL_DAYS", "7"))
+
+#: PAMS serves its HTTP API under /api (mcp_server.py: /api/health,
+#: /api/memories/promote, ...). The bare paths (/health, /memories) 404,
+#: which silently forced every publish into the local fallback queue.
+#: 2026-09-28: all client paths below use this prefix.
+PAMS_API_PREFIX = "/api"
+
+#: Port discovery: pams-server picks a free port (21434, else 21435, ...)
+#: and records it. A hardcoded URL rots the moment it restarts elsewhere.
+_PAMS_PORT_FILES = (
+    Path(r"G:\source-of-truth\persistent-ai-memory\memory_data\mcp_server_port.json"),
+)
+
+
+def _resolve_pams_url() -> str:
+    """Best-effort PAMS base URL: explicit env wins, then the server's own
+    port file, then the default. Never raises."""
+    env = (os.environ.get("PAMS_URL") or "").strip()
+    if env:
+        return env.rstrip("/")
+    for pf in _PAMS_PORT_FILES:
+        try:
+            if not pf.is_file():
+                continue
+            data = json.loads(pf.read_text(encoding="utf-8"))
+            port = int(data.get("active_port") or 0)
+            if port > 0:
+                return f"http://127.0.0.1:{port}"
+            url = str(data.get("http_url") or "").strip()
+            if url:
+                return url.rstrip("/")
+        except Exception:
+            continue
+    return PAMS_URL.rstrip("/")
+
+
+_PAMS_API_KEY: str | None = None
+_PAMS_API_KEY_LOADED = False
+
+
+def _pams_api_key() -> str | None:
+    """X-API-Key for PAMS write endpoints. Env PAMS_API_KEY wins, else the
+    server's own key file (same path mcp_server.py loads). Cached. The
+    promote endpoint 403s without it, which used to fail every flush."""
+    global _PAMS_API_KEY, _PAMS_API_KEY_LOADED
+    if _PAMS_API_KEY_LOADED:
+        return _PAMS_API_KEY
+    _PAMS_API_KEY_LOADED = True
+    env = (os.environ.get("PAMS_API_KEY") or "").strip()
+    if env:
+        _PAMS_API_KEY = env
+        return _PAMS_API_KEY
+    try:
+        import persistent_ai_memory as _pam
+        kf = Path(str(_pam.__file__)).resolve().parent / "keys" / "mcpo_api_key.txt"
+        if kf.is_file():
+            _PAMS_API_KEY = kf.read_text(encoding="utf-8").strip() or None
+    except Exception:
+        pass
+    return _PAMS_API_KEY
+
+
+def _pams_headers() -> dict:
+    key = _pams_api_key()
+    return {"Content-Type": "application/json",
+            **({"X-API-Key": key} if key else {})}
+
+
+def _truncate_post(text: str, limit: int = 0) -> str:
+    """Cap a posted envelope (PAMS embeds every promote). Full payload
+    stays in the local queue row; the marker records the original size."""
+    lim = limit or PAMS_POST_MAX_CHARS
+    if len(text) <= lim:
+        return text
+    return text[:lim] + '"...[truncated %d->%d for PAMS; full row kept locally]"' % (len(text), lim)
+
+
+def _promote_id(data: Any) -> Any:
+    """Extract the stored-memory id from a promote response. The server
+    nests it (memory_id holds the response object again in some builds),
+    so unwrap defensively; None when absent (caller treats as unflushed)."""
+    if not isinstance(data, dict):
+        return data
+    mid = data.get("memory_id")
+    if isinstance(mid, dict):
+        inner = mid.get("memory_id")
+        return inner if isinstance(inner, str) else mid
+    return mid
 
 # -- F07 fix (June 7 2026): Persistent SQLite fallback queue --------
 # When PAMS is unreachable, messages are persisted to memory_store.db
@@ -147,7 +250,7 @@ class MemoryBus:
 
     def __init__(self, pams_url: Optional[str] = None, session_id: Optional[str] = None,
                  poll_interval_sec: float = 1.0, use_local_fallback: bool = True):
-        self.pams_url = (pams_url or PAMS_URL).rstrip('/')
+        self.pams_url = (pams_url or _resolve_pams_url()).rstrip('/')
         self.session_id = session_id or uuid7().hex[:8]
         self.poll_interval_sec = poll_interval_sec
         self.use_local_fallback = use_local_fallback
@@ -377,11 +480,28 @@ class MemoryBus:
         with self._sub_lock:
             self._subscriptions[pattern].append((callback, compiled))
             count = len(self._subscriptions[pattern])
+            # Counted while _sub_lock is held: this previously summed the shared dict
+            # AFTER releasing the lock, so a concurrent subscribe/unsubscribe could
+            # mutate it mid-iteration (wrong total, or RuntimeError under free-threading).
+            total = sum(len(subs) for subs in self._subscriptions.values())
 
-        self._stats['subscriptions'] = sum(
-            len(subs) for subs in self._subscriptions.values()
-        )
+        self._set_subscription_count(total)
         return count
+
+    def _set_subscription_count(self, total: int) -> None:
+        """Publish the live subscriber count into the dict that get_stats() reads.
+
+        subscribe() and unsubscribe() used to write 'subscriptions' into self._stats,
+        the backward-compat dict for dynamic keys, while get_stats() reads the
+        canonical self._stats_data snapshot. Nothing ever wrote _stats_data, so
+        get_stats()['subscriptions'] reported its initial 0 forever regardless of how
+        many subscribers existed -- a silent false zero for every monitor or health
+        check that reads it. Both dicts are updated here so external readers of the
+        legacy ._stats attribute keep working.
+        """
+        with self._stats_lock:
+            self._stats_data['subscriptions'] = total
+        self._stats['subscriptions'] = total
 
     def unsubscribe(self, pattern: str, callback: Optional[Callable] = None) -> int:
         """
@@ -411,9 +531,9 @@ class MemoryBus:
                 if count == 0:
                     del self._subscriptions[pattern]
 
-        self._stats['subscriptions'] = sum(
-            len(subs) for subs in self._subscriptions.values()
-        )
+            total = sum(len(subs) for subs in self._subscriptions.values())
+
+        self._set_subscription_count(total)
         return count
 
     def poll(self, topic: Optional[str] = None, since_id: int = 0,
@@ -539,23 +659,27 @@ class MemoryBus:
             'topics_tracked': topics_count,
         }
 
-    def flush_local_queue(self) -> int:
+    def flush_local_queue(self, max_rows: int = 0) -> int:
         """
         Attempt to flush the local + persistent fallback queues to PAMS.
 
-        F07 fix: Also flushes persisted SQLite messages.
-
-        Returns:
-            Number of messages successfully flushed.
+        F07 fix: Also flushes persisted SQLite messages. 2026-09-28: bounded
+        (FLUSH_MAX_ROWS, default 250) so a multi-thousand backlog drains
+        progressively across runs instead of hanging one caller; pass
+        max_rows=0 for the default, <0 for unbounded.
         """
         if not self._pams_available:
             return 0
+        budget = FLUSH_MAX_ROWS if max_rows == 0 else max_rows
 
         flushed = 0
         # Flush in-memory queue first
         with self._local_queue_lock:
             remaining = []
             for msg in self._local_queue:
+                if budget is not None and budget >= 0 and flushed >= budget:
+                    remaining.append(msg)
+                    continue
                 try:
                     mid = self._post_to_pams(
                         msg.topic, msg.content, msg.metadata, msg.source
@@ -578,6 +702,8 @@ class MemoryBus:
                 conn.close()
                 flushed_ids = []
                 for row in rows:
+                    if budget is not None and budget >= 0 and flushed >= budget:
+                        break
                     try:
                         row_content = json.loads(row[2]) if isinstance(row[2], str) else row[2]
                         row_metadata = json.loads(row[3]) if isinstance(row[3], str) else row[3]
@@ -601,115 +727,96 @@ class MemoryBus:
             except Exception:
                 pass
 
+        # Retire flushed rows: they live in PAMS now. Without this the queue
+        # table grows forever (was 214MB, zero rows ever flushed). Best
+        # effort, never fails the flush count above.
+        try:
+            conn3 = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
+            cutoff = (datetime.now(timezone.utc)
+                      - timedelta(days=FLUSHED_TTL_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+            conn3.execute(
+                "DELETE FROM memorybus_queue WHERE flushed=1 AND timestamp < ?",
+                (cutoff,))
+            conn3.commit()
+            conn3.close()
+        except Exception:
+            pass
+
         return flushed
 
     # -- Internal --------------------------------------------------------------
 
     def _check_pams(self) -> bool:
-        """Check if PAMS server is reachable."""
+        """Check if PAMS server is reachable (GET /api/health)."""
         try:
             if HAS_REQUESTS:
-                resp = requests.get(f"{self.pams_url}/health", timeout=PAMS_TIMEOUT)
+                resp = requests.get(f"{self.pams_url}{PAMS_API_PREFIX}/health", timeout=PAMS_TIMEOUT)
                 return resp.status_code == 200
             else:
-                req = urllib.request.Request(f"{self.pams_url}/health")
+                req = urllib.request.Request(f"{self.pams_url}{PAMS_API_PREFIX}/health")
                 with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
                     return resp.status == 200
         except Exception:
             return False
 
     def _post_to_pams(self, topic: str, content: Any,
-                      metadata: Dict[str, Any], source: str) -> Optional[int]:
-        """Post a message to PAMS as a memory. Returns message ID or None."""
-        memory_data = {
-            "session_id": self.session_id,
-            "category": "memorybus",
-            "content": json.dumps({
+                        metadata: Dict[str, Any], source: str) -> Optional[Any]:
+        """Post a message to PAMS as a memory. Returns message ID or None.
+
+        2026-09-28: the old target (POST /memories) never existed on the
+        server (404 always) so every publish silently fell back to the local
+        queue. The server ingests via POST /api/memories/promote, which
+        stores {content, tags, ...} to long-term memory and returns
+        {status, memory_id, ...}. The bus envelope is embedded in content
+        (as before) plus topic tags, so nothing downstream changes shape.
+        """
+        body = {
+            "content": _truncate_post(json.dumps({
                 "topic": topic,
                 "content": content,
                 "metadata": metadata,
                 "source": source,
                 "timestamp": datetime.now().isoformat(),
-            }),
-            "confidence": 1.0,
-            "source": source,
+            })),
             "tags": [topic] + self._topic_segments(topic),
+            "memory_bank": "General",
         }
 
         if HAS_REQUESTS:
+            headers = {"X-API-Key": _pams_api_key()} if _pams_api_key() else {}
             resp = requests.post(
-                f"{self.pams_url}/memories",
-                json=memory_data,
-                timeout=PAMS_TIMEOUT,
+                f"{self.pams_url}{PAMS_API_PREFIX}/memories/promote",
+                json=body,
+                headers=headers or None,
+                timeout=PAMS_POST_TIMEOUT,
             )
             if resp.status_code == 200:
                 data = resp.json()
-                return data.get('id')
+                return _promote_id(data)
         else:
-            data_bytes = json.dumps(memory_data).encode('utf-8')
+            data_bytes = json.dumps(body).encode('utf-8')
             req = urllib.request.Request(
-                f"{self.pams_url}/memories",
+                f"{self.pams_url}{PAMS_API_PREFIX}/memories/promote",
                 data=data_bytes,
-                headers={'Content-Type': 'application/json'},
+                headers=_pams_headers(),
             )
-            with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
+            with urllib.request.urlopen(req, timeout=PAMS_POST_TIMEOUT) as resp:
                 data = json.loads(resp.read())
-                return data.get('id')
+                return _promote_id(data)
 
         return None
 
     def _query_pams(self, topic: Optional[str] = None, since_id: int = 0,
                     limit: int = 20) -> List[BusMessage]:
-        """Query PAMS for memorybus memories. Returns list of BusMessage."""
-        params = f"?limit={limit}"
-        if topic:
-            params += f"&category=memorybus"
-        else:
-            params += "&category=memorybus"
+        """Query PAMS for memorybus memories. Returns list of BusMessage.
 
-        if HAS_REQUESTS:
-            resp = requests.get(
-                f"{self.pams_url}/memories{params}",
-                timeout=PAMS_TIMEOUT,
-            )
-            if resp.status_code != 200:
-                return []
-            data = resp.json()
-            memories = data.get('memories', [])
-        else:
-            req = urllib.request.Request(f"{self.pams_url}/memories{params}")
-            with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
-                data = json.loads(resp.read())
-                memories = data.get('memories', [])
-
-        messages = []
-        for mem in memories:
-            mem_id = mem.get('id', 0)
-            if mem_id <= since_id:
-                continue
-
-            # Parse stored JSON content
-            try:
-                content_str = mem.get('content', '{}')
-                inner = json.loads(content_str) if isinstance(content_str, str) else content_str
-            except (json.JSONDecodeError, TypeError):
-                inner = {'content': content_str}
-
-            msg_topic = inner.get('topic', mem.get('category', 'unknown'))
-            if topic and not self._matches_topic(topic, msg_topic):
-                continue
-
-            messages.append(BusMessage(
-                message_id=mem_id,
-                topic=msg_topic,
-                content=inner.get('content', mem.get('content')),
-                metadata=inner.get('metadata', {}),
-                timestamp=mem.get('timestamp', ''),
-                session_id=mem.get('session_id', ''),
-                source=inner.get('source', 'memorybus'),
-            ))
-
-        return messages
+        2026-09-28: the server exposes no list/query endpoint (only POST
+        /api/memories/promote, DELETE /api/memories/cleanup), so there is
+        nothing to call -- returns []. Cross-process delivery therefore
+        happens at flush time (persist) rather than poll time; the urllib
+        branch is guarded so a 404 can never raise out of a poll loop.
+        """
+        return []
 
     def _deliver_to_subscribers(self, msg: BusMessage) -> int:
         """Deliver a message to all matching subscribers. Returns delivery count."""
