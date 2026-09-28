@@ -1,0 +1,60 @@
+#!/bin/sh
+# Pre-commit hook: run compliance scanner on staged .py files
+# Installed by: git config core.hooksPath .githooks
+
+echo "[Scanner] Checking staged .py files for anti-patterns..."
+
+# Get list of staged .py files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.py$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+    echo "[Scanner] No .py files staged, skipping."
+    exit 0
+fi
+
+# Create temp directory with staged file contents
+TMPDIR=$(mktemp -d)
+for f in $STAGED_FILES; do
+    mkdir -p "$TMPDIR/$(dirname "$f")" 2>/dev/null || true
+    git show ":0:$f" > "$TMPDIR/$f" 2>/dev/null || true
+done
+
+# Run scanner on the staged snapshot
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$SCRIPT_DIR"
+
+# Gate on WARNING and above: import_inside_function is INFO-only and matches
+# the deliberate lazy-import pattern, so it must not block commits.
+PYTHONPATH="src:${PYTHONPATH:-}" python -m CORE.compliance.scanner --report --ci --severity warning --dir "$TMPDIR" --exclude-dirs __pycache__,.git,.venv 2>&1
+EXIT_CODE=$?
+
+rm -rf "$TMPDIR"
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo ""
+    echo "[Scanner] Anti-patterns detected in staged files!"
+    echo "[Scanner] Fix them or use 'git commit --no-verify' to bypass."
+    exit 1
+fi
+
+echo "[Scanner] All staged .py files pass compliance check."
+
+# Bulk-diff gate (2026-09-28): block staged changesets that no commit
+# message could honestly describe (forensic-fix commits carried 200-400
+# lines of unrelated worktree dirt). Focused commits pass; deliberate
+# bulk ops declare ALLOW_BULK_COMMIT=1. `python3` matches the repo's other
+# hooks; a missing interpreter warns loud and passes rather than blocking
+# every commit on tooling.
+echo "[Gate] Checking changeset focus..."
+if command -v python3 >/dev/null 2>&1; then
+    python3 scripts/commit_gate.py --hook 2>&1
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "[Gate] Bulk changeset blocked (see above)."
+        exit 1
+    fi
+    echo "[Gate] Changeset is focused."
+else
+    echo "[Gate] python3 not found -- passing loud (gate unrunnable)"
+fi
+exit 0

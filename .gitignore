@@ -80,6 +80,10 @@ coverage_inference_html/
 
 # Githooks (local)
 .githooks/
+# ...except the live pre-commit itself (2026-09-28): core.hooksPath points
+# here, so an ignored hook is invisible enforcement. Force-tracked with
+# `git add -f`; keep it that way.
+!.githooks/pre-commit
 nul
 
 # Generated diagnostics (pyright/mypy dumps, session logs)
