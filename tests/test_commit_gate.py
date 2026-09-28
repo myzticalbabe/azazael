@@ -33,6 +33,19 @@ def test_binary_counted_not_measured():
     assert cg.evaluate(rows, 150, 8) == []
 
 
+def test_new_files_exempt_from_line_cap():
+    rows = [(400, 0, "research/NEW_DESIGN.md")]
+    assert cg.evaluate(rows, 150, 8) == []
+    assert cg.evaluate(rows, 150, 8, created=set()) != []
+    assert cg.evaluate(rows, 150, 8,
+                       created={"research/NEW_DESIGN.md"}) == []
+
+
+def test_new_files_still_count_toward_file_tally():
+    rows = [(-1, -1, "n%d.bin" % i) for i in range(9)]
+    assert any("9 staged files" in p for p in cg.evaluate(rows, 150, 8))
+
+
 def test_generated_classification():
     assert cg.is_generated("output/matrix_frames/frame_1.ppm")
     assert cg.is_generated("graphify-out/2026-09-28/graph.json")
