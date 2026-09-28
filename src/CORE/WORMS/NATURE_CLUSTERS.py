@@ -438,7 +438,22 @@ class NatureCluster:
         self._timeout = 60
         self.definition = NATURE_DEFINITIONS.get(nature, {})
         self._failed_executions: List[Dict] = []  # dead letter queue (no-breaker mode)
-    
+
+    def _record_outcome(self, name: str, result: Dict[str, Any]) -> bool:
+        """Route one worm outcome to the canonical telemetry tap.
+
+        Fourth producer of the single-schema outcome stream (see
+        CORE/WORMS/worm_telemetry.py): ClusterWORMZ, CONCURRENCY,
+        NatureCluster, and the registry-reported path all land the same
+        keys. Fail-soft: telemetry must never break execution.
+        """
+        try:
+            from CORE.WORMS.worm_telemetry import emit_worm_outcome
+            return bool(emit_worm_outcome(name, result, nature=self.nature,
+                                          source="NatureCluster"))
+        except Exception:
+            return False
+
     # ── Dead Letter Queue Management ────────────────────────────────
 
     def _record_failure(self, name: str, worm_result: Dict[str, Any],

@@ -711,32 +711,14 @@ def _record_cluster_worm_telemetry(name: str, result: Dict[str, Any],
                                      cluster: Any = None) -> None:
     """Record one per-worm execution row (2026-09-09 tap).
 
-    Schema matches the historical clusterwormz_worm_executed rows so old
-    and new telemetry query uniformly: {worm, success, duration_ms,
-    error}. Fail-soft by design — telemetry must never break execution.
-    Feeds future per-worm tuning once fresh volume accumulates.
+    Delegates to the canonical emitter (2026-09-28): same event type,
+    same keys, one schema for all producers. Fail-soft by design —
+    telemetry must never break execution.
     """
     try:
-        from CORE.local_memory import get_memory_store
-        store = get_memory_store()
-        data: Dict[str, Any] = {
-            "worm": name,
-            "success": bool(result.get("success", False)),
-            "duration_ms": float(result.get("duration_ms", 0.0) or 0.0),
-            "error": str(result.get("error"))[:300] if result.get("error") else None,
-        }
-        for attr, key in (("cluster_type", "cluster_type"),
-                          ("cluster_id", "cluster_id"),
-                          ("cluster_name", "cluster_id")):
-            val = getattr(cluster, attr, None)
-            if val is not None and key not in data:
-                data[key] = str(val)
-        store.record_event(
-            source="ClusterWORMZ", event_type="clusterwormz_worm_executed",
-            data=data,
-            severity="error" if not data["success"] else "info",
-            tags=["cluster", "worm-telemetry"],
-        )
+        from CORE.WORMS.worm_telemetry import emit_worm_outcome
+        emit_worm_outcome(name, result, cluster=cluster,
+                          source="ClusterWORMZ")
     except Exception:
         pass
 
@@ -1071,13 +1053,33 @@ class ClusterWORMZ:
         return result
 
     def execute_worm(self, name: str) -> Optional[Dict[str, Any]]:
-        """Execute single worm by name."""
+        """Execute single worm by name.
+
+        Every path emits to the canonical tap (2026-09-28): selected but
+        unconfigured and selected but unimportable used to vanish, hiding
+        exactly the failures the spawn-credit join exists to surface.
+        """
         for config in self.configs:
             if config.name == name:
-                executor = WormExecutor(config.name, config, self.state)
-                result = executor.execute()
+                try:
+                    executor = WormExecutor(config.name, config, self.state)
+                    result = executor.execute()
+                except Exception as exc:
+                    _record_cluster_worm_telemetry(
+                        name, {"success": False, "duration_ms": 0.0,
+                               "error": "executor failed: %s" % str(exc)[:200]},
+                        cluster=self)
+                    raise
+                _record_cluster_worm_telemetry(name, result if isinstance(
+                    result, dict) else {"success": False, "duration_ms": 0.0,
+                                        "error": "non-dict result"},
+                    cluster=self)
                 mark_spawned(name)
                 return result
+        _record_cluster_worm_telemetry(
+            name, {"success": False, "duration_ms": 0.0,
+                   "error": "not configured in this cluster"},
+            cluster=self)
         return None
 
     # ── Result Aggregation ────────────────────────────────────────
