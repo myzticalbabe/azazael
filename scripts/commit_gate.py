@@ -58,6 +58,15 @@ def staged_numstat() -> list[tuple[int, int, str]]:
     return rows
 
 
+def staged_statuses() -> dict[str, str]:
+    """path -> XY status for staged entries (A = newly created)."""
+    out: dict[str, str] = {}
+    for line in _git("status", "--short").splitlines():
+        if len(line) > 3 and line[0] != " " and line[0] != "?":
+            out[line[3:].strip()] = line[:2]
+    return out
+
+
 def worktree_status() -> list[tuple[str, str]]:
     """[(xy, path)] for worktree + index (porcelain)."""
     rows = []
@@ -75,8 +84,15 @@ def is_generated(path: str) -> bool:
 
 
 def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
-             max_files: int) -> list[str]:
-    """Bulk violations, human-readable. Empty means pass."""
+             max_files: int, created: set[str] | None = None) -> list[str]:
+    """Bulk violations, human-readable. Empty means pass.
+
+    Newly created files are exempt from the per-file line cap: a create
+    carries no hidden dirt (everything in it is new by definition), while
+    a 400-line modification to a tracked file is exactly the sweep this
+    gate exists to catch. Creates still count toward the file tally.
+    """
+    created = created or set()
     problems = []
     tracked = [r for r in rows if r[2] and not r[2].startswith("(")]
     if len(tracked) > max_files:
@@ -87,6 +103,8 @@ def evaluate(rows: list[tuple[int, int, str]], max_lines: int,
     for added, deleted, path in tracked:
         if added < 0:
             continue  # binary: counted in the file tally, not line tally
+        if path in created:
+            continue  # new file: nothing hidden inside
         if added + deleted > max_lines:
             problems.append(
                 "%s changes %d lines (limit %d/file). Split it, or set "
@@ -104,13 +122,14 @@ def cmd_hook() -> int:
         return 0
     try:
         rows = staged_numstat()
+        created = {p for p, s in staged_statuses().items() if "A" in s}
     except Exception as exc:
         # A broken gate must never block all commits; be loud instead.
         print("commit-gate: cannot read staged diff (%s) -- passing loud" % exc)
         return 0
     if not rows:
         return 0
-    problems = evaluate(rows, max_lines, max_files)
+    problems = evaluate(rows, max_lines, max_files, created)
     if not problems:
         return 0
     print("commit-gate: BULK CHANGESET BLOCKED")
