@@ -125,7 +125,15 @@ PROTECTED_EVENTS = ("evolution_result", "evolution_promotion",
                     DISTILLED_EVENT)
 
 
+# Maintenance seam (2026-09-28): when set, every step that resolves its store
+# through _get_db_path() uses this file instead of the import-time constant, so
+# a caller can point a whole maintenance run at one store (tests, Docker split).
+_DB_OVERRIDE: str | None = None
+
+
 def _get_db_path() -> str:
+    if _DB_OVERRIDE:
+        return _DB_OVERRIDE
     from CORE.direct_memory import DB_PATH
     return str(DB_PATH)
 
@@ -285,7 +293,7 @@ def distill_cap_victims(caps: dict = None,
     return {"groups": groups, "rows_summarized": total}
 
 
-def enforce_global_quota(quota_mb: int = DB_SIZE_QUOTA_MB,
+def enforce_global_quota(quota_mb: int | None = None,
                          db_path: str | None = None,
                          max_batches: int = 10,
                          batch: int = 5000) -> dict:
@@ -298,7 +306,11 @@ def enforce_global_quota(quota_mb: int = DB_SIZE_QUOTA_MB,
     rollups first, sparing protected events and error rows, at most
     ``max_batches`` batches per run so one pass cannot cliff the store.
     Reports honestly when eligible rows run out before the quota is met.
+
+    ``quota_mb`` defaults to the live ``DB_SIZE_QUOTA_MB`` resolved at CALL time
+    (not def time), so a test can lower the module constant and have it honoured.
     """
+    quota_mb = DB_SIZE_QUOTA_MB if quota_mb is None else quota_mb
     db = _resolve_db(db_path)
     freed_est = 0
     batches = 0
@@ -804,7 +816,27 @@ def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,
     return {"rotated": rotated, "skipped": skipped, "log_dir": str(d)}
 
 
-def run_maintenance(light: bool = False) -> dict:
+def run_maintenance(light: bool = False,
+                    db_path: str | None = None) -> dict:
+    """Run all maintenance tasks, optionally against an explicit store.
+
+    ``db_path`` (test / Docker seam) routes every step that resolves its store
+    through ``_get_db_path()`` at that file, restoring the previous value after
+    the run. Steps that call ``get_memory_store()`` directly (memory_purge,
+    error triage) still resolve via ``AZAZAEL_MEMORY_DIR``, so an isolated
+    caller must set that env var too.
+    """
+    global _DB_OVERRIDE
+    _prev_override = _DB_OVERRIDE
+    if db_path:
+        _DB_OVERRIDE = str(db_path)
+    try:
+        return _run_maintenance_impl(light)
+    finally:
+        _DB_OVERRIDE = _prev_override
+
+
+def _run_maintenance_impl(light: bool = False) -> dict:
     """Run all maintenance tasks in sequence.
 
     Returns dict with results of each task.
@@ -926,9 +958,13 @@ def run_maintenance(light: bool = False) -> dict:
     return results
 
 
-def cmd_maintain():
-    """CLI command: run all maintenance tasks and print results."""
-    results = run_maintenance()
+def cmd_maintain(db_path: str | None = None):
+    """CLI command: run all maintenance tasks and print results.
+
+    ``db_path`` routes the DB-touching steps at one store (test / Docker seam);
+    see run_maintenance() for the get_memory_store() caveat.
+    """
+    results = run_maintenance(db_path=db_path)
     print("=== Maintenance Run ===")
     for task, result in results.items():
         status = "[OK]" if "error" not in result else "[FAIL]"

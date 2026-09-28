@@ -131,18 +131,29 @@ for r in recent:
         cid = 'tr_' + str(data.get('run_id') or r.get('timestamp', ''))[:24]
         action = 'model_train'
     elif et == 'policy_applied':
-        # Dream policy verdicts: applied>0 with zero skips = clean win;
-        # anything skipped = partial (error) so mediocre rounds count.
+        # Dream policy verdicts. A SKIP is the designed outcome for tepid or
+        # governed suggestions ('low-confidence', 'no-actionable-strategy',
+        # 'governance-blocked' -- see dream_policy_bridge), NOT a failure. Only
+        # a skip whose reason begins 'error' is a real fault. Scoring every
+        # skip as an error fed a false "dreaming is failing" signal into
+        # adaptation (measured 2026-09-28: 93 'dream round partial' rows, with
+        # the active strategy swung to defensive / retry_with_backoff).
         det = data.get('details') or {}
-        nap = len(det.get('applied', []))
-        nsk = len(det.get('skipped', []))
+        applied = det.get('applied', []) or []
+        skipped = det.get('skipped', []) or []
+        nap, nsk = len(applied), len(skipped)
         wt = 'dreaming'
-        if nap > 0 and nsk == 0:
-            outcome, err = 'success', None
-        elif nap > 0 or nsk > 0:
+        hard_fail = [s for s in skipped
+                     if str((s or {}).get('reason', '')).startswith('error')]
+        if hard_fail:
             outcome = 'error'
-            err = 'dream round partial: %d applied %d skipped' % (nap, nsk)
+            err = 'dream policy failures: %d (applied %d, skipped %d)' % (
+                len(hard_fail), nap, nsk)
+        elif nap > 0:
+            outcome, err = 'success', None
         else:
+            # nothing applied and no hard failure: no evidence either way, so
+            # feed nothing rather than a false success or a false error.
             continue
         cid = 'po_' + str(r.get('timestamp', ''))[:16]
         action = 'dream_integrate'
