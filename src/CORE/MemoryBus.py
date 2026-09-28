@@ -175,14 +175,25 @@ def _promote_id(data: Any) -> Any:
 # instead of an ephemeral in-memory list. This prevents absolute data
 # loss on process exit during PAMS downtime.
 def _get_memorybus_db_path() -> Path:
-    """Get the memory store DB path for persistent fallback queue."""
-    env_dir = os.environ.get("AZAZAEL_MEMORY_DIR", "")
-    if env_dir:
-        base = Path(env_dir)
-    else:
-        base = Path.home() / ".azazael"
-    base.mkdir(parents=True, exist_ok=True)
-    return base / "memory_store.db"
+    """Get the telemetry DB path for the persistent fallback queue.
+
+    2026-09-28 split: the queue lived in memory_store.db, sharing its ONE
+    writer lock with training and maintenance. It now lives in
+    telemetry_store.db (own lock, own WAL). Single source of truth is
+    CORE.direct_memory.TELEMETRY_DB_PATH; this resolver delegates so the
+    conftest path-caching contract (module, resolver, global) is unchanged.
+    """
+    try:
+        from CORE.direct_memory import _get_telemetry_db_path
+        return _get_telemetry_db_path()
+    except Exception:
+        env_dir = os.environ.get("AZAZAEL_MEMORY_DIR", "")
+        if env_dir:
+            base = Path(env_dir)
+        else:
+            base = Path.home() / ".azazael"
+        base.mkdir(parents=True, exist_ok=True)
+        return base / "telemetry_store.db"
 
 _MEMORYBUS_DB_PATH = _get_memorybus_db_path()
 
@@ -528,7 +539,7 @@ class MemoryBus:
                     if cb is not callback
                 ]
                 count = len(self._subscriptions[pattern])
-                if count == 0:
+                if not self._subscriptions.get(pattern):
                     del self._subscriptions[pattern]
 
             total = sum(len(subs) for subs in self._subscriptions.values())
@@ -729,14 +740,17 @@ class MemoryBus:
 
         # Retire flushed rows: they live in PAMS now. Without this the queue
         # table grows forever (was 214MB, zero rows ever flushed). Best
-        # effort, never fails the flush count above.
+        # effort, never fails the flush count above. Date-part compare:
+        # queue timestamps are ISO with 'T', cutoff is space-separated --
+        # comparing full strings mis-orders same-day rows.
         try:
             conn3 = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
-            cutoff = (datetime.now(timezone.utc)
-                      - timedelta(days=FLUSHED_TTL_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+            day_cut = (datetime.now(timezone.utc)
+                       - timedelta(days=FLUSHED_TTL_DAYS)).strftime("%Y-%m-%d")
             conn3.execute(
-                "DELETE FROM memorybus_queue WHERE flushed=1 AND timestamp < ?",
-                (cutoff,))
+                "DELETE FROM memorybus_queue WHERE flushed=1 AND "
+                "substr(timestamp, 1, 10) < ?",
+                (day_cut,))
             conn3.commit()
             conn3.close()
         except Exception:

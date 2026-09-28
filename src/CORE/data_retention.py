@@ -455,12 +455,15 @@ def enforce_span_ttl(ttl_days: int = SPAN_TTL_DAYS) -> dict:
     `otel_spans` is not a `memories` event_type, so the type-cap mechanism
     above cannot reach it — without this it grew unbounded (112k rows).
     start_time is a nanosecond epoch, so the cutoff is scaled to match.
+    2026-09-28 split: spans live in telemetry_store.db; default follows.
     """
+    from CORE.direct_memory import _get_telemetry_db_path
+    db = db_path or str(_get_telemetry_db_path())
     cutoff_ns = int(
         (datetime.now(timezone.utc) - timedelta(days=ttl_days)).timestamp()
         * 1_000_000_000
     )
-    conn = sqlite3.connect(_get_db_path(), timeout=30)
+    conn = sqlite3.connect(db, timeout=30)
     try:
         cursor = conn.execute(
             "DELETE FROM otel_spans WHERE start_time < ?", (cutoff_ns,)
@@ -520,33 +523,57 @@ def archive_old_audit_files(max_age_days: int = AUDIT_ARCHIVE_DAYS) -> list:
     return archived
 
 
-def vacuum_if_needed() -> dict:
-    """Run VACUUM if fragmentation exceeds threshold."""
-    conn = sqlite3.connect(_get_db_path(), timeout=10)
-    try:
-        # Check free pages
-        freelist = conn.execute("PRAGMA freelist_count").fetchone()[0]
-        page_count = conn.execute("PRAGMA page_count").fetchone()[0]
-        if page_count > 0:
-            free_pct = freelist / page_count * 100
-            if free_pct > VACUUM_THRESHOLD_PCT:
-                conn.execute("VACUUM")
-                return {"vacuumed": True, "free_pct_before": round(free_pct, 1)}
-        return {"vacuumed": False, "free_pct": round(freelist / max(page_count, 1) * 100, 1) if page_count > 0 else 0}
-    finally:
-        conn.close()
+def vacuum_if_needed(db_path: str | None = None) -> dict:
+    """Run VACUUM on both stores if fragmentation exceeds threshold."""
+    from CORE.direct_memory import _get_telemetry_db_path
+    targets = [db_path] if db_path else [_get_db_path(), str(_get_telemetry_db_path())]
+    out: dict = {"vacuumed": False, "files": {}}
+    for target in targets:
+        try:
+            conn = sqlite3.connect(target, timeout=10)
+        except Exception:
+            continue
+        try:
+            freelist = conn.execute("PRAGMA freelist_count").fetchone()[0]
+            page_count = conn.execute("PRAGMA page_count").fetchone()[0]
+            if page_count > 0:
+                free_pct = freelist / page_count * 100
+                if free_pct > VACUUM_THRESHOLD_PCT:
+                    conn.execute("VACUUM")
+                    out["vacuumed"] = True
+                    out["files"][str(target)] = {"vacuumed": True,
+                                                 "free_pct_before": round(free_pct, 1)}
+                    continue
+            out["files"][str(target)] = {
+                "vacuumed": False,
+                "free_pct": round(freelist / max(page_count, 1) * 100, 1) if page_count > 0 else 0}
+        finally:
+            conn.close()
+    return out
 
 
-def wal_checkpoint() -> dict:
-    """Run WAL checkpoint to keep WAL file bounded."""
-    conn = sqlite3.connect(_get_db_path(), timeout=30)
-    try:
-        before = Path(_get_db_path()).with_suffix(".db-wal").stat().st_size if Path(_get_db_path()).with_suffix(".db-wal").exists() else 0
-        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-        after = Path(_get_db_path()).with_suffix(".db-wal").stat().st_size if Path(_get_db_path()).with_suffix(".db-wal").exists() else 0
-        return {"before_bytes": before, "after_bytes": after, "freed_bytes": before - after}
-    finally:
-        conn.close()
+def wal_checkpoint(db_path: str | None = None) -> dict:
+    """Run WAL checkpoint on both stores to keep WAL files bounded."""
+    from CORE.direct_memory import _get_telemetry_db_path
+    targets = [db_path] if db_path else [_get_db_path(), str(_get_telemetry_db_path())]
+    out: dict = {"freed_bytes": 0, "files": {}}
+    for target in targets:
+        try:
+            conn = sqlite3.connect(target, timeout=30)
+        except Exception:
+            continue
+        try:
+            wal = Path(target).with_suffix(".db-wal")
+            before = wal.stat().st_size if wal.exists() else 0
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            after = wal.stat().st_size if wal.exists() else 0
+            out["files"][str(target)] = {"before_bytes": before,
+                                         "after_bytes": after,
+                                         "freed_bytes": before - after}
+            out["freed_bytes"] += before - after
+        finally:
+            conn.close()
+    return out
 
 
 def _logs_dir() -> Path:
@@ -630,25 +657,12 @@ def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
             pass
 
 
-def backup_database(keep: int = 3) -> dict:
-    """Nightly online backup of the memory store (2026-09-10).
-
-    The single SQLite file underpins all five cycles; until now there
-    was no automated restore path. Uses the online backup API (safe
-    against concurrent readers/writers), verifies with integrity_check
-    on the COPY, gzips it (~5x), and keeps the newest `keep`.
-
-    Source-of-Truth mirror (2026-09-10): a second copy goes to
-    G:\\source-of-truth\\azazael\\db-backup\\ — off-disk redundancy.
-    Fail-open when G: is absent (undocked laptop must never break
-    maintenance). Returns {path, bytes, gz_bytes, integrity, pruned,
-    mirror, verified}.
-    """
+def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
+    """Online backup of one SQLite file: backup API, integrity-checked
+    copy, gzip, prune, G: mirror, CRC + monthly full drill. Fail-open."""
     import gzip as _gzip
     import shutil as _shutil
-    src = _get_db_path()
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
-    raw = _backup_dir() / ("memory_store.%s.db" % stamp)
+    raw = _backup_dir() / ("%s.%s.db" % (stem, stamp))
     try:
         sconn = sqlite3.connect(src, timeout=30)
         try:
@@ -672,7 +686,7 @@ def backup_database(keep: int = 3) -> dict:
             _shutil.copyfileobj(f_in, f_out, length=4 * 1024 * 1024)
         raw.unlink()
         pruned = []
-        existing = sorted(_backup_dir().glob("memory_store.*.db.gz"))
+        existing = sorted(_backup_dir().glob("%s.*.db.gz" % stem))
         while len(existing) > keep:
             old = existing.pop(0)
             try:
@@ -688,7 +702,7 @@ def backup_database(keep: int = 3) -> dict:
             _mirror.mkdir(parents=True, exist_ok=True)
             _dest = _mirror / gz.name
             _shutil.copyfile(str(gz), str(_dest))
-            _mexisting = sorted(_mirror.glob("memory_store.*.db.gz"))
+            _mexisting = sorted(_mirror.glob("%s.*.db.gz" % stem))
             while len(_mexisting) > keep:
                 _old = _mexisting.pop(0)
                 try:
@@ -724,6 +738,30 @@ def backup_database(keep: int = 3) -> dict:
         except OSError:
             pass
         return {"error": str(e)[:200]}
+
+
+def backup_database(keep: int = 3) -> dict:
+    """Nightly online backup of both stores (2026-09-28 split).
+
+    memory_store.db (memories, FTS) + telemetry_store.db (spans, bus
+    queue) via the online backup API (safe against concurrent
+    readers/writers), each verified, gzipped, pruned, and G:-mirrored.
+    Fail-open per file: one store's failure never blocks the other's.
+    Returns {"memory_store": {...}, "telemetry_store": {...}}.
+    """
+    from CORE.direct_memory import _get_telemetry_db_path
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    out: dict = {}
+    try:
+        out["memory_store"] = _backup_one(_get_db_path(), "memory_store", keep, stamp)
+    except Exception as e:
+        out["memory_store"] = {"error": str(e)[:200]}
+    try:
+        out["telemetry_store"] = _backup_one(
+            str(_get_telemetry_db_path()), "telemetry_store", keep, stamp)
+    except Exception as e:
+        out["telemetry_store"] = {"error": str(e)[:200]}
+    return out
 
 
 def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,

@@ -27,6 +27,13 @@ os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
 os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
 os.environ.setdefault("BLIS_NUM_THREADS", "1")
 
+# ── Production-log quarantine (forensic 2026-09-26) ───────────────
+# scripts/evolution_cycle.log() appends to the live production log, and unit
+# tests calling cycle helpers wrote tmp-path rows into it — mimicking a
+# snapshot-path anomaly in the real log. Route all test-process cycle logging
+# to the null device unless explicitly overridden.
+os.environ.setdefault("AZAZAEL_CYCLE_LOG", os.devnull)
+
 # ── Morphogenesis containment pen (audit 2026-09-15, finding #3) ────
 # `SpineCycleWorm.run_cycle(apply=True)` can stage generated specialist
 # source into `CORE/WORMS/expansion/generated/`. Tests must never write
@@ -125,7 +132,7 @@ _MEMORY_DB_RESOLVERS = (
 #: recomputes `_DB_DIR` and `DB_PATH`.
 _MEMORY_DB_RELOADERS = (
     ("CORE.backup", "_reload_paths", ("_backup_base", "BACKUP_DIR")),
-    ("CORE.cd3_exporter", "_reload_paths", ("_DB_DIR", "DB_PATH")),
+    ("CORE.cd3_exporter", "_reload_paths", ("_DB_DIR", "DB_PATH", "TELEMETRY_DB_PATH")),
 )
 
 #: Modules that cache a path read from `AZAZAEL_MEMORY_DIR` at import time.
@@ -212,8 +219,29 @@ def _restore_memory_db_globals():
 
 
 def pytest_unconfigure(config):
-    """Remove the session's redirected containment pen, snapshot, and store."""
+    """Flush telemetry, then remove all session-scoped redirected stores."""
     import shutil
+
+    # OpenTelemetry's provider is process-global and its BatchSpanProcessor can
+    # flush during interpreter shutdown.  That is AFTER this hook deletes the
+    # redirected memory directory, so the exporter raises
+    # ``sqlite3.OperationalError: unable to open database file`` even when every
+    # test passed.  Flush while the isolated store still exists, then release the
+    # cached exporter.  This is teardown ordering, not an exporter retry: a
+    # production exporter must not silently recreate a store an operator removed.
+    try:
+        from opentelemetry import trace as _otel_trace
+        _provider = _otel_trace.get_tracer_provider()
+        _shutdown = getattr(_provider, "shutdown", None)
+        if callable(_shutdown):
+            _shutdown()
+    except Exception:
+        pass
+    try:
+        from CORE import cd3_exporter as _cd3_exporter
+        _cd3_exporter._default_exporter = None
+    except Exception:
+        pass
 
     if _GENERATED_DIR_OVERRIDE:
         shutil.rmtree(_GENERATED_DIR_OVERRIDE, ignore_errors=True)
