@@ -78,13 +78,21 @@ def _get_db_dir() -> Path:
 
 def _reload_paths() -> None:
     """Recompute the cached paths after `AZAZAEL_MEMORY_DIR` changed."""
-    global _DB_DIR, DB_PATH
+    global _DB_DIR, DB_PATH, TELEMETRY_DB_PATH
     _DB_DIR = _get_db_dir()
     DB_PATH = _DB_DIR / "memory_store.db"
+    TELEMETRY_DB_PATH = _get_telemetry_db_dir()
+
+
+def _get_telemetry_db_dir() -> Path:
+    return _get_db_dir()
 
 
 _DB_DIR = _get_db_dir()
 DB_PATH = _DB_DIR / "memory_store.db"
+#: 2026-09-28 split: spans live here now (own writer lock), not in
+#: memory_store.db. DB_PATH stays for the memories side of JOINs.
+TELEMETRY_DB_PATH = _get_telemetry_db_dir() / "telemetry_store.db"
 
 
 # ====================================================================
@@ -145,11 +153,12 @@ class SQLiteSpanExporter:
         """Initialize the exporter.
 
         Args:
-            db_path: Path to memory_store.db. Defaults to
-                     ~/.azazael/memory_store.db (same as DirectMemory).
+            db_path: Path to the telemetry database. Defaults to
+                      ~/.azazael/telemetry_store.db (split 2026-09-28:
+                      spans no longer share memory_store.db's writer lock).
             batch_size: Number of spans per batch insert (default 64).
         """
-        self.db_path = db_path or str(DB_PATH)
+        self.db_path = db_path or str(TELEMETRY_DB_PATH)
         self.batch_size = batch_size
         self.export_count = 0
         self.schema_initialized = False
@@ -362,23 +371,33 @@ def query_unified_trace(
     Provides unified trace + event analysis across OTel spans and
     DirectMemory business events.
 
+    2026-09-28 split: spans live in telemetry_store.db, memories in
+    memory_store.db. The JOIN is preserved via ATTACH (read-only use;
+    writers never span files in one transaction).
+
     Args:
         trace_id: 32-char hex trace ID.
-        db_path: Optional custom DB path.
+        db_path: Optional custom SPAN DB path (telemetry file).
 
     Returns:
         list of joined span+event dicts ordered by span start_time.
     """
-    path = db_path or str(DB_PATH)
-    conn = sqlite3.connect(path, timeout=5)
+    span_path = db_path or str(TELEMETRY_DB_PATH)
+    mem_path = str(DB_PATH)
+    conn = sqlite3.connect(span_path, timeout=5)
     conn.row_factory = sqlite3.Row
     try:
+        if os.path.abspath(span_path) != os.path.abspath(mem_path):
+            conn.execute("ATTACH DATABASE ? AS mem", (mem_path,))
+            mem_q = "mem.memories"
+        else:
+            mem_q = "memories"
         rows = conn.execute(
             "SELECT s.name AS span_name, s.start_time, s.kind, "
             "       m.event_type, m.severity, "
             "       json_extract(m.data, '$.action') AS action "
-            " FROM otel_spans s "
-            " LEFT JOIN memories m ON s.correlation_id = m.correlation_id "
+            f" FROM otel_spans s "
+            f" LEFT JOIN {mem_q} m ON s.correlation_id = m.correlation_id "
             " WHERE s.trace_id = ? AND m.event_type IS NOT NULL "
             " ORDER BY s.start_time ASC LIMIT 20",
             (trace_id,),
@@ -393,13 +412,13 @@ def purge_old_spans(older_than_days: int = 30, db_path: (str | None) = None) -> 
 
     Args:
         older_than_days: Age threshold in days (default 30).
-        db_path: Optional custom DB path.
+        db_path: Optional custom SPAN DB path (telemetry file).
 
     Returns:
         Number of deleted rows.
     """
     import time as _time
-    path = db_path or str(DB_PATH)
+    path = db_path or str(TELEMETRY_DB_PATH)
     conn = sqlite3.connect(path, timeout=5)
     try:
         cutoff_ns = int(

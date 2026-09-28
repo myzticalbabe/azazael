@@ -13,15 +13,37 @@ if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
 from CORE.MemoryBus import MemoryBus, BusMessage, _MEMORYBUS_DB_PATH
+import CORE.MemoryBus as _bus_mod
 
 
 class TestMemoryBusPersistentFallback(unittest.TestCase):
-    
+
     def setUp(self):
+        # Self-isolation (2026-09-28): this file DROPs memorybus_queue, so it
+        # must never resolve that table against the live store no matter how
+        # it is invoked (bare unittest, pytest without conftest, new runner).
+        # Redirect BOTH the module global (all call sites read it live) and
+        # this file's imported copy, then restore both in tearDown.
+        import tempfile as _tf
+        self._old_env = os.environ.get("AZAZAEL_MEMORY_DIR")
+        self._old_global = _bus_mod._MEMORYBUS_DB_PATH
+        self._tmpdir = _tf.mkdtemp(prefix="membus_test_")
+        os.environ["AZAZAEL_MEMORY_DIR"] = self._tmpdir
+        _fresh = _bus_mod._get_memorybus_db_path()
+        _bus_mod._MEMORYBUS_DB_PATH = _fresh
+        globals()["_MEMORYBUS_DB_PATH"] = _fresh
         self._clear_db()
 
     def tearDown(self):
         self._clear_db()
+        import shutil as _sh
+        _bus_mod._MEMORYBUS_DB_PATH = self._old_global
+        globals()["_MEMORYBUS_DB_PATH"] = self._old_global
+        if self._old_env is None:
+            os.environ.pop("AZAZAEL_MEMORY_DIR", None)
+        else:
+            os.environ["AZAZAEL_MEMORY_DIR"] = self._old_env
+        _sh.rmtree(self._tmpdir, ignore_errors=True)
 
     def _clear_db(self):
         """Helper to ensure a clean slate for the persistent queue database."""
