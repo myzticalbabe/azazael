@@ -35,7 +35,8 @@ def test_binary_counted_not_measured():
 
 def test_new_files_exempt_from_line_cap():
     rows = [(400, 0, "research/NEW_DESIGN.md")]
-    assert cg.evaluate(rows, 150, 8) == []
+    # Untracked-origin unknown: flagged (created set not consulted).
+    assert cg.evaluate(rows, 150, 8) != []
     assert cg.evaluate(rows, 150, 8, created=set()) != []
     assert cg.evaluate(rows, 150, 8,
                        created={"research/NEW_DESIGN.md"}) == []
