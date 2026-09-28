@@ -2,6 +2,23 @@
 # Pre-commit hook: run compliance scanner on staged .py files
 # Installed by: git config core.hooksPath .githooks
 
+# Bulk-diff gate (2026-09-28): runs FIRST, on every commit, because the
+# scanner below exits early when no .py files are staged -- and bulk dirt
+# is usually docs/data, not code. Focused commits pass; deliberate bulk
+# ops declare ALLOW_BULK_COMMIT=1.
+echo "[Gate] Checking changeset focus..."
+if command -v python3 >/dev/null 2>&1; then
+    python3 scripts/commit_gate.py --hook 2>&1
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "[Gate] Bulk changeset blocked (see above)."
+        exit 1
+    fi
+    echo "[Gate] Changeset is focused."
+else
+    echo "[Gate] python3 not found -- passing loud (gate unrunnable)"
+fi
+
 echo "[Scanner] Checking staged .py files for anti-patterns..."
 
 # Get list of staged .py files
@@ -38,23 +55,4 @@ if [ $EXIT_CODE -ne 0 ]; then
 fi
 
 echo "[Scanner] All staged .py files pass compliance check."
-
-# Bulk-diff gate (2026-09-28): block staged changesets that no commit
-# message could honestly describe (forensic-fix commits carried 200-400
-# lines of unrelated worktree dirt). Focused commits pass; deliberate
-# bulk ops declare ALLOW_BULK_COMMIT=1. `python3` matches the repo's other
-# hooks; a missing interpreter warns loud and passes rather than blocking
-# every commit on tooling.
-echo "[Gate] Checking changeset focus..."
-if command -v python3 >/dev/null 2>&1; then
-    python3 scripts/commit_gate.py --hook 2>&1
-    if [ $? -ne 0 ]; then
-        echo ""
-        echo "[Gate] Bulk changeset blocked (see above)."
-        exit 1
-    fi
-    echo "[Gate] Changeset is focused."
-else
-    echo "[Gate] python3 not found -- passing loud (gate unrunnable)"
-fi
 exit 0
