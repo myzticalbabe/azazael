@@ -98,9 +98,8 @@ target/
 
 # Cold store -- retired graph snapshots and oversized artifacts moved out of the
 # working tree by `tools/fs_hygiene.py --kinds graph-snapshots --execute`.
-# Regenerable, and it must never be committed. Same reasoning as graphify-out/
-# above: it is a snapshot of the graph, not a source of truth. Kept ignored
-# because fs_hygiene recreates var/cold on any future compaction.
+# ~4.6 GB of regenerable data; must never be committed. Same reasoning as
+# graphify-out/ above: it is a snapshot of the graph, not a source of truth.
 var/
 
 # Diagnostic dumps (regenerable, keep on disk)
@@ -137,3 +136,26 @@ state/worm_policy.json
 state/worm_policy.json.tmp
 session_log*.txt
 nul
+
+# Gray Queen entrenchment baseline — LIVE runtime state, rewritten every spine
+# cycle by SpineCycleWorm._governance_stage(). The DELTA it produces is the
+# whole point, so a git checkout that reverted it would report a false
+# "everything is new" entrenchment spike. (Its sibling
+# NEURAL_MESH_WIRE_OR_CUT.json IS tracked: that one is a reviewed declaration
+# table, not telemetry.)
+NEURAL_MESH_ENTRENCHMENT.json
+NEURAL_MESH_ENTRENCHMENT.json.tmp
+
+# Regenerable render output (2026-09-28): animation frames and rendered
+# monitor wallboards are rebuilt by their jobs (graphify/render). Tracking
+# 3,150 PPMs + wallboards meant every render dirtied the tree, so they were
+# untracked (files stay on disk). dashboard/index.html stays tracked.
+output/ecosystem_frames/
+output/matrix_frames/
+dashboard/monitor_azazael.html
+dashboard/monitor_exmachina.html
+dashboard/monitor_lilith.html
+dashboard/monitor_ml.html
+dashboard/monitor_rl.html
+dashboard/command_center.html
+dashboard/command_center.json
