@@ -5,9 +5,9 @@ run_training_orchestrator.py — Run TrainingOrchestrator once (for Task Schedul
 Called by Windows Task Scheduler to execute one SB3 training run.
 Records results to LocalMemoryStore and prints a summary.
 
-With no --algo, the algorithm ROTATES across all 13 tracks by 5-minute slot
-so each trains on a staggered cadence (one run per slot, each algo every
-65 minutes) without colliding.
+With no --algo, the algorithm ROTATES across every track in ROTATION by
+5-minute slot, so each trains on a staggered cadence (one run per slot, each
+track every len(ROTATION)*5 minutes) without colliding.
 
 Usage:
     python scripts/run_training_orchestrator.py
@@ -43,14 +43,30 @@ EXCLUDED_TRAINING_SOURCES = [
 ]
 
 
+# Track definitions (rotation order, reward sources, runners) live in
+# scripts/track_registry.py — the single source of truth. They used to be
+# duplicated here and in the meta_director pick list, and drifted.
+#
 # PPO/DQN/A2C/QRDQN/MaskablePPO run on the Discrete(3) record env;
 # SAC/TD3/DDPG/TQC/TRPO/ARS on a continuous Box(3) variant; GRPO is the
 # worm-selection policy trainer; DPO is preference learning over SB3 run
 # outcomes. All share the same 5-minute rotation slot, so each trains once
 # every len(ROTATION)*5 minutes.
-ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
-            "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE", "RL",
-            "DREAMTUNE", "WORMGA"]
+try:
+    from track_registry import ROTATION, REWARD_EVENTS as _TRACK_EVENTS
+except Exception:  # pragma: no cover - registry unavailable, keep running
+    ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
+                "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE",
+                "RL", "DREAMTUNE", "WORMGA", "ALLPAR"]
+    _TRACK_EVENTS = {
+        "GRPO": ("grpo_training_orchestrated", "eval_mean_reward", None),
+        "DPO": ("dpo_training_orchestrated", "eval_mean_reward", None),
+        "OFFLINE": ("offline_training_orchestrated", "eval_mean_reward", None),
+        "DREAMTUNE": ("dreamtune_training_orchestrated", "eval_mean_reward", None),
+        "RL": ("training_run_complete", "avg_reward", "ScheduledTrainingWorm"),
+        "WORMGA": ("wormga_training_orchestrated", "eval_mean_reward", None),
+        "ALLPAR": ("allpar_training_orchestrated", "eval_mean_reward", None),
+    }
 
 
 def _next_track_version(event_type: str) -> str:
@@ -94,7 +110,18 @@ def _load_director():
             return None
 
 
-def rotated_algo() -> str:
+def _current_slot() -> int:
+    """The 5-minute rotation slot.
+
+    Shared by `rotated_algo` (the pick) and `_director_observe` (the reward
+    fold) so a run's `last_slot`/cooldown is written against the slot it
+    actually trained in. Recomputing the slot at observe time drifted the
+    ledger whenever a run crossed a slot boundary (a 168s run can).
+    """
+    return int(time.time()) // 300
+
+
+def rotated_algo(slot=None) -> str:
     """Pick the algorithm for the current 5-minute slot.
 
     Meta-director (2026-09-09): Thompson sampling over per-track win
@@ -103,7 +130,7 @@ def rotated_algo() -> str:
     one slot agree and the monitor replicates the pick. Falls back to
     plain rotation if the ledger is unreadable.
     """
-    slot = int(time.time()) // 300
+    slot = _current_slot() if slot is None else int(slot)
     md = _load_director()
     if md is not None:
         try:
@@ -111,15 +138,6 @@ def rotated_algo() -> str:
         except Exception:
             pass
     return ROTATION[slot % len(ROTATION)]
-
-
-_TRACK_EVENTS = {
-    "GRPO": ("grpo_training_orchestrated", "eval_mean_reward", None),
-    "DPO": ("dpo_training_orchestrated", "eval_mean_reward", None),
-    "OFFLINE": ("offline_training_orchestrated", "eval_mean_reward", None),
-    "DREAMTUNE": ("dreamtune_training_orchestrated", "eval_mean_reward", None),
-    "RL": ("training_run_complete", "avg_reward", "ScheduledTrainingWorm"),
-}
 
 
 def _track_recent_rewards(algo: str, n: int = 20) -> list:
@@ -167,9 +185,13 @@ def _track_recent_rewards(algo: str, n: int = 20) -> list:
         return []
 
 
-def _director_observe(algo: str, reward) -> None:
+def _director_observe(algo: str, reward, slot=None) -> None:
     """Fold one run into the director ledger: 1 iff it beat the track's
-    own median (scale-free), optimistic win on thin history."""
+    own median (scale-free), optimistic win on thin history.
+
+    `slot` is the slot the run was *picked* in; it must be carried through,
+    not recomputed (see _current_slot).
+    """
     try:
         if not isinstance(reward, (int, float)):
             return
@@ -179,7 +201,7 @@ def _director_observe(algo: str, reward) -> None:
         hist = _track_recent_rewards(algo, 20)
         won = True if len(hist) < 2 else bool(float(reward) > sorted(hist)[len(hist) // 2])
         md.observe(md.load_ledger(ROTATION), algo, won,
-                   slot=int(time.time()) // 300)
+                   slot=_current_slot() if slot is None else int(slot))
     except Exception:
         pass
 
@@ -251,7 +273,7 @@ def run_grpo_cycle() -> dict:
         source="TrainingOrchestrator", event_type="grpo_training_orchestrated",
         data=data, severity="info", tags=["grpo", "training", "orchestrated"],
     )
-    return {"algo": "GRPO", "records_used": len(group),
+    return {"algo": "GRPO", "success": True, "records_used": len(group),
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "best_worm": best_worm, "duration_ms": duration_ms}
@@ -309,7 +331,7 @@ def run_offline_cycle() -> dict:
         source="TrainingOrchestrator", event_type="offline_training_orchestrated",
         data=data, severity="info", tags=["offline", "rl", "orchestrated"],
     )
-    return {"algo": "OFFLINE", "records_used": train_recs,
+    return {"algo": "OFFLINE", "success": True, "records_used": train_recs,
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "duration_ms": duration_ms}
@@ -441,7 +463,7 @@ def run_dpo_cycle() -> dict:
         source="TrainingOrchestrator", event_type="dpo_training_orchestrated",
         data=data, severity="info", tags=["dpo", "training", "orchestrated"],
     )
-    return {"algo": "DPO", "records_used": len(pairs),
+    return {"algo": "DPO", "success": True, "records_used": len(pairs),
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "dpo_loss": data["dpo_loss"], "duration_ms": duration_ms}
@@ -463,7 +485,8 @@ def run_rl_cycle() -> dict:
     worm = ScheduledTrainingWorm()
     run = worm.execute()
     duration_ms = round((time.time() - t0) * 1000, 2)
-    return {"algo": "RL", "records_used": run.records_extracted,
+    return {"algo": "RL", "success": bool(getattr(run, "success", True)),
+            "records_used": run.records_extracted,
             "model_version": run.model_version,
             "eval_mean_reward": round(run.avg_reward, 4),
             "duration_ms": duration_ms}
@@ -503,7 +526,7 @@ def run_dreamtune_cycle() -> dict:
     n_scenarios = recalled.get("recalled", 0)
     if n_scenarios == 0:
         duration_ms = round((time.time() - t0) * 1000, 2)
-        return {"algo": "DREAMTUNE", "records_used": 0,
+        return {"algo": "DREAMTUNE", "success": False, "records_used": 0,
                 "model_version": _next_track_version("dreamtune_training_orchestrated"),
                 "eval_mean_reward": 0.0, "duration_ms": duration_ms,
                 "note": "skipped: no scenarios recalled"}
@@ -582,7 +605,8 @@ def run_dreamtune_cycle() -> dict:
         os.replace(_tmp, _tuned)
     except Exception:
         pass
-    return {"algo": "DREAMTUNE", "records_used": data["records_used"],
+    return {"algo": "DREAMTUNE", "success": True,
+            "records_used": data["records_used"],
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "duration_ms": duration_ms}
@@ -704,9 +728,66 @@ def run_wormga_cycle() -> dict:
         source="TrainingOrchestrator", event_type="wormga_training_orchestrated",
         data=data, severity="info", tags=["wormga", "training", "orchestrated"],
     )
-    return {"algo": "WORMGA", "records_used": data["records_used"],
+    return {"algo": "WORMGA", "success": True,
+            "records_used": data["records_used"],
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
+            "duration_ms": duration_ms}
+
+
+def run_all_parallel_cycle() -> dict:
+    """One NeuralPipeline "ALL" run — the former shadow chain, now one track.
+
+    Runs SB3 + GRPO + QLEARN in parallel through CORE/NeuralPipeline and records
+    the same-shaped artifact as the other tracks, so it is directed by the same
+    bandit and scored by the same reward path instead of being a second
+    orchestrator with its own (broken) result assembly.
+    """
+    from CORE.NeuralPipeline import NeuralPipeline
+    from CORE.local_memory import get_memory_store
+
+    t0 = time.time()
+    run_id = _gen_run_id("allpar")
+    pipeline = NeuralPipeline(max_workers=3, llm_augmentation=False)
+    try:
+        # source=None = all memories. Hardcoding "SystemZ" (as the NeuralPipeline
+        # example does) matched zero rows here, so the track could never train.
+        result = pipeline.run_end_to_end(
+            source=None, event_type=None, agent_type="ALL",
+            limit=200, register_model=False, use_data_split=True)
+    except Exception as e:  # the pipeline records its own DLQ entry; be explicit
+        duration_ms = round((time.time() - t0) * 1000, 2)
+        return {"algo": "ALLPAR", "success": False, "records_used": 0,
+                "model_version": "n/a", "eval_mean_reward": 0.0,
+                "duration_ms": duration_ms, "error": str(e)[:200]}
+
+    success_count = int(result.get("success_count", 0) or 0)
+    ok = result.get("status") == "success" and success_count > 0
+    duration_ms = round((time.time() - t0) * 1000, 2)
+
+    data = {
+        "run_id": run_id,
+        "algo": "ALLPAR",
+        "total_timesteps": 0,
+        "records_used": int(result.get("train_records", 0) or 0),
+        "data_source": "neural_pipeline_all",
+        "model_version": _next_track_version("allpar_training_orchestrated"),
+        # Scalar, bandit-comparable: how many of the 3 agents trained. The
+        # director's reward is median-relative, so any stable scalar works.
+        "eval_mean_reward": float(success_count),
+        "agents_trained": result.get("agents_trained", []),
+        "duration_ms": duration_ms,
+    }
+    store = get_memory_store()
+    store.record_event(
+        source="TrainingOrchestrator", event_type="allpar_training_orchestrated",
+        data=data, severity="info",
+        tags=["allpar", "neural_pipeline", "orchestrated"],
+    )
+    return {"algo": "ALLPAR", "success": ok, "records_used": data["records_used"],
+            "model_version": data["model_version"],
+            "eval_mean_reward": data["eval_mean_reward"],
+            "agents_trained": data["agents_trained"],
             "duration_ms": duration_ms}
 
 
@@ -758,10 +839,15 @@ def _run_impl():
                                      'training_orchestrator.lock'), 'w')
         msvcrt.locking(_lock_fh.fileno(), msvcrt.LK_NBLCK, 1)
     except (OSError, IOError):
+        # Overlap is an honest skip, not a success: the chain carves out
+        # rc=1 as skipped-ok, while rc=0 records a training that never ran
+        # (measured 2026-09-28: FullPass-era logs full of phantom "ok"s from
+        # exactly this path colliding with the 900s chain train job).
         print('SKIP overlap: previous training run still running', flush=True)
-        return 0
+        return 1
 
-    algo = args.algo or rotated_algo()
+    slot = _current_slot()
+    algo = args.algo or rotated_algo(slot)
     print(f"Rotation pick: algo={algo} (explicit override: {bool(args.algo)})",
           flush=True)
 
@@ -774,16 +860,20 @@ def _run_impl():
     except Exception as e:
         print(f"  [WARN] Registry warm failed: {e}", flush=True)
 
-    # Non-SB3 tracks (GRPO worm-selection, DPO preference learning,
-    # OFFLINE holdout, RL scheduled pipeline, DREAMTUNE dream-GA, WORMGA
-    # per-worm execution-policy GA)
-    if algo in ("GRPO", "DPO", "OFFLINE", "RL", "DREAMTUNE", "WORMGA"):
-        fn = (run_grpo_cycle if algo == "GRPO"
-              else run_dpo_cycle if algo == "DPO"
-              else run_offline_cycle if algo == "OFFLINE"
-              else run_rl_cycle if algo == "RL"
-              else run_dreamtune_cycle if algo == "DREAMTUNE"
-              else run_wormga_cycle)
+    # Non-SB3 tracks: GRPO worm-selection, DPO preference learning, OFFLINE
+    # holdout, RL scheduled pipeline, DREAMTUNE dream-GA, WORMGA per-worm
+    # execution-policy GA, and ALLPAR (the folded-in parallel ensemble).
+    cycle_fns = {
+        "GRPO": run_grpo_cycle,
+        "DPO": run_dpo_cycle,
+        "OFFLINE": run_offline_cycle,
+        "RL": run_rl_cycle,
+        "DREAMTUNE": run_dreamtune_cycle,
+        "WORMGA": run_wormga_cycle,
+        "ALLPAR": run_all_parallel_cycle,
+    }
+    if algo in cycle_fns:
+        fn = cycle_fns[algo]
         try:
             r = fn()
         except Exception as e:
@@ -801,10 +891,29 @@ def _run_impl():
         if r.get('best_worm'):
             print(f"  Best worm:    {r.get('best_worm')}")
         print(f"  Duration:     {r.get('duration_ms', 0):.0f}ms")
+        if r.get("note"):
+            print(f"  Note:         {r.get('note')}")
+        if r.get("error"):
+            print(f"  Error:        {r.get('error')}")
         print("=" * 60)
-        print(f"STATUS: {algo} TRAINING SUCCESSFUL", flush=True)
-        _director_observe(algo, r.get("eval_mean_reward"))
-        return 0
+        ok = bool(r.get("success", True))
+        if ok and not r.get("records_used"):
+            # Zero-record "success" (2026-09-28 audit): GRPO/DPO/OFFLINE have
+            # no empty-input guards, so a data-starved run reports success
+            # with reward 0.0 -- the worm layer's honesty protocol forbids
+            # exactly this (a skip is skipped, never a zero-record win).
+            # Demote to skip: no director fold, exit 1 like any skip.
+            print("STATUS: %s SKIPPED (0 records -- no training signal)"
+                  % algo, flush=True)
+            return 1
+        print("STATUS: %s TRAINING %s"
+              % (algo, "SUCCESSFUL" if ok else "SKIPPED/FAILED"), flush=True)
+        # Only a real run carries a performance signal; a skip or a failed run
+        # must not be folded into the director as a win (WORMGA/RL did exactly
+        # that before, reporting SUCCESSFUL on success=False and reward=0.0).
+        if ok:
+            _director_observe(algo, r.get("eval_mean_reward"), slot)
+        return 0 if ok else 1
 
     print(f"Starting TrainingOrchestrator (algo={algo}, "
           f"timesteps={args.timesteps}, source={args.source or 'all'})...",
@@ -848,7 +957,7 @@ def _run_impl():
         # Return exit code based on success
         if result.trained:
             print("STATUS: TRAINING SUCCESSFUL", flush=True)
-            _director_observe(algo, result.eval_mean_reward)
+            _director_observe(algo, result.eval_mean_reward, slot)
             return 0
         elif result.error:
             print(f"STATUS: TRAINING FAILED — {result.error}", flush=True)
