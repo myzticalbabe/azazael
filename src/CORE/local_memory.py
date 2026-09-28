@@ -62,6 +62,48 @@ def _get_store_path() -> Path:
 DB_PATH = _get_store_path()
 VERSION = "1.0.0"
 
+
+def track_regime() -> Dict[str, Any]:
+    """Snapshot of the regime a training run executes in (STACK Phase 1).
+
+    Cheap, local, fail-soft signals a contextual router can condition on:
+    time structure (slot/hour/dow), store sizes, recent outcome volume.
+    Never raises: any unreadable signal becomes -1/None rather than
+    breaking a training run. Kept flat (JSON-native) for ledger reads.
+    """
+    now = datetime.now().astimezone()
+    reg: Dict[str, Any] = {
+        "slot": int(now.timestamp()) // 300,
+        "hour": now.hour,
+        "dow": now.weekday(),
+        "db_mb_main": -1.0,
+        "db_mb_tel": -1.0,
+        "outcome_1h": -1,
+    }
+    try:
+        base = DB_PATH.parent
+        for key, name in (("db_mb_main", "memory_store.db"),
+                          ("db_mb_tel", "telemetry_store.db")):
+            try:
+                reg[key] = round((base / name).stat().st_size / 1e6, 1)
+            except OSError:
+                pass
+    except Exception:
+        pass
+    try:
+        conn = sqlite3.connect(str(DB_PATH), timeout=5)
+        try:
+            cutoff = (datetime.now(timezone.utc)
+                      - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+            reg["outcome_1h"] = int(conn.execute(
+                "SELECT COUNT(*) FROM memories WHERE created_at > ?",
+                (cutoff,)).fetchone()[0])
+        finally:
+            conn.close()
+    except Exception:
+        pass
+    return reg
+
 # -- Schema -----------------------------------------------------------------
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS memories (

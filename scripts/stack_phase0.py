@@ -93,6 +93,11 @@ def main(argv=None) -> int:
                 if isinstance(v, (int, float)):
                     vals.append(float(v))
                     total += 1
+                    # 2026-09-28 fix: spreads were only counted for custom
+                    # tracks, reporting 0.0 for all SB3 tracks while their
+                    # stored rows DO carry eval_std_reward.
+                    if isinstance(d.get("eval_std_reward"), (int, float)):
+                        spreads += 1
         vals.reverse()  # oldest first for trajectory sense
         series[algo] = vals
         unc[algo] = {"n": total,
