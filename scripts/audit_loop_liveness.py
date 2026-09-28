@@ -568,6 +568,16 @@ def last_run_status(rec: dict | None, bound: float | None) -> tuple[str, str]:
     return "ok", f"{age / 60:.1f}min ago"
 
 
+#: Operator-policy retirements (2026-09-28): tasks deliberately OFF for a
+#: stated reason that is NOT supersession. Judged, not ignored -- shown in
+#: the coverage block like retired tasks, never failed. Format: loop name
+#: -> reason. Reason one: the zero-spend policy (no paid inference).
+POLICY_RETIRED: dict[str, str] = {
+    "Azazael-EveBattery": "zero-spend policy: openrouter backend costs; "
+                          "use GospBattery (local) for battery signal",
+}
+
+
 def failed(row: dict) -> bool:
     """One loop fails if ANY independent signal says it is not running.
 
@@ -576,6 +586,8 @@ def failed(row: dict) -> bool:
     """
     if row.get("superseded"):
         return row.get("task_status") == "ok"
+    if row.get("run_status") == "policy-retired":
+        return False
     if row["hb_status"] not in ("ok", "unbound"):
         return True
     if row.get("task_status", "ok") != "ok":
@@ -816,6 +828,13 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = audit(grace=args.grace, check_tasks=not args.no_tasks, state=state,
                  chain_jobs=chain_jobs)
+    # Operator-policy retirements are judged here (not in failed() alone):
+    # a disabled-by-policy loop must read policy-retired BEFORE the bad
+    # computation below, or its STALE run_status fails the run.
+    for r in rows:
+        if r["loop"] in POLICY_RETIRED and r.get("task_status") != "ok":
+            r["run_status"] = "policy-retired"
+            r["run_evidence"] = POLICY_RETIRED[r["loop"]]
     bad = [r for r in rows if failed(r)]
 
     if args.json:
@@ -841,6 +860,13 @@ def main(argv: list[str] | None = None) -> int:
                   " NOT failed (a chain job does the same work):")
             for r in retired:
                 print(f"    {r['loop']:<28} -> {r['superseded_reason']}")
+        policy = [r for r in rows
+                  if r["loop"] in POLICY_RETIRED and r.get("task_status") != "ok"]
+        if policy:
+            print(f"  coverage: {len(policy)} task(s) off by operator policy,"
+                  " judged NOT failed:")
+            for r in policy:
+                print(f"    {r['loop']:<28} -> {POLICY_RETIRED[r['loop']]}")
         unbound = [r for r in rows
                    if r["hb_status"] == "unbound" and not r.get("superseded")]
         if unbound:
