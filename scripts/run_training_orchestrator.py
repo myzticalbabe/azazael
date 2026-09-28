@@ -210,6 +210,19 @@ def _gen_run_id(prefix: str) -> str:
     return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{random.randint(1000, 9999)}"
 
 
+def _regime() -> dict:
+    """Regime snapshot for this run (STACK Phase 1 instruments).
+
+    Stamped into every track artifact so a contextual router can learn
+    regime -> reward. Fail-soft: {} when the store is unreachable.
+    """
+    try:
+        from CORE.local_memory import track_regime
+        return track_regime()
+    except Exception:
+        return {}
+
+
 LOG_PATH = Path(__file__).resolve().parent.parent / "logs" / "training_orchestrator.log"
 
 
@@ -260,6 +273,7 @@ def run_grpo_cycle() -> dict:
         "algo": "GRPO",
         "total_timesteps": 0,
         "records_used": len(group),
+        "regime": _regime(),
         "data_source": "worm_registry",
         "model_version": _next_track_version("grpo_training_orchestrated"),
         "eval_mean_reward": round(mean_r, 4),
@@ -318,6 +332,7 @@ def run_offline_cycle() -> dict:
         "algo": "OFFLINE",
         "total_timesteps": 0,
         "records_used": train_recs,
+        "regime": _regime(),
         "data_source": f"memory_split(train={train_recs},holdout={test_recs})",
         "model_version": _next_track_version("offline_training_orchestrated"),
         "eval_mean_reward": round(test_avg, 4),
@@ -449,6 +464,7 @@ def run_dpo_cycle() -> dict:
         "algo": "DPO",
         "total_timesteps": 0,
         "records_used": len(pairs),
+        "regime": _regime(),
         "data_source": exp,
         "model_version": _next_track_version("dpo_training_orchestrated"),
         "eval_mean_reward": round(mean_m, 4),
@@ -573,6 +589,7 @@ def run_dreamtune_cycle() -> dict:
         "algo": "DREAMTUNE",
         "total_timesteps": 0,
         "records_used": n_scenarios,
+        "regime": _regime(),
         "data_source": "dream_scenarios",
         "model_version": _next_track_version("dreamtune_training_orchestrated"),
         "eval_mean_reward": round(float(res.get("best_fitness", 0.0)), 4),
@@ -715,6 +732,7 @@ def run_wormga_cycle() -> dict:
         "algo": "WORMGA",
         "total_timesteps": 0,
         "records_used": len(samples),
+        "regime": _regime(),
         "data_source": "live_microevals",
         "model_version": _next_track_version("wormga_training_orchestrated"),
         "eval_mean_reward": round(float(res.get("best_fitness", 0.0)), 4),
@@ -770,6 +788,7 @@ def run_all_parallel_cycle() -> dict:
         "algo": "ALLPAR",
         "total_timesteps": 0,
         "records_used": int(result.get("train_records", 0) or 0),
+        "regime": _regime(),
         "data_source": "neural_pipeline_all",
         "model_version": _next_track_version("allpar_training_orchestrated"),
         # Scalar, bandit-comparable: how many of the 3 agents trained. The

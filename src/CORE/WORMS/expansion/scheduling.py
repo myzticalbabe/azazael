@@ -777,6 +777,19 @@ class OrchestratorRun:
     error: (str | None) = None
 
 
+def _track_regime() -> dict:
+    """Regime snapshot for this run (STACK Phase 1 instruments).
+
+    Delegates to CORE.local_memory.track_regime; fail-soft {} here too
+    so a telemetry hiccup can never break a training run.
+    """
+    try:
+        from CORE.local_memory import track_regime
+        return track_regime()
+    except Exception:
+        return {}
+
+
 class TrainingOrchestrator:
     """
     Orchestrates the full SB3 deep RL training pipeline on a schedule.
@@ -930,6 +943,7 @@ class TrainingOrchestrator:
                             "eval_mean_reward": train_result.get("eval_mean_reward"),
                             "eval_std_reward": train_result.get("eval_std_reward"),
                             "duration_ms": round((time.perf_counter() - start) * 1000, 2),
+                            "regime": _track_regime(),
                         },
                         severity="info",
                         tags=["sb3", "training", "orchestrated"],
