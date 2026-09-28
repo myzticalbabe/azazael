@@ -124,6 +124,21 @@ def main() -> int:
         drained = MemoryBus().flush_local_queue()
         with open(LOG, "a", encoding="utf-8") as f:
             f.write(f"  bus_drain: {drained} rows flushed\n")
+            # Backlog visibility (2026-09-28): an unflushed backlog that
+            # only shrinks is fine; one that grows while PAMS is up means
+            # posts are failing again. Oldest-row age is the tripwire.
+            try:
+                import sqlite3 as _sq
+                from CORE.MemoryBus import _MEMORYBUS_DB_PATH as _qp
+                _c = _sq.connect(str(_qp), timeout=10)
+                _row = _c.execute(
+                    "SELECT COUNT(*), MIN(timestamp) FROM memorybus_queue"
+                    " WHERE flushed=0").fetchone()
+                _c.close()
+                f.write(f"  bus_backlog: {_row[0]} unflushed, "
+                        f"oldest={_row[1]}\n")
+            except Exception as _e2:
+                f.write(f"  bus_backlog: unreadable ({str(_e2)[:80]})\n")
     except Exception as _e:
         with open(LOG, "a", encoding="utf-8") as f:
             f.write(f"  bus_drain: SKIPPED ({str(_e)[:120]})\n")
