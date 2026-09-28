@@ -511,6 +511,45 @@ def catch_up(*, dry_run: bool = False, observation_only: bool = True,
     return report
 
 
+#: Post-job follow-ups (2026-09-28): wiring --apply mutates sources, which
+#: immediately dirties the derived maps the artifacts gate judges -- the
+#: chronic wiring -> stale -> spine-skip loop. After a SUCCESSFUL wiring
+#: fire, rebuild the maps at once (same refresh_all.py spine self-heals
+#: with) instead of waiting for the next artifacts FAIL + spine SKIP.
+#: Best-effort and bounded: a failed follow-up is logged, never fails the
+#: fire (the gate remains the authority). No chaining: follow-ups run no
+#: further hooks. Format: {job: (target, timeout_s)}.
+FOLLOW_UPS: dict[str, tuple[str, int]] = {
+    "wiring": ("tools/refresh_all.py", 900),
+}
+
+
+def _maybe_followup(name: str, result: dict[str, Any], *,
+                    dry_run: bool = False,
+                    observation_only: bool = False) -> dict[str, Any]:
+    """Run the follow-up for a just-fired job, if any. Never raises."""
+    if dry_run or observation_only:
+        return {"ran": False, "reason": "dry/observation run"}
+    spec = FOLLOW_UPS.get(name)
+    if spec is None:
+        return {"ran": False, "reason": "no follow-up registered"}
+    if not result.get("ok"):
+        return {"ran": False, "reason": "job not ok, follow-up skipped"}
+    target, timeout = spec
+    path = _resolve_target(target)
+    if path is None:
+        return {"ran": False, "reason": f"target not found: {target}"}
+    try:
+        proc = subprocess.run([_python(), str(path)], cwd=str(ROOT),
+                              capture_output=True, text=True, timeout=timeout)
+        tail = [ln for ln in (proc.stdout or "").strip().splitlines()
+                if ln.strip()]
+        return {"ran": True, "target": target, "rc": proc.returncode,
+                "tail": tail[-1][:160] if tail else "no-output"}
+    except Exception as exc:
+        return {"ran": False, "reason": str(exc)[:160]}
+
+
 def fire(*, dry_run: bool = False, observation_only: bool = False) -> dict[str, Any]:
     """Plan and optionally execute at most one job."""
 
@@ -531,12 +570,15 @@ def fire(*, dry_run: bool = False, observation_only: bool = False) -> dict[str, 
     if not dry_run:
         _write_job_heartbeat(selected, result)
         _remember_fire(selected, result, observation_only=observation_only)
+    followup = _maybe_followup(selected, result, dry_run=dry_run,
+                               observation_only=observation_only)
     report = {
         "schema": "azazael.chain_controller.fire.v1",
         "at": datetime.now().isoformat(),
         "ran": not dry_run,
         "selected": selected,
         "result": result,
+        "followup": followup,
         "observation_only": bool(observation_only),
         "scheduler_mutated": False,
     }
