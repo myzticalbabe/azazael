@@ -70,7 +70,12 @@ def scan() -> dict:
                 size = 0
             per_top_files[top] += 1
             per_top_bytes[top] += size
-            if size > LARGE_MB * 1024 * 1024:
+            # var/cold is the designated archive: the compactor moves dated
+            # snapshots there BY DESIGN (2026-09-28: flagging them re-created
+            # the regressions the move just cleared). Counted in the totals
+            # above, never flagged as new large files.
+            rel_p = os.path.relpath(p, ROOT).replace(os.sep, "/")
+            if size > LARGE_MB * 1024 * 1024 and not rel_p.startswith("var/cold/"):
                 large.append({"path": os.path.relpath(p, ROOT), "mb": round(size / 1048576, 1)})
             # __pycache__ is excluded from the duplicate check: .pyc artifacts
             # regenerate on every test run, so counting them means the guard
