@@ -16,6 +16,61 @@ sys.path.insert(0, str(_ROOT / "src"))
 LOG = _ROOT / "logs" / "maintenance.log"
 
 
+def _pams_healthy(timeout: float = 4.0) -> bool:
+    """True when PAMS answers on its real health path (/api/health)."""
+    try:
+        import urllib.request as _url
+        with _url.urlopen("http://127.0.0.1:21434/api/health",
+                          timeout=timeout) as _r:
+            if _r.status == 200:
+                return True
+    except Exception:
+        pass
+    try:
+        import json as _json
+        _pf = Path(r"G:\source-of-truth\persistent-ai-memory\memory_data"
+                   r"\mcp_server_port.json")
+        _port = int((_json.loads(_pf.read_text(encoding="utf-8"))
+                     .get("active_port") or 0)) if _pf.is_file() else 0
+        if _port > 0:
+            with _url.urlopen(f"http://127.0.0.1:{_port}/api/health",
+                              timeout=timeout) as _r:
+                return _r.status == 200
+    except Exception:
+        pass
+    return False
+
+
+def _ensure_pams(wait_s: int = 60) -> bool:
+    """Start pams-server.exe detached if unhealthy; wait for health.
+
+    Returns True when PAMS answers. Never raises -- callers decide.
+    """
+    if _pams_healthy():
+        return True
+    try:
+        import shutil as _sh, subprocess as _sp
+        _exe = _sh.which("pams-server") or _sh.which("pams-server.exe")
+        if not _exe:
+            return False
+        _flags = 0
+        if hasattr(_sp, "DETACHED_PROCESS"):
+            _flags |= _sp.DETACHED_PROCESS
+        if hasattr(_sp, "CREATE_NEW_PROCESS_GROUP"):
+            _flags |= _sp.CREATE_NEW_PROCESS_GROUP
+        _sp.Popen([_exe], stdout=_sp.DEVNULL, stderr=_sp.DEVNULL,
+                  stdin=_sp.DEVNULL, creationflags=_flags,
+                  close_fds=True)
+    except Exception:
+        return False
+    _deadline = time.monotonic() + wait_s
+    while time.monotonic() < _deadline:
+        if _pams_healthy():
+            return True
+        time.sleep(2)
+    return _pams_healthy()
+
+
 def main() -> int:
     from CORE.data_retention import run_maintenance
     LOG.parent.mkdir(parents=True, exist_ok=True)
@@ -59,7 +114,12 @@ def main() -> int:
     # dashboard-thread drain never runs (no --watch process), so 5k rows
     # sat unflushed since 09-24. Flush marks only PAMS-confirmed rows and
     # no-ops when PAMS is down — safe to run every night.
+    # 2026-09-28: start PAMS FIRST so the drain has something to drain into.
+    # A down server made every nightly drain a silent no-op (queue hit 5k+
+    # rows / 214MB). Fail-soft throughout: a PAMS that won't start must
+    # never fail upkeep.
     try:
+        _ensure_pams()
         from CORE.MemoryBus import MemoryBus
         drained = MemoryBus().flush_local_queue()
         with open(LOG, "a", encoding="utf-8") as f:
