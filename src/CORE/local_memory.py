@@ -169,10 +169,19 @@ class LocalMemoryStore:
     _max_query_time_ms: float = 0.0
     _slow_query_threshold_ms: float = 500.0  # Queries >500ms logged as slow
 
+    #: Hard ceiling on rows returned by a single `query_memories` call.
+    #: The store reaches hundreds of MB and 200k+ rows, so an unbounded
+    #: LIMIT is a memory hazard. Callers that need more must paginate with
+    #: `offset`. Requests above this are CLAMPED AND WARNED (2026-09-18) —
+    #: the clamp used to be silent, so callers asking for 5000 rows got 500
+    #: and had no way to tell a truncated read from a complete one.
+    MAX_QUERY_LIMIT: int = 500
+
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = str(db_path or DB_PATH)
         self._lock = threading.Lock()
         self._maintenance_lock = threading.Lock()
+        self._limit_clamp_issued = False
         self._session_id = datetime.now().strftime("codebuff_%Y%m%d_%H%M%S")
         self._vacuum_running = False
         self._vacuum_interval: float = 86400.0  # 24 hours
@@ -206,6 +215,14 @@ class LocalMemoryStore:
         """Initialize database schema and run migrations."""
         with self._lock:
             conn = sqlite3.connect(self.db_path, timeout=2)
+            # Same discipline as _get_conn: busy_timeout FIRST, so the
+            # CD1 migration UPDATE below waits on live writers instead of
+            # failing instantly with "database is locked" (measured
+            # 2026-09-26: benchmark colliding with 8 chain processes).
+            # 60s: a VACUUM or bulk DELETE on the 800MB+ store can hold
+            # the writer lock for tens of seconds; process start is rare
+            # and may wait, but must never crash on contention.
+            conn.execute("PRAGMA busy_timeout=60000")
             conn.executescript(SCHEMA_SQL)
             conn.commit()
             # CD1 schema migration (June 11 2026): Add cross-domain columns
@@ -328,12 +345,34 @@ class LocalMemoryStore:
                     self.store._slow_query_count += 1
 
     def _get_conn(self) -> sqlite3.Connection:
-        """Get a new connection. Uses WAL mode for concurrent access."""
-        conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=15)
+        """Get a new connection. Uses WAL mode for concurrent access.
+
+        NOTE: must not take self._lock -- callers such as register_pattern and
+        start_session already hold it, and threading.Lock is not re-entrant.
+        """
+        conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=60)
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
+        # busy_timeout FIRST. It is what makes later statements wait for a lock
+        # instead of failing, and it used to be issued *after* journal_mode --
+        # so the journal_mode statement below ran with the default timeout of 0.
+        # 2026-09-28: 15s -> 60s. Train ARS runs fail with "database is locked"
+        # ~39x/day; contention (472MB DB, concurrent chain writers) exceeds 15s.
+        conn.execute("PRAGMA busy_timeout=60000")
+        # journal_mode is PERSISTENT (stored in the DB header), so it only needs
+        # to be established once. Re-issuing it on EVERY connection is what broke
+        # concurrent reads: changing it takes a write lock, so a fresh reader
+        # racing a writer raised "database is locked" immediately -- the error
+        # seen in TestKnowledgeGraphConcurrency. Read it instead, and only set it
+        # when the database genuinely is not in WAL yet.
+        try:
+            row = conn.execute("PRAGMA journal_mode").fetchone()
+            if not row or str(row[0]).lower() != "wal":
+                conn.execute("PRAGMA journal_mode=WAL")
+        except sqlite3.OperationalError:
+            # A writer holds the lock while the mode is being established. WAL is
+            # already the applicable mode, so continuing is safe.
+            pass
         conn.execute("PRAGMA synchronous=NORMAL")
-        conn.execute("PRAGMA busy_timeout=15000")
         conn.execute("PRAGMA wal_autocheckpoint=1000")
         return conn
 
@@ -504,30 +543,72 @@ class LocalMemoryStore:
 
         with self._lock:
             with self._QueryTimer(self, "record_event"):
-                conn = self._get_conn()
-                # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
-                ev_uuid = uuid7().hex
-                corr_id = correlation_id or ""
-                trace_id_val = corr_id or uuid7().hex  # trace_id defaults to correlation_id
-                # BLAKE2b-256 audit hash of full event for cross-referencing
-                # Covers source + event_type + timestamp + data + severity per CD1 spec
-                canonical = f"{source}|{event_type}|{ts}|{data_str}|{severity}"
-                audit_val = hashlib.blake2b(canonical.encode(), digest_size=32).hexdigest()
-                cursor = conn.execute(
-                    "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
-                    "event_uuid, trace_id, correlation_id, audit_hash) "
-                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, trace_id_val, corr_id, audit_val)
-                )
-                mem_id = cursor.lastrowid or 0
+                # Lock-contention retry (2026-09-25): concurrent Chain jobs
+                # (evolution/train/dream/metacog) share this 600MB WAL DB, and
+                # an exclusive hold longer than busy_timeout surfaces as
+                # "database is locked" — losing training/evolution records
+                # while the run itself reports success. Bounded retries with
+                # backoff; still raises after exhaustion (callers fail open).
+                last_exc = None
+                for attempt in (1, 2, 3):
+                    conn = None
+                    try:
+                        conn = self._get_conn()
+                        # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
+                        ev_uuid = uuid7().hex
+                        corr_id = correlation_id or ""
+                        trace_id_val = corr_id or uuid7().hex  # trace_id defaults to correlation_id
+                        # BLAKE2b-256 audit hash of full event for cross-referencing
+                        # Covers source + event_type + timestamp + data + severity per CD1 spec
+                        canonical = f"{source}|{event_type}|{ts}|{data_str}|{severity}"
+                        audit_val = hashlib.blake2b(canonical.encode(), digest_size=32).hexdigest()
+                        cursor = conn.execute(
+                            "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
+                            "event_uuid, trace_id, correlation_id, audit_hash) "
+                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, trace_id_val, corr_id, audit_val)
+                        )
+                        mem_id = cursor.lastrowid or 0
 
-                # Update session event count
-                conn.execute(
-                    "UPDATE sessions SET event_count = event_count + 1 WHERE session_id = ?",
-                    (sid,)
-                )
-                conn.commit()
-                conn.close()
+                        # Update session event count
+                        conn.execute(
+                            "UPDATE sessions SET event_count = event_count + 1 WHERE session_id = ?",
+                            (sid,)
+                        )
+                        conn.commit()
+                        break
+                    except sqlite3.OperationalError as exc:
+                        last_exc = exc
+                        try:
+                            conn.rollback()
+                        except Exception:
+                            pass
+                        if attempt < 3:
+                            time.sleep(float(attempt))
+                            continue
+                        # Observable exhaustion (forensic 2026-09-26): a stall
+                        # longer than ~48s of retries still loses the record.
+                        # The DB itself is unwritable by definition here, so
+                        # count it in a sidecar monitors can read instead of
+                        # letting it vanish into one log line.
+                        try:
+                            _sidecar = os.path.join(
+                                os.path.dirname(self.db_path),
+                                "lock_exhaustion.jsonl")
+                            with open(_sidecar, "a", encoding="utf-8") as fh:
+                                fh.write(json.dumps({
+                                    "at": datetime.now(timezone.utc).isoformat(),
+                                    "event_type": event_type, "source": source,
+                                }) + "\n")
+                        except Exception:
+                            pass
+                        raise
+                    finally:
+                        if conn is not None:
+                            try:
+                                conn.close()
+                            except Exception:
+                                pass
 
         # -- Size monitoring: issue warning if DB exceeds threshold -----
         if not self._size_warning_issued:
@@ -605,12 +686,52 @@ class LocalMemoryStore:
 
         where = " AND ".join(conditions) if conditions else "1=1"
         sql = f"SELECT * FROM memories WHERE {where} ORDER BY id DESC LIMIT ? OFFSET ?"
-        params.extend([min(limit, 500), offset])
+        # Loud clamp: a truncated read that looks complete is worse than a
+        # refused one, because the caller silently analyses the wrong window
+        # (this bit the evolution history gates and the training-data
+        # extractors, all of which request limit=5000).
+        effective_limit = min(limit, self.MAX_QUERY_LIMIT)
+        if limit > self.MAX_QUERY_LIMIT and not self._limit_clamp_issued:
+            self._limit_clamp_issued = True
+            try:
+                import logging
+                logging.warning(
+                    "query_memories(limit=%s) clamped to MAX_QUERY_LIMIT=%s "
+                    "(source=%s, event_type=%s). Paginate with offset to read "
+                    "further rows; a single call will not return more.",
+                    limit, self.MAX_QUERY_LIMIT, source, event_type,
+                )
+            except Exception:
+                pass
+        params.extend([effective_limit, offset])
 
         with self._QueryTimer(self, "query_memories"):
-            conn = self._get_conn()
-            rows = conn.execute(sql, params).fetchall()
-            conn.close()
+            # Same lock-contention retry as record_event (2026-09-27): reads
+            # block on a writer's exclusive hold (VACUUM, checkpoint, bulk
+            # DELETE, migration). Measured: a training run died 67s in on a
+            # locked extraction query while the write path would have
+            # retried. Readers get the same bounded retries; exhaustion
+            # raises like before (callers fail open).
+            last_exc = None
+            rows = []
+            for attempt in (1, 2, 3):
+                conn = None
+                try:
+                    conn = self._get_conn()
+                    rows = conn.execute(sql, params).fetchall()
+                    break
+                except sqlite3.OperationalError as exc:
+                    last_exc = exc
+                    if attempt < 3:
+                        time.sleep(float(attempt * 2))
+                        continue
+                    raise
+                finally:
+                    if conn is not None:
+                        try:
+                            conn.close()
+                        except Exception:
+                            pass
 
         results = []
         for r in rows:
@@ -623,6 +744,30 @@ class LocalMemoryStore:
                     pass
             results.append(d)
         return results
+
+    def count_memories(self, event_type: Optional[str] = None,
+                       source: Optional[str] = None) -> int:
+        """True row count for one tap, unbounded (SQL COUNT, not a capped page).
+
+        `query_memories` clamps every call to MAX_QUERY_LIMIT, so a consumer
+        that sums fetched rows reports a SAMPLE as if it were the population as
+        soon as a tap outgrows its fetch budget. Growth checks (the neural
+        loop's grade stage) need the real number: a saturated sample pins at
+        the limit and can never observe growth again.
+        """
+        conn = self._get_conn()
+        try:
+            sql = "SELECT COUNT(*) as n FROM memories WHERE 1=1"
+            params = []
+            if event_type:
+                sql += " AND event_type = ?"
+                params.append(event_type)
+            if source:
+                sql += " AND source = ?"
+                params.append(source)
+            return int(conn.execute(sql, params).fetchone()["n"])
+        finally:
+            conn.close()
 
     def search_memories(self, query: str, source: Optional[str] = None,
                         limit: int = 50) -> List[Dict]:
@@ -1629,22 +1774,12 @@ class LocalMemoryStore:
             conn.close()
 
         results = []
+        matched_ids = []
         for r in rows:
             stored_emb = json.loads(r["embedding"]) if isinstance(r["embedding"], str) else r["embedding"]
             sim = self._cosine_similarity(embedding, stored_emb)
 
-            # Update hit count for matched patterns
-            try:
-                update_conn = self._get_conn()
-                update_conn.execute(
-                    "UPDATE knowledge_patterns SET hit_count = hit_count + 1, updated_at = ? WHERE id = ?",
-                    (datetime.now(timezone.utc).isoformat(), r["id"])
-                )
-                update_conn.commit()
-                update_conn.close()
-            except Exception:
-                pass
-
+            matched_ids.append(r["id"])
             metadata_val = json.loads(r["metadata"]) if isinstance(r["metadata"], str) else r["metadata"]
             results.append({
                 "id": r["id"],
@@ -1659,7 +1794,42 @@ class LocalMemoryStore:
             })
 
         results.sort(key=lambda x: -x["similarity"])
-        return results[:top_k]
+        top = results[:top_k]
+
+        # Persist hit counts for the patterns this query matched.
+        #
+        # This used to open a NEW connection per row, never take self._lock, and
+        # swallow every failure with `except Exception: pass`. Two concurrent
+        # queries -- or a query racing a register_pattern -- therefore hit
+        # "database is locked", the error vanished, and the returned hit_count
+        # still claimed +1 for an update that never landed. Now: one batched
+        # statement, serialized on self._lock, and a failure is surfaced and the
+        # reported counts corrected rather than silently invented.
+        if matched_ids:
+            try:
+                with self._lock:
+                    upd = self._get_conn()
+                    try:
+                        stamp = datetime.now(timezone.utc).isoformat()
+                        # Chunked: SQLite caps bind variables per statement, and
+                        # the match set is the whole pattern table.
+                        for i in range(0, len(matched_ids), 500):
+                            chunk = matched_ids[i:i + 500]
+                            placeholders = ",".join("?" * len(chunk))
+                            upd.execute(
+                                "UPDATE knowledge_patterns SET hit_count = hit_count + 1, "
+                                f"updated_at = ? WHERE id IN ({placeholders})",
+                                [stamp, *chunk],
+                            )
+                        upd.commit()
+                    finally:
+                        upd.close()
+            except sqlite3.Error as exc:
+                print(f"LocalMemoryStore: hit-count update failed ({exc})")
+                for row in top:
+                    row["hit_count"] -= 1
+
+        return top
 
     def get_patterns_by_agent(self, source_agent: str,
                                pattern_type: (str | None) = None) -> list[dict[str, Any]]:
