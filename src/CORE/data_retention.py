@@ -12,16 +12,24 @@ Usage:
 __all__ = [
     "AUDIT_ARCHIVE_DAYS",
     "DB_SIZE_QUOTA_MB",
+    "DISTILLED_EVENT",
+    "DISTILLED_TTL_DAYS",
     "EVENT_TTL_DAYS",
     "LOG_ROTATE_KEEP",
     "LOG_ROTATE_MB",
+    "PROTECTED_EVENTS",
     "SESSION_ROTATION_HOURS",
+    "SPAN_TTL_DAYS",
     "TYPE_CAPS",
     "VACUUM_THRESHOLD_PCT",
     "archive_old_audit_files",
     "check_db_size_quota",
     "cmd_maintain",
+    "distill_aged_memories",
+    "distill_cap_victims",
     "enforce_event_ttl",
+    "enforce_global_quota",
+    "enforce_span_ttl",
     "enforce_type_caps",
     "newest_backup",
     "rotate_old_sessions",
@@ -33,6 +41,7 @@ __all__ = [
 
 
 import json
+import os
 import sqlite3
 import gzip
 from pathlib import Path
@@ -53,6 +62,22 @@ LOG_ROTATE_KEEP = 5          # Keep this many generations (.1 .. .5)
 # evolution pools read the most-recent <=2000 rows, well within every
 # cap below. NEVER add evolution_result / evolution_promotion (the
 # selection history) or severity-filtered rows (alert evidence).
+#
+# 2026-09-20: the store reached 984 MB (184% of the 500 MB quota) while every
+# cap below was already satisfied, so the quota check was reporting a number
+# nothing acted on. Measured by SUM(LENGTH(data)):
+#
+#   state_saved              4005 rows   316.2 MB   (avg 79 KB each!)
+#   nature_cluster_discovery  61362 rows    11.8 MB
+#   q_table_persisted         20000 rows    11.3 MB
+#   otel_spans (separate table) 112k rows   12.2 MB
+#
+# `state_saved` is MetaCognitionWorm writing its entire state object once per
+# cycle, and the FTS5 index over that JSON (memories_fts is external-content
+# with delete triggers) is most of the rest of the file. It is rolling-window
+# data by construction: the only reader takes `limit=5`
+# (meta_cognition.py:711) and monitor_learning.py only ages the newest one. So
+# keeping the newest 50 is a 10x margin on every consumer.
 TYPE_CAPS = {
     "training_complete": 20000,
     "q_table_persisted": 20000,
@@ -60,7 +85,44 @@ TYPE_CAPS = {
     "db_health_snapshot": 2000,
     "db_health_alert": 5000,
     "generation_complete": 5000,
+    # 2026-09-27: the outcome tap itself was uncapped (155k rows and
+    # climbing ~60k/night) while every consumer reads most-recent <=2000
+    # rows. 20000 is the same 10x margin as the caps above; distill-first
+    # keeps day-grain history in rollups before the trim.
+    "clusterwormz_worm_executed": 20000,
+    # Rolling-window state/telemetry writes (see measurement above).
+    "state_saved": 50,
+    "nature_cluster_discovery": 2000,
+    "nature_cluster_executed": 3000,
+    "cross_nature_route": 2000,
+    "dream_generated": 1000,
+    "strategy_adaptation": 1000,
+    "introspection_report": 500,
+    "policy_applied": 500,
 }
+
+# otel_spans lives outside `memories`, so enforce_type_caps never saw it. Spans
+# are pure telemetry (start_time is a NANOSECOND epoch) and nothing queries
+# them beyond the live OTLP viewer. 2026-09-28: 1-day horizon (was 3) --
+# steady state was ~350k rows / ~68MB for data no reader consumes.
+SPAN_TTL_DAYS = 1
+
+#: Event type for self-distillation rollups (2026-09-26). One rollup row
+#: replaces N raw rows: per (source, event_type, day) counts, error counts
+#: and first/last timestamps. Honest aggregates only — no model, no
+#: invention, so a rollup can never assert what no row said.
+DISTILLED_EVENT = "memory_distilled"
+
+#: Distilled rows outlive raw rows 4x. A year of daily rollups for a busy
+#: type is ~365 small rows; the raw rows they replace would be 100k+.
+DISTILLED_TTL_DAYS = 365
+
+#: Never distill and never quota-trim: selection history (the GA's evidence)
+#: and already-distilled rows (re-distilling would compound rounding).
+#: Severity-filtered alert evidence is excluded from TYPE_CAPS by the same
+#: rule; the quota backstop additionally spares error rows (triage reads).
+PROTECTED_EVENTS = ("evolution_result", "evolution_promotion",
+                    DISTILLED_EVENT)
 
 
 def _get_db_path() -> str:
@@ -68,13 +130,283 @@ def _get_db_path() -> str:
     return str(DB_PATH)
 
 
-def enforce_event_ttl(ttl_days: int = EVENT_TTL_DAYS) -> dict:
-    """Delete events older than ttl_days. Returns count deleted."""
+def _db_size_mb(db_path: str) -> float:
+    try:
+        return os.path.getsize(db_path) / 1e6 if os.path.exists(db_path) else 0.0
+    except OSError:
+        return 0.0
+
+
+def _chunks(items, n=500):
+    """Yield successive n-sized slices. SQLite caps bound variables per
+    statement (999 on older builds), so any id-list query must chunk —
+    measured 2026-09-27: a 190k-row victim set blew the limit."""
+    items = list(items)
+    for i in range(0, len(items), n):
+        yield items[i:i + n]
+
+
+def _resolve_db(db_path: str | None) -> str:
+    return db_path or _get_db_path()
+
+
+def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
+                          db_path: str | None = None) -> dict:
+    """Summarise TTL-bound rows into rollups BEFORE deletion removes them.
+
+    One ``memory_distilled`` row per (source, event_type, day): counts,
+    error counts, first/last timestamps, mean duration where the payload
+    carries one. Honest aggregates only — counts and extrema of rows that
+    exist, never model output. Distills the same victim set the TTL pass
+    would delete (minus protected types), so calling this first makes
+    deletion lossless at rollup granularity. Does not delete anything.
+    """
+    db = _resolve_db(db_path)
     cutoff = (datetime.now(timezone.utc) - timedelta(days=ttl_days)).isoformat()
-    conn = sqlite3.connect(_get_db_path(), timeout=5)
+    conn = sqlite3.connect(db, timeout=30)
+    try:
+        rows = conn.execute(
+            "SELECT id, source, event_type, severity, timestamp, data "
+            "FROM memories WHERE timestamp < ? AND event_type NOT IN ({})"
+            .format(",".join("?" * len(PROTECTED_EVENTS))),
+            (cutoff, *PROTECTED_EVENTS),
+        ).fetchall()
+    except Exception:
+        conn.close()
+        raise
+    groups: dict = {}
+    for _id, source, event_type, severity, ts, data in rows:
+        try:
+            day = str(ts)[:10]
+        except Exception:
+            continue
+        key = (str(source), str(event_type), day)
+        g = groups.setdefault(key, {"n": 0, "errors": 0, "first": ts,
+                                    "last": ts, "dur_sum": 0.0, "dur_n": 0})
+        g["n"] += 1
+        if str(severity).lower() == "error":
+            g["errors"] += 1
+        try:
+            if ts < g["first"]:
+                g["first"] = ts
+            if ts > g["last"]:
+                g["last"] = ts
+        except Exception:
+            pass
+        try:
+            import json as _json
+            payload = _json.loads(data) if isinstance(data, str) else {}
+            dur = payload.get("duration_ms", payload.get("avg_reward"))
+            if isinstance(dur, (int, float)):
+                g["dur_sum"] += float(dur)
+                g["dur_n"] += 1
+        except Exception:
+            pass
+    now = datetime.now(timezone.utc).isoformat()
+    wrote = 0
+    for (source, event_type, day), g in groups.items():
+        rollup = {"distilled": {"source": source, "event_type": event_type,
+                                "day": day},
+                  "count": g["n"], "errors": g["errors"],
+                  "first_ts": g["first"], "last_ts": g["last"]}
+        if g["dur_n"]:
+            rollup["mean_value"] = round(g["dur_sum"] / g["dur_n"], 4)
+            rollup["value_n"] = g["dur_n"]
+        try:
+            conn.execute(
+                "INSERT INTO memories (session_id, source, event_type, data,"
+                " severity, tags, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                ("retention", "retention", DISTILLED_EVENT,
+                 json.dumps(rollup, ensure_ascii=False, default=str),
+                 "info", '["retention", "distilled"]', now),
+            )
+            wrote += 1
+        except Exception:
+            continue
+    conn.commit()
+    conn.close()
+    return {"groups": len(groups),
+            "rows_summarized": sum(g["n"] for g in groups.values()),
+            "rollups": wrote, "cutoff": cutoff}
+
+
+def distill_cap_victims(caps: dict = None,
+                        db_path: str | None = None) -> dict:
+    """Roll up rows that enforce_type_caps is about to delete.
+
+    Caps delete everything older than the newest N per type with no
+    summarization — the 135k-row worm-tap trim would vaporize history no
+    rollup ever saw (TTL only covers aged rows; cap victims can be young).
+    Same rollup contract as distill_aged_memories, scoped to beyond-keep-N
+    rows of capped types. Protected types are never capped, hence never
+    victims here either.
+    """
+    caps = caps if caps is not None else TYPE_CAPS
+    db = _resolve_db(db_path)
+    conn = sqlite3.connect(db, timeout=30)
+    total = 0
+    groups = 0
+    try:
+        for event_type, keep in caps.items():
+            if event_type in PROTECTED_EVENTS:
+                continue  # defense in depth: selection history and existing
+                # rollups are never cap victims, no matter what caps say.
+            # No id-list: beyond-keep-N expressed as a NOT IN subquery, so
+            # 190k-row victim sets never hit the per-statement variable cap
+            # (measured 2026-09-27).
+            vic = conn.execute(
+                "SELECT source, event_type, substr(timestamp, 1, 10), "
+                "COUNT(*), SUM(CASE WHEN severity = 'error' THEN 1 ELSE 0 END),"
+                " MIN(timestamp), MAX(timestamp) FROM memories "
+                "WHERE event_type = ? AND id NOT IN (SELECT id FROM memories "
+                "WHERE event_type = ? ORDER BY id DESC LIMIT ?) "
+                "GROUP BY 1, 2, 3",
+                (event_type, event_type, keep)).fetchall()
+            now = datetime.now(timezone.utc).isoformat()
+            for source, ev, day, n, errs, first, last in vic:
+                conn.execute(
+                    "INSERT INTO memories (session_id, source, event_type,"
+                    " data, severity, tags, timestamp) VALUES (?, ?, ?, ?,"
+                    " ?, ?, ?)",
+                    ("retention", "retention", DISTILLED_EVENT,
+                     json.dumps({"distilled": {"source": str(source),
+                                               "event_type": str(ev),
+                                               "day": str(day)},
+                                 "count": n, "errors": errs or 0,
+                                 "first_ts": first, "last_ts": last,
+                                 "via": "cap_distill"},
+                                ensure_ascii=False, default=str),
+                     "info", '["retention", "distilled"]', now))
+                groups += 1
+                total += n
+        conn.commit()
+    finally:
+        conn.close()
+    return {"groups": groups, "rows_summarized": total}
+
+
+def enforce_global_quota(quota_mb: int = DB_SIZE_QUOTA_MB,
+                         db_path: str | None = None,
+                         max_batches: int = 10,
+                         batch: int = 5000) -> dict:
+    """Backstop: keep total file size under quota. Distill-then-delete.
+
+    TYPE_CAPS bound listed types and TTL bounds age, but neither bounds the
+    TOTAL: uncapped types at high write rates overflowed the quota with every
+    cap satisfied (09-20: 984MB at 184%). This deletes oldest-first from the
+    largest unprotected types until under quota — distilling each batch into
+    rollups first, sparing protected events and error rows, at most
+    ``max_batches`` batches per run so one pass cannot cliff the store.
+    Reports honestly when eligible rows run out before the quota is met.
+    """
+    db = _resolve_db(db_path)
+    freed_est = 0
+    batches = 0
+    trimmed: dict = {}
+    while _db_size_mb(db) - freed_est / 1e6 > quota_mb and batches < max_batches:
+        conn = sqlite3.connect(db, timeout=30)
+        try:
+            row = conn.execute(
+                "SELECT event_type, SUM(LENGTH(data)) FROM memories "
+                "WHERE event_type NOT IN ({}) AND severity NOT IN "
+                "('error', 'alert', 'critical') "
+                "GROUP BY event_type ORDER BY 2 DESC LIMIT 1".format(
+                    ",".join("?" * len(PROTECTED_EVENTS))),
+                (*PROTECTED_EVENTS,),
+            ).fetchone()
+            if not row:
+                conn.close()
+                break
+            victim_type = row[0]
+            ids = [r[0] for r in conn.execute(
+                "SELECT id FROM memories WHERE event_type = ? "
+                "AND severity NOT IN ('error', 'alert', 'critical') "
+                "ORDER BY id ASC LIMIT ?", (victim_type, batch))]
+            if not ids:
+                conn.close()
+                break
+            freed_est += sum(
+                conn.execute(
+                    "SELECT SUM(LENGTH(data)) FROM memories WHERE id IN ({})"
+                    .format(",".join("?" * len(chunk))), (*chunk,)
+                ).fetchone()[0] or 0
+                for chunk in _chunks(ids))
+            conn.close()
+        except Exception as e:
+            try:
+                conn.close()
+            except Exception:
+                pass
+            return {"enforced": False, "error": str(e)[:200],
+                    "freed_est_mb": round(freed_est / 1e6, 2)}
+        # Distill this batch's span before deleting (same rollup contract:
+        # per source/event/day counts + extrema, honest aggregates only).
+        conn = sqlite3.connect(db, timeout=30)
+        try:
+            vic_rows = []
+            for chunk in _chunks(ids):
+                placeholders = ",".join("?" * len(chunk))
+                vic_rows.extend(conn.execute(
+                    "SELECT source, event_type, substr(timestamp, 1, 10), "
+                    "COUNT(*), SUM(CASE WHEN severity = 'error' THEN 1 ELSE 0 END),"
+                    " MIN(timestamp), MAX(timestamp) FROM memories "
+                    "WHERE id IN ({}) GROUP BY 1, 2, 3".format(placeholders),
+                    (*chunk,)).fetchall())
+            now = datetime.now(timezone.utc).isoformat()
+            for source, event_type, day, n, errs, first, last in vic_rows:
+                conn.execute(
+                    "INSERT INTO memories (session_id, source, event_type,"
+                    " data, severity, tags, timestamp) VALUES (?, ?, ?, ?,"
+                    " ?, ?, ?)",
+                    ("retention", "retention", DISTILLED_EVENT,
+                     json.dumps({"distilled": {"source": str(source),
+                                               "event_type": str(event_type),
+                                               "day": str(day)},
+                                 "count": n, "errors": errs or 0,
+                                 "first_ts": first, "last_ts": last,
+                                 "via": "quota_backstop"},
+                                ensure_ascii=False, default=str),
+                     "info", '["retention", "distilled"]', now))
+            for chunk in _chunks(ids):
+                conn.execute("DELETE FROM memories WHERE id IN ({})"
+                             .format(",".join("?" * len(chunk))), (*chunk,))
+            conn.commit()
+            trimmed[victim_type] = trimmed.get(victim_type, 0) + len(ids)
+            batches += 1
+        finally:
+            conn.close()
+    size = _db_size_mb(db)
+    return {"enforced": size <= quota_mb, "size_mb": round(size, 1),
+            "quota_mb": quota_mb, "batches": batches,
+            "trimmed": trimmed,
+            "freed_est_mb": round(freed_est / 1e6, 2)}
+
+
+def enforce_event_ttl(ttl_days: int = EVENT_TTL_DAYS,
+                      db_path: str | None = None) -> dict:
+    """Delete events older than ttl_days. Returns count deleted.
+
+    Distilled rollups carry a longer horizon (DISTILLED_TTL_DAYS): they are
+    the compressed form of deleted history, so aging them out at the raw
+    90-day horizon would defeat the distillation. Selection history
+    (PROTECTED_EVENTS) is spared entirely, matching the TYPE_CAPS rule
+    above: the GA's evidence must never be aged out from under it.
+    """
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=ttl_days)).isoformat()
+    distilled_cutoff = (datetime.now(timezone.utc)
+                        - timedelta(days=DISTILLED_TTL_DAYS)).isoformat()
+    # Distilled rows are protected members with their own horizon, so they
+    # need the age clause, not the blanket exemption, or rollups would
+    # accumulate forever.
+    hard_spared = tuple(e for e in PROTECTED_EVENTS if e != DISTILLED_EVENT)
+    conn = sqlite3.connect(_resolve_db(db_path), timeout=30)
     try:
         cursor = conn.execute(
-            "DELETE FROM memories WHERE timestamp < ?", (cutoff,)
+            "DELETE FROM memories WHERE timestamp < ? "
+            "AND event_type NOT IN ({}) AND NOT "
+            "(event_type = ? AND timestamp >= ?)".format(
+                ",".join("?" * len(hard_spared)) or "''"),
+            (cutoff, *hard_spared, DISTILLED_EVENT, distilled_cutoff),
         )
         deleted = cursor.rowcount
         conn.commit()
@@ -89,7 +421,8 @@ def enforce_event_ttl(ttl_days: int = EVENT_TTL_DAYS) -> dict:
         conn.close()
 
 
-def enforce_type_caps(caps: dict = None) -> dict:
+def enforce_type_caps(caps: dict = None,
+                      db_path: str | None = None) -> dict:
     """Keep-last-N trim per high-volume bookkeeping event_type.
 
     Deletes rows older than the newest N of each capped type. Runs in one
@@ -99,7 +432,7 @@ def enforce_type_caps(caps: dict = None) -> dict:
     the SELECT in cmd_maintain before enabling.
     """
     caps = caps if caps is not None else TYPE_CAPS
-    conn = sqlite3.connect(_get_db_path(), timeout=30)
+    conn = sqlite3.connect(_resolve_db(db_path), timeout=30)
     deleted: dict = {}
     try:
         for event_type, keep in caps.items():
@@ -112,6 +445,29 @@ def enforce_type_caps(caps: dict = None) -> dict:
             deleted[event_type] = cur.rowcount
         conn.commit()
         return {"deleted": deleted, "total": sum(deleted.values())}
+    finally:
+        conn.close()
+
+
+def enforce_span_ttl(ttl_days: int = SPAN_TTL_DAYS) -> dict:
+    """Delete OTel spans older than ttl_days. Returns count deleted.
+
+    `otel_spans` is not a `memories` event_type, so the type-cap mechanism
+    above cannot reach it — without this it grew unbounded (112k rows).
+    start_time is a nanosecond epoch, so the cutoff is scaled to match.
+    """
+    cutoff_ns = int(
+        (datetime.now(timezone.utc) - timedelta(days=ttl_days)).timestamp()
+        * 1_000_000_000
+    )
+    conn = sqlite3.connect(_get_db_path(), timeout=30)
+    try:
+        cursor = conn.execute(
+            "DELETE FROM otel_spans WHERE start_time < ?", (cutoff_ns,)
+        )
+        deleted = cursor.rowcount
+        conn.commit()
+        return {"spans_deleted": deleted, "ttl_days": ttl_days}
     finally:
         conn.close()
 
@@ -183,7 +539,7 @@ def vacuum_if_needed() -> dict:
 
 def wal_checkpoint() -> dict:
     """Run WAL checkpoint to keep WAL file bounded."""
-    conn = sqlite3.connect(_get_db_path(), timeout=5)
+    conn = sqlite3.connect(_get_db_path(), timeout=30)
     try:
         before = Path(_get_db_path()).with_suffix(".db-wal").stat().st_size if Path(_get_db_path()).with_suffix(".db-wal").exists() else 0
         conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
@@ -410,10 +766,14 @@ def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,
     return {"rotated": rotated, "skipped": skipped, "log_dir": str(d)}
 
 
-def run_maintenance() -> dict:
+def run_maintenance(light: bool = False) -> dict:
     """Run all maintenance tasks in sequence.
-    
+
     Returns dict with results of each task.
+
+    light=True skips the heavy writers (quota backstop batches, VACUUM):
+    used when the chain fired recently and the DB lock is contested. TTL
+    and type caps are small indexed deletes and always run.
     """
     results = {}
     # Backup FIRST (2026-09-10): the pre-maintenance snapshot is the
@@ -424,6 +784,10 @@ def run_maintenance() -> dict:
     except Exception as e:
         results["db_backup"] = {"error": str(e)}
     try:
+        results["distilled"] = distill_aged_memories()
+    except Exception as e:
+        results["distilled"] = {"error": str(e)}
+    try:
         results["event_ttl"] = enforce_event_ttl()
     except Exception as e:
         results["event_ttl"] = {"error": str(e)}
@@ -432,9 +796,45 @@ def run_maintenance() -> dict:
     except Exception as e:
         results["session_rotation"] = {"error": str(e)}
     try:
+        # Distill cap victims BEFORE the trim below deletes them: cap
+        # victims can be young (TTL never saw them), so without this the
+        # first bounded trim vaporizes history no rollup ever summarized.
+        results["cap_distilled"] = distill_cap_victims()
+    except Exception as e:
+        results["cap_distilled"] = {"error": str(e)}
+    try:
         results["type_caps"] = enforce_type_caps()
     except Exception as e:
         results["type_caps"] = {"error": str(e)}
+    try:
+        results["span_ttl"] = enforce_span_ttl()
+    except Exception as e:
+        results["span_ttl"] = {"error": str(e)}
+    try:
+        # Backstop AFTER the targeted passes: caps/TTL bound listed types
+        # and age, but neither bounds the total (09-20: 984MB with every
+        # cap satisfied). Distill-then-delete oldest-first from the largest
+        # unprotected types until under quota.
+        if light:
+            results["quota_backstop"] = {"skipped": "chain-active window"}
+        else:
+            results["quota_backstop"] = enforce_global_quota()
+    except Exception as e:
+        results["quota_backstop"] = {"error": str(e)}
+    try:
+        # Memory-store retention (2026-09-27): the store's own size warning
+        # (586MB against a 400MB threshold) had no scheduled remedy --
+        # purge_old() is the documented one, and the pre-prune snapshot is
+        # the backup taken first in this same run. Heavy pass only: the first
+        # run can delete years of rows and must not race the chain's writers.
+        if light:
+            results["memory_purge"] = {"skipped": "chain-active window"}
+        else:
+            from CORE.local_memory import get_memory_store
+            results["memory_purge"] = {
+                "purged": get_memory_store().purge_old(days=90)}
+    except Exception as e:
+        results["memory_purge"] = {"error": str(e)}
     try:
         results["db_quota"] = check_db_size_quota()
     except Exception as e:
@@ -444,7 +844,10 @@ def run_maintenance() -> dict:
     except Exception as e:
         results["audit_archive"] = {"error": str(e)}
     try:
-        results["vacuum"] = vacuum_if_needed()
+        if light:
+            results["vacuum"] = {"skipped": "chain-active window"}
+        else:
+            results["vacuum"] = vacuum_if_needed()
     except Exception as e:
         results["vacuum"] = {"error": str(e)}
     try:
