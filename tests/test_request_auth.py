@@ -118,13 +118,29 @@ class TestTokenManagement(unittest.TestCase):
         self.assertTrue(authorized)
         self.assertIn("checks", data)
 
-    def test_validate_action_modifying_without_broker(self):
-        """Modifying actions should still authorize when broker is unavailable."""
-        # The broker is checked via gate_passed() which may not be available
+    def test_validate_action_modifying_runs_the_full_gate(self):
+        """A modifying action runs every gate check, and the broker gate is binding.
+
+        This test previously asserted the OPPOSITE -- that
+        `validate_action("str_replace", "test.py")` authorizes with no Gemini
+        evidence and no asserted gate ("Broker not loaded = non-blocking").
+        Measured on 2026-09-29: authorized=False with `inference_cache` /
+        `state_machine` / `anti_pattern_scan` PASSING and `gemini_spawned` and
+        `broker_gate` failing. The old expectation also depended on live
+        compliance state, so it was true or false by environment rather than by
+        code. Asserting the invariant below holds either way.
+        """
         authorized, data = validate_action("str_replace", "test.py")
-        # Should run through validation (result depends on broker availability)
         self.assertIn("checks", data)
-        self.assertTrue(authorized)  # Broker not loaded = non-blocking
+        checks = data["checks"]
+        for name in ("inference_cache", "state_machine",
+                     "gemini_spawned", "broker_gate"):
+            self.assertIn(name, checks, f"check '{name}' did not run")
+        # RULE 0G evidence and an asserted broker gate are BOTH binding for a
+        # modifying action: while the broker gate is unpassed, no combination of
+        # the other checks may authorize the write.
+        if not checks["broker_gate"]["passed"]:
+            self.assertFalse(authorized)
 
 
 @_HAS_DEPS
