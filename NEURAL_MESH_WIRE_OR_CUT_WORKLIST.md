@@ -6,7 +6,7 @@ and running this does not change a status. Decide, then set the status in the ta
 
 | Class | Pending | What it means |
 |---|---|---|
-| `test_reached_only` | 51 | a test names it, so it is exercised -- decide whether the test is the wire or the function should also be reachable from production |
+| `test_reached_only` | 53 | a test names it, so it is exercised -- decide whether the test is the wire or the function should also be reachable from production |
 | `no_reference_anywhere` | 56 | nothing in the tree names it, not even a test -- the candidate pool for retirement, or for explicit wiring |
 
 The same rows, by the fact that decides them. A class is how the row was measured; a decider is what to act on:
@@ -16,10 +16,10 @@ The same rows, by the fact that decides them. A class is how the row was measure
 | `protocol_or_override` | 0 | the same name is defined by another class in the tree, so a caller can reach it through a base or an interface -- keep or retire, but a name-based reference search can never settle it |
 | `declared_in_data` | 7 | a non-Python artifact names it -- a registry cache, capability map, stage manifest or config. The reference index reads Python source only, so this is a wire the probe structurally cannot see, and the row must not be cut on its evidence |
 | `dynamic_call` | 8 | the defining module builds a call target at runtime (`getattr` with a computed name), so 'no reference' is the probe's limit, not proof of death -- wire explicitly or leave, but do not cut on this evidence |
-| `test_is_the_wire` | 45 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
+| `test_is_the_wire` | 47 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
 | `dead_candidate` | 47 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
 
-## test_reached_only (51)
+## test_reached_only (53)
 
 - [ ] `NeuralPipeline:NeuralPipeline.replay_failed` (`NeuralPipeline:709`) -- reached by tests/test_replay_failed.py:42, tests/test_replay_failed.py:53, tests/test_replay_failed.py:47 [test_is_the_wire: tests/test_replay_failed.py:42; tests/test_replay_failed.py:53; tests/test_replay_failed.py:47]
 - [ ] `chorus:FailureDigest.from_analysis` (`chorus:76`) -- reached by tests/test_proteus_organs.py:718 [test_is_the_wire: tests/test_proteus_organs.py:718]
@@ -56,19 +56,21 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `scheduling:TrainingOrchestrator.get_run_history` (`scheduling:1105`) -- reached by tests/test_training_orchestrator.py:95 [test_is_the_wire: tests/test_training_orchestrator.py:95]
 - [ ] `spine:MorphogenesisWorm.retrieve_staged` (`spine:3708`) -- reached by tests/test_contract_pinning.py:77, tests/test_contract_pinning.py:81 [dynamic_call: src/CORE/WORMS/expansion/spine.py]
 - [ ] `spine:measure_skill_lift` (`spine:3862`) -- reached by tests/test_contract_pinning.py:110, tests/test_contract_pinning.py:112 [dynamic_call: src/CORE/WORMS/expansion/spine.py]
-- [ ] `spine_registry:audit_state` (`spine_registry:2083`) -- reached by tests/test_brainstem_playing_field.py:230 [test_is_the_wire: tests/test_brainstem_playing_field.py:230]
-- [ ] `spine_registry:get_gossip_trust_state` (`spine_registry:3288`) -- reached by tests/test_gossip_trust_allowlist.py:243, tests/test_spine_mesh.py:1091, tests/test_spine_mesh.py:1133 [test_is_the_wire: tests/test_gossip_trust_allowlist.py:243; tests/test_spine_mesh.py:1091; tests/test_spine_mesh.py:1133]
-- [ ] `spine_registry:get_module_health` (`spine_registry:2958`) -- reached by tests/test_spine_mesh.py:290 [test_is_the_wire: tests/test_spine_mesh.py:290]
-- [ ] `spine_registry:get_q_evidence` (`spine_registry:1969`) -- reached by tests/test_brainstem_playing_field.py:123, tests/test_brainstem_playing_field.py:131, tests/test_brainstem_playing_field.py:157 [test_is_the_wire: tests/test_brainstem_playing_field.py:123; tests/test_brainstem_playing_field.py:131; tests/test_brainstem_playing_field.py:157]
-- [ ] `spine_registry:get_q_updates` (`spine_registry:1705`) -- reached by tests/test_spine_brainstem_persistence.py:49, tests/test_spine_brainstem_persistence.py:53, tests/test_spine_brainstem_persistence.py:55 [test_is_the_wire: tests/test_spine_brainstem_persistence.py:49; tests/test_spine_brainstem_persistence.py:53; tests/test_spine_brainstem_persistence.py:55]
-- [ ] `spine_registry:homeostat_reset` (`spine_registry:2769`) -- reached by tests/test_spine_mesh.py:105, tests/test_spine_mesh.py:116, tests/test_spine_mesh.py:131 [test_is_the_wire: tests/test_spine_mesh.py:105; tests/test_spine_mesh.py:116; tests/test_spine_mesh.py:131]
-- [ ] `spine_registry:purge_fixtures` (`spine_registry:2139`) -- reached by tests/test_brainstem_playing_field.py:241, tests/test_spine_tombstone_enforcement.py:84, tests/test_spine_tombstone_enforcement.py:91 [test_is_the_wire: tests/test_brainstem_playing_field.py:241; tests/test_spine_tombstone_enforcement.py:84; tests/test_spine_tombstone_enforcement.py:91]
-- [ ] `spine_registry:purge_implausible_stamps` (`spine_registry:2880`) -- reached by tests/test_mesh_clock_poison.py:232, tests/test_mesh_clock_poison.py:237, tests/test_mesh_clock_poison.py:286 [test_is_the_wire: tests/test_mesh_clock_poison.py:232; tests/test_mesh_clock_poison.py:237; tests/test_mesh_clock_poison.py:286]
-- [ ] `spine_registry:purged_blocked_writes` (`spine_registry:373`) -- reached by tests/test_spine_tombstone_enforcement.py:107, tests/test_spine_tombstone_enforcement.py:126, tests/test_spine_tombstone_enforcement.py:128 [test_is_the_wire: tests/test_spine_tombstone_enforcement.py:107; tests/test_spine_tombstone_enforcement.py:126; tests/test_spine_tombstone_enforcement.py:128]
-- [ ] `spine_registry:q_confidence` (`spine_registry:1923`) -- reached by tests/test_nature_integration_map.py:75 [test_is_the_wire: tests/test_nature_integration_map.py:75]
-- [ ] `spine_registry:revert_policy` (`spine_registry:2801`) -- reached by tests/test_spine_mesh.py:697 [test_is_the_wire: tests/test_spine_mesh.py:697]
-- [ ] `spine_registry:route_weight_range` (`spine_registry:2395`) -- reached by tests/test_brainstem_playing_field.py:318, tests/test_brainstem_playing_field.py:331, tests/test_brainstem_playing_field.py:342 [test_is_the_wire: tests/test_brainstem_playing_field.py:318; tests/test_brainstem_playing_field.py:331; tests/test_brainstem_playing_field.py:342]
-- [ ] `spine_registry:spine_reset` (`spine_registry:2842`) -- reached by tests/test_colour_queens.py:49, tests/test_colour_queens.py:51, tests/test_federated_robustness.py:37 [test_is_the_wire: tests/test_colour_queens.py:49; tests/test_colour_queens.py:51; tests/test_federated_robustness.py:37]
+- [ ] `spine_registry:audit_state` (`spine_registry:2218`) -- reached by tests/test_brainstem_playing_field.py:230 [test_is_the_wire: tests/test_brainstem_playing_field.py:230]
+- [ ] `spine_registry:counter_floor_report` (`spine_registry:2182`) -- reached by tests/test_spine_brainstem_persistence.py:563 [test_is_the_wire: tests/test_spine_brainstem_persistence.py:563]
+- [ ] `spine_registry:get_gossip_trust_state` (`spine_registry:3475`) -- reached by tests/test_gossip_trust_allowlist.py:243, tests/test_spine_mesh.py:1091, tests/test_spine_mesh.py:1133 [test_is_the_wire: tests/test_gossip_trust_allowlist.py:243; tests/test_spine_mesh.py:1091; tests/test_spine_mesh.py:1133]
+- [ ] `spine_registry:get_module_health` (`spine_registry:3145`) -- reached by tests/test_spine_mesh.py:290 [test_is_the_wire: tests/test_spine_mesh.py:290]
+- [ ] `spine_registry:get_q_evidence` (`spine_registry:2029`) -- reached by tests/test_brainstem_playing_field.py:123, tests/test_brainstem_playing_field.py:131, tests/test_brainstem_playing_field.py:157 [test_is_the_wire: tests/test_brainstem_playing_field.py:123; tests/test_brainstem_playing_field.py:131; tests/test_brainstem_playing_field.py:157]
+- [ ] `spine_registry:get_q_updates` (`spine_registry:1765`) -- reached by tests/test_spine_brainstem_persistence.py:49, tests/test_spine_brainstem_persistence.py:53, tests/test_spine_brainstem_persistence.py:55 [test_is_the_wire: tests/test_spine_brainstem_persistence.py:49; tests/test_spine_brainstem_persistence.py:53; tests/test_spine_brainstem_persistence.py:55]
+- [ ] `spine_registry:homeostat_reset` (`spine_registry:2949`) -- reached by tests/test_spine_mesh.py:105, tests/test_spine_mesh.py:116, tests/test_spine_mesh.py:131 [test_is_the_wire: tests/test_spine_mesh.py:105; tests/test_spine_mesh.py:116; tests/test_spine_mesh.py:131]
+- [ ] `spine_registry:purge_fixtures` (`spine_registry:2274`) -- reached by tests/test_brainstem_playing_field.py:241, tests/test_spine_tombstone_enforcement.py:84, tests/test_spine_tombstone_enforcement.py:91 [test_is_the_wire: tests/test_brainstem_playing_field.py:241; tests/test_spine_tombstone_enforcement.py:84; tests/test_spine_tombstone_enforcement.py:91]
+- [ ] `spine_registry:purge_implausible_stamps` (`spine_registry:3067`) -- reached by tests/test_mesh_clock_poison.py:232, tests/test_mesh_clock_poison.py:237, tests/test_mesh_clock_poison.py:286 [test_is_the_wire: tests/test_mesh_clock_poison.py:232; tests/test_mesh_clock_poison.py:237; tests/test_mesh_clock_poison.py:286]
+- [ ] `spine_registry:purged_blocked_writes` (`spine_registry:414`) -- reached by tests/test_spine_tombstone_enforcement.py:107, tests/test_spine_tombstone_enforcement.py:126, tests/test_spine_tombstone_enforcement.py:128 [test_is_the_wire: tests/test_spine_tombstone_enforcement.py:107; tests/test_spine_tombstone_enforcement.py:126; tests/test_spine_tombstone_enforcement.py:128]
+- [ ] `spine_registry:q_confidence` (`spine_registry:1983`) -- reached by tests/test_nature_integration_map.py:75 [test_is_the_wire: tests/test_nature_integration_map.py:75]
+- [ ] `spine_registry:reset_counters` (`spine_registry:2132`) -- reached by tests/test_spine_brainstem_persistence.py:509, tests/test_spine_brainstem_persistence.py:526, tests/test_spine_brainstem_persistence.py:544 [test_is_the_wire: tests/test_spine_brainstem_persistence.py:509; tests/test_spine_brainstem_persistence.py:526; tests/test_spine_brainstem_persistence.py:544]
+- [ ] `spine_registry:revert_policy` (`spine_registry:2981`) -- reached by tests/test_spine_mesh.py:697 [test_is_the_wire: tests/test_spine_mesh.py:697]
+- [ ] `spine_registry:route_weight_range` (`spine_registry:2562`) -- reached by tests/test_brainstem_playing_field.py:318, tests/test_brainstem_playing_field.py:331, tests/test_brainstem_playing_field.py:342 [test_is_the_wire: tests/test_brainstem_playing_field.py:318; tests/test_brainstem_playing_field.py:331; tests/test_brainstem_playing_field.py:342]
+- [ ] `spine_registry:spine_reset` (`spine_registry:3022`) -- reached by tests/test_colour_queens.py:49, tests/test_colour_queens.py:51, tests/test_federated_robustness.py:37 [test_is_the_wire: tests/test_colour_queens.py:49; tests/test_colour_queens.py:51; tests/test_federated_robustness.py:37]
 - [ ] `synapse:MoEDispatcherWorm.dispatch_cascade` (`synapse:258`) -- reached by tests/test_spine_mesh.py:1020, tests/test_spine_mesh.py:1046 [dynamic_call: src/CORE/WORMS/expansion/synapse.py]
 - [ ] `synapse:SSMSequenceWorm.train_error` (`synapse:450`) -- reached by tests/test_spine_mesh.py:1063 [dynamic_call: src/CORE/WORMS/expansion/synapse.py]
 - [ ] `tensorgene:boruta_relevance` (`tensorgene:89`) -- reached by tests/test_boruta_relevance.py:27, tests/test_boruta_relevance.py:34, tests/test_boruta_relevance.py:40 [test_is_the_wire: tests/test_boruta_relevance.py:27; tests/test_boruta_relevance.py:34; tests/test_boruta_relevance.py:40]
@@ -116,9 +118,9 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `session_state:SessionStateManager.register_worm_state` (`session_state:130`) [dead_candidate]
 - [ ] `session_state:SessionStateManager.unregister_worm_state` (`session_state:178`) [dead_candidate]
 - [ ] `spine:SpineCycleWorm._nature_success_rate` (`spine:2586`) [dynamic_call: src/CORE/WORMS/expansion/spine.py]
-- [ ] `spine_registry:_iso_or` (`spine_registry:3415`) [dead_candidate]
-- [ ] `spine_registry:get_q_variance` (`spine_registry:1835`) [dead_candidate]
-- [ ] `spine_registry:route_last_at` (`spine_registry:2362`) [dead_candidate]
+- [ ] `spine_registry:_iso_or` (`spine_registry:3602`) [dead_candidate]
+- [ ] `spine_registry:get_q_variance` (`spine_registry:1895`) [dead_candidate]
+- [ ] `spine_registry:route_last_at` (`spine_registry:2529`) [dead_candidate]
 - [ ] `synapse:MoEDispatcherWorm.top_expert` (`synapse:253`) [dynamic_call: src/CORE/WORMS/expansion/synapse.py]
 - [ ] `telemetry:AlertEscalator.clear_alert` (`telemetry:221`) [dead_candidate]
 - [ ] `telemetry:EventRouter.get_recent_events` (`telemetry:187`) [dead_candidate]

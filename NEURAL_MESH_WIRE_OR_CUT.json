@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-09-29T09:25:24.385002",
+ "generated_at": "2026-09-29T10:27:25.713285",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 0,
   "dispatched": 62,
-  "pending": 107
+  "pending": 109
  },
- "total": 169,
+ "total": 171,
  "declared": {
   "NeuralPipeline:NeuralPipeline.replay_failed": {
    "module": "NeuralPipeline",
@@ -438,8 +438,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/mesh.py:362, src/CORE/WORMS/expansion/mesh.py:365, src/CORE/cli_completion.py:26), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/expansion/mesh.py:383",
-    "src/CORE/WORMS/expansion/mesh.py:386",
+    "src/CORE/WORMS/expansion/mesh.py:433",
+    "src/CORE/WORMS/expansion/mesh.py:436",
     "src/CORE/cli_completion.py:26"
    ],
    "seg": "def merge(self, chunks: dict[str, str]) -> dict[str, Any]:\n        with self._lock:\n            # deterministic order = sorted keys; per-chunk fair share\n            keys = sorted(chunks.keys())\n            per = max(256, self._budget // max(1, len(keys)))\n            parts = []\n            for k in keys:\n                parts.append(f\"[{k}]\\n{chunks[k][:per]}\")\n            out = \"\\n\\n\".join(parts)[:self._budget]\n            self._merges += 1\n            return {\"success\": True, \"chars\": len(out), \"sources\": keys,\n                    \"merges\": self._merges, \"text\": out[:500]}"
@@ -1661,7 +1661,7 @@
    "line": 2586,
    "seg": "def _nature_success_rate(self, nature: str) -> float | None:\n        return self._nature_rates().get(nature)",
    "status": "pending",
-   "reason": "",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "decider": "dynamic_call",
@@ -1689,7 +1689,7 @@
   "spine_registry:_iso_or": {
    "module": "spine_registry",
    "qualname": "_iso_or",
-   "line": 3415,
+   "line": 3602,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -1701,7 +1701,7 @@
   "spine_registry:audit_state": {
    "module": "spine_registry",
    "qualname": "audit_state",
-   "line": 2083,
+   "line": 2218,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1714,10 +1714,26 @@
     "tests/test_brainstem_playing_field.py:230"
    ]
   },
+  "spine_registry:counter_floor_report": {
+   "module": "spine_registry",
+   "qualname": "counter_floor_report",
+   "line": 2182,
+   "seg": "def counter_floor_report() -> Dict[str, Any]:\n    \"\"\"Which keys carry a recorded counter reset, and where each one stands.\n\n    Reports `resets_in_force`, not a suppressed total. The number of\n    observations a floor kept out of the ledger is not recoverable afterwards\n    -- the clamp discards the incoming value, so by the time anything reads\n    this there is no \"before\" left to subtract, and a total computed from the\n    floor alone would be 0 for every key whether the reset worked or the fold-in\n    quietly won. That distinction is the one a reader needs, so the pre-reset\n    value goes to the policy journal in `reset_counters`, where it is a fact\n    about a moment rather than a number that drifts.\n    \"\"\"\n    _ensure_loaded()\n    with _HOMEOSTAT_LOCK:\n        rows = {}\n        for key, floors in sorted(_COUNTER_FLOOR.items()):\n            rec = _HOMEOSTAT.get(key) or {}\n            current = {f: int(rec.get(f) or 0)\n                       for f in (\"successes\", \"failures\")}\n            rows[key] = {\"floor\": dict(floors), \"current\": current,\n                         \"at_floor\": all(current.get(f) == int(floors.get(f, 0))\n                                         for f in (\"successes\", \"failures\"))}\n    return {\"resets_in_force\": len(rows), \"keys\": rows}",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_spine_brainstem_persistence.py:563"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_spine_brainstem_persistence.py:563"
+   ]
+  },
   "spine_registry:get_gossip_trust_state": {
    "module": "spine_registry",
    "qualname": "get_gossip_trust_state",
-   "line": 3288,
+   "line": 3475,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1737,7 +1753,7 @@
   "spine_registry:get_module_health": {
    "module": "spine_registry",
    "qualname": "get_module_health",
-   "line": 2958,
+   "line": 3145,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1753,7 +1769,7 @@
   "spine_registry:get_policy_latest": {
    "module": "spine_registry",
    "qualname": "get_policy_latest",
-   "line": 481,
+   "line": 522,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:297), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -1764,7 +1780,7 @@
   "spine_registry:get_q_evidence": {
    "module": "spine_registry",
    "qualname": "get_q_evidence",
-   "line": 1969,
+   "line": 2029,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1784,7 +1800,7 @@
   "spine_registry:get_q_updates": {
    "module": "spine_registry",
    "qualname": "get_q_updates",
-   "line": 1705,
+   "line": 1765,
    "seg": "def get_q_updates(nature: str, worm: str) -> int:\n    \"\"\"How many times this key has ever been reinforced. 0 if never.\n\n    Added 2026-09-14 for elastic AOA arm selection. ``get_q_weight()``\n    returns 0.0 for an unknown key and for a known key that has settled on\n    a neutral 0.0 -- so a *proven neutral* arm is indistinguishable from a\n    *never-tried* one by Q alone. Any selector that ranks on Q therefore\n    starves untried arms permanently: they score 0, are never chosen, and\n    so are never scored (the cold-start collapse four live inference\n    providers independently flagged).\n\n    The count already existed as ``_Q_UPDATE_COUNTS`` (used to drive the\n    Welford variance in ``_reinforce_q_unlocked``); this exposes it\n    read-only so a caller can distinguish \"unknown\" from \"measured\" and\n    apply a minimum-pull quota before trusting Q.\n    \"\"\"\n    _ensure_loaded()\n    with _HOMEOSTAT_LOCK:\n        return int(_Q_UPDATE_COUNTS.get(f\"{nature}:{worm}\", 0))",
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1804,7 +1820,7 @@
   "spine_registry:get_q_variance": {
    "module": "spine_registry",
    "qualname": "get_q_variance",
-   "line": 1835,
+   "line": 1895,
    "seg": "def get_q_variance() -> Dict[str, float]:\n    \"\"\"Copy of the per-key variance of the applied learning signal.\n\n    Exposed because it is the module's only uncertainty estimate and it was\n    previously unreachable from outside -- computed on every update, persisted,\n    gossiped, and readable by nothing but adaptive alpha. A caller that wants\n    to know *how well measured* a value is needs this; `get_q_weights()` cannot\n    express it.\n    \"\"\"\n    _ensure_loaded()\n    with _HOMEOSTAT_LOCK:\n        return dict(_Q_VARIANCE)",
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1816,7 +1832,7 @@
   "spine_registry:homeostat_reset": {
    "module": "spine_registry",
    "qualname": "homeostat_reset",
-   "line": 2769,
+   "line": 2949,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1836,7 +1852,7 @@
   "spine_registry:purge_fixtures": {
    "module": "spine_registry",
    "qualname": "purge_fixtures",
-   "line": 2139,
+   "line": 2274,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1856,7 +1872,7 @@
   "spine_registry:purge_implausible_stamps": {
    "module": "spine_registry",
    "qualname": "purge_implausible_stamps",
-   "line": 2880,
+   "line": 3067,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1876,7 +1892,7 @@
   "spine_registry:purged_blocked_writes": {
    "module": "spine_registry",
    "qualname": "purged_blocked_writes",
-   "line": 373,
+   "line": 414,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1896,7 +1912,7 @@
   "spine_registry:q_confidence": {
    "module": "spine_registry",
    "qualname": "q_confidence",
-   "line": 1923,
+   "line": 1983,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1909,10 +1925,30 @@
     "tests/test_nature_integration_map.py:75"
    ]
   },
+  "spine_registry:reset_counters": {
+   "module": "spine_registry",
+   "qualname": "reset_counters",
+   "line": 2132,
+   "seg": "def reset_counters(key: str, reason: str = \"\") -> Dict[str, Any]:\n    \"\"\"Zero a key's success/failure counters and make the zero stick.\n\n    For a record whose counters cannot be trusted -- the 09-29 case was one\n    `hist_ms` series holding an interleaved mix of an eBPF alert count and\n    real route probes, written by the same caller into the same fields, so the\n    two cannot be separated and only discarded.\n\n    Assigning zero is not enough and never was. `_merge_disk_state` folds the\n    file in with `max()` on both fields before every write, so a zero loses to\n    the value already on disk and the next save puts the disowned count back.\n    The reset has to leave a record, exactly as a purge leaves a tombstone and\n    `invalidate_q` leaves an evidence floor. This is that record, and it is\n    journalled -- a reset that cannot be shown to have happened is the same\n    defect as one that did not happen.\n    \"\"\"\n    _ensure_loaded()\n    key = str(key or \"\")\n    if not key:\n        return {\"success\": False, \"error\": \"key required\"}\n    with _HOMEOSTAT_LOCK:\n        rec = _HOMEOSTAT.get(key)\n        before = {f: int((rec or {}).get(f) or 0)\n                  for f in (\"successes\", \"failures\")}\n        if rec is not None:\n            for f in (\"successes\", \"failures\"):\n                rec[f] = 0\n            rec[\"consec_fail\"] = 0\n        _COUNTER_FLOOR[key] = {\"successes\": 0, \"failures\": 0}\n        if len(_COUNTER_FLOOR) > _COUNTER_FLOOR_MAX:\n            for k in list(_COUNTER_FLOOR)[\n                    :len(_COUNTER_FLOOR) - _COUNTER_FLOOR_MAX]:\n                _COUNTER_FLOOR.pop(k, None)\n    try:\n        journal_policy(\"purge\", \"counters_reset\", key, {\n            \"before\": before, \"after\": {\"successes\": 0, \"failures\": 0},\n            \"reason\": str(reason or \"\")[:200]})\n    except Exception:\n        pass\n    try:\n        record_spine_event(\"counters_reset\", {\n            \"key\": key, \"before\": before,\n            \"reason\": str(reason or \"\")[:200]})\n    except Exception:\n        pass\n    return {\"success\": True, \"key\": key, \"before\": before,\n            \"after\": {\"successes\": 0, \"failures\": 0},\n            \"reason\": str(reason or \"\")[:200]}",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_spine_brainstem_persistence.py:509",
+    "tests/test_spine_brainstem_persistence.py:526",
+    "tests/test_spine_brainstem_persistence.py:544"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_spine_brainstem_persistence.py:509",
+    "tests/test_spine_brainstem_persistence.py:526",
+    "tests/test_spine_brainstem_persistence.py:544"
+   ]
+  },
   "spine_registry:revert_policy": {
    "module": "spine_registry",
    "qualname": "revert_policy",
-   "line": 2801,
+   "line": 2981,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1928,7 +1964,7 @@
   "spine_registry:route_last_at": {
    "module": "spine_registry",
    "qualname": "route_last_at",
-   "line": 2362,
+   "line": 2529,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -1940,7 +1976,7 @@
   "spine_registry:route_weight_range": {
    "module": "spine_registry",
    "qualname": "route_weight_range",
-   "line": 2395,
+   "line": 2562,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1960,7 +1996,7 @@
   "spine_registry:spine_reset": {
    "module": "spine_registry",
    "qualname": "spine_reset",
-   "line": 2842,
+   "line": 3022,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1969,7 +2005,7 @@
     "tests/test_colour_queens.py:51",
     "tests/test_federated_robustness.py:37"
    ],
-   "seg": "def spine_reset() -> None:\n    \"\"\"Clear spine state (for tests / explicit operator action).\"\"\"\n    with _SPINE_LOCK:\n        _SPINE_MAP.clear()\n        _SPINE_EVENTS.clear()\n    with _HOMEOSTAT_LOCK:\n        _HOMEOSTAT.clear()\n        _clear_outcome_events()\n        _Q_WEIGHTS.clear()\n        _Q_DREAM_COUNTS.clear()\n        _PURGED_KEYS.clear()\n        _PURGED_BLOCKED_WRITES.clear()\n        # The brainstem is three tables, not one. Clearing only the weights\n        # left the pull-count and the Welford variance behind, so a \"reset\"\n        # produced a Q-table that was empty of values but full of evidence:\n        # every arm immediately read as proven, and the variance kept driving\n        # adaptive alpha from data the weights no longer had (2026-09-15).\n        _Q_UPDATE_COUNTS.clear()\n        _Q_VARIANCE.clear()\n    with _SCAR_LOCK:\n        _SCARS.clear()\n    with _POLICY_LOCK:\n        _POLICY_JOURNAL.clear()\n        _POLICY_LATEST.clear()\n    with _GOSSIP_TRUST_LOCK:\n        _GOSSIP_SEQ_SEEN.clear()\n        _GOSSIP_KEYS.clear()\n    with _ANOMALY_MODEL_LOCK:\n        _ANOMALY_MODEL.clear()\n        global _ANOMALY_MODEL_SOURCE\n        _ANOMALY_MODEL_SOURCE = \"local\"\n    with _QUARANTINE_LOCK:\n        _QUARANTINE_VOTES.clear()\n        _QUARANTINE_ITEMS.clear()\n    with _FABRIC_LOCK:\n        _FABRIC_STATE.clear()",
+   "seg": "def spine_reset() -> None:\n    \"\"\"Clear spine state (for tests / explicit operator action).\"\"\"\n    with _SPINE_LOCK:\n        _SPINE_MAP.clear()\n        _SPINE_EVENTS.clear()\n    with _HOMEOSTAT_LOCK:\n        _HOMEOSTAT.clear()\n        _clear_outcome_events()\n        _Q_WEIGHTS.clear()\n        _Q_DREAM_COUNTS.clear()\n        _PURGED_KEYS.clear()\n        _PURGED_BLOCKED_WRITES.clear()\n        # The brainstem is three tables, not one. Clearing only the weights\n        # left the pull-count and the Welford variance behind, so a \"reset\"\n        # produced a Q-table that was empty of values but full of evidence:\n        # every arm immediately read as proven, and the variance kept driving\n        # adaptive alpha from data the weights no longer had (2026-09-15).\n        _Q_UPDATE_COUNTS.clear()\n        _Q_VARIANCE.clear()\n        # The recorded decisions about the counters have to go with them. Left\n        # behind, a floor outlives every key it clamps: the table reads empty\n        # and `spine_reset` still claims a discount that nothing can be\n        # measured against, which is the same empty-of-values/full-of-\n        # evidence state the comment above was written about -- one level up.\n        _Q_EVIDENCE_FLOOR.clear()\n        _COUNTER_FLOOR.clear()\n    with _SCAR_LOCK:\n        _SCARS.clear()\n    with _POLICY_LOCK:\n        _POLICY_JOURNAL.clear()\n        _POLICY_LATEST.clear()\n    with _GOSSIP_TRUST_LOCK:\n        _GOSSIP_SEQ_SEEN.clear()\n        _GOSSIP_KEYS.clear()\n    with _ANOMALY_MODEL_LOCK:\n        _ANOMALY_MODEL.clear()\n        global _ANOMALY_MODEL_SOURCE\n        _ANOMALY_MODEL_SOURCE = \"local\"\n    with _QUARANTINE_LOCK:\n        _QUARANTINE_VOTES.clear()\n        _QUARANTINE_ITEMS.clear()\n    with _FABRIC_LOCK:\n        _FABRIC_STATE.clear()",
    "decider": "test_is_the_wire",
    "decider_evidence": [
     "tests/test_colour_queens.py:49",
@@ -2317,14 +2353,14 @@
   }
  },
  "triage_counts": {
-  "test_reached_only": 51,
+  "test_reached_only": 53,
   "no_reference_anywhere": 56
  },
  "decider_counts": {
   "protocol_or_override": 0,
   "declared_in_data": 7,
   "dynamic_call": 8,
-  "test_is_the_wire": 45,
+  "test_is_the_wire": 47,
   "dead_candidate": 47
  }
 }
