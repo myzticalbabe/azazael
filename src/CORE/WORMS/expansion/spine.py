@@ -3544,6 +3544,11 @@ class {cls}:
     VERSION = "1.0.0"
     SOURCE_PATTERN = {sig!r}
     SOURCE_WORM = {worm!r}
+    # Skill governance (SoK/ACT-R lineage, 2026-09-29): every staged skill
+    # declares when it applies and when it is done. The promoter reads
+    # these; a skill without them cannot graduate beyond the pen.
+    APPLIES_WHEN = "failure signature {sig!r} observed on worm {worm!r}"
+    TERMINATES_WHEN = "pattern absent for 7 consecutive days or promoter verdict"
 
     def __init__(self):
         self._observations: list[dict] = []
@@ -3597,7 +3602,8 @@ class {cls}:
                 os.replace(str(tmp), str(path))
                 written += 1
                 proposals.append({"file": path.name, "worm": e["worm"],
-                                  "sig": e["sig"], "trigger": trigger})
+                                  "sig": e["sig"], "trigger": trigger,
+                                  "anchor": "%s::%s" % (e["worm"], e["sig"])})
                 if _spine is not None:
                     _spine.record_spine_event("morphogenesis_staged", {
                         "file": path.name, "source_worm": e["worm"],
