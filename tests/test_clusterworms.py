@@ -143,7 +143,7 @@ class TestClusterWORMZ(unittest.TestCase):
         self.assertIn("version", status)
         self.assertIn("worm_count", status)
         self.assertIn("free_threaded", status)
-        self.assertEqual(status["version"], "2.0.0")
+        self.assertEqual(status["version"], "2.2.0")
 
     def test_build_from_nature(self):
         cluster = ClusterWORMZ.build_from_nature("orchestration")
@@ -197,7 +197,7 @@ class TestClusterWORMZ(unittest.TestCase):
         self.assertIn("system", r)
 
     def test_version(self):
-        self.assertEqual(ClusterWORMZ.VERSION, "2.0.0")
+        self.assertEqual(ClusterWORMZ.VERSION, "2.2.0")
 
 
 class TestResolveWormDynamic(unittest.TestCase):

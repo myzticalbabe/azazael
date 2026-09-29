@@ -217,6 +217,15 @@ class NatureResult:
     cluster_id: str = ""
     errors: List[str] = field(default_factory=list)
     insights: List[str] = field(default_factory=list)
+    #: Worms the spine quarantine store held out of this run. Reported so a
+    #: gated worm is visible as "skipped", never silently as "ran" -- a run
+    #: that quietly dropped work would look identical to a clean one.
+    quarantined_skipped: List[str] = field(default_factory=list)
+    #: Worms held out because the Black Queen retired them. A retirement that
+    #: is only written to the registry is a claim; enforcing it here is what
+    #: makes it true, so the two must be reported separately -- a quarantine
+    #: is a temporary hold, a retirement is permanent.
+    retired_skipped: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -439,17 +448,20 @@ class NatureCluster:
         self.definition = NATURE_DEFINITIONS.get(nature, {})
         self._failed_executions: List[Dict] = []  # dead letter queue (no-breaker mode)
 
-    def _record_outcome(self, name: str, result: Dict[str, Any]) -> bool:
+    def _record_outcome(self, name: str, result: Dict[str, Any],
+                          did: str | None = None) -> bool:
         """Route one worm outcome to the canonical telemetry tap.
 
         Fourth producer of the single-schema outcome stream (see
         CORE/WORMS/worm_telemetry.py): ClusterWORMZ, CONCURRENCY,
         NatureCluster, and the registry-reported path all land the same
-        keys. Fail-soft: telemetry must never break execution.
+        keys. `did` carries the spawn decision so choice->outcome joins
+        stay causal. Fail-soft: telemetry must never break execution.
         """
         try:
             from CORE.WORMS.worm_telemetry import emit_worm_outcome
             return bool(emit_worm_outcome(name, result, nature=self.nature,
+                                          decision_id=did,
                                           source="NatureCluster"))
         except Exception:
             return False
@@ -606,27 +618,71 @@ class NatureCluster:
         self._parallel = enabled
     def set_timeout(self, seconds: int):
         self._timeout = seconds
-    def execute(self, worm_names: Optional[List[str]] = None) -> NatureResult:
+    def execute(self, worm_names: Optional[List[str]] = None, *,
+                order: Optional[List[str]] = None,
+                decision_id: Optional[str] = None) -> NatureResult:
         """
         Execute all worms (or a subset) in this Nature.
-        
+
         Args:
             worm_names: Specific worm names to execute (None = all)
-        
+            order: Decided execution order (from SpawnDiversityEngine).
+                Overrides Q-sorting: the executed order must be the order
+                that was DECIDED, or the choice log describes a plan nobody
+                followed. Unknown names are kept out (run, nothing invented,
+                nothing lost).
+            decision_id: Spawn decision this run executes. Stamped on every
+                outcome row so choice->outcome joins stay causal.
+
         Returns:
             NatureResult with per-worm results and aggregate stats.
         """
         if not self.worms:
             self.discover_worms()
-        
+
         targets = list(self.worms.items())
-        if worm_names:
+        if order is not None:
+            by_name = dict(targets)
+            targets = [(n, by_name[n]) for n in order if n in by_name]
+        elif worm_names:
             targets = [(n, c) for n, c in targets if n in worm_names]
-        
+
+        # ── Execution gates (the boundary that makes them real) ───────
+        # Two independent stores say "this worm must not run":
+        #   * the spine quarantine store -- temporary, evidence-driven
+        #   * registry lifecycle_state == "retired" -- permanent, Black Queen
+        # Enforcing both HERE, at the point of execution and after targets are
+        # chosen, means neither can be bypassed by a caller that skipped the
+        # scheduler. Both imports are local and tolerant so a missing or broken
+        # store degrades to "no gate" instead of blocking every nature run.
+        quarantined_skipped: List[str] = []
+        retired_skipped: List[str] = []
+        gated: List[Any] = []
+        try:
+            from CORE import spine_registry as _spine
+        except Exception:  # noqa: BLE001 -- absent spine means no quarantine gate
+            _spine = None
+        try:
+            from CORE.worm_registry import WORM_REGISTRY as _registry
+        except Exception:  # noqa: BLE001 -- absent registry means no retire gate
+            _registry = {}
+        for _name, _cfg in targets:
+            if _spine is not None and _spine.is_quarantined(_name):
+                quarantined_skipped.append(_name)
+                continue
+            _entry = _registry.get(_name) or {}
+            if _entry.get("lifecycle_state") == "retired":
+                retired_skipped.append(_name)
+                continue
+            gated.append((_name, _cfg))
+        targets = gated
+
         result = NatureResult(
             nature=self.nature,
             cluster_id=self.cluster_id,
             started_at=datetime.now().isoformat(),
+            quarantined_skipped=quarantined_skipped,
+            retired_skipped=retired_skipped,
         )
         
         start = time.perf_counter()
@@ -649,17 +705,19 @@ class NatureCluster:
         # (q=0.0) in priority order. Fails open to priority-only if the
         # ledger is unavailable or errors.
         _priority_key = lambda x: WORM_REGISTRY.get(x[0], {}).get("priority", 5)  # noqa: E731
-        if _spine_ledger is not None:
-            try:
-                _qmap = _spine_ledger.get_q_weights()
-                targets.sort(key=lambda x: (
-                    -_qmap.get(f"{self.nature}:{x[0]}", 0.0),
-                    -_priority_key(x),
-                ))
-            except Exception:
+        if order is None:
+            if _spine_ledger is not None:
+                try:
+                    _qmap = _spine_ledger.get_q_weights()
+                    targets.sort(key=lambda x: (
+                        -_qmap.get(f"{self.nature}:{x[0]}", 0.0),
+                        -_priority_key(x),
+                    ))
+                except Exception:
+                    targets.sort(key=_priority_key, reverse=True)
+            else:
                 targets.sort(key=_priority_key, reverse=True)
-        else:
-            targets.sort(key=_priority_key, reverse=True)
+        # else: decided order stands untouched (see docstring).
         
         if self._parallel and len(targets) > 1:
             self._execute_parallel(targets, result)
@@ -681,6 +739,13 @@ class NatureCluster:
                     float(wr.get("duration_ms", 0.0) or 0.0),
                     (wr.get("error") or None),
                 )
+
+        # ── Outcome tap (one row per worm, in execution order) ─────────
+        # The spawn decision names worms; the tap proves they ran, stamped
+        # with the decision id so choice->outcome joins stay causal.
+        for name, _ in targets:
+            wr = result.worm_results.get(name) or {}
+            self._record_outcome(name, wr, did=decision_id)
 
         # Mark all as spawned
         for name, _ in targets:
@@ -929,6 +994,17 @@ class NatureCluster:
         if instance is None:
             return {"success": False, "error": "Failed to instantiate"}
 
+        # Mid-flight clarification channel: a worm asking for owner input is a
+        # normalised outcome, not a crash. Bound as locals so the `except`
+        # clauses below resolve by closure, and so a missing delegation module
+        # degrades to "no channel" instead of an import error on every run.
+        try:
+            from CORE.WORMS.expansion.delegation import (
+                NeedsClarification, ClarificationTimeout)
+        except Exception:  # noqa: BLE001 -- optional channel
+            NeedsClarification = type("NeedsClarification", (Exception,), {})
+            ClarificationTimeout = type("ClarificationTimeout", (Exception,), {})
+
         if name in self._NO_EXECUTE:
             return {"success": True, "method": "standby-orchestrator",
                     "result": {"mode": "standby",
@@ -944,6 +1020,20 @@ class NatureCluster:
                     result = result.__dict__
                 return {"success": True, "method": method_name, "result": result,
                         "duration_ms": _ms}
+            except NeedsClarification as _nc:
+                return {"success": False,
+                        "error": "needs owner input: %s" % _nc,
+                        "method": method_name, "duration_ms": 0.0,
+                        "result": {"needs_input": _nc.question},
+                        "decision_id": _nc.decision_id,
+                        "outcome": "needs_input"}
+            except ClarificationTimeout as _ct:
+                return {"success": False, "error": str(_ct),
+                        "method": method_name, "duration_ms": 0.0,
+                        "result": {"timed_out": True},
+                        "timed_out": True,
+                        "decision_id": _ct.decision_id,
+                        "outcome": "clarification_timeout"}
             except Exception as e:
                 return {"success": False, "error": str(e), "method": method_name,
                         "duration_ms": 0.0}
@@ -1125,6 +1215,24 @@ class NatureClusterManager:
             "per_nature": nature_counts,
         })
         return nature_counts
+    def _credit_snapshot(self) -> dict:
+        """Per-worm grounded credit for the diversity engine. Best-effort."""
+        try:
+            from CORE.WORMS.expansion.spawn_credit import build_spawn_credit
+            credit = build_spawn_credit()
+            return {w: float(o.get("rate", 0.0))
+                    for w, o in (getattr(credit, "outcomes", {}) or {}).items()}
+        except Exception:
+            return {}
+
+    def _q_weight_snapshot(self) -> dict:
+        """Spine Q-weights keyed nature:worm for the diversity engine."""
+        try:
+            from CORE import spine_registry as _spine
+            return dict(_spine.get_q_weights())
+        except Exception:
+            return {}
+
     def get_cluster(self, nature: str) -> Optional[NatureCluster]:
         """Get or create a cluster for a given Nature."""
         with self._lock:
@@ -1225,13 +1333,31 @@ class NatureClusterManager:
     # ── Execution ──────────────────────────────────────────────────
     
     def execute_nature(self, nature: str, parallel: bool = False) -> Optional[NatureResult]:
-        """Execute all worms in a given Nature."""
+        """Execute all worms in a given Nature.
+
+        The SpawnDiversityEngine is INVOKED here, not merely instantiated:
+        its decision (order + decision_id) reaches the executor so choice
+        rows and outcome rows describe one decision (2026-09-28; the engine
+        wrote 608 orphan choice rows before this call existed). Fail-open:
+        a broken engine degrades to unordered, unjoined execution.
+        """
         cluster = self.get_cluster(nature)
         if not cluster:
             return None
-        
+
         cluster.set_parallel(parallel)
-        result = cluster.execute()
+        order: Optional[list] = None
+        did: Optional[str] = None
+        if self._diversity is not None:
+            try:
+                candidates = list(cluster.worms)
+                order, did = self._diversity.decide_execution_order(
+                    nature, candidates,
+                    q_weights=self._q_weight_snapshot(),
+                    credit=self._credit_snapshot())
+            except Exception:
+                order, did = None, None
+        result = cluster.execute(order=order, decision_id=did)
         
         with self._lock:
             self._execution_history.append({
