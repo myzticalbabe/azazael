@@ -508,6 +508,25 @@ existing retention / distillation / ops tests.
   saturated by one failure-free, high-volume family, so genuine contrasts never
   survive into it. Rebalancing that window is a followup, not done here.
 
+  > **RESOLVED 2026-09-29 — read this before re-investigating.** The window was
+  > widened to 600, a `thought_contrast()` selector was extracted as a pure
+  > function, a census is now printed on every skip (rows scanned, families,
+  > families holding a contrast, the dominant families) so a stall is
+  > diagnosable rather than merely reported, and a weaker same-verb tier is
+  > tried and LABELLED when no exact family matches. Covered by
+  > `tests/test_thought_contrast_pairing.py` (7 tests, passing). Measured on
+  > the live store 2026-09-29: 247 rows, 23 families, a real `verb`-tier pair
+  > found. The pairing is NOT broken.
+  >
+  > A second, genuinely open defect was found in the same area and is now
+  > fixed: `query_memories` hard-clamps every call to `MAX_QUERY_LIMIT` (500)
+  > and returns newest-first, so the clamp silently evicted the oldest — and
+  > therefore the minority-family — rows. The 600-row window was in practice
+  > capped back to 500, reopening this same bug through a different door.
+  > `LocalMemoryStore.fetch_all_memories()` now pages past the clamp, and
+  > every oversized reader routes through it. See
+  > `tests/test_thought_corpus_integrity.py`.
+
 ### 13.5 Followup #11 - full suite - RAN (report: `logs/suite_chunks_20260928b.json`)
 
 The tree was already badly NOT green before these changes.
