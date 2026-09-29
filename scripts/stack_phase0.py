@@ -149,12 +149,23 @@ def main(argv=None) -> int:
         pass
     fams = sorted(fam_counts.items(), key=lambda kv: -kv[1])[:15]
 
+    # E3-TIR ROI proxy (2026-09-29): mean reward per run-row. Tracks cost
+    # no data budget to report, so rows stand in for cost: reward per row
+    # ranks tracks by return on data, not just raw reward.
+    roi = {}
+    for a in ROTATION:
+        vals = series.get(a, [])
+        n = unc.get(a, {}).get("n", 0) or len(vals)
+        if vals and n:
+            roi[a] = round((sum(vals) / len(vals)) / max(1, n), 5)
+
     report = {
         "tracks_measured": {a: len(series.get(a, [])) for a in ROTATION},
         "top_correlated_pairs": pairs[:10],
         "redundant_pairs_r_ge_09": redund,
         "independent_pairs_r_lt_03": len(indep),
         "uncertainty_coverage": unc,
+        "roi_per_row": roi,
         "top_worm_families": [
             {"family": f, "n": n,
              "win_rate": round(fam_wins[f] / n, 3)} for f, n in fams],

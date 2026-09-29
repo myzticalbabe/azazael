@@ -190,6 +190,23 @@ def main(argv=None) -> int:
     stamped = sum(len(v) for v in tracks.values())
     res = backtest(tracks, slots=args.slots, alpha=args.alpha)
     res["stamped_rows"] = stamped
+    # Bandit-depth stub (2026-09-29): cluster labels for the shadow picks.
+    # SB3 policy-gradient family vs classical/Q-learning family vs pipeline
+    # tracks. Advisory only: no routing change, director authority unchanged.
+    # A meta-learned prior (MetaTS) keys off these clusters when era volume
+    # allows; until then the labels just make the shadow readable.
+    from track_registry import ROTATION as _ROT
+    _clusters = {
+        "pg": {"PPO", "A2C", "SAC", "TD3", "DDPG", "MaskablePPO", "GRPO"},
+        "value": {"DQN", "QRDQN", "TQC", "ARS", "TRPO"},
+        "pipeline": {"DPO", "OFFLINE", "RL", "DREAMTUNE", "WORMGA", "ALLPAR"},
+    }
+    def _cluster_of(a):
+        for k, vs in _clusters.items():
+            if a in vs:
+                return k
+        return "other"
+    res["clusters"] = {a: _cluster_of(a) for a in _ROT}
     res["note"] = ("shadow only: picks reported, director authority "
                    "unchanged")
     if args.json:
