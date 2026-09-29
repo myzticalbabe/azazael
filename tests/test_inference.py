@@ -4,9 +4,14 @@ Azazael ML Inference Test Suite
 Validates actual inference across installed ML frameworks.
 """
 
+import os
 import sys
 import time
 from pathlib import Path
+
+import pytest
+
+pytestmark = pytest.mark.env
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -105,7 +110,9 @@ def test_sklearn_inference():
 
 
 def test_transformers_inference():
-    """Test HuggingFace transformers with a small model."""
+    """Test HuggingFace transformers with a small model (needs HF download)."""
+    if os.environ.get("AZAZAEL_LIVE_NETWORK") != "1":
+        pytest.skip("HF model download needs AZAZAEL_LIVE_NETWORK=1")
     from transformers import pipeline
 
     # Use a tiny model for sentiment analysis
