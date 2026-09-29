@@ -690,13 +690,16 @@ class RedQueenWorm:
         WORM_REGISTRY — a fixed subset of ~28 of 226 worms, the same every
         cycle, chosen by registration order. Ordering by (never probed, then
         oldest probe) makes coverage rotate, which is what turns a health check
-        into a survey. Members in a hung cooldown are held out (R7).
+        into a survey. Members in a hung cooldown are held out (R7), and
+        quarantined members are held out ENTIRELY -- a quarantine ORDER is
+        only a verdict until the scheduler consults it (2026-09-28).
         """
         now = time.time()
         eligible: list[tuple] = []
         protected_skipped: list[str] = []
         hung_skipped: list[str] = []
         retired_skipped: list[str] = []
+        quarantined_skipped: list[str] = []
         for name, info in WORM_REGISTRY.items():
             if info.get("category") != nature:
                 continue
@@ -706,6 +709,16 @@ class RedQueenWorm:
             # quarantine store was fixed out of on 2026-09-16.
             if info.get("lifecycle_state") == "retired":
                 retired_skipped.append(name)
+                continue
+            # 2026-09-28: the global quarantine ITEM store was restored to
+            # spine_registry (it had been discarded by a `git reset --hard`;
+            # see FORENSIC_FOLLOWUPS_2026-09-28.md section 0).
+            # `order_quarantine()` has always written records into it, but
+            # nothing consulted it, so a quarantined member kept being probed.
+            # Consulting it here is what turns the verdict into a gate; the
+            # limit is refilled by the next eligible peer.
+            if _spine is not None and _spine.is_quarantined(name):
+                quarantined_skipped.append(name)
                 continue
             if is_protected_worm(info):
                 protected_skipped.append(name)
@@ -733,7 +746,8 @@ class RedQueenWorm:
             chosen = eligible[:limit]
             self._last_scouts = [n for n, _ in chosen]
         chosen = chosen[:limit]
-        return chosen, protected_skipped, hung_skipped, retired_skipped
+        return (chosen, protected_skipped, hung_skipped, retired_skipped,
+                quarantined_skipped)
 
     def _run_probe(self, cls) -> tuple[bool, float, str, str]:
         """Run one member's zero-arg `execute()`. Returns (ok, ms, err, kind).
@@ -819,8 +833,8 @@ class RedQueenWorm:
         # fleet governors (and whole protected natures) are skipped, so the
         # limit is filled by the next non-governor instead of silently
         # including the organ being regulated.
-        candidates, protected_skipped, hung_skipped, retired_skipped = \
-            self._probe_candidates(nat, limit)
+        (candidates, protected_skipped, hung_skipped, retired_skipped,
+         quarantined_skipped) = self._probe_candidates(nat, limit)
 
         results: list[dict] = []
         hostile: list[dict] = []
@@ -867,6 +881,7 @@ class RedQueenWorm:
                 "failures": failures, "protected_skipped": protected_skipped,
                 "hung_skipped": hung_skipped,
                 "retired_skipped": retired_skipped,
+                "quarantined_skipped": quarantined_skipped,
                 # Which slots the scout quota spent on ignorance this pass. An
                 # operator can see the exploration term, not infer it.
                 "scouts": list(self._last_scouts),
@@ -3364,6 +3379,13 @@ class MorphogenesisWorm:
             if total < self.MIN_SAMPLES or not worm:
                 continue
             fail_rate = rec["failures"] / total
+            # 2026-09-29: "unknown" is the absence of a signal, not a pattern.
+            # Staging one specialist per worm for empty error text produced
+            # 91 evidence-only stubs (all NON-AUTONOMOUS). Skip them here so
+            # morph only fires on named failure signatures; opportunity
+            # trigger still covers capability gaps.
+            if not rec.get("last_error"):
+                continue
             sig = (rec.get("last_error") or "unknown")[:60]
             if fail_rate < self.MIN_FAIL_RATE:
                 continue
