@@ -1,0 +1,20 @@
+........................................................................ [ 17%]
+...................ssssssssssssssssssssssssssssssssssssssssFFF.......FF. [ 34%]
+........................................................................ [ 52%]
+........................................................................ [ 69%]
+........................................................................ [ 86%]
+..............sssss...................................         [100%]
+============================== warnings summary ===============================
+tests/test_cancellation_integration.py::TestWormExecutorCancellation::test_executor_runs_normally_without_cancellation
+  C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [40] tests\test_aoa_elastic_routing.py: RoutingPolicy/select_arm removed from CrossArmRouter; spec preserved pending API restoration
+SKIPPED [1] tests\test_circuit_breaker_integration.py:135: error_rate features not yet implemented in CircuitBreaker
+SKIPPED [1] tests\test_circuit_breaker_integration.py:145: error_rate features not yet implemented in CircuitBreaker
+SKIPPED [1] tests\test_circuit_breaker_integration.py:165: error_rate features not yet implemented in CircuitBreaker
+SKIPPED [1] tests\test_circuit_breaker_integration.py:186: error_rate features not yet implemented in CircuitBreaker
+SKIPPED [1] tests\test_circuit_breaker_integration.py:216: error_rate features not yet implemented in CircuitBreaker
+5 failed, 364 passed, 45 skipped, 1 warning, 10 subtests passed in 33.70s

@@ -688,3 +688,139 @@ Since the only thing verifying the picture was the picture, the renderer was
 reverted rather than shipped with the solidity claim. The face data remains
 available in `TWELVE_FACTOR_AUDIT.json`, and `_dodeca_geometry` is not called
 by any remaining code path.
+
+### 8.5 Restoration attribution: solved, and it supersedes 8.3
+
+The signal that works is the mirror's OWN git index, not file content.
+
+```
+local   git ls-files                     -> 31354 tracked
+mirror   git -C .../root/azazael ls-files ->  1458 tracked
+mirror-tracked but NOT tracked here      ->    52
+of those, existing on disk AND code      ->     2
+```
+
+Those two are the entire attributable set:
+
+| file | md5 (identical both sides) |
+|---|---|
+| `src/CORE/logging.py` | `48477f4083a1164ba51b320a4d9ac459` |
+| `tests/test_error_recovery.py` | `27caf467ff338eba4186020117f81abd` |
+
+The other 50 are CODEX/OUTPUT `.mp4` renders, the compliance DB, `src/scripts`,
+and temp files -- mostly absent locally or irrelevant. Committed as `efb76b61`;
+27 tests pass across `tests/test_logging.py` + `tests/test_error_recovery.py`.
+
+8.3's byte-identity-with-mirror signal was measured invalid and is retracted:
+157 untracked files are also mirror-identical against roughly 30 files that were
+actually restored, so identity is not provenance. Identity says "this content
+exists in both" (true of every vendored copy); the mirror's index says "this path
+was version-controlled over there and is not over here", which is the question.
+
+`src/CORE/logging.py` is reachable only as `CORE.logging`, so it does not shadow
+stdlib `logging`. One caveat worth recording: `tests/test_curative_pool.py:12`
+puts `src/CORE` on `sys.path`, which WOULD make `import logging` resolve to this
+file if stdlib `logging` were not already in `sys.modules`. Pytest imports it
+first, so the shadowing is masked rather than impossible.
+
+---
+
+## 9. Triage of the 57 failures and the 82 skips (2026-09-29)
+
+### 9.1 The single dominant cause is another agent's in-flight file
+
+`src/AOA/core/router.py` in this checkout is 418 lines and has **no**
+`RoutingPolicy`, **no** `select_arm`, and **no** `capability_index`. The WSL
+mirror's copy is 678 lines and has all three. `tests/test_aoa_elastic_routing.py`
+was edited on 2026-09-28 to add a **whole-module** skip, strip `RoutingPolicy`
+and `ARM_ROUTE_NATURE` from its imports (stubbing the latter as the literal
+`"quartet"`), and to add a `censored=` kwarg the router does not accept.
+
+That is a deliberate redesign by the concurrent agent (the file shows as ` M`),
+not a regression, and it must not be reverted from here. Its blast radius:
+
+| outcome | tests |
+|---|---|
+| `test_aoa_router_censored` | 3 failing (`capability_index`) |
+| `test_aoa_routing_telemetry` | 2 failing (`CrossArmRouter`) |
+| `test_mesh_transport_e2e::test_router_learns_only_learnable_outcomes` | 1 failing (censoring) |
+| `test_aoa_elastic_routing.py` | **40 skipped** by the module skip |
+
+**46 of the 139 non-passing outcomes in the suite trace to this one file.**
+
+### 9.2 Fixed (19 failures, 4 commits)
+
+| commit | failures fixed |
+|---|---|
+| `f6b938b7` monitor helpers restored from the mirror (`max_rows` NameError, `LOG_MAX`/`append_log`, `_ex_now`, `_control_line` x3) | 9 |
+| `4d79cb52` registry tests read `WORM_REGISTRY` instead of `discover_worms()`'s delta; canonical `VALID_CATEGORIES`; `SLOW_WORMS` module resolution | 7 |
+| `3e72236e` `NeuralPipeline.replay_failed` executor contract | 3 |
+
+The monitor helpers were not reinvented: the mirror still carried every one, so
+they were restored from that reference. Note `_paint_in_place` read `max_rows`
+-- a name defined NOWHERE in the module -- so every live paint raised NameError
+and the window crash-looped while `--once` stayed green. A test existed for it
+and the break had still shipped.
+
+### 9.3 Attributed to concurrent work (14 failures)
+
+| source (shows ` M`) | failing tests |
+|---|---|
+| `src/AOA/core/router.py` | 6 (9.1) |
+| `src/CORE/WORMS/expansion/learning_rl.py` | 8 -- `test_policy_advice` 4 (`RLTrainLoop.recommend`), `test_replay_path` 3 (`train_from_memory(use_replay=...)`), `test_learning_evolution` 1 (GRPOPTUNE vs ALLPAR) |
+
+### 9.4 Still open (24 failures), by assertion class
+
+- **Missing module attribute** (7): `test_terminal_monitor_controls` is fixed, but
+  `test_policy_advice` (`DatabaseMonitorWorm._policy_advice`) shares its class;
+  `exmachina_mutagen` (float drift `158.8313808 != 158.8314559`), `local_memory`
+  (`DID NOT RAISE RuntimeError`), `postgres_memory` (`'psycopg2' not found in []`),
+  `versioner_write_on_change` (`assert 3 == 1`), `training_orchestrator`
+  (`registry_category`).
+- **Algorithm/rotation authority** (5): `track_registry_consumers` 3,
+  `mesh_fabric_followups` 1 (`servemesh` vs `variation`), `servemesh_filter` 2
+  (`env_error must arrive CENSORED`).
+- **Decision/threshold logic** (5): `meta_escalation` 2 (`KeyError: 'tie'`),
+  `morph_bypass` 2, `operator_scoring` 1 (`assert 0 > 0`), `plateau_persistence` 1.
+- **Environment/artifact gates** (4): `request_auth` 2, `parallax_validator` 1
+  (`.audit/gate_tokens/wrong_target.py.token`), `type_check_gate` 1 (committed
+  baseline counts `error: 113` vs `error: 119`), `monitor_verdict_accuracy` 1
+  (a 3-vs-5 arm count + a giant HTML diff from a redirected store).
+- **Engine API** (2): `eve_unleashed` (`assert 'auto' == 'cpu'`;
+  `FileNotFoundError: Model not found: fake.pt`).
+
+None of these is a same-thread hang or a silent pass, so there is no equivalent
+of the chunk-2 deadlock hiding here.
+
+### 9.5 Why the skip count went 5 to 82 -- and what it hides
+
+The 5-skip baseline (`suite_chunks_20260928b.json`) is NOT comparable: that run
+had chunk 4 time out at 600 s with **zero** tests and 4 collection errors,
+reporting 2311 passed against 3918 now. The suite gained +1607 passing tests
+alongside the +77 skips, so this is not previously-running coverage going dark.
+
+The 82 skips decompose exactly (measured with `-rs`, chunks 1 and 6 directly and
+the remainder via a skip-construct-filtered run):
+
+| n | cause | verdict |
+|---|---|---|
+| 40 | whole-module skip, `test_aoa_elastic_routing.py` | **hides a whole file** (in-flight redesign) |
+| 24 | `psycopg2` not installed | honest; the Postgres backend is untested here |
+| 5 | `CircuitBreaker` `error_rate` unimplemented | honest feature gap |
+| 4 | whole-module skip, `test_era_windows.py` (pool-era rotation) | **hides a whole file** |
+| 3 | `opentelemetry.sdk.trace` absent (`importorskip`) | honest; SDK genuinely missing |
+| 2 | `Circuit breaker enabled - retry loop not active` | honest |
+| 1 | live inference providers (needs `AZAZAEL_LIVE_NETWORK=1`) | honest |
+| 1 | `mygrad` absent on the free-threaded build | honest |
+| 1 | mesh artifact predates the ledger it checks | honest freshness gate |
+| 1 | uncaptured | -- |
+
+So the answer to "does any skip hide real coverage" is **yes, twice**: 44 tests
+live behind two whole-file `pytestmark = pytest.mark.skip` marks, both written as
+"skipped, not deleted: spec preserved". The 40 is the AOA redesign; the 4 is the
+unimplemented pool-era rotation. Everything else is an absent dependency or a
+documented unimplemented feature, and `psycopg2` being absent means the entire
+Postgres memory backend has no coverage on this host.
+
+Evidence files: `logs/chunk1_skips.txt`, `logs/chunk6_skips.txt`,
+`logs/rest_skips.txt`, `logs/failed57.txt`, `logs/fail_lines.txt`.
