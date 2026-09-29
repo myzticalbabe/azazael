@@ -1,0 +1,50 @@
+........................................................................ [ 17%]
+......................ss................................................ [ 34%]
+.................s................................ssss.................. [ 51%]
+................................................................s....... [ 68%]
+........................................................................ [ 86%]
+........................................................ss               [100%]
+============================== warnings summary ===============================
+tests/test_clusterworms_unit.py::TestResolveWormDynamicRegistry::test_unknown_worm_returns_none
+  C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_clusterworms_unit.py::TestClusterWORMZBuildFromNature::test_build_from_nature_unknown
+  C:\Users\clint\azazael\tests\..\src\CORE\WORMS\CLUSTERWORMS.py:964: UserWarning: No worms found in Nature category '__nonexistent__'. Available: ['analysis', 'axon', 'backup', 'communication', 'config', 'consensus', 'consolidation', 'container', 'defense', 'dendrite', 'diagnostic', 'engram', 'envmesh', 'federated', 'glia', 'immune', 'learning', 'mesh', 'metabolic', 'migration', 'ml', 'monitor', 'network', 'optimization', 'orchestration', 'plasticity', 'profiling', 'security', 'servemesh', 'synapse', 'sync', 'telemetry', 'thalamus', 'utility', 'visualization', 'xenomorph']
+    warnings.warn(f"No worms found in Nature category '{nature}'. Available: {sorted(get_all_categories())}")
+
+tests/test_cross_domain_integration.py::test_cd1_record_event
+  C:\Users\clint\venv-314t\Lib\site-packages\_pytest\python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_cross_domain_integration.py::test_cd1_record_event returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_cross_domain_integration.py::test_cd2_z3_verification
+  C:\Users\clint\venv-314t\Lib\site-packages\_pytest\python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_cross_domain_integration.py::test_cd2_z3_verification returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_cross_domain_integration.py::test_cd4_compiled_validation
+  C:\Users\clint\venv-314t\Lib\site-packages\_pytest\python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_cross_domain_integration.py::test_cd4_compiled_validation returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/test_cross_domain_integration.py::test_cd5_docker_benchmark
+  C:\Users\clint\venv-314t\Lib\site-packages\_pytest\python.py:171: PytestReturnNotNoneWarning: Test functions should return None, but tests/test_cross_domain_integration.py::test_cd5_docker_benchmark returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_optimizers_convergence.py:30: mygrad absent (free-threaded build; see scripts/run_full_suite.py)
+SKIPPED [1] tests\test_clusterworms_unit.py:1063: Circuit breaker enabled — retry loop not active
+SKIPPED [1] tests\test_clusterworms_unit.py:1085: Circuit breaker enabled — retry loop not active
+SKIPPED [1] tests\test_cross_domain_integration.py:278: opentelemetry not installed
+SKIPPED [4] tests\test_era_windows.py: pool-era rotation unimplemented; spec preserved
+SKIPPED [1] tests\test_mesh_html_view.py:152: mesh artifact predates the ledger it would be checked against — regenerate with tools/gephi_mesh_pipeline.py --html --json
+SKIPPED [1] tests\test_spine_mesh_wiring.py:214: could not import 'opentelemetry.sdk.trace': No module named 'opentelemetry'
+SKIPPED [1] tests\test_spine_mesh_wiring.py:225: could not import 'opentelemetry.sdk.trace': No module named 'opentelemetry'
+408 passed, 11 skipped, 6 warnings in 418.37s (0:06:58)

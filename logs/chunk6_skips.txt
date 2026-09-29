@@ -1,0 +1,19 @@
+..........................................F............................. [ 12%]
+.....................................................................F.F [ 25%]
+FFF....................ssssssssssssssssssssssssF........................ [ 37%]
+........................................................................ [ 50%]
+........................................................................ [ 63%]
+...........s...............................FFFFFF.....F..F.............. [ 75%]
+........................................................................ [ 88%]
+.............................................................[train] train_20260929_011418_3718 resumed persisted Q-table
+.....       [100%]
+============================== warnings summary ===============================
+tests/test_parallel_integration.py::TestClusterParallelTimeout::test_short_timeout_does_not_crash
+  C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [24] ..\venv-314t\Lib\site-packages\_pytest\unittest.py:523: psycopg2 not installed. Install with: pip install psycopg2-binary
+SKIPPED [1] tests\test_provider_failover.py:118: live inference providers; set AZAZAEL_LIVE_NETWORK=1 to run
+15 failed, 530 passed, 25 skipped, 1 warning in 75.36s (0:01:15)
