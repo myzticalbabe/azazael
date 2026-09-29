@@ -163,3 +163,16 @@ dashboard/monitor_ml.html
 dashboard/monitor_rl.html
 dashboard/command_center.html
 dashboard/command_center.json
+
+# BIBL map: the skeleton and the derived lexicon are rebuilt by
+# `bibl_map.py crawl|derive|render`, so tracking them just means a 20 MB diff
+# every regeneration. enrichments.json is deliberately NOT ignored -- the
+# LLM-authored definitions cannot be regenerated and are the point of the map.
+src/ORCHESTRATION/BIBL/skeleton.json
+src/ORCHESTRATION/BIBL/enrichments.derived.json
+src/ORCHESTRATION/BIBL/enrichments.merged.json
+src/ORCHESTRATION/BIBL/lexicon/
+# Superseded WORMZ output, kept on disk as the only surviving record of a
+# format nothing can now generate. Not source; see _spec_snapshot_20260929/
+# for the Kali copy that is worth keeping.
+src/ORCHESTRATION/BIBL/archive/
