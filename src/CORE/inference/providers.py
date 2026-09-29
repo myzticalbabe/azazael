@@ -629,6 +629,17 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
         "signup_url": "https://github.com/ggml-org/llama.cpp",
         "requires_auth": False,
         "local": True,
+        # Reasoning overhead. This model streams chain-of-thought to
+        # `reasoning_content` and leaves `content` EMPTY until thinking ends (see
+        # the note on the local llama-server entries above), so a cap that does
+        # not budget for the thinking is spent entirely on it and the turn reads
+        # as a blank answer. Measured on qwopus: ~127 completion tokens before
+        # the first content token, 326 for a one-function answer. 512 is a floor
+        # sized to the measured content answer; it is NOT a fix for runaway
+        # thinking, which is what the server-side `--reasoning off` is for.
+        # `OpenAIProvider._default_max_tokens()` applies it, and only when the
+        # caller did not set an explicit cap.
+        "reasoning_overhead": 512,
         "free_models": {
             "qwopus3.5-9b-v3": "Qwopus3.5-9B v3 (9B, Q4_K_M, local)",
         },
@@ -710,6 +721,23 @@ class OpenAIProvider:
             self.config = self._load_provider_config("groq") if provider is None else ProviderConfig(
                 provider="generic", base_url="", model=""
             )
+
+    def _default_max_tokens(self) -> int:
+        """Config cap, padded by the entry's declared reasoning overhead.
+
+        A reasoning model spends generated tokens on chain-of-thought before it
+        emits any `content`, so the usable cap is the declared one minus the
+        thinking. `reasoning_overhead` is that declared budget; entries without
+        it (every hosted API) are unchanged. A lookup miss is +0 on purpose: an
+        unregistered provider must not silently gain a larger cap.
+
+        An EXPLICIT caller-supplied cap is never padded -- it is the caller's
+        own budget, and padding it would break any caller that sized the cap
+        deliberately (e.g. a bounded probe).
+        """
+        info = PROVIDER_REGISTRY.get(self.provider_name) or {}
+        return int(self.config.max_tokens) + int(
+            info.get("reasoning_overhead", 0) or 0)
 
     def _load_provider_config(self, name: str) -> ProviderConfig:
         """Load provider config from registry + env vars."""
@@ -906,7 +934,7 @@ class OpenAIProvider:
             kwargs = dict(
                 model=model or self.config.model,
                 messages=messages,
-                max_tokens=max_tokens or self.config.max_tokens,
+                max_tokens=max_tokens or self._default_max_tokens(),
                 temperature=temperature if temperature is not None else self.config.temperature,
             )
             # Only send OpenAI-standard params for providers that support them
@@ -1021,7 +1049,7 @@ class OpenAIProvider:
             stream = client.chat.completions.create(
                 model=model or self.config.model,
                 messages=messages,
-                max_tokens=self.config.max_tokens,
+                max_tokens=self._default_max_tokens(),
                 temperature=self.config.temperature,
                 stream=True,
             )
