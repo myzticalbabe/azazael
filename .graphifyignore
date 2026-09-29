@@ -30,16 +30,55 @@
 #                picture; the fix is to delete one, not to stop looking.
 #   src/CODEX/    74 real .py files, so the directory stays; only its media
 #                 and generated reports are dropped (see the extension list).
+#   native/ lib/ packages/ gateway-go/  left in: small enough, and they may hold
+#                 real source this project still builds.
+#
+# The top-level list came from enumerating every directory with its size and
+# .py count rather than from guessing, after two passes proved that guessing
+# is not good enough here. `archive/` is 1 GB of dev-compare snapshots and is
+# NOT `archived/`; the first two passes excluded `archived/` and still carried
+# 39,133 graph nodes pointing into a directory that no longer exists on disk,
+# because those nodes survived in graph.json rather than in the corpus. A
+# missing directory is indistinguishable from an unindexed one unless you
+# check the name.
+#
+# Third pass, and the one that actually found the bulk of it. Counting
+# `source_file` occurrences in the built graph rather than listing directories
+# again: of 94,197 sampled references, `.agents/skills` contributed 25,067 --
+# more than all of `src/CORE` at 15,800, and 27% of the corpus. It is 1,261
+# skill-definition files, so the graph was substantially a map of its own
+# tooling. `lib/` added vendored vis-9.1.2 and tom-select C sources. Neither is
+# visible from a directory listing by size, which is why three passes were
+# needed: two from the tree, one from the artifact.
 /archived/
 /archived_unified/
+/archive/
 /backup/
 /output/
 /graphify-out/
 /nuitka_build_backup/
 /logs/
+/var/
+/state/
+/gateway/
+/coverage_inference_html/
+/workspace/
+/temp/
+/skills_staging/
+/skills.win-backup/
 /.aoa/
 /.audit/
+/.agents/
+/.claude/
+/lib/
 /.aider.tags.cache.v4/
+/.deps-jiter/
+/.hypothesis/
+/.inference_cache/
+/.mypy_cache/
+/.graphify-live*/
+/.graphify-live2/
+/.graphify-live3/
 **/output/
 **/graphify-out/
 **/__pycache__/
