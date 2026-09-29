@@ -902,6 +902,91 @@ The 4 attributed are `test_morph_bypass` (2, above) and `test_aoa_router_censore
 lines here against 678 in the mirror, missing `RoutingPolicy`, `select_arm` and
 `capability_index`. Nothing has been staged from any file another author has open.
 
+---
+
+## 11. Fresh baseline and triage batch 2 (2026-09-29)
+
+### 11.1 The baseline moves
+
+| | passed | failed | errors | skipped | wall |
+|---|---|---|---|---|---|
+| `20260928d` | 3918 | 57 | 0 | 82 | 1442.6 s |
+| `20260929e` | 3965 | 25 | 0 | 82 | 1105.7 s |
+| delta | **+47** | **-32** | 0 | 0 | **-337 s** |
+
+Per chunk (passed / failed / skipped / wall): 1: 364/5/45/27.7 s -- 2: 525/0/3/238.9 s
+-- 3: 496/1/5/130.6 s -- 4: 564/3/1/364.5 s -- 5: 575/3/0/168.4 s -- 6: 525/8/26/62.8 s
+-- 7: 503/0/2/63.3 s -- 8: 413/5/0/49.5 s. Chunks 2 and 7 are fully green; chunk 6 is
+the only one still in double digits, and chunk 1's 5 failures are all AOA router.
+Skipped is unchanged at 82, so the whole gain is real execution, not more skipping.
+
+Report `logs/suite_chunks_20260929e.json`, log `logs/suite_run_20260929e.log`,
+failure IDs `logs/failed_next.txt`.
+
+### 11.2 The 25, by disposition
+
+| disposition | count |
+|---|---|
+| fixed here (below) | 3 |
+| attributed to the concurrent mirror port | 14 |
+| still open | 8 |
+
+The 14 attributed are not one cause but one shape -- **the feature exists in the
+mirror and nowhere in this tree**, measured directly:
+
+| failures | what the mirror has, this tree does not |
+|---|---|
+| `test_aoa_router_censored` (3), `test_aoa_routing_telemetry` (2) | `src/AOA/core/router.py` (418 lines here, 678 there) |
+| `test_policy_advice` (4), `test_replay_path` (3) | `RLTrainLoop.recommend` + `use_replay` (mirror: 3 occurrences; local working tree: 0; `HEAD`: 0) and `db_monitor.py`'s `_policy_advice` (mirror has it, this tree has no file containing the name) |
+| `test_morph_bypass` (2) | the `lr_ep0/15/30` schedule genes |
+
+`src/CORE/WORMS/expansion/db_monitor.py` is CLEAN in this tree, so the
+`_policy_advice` half could be ported -- but its tests also need
+`RLTrainLoop.recommend`, which lives in the file another author has open, so
+porting half of it would build the same kind of broken seam the morph genes
+would. Both are reported, not touched.
+
+The 8 open are `test_exmachina_mutagen` (1), `test_learning_evolution` (1),
+`test_mesh_transport_e2e` (1), `test_track_registry_consumers` (3),
+`test_training_orchestrator` (1) and `test_type_check_gate` (1). The last compares
+a committed baseline count against live measurement (119 vs 113 errors) and is
+expected to move while another author edits the tree; the track-registry trio and
+`test_training_orchestrator` all concern the same track table (`GRPOTUNE` vs
+`ALLPAR`, 144 vs 171), so they are one cluster worth doing together.
+
+### 11.3 Fixed here (2 commits)
+
+**`KaliArm` was missing from `arms/__init__.py` again.**
+`src/AOA/test_arm_exports.py` documents this exact omission as found and fixed on
+2026-09-14 -- and its own docstring still reports the fix as in place while the
+import is absent. That test is under `src/`, and the suite runs `tests/`, so
+nothing executes it; `tests/test_monitor_verdict_accuracy.py` found it instead as
+`not_reexported == ['kali_arm']`. The omission is functional: `@register_arm`
+fires only on IMPORT, so an unexported arm never enters `ARM_REGISTRY`, cannot be
+pinned by id and is invisible to capability routing -- and KaliArm registers one
+capability per mapped tool, the largest such surface in the system.
+`test_arm_exports.py` is green again (3/3, including the `KALI_TOOLS` count and
+the capability-per-tool shape).
+
+**Two tests that could not fail on this host.**
+`test_import_error_without_psycopg2` asserted `"psycopg2" in (sys.modules if
+_HAS_PSYCOPG2 else [])` -- membership in the empty list exactly when psycopg2 is
+absent, which is this host. Its body comment ("This test always passes") was the
+false belief that kept it; it now asserts the ImportError
+`PostgresMemoryStore.__init__` actually raises, and its message.
+`test_backup_raises_on_bad_path` targeted `/proc/self/...`, arguing that /proc
+denies writes even as root -- correct on Linux and toothless on Windows, where
+that is an ordinary path on the current drive: the backup SUCCEEDED and the test
+left a real 110 KB backup database **outside the repository** on every run
+(reported, not deleted -- it is outside the project). It now uses a path whose
+parent is an existing file, which cannot be created on any platform.
+
+Running total, counted against the original 57 and reconciled with the current
+25-failure baseline: 19 + 13 + 3 = **35 fixed**, **14 attributed** (the AOA router
+5, the policy/replay 7, the morph genes 2), **8 open**. The attributed count is
+larger than batch 1's 4 because three of those clusters were still classified as
+"open" then and were proved to be mirror-only here by direct measurement.
+
 # 11. Web-search papers wired into the intermesh (2026-09-29 addendum)
 
 Three papers researched 2026-09-28/29, none previously referenced anywhere in
