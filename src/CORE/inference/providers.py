@@ -132,6 +132,20 @@ class ModelInfo:
 # --- Provider Registry ----------------------------------------------
 
 # All known free providers with their defaults
+# Reasoning-overhead pad for the local llama-server reasoning models. Only
+# `llama_qwopus` has been measured -- ~127 completion tokens before the first
+# `content` token, 326 for a one-function answer -- and 512 is that measurement
+# rounded up to a floor. The other local entries whose description says
+# "Requires --reasoning off server-side" are the same kind of model on the same
+# server, so they inherit the floor rather than being left unpadded and
+# re-discovering the blank-turn failure; each should replace it with its own
+# measurement when one exists. Entries that do NOT declare a server-side
+# reasoning requirement (`llama_mythos_v2`, whose description credits FTPO
+# training with clean turns where v1 ran away, and `llamaserver`, which may
+# serve anything) are deliberately left unpadded: a pad there would be inventing
+# a budget for a model that has not shown it needs one.
+_LOCAL_REASONING_OVERHEAD = 512
+
 PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     "groq": {
         "name": "Groq Cloud",
@@ -599,6 +613,7 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
         "signup_url": "https://github.com/ggml-org/llama.cpp",
         "requires_auth": False,
         "local": True,
+        "reasoning_overhead": _LOCAL_REASONING_OVERHEAD,
         "free_models": {
             "qwythos-9b-mtp": "Qwythos-9B (9B, MTP speculative decoding, local)",
         },
@@ -633,13 +648,12 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
         # `reasoning_content` and leaves `content` EMPTY until thinking ends (see
         # the note on the local llama-server entries above), so a cap that does
         # not budget for the thinking is spent entirely on it and the turn reads
-        # as a blank answer. Measured on qwopus: ~127 completion tokens before
-        # the first content token, 326 for a one-function answer. 512 is a floor
-        # sized to the measured content answer; it is NOT a fix for runaway
+        # as a blank answer. This entry's measurement is what
+        # `_LOCAL_REASONING_OVERHEAD` is set from; it is NOT a fix for runaway
         # thinking, which is what the server-side `--reasoning off` is for.
         # `OpenAIProvider._default_max_tokens()` applies it, and only when the
         # caller did not set an explicit cap.
-        "reasoning_overhead": 512,
+        "reasoning_overhead": _LOCAL_REASONING_OVERHEAD,
         "free_models": {
             "qwopus3.5-9b-v3": "Qwopus3.5-9B v3 (9B, Q4_K_M, local)",
         },
@@ -655,6 +669,7 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
         "signup_url": "https://github.com/ggml-org/llama.cpp",
         "requires_auth": False,
         "local": True,
+        "reasoning_overhead": _LOCAL_REASONING_OVERHEAD,
         "free_models": {
             "ornith-1.5-9b": "Ornith-1.5-9B (9B, Q4_K_M, local)",
         },
