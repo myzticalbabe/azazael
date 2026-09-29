@@ -106,16 +106,31 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
         "memory_mb": round(float(stats.get("memory", 0)) / 1024, 2) if "memory" in stats else 0.0,
     }
 
-    # Extract model values if SAT
+    # Extract model values if SAT.
+    #
+    # `model.decls()` yields FuncDeclRef objects, NOT expressions. Passing one
+    # straight to `model.eval()` raises Z3Exception("ast is not an
+    # expression"), so this used to discard every model. The bare
+    # `except Exception` then replaced the failure with `{}`, which a caller
+    # cannot tell from a genuinely empty model -- so a satisfiable
+    # constraint set reported SAT with no values and nothing looked wrong.
+    #
+    # Found 2026-09-29 by CD2's cross-domain check, which had been silently
+    # passing because its `check()` helper only counted failures instead of
+    # raising. The call is `d()` -- call the declaration to get the constant.
     if classification == "SAT":
         try:
             model = solver.model()
             output["model_values"] = {
-                str(d): str(model.eval(d, model_completion=True))
+                str(d): str(model.eval(d(), model_completion=True))
                 for d in model.decls()
             }
-        except Exception:
+        except Exception as exc:
+            # Record why rather than returning a plausible-looking empty
+            # model. An absent key is honest; a wrong one is not.
             output["model_values"] = {}
+            output["model_values_error"] = "%s: %s" % (
+                type(exc).__name__, exc)
 
     return output
 
@@ -458,7 +473,31 @@ class SMTVerifier:
                 elif operator == "lte":
                     solver.add(var <= z3_val)
 
-        return serialize_solver_result(solver, constraints.get("name", "z3_verify"))
+        result = serialize_solver_result(
+            solver, constraints.get("name", "z3_verify"))
+
+        # `verify_constraints` documents a `violations` key on UNSAT, and the
+        # pure-Python fallback fills it. The Z3 path -- the one that runs
+        # whenever z3-solver is installed, which is the normal case -- never
+        # set it, so the contract held only on the fallback.
+        #
+        # Z3 proves the formula unsatisfiable but does not say which input
+        # constraint is responsible, so the counter-example is derived from
+        # the supplied values using the fallback's own rules. That keeps the
+        # two paths reporting the same violations for the same input, and
+        # keeps them non-empty whenever the values are actually wrong.
+        #
+        # Found 2026-09-29 by the CD2 cross-domain check, which had been
+        # reporting PASS while this key was always None.
+        if result.get("result") == "UNSAT" and not result.get("violations"):
+            try:
+                detail = PurePythonVerifier().verify(constraints)
+                result["violations"] = detail.get("violations", [])
+            except Exception as exc:
+                result["violations"] = []
+                result["violations_error"] = "%s: %s" % (
+                    type(exc).__name__, exc)
+        return result
 
     def _record_to_audit(self, result: Dict[str, Any]):
         """Record verification result to DirectMemory audit trail."""
@@ -486,14 +525,24 @@ class SMTVerifier:
             print(f"[cd2_verifier] Audit recording failed: {e}")
 
     def get_summary(self) -> Dict[str, Any]:
-        """Return summary statistics for this verifier session."""
+        """Return summary statistics for this verifier session.
+
+        `total_checks` used to read `self._pure.check_count`, which only
+        counts checks made by the pure-Python FALLBACK. With z3-solver
+        installed -- the normal case -- the fallback is never consulted, so
+        the counter stayed at 0 no matter how much had been verified, and
+        the session summary reported zero work done. It now counts the
+        verifications actually performed, falling back to the finer-grained
+        fallback counter when the fallback is the active solver.
+        """
         sat_count = sum(1 for r in self._history if r.get("result") == "SAT")
         unsat_count = sum(1 for r in self._history if r.get("result") == "UNSAT")
+        performed = max(len(self._history), self._pure.check_count)
 
         return {
             "solver_type": self._solver_type,
             "z3_available": self.z3_available,
-            "total_checks": self._pure.check_count,
+            "total_checks": performed,
             "sat": sat_count,
             "unsat": unsat_count,
             "unknown": len(self._history) - sat_count - unsat_count,

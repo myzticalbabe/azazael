@@ -28,6 +28,7 @@ import pytest
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Any, Sequence
+from contextlib import contextmanager
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 from CORE.cd2_verifier import SMTVerifier, serialize_solver_result
@@ -46,15 +47,51 @@ _start_time = 0.0
 _CD_CORRELATION_ID = ""  # Set during CD1 - used by CD3 for trace linking
 _CD_TRACE_ID = ""        # Set during CD3
 
+#: When true, `check()` records failures without raising. Set only for the
+#: specific environmental checks that are allowed to be unavailable.
+_CD_NONFATAL = False
+
+#: Summary dict per test, kept for the `python file.py` report path.
+_CD_RESULT: dict[str, Any] = {}
+
+
+@contextmanager
+def nonfatal_checks():
+    """Mark checks inside this block as informational (recorded, not fatal)."""
+    global _CD_NONFATAL
+    prev = _CD_NONFATAL
+    _CD_NONFATAL = True
+    try:
+        yield
+    finally:
+        _CD_NONFATAL = prev
+
 def check(label: str, condition: bool, detail: str = ""):
+    """Record a check outcome AND fail the calling test when it does not hold.
+
+    This used to only bump a global counter. That made the whole file
+    vacuous under pytest: the five `test_cd*` functions contain roughly 60
+    `check()` calls between them, and a file whose entire verification
+    lives in a counter nobody asserts reports PASS unconditionally. The
+    counter and the summary print are kept for the `python file.py` path,
+    which is how this was originally run and still works; the difference
+    is that a failure is now also an AssertionError.
+
+    The non-fatal path stays available for the handful of checks that are
+    genuinely informational (a Docker benchmark on a host with no Docker,
+    say). Those pass `fatal=False` and are reported but do not fail, which
+    is a visible, greppable decision rather than a silent one.
+    """
     global passed, failed
     if condition:
         print(f"  [PASS] {label}")
         passed += 1
-    else:
-        print(f"  [FAIL] {label} {detail}")
-        failed += 1
-        errors.append(f"{label}: {detail}")
+        return
+    print(f"  [FAIL] {label} {detail}")
+    failed += 1
+    errors.append(f"{label}: {detail}")
+    if not _CD_NONFATAL:
+        raise AssertionError(f"{label} {detail}".strip())
 
 
 @pytest.fixture
@@ -148,7 +185,7 @@ def test_cd1_record_event() -> dict[str, Any]:
     # Clean up test session
     dm.end({"status": "completed", "test": "CD1"})
     
-    return {
+    _CD_RESULT["test_cd1_record_event"] = {
         "session_id": dm.session_id,
         "correlation_id": _CD_CORRELATION_ID,
         "event_count": dm._event_count,
@@ -246,7 +283,7 @@ def test_cd2_z3_verification(correlation_id: str) -> dict[str, Any]:
     else:
         print("  [CD2] Using pure-Python fallback (z3-solver not installed)")
 
-    return {
+    _CD_RESULT["test_cd2_z3_verification"] = {
         "solver_type": verifier.solver_type,
         "sat_found": result_sat["result"] == "SAT",
         "unsat_found": result_unsat["result"] == "UNSAT",
@@ -467,7 +504,7 @@ def test_cd3_otel_tracing(correlation_id: str) -> dict[str, Any]:
     processor.shutdown()
     provider.shutdown()
     
-    return {
+    _CD_RESULT["test_cd3_otel_tracing"] = {
         "trace_id": _CD_TRACE_ID,
         "spans_exported": exporter.export_count,
         "span_names": span_names,
@@ -513,8 +550,18 @@ def test_cd4_compiled_validation() -> dict[str, Any]:
     else:
         targets = {}
     
-    check("CD4: Build manifest has targets", len(targets) >= 39,
-          f"got {len(targets)} (expected >= 39)")
+    # Was `>= 39`, which asserted the manifest's historical size rather than
+    # anything about the build. 2026-09-29: 7 of the 39 entry points were
+    # found to have never existed in any commit, and were commented out
+    # rather than deleted. A count assertion would have to be lowered every
+    # time an unimplemented target is dropped, which is exactly the kind of
+    # number that drifts upward to look healthy.
+    #
+    # The property that matters is the next check: every target that IS
+    # listed must resolve to a real file. Assert the manifest is non-empty
+    # and let the existence check below carry the weight.
+    check("CD4: Build manifest has targets", len(targets) > 0,
+          f"got {len(targets)}")
     
     # --- Verify all entry points exist on disk ---
     project_root = Path(__file__).resolve().parent.parent
@@ -565,7 +612,7 @@ def test_cd4_compiled_validation() -> dict[str, Any]:
     check("CD4: Test directory has test files", len(all_tests) >= 10,
           f"found {len(all_tests)} test files")
     
-    return {
+    _CD_RESULT["test_cd4_compiled_validation"] = {
         "target_count": len(targets),
         "tiers": tiers,
         "valid_entries": valid_entries,
@@ -582,7 +629,7 @@ def test_cd4_compiled_validation() -> dict[str, Any]:
 #   PRAGMA wal_directory for separate WAL path
 #   Benchmark: relative throughput across configurations
 
-def test_cd5_docker_benchmark(correlation_id: str) -> dict[str, Any]:
+def test_cd5_docker_benchmark(correlation_id: str = "") -> dict[str, Any]:
     """
     CD5: Docker + SQLite WAL optimization benchmarking.
     
@@ -767,7 +814,7 @@ def test_cd5_docker_benchmark(correlation_id: str) -> dict[str, Any]:
     }, tags=["cross-domain", "cd5", "benchmark", "wal"])
     dm.end({"status": "completed"})
     
-    return {
+    _CD_RESULT["test_cd5_docker_benchmark"] = {
         "docker_available": docker_available,
         "compose_generated": os.path.isfile(compose_path),
         "dockerfile_generated": os.path.isfile(dockerfile_path),
@@ -789,6 +836,25 @@ def test_cd5_docker_benchmark(correlation_id: str) -> dict[str, Any]:
 # Each step passes its correlation_id forward. CD1's correlation_id
 # links events across all 5 domains in the SQLite store.
 
+def _stage(label, fn, *args):
+    """Run one domain stage, recording a failure instead of aborting.
+
+    `check()` raises on a failed assertion, which is what pytest needs and
+    what this file previously lacked. But `run_all()` exists to produce a
+    report across all five domains, so letting the first failure end the
+    run would trade a false PASS for a false EARLY EXIT. A stage that
+    raises is recorded and the next one still runs; the exit code still
+    reflects the failure count.
+    """
+    try:
+        fn(*args)
+    except AssertionError as exc:
+        print(f"  [STAGE FAILED] {label}: {exc}")
+    except Exception as exc:
+        print(f"  [STAGE ERROR] {label}: {type(exc).__name__}: {exc}")
+        errors.append(f"{label} raised {type(exc).__name__}: {exc}")
+
+
 def run_all():
     """Run all 5 cross-domain integration tests in sequence."""
     global _start_time, passed, failed, errors
@@ -801,32 +867,34 @@ def run_all():
     print("=" * 70)
     
     # === CD1: Record Event ===
-    cd1_result = test_cd1_record_event()
-    correlation_id = cd1_result["correlation_id"]
-    print(f"  -> correlation_id: {correlation_id[:16]}...")
-    
+    _stage("CD1", test_cd1_record_event)
+    cd1_result = _CD_RESULT.get("test_cd1_record_event", {})
+    correlation_id = cd1_result.get("correlation_id", "")
+    print("  -> correlation_id: %s..." % (correlation_id[:16] or "<none>"))
+
     # === CD2: Verify with Z3 ===
-    cd2_result = test_cd2_z3_verification(correlation_id)
-    print(f"  -> Z3 solver: {cd2_result['solver_type']}, "
-          f"SAT: {cd2_result['sat_found']}, UNSAT: {cd2_result['unsat_found']}")
-    
+    _stage("CD2", test_cd2_z3_verification, correlation_id)
+    cd2_result = _CD_RESULT.get("test_cd2_z3_verification", {})
+    print("  -> Z3 SAT: %s, UNSAT: %s" % (
+        cd2_result.get("sat_found"), cd2_result.get("unsat_found")))
+
     # === CD3: Trace with OTel ===
-    cd3_result = test_cd3_otel_tracing(correlation_id)
-    print(f"  -> Trace: {cd3_result['trace_id'][:16]}..., "
-          f"Spans: {cd3_result['spans_exported']}")
-    
+    _stage("CD3", test_cd3_otel_tracing, correlation_id)
+    cd3_result = _CD_RESULT.get("test_cd3_otel_tracing", {})
+    print("  -> Trace: %s..., Spans: %s" % (
+        (cd3_result.get("trace_id") or "")[:16], cd3_result.get("spans_exported")))
+
     # === CD4: Validate Builds ===
-    cd4_result = test_cd4_compiled_validation()
-    print(f"  -> Targets: {cd4_result['target_count']}, "
-          f"Tiers: {len(cd4_result['tiers'])}, "
-          f"Pipeline: {'PASS' if cd4_result['pipeline_passed'] else 'FAIL'}")
-    
+    _stage("CD4", test_cd4_compiled_validation)
+    cd4_result = _CD_RESULT.get("test_cd4_compiled_validation", {})
+    print("  -> Targets: %s, Tiers: %s" % (
+        cd4_result.get("target_count"), len(cd4_result.get("tiers") or [])))
+
     # === CD5: Docker WAL Benchmark ===
-    cd5_result = test_cd5_docker_benchmark(correlation_id)
-    print(f"  -> Docker: {cd5_result['docker_available']}, "
-          f"Default TPS: {cd5_result['bench_default_tps']}, "
-          f"Tuned TPS: {cd5_result['bench_tuned_tps']}")
-    
+    _stage("CD5", test_cd5_docker_benchmark)
+    cd5_result = _CD_RESULT.get("test_cd5_docker_benchmark", {})
+    print("  -> Docker available: %s" % cd5_result.get("docker_available"))
+
     # === Results ===
     total = passed + failed
     elapsed = round(time.time() - _start_time, 2)
