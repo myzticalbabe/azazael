@@ -30,7 +30,7 @@ Usage:
 import threading
 import time
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Callable, List, Optional
 
 # -- 3.14t Free-Threading imports --------------------------------------
 try:
@@ -706,9 +706,39 @@ class NeuralPipeline:
             "augmentation_apis": self._augmentation_apis,
         }
 
-    def replay_failed(self, max_concurrent: int = 2) -> Dict[str, Any]:
-        """Replay failed pipeline runs from DeadLetterQueue."""
-        return self.dlq.replay_all(max_concurrent=max_concurrent)
+    def replay_failed(
+        self,
+        execute_fn: Optional[Callable[[str, dict], dict]] = None,
+        max_concurrent: int = 2,
+    ) -> Dict[str, Any]:
+        """Replay pending dead letters through `execute_fn`.
+
+        Contract pinned by tests/test_replay_failed.py:
+
+          * an EMPTY queue needs no executor -- it returns
+            ``{"replayed": 0, "results": []}``;
+          * pending letters with NO executor raise RuntimeError naming both the
+            missing argument and the queue depth. It must not surface as a
+            TypeError: the previous signature did not accept `execute_fn` at
+            all, so a caller that had one failed with "got an unexpected keyword
+            argument 'execute_fn'" and a caller that had none got the DLQ's
+            "missing 1 required positional argument: 'execute_fn'" -- neither of
+            which says what to pass;
+          * pending letters WITH an executor delegate to
+            ``DeadLetterQueue.replay_all(execute_fn, max_concurrent=...)`` (the
+            real signature takes the executor positionally) and report the
+            count, so a caller can tell how many actually ran.
+        """
+        pending = self.dlq.get_pending() if hasattr(self.dlq, "get_pending") else []
+        if not pending:
+            return {"replayed": 0, "results": []}
+        if execute_fn is None:
+            raise RuntimeError(
+                f"replay_failed() has {len(pending)} dead letter(s) to replay "
+                f"but no executor: pass execute_fn=<callable(worm_name, config)>."
+            )
+        results = self.dlq.replay_all(execute_fn, max_concurrent=max_concurrent)
+        return {"replayed": len(results), "results": results}
 
     def __repr__(self) -> str:
         return (
