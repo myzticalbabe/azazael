@@ -86,12 +86,25 @@ class ModelVersioner:
             "registered_at": datetime.now().isoformat(),
         }
         with self._lock:
-            if name not in self._models:
-                self._models[name] = []
-            self._models[name].append(entry)
+            prior = self._models.get(name) or []
+            # Write-on-change: the LAST registration of this version is the one
+            # being superseded. Comparing against the last (not against any
+            # entry) is deliberate -- metrics returning to an older value is a
+            # CHANGE, so `any(prior == metrics)` would lose it. In-process
+            # history is always appended; only the store write is suppressed.
+            last_same_version = next(
+                (p for p in reversed(prior) if p.get("version") == version), None)
+            unchanged = (last_same_version is not None
+                         and last_same_version.get("metrics") == metrics
+                         and (last_same_version.get("metadata") or {})
+                         == (metadata or {}))
+            self._models[name] = prior + [entry]
 
-        # Persist to LocalMemoryStore
-        store = self._get_store()
+        # Persist to LocalMemoryStore (skipped when nothing about this version
+        # changed -- otherwise a caller that re-registers on every cycle spams
+        # the store with identical rows, which is what made the audit trail
+        # unreadable rather than merely long).
+        store = None if unchanged else self._get_store()
         if store:
             try:
                 store.record_event(
