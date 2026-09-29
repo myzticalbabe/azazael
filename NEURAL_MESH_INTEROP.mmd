@@ -274,6 +274,18 @@ graph LR
   C_SessionStateManager --> M_SessionStateManager_register_worm_state
   M_SessionStateManager_unregister_worm_state["unregister_worm_state"]:::M
   C_SessionStateManager --> M_SessionStateManager_unregister_worm_state
+  C_MorphogenesisWorm(["MorphogenesisWorm"]):::C_wire
+  N_engram --> C_MorphogenesisWorm
+  M_MorphogenesisWorm_retrieve_staged["retrieve_staged"]:::M
+  C_MorphogenesisWorm --> M_MorphogenesisWorm_retrieve_staged
+  C_SpineCycleWorm(["SpineCycleWorm"]):::C_wire
+  N_orchestration --> C_SpineCycleWorm
+  M_SpineCycleWorm__nature_success_rate["_nature_success_rate"]:::M
+  C_SpineCycleWorm --> M_SpineCycleWorm__nature_success_rate
+  D_spine[["spine"]]:::C_integrate
+  N_mesh --> D_spine
+  M_mod_measure_skill_lift["measure_skill_lift"]:::M
+  D_spine --> M_mod_measure_skill_lift
   D_spine_registry[["spine_registry"]]:::C_unresolved
   N_unknown --> D_spine_registry
   M_mod__iso_or["_iso_or"]:::M

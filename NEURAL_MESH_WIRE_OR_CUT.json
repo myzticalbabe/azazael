@@ -1,33 +1,39 @@
 {
- "generated_at": "2026-09-22T16:26:16.930081",
+ "generated_at": "2026-09-29T09:25:24.385002",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 0,
   "dispatched": 62,
-  "pending": 101
+  "pending": 107
  },
- "total": 163,
+ "total": 169,
  "declared": {
   "NeuralPipeline:NeuralPipeline.replay_failed": {
    "module": "NeuralPipeline",
    "qualname": "NeuralPipeline.replay_failed",
-   "line": 747,
+   "line": 709,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": [],
-   "seg": "def replay_failed(self, max_concurrent: int = 2) -> Dict[str, Any]:\n        \"\"\"Replay failed pipeline runs from DeadLetterQueue.\"\"\"\n        return self.dlq.replay_all(max_concurrent=max_concurrent)",
-   "decider": "declared_in_data",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_replay_failed.py:42",
+    "tests/test_replay_failed.py:53",
+    "tests/test_replay_failed.py:47"
+   ],
+   "seg": "def replay_failed(\n        self,\n        execute_fn: Optional[Callable[[str, dict], dict]] = None,\n        max_concurrent: int = 2,\n    ) -> Dict[str, Any]:\n        \"\"\"Replay pending dead letters through `execute_fn`.\n\n        Contract pinned by tests/test_replay_failed.py:\n\n          * an EMPTY queue needs no executor -- it returns\n            ``{\"replayed\": 0, \"results\": []}``;\n          * pending letters with NO executor raise RuntimeError naming both the\n            missing argument and the queue depth. It must not surface as a\n            TypeError: the previous signature did not accept `execute_fn` at\n            all, so a caller that had one failed with \"got an unexpected keyword\n            argument 'execute_fn'\" and a caller that had none got the DLQ's\n            \"missing 1 required positional argument: 'execute_fn'\" -- neither of\n            which says what to pass;\n          * pending letters WITH an executor delegate to\n            ``DeadLetterQueue.replay_all(execute_fn, max_concurrent=...)`` (the\n            real signature takes the executor positionally) and report the\n            count, so a caller can tell how many actually ran.\n        \"\"\"\n        pending = self.dlq.get_pending() if hasattr(self.dlq, \"get_pending\") else []\n        if not pending:\n            return {\"replayed\": 0, \"results\": []}\n        if execute_fn is None:\n            raise RuntimeError(\n                f\"replay_failed() has {len(pending)} dead letter(s) to replay \"\n                f\"but no executor: pass execute_fn=<callable(worm_name, config)>.\"\n            )\n        results = self.dlq.replay_all(execute_fn, max_concurrent=max_concurrent)\n        return {\"replayed\": len(results), \"results\": results}",
+   "decider": "test_is_the_wire",
    "decider_evidence": [
-    "named by worm_execution_matrix.json:1301"
+    "tests/test_replay_failed.py:42",
+    "tests/test_replay_failed.py:53",
+    "tests/test_replay_failed.py:47"
    ]
   },
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
-   "line": 240,
+   "line": 267,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -35,7 +41,7 @@
    "seg": "def choose_with_bonus(self, k: int = 1, fg_lambda: float = 0.1) -> List[str]:\n        \"\"\"Thompson draw + Feel-Good optimism for never-promoted arms.\"\"\"\n        base = self.choose(k)\n        # if top arm has <2 pulls, mix in least-pulled arm for exploration\n        if self._pulls and min(self._pulls.values()) < 2 and k == 1:\n            least = min(self._pulls, key=lambda a: self._pulls[a])\n            if least not in base and self._rng.random() < fg_lambda * 5:\n                return [least]\n        return base",
    "decider": "declared_in_data",
    "decider_evidence": [
-    "named by worm_execution_matrix.json:1301"
+    "named by state/wire_or_cut_queue.json:6"
    ]
   },
   "axon:LatencyCompensatorWorm.compensate": {
@@ -49,7 +55,7 @@
    "seg": "def compensate(self, route: str) -> dict[str, Any]:\n        with self._lock:\n            ema = self._ema.get(route, 50.0)\n            return {\"success\": True, \"route\": route, \"ema_ms\": ema,\n                    \"deadline_pad_ms\": round(ema * 1.5, 1)}",
    "decider": "declared_in_data",
    "decider_evidence": [
-    "named by worm_execution_matrix.json:1301"
+    "named by state/wire_or_cut_queue.json:12"
    ]
   },
   "axon:MyelinSheathWorm.boost_for": {
@@ -63,7 +69,7 @@
    "seg": "def boost_for(self, src: str, dst: str) -> float:\n        with self._lock:\n            return self._fast.get((src, dst), 1.0)",
    "decider": "declared_in_data",
    "decider_evidence": [
-    "named by worm_execution_matrix.json:1301"
+    "named by state/wire_or_cut_queue.json:18"
    ]
   },
   "axon:MyelinSheathWorm.myelinate": {
@@ -75,8 +81,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def myelinate(self, src: str, dst: str, boost: float = 2.0) -> dict[str, Any]:\n        with self._lock:\n            self._fast[(src, dst)] = max(0.5, min(5.0, boost))\n            return {\"success\": True, \"route\": f\"{src}>{dst}\", \"boost\": self._fast[(src, dst)]}",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:24"
+   ]
   },
   "backup:CheckpointWorm.restore_checkpoint": {
    "module": "backup",
@@ -87,8 +95,10 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": [],
    "seg": "def restore_checkpoint(self, worm_id: str) -> (dict[str, Any] | None):\n        \"\"\"Restore state from last checkpoint.\"\"\"\n        ckpt = self._checkpoints.get(worm_id)\n        return ckpt[\"state\"] if ckpt else None",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:30"
+   ]
   },
   "chorus:FailureDigest.from_analysis": {
    "module": "chorus",
@@ -137,7 +147,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1143"
+    "src/CORE/worm_registry.py:1156"
    ],
    "seg": "def deserialize(self, data: bytes, protocol: str) -> Any:\n        if protocol == \"msgpack\":\n            import msgpack\n            return msgpack.loads(data)\n        return json.loads(data.decode())"
   },
@@ -148,9 +158,9 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:387, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:387",
+    "src/CORE/WORMS/CLUSTERWORMS.py:501",
     "src/CORE/worm_governance.py:364",
-    "src/CORE/worm_registry.py:1112"
+    "src/CORE/worm_registry.py:1125"
    ],
    "seg": "def negotiate(self, peer_id: str) -> str:\n        \"\"\"Find the best common protocol with a peer.\"\"\"\n        mine = self._available_protocols()\n        theirs = self._capabilities.get(peer_id, [\"json\"])\n        common = [p for p in mine if p in theirs]\n        return common[0] if common else \"json\""
   },
@@ -161,8 +171,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:388",
-    "src/CORE/worm_registry.py:1114"
+    "src/CORE/WORMS/CLUSTERWORMS.py:502",
+    "src/CORE/worm_registry.py:1127"
    ],
    "seg": "def register_peer(self, peer_id: str, protocols: list[str]):\n        self._capabilities[peer_id] = protocols"
   },
@@ -173,7 +183,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1143), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1143"
+    "src/CORE/worm_registry.py:1156"
    ],
    "seg": "def serialize(self, data: Any, protocol: str) -> bytes:\n        if protocol == \"msgpack\":\n            import msgpack\n            return msgpack.dumps(data)\n        return json.dumps(data).encode()"
   },
@@ -184,7 +194,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:989), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:989"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:958"
    ],
    "seg": "def list_methods(self) -> list[str]:\n        return list(self._methods.keys())"
   },
@@ -195,8 +205,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:388",
-    "src/CORE/worm_registry.py:1114"
+    "src/CORE/WORMS/CLUSTERWORMS.py:502",
+    "src/CORE/worm_registry.py:1127"
    ],
    "seg": "def register_method(self, name: str, func: Callable):\n        with self._lock:\n            self._methods[name] = func"
   },
@@ -207,9 +217,9 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:386, src/CORE/worm_governance.py:364, src/CORE/worm_registry.py:1112), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:386",
+    "src/CORE/WORMS/CLUSTERWORMS.py:500",
     "src/CORE/worm_governance.py:364",
-    "src/CORE/worm_registry.py:1112"
+    "src/CORE/worm_registry.py:1125"
    ],
    "seg": "def deliver(self, name: str, payload: dict, max_retries: int = 3) -> dict[str, Any]:\n        \"\"\"Deliver a webhook payload with retry.\"\"\"\n        hook = self._hooks.get(name)\n        if not hook:\n            return {\"success\": False, \"error\": \"Webhook not registered\"}\n        data = json.dumps(payload).encode()\n        for attempt in range(max_retries):\n            try:\n                req = urllib.request.Request(hook[\"url\"], data=data,\n                    headers={\"Content-Type\": \"application/json\"})\n                with urllib.request.urlopen(req, timeout=10) as resp:\n                    with self._lock:\n                        hook[\"deliveries\"] += 1\n                    return {\"success\": True, \"status\": resp.status, \"attempt\": attempt + 1}\n            except Exception as e:\n                if attempt == max_retries - 1:\n                    with self._lock:\n                        hook[\"failures\"] += 1\n                    return {\"success\": False, \"error\": str(e), \"attempts\": attempt + 1}\n                time.sleep(2 ** attempt)"
   },
@@ -220,7 +230,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1139), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1139"
+    "src/CORE/worm_registry.py:1152"
    ],
    "seg": "def register_webhook(self, name: str, url: str, secret: str = \"\"):\n        with self._lock:\n            self._hooks[name] = {\"url\": url, \"secret\": secret, \"deliveries\": 0, \"failures\": 0}"
   },
@@ -254,8 +264,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:992, src/CORE/worm_registry.py:1153), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:992",
-    "src/CORE/worm_registry.py:1153"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:961",
+    "src/CORE/worm_registry.py:1166"
    ],
    "seg": "def get_checksums(self) -> dict[str, str]:\n        \"\"\"Get checksums of all tracked dotfiles.\"\"\"\n        return {f: hashlib.sha256(c.encode()).hexdigest()[:16] for f, c in self._profiles.items()}"
   },
@@ -266,8 +276,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:991, src/CORE/worm_registry.py:1123), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:991",
-    "src/CORE/worm_registry.py:1123"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:960",
+    "src/CORE/worm_registry.py:1136"
    ],
    "seg": "def scan_env_files(self, *paths: str) -> dict[str, Any]:\n        \"\"\"Scan .env files and compare variable sets.\"\"\"\n        envs: dict[str, dict[str, str]] = {}\n        for p in paths:\n            path = Path(p)\n            if path.exists():\n                vars_ = {}\n                for line in path.read_text(encoding=\"utf-8\").split(\"\\n\"):\n                    line = line.strip()\n                    if line and not line.startswith(\"#\") and \"=\" in line:\n                        k, v = line.split(\"=\", 1)\n                        vars_[k] = v\n                envs[str(path)] = vars_\n        all_keys = set()\n        for vars_ in envs.values():\n            all_keys.update(vars_.keys())\n        missing = {str(p): all_keys - set(vars_.keys()) for p, vars_ in envs.items()}\n        self._env_map = envs\n        return {\"files\": len(envs), \"total_keys\": len(all_keys), \"missing_per_file\": {k: list(v) for k, v in missing.items() if v}}"
   },
@@ -278,7 +288,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1145"
+    "src/CORE/worm_registry.py:1158"
    ],
    "seg": "def is_enabled(self, name: str, user_id: str = \"\") -> bool:\n        \"\"\"Check if a feature flag is enabled for a user.\"\"\"\n        with self._lock:\n            flag = self._flags.get(name, {\"enabled\": False, \"rollout_pct\": 0})\n        if not flag[\"enabled\"]:\n            return False\n        if flag[\"rollout_pct\"] >= 100:\n            return True\n        h = hashlib.sha256(f\"{name}:{user_id}\".encode()).digest()[0]\n        return (h / 255.0 * 100) < flag[\"rollout_pct\"]"
   },
@@ -289,7 +299,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1145), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1145"
+    "src/CORE/worm_registry.py:1158"
    ],
    "seg": "def set_flag(self, name: str, enabled: bool, rollout_pct: float = 100.0):\n        with self._lock:\n            self._flags[name] = {\"enabled\": enabled, \"rollout_pct\": rollout_pct, \"updated\": time.time()}"
   },
@@ -300,7 +310,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1132), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1132"
+    "src/CORE/worm_registry.py:1145"
    ],
    "seg": "def rotate_secret(self, name: str = \"default\", generator: (Callable[[], str] | None) = None, backup_path: str = \"\") -> dict[str, Any]:\n        if generator is None:\n            generator = self.generate_password\n        \"\"\"Rotate a secret: backup old, generate new, validate.\"\"\"\n        new_secret = generator()\n        log_entry = {\"name\": name, \"rotated_at\": datetime.now().isoformat(),\n                     \"checksum\": hashlib.sha256(new_secret.encode()).hexdigest()[:12]}\n        self._rotation_log.append(log_entry)\n        return {\"name\": name, \"success\": True, \"checksum_preview\": log_entry[\"checksum\"]}"
   },
@@ -349,7 +359,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1127"
+    "src/CORE/worm_registry.py:1140"
    ],
    "seg": "def audit_image(self, image: str) -> dict[str, Any]:\n        \"\"\"Audit a single image.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"image\", \"inspect\", image], capture_output=True, text=True, timeout=30)\n            if r.returncode == 0:\n                data = json.loads(r.stdout)[0]\n                audit = {\n                    \"image\": image, \"size_mb\": round(data.get(\"Size\", 0) / (1024**2), 2),\n                    \"layers\": len(data.get(\"RootFS\", {}).get(\"Layers\", [])),\n                    \"created\": data.get(\"Created\", \"\"), \"os\": data.get(\"Os\", \"\"),\n                }\n                self._audits[image] = audit\n                return audit\n        except Exception as e:\n            return {\"image\": image, \"error\": str(e)}\n        return {\"image\": image, \"error\": \"Not found\"}"
   },
@@ -360,8 +370,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:389",
-    "src/CORE/worm_registry.py:1115"
+    "src/CORE/WORMS/CLUSTERWORMS.py:503",
+    "src/CORE/worm_registry.py:1128"
    ],
    "seg": "def check_latest(self, image: str) -> dict[str, Any]:\n        \"\"\"Check for latest tag via docker pull dry-run.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"pull\", image], capture_output=True, text=True, timeout=120)\n            status = \"updated\" if \"Downloaded newer\" in r.stdout else (\"unchanged\" if \"Image is up to date\" in r.stdout else \"unknown\")\n            with self._lock:\n                self._tags[image] = {\"status\": status, \"checked\": time.time()}\n            return {\"image\": image, \"status\": status}\n        except Exception as e:\n            return {\"image\": image, \"error\": str(e)}"
   },
@@ -372,8 +382,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:389",
-    "src/CORE/worm_registry.py:1115"
+    "src/CORE/WORMS/CLUSTERWORMS.py:503",
+    "src/CORE/worm_registry.py:1128"
    ],
    "seg": "def check_usage(self, container: str) -> dict[str, Any]:\n        \"\"\"Check container resource usage via docker stats.\"\"\"\n        try:\n            r = subprocess.run([\"docker\", \"stats\", \"--no-stream\", \"--format\", \"{{.CPUPerc}}|{{.MemUsage}}\", container],\n                             capture_output=True, text=True, timeout=10)\n            if r.returncode == 0 and \"|\" in r.stdout:\n                cpu_str, mem_str = r.stdout.strip().split(\"|\", 1)\n                cpu = float(cpu_str.replace(\"%\", \"\"))\n                mem_mb = float(mem_str.split(\"/\")[0].replace(\"MiB\", \"\").strip() or 0)\n                quota = self._quotas.get(container, {})\n                return {\"container\": container, \"cpu_pct\": cpu, \"mem_mb\": mem_mb,\n                        \"over_cpu\": cpu > quota.get(\"cpu_limit\", 100),\n                        \"over_mem\": mem_mb > quota.get(\"mem_mb\", 1024)}\n        except Exception:\n            pass\n        return {\"container\": container, \"error\": \"Could not read stats\"}"
   },
@@ -428,8 +438,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/mesh.py:362, src/CORE/WORMS/expansion/mesh.py:365, src/CORE/cli_completion.py:26), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/expansion/mesh.py:362",
-    "src/CORE/WORMS/expansion/mesh.py:365",
+    "src/CORE/WORMS/expansion/mesh.py:383",
+    "src/CORE/WORMS/expansion/mesh.py:386",
     "src/CORE/cli_completion.py:26"
    ],
    "seg": "def merge(self, chunks: dict[str, str]) -> dict[str, Any]:\n        with self._lock:\n            # deterministic order = sorted keys; per-chunk fair share\n            keys = sorted(chunks.keys())\n            per = max(256, self._budget // max(1, len(keys)))\n            parts = []\n            for k in keys:\n                parts.append(f\"[{k}]\\n{chunks[k][:per]}\")\n            out = \"\\n\\n\".join(parts)[:self._budget]\n            self._merges += 1\n            return {\"success\": True, \"chars\": len(out), \"sources\": keys,\n                    \"merges\": self._merges, \"text\": out[:500]}"
@@ -460,7 +470,7 @@
   "dreaming:DreamingModule.get_dream_stats": {
    "module": "dreaming",
    "qualname": "DreamingModule.get_dream_stats",
-   "line": 1003,
+   "line": 962,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -472,7 +482,7 @@
   "dreaming:HypnagogicSynthesizer.ingest_domains": {
    "module": "dreaming",
    "qualname": "HypnagogicSynthesizer.ingest_domains",
-   "line": 1058,
+   "line": 1017,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -513,16 +523,16 @@
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_spine_mesh.py:936",
-    "tests/test_spine_mesh.py:942",
-    "tests/test_spine_mesh.py:945"
+    "tests/test_spine_mesh.py:939",
+    "tests/test_spine_mesh.py:945",
+    "tests/test_spine_mesh.py:948"
    ],
    "seg": "def route_recall(self, query: str, shard_map: Optional[dict] = None,\n                     index: Optional[VectorShardWorm] = None,\n                     top_k: int = 5) -> dict[str, Any]:\n        # Fast path: an exact id with a known owner needs no embedding.\n        owner = (shard_map or {}).get(query)\n        if owner:\n            with self._lock:\n                self._hits[\"owner\"] += 1\n            return {\"success\": True, \"mem\": query, \"route\": owner,\n                    \"fallback\": False, \"mode\": \"owner_lookup\"}\n\n        store = index or shared_shards()\n        res = store.search(query=query, top_k=top_k) if query else {\"hits\": []}\n        hits = res.get(\"hits\") or []\n        if hits:\n            best = hits[0]\n            with self._lock:\n                self._hits[\"semantic\"] += 1\n                self._last_scores = [h[\"score\"] for h in hits]\n            return {\"success\": True, \"mem\": query, \"route\": best[\"shard\"],\n                    \"fallback\": False, \"mode\": \"semantic\",\n                    \"score\": best[\"score\"],\n                    \"hits\": hits}\n\n        with self._lock:\n            self._hits[\"fallback\"] += 1\n        return {\"success\": True, \"mem\": query, \"route\": \"g_archive\",\n                \"fallback\": True, \"mode\": \"fallback\"}",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_spine_mesh.py:936",
-    "tests/test_spine_mesh.py:942",
-    "tests/test_spine_mesh.py:945"
+    "tests/test_spine_mesh.py:939",
+    "tests/test_spine_mesh.py:945",
+    "tests/test_spine_mesh.py:948"
    ]
   },
   "error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery": {
@@ -591,7 +601,7 @@
   "evolution:EvolutionEngine.get_generation_history": {
    "module": "evolution",
    "qualname": "EvolutionEngine.get_generation_history",
-   "line": 1238,
+   "line": 1336,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -603,7 +613,7 @@
   "evolution:GeneticOptimizer.optimize_cma": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_cma",
-   "line": 1300,
+   "line": 1398,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -619,7 +629,7 @@
   "evolution:GeneticOptimizer.optimize_de": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_de",
-   "line": 1313,
+   "line": 1411,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -635,7 +645,7 @@
   "evolution:GeneticOptimizer.optimize_multi": {
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_multi",
-   "line": 1389,
+   "line": 1487,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -647,7 +657,7 @@
   "evolution:hypervolume_2d": {
    "module": "evolution",
    "qualname": "hypervolume_2d",
-   "line": 1812,
+   "line": 1910,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -658,7 +668,7 @@
   "evolution:moead_weights": {
    "module": "evolution",
    "qualname": "moead_weights",
-   "line": 1824,
+   "line": 1922,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -669,7 +679,7 @@
   "evolution:tchebycheff": {
    "module": "evolution",
    "qualname": "tchebycheff",
-   "line": 1846,
+   "line": 1944,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -683,11 +693,15 @@
    "line": 950,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": [],
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_nature_integration_map.py:85"
+   ],
    "seg": "def _mad(vals: Sequence[float]) -> float:\n    \"\"\"Median absolute deviation from the median (robust scale, no numpy).\"\"\"\n    if not vals:\n        return 0.0\n    med = _median(vals)\n    return _median([abs(float(v) - med) for v in vals])",
-   "decider": "dead_candidate",
-   "decider_evidence": []
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_nature_integration_map.py:85"
+   ]
   },
   "exmachina:_tpm": {
    "module": "exmachina",
@@ -778,22 +792,10 @@
    ],
    "seg": "def rank_candidates(items: Sequence[dict], covered: Optional[Sequence[Any]] = None,\n                    redundancy_penalty: float = 0.5, limit: int = 25,\n                    field: str = \"probability\") -> List[Dict[str, Any]]:\n    \"\"\"Rank evidence by EIG, discounted for redundancy against what we hold.\n\n    Redundancy uses NCD from FULCRUM rather than a second similarity measure,\n    so a claim that restates an existing one is discounted by the SAME\n    definition of \"same\" the rest of the tier uses.\n    \"\"\"\n    have = list(covered or [])\n    scored: List[Dict[str, Any]] = []\n    for it in (items or []):\n        if not isinstance(it, dict):\n            continue\n        try:\n            p = float(it.get(field, it.get(\"p\", 0.5)))\n        except (TypeError, ValueError):\n            continue\n        # A nan probability is MISSING information, not zero information.\n        # Ranking it last would quietly put an unmeasured item behind a\n        # measured-irrelevant one.\n        if not math.isfinite(p):\n            continue\n        eig = expected_information_gain(p)\n        red = 0.0\n        if have:\n            sims = []\n            for h in have:\n                try:\n                    sims.append(1.0 - ncd(it, h))\n                except Exception:\n                    continue\n            red = max(sims) if sims else 0.0\n        score = eig * (1.0 - float(redundancy_penalty) * max(0.0, min(1.0, red)))\n        rec = dict(it)\n        rec[\"eig\"] = round(eig, 4)\n        rec[\"redundancy\"] = round(red, 4)\n        rec[\"priority\"] = round(score, 4)\n        scored.append(rec)\n    scored.sort(key=lambda r: -r[\"priority\"])\n    return scored[:max(1, int(limit))]"
   },
-  "federated:FederatedAggregatorWorm.run_round": {
-   "module": "federated",
-   "qualname": "FederatedAggregatorWorm.run_round",
-   "line": 183,
-   "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": [],
-   "seg": "def run_round(self, worker_fns: dict, timeout: float = 120.0) -> dict[str, Any]:\n        \"\"\"Real local federation round: run worker callables in threads.\n\n        worker_fns: {env: fn() -> (weights: list[float], samples: int)}.\n        Each worker trains locally (its own process/thread), submits, then\n        one robust aggregate() runs. Failures are recorded, never fatal.\n        \"\"\"\n        import concurrent.futures as _cf\n        submitted, failed = [], {}\n\n        def _one(env_fn):\n            env, fn = env_fn\n            try:\n                w, s = fn()\n                return env, list(w), int(s), \"\"\n            except Exception as e:\n                return env, [], 0, str(e)[:120]\n\n        with _cf.ThreadPoolExecutor(max_workers=max(1, len(worker_fns)),\n                                     thread_name_prefix=\"fed\") as pool:\n            futs = {pool.submit(_one, kv): kv[0] for kv in worker_fns.items()}\n            for f in _cf.as_completed(futs, timeout=timeout or None):\n                env, w, s, err = f.result()\n                if err or not w:\n                    failed[env] = err or \"empty_weights\"\n                else:\n                    self.submit(env, w, s)\n                    submitted.append(env)\n        agg = self.aggregate()\n        agg.update({\"workers_ok\": sorted(submitted), \"workers_failed\": failed})\n        return agg",
-   "decider": "dead_candidate",
-   "decider_evidence": []
-  },
   "federated:RewardShaperMeshWorm.local_score": {
    "module": "federated",
    "qualname": "RewardShaperMeshWorm.local_score",
-   "line": 372,
+   "line": 313,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -821,7 +823,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1155"
+    "src/CORE/worm_registry.py:1168"
    ],
    "seg": "def impute_missing(self, values: List[Optional[float]], strategy: str = \"mean\") -> List[float]:\n        \"\"\"Impute missing (None) values.\"\"\"\n        valid = [v for v in values if v is not None]\n        if not valid:\n            return [0.0] * len(values)\n        fill = sum(valid) / len(valid) if strategy == \"mean\" else sorted(valid)[len(valid) // 2]\n        return [v if v is not None else fill for v in values]"
   },
@@ -832,7 +834,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1155"
+    "src/CORE/worm_registry.py:1168"
    ],
    "seg": "def one_hot_encode(self, categories: List[str], known_categories: Optional[List[str]] = None) -> Dict[str, Any]:\n        \"\"\"One-hot encode categorical variables.\"\"\"\n        cats = known_categories or sorted(set(categories))\n        cat_to_idx = {c: i for i, c in enumerate(cats)}\n        encoded = [[0] * len(cats) for _ in categories]\n        for i, cat in enumerate(categories):\n            if cat in cat_to_idx:\n                encoded[i][cat_to_idx[cat]] = 1\n        return {\"categories\": cats, \"encoded\": encoded}"
   },
@@ -848,23 +850,10 @@
     "tests/test_learning_worms.py:611"
    ],
    "seg": "def fallback_accuracy_report(self, records: List[Dict]) -> Dict[str, Any]:\n        \"\"\"Compare static vs dynamic shape extraction accuracy.\n\n        Runs extract() twice per record: first using only static DATA_SHAPES,\n        then using the DYNAMIC_SHAPES fallback. Reports how many event_types\n        would have been unknown without dynamic shapes and how many\n        additional features are extracted via the fallback.\n\n        Args:\n            records: List of memory dicts from LocalMemoryStore.\n\n        Returns:\n            Dict with comparison stats.\n        \"\"\"\n        from CORE.WORMS.expansion.learning import DATA_SHAPES, DYNAMIC_SHAPES\n\n        total = len(records)\n        static_unknown = 0\n        dynamic_known = 0\n        dynamic_feature_dims: List[float] = []\n\n        for r in records:\n            et = r.get(\"event_type\", \"unknown\")\n            in_static = et in DATA_SHAPES\n            in_dynamic = et in DYNAMIC_SHAPES\n\n            if not in_static:\n                static_unknown += 1\n                if in_dynamic:\n                    dynamic_known += 1\n\n        # Run full extract to compare feature dimensions\n        static_features, static_meta = self.extract(records)\n\n        if static_features:\n            [len(f) for f in static_features]\n\n        return {\n            \"total_records\": total,\n            \"static_unknown\": static_unknown,\n            \"dynamic_recovered\": dynamic_known,\n            \"recovery_rate\": round(dynamic_known / max(static_unknown, 1), 3) if static_unknown else 1.0,\n            \"static_feature_dim\": static_meta.get(\"dim\", 0),\n            \"dynamic_shapes_count\": len(DYNAMIC_SHAPES),\n            \"static_shapes_count\": len(DATA_SHAPES),\n            \"unknown_shapes_count\": static_meta.get(\"unknown_shapes\", 0),\n            \"shapes_used\": static_meta.get(\"shapes_used\", []),\n        }",
-   "decider": "declared_in_data",
+   "decider": "test_is_the_wire",
    "decider_evidence": [
-    "named by worm_execution_matrix.json:2536"
-   ]
-  },
-  "learning_grpo:GRPOTrainer.rewards_from_elo": {
-   "module": "learning_grpo",
-   "qualname": "GRPOTrainer.rewards_from_elo",
-   "line": 210,
-   "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": [],
-   "seg": "def rewards_from_elo(self, league, group: list[str],\n                           fallback=None) -> tuple[list[float], str]:\n        \"\"\"Endogenous rewards: league Elo-velocity, RPS-guarded.\n\n        Returns (rewards, source) where source is \"elo\" or \"fallback\".\n        When the league reports a cycle (None), uses fallback() if given,\n        else zeros. This is the AlphaZero-style wiring: no hand numbers.\n        \"\"\"\n        try:\n            r = league.to_rewards(list(group))\n        except Exception:\n            r = None\n        if r is not None:\n            return list(r), \"elo\"\n        if fallback is not None:\n            try:\n                return list(fallback()), \"fallback\"\n            except Exception:\n                pass\n        return [0.0] * len(group), \"zeros\"",
-   "decider": "declared_in_data",
-   "decider_evidence": [
-    "named by worm_execution_matrix.json:1210"
+    "tests/test_learning_worms.py:593",
+    "tests/test_learning_worms.py:611"
    ]
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
@@ -1023,31 +1012,32 @@
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_learning_evolution.py:98",
-    "tests/test_learning_evolution.py:109"
+    "tests/test_learning_evolution.py:97",
+    "tests/test_learning_evolution.py:108"
    ],
    "seg": "def add_from_memories(self, records: list[dict],\n                          q_table: dict[str, dict[int, float]] = None) -> int:\n        \"\"\"Bulk-add experiences from LocalMemoryStore records.\n\n        Converts memory records into (state, action, reward, next_state, done)\n        tuples using the same state/reward logic as RLTrainLoop.\n\n        Args:\n            records: list of memory dicts from DataPipelineWorm.\n            q_table: Optional Q-table for computing TD-errors as initial priorities.\n\n        Returns:\n            Number of experiences added.\n        \"\"\"\n        count = 0\n        for i, record in enumerate(records):\n            src = record.get(\"source\", \"unknown\")\n            sev = record.get(\"severity\", \"info\")\n            state = f\"{src}:{sev}\"\n\n            # Next state from next record (wraps around)\n            next_record = records[(i + 1) % len(records)]\n            next_src = next_record.get(\"source\", \"unknown\")\n            next_sev = next_record.get(\"severity\", \"info\")\n            next_state = f\"{next_src}:{next_sev}\"\n\n            # Reward: same as RLTrainLoop\n            data = record.get(\"data\", {})\n            if isinstance(data, dict):\n                duration = data.get(\"duration_ms\", 0)\n                success = sev != \"error\"\n                reward = 1.0 if success else -1.0\n                if duration:\n                    reward -= duration / 10000.0\n            else:\n                reward = 0.0\n\n            # Action: epsilon-greedy from Q-table or random\n            if q_table and state in q_table:\n                action = max(q_table[state], key=q_table[state].get)\n            else:\n                action = random.randint(0, 3)\n\n            # Compute initial priority from TD-error if Q-table available\n            if q_table and state in q_table:\n                old_q = q_table[state].get(action, 0.0)\n                next_max_q = max(q_table[next_state].values(), default=0.0) if next_state in q_table else 0.0\n                td_error = abs(reward + 0.9 * next_max_q - old_q)\n            else:\n                td_error = 1.0  # Unknown state = high priority\n\n            experience = (state, action, reward, next_state,\n                          (i == len(records) - 1))\n            with self._lock:\n                if len(self._buffer) < self._capacity:\n                    self._buffer.append(experience)\n                    self._priorities.append(td_error + 1e-6)\n                else:\n                    self._buffer[self._position] = experience\n                    self._priorities[self._position] = td_error + 1e-6\n                self._position = (self._position + 1) % self._capacity\n            count += 1\n\n        return count",
-   "decider": "declared_in_data",
+   "decider": "test_is_the_wire",
    "decider_evidence": [
-    "named by worm_execution_matrix.json:2185"
+    "tests/test_learning_evolution.py:97",
+    "tests/test_learning_evolution.py:108"
    ]
   },
   "learning_rl:RLTrainLoop.train_episode": {
    "module": "learning_rl",
    "qualname": "RLTrainLoop.train_episode",
-   "line": 782,
+   "line": 815,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:391",
-    "src/CORE/worm_registry.py:1118"
+    "src/CORE/WORMS/CLUSTERWORMS.py:505",
+    "src/CORE/worm_registry.py:1131"
    ],
    "seg": "def train_episode(self, env, agent, max_steps: int = 1000) -> Dict[str, Any]:\n        \"\"\"Run a single training episode (backward-compatible mock training).\"\"\"\n        state = getattr(env, \"reset\", lambda: 0)()\n        total_reward = 0.0\n        steps = 0\n        for _ in range(max_steps):\n            action = getattr(agent, \"act\", lambda s: 0)(state)\n            try:\n                next_state, reward, done, *_ = getattr(env, \"step\", lambda a: (0, 0, True, {}))(action)\n            except Exception:  # noqa: BLE001 \u2014 broken env stops episode\n                break\n            total_reward += reward\n            state = next_state\n            steps += 1\n            if done:\n                break\n        episode = {\"steps\": steps, \"total_reward\": total_reward, \"timestamp\": time.time()}\n        with self._lock:\n            self._episodes.append(episode)\n        return episode"
   },
   "learning_rl:RLTrainLoop.tune_and_train": {
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_and_train",
-   "line": 731,
+   "line": 764,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1065,7 +1055,7 @@
   "learning_rl:RLTrainLoop.tune_history": {
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_history",
-   "line": 811,
+   "line": 844,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1080,17 +1070,37 @@
     "tests/test_learning_worms.py:395"
    ]
   },
+  "learning_rl:_schema_state_key": {
+   "module": "learning_rl",
+   "qualname": "_schema_state_key",
+   "line": 42,
+   "seg": "def _schema_state_key(vec, severity: str) -> str:\n    \"\"\"Stable state key for a feature vector + severity (2026-09-28).\n\n    Restores the contract test_learning_rl_keys pins (deterministic\n    in-process, severity-separated, stable across PYTHONHASHSEED): sha256\n    over rounded components, never bare hash() (which is seed-salted).\n    \"\"\"\n    try:\n        parts = [\"%.4f\" % float(v) for v in (vec or [])]\n    except (TypeError, ValueError):\n        parts = []\n    digest = hashlib.sha256(\"|\".join(parts).encode(\"utf-8\")).hexdigest()[:16]\n    return \"schema:%s:%s\" % (digest, severity)",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_learning_rl_keys.py:16",
+    "tests/test_learning_rl_keys.py:20",
+    "tests/test_learning_rl_keys.py:21"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_learning_rl_keys.py:16",
+    "tests/test_learning_rl_keys.py:20",
+    "tests/test_learning_rl_keys.py:21"
+   ]
+  },
   "learning_versioner:ModelVersioner.compare_versions": {
    "module": "learning_versioner",
    "qualname": "ModelVersioner.compare_versions",
-   "line": 215,
+   "line": 125,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:390",
-    "src/CORE/worm_registry.py:1116"
+    "src/CORE/WORMS/CLUSTERWORMS.py:504",
+    "src/CORE/worm_registry.py:1129"
    ],
-   "seg": "def compare_versions(self, name: str, v1: str, v2: str) -> Dict[str, Any]:\n        \"\"\"Compare metrics between two model versions.\"\"\"\n        versions = self._merged_versions(name)\n        m1 = next((m for m in versions if m[\"version\"] == v1), None)\n        m2 = next((m for m in versions if m[\"version\"] == v2), None)\n        if not m1 or not m2:\n            return {\"error\": \"Version not found\"}\n        comparison = {}\n        for k in set(list(m1[\"metrics\"]) + list(m2[\"metrics\"])):\n            comparison[k] = {\n                \"v1\": m1[\"metrics\"].get(k),\n                \"v2\": m2[\"metrics\"].get(k),\n                \"delta\": round(m2[\"metrics\"].get(k, 0) - m1[\"metrics\"].get(k, 0), 4),\n            }\n        return {\"model\": name, \"v1\": v1, \"v2\": v2, \"comparison\": comparison}"
+   "seg": "def compare_versions(self, name: str, v1: str, v2: str) -> Dict[str, Any]:\n        \"\"\"Compare metrics between two model versions.\"\"\"\n        versions = self._models.get(name, [])\n        m1 = next((m for m in versions if m[\"version\"] == v1), None)\n        m2 = next((m for m in versions if m[\"version\"] == v2), None)\n        if not m1 or not m2:\n            return {\"error\": \"Version not found\"}\n        comparison = {}\n        for k in set(list(m1[\"metrics\"]) + list(m2[\"metrics\"])):\n            comparison[k] = {\n                \"v1\": m1[\"metrics\"].get(k),\n                \"v2\": m2[\"metrics\"].get(k),\n                \"delta\": round(m2[\"metrics\"].get(k, 0) - m1[\"metrics\"].get(k, 0), 4),\n            }\n        return {\"model\": name, \"v1\": v1, \"v2\": v2, \"comparison\": comparison}"
   },
   "loom:NoveltyDrive.novelty_weight": {
    "module": "loom",
@@ -1129,7 +1139,7 @@
   "mesh:MeshRouterWorm.invalidate_route": {
    "module": "mesh",
    "qualname": "MeshRouterWorm.invalidate_route",
-   "line": 248,
+   "line": 258,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -1188,8 +1198,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:389",
-    "src/CORE/worm_registry.py:1115"
+    "src/CORE/WORMS/CLUSTERWORMS.py:503",
+    "src/CORE/worm_registry.py:1128"
    ],
    "seg": "def check_outdated(self, req_path: str) -> list[dict]:\n        \"\"\"Check for outdated packages using pip list --outdated.\"\"\"\n        try:\n            r = subprocess.run([sys.executable, \"-m\", \"pip\", \"list\", \"--outdated\", \"--format\", \"json\"],\n                             capture_output=True, text=True, timeout=30)\n            if r.returncode == 0:\n                return json.loads(r.stdout)\n        except Exception:\n            pass\n        return []"
   },
@@ -1200,7 +1210,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1154), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1154"
+    "src/CORE/worm_registry.py:1167"
    ],
    "seg": "def parse_requirements(self, req_path: str) -> dict[str, str]:\n        \"\"\"Parse requirements.txt into {package: version}.\"\"\"\n        deps = {}\n        path = Path(req_path)\n        if path.exists():\n            for line in path.read_text(encoding=\"utf-8\").split(\"\\n\"):\n                line = line.strip()\n                if line and not line.startswith(\"#\"):\n                    if \"==\" in line:\n                        pkg, ver = line.split(\"==\", 1)\n                        deps[pkg.strip()] = ver.strip()\n                    elif \">=\" in line:\n                        pkg, ver = line.split(\">=\", 1)\n                        deps[pkg.strip()] = f\">={ver.strip()}\"\n                    else:\n                        deps[line] = \"latest\"\n        return deps"
   },
@@ -1211,7 +1221,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1152"
+    "src/CORE/worm_registry.py:1165"
    ],
    "seg": "def add_mapping(self, old_path: str, new_path: str):\n        with self._lock:\n            self._mappings[old_path] = new_path"
   },
@@ -1222,7 +1232,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1133), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1133"
+    "src/CORE/worm_registry.py:1146"
    ],
    "seg": "def generate_shim(self, old_name: str, new_name: str, module_path: str) -> str:\n        \"\"\"Generate a shim that re-exports old name from new location.\"\"\"\n        shim = f'''\"\"\"\nAuto-generated backward-compatibility shim.\n{old_name} -> {new_name}\n\"\"\"\nfrom {module_path} import {new_name}\n{old_name} = {new_name}\n'''\n        self._shims[old_name] = shim\n        return shim"
   },
@@ -1245,7 +1255,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1129), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1129"
+    "src/CORE/worm_registry.py:1142"
    ],
    "seg": "def detect_breaking_changes(self, schema_name: str) -> list[str]:\n        \"\"\"Compare latest schema to previous and detect removed/renamed keys.\"\"\"\n        schemas = self._schemas.get(schema_name, [])\n        if len(schemas) < 2:\n            return []\n        old, new = schemas[-2][\"schema\"], schemas[-1][\"schema\"]\n        removed = set(old.keys()) - set(new.keys())\n        type_changed = [k for k in (set(old) & set(new)) if type(old[k]) != type(new[k])]\n        return [f\"Removed: {r}\" for r in removed] + [f\"Type changed: {t}\" for t in type_changed]"
   },
@@ -1256,8 +1266,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:388, src/CORE/worm_registry.py:1114), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:388",
-    "src/CORE/worm_registry.py:1114"
+    "src/CORE/WORMS/CLUSTERWORMS.py:502",
+    "src/CORE/worm_registry.py:1127"
    ],
    "seg": "def register_schema(self, name: str, schema: dict[str, Any]):\n        version = len(self._schemas.get(name, [])) + 1\n        entry = {\"version\": version, \"schema\": schema, \"date\": datetime.now().isoformat()}\n        if name not in self._schemas:\n            self._schemas[name] = []\n        self._schemas[name].append(entry)"
   },
@@ -1382,8 +1392,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:994, src/CORE/worm_registry.py:1130), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:994",
-    "src/CORE/worm_registry.py:1130"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:963",
+    "src/CORE/worm_registry.py:1143"
    ],
    "seg": "def measure_contention(self, num_threads: int = 8, iterations: int = 100000) -> dict[str, Any]:\n        \"\"\"Measure GIL contention by running CPU-bound work with increasing threads.\"\"\"\n        def cpu_burn(n: int):\n            total = 0\n            for i in range(n):\n                total += i * i\n            return total\n\n        start = time.perf_counter()\n        threads = [threading.Thread(target=cpu_burn, args=(iterations // num_threads,)) for _ in range(num_threads)]\n        for t in threads:\n            t.start()\n        for t in threads:\n            t.join()\n        elapsed = time.perf_counter() - start\n        return {\"threads\": num_threads, \"iterations\": iterations, \"elapsed_sec\": round(elapsed, 3),\n                \"ops_per_sec\": round(iterations / elapsed, 1), \"free_threaded\": is_free_threaded()}"
   },
@@ -1394,7 +1404,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1128), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1128"
+    "src/CORE/worm_registry.py:1141"
    ],
    "seg": "def detect_bottleneck(self, threshold_read_ms: int = 1000) -> dict[str, Any]:\n        \"\"\"Check if read latency exceeds threshold.\"\"\"\n        io = self.measure_io()\n        bottleneck = io.get(\"read_time_ms\", 0) > threshold_read_ms\n        return {\"bottleneck\": bottleneck, \"metrics\": io, \"recommendation\": \"Consider SSD upgrade or I/O scheduling\" if bottleneck else \"I/O healthy\"}"
   },
@@ -1405,14 +1415,14 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1137), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1137"
+    "src/CORE/worm_registry.py:1150"
    ],
    "seg": "def compare_snapshots(self, label1: str = \"\", label2: str = \"\") -> dict[str, Any]:\n        \"\"\"Compare two snapshots to find growth.\"\"\"\n        if not self._snapshots:\n            return {\"error\": \"No snapshots available\", \"snapshot_count\": 0}\n        keys = sorted(self._snapshots.keys())\n        if not label1:\n            label1 = keys[-2] if len(keys) >= 2 else (keys[0] if keys else \"\")\n        if not label2:\n            label2 = keys[-1] if keys else \"\"\n        s1, s2 = self._snapshots.get(label1), self._snapshots.get(label2)\n        if not s1 or not s2:\n            return {\"error\": \"Snapshots not found\", \"available\": keys[-5:]}\n        growth = (s2.get(\"timestamp\", 0) - s1.get(\"timestamp\", 1)) > 0\n        return {\"growth_detected\": growth, \"label1\": label1, \"label2\": label2}"
   },
   "proteus_hooks:morph_dimension_summary": {
    "module": "proteus_hooks",
    "qualname": "morph_dimension_summary",
-   "line": 716,
+   "line": 731,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:80), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -1420,10 +1430,22 @@
    ],
    "seg": "def morph_dimension_summary(history_path: str) -> Dict[str, Any]:\n    \"\"\"Per-dimension fitness, plus a per-gene verdict.\n\n    The per-gene verdict is the measurement Phase E exists to produce: does a\n    wider genome actually beat the 4-gene best, and if so, which added gene did\n    it \u2014 or was the extra dimension dead weight that should be pruned?\n    \"\"\"\n    rows: List[dict] = []\n    try:\n        with open(history_path, \"r\", encoding=\"utf-8\") as fh:\n            for line in fh:\n                line = line.strip()\n                if not line:\n                    continue\n                try:\n                    d = json.loads(line)\n                except Exception:\n                    continue\n                if isinstance(d, dict) and d.get(\"fitness\") is not None:\n                    rows.append(d)\n    except Exception:\n        pass\n\n    by_dim: Dict[int, List[float]] = {}\n    by_gene: Dict[str, List[float]] = {}          # EFFECTIVE trials only\n    by_gene_inert: Dict[str, List[float]] = {}\n    by_gene_ab: Dict[str, List[float]] = {}       # matched-pair deltas\n    inert_rows = 0\n    measured_rows = 0\n    for r in rows:\n        try:\n            fit = float(r[\"fitness\"])\n            by_dim.setdefault(int(r[\"dimension\"]), []).append(fit)\n        except (KeyError, TypeError, ValueError):\n            continue\n        g = r.get(\"gene\")\n        if not g:\n            continue\n        _ab = _row_ab_delta(r)\n        if _ab is not None:\n            measured_rows += 1\n            by_gene_ab.setdefault(str(g), []).append(_ab)\n        if _row_inert(r):\n            inert_rows += 1\n            by_gene_inert.setdefault(str(g), []).append(fit)\n        else:\n            by_gene.setdefault(str(g), []).append(fit)\n\n    def _stat(vals: List[float]) -> dict:\n        m = sum(vals) / len(vals)\n        var = sum((x - m) ** 2 for x in vals) / len(vals)\n        return {\"n\": len(vals), \"best\": max(vals), \"mean\": round(m, 4),\n                \"sd\": round(math.sqrt(var), 4)}\n\n    base = [v for v in by_dim.get(4, [])]\n    out = {\n        \"by_dimension\": {str(k): _stat(v) for k, v in sorted(by_dim.items())},\n        \"by_gene\": {k: _stat(v) for k, v in sorted(by_gene.items())},\n        \"by_gene_inert\": {k: _stat(v) for k, v in sorted(by_gene_inert.items())},\n        \"by_gene_ab\": {k: _stat(v) for k, v in sorted(by_gene_ab.items())},\n        \"n_rows\": len(rows),\n        \"inert_rows\": inert_rows,\n        \"effective_rows\": len(rows) - inert_rows,\n        \"measured_rows\": measured_rows,\n        \"inert_share\": (round(inert_rows / float(len(rows)), 4) if rows else None),\n        \"baseline_4gene_best\": max(base) if base else None,\n        \"verdict\": {},\n    }\n    b4 = out[\"baseline_4gene_best\"]\n    # The verdict is computed from EFFECTIVE trials only. A gene whose every\n    # trial left the trainer call at its default is reported as UNTESTED rather\n    # than as a winner \u2014 that is the whole bug this guards: the previous code\n    # read `by_gene` straight off every row, so `use_schema_features` \"won\" 31\n    # times on a switch the trainer never saw change.\n    for g in sorted(set(list(out[\"by_gene\"].keys())\n                         + list(out[\"by_gene_inert\"].keys()))):\n        st = out[\"by_gene\"].get(g)\n        n_inert = (out[\"by_gene_inert\"].get(g) or {}).get(\"n\", 0)\n        ab = out[\"by_gene_ab\"].get(g) or {}\n        ab_vals = by_gene_ab.get(g) or []\n        best = None if st is None else st[\"best\"]\n        out[\"verdict\"][g] = {\n            \"best\": best,\n            \"informative_n\": 0 if st is None else st[\"n\"],\n            \"inert_n\": n_inert,\n            \"tested\": bool(st),\n            # The matched A/B is the attributable reading: same champion, same\n            # pools, one gene moved. Reported alongside (not instead of) the\n            # fitness comparison, because they answer different questions.\n            \"ab_n\": ab.get(\"n\", 0),\n            \"ab_mean\": (None if not ab_vals\n                        else round(sum(ab_vals) / len(ab_vals), 4)),\n            \"ab_positive\": sum(1 for x in ab_vals if x > 0.0),\n            # \"did the treatment beat the trainer's default, on average\" -- a\n            # TALLY, not a significance claim; the per-row deltas are in the\n            # ledger so anyone wanting a test can run one on the real numbers.\n            \"ab_beats_default\": (None if not ab_vals\n                                 else bool(sum(ab_vals) / len(ab_vals) > 0.0)),\n            \"delta_vs_4gene\": (None if (b4 is None or best is None)\n                               else round(best - b4, 4)),\n            \"beats_4gene\": (None if (b4 is None or best is None)\n                            else bool(best > b4)),\n            \"note\": (None if st else\n                     \"no informative trial: every row resolved to the trainer \"\n                     \"default, so the ledger cannot say what this gene does\"),\n        }\n    return out"
   },
+  "proteus_hooks:morph_policy_refresh": {
+   "module": "proteus_hooks",
+   "qualname": "morph_policy_refresh",
+   "line": 1169,
+   "seg": "def morph_policy_refresh(policy_path: str, history_path: str,\n                         cycle_index: Optional[int] = None) -> Dict[str, Any]:\n    \"\"\"Re-derive `state/morph_policy.json` from the ledger. Never raises.\n\n    The artifact is the DECISION, so it must be re-derived rather than carried:\n    evidence comes from the matched A/B pairs, the verdict from the evidence, and\n    the verdict is written into `rotation` by `morph_rotation_retired` (which is\n    idempotent). The rotation's candidate slot follows the round-robin, so the\n    file says which gene the NEXT cycle would add and whether it is still active.\n\n    `search_space` is PRESERVED exactly as written: it is a hand-audited record\n    of which trainer kwargs can actually move the computation, and re-deriving\n    it from a signature would replace an audit with a guess.\n    \"\"\"\n    out: Dict[str, Any] = {\"refreshed\": False, \"written\": False,\n                           \"evidence\": {}, \"rotation\": {}}\n    policy: Dict[str, Any] = {}\n    try:\n        with open(policy_path, encoding=\"utf-8\") as fh:\n            loaded = json.load(fh)\n        if isinstance(loaded, dict):\n            policy = loaded\n    except (OSError, ValueError):\n        policy = {}\n\n    rules = policy.get(\"rules\") if isinstance(policy.get(\"rules\"), dict) else None\n    if not rules:\n        rules = {\"admit_win_rate\": MORPH_ADMIT_WIN_RATE,\n                 \"decisive_p\": MORPH_DECISIVE_P,\n                 \"min_n\": MORPH_MIN_N,\n                 \"retire_win_rate\": MORPH_RETIRE_WIN_RATE}\n\n    evidence = morph_evidence_from_ledger(history_path)\n    verdict = morph_rotation_verdict(evidence, rules)\n    for gene, ev in evidence.items():\n        ev[\"status\"] = (\"admit\" if gene in verdict[\"admitted\"]\n                        else (\"retire\" if gene in verdict[\"retired\"]\n                              else \"undetermined\"))\n\n    candidates = list(policy.get(\"candidates\") or [])\n    if cycle_index is not None:\n        gene = morph_candidate_gene(int(cycle_index))\n        candidates = [gene[\"name\"]] if gene else []\n\n    paused, reading = morph_rotation_paused(history_path)\n    policy.update({\n        \"rules\": rules,\n        \"evidence\": evidence,\n        \"candidates\": candidates,\n        \"retired\": verdict[\"retired\"],\n        \"admitted\": verdict[\"admitted\"],\n        \"active\": [g for g in candidates if g not in verdict[\"retired\"]],\n        \"actuator\": {\n            \"threshold\": MORPH_FREE_GROWTH_PAUSE,\n            \"paused\": paused,\n            \"verdict\": reading.get(\"verdict\"),\n            \"free_growth\": reading.get(\"free_growth\"),\n            \"reading\": reading,\n        },\n        \"saved_at\": datetime.now().isoformat(timespec=\"seconds\"),\n    })\n    out[\"written\"] = _morph_write_policy(policy_path, policy)\n    out[\"evidence\"] = evidence\n    out[\"rotation\"] = morph_rotation_retired(policy_path)\n    out[\"refreshed\"] = True\n    return out",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dead_candidate",
+   "decider_evidence": []
+  },
   "proteus_hooks:morph_treatment_value": {
    "module": "proteus_hooks",
    "qualname": "morph_treatment_value",
-   "line": 560,
+   "line": 575,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/proteus_hooks.py:77), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -1470,7 +1492,7 @@
   "scheduling:ScheduledTrainingWorm._get_ab": {
    "module": "scheduling",
    "qualname": "ScheduledTrainingWorm._get_ab",
-   "line": 263,
+   "line": 197,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1486,7 +1508,7 @@
   "scheduling:TrainingOrchestrator.get_run_history": {
    "module": "scheduling",
    "qualname": "TrainingOrchestrator.get_run_history",
-   "line": 1130,
+   "line": 1105,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1530,7 +1552,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1140), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1140"
+    "src/CORE/worm_registry.py:1153"
    ],
    "seg": "def find_overly_permissive(self) -> list[dict]:\n        \"\"\"Find rules with Any-Any-Any patterns.\"\"\"\n        risky = []\n        for r in self.get_firewall_rules():\n            dir_val = r.get(\"Direction\", \"\")\n            proto = r.get(\"Protocol\", \"\")\n            if \"any\" in dir_val.lower() and \"any\" in proto.lower():\n                risky.append(r)\n        return risky"
   },
@@ -1541,7 +1563,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1127"
+    "src/CORE/worm_registry.py:1140"
    ],
    "seg": "def audit_exposure(self) -> dict[str, Any]:\n        \"\"\"Identify potentially risky exposed services.\"\"\"\n        risky_ports = {22: \"SSH\", 23: \"Telnet\", 3389: \"RDP\", 5900: \"VNC\", 6379: \"Redis\", 27017: \"MongoDB\"}\n        exposed = []\n        for p in self.scan_local_ports():\n            if p[\"port\"] in risky_ports:\n                p[\"risk\"] = f\"Potentially exposed {risky_ports[p['port']]}\"\n                exposed.append(p)\n        return {\"exposed_services\": len(exposed), \"findings\": exposed, \"ok\": len(exposed) == 0}"
   },
@@ -1616,10 +1638,58 @@
    "decider": "dead_candidate",
    "decider_evidence": []
   },
+  "spine:MorphogenesisWorm.retrieve_staged": {
+   "module": "spine",
+   "qualname": "MorphogenesisWorm.retrieve_staged",
+   "line": 3708,
+   "seg": "def retrieve_staged(self, query: str, k: int = 5) -> list[dict[str, Any]]:\n        \"\"\"Voyager-style retrieval over the pen (2026-09-29, stdlib only).\n\n        Ranks staged skills by keyword overlap between the query and each\n        file's name + embedded SOURCE_PATTERN/SOURCE_WORM markers. No\n        embeddings, no network, no model calls: a reader for the\n        write-only pen so staged skills can be composed instead of\n        accumulating. Returns up to ``k`` ``{file, score}`` dicts.\n        \"\"\"\n        import difflib as _dm\n        pen = _staging_dir()\n        if not pen.is_dir() or not (query or \"\").strip():\n            return []\n        q = \" \".join(str(query).lower().split())\n        scored = []\n        try:\n            files = sorted(pen.glob(\"*.py\"))\n        except OSError:\n            return []\n        for p in files:\n            try:\n                head = p.read_text(encoding=\"utf-8\", errors=\"replace\")[:1200]\n            except OSError:\n                continue\n            doc = \"%s %s\" % (p.stem.replace(\"_\", \" \").lower(), head.lower())\n            overlap = len(set(q.split()) & set(doc.split()))\n            ratio = _dm.SequenceMatcher(None, q, doc[:400]).ratio()\n            score = round(overlap * 2.0 + ratio, 4)\n            if score > 0:\n                scored.append({\"file\": p.name, \"score\": score})\n        scored.sort(key=lambda d: -d[\"score\"])\n        return scored[:max(1, int(k))]",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_contract_pinning.py:77",
+    "tests/test_contract_pinning.py:81"
+   ],
+   "decider": "dynamic_call",
+   "decider_evidence": [
+    "src/CORE/WORMS/expansion/spine.py"
+   ]
+  },
+  "spine:SpineCycleWorm._nature_success_rate": {
+   "module": "spine",
+   "qualname": "SpineCycleWorm._nature_success_rate",
+   "line": 2586,
+   "seg": "def _nature_success_rate(self, nature: str) -> float | None:\n        return self._nature_rates().get(nature)",
+   "status": "pending",
+   "reason": "",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dynamic_call",
+   "decider_evidence": [
+    "src/CORE/WORMS/expansion/spine.py"
+   ]
+  },
+  "spine:measure_skill_lift": {
+   "module": "spine",
+   "qualname": "measure_skill_lift",
+   "line": 3862,
+   "seg": "def measure_skill_lift(with_skill: dict, without_skill: dict) -> dict:\n    \"\"\"SkillsBench-style Skill Lift (2026-09-29, pure, advisory).\n\n    Paired comparison: ``{\"passed\": int, \"total\": int}`` with the skill\n    mounted vs without. Attestation checks compile-only; lift measures\n    whether the skill HELPS. The promote gate reads this; it does not\n    enforce it yet (needs a real verifier harness per skill first).\n    \"\"\"\n    try:\n        wp, wt = int(with_skill.get(\"passed\", 0)), int(with_skill.get(\"total\", 0))\n        np_, nt = int(without_skill.get(\"passed\", 0)), int(without_skill.get(\"total\", 0))\n    except (TypeError, ValueError):\n        return {\"lift\": 0.0, \"verdict\": \"unmeasurable\"}\n    if wt <= 0 or nt <= 0:\n        return {\"lift\": 0.0, \"verdict\": \"unmeasurable\"}\n    lift = round(wp / wt - np_ / nt, 4)\n    return {\"lift\": lift,\n            \"with_rate\": round(wp / wt, 4),\n            \"without_rate\": round(np_ / nt, 4),\n            \"verdict\": \"helps\" if lift > 0 else (\"neutral\" if lift == 0 else \"hurts\")}",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_contract_pinning.py:110",
+    "tests/test_contract_pinning.py:112"
+   ],
+   "decider": "dynamic_call",
+   "decider_evidence": [
+    "src/CORE/WORMS/expansion/spine.py"
+   ]
+  },
   "spine_registry:_iso_or": {
    "module": "spine_registry",
    "qualname": "_iso_or",
-   "line": 3239,
+   "line": 3415,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -1631,61 +1701,59 @@
   "spine_registry:audit_state": {
    "module": "spine_registry",
    "qualname": "audit_state",
-   "line": 2004,
+   "line": 2083,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_brainstem_playing_field.py:230",
-    "tests/test_brainstem_playing_field.py:622"
+    "tests/test_brainstem_playing_field.py:230"
    ],
    "seg": "def audit_state() -> Dict[str, Any]:\n    \"\"\"Classify every Q key by provenance. The trustworthiness is a number.\n\n    Playing-field TODO G3. `tests/conftest.py` reasons correctly about\n    CONTAINMENT -- \"a test must not be able to damage the machine it is\n    testing\" -- and then stops at the boundary. Containment prevents NEW\n    damage; it says nothing about EXISTING damage, and it leaves the evidence\n    of past damage indistinguishable from production data. The missing third\n    leg is provenance.\n\n    Classes: ``measured`` (has an observed pull count), ``bootstrapped`` (no\n    count but real homeostat evidence -- the G4 migration), ``simulated``\n    (dreams only: a value exists and nothing ever observed it, so it earns no\n    ranking weight), ``unwitnessed`` (no count, no ledger record, no dreams),\n    and ``fabricated`` (a declared fixture name; counted separately as well,\n    because a fixture that somehow accumulated a count is still a fixture).\n    \"\"\"\n    _ensure_loaded()\n    with _HOMEOSTAT_LOCK:\n        qw = dict(_Q_WEIGHTS)\n        counts = dict(_Q_UPDATE_COUNTS)\n        homeo = {k: dict(v) for k, v in _HOMEOSTAT.items()}\n        dreams = dict(_Q_DREAM_COUNTS)\n    buckets: Dict[str, List[str]] = {\n        \"measured\": [], \"bootstrapped\": [], \"unwitnessed\": [],\n        \"fabricated\": [], \"simulated\": [],\n    }\n    for key in qw:\n        if _purged_blocked(key):\n            # Cannot happen through the public API (a purged key is removed),\n            # but a merge racing the purge could re-introduce one, and a\n            # tombstoned key must never be counted as measured.\n            buckets[\"fabricated\"].append(key)\n        elif _is_fixture_key(key):\n            buckets[\"fabricated\"].append(key)\n        elif key in counts:\n            buckets[\"measured\"].append(key)\n        elif key in homeo:\n            buckets[\"bootstrapped\"].append(key)\n        elif dreams.get(key):\n            # A value with no observation behind it: dreams are the only thing\n            # holding it up, and it earns no ranking weight anywhere.\n            buckets[\"simulated\"].append(key)\n        else:\n            buckets[\"unwitnessed\"].append(key)\n    total = len(qw) or 1\n    return {\n        \"keys\": len(qw),\n        \"buckets\": {k: sorted(v) for k, v in buckets.items()},\n        \"counts\": {k: len(v) for k, v in buckets.items()},\n        \"fabricated_share\": round(len(buckets[\"fabricated\"]) / total, 4),\n        \"trustworthy\": len(buckets[\"fabricated\"]) == 0,\n        \"clip_keys\": sorted(k for k, v in qw.items() if abs(v) > 0.999999),\n    }",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_brainstem_playing_field.py:230",
-    "tests/test_brainstem_playing_field.py:622"
+    "tests/test_brainstem_playing_field.py:230"
    ]
   },
   "spine_registry:get_gossip_trust_state": {
    "module": "spine_registry",
    "qualname": "get_gossip_trust_state",
-   "line": 3115,
+   "line": 3288,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_spine_mesh.py:1088",
-    "tests/test_spine_mesh.py:1130",
-    "tests/test_spine_mesh.py:1160"
+    "tests/test_gossip_trust_allowlist.py:243",
+    "tests/test_spine_mesh.py:1091",
+    "tests/test_spine_mesh.py:1133"
    ],
-   "seg": "def get_gossip_trust_state() -> Dict[str, Any]:\n    \"\"\"Introspection: local sequence, per-env high-water marks, pinned keys.\"\"\"\n    with _GOSSIP_TRUST_LOCK:\n        return {\n            \"policy\": _gossip_policy(),\n            \"local_seq\": _GOSSIP_SEQ_LOCAL,\n            \"seq_seen\": dict(_GOSSIP_SEQ_SEEN),\n            \"pinned_keys\": {k: v[:16] + \"...\" for k, v in _GOSSIP_KEYS.items()},\n            \"crypto_available\": _gossip_crypto() is not None,\n        }",
+   "seg": "def get_gossip_trust_state() -> Dict[str, Any]:\n    \"\"\"Introspection: local sequence, per-env high-water marks, pinned keys.\"\"\"\n    with _GOSSIP_TRUST_LOCK:\n        env_map, key_set = _load_trusted_keys()\n        return {\n            \"policy\": _gossip_policy(),\n            \"local_seq\": _GOSSIP_SEQ_LOCAL,\n            \"seq_seen\": dict(_GOSSIP_SEQ_SEEN),\n            \"pinned_keys\": {k: v[:16] + \"...\" for k, v in _GOSSIP_KEYS.items()},\n            \"crypto_available\": _gossip_crypto() is not None,\n            \"trusted_envs\": {k: v[:16] + \"...\" for k, v in env_map.items()},\n            \"trusted_key_count\": len(key_set),\n        }",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_spine_mesh.py:1088",
-    "tests/test_spine_mesh.py:1130",
-    "tests/test_spine_mesh.py:1160"
+    "tests/test_gossip_trust_allowlist.py:243",
+    "tests/test_spine_mesh.py:1091",
+    "tests/test_spine_mesh.py:1133"
    ]
   },
   "spine_registry:get_module_health": {
    "module": "spine_registry",
    "qualname": "get_module_health",
-   "line": 2873,
+   "line": 2958,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_spine_mesh.py:287"
+    "tests/test_spine_mesh.py:290"
    ],
    "seg": "def get_module_health() -> Dict[str, Any]:\n    \"\"\"Introspection endpoint for doctor/health tooling.\"\"\"\n    with _SPINE_LOCK:\n        spine_nodes = len(_SPINE_MAP)\n        spine_events = len(_SPINE_EVENTS)\n    with _HOMEOSTAT_LOCK:\n        homeostat_worms = len(_HOMEOSTAT)\n        outcome_events = _outcome_event_count()\n    with _QUARANTINE_LOCK:\n        quarantine_findings = len(_QUARANTINE_VOTES)\n    with _FABRIC_LOCK:\n        fabric_providers = len(_FABRIC_STATE)\n    return {\n        \"version\": __version__,\n        \"spine_nodes\": spine_nodes,\n        \"spine_events\": spine_events,\n        \"homeostat_worms\": homeostat_worms,\n        \"outcome_events\": outcome_events,\n        \"quarantine_findings\": quarantine_findings,\n        \"fabric_providers\": fabric_providers,\n    }",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_spine_mesh.py:287"
+    "tests/test_spine_mesh.py:290"
    ]
   },
   "spine_registry:get_policy_latest": {
    "module": "spine_registry",
    "qualname": "get_policy_latest",
-   "line": 438,
+   "line": 481,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:297), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -1696,7 +1764,7 @@
   "spine_registry:get_q_evidence": {
    "module": "spine_registry",
    "qualname": "get_q_evidence",
-   "line": 1898,
+   "line": 1969,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1713,10 +1781,42 @@
     "tests/test_brainstem_playing_field.py:157"
    ]
   },
+  "spine_registry:get_q_updates": {
+   "module": "spine_registry",
+   "qualname": "get_q_updates",
+   "line": 1705,
+   "seg": "def get_q_updates(nature: str, worm: str) -> int:\n    \"\"\"How many times this key has ever been reinforced. 0 if never.\n\n    Added 2026-09-14 for elastic AOA arm selection. ``get_q_weight()``\n    returns 0.0 for an unknown key and for a known key that has settled on\n    a neutral 0.0 -- so a *proven neutral* arm is indistinguishable from a\n    *never-tried* one by Q alone. Any selector that ranks on Q therefore\n    starves untried arms permanently: they score 0, are never chosen, and\n    so are never scored (the cold-start collapse four live inference\n    providers independently flagged).\n\n    The count already existed as ``_Q_UPDATE_COUNTS`` (used to drive the\n    Welford variance in ``_reinforce_q_unlocked``); this exposes it\n    read-only so a caller can distinguish \"unknown\" from \"measured\" and\n    apply a minimum-pull quota before trusting Q.\n    \"\"\"\n    _ensure_loaded()\n    with _HOMEOSTAT_LOCK:\n        return int(_Q_UPDATE_COUNTS.get(f\"{nature}:{worm}\", 0))",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_spine_brainstem_persistence.py:49",
+    "tests/test_spine_brainstem_persistence.py:53",
+    "tests/test_spine_brainstem_persistence.py:55"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_spine_brainstem_persistence.py:49",
+    "tests/test_spine_brainstem_persistence.py:53",
+    "tests/test_spine_brainstem_persistence.py:55"
+   ]
+  },
+  "spine_registry:get_q_variance": {
+   "module": "spine_registry",
+   "qualname": "get_q_variance",
+   "line": 1835,
+   "seg": "def get_q_variance() -> Dict[str, float]:\n    \"\"\"Copy of the per-key variance of the applied learning signal.\n\n    Exposed because it is the module's only uncertainty estimate and it was\n    previously unreachable from outside -- computed on every update, persisted,\n    gossiped, and readable by nothing but adaptive alpha. A caller that wants\n    to know *how well measured* a value is needs this; `get_q_weights()` cannot\n    express it.\n    \"\"\"\n    _ensure_loaded()\n    with _HOMEOSTAT_LOCK:\n        return dict(_Q_VARIANCE)",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dead_candidate",
+   "decider_evidence": []
+  },
   "spine_registry:homeostat_reset": {
    "module": "spine_registry",
    "qualname": "homeostat_reset",
-   "line": 2684,
+   "line": 2769,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1736,7 +1836,7 @@
   "spine_registry:purge_fixtures": {
    "module": "spine_registry",
    "qualname": "purge_fixtures",
-   "line": 2060,
+   "line": 2139,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1756,27 +1856,27 @@
   "spine_registry:purge_implausible_stamps": {
    "module": "spine_registry",
    "qualname": "purge_implausible_stamps",
-   "line": 2795,
+   "line": 2880,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_mesh_clock_poison.py:230",
-    "tests/test_mesh_clock_poison.py:235",
-    "tests/test_mesh_clock_poison.py:284"
+    "tests/test_mesh_clock_poison.py:232",
+    "tests/test_mesh_clock_poison.py:237",
+    "tests/test_mesh_clock_poison.py:286"
    ],
    "seg": "def purge_implausible_stamps(dry_run: bool = True) -> Dict[str, Any]:\n    \"\"\"Repair ordering stamps that sit beyond the clock's drift window.\n\n    Opt-in, never automatic. Refusal (see `_stamp_adoptable`) makes a poisoned\n    stamp harmless \u2014 it cannot win a merge and cannot propagate \u2014 but it stays\n    in the store, and therefore in every gossip payload, forever. A real store\n    was found carrying 98 year-2999 stamps\n    (``032472162000000-04631-windows``) written before the drift bound existed.\n\n    Each implausible ``hlc`` sidecar is REPLACED with a stamp derived from the\n    record's own human-readable ISO field, not deleted: deleting it would make\n    the record look older than every real write and lose its next merge, which\n    is a different bug from the one being fixed. ``field_stamps`` on fabric\n    records are repaired the same way.\n\n    ``dry_run=True`` (the default) reports what would change and touches\n    nothing. Returns per-area counts plus `repaired` / `scanned`. Never raises.\n\n    Operator usage:\n        python -c \"from CORE import spine_registry as s; print(s.purge_implausible_stamps(False))\"\n    \"\"\"\n    report: Dict[str, Any] = {\"dry_run\": bool(dry_run), \"repaired\": 0,\n                              \"scanned\": 0, \"areas\": {}, \"examples\": []}\n\n    def _fix(rec: Any, iso_field: str, area: str) -> None:\n        if not isinstance(rec, dict):\n            return\n        report[\"scanned\"] += 1\n        stamp = rec.get(\"hlc\")\n        if not stamp or _stamp_adoptable(str(stamp)):\n            return\n        report[\"repaired\"] += 1\n        report[\"areas\"][area] = report[\"areas\"].get(area, 0) + 1\n        if len(report[\"examples\"]) < 5:\n            report[\"examples\"].append({\"area\": area, \"stamp\": str(stamp)[:40],\n                                      \"from\": str(rec.get(iso_field) or \"\")[:32]})\n        if dry_run:\n            return\n        try:\n            from CORE.hlc import normalize_stamp\n            rec[\"hlc\"] = normalize_stamp(str(rec.get(iso_field) or \"\"))\n        except Exception:  # pragma: no cover - defensive\n            rec.pop(\"hlc\", None)\n\n    try:\n        with _HOMEOSTAT_LOCK:\n            for rec in _HOMEOSTAT.values():\n                _fix(rec, \"last_at\", \"homeostat\")\n        with _SPINE_LOCK:\n            for rec in _SPINE_MAP.values():\n                _fix(rec, \"last_at\", \"spine_map\")\n        with _QUARANTINE_LOCK:\n            for box in _QUARANTINE_VOTES.values():\n                for rec in (box or {}).values():\n                    _fix(rec, \"at\", \"quarantine_votes\")\n        with _FABRIC_LOCK:\n            for rec in _FABRIC_STATE.values():\n                _fix(rec, \"updated_at\", \"fabric_state\")\n                stamps = rec.get(\"field_stamps\") if isinstance(rec, dict) else None\n                if not isinstance(stamps, dict):\n                    continue\n                for key, stamp in list(stamps.items()):\n                    if stamp and not _stamp_adoptable(str(stamp)):\n                        report[\"repaired\"] += 1\n                        report[\"areas\"][\"fabric_field_stamps\"] = \\\n                            report[\"areas\"].get(\"fabric_field_stamps\", 0) + 1\n                        if not dry_run:\n                            try:\n                                from CORE.hlc import normalize_stamp\n                                stamps[key] = normalize_stamp(\n                                    str(rec.get(\"updated_at\") or \"\"))\n                            except Exception:  # pragma: no cover - defensive\n                                stamps.pop(key, None)\n    except Exception as exc:  # pragma: no cover - defensive\n        report[\"error\"] = str(exc)[:160]\n    return report",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_mesh_clock_poison.py:230",
-    "tests/test_mesh_clock_poison.py:235",
-    "tests/test_mesh_clock_poison.py:284"
+    "tests/test_mesh_clock_poison.py:232",
+    "tests/test_mesh_clock_poison.py:237",
+    "tests/test_mesh_clock_poison.py:286"
    ]
   },
   "spine_registry:purged_blocked_writes": {
    "module": "spine_registry",
    "qualname": "purged_blocked_writes",
-   "line": 330,
+   "line": 373,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1796,41 +1896,39 @@
   "spine_registry:q_confidence": {
    "module": "spine_registry",
    "qualname": "q_confidence",
-   "line": 1852,
+   "line": 1923,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_brainstem_playing_field.py:572",
-    "tests/test_brainstem_playing_field.py:495"
+    "tests/test_nature_integration_map.py:75"
    ],
    "seg": "def q_confidence(nature: str, worm: str) -> Dict[str, Any]:\n    \"\"\"Everything the brainstem knows about one key's measurement quality.\n\n    Reports the estimate AND its uncertainty, because a selector that can only\n    see the estimate cannot tell \"reliable\" from \"lucky\", which is precisely\n    how a clipped table came to look like a ranking.\n    \"\"\"\n    _ensure_loaded()\n    key = f\"{nature}:{worm}\"\n    with _HOMEOSTAT_LOCK:\n        q = float(_Q_WEIGHTS.get(key, 0.0))\n        n = _evidence_unlocked(key)\n        var = float(_Q_VARIANCE.get(key, 0.0))\n        dreamed = int(_Q_DREAM_COUNTS.get(key, 0))\n    sigma = var ** 0.5\n    return {\"key\": key, \"q\": round(q, 6), \"evidence\": n,\n            \"dream_evidence\": dreamed, \"variance\": round(var, 6),\n            \"sigma\": round(sigma, 6),\n            \"q_effective\": round(q_effective_from(q, n), 6),\n            \"selection_score\": round(selection_score_from(q, n, var), 6),\n            \"half_width\": round(sigma / ((n + 1) ** 0.5), 6)}",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_brainstem_playing_field.py:572",
-    "tests/test_brainstem_playing_field.py:495"
+    "tests/test_nature_integration_map.py:75"
    ]
   },
   "spine_registry:revert_policy": {
    "module": "spine_registry",
    "qualname": "revert_policy",
-   "line": 2716,
+   "line": 2801,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_spine_mesh.py:694"
+    "tests/test_spine_mesh.py:697"
    ],
    "seg": "def revert_policy(actor: str = \"operator\", count: int = 1) -> List[Dict[str, Any]]:\n    \"\"\"Undo the last `count` journalled cooldown/priority changes.\n\n    Scans the journal newest-first, applies each entry's inverse to the\n    registry, and stops after `count` reverted ENTRIES (journal entries\n    whose worms are no longer registered are skipped, still counted).\n    Returns the reverted entries for audit. Never raises.\n    \"\"\"\n    reverted: List[Dict[str, Any]] = []\n    try:\n        from CORE.worm_registry import WORM_REGISTRY as _WR\n    except ImportError:\n        return reverted\n    with _POLICY_LOCK:\n        for entry in reversed(_POLICY_JOURNAL):\n            if len(reverted) >= count:\n                break\n            changes = entry.get(\"changes\") or {}\n            info = _WR.get(entry.get(\"worm\", \"\"))\n            if info is None:\n                continue\n            inv: Dict[str, Any] = {}\n            if \"cooldown_seconds\" in changes:\n                inv[\"cooldown_seconds\"] = changes[\"cooldown_seconds\"][\"from\"]\n            if \"priority\" in changes:\n                inv[\"priority\"] = changes[\"priority\"][\"from\"]\n            if not inv:\n                continue\n            info.update(inv)\n            reverted.append({\"at\": entry.get(\"at\"), \"worm\": entry.get(\"worm\"),\n                             \"actor\": entry.get(\"actor\"), \"undone\": inv})\n            _POLICY_JOURNAL.remove(entry)\n    if reverted:\n        try:\n            record_spine_event(\"policy_reverted\", {\"by\": actor,\n                                                   \"entries\": len(reverted)})\n        except Exception:\n            pass\n    return reverted",
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_spine_mesh.py:694"
+    "tests/test_spine_mesh.py:697"
    ]
   },
   "spine_registry:route_last_at": {
    "module": "spine_registry",
    "qualname": "route_last_at",
-   "line": 2283,
+   "line": 2362,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "no_reference_anywhere",
@@ -1842,7 +1940,7 @@
   "spine_registry:route_weight_range": {
    "module": "spine_registry",
    "qualname": "route_weight_range",
-   "line": 2316,
+   "line": 2395,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1862,7 +1960,7 @@
   "spine_registry:spine_reset": {
    "module": "spine_registry",
    "qualname": "spine_reset",
-   "line": 2757,
+   "line": 2842,
    "status": "pending",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
@@ -1887,8 +1985,8 @@
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_spine_mesh.py:1017",
-    "tests/test_spine_mesh.py:1043"
+    "tests/test_spine_mesh.py:1020",
+    "tests/test_spine_mesh.py:1046"
    ],
    "seg": "def dispatch_cascade(self, task, run_fn, threshold: float = 0.65,\n                         prompt_len: int = 100,\n                         needs_vision: bool = False) -> dict[str, Any]:\n        \"\"\"Walk ranked experts, escalating while confidence < threshold.\n\n        run_fn(expert_instance, task) -> (answer, confidence).\n        Each attempt feeds feedback() (+1 ok / -1 fail) so the Q-table\n        learns which expert handles what. Returns answer + trail.\n        \"\"\"\n        ranked = self.dispatch(prompt_len, needs_vision).get(\"experts\") or []\n        trail: list[dict[str, Any]] = []\n        best: dict[str, Any] | None = None\n        for name in ranked:\n            inst = self.get_expert(name)\n            if inst is None:\n                continue\n            try:\n                answer, conf = run_fn(inst, task)\n                conf = 0.0 if conf is None else float(conf)\n            except Exception as e:\n                self.feedback(name, -1.0)\n                trail.append({\"expert\": name, \"error\": str(e)[:800]})\n                continue\n            ok = conf >= float(threshold)\n            self.feedback(name, 1.0 if ok else -0.5)\n            trail.append({\"expert\": name, \"confidence\": round(conf, 3),\n                          \"accepted\": ok})\n            if ok:\n                return {\"success\": True, \"answer\": answer, \"via\": name,\n                        \"escalations\": len(trail) - 1, \"trail\": trail}\n            if best is None or conf > best[\"confidence\"]:\n                best = {\"expert\": name, \"answer\": answer, \"confidence\": conf}\n        if not trail:\n            return {\"success\": False, \"error\": \"no_resolvable_experts\"}\n        if best is None:\n            # Every resolvable expert raised. The previous revision fell through\n            # to a return that read `answer`, which is never bound on this path,\n            # so the documented \"best effort\" outcome was an UnboundLocalError\n            # (audit 2026-09-16, B6). A trial that produced no answer is a\n            # failure, not a best effort.\n            return {\"success\": False, \"error\": \"all_experts_failed\",\n                    \"escalations\": len(trail) - 1, \"trail\": trail}\n        # Below-threshold fallback reports the HIGHEST-confidence attempt, not\n        # the last one tried: `name` after the loop is merely whichever expert\n        # happened to be ranked last, which the old `best_effort_last_expert`\n        # note asserted but did not deliver (B6, second half).\n        return {\"success\": True, \"answer\": best[\"answer\"],\n                \"via\": best[\"expert\"],\n                \"escalations\": len(trail) - 1, \"trail\": trail,\n                \"below_threshold\": round(best[\"confidence\"], 3),\n                \"note\": \"best_effort_best_expert\"}",
    "decider": "dynamic_call",
@@ -1918,7 +2016,7 @@
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_spine_mesh.py:1060"
+    "tests/test_spine_mesh.py:1063"
    ],
    "seg": "def train_error(self) -> float:\n        \"\"\"EMA of the reconstruction error (0.0 = never trained yet).\"\"\"\n        with self._lock:\n            return abs(self._err_ema) if self._err_ema is not None else 0.0",
    "decider": "dynamic_call",
@@ -1968,7 +2066,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1138"
+    "src/CORE/worm_registry.py:1151"
    ],
    "seg": "def read_new_lines(self, watch_id: str, max_lines: int = 100) -> list[str]:\n        \"\"\"Read new lines from a watched file.\"\"\"\n        with self._lock:\n            w = self._watchers.get(watch_id)\n            if not w:\n                return []\n        path = Path(w[\"path\"])\n        if not path.exists():\n            return []\n        with open(path, \"r\", encoding=\"utf-8\", errors=\"replace\") as f:\n            f.seek(w[\"position\"])\n            lines = f.readlines()\n            w[\"position\"] = f.tell()\n        if w[\"pattern\"]:\n            import re\n            lines = [l for l in lines if re.search(w[\"pattern\"], l)]\n        return [l.rstrip() for l in lines[-max_lines:]]"
   },
@@ -1979,7 +2077,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1138), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1138"
+    "src/CORE/worm_registry.py:1151"
    ],
    "seg": "def watch_file(self, filepath: str, pattern: str = \"\") -> str:\n        \"\"\"Start watching a log file.\"\"\"\n        watch_id = f\"watch_{len(self._watchers)}\"\n        path = Path(filepath)\n        pos = path.stat().st_size if path.exists() else 0\n        with self._lock:\n            self._watchers[watch_id] = {\"path\": str(path), \"position\": pos, \"pattern\": pattern, \"last_read\": time.time()}\n        return watch_id"
   },
@@ -1990,8 +2088,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1000, src/CORE/worm_registry.py:1121), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:1000",
-    "src/CORE/worm_registry.py:1121"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:969",
+    "src/CORE/worm_registry.py:1134"
    ],
    "seg": "def get_snapshot(self) -> dict[str, Any]:\n        \"\"\"Get Prometheus-style text snapshot.\"\"\"\n        with self._lock:\n            return {\n                \"counters\": dict(self._counters), \"gauges\": dict(self._gauges),\n                \"histograms\": {k: {\"count\": len(v), \"avg\": round(sum(v) / len(v), 2) if v else 0,\n                                   \"p95\": sorted(v)[int(len(v) * 0.95)] if v else 0} for k, v in self._histograms.items()},\n            }"
   },
@@ -2002,7 +2100,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1122), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1122"
+    "src/CORE/worm_registry.py:1135"
    ],
    "seg": "def inc_counter(self, name: str, value: float = 1.0):\n        with self._lock:\n            self._counters[name] += value"
   },
@@ -2025,7 +2123,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1001), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:1001"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:970"
    ],
    "seg": "def get_trace_tree(self) -> dict[str, Any]:\n        \"\"\"Get the trace as a tree structure.\"\"\"\n        with self._lock:\n            return {\"trace_id\": self._trace_id, \"span_count\": len(self._spans), \"spans\": self._spans[-100:]}"
   },
@@ -2041,10 +2139,30 @@
    "decider": "dead_candidate",
    "decider_evidence": []
   },
+  "tensorgene:boruta_relevance": {
+   "module": "tensorgene",
+   "qualname": "boruta_relevance",
+   "line": 89,
+   "seg": "def boruta_relevance(history: Sequence[dict], fitness_key: str = \"best_total\",\n                     min_rows: int = 20, max_iter: int = 30,\n                     random_state: int = 7) -> Dict[str, Any]:\n    \"\"\"All-relevant gene ranking via Boruta (shadow-feature bake-off).\n\n    Complements per-gene Spearman `usefulness`: correlation ranks genes one\n    at a time and can crown a passenger that rides a driver's signal, while\n    Boruta keeps EVERY gene that beats its own shuffled shadow \u2014 the right\n    question for \"which genes actually matter\" on a small genome.\n\n    Uses the same row conventions as `correlate` (payload unwrap, skip rows\n    missing genes, dedupe identical vectors). Only genes present in >= half\n    the usable rows enter the matrix (a gene trialled twice cannot beat\n    noise honestly). Fail-open: Boruta missing, too few rows, or any error\n    returns ok=False with a reason \u2014 never raises into the refresh cycle.\n    \"\"\"\n    try:\n        rows = []\n        for row in history or ():\n            data = row_payload(row)\n            if data is None:\n                continue\n            genes = _gene_map(data)\n            if not genes:\n                continue\n            try:\n                fv = float(data.get(fitness_key))\n            except (TypeError, ValueError):\n                continue\n            rows.append((genes, fv))\n        if len(rows) < min_rows:\n            return {\"ok\": False,\n                    \"reason\": f\"only {len(rows)} usable rows (< {min_rows})\"}\n        from collections import Counter\n        present = Counter()\n        for genes, _ in rows:\n            present.update(k for k, v in genes.items()\n                           if isinstance(v, (int, float)))\n        keep = sorted(k for k, n in present.items() if n >= len(rows) // 2)\n        if len(keep) < 2:\n            return {\"ok\": False,\n                    \"reason\": \"fewer than 2 genes with majority coverage\"}\n        import numpy as np\n        Xd_raw, yd_raw = [], []\n        for genes, fv in rows:\n            if all(isinstance(genes.get(k), (int, float)) for k in keep):\n                Xd_raw.append([float(genes[k]) for k in keep])\n                yd_raw.append(float(fv))\n        if len(Xd_raw) < min_rows:\n            return {\"ok\": False,\n                    \"reason\": f\"only {len(Xd_raw)} complete rows (< {min_rows})\"}\n        # Dedupe identical vectors (frozen-pool repeats are one measurement).\n        seen, Xd, yd = set(), [], []\n        for vec, fv in zip(Xd_raw, yd_raw):\n            key = (tuple(round(v, 9) for v in vec), round(fv, 9))\n            if key not in seen:\n                seen.add(key)\n                Xd.append(vec)\n                yd.append(fv)\n        if len(Xd) < min_rows:\n            return {\"ok\": False,\n                    \"reason\": f\"only {len(Xd)} distinct rows (< {min_rows})\"}\n        from sklearn.ensemble import RandomForestRegressor\n        from boruta import BorutaPy\n        est = RandomForestRegressor(n_estimators=100, max_depth=5,\n                                    random_state=random_state, n_jobs=1)\n        selector = BorutaPy(est, n_estimators=\"auto\", max_iter=max_iter,\n                            random_state=random_state, verbose=0)\n        selector.fit(np.array(Xd), np.array(yd))\n        verdict = {}\n        for k, rank, support, weak in zip(\n                keep, selector.ranking_, selector.support_,\n                selector.support_weak_):\n            verdict[k] = (\"confirmed\" if support\n                          else \"tentative\" if weak else \"rejected\")\n        return {\"ok\": True, \"genes\": verdict, \"n_rows\": len(Xd),\n                \"n_estimators\": int(getattr(selector, \"n_estimators_\", 0) or 0),\n                \"max_iter\": int(max_iter)}\n    except ImportError as exc:\n        return {\"ok\": False, \"reason\": f\"missing dependency: {exc}\"}\n    except Exception as exc:\n        return {\"ok\": False, \"reason\": str(exc)[:160]}",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_boruta_relevance.py:27",
+    "tests/test_boruta_relevance.py:34",
+    "tests/test_boruta_relevance.py:40"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_boruta_relevance.py:27",
+    "tests/test_boruta_relevance.py:34",
+    "tests/test_boruta_relevance.py:40"
+   ]
+  },
   "tensorgene:dedupe_observations": {
    "module": "tensorgene",
    "qualname": "dedupe_observations",
-   "line": 128,
+   "line": 212,
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/tensorgene.py:48), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
@@ -2085,7 +2203,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1004), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:1004"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:973"
    ],
    "seg": "def get_busiest_hours(self, top_n: int = 5) -> list[dict]:\n        \"\"\"Get busiest hours across all categories.\"\"\"\n        heatmap = self.build_hourly_heatmap()\n        hour_totals = defaultdict(int)\n        for cat, hours in heatmap.items():\n            for h, count in hours.items():\n                hour_totals[h] += count\n        ranked = sorted(hour_totals.items(), key=lambda x: -x[1])[:top_n]\n        return [{\"hour\": h, \"events\": c} for h, c in ranked]"
   },
@@ -2096,7 +2214,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1151, src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1151",
+    "src/CORE/worm_registry.py:1164",
     "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886"
    ],
    "seg": "def add_section(self, title: str, content: Any, section_type: str = \"text\"):\n        with self._lock:\n            self._sections.append({\"title\": title, \"content\": content, \"type\": section_type})"
@@ -2108,9 +2226,9 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/WORMS/NATURE_CLUSTERS.py:1003, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:390",
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:1003",
-    "src/CORE/worm_registry.py:1116"
+    "src/CORE/WORMS/CLUSTERWORMS.py:504",
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:972",
+    "src/CORE/worm_registry.py:1129"
    ],
    "seg": "def compile_html(self, report_title: str = \"Azazael Report\") -> str:\n        \"\"\"Compile into a self-contained HTML report.\"\"\"\n        html = f\"\"\"<!DOCTYPE html><html><head><title>{report_title}</title>\n<style>body{{font-family:'Segoe UI',sans-serif;max-width:900px;margin:auto;padding:20px;background:#0f0f1a;color:#ddd}}\nh1{{color:#00d9ff;border-bottom:2px solid #333;padding-bottom:10px}}h2{{color:#00ff88}}pre{{background:#111;padding:10px;border-radius:4px;overflow-x:auto}}\n.meta{{color:#888;font-size:0.9em}}</style></head><body><h1>{report_title}</h1>\n<p class=\"meta\">Generated {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>\"\"\"\n        with self._lock:\n            for s in self._sections:\n                html += f\"<h2>{s['title']}</h2>\"\n                if s[\"type\"] == \"json\":\n                    html += f\"<pre>{json.dumps(s['content'], indent=2, default=str)}</pre>\"\n                elif s[\"type\"] == \"table\" and isinstance(s[\"content\"], list):\n                    html += \"<table style='width:100%;border-collapse:collapse'>\"\n                    if s[\"content\"]:\n                        keys = list(s[\"content\"][0].keys()) if isinstance(s[\"content\"][0], dict) else []\n                        html += \"<tr>\" + \"\".join(f\"<th style='padding:8px;border-bottom:1px solid #333;color:#ffaa00'>{k}</th>\" for k in keys) + \"</tr>\"\n                        for row in s[\"content\"]:\n                            html += \"<tr>\" + \"\".join(f\"<td style='padding:8px;border-bottom:1px solid #222'>{row.get(k, '')}</td>\" for k in keys) + \"</tr>\"\n                    html += \"</table>\"\n                else:\n                    html += f\"<p>{s['content']}</p>\"\n        return html + \"</body></html>\""
   },
@@ -2121,7 +2239,7 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1152), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/worm_registry.py:1152"
+    "src/CORE/worm_registry.py:1165"
    ],
    "seg": "def add_span(self, worm: str, start: float, end: float, status: str = \"completed\"):\n        with self._lock:\n            self._spans.append({\"worm\": worm, \"start\": start, \"end\": end,\n                                \"duration\": end - start, \"status\": status})"
   },
@@ -2132,8 +2250,8 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:1006, src/CORE/worm_registry.py:1135), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/NATURE_CLUSTERS.py:1006",
-    "src/CORE/worm_registry.py:1135"
+    "src/CORE/WORMS/NATURE_CLUSTERS.py:975",
+    "src/CORE/worm_registry.py:1148"
    ],
    "seg": "def to_timeline_html(self) -> str:\n        \"\"\"Generate an HTML Gantt-like timeline.\"\"\"\n        with self._lock:\n            spans = sorted(self._spans, key=lambda s: s[\"start\"])\n        if not spans:\n            return \"<p>No timeline data</p>\"\n        min_start = spans[0][\"start\"]\n        max_end = max(s[\"end\"] for s in spans)\n        total_dur = max(max_end - min_start, 1)\n        colors = {\"completed\": \"#00ff88\", \"failed\": \"#ff4444\", \"running\": \"#00d9ff\", \"stopped\": \"#ffaa00\"}\n        html = \"\"\"<div style=\"font-family:monospace;font-size:12px\">\"\"\"\n        for s in spans[-50:]:\n            left_pct = (s[\"start\"] - min_start) / total_dur * 100\n            width_pct = max(1, s[\"duration\"] / total_dur * 100)\n            color = colors.get(s[\"status\"], \"#888\")\n            html += f'<div style=\"margin:2px 0\"><span style=\"display:inline-block;width:150px;text-align:right;padding-right:10px\">{s[\"worm\"]}</span>'\n            html += f'<span style=\"display:inline-block;margin-left:{left_pct}%;width:{width_pct}%;background:{color};height:20px;border-radius:3px;position:relative\" title=\"{s[\"duration\"]:.2f}s\"></span></div>'\n        return html + \"</div>\""
   },
@@ -2199,14 +2317,14 @@
   }
  },
  "triage_counts": {
-  "test_reached_only": 44,
-  "no_reference_anywhere": 57
+  "test_reached_only": 51,
+  "no_reference_anywhere": 56
  },
  "decider_counts": {
   "protocol_or_override": 0,
-  "declared_in_data": 9,
-  "dynamic_call": 5,
-  "test_is_the_wire": 38,
-  "dead_candidate": 49
+  "declared_in_data": 7,
+  "dynamic_call": 8,
+  "test_is_the_wire": 45,
+  "dead_candidate": 47
  }
 }
