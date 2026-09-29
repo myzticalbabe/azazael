@@ -811,6 +811,42 @@ class LocalMemoryStore:
         finally:
             conn.close()
 
+    def fetch_all_memories(self, limit: int = 2000, **filters) -> List[Dict]:
+        """Newest-first rows across MANY pages, past the MAX_QUERY_LIMIT clamp.
+
+        `query_memories` hard-clamps every call to MAX_QUERY_LIMIT (500) and
+        returns only a warning the caller never sees. A consumer that asks for
+        more than that therefore reads a SAMPLE and silently believes it read
+        the population — and because the result is newest-first, the clamp
+        evicts the OLDEST rows, i.e. exactly the minority families that carry
+        the signal. That is how the DPO thought-pairing window was quietly
+        capped at 500 while the caller believed it was 600.
+
+        This pages with `offset` so a large request actually returns large, and
+        stops early when a page comes back short (the table is exhausted).
+        `limit` is a hard ceiling and is honoured exactly.
+
+        Note: rows inserted WHILE paging shift the offsets, so a concurrent
+        writer can cause a row to be seen twice or missed. That is acceptable
+        for corpus/training reads and is documented rather than hidden.
+
+        Same filters as `query_memories`.
+        """
+        if limit <= 0:
+            return []
+        page = min(int(self.MAX_QUERY_LIMIT), int(limit))
+        out: List[Dict] = []
+        offset = 0
+        while len(out) < limit:
+            batch = self.query_memories(limit=page, offset=offset, **filters)
+            if not batch:
+                break
+            out.extend(batch[: limit - len(out)])
+            offset += len(batch)
+            if len(batch) < page:
+                break
+        return out
+
     def search_memories(self, query: str, source: Optional[str] = None,
                         limit: int = 50) -> List[Dict]:
         """

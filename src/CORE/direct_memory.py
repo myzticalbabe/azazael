@@ -175,7 +175,19 @@ EVENT_TYPES = frozenset({
     # AJ-compatible emitters defined on DirectMemory below
     "inference_spawn", "gate_passed", "sentinel_run", "scan_anti_pattern",
     "sync_skills", "expect_action",
+    "thought_process",
 })
+
+#: The chain-of-thought corpus event type. Its consumers hardcode this string
+#: (train_thought_reward.py, run_training_orchestrator.py, live_monitor.py,
+#: TERENCE, evolution_cycle) and select rows by equality, so a typo at a call
+#: site drops a trace from training with no error raised anywhere. Callers
+#: should use this constant and `record_thought()` rather than a bare literal.
+THOUGHT_EVENT = "thought_process"
+
+#: Cap on `reasoning` text in a thought row, matching scripts/record_thought.py.
+#: Long traces are a storage and prompt-size cost, not a fidelity one.
+THOUGHT_REASONING_MAX = 4000
 
 LEGACY_EVENT_TYPES: Dict[str, Optional[str]] = {
     "cluster_created": None,
@@ -808,6 +820,74 @@ class DirectMemory:
             "passed": passed, "failed": failed, "skipped": skipped,
             "duration_ms": round(duration_ms, 1),
         }, severity=severity, tags=["test", "test-run", "ci", "quality"] + extra_tags)
+
+    def record_thought(self, task: str, reasoning: str,
+                       actions: Optional[List[str]] = None,
+                       success: bool = True,
+                       *, source: str = "ReasoningTrace",
+                       tags: Optional[List[str]] = None,
+                       session_id: Optional[str] = None) -> int:
+        """Record a chain-of-thought trace as training data.
+
+        The typed front door to the `thought_process` corpus. Before this
+        existed every caller hand-built the same four-key payload against a
+        stringly-typed event type, and a misspelling produced a row that the
+        reward trainer, the DPO pairing and the monitor all silently ignored —
+        a trace that looks recorded and is not in the loop.
+
+        The payload shape is the contract the consumers already read
+        (`task`, `reasoning`, `actions`, `success`, `session_id`); changing it
+        would silently change what training learns, so it is fixed here rather
+        than by each call site. `reasoning` is truncated to
+        THOUGHT_REASONING_MAX; severity is derived from `success` so a failed
+        trace is queryable as such without each caller remembering.
+
+        Returns the new memory row id (0 if the store rejected it).
+        """
+        text = (reasoning or "").strip()
+        if not text:
+            text = "(no reasoning recorded)"
+        text = text[:THOUGHT_REASONING_MAX]
+        extra = list(tags) if tags else []
+        return self.record(
+            THOUGHT_EVENT,
+            {
+                "task": task,
+                "reasoning": text,
+                "actions": list(actions or []),
+                "success": bool(success),
+                "session_id": session_id or self._session_id,
+            },
+            severity="info" if success else "warning",
+            tags=["thought", "chain-of-thought"] + extra,
+            source=source,
+        )
+
+    def fetch_thoughts(self, limit: int = 2000) -> List[Dict]:
+        """Thought rows newest-first, paged past LocalMemoryStore's clamp.
+
+        The corpus outgrew `query_memories`' MAX_QUERY_LIMIT, which caps a
+        single call at 500 and drops the oldest — minority-family — rows. Use
+        this for every corpus read rather than passing a large `limit`.
+        """
+        from CORE.local_memory import get_memory_store
+        store = get_memory_store()
+        rows = store.fetch_all_memories(limit=limit,
+                                        event_type=THOUGHT_EVENT)
+        out: List[Dict] = []
+        for r in rows:
+            d = r.get("data")
+            if isinstance(d, str):
+                try:
+                    d = json.loads(d)
+                except (json.JSONDecodeError, TypeError):
+                    continue
+            if not isinstance(d, dict):
+                continue
+            r = dict(r)
+            r["data"] = d
+            out.append(r)
+        return out
 
     def milestone(self, title: str, details: Optional[Dict] = None):
         # 2026-09-07 gate (approved): block auto-milestones unless opted in,
