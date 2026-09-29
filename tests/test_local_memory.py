@@ -355,16 +355,28 @@ class TestBackup:
             os.unlink(target)
 
     def test_backup_raises_on_bad_path(self):
-        """backup() should raise RuntimeError on failure (e.g. read-only filesystem).
+        """backup() must raise RuntimeError when the target cannot be written.
 
-        Uses /proc/self/ as a target because /proc is a read-only pseudo-filesystem
-        that denies writes even when running as root (unlike os.chmod which root
-        can bypass).
+        The target's PARENT is an existing FILE here, so no directory can be
+        created for it on any platform. The predecessor used `/proc/self/...`,
+        explaining that /proc is a read-only pseudo-filesystem that denies
+        writes "even when running as root" -- correct and well-argued on Linux,
+        and toothless on Windows, where that path is an ordinary path on the
+        current drive: measured 2026-09-29, the backup SUCCEEDED and the test
+        left a real 110 KB backup database behind outside the repository on
+        every run. A test that cannot fail on the machine it runs on is not
+        coverage, and this one also wrote where it claimed it could not.
         """
         import pytest
-        bad_path = "/proc/self/azazael_test_backup_fail.db"
-        with pytest.raises(RuntimeError):
-            self.store.backup(bad_path)
+        import shutil
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            blocker = Path(tmp_dir) / "backup_blocker"
+            blocker.write_text("not a directory")
+            with pytest.raises(RuntimeError):
+                self.store.backup(str(blocker / "nested" / "backup.db"))
+        finally:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 class TestValidation:

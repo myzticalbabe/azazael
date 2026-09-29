@@ -342,11 +342,22 @@ class TestPostgresMemoryStoreMetadata(unittest.TestCase):
         self.assertGreater(len(VERSION), 0)
 
     def test_import_error_without_psycopg2(self):
-        """ImportError should be raised if psycopg2 is unavailable."""
-        # This test always passes since it tests the ImportError path
-        from CORE.postgres_memory import _HAS_PSYCOPG2
-        # Just verify the flag exists — actual import is fine
-        self.assertIn("psycopg2", sys.modules if _HAS_PSYCOPG2 else [])
+        """Without psycopg2 the store must fail loudly, and name the requirement.
+
+        The predecessor asserted `"psycopg2" in (sys.modules if _HAS_PSYCOPG2
+        else [])`: membership in the EMPTY list whenever psycopg2 is absent, so
+        on a host without psycopg2 (this one) it could never pass. Its own body
+        comment -- "This test always passes since it tests the ImportError
+        path" -- was the false belief that kept it. The contract worth testing
+        is the ImportError that `PostgresMemoryStore.__init__` raises, and that
+        its message tells the operator what to install.
+        """
+        from CORE.postgres_memory import PostgresMemoryStore, _HAS_PSYCOPG2
+        if _HAS_PSYCOPG2:
+            self.skipTest("psycopg2 installed; the ImportError path is unreachable")
+        with self.assertRaises(ImportError) as ctx:
+            PostgresMemoryStore()
+        self.assertIn("psycopg2", str(ctx.exception))
 
 
 # ── Direct runner ───────────────────────────────────────────────────
