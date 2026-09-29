@@ -352,13 +352,86 @@ def run_offline_cycle() -> dict:
             "duration_ms": duration_ms}
 
 
-def _thought_family(task) -> str:
-    """Task family for DPO affinity pairing: first 3 lowercased words.
+def _thought_family(task, words: int = 3) -> str:
+    """Task family for DPO affinity pairing: first `words` lowercased words.
 
     Verb-led tasks cluster naturally ('fix hof ...' vs 'refactor hof'
     stay apart — different operations deserve different contrasts).
     """
-    return " ".join(str(task or "").lower().split()[:3])
+    return " ".join(str(task or "").lower().split()[:words])
+
+
+#: How many thought rows the DPO pairing scans. The original 120 was saturated
+#: by ONE high-volume family (measured 2026-09-28: 139 of 147 rows were
+#: "evolution promotion verdict" successes and there was exactly ONE failure in
+#: the whole store), so no contrast could survive into the window. Widening it
+#: is necessary but not sufficient -- which is why the census below is printed
+#: on every skip instead of a bare "no contrast".
+_THOUGHT_WINDOW = 600
+
+
+def thought_contrast(rows):
+    """The newest same-family success/failure contrast, plus a census.
+
+    ``rows`` is ``[(mem_id, data_dict), ...]`` in NEWEST-FIRST order.
+
+    Two tiers are tried, strictest first:
+
+    * ``family`` -- identical first-3-word family (the original rule): the same
+      operation on the same object.
+    * ``verb``   -- identical first word: the same OPERATION on a different
+      object. A strictly weaker signal, so the tier is RETURNED and recorded
+      rather than silently averaged in with strong pairs.
+
+    Returns ``{"pair": (ok, bad, family) | None, "tier": str, "census": {...}}``.
+    The census is always returned so that "no pair" is diagnosable -- how many
+    rows were scanned, how many families existed, how many had a contrast at
+    all, and which families dominate the window.
+    """
+    ok3, bad3, ok1, bad1 = {}, {}, {}, {}
+    counts = {}
+    scanned = 0
+    for mem_id, data in rows:
+        if not isinstance(data, dict) or "success" not in data:
+            continue
+        task = str(data.get("task", "?"))
+        fam3 = _thought_family(task)
+        if not fam3:
+            continue
+        scanned += 1
+        good = bool(data.get("success"))
+        entry = (mem_id, task[:60])
+        (ok3 if good else bad3).setdefault(fam3, entry)
+        (ok1 if good else bad1).setdefault(_thought_family(task, 1), entry)
+        slot = counts.setdefault(fam3, [0, 0])
+        slot[0 if good else 1] += 1
+
+    def _pick(ok, bad):
+        # Dict order is insertion order, i.e. newest-first, so the FIRST family
+        # with a contrast is the most recently failing one (unchanged intent).
+        for fam, bad_entry in bad.items():
+            if fam in ok:
+                return (ok[fam], bad_entry, fam)
+        return None
+
+    pair = _pick(ok3, bad3)
+    tier = "family" if pair else ""
+    if pair is None:
+        pair = _pick(ok1, bad1)
+        tier = "verb" if pair else ""
+    top = sorted(counts.items(), key=lambda kv: -(kv[1][0] + kv[1][1]))[:3]
+    return {
+        "pair": pair,
+        "tier": tier,
+        "census": {
+            "scanned": scanned,
+            "families": len(counts),
+            "families_with_both": sorted(set(ok3) & set(bad3)),
+            "verb_families_with_both": sorted(set(ok1) & set(bad1)),
+            "top_families": [{"family": f, "success": c[0], "fail": c[1]}
+                             for f, c in top],
+        },
+    }
 
 
 def run_dpo_cycle() -> dict:
@@ -405,11 +478,16 @@ def run_dpo_cycle() -> dict:
     # the newest successful thought trace against the newest failed one
     # FROM THE SAME TASK FAMILY. Cross-task contrasts are label noise —
     # a skipped pair beats a misleading one. Family = first 3 words of
-    # the lowercased task (verb-led tasks cluster naturally).
+    # the lowercased task (verb-led tasks cluster naturally); when no exact
+    # family has a contrast a WEAKER same-verb tier is tried, and the tier is
+    # recorded on the pair (`family_tier`) so a weak pair is never mistaken
+    # for a strong one. The window size and a family census are printed on
+    # every skip, so a stall is diagnosable instead of merely reported.
     thought_pairs = 0
     try:
-        _thoughts = store.query_memories(event_type="thought_process", limit=120)
-        _oks, _bads = {}, []
+        _thoughts = store.query_memories(event_type="thought_process",
+                                         limit=_THOUGHT_WINDOW)
+        _rows = []
         for _r in _thoughts:
             _d = _r.get("data", {})
             if isinstance(_d, str):
@@ -417,33 +495,30 @@ def run_dpo_cycle() -> dict:
                     _d = _json.loads(_d)
                 except Exception:
                     continue
-            if not isinstance(_d, dict) or "success" not in _d:
-                continue
-            _fam = _thought_family(_d.get("task"))
-            if _d.get("success"):
-                _oks.setdefault(_fam, (_r.get("id"),
-                                       str(_d.get("task", "?"))[:60]))
-            else:
-                _bads.append((_fam, _r.get("id"),
-                              str(_d.get("task", "?"))[:60]))
-        _paired = None
-        for _fam, _bid, _btask in _bads:
-            if _fam in _oks:
-                _paired = (_oks[_fam], (_bid, _btask), _fam)
-                break
-        if _paired:
-            (_oid, _otask), (_bid, _btask), _fam = _paired
+            _rows.append((_r.get("id"), _d))
+        _sel = thought_contrast(_rows)
+        _pair = _sel["pair"]
+        if _pair:
+            (_oid, _otask), (_bid, _btask), _fam = _pair
             runner.record_preference(
                 "thought_preferences", chosen="thought#%s" % _oid,
                 rejected="thought#%s" % _bid,
                 context={"task_type": "chain_of_thought",
                          "family": _fam,
+                         "family_tier": _sel["tier"],
                          "chosen_task": _otask, "rejected_task": _btask},
                 chosen_reward=1.0, rejected_reward=0.0)
             thought_pairs = 1
         else:
+            _c = _sel["census"]
+            _top = ", ".join("%s (ok=%d fail=%d)"
+                             % (t["family"] or "?", t["success"], t["fail"])
+                             for t in _c["top_families"]) or "none"
             print("thought-preference pairing skipped: no same-family "
-                  "success/fail contrast", flush=True)
+                  "success/fail contrast in %d thought rows (%d scanned, "
+                  "%d families, %d with both). Biggest families: %s"
+                  % (_THOUGHT_WINDOW, _c["scanned"], _c["families"],
+                     len(_c["families_with_both"]), _top), flush=True)
     except Exception as e:
         print("thought-preference pairing skipped: %s" % str(e)[:120], flush=True)
 
@@ -501,10 +576,16 @@ def run_rl_cycle() -> dict:
     worm = ScheduledTrainingWorm()
     run = worm.execute()
     duration_ms = round((time.time() - t0) * 1000, 2)
+    try:
+        from CORE.local_memory import track_regime
+        _regime = track_regime()
+    except Exception:
+        _regime = {}
     return {"algo": "RL", "success": bool(getattr(run, "success", True)),
             "records_used": run.records_extracted,
             "model_version": run.model_version,
             "eval_mean_reward": round(run.avg_reward, 4),
+            "regime": _regime,
             "duration_ms": duration_ms}
 
 
