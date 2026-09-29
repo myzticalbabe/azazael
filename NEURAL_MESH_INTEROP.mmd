@@ -1,0 +1,438 @@
+graph LR
+  N_analysis["analysis"]
+  N_axon["axon"]
+  N_backup["backup"]
+  N_communication["communication"]
+  N_config["config"]
+  N_consensus["consensus"]
+  N_consolidation["consolidation"]
+  N_container["container"]
+  N_defense["defense"]
+  N_dendrite["dendrite"]
+  N_diagnostic["diagnostic"]
+  N_engram["engram"]
+  N_federated["federated"]
+  N_glia["glia"]
+  N_immune["immune"]
+  N_learning["learning"]
+  N_mesh["mesh"]
+  N_migration["migration"]
+  N_monitor["monitor"]
+  N_optimization["optimization"]
+  N_orchestration["orchestration"]
+  N_profiling["profiling"]
+  N_repair["repair"]
+  N_security["security"]
+  N_servemesh["servemesh"]
+  N_synapse["synapse"]
+  N_sync["sync"]
+  N_telemetry["telemetry"]
+  N_thalamus["thalamus"]
+  N_unknown["unknown"]
+  N_utility["utility"]
+  N_visualization["visualization"]
+  N_xenomorph["xenomorph"]
+  C_NeuralPipeline(["NeuralPipeline"]):::C_wire
+  N_unknown --> C_NeuralPipeline
+  M_NeuralPipeline_replay_failed["replay_failed"]:::M
+  C_NeuralPipeline --> M_NeuralPipeline_replay_failed
+  C_ThompsonAllocator(["ThompsonAllocator"]):::C_wire
+  N_unknown --> C_ThompsonAllocator
+  M_ThompsonAllocator_choose_with_bonus["choose_with_bonus"]:::M
+  C_ThompsonAllocator --> M_ThompsonAllocator_choose_with_bonus
+  C_LatencyCompensatorWorm(["LatencyCompensatorWorm"]):::C_integrate
+  N_axon --> C_LatencyCompensatorWorm
+  M_LatencyCompensatorWorm_compensate["compensate"]:::M
+  C_LatencyCompensatorWorm --> M_LatencyCompensatorWorm_compensate
+  C_MyelinSheathWorm(["MyelinSheathWorm"]):::C_integrate
+  N_axon --> C_MyelinSheathWorm
+  M_MyelinSheathWorm_boost_for["boost_for"]:::M
+  C_MyelinSheathWorm --> M_MyelinSheathWorm_boost_for
+  M_MyelinSheathWorm_myelinate["myelinate"]:::M
+  C_MyelinSheathWorm --> M_MyelinSheathWorm_myelinate
+  C_CheckpointWorm(["CheckpointWorm"]):::C_integrate
+  N_backup --> C_CheckpointWorm
+  M_CheckpointWorm_restore_checkpoint["restore_checkpoint"]:::M
+  C_CheckpointWorm --> M_CheckpointWorm_restore_checkpoint
+  C_FailureDigest(["FailureDigest"]):::C_wire
+  N_unknown --> C_FailureDigest
+  M_FailureDigest_from_analysis["from_analysis"]:::M
+  C_FailureDigest --> M_FailureDigest_from_analysis
+  C_IPCBridge(["IPCBridge"]):::C_integrate
+  N_communication --> C_IPCBridge
+  M_IPCBridge_create_channel["create_channel"]:::M
+  C_IPCBridge --> M_IPCBridge_create_channel
+  M_IPCBridge_receive["receive"]:::M
+  C_IPCBridge --> M_IPCBridge_receive
+  C_ConfigLinter(["ConfigLinter"]):::C_integrate
+  N_config --> C_ConfigLinter
+  M_ConfigLinter_lint_yaml["lint_yaml"]:::M
+  C_ConfigLinter --> M_ConfigLinter_lint_yaml
+  C_EngramIndexerWorm(["EngramIndexerWorm"]):::C_wire
+  N_consolidation --> C_EngramIndexerWorm
+  M_EngramIndexerWorm_lookup["lookup"]:::M
+  C_EngramIndexerWorm --> M_EngramIndexerWorm_lookup
+  C_SharpWaveReplayWorm(["SharpWaveReplayWorm"]):::C_integrate
+  N_consolidation --> C_SharpWaveReplayWorm
+  M_SharpWaveReplayWorm_replay_batch["replay_batch"]:::M
+  C_SharpWaveReplayWorm --> M_SharpWaveReplayWorm_replay_batch
+  C_SleepConsolidatorWorm(["SleepConsolidatorWorm"]):::C_integrate
+  N_consolidation --> C_SleepConsolidatorWorm
+  M_SleepConsolidatorWorm_sleep_cycle["sleep_cycle"]:::M
+  C_SleepConsolidatorWorm --> M_SleepConsolidatorWorm_sleep_cycle
+  C_ResourceQuotaWatch(["ResourceQuotaWatch"]):::C_integrate
+  N_container --> C_ResourceQuotaWatch
+  M_ResourceQuotaWatch_set_quota["set_quota"]:::M
+  C_ResourceQuotaWatch --> M_ResourceQuotaWatch_set_quota
+  C_DatabaseMonitorWorm(["DatabaseMonitorWorm"]):::C_wire
+  N_monitor --> C_DatabaseMonitorWorm
+  M_DatabaseMonitorWorm_create_backup["create_backup"]:::M
+  C_DatabaseMonitorWorm --> M_DatabaseMonitorWorm_create_backup
+  C_AttentionGateWorm(["AttentionGateWorm"]):::C_integrate
+  N_dendrite --> C_AttentionGateWorm
+  M_AttentionGateWorm_set_bias["set_bias"]:::M
+  C_AttentionGateWorm --> M_AttentionGateWorm_set_bias
+  C_DendriteAggregatorWorm(["DendriteAggregatorWorm"]):::C_integrate
+  N_dendrite --> C_DendriteAggregatorWorm
+  M_DendriteAggregatorWorm_set_gain["set_gain"]:::M
+  C_DendriteAggregatorWorm --> M_DendriteAggregatorWorm_set_gain
+  C_DreamingModule(["DreamingModule"]):::C_wire
+  N_learning --> C_DreamingModule
+  M_DreamingModule_get_dream_stats["get_dream_stats"]:::M
+  C_DreamingModule --> M_DreamingModule_get_dream_stats
+  C_HypnagogicSynthesizer(["HypnagogicSynthesizer"]):::C_integrate
+  N_learning --> C_HypnagogicSynthesizer
+  M_HypnagogicSynthesizer_ingest_domains["ingest_domains"]:::M
+  C_HypnagogicSynthesizer --> M_HypnagogicSynthesizer_ingest_domains
+  C_GemmaDriverWorm(["GemmaDriverWorm"]):::C_wire
+  N_orchestration --> C_GemmaDriverWorm
+  M_GemmaDriverWorm_judge_dream["judge_dream"]:::M
+  C_GemmaDriverWorm --> M_GemmaDriverWorm_judge_dream
+  M_GemmaDriverWorm_propose_goal["propose_goal"]:::M
+  C_GemmaDriverWorm --> M_GemmaDriverWorm_propose_goal
+  C_RecallRouterWorm(["RecallRouterWorm"]):::C_integrate
+  N_engram --> C_RecallRouterWorm
+  M_RecallRouterWorm_route_recall["route_recall"]:::M
+  C_RecallRouterWorm --> M_RecallRouterWorm_route_recall
+  C_ErrorRecoveryOrchestrator(["ErrorRecoveryOrchestrator"]):::C_integrate
+  N_orchestration --> C_ErrorRecoveryOrchestrator
+  M_ErrorRecoveryOrchestrator_execute_with_recovery["execute_with_recovery"]:::M
+  C_ErrorRecoveryOrchestrator --> M_ErrorRecoveryOrchestrator_execute_with_recovery
+  M_ErrorRecoveryOrchestrator_reset_circuit["reset_circuit"]:::M
+  C_ErrorRecoveryOrchestrator --> M_ErrorRecoveryOrchestrator_reset_circuit
+  C_EraEvidence(["EraEvidence"]):::C_wire
+  N_unknown --> C_EraEvidence
+  M_EraEvidence_era_counts["era_counts"]:::M
+  C_EraEvidence --> M_EraEvidence_era_counts
+  C_EvolutionEngine(["EvolutionEngine"]):::C_wire
+  N_learning --> C_EvolutionEngine
+  M_EvolutionEngine_get_generation_history["get_generation_history"]:::M
+  C_EvolutionEngine --> M_EvolutionEngine_get_generation_history
+  C_GeneticOptimizer(["GeneticOptimizer"]):::C_wire
+  N_learning --> C_GeneticOptimizer
+  M_GeneticOptimizer_optimize_cma["optimize_cma"]:::M
+  C_GeneticOptimizer --> M_GeneticOptimizer_optimize_cma
+  M_GeneticOptimizer_optimize_de["optimize_de"]:::M
+  C_GeneticOptimizer --> M_GeneticOptimizer_optimize_de
+  M_GeneticOptimizer_optimize_multi["optimize_multi"]:::M
+  C_GeneticOptimizer --> M_GeneticOptimizer_optimize_multi
+  D_exmachina[["exmachina"]]:::C_unresolved
+  N_unknown --> D_exmachina
+  M_mod__mad["_mad"]:::M
+  D_exmachina --> M_mod__mad
+  M_mod__tpm["_tpm"]:::M
+  D_exmachina --> M_mod__tpm
+  C_RewardShaperMeshWorm(["RewardShaperMeshWorm"]):::C_wire
+  N_federated --> C_RewardShaperMeshWorm
+  M_RewardShaperMeshWorm_local_score["local_score"]:::M
+  C_RewardShaperMeshWorm --> M_RewardShaperMeshWorm_local_score
+  C_MicrogliaWorm(["MicrogliaWorm"]):::C_wire
+  N_glia --> C_MicrogliaWorm
+  M_MicrogliaWorm_check_path["check_path"]:::M
+  C_MicrogliaWorm --> M_MicrogliaWorm_check_path
+  C_SchemaAwareFeatureExtractor(["SchemaAwareFeatureExtractor"]):::C_wire
+  N_learning --> C_SchemaAwareFeatureExtractor
+  M_SchemaAwareFeatureExtractor_fallback_accuracy_report["fallback_accuracy_report"]:::M
+  C_SchemaAwareFeatureExtractor --> M_SchemaAwareFeatureExtractor_fallback_accuracy_report
+  C_DataPipelineWorm(["DataPipelineWorm"]):::C_wire
+  N_learning --> C_DataPipelineWorm
+  M_DataPipelineWorm_extract_field["extract_field"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_extract_field
+  M_DataPipelineWorm_extract_recent["extract_recent"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_extract_recent
+  M_DataPipelineWorm_filter_by_severity["filter_by_severity"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_filter_by_severity
+  M_DataPipelineWorm_filter_by_source["filter_by_source"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_filter_by_source
+  M_DataPipelineWorm_get_memory_stats["get_memory_stats"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_get_memory_stats
+  M_DataPipelineWorm_load_to_memory["load_to_memory"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_load_to_memory
+  M_DataPipelineWorm_process_batches["process_batches"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_process_batches
+  M_DataPipelineWorm_schedule_dynamic_refresh["schedule_dynamic_refresh"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_schedule_dynamic_refresh
+  M_DataPipelineWorm_search_memory["search_memory"]:::M
+  C_DataPipelineWorm --> M_DataPipelineWorm_search_memory
+  C_PrioritizedReplayBuffer(["PrioritizedReplayBuffer"]):::C_integrate
+  N_learning --> C_PrioritizedReplayBuffer
+  M_PrioritizedReplayBuffer_add_from_memories["add_from_memories"]:::M
+  C_PrioritizedReplayBuffer --> M_PrioritizedReplayBuffer_add_from_memories
+  C_RLTrainLoop(["RLTrainLoop"]):::C_wire
+  N_learning --> C_RLTrainLoop
+  M_RLTrainLoop_tune_and_train["tune_and_train"]:::M
+  C_RLTrainLoop --> M_RLTrainLoop_tune_and_train
+  M_RLTrainLoop_tune_history["tune_history"]:::M
+  C_RLTrainLoop --> M_RLTrainLoop_tune_history
+  D_learning_rl[["learning_rl"]]:::C_integrate
+  N_learning --> D_learning_rl
+  M_mod__schema_state_key["_schema_state_key"]:::M
+  D_learning_rl --> M_mod__schema_state_key
+  C_NoveltyDrive(["NoveltyDrive"]):::C_wire
+  N_unknown --> C_NoveltyDrive
+  M_NoveltyDrive_novelty_weight["novelty_weight"]:::M
+  C_NoveltyDrive --> M_NoveltyDrive_novelty_weight
+  D_loom[["loom"]]:::C_unresolved
+  N_unknown --> D_loom
+  M_mod_descriptors_from_archive["descriptors_from_archive"]:::M
+  D_loom --> M_mod_descriptors_from_archive
+  C_MeshRouterWorm(["MeshRouterWorm"]):::C_wire
+  N_mesh --> C_MeshRouterWorm
+  M_MeshRouterWorm_invalidate_route["invalidate_route"]:::M
+  C_MeshRouterWorm --> M_MeshRouterWorm_invalidate_route
+  C_MetaCognitionWorm(["MetaCognitionWorm"]):::C_wire
+  N_learning --> C_MetaCognitionWorm
+  M_MetaCognitionWorm_compute_cross_worm_correlation["compute_cross_worm_correlation"]:::M
+  C_MetaCognitionWorm --> M_MetaCognitionWorm_compute_cross_worm_correlation
+  C_CodeMigrator(["CodeMigrator"]):::C_integrate
+  N_migration --> C_CodeMigrator
+  M_CodeMigrator_run_2to3["run_2to3"]:::M
+  C_CodeMigrator --> M_CodeMigrator_run_2to3
+  C_LegacyShimGen(["LegacyShimGen"]):::C_integrate
+  N_migration --> C_LegacyShimGen
+  M_LegacyShimGen_write_shim["write_shim"]:::M
+  C_LegacyShimGen --> M_LegacyShimGen_write_shim
+  C_Genome(["Genome"]):::C_wire
+  N_unknown --> C_Genome
+  M_Genome_to_trainer_kwargs["to_trainer_kwargs"]:::M
+  C_Genome --> M_Genome_to_trainer_kwargs
+  D_morph[["morph"]]:::C_unresolved
+  N_unknown --> D_morph
+  M_mod_load_genome["load_genome"]:::M
+  D_morph --> M_mod_load_genome
+  M_mod_save_genome["save_genome"]:::M
+  D_morph --> M_mod_save_genome
+  C_FitnessOracle(["FitnessOracle"]):::C_wire
+  N_unknown --> C_FitnessOracle
+  M_FitnessOracle_acquisition["acquisition"]:::M
+  C_FitnessOracle --> M_FitnessOracle_acquisition
+  M_FitnessOracle_era_robust_probability["era_robust_probability"]:::M
+  C_FitnessOracle --> M_FitnessOracle_era_robust_probability
+  C_CPUFlameProfiler(["CPUFlameProfiler"]):::C_integrate
+  N_profiling --> C_CPUFlameProfiler
+  M_CPUFlameProfiler_to_flamegraph_data["to_flamegraph_data"]:::M
+  C_CPUFlameProfiler --> M_CPUFlameProfiler_to_flamegraph_data
+  C_CodeProfiler(["CodeProfiler"]):::C_integrate
+  N_profiling --> C_CodeProfiler
+  M_CodeProfiler_detect_hotspots["detect_hotspots"]:::M
+  C_CodeProfiler --> M_CodeProfiler_detect_hotspots
+  M_CodeProfiler_profile_function["profile_function"]:::M
+  C_CodeProfiler --> M_CodeProfiler_profile_function
+  D_proteus_hooks[["proteus_hooks"]]:::C_unresolved
+  N_unknown --> D_proteus_hooks
+  M_mod_morph_policy_refresh["morph_policy_refresh"]:::M
+  D_proteus_hooks --> M_mod_morph_policy_refresh
+  C_RaceConditionDetector(["RaceConditionDetector"]):::C_integrate
+  N_security --> C_RaceConditionDetector
+  M_RaceConditionDetector_instrument_worm["instrument_worm"]:::M
+  C_RaceConditionDetector --> M_RaceConditionDetector_instrument_worm
+  M_RaceConditionDetector_uninstrument_worm["uninstrument_worm"]:::M
+  C_RaceConditionDetector --> M_RaceConditionDetector_uninstrument_worm
+  C_ScheduledTrainingWorm(["ScheduledTrainingWorm"]):::C_wire
+  N_learning --> C_ScheduledTrainingWorm
+  M_ScheduledTrainingWorm__get_ab["_get_ab"]:::M
+  C_ScheduledTrainingWorm --> M_ScheduledTrainingWorm__get_ab
+  C_TrainingOrchestrator(["TrainingOrchestrator"]):::C_wire
+  N_learning --> C_TrainingOrchestrator
+  M_TrainingOrchestrator_get_run_history["get_run_history"]:::M
+  C_TrainingOrchestrator --> M_TrainingOrchestrator_get_run_history
+  C_CertMonitor(["CertMonitor"]):::C_integrate
+  N_security --> C_CertMonitor
+  M_CertMonitor_check_cert["check_cert"]:::M
+  C_CertMonitor --> M_CertMonitor_check_cert
+  M_CertMonitor_get_expiring_soon["get_expiring_soon"]:::M
+  C_CertMonitor --> M_CertMonitor_get_expiring_soon
+  C_SessionStateManager(["SessionStateManager"]):::C_integrate
+  N_utility --> C_SessionStateManager
+  M_SessionStateManager_import_snapshots["import_snapshots"]:::M
+  C_SessionStateManager --> M_SessionStateManager_import_snapshots
+  M_SessionStateManager_list_registered["list_registered"]:::M
+  C_SessionStateManager --> M_SessionStateManager_list_registered
+  M_SessionStateManager_register_migration["register_migration"]:::M
+  C_SessionStateManager --> M_SessionStateManager_register_migration
+  M_SessionStateManager_register_worm_state["register_worm_state"]:::M
+  C_SessionStateManager --> M_SessionStateManager_register_worm_state
+  M_SessionStateManager_unregister_worm_state["unregister_worm_state"]:::M
+  C_SessionStateManager --> M_SessionStateManager_unregister_worm_state
+  D_spine_registry[["spine_registry"]]:::C_unresolved
+  N_unknown --> D_spine_registry
+  M_mod__iso_or["_iso_or"]:::M
+  D_spine_registry --> M_mod__iso_or
+  M_mod_audit_state["audit_state"]:::M
+  D_spine_registry --> M_mod_audit_state
+  M_mod_get_gossip_trust_state["get_gossip_trust_state"]:::M
+  D_spine_registry --> M_mod_get_gossip_trust_state
+  M_mod_get_module_health["get_module_health"]:::M
+  D_spine_registry --> M_mod_get_module_health
+  M_mod_get_q_evidence["get_q_evidence"]:::M
+  D_spine_registry --> M_mod_get_q_evidence
+  M_mod_get_q_updates["get_q_updates"]:::M
+  D_spine_registry --> M_mod_get_q_updates
+  M_mod_get_q_variance["get_q_variance"]:::M
+  D_spine_registry --> M_mod_get_q_variance
+  M_mod_homeostat_reset["homeostat_reset"]:::M
+  D_spine_registry --> M_mod_homeostat_reset
+  M_mod_purge_fixtures["purge_fixtures"]:::M
+  D_spine_registry --> M_mod_purge_fixtures
+  M_mod_purge_implausible_stamps["purge_implausible_stamps"]:::M
+  D_spine_registry --> M_mod_purge_implausible_stamps
+  M_mod_purged_blocked_writes["purged_blocked_writes"]:::M
+  D_spine_registry --> M_mod_purged_blocked_writes
+  M_mod_q_confidence["q_confidence"]:::M
+  D_spine_registry --> M_mod_q_confidence
+  M_mod_revert_policy["revert_policy"]:::M
+  D_spine_registry --> M_mod_revert_policy
+  M_mod_route_last_at["route_last_at"]:::M
+  D_spine_registry --> M_mod_route_last_at
+  M_mod_route_weight_range["route_weight_range"]:::M
+  D_spine_registry --> M_mod_route_weight_range
+  M_mod_spine_reset["spine_reset"]:::M
+  D_spine_registry --> M_mod_spine_reset
+  C_MoEDispatcherWorm(["MoEDispatcherWorm"]):::C_wire
+  N_synapse --> C_MoEDispatcherWorm
+  M_MoEDispatcherWorm_dispatch_cascade["dispatch_cascade"]:::M
+  C_MoEDispatcherWorm --> M_MoEDispatcherWorm_dispatch_cascade
+  M_MoEDispatcherWorm_top_expert["top_expert"]:::M
+  C_MoEDispatcherWorm --> M_MoEDispatcherWorm_top_expert
+  C_SSMSequenceWorm(["SSMSequenceWorm"]):::C_wire
+  N_synapse --> C_SSMSequenceWorm
+  M_SSMSequenceWorm_train_error["train_error"]:::M
+  C_SSMSequenceWorm --> M_SSMSequenceWorm_train_error
+  C_AlertEscalator(["AlertEscalator"]):::C_integrate
+  N_telemetry --> C_AlertEscalator
+  M_AlertEscalator_clear_alert["clear_alert"]:::M
+  C_AlertEscalator --> M_AlertEscalator_clear_alert
+  C_EventRouter(["EventRouter"]):::C_integrate
+  N_telemetry --> C_EventRouter
+  M_EventRouter_get_recent_events["get_recent_events"]:::M
+  C_EventRouter --> M_EventRouter_get_recent_events
+  C_SpanTracer(["SpanTracer"]):::C_integrate
+  N_telemetry --> C_SpanTracer
+  M_SpanTracer_end_span["end_span"]:::M
+  C_SpanTracer --> M_SpanTracer_end_span
+  M_SpanTracer_start_span["start_span"]:::M
+  C_SpanTracer --> M_SpanTracer_start_span
+  D_tensorgene[["tensorgene"]]:::C_unresolved
+  N_unknown --> D_tensorgene
+  M_mod_boruta_relevance["boruta_relevance"]:::M
+  D_tensorgene --> M_mod_boruta_relevance
+  C_SensoryRelayWorm(["SensoryRelayWorm"]):::C_integrate
+  N_thalamus --> C_SensoryRelayWorm
+  M_SensoryRelayWorm_relay["relay"]:::M
+  C_SensoryRelayWorm --> M_SensoryRelayWorm_relay
+  C_DashboardGen(["DashboardGen"]):::C_integrate
+  N_visualization --> C_DashboardGen
+  M_DashboardGen_add_panel["add_panel"]:::M
+  C_DashboardGen --> M_DashboardGen_add_panel
+  C_ChestbursterWorm(["ChestbursterWorm"]):::C_integrate
+  N_xenomorph --> C_ChestbursterWorm
+  M_ChestbursterWorm_burst["burst"]:::M
+  C_ChestbursterWorm --> M_ChestbursterWorm_burst
+  C_DroneWorm(["DroneWorm"]):::C_integrate
+  N_xenomorph --> C_DroneWorm
+  M_DroneWorm_carry["carry"]:::M
+  C_DroneWorm --> M_DroneWorm_carry
+  C_OvomorphWorm(["OvomorphWorm"]):::C_integrate
+  N_xenomorph --> C_OvomorphWorm
+  M_OvomorphWorm_hatch["hatch"]:::M
+  C_OvomorphWorm --> M_OvomorphWorm_hatch
+  M_OvomorphWorm_lay["lay"]:::M
+  C_OvomorphWorm --> M_OvomorphWorm_lay
+  C_ResinWorm(["ResinWorm"]):::C_integrate
+  N_xenomorph --> C_ResinWorm
+  M_ResinWorm_secrete["secrete"]:::M
+  C_ResinWorm --> M_ResinWorm_secrete
+  N_analysis -.->|feeds| N_optimization
+  N_analysis -.->|feeds| N_defense
+  N_analysis -.->|feeds| N_visualization
+  N_backup -.->|feeds| N_orchestration
+  N_backup -.->|feeds| N_defense
+  N_communication -.->|feeds| N_orchestration
+  N_communication -.->|feeds| N_telemetry
+  N_config -.->|feeds| N_security
+  N_config -.->|feeds| N_orchestration
+  N_consensus -.->|feeds| N_mesh
+  N_consensus -.->|feeds| N_orchestration
+  N_consensus -.->|feeds| N_immune
+  N_container -.->|feeds| N_monitor
+  N_container -.->|feeds| N_security
+  N_container -.->|feeds| N_orchestration
+  N_defense -.->|feeds| N_repair
+  N_defense -.->|feeds| N_orchestration
+  N_defense -.->|feeds| N_telemetry
+  N_diagnostic -.->|feeds| N_repair
+  N_diagnostic -.->|feeds| N_defense
+  N_diagnostic -.->|feeds| N_orchestration
+  N_engram -.->|feeds| N_learning
+  N_engram -.->|feeds| N_mesh
+  N_engram -.->|feeds| N_telemetry
+  N_federated -.->|feeds| N_learning
+  N_federated -.->|feeds| N_synapse
+  N_federated -.->|feeds| N_mesh
+  N_immune -.->|feeds| N_defense
+  N_immune -.->|feeds| N_orchestration
+  N_immune -.->|feeds| N_mesh
+  N_learning -.->|feeds| N_optimization
+  N_learning -.->|feeds| N_visualization
+  N_learning -.->|feeds| N_orchestration
+  N_mesh -.->|feeds| N_orchestration
+  N_mesh -.->|feeds| N_consensus
+  N_mesh -.->|feeds| N_telemetry
+  N_migration -.->|feeds| N_analysis
+  N_migration -.->|feeds| N_orchestration
+  N_monitor -.->|feeds| N_defense
+  N_monitor -.->|feeds| N_orchestration
+  N_monitor -.->|feeds| N_telemetry
+  N_optimization -.->|feeds| N_monitor
+  N_optimization -.->|feeds| N_orchestration
+  N_optimization -.->|feeds| N_telemetry
+  N_orchestration -.->|feeds| N_monitor
+  N_orchestration -.->|feeds| N_defense
+  N_orchestration -.->|feeds| N_telemetry
+  N_profiling -.->|feeds| N_optimization
+  N_profiling -.->|feeds| N_visualization
+  N_profiling -.->|feeds| N_telemetry
+  N_repair -.->|feeds| N_defense
+  N_repair -.->|feeds| N_orchestration
+  N_security -.->|feeds| N_defense
+  N_security -.->|feeds| N_orchestration
+  N_security -.->|feeds| N_telemetry
+  N_servemesh -.->|feeds| N_synapse
+  N_servemesh -.->|feeds| N_telemetry
+  N_servemesh -.->|feeds| N_mesh
+  N_synapse -.->|feeds| N_orchestration
+  N_synapse -.->|feeds| N_learning
+  N_synapse -.->|feeds| N_servemesh
+  N_sync -.->|feeds| N_monitor
+  N_sync -.->|feeds| N_orchestration
+  N_telemetry -.->|feeds| N_visualization
+  N_telemetry -.->|feeds| N_orchestration
+  N_telemetry -.->|feeds| N_defense
+  N_visualization -.->|feeds| N_orchestration
+  N_xenomorph -.->|feeds| N_immune
+  N_xenomorph -.->|feeds| N_consensus
+  N_xenomorph -.->|feeds| N_mesh
+  classDef C_integrate fill:#fdf3d6,stroke:#b8860b;
+  classDef C_unresolved fill:#fbe3e3,stroke:#b71c1c;
+  classDef C_wire fill:#dff5df,stroke:#2e7d32;
+  classDef M fill:#eee,stroke:#999;
