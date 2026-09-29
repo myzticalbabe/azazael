@@ -68,3 +68,56 @@ def test_abstention_gate_shape():
     mixed = {"a": WormOutcome(worm_type="a", n=60, ok=55)}
     s = abstention_stats(mixed)
     assert s["abstain"] is False and s["reason"] == "calibrated"
+
+
+def test_staged_retrieval_returns_ranked():
+    """contract: Voyager-style pen retrieval (2026-09-29, stdlib only)."""
+    from CORE.WORMS.expansion.spine import MorphogenesisWorm
+    w = MorphogenesisWorm()
+    res = w.retrieve_staged("mesh router", k=3)
+    assert isinstance(res, list) and len(res) <= 3
+    for r in res:
+        assert set(r) == {"file", "score"}
+    assert w.retrieve_staged("   ", k=3) == []
+
+
+def test_reflexion_buffer_roundtrip():
+    """contract: Reflexion verbal buffer (2026-09-29, fail-open)."""
+    from CORE.WORMS.expansion import reflexion as rx
+
+    class FakeStore:
+        def __init__(self):
+            self.events = []
+
+        def record_event(self, **kw):
+            self.events.append(kw)
+            return True
+
+        def query_memories(self, event_type=None, limit=500):
+            return [{"data": {"question": "q1", "what_failed": "f",
+                              "what_next": "n", "decision_id": None}}]
+
+    st = FakeStore()
+    assert rx.record_reflection("q1", "f", "n", store=st) is True
+    assert rx.record_reflection("q1", "", "", store=st) is False
+    hits = rx.reflections_for("q1", store=st)
+    assert len(hits) == 1 and hits[0]["what_next"] == "n"
+
+
+def test_skill_lift_shape():
+    """contract: SkillsBench-style lift (2026-09-29, pure)."""
+    from CORE.WORMS.expansion.spine import measure_skill_lift
+    assert measure_skill_lift({"passed": 8, "total": 10},
+                              {"passed": 5, "total": 10})["verdict"] == "helps"
+    assert measure_skill_lift({"passed": 0, "total": 0},
+                              {"passed": 0, "total": 0})["verdict"] == "unmeasurable"
+
+
+def test_memory_diagnostic_shape():
+    """contract: retrieval/utilization diagnostic (2026-09-29, pure)."""
+    from CORE.memory_diagnostic import fit_budget, classify_failure
+    items = [{"text": "a" * 10}, {"text": "b" * 10}, {"text": "c" * 10}]
+    assert len(fit_budget(items, 25)) == 2
+    assert classify_failure(False, True, False) == "retrieval_failure"
+    assert classify_failure(True, True, False) == "utilization_failure"
+    assert classify_failure(True, True, True) == "ok"
