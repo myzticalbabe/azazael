@@ -422,17 +422,50 @@ class ProviderFailoverMeshWorm:
         return {"success": True, "provider": provider, "down": False,
                 "was_down": was_down}
 
+    @classmethod
+    def _resolve_chain(cls):
+        """Split CHAIN into (resolvable, unresolvable) via the RULE 0D registry.
+
+        A name is unresolvable when the registry holds no entry for it after
+        alias mapping (`PROVIDER_ALIASES`; the registry's vocabulary is not the
+        chain's). `next_provider` must never hand such a name back: the caller
+        would spend a request on an endpoint that cannot exist, and the failure
+        would look like an outage rather than a dangling name. The split is
+        delegated to the registry rather than hard-coded so a provider that
+        lands there later becomes selectable with no edit here.
+
+        If the registry cannot be imported at all the split is UNKNOWN and the
+        whole chain is treated as resolvable -- fail-open, because a missing
+        import is not evidence that an endpoint is gone.
+        """
+        try:
+            from CORE.inference.providers import PROVIDER_REGISTRY
+        except Exception:
+            return list(cls.CHAIN), []
+        resolvable: list = []
+        unresolvable: list = []
+        for p in cls.CHAIN:
+            pid = cls.PROVIDER_ALIASES.get(p, p)
+            (resolvable if PROVIDER_REGISTRY.get(pid)
+             else unresolvable).append(p)
+        return resolvable, unresolvable
+
     def next_provider(self) -> dict[str, Any]:
+        resolvable, unresolvable = self._resolve_chain()
+        skipped = sorted(unresolvable)
         with self._lock:
-            for p in self.CHAIN:
+            for p in resolvable:
                 if p in self._down or self._is_open(p):
                     continue
                 self._uses[p] = int(self._uses.get(p, 0)) + 1
                 fabric_publish(self, self.PROVIDER, self._STATE_ATTRS)
                 return {"success": True, "provider": p,
-                        "down": sorted(self._down)}
-            return {"success": False, "provider": None, "reason": "all_down",
-                    "down": sorted(self._down)}
+                        "down": sorted(self._down),
+                        "skipped_unresolvable": skipped}
+            return {"success": False, "provider": None,
+                    "reason": "all_down" if resolvable else "all_unresolvable",
+                    "down": sorted(self._down),
+                    "skipped_unresolvable": skipped}
 
     # -- recovery ------------------------------------------------------
 

@@ -1464,7 +1464,17 @@ def causal_emergence(micro_states: Iterable[int], n_bits: int = 4,
     if not candidates:
         return {"n": len(series), "n_bits": n_bits, "ei_micro": round(ei_micro, 4),
                 "emergence_bits": None, "best_grain": None}
-    best_name, best_ei, best_ns = max(candidates, key=lambda c: c[1])
+    # Rank by EI, then by reachable support. The secondary key only ever bites
+    # when EIs are equal, and there it is the whole answer: two grains with the
+    # same EI are not equally good if one of them collapses the series into
+    # fewer reachable states -- support is how much structure survives at that
+    # grain, so the larger one is the better description.
+    best_name, best_ei, best_ns = max(candidates, key=lambda c: (c[1], c[2]))
+    # `tie` is the top EI being shared. It has to be reported rather than
+    # smoothed over: when grains tie, EI did NOT choose `best_grain`, a tie-break
+    # did, so `emerges` resting on a tied winner is weaker evidence than it
+    # looks. A degenerate series (all EI 0.0) is exactly this case.
+    tie = sum(1 for _n, _e, _s in candidates if abs(_e - best_ei) <= 1e-12) > 1
     return {
         "n": len(series),
         "n_bits": n_bits,
@@ -1475,6 +1485,7 @@ def causal_emergence(micro_states: Iterable[int], n_bits: int = 4,
         "best_states": best_ns,
         "emergence_bits": round(best_ei - ei_micro, 4),
         "emerges": bool(best_ei > ei_micro),
+        "tie": tie,
         "candidates": [{"grain": n, "ei": round(e, 4)} for n, e, _ in candidates],
     }
 

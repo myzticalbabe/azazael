@@ -295,7 +295,11 @@ def test_fabric_stage_reports_all_four_natures(pen, monkeypatch):
     cyc = SP.SpineCycleWorm()
     monkeypatch.setattr(cyc, "_publish_local_shards", lambda shards: 0)
     out = cyc._fabric_stage()
-    assert set(out) == {"servemesh", "consensus", "federated", "resilience"}
+    # The four natures this stage was written to drive must ALL be present.
+    # `variation` is a fifth organ added later, so exact equality here would
+    # fail a correct stage -- the guard is that none of the four goes missing,
+    # not that no organ is ever added.
+    assert {"servemesh", "consensus", "federated", "resilience"} <= set(out)
     for name, res in out.items():
         assert isinstance(res, dict), name
     # `resilience` chains the backup organs (snapshot -> verify -> dry-run
