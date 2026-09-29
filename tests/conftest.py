@@ -281,6 +281,45 @@ def _isolate_spine_state(tmp_path_factory, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _quiesce_spine_heart():
+    """Stop any spine heartbeat a previous test left running.
+
+    The same shape as the HLC singleton below: process-wide state that leaks
+    across tests and makes the failure order-dependent. `startup_warm.py`
+    starts a daemon heart thread from `warm_caches_now()` (line 268), so any
+    test that warms caches synchronously leaves a thread beating on its own
+    interval for the rest of the session.
+
+    A beat holds the process-global cycle gate (`_GLOBAL_CYCLE_GATE` in
+    `CORE/WORMS/expansion/spine.py`) for its whole duration. The next
+    same-process caller is therefore refused with
+    `skipped: cycle_already_running_global` -- and that is *earlier* in
+    `run_cycle()` than the min-interval throttle, so it returns without setting
+    `last_run_at`. Measured: `test_spine_mesh.py::
+    test_spine_cycle_throttle_and_reentry_guard` passes alone (63 passed) but
+    failed at `second.get("skipped") == "min_interval"` when the file ran after
+    `test_startup_warm_wiring.py`. The first cycle was refused by a heartbeat
+    instead of running, so nothing was throttled and the assertion saw None.
+
+    Teardown-only: the leak is created *by* a test, so it is cleaned after it.
+    `stop_spine_heart()` already waits for an in-flight beat (its own
+    docstring records why), so this cannot race the thread it is stopping, and
+    it returns immediately when no heart is alive -- which is the case for the
+    ~2000 tests that never start one, so the cost is zero.
+    """
+    yield
+    try:
+        from CORE import startup_warm as _sw
+    except Exception:  # startup_warm not importable in this environment
+        return
+    try:
+        if _sw._SPINE_HEART_ALIVE.is_set():
+            _sw.stop_spine_heart(timeout=30.0)
+    except Exception:
+        pass
+
+
+@pytest.fixture(autouse=True)
 def _isolate_hlc_clock(monkeypatch):
     """Give every test a pristine hybrid logical clock.
 

@@ -559,3 +559,132 @@ catches nothing, and only a negative control distinguishes them.
   local-only work awaiting a merge decision". It is no longer merely awaiting a
   decision: it contained a production self-deadlock, which is why it was fixed
   here rather than merged later.
+
+---
+
+## 8. Spine heartbeat leak, and the fresh baseline (2026-09-29)
+
+### 8.1 The two "remaining" test_spine_mesh failures were flaky, not failing
+
+They pass alone (63 passed) and pass on a re-run of the same four-file batch
+(120 passed, 40 skipped). A first per-file sweep had capped each file at 40 s,
+which made them look like hangs, so the next step was to stop assuming a fixed
+failing set and find what made them intermittent.
+
+`test_spine_cycle_throttle_and_reentry_guard` asserts that a second immediate
+cycle is throttled with `skipped == "min_interval"`. That check sits *after*
+the process-global cycle gate in `run_cycle()`. If a heartbeat already holds
+that gate, the first cycle returns `skipped:
+"cycle_already_running_global"` instead of running, so it never sets
+`last_run_at`, the second call is not throttled, and the assertion sees `None`.
+
+The heartbeat comes from the code this session restored: `startup_warm.py`
+line 268 calls `start_spine_heart()`, which starts a daemon thread beating on
+its own interval for the remainder of the session. `test_startup_warm_wiring`
+triggers a synchronous warm, so `test_spine_mesh` inherits a live heartbeat.
+
+Three-way control, run directly:
+
+| control | global gate | cycle result |
+|---|---|---|
+| no heart | free | `skipped = None` (ran) |
+| heart started | **held by a beat** | **`cycle_already_running_global`** |
+| heart stopped | flag False | `skipped = None` (ran) |
+
+Fix: an autouse `_quiesce_spine_heart` fixture in `tests/conftest.py` that
+stops the heart after each test. It is teardown-only (the leak is created *by*
+a test), and it reuses `stop_spine_heart()`, which already waits for an
+in-flight beat. This is the same shape as the existing `_isolate_hlc_clock`
+fixture: a process-wide singleton leaking across tests and making the failure
+order-dependent. Cost is zero for the ~2000 tests that never start a heart.
+
+Pinned by `tests/test_spine_heart_isolation.py` (3 passing). Its first test
+starts a heart and asserts it beats; the second asserts it is already gone. The
+second can only pass if the fixture works, so it cannot pass by accident.
+
+### 8.2 Fresh baseline
+
+`tools/run_suite_chunked.py --out logs/suite_chunks_20260928d.json`:
+
+| | prior baseline (b) | fresh (d) |
+|---|---|---|
+| passed | 2311 | **3918** |
+| failed | 88 | **57** |
+| errors | 4 | **0** |
+| skipped | 5 | 82 |
+| wall | 1286 s + 1 chunk timed out | **1442.6 s, no chunk timed out** |
+
+Per chunk: 1=39.7s, 2=271.4s, 3=199.6s, 4=327.1s, 5=268.4s, 6=132.7s,
+7=131.2s, 8=72.6s. Chunk 2 is green (530 passed, 0 failed). Chunk 4, which
+timed out at 600 s on the old baseline with zero tests run, now completes in
+327 s with 569 passed.
+
+The passed count rose 2311 -> 3918 mainly because this session restored 21
+test files. The 82 skips are up from 5 and are worth a look: they are optional
+-extras guards (`mygrad`, `opentelemetry`) plus environment-gated tests, so
+"skipped" now hides more than it used to.
+
+The 57 remaining failures are concentrated: chunk 8 has 15, chunk 6 has 15,
+chunk 3 has 9, chunk 5 has 7, chunk 1 has 5, chunk 4 has 4, chunk 7 has 2.
+
+### 8.3 Restoration attribution: could not be done reliably
+
+All 8 followups were requested; the attribution step did not produce a
+committable answer and pretending otherwise would have been worse than saying
+so.
+
+The intended signal was "byte-identical to the WSL mirror" -- files restored
+verbatim should match it exactly. But that is also true of every file nobody
+touched on either side, so it cannot separate my restorations from the
+pre-existing untracked backlog. Measured: **157 untracked files are
+also mirror-identical**, far more than the ~30 files actually restored this
+session. Committing that set would have staged 157 files of unknown provenance
+under a message claiming they were recovered.
+
+The three source files that *could* be attributed by name and by the specific
+failures they close were committed separately (`73ee26af`). The remaining
+restorations stay in the working tree pending a real attribution signal (the
+mirror's own git index, or mtime correlation across a snapshot).
+
+Two useful numbers did fall out of the attempt:
+
+* **5 files are still MIRROR_ONLY** -- `scripts/run_full_pass.py`,
+  `tests/test_chain_lock.py`, `tests/test_chain_refactor.py`,
+  `tests/test_morphing_learn.py`, `tests/test_session_operations.py`. Every
+  one of these is a **deliberate** deletion (the chain removal and
+  `run_full_pass.py`'s documented 2026-09-28 removal), not an accidental loss.
+  The mirror is simply stale for them, which is the desired end state.
+* **4 files are LOCAL_SUPERSET**, i.e. local has work the mirror lacks. Those
+  are the only candidates worth syncing *to* the mirror; the direction of the
+  next sync is not uniformly one way.
+
+Overall drift on the last sweep: IDENTICAL 906, DIVERGED 158, LOCAL_ONLY 192,
+MIRROR_ONLY 5, LOCAL_SUPERSET 4.
+
+### 8.4 The dodecahedron rendering was attempted and NOT shipped
+
+Rendering the twelve faces as a projected solid was implemented and then
+reverted, because the geometry could not be validated.
+
+Two approaches both produced a wrong shape, and both were wrong in the same
+way -- they assumed an answer instead of measuring one:
+
+1. Assuming the face normals were the 12 cyclic permutations of
+   `(0, +-1, +-phi)` and taking each normal's top-5 vertices by dot product.
+   Those are not the face normals of this vertex set, so the "nearest 5" hit a
+tie and vertices ended up shared by 1, 2 and 6 faces instead of 3.
+2. Deriving faces from nearest-neighbour corner triples. At a dodecahedron
+   vertex the three neighbours are the DIAGONALS of the three pentagons meeting
+   there, so a mutual-adjacency requirement rejected all 60 triples and
+   produced zero faces.
+
+A brute-force plane search then appeared to work (12 faces, 5 vertices each,
+120 triples at C(5,3)=10 per face) but its incidence was wrong: the 12 faces
+used only **12 of the 20 vertices, each in 5 faces**, not 20 vertices in 3.
+Tightening the tolerance to 1e-12 did not change it, so those planes are not
+this solid's faces.
+
+Since the only thing verifying the picture was the picture, the renderer was
+reverted rather than shipped with the solidity claim. The face data remains
+available in `TWELVE_FACTOR_AUDIT.json`, and `_dodeca_geometry` is not called
+by any remaining code path.
