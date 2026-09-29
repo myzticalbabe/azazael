@@ -1,0 +1,151 @@
+{
+  "framework": "twelve-factor",
+  "faces_total": 12,
+  "faces_solid": 11,
+  "faces_open": 1,
+  "tally": {
+    "pass": 11,
+    "manual": 1
+  },
+  "faces": [
+    {
+      "number": 1,
+      "name": "Codebase",
+      "verdict": "pass",
+      "detail": "single git repo; 1 mirrored file(s) verified byte-identical (drift risk, not a defect)",
+      "evidence": {
+        "git": true,
+        "mirrored_identical": [
+          "monitor_learning.py"
+        ],
+        "mirrored_diverged": []
+      }
+    },
+    {
+      "number": 2,
+      "name": "Dependencies",
+      "verdict": "pass",
+      "detail": "3 manifest(s), 237 pinned requirement(s)",
+      "evidence": {
+        "manifests": [
+          "C:/Users/clint/azazael/pyproject.toml",
+          "C:/Users/clint/azazael/requirements-3.14t.txt",
+          "C:/Users/clint/azazael/requirements_314_full.txt"
+        ],
+        "pinned": 237
+      }
+    },
+    {
+      "number": 3,
+      "name": "Config",
+      "verdict": "pass",
+      "detail": "env-driven (468 reads) + declarative sample (.env.example)",
+      "evidence": {
+        "env_reads": 468,
+        "sample": ".env.example",
+        "live_env_file": null
+      }
+    },
+    {
+      "number": 4,
+      "name": "Backing services",
+      "verdict": "pass",
+      "detail": "no hardcoded credential literals; 92 local endpoint(s) (localhost is a legitimate local backing service)",
+      "evidence": {
+        "localhost_refs": 92,
+        "credential_literals": []
+      }
+    },
+    {
+      "number": 5,
+      "name": "Build/release/run",
+      "verdict": "pass",
+      "detail": "5 build artifact(s), 1 entry point(s)",
+      "evidence": {
+        "build": [
+          "C:/Users/clint/azazael/scripts/build_all_concurrent.py",
+          "C:/Users/clint/azazael/scripts/build_gap_index.py",
+          "C:/Users/clint/azazael/scripts/build_obsidian_vault.py",
+          "C:/Users/clint/azazael/scripts/build_progress_governance_graph.py",
+          "C:/Users/clint/azazael/scripts/build_runtime_baseline.py"
+        ],
+        "entry": [
+          "C:/Users/clint/azazael/src/CORE/azazael_ctl.py"
+        ]
+      }
+    },
+    {
+      "number": 6,
+      "name": "Processes",
+      "verdict": "manual",
+      "detail": "runtime property; 0 module-level mutable global(s) found as an indicative proxy only",
+      "evidence": {
+        "module_level_mutable_globals": 0
+      }
+    },
+    {
+      "number": 7,
+      "name": "Port binding",
+      "verdict": "pass",
+      "detail": "22 bind site(s), 3 sourced from the environment",
+      "evidence": {
+        "bind_sites": 22,
+        "port_from_env": 3
+      }
+    },
+    {
+      "number": 8,
+      "name": "Concurrency",
+      "verdict": "pass",
+      "detail": "409 thread site(s), 31 process site(s)",
+      "evidence": {
+        "thread_sites": 409,
+        "process_sites": 31
+      }
+    },
+    {
+      "number": 9,
+      "name": "Disposability",
+      "verdict": "pass",
+      "detail": "25 signal site(s), 4 atexit handler(s)",
+      "evidence": {
+        "signal_sites": 25,
+        "atexit_handlers": 4
+      }
+    },
+    {
+      "number": 10,
+      "name": "Dev/prod parity",
+      "verdict": "pass",
+      "detail": "237 test module(s) sharing the project config",
+      "evidence": {
+        "test_modules": 237,
+        "shared_config": "pytest.ini"
+      }
+    },
+    {
+      "number": 11,
+      "name": "Logs",
+      "verdict": "pass",
+      "detail": "14347 stream/stdout site(s) vs 8 file handler(s); event-stream dominant",
+      "evidence": {
+        "file_handlers": 8,
+        "stream_sites": 14347,
+        "ratio": 1793.38
+      }
+    },
+    {
+      "number": 12,
+      "name": "Admin processes",
+      "verdict": "pass",
+      "detail": "2 admin/one-off entry point(s) in the same tree",
+      "evidence": {
+        "admin": [
+          "C:/Users/clint/azazael/scripts/nightly_maintenance.py",
+          "C:/Users/clint/azazael/src/CORE/azazael_ctl.py"
+        ]
+      }
+    }
+  ],
+  "note": "No framework named 'dodecahedron milestone' exists; this is the Twelve-Factor App (12 factors) audited against the tree. 'manual' faces are runtime properties a static scan cannot decide and are deliberately NOT counted as passing."
+}
