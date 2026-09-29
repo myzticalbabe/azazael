@@ -27,6 +27,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -49,6 +50,7 @@ REGISTRY: tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...] = (
 
 GRAPH_JSON = "graphify-out/graph.json"
 GRAPH_REPORT = "graphify-out/GRAPH_REPORT.md"
+GRAPH_MANIFEST_GLOB = "graphify-out/**/manifest.json"
 
 
 def source_files(root: Path, roots: Sequence[str],
@@ -137,6 +139,92 @@ def graph_report_mismatch(root: Path | None = None) -> dict[str, Any]:
     return out
 
 
+def newest_manifest(root: Path) -> Path | None:
+    """The manifest of the most recent graphify run under `root`.
+
+    A manifest records the input set of a derivation: every file graphify
+    ingested, with the md5 of the bytes as they were at the time. It is the
+    only place in the repo that states what the graph was actually built from,
+    which is why `graph_content_drift` reads it instead of a hand-maintained
+    file list that can silently fall behind the tool's real inputs.
+
+    Recursive, and newest-by-mtime rather than sorted-by-name. `graphify-out`
+    holds more than one manifest at different depths and with different
+    schemas: the current one sits at the top (3,668 relative keys, matching
+    graph.json's own mtime), a date-stamped copy sits one level down, and an
+    older nested `graphify-out/graphify-out/manifest.json` carries 1,368
+    *absolute* Windows keys from a run eleven days earlier. Sorting by name
+    picks that stale nested one, because "graphify-out" sorts after a date.
+    """
+    found = [p for p in root.glob(GRAPH_MANIFEST_GLOB) if p.is_file()]
+    if not found:
+        return None
+    return max(found, key=lambda p: p.stat().st_mtime)
+
+
+def graph_content_drift(root: Path | None = None) -> dict[str, Any]:
+    """Has any file changed since the graph was derived?
+
+    An mtime comparison cannot answer this in a git checkout. `git checkout`
+    and `git clone` stamp every tracked file with the checkout time, so a
+    committed artifact is *always* newer than the sources it was derived from
+    and the mtime check reports "current" however wrong the content has
+    drifted. This was not hypothetical: `NEURAL_MESH_FUNCTION_TODO.md` pointed
+    at `temporal_cross_validation` L438 when the function sits at L442, and
+    the mtime check called it current with zero newer sources.
+
+    The manifest's `ast_hash` is a plain md5 of the file's bytes, so content
+    drift is decidable without mtimes at all. A file whose current md5 differs
+    from the recorded one is a source the graph was derived from and no longer
+    matches it -- the graph is stale with respect to that file, full stop.
+    """
+    root = Path(root) if root is not None else ROOT
+    out: dict[str, Any] = {"checked": False, "reason": "",
+                           "total": 0, "changed": [], "missing": []}
+    manifest = newest_manifest(root)
+    if manifest is None:
+        out["reason"] = "no graphify manifest under graphify-out/"
+        return out
+    try:
+        recorded = json.loads(manifest.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        out.update({"checked": True, "reason": "manifest unreadable: %s" % str(exc)[:80]})
+        return out
+    if not isinstance(recorded, dict):
+        out.update({"checked": True, "reason": "manifest is not an object"})
+        return out
+
+    changed, missing = [], []
+    for rel, entry in recorded.items():
+        if not isinstance(entry, dict):
+            continue
+        # Some manifests key by absolute path (an older nested run does). Make
+        # the key relative so the evidence reads the same on every machine and
+        # so the same check works on the WSL and bare-metal checkouts.
+        path = Path(rel)
+        if path.is_absolute():
+            try:
+                rel = path.resolve().relative_to(root.resolve()).as_posix()
+            except ValueError:
+                rel = path.name
+        if not (root / rel).is_file():
+            missing.append(rel)
+            continue
+        recorded_hash = entry.get("ast_hash") or ""
+        if not recorded_hash:
+            continue
+        try:
+            actual = hashlib.md5((root / rel).read_bytes()).hexdigest()
+        except OSError:
+            missing.append(rel)
+            continue
+        if actual != recorded_hash:
+            changed.append(rel)
+    out.update({"checked": True, "reason": "", "manifest": manifest.relative_to(root).as_posix(),
+                "total": len(recorded), "changed": sorted(changed), "missing": sorted(missing)})
+    return out
+
+
 def main(argv: Sequence[str] | None = None,
          registry: Iterable[tuple[str, tuple[str, ...], tuple[str, ...]]] | None = None
          ) -> int:
@@ -148,12 +236,15 @@ def main(argv: Sequence[str] | None = None,
     root = Path(args.root) if args.root else ROOT
     rows = audit(root, registry)
     graph = graph_report_mismatch(root)
+    drift = graph_content_drift(root)
     stale = [r for r in rows if r["stale"]]
+    drifted = bool(drift["checked"] and (drift["changed"] or drift["missing"]))
 
     if args.json:
         print(json.dumps({"artifacts": rows, "graph": graph,
+                          "content_drift": drift,
                           "stale_count": len(stale)}, indent=2))
-        return 1 if stale or graph["mismatch"] else 0
+        return 1 if stale or graph["mismatch"] or drifted else 0
 
     print("%-44s %-8s %s" % ("ARTIFACT", "STATUS", "NEWER SOURCES"))
     for row in rows:
@@ -175,11 +266,28 @@ def main(argv: Sequence[str] | None = None,
         print("graph/report: consistent (nodes=%d clustered=%s)"
               % (graph.get("nodes"), graph.get("clustered")))
 
-    if stale or graph["mismatch"]:
+    if not drift["checked"]:
+        print("graph inputs: not checked (%s)" % drift["reason"])
+    elif drifted:
+        print("graph inputs: DRIFTED -- %d of %d files changed since %s, "
+              "%d missing (md5 vs recorded ast_hash; mtime cannot see this "
+              "after a git checkout)"
+              % (len(drift["changed"]), drift["total"], drift["manifest"],
+                 len(drift["missing"])))
+        for rel in drift["changed"][:5]:
+            print("    changed: %s" % rel)
+        for rel in drift["missing"][:5]:
+            print("    missing: %s" % rel)
+    else:
+        print("graph inputs: %d files match the manifest" % drift["total"])
+
+    if stale or graph["mismatch"] or drifted:
         print()
-        print("FAIL: %d stale artifact(s)%s"
+        print("FAIL: %d stale artifact(s)%s%s"
               % (len(stale), ", plus a graph/report mismatch"
-                 if graph["mismatch"] else ""))
+                 if graph["mismatch"] else "",
+                 ", plus %d changed graph input(s)" % len(drift["changed"])
+                 if drifted else ""))
         print("Refresh with: python tools/mesh_function_preflight.py "
               "&& python tools/mesh_function_preflight.py --verdict "
               "&& python tools/nature_integration_map.py")
