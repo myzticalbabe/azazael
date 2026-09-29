@@ -10,10 +10,10 @@ list, plus the insights inferred from the census - lives in
 
 ## Scope
 
-- 1499 functions across the fabric, neural primitives, learning
+- 1502 functions across the fabric, neural primitives, learning
   and plasticity, and operational subsystems
-- 78 pass every automated probe; 1421 have at least one failure
-- P0 147 / P1 385 / P2 889
+- 78 pass every automated probe; 1424 have at least one failure
+- P0 148 / P1 386 / P2 890
 
 ## How to work this list
 
@@ -77,10 +77,10 @@ For each function, in this order:
 | PF11 | 1 |
 | PF12 | 0 |
 | PF13 | 0 |
-| PF14 | 343 |
-| PF15 | 135 |
-| PF16 | 169 |
-| PF17 | 546 |
+| PF14 | 344 |
+| PF15 | 136 |
+| PF16 | 171 |
+| PF17 | 547 |
 | PF18 | 15 |
 | PF19 | 4 |
 | PF20 | 1 |
@@ -92,15 +92,15 @@ Probes in the P0 set (PF05, PF07, PF12, PF13, PF15, PF18, PF20) are the
 ones that can lose data, hide an error, or spin forever. Clear these
 first.
 
-- [ ] `spine_registry:load_spine_state` L2609-2766 c=80 fail=PF14,PF15,PF18
+- [ ] `spine_registry:load_spine_state` L2779-2946 c=87 fail=PF14,PF15,PF18
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:merge_spine_gossip` L3514-3739 c=70 fail=PF14,PF15,PF18
+- [ ] `spine_registry:merge_spine_gossip` L3701-3926 c=70 fail=PF14,PF15,PF18
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:_merge_disk_state` L1105-1191 c=51 fail=PF14,PF15,PF17
+- [ ] `spine_registry:_merge_disk_state` L1146-1251 c=58 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `exmachina:epistemic_report` L2352-2454 c=37 fail=PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:record_outcome` L1308-1512 c=36 fail=PF14,PF15
+- [ ] `spine_registry:record_outcome` L1368-1572 c=36 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `spine:MorphogenesisWorm.promote` L3741-3855 c=35 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -108,7 +108,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `proteus_hooks:morph_dimension_summary` L731-837 c=30 fail=PF14,PF15,PF16
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:purge_edges` L2198-2280 c=28 fail=PF14,PF15
+- [ ] `spine_registry:purge_edges` L2333-2415 c=28 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `exmachina:collect_state` L448-537 c=28 fail=PF14,PF15,PF16,PF17
   - [ ] M1-M6 manual pass
@@ -116,7 +116,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `spine:SpineCycleWorm._metabolic_stage` L2486-2539 c=26 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:_load_trusted_keys` L3099-3145 c=24 fail=PF14,PF15
+- [ ] `spine_registry:_load_trusted_keys` L3286-3332 c=24 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `evolution:EvolutionEngine.evaluate_population` L330-427 c=21 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -132,11 +132,13 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `spine:MorphogenesisWorm._opportunity_patterns` L3443-3526 c=17 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
+- [ ] `spine_registry:reset_counters` L2132-2179 c=16 fail=PF14,PF15,PF16
+  - [ ] M1-M6 manual pass
 - [ ] `proteus_hooks:cranium_decide` L137-247 c=16 fail=PF15
   - [ ] M1-M6 manual pass
 - [ ] `spine:SpineCycleWorm._anomaly_stage` L2433-2484 c=16 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:invalidate_q` L2002-2069 c=15 fail=PF14,PF15
+- [ ] `spine_registry:invalidate_q` L2062-2129 c=15 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `learning_grpo:GRPOTrainer.update_policy` L205-296 c=15 fail=PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -144,13 +146,13 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `NeuralPipeline:NeuralPipeline.run_cross_api_analysis` L600-665 c=14 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:purge_fixtures` L2139-2195 c=13 fail=PF14,PF15,PF16
+- [ ] `spine_registry:purge_fixtures` L2274-2330 c=13 fail=PF14,PF15,PF16
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:revert_policy` L2801-2839 c=13 fail=PF14,PF15,PF16
+- [ ] `spine_registry:revert_policy` L2981-3019 c=13 fail=PF14,PF15,PF16
   - [ ] M1-M6 manual pass
 - [ ] `nerve:Neuromodulator.set_params` L300-326 c=13 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:cap_q_tables` L2305-2359 c=12 fail=PF14,PF15
+- [ ] `spine_registry:cap_q_tables` L2440-2526 c=12 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `chorus:FailureDigest.from_analysis` L76-98 c=12 fail=PF04,PF15,PF16
   - [ ] M1-M6 manual pass
@@ -170,15 +172,15 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `spine:MeshArchitectWorm.apply` L1573-1600 c=10 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:_remember_gossip` L3271-3285 c=9 fail=PF14,PF15,PF17
+- [ ] `spine_registry:_remember_gossip` L3458-3472 c=9 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `dreaming:DreamingModule.recall_scenarios` L109-167 c=9 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `scheduling:ScheduledTrainingWorm._record_plateau` L220-256 c=9 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:spine_reset` L2842-2877 c=8 fail=PF16,PF18
+- [ ] `spine_registry:spine_reset` L3022-3064 c=8 fail=PF16,PF18
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:export_spine_gossip` L3422-3511 c=8 fail=PF14,PF15,PF18
+- [ ] `spine_registry:export_spine_gossip` L3609-3698 c=8 fail=PF14,PF15,PF18
   - [ ] M1-M6 manual pass
 - [ ] `code_audit:WeeklyCodeAuditWorm.execute` L143-179 c=8 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -192,7 +194,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `NeuralPipeline:NeuralPipeline._llm_evaluate_worm` L494-550 c=7 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:publish_anomaly_model` L3369-3388 c=7 fail=PF18
+- [ ] `spine_registry:publish_anomaly_model` L3556-3575 c=7 fail=PF18
   - [ ] M1-M6 manual pass
 - [ ] `berks:_pams` L37-50 c=7 fail=PF02,PF03,PF14,PF18
   - [ ] M1-M6 manual pass
@@ -214,7 +216,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `NeuralPipeline:NeuralPipeline._persist_run` L669-690 c=6 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:_ensure_loaded` L1194-1218 c=6 fail=PF02,PF14,PF15,PF18
+- [ ] `spine_registry:_ensure_loaded` L1254-1278 c=6 fail=PF02,PF14,PF15,PF18
   - [ ] M1-M6 manual pass
 - [ ] `consensus:QuorumVoterWorm.tally` L114-133 c=6 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -346,7 +348,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `threatmon:_load` L105-113 c=4 fail=PF02,PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:_observe_stamp` L681-691 c=3 fail=PF14,PF15,PF17
+- [ ] `spine_registry:_observe_stamp` L722-732 c=3 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `arena:Arena.load` L288-297 c=3 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -370,7 +372,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `threatmon:ThreatIntelMonitorWorm.start_monitor.loop` L227-232 c=3 fail=PF02,PF03,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:_note_blocked_write` L365-370 c=2 fail=PF14,PF15,PF17
+- [ ] `spine_registry:_note_blocked_write` L406-411 c=2 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `communication:ProtocolNegotiator._available_protocols` L212-218 c=2 fail=PF02,PF04,PF15,PF17
   - [ ] M1-M6 manual pass
@@ -395,13 +397,13 @@ first.
 - [ ] `exmachina_operators:operator_report` L1010-1139 c=36 fail=PF14,PF16
 - [ ] `spine:SpineCycleWorm._fabric_resilience` L3177-3329 c=35 fail=PF04,PF14,PF17
 - [ ] `spine:ConsolidationWorm.consolidate` L3947-4057 c=32 fail=PF02,PF04,PF14
-- [ ] `spine_registry:purge_implausible_stamps` L2880-2955 c=30 fail=PF14,PF16
+- [ ] `spine_registry:purge_implausible_stamps` L3067-3142 c=30 fail=PF14,PF16
 - [ ] `learning_features:SchemaAwareFeatureExtractor.extract` L227-325 c=28 fail=PF04
 - [ ] `meta_cognition:MetaCognitionWorm.adapt_strategy` L357-498 c=26 fail=PF04,PF17
 - [ ] `spine:SpineMapperWorm.map_topology` L290-409 c=25 fail=PF02,PF04,PF14
 - [ ] `spine:SpineCycleWorm._fabric_servemesh` L2838-2906 c=25 fail=PF04,PF14
 - [ ] `evolution:EvolutionEngine.optimize_multi_objective` L1177-1330 c=24 fail=PF04,PF21
-- [ ] `spine_registry:check_gossip_trust` L3160-3268 c=23 fail=PF14
+- [ ] `spine_registry:check_gossip_trust` L3347-3455 c=23 fail=PF14
 - [ ] `spine:SpineCycleWorm._fabric_federated` L2990-3061 c=23 fail=PF04,PF14
 - [ ] `spine:SpineCycleWorm._fabric_consensus` L2908-2988 c=22 fail=PF04,PF14
 - [ ] `spine:SpineCycleWorm._fabric_variation` L3063-3175 c=22 fail=PF04,PF14,PF17
@@ -448,7 +450,7 @@ first.
 - [ ] `race_detector:RaceConditionDetector.detect_data_races` L293-352 c=13 fail=PF04
 - [ ] `spine:RedQueenWorm.pressure_probe` L825-890 c=13 fail=PF04
 - [ ] `spine:MeshArchitectWorm.propose` L1517-1569 c=13 fail=PF04
-- [ ] `spine_registry:_gossip_crypto` L3025-3077 c=12 fail=PF03,PF14,PF17
+- [ ] `spine_registry:_gossip_crypto` L3212-3264 c=12 fail=PF03,PF14,PF17
 - [ ] `db_monitor:DatabaseMonitorWorm._recently_alerted` L448-480 c=12 fail=PF04,PF14,PF17
 - [ ] `engram:_VectorIndex._rebuild` L162-193 c=12 fail=PF04,PF14,PF17
 - [ ] `evidence:evidence_from_rows` L247-274 c=12 fail=PF14,PF16,PF17
@@ -474,7 +476,7 @@ first.
 - [ ] `oracle:era_descriptor` L60-92 c=11 fail=PF14,PF17
 - [ ] `spine:SpineCycleWorm._provider_key_state` L2709-2754 c=11 fail=PF04,PF14
 - [ ] `NeuralPipeline:NeuralPipeline.run_end_to_end` L207-349 c=10 fail=PF04,PF14,PF17
-- [ ] `spine_registry:publish_fabric_state` L829-866 c=10 fail=PF14
+- [ ] `spine_registry:publish_fabric_state` L870-907 c=10 fail=PF14
 - [ ] `chorus:parse_proposals` L174-199 c=10 fail=PF14
 - [ ] `code_audit:WeeklyCodeAuditWorm._scan` L73-104 c=10 fail=PF04,PF14
 - [ ] `driver:GemmaDriverWorm._judge_once` L152-180 c=10 fail=PF04,PF14,PF17
@@ -482,7 +484,7 @@ first.
 - [ ] `fabric_state:publish` L154-180 c=10 fail=PF14
 - [ ] `learning_grpo:GRPOTrainer.compute_group_rewards` L128-183 c=10 fail=PF04,PF14,PF17
 - [ ] `race_detector:RaceConditionDetector.instrument_worm` L117-177 c=10 fail=PF04,PF16
-- [ ] `spine_registry:purge_implausible_stamps._fix` L2904-2922 c=9 fail=PF02,PF14
+- [ ] `spine_registry:purge_implausible_stamps._fix` L3091-3109 c=9 fail=PF02,PF14
 - [ ] `chaos:ChaosWorm.drill` L42-71 c=9 fail=PF04,PF14,PF17
 - [ ] `driver:GemmaDriverWorm.judge_dream` L182-199 c=9 fail=PF04,PF16,PF17
 - [ ] `engram:RecallRouterWorm.route_recall` L344-371 c=9 fail=PF02,PF04,PF16
@@ -494,10 +496,10 @@ first.
 - [ ] `spine:SpineCycleWorm._nature_rates` L2564-2584 c=9 fail=PF04,PF14,PF17
 - [ ] `spine:MorphogenesisWorm.retrieve_staged` L3708-3739 c=9 fail=PF04,PF16
 - [ ] `NeuralPipeline:NeuralPipeline._augment_rewards` L552-596 c=8 fail=PF04,PF14,PF17
-- [ ] `spine_registry:_stamp_newer` L780-826 c=8 fail=PF14
-- [ ] `spine_registry:audit_state` L2083-2136 c=8 fail=PF16
-- [ ] `spine_registry:save_spine_state` L2521-2606 c=8 fail=PF14
-- [ ] `spine_registry:gossip_exchange` L3774-3821 c=8 fail=PF14
+- [ ] `spine_registry:_stamp_newer` L821-867 c=8 fail=PF14
+- [ ] `spine_registry:audit_state` L2218-2271 c=8 fail=PF16
+- [ ] `spine_registry:save_spine_state` L2688-2776 c=8 fail=PF14
+- [ ] `spine_registry:gossip_exchange` L3961-4008 c=8 fail=PF14
 - [ ] `chorus:Chorus._get_provider` L286-304 c=8 fail=PF02,PF04,PF14,PF17
 - [ ] `communication:WebhookRelay.deliver` L125-144 c=8 fail=PF04,PF14,PF16,PF17
 - [ ] `driver:GemmaDriverWorm._chat` L72-98 c=8 fail=PF02,PF04,PF14,PF17
@@ -520,7 +522,7 @@ first.
 - [ ] `spine:SpineCycleWorm._route_observation` L2589-2610 c=8 fail=PF04,PF14,PF17
 - [ ] `spine:MorphogenesisWorm._stage` L3610-3650 c=8 fail=PF04,PF14
 - [ ] `visualization:ReportCompiler.compile_html` L138-160 c=8 fail=PF04,PF16,PF17
-- [ ] `spine_registry:q_stale_discount` L1811-1832 c=7 fail=PF14,PF17
+- [ ] `spine_registry:q_stale_discount` L1871-1892 c=7 fail=PF14,PF17
 - [ ] `consensus:QuorumVoterWorm.vote` L78-112 c=7 fail=PF02,PF04,PF14
 - [ ] `db_monitor:DatabaseMonitorWorm.create_backup` L201-236 c=7 fail=PF04,PF14,PF16
 - [ ] `envmesh:BarePassthroughWorm.probe_ssh` L190-203 c=7 fail=PF02,PF04,PF14,PF17
@@ -532,7 +534,7 @@ first.
 - [ ] `nerve:_LazyTorch.get` L136-160 c=7 fail=PF03,PF04,PF14
 - [ ] `spine:SpineCycleWorm._gate_salience` L2182-2208 c=7 fail=PF04,PF14,PF17
 - [ ] `spine:SpineCycleWorm._process_morphogenesis_output` L2612-2661 c=7 fail=PF04,PF14
-- [ ] `spine_registry:_rec_stamp` L726-745 c=6 fail=PF14
+- [ ] `spine_registry:_rec_stamp` L767-786 c=6 fail=PF14
 - [ ] `config:ConfigLinter.lint_json` L52-65 c=6 fail=PF04,PF16
 - [ ] `config:EnvValidator.scan_env_files` L93-111 c=6 fail=PF04,PF16
 - [ ] `dreaming:DreamingModule.integrate_best` L748-788 c=6 fail=PF04,PF14,PF17
@@ -551,8 +553,8 @@ first.
 - [ ] `spine:PlasticityEngineWorm.consolidate` L1361-1382 c=6 fail=PF04,PF14
 - [ ] `spine:SpineCycleWorm._governance_stage` L2119-2141 c=6 fail=PF04,PF14,PF17
 - [ ] `spine:measure_skill_lift` L3862-3881 c=6 fail=PF16
-- [ ] `spine_registry:_fabric_field_stamp` L708-723 c=5 fail=PF14,PF17
-- [ ] `spine_registry:get_q_evidence` L1969-1999 c=5 fail=PF16
+- [ ] `spine_registry:_fabric_field_stamp` L749-764 c=5 fail=PF14,PF17
+- [ ] `spine_registry:get_q_evidence` L2029-2059 c=5 fail=PF16
 - [ ] `backup:StateSnapshotter.create_snapshot` L54-71 c=5 fail=PF04,PF14,PF17
 - [ ] `container:ContainerOrch.launch` L51-65 c=5 fail=PF04,PF14
 - [ ] `container:RegistryPoller.check_latest` L180-189 c=5 fail=PF04,PF14,PF16,PF17
@@ -579,11 +581,12 @@ first.
 - [ ] `tensorgene:row_payload` L63-80 c=5 fail=PF14
 - [ ] `xenomorph:_host_capable` L58-79 c=5 fail=PF14,PF17
 - [ ] `xenomorph:Lilith.request_moult` L357-392 c=5 fail=PF04,PF14
-- [ ] `spine_registry:_stamp_adoptable` L748-777 c=4 fail=PF14
-- [ ] `spine_registry:_ordering_stamp` L1227-1243 c=4 fail=PF14,PF17
-- [ ] `spine_registry:get_module_health` L2958-2978 c=4 fail=PF16
-- [ ] `spine_registry:_gossip_crypto._verify` L3060-3075 c=4 fail=PF02,PF14
-- [ ] `spine_registry:_local_env_name` L3752-3771 c=4 fail=PF14
+- [ ] `spine_registry:_stamp_adoptable` L789-818 c=4 fail=PF14
+- [ ] `spine_registry:_ordering_stamp` L1287-1303 c=4 fail=PF14,PF17
+- [ ] `spine_registry:counter_floor_report` L2182-2204 c=4 fail=PF16
+- [ ] `spine_registry:get_module_health` L3145-3165 c=4 fail=PF16
+- [ ] `spine_registry:_gossip_crypto._verify` L3247-3262 c=4 fail=PF02,PF14
+- [ ] `spine_registry:_local_env_name` L3939-3958 c=4 fail=PF14
 - [ ] `allocation:ThompsonAllocator.choose_with_bonus` L267-275 c=4 fail=PF04,PF16,PF17
 - [ ] `backup:RecoveryTester.verify_archive` L124-134 c=4 fail=PF04,PF14,PF17
 - [ ] `communication:RPCEndpoint.handle_request` L91-103 c=4 fail=PF04,PF14,PF17
@@ -606,8 +609,8 @@ first.
 - [ ] `telemetry:AlertEscalator.check_threshold` L208-219 c=4 fail=PF04,PF16,PF17
 - [ ] `tensorgene:dedupe_observations` L212-234 c=4 fail=PF16
 - [ ] `NeuralPipeline:NeuralPipeline.replay_failed` L709-741 c=3 fail=PF04,PF16
-- [ ] `spine_registry:is_idle` L1681-1695 c=3 fail=PF14
-- [ ] `spine_registry:_iso_or` L3415-3419 c=3 fail=PF16,PF17
+- [ ] `spine_registry:is_idle` L1741-1755 c=3 fail=PF14
+- [ ] `spine_registry:_iso_or` L3602-3606 c=3 fail=PF16,PF17
 - [ ] `backup:RecoveryTester.test_restore` L136-143 c=3 fail=PF04,PF14,PF17
 - [ ] `config:ConfigLinter.lint_yaml` L67-77 c=3 fail=PF04,PF14,PF16,PF17
 - [ ] `config:FeatureFlagCtrl.is_enabled` L177-186 c=3 fail=PF04,PF16,PF17
@@ -647,12 +650,12 @@ first.
 - [ ] `visualization:TimelineViz.to_timeline_html` L214-231 c=3 fail=PF04,PF16,PF17
 - [ ] `xenomorph:_local_env` L42-55 c=3 fail=PF14
 - [ ] `xenomorph:Lilith._lease_until_ts` L272-279 c=3 fail=PF14,PF17
-- [ ] `spine_registry:_hlc_now` L672-678 c=2 fail=PF14
-- [ ] `spine_registry:get_clock_skew_ms` L694-705 c=2 fail=PF14,PF17
-- [ ] `spine_registry:dream_reinforce` L1649-1678 c=2 fail=PF14
-- [ ] `spine_registry:route_last_at` L2362-2367 c=2 fail=PF16,PF17
-- [ ] `spine_registry:route_weight_range` L2395-2411 c=2 fail=PF16
-- [ ] `spine_registry:_gossip_crypto._sign` L3052-3058 c=2 fail=PF02,PF14
+- [ ] `spine_registry:_hlc_now` L713-719 c=2 fail=PF14
+- [ ] `spine_registry:get_clock_skew_ms` L735-746 c=2 fail=PF14,PF17
+- [ ] `spine_registry:dream_reinforce` L1709-1738 c=2 fail=PF14
+- [ ] `spine_registry:route_last_at` L2529-2534 c=2 fail=PF16,PF17
+- [ ] `spine_registry:route_weight_range` L2562-2578 c=2 fail=PF16
+- [ ] `spine_registry:_gossip_crypto._sign` L3239-3245 c=2 fail=PF02,PF14
 - [ ] `arena:Arena.solve` L174-178 c=2 fail=PF02,PF04,PF14
 - [ ] `consolidation:SleepConsolidatorWorm.sleep_cycle` L69-75 c=2 fail=PF02,PF04,PF16,PF17
 - [ ] `dendrite:ContextConcatWorm.merge` L93-104 c=2 fail=PF02,PF04,PF16,PF17
@@ -702,12 +705,12 @@ first.
 - [ ] `visualization:HeatmapBuilder.get_busiest_hours` L187-195 c=2 fail=PF04,PF16,PF17
 - [ ] `xenomorph:OvomorphWorm.hatch` L102-109 c=2 fail=PF02,PF04,PF16,PF17
 - [ ] `xenomorph:ResinWorm.secrete` L410-418 c=2 fail=PF02,PF04,PF09,PF16,PF17
-- [ ] `spine_registry:get_policy_latest` L481-484 c=1 fail=PF16
-- [ ] `spine_registry:get_q_updates` L1705-1723 c=1 fail=PF16
-- [ ] `spine_registry:get_q_variance` L1835-1846 c=1 fail=PF16,PF17
-- [ ] `spine_registry:q_confidence` L1923-1943 c=1 fail=PF16,PF17
-- [ ] `spine_registry:homeostat_reset` L2769-2773 c=1 fail=PF16
-- [ ] `spine_registry:get_gossip_trust_state` L3288-3300 c=1 fail=PF16
+- [ ] `spine_registry:get_policy_latest` L522-525 c=1 fail=PF16
+- [ ] `spine_registry:get_q_updates` L1765-1783 c=1 fail=PF16
+- [ ] `spine_registry:get_q_variance` L1895-1906 c=1 fail=PF16,PF17
+- [ ] `spine_registry:q_confidence` L1983-2003 c=1 fail=PF16,PF17
+- [ ] `spine_registry:homeostat_reset` L2949-2953 c=1 fail=PF16
+- [ ] `spine_registry:get_gossip_trust_state` L3475-3487 c=1 fail=PF16
 - [ ] `axon:MyelinSheathWorm.myelinate` L32-35 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `axon:MyelinSheathWorm.boost_for` L37-39 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `axon:LatencyCompensatorWorm.compensate` L121-125 c=1 fail=PF02,PF04,PF16,PF17
@@ -760,7 +763,7 @@ first.
 - [ ] `xenomorph:OvomorphWorm.lay` L94-100 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `xenomorph:ChestbursterWorm.burst` L154-159 c=1 fail=PF02,PF04,PF16,PF17
 - [ ] `xenomorph:DroneWorm.carry` L178-182 c=1 fail=PF02,PF04,PF16,PF17
-- [ ] `spine_registry:purged_blocked_writes` L373-380 c=0 fail=PF16
+- [ ] `spine_registry:purged_blocked_writes` L414-421 c=0 fail=PF16
 - [ ] `communication:RPCEndpoint.list_methods` L105-106 c=0 fail=PF02,PF04,PF16,PF17
 - [ ] `communication:ProtocolNegotiator.register_peer` L202-203 c=0 fail=PF02,PF03,PF04,PF16,PF17
 - [ ] `config:DotfileSync.get_checksums` L129-131 c=0 fail=PF04,PF16,PF17
@@ -3701,7 +3704,7 @@ Every function in scope, grouped by concern and module. Each row is
 
 ### Outside the expansion package
 
-#### `spine_registry.py` - 120 functions
+#### `spine_registry.py` - 123 functions
 
 - [ ] `_outcome_stripe` L77-80 c=0 p=0 auto=PF17
   - [ ] manual M1-M6
@@ -3725,223 +3728,229 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `_LedgerBarrier.__exit__` L194-197 c=1 p=1 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `_adopt_evidence` L325-342 c=4 p=2 auto=PF17
+- [ ] `_adopt_counter` L348-363 c=5 p=4 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_purged_blocked` L345-347 c=0 p=1 auto=OK
+- [ ] `_adopt_evidence` L366-383 c=4 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_note_blocked_write` L365-370 c=2 p=1 auto=PF14,PF15,PF17
+- [ ] `_purged_blocked` L386-388 c=0 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `purged_blocked_writes` L373-380 c=0 p=0 auto=PF16
+- [ ] `_note_blocked_write` L406-411 c=2 p=1 auto=PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `_remember_policy` L467-478 c=2 p=1 auto=PF17
+- [ ] `purged_blocked_writes` L414-421 c=0 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `get_policy_latest` L481-484 c=1 p=0 auto=PF16
+- [ ] `_remember_policy` L508-519 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `cast_quarantine_vote` L501-538 c=9 p=4 auto=OK
+- [ ] `get_policy_latest` L522-525 c=1 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `get_quarantine_votes` L541-548 c=2 p=1 auto=OK
+- [ ] `cast_quarantine_vote` L542-579 c=9 p=4 auto=OK
   - [ ] manual M1-M6
-- [ ] `quarantine_item` L568-592 c=7 p=3 auto=OK
+- [ ] `get_quarantine_votes` L582-589 c=2 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `release_item` L595-618 c=9 p=2 auto=OK
+- [ ] `quarantine_item` L609-633 c=7 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `is_quarantined` L621-632 c=4 p=1 auto=OK
+- [ ] `release_item` L636-659 c=9 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_quarantine_items` L635-639 c=2 p=1 auto=PF17
+- [ ] `is_quarantined` L662-673 c=4 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `quarantine_count` L642-645 c=1 p=0 auto=OK
+- [ ] `get_quarantine_items` L676-680 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_hlc_now` L672-678 c=2 p=0 auto=PF14
+- [ ] `quarantine_count` L683-686 c=1 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `_observe_stamp` L681-691 c=3 p=1 auto=PF14,PF15,PF17
+- [ ] `_hlc_now` L713-719 c=2 p=0 auto=PF14
   - [ ] manual M1-M6
-- [ ] `get_clock_skew_ms` L694-705 c=2 p=0 auto=PF14,PF17
+- [ ] `_observe_stamp` L722-732 c=3 p=1 auto=PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `_fabric_field_stamp` L708-723 c=5 p=2 auto=PF14,PF17
+- [ ] `get_clock_skew_ms` L735-746 c=2 p=0 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_rec_stamp` L726-745 c=6 p=2 auto=PF14
+- [ ] `_fabric_field_stamp` L749-764 c=5 p=2 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_stamp_adoptable` L748-777 c=4 p=1 auto=PF14
+- [ ] `_rec_stamp` L767-786 c=6 p=2 auto=PF14
   - [ ] manual M1-M6
-- [ ] `_stamp_newer` L780-826 c=8 p=2 auto=PF14
+- [ ] `_stamp_adoptable` L789-818 c=4 p=1 auto=PF14
   - [ ] manual M1-M6
-- [ ] `publish_fabric_state` L829-866 c=10 p=2 auto=PF14
+- [ ] `_stamp_newer` L821-867 c=8 p=2 auto=PF14
   - [ ] manual M1-M6
-- [ ] `get_fabric_state` L869-880 c=3 p=1 auto=OK
+- [ ] `publish_fabric_state` L870-907 c=10 p=2 auto=PF14
   - [ ] manual M1-M6
-- [ ] `get_fabric_record` L883-887 c=2 p=1 auto=OK
+- [ ] `get_fabric_state` L910-921 c=3 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_fabric_view` L890-896 c=3 p=0 auto=OK
+- [ ] `get_fabric_record` L924-928 c=2 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_merge_fabric` L899-960 c=17 p=1 auto=OK
+- [ ] `get_fabric_view` L931-937 c=3 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `_merge_quarantine` L963-987 c=10 p=1 auto=OK
+- [ ] `_merge_fabric` L940-1001 c=17 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_quarantine_item_stamp` L990-1006 c=5 p=1 auto=PF17
+- [ ] `_merge_quarantine` L1004-1028 c=10 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_merge_quarantine_items` L1009-1028 c=8 p=1 auto=PF17
+- [ ] `_quarantine_item_stamp` L1031-1047 c=5 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_migrate_state` L1047-1095 c=15 p=1 auto=OK
+- [ ] `_merge_quarantine_items` L1050-1069 c=8 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_merge_disk_state` L1105-1191 c=51 p=0 auto=PF14,PF15,PF17
+- [ ] `_migrate_state` L1088-1136 c=15 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_ensure_loaded` L1194-1218 c=6 p=0 auto=PF02,PF14,PF15,PF18
+- [ ] `_merge_disk_state` L1146-1251 c=58 p=0 auto=PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `_now_iso` L1221-1222 c=0 p=0 auto=PF02,PF17
+- [ ] `_ensure_loaded` L1254-1278 c=6 p=0 auto=PF02,PF14,PF15,PF18
   - [ ] manual M1-M6
-- [ ] `_ordering_stamp` L1227-1243 c=4 p=1 auto=PF14,PF17
+- [ ] `_now_iso` L1281-1282 c=0 p=0 auto=PF02,PF17
   - [ ] manual M1-M6
-- [ ] `record_spine_node` L1246-1262 c=4 p=3 auto=OK
+- [ ] `_ordering_stamp` L1287-1303 c=4 p=1 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `get_spine_map` L1265-1268 c=1 p=0 auto=OK
+- [ ] `record_spine_node` L1306-1322 c=4 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_spine_summary` L1271-1285 c=3 p=0 auto=PF17
+- [ ] `get_spine_map` L1325-1328 c=1 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_spine_events` L1288-1295 c=2 p=1 auto=OK
+- [ ] `get_spine_summary` L1331-1345 c=3 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `record_spine_event` L1298-1303 c=2 p=2 auto=PF17
+- [ ] `get_spine_events` L1348-1355 c=2 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `record_outcome` L1308-1512 c=36 p=8 auto=PF14,PF15
+- [ ] `record_spine_event` L1358-1363 c=2 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `get_homeostat_view` L1515-1521 c=2 p=0 auto=OK
+- [ ] `record_outcome` L1368-1572 c=36 p=8 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `get_outcome_events` L1524-1529 c=1 p=1 auto=OK
+- [ ] `get_homeostat_view` L1575-1581 c=2 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `_reinforce_q` L1534-1548 c=1 p=2 auto=PF17
+- [ ] `get_outcome_events` L1584-1589 c=1 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_reinforce_q_delta` L1551-1559 c=1 p=2 auto=PF17
+- [ ] `_reinforce_q` L1594-1608 c=1 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_reinforce_q_simulated` L1562-1572 c=1 p=2 auto=PF17
+- [ ] `_reinforce_q_delta` L1611-1619 c=1 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_reinforce_q_unlocked` L1575-1581 c=0 p=2 auto=PF17
+- [ ] `_reinforce_q_simulated` L1622-1632 c=1 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_reinforce_q_delta_unlocked` L1584-1598 c=0 p=2 auto=PF17
+- [ ] `_reinforce_q_unlocked` L1635-1641 c=0 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_q_observe_unlocked` L1601-1639 c=2 p=3 auto=PF17
+- [ ] `_reinforce_q_delta_unlocked` L1644-1658 c=0 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `get_q_weights` L1642-1646 c=1 p=0 auto=OK
+- [ ] `_q_observe_unlocked` L1661-1699 c=2 p=3 auto=PF17
   - [ ] manual M1-M6
-- [ ] `dream_reinforce` L1649-1678 c=2 p=3 auto=PF14
+- [ ] `get_q_weights` L1702-1706 c=1 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `is_idle` L1681-1695 c=3 p=1 auto=PF14
+- [ ] `dream_reinforce` L1709-1738 c=2 p=3 auto=PF14
   - [ ] manual M1-M6
-- [ ] `get_q_weight` L1698-1702 c=1 p=2 auto=OK
+- [ ] `is_idle` L1741-1755 c=3 p=1 auto=PF14
   - [ ] manual M1-M6
-- [ ] `get_q_updates` L1705-1723 c=1 p=2 auto=PF16
+- [ ] `get_q_weight` L1758-1762 c=1 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_q_update_counts` L1726-1744 c=1 p=0 auto=OK
+- [ ] `get_q_updates` L1765-1783 c=1 p=2 auto=PF16
   - [ ] manual M1-M6
-- [ ] `get_q_dream_counts` L1747-1760 c=1 p=0 auto=PF17
+- [ ] `get_q_update_counts` L1786-1804 c=1 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `_evidence_unlocked` L1763-1791 c=8 p=1 auto=OK
+- [ ] `get_q_dream_counts` L1807-1820 c=1 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `q_effective_from` L1794-1808 c=3 p=3 auto=OK
+- [ ] `_evidence_unlocked` L1823-1851 c=8 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `q_stale_discount` L1811-1832 c=7 p=2 auto=PF14,PF17
+- [ ] `q_effective_from` L1854-1868 c=3 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_q_variance` L1835-1846 c=1 p=0 auto=PF16,PF17
+- [ ] `q_stale_discount` L1871-1892 c=7 p=2 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `selection_score_from` L1849-1879 c=5 p=5 auto=PF17
+- [ ] `get_q_variance` L1895-1906 c=1 p=0 auto=PF16,PF17
   - [ ] manual M1-M6
-- [ ] `selection_band` L1882-1908 c=4 p=1 auto=PF17
+- [ ] `selection_score_from` L1909-1939 c=5 p=5 auto=PF17
   - [ ] manual M1-M6
-- [ ] `selection_rank` L1911-1920 c=1 p=4 auto=OK
+- [ ] `selection_band` L1942-1968 c=4 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `q_confidence` L1923-1943 c=1 p=2 auto=PF16,PF17
+- [ ] `selection_rank` L1971-1980 c=1 p=4 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_q_effective` L1946-1957 c=1 p=0 auto=PF17
+- [ ] `q_confidence` L1983-2003 c=1 p=2 auto=PF16,PF17
   - [ ] manual M1-M6
-- [ ] `q_effective` L1960-1966 c=1 p=2 auto=PF17
+- [ ] `get_q_effective` L2006-2017 c=1 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `get_q_evidence` L1969-1999 c=5 p=1 auto=PF16
+- [ ] `q_effective` L2020-2026 c=1 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `invalidate_q` L2002-2069 c=15 p=3 auto=PF14,PF15
+- [ ] `get_q_evidence` L2029-2059 c=5 p=1 auto=PF16
   - [ ] manual M1-M6
-- [ ] `_is_fixture_key` L2072-2080 c=2 p=1 auto=OK
+- [ ] `invalidate_q` L2062-2129 c=15 p=3 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `audit_state` L2083-2136 c=8 p=0 auto=PF16
+- [ ] `reset_counters` L2132-2179 c=16 p=2 auto=PF14,PF15,PF16
   - [ ] manual M1-M6
-- [ ] `purge_fixtures` L2139-2195 c=13 p=1 auto=PF14,PF15,PF16
+- [ ] `counter_floor_report` L2182-2204 c=4 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `purge_edges` L2198-2280 c=28 p=4 auto=PF14,PF15
+- [ ] `_is_fixture_key` L2207-2215 c=2 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `route_weight` L2283-2302 c=2 p=2 auto=OK
+- [ ] `audit_state` L2218-2271 c=8 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `cap_q_tables` L2305-2359 c=12 p=0 auto=PF14,PF15
+- [ ] `purge_fixtures` L2274-2330 c=13 p=1 auto=PF14,PF15,PF16
   - [ ] manual M1-M6
-- [ ] `route_last_at` L2362-2367 c=2 p=2 auto=PF16,PF17
+- [ ] `purge_edges` L2333-2415 c=28 p=4 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `route_weight_learned` L2370-2392 c=2 p=3 auto=OK
+- [ ] `route_weight` L2418-2437 c=2 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `route_weight_range` L2395-2411 c=2 p=1 auto=PF16
+- [ ] `cap_q_tables` L2440-2526 c=12 p=0 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `q_order` L2414-2458 c=3 p=2 auto=OK
+- [ ] `route_last_at` L2529-2534 c=2 p=2 auto=PF16,PF17
   - [ ] manual M1-M6
-- [ ] `get_route_usage` L2461-2503 c=5 p=0 auto=OK
+- [ ] `route_weight_learned` L2537-2559 c=2 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `_scars_snapshot` L2506-2511 c=1 p=0 auto=PF17
+- [ ] `route_weight_range` L2562-2578 c=2 p=1 auto=PF16
   - [ ] manual M1-M6
-- [ ] `get_scars` L2514-2516 c=0 p=0 auto=OK
+- [ ] `q_order` L2581-2625 c=3 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `save_spine_state` L2521-2606 c=8 p=0 auto=PF14
+- [ ] `get_route_usage` L2628-2670 c=5 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `load_spine_state` L2609-2766 c=80 p=0 auto=PF14,PF15,PF18
+- [ ] `_scars_snapshot` L2673-2678 c=1 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `homeostat_reset` L2769-2773 c=1 p=0 auto=PF16
+- [ ] `get_scars` L2681-2683 c=0 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `journal_policy` L2778-2790 c=2 p=4 auto=OK
+- [ ] `save_spine_state` L2688-2776 c=8 p=0 auto=PF14
   - [ ] manual M1-M6
-- [ ] `get_policy_journal` L2793-2798 c=1 p=1 auto=OK
+- [ ] `load_spine_state` L2779-2946 c=87 p=0 auto=PF14,PF15,PF18
   - [ ] manual M1-M6
-- [ ] `revert_policy` L2801-2839 c=13 p=2 auto=PF14,PF15,PF16
+- [ ] `homeostat_reset` L2949-2953 c=1 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `spine_reset` L2842-2877 c=8 p=0 auto=PF16,PF18
+- [ ] `journal_policy` L2958-2970 c=2 p=4 auto=OK
   - [ ] manual M1-M6
-- [ ] `purge_implausible_stamps` L2880-2955 c=30 p=1 auto=PF14,PF16
+- [ ] `get_policy_journal` L2973-2978 c=1 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `purge_implausible_stamps._fix` L2904-2922 c=9 p=3 auto=PF02,PF14
+- [ ] `revert_policy` L2981-3019 c=13 p=2 auto=PF14,PF15,PF16
   - [ ] manual M1-M6
-- [ ] `get_module_health` L2958-2978 c=4 p=0 auto=PF16
+- [ ] `spine_reset` L3022-3064 c=8 p=0 auto=PF16,PF18
   - [ ] manual M1-M6
-- [ ] `_gossip_policy` L3018-3022 c=2 p=0 auto=PF17
+- [ ] `purge_implausible_stamps` L3067-3142 c=30 p=1 auto=PF14,PF16
   - [ ] manual M1-M6
-- [ ] `_gossip_crypto` L3025-3077 c=12 p=0 auto=PF03,PF14,PF17
+- [ ] `purge_implausible_stamps._fix` L3091-3109 c=9 p=3 auto=PF02,PF14
   - [ ] manual M1-M6
-- [ ] `_gossip_crypto._sign` L3052-3058 c=2 p=1 auto=PF02,PF14
+- [ ] `get_module_health` L3145-3165 c=4 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `_gossip_crypto._verify` L3060-3075 c=4 p=3 auto=PF02,PF14
+- [ ] `_gossip_policy` L3205-3209 c=2 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_gossip_canonical` L3080-3089 c=0 p=1 auto=OK
+- [ ] `_gossip_crypto` L3212-3264 c=12 p=0 auto=PF03,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_peer_env` L3092-3096 c=2 p=1 auto=PF17
+- [ ] `_gossip_crypto._sign` L3239-3245 c=2 p=1 auto=PF02,PF14
   - [ ] manual M1-M6
-- [ ] `_load_trusted_keys` L3099-3145 c=24 p=0 auto=PF14,PF15
+- [ ] `_gossip_crypto._verify` L3247-3262 c=4 p=3 auto=PF02,PF14
   - [ ] manual M1-M6
-- [ ] `_signer_is_known` L3148-3157 c=2 p=2 auto=OK
+- [ ] `_gossip_canonical` L3267-3276 c=0 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `check_gossip_trust` L3160-3268 c=23 p=2 auto=PF14
+- [ ] `_peer_env` L3279-3283 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_remember_gossip` L3271-3285 c=9 p=1 auto=PF14,PF15,PF17
+- [ ] `_load_trusted_keys` L3286-3332 c=24 p=0 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `get_gossip_trust_state` L3288-3300 c=1 p=0 auto=PF16
+- [ ] `_signer_is_known` L3335-3344 c=2 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `_valid_anomaly_model` L3326-3366 c=24 p=1 auto=OK
+- [ ] `check_gossip_trust` L3347-3455 c=23 p=2 auto=PF14
   - [ ] manual M1-M6
-- [ ] `publish_anomaly_model` L3369-3388 c=7 p=1 auto=PF18
+- [ ] `_remember_gossip` L3458-3472 c=9 p=1 auto=PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `get_anomaly_model` L3391-3397 c=3 p=0 auto=PF17
+- [ ] `get_gossip_trust_state` L3475-3487 c=1 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `get_anomaly_model_meta` L3400-3405 c=3 p=0 auto=OK
+- [ ] `_valid_anomaly_model` L3513-3553 c=24 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_iso_or` L3415-3419 c=3 p=1 auto=PF16,PF17
+- [ ] `publish_anomaly_model` L3556-3575 c=7 p=1 auto=PF18
   - [ ] manual M1-M6
-- [ ] `export_spine_gossip` L3422-3511 c=8 p=0 auto=PF14,PF15,PF18
+- [ ] `get_anomaly_model` L3578-3584 c=3 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `merge_spine_gossip` L3514-3739 c=70 p=1 auto=PF14,PF15,PF18
+- [ ] `get_anomaly_model_meta` L3587-3592 c=3 p=0 auto=OK
   - [ ] manual M1-M6
-- [ ] `_local_env_name` L3752-3771 c=4 p=0 auto=PF14
+- [ ] `_iso_or` L3602-3606 c=3 p=1 auto=PF16,PF17
   - [ ] manual M1-M6
-- [ ] `gossip_exchange` L3774-3821 c=8 p=1 auto=PF14
+- [ ] `export_spine_gossip` L3609-3698 c=8 p=0 auto=PF14,PF15,PF18
+  - [ ] manual M1-M6
+- [ ] `merge_spine_gossip` L3701-3926 c=70 p=1 auto=PF14,PF15,PF18
+  - [ ] manual M1-M6
+- [ ] `_local_env_name` L3939-3958 c=4 p=0 auto=PF14
+  - [ ] manual M1-M6
+- [ ] `gossip_exchange` L3961-4008 c=8 p=1 auto=PF14
   - [ ] manual M1-M6
 
 #### `NeuralPipeline.py` - 15 functions

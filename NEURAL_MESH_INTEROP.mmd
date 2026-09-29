@@ -292,6 +292,8 @@ graph LR
   D_spine_registry --> M_mod__iso_or
   M_mod_audit_state["audit_state"]:::M
   D_spine_registry --> M_mod_audit_state
+  M_mod_counter_floor_report["counter_floor_report"]:::M
+  D_spine_registry --> M_mod_counter_floor_report
   M_mod_get_gossip_trust_state["get_gossip_trust_state"]:::M
   D_spine_registry --> M_mod_get_gossip_trust_state
   M_mod_get_module_health["get_module_health"]:::M
@@ -312,6 +314,8 @@ graph LR
   D_spine_registry --> M_mod_purged_blocked_writes
   M_mod_q_confidence["q_confidence"]:::M
   D_spine_registry --> M_mod_q_confidence
+  M_mod_reset_counters["reset_counters"]:::M
+  D_spine_registry --> M_mod_reset_counters
   M_mod_revert_policy["revert_policy"]:::M
   D_spine_registry --> M_mod_revert_policy
   M_mod_route_last_at["route_last_at"]:::M

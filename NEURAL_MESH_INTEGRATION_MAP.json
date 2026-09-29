@@ -1,10 +1,10 @@
 {
  "generated_from": "NEURAL_MESH_WIRE_OR_CUT.json",
- "pending": 107,
+ "pending": 109,
  "dispositions": {
   "wire_at_site": 40,
   "integrate_via_stage": 44,
-  "unresolved": 23
+  "unresolved": 25
  },
  "stage_ownership": {
   "orchestration": [
@@ -2100,7 +2100,7 @@
     "telemetry"
    ],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/neural_loop.py:742, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/neural_loop.py:764, so a real call site exists",
    "ref_scope": [
     "src"
    ],
@@ -2109,7 +2109,7 @@
    "refs": [
     [
      "src/CORE/neural_loop.py",
-     742
+     764
     ]
    ]
   },
@@ -2191,6 +2191,20 @@
   "spine_registry:audit_state": {
    "owner": "",
    "method": "audit_state",
+   "module": "spine_registry",
+   "nature": "",
+   "kind": "module_level",
+   "disposition": "unresolved",
+   "reason": "module-level function with no production referrer and a module the registry attributes to no nature",
+   "consumer_natures": [],
+   "ref_scope": [],
+   "refs": [],
+   "emits": {},
+   "requires": {}
+  },
+  "spine_registry:counter_floor_report": {
+   "owner": "",
+   "method": "counter_floor_report",
    "module": "spine_registry",
    "nature": "",
    "kind": "module_level",
@@ -2331,6 +2345,20 @@
   "spine_registry:q_confidence": {
    "owner": "",
    "method": "q_confidence",
+   "module": "spine_registry",
+   "nature": "",
+   "kind": "module_level",
+   "disposition": "unresolved",
+   "reason": "module-level function with no production referrer and a module the registry attributes to no nature",
+   "consumer_natures": [],
+   "ref_scope": [],
+   "refs": [],
+   "emits": {},
+   "requires": {}
+  },
+  "spine_registry:reset_counters": {
+   "owner": "",
+   "method": "reset_counters",
    "module": "spine_registry",
    "nature": "",
    "kind": "module_level",
