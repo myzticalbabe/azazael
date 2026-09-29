@@ -1,3 +1,23 @@
+> ## SUPERSEDED — read `NEURAL_MESH_FORENSIC_2026-09-29.md` first
+>
+> This document is a **dated record of what was believed on its date**. Its
+> numbers are historical and several are now known to be wrong. Nothing marked
+> it as superseded, so an undated reader would draw current conclusions from a
+> snapshot — the exact "confidently-incomplete artifact" failure this project
+> already has a skill for.
+>
+> Concretely, claims below that are **no longer true**:
+> - the global quarantine item store is **present** (`spine_registry.py:521`);
+> - the gossip signer allowlist is **present** and has a CLI
+>   (`scripts/mesh_trusted_key.py`);
+> - route-outcome censoring is **present but was inert** — see §1 of the
+>   current forensic;
+> - the worm census figures are from their measurement dates, not today.
+>
+> Kept for provenance. Do not cite without the date.
+
+---
+
 # Forensic pre-implementation audit - 11 suggested followups
 
 **Date:** 2026-09-28
