@@ -68,6 +68,48 @@ def test_an_unregistered_provider_name_is_not_padded():
     assert prov._default_max_tokens() == int(prov.config.max_tokens)
 
 
+def test_every_entry_that_requires_server_side_reasoning_off_declares_a_pad():
+    """A new local reasoning model cannot be added unpadded unnoticed.
+
+    Keyed on the entry's own description rather than a list kept here: the
+    registry states that an entry serves a thinking model by requiring
+    `--reasoning off` SERVER-SIDE, so the test reads the same signal a
+    maintainer would. `llamaserver` is deliberately NOT matched -- its wording
+    is conditional ("Must run with ... if it serves a thinking model"), because
+    it may serve anything the supervisor has loaded.
+    """
+    marked = {
+        n for n, i in PROVIDER_REGISTRY.items()
+        if i.get("local")
+        and "Requires --reasoning off" in str(i.get("description", ""))
+    }
+    # A reworded description would silently make this test vacuous.
+    assert marked, "no entry declares the marker text; this test checks nothing"
+    for name in sorted(marked):
+        overhead = int(PROVIDER_REGISTRY[name].get("reasoning_overhead", 0) or 0)
+        assert overhead > 0, f"{name} serves a thinking model but declares no pad"
+
+
+def test_entries_without_a_declared_reasoning_requirement_stay_unpadded():
+    """Leaving these at zero is a decision, not an oversight -- pin it.
+
+    `llama_mythos_v2`'s description credits FTPO training with clean turns
+    where v1 ran away to the cap, so it has not shown the blank-turn failure
+    the pad exists to prevent, and `llamaserver` may serve anything.
+    """
+    for name in ("llama_mythos_v2", "llamaserver"):
+        assert int(PROVIDER_REGISTRY[name].get("reasoning_overhead", 0) or 0) == 0
+
+
+def test_all_reasoning_entries_share_the_measured_floor():
+    """One number, declared once: only qwopus has been measured."""
+    overheads = {n: int(PROVIDER_REGISTRY[n]["reasoning_overhead"])
+                 for n in PROVIDER_REGISTRY
+                 if PROVIDER_REGISTRY[n].get("reasoning_overhead")}
+    assert overheads, "no entry declares an overhead"
+    assert set(overheads.values()) == {512}, overheads
+
+
 def test_chat_pads_the_default_and_never_an_explicit_cap():
     """Structural pin on the call sites.
 
