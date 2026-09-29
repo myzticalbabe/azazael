@@ -100,7 +100,7 @@ class TestExecuteAllEndToEnd:
         res = results[0]["result"]
         assert isinstance(res, dict)
         # Real CodeProfiler output describes instrumented code, not a stub marker
-        assert "worm" in res or "success" in res or res
+        assert "worm" in res or "success" in res, f"no shape markers: {sorted(res)[:8]}"
 
     def test_execute_all_results_are_isolated_per_worm(self):
         """Each worm yields its own result entry keyed by name."""

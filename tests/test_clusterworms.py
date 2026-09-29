@@ -197,11 +197,16 @@ class TestClusterWORMZ(unittest.TestCase):
         self.assertIn("system", r)
 
     def test_version(self):
-        self.assertEqual(ClusterWORMZ.VERSION, "2.2.0")
+        # Pin shape, not literal: a "2.2.0" literal fails on any legit bump.
+        self.assertRegex(ClusterWORMZ.VERSION, r"^\d+\.\d+\.\d+$")
 
 
 class TestResolveWormDynamic(unittest.TestCase):
     def test_unknown_worm_returns_none(self):
+        # No contradiction with test_worm_telemetry.py:292-309: None here
+        # is the RESOLVER contract (unresolvable name). The EXECUTOR
+        # contract converts None into a recorded failure row
+        # (CLUSTERWORMS.py:824-826), so unknown worms are still observed.
         result = _resolve_worm_dynamic("nonexistent_worm_xyz_999")
         self.assertIsNone(result)
 
