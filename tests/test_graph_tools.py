@@ -821,3 +821,71 @@ def test_future_review_date_is_not_overdue():
     rep = dkt.analyse(contract, triage)
     assert rep["overdue"] == []
     assert rep["blocking"] == []
+
+
+# ---------------------------------------------------------------------
+# commit_scope_check
+# ----���----------------------------------------------------------------
+
+import commit_scope_check as csc   # noqa: E402
+
+
+def test_commit_scope_classifies_noise_and_source():
+    rep = csc.classify(
+        staged_paths=["src/CORE/x.py", "state/chain.json",
+                      "logs/run.log", "output/suite/a.json"],
+        dirty_paths=["src/CORE/x.py", "src/CORE/y.py", "state/chain.json"])
+    assert rep["staged_source"] == 1
+    assert rep["staged_noise"] == 3
+    assert rep["unstaged_source"] == 1
+    assert "src/CORE/y.py" in rep["unstaged_source_sample"]
+
+
+def test_commit_scope_reads_the_index_not_the_working_tree():
+    """633 dirty entries is a fact about the tree. What a commit contains is
+    a fact about the index, and conflating the two is the whole failure."""
+    text = (TOOLS / "commit_scope_check.py").read_text(encoding="utf-8")
+    assert "diff" in text and "--cached" in text and "--name-only" in text
+
+
+def test_commit_scope_noise_detection():
+    assert csc.is_noise("state/a.json")
+    assert csc.is_noise("logs/b.log")
+    assert csc.is_noise("graphify-out/graph.json")
+    assert not csc.is_noise("src/CORE/spine_registry.py")
+    assert not csc.is_noise("tools/dead_function_check.py")
+
+
+def test_commit_scope_not_a_repo_is_inconclusive(tmp_path):
+    r = subprocess.run(
+        [sys.executable, str(TOOLS / "commit_scope_check.py"),
+         "--repo", str(tmp_path)], capture_output=True, text=True)
+    assert r.returncode == 2, "a non-repo must be INCONCLUSIVE, not OK"
+
+
+# ---------------------------------------------------------------------
+# graphify_version_check
+# ---------------------------------------------------------------------
+
+import graphify_version_check as gvc   # noqa: E402
+
+
+def test_graphify_alignment_requires_patch_as_well_as_version():
+    """Version equality alone is not alignment. An unpatched 0.9.55 would
+    satisfy a naive equality check and quietly produce a graph.html that
+    cannot render this tree."""
+    src = (TOOLS / "graphify_version_check.py").read_text(encoding="utf-8")
+    assert 'mk.get("patched")' in src, "patch state must gate alignment"
+    assert "aligned" in src
+
+
+def test_graphify_check_reports_rather_than_installs():
+    """The remedy installs a package outside this project and replaces a
+    patched install. It must be printed, never executed."""
+    src = (TOOLS / "graphify_version_check.py").read_text(encoding="utf-8")
+    assert "uv tool install" in src, "the remedy must be documented"
+    assert "subprocess.run([\"uv\"" not in src
+    assert "uv tool install" not in src.split("def main")[1].split('print(')[0] \
+        .replace("REMEDY = (", "").replace(")", ""), \
+        "main() must not invoke the installer"
+    assert "not fixed" in src, "the refusal must be stated to the reader"
