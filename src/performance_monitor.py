@@ -29,6 +29,7 @@ Usage:
 """
 
 import json
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -202,39 +203,95 @@ class PerformanceMonitor:
 
     # ── Process Metrics ─────────────────────────────────────────
 
-    def capture_watched_processes(self) -> list[ProcessSnapshot]:
+    #: `open_files` is the single most expensive attribute psutil exposes on
+    #: Windows: answering it makes psutil build the ENTIRE system handle table,
+    #: and `process_iter(attrs=[...])` asks for it once PER PROCESS -- so the
+    #: original loop cost O(processes x handles). Measured on this host
+    #: 2026-09-28: 10.5 s for 277 processes while idle, >40 s under load. That
+    #: is what blew the 600 s chunk-4 suite budget, via
+    #: `SessionMemory.end_session` -> `get_perf_delta` -> `capture`.
+    INCLUDE_OPEN_FILES = True
+    #: Ceiling for ONE `open_files` probe.
+    OPEN_FILES_DEADLINE_S = 2.0
+    #: Ceiling for ALL `open_files` probes in one capture, so a pathological
+    #: handle table cannot multiply by the number of watched processes.
+    OPEN_FILES_BUDGET_S = 3.0
+
+    def _open_files_count(self, proc: Any, timeout: float) -> int:
+        """Count a process's open files without ever blocking the caller."""
+        box: dict[str, int] = {}
+
+        def _work() -> None:
+            try:
+                box["n"] = len(proc.open_files() or [])
+            except Exception:           # noqa: BLE001 - best effort metric
+                box["n"] = 0
+
+        worker = threading.Thread(target=_work, daemon=True)
+        worker.start()
+        worker.join(timeout)
+        return box.get("n", 0)
+
+    def capture_watched_processes(self,
+                                  include_open_files: bool | None = None
+                                  ) -> list[ProcessSnapshot]:
         """Capture resource usage for all watched processes."""
         if not HAS_PSUTIL:
             return []
 
-        snapshots = []
+        want_files = (self.INCLUDE_OPEN_FILES
+                      if include_open_files is None else include_open_files)
+
+        # Pass 1 (cheap): pid + name only. Filter on those BEFORE touching the
+        # expensive attributes, which was the O(processes x handles) bug.
+        candidates: list[tuple[int, str]] = []
         try:
-            for proc in psutil.process_iter(["pid", "name", "cpu_percent",
-                                              "memory_info", "num_threads",
-                                              "open_files", "create_time"]):
+            for proc in psutil.process_iter(["pid", "name"]):
                 try:
                     info = proc.info
                     name = info["name"] or ""
                     if not any(kw.lower() in name.lower()
-                              for kw in self.WATCHED_PROCESSES):
+                               for kw in self.WATCHED_PROCESSES):
                         continue
-
-                    mem = info["memory_info"]
-                    psnap = ProcessSnapshot(
-                        pid=info["pid"] or 0,
-                        name=name,
-                        cpu_percent=info["cpu_percent"] or 0.0,
-                        memory_rss_mb=round((mem.rss if mem else 0) / (1024 ** 2), 2),
-                        memory_vms_mb=round((mem.vms if mem else 0) / (1024 ** 2), 2),
-                        threads=info["num_threads"] or 0,
-                        open_files=len(info["open_files"] or []),
-                        uptime_seconds=round(time.time() - (info["create_time"] or time.time()), 0),
-                    )
-                    snapshots.append(psnap)
+                    candidates.append((info["pid"] or 0, name))
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
                     continue
         except Exception:
             pass
+
+        # Pass 2: only the matched processes pay for the expensive attributes.
+        snapshots = []
+        files_budget_end = time.perf_counter() + self.OPEN_FILES_BUDGET_S
+        for pid, name in candidates:
+            try:
+                proc = psutil.Process(pid)
+                with proc.oneshot():
+                    mem = proc.memory_info()
+                    cpu = proc.cpu_percent()
+                    threads = proc.num_threads()
+                    created = proc.create_time()
+
+                open_files = 0
+                if want_files:
+                    remaining = files_budget_end - time.perf_counter()
+                    if remaining > 0.02:
+                        open_files = self._open_files_count(
+                            proc, min(self.OPEN_FILES_DEADLINE_S, remaining))
+
+                snapshots.append(ProcessSnapshot(
+                    pid=pid,
+                    name=name,
+                    cpu_percent=cpu or 0.0,
+                    memory_rss_mb=round((mem.rss if mem else 0) / (1024 ** 2), 2),
+                    memory_vms_mb=round((mem.vms if mem else 0) / (1024 ** 2), 2),
+                    threads=threads or 0,
+                    open_files=open_files,
+                    uptime_seconds=round(time.time() - (created or time.time()), 0),
+                ))
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+            except Exception:
+                continue
 
         return sorted(snapshots, key=lambda s: s.memory_rss_mb, reverse=True)
 
@@ -290,42 +347,107 @@ class PerformanceMonitor:
 
     # ── Service Health ──────────────────────────────────────────
 
+    #: Per-service CONNECT timeout. A single float bounds connect AND read, but
+    #: a dead localhost port still cost ~4 s (an IPv6 attempt, then IPv4), and
+    #: the whole capture ran synchronously inside `SessionMemory.start_session`.
+    #: Splitting them lets a dead port fail fast while a live-but-slow service
+    #: (ollama takes ~2 s to answer `/`) is still detected.
+    #: Tuned for the DEFAULT_SERVICES, which are all localhost: a live listener
+    #: completes the TCP handshake from its backlog even if the application is
+    #: slow to answer, so only a dead port ever burns this. Raise it if
+    #: `services` is pointed at a remote host.
+    SERVICE_CONNECT_TIMEOUT_S = 0.3
+    SERVICE_READ_TIMEOUT_S = 5.0
+    #: HARD ceiling for ONE probe, enforced with a daemon thread. `timeout=`
+    #: does NOT bound `socket.getaddrinfo`, so a slow or wedged resolver blocks
+    #: the caller forever whatever timeout is passed. Measured 2026-09-28:
+    #: `SessionMemory.start_session` blocked >25 s standalone and >150 s (the
+    #: whole chunk-4 suite budget) inside `urllib3 ... create_connection`.
+    SERVICE_PROBE_DEADLINE_S = 8.0
+    #: Probes run in PARALLEL, so the whole set is bounded by this single
+    #: ceiling instead of by (number of services x ceiling).
+
+    def _probe_service(self, name: str, url: str,
+                       deadline: float) -> ServiceHealth:
+        """One service probe with a hard deadline; never waits forever."""
+        box: dict[str, Any] = {}
+
+        def _work() -> None:
+            try:
+                start = time.perf_counter()
+                resp = _requests.get(url, timeout=(
+                    self.SERVICE_CONNECT_TIMEOUT_S,
+                    self.SERVICE_READ_TIMEOUT_S,
+                ))
+                box["latency_ms"] = (time.perf_counter() - start) * 1000
+                box["resp"] = resp
+            except Exception as exc:        # noqa: BLE001 - reported, not raised
+                box["error"] = str(exc)[:200]
+
+        worker = threading.Thread(target=_work, daemon=True)
+        worker.start()
+        worker.join(deadline)
+        if worker.is_alive():
+            return ServiceHealth(
+                name=name, url=url, reachable=False,
+                error=("probe exceeded %.1fs deadline "
+                       "(unbounded DNS/connect)" % deadline),
+            )
+        if "error" in box:
+            return ServiceHealth(name=name, url=url, reachable=False,
+                                 error=box["error"])
+        resp = box.get("resp")
+        version = ""
+        try:
+            body = resp.json()
+            if isinstance(body, dict):
+                version = body.get("version", "")
+        except Exception:
+            pass
+        return ServiceHealth(
+            name=name, url=url, reachable=True,
+            status_code=resp.status_code,
+            latency_ms=round(box.get("latency_ms", 0.0), 1),
+            version=version,
+        )
+
     def capture_service_health(self) -> list[ServiceHealth]:
-        """Health-check all monitored services."""
+        """Health-check all monitored services, within a bounded budget."""
         if not HAS_REQUESTS:
             return [ServiceHealth(
                 name=name, url=url, reachable=False,
                 error="requests not installed"
             ) for name, url in self.services]
 
-        results = []
-        for name, url in self.services:
-            try:
-                start = time.perf_counter()
-                resp = _requests.get(url, timeout=5)
-                latency = (time.perf_counter() - start) * 1000
+        if not self.services:
+            return []
 
-                version = ""
-                try:
-                    body = resp.json()
-                    if isinstance(body, dict):
-                        version = body.get("version", "")
-                except Exception:
-                    pass
+        # Probes are independent, so run them concurrently: three dead
+        # localhost ports cost ~1.8 s EACH when probed serially (5.3 s for the
+        # default set, measured 2026-09-28), and this runs on every
+        # `SessionMemory.start_session`.
+        results: list[ServiceHealth | None] = [None] * len(self.services)
 
-                results.append(ServiceHealth(
-                    name=name, url=url, reachable=True,
-                    status_code=resp.status_code,
-                    latency_ms=round(latency, 1),
-                    version=version,
-                ))
-            except Exception as e:
-                results.append(ServiceHealth(
+        def _one(idx: int, name: str, url: str) -> None:
+            results[idx] = self._probe_service(
+                name, url, self.SERVICE_PROBE_DEADLINE_S)
+
+        workers = [threading.Thread(target=_one, args=(i, n, u), daemon=True)
+                   for i, (n, u) in enumerate(self.services)]
+        for w in workers:
+            w.start()
+        for w in workers:
+            w.join(self.SERVICE_PROBE_DEADLINE_S + 0.5)
+
+        out = []
+        for res, (name, url) in zip(results, self.services):
+            if res is None:
+                res = ServiceHealth(
                     name=name, url=url, reachable=False,
-                    error=str(e)[:200],
-                ))
-
-        return results
+                    error=("probe did not complete within %.1fs"
+                           % self.SERVICE_PROBE_DEADLINE_S))
+            out.append(res)
+        return out
 
     # ── Alerting Thresholds ────────────────────────────────────
 
