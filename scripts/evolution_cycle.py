@@ -926,16 +926,21 @@ def _tensor_genome_refresh():
         # imputes: those rows are not observations of that gene.
         kind_map = dict((k, 'float') for k in PROMOTE_KEYS)
         provenance_map = dict((k, 'core') for k in PROMOTE_KEYS)
+        bounds_map = dict(GENE_BOUNDS)
         try:
             from CORE.WORMS.expansion.proteus_hooks import MORPH_CANDIDATES
             for _name, _kind, _lo, _hi, _kw in MORPH_CANDIDATES:
                 kind_map[_name] = _kind
                 provenance_map[_name] = 'morph'
+                try:
+                    bounds_map[str(_name)] = (float(_lo), float(_hi))
+                except Exception:
+                    pass
         except Exception as e:
             log('tensor genome: MORPH_CANDIDATES unavailable (%s)' % str(e)[:80])
 
         genome = TensorGenome().declare(
-            rows, kind_map=kind_map, bounds_map=GENE_BOUNDS,
+            rows, kind_map=kind_map, bounds_map=bounds_map,
             provenance_map=provenance_map)
         if not genome.genes:
             return {'ok': False, 'skipped': 'history carried no gene mappings'}
