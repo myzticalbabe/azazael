@@ -1,0 +1,77 @@
+# Scope the code graph to code we actually maintain.
+#
+# Measured 2026-09-29, before this file existed: the graph indexed 28,279 files
+# and resolved to 451,307 nodes, of which only 1,268 were project sources
+# (src 745 + scripts 206 + tools 66 + tests 251 .py files). `archived/` alone
+# contributed 27,489 of those files -- vendored onnxruntime checkouts -- so 96%
+# of the corpus was third-party code. The cost was not just disk: the top 25
+# community hubs were `BIBL Terms: F`, `BIBL Terms: T`, `onnxruntime_git/
+# orttraining/...`, `jinja2/__init__.py`, `@jest/types`, `TEST_F`, `dict`,
+# `json`, `tuple` and `string`. Four of the twenty-five were project modules.
+# A graph whose hubs are a C++ inference runtime and a bibliography is not a
+# map of this system, and the queries worth running against it ("what calls
+# this?", "what breaks if I change this?") return vendored code.
+#
+# Why this file and not .gitignore: graphify already honours .gitignore, and
+# .gitignore already lists `output/` and `graphify-out/`. Neither exclusion ever
+# took effect, because gitignore does not apply to TRACKED paths -- both trees
+# were committed at some point, so `git check-ignore` reports them as not
+# ignored no matter what is written in the file. `.graphifyignore` is read in
+# addition to .gitignore (graphify/detect.py `_load_ignore_patterns`, which
+# reads both names and applies last-match-wins), so it excludes by path
+# regardless of tracking. That is the only mechanism here that can do the job.
+#
+# Syntax is gitignore's. Patterns are anchored with a leading slash so they
+# cannot accidentally match a same-named directory deeper in the tree.
+#
+# Deliberately NOT excluded, because hiding them would hide a known problem:
+#   src/SCRIPTS/  byte-identical duplicate of scripts/ (see the forensic
+#                §9 open items). Two copies in the graph is the accurate
+#                picture; the fix is to delete one, not to stop looking.
+#   src/CODEX/    74 real .py files, so the directory stays; only its media
+#                 and generated reports are dropped (see the extension list).
+/archived/
+/archived_unified/
+/backup/
+/output/
+/graphify-out/
+/nuitka_build_backup/
+/logs/
+/.aoa/
+/.audit/
+/.aider.tags.cache.v4/
+**/output/
+**/graphify-out/
+**/__pycache__/
+*.pyc
+
+# Second pass, added 2026-09-29 after the first rebuild was measured rather
+# than assumed. Scoping the top-level archives took the corpus from 28,279
+# files / 451,307 nodes to 6,362 / 107,068 -- and 7 of the top 25 hubs were
+# STILL `BIBL Terms: F/T/S/P/E/R/A`, because the bibliography data lives at
+# src/ORCHESTRATION/BIBL and src/UTILITIES/BIBL, INSIDE the tree, where a
+# root-anchored pattern cannot reach it. `nuitka_build_backup/` supplied the
+# rest (`scons-4.10.1/...`, `HelpersComparison*.c`). Both are vendored data
+# that happens to sit under src/, which is why a first pass that only looked
+# at top-level directories was not enough.
+**/BIBL/
+
+# Binaries and media. src/CODEX is 194 MB of which 133 MB is .mp4; a code
+# graph gains nothing from a training video and pays for it in node count.
+*.mp4
+*.mp3
+*.wav
+*.mov
+*.avi
+*.mkv
+*.webm
+*.onnx
+*.pt
+*.pth
+*.safetensors
+*.zip
+*.tar
+*.gz
+*.7z
+*.bin
+*.db

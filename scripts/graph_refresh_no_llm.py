@@ -31,6 +31,14 @@ detached, not awaited.
 Usage:
     python scripts/graph_refresh_no_llm.py            # run it here, in front
     python scripts/graph_refresh_no_llm.py --status   # report staleness only
+    python scripts/graph_refresh_no_llm.py --force    # allow a SMALLER graph
+
+The corpus is scoped by `.graphifyignore`, which graphify reads in addition to
+`.gitignore`. It has to be a separate file: `.gitignore` already listed
+`output/` and `graphify-out/`, and neither exclusion ever took effect, because
+gitignore does not apply to tracked paths and both trees are committed. Before
+that file existed the graph resolved 28,279 files to 451,307 nodes, 27,489 of
+those files being the vendored onnxruntime checkouts under `archived/`.
 """
 from __future__ import annotations
 
@@ -144,6 +152,9 @@ def main(argv: list[str] | None = None) -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--status", action="store_true",
                     help="report graphify-out/ staleness and exit")
+    ap.add_argument("--force", action="store_true",
+                    help="let `update` overwrite graph.json even when the "
+                         "rebuild finds fewer nodes than it is replacing")
     args = ap.parse_args(argv)
 
     if args.status:
@@ -151,6 +162,17 @@ def main(argv: list[str] | None = None) -> int:
         print("graphify-out:", {True: "STALE", False: "current",
                                 None: "unknown (probe failed)"}[st])
         return 0 if st is False else 1
+
+    steps = STEPS
+    if args.force:
+        # `update` only ADDS nodes, so narrowing the corpus does not by itself
+        # remove what the old corpus put there. --force is the documented way
+        # to say "the graph legitimately got smaller", which is exactly the
+        # situation when a tree stops indexing its own vendored archives.
+        # Without it the 2026-09-29 scoping would have changed every future
+        # refresh and left all 451k vendored nodes in place forever.
+        steps = (("-m", "graphify", "update", ".", "--force"),) + STEPS[1:]
+        log("FORCE rebuild: graph.json may shrink (corpus was narrowed)")
 
     log("resolving the graphify install (capability, not path):")
     graphify_py = resolve_graphify_python(report=log)
@@ -170,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
     log(f"start (interpreter={graphify_py} pid={os.getpid()})")
     rc_all = 0
     try:
-        for i, step in enumerate(STEPS, start=1):
+        for i, step in enumerate(steps, start=1):
             t0 = time.perf_counter()
             try:
                 proc = subprocess.run([str(graphify_py), *step], cwd=str(ROOT),

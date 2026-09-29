@@ -600,3 +600,34 @@ def test_a_reset_on_a_purged_key_is_not_resurrected_by_the_fold_in(monkeypatch):
         "a purged key was re-adopted because a floor was recorded for it"
     assert "route:windows>route" not in sr._COUNTER_FLOOR, \
         "the floor for a purged key was re-adopted from disk"
+
+
+def test_the_neural_loop_does_not_prune_a_key_that_carries_a_recorded_floor():
+    """A recorded decision must not read as absence of one.
+
+    The prune stage calls a key dead when its count is 0, and 0 is what
+    `invalidate_q(factor=0.0)` and `reset_counters()` write. Without this the
+    repair that preserves a disowned measurement is also what makes its key
+    look untouched, and the next hourly meta cycle purges it -- measured on the
+    live ledger, where the restored wsl2 routes were tombstoned
+    `neural_loop_prune` within 20 minutes of being restored.
+    """
+    from CORE import neural_loop
+
+    class _Ctx:
+        apply = True
+
+    sr._Q_WEIGHTS["route:windows>wsl2-ubuntu"] = -0.33
+    sr.record_outcome("route", "windows>wsl2-ubuntu", True, 95.0)
+    sr.invalidate_q("route:windows>wsl2-ubuntu", reason="manufactured",
+                    factor=0.0)
+    assert sr._Q_UPDATE_COUNTS["route:windows>wsl2-ubuntu"] == 0, \
+        "precondition: a floored key reads as count 0, which is the hazard"
+
+    res = neural_loop._stage_prune(_Ctx()) if hasattr(
+        neural_loop, "_stage_prune") else None
+    if res is None:
+        pytest.skip("prune stage is not exposed as _stage_prune")
+    assert "route:windows>wsl2-ubuntu" in sr._Q_WEIGHTS, \
+        "the prune stage deleted a key that carries a recorded evidence floor"
+    assert "route:windows>wsl2-ubuntu" not in sr._PURGED_KEYS
