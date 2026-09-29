@@ -1,13 +1,14 @@
 {
  "generated_from": "NEURAL_MESH_WIRE_OR_CUT.json",
- "pending": 104,
+ "pending": 107,
  "dispositions": {
-  "wire_at_site": 38,
-  "integrate_via_stage": 43,
+  "wire_at_site": 40,
+  "integrate_via_stage": 44,
   "unresolved": 23
  },
  "stage_ownership": {
   "orchestration": [
+   ".measure_skill_lift",
    "CheckpointWorm.restore_checkpoint",
    "DashboardGen.add_panel",
    "IPCBridge.create_channel",
@@ -259,7 +260,7 @@
    "kind": "reachable_class",
    "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:844, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:850, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -268,7 +269,7 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     844
+     850
     ]
    ]
   },
@@ -551,7 +552,7 @@
     ],
     [
      "src/CORE/WORMS/expansion/scheduling.py",
-     580
+     620
     ],
     [
      "scripts/inject_alert_drill.py",
@@ -599,7 +600,7 @@
     "orchestration"
    ],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3853, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3958, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src"
@@ -609,7 +610,7 @@
    "refs": [
     [
      "src/CORE/WORMS/expansion/spine.py",
-     3853
+     3958
     ],
     [
      "scripts/dream_cycle.py",
@@ -789,7 +790,7 @@
     "orchestration"
    ],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3100, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3137, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src"
@@ -799,11 +800,11 @@
    "refs": [
     [
      "src/CORE/WORMS/expansion/spine.py",
-     3100
+     3137
     ],
     [
      "scripts/evolution_cycle.py",
-     1954
+     1959
     ],
     [
      "scripts/evolve_loop.py",
@@ -831,7 +832,7 @@
     "orchestration"
    ],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:654, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:660, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -840,11 +841,11 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     654
+     660
     ],
     [
      "scripts/run_training_orchestrator.py",
-     788
+     794
     ]
    ]
   },
@@ -860,7 +861,7 @@
     "orchestration"
    ],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:654, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:660, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -869,11 +870,11 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     654
+     660
     ],
     [
      "scripts/run_training_orchestrator.py",
-     788
+     794
     ]
    ]
   },
@@ -889,7 +890,7 @@
     "orchestration"
    ],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:654, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:660, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -898,11 +899,11 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     654
+     660
     ],
     [
      "scripts/run_training_orchestrator.py",
-     788
+     794
     ]
    ]
   },
@@ -959,11 +960,11 @@
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     2971
+     3008
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     2972
+     3009
     ]
    ]
   },
@@ -1752,7 +1753,7 @@
    "kind": "reachable_class",
    "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/evolution_cycle.py:1041, so a real call site exists",
+   "reason": "class is referenced in production at scripts/evolution_cycle.py:1046, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -1761,7 +1762,7 @@
    "refs": [
     [
      "scripts/evolution_cycle.py",
-     1041
+     1046
     ],
     [
      "scripts/verify_oracle_parity.py",
@@ -1789,7 +1790,7 @@
    "kind": "reachable_class",
    "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/evolution_cycle.py:1041, so a real call site exists",
+   "reason": "class is referenced in production at scripts/evolution_cycle.py:1046, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -1798,7 +1799,7 @@
    "refs": [
     [
      "scripts/evolution_cycle.py",
-     1041
+     1046
     ],
     [
      "scripts/verify_oracle_parity.py",
@@ -1977,7 +1978,7 @@
     ],
     [
      "scripts/run_training_orchestrator.py",
-     1028
+     1034
     ]
    ]
   },
@@ -2086,6 +2087,92 @@
    "emits": {},
    "requires": {},
    "refs": []
+  },
+  "spine:MorphogenesisWorm.retrieve_staged": {
+   "owner": "MorphogenesisWorm",
+   "method": "retrieve_staged",
+   "module": "spine",
+   "nature": "engram",
+   "kind": "reachable_class",
+   "consumer_natures": [
+    "learning",
+    "mesh",
+    "telemetry"
+   ],
+   "disposition": "wire_at_site",
+   "reason": "class is referenced in production at src/CORE/neural_loop.py:742, so a real call site exists",
+   "ref_scope": [
+    "src"
+   ],
+   "emits": {},
+   "requires": {},
+   "refs": [
+    [
+     "src/CORE/neural_loop.py",
+     742
+    ]
+   ]
+  },
+  "spine:SpineCycleWorm._nature_success_rate": {
+   "owner": "SpineCycleWorm",
+   "method": "_nature_success_rate",
+   "module": "spine",
+   "nature": "orchestration",
+   "kind": "reachable_class",
+   "consumer_natures": [
+    "monitor",
+    "defense",
+    "telemetry"
+   ],
+   "disposition": "wire_at_site",
+   "reason": "class is referenced in production at src/CORE/startup_warm.py:383, so a real call site exists",
+   "ref_scope": [
+    "scripts",
+    "src",
+    "tools"
+   ],
+   "emits": {},
+   "requires": {},
+   "refs": [
+    [
+     "src/CORE/startup_warm.py",
+     383
+    ],
+    [
+     "scripts/night_shift.py",
+     112
+    ],
+    [
+     "scripts/spine_cycle_apply.py",
+     390
+    ],
+    [
+     "scripts/spine_cycle_apply.py",
+     409
+    ],
+    [
+     "scripts/train_today.py",
+     108
+    ]
+   ]
+  },
+  "spine:measure_skill_lift": {
+   "owner": "",
+   "method": "measure_skill_lift",
+   "module": "spine",
+   "nature": "mesh",
+   "kind": "module_level",
+   "disposition": "integrate_via_stage",
+   "reason": "module-level function with no production referrer; its own module belongs to nature mesh, which feeds into orchestration, consensus, telemetry, so that stage must drive it",
+   "consumer_natures": [
+    "orchestration",
+    "consensus",
+    "telemetry"
+   ],
+   "ref_scope": [],
+   "refs": [],
+   "emits": {},
+   "requires": {}
   },
   "spine_registry:_iso_or": {
    "owner": "",
