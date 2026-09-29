@@ -116,8 +116,12 @@ class TestPersistFalseNoWrite(unittest.TestCase):
         seed_records()  # train_from_memory returns early with zero records
 
     def _count_training_rows(self):
-        return len(STORE.query_memories(
-            source="RLTrainLoop", event_type="training_complete", limit=5000))
+        # count_memories, not len(query_memories(limit=5000)): the read API
+        # clamps at MAX_QUERY_LIMIT (500) and would compare two capped samples
+        # instead of two true counts, so this no-write assertion could pass on
+        # a truncated view.
+        return STORE.count_memories(
+            source="RLTrainLoop", event_type="training_complete")
 
     def test_no_training_complete_rows_written(self):
         before = self._count_training_rows()

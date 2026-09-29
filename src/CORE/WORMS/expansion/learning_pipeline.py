@@ -350,8 +350,12 @@ class DataPipelineWorm:
         if not store:
             return {"train": [], "val": [], "test": [], "stats": {"error": "No store"}}
 
-        # Get all matching records
-        records = store.query_memories(
+        # Get all matching records. fetch_all_memories, not
+        # query_memories(limit=5000): the read API clamps to MAX_QUERY_LIMIT
+        # (500), so a "get all records" call silently became "get the 500
+        # newest" and the train/val/test split below was drawn from a
+        # truncated, time-biased sample.
+        records = store.fetch_all_memories(
             source=source, event_type=event_type,
             limit=5000, max_age_days=max_age_days,
         )
@@ -459,7 +463,7 @@ class DataPipelineWorm:
         if not store:
             return {"folds": [], "stats": {"error": "No store"}}
 
-        records = store.query_memories(
+        records = store.fetch_all_memories(
             source=source, event_type=event_type,
             limit=5000, max_age_days=max_age_days,
         )
