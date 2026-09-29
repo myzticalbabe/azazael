@@ -396,3 +396,207 @@ def test_a_real_observation_still_raises_the_count():
         sr.record_outcome("route", "a>b", True, 5.0)
     assert sr._Q_UPDATE_COUNTS["route:a>b"] == 3, \
         "the floor froze the count against genuine new evidence"
+
+
+# ── the cap must not eat the record of its own predecessor's decision ──
+#
+# Found 2026-09-29, live ledger. `invalidate_q` and `cap_q_tables` were both
+# correct in isolation and destroyed each other in sequence: the invalidation
+# set a key's evidence to zero, and the cap -- which prunes the lowest-evidence
+# keys first -- then evicted that same key whole on the next save, tombstoning
+# it "capped". The invalidation reported success (the key was still there when
+# it returned) and the record was gone a moment later. On the live ledger that
+# cost 10 genuine ~95ms latency samples per wsl2 route, discarded alongside the
+# fabricated 8000.0 ones the discount existed to discount.
+
+
+def test_invalidate_q_does_not_make_a_key_the_cap_s_next_victim(monkeypatch):
+    """A floored key outranks every unfloored key, however stale its value."""
+    for i in range(3):
+        sr._Q_WEIGHTS[f"nature:keep{i}"] = -0.5
+        sr._Q_UPDATE_COUNTS[f"nature:keep{i}"] = 40
+    sr._Q_WEIGHTS["route:windows>wsl2-ubuntu"] = -1.0
+    sr._Q_UPDATE_COUNTS["route:windows>wsl2-ubuntu"] = 259
+
+    sr.invalidate_q("route:windows>wsl2-ubuntu",
+                    reason="penalty was manufactured, not observed",
+                    factor=0.0)
+    assert "route:windows>wsl2-ubuntu" in sr._Q_WEIGHTS, \
+        "precondition: the invalidation itself must not delete the key"
+
+    monkeypatch.setattr(sr, "_Q_KEYS_MAX", 3)
+    dropped = sr.cap_q_tables()
+
+    assert dropped == 1
+    assert "route:windows>wsl2-ubuntu" in sr._Q_WEIGHTS, \
+        "the cap evicted the key the invalidation had just discounted -- " \
+        "zeroing evidence to mark it stale also marked it cheapest to lose"
+    assert "route:windows>wsl2-ubuntu" not in sr._PURGED_KEYS, \
+        "the surviving key must not be tombstoned by a cap that kept it"
+
+
+def test_the_cap_still_enforces_its_bound(monkeypatch):
+    """The fix orders the eviction set; it does not exempt anything from it."""
+    for i in range(3):
+        sr._Q_WEIGHTS[f"route:old{i}"] = -0.5
+        sr._Q_UPDATE_COUNTS[f"route:old{i}"] = 40
+    sr._Q_WEIGHTS["nature:rich"] = 0.9
+    sr._Q_UPDATE_COUNTS["nature:rich"] = 500
+
+    monkeypatch.setattr(sr, "_Q_KEYS_MAX", 1)
+    assert sr.cap_q_tables() == 3
+    assert list(sr._Q_WEIGHTS) == ["nature:rich"], \
+        "the cap kept the wrong key: it must still drop by evidence"
+
+
+def test_a_reload_keeps_why_a_key_was_purged(monkeypatch, tmp_path):
+    """A tombstone's reason survives a restart.
+
+    The read paths re-adopted every key on disk with the literal value
+    "fixture", so a key capped at capacity and a key purged for a manufactured
+    penalty both came back labelled synthetic test data. The ledger's only
+    record of why a key is gone is that value.
+    """
+    _seed_tombstones_and_save()
+
+    # Cold start -- the `_merge_disk_state` read path.
+    sr._PURGED_KEYS.clear()
+    monkeypatch.setattr(sr, "_LOADED_ONCE", False)
+    sr._ensure_loaded()
+    assert sr._PURGED_KEYS.get("route:windows>wsl2-kali") == "capped", \
+        "a capacity eviction was relabelled as synthetic fixture data"
+
+    # Explicit reload -- the `load_spine_state` read path, which is public and
+    # callable mid-process, so it carries its own copy of the same loop.
+    sr._PURGED_KEYS.clear()
+    assert sr.load_spine_state()["restored"] is True
+    assert sr._PURGED_KEYS.get("route:windows>route") == "malformed route key", \
+        "the recorded reason for a purge was replaced with 'fixture'"
+
+
+def _seed_tombstones_and_save() -> None:
+    """Two keys gone for two different reasons, neither of them a fixture."""
+    sr._PURGED_KEYS["route:windows>wsl2-kali"] = "capped"
+    sr._PURGED_KEYS["route:windows>route"] = "malformed route key"
+    assert sr.save_spine_state()["saved"] is True
+
+
+# ── a counter reset that cannot be undone by the next save ─────────────
+#
+# Found 2026-09-29, live ledger, and the third instance of one pattern: a
+# reduction assigned into a store that folds its disk copy in with `max()`
+# before every write. `purge_fixtures` needed tombstones, `invalidate_q`
+# needed the evidence floor, and the homeostat's own `successes` / `failures`
+# had neither -- so the 09-29 purge zeroed `route:windows>mesh`, journalled
+# the removal, and the next load reported 5/0 again. The false data survived
+# its own removal and the audit trail asserted it had gone.
+
+
+def test_a_counter_reset_survives_the_next_save():
+    """The fold-in must not drag a disowned count back over the reset.
+
+    The count has to be ON DISK before the reset for this to test anything --
+    that is the whole mechanism. A reset in a process whose disk copy is still
+    empty has nothing to lose to, and the test passes against the unfixed
+    merge for that reason. This is the 09-29 sequence: two real probes saved,
+    then a reset, then the next hourly save.
+    """
+    sr.record_outcome("route", "windows>mesh", True, 95.0)
+    sr.record_outcome("route", "windows>mesh", True, 91.0)
+    assert sr.save_spine_state()["saved"] is True
+    assert sr._HOMEOSTAT["route:windows>mesh"]["successes"] == 2
+
+    res = sr.reset_counters("route:windows>mesh",
+                            reason="eBPF alert counts mixed with real probes")
+    assert res["success"] is True
+    assert res["before"]["successes"] == 2
+    assert sr._HOMEOSTAT["route:windows>mesh"]["successes"] == 0
+
+    # This save folds the file in first, and the file says 2.
+    assert sr.save_spine_state()["saved"] is True
+    assert sr._HOMEOSTAT["route:windows>mesh"]["successes"] == 0, \
+        "the reset was undone by the monotone fold-in on the very next save"
+
+
+def test_a_counter_reset_survives_a_restart(monkeypatch):
+    """The watermark is persisted, so a cold start honours it too."""
+    sr.record_outcome("route", "windows>mesh", True, 95.0)
+    assert sr.save_spine_state()["saved"] is True
+
+    sr.reset_counters("route:windows>mesh", reason="not separable")
+    assert sr.save_spine_state()["saved"] is True
+
+    sr._HOMEOSTAT.clear()
+    sr._COUNTER_FLOOR.clear()
+    monkeypatch.setattr(sr, "_LOADED_ONCE", False)
+    sr._ensure_loaded()
+
+    assert sr._HOMEOSTAT["route:windows>mesh"]["successes"] == 0, \
+        "a cold start resurrected a counter the operator had disowned"
+    assert "route:windows>mesh" in sr._COUNTER_FLOOR
+
+
+def test_a_genuine_outcome_still_raises_a_reset_counter():
+    """The floor is a watermark, not a lock -- the same rule as the evidence
+    floor, and for the same reason: a disowned count must not make a route
+    permanently unrankable."""
+    sr.record_outcome("route", "windows>mesh", True, 95.0)
+    sr.reset_counters("route:windows>mesh", reason="not separable")
+    sr.record_outcome("route", "windows>mesh", True, 93.0)
+    assert sr._HOMEOSTAT["route:windows>mesh"]["successes"] == 1, \
+        "the floor froze the counter against genuine new evidence"
+
+
+def test_the_counter_floor_is_reported_not_silent():
+    """A suppressed count is a claim, so something has to be able to count it.
+
+    Same reason `capability_liveness.py` exists: a capability that suppresses
+    a failure mode needs a live counter proving the failure mode stopped, and
+    a silent floor is indistinguishable from a reset that never ran.
+    """
+    sr.record_outcome("route", "windows>mesh", True, 95.0)
+    sr.record_outcome("route", "windows>mesh", False, 8000.0)
+    assert sr.save_spine_state()["saved"] is True
+    sr.reset_counters("route:windows>mesh", reason="not separable")
+    assert sr.save_spine_state()["saved"] is True
+
+    rep = sr.counter_floor_report()
+    assert rep["resets_in_force"] == 1
+    row = rep["keys"]["route:windows>mesh"]
+    assert row["current"] == {"successes": 0, "failures": 0}
+    assert row["at_floor"] is True, \
+        "a reset reported as in force while the counters sit above the floor " \
+        "is the unfixed merge wearing a passing report"
+
+    # The pre-reset counts are a fact about a moment, and the journal is where
+    # they can be kept -- unlike a total derived from the floor, which is 0
+    # whether the reset worked or the fold-in won.
+    j = [e for e in sr._POLICY_JOURNAL
+         if e.get("action") == "counters_reset"
+         and e.get("worm") == "route:windows>mesh"]
+    assert j, "the reset was not journalled, so it cannot be shown to have run"
+    assert j[-1]["changes"]["before"] == {"successes": 1, "failures": 1}
+
+
+def test_a_reset_on_a_purged_key_is_not_resurrected_by_the_fold_in(monkeypatch):
+    """Tombstones outrank floors: a purged key stays gone.
+
+    Worth pinning because `reset_counters` writes a floor for a key that may
+    already be tombstoned, and the floor read path is guarded separately from
+    the tombstone path. A key that is gone must not come back wearing a floor.
+    """
+    sr.record_outcome("route", "windows>route", True, 95.0)
+    sr._PURGED_KEYS["route:windows>route"] = "malformed route key"
+    sr._HOMEOSTAT.pop("route:windows>route", None)
+    sr.reset_counters("route:windows>route", reason="should not matter")
+    assert sr.save_spine_state()["saved"] is True
+
+    sr._HOMEOSTAT.clear()
+    sr._COUNTER_FLOOR.clear()
+    monkeypatch.setattr(sr, "_LOADED_ONCE", False)
+    sr._ensure_loaded()
+
+    assert "route:windows>route" not in sr._HOMEOSTAT, \
+        "a purged key was re-adopted because a floor was recorded for it"
+    assert "route:windows>route" not in sr._COUNTER_FLOOR, \
+        "the floor for a purged key was re-adopted from disk"
