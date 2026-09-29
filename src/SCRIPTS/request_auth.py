@@ -74,9 +74,15 @@ def _get_tokens_dir() -> Path:
     return tokens_dir
 
 
-# Ed25519 signing key (lazy-loaded, generated on first use)
+# Ed25519 signing key (lazy-loaded, generated on first use).
+# `_ED25519_AVAILABLE` is TRI-state: None = not attempted yet, True/False = the
+# answer after an attempt. It used to start as False, which the "already tried
+# and failed -- don't retry" guard below cannot tell apart from "never tried",
+# so `_get_ed25519_key()` returned None on its FIRST call and the entire try
+# block -- key load AND generation -- was unreachable. Ed25519 was never used,
+# and every token fell through to the fallback.
 _ED25519_KEY = None
-_ED25519_AVAILABLE = False
+_ED25519_AVAILABLE = None
 
 def _get_ed25519_key():
     """Load or generate the Ed25519 signing key from ~/.azazael/."""
@@ -126,8 +132,16 @@ def _sign_token(token_data: dict) -> str:
     if key is not None and _ED25519_AVAILABLE:
         sig = key.sign(payload_str.encode("utf-8")).hex()
         return f"ed25519:{sig}"
-    # BLAKE2b fallback
-    salt = os.urandom(16).hex()
+    # BLAKE2b fallback. The salt MUST be a function of the payload, not
+    # `os.urandom`: the verifiers (`is_token_valid` here, and
+    # `DAEMONS/parallax_validator.verify_token`) recompute the digest from the
+    # salt carried INSIDE the signature, so a fresh random salt per call can
+    # never reproduce the signed value -- every token verified False, which is
+    # a deny-everything gate. Deriving the salt from the payload keeps the
+    # 3-part `blake2b:<digest>:<salt>` shape the validator parses and makes the
+    # check reproducible in any process.
+    salt = hashlib.blake2b(payload_str.encode("utf-8"),
+                           digest_size=16).hexdigest()
     sig = hashlib.blake2b(
         (payload_str + salt).encode("utf-8"), digest_size=32
     ).hexdigest()

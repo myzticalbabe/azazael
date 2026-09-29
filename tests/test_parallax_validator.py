@@ -102,7 +102,32 @@ class TestTokenVerification(unittest.TestCase):
         self.assertIn("No token", reason)
 
     def test_verify_token_target_mismatch(self):
-        """verify_token() should return False when target doesn't match."""
+        """verify_token() should return False when the token names another target.
+
+        A mismatch needs a token that EXISTS under this filename but names a
+        different target. Without one this asserts the missing-token branch
+        ("No token found at ..."), which is a different check and what
+        test_verify_token_missing covers -- so this test could never pass.
+        """
+        from DAEMONS.parallax_validator import _get_tokens_dir as gtd
+        import hashlib
+        from datetime import datetime, timezone
+
+        token_data = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "target": "some_other_file.py",
+            "intent": "str_replace",
+            "gate_data": {},
+            "ttl_seconds": 15,
+            "pid": 321,
+        }
+        payload = json.dumps(token_data, sort_keys=True, default=str)
+        salt = os.urandom(16).hex()
+        sig = hashlib.blake2b(
+            (payload + salt).encode("utf-8"), digest_size=32).hexdigest()
+        token_data["signature"] = f"blake2b:{sig}:{salt}"
+        (gtd() / "wrong_target.py.token").write_text(json.dumps(token_data))
+
         valid, reason = verify_token("wrong_target.py")
         self.assertFalse(valid)
         self.assertIn("mismatch", reason.lower())
