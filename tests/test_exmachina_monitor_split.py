@@ -1,4 +1,7 @@
 # coding: utf-8
+import pytest
+
+pytestmark = pytest.mark.env
 """The Ex Machina panel must live in its OWN monitor, not in the Azazael one.
 
 History

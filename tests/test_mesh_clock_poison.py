@@ -48,6 +48,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import pytest
 
+pytestmark = pytest.mark.order
+
 import CORE.hlc as H
 from CORE import spine_registry as sr
 
