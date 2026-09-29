@@ -113,10 +113,17 @@ class InferenceEngine:
         """Load a model and return its handle.
 
         If framework is "auto", the framework is guessed from the file extension.
+
+        The framework argument is validated BEFORE the path, because a bad
+        framework name is a caller error that no file can satisfy: answering
+        "Model not found" for it sends the operator to inspect a path when the
+        argument actually at fault is the framework, and correcting the path
+        only uncovers the real error on the next attempt. The consequence is
+        that a missing path with an explicitly bad framework now raises
+        ValueError (was FileNotFoundError); a missing path with a usable or
+        "auto"-resolvable framework still raises FileNotFoundError, unchanged.
         """
         p = Path(model_path)
-        if not p.exists():
-            raise FileNotFoundError(f"Model not found: {model_path}")
 
         if framework == "auto":
             framework = ModelLoader.guess_framework(p)
@@ -133,6 +140,9 @@ class InferenceEngine:
             )
         if framework not in self._frameworks or not self._frameworks[framework]:
             raise ImportError(f"Framework '{framework}' is not installed")
+
+        if not p.exists():
+            raise FileNotFoundError(f"Model not found: {model_path}")
 
         loader = self.model_loaders[framework]
         model = loader(model_path, **kwargs)

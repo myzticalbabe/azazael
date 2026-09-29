@@ -20,7 +20,9 @@ def test_config_default():
     """Test default EveConfig values."""
     from eve_unleashed.config import EveConfig
     cfg = EveConfig()
-    assert cfg.device == "cpu"
+    # "auto" is the default and a supported value: InferenceEngine.__init__
+    # resolves it to a concrete device (cpu/cuda/xpu/mps) at construction.
+    assert cfg.device == "auto"
     assert cfg.batch_size == 32
     assert cfg.precision == "fp32"
     assert cfg.enable_cache is True
@@ -148,6 +150,40 @@ def test_engine_load_bad_framework():
     except ValueError:
         pass  # expected
     return {"test": "engine_load_bad_framework", "status": "PASS"}
+
+
+def test_engine_load_missing_model():
+    """A usable framework plus a missing path is still FileNotFoundError.
+
+    Pins the other half of the error contract: validating the framework before
+    the path must not have been achieved by dropping the path check.
+    """
+    from eve_unleashed.config import EveConfig
+    from eve_unleashed.core import ModelLoader
+    from eve_unleashed.engine import InferenceEngine
+    engine = InferenceEngine(EveConfig())
+    missing = "definitely-missing-model.pt"
+
+    avail = engine.available_frameworks
+    if not avail:
+        import pytest
+        pytest.skip("no ML framework installed to name explicitly")
+
+    # (a) explicitly named, installed framework + missing path
+    try:
+        engine.load_model(missing, avail[0])
+        assert False, "Should have raised FileNotFoundError"
+    except FileNotFoundError:
+        pass  # expected
+
+    # (b) "auto" resolved from a guessable extension + missing path
+    if ModelLoader.guess_framework(Path(missing)) in avail:
+        try:
+            engine.load_model(missing)
+            assert False, "Should have raised FileNotFoundError"
+        except FileNotFoundError:
+            pass  # expected
+    return {"test": "engine_load_missing_model", "status": "PASS"}
 
 
 def test_utils_prepare_input_array():
@@ -281,6 +317,7 @@ def run_all_tests():
         ("Engine init", test_engine_init),
         ("Engine list models", test_engine_list_models),
         ("Engine bad framework", test_engine_load_bad_framework),
+        ("Engine load missing", test_engine_load_missing_model),
         ("Utils prepare (array)", test_utils_prepare_input_array),
         ("Utils prepare (list)", test_utils_prepare_input_list),
         ("Utils prepare (scalar)", test_utils_prepare_input_scalar),
