@@ -3668,6 +3668,39 @@ class {cls}:
                 continue
         return out
 
+    def retrieve_staged(self, query: str, k: int = 5) -> list[dict[str, Any]]:
+        """Voyager-style retrieval over the pen (2026-09-29, stdlib only).
+
+        Ranks staged skills by keyword overlap between the query and each
+        file's name + embedded SOURCE_PATTERN/SOURCE_WORM markers. No
+        embeddings, no network, no model calls: a reader for the
+        write-only pen so staged skills can be composed instead of
+        accumulating. Returns up to ``k`` ``{file, score}`` dicts.
+        """
+        import difflib as _dm
+        pen = _staging_dir()
+        if not pen.is_dir() or not (query or "").strip():
+            return []
+        q = " ".join(str(query).lower().split())
+        scored = []
+        try:
+            files = sorted(pen.glob("*.py"))
+        except OSError:
+            return []
+        for p in files:
+            try:
+                head = p.read_text(encoding="utf-8", errors="replace")[:1200]
+            except OSError:
+                continue
+            doc = "%s %s" % (p.stem.replace("_", " ").lower(), head.lower())
+            overlap = len(set(q.split()) & set(doc.split()))
+            ratio = _dm.SequenceMatcher(None, q, doc[:400]).ratio()
+            score = round(overlap * 2.0 + ratio, 4)
+            if score > 0:
+                scored.append({"file": p.name, "score": score})
+        scored.sort(key=lambda d: -d["score"])
+        return scored[:max(1, int(k))]
+
     def promote(self, quorum: int = 2, force: bool = False,
                 env: str | None = None) -> dict[str, Any]:
         """Containment gate: quarantine -> quorum vote -> publish.
@@ -3787,6 +3820,28 @@ class {cls}:
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute",
                 "result": self.morph(dry_run=True)}  # dry-run by default
+
+
+def measure_skill_lift(with_skill: dict, without_skill: dict) -> dict:
+    """SkillsBench-style Skill Lift (2026-09-29, pure, advisory).
+
+    Paired comparison: ``{"passed": int, "total": int}`` with the skill
+    mounted vs without. Attestation checks compile-only; lift measures
+    whether the skill HELPS. The promote gate reads this; it does not
+    enforce it yet (needs a real verifier harness per skill first).
+    """
+    try:
+        wp, wt = int(with_skill.get("passed", 0)), int(with_skill.get("total", 0))
+        np_, nt = int(without_skill.get("passed", 0)), int(without_skill.get("total", 0))
+    except (TypeError, ValueError):
+        return {"lift": 0.0, "verdict": "unmeasurable"}
+    if wt <= 0 or nt <= 0:
+        return {"lift": 0.0, "verdict": "unmeasurable"}
+    lift = round(wp / wt - np_ / nt, 4)
+    return {"lift": lift,
+            "with_rate": round(wp / wt, 4),
+            "without_rate": round(np_ / nt, 4),
+            "verdict": "helps" if lift > 0 else ("neutral" if lift == 0 else "hurts")}
 
 
 def _generated_dir():
