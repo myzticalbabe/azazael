@@ -664,3 +664,160 @@ def test_import_check_ignores_archives_and_self(tmp_path):
 def inspect_src() -> str:
     """A stand-in 'twin' so the fixture is a real tracked .py file."""
     return "z = 0\n"
+
+
+# ---------------------------------------------------------------------
+# scope_coverage
+# ---------------------------------------------------------------------
+
+import scope_coverage as scov   # noqa: E402
+
+
+def _preflight(tmp_path, stems, groups=None):
+    p = tmp_path / "mesh_function_preflight.py"
+    if groups is None:
+        p.write_text(
+            'FABRIC = %r\nSCOPE_GROUPS: list[tuple[str, list[str]]] = '
+            '[("Fabric", FABRIC)]\n' % (stems,), encoding="utf-8")
+    else:
+        p.write_text(groups, encoding="utf-8")
+    return p
+
+
+def test_scope_coverage_flags_a_declared_stem_with_no_file(tmp_path):
+    """The dangerous direction. A stem in SCOPE_GROUPS that matches no file
+    means findings inside it can never be reported -- and the wire-or-cut
+    test stays green over a silently smaller question."""
+    pf = _preflight(tmp_path, ["mesh", "ghost_module"])
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "mesh.py").write_text("x = 1\n", encoding="utf-8")
+    rep = scov.analyse(pf, src)
+    assert rep["declared_but_absent"] == ["ghost_module"]
+    assert rep["coverage_pct"] == 100.0
+
+
+def test_scope_coverage_reports_unexamined_modules(tmp_path):
+    """9.5% coverage is a fact worth stating out loud. A green wire-or-cut
+    test means the declared scope is triaged, not that the tree is."""
+    pf = _preflight(tmp_path, ["mesh"])
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "mesh.py").write_text("x = 1\n", encoding="utf-8")
+    for n in ("other", "another", "third"):
+        (src / f"{n}.py").write_text("y = 1\n", encoding="utf-8")
+    rep = scov.analyse(pf, src)
+    assert rep["modules_on_disk"] == 4
+    assert rep["present_on_disk"] == 1
+    assert rep["unexamined"] == 3
+    assert rep["coverage_pct"] == 25.0
+
+
+def test_scope_coverage_end_to_end_exit_codes(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "mesh.py").write_text("x = 1\n", encoding="utf-8")
+
+    bad = _preflight(tmp_path, ["mesh", "ghost"])
+    r = subprocess.run(
+        [sys.executable, str(TOOLS / "scope_coverage.py"),
+         "--preflight", str(bad), "--src", str(src)],
+        capture_output=True, text=True)
+    assert r.returncode == 1, "a phantom scope entry must exit 1"
+    assert "DECLARED BUT ABSENT" in r.stdout
+
+    good = _preflight(tmp_path, ["mesh"])
+    r = subprocess.run(
+        [sys.executable, str(TOOLS / "scope_coverage.py"),
+         "--preflight", str(good), "--src", str(src)],
+        capture_output=True, text=True)
+    assert r.returncode == 0, "an intact scope must exit 0"
+
+
+def test_scope_coverage_reads_scope_from_ast_not_import(tmp_path):
+    """Importing the preflight would pull in the whole worm registry. A tool
+    that measures the boundary should have no side effects reading it."""
+    pf = _preflight(tmp_path, ["mesh"])
+    text = pf.read_text(encoding="utf-8")
+    assert "import" not in text
+    groups = scov.declared_stems(pf)
+    assert groups == {"Fabric": ["mesh"]}
+
+
+# ---------------------------------------------------------------------
+# dict_key_triage
+# ---------------------------------------------------------------------
+
+import dict_key_triage as dkt   # noqa: E402
+
+
+def _finding(file="src/m.py", scope="f", owner="r", key="k", line=3,
+             kind="read_never_written"):
+    return {"kind": kind, "file": file, "dict": f"{scope}|{owner}",
+            "key": key, "line": line, "read_at": [line]}
+
+
+def test_triage_key_is_stable_and_scope_qualified():
+    """Two functions can each hold a local `result` with genuinely different
+    keys. Collapsing them would let one declaration excuse the other."""
+    a = dkt.key_for(_finding(scope="f1", owner="result", key="a"))
+    b = dkt.key_for(_finding(scope="f2", owner="result", key="b"))
+    assert a != b
+    assert a == "src/m.py::f1::result::a"
+
+
+def test_triage_reports_undeclared_and_stale():
+    contract = {"findings": [_finding(key="live")]}
+    triage = {"entries": {
+        "src/m.py::f::r::live": {"status": "accepted", "reason": "ok"},
+        "src/m.py::f::r::gone": {"status": "accepted", "reason": "ok"},
+    }}
+    rep = dkt.analyse(contract, triage)
+    assert rep["undeclared"] == []
+    assert rep["stale"] == ["src/m.py::f::r::gone"], \
+        "a declaration with no finding is how a triage file rots"
+
+
+def test_triage_flags_undeclared_findings():
+    contract = {"findings": [_finding(key="new")]}
+    rep = dkt.analyse(contract, {"entries": {}})
+    assert rep["undeclared"] == ["src/m.py::f::r::new"]
+
+
+def test_accepted_without_a_reason_blocks():
+    """3,464 is a debt count, not a defect count. A blanket dismissal with no
+    stated reason is the failure mode this mechanism exists to prevent."""
+    contract = {"findings": [_finding(key="k")]}
+    triage = {"entries": {"src/m.py::f::r::k": {"status": "accepted",
+                                                "reason": "  "}}}
+    rep = dkt.analyse(contract, triage)
+    assert rep["missing_reason"] == ["src/m.py::f::r::k"]
+    assert "src/m.py::f::r::k" in rep["blocking"]
+
+
+def test_invalid_status_blocks():
+    contract = {"findings": [_finding(key="k")]}
+    triage = {"entries": {"src/m.py::f::r::k": {"status": "looks_fine",
+                                                "reason": "x"}}}
+    rep = dkt.analyse(contract, triage)
+    assert rep["bad_status"] == ["src/m.py::f::r::k"]
+
+
+def test_overdue_review_blocks():
+    contract = {"findings": [_finding(key="k")]}
+    triage = {"entries": {"src/m.py::f::r::k": {
+        "status": "accepted", "reason": "checked",
+        "review_after": "2000-01-01"}}}
+    rep = dkt.analyse(contract, triage)
+    assert rep["overdue"] == ["src/m.py::f::r::k"], \
+        "an accepted verdict past its review date must be revisited"
+
+
+def test_future_review_date_is_not_overdue():
+    contract = {"findings": [_finding(key="k")]}
+    triage = {"entries": {"src/m.py::f::r::k": {
+        "status": "accepted", "reason": "checked",
+        "review_after": "2999-01-01"}}}
+    rep = dkt.analyse(contract, triage)
+    assert rep["overdue"] == []
+    assert rep["blocking"] == []
