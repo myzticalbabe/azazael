@@ -287,17 +287,19 @@ class TestResolveWormDynamicRegistry:
     def test_known_worm_returns_dict(self):
         """A registry-known worm should return a dict with success/method/result."""
         result = _resolve_worm_dynamic("WORMZ")
-        if result is not None:
-            assert isinstance(result, dict)
-            assert "success" in result
-            assert "method" in result
-            assert "result" in result
+        if result is None:
+            pytest.skip("WORMZ unresolvable in this env")
+        assert isinstance(result, dict)
+        assert "success" in result
+        assert "method" in result
+        assert "result" in result
 
     def test_known_worm_success_flag(self):
         """A working worm should have success=True."""
         result = _resolve_worm_dynamic("WORMZ")
-        if result is not None:
-            assert result["success"] is True, f"WORMZ failed: {result.get('error')}"
+        if result is None:
+            pytest.skip("WORMZ unresolvable in this env")
+        assert result["success"] is True, f"WORMZ failed: {result.get('error')}"
 
 
 class TestResolveWormDynamicFallback:
@@ -306,15 +308,17 @@ class TestResolveWormDynamicFallback:
     def test_legacy_dispatch_fallback(self):
         """Worms with legacy dispatch entries should resolve."""
         result = _resolve_worm_dynamic("WORMZ")
-        if result is not None:
-            # Should have resolved through registry or legacy
-            assert result["success"] is True
+        if result is None:
+            pytest.skip("WORMZ unresolvable in this env")
+        # Should have resolved through registry or legacy
+        assert result["success"] is True
 
     def test_resolve_returns_standard_method(self):
         """Resolved result should indicate which method was used."""
         result = _resolve_worm_dynamic("WORMZ")
-        if result is not None:
-            assert result["method"] in _STANDARD_METHODS + ["legacy_dispatch"]
+        if result is None:
+            pytest.skip("WORMZ unresolvable in this env")
+        assert result["method"] in _STANDARD_METHODS + ["legacy_dispatch"]
 
     def test_strategy_2_legacy_dispatch(self):
         """Test fallback to legacy dispatch (Strategy 2) using a mock entry."""
@@ -844,10 +848,11 @@ class TestClusterWORMZBuildFromNature:
     def test_build_from_nature_returns_cluster(self):
         """Building from a valid nature should return a ClusterWORMZ."""
         cluster = ClusterWORMZ.build_from_nature("security")
-        if cluster is not None:
-            assert isinstance(cluster, ClusterWORMZ)
-            assert cluster.cluster_type.startswith("nature_")
-            assert len(cluster.configs) > 0
+        if cluster is None:
+            pytest.skip("security nature unresolvable in this env")
+        assert isinstance(cluster, ClusterWORMZ)
+        assert cluster.cluster_type.startswith("nature_")
+        assert len(cluster.configs) > 0
 
     def test_build_from_nature_unknown(self):
         """Building from an unknown nature should return None or empty."""
@@ -855,13 +860,16 @@ class TestClusterWORMZBuildFromNature:
         # May be None or have empty configs
         if cluster is not None:
             assert len(cluster.configs) == 0
+        # None is also a correct refusal; either way the test observes it
+        assert cluster is None or len(cluster.configs) == 0
 
     def test_build_from_nature_worms_match(self):
         """Built cluster should have worms from that nature category."""
         cluster = ClusterWORMZ.build_from_nature("monitor")
-        if cluster is not None and len(cluster.configs) > 0:
-            for cfg in cluster.configs:
-                assert isinstance(cfg.name, str)
+        if cluster is None or len(cluster.configs) == 0:
+            pytest.skip("monitor nature empty in this env")
+        for cfg in cluster.configs:
+            assert isinstance(cfg.name, str)
 
 
 class TestClusterWORMZBuildFromRegistry:

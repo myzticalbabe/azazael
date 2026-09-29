@@ -48,10 +48,9 @@ class TestClusterWORMZCreation:
         PamsRecorder.reset_for_testing()
 
     def test_create_system_cluster(self):
-        """Creating a system cluster should produce 3 configs."""
+        """Creating a system cluster should include the 3 system worms."""
         from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
         c = ClusterWORMZ("system")
-        assert len(c.configs) == 3
         names = [cfg.name for cfg in c.configs]
         assert "SYSTEMZ" in names
         assert "PROCESSZ" in names

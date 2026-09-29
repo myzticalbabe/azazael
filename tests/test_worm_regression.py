@@ -51,8 +51,11 @@ for name, entry in ALL_WORMS.items():
 
 # ── Test data ──────────────────────────────────────────────────────
 
-EXPECTED_CATEGORIES = 17
-EXPECTED_MIN_WORMS = 75
+EXPECTED_CATEGORIES = 28
+EXPECTED_MIN_WORMS = 200
+# Floors track the live fleet (250 worms / 35 categories, 2026-09-29) with
+# ~20% headroom: shrinkage past the floor is a real regression, not drift.
+# A fixed small floor (75) passed with 2/3 of the fleet missing.
 # VALID_CATEGORIES is imported from CORE.worm_registry, not copied. The copy that
 # used to sit here was frozen at 17 natures from before the mesh/immune/
 # xenomorph expansions, so `MeshRouterWorm` (a deliberate `mesh` governor, see
