@@ -87,23 +87,43 @@ Action: extend the preflight scope to all of `src/`, or accept 155
 undocumented functions as a standing debt. The current artifact is honest
 about its scope and should not be read as covering more than it does.
 
-## P2 — 8 tracked `.py` files at the repo root shadow live modules
+## P2 — 6 tracked `.py` files at the repo root are FORKS, not stale copies
 
-21 tracked `.py` sit at the repo root; 8 shadow a same-named file elsewhere
-with **different content** and **zero importers**, last touched 2026-09-06
-against `src/` copies from 2026-09-28.
+**The earlier version of this item was wrong, and the correction is the
+point.** It read "last touched 2026-09-06 against `src/` copies from
+2026-09-28" and proposed deleting the root files as stale. Measuring content
+instead of commit dates:
 
-`NATURE_CLUSTERS.py`, `health_server.py`, `PamsRecorder.py`, `METACLUSTER.py`,
-`_worm_execution_matrix.py`, `_worm_health_check.py`, `metrics.py`, `run_tests.py`.
+| root file | lines only in root | lines only in `src/` | root defines, twin lacks | twin defines, root lacks |
+|---|---|---|---|---|
+| `health_server.py` | **1** | **120** | `_get_azazael_health` | — |
+| `metrics.py` | 242 | 127 | `WormMetrics` | `DriftAlert`, `HealthCheck`, `MetricsCollector` |
+| `run_tests.py` | 231 | 253 | `main`, `list_test_files` | `run_all_tests`, `test_bat_file` |
+| `NATURE_CLUSTERS.py` | 572 | 355 | `_get_dm` | `_get_cluster_tracer` |
+| `METACLUSTER.py` | 167 | 271 | `_get_dm` | — |
+| `PamsRecorder.py` | 32 | 78 | — | — |
 
-This already caused a real defect: `dict_key_contract` reported
-`NATURE_CLUSTERS.py:706` when the reader would have had
-`src/CORE/WORMS/NATURE_CLUSTERS.py` open. **The line numbers pointed at the
-wrong file.** All three new tools now scope explicitly, but the files remain.
+**Neither copy is strictly ahead.** Each defines symbols the other lacks.
+`health_server.py`'s root copy has `_get_azazael_health()`; `run_tests.py`'s
+twin has `test_bat_file` and `run_all_tests` while root has `main` and
+`list_test_files`. These are divergent forks of the same module, and
+deleting either side destroys working code.
 
-Action: delete the eight, or add a guard that fails when a root-level `.py`
-shadows a tracked file in a subdirectory. Not done here — removing tracked
-files unprompted is not mine to decide.
+The `src/` copy of `health_server.py` was last committed **2026-06-21** — not
+because the root copy is newer, but because nobody has touched it since June.
+"Older commit date" and "older content" are different claims, and the first
+version of this list read the first as the second.
+
+What *is* true and still actionable: these names make every whole-repo tool
+ambiguous. `dict_key_contract` reported `NATURE_CLUSTERS.py:706` when the
+reader would have had `src/CORE/WORMS/NATURE_CLUSTERS.py` open — the line
+numbers pointed at a different file. No tracked `.py` imports any of these
+by bare name, so **no import resolves ambiguously today**; the hazard is
+naming, not resolution.
+
+Action: reconcile the forks by hand — merge each pair, keep the union, and
+delete one side — with `tools/shadowed_module_check.py` (added this pass) to
+list what each side uniquely holds. Six live forks plus 9 archive shadows.
 
 ## P3 — `G:/source-of-truth/azazael` is unversioned and still a sync target
 
@@ -172,6 +192,7 @@ warning.
 
 - **Firewall rule for TCP 18210** — needs admin and an explicit go-ahead.
 - **`git push` and `sync_all.py` to `G:`** — see P3 and P4.
-- **Deleting the 8 root-level duplicates** — see P2.
+- **Deleting any root-level `.py`** — see P2. Six are forks, not stale
+  copies; deleting either side loses code.
 - **`tests/test_chain_refactor.py` and its 4 WSL siblings** — see the P1
   correction. They should not be committed.
