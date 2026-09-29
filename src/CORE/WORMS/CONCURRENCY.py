@@ -85,7 +85,8 @@ class ExecutionResult:
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
-def _record_execution(name: str, result: "ExecutionResult") -> bool:
+def _record_execution(name: str, result: "ExecutionResult",
+                        decision_id: Any = None) -> bool:
     """Route one execution result to the canonical telemetry tap.
 
     Module-level entry point so tests and sibling producers share one
@@ -95,7 +96,8 @@ def _record_execution(name: str, result: "ExecutionResult") -> bool:
     try:
         from CORE.WORMS.worm_telemetry import emit_worm_outcome_from_result
         return bool(emit_worm_outcome_from_result(
-            name, result, source="ConcurrencyWormExecutor"))
+            name, result, source="ConcurrencyWormExecutor",
+            decision_id=str(decision_id) if decision_id else None))
     except Exception:
         return False
 
@@ -269,13 +271,14 @@ class WormExecutor:
         except Exception:
             return False
 
-    def execute_worm(self, worm_name: str, cancellation_token: Any = None) -> ExecutionResult:
+    def execute_worm(self, worm_name: str, cancellation_token: Any = None,
+                       decision_id: Any = None) -> ExecutionResult:
         """Execute a single worm."""
         start = time.time()
 
         def _emit(result: ExecutionResult) -> ExecutionResult:
             # Every exit path emits via the module helper (single schema).
-            _record_execution(worm_name, result)
+            _record_execution(worm_name, result, decision_id=decision_id)
             return result
 
         if worm_name not in self.worm_modules:

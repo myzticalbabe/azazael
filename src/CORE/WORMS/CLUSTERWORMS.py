@@ -872,7 +872,8 @@ class WormExecutor:
 # ═══════════════════════════════════════════════════════════════════════
 
 def _record_cluster_worm_telemetry(name: str, result: Dict[str, Any],
-                                     cluster: Any = None) -> None:
+                                     cluster: Any = None,
+                                     decision_id: Any = None) -> None:
     """Record one per-worm execution row (2026-09-09 tap).
 
     Delegates to the canonical emitter (2026-09-28): same event type,
@@ -882,6 +883,7 @@ def _record_cluster_worm_telemetry(name: str, result: Dict[str, Any],
     try:
         from CORE.WORMS.worm_telemetry import emit_worm_outcome
         emit_worm_outcome(name, result, cluster=cluster,
+                          decision_id=str(decision_id) if decision_id else None,
                           source="ClusterWORMZ")
     except Exception:
         pass
@@ -1214,7 +1216,8 @@ class ClusterWORMZ:
 
         return results
 
-    def _execute_single_worm(self, config: WormConfig) -> Dict[str, Any]:
+    def _execute_single_worm(self, config: WormConfig,
+                               decision_id: Any = None) -> Dict[str, Any]:
         """Execute a single worm with retry logic. Runs in a pool thread.
         
         This method is designed for lock-free parallel execution:
@@ -1244,10 +1247,12 @@ class ClusterWORMZ:
                     max_retries=getattr(self, '_nature_max_retries', None),
                 )
 
-        _record_cluster_worm_telemetry(config.name, result, cluster=self)
+        _record_cluster_worm_telemetry(config.name, result, cluster=self,
+                                         decision_id=decision_id)
         return result
 
-    def execute_worm(self, name: str) -> Optional[Dict[str, Any]]:
+    def execute_worm(self, name: str,
+                     decision_id: Any = None) -> Optional[Dict[str, Any]]:
         """Execute single worm by name.
 
         Every path emits to the canonical tap (2026-09-28): selected but
@@ -1263,18 +1268,18 @@ class ClusterWORMZ:
                     _record_cluster_worm_telemetry(
                         name, {"success": False, "duration_ms": 0.0,
                                "error": "executor failed: %s" % str(exc)[:200]},
-                        cluster=self)
+                        cluster=self, decision_id=decision_id)
                     raise
                 _record_cluster_worm_telemetry(name, result if isinstance(
                     result, dict) else {"success": False, "duration_ms": 0.0,
                                         "error": "non-dict result"},
-                    cluster=self)
+                    cluster=self, decision_id=decision_id)
                 mark_spawned(name)
                 return result
         _record_cluster_worm_telemetry(
             name, {"success": False, "duration_ms": 0.0,
                    "error": "not configured in this cluster"},
-            cluster=self)
+            cluster=self, decision_id=decision_id)
         return None
 
     # ── Result Aggregation ────────────────────────────────────────
