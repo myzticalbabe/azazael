@@ -583,6 +583,50 @@ def build_spawn_credit(store: Any = None, outcome_limit: int = 20000,
     return credit
 
 
+#: Minimum outcome rows before a perfect win-rate is trusted. Below this a
+#: perfect rate is "no evidence yet"; at or above it a perfect rate is
+#: "uncalibrated guard" (Conformal Abstention(CONFIG), 2026-09-29: abstain
+#: rather than route on an uncalibrated 1.0).
+CALIBRATION_MIN_N = 50
+
+
+def abstention_stats(outcomes: dict | None) -> dict:
+    """Post-hoc abstention decision over per-worm outcomes (no retraining).
+
+    Returns participation + conditional-correctness proxy + a hold decision:
+
+    * ``abstain=True`` with reason ``insufficient_evidence`` when fewer than
+      ``CALIBRATION_MIN_N`` rows exist (nothing to calibrate on).
+    * ``abstain=True`` with reason ``uncalibrated_perfect`` when the win
+      rate is exactly 1.0 on a large sample (the Auto §6 silent-mislabel
+      shape: a loose guard that never says no).
+    * Otherwise ``abstain=False``.
+
+    Advisory only: callers record the verdict, they do not change routing
+    on it until the differential-replay gate lands. Free-Jev: pure
+    arithmetic over the local tap, no model calls.
+    """
+    outcomes = outcomes or {}
+    n = sum(int(getattr(o, "n", 0) or 0) for o in outcomes.values())
+    ok = sum(int(getattr(o, "ok", 0) or 0) for o in outcomes.values())
+    sb = sum(int(getattr(o, "n_standby", 0) or 0) for o in outcomes.values())
+    rate = (ok / n) if n else 0.0
+    if n < CALIBRATION_MIN_N:
+        return {"n": n, "ok": ok, "n_standby": sb,
+                "win_rate": round(rate, 4),
+                "participation": round(n / CALIBRATION_MIN_N, 4),
+                "abstain": True, "reason": "insufficient_evidence"}
+    if rate == 1.0:
+        return {"n": n, "ok": ok, "n_standby": sb,
+                "win_rate": 1.0,
+                "participation": 1.0,
+                "abstain": True, "reason": "uncalibrated_perfect"}
+    return {"n": n, "ok": ok, "n_standby": sb,
+            "win_rate": round(rate, 4),
+            "participation": 1.0,
+            "abstain": False, "reason": "calibrated"}
+
+
 def resolve_store() -> Any:
     """Best-effort handle on LocalMemoryStore, or None."""
     try:
