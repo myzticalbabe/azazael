@@ -1,139 +1,177 @@
-# NEURAL MESH — PRIORITIES, relisted 2026-09-29
+# NEURAL MESH — PRIORITIES, relisted 2026-09-29 (13:40)
 
-Relisted from measured state, not from the previous list. Three items on the
-old list were wrong and are corrected below; two are now closed.
+Relisted from measured state at 13:40, not from the previous list. Four
+items on the last list were wrong or stale and are corrected below; three
+are now closed.
 
-Every number here was read from the live tree or the live ledger on
-2026-09-29. Where a claim could not be measured it says so rather than
+Every number was read from the live tree, the live ledger, or a tool run in
+this session. Where a claim could not be measured it says so rather than
 carrying the old figure forward.
+
+**Supersedes** the 11:40 version of this file. Related:
+`GRAPH_TOOLS_AUDIT_2026-09-29.md`, `NEURAL_MESH_AUDIT_2026-09-29.md`.
+
+---
+
+## Corrections to the previous list
+
+| was | now | why |
+|---|---|---|
+| P1: "995 lines exist only in WSL, in no commit" | **withdrawn** | WSL is two months *behind* (HEAD `7d883ba`, 2026-07-29), 453 files untracked, and 2 of the 4 test files fail there too. They test code in neither tree. Copied, SHA-verified, then removed. |
+| P2: "reset exposure has no guard" | **closed** | `scripts/reset_guard.py` (`cac421dd`) + 12 tests. Verified live: it refuses and names 64 modified files and 13 unpushed commits. |
+| P6: "109 pending functions" | number right, **scope wrong** | 109 is current (artifact regenerated 13:11) but it covers only `src/CORE/WORMS/expansion`. See P1 below. |
+| P3: "the green-suite claim is still false" | **closed** | 9 remaining failures confirmed pre-existing by stash-and-rerun, byte-identical with and without my changes. |
 
 ---
 
 ## Closed today
 
-**Fabricated route telemetry — removed and now stable.**
-The `8000.0ms` eBPF collection window, the interleaved alert/probe counters and
-the malformed `route:windows>route` key are gone from `~/.azazael/spine_state.json`.
-Verified across three consecutive save/load cycles: 10 genuine ~95ms samples
-per wsl2 route preserved, zero `8000.0` samples anywhere, counters at 0 and
-pinned by a watermark that survives the fold-in.
+**Fabricated route telemetry removed and stable.** The `8000.0ms` eBPF
+window, the interleaved counters and the malformed `route:windows>route` key
+are gone. Verified across three save/load cycles: 10 genuine ~95ms samples
+per wsl2 route preserved, zero `8000.0` samples, counters at 0 and pinned by
+a watermark that survives the fold-in.
 
-**The graph — rebuilt and scoped.**
-28,279 files / 451,307 nodes / 638 MB → **3,121 / 47,273 / 46 MB**, rebuild
-31 min → **75 s**. Top hubs are `InferenceEngine`, `SpineCycleWorm`,
-`NatureCluster`, `LocalMemoryStore`, `DirectMemory`. Both freshness gates are
-green: `artifact_freshness` exits 0 on all 8 derived artifacts, and
-`capability_liveness` exits 0 with `invalidation_persisted` and
-`route_ledger_writers` reporting `ok`.
+**The graph rebuilt and scoped.** 28,279 files / 451,307 nodes / 638 MB →
+3,122 / 47,411 / 46 MB; rebuild 31 min → 75 s. `artifact_freshness` and
+`capability_liveness` both exit 0.
+
+**Three audit tools, each fixed after shipping a false PASS.**
+`dead_function_check`, `manifest_reconcile`, `dict_key_contract` —
+committed `dccc5846`, 33 tests, 8 mutations all bite. The P0 checker is
+`5dae1f09`; the cd2/manifest/test-hygiene fixes are `d6c3203c`.
 
 ---
 
-## P0 — the "reduction reads as absence" shape is fixed in four places and is not yet a class
+## P0 — `MeshRouterWorm.invalidate_route` is unreachable, and that is deliberate
 
-Four stores in the brainstem shared one defect: the read paths fold the saved
-file back in before every write, so **a value assigned downward in a monotone
-store loses on the next save.**
+`invalidate_route` (`src/CORE/WORMS/expansion/mesh.py:258`) has zero
+callers. Its only caller, `invalidate_q`, is itself called by nothing except
+a comment at `spine.py:2313` saying it is deliberately *not* called.
 
-| store | reduction | what undid it | status |
-|---|---|---|---|
-| fixtures | `purge_fixtures` | re-adopted from disk | tombstoned |
-| Q evidence | `invalidate_q` | `max()` on the count | evidence floor |
-| homeostat counters | counter reset | `max()` on successes/failures | counter floor |
-| Q table | `cap_q_tables` | ranked by evidence, so a floored key sorted first | floored keys sort last |
-| prune stage | `_stage_prune` | called count 0 "dead" | skips floored keys |
+The comment's reasoning is correct: the method exists to discount a penalty
+*because the cause is fixed*, so a caller firing it on failure would invert
+the contract. **Do not add a caller.** But the consequence stands — the
+evidence-floor machinery added in `3a948a26` is correct and reached by
+nothing in production, which is why liveness reports `dormant`/`unproven`.
 
-Five, not four. The fifth was found *after* the first four were fixed, because
-fixing a reduction is what made the key look absent to the pruner: the routes
-restored at 09:47 were tombstoned `neural_loop_prune` by 10:05.
+Action: decide whether this is a capability to wire or documentation to
+write. It is currently neither.
 
-This is a shape, not a bug, and nothing yet prevents the sixth. A store where
-a reduction is indistinguishable from absence will reproduce it. Worth a
-checker that scans for the shape — a write that lowers a value in a store whose
-read path merges with `max()`, with no watermark alongside it — rather than
-five more fixes discovered one symptom at a time.
+## P1 — 155 unreferenced functions outside the one directory anyone audits
 
-## P1 — 995 lines exist only in WSL and in no commit
+`mesh_function_preflight` scans exactly `MESH_DIR = src/CORE/WORMS/expansion`
+(`tools/mesh_function_preflight.py:37`) and its `wire_or_cut` artifact
+enforces *"no finding is undeclared"* over that scope. `tests/test_mesh_wire_or_cut.py`
+passes, 29 tests, and the invariant holds — **for that directory.**
 
-The old list said "~326 lines in 4 files". That was wrong on both count and
-framing. Measured by md5 across `src/ scripts/ tools/ tests/`:
+`dead_function_check` scans all of `src/`. Of its 161 findings:
 
-- **5 files, 995 lines, present in WSL and absent from Windows entirely:**
-  `tests/test_chain_refactor.py` (285), `tests/test_session_operations.py` (312),
-  `tests/test_chain_lock.py` (205), `scripts/run_full_pass.py` (131),
-  `tests/test_morphing_learn.py` (62).
-- **212 further files differ**, and the sampled direction is **Windows ahead**
-  (`spine_registry.py` 3761 vs 4008, `direct_memory.py` 1994 vs 2010). The WSL
-  tree is stale, not holding work.
+- **6** inside the audited directory (already covered)
+- **155** outside it, previously unexamined:
 
-Order matters and the reason is the `G:` item below: commit the 5 WSL-only
-files first, because they are the only unambiguously lost work. Only then
-reconcile the 212, per file and in the direction the diff shows.
+  | dir | findings |
+  |---|---|
+  | `CORE` | 83 |
+  | `ORCHESTRATION` | 31 |
+  | `UTILITIES` | 24 |
+  | `CODEX` | 7 |
+  | other | 10 |
 
-## P2 — reset exposure has no guard
+  134 have their name mentioned *nowhere* in the repo. Two verified dead by
+  hand: `get_contract_report` and `batch_upgrade_worms` each have exactly one
+  mention — their own `def`. 27 are dispatched by string and need a human
+  decision, not a deletion.
 
-28 `reset:` entries in the reflog. One at **04:02 today** to `HEAD~1`, after
-which 620+ files were dirty and three modules were gone; recovery was manual
-(`73ee26af`, "Restore three modules lost by the hard reset"). A reminder does
-not survive a bad night. A pre-command check that refuses `reset --hard` /
-`reset HEAD~1` when the tree is dirty or unpushed commits exist is the fix.
+Action: extend the preflight scope to all of `src/`, or accept 155
+undocumented functions as a standing debt. The current artifact is honest
+about its scope and should not be read as covering more than it does.
 
-## P3 — the green-suite claim is still false
+## P2 — 8 tracked `.py` files at the repo root shadow live modules
 
-`logs/suite_run_20260929e.log` is `passed=3965 failed=25`, and there is no
-suite evidence for the current revision. What today's work actually ran:
-318 passed across 15 affected suites, then 115 and 124 across the
-neural-mesh subset — with 2 failures (`test_nature_cluster_emits_spans`,
-`TestGRPOTrainer::test_get_policy_all_contexts`) that I confirmed fail
-identically at `HEAD`, so they are pre-existing and not mine. That is evidence
-about the suites I touched, and no evidence at all about the other 3,900.
+21 tracked `.py` sit at the repo root; 8 shadow a same-named file elsewhere
+with **different content** and **zero importers**, last touched 2026-09-06
+against `src/` copies from 2026-09-28.
 
-## P4 — `G:/source-of-truth/azazael` is unversioned and still a sync target
+`NATURE_CLUSTERS.py`, `health_server.py`, `PamsRecorder.py`, `METACLUSTER.py`,
+`_worm_execution_matrix.py`, `_worm_health_check.py`, `metrics.py`, `run_tests.py`.
 
-`git rev-parse` there returns `fatal: not a git repository`. A blind
-`sync_all.py` push would publish a regressed revision to the "source of
-truth" with no history to recover from. **HOLD** until P1 is done and the
-target is either initialised as a repo or taken out of the push set.
+This already caused a real defect: `dict_key_contract` reported
+`NATURE_CLUSTERS.py:706` when the reader would have had
+`src/CORE/WORMS/NATURE_CLUSTERS.py` open. **The line numbers pointed at the
+wrong file.** All three new tools now scope explicitly, but the files remain.
 
-## P5 — a duplicate module with no generator
+Action: delete the eight, or add a guard that fails when a root-level `.py`
+shadows a tracked file in a subdirectory. Not done here — removing tracked
+files unprompted is not mine to decide.
 
-`scripts/monitor_learning.py` and `src/SCRIPTS/monitor_learning.py` are
-byte-identical (both md5 `4345f07971f7fe03bfbc09dca7f2f83e`) and nothing
-generates one from the other. Deliberately left undecided: which copy is
-canonical is a call for whoever owns it, and both are referenced.
+## P3 — `G:/source-of-truth/azazael` is unversioned and still a sync target
 
-## P6 — 109 pending functions, 0 wired, 0 retired
+Confirmed again: `git rev-parse` there returns *not a git repository*. It
+has no history, so a sync from it is a one-way overwrite with no recovery.
 
-From the regenerated wire-or-cut table: 171 unreferenced, of which 62
-dispatched and **109 pending** — 56 with no reference anywhere, 53 reached only
-by tests. The table is measured and current; the backlog has not moved.
+Action: decide whether it is a source, a mirror, or obsolete. Until then,
+`sync_all.py` should not target it. **On hold pending your call.**
+
+## P4 — 13 commits are on no remote
+
+`dccc5846`, `d6c3203c`, `5dae1f09`, `cac421dd`, `31a72fd7`, `391be529`,
+`8fd58db0`, `fe6b1edd`, `3a948a26` and four earlier ones. `reset_guard`
+reports this on every run. There is no `{@u}` on this branch.
+
+Action: push or establish a remote. I have not run `git push`.
+
+## P5 — 3,464 dict-key asymmetries, none triaged
+
+`dict_key_contract` output. These are *questions*, not defects — the tool
+says so on every run — and no rule exists for closing them.
+
+Action: either write a triage rule or stop running it. 3,464 unexamined
+candidates is indistinguishable from not running it.
+
+## P6 — the tree is being written while it is being worked on
+
+40+ files dirty at any moment from live `chain_controller` jobs; the `meta`
+job is what purged restored routes at 10:05. Every commit today was
+path-scoped for this reason.
+
+A corollary found today: a pristine `git worktree` at HEAD was **missing
+`scripts/wiring_cycle.py`**, because the controller generates modules and
+tests together, uncommitted. HEAD cannot be tested in isolation — which is
+why the P3 baseline had to be established by stash-and-rerun rather than by
+checkout.
+
+Action: decide whether these jobs should run `--allow-mutations` against a
+working tree at all.
 
 ## P7 — `route_censoring` is unproven, and that is the honest state
 
 `capability_liveness` reports `unproven`, not `ok`: no unreachable peer has
-been observed since the fix, so there is nothing to attribute. The
-capability exists, the failure mode has not recurred, and neither fact is
-evidence that the capability is why. Settling it needs one unreachable peer,
-or a `--since` window in which one occurred. Not a code defect — an evidence
-gap, and it should not be closed by assertion.
+been observed since the fix. The capability exists, the failure has not
+recurred, and neither fact is evidence that the capability is why.
 
-## P8 — the tree is being written while it is being worked on
+An evidence gap, not a code defect. Settling it needs one unreachable peer
+or a `--since` window containing one. **Should not be closed by assertion.**
 
-40 files were dirty from live `chain_controller` jobs during this session, and
-the `meta` job is what purged the restored routes at 10:05. Every commit today
-was path-scoped for that reason. Worth deciding whether those jobs should run
-with `--allow-mutations` against a working tree at all.
+## P8 — `src/SCRIPTS/monitor_learning.py` == `scripts/monitor_learning.py`
+
+Byte-identical (`4345f07971f7fe03bfbc09dca7f2f83e`), no generator, no
+symlink. One of them is redundant.
+
+Action: the call belongs to its owner.
 
 ## P9 — graphify skill/package version skew
 
-`graphify_interpreter.resolve_graphify_python()` warns on every refresh: skill
-0.9.55 against package 0.9.50. It resolves and runs correctly, so this is not
-blocking, but the mismatch is reported on every pass and nobody has acted on it
-because it is only a warning.
+Skill 0.9.55 against package 0.9.50; warns on every refresh. Resolves and
+runs correctly. Not blocking, and nobody has acted because it is only a
+warning.
 
 ---
 
 ## Deliberately untouched
 
 - **Firewall rule for TCP 18210** — needs admin and an explicit go-ahead.
-- **The duplicate-module decision (P5)** — the call belongs to its owner.
-- **`git push` / `sync_all.py` to `G:`** — see P4.
+- **`git push` and `sync_all.py` to `G:`** — see P3 and P4.
+- **Deleting the 8 root-level duplicates** — see P2.
+- **`tests/test_chain_refactor.py` and its 4 WSL siblings** — see the P1
+  correction. They should not be committed.
