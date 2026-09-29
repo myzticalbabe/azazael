@@ -536,9 +536,28 @@ def _stage_grade(ctx: LoopContext) -> StageResult:
             "grade", False, changed=False,
             error="executor reported success but the outcome tap gained no rows",
             evidence={"before": ctx.outcome_rows_before, "after": after})
-    return StageResult("grade", True, changed=False,
-                       evidence={"new_outcome_rows": new_rows,
-                                 "before": ctx.outcome_rows_before, "after": after})
+    # Auto gate (2026-09-29, free-Jev): a perfect win-rate on a large batch
+    # is evidence of an uncalibrated guard, not of perfection. Record it,
+    # do not fail on it — calibration is fixed by witnessed-determinism,
+    # not by blocking the loop.
+    evidence: dict = {"new_outcome_rows": new_rows,
+                      "before": ctx.outcome_rows_before, "after": after}
+    try:
+        from CORE.WORMS.expansion import spawn_credit as _sc
+        _credit = _sc.live_spawn_credit()
+        _outcomes = getattr(_credit, "outcomes", {}) or {}
+        _n = sum(int(getattr(o, "n", 0) or 0) for o in _outcomes.values())
+        _ok = sum(int(getattr(o, "ok", 0) or 0) for o in _outcomes.values())
+        _sb = sum(int(getattr(o, "n_standby", 0) or 0) for o in _outcomes.values())
+        if _n:
+            _rate = _ok / _n
+            evidence["win_rate"] = round(_rate, 4)
+            evidence["n_standby"] = _sb
+            if _rate == 1.0 and new_rows >= 50:
+                evidence["uncalibrated_perfect"] = True
+    except Exception:
+        pass
+    return StageResult("grade", True, changed=False, evidence=evidence)
 
 
 def _stage_consolidate(ctx: LoopContext) -> StageResult:
