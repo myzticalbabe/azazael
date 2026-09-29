@@ -1,4 +1,7 @@
 """200-thread concurrency stress test for DirectMemory under 3.14t free-threading."""
+import pytest
+
+pytestmark = pytest.mark.order
 
 import sys
 import json

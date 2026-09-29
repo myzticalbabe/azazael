@@ -1,4 +1,7 @@
 """Regression for the leaked memory-DB path (Error #195, 2026-09-22).
+import pytest
+
+pytestmark = pytest.mark.order
 
 `tests/test_cli.py::_setup()` and its siblings redirect the memory store by
 mutating BOTH the environment and a module global:

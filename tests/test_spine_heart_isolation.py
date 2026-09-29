@@ -1,4 +1,7 @@
 """Regression tests for the spine-heart test-isolation fixture.
+import pytest
+
+pytestmark = pytest.mark.order
 
 WHY THESE TWO TESTS ARE ORDERED AND NAMED THIS WAY
 --------------------------------------------------
