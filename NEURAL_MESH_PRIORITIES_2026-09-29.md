@@ -83,9 +83,20 @@ passes, 29 tests, and the invariant holds — **for that directory.**
   mention — their own `def`. 27 are dispatched by string and need a human
   decision, not a deletion.
 
-Action: extend the preflight scope to all of `src/`, or accept 155
-undocumented functions as a standing debt. The current artifact is honest
-about its scope and should not be read as covering more than it does.
+**Correction, 13:35:** the scope is not that directory. `SCOPE_GROUPS` is
+**61 named module stems**, a semantic list; measured against disk it covers
+61 of 645 modules under `src/` — **9.5%**. The other 584 are excluded by
+design, not by oversight.
+
+Widening is not the fix, and would be wrong: blind widening declares 156
+things pending that are mostly legitimate (`get_secret`, `audit_secrets`,
+`get_q_variance` are public API; `bdam_blocks`, `fgsm_delta_f1` are research
+code). Instead `tools/scope_coverage.py` (`aff97b17`) makes the boundary
+measurable and fails when a declared stem matches no file — the dangerous
+direction, where findings can never be reported while the wire-or-cut test
+stays green over a silently smaller question.
+
+Action: decide the boundary on purpose, then keep it enforced.
 
 ## P2 — 6 tracked `.py` files at the repo root are FORKS, not stale copies
 
@@ -146,8 +157,17 @@ Action: push or establish a remote. I have not run `git push`.
 `dict_key_contract` output. These are *questions*, not defects — the tool
 says so on every run — and no rule exists for closing them.
 
-Action: either write a triage rule or stop running it. 3,464 unexamined
-candidates is indistinguishable from not running it.
+**Done, 13:35.** `tools/dict_key_triage.py` (`aff97b17`) provides the
+closure mechanism, mirroring the `wire_or_cut` pattern that already works
+here — including the half usually left out: a declaration with no finding is
+**stale** and fails, so the file cannot grow forever. An `accepted` verdict
+needs a stated reason and can carry a review date that expires.
+
+`DICT_KEY_TRIAGE.json` is deliberately **not seeded**. `--init` would write
+2,441 entries all marked `accepted` with blank reasons, which the gate then
+rejects — a blanket dismissal is exactly the rot the mechanism prevents.
+
+Action: rule on each finding. `--check` fails until then, and should.
 
 ## P6 — the tree is being written while it is being worked on
 
@@ -161,8 +181,19 @@ tests together, uncommitted. HEAD cannot be tested in isolation — which is
 why the P3 baseline had to be established by stash-and-rerun rather than by
 checkout.
 
-Action: decide whether these jobs should run `--allow-mutations` against a
-working tree at all.
+**Correction, 13:35:** the premise was wrong. Measured over 40 seconds,
+**zero** non-`state/` files changed content. Five `state/*.json` bookkeeping
+files churn; the controller is not currently mutating source. The 633 dirty
+entries are accumulated machine state, not a live hazard.
+
+The real failure is different: with 633 dirty entries a path-scoped commit
+is easy to get wrong. `tools/commit_scope_check.py` (`03bde7c5`) reads the
+git **index** rather than the working tree — 633 dirty entries is a fact
+about the tree, while what a commit contains is a fact about the index — and
+fails when machine-state files are staged.
+
+Action: none. The hazard as described does not exist; the guard covers the
+one that does.
 
 ## P7 — `route_censoring` is unproven, and that is the honest state
 
@@ -182,9 +213,24 @@ Action: the call belongs to its owner.
 
 ## P9 — graphify skill/package version skew
 
-Skill 0.9.55 against package 0.9.50; warns on every refresh. Resolves and
-runs correctly. Not blocking, and nobody has acted because it is only a
-warning.
+Skill 0.9.55 against package 0.9.50; warned on every refresh and resolved
+correctly, so nobody acted.
+
+**Partly done, 13:35.** `tools/graphify_version_check.py` (`03bde7c5`) makes
+it a return code: `--strict` exits 1. Alignment requires the versions to
+match **and** the install to be patched — an unpatched 0.9.55 would satisfy
+a naive equality check and quietly produce a `graph.html` that cannot render
+this tree.
+
+**The skew itself is deliberately not fixed.** The remedy is
+`uv tool install graphifyy==0.9.55 --force`, which installs outside this
+project and would replace a **patched** 0.9.50 whose huge-mode marker
+currently checks out. Unattended, that trades a version warning for an
+unpatched renderer on a tree that needs the huge-mode path. The remedy is
+printed, not run.
+
+Action: yours. It is an environment change outside the repo, taken
+deliberately or not at all.
 
 ---
 
