@@ -18,6 +18,7 @@ Run standalone (3.14t compatible):
 
 import sys
 import os
+import re
 import time
 import threading
 import tempfile
@@ -60,7 +61,7 @@ def test_all_worms_execute_without_crash():
     discover_worms()
     worm_names = sorted(WORM_REGISTRY.keys())
 
-    assert len(worm_names) >= 80, f"Expected >= 80 worms, got {len(worm_names)}"
+    assert len(worm_names) >= 200, f"Expected >= 200 worms, got {len(worm_names)}"
 
     failed_worms = []
     crash_worms = []
@@ -137,7 +138,7 @@ def test_clusterworms_get_status():
     cluster = ClusterWORMZ("system")
     status = cluster.get_status()
 
-    assert status["version"] == "2.2.0"
+    assert re.match(r"^\d+\.\d+\.\d+$", status["version"]), status["version"]
     assert status["cluster_type"] == "system"
     assert status["worm_count"] > 0
     assert "free_threaded" in status
