@@ -55,3 +55,16 @@ def test_persistence_shape():
     import CORE.MemoryBus as mb
     assert hasattr(mb, "MemoryBus")
     assert hasattr(mb.MemoryBus, "flush_local_queue")
+
+
+def test_abstention_gate_shape():
+    """contract: CA abstention helper (2026-09-29) — post-hoc, no retraining."""
+    from CORE.WORMS.expansion.spawn_credit import abstention_stats, WormOutcome
+    thin = {"a": WormOutcome(worm_type="a", n=3, ok=3)}
+    assert abstention_stats(thin)["abstain"] is True  # insufficient evidence
+    perfect = {"a": WormOutcome(worm_type="a", n=60, ok=60)}
+    s = abstention_stats(perfect)
+    assert s["abstain"] is True and s["reason"] == "uncalibrated_perfect"
+    mixed = {"a": WormOutcome(worm_type="a", n=60, ok=55)}
+    s = abstention_stats(mixed)
+    assert s["abstain"] is False and s["reason"] == "calibrated"
