@@ -901,3 +901,76 @@ The 4 attributed are `test_morph_bypass` (2, above) and `test_aoa_router_censore
 / `test_aoa_routing_telemetry` (2), which need `src/AOA/core/router.py` -- 418
 lines here against 678 in the mirror, missing `RoutingPolicy`, `select_arm` and
 `capability_index`. Nothing has been staged from any file another author has open.
+
+# 11. Web-search papers wired into the intermesh (2026-09-29 addendum)
+
+Three papers researched 2026-09-28/29, none previously referenced anywhere in
+the tree (verified: zero hits for all three arXiv ids before this addendum).
+Each maps to one concrete intermesh mechanism with file:line hooks. Status is
+stated per paper: SEED means the first hook landed, GATE means the enforcing
+mechanism is still open.
+
+## 11.1 PivoARL — pivotal-aware credit (`arXiv:2607.03702`, Guo et al.)
+
+Pivotal-Aware Self-Feedback Retry: failed trajectory → structured reflection
+finds the pivotal erroneous turn → local retry from that state, reusing the
+correct prefix. Pivotal-aware credit rewards the correct prefix and isolates
+the erroneous suffix (+11.5% Pass@2/3 over MetaRL, +45% over GiGPO on
+Minesweeper, −42% turns vs full retry).
+
+Intermesh mapping (credit path):
+
+| hook | file:line | status |
+|---|---|---|
+| `decision_id` join key minted | `src/CORE/WORMS/expansion/spawn_credit.py:293` | DONE (pre-existing) |
+| `decision_id` threaded through Cluster/CONCURRENCY emitters | `src/CORE/WORMS/CLUSTERWORMS.py:874,1217,1254`, `src/CORE/WORMS/CONCURRENCY.py:88,272` | SEED (2026-09-29) |
+| NATURE path stamps `did` per worm | `src/CORE/WORMS/NATURE_CLUSTERS.py:748` | DONE (pre-existing) |
+| standby excluded from `ok` (`WormOutcome.n_standby`) | `src/CORE/WORMS/expansion/spawn_credit.py:389,417` | SEED (2026-09-29) |
+| pivotal retry (retry from pivotal state, not full restart) | — | GATE (open: `decision_id` coverage is 0/44,846 live, so there is nothing to attach pivotal credit to yet) |
+
+## 11.2 Auto: The AGI Compiler (`arXiv:2607.04542`, Jaber & Jaber)
+
+Records live agent behavior, measures what is secretly deterministic, extracts
+verified programs/distilled specialists, emits WASM cognition binaries behind
+conformally calibrated guards; guard trip deopts to the reference agent and the
+trace recompiles. AUTO-BENCH: 87.1% of 560 spans witnessed-deterministic.
+Failure modes quantified: loose guard silently mislabels 48.9%; unfaithful
+deopt reference blocks recompilation. (Not AutoTVM/MetaSchedule — that was a
+wrong turn on 2026-09-28, corrected same night.)
+
+Intermesh mapping (verification path):
+
+| hook | file:line | status |
+|---|---|---|
+| grade row-gain check (executor cannot claim rows it did not write) | `src/CORE/neural_loop.py:529-538` | DONE (pre-existing) |
+| grade records `win_rate` + `n_standby` + `uncalibrated_perfect` | `src/CORE/neural_loop.py:533` | SEED (2026-09-29) |
+| promote requires attestation + quorum | `src/CORE/WORMS/expansion/spine.py:3658`, `src/CORE/spine_registry.py:492-495` | DONE (pre-existing) |
+| differential-replay gate before promotion (Auto's verification gate) | — | GATE (open: `uncalibrated_perfect` is evidence only, not a block) |
+| morph stages named signatures only (no `unknown` drip) | `src/CORE/WORMS/expansion/spine.py:3382` | SEED (2026-09-29, 91-stub drip stopped) |
+
+## 11.3 SAIL single transformer (`arXiv:2504.10462`, ByteDance-Seed, ICCV'25 Highlight)
+
+Single transformer over raw pixels + text (mixed attention, multimodal RoPE),
+no separate ViT; steeper data-scaling than modular MLLMs; doubles as vision
+backbone. SAIL-VL2 pairs SAILViT-Huge with Qwen3 backbones. (Note: `BSLM`
+alone resolves to the unrelated Bayesian Latent Space Model R package.)
+
+Intermesh mapping (architecture shape — already decided, now cited):
+
+| claim | file:line | status |
+|---|---|---|
+| keep modular tracks, unify routing context only (no joint co-training) | `research/STACK_TRACK_DESIGN.md:76-79` | DONE (pre-existing decision, cited 2026-09-29) |
+| diversity is the asset (`\|r\|` max 0.663–0.725, 109 pairs < 0.3, prune nothing) | `research/STACK_PHASE0_REPORT.md:6-12` | DONE (pre-existing) |
+| 22/26 natures no-contract → merge context, not policies | `RECONCILIATION_AND_INTERMESH_2026-09-28.md:242-262` | DONE (this doc) |
+
+## 11.4 What closes the two GATEs
+
+1. PivoARL gate closes when `decision_id` coverage is non-zero on the live tap
+   (choice rows and outcome rows sharing ids), at which point `joined_decisions`
+   (`spawn_credit.py:526-544`) becomes non-empty and per-decision pivotal
+   credit can replace Wilson-on-liveness.
+2. Auto gate closes when promotion/grade requires differential replay at
+   declared thresholds (measured, including refusals) with reference fidelity
+   — calibration and reference fidelity decide, per Auto §6, not model
+   capability. Free-Jev constraint holds throughout: no paid model calls are
+   part of either gate (`jev_advisor.py` stays fail-open).
