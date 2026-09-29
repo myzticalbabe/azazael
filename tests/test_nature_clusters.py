@@ -21,7 +21,8 @@ class TestNatureDefinitions(unittest.TestCase):
             self.assertIn(name, NATURE_DEFINITIONS)
 
     def test_at_least_15_natures(self):
-        self.assertGreaterEqual(len(NATURE_DEFINITIONS), 15)
+        # Floor tracks live NATURE_DEFINITIONS (26, 2026-09-29) with headroom.
+        self.assertGreaterEqual(len(NATURE_DEFINITIONS), 20)
 
 
 class TestNatureResult(unittest.TestCase):

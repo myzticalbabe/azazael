@@ -220,6 +220,13 @@ class TestWormInstantiationSmoke:
                   f"(disclosure whitepaper W-A1: 42 expected)")
             for f in no_summary[:15]:
                 print(f"    - {f}")
+        # Honest floor (2026-09-29): the registry guarantees get_summary via
+        # BaseWormMixin attach, so missing summaries are real regressions.
+        # 10% headroom absorbs legitimately summary-less probes; 6/250 today.
+        assert summary_ok > 0, f"0/{total} worms provide get_summary()"
+        assert len(no_summary) <= max(25, total // 10), (
+            f"{len(no_summary)}/{total} worms missing get_summary(): "
+            + ", ".join(f for f in no_summary[:8]))
 
 
 class TestWormCategoryCoverage:
