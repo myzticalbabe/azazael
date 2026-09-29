@@ -142,6 +142,7 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
     if sig.startswith("ed25519:"):
         # Ed25519 verification
         try:
+            from cryptography.exceptions import InvalidSignature
             from cryptography.hazmat.primitives.asymmetric import ed25519
             from cryptography.hazmat.primitives import serialization
             key_path = Path.home() / ".azazael" / "id_ed25519_gate"
@@ -151,8 +152,17 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
                 )
                 public_key = private_key.public_key()
                 sig_bytes = bytes.fromhex(sig.split(":", 1)[1])
-                public_key.verify(sig_bytes, payload)
-                valid_sig = True
+                # InvalidSignature is NOT a ValueError (it derives straight
+                # from Exception), so the outer tuple below never caught it: a
+                # tampered Ed25519 token made this function RAISE instead of
+                # returning `(False, "signature invalid")`. The nested try keeps
+                # the name bound before use, so the outer tuple cannot refer to
+                # an unimported symbol when `cryptography` is absent.
+                try:
+                    public_key.verify(sig_bytes, payload)
+                    valid_sig = True
+                except InvalidSignature:
+                    valid_sig = False
         except (ImportError, OSError, ValueError) as e:
             valid_sig = False
     elif sig.startswith("blake2b:"):
