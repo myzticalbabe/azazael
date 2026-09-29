@@ -824,3 +824,80 @@ Postgres memory backend has no coverage on this host.
 
 Evidence files: `logs/chunk1_skips.txt`, `logs/chunk6_skips.txt`,
 `logs/rest_skips.txt`, `logs/failed57.txt`, `logs/fail_lines.txt`.
+
+---
+
+## 10. Failure-triage batch 1 (2026-09-29)
+
+Batch 1 was the scoped run of the 24 open cases: **15 failed / 140 passed**
+(`logs/open_batch1.txt`). All 15 are now dispositioned: **13 fixed**, **2 attributed
+to another author's in-flight work**. Re-runs across every touched file: 123
+passed, 0 failed.
+
+### 10.1 Fixed (5 commits)
+
+| commit | fix | failures |
+|---|---|---|
+| `ab6d4921` | gate tokens could never verify (below) | 2 + 2 |
+| `1763e25c` | `reasoning_overhead` declared and applied (below) | 1 |
+| `16833a04` | `skipped_unresolvable` reported; fabric-stage set guard; `causal_emergence` `tie` | 4 |
+| `910f254d` | versioner write-on-change; `training_plateau` persisted | 2 |
+| `1a4bdbcd` | `load_model` validates the framework before the path | 2 |
+
+The two counts above the table are `request_auth` (2) plus `parallax_validator`
+(1) grouped under one cause, and `meta_escalation` (2) grouped under
+`16833a04`'s `tie`.
+
+### 10.2 Two production defects found while triaging tests
+
+Neither was a test defect, and both sat behind a test that could not pass:
+
+**The gate token could never verify.** `_ED25519_AVAILABLE` was initialised to
+`False`, which the "already tried and failed -- don't retry" guard cannot tell
+apart from "never tried", so `_get_ed25519_key()` returned `None` on its first
+call and the whole `try:` block -- key load AND key generation -- was
+unreachable. Ed25519 was never used. The BLAKE2b fallback then signed
+`blake2b(payload + os.urandom(16))` and returned the salt inside the signature,
+so a verifier recomputing the digest generated a *different* salt and never
+matched: `is_token_valid()` returned `False` for every token. That is a
+deny-everything gate, not a cosmetic failure. Fixed by making the flag tri-state
+and deriving the salt from the payload -- which also keeps the 3-part
+`blake2b:<digest>:<salt>` shape `parallax_validator.verify_token` parses, so the
+daemon's check still agrees.
+
+**A reasoning model's cap had no budget for its thinking.** The local
+llama-server entries document that chain-of-thought goes to `reasoning_content`
+and `content` stays EMPTY until it ends, so an unpadded cap is spent on thinking
+and the turn reads as blank. `reasoning_overhead` existed only as a name read by
+`azazael_operator_task.py` (outside this project), whose docstring claimed
+`providers.py` pads `max_tokens` by it -- which was false: no such field or pad
+existed anywhere in `src/`. Declared it on the qwopus entry and applied it in
+`OpenAIProvider._default_max_tokens()`, used by `chat()` and `chat_stream()`. An
+explicit caller cap is never padded.
+
+### 10.3 Attributed, not fixed -- another author's in-flight port
+
+`tests/test_morph_bypass.py` (untracked) requires `lr_ep0` / `lr_ep15` /
+`lr_ep30` to be in the round-robin candidate pool, and the 2 failures are real:
+the local pool holds only the 2 switch genes, so no novel candidate can exist.
+The feature exists in the **mirror** (`proteus_hooks.py` carries the 3 schedule
+genes, `learning_rl.py` carries `lr_ep0/15/30` and builds `lr_schedule` from
+them) but not in this tree -- and neither in `HEAD` (`git show
+HEAD:...learning_rl.py` has 0 occurrences). Both files are modified in the
+working tree by the concurrent author, so this is a mid-port state: **reported,
+not touched.** Adding the genes locally without the trainer kwargs would make
+`morph_trainer_kwargs` pass `lr_ep*` to a signature that does not accept it.
+
+### 10.4 Running tally of the original 57
+
+| disposition | count |
+|---|---|
+| fixed in the earlier session | 19 |
+| fixed in this batch | 13 |
+| attributed to the concurrent author's in-flight files | 4 |
+| still open | 21 |
+
+The 4 attributed are `test_morph_bypass` (2, above) and `test_aoa_router_censored`
+/ `test_aoa_routing_telemetry` (2), which need `src/AOA/core/router.py` -- 418
+lines here against 678 in the mirror, missing `RoutingPolicy`, `select_arm` and
+`capability_index`. Nothing has been staged from any file another author has open.
