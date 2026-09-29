@@ -1363,3 +1363,13 @@ Browser-verified: zero console errors, all 6 changes visually confirmed.
 
 **Pending:**
 - 79 hardcoded_win_path findings · 1,154 emoji backlog · telemetry generation (sentinel_enforcer block) · t_string scanner false positives
+
+---
+## Correction addendum — 2026-09-29 (stale worm/skill counts)
+- Header above says "226 worms/35 cats" (Sep-14): live `discover_worms()` now reports
+  **250 worms / 35 categories** (`src/CORE/worm_registry.py`). Prior dated claims:
+  77 (skill body), 91/17, 104/18 (`WORM_CONFIG_TRACE.md` scope, not registry),
+  184/27 (Sep-13 session), 220/35, 226/35, 232/36 (Sep-24 audit). Treat all as
+  point-in-time; re-run discovery for fresh numbers.
+- Skill counts: `SKILLS_CATALOG.md` regenerated this date — **1,234** table rows =
+  1,234 mirror dirs = 1,234 canonical files. Prior 1,224 / 1,259 claims superseded.

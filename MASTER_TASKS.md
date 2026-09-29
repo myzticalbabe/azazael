@@ -187,3 +187,11 @@ C7 (build_all_concurrent.py) ──> C12 (typo fix) ──> T3 (neural tier test
 - **3 indentation-critical files fixed**: `install_manager.py` (UnifiedInstaller), `rust_runner.py` (RustRunner), `go_runner.py` (GoRunner) — all method bodies were at class level
 - **mypy**: 1,466 → 1,248 errors (-218, -14.9%)
 - **pyright**: 1,976 → 1,224 errors (-752, -38.1% with pyrightconfig.json)
+
+---
+## Correction addendum — 2026-09-29 (stale counts)
+- T6 row above cites "226 worms, 35 categories" (verified 2026-09-14): live
+  `discover_worms()` now reports **250 worms / 35 categories**. Re-verify T6
+  against the live registry before running the integration test.
+- Skill counts: `SKILLS_CATALOG.md` regenerated this date — **1,234** table rows =
+  1,234 mirror dirs = 1,234 canonical files (prior 1,224 / 1,259 claims superseded).
