@@ -1,4 +1,7 @@
 # coding: utf-8
+import pytest
+
+pytestmark = pytest.mark.env
 """Tests for the 2026-09-16 mesh per-function audit findings and their fixes.
 
 Four groups:
