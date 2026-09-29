@@ -298,6 +298,49 @@ _Q_KEYS_MAX = 4096
 _PURGED_KEYS: Dict[str, str] = {}
 _PURGED_MAX = 4096
 
+# Evidence FLOORS, the same shape of fact as a tombstone but for a REDUCTION.
+#
+# Every read path merges counters with `max()`, which is what makes N parallel
+# hourly jobs composable instead of clobbering each other. It also means a
+# counter can never go down. `invalidate_q()` exists to discount evidence whose
+# cause was fixed -- and it was a complete no-op end-to-end: it set the count
+# in memory, journalled `q_invalidated`, emitted a spine event, and then
+# `save_spine_state()`'s `_merge_disk_state()` folded the old number back over
+# it. Reproduced 2026-09-29 on an isolated store:
+#
+#     invalidate_q said : evidence_to = 0
+#     in memory now     : n = 0
+#     after save (mem)  : n = 100
+#     on DISK           : n = 100
+#
+# So the journal and the monitors counted invalidations that did not happen.
+# A tombstone is the standard answer for a monotone store, and it already
+# exists for removal; this is the same idea for a reduction. Bounded, persisted,
+# and honoured on all three read paths (disk, load, gossip) so a peer cannot
+# resurrect a discounted count either.
+_Q_EVIDENCE_FLOOR: Dict[str, int] = {}
+_Q_EVIDENCE_FLOOR_MAX = 4096
+
+
+def _adopt_evidence(key: str, incoming: int) -> int:
+    """Monotone count adoption, clamped by any recorded evidence floor.
+
+    Returns the count the store should hold for `key`. The floor is a high
+    WATERMARK on how far the count may be restored, not a lock: a genuinely
+    newer observation raises the count above it on the next real update,
+    because `record_outcome()` writes through `_bump_evidence` rather than
+    through here.
+    """
+    try:
+        n = int(incoming)
+    except (TypeError, ValueError):
+        return _Q_UPDATE_COUNTS.get(key, 0)
+    cur = max(_Q_UPDATE_COUNTS.get(key, 0), n)
+    floor = _Q_EVIDENCE_FLOOR.get(key)
+    if floor is not None and cur > int(floor):
+        cur = int(floor)
+    return cur
+
 
 def _purged_blocked(key: str) -> bool:
     """True when `key` was deliberately removed and must not be re-adopted."""
@@ -1115,13 +1158,17 @@ def _merge_disk_state() -> None:
                         _Q_WEIGHTS[k] = max(_Q_MIN, min(_Q_MAX, float(w)))
                     except (TypeError, ValueError):
                         pass
-            for k, n in (payload.get("q_update_counts") or {}).items():
+            for k, n in (payload.get("q_evidence_floor") or {}).items():
                 if _purged_blocked(k):
                     continue
                 try:
-                    _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
+                    _Q_EVIDENCE_FLOOR[str(k)] = int(n)
                 except (TypeError, ValueError):
                     pass
+            for k, n in (payload.get("q_update_counts") or {}).items():
+                if _purged_blocked(k):
+                    continue
+                _Q_UPDATE_COUNTS[k] = _adopt_evidence(k, n)
             for k, var in (payload.get("q_variance") or {}).items():
                 if _purged_blocked(k):
                     continue
@@ -1989,6 +2036,14 @@ def invalidate_q(key: str, reason: str = "", factor: float = 0.5) -> Dict[str, A
         before_q = float(_Q_WEIGHTS.get(key, 0.0))
         before_eff = q_effective_from(before_q, before_n)
         new_n = int(before_n * f) if before_n else 0
+        # Record the reduction as a FACT, the way a purge records a removal.
+        # Without this the count is restored by the next read-path merge and
+        # the invalidation is a no-op that merely looks like one.
+        _Q_EVIDENCE_FLOOR[key] = new_n
+        if len(_Q_EVIDENCE_FLOOR) > _Q_EVIDENCE_FLOOR_MAX:
+            for k in list(_Q_EVIDENCE_FLOOR)[
+                    :len(_Q_EVIDENCE_FLOOR) - _Q_EVIDENCE_FLOOR_MAX]:
+                _Q_EVIDENCE_FLOOR.pop(k, None)
         _Q_UPDATE_COUNTS[key] = new_n
         after_eff = q_effective_from(before_q, new_n)
     try:
@@ -2492,6 +2547,7 @@ def save_spine_state() -> Dict[str, Any]:
             # get_q_updates(), whose entire purpose is telling a proven-neutral
             # key (weight 0.0, pulls > 0) from a starved one (both 0).
             q_update_counts = {k: int(v) for k, v in _Q_UPDATE_COUNTS.items()}
+            q_evidence_floor = {k: int(v) for k, v in _Q_EVIDENCE_FLOOR.items()}
             q_dream_counts = {k: int(v) for k, v in _Q_DREAM_COUNTS.items()}
             q_variance = {k: float(v) for k, v in _Q_VARIANCE.items()}
         with _POLICY_LOCK:
@@ -2516,6 +2572,7 @@ def save_spine_state() -> Dict[str, Any]:
             "homeostat": homeostat,
             "q_weights": q_weights,
             "q_update_counts": q_update_counts,
+            "q_evidence_floor": q_evidence_floor,
             "q_dream_counts": q_dream_counts,
             "q_variance": q_variance,
             # Deletion is a fact that has to be persisted, or the next merge
@@ -2617,13 +2674,17 @@ def load_spine_state() -> Dict[str, Any]:
             # Counts are monotone observations: take MAX so N parallel
             # save-then-exit processes compose instead of overwriting (same
             # rule as successes/failures in _merge_disk_state).
-            for k, n in (payload.get("q_update_counts") or {}).items():
+            for k, n in (payload.get("q_evidence_floor") or {}).items():
                 if _purged_blocked(k):
                     continue
                 try:
-                    _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
+                    _Q_EVIDENCE_FLOOR[str(k)] = int(n)
                 except (TypeError, ValueError):
                     pass
+            for k, n in (payload.get("q_update_counts") or {}).items():
+                if _purged_blocked(k):
+                    continue
+                _Q_UPDATE_COUNTS[k] = _adopt_evidence(k, n)
             for k, n in (payload.get("q_dream_counts") or {}).items():
                 if _purged_blocked(k):
                     continue
@@ -3630,10 +3691,9 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                 for k, n in remote_counts.items():
                     if _purged_blocked(k):
                         continue
-                    try:
-                        _Q_UPDATE_COUNTS[k] = max(_Q_UPDATE_COUNTS.get(k, 0), int(n))
-                    except (TypeError, ValueError):
-                        continue
+                    # Clamped by `_adopt_evidence`: a peer must not be able to
+                    # resurrect a count this env has explicitly invalidated.
+                    _Q_UPDATE_COUNTS[k] = _adopt_evidence(k, n)
 
         # Shared anomaly model. Only reached after the trust gate, so this is
         # an authenticated, non-replayed, key-pinned model — and it is

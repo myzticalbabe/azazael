@@ -313,8 +313,19 @@ def main() -> int:
         r = GemmaDriverWorm(timeout=90.0).rank_trials(
             cands, context="hourly mesh health probe", stats=stats or None)
         if r.get("order"):
-            order = r["order"]
-            log(f"curiosity: model-ranked {order} (src={r.get('src')})")
+            # `order` is MODEL OUTPUT and it becomes a destination name in the
+            # route ledger. Unfiltered, a hallucinated entry becomes a real
+            # key: the live ledger carried `route:windows>route` (2 successes)
+            # from exactly this path, dated 2026-09-17. Filter to the declared
+            # candidates before anything downstream can name a route.
+            ranked = [e for e in r["order"] if e in cands]
+            dropped = [e for e in r["order"] if e not in cands]
+            if dropped:
+                log(f"curiosity: dropped {len(dropped)} off-candidate(s) "
+                    f"from the ranked order: {dropped[:4]}")
+            if ranked:
+                order = ranked
+                log(f"curiosity: model-ranked {order} (src={r.get('src')})")
     except Exception as exc:
         log(f"curiosity: heuristic order ({str(exc)[:60]})")
     for dst in order[:2]:
@@ -348,8 +359,21 @@ def main() -> int:
                 ebpf = {"success": False, "error": (r.stderr or "empty")[:80]}
             n_alerts = len(ebpf.get("alerts", [])) if ebpf.get("success") else -1
             if n_alerts >= 0:
-                # success = quiet window; the 8s collection is the duration.
-                m.record_route_result(env, n_alerts == 0, 8000.0)
+                # An eBPF syscall-alert count is NOT an observation of whether
+                # this route delivers. It was being written into the shared
+                # `route:<src>><env>` key as a route verdict, with the 8s
+                # collection window hardcoded as if it were a route latency --
+                # which is exactly the alternating [95ms, 8000ms] history and
+                # the standing -1 on both wsl2 routes (forensic 2026-09-29).
+                # The homeostat still trains on kernel telemetry; it just does
+                # so under its own namespace, where it cannot move a route
+                # weight. This script runs HOURLY, so it was the dominant
+                # writer of the route ledger, not a side channel.
+                try:
+                    from CORE import spine_registry as _sr
+                    _sr.record_outcome("ebpf", env, n_alerts == 0, 8000.0)
+                except Exception as exc:
+                    log(f"ebpf: record failed ({str(exc)[:60]})")
                 log(f"ebpf: {env} comms={(ebpf.get('comms'))} alerts={n_alerts}")
                 try:
                     with open("C:/Users/clint/azazael/output/ebpf_rates.jsonl",

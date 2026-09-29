@@ -174,6 +174,11 @@ class MeshRouterWorm:
 
     VERSION = "1.1.0"
 
+    #: Destination names that collide with a homeostat namespace. A route to
+    #: one of these is never a real observation -- it is a name that arrived
+    #: from somewhere that was not thinking about the ledger's key shape.
+    _RESERVED_ENV_NAMES = frozenset({"route", "ebpf", "telemetry"})
+
     # Persisted operational state (audit 2026-09-15, finding #7).
     PROVIDER = "MeshRouterWorm"
     _STATE_ATTRS = ("_routes",)
@@ -183,6 +188,11 @@ class MeshRouterWorm:
         self._routes: dict = {}
         self._lock = threading.Lock()
         self._env = _env_id()
+        # Count of outcomes the transport reported UNLEARNABLE (refused /
+        # timeout / reset). Not persisted: it is a per-process observability
+        # counter, and the durable count of the same thing is the ledger's
+        # `censored` bucket (see record_route_result).
+        self._env_errors = 0
         hydrate(self, self.PROVIDER, self._STATE_ATTRS)
 
     @staticmethod
@@ -268,12 +278,44 @@ class MeshRouterWorm:
             return {"success": False, "error": str(exc)[:120]}
 
     def record_route_result(self, dst_env: str, success: bool,
-                            duration_ms: float = 0.0) -> None:
-        """Feed a route outcome into the brainstem (route learning)."""
+                            duration_ms: float = 0.0,
+                            censored: bool = False,
+                            error: str | None = None) -> None:
+        """Feed a route outcome into the brainstem (route learning).
+
+        ``censored=True`` marks an outcome that is NOT an observation of the
+        route: a refused connection because no listener was running, a timeout
+        in an unrelated subsystem, a reset. A missing listener is not a bad
+        route. Such an outcome is counted in its own bucket and changes
+        nothing else -- no success/failure counter (it would poison fail-rate
+        stats), no Q update, no consec_fail reflex.
+
+        This is the ONLY seam through which route outcomes reach the ledger.
+        The censored case used to call ``record_outcome`` inline instead of
+        coming through here, so the censored half of the traffic bypassed
+        every hook on this method. Measured 2026-09-29: zero `censored`
+        counters across all 492 live ledger entries, against 180 recorded
+        route failures -- the mechanism existed, was documented, and had never
+        executed even once.
+        """
         try:
             from CORE import spine_registry as _spine
-            _spine.record_outcome("route", f"{self._env}>{dst_env}",
-                                  bool(success), float(duration_ms))
+            src = str(self._env or "").strip()
+            dst = str(dst_env or "").strip()
+            # A route key is `route:<src>><dst>`, so an empty dst -- or one that
+            # already contains '>' -- yields a key no reader can parse back into
+            # a route. A dst that collides with a ledger namespace is also always
+            # a mistake: `route:windows>route` sat in the live ledger with 2
+            # successes, created when a model-ranked environment name reached
+            # this seam unvalidated. Refuse the write rather than mint a key
+            # that only looks like a route. (The upstream fix is the candidate
+            # filter in scripts/spine_cycle_apply.py; this is the backstop.)
+            if (not src or not dst or ">" in src or ">" in dst
+                    or dst in self._RESERVED_ENV_NAMES):
+                return
+            _spine.record_outcome("route", f"{src}>{dst}",
+                                  bool(success), float(duration_ms),
+                                  error=error, censored=censored)
         except Exception:
             pass  # learning is best-effort; routing must not fail on it
 
@@ -282,7 +324,13 @@ class MeshRouterWorm:
         """Score via route(), deliver bytes via MeshTransport, learn outcome.
 
         This is the data-plane counterpart to route(): same scoring dict
-        plus delivery proof. The Q-table learns real successes/failures.
+        plus delivery proof. The Q-table learns real successes/failures --
+        but NEVER infrastructure noise: when the transport reports the
+        outcome unlearnable (env_error: refused, timeout, reset -- a missing
+        listener is not a bad route), the outcome is CENSORED into its own
+        bucket instead of recorded as a failure (2026-09-28; the transport
+        has typed every result since the 2026-09-27 audit, and send() was
+        ignoring the types and poisoning routes with -1s for dead peers).
         """
         import time as _time
         scored = self.route(dst_env, payload)
@@ -292,13 +340,36 @@ class MeshRouterWorm:
             res = MeshTransport(self._env).send(dst_env, payload,
                                                 timeout=timeout)
         except Exception as e:
-            res = {"success": False, "error": str(e)[:120]}
-        self.record_route_result(
-            dst_env, bool(res.get("success")),
-            duration_ms=(_time.time() - t0) * 1000.0)
+            res = {"success": False, "error": str(e)[:120],
+                   "status": "env_error", "learnable": False}
+        learnable = bool(res.get("learnable", True))
+        status = res.get("status") or ("delivered" if res.get("success")
+                                       else "peer_rejected")
+        duration_ms = (_time.time() - t0) * 1000.0
+        if learnable:
+            self.record_route_result(
+                dst_env, bool(res.get("success")), duration_ms=duration_ms)
+        else:
+            # Infrastructure noise, not a route verdict. Counted (censored),
+            # surfaced as a spine event, and deliberately NOT recorded as a
+            # failure -- the error text rides the event rather than the
+            # censored bucket so the bucket stays a pure count.
+            self._env_errors += 1
+            self.record_route_result(
+                dst_env, False, duration_ms=duration_ms, censored=True)
+            try:
+                from CORE import spine_registry as _spine
+                _spine.record_spine_event("route_env_error", {
+                    "src": self._env, "dst": dst_env,
+                    "status": status,
+                    "error": str(res.get("error") or "")[:120],
+                    "ms": round(duration_ms, 2)})
+            except Exception:
+                pass
         scored.update({"delivered": bool(res.get("success")),
                        "receipt": res.get("receipt"),
-                       "error": res.get("error")})
+                       "error": res.get("error"),
+                       "status": status, "learned": learnable})
         return scored
 
     def get_routing_table(self) -> dict:

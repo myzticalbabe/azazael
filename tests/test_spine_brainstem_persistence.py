@@ -21,6 +21,7 @@ full of evidence.
 State is isolated to a tmp dir so the developer's real
 `~/.azazael/spine_state.json` is never touched.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -294,3 +295,104 @@ def test_gossip_weight_without_evidence_cannot_displace_our_ledger():
         assert res["q_weights"] == 0
     finally:
         os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+# ── invalidate_q must survive the save path (forensic 2026-09-29) ───────
+#
+# Every read path merges counters with `max()` so N parallel save-then-exit
+# jobs compose instead of clobbering each other. That same rule means a count
+# can never go DOWN -- so `invalidate_q()`, whose entire job is discounting
+# evidence whose cause was fixed, was a complete no-op end-to-end. It set the
+# count in memory, journalled `q_invalidated` and emitted a spine event, and
+# then `save_spine_state()`'s `_merge_disk_state()` folded the old number back
+# over it. Reproduced on an isolated store before the fix:
+#
+#     invalidate_q said : evidence_to = 0
+#     in memory now     : n = 0
+#     after save (mem)  : n = 100
+#     on DISK           : n = 100
+#
+# The journal and the monitors were counting invalidations that did not happen.
+
+def test_an_invalidation_survives_the_save_it_rides_on():
+    sr._Q_WEIGHTS["route:windows>wsl2-ubuntu"] = -0.9
+    sr._Q_UPDATE_COUNTS["route:windows>wsl2-ubuntu"] = 100
+    sr._HOMEOSTAT["route:windows>wsl2-ubuntu"] = {"successes": 10, "failures": 90}
+    sr.save_spine_state()
+
+    r = sr.invalidate_q("route:windows>wsl2-ubuntu", reason="cause fixed",
+                        factor=0.0)
+    assert r["evidence_to"] == 0, "the invalidation did not compute"
+
+    sr.save_spine_state()
+    assert sr._Q_UPDATE_COUNTS["route:windows>wsl2-ubuntu"] == 0, \
+        "save_spine_state() restored the invalidated count in memory"
+    on_disk = json.loads(sr._STATE_FILE.read_text(encoding="utf-8"))
+    assert on_disk["q_update_counts"]["route:windows>wsl2-ubuntu"] == 0, \
+        "the invalidation did not reach disk"
+
+
+def test_a_restart_does_not_resurrect_an_invalidated_count():
+    sr._Q_WEIGHTS["route:a>b"] = -0.5
+    sr._Q_UPDATE_COUNTS["route:a>b"] = 40
+    sr.save_spine_state()
+    sr.invalidate_q("route:a>b", reason="cause fixed", factor=0.0)
+    sr.save_spine_state()
+
+    sr.spine_reset()
+    sr._ensure_loaded()
+    assert sr._Q_UPDATE_COUNTS.get("route:a>b", 0) == 0, \
+        "a restart restored the invalidated count"
+
+
+def test_a_peer_cannot_resurrect_an_invalidated_count():
+    """Gossip is the third read path, and it must honour the floor too.
+
+    Uses the file's real `_peer_payload` shape: a bare dict with `env` and no
+    `q_weights` is rejected by the merge's own type guard, so it would pass
+    against any implementation and pin nothing.
+    """
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        sr._Q_WEIGHTS["route:a>b"] = -0.5
+        sr._Q_UPDATE_COUNTS["route:a>b"] = 40
+        sr.invalidate_q("route:a>b", reason="cause fixed", factor=0.0)
+        assert sr._Q_UPDATE_COUNTS["route:a>b"] == 0
+
+        res = sr.merge_spine_gossip(_peer_payload(
+            q_weights={"route:a>b": -0.5},
+            q_update_counts={"route:a>b": 40}))
+        assert res["merged"] is True, "the payload never merged, so nothing was tested"
+        assert sr._Q_UPDATE_COUNTS["route:a>b"] == 0, \
+            "a peer resurrected a count this env explicitly invalidated"
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+def test_a_peer_can_still_contribute_a_fresh_count():
+    """The floor is per-key, so it must not mute unrelated keys."""
+    import os
+    os.environ["AZAZAEL_GOSSIP_POLICY"] = "off"
+    try:
+        sr._Q_UPDATE_COUNTS["route:a>b"] = 40
+        sr.invalidate_q("route:a>b", reason="cause fixed", factor=0.0)
+        res = sr.merge_spine_gossip(_peer_payload(
+            q_weights={"route:c>d": 0.5},
+            q_update_counts={"route:c>d": 12}))
+        assert res["merged"] is True
+        assert sr._Q_UPDATE_COUNTS.get("route:c>d", 0) == 12, \
+            "the floor leaked onto a key that was never invalidated"
+    finally:
+        os.environ.pop("AZAZAEL_GOSSIP_POLICY", None)
+
+
+def test_a_real_observation_still_raises_the_count():
+    """The floor is a watermark on restoration, not a lock on learning."""
+    sr._Q_WEIGHTS["route:a>b"] = -0.5
+    sr._Q_UPDATE_COUNTS["route:a>b"] = 40
+    sr.invalidate_q("route:a>b", reason="cause fixed", factor=0.0)
+    for _ in range(3):
+        sr.record_outcome("route", "a>b", True, 5.0)
+    assert sr._Q_UPDATE_COUNTS["route:a>b"] == 3, \
+        "the floor froze the count against genuine new evidence"
