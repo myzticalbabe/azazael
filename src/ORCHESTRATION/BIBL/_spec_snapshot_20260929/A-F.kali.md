@@ -1,4 +1,4 @@
----
+﻿---
 title: Azazael Lexicon A-F
 version: 1.0.0
 last_updated: 2026-02-11
@@ -196,10 +196,10 @@ status: DRAFT
 **File:** `ml_platforms/universal_converter.py`
 
 **Supported Conversions:**
-- GGUF → PyTorch
-- GGUF → TensorFlow
-- GGUF → ONNX
-- GGUF → JAX
+- GGUF â†’ PyTorch
+- GGUF â†’ TensorFlow
+- GGUF â†’ ONNX
+- GGUF â†’ JAX
 
 **See Also:**
 - [GGUF](G-L.md#gguf)
@@ -604,7 +604,7 @@ result = benchmark.run_full_benchmark()
 
 **Calculation:**
 ```
-Success Rate = Successful Runs / Total Runs × 100%
+Success Rate = Successful Runs / Total Runs Ã— 100%
 ```
 
 **Targets:**
