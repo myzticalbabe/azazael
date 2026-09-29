@@ -321,6 +321,47 @@ _PURGED_MAX = 4096
 _Q_EVIDENCE_FLOOR: Dict[str, int] = {}
 _Q_EVIDENCE_FLOOR_MAX = 4096
 
+# The same idea one level down, for the homeostat's own counters.
+#
+# 2026-09-29. Three monotone stores, three resets that reported success and
+# did not happen: `purge_fixtures` (fixed by tombstoning), `invalidate_q`
+# (fixed by the evidence floor above), and now `successes` / `failures` --
+# still bare. `_merge_disk_state` adopts those two with `max()`, so a reset to
+# zero is less than the value already on disk and loses on the very next save.
+# MEASURED on the live ledger: the 09-29 purge set
+# `route:windows>mesh` to 0/0, journalled "successes: 5, failures: 0" as
+# removed, and the next load reported 5/0 again with the journal still
+# claiming the reset. The false data survived its own removal AND the audit
+# trail asserted it had gone, which is worse than either alone.
+#
+# A watermark on the two counter fields, mirroring `_Q_EVIDENCE_FLOOR` rather
+# than inventing a second mechanism. When a key has an entry here, the
+# incoming disk value for those fields is not admissible: the floor is a
+# record that the counter was deliberately reset, and max()-ing against a
+# value the operator has already disowned is how the reset disappears.
+# A genuine new observation still raises the counter, because
+# `record_outcome()` writes through and never consults this.
+_COUNTER_FLOOR: Dict[str, Dict[str, int]] = {}
+_COUNTER_FLOOR_MAX = 4096
+
+
+def _adopt_counter(key: str, field: str, incoming: int, current: int) -> int:
+    """Monotone counter adoption, clamped by any recorded counter floor.
+
+    Same shape as `_adopt_evidence` and for the same reason: the fold-in runs
+    before every write, so without a recorded floor a reset is indistinguishable
+    from stale data and the larger of the two always wins.
+    """
+    try:
+        n = int(incoming)
+    except (TypeError, ValueError):
+        return current
+    cur = max(int(current), n)
+    floor = (_COUNTER_FLOOR.get(key) or {}).get(field)
+    if floor is not None and cur > int(floor):
+        cur = int(floor)
+    return cur
+
 
 def _adopt_evidence(key: str, incoming: int) -> int:
     """Monotone count adoption, clamped by any recorded evidence floor.
@@ -1123,8 +1164,17 @@ def _merge_disk_state() -> None:
         with _HOMEOSTAT_LOCK:
             # Tombstones first, so a purge recorded in a previous session
             # blocks re-adoption in this one.
-            for k in (payload.get("purged_keys") or {}):
-                _PURGED_KEYS.setdefault(str(k), "fixture")
+            #
+            # The recorded reason is carried across, not replaced with
+            # "fixture". A tombstone is the only place the ledger says WHY a
+            # key is gone, and a restart used to overwrite that with a word
+            # that means "this was synthetic test data": a key capped at
+            # capacity came back labelled synthetic, and so did one purged for
+            # a manufactured penalty. Nothing resurrected -- `_purged_blocked`
+            # does not read the value -- so this was provenance loss alone,
+            # and provenance is the whole claim this table makes.
+            for k, why in (payload.get("purged_keys") or {}).items():
+                _PURGED_KEYS.setdefault(str(k), str(why or "fixture"))
             for k, n in (payload.get("q_dream_counts") or {}).items():
                 if _purged_blocked(k):
                     continue
@@ -1141,7 +1191,8 @@ def _merge_disk_state() -> None:
                     continue
                 for f in ("successes", "failures"):
                     try:
-                        cur[f] = max(int(cur.get(f, 0)), int(v.get(f, 0)))
+                        cur[f] = _adopt_counter(
+                            k, f, int(v.get(f, 0)), int(cur.get(f, 0)))
                     except (TypeError, ValueError):
                         pass
                 if _stamp_newer(_rec_stamp(v, "last_at"),
@@ -1163,6 +1214,15 @@ def _merge_disk_state() -> None:
                     continue
                 try:
                     _Q_EVIDENCE_FLOOR[str(k)] = int(n)
+                except (TypeError, ValueError):
+                    pass
+            for k, floors in (payload.get("counter_floor") or {}).items():
+                if _purged_blocked(str(k)) or not isinstance(floors, dict):
+                    continue
+                try:
+                    _COUNTER_FLOOR[str(k)] = {
+                        f: int(n) for f, n in floors.items()
+                        if f in ("successes", "failures")}
                 except (TypeError, ValueError):
                     pass
             for k, n in (payload.get("q_update_counts") or {}).items():
@@ -2069,6 +2129,81 @@ def invalidate_q(key: str, reason: str = "", factor: float = 0.5) -> Dict[str, A
             "reason": str(reason or "")[:120]}
 
 
+def reset_counters(key: str, reason: str = "") -> Dict[str, Any]:
+    """Zero a key's success/failure counters and make the zero stick.
+
+    For a record whose counters cannot be trusted -- the 09-29 case was one
+    `hist_ms` series holding an interleaved mix of an eBPF alert count and
+    real route probes, written by the same caller into the same fields, so the
+    two cannot be separated and only discarded.
+
+    Assigning zero is not enough and never was. `_merge_disk_state` folds the
+    file in with `max()` on both fields before every write, so a zero loses to
+    the value already on disk and the next save puts the disowned count back.
+    The reset has to leave a record, exactly as a purge leaves a tombstone and
+    `invalidate_q` leaves an evidence floor. This is that record, and it is
+    journalled -- a reset that cannot be shown to have happened is the same
+    defect as one that did not happen.
+    """
+    _ensure_loaded()
+    key = str(key or "")
+    if not key:
+        return {"success": False, "error": "key required"}
+    with _HOMEOSTAT_LOCK:
+        rec = _HOMEOSTAT.get(key)
+        before = {f: int((rec or {}).get(f) or 0)
+                  for f in ("successes", "failures")}
+        if rec is not None:
+            for f in ("successes", "failures"):
+                rec[f] = 0
+            rec["consec_fail"] = 0
+        _COUNTER_FLOOR[key] = {"successes": 0, "failures": 0}
+        if len(_COUNTER_FLOOR) > _COUNTER_FLOOR_MAX:
+            for k in list(_COUNTER_FLOOR)[
+                    :len(_COUNTER_FLOOR) - _COUNTER_FLOOR_MAX]:
+                _COUNTER_FLOOR.pop(k, None)
+    try:
+        journal_policy("purge", "counters_reset", key, {
+            "before": before, "after": {"successes": 0, "failures": 0},
+            "reason": str(reason or "")[:200]})
+    except Exception:
+        pass
+    try:
+        record_spine_event("counters_reset", {
+            "key": key, "before": before,
+            "reason": str(reason or "")[:200]})
+    except Exception:
+        pass
+    return {"success": True, "key": key, "before": before,
+            "after": {"successes": 0, "failures": 0},
+            "reason": str(reason or "")[:200]}
+
+
+def counter_floor_report() -> Dict[str, Any]:
+    """Which keys carry a recorded counter reset, and where each one stands.
+
+    Reports `resets_in_force`, not a suppressed total. The number of
+    observations a floor kept out of the ledger is not recoverable afterwards
+    -- the clamp discards the incoming value, so by the time anything reads
+    this there is no "before" left to subtract, and a total computed from the
+    floor alone would be 0 for every key whether the reset worked or the fold-in
+    quietly won. That distinction is the one a reader needs, so the pre-reset
+    value goes to the policy journal in `reset_counters`, where it is a fact
+    about a moment rather than a number that drifts.
+    """
+    _ensure_loaded()
+    with _HOMEOSTAT_LOCK:
+        rows = {}
+        for key, floors in sorted(_COUNTER_FLOOR.items()):
+            rec = _HOMEOSTAT.get(key) or {}
+            current = {f: int(rec.get(f) or 0)
+                       for f in ("successes", "failures")}
+            rows[key] = {"floor": dict(floors), "current": current,
+                         "at_floor": all(current.get(f) == int(floors.get(f, 0))
+                                         for f in ("successes", "failures"))}
+    return {"resets_in_force": len(rows), "keys": rows}
+
+
 def _is_fixture_key(key: str) -> bool:
     """True when a key addresses a declared synthetic worm."""
     nature, _, worm = str(key or "").partition(":")
@@ -2323,6 +2458,25 @@ def cap_q_tables() -> int:
     that reports ``dropped=3`` while the table stays at 6 is worse than no cap:
     it makes the bound look enforced. Each dropped key is now tombstoned before
     the save can re-adopt it.
+
+    2026-09-29 correction: ranking purely by evidence made this cap the exact
+    undoing of `invalidate_q`. Discounting a key's evidence to zero IS what
+    makes it rank first for eviction, so "the evidence behind this is stale"
+    and "this key is the cheapest thing in the table to lose" are the same
+    statement -- and the second one is false for a floored key, whose whole
+    point is to be KEPT with its history marked stale. MEASURED on the live
+    ledger: `invalidate_q("route:windows>wsl2-ubuntu", factor=0.0)` returned
+    `evidence 259 -> 0, q_effective -0.3196 -> 0.0` and the key was still
+    present, so the discount read as a success; the next `cap_q_tables()`
+    evicted it whole and tombstoned it `"capped"`. The same call on
+    `route:windows>wsl2-kali` destroyed 10 genuine ~95ms latency samples
+    alongside the fabricated 8000.0 ones the discount was meant to discount.
+    The invalidation had to remove a false penalty, not the record of it.
+
+    A floored key now sorts AFTER every unfloored one, so it is evicted only
+    when the table is over the bound and there is nothing else to take, and the
+    event reports how many of the dropped were floored rather than letting a
+    bound-enforcing save quietly eat the operator's own decisions.
     """
     dropped = 0
     gone: List[str] = []
@@ -2330,8 +2484,15 @@ def cap_q_tables() -> int:
         with _HOMEOSTAT_LOCK:
             if len(_Q_WEIGHTS) <= _Q_KEYS_MAX:
                 return 0
+            # Floored keys sort LAST (True > False), not first. See the
+            # 2026-09-29 note above: a floored key is discounted ON PURPOSE,
+            # and ranking by evidence alone made the discount an eviction
+            # order. `in` is read outside the key function's sort so the
+            # floor table is not re-probed per comparison.
+            floored = frozenset(_Q_EVIDENCE_FLOOR)
             ranked = sorted(_Q_WEIGHTS,
-                            key=lambda k: (_evidence_unlocked(k),
+                            key=lambda k: (k in floored,
+                                           _evidence_unlocked(k),
                                            abs(float(_Q_WEIGHTS.get(k, 0.0)))))
             dropped = len(_Q_WEIGHTS) - _Q_KEYS_MAX
             gone = [str(k) for k in ranked[:dropped]]
@@ -2349,9 +2510,15 @@ def cap_q_tables() -> int:
         for k in list(_PURGED_KEYS)[:len(_PURGED_KEYS) - _PURGED_MAX]:
             _PURGED_KEYS.pop(k, None)
     if dropped:
+        # Reported, not swallowed: a cap that had to eat a floored key is
+        # still enforcing the bound, but the operator needs to know the
+        # eviction cost a recorded decision rather than a stale value.
+        dropped_floored = sum(1 for k in gone if k in _Q_EVIDENCE_FLOOR)
         try:
             record_spine_event("q_tables_capped", {"dropped": dropped,
                                                   "tombstoned": len(gone),
+                                                  "dropped_floored":
+                                                      dropped_floored,
                                                   "keys": len(_Q_WEIGHTS),
                                                   "bound": _Q_KEYS_MAX})
         except Exception:
@@ -2548,6 +2715,8 @@ def save_spine_state() -> Dict[str, Any]:
             # key (weight 0.0, pulls > 0) from a starved one (both 0).
             q_update_counts = {k: int(v) for k, v in _Q_UPDATE_COUNTS.items()}
             q_evidence_floor = {k: int(v) for k, v in _Q_EVIDENCE_FLOOR.items()}
+            counter_floor = {k: {f: int(n) for f, n in v.items()}
+                             for k, v in _COUNTER_FLOOR.items()}
             q_dream_counts = {k: int(v) for k, v in _Q_DREAM_COUNTS.items()}
             q_variance = {k: float(v) for k, v in _Q_VARIANCE.items()}
         with _POLICY_LOCK:
@@ -2573,6 +2742,7 @@ def save_spine_state() -> Dict[str, Any]:
             "q_weights": q_weights,
             "q_update_counts": q_update_counts,
             "q_evidence_floor": q_evidence_floor,
+            "counter_floor": counter_floor,
             "q_dream_counts": q_dream_counts,
             "q_variance": q_variance,
             # Deletion is a fact that has to be persisted, or the next merge
@@ -2648,8 +2818,9 @@ def load_spine_state() -> Dict[str, Any]:
             if len(_SPINE_EVENTS) > _SPINE_EVENTS_MAX:
                 del _SPINE_EVENTS[:len(_SPINE_EVENTS) - _SPINE_EVENTS_MAX]
         with _HOMEOSTAT_LOCK:
-            for k in (payload.get("purged_keys") or {}):
-                _PURGED_KEYS.setdefault(str(k), "fixture")
+            # Reason preserved on reload -- see `_merge_disk_state`.
+            for k, why in (payload.get("purged_keys") or {}).items():
+                _PURGED_KEYS.setdefault(str(k), str(why or "fixture"))
             for k, v in homeostat.items():
                 if _purged_blocked(k):
                     continue
@@ -2679,6 +2850,15 @@ def load_spine_state() -> Dict[str, Any]:
                     continue
                 try:
                     _Q_EVIDENCE_FLOOR[str(k)] = int(n)
+                except (TypeError, ValueError):
+                    pass
+            for k, floors in (payload.get("counter_floor") or {}).items():
+                if _purged_blocked(str(k)) or not isinstance(floors, dict):
+                    continue
+                try:
+                    _COUNTER_FLOOR[str(k)] = {
+                        f: int(n) for f, n in floors.items()
+                        if f in ("successes", "failures")}
                 except (TypeError, ValueError):
                     pass
             for k, n in (payload.get("q_update_counts") or {}).items():
@@ -2858,6 +3038,13 @@ def spine_reset() -> None:
         # adaptive alpha from data the weights no longer had (2026-09-15).
         _Q_UPDATE_COUNTS.clear()
         _Q_VARIANCE.clear()
+        # The recorded decisions about the counters have to go with them. Left
+        # behind, a floor outlives every key it clamps: the table reads empty
+        # and `spine_reset` still claims a discount that nothing can be
+        # measured against, which is the same empty-of-values/full-of-
+        # evidence state the comment above was written about -- one level up.
+        _Q_EVIDENCE_FLOOR.clear()
+        _COUNTER_FLOOR.clear()
     with _SCAR_LOCK:
         _SCARS.clear()
     with _POLICY_LOCK:
