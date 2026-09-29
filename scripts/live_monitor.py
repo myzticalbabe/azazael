@@ -1555,6 +1555,78 @@ def _fit(s, width):
     return "".join(out)
 
 
+def _control_line(data):
+    """Return the first-frame control-plane summary for the wallboard.
+
+    The monitor is read-only, so it must not imply that a fresh-looking value is
+    live merely because the renderer refreshed.  This line makes the evidence
+    boundary explicit before the detailed panels.
+
+    Banner contract (pinned by tests/test_terminal_monitor_controls.py, shared
+    with the AOA banner and the split-out epistemic-tier viewer's banner): the
+    loop-evidence summary is always shown (`loops N/M current`, or `loop
+    evidence unknown` when there is no evidence at all), and `next=` is the
+    OPERATOR ACTION slot. The controller rewrite put the scheduler's next job
+    name there, which answers "what will the system do" while the reader is
+    looking at a DEGRADED banner for "what do I do" -- and in narrow windows
+    `_fit` truncates exactly that tail away.
+    """
+    fresh = data.get("freshness") or []
+    current = sum(1 for row in fresh if row.get("ok"))
+    stale = len(fresh) - current
+    if not fresh:
+        state, colour = "UNKNOWN", C_YEL
+        evidence = "loop evidence unknown"
+        action = "refresh scheduler/producers"
+    elif stale:
+        state, colour = "DEGRADED", C_RED
+        evidence = f"loops {current}/{len(fresh)} current"
+        action = "refresh scheduler/producers"
+    else:
+        state, colour = "LIVE", C_GRN
+        evidence = f"loops {current}/{len(fresh)} current"
+        action = "continue observing evidence"
+
+    # Control-plane state is read from the replacement controller itself. The
+    # monitor is intentionally read-only: it never calls fire() or a job.
+    #
+    # The import is deliberately LAZY. `chain_controller` sits beside this
+    # script and is on sys.path when the wallboard is launched, but this module
+    # is also loaded straight from its path by tests that never add scripts/ to
+    # sys.path -- a module-level import made those loads raise
+    # ModuleNotFoundError, trading a missing banner for a missing module. On a
+    # failed import the same degraded controller dict is used, so the banner is
+    # always printable and never claims knowledge it does not have.
+    try:
+        import chain_controller  # noqa: E402
+        controller = chain_controller.status()
+    except Exception as exc:
+        controller = {"task_state": "unknown", "heartbeat": {"status": "MISSING"},
+                      "jobs": {}, "scheduler_mutated": False, "error": str(exc)[:60]}
+    task_state = str(controller.get("task_state") or "unknown")
+    heartbeat = controller.get("heartbeat") or {}
+    hb_state = str(heartbeat.get("status") or "MISSING")
+    hb_age = heartbeat.get("age_s")
+    hb_text = hb_state if hb_age is None else f"{hb_state}@{float(hb_age) / 60:.1f}m"
+    jobs = controller.get("jobs") or {}
+    selected = jobs.get("selected") or "none"
+    owner = controller.get("owner") or {}
+    owner_pid = owner.get("pid")
+    owner_text = f"{owner_pid}{'*' if owner.get('current') else ''}" if owner_pid else "none"
+    pulse = controller.get("last_heartbeat") or {}
+    phase = str(pulse.get("event") or "unknown")
+    active_job = str(pulse.get("selected") or selected)
+    last_fire = controller.get("last_fire") or {}
+    last_job = str(last_fire.get("job") or "none")
+    last_ok = last_fire.get("result", {}).get("ok")
+    last_text = f"{last_job}:{last_ok}" if last_job != "none" else "none"
+    mutated = "false" if controller.get("scheduler_mutated") is False else "unknown"
+    return (f"{C_BLD}CONTROL {colour}{state}{C_RST}  {evidence}  next={action}  "
+            f"ctrl=present sched={task_state} job={selected} "
+            f"owner={owner_text} phase={phase}/{active_job} "
+            f"hb={hb_text} last={last_text} mut={mutated}")
+
+
 def render(data, now):
     """Fixed-frame one-screen wallboard (2026-09-09 redesign).
 
