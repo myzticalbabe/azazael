@@ -217,6 +217,44 @@ class ScheduledTrainingWorm:
 
     # -- Main Execution ----------------------------------------------
 
+    def _record_plateau(self, reason: str) -> None:
+        """Persist a `training_plateau` row for a run that declined to retrain.
+
+        Written from `execute()` only. `_plateau_skip_reason()` is READ-ONLY on
+        purpose (its callers include observation paths), so a bare call to the
+        detector must not mutate history -- the operator asked a question, they
+        did not start a run.
+
+        The skip used to be visible only as stdout: the cycle printed SKIPPED
+        and wrote nothing, so `get_status()` and the next run could not see the
+        decision and the plateau signal was unpersisted evidence. Fails
+        silently, because a telemetry write must never turn a deliberate skip
+        into a crash.
+        """
+        try:
+            store = self._get_store()
+            if store is None:
+                return
+            episodes = int(getattr(self.config, "n_episodes", 0) or 0)
+            try:
+                recent = store.query_memories(event_type="training_run_complete",
+                                             limit=1)
+                if recent:
+                    d = recent[0].get("data", {})
+                    if isinstance(d, str):
+                        import json as _json
+                        d = _json.loads(d)
+                    episodes = int(d.get("episodes", episodes) or episodes)
+            except Exception:
+                pass
+            store.record_event(
+                source="ScheduledTrainingWorm", event_type="training_plateau",
+                data={"reason": reason, "episodes": episodes,
+                      "exploration_trigger": True},
+                severity="info", tags=["training", "plateau"])
+        except Exception:
+            pass
+
     def _plateau_skip_reason(self) -> Optional[str]:
         """Skip retraining when converged on unchanged data (learned knowledge).
 
@@ -297,6 +335,7 @@ class ScheduledTrainingWorm:
             self._run_history.append(_skipped_run)
             if len(self._run_history) > 50:
                 self._run_history = self._run_history[-50:]
+            self._record_plateau(skip_reason)
             return _skipped_run
 
         _synthetic = False  # bound before try: exception paths below read it
