@@ -173,19 +173,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith("/api"):
-            con = lm.db_connect()
-            if con is None:
+            # Served through the shared cache: browsers poll this endpoint, and
+            # opening a fresh SQLite connection plus a full collect per request
+            # meant N open tabs drove N full collections per interval.
+            data = snapshot_cached()
+            if data is None:
                 self._send(503, b'{"error":"db unavailable"}', "application/json")
                 return
-            try:
-                data = lm.collect(con)
-                data["means"] = [{"tag": t, "msg": m} for t, m in lm.explain(data)]
-                data["bottom_line"] = lm.bottom_line(data)
-                data["server_time"] = datetime.now().isoformat()
-                body = json.dumps(data).encode()
-            finally:
-                con.close()
-            self._send(200, body, "application/json")
+            self._send(200, json.dumps(data).encode(), "application/json")
         else:
             self._send(200, PAGE.encode(), "text/html; charset=utf-8")
 
@@ -196,6 +191,50 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(body)
+
+
+#: One-snapshot reuse for the LAN page. A browser tab polls /api on a timer,
+#: so re-collecting per request multiplied DB work by the number of open tabs.
+#: Held under a short TTL: the page stays live, the DB stops being stampeded.
+_CACHE = {"at": 0.0, "data": None}
+
+
+def collect_snapshot():
+    """Build one full dashboard payload, or None when the DB is unavailable.
+
+    Kept as a module-level function (not inlined into the handler) so it can
+    be substituted in tests and reused by any other entry point.
+    """
+    con = lm.db_connect()
+    if con is None:
+        return None
+    try:
+        data = lm.collect(con)
+        data["means"] = [{"tag": t, "msg": m} for t, m in lm.explain(data)]
+        data["bottom_line"] = lm.bottom_line(data)
+        data["server_time"] = datetime.now().isoformat()
+        return data
+    finally:
+        con.close()
+
+
+def snapshot_cached(ttl=2.0, force=False):
+    """Return a snapshot, reusing the last one while it is younger than `ttl`.
+
+    `collect_snapshot` is looked up as a module global on every call, so a
+    test (or an operator) can substitute it and have the substitution take
+    effect -- the cache must not freeze a binding it captured at import time.
+    """
+    now = time.monotonic()
+    cached = _CACHE.get("data")
+    if (not force and cached is not None
+            and (now - float(_CACHE.get("at") or 0.0)) < ttl):
+        return cached
+    data = collect_snapshot()
+    if data is not None:
+        _CACHE["at"] = now
+        _CACHE["data"] = data
+    return data
 
 
 def lan_ip():

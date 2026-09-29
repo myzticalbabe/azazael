@@ -533,6 +533,17 @@ def discover_worms(
                                     progress_callback=progress_callback)
 
 
+#: Stdlib top-level module names. The heuristic below registers any class
+#: with a VERSION attribute that a scanned module happens to EXPOSE, and a
+#: wildcard import exposes whatever it dragged through `dir()` — measured
+#: 2026-09-27: stdlib `random.Random` (VERSION is the INT 3) was registered as
+#: a worm and crashed the governance audit's version bucketing. A worm is a
+#: class a worm MODULE defines (re-exports included, that is the G17 case);
+#: a stdlib class is never one. VF worms live outside this tree by design and
+#: are not stdlib, so the boundary is "stdlib", not "outside src".
+_STDLIB_ROOTS = frozenset(getattr(sys, "stdlib_module_names", ()))
+
+
 def _discover_worms_impl(
     worms_dir: Optional[str] = None,
     progress_callback: Optional[Callable[[int, int, str], None]] = None,
@@ -677,6 +688,8 @@ def _discover_worms_impl(
                 # `utility` default bucket. Six of the nine heuristic filings
                 # were mis-natured by exactly this mechanism.
                 hint_module = getattr(obj, "__module__", "") or module_name
+                if hint_module.split(".")[0] in _STDLIB_ROOTS:
+                    continue   # stdlib class, not a worm (see _STDLIB_ROOTS)
                 auto_category = _guess_category(attr_name, hint_module)
                 register_fn = register_worm(
                     category=auto_category,
@@ -1717,11 +1730,20 @@ def get_unspawned_worms() -> List[str]:
 
 
 def mark_spawned(worm_type: str):
-    """Mark a worm type as having been spawned (increment counter, set timestamp)."""
+    """Mark a worm type as having been spawned (increment counter, set timestamp).
+
+    Uses `.get(..., 0)`, not `+= 1` on the raw key. Registry entries are not
+    guaranteed to carry `spawn_count` -- `get_unspawned_worms()` above already
+    reads it defensively for exactly that reason -- so `+= 1` raised KeyError
+    for any entry that had never been spawned. That is the only state in which
+    this function is ever called, which made it fail on the first real use
+    (reproduced by tests/test_colour_queens.py's retire channel).
+    """
     with _registry_lock:
         if worm_type in WORM_REGISTRY:
-            WORM_REGISTRY[worm_type]["spawn_count"] += 1
-            WORM_REGISTRY[worm_type]["last_spawned"] = datetime.now().isoformat()
+            entry = WORM_REGISTRY[worm_type]
+            entry["spawn_count"] = entry.get("spawn_count", 0) + 1
+            entry["last_spawned"] = datetime.now().isoformat()
 
 
 # --- Importability Validation --------------------------------------

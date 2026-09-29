@@ -270,7 +270,14 @@ def test_cd3_otel_tracing(correlation_id: str) -> dict[str, Any]:
     - Unified trace query returns correlated events
     """
     print("\n--- CD3: Observability + Memory - OTel SQLite Tracing ---")
-    
+
+    # opentelemetry is an optional extra, not a declared dependency. Skip the
+    # integration check rather than error the whole file when it is absent --
+    # a missing optional extra is not a failing assertion (same treatment as
+    # tests/test_optimizers_convergence.py's mygrad import).
+    pytest.importorskip("opentelemetry.sdk.trace",
+                        reason="opentelemetry not installed")
+
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExportResult
     from opentelemetry.sdk.trace import ReadableSpan

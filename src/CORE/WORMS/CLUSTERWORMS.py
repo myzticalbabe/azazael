@@ -39,6 +39,120 @@ from typing import Dict, List, Optional, Any, Callable, Set
 from dataclasses import dataclass, field
 from collections import defaultdict
 
+
+#: DirectMemory hook for cluster execution boundaries (2026-09-28).
+#: Tests replace `_dm` with a stub; production wiring may set a recorder.
+#: None by default: boundary events are opt-in, never import-time I/O.
+#:
+#: RLock, not Lock: `execute_all()` takes this lock to snapshot `_dm`, and
+#: callers are ALLOWED to already hold it -- tests/test_cluster_integration_p1.py
+#: swaps the stub under `with _dm_lock:` and then calls `execute_all()`. With a
+#: plain Lock that re-acquisition is a same-thread self-deadlock that never
+#: returns, which is what made suite chunk 2 run to its wall-clock cap.
+#: RLock preserves cross-thread exclusion (the property the lock exists for)
+#: while making the documented re-entrant call legal.
+_dm = None
+_dm_lock = threading.RLock()
+
+
+#: Mid-flight clarification channel (2026-09-28). The executor must NORMALISE a
+#: worm's request for owner input into an outcome row, never let it escape as an
+#: exception: a raised NeedsClarification caught by the generic handler would be
+#: reported as a plain worm crash, losing both the question and the decision_id
+#: that ties it to the choice log. Guarded import so a missing delegation module
+#: degrades to "no channel" rather than breaking every cluster run.
+try:
+    from CORE.WORMS.expansion.delegation import (
+        NeedsClarification as _NeedsClarification,
+        ClarificationTimeout as _ClarificationTimeout,
+    )
+except Exception:  # noqa: BLE001 -- optional channel
+    class _NeedsClarification(Exception):  # type: ignore[no-redef]
+        """Fallback so the `except` clauses below stay valid when absent."""
+
+        decision_id = None
+        question = ""
+
+    class _ClarificationTimeout(Exception):  # type: ignore[no-redef]
+        """Fallback so the `except` clauses below stay valid when absent."""
+
+        decision_id = None
+        question = ""
+        waited_s = 0.0
+
+
+class _WatchdogThread:
+    """Timeout watchdog for hung worm futures (2026-09-28).
+
+    Tracks (future, name, deadline) entries on a poll loop; a future past
+    its deadline gets ``cancel()`` called and its name reported. Completion
+    is ``done() is True`` (identity, not truthiness) so foreign future
+    stand-ins are never mistaken for finished work. Never raises out of
+    the poll loop; ``stop()`` returns timed-out names.
+    """
+
+    def __init__(self, poll_interval: float = 1.0):
+        self._poll_interval = max(0.01, float(poll_interval))
+        self._futures: dict = {}
+        self._lock = threading.Lock()
+        self._running = False
+        self._thread = None
+        self._timeouts: list = []
+
+    def track(self, future, name: str, timeout: float) -> None:
+        import time as _t
+        with self._lock:
+            self._futures[future] = (str(name), _t.monotonic() + float(timeout))
+
+    def untrack(self, future) -> None:
+        with self._lock:
+            self._futures.pop(future, None)
+
+    def start(self) -> None:
+        if self._running:
+            return
+        self._running = True
+        self._thread = threading.Thread(target=self._poll, daemon=True)
+        self._thread.start()
+
+    def stop(self) -> list:
+        self._running = False
+        th, self._thread = self._thread, None
+        if th is not None and th is not threading.current_thread():
+            th.join(timeout=self._poll_interval * 4)
+        with self._lock:
+            out = list(self._timeouts)
+        return out
+
+    def _poll(self) -> None:
+        import time as _t
+        while self._running:
+            try:
+                now = _t.monotonic()
+                with self._lock:
+                    items = list(self._futures.items())
+                for fut, (name, deadline) in items:
+                    try:
+                        done = fut.done()
+                    except Exception:
+                        done = False
+                    if done is True:
+                        with self._lock:
+                            self._futures.pop(fut, None)
+                        continue
+                    if now >= deadline:
+                        try:
+                            fut.cancel()
+                        except Exception:
+                            pass
+                        with self._lock:
+                            self._futures.pop(fut, None)
+                            if name not in self._timeouts:
+                                self._timeouts.append(name)
+            except Exception:
+                pass
+            _t.sleep(self._poll_interval)
+
 # ── Worm Registry ─────────────────────────────────────────────────
 try:
     from CORE.worm_registry import (
@@ -277,6 +391,29 @@ class ClusterResult:
     success_count: int
     failure_count: int
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    partial_failure_threshold: float = 1.0
+
+    @property
+    def overall_status(self) -> str:
+        """success / partial_success / failure from the counts.
+
+        A run where everything succeeded is success; anything above the
+        partial-failure threshold with some success is partial_success;
+        otherwise failure (including the empty run: nothing succeeded).
+        """
+        total = (self.success_count or 0) + (self.failure_count or 0)
+        if total <= 0:
+            return "failure"
+        try:
+            thr = float(self.partial_failure_threshold)
+        except (TypeError, ValueError):
+            thr = 1.0
+        rate = self.success_count / total
+        if rate >= thr:
+            return "success"
+        if self.success_count > 0:
+            return "partial_success"
+        return "failure"
 
 
 @dataclass
@@ -670,6 +807,7 @@ class WormExecutor:
         success = False
         result = None
         error = None
+        extra: Dict[str, Any] = {}
         try:
             timeout = timeout or self.config.timeout
             
@@ -687,6 +825,30 @@ class WormExecutor:
                 error = f"Unknown module: {self.config.module}"
                 result = {"error": error}
 
+        except _NeedsClarification as _nc:
+            # A worm asking for owner input is not a crash. Normalise it into a
+            # needs_input outcome carrying the question and the decision_id, so
+            # the ask is visible and joinable rather than swallowed.
+            error = "needs owner input: %s" % _nc
+            result = {"needs_input": _nc.question,
+                      "decision_id": _nc.decision_id}
+            extra = {"needs_input": _nc.question,
+                     "decision_id": _nc.decision_id,
+                     "outcome": "needs_input"}
+            success = False
+        except _ClarificationTimeout as _ct:
+            # Fail-closed: no answer arrived, so nothing was decided. Marked
+            # timed_out both at top level and inside result, because callers
+            # read one or the other and neither may read it as success.
+            error = str(_ct)
+            result = {"timed_out": True,
+                      "question": _ct.question,
+                      "waited_s": _ct.waited_s,
+                      "decision_id": _ct.decision_id}
+            extra = {"timed_out": True,
+                     "decision_id": _ct.decision_id,
+                     "outcome": "clarification_timeout"}
+            success = False
         except Exception as e:  # noqa: BLE001 — worm execution reports, never raises
             error = str(e)
             result = {"error": error}
@@ -694,13 +856,15 @@ class WormExecutor:
 
         duration = (time.time() - start) * 1000
 
-        return {
+        output = {
             "name": self.name,
             "success": success,
             "duration_ms": duration,
             "result": result,
             "error": error,
         }
+        output.update(extra)
+        return output
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -756,6 +920,9 @@ class ClusterWORMZ:
         self._nature_max_retries: Optional[int] = None
         # Cancellation token (3.14t-safe cooperative cancellation)
         self.cancellation_token = CancellationToken() if CancellationToken is not None else threading.Event()
+        # Partial-failure bar for overall_status (2026-09-28): a run where
+        # at least this share succeeded still counts as success.
+        self._partial_failure_threshold = 1.0
 
         self._load_cluster_config(cluster_type)
         self._record("cluster_created", {
@@ -768,6 +935,15 @@ class ClusterWORMZ:
         if cluster_type in CLUSTER_REGISTRY:
             for worm_name in CLUSTER_REGISTRY[cluster_type]["worms"]:
                 self.add_worm(worm_name, worm_name)
+
+    def set_partial_failure_threshold(self, value: float) -> float:
+        """Set the success share that still counts as overall success."""
+        try:
+            v = float(value)
+        except (TypeError, ValueError):
+            v = 1.0
+        self._partial_failure_threshold = min(1.0, max(0.0, v))
+        return self._partial_failure_threshold
 
     # ── Dynamic Cluster Building ──────────────────────────────────
 
@@ -908,6 +1084,15 @@ class ClusterWORMZ:
             "worm_count": len([c for c in self.configs if c.enabled]),
             "parallel": self.parallel,
         })
+        try:
+            with _dm_lock:
+                _dm_ref = _dm
+            if _dm_ref is not None:
+                _dm_ref.record("clusterwormz_execute_start",
+                               {"cluster_type": self.cluster_type,
+                                "cluster_id": self.cluster_id})
+        except Exception:
+            pass
         
         mem_bus = _get_mem_bus()
         if mem_bus:
@@ -1010,13 +1195,23 @@ class ClusterWORMZ:
                 mark_spawned(config.name)
 
         self._execution_count += 1
-        
+
         self._record("cluster_execution_completed", {
             "cluster_type": self.cluster_type,
             "results": len(results),
             "success": len([r for r in results if r.get("success")]),
         })
-        
+        try:
+            with _dm_lock:
+                _dm_ref = _dm
+            if _dm_ref is not None:
+                _dm_ref.record("clusterwormz_execute_complete",
+                               {"cluster_type": self.cluster_type,
+                                "cluster_id": self.cluster_id,
+                                "results": len(results)})
+        except Exception:
+            pass
+
         return results
 
     def _execute_single_worm(self, config: WormConfig) -> Dict[str, Any]:
@@ -1114,6 +1309,7 @@ class ClusterWORMZ:
             duration_ms=total_duration,
             success_count=success_count,
             failure_count=len(results) - success_count,
+            partial_failure_threshold=self._partial_failure_threshold,
         )
 
     # ── Status ────────────────────────────────────────────────────
@@ -1149,6 +1345,7 @@ class ClusterWORMZ:
             "pams_ok": pams is not None,
             "bus_ok": mem_bus is not None,
             "breaker_ok": breaker_reg is not None,
+            "partial_failure_threshold": self._partial_failure_threshold,
             "nature_name": self._nature_name,
             "nature_max_retries": self._nature_max_retries,
             "nature_config_applied": self._nature_config is not None,
