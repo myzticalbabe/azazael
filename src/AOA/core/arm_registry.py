@@ -9,6 +9,8 @@ Architecture:
     register_arm  — Decorator for declarative Arm registration
 """
 
+import importlib
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Callable, Any
@@ -101,6 +103,114 @@ class BaseArm(ABC):
 # Global Arm Registry
 ARM_REGISTRY: Dict[str, BaseArm] = {}
 
+# Set once the arm modules have been imported in this process.
+_ARMS_IMPORTED = False
+
+# The arm modules whose import fires @register_arm. Kept here (not only in
+# `arms/__init__.py`) so a consumer that never touches the package can still
+# populate the registry -- see `_ensure_arms_imported`.
+_ARM_MODULES = (
+    "azazael_arm", "libra_arm", "codex_arm", "eve_arm",
+    "kali_arm", "support_arms",
+)
+
+
+def _arms_package_names() -> List[str]:
+    """Candidate import names for the sibling ``arms`` package, in order.
+
+    This module is imported either as ``AOA.core.arm_registry`` (PYTHONPATH=src)
+    or as ``core.arm_registry`` (PYTHONPATH=src/AOA -- what ``aoa_monitor`` and
+    ``cli/aoa_cli`` set up). The arms package is a sibling of ``core``, so the
+    name is derived from our own package rather than hardcoded, and the other
+    layout is tried second so both entry points populate the same registry.
+    """
+    pkg = __package__ or __name__.rpartition(".")[0]
+    root = pkg.rpartition(".")[0]
+    return ["%s.arms" % root, "arms"] if root else ["arms"]
+
+
+def _alias_core_package() -> None:
+    """Make ``core.*`` resolve to the SAME module objects as ``AOA.core.*``.
+
+    The arm modules import absolutely (``from core.arm_registry import ...``).
+    Loaded as ``AOA.core.arm_registry`` that name does not exist yet, so the
+    import would build a SECOND copy of this module with its own empty
+    ``ARM_REGISTRY`` -- registration would then land in a dict nobody reads and
+    the router would still see zero Arms. Aliasing keeps one registry per
+    process whichever entry point was used. ``setdefault`` means a real
+    top-level ``core`` package is never clobbered.
+    """
+    pkg = __package__ or ""
+    if not pkg.startswith("AOA."):
+        return
+    core_pkg = sys.modules.get(pkg)
+    if core_pkg is None:
+        return
+    sys.modules.setdefault("core", core_pkg)
+    self_mod = sys.modules.get(__name__)
+    if self_mod is not None:
+        sys.modules.setdefault("core.arm_registry", self_mod)
+    prefix = pkg + "."
+    for name, mod in list(sys.modules.items()):
+        if name.startswith(prefix):
+            sys.modules.setdefault("core." + name[len(prefix):], mod)
+
+
+def _ensure_arms_imported() -> None:
+    """Import every arm module so ``@register_arm`` fires.
+
+    Registration is an IMPORT SIDE EFFECT, so an empty ``ARM_REGISTRY`` is what
+    a consumer sees unless it remembers to import the arms package first. Three
+    consumers did remember (``cli/aoa_cli``, ``build.py``, ``build_disclosure``)
+    and ``aoa_monitor`` did not -- which is why the wallboard reported 0 Arms / 0
+    capabilities and elastic routing failed with ``no_candidate`` for every
+    request, so no outcome was ever written back and ``aoa_route:`` learning was
+    never durable (measured: 0 keys in ``~/.azazael/spine_state.json`` while an
+    in-process routed call produced 2). The forgetting is the defect, not the
+    omission, so the fix belongs in the registry every consumer already touches.
+
+    Best-effort and idempotent: a broken arm module must not make registry
+    construction raise, and a partial import must not stop the rest.
+    """
+    global _ARMS_IMPORTED
+    if _ARMS_IMPORTED:
+        return
+    _alias_core_package()
+    for name in _arms_package_names():
+        try:
+            importlib.import_module(name)
+            _ARMS_IMPORTED = True
+            return
+        except Exception:
+            continue
+    # The arm modules import ``core.*`` ABSOLUTELY, so the package only resolves
+    # when the AOA root (the parent of ``core``) is importable. The documented
+    # entry points already put it on the path; do it here for any other caller.
+    try:
+        aoa_root = str(Path(__file__).resolve().parents[1])
+        if aoa_root not in sys.path:
+            sys.path.insert(0, aoa_root)
+    except Exception:
+        pass
+    for name in _arms_package_names():
+        try:
+            importlib.import_module(name)
+            _ARMS_IMPORTED = True
+            return
+        except Exception:
+            continue
+    # Last resort: import the modules one by one. The package ``__init__`` fails
+    # as a unit on a single bad arm, which would otherwise hide all the others.
+    ok = False
+    for base in _arms_package_names():
+        for mod in _ARM_MODULES:
+            try:
+                importlib.import_module("%s.%s" % (base, mod))
+                ok = True
+            except Exception:
+                continue
+    _ARMS_IMPORTED = ok
+
 
 def register_arm(
     arm_id: str,
@@ -146,6 +256,9 @@ class ArmRegistry:
     """
 
     def __init__(self):
+        # Discovery is an import side effect; trigger it before snapshotting, or
+        # every consumer that skips `import arms` silently gets an empty fleet.
+        _ensure_arms_imported()
         self._arms: Dict[str, BaseArm] = dict(ARM_REGISTRY)
         self._initialized_arms: set = set()
 

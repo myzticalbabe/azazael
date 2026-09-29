@@ -32,9 +32,14 @@ Two constraints from the hardware truth:
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import math
 import random
+import subprocess
+import sys
+import threading
+import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 __all__ = [
@@ -47,10 +52,134 @@ __all__ = [
 MODULATION_LO = 0.25
 MODULATION_HI = 2.0
 
-try:
-    import torch as _torch  # type: ignore
-except Exception:  # pragma: no cover - free-threaded build cannot load cp314
-    _torch = None
+# TORCH IS IMPORTED LAZILY **AND** BOUNDED. Both halves are load-bearing.
+#
+# LAZY. Verified live by fault dump: `import torch` blocked inside
+# `torch/__init__._load_dll_libraries -> platform.machine()` on this host, and
+# because `expansion/spine.py` (line 91) imports this module at IMPORT time, the
+# entire expansion package became unimportable -- which is why
+# `tests/test_spine_mesh.py` timed out instead of failing a test. `cppn.py:149`
+# and `oracle.py:474` already import torch locally, "only when actually
+# available"; this module was the outlier that broke that pattern.
+#
+# BOUNDED, BUT NOT ON A THREAD WE WALK AWAY FROM. The old bound here ran the
+# import on a daemon thread and left it running when the join expired. An
+# abandoned importer is not bounded work, it is a fork: the thread keeps
+# executing torch's import body while the process carries on, and the next
+# `import torch` *anywhere* is handed the half-built module. Measured: on a
+# contended box the 25 s join expires, the corpse lands in sys.modules, and 25
+# unrelated torch tests fail with `partially initialized module 'torch' ... has
+# no attribute 'distributed'` -- the same 25, in two separate long runs, while
+# every uncontended run of the same suite is green. A live importer that cannot
+# be killed is worse than the hang it was avoiding.
+#
+# So the bound moved to the one place it can be enforced: a subprocess probe,
+# which *can* be killed. If torch does not import in a fresh process within
+# IMPORT_TIMEOUT_S, this process never touches torch at all -- state "timeout",
+# numpy fallback, nothing left running to race. If the probe reports the host
+# healthy, torch loads in the thread that asked for it, which is what
+# `cppn.py`, `oracle.py` and the rest of the package already do, and the one
+# importer per process is serialised by a lock.
+class _LazyTorch:
+    """Proxy for torch: imports on first use, never at module import time."""
+
+    #: Budget for the probe, and the only bound that can be enforced.
+    IMPORT_TIMEOUT_S = 25.0
+
+    #: One importer per process. Two threads first-importing torch at once is
+    #: not safe on this interpreter: reproduced outside pytest as
+    #: `ValueError: module functions cannot set METH_CLASS or METH_STATIC`, and
+    #: in the aggregate suite as the partial-module AttributeError above.
+    _lock = threading.Lock()
+
+    __slots__ = ("_mod", "_state", "_seconds")
+
+    def __init__(self) -> None:
+        self._mod = None
+        self._state = "unloaded"
+        self._seconds = 0.0
+
+    def _probe(self) -> bool:
+        """Does a *fresh* process import torch inside the bound? Killable.
+
+        No pipes anywhere: the child's streams go to DEVNULL rather than to
+        pipes, because on timeout ``subprocess.run`` kills the direct child and
+        then reaps it with ``communicate()`` *without* a timeout -- a launcher
+        that left a grandchild holding the pipe makes that reap block forever
+        (`CORE/fs_probe.py` hazard 1, which is why that module probes through
+        temp files). A pipe-free child cannot outlive the kill.
+        """
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", "import torch"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=self.IMPORT_TIMEOUT_S,
+            )
+        except Exception:
+            return False
+        return proc.returncode == 0
+
+    def _import_here(self) -> None:
+        started = time.monotonic()
+        try:
+            import torch as _mod
+        except Exception:
+            self._mod = None
+            self._state = "absent"
+        else:
+            self._mod = _mod
+            self._state = "ready"
+        self._seconds = time.monotonic() - started
+
+    def get(self):
+        """The torch module, or None if it is absent or the probe failed.
+
+        Never raises: the previous implementation caught anything its loader
+        thread could raise, and a caller that has a numpy fallback must not be
+        given an exception instead of `None`. `find_spec` on a half-installed
+        package is the one call here that can raise, so it is inside the guard.
+        """
+        if self._state != "unloaded":
+            return self._mod
+        with _LazyTorch._lock:
+            if self._state != "unloaded":
+                return self._mod
+            try:
+                if importlib.util.find_spec("torch") is None:
+                    self._state = "absent"
+                    return None
+                if not self._probe():
+                    self._state = "timeout"
+                    return None
+                self._import_here()
+            except Exception:
+                self._mod = None
+                self._state = "absent"
+        return self._mod
+
+    @property
+    def seconds(self) -> float:
+        """Seconds the in-process import took; 0.0 if it never ran."""
+        return self._seconds
+
+    @property
+    def state(self) -> str:
+        """unloaded | ready | absent | timeout -- observable, not inferred."""
+        return self._state
+
+    def __bool__(self) -> bool:
+        return self.get() is not None
+
+    def __getattr__(self, name: str):
+        mod = self.get()
+        if mod is None:
+            raise AttributeError(name)
+        return getattr(mod, name)
+
+
+_torch = _LazyTorch()
 
 try:
     import numpy as _np  # type: ignore
@@ -93,7 +222,7 @@ class Neuromodulator:
         self.hidden = int(hidden)
         self.seed = int(seed)
         self.backend = "numpy"
-        self._torch_ok = bool(use_torch and _torch is not None)
+        self._torch_ok = bool(use_torch and bool(_torch))
 
         rng = random.Random(seed)
         self.w1 = [[rng.gauss(0.0, 1.0 / math.sqrt(self.in_dim)) for _ in range(self.in_dim)]
@@ -137,7 +266,7 @@ class Neuromodulator:
     def modulations(self, ctx: Sequence[float]) -> List[float]:
         """Per-parameter multipliers, squashed into [LO, HI]."""
         raw: List[float]
-        if self.net is not None and _torch is not None:
+        if self.net is not None and bool(_torch):
             try:
                 with _torch.no_grad():
                     t = _torch.tensor([list(ctx)], dtype=_torch.float32, device=self.net[0].weight.device)
@@ -151,7 +280,7 @@ class Neuromodulator:
 
     # -- parameter vector (for the outer ES loop) --------------------------
     def get_params(self) -> List[float]:
-        if self.net is not None and _torch is not None:
+        if self.net is not None and bool(_torch):
             try:
                 out: List[float] = []
                 for p in self.net.parameters():
@@ -170,7 +299,7 @@ class Neuromodulator:
 
     def set_params(self, params: Sequence[float]) -> None:
         vals = [float(v) for v in params]
-        if self.net is not None and _torch is not None:
+        if self.net is not None and bool(_torch):
             try:
                 with _torch.no_grad():
                     i = 0
