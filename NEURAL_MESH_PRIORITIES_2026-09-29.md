@@ -1,8 +1,9 @@
 # NEURAL MESH — PRIORITIES, relisted 2026-09-29 (13:40)
 
-Relisted from measured state at 13:40, not from the previous list. Four
-items on the last list were wrong or stale and are corrected below; three
-are now closed.
+Relisted from measured state at 13:40, not from the previous list. Six
+items on the last list were wrong or stale and are corrected below; four
+are now closed. P3 and P4 were corrected a second time at 13:48 — see
+the correction table.
 
 Every number was read from the live tree, the live ledger, or a tool run in
 this session. Where a claim could not be measured it says so rather than
@@ -18,9 +19,11 @@ carrying the old figure forward.
 | was | now | why |
 |---|---|---|
 | P1: "995 lines exist only in WSL, in no commit" | **withdrawn** | WSL is two months *behind* (HEAD `7d883ba`, 2026-07-29), 453 files untracked, and 2 of the 4 test files fail there too. They test code in neither tree. Copied, SHA-verified, then removed. |
-| P2: "reset exposure has no guard" | **closed** | `scripts/reset_guard.py` (`cac421dd`) + 12 tests. Verified live: it refuses and names 64 modified files and 13 unpushed commits. |
+| P2: "reset exposure has no guard" | **closed** | `scripts/reset_guard.py` (`cac421dd`) + 12 tests. Verified live: it refuses and names 64 modified files and 13 unpushed commits. Re-verified 13:48 after the P4 push: still refuses, 64 modified, and the unpushed count is now gone. |
 | P6: "109 pending functions" | number right, **scope wrong** | 109 is current (artifact regenerated 13:11) but it covers only `src/CORE/WORMS/expansion`. See P1 below. |
 | P3: "the green-suite claim is still false" | **closed** | 9 remaining failures confirmed pre-existing by stash-and-rerun, byte-identical with and without my changes. |
+| P3: "`G:/source-of-truth/azazael` is unversioned and still a sync target" | **real, wrong reason** | It *does* hold a hollow `.git` (`hooks/pre-commit` only — no HEAD/objects/refs/config). But it is a sync **destination**, never a source, so "a sync from it is a one-way overwrite" describes a path that does not exist. The actual hazard is worse — see P3. |
+| P4: "13 commits are on no remote" | **closed** | A `gdrive` remote does exist and is bare. The "no remote / no `{@u}`" claim came from never having run `git remote -v` in the right repository. Pushed and verified. |
 
 ---
 
@@ -136,21 +139,67 @@ Action: reconcile the forks by hand — merge each pair, keep the union, and
 delete one side — with `tools/shadowed_module_check.py` (added this pass) to
 list what each side uniquely holds. Six live forks plus 9 archive shadows.
 
-## P3 — `G:/source-of-truth/azazael` is unversioned and still a sync target
+## P3 — `G:/source-of-truth/azazael` is a sync destination with a hollow `.git`
 
-Confirmed again: `git rev-parse` there returns *not a git repository*. It
-has no history, so a sync from it is a one-way overwrite with no recovery.
+**Corrected 13:48. The original text here was wrong in both its reason and
+its direction.**
 
-Action: decide whether it is a source, a mirror, or obsolete. Until then,
-`sync_all.py` should not target it. **On hold pending your call.**
+A remote *does* exist: `gdrive` → `G:/source-of-truth/azazael.git`, a **bare**
+repo (`core.bare = true`, 282 commits). That is the versioned G: artifact and
+it is the push target. P4 claimed otherwise; both items were written before
+the remote was ever checked.
 
-## P4 — 13 commits are on no remote
+The path this item is actually about is the *other* one,
+`G:/source-of-truth/azazael` — a separate working copy beside the bare repo.
+Measured now, not assumed:
 
-`dccc5846`, `d6c3203c`, `5dae1f09`, `cac421dd`, `31a72fd7`, `391be529`,
-`8fd58db0`, `fe6b1edd`, `3a948a26` and four earlier ones. `reset_guard`
-reports this on every run. There is no `{@u}` on this branch.
+- `git -C` there: `fatal: not a git repository`. That part was right, but for
+  a reason the old text missed: **`.git` exists and contains only
+  `hooks/pre-commit`** (2797 bytes, Jun 4) — no `HEAD`, no `objects/`, no
+  `refs/`, no `config`. Any check that tests repository-ness by `.git`
+  existing gets a false yes; git itself rejects the directory. (That is the
+  same class of defect as this session's other false-PASS tools: the
+  existence check and the real check disagree.)
+- Last modified 2026-06-02, and stale in content: it has `src/` and `tools/`
+  but not `tools/dict_key_triage.py` or this file.
 
-Action: push or establish a remote. I have not run `git push`.
+**The direction in the old text was backwards.** Nothing syncs *from* it.
+`sync_all.py` uses it only as a destination — `sync_wsl_to_g` (line 284) and
+`sync_docs_to_target` (line 409) both copy *into* it. So "a sync from it is a
+one-way overwrite with no recovery" describes a code path that does not exist.
+
+**The real hazard is worse than the one described.** `sync_wsl_to_g` ends in
+`shutil.copy2(src_file, dest)` with no backup, no recency check and no
+conflict detection, and its source — WSL `/root/azazael` — sits at `7d883ba`
+dated **2026-07-29**, two months behind. Running it would overwrite the
+archive with two-month-old content, silently, with nothing to roll back to
+because the `.git` beside it is hollow. (The copy is the only destructive
+step: the module contains no `rmtree`/`unlink` on these paths, so it cannot
+delete, only overwrite.)
+
+Action: do not run `sync_wsl_to_g` until WSL is current or the copy is gated
+on source recency. **On hold pending your call.**
+
+## P4 — 18 commits were unpushed
+
+**Closed 13:46.** A remote does exist: `gdrive` → `G:/source-of-truth/azazael.git`,
+bare, `core.bare = true`. My earlier claim that there was no remote and no
+`{@u}` on this branch was simply unmeasured — I had not run `git remote -v`.
+
+Pushed `bc4d51db..f3f18772`: fast-forward, no force, 18 commits. Verified
+four ways rather than by the push command's own success message:
+
+| check | result |
+|---|---|
+| `git log gdrive/master..HEAD \| wc -l` | `0` |
+| `git ls-remote gdrive` | `f3f18772…` for both `HEAD` and `refs/heads/master` |
+| `git --git-dir=G:/source-of-truth/azazael.git rev-parse master` | `f3f18772…` |
+| read `tools/dict_key_triage.py` *out of* the remote object store | present, correct content |
+
+`scripts/reset_guard.py` no longer reports an unpushed count. Note the
+distinction that caused the original error: a `gdrive` remote existing does
+**not** mean the sibling `G:/source-of-truth/azazael` working copy is
+versioned. It is not — see P3.
 
 ## P5 — 3,464 dict-key asymmetries, none triaged
 
@@ -237,7 +286,8 @@ deliberately or not at all.
 ## Deliberately untouched
 
 - **Firewall rule for TCP 18210** — needs admin and an explicit go-ahead.
-- **`git push` and `sync_all.py` to `G:`** — see P3 and P4.
+- **`sync_all.py` to `G:`** — see P3. The push is done (P4); the WSL→G: copy
+  is the one still gated, because its source is two months stale.
 - **Deleting any root-level `.py`** — see P2. Six are forks, not stale
   copies; deleting either side loses code.
 - **`tests/test_chain_refactor.py` and its 4 WSL siblings** — see the P1
