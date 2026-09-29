@@ -56,7 +56,16 @@ def reflections_for(question: str, *, store: Any = None,
         if store is None:
             from CORE.local_memory import get_memory_store
             store = get_memory_store()
-        rows = store.query_memories(event_type=EVENT_TYPE, limit=500) or []
+        # `store` is injectable (this module is used with test doubles), so
+        # prefer the paged reader when the store has one and fall back to the
+        # plain read otherwise. fetch_all_memories is required on a real store:
+        # query_memories clamps at MAX_QUERY_LIMIT (500), which would make
+        # recall silently ignore every reflection older than the newest 500.
+        fetch = getattr(store, "fetch_all_memories", None)
+        if callable(fetch):
+            rows = fetch(event_type=EVENT_TYPE, limit=500) or []
+        else:
+            rows = store.query_memories(event_type=EVENT_TYPE, limit=500) or []
     except Exception:
         return []
     q = " ".join(str(question or "").lower().split())

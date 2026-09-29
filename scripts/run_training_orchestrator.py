@@ -444,6 +444,7 @@ def run_dpo_cycle() -> dict:
     import json as _json
     from CORE.WORMS.expansion.learning_grpo import ABTestRunner
     from CORE.local_memory import get_memory_store
+    from CORE.direct_memory import DirectMemory
 
     run_id = _gen_run_id("dpotrain")
     t0 = time.time()
@@ -485,17 +486,13 @@ def run_dpo_cycle() -> dict:
     # every skip, so a stall is diagnosable instead of merely reported.
     thought_pairs = 0
     try:
-        _thoughts = store.query_memories(event_type="thought_process",
-                                         limit=_THOUGHT_WINDOW)
-        _rows = []
-        for _r in _thoughts:
-            _d = _r.get("data", {})
-            if isinstance(_d, str):
-                try:
-                    _d = _json.loads(_d)
-                except Exception:
-                    continue
-            _rows.append((_r.get("id"), _d))
+        # fetch_thoughts pages past LocalMemoryStore's MAX_QUERY_LIMIT clamp.
+        # A plain query_memories(limit=_THOUGHT_WINDOW) returns at most 500 and
+        # drops the OLDEST rows — the minority families that carry the only
+        # success/fail contrast — so the window widening below would have been
+        # capped back to 500 anyway, silently.
+        _rows = [(r.get("id"), r.get("data")) for r in
+                 DirectMemory().fetch_thoughts(limit=_THOUGHT_WINDOW)]
         _sel = thought_contrast(_rows)
         _pair = _sel["pair"]
         if _pair:

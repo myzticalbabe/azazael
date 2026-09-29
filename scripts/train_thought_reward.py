@@ -47,17 +47,15 @@ def _sigmoid(x: float) -> float:
 
 
 def load_corpus():
-    from CORE.local_memory import get_memory_store
-    rows = get_memory_store().query_memories(event_type="thought_process",
-                                             limit=2000)
+    # fetch_thoughts pages past the store's MAX_QUERY_LIMIT. The old
+    # query_memories(limit=2000) returned at most 500 newest rows, so once the
+    # corpus passed 500 the reward model would have retrained on a sample while
+    # reporting a corpus count that looked like the population.
+    from CORE.direct_memory import DirectMemory
+    rows = DirectMemory().fetch_thoughts(limit=2000)
     data = []
     for r in rows:
         d = r.get("data", {})
-        if isinstance(d, str):
-            try:
-                d = json.loads(d)
-            except Exception:
-                continue
         if not isinstance(d, dict) or "success" not in d:
             continue
         txt_task = str(d.get("task", ""))

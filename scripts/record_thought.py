@@ -57,21 +57,17 @@ def main() -> int:
         print("specify --success or --fail", file=sys.stderr)
         return 2
 
-    from CORE.local_memory import get_memory_store
-    store = get_memory_store()
+    from CORE.direct_memory import DirectMemory
+    dm = DirectMemory()
     actions = [a.strip() for a in args.actions.split(",") if a.strip()]
-    row_id = store.record_event(
+    row_id = dm.record_thought(
+        task=args.task,
+        reasoning=reasoning,
+        actions=actions,
+        success=success,
         source="ReasoningTrace",
-        event_type="thought_process",
-        data={
-            "task": args.task,
-            "reasoning": reasoning,
-            "actions": actions,
-            "success": success,
-            "session_id": args.session or time.strftime("%Y-%m-%dT%H:%M"),
-        },
-        severity="info" if success else "warning",
-        tags=["thought", "chain-of-thought", "training"],
+        tags=["training"],
+        session_id=args.session or time.strftime("%Y-%m-%dT%H:%M"),
     )
     print("recorded thought_process id=%s success=%s (%d chars)" % (
         row_id, success, len(reasoning)))

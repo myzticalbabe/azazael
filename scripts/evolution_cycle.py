@@ -2739,14 +2739,16 @@ def main():
             else:
                 _v, _why = ('EVIDENCE %d (llr %s)' % (sprt_n, sprt_llr),
                             'accumulating within pool era (SPRT %s)' % sprt_decision)
-            dm.record('thought_process', {
-                'task': 'evolution promotion verdict',
-                'reasoning': ('%s: best %s vs baseline %s (margin %s) on pool era %s. %s.' % (
+            dm.record_thought(
+                task='evolution promotion verdict',
+                reasoning=('%s: best %s vs baseline %s (margin %s) on pool era %s. %s.' % (
                     _v, best_total, baseline_fit, _margin, pool_id, _why)),
-                'actions': ['evaluate', 'holdout' if holdout else 'streak', 'canary' if promoted else 'hold'],
-                'success': True,
-                'session_id': 'evolution-%s' % seed,
-            }, tags=['thought', 'chain-of-thought', 'evolution'], source='EvolutionCycle')
+                actions=['evaluate', 'holdout' if holdout else 'streak', 'canary' if promoted else 'hold'],
+                success=True,
+                source='EvolutionCycle',
+                tags=['evolution'],
+                session_id='evolution-%s' % seed,
+            )
         except Exception as e:
             log('auto-thought record failed: %s' % e)
     except Exception as e:
