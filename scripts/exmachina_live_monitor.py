@@ -40,6 +40,7 @@ if not DB.endswith(".db"):
 
 REFRESH = 30
 LOG_PATH = os.path.join(_HERE, "..", "logs", "exmachina_live_monitor.log")
+LOG_MAX = 1_000_000  # rotate above ~1 MB, same policy as live_monitor.py
 
 # --- colour -----------------------------------------------------------
 C_RED = "\x1b[91m"
@@ -456,11 +457,29 @@ def ex_core():
     return _EX_CORE[0] or None
 
 
+def _ex_now():
+    """Wall-clock epoch, unless a frozen run pinned it.
+
+    `scripts/_exmachina_freeze.py` exports AZAZAEL_FROZEN_NOW so two runs of one
+    snapshot can be compared byte-for-byte. Nothing here read it until
+    2026-09-14, so the ages, the header and the pulse still moved between runs
+    (archive 10% vs archive 11%) and the freeze gate could never be
+    byte-comparable. Unpinned runs are unchanged: this is time.time().
+    """
+    raw = os.environ.get("AZAZAEL_FROZEN_NOW")
+    if raw:
+        try:
+            return float(raw)
+        except ValueError:
+            pass
+    return time.time()
+
+
 def ex_ages():
     """Seconds since each artifact was last written. Absent files are omitted
     rather than reported as infinitely old: a subsystem that was never wired
     is not the same as one that stopped."""
-    now = time.time()
+    now = _ex_now()
     out = {}
     for name, fn in _EX_ARTIFACTS:
         try:
@@ -1215,6 +1234,35 @@ def health_check():
 
 
 # --- rendering --------------------------------------------------------
+def _control_line(snap):
+    """Expose the epistemic evidence boundary before organ-level detail.
+
+    Banner contract, shared with the Azazael and AOA wallboards: the evidence
+    summary is always printed (or explicitly `artifact evidence unknown`), and
+    `next=` is the OPERATOR ACTION slot, never the name of the next scheduled
+    job -- the reader is looking at a STALE banner to learn what to DO.
+    """
+    ages = dict(snap.get("ages") or {})
+    known = sorted(ages.items(), key=lambda item: item[1])
+    stale = [name for name, age in known if age > 3600]
+    if not known:
+        state, colour = "UNKNOWN", C_YEL
+        evidence = "artifact evidence unknown"
+    elif stale:
+        state, colour = "STALE", C_RED
+        evidence = f"{len(stale)}/{len(known)} artifacts older than 1h"
+    else:
+        state, colour = "LIVE", C_GRN
+        evidence = f"{len(known)} artifacts current"
+    action = ("refresh evidence producers; viewer is read-only" if stale
+              else "continue observing evidence")
+    error = snap.get("error")
+    if error:
+        action = f"collector error: {error}"
+    newest = f" newest={known[0][1] / 60:.0f}m" if known else ""
+    return f"{C_BLD}CONTROL {colour}{state}{C_RST}  {evidence}{newest}  next={action}"
+
+
 def render(now=None, size=None):
     """One frame: header + the Ex Machina panel. Never raises.
 
@@ -1231,13 +1279,15 @@ def render(now=None, size=None):
     _FRAME_NO[0] += 1                    # twinkle step for the drifting hues
     lines = []
     L = lines.append
-    now = now or datetime.now()
+    now = now or datetime.fromtimestamp(_ex_now())
     L("=" * width)
     L(_fit("  EX MACHINA LIVE MONITOR   %s   (refresh %ds, Ctrl+C to stop)" % (
         now.strftime("%Y-%m-%d %H:%M:%S"), REFRESH), width))
     L("=" * width)
     try:
-        lines.extend(exmachina_lines(width, height, exmachina_snapshot()))
+        snap = exmachina_snapshot()
+        L(_fit(_control_line(snap), width))
+        lines.extend(exmachina_lines(width, height, snap))
     except Exception as exc:             # a dead panel must still say why
         L(_fit(" panel error: %s: %s" % (type(exc).__name__, exc), width))
     return "\n".join(lines)
@@ -1256,6 +1306,14 @@ def _paint_in_place(frame_lines):
     # FULL window height: render() already leaves the last column free, so a
     # line cannot wrap and the last row is safe to use. Reserving it just made
     # the rows reserved by render() pointless.
+    #
+    # 2026-09-14: this read `max_rows`, which is defined NOWHERE else in the
+    # file -- so every live paint raised NameError and the window crash-looped
+    # (the launcher retried every 10s, nothing was ever drawn, and because the
+    # panel is painted only here, `--once` never exercised it and shipped the
+    # break). The comment above asks for the full window height, which is
+    # size.lines.
+    max_rows = max(1, size.lines)
     rows = frame_lines[:max_rows]          # never exceed the visible window
     if len(rows) < max_rows:
         rows = rows + [""] * (max_rows - len(rows))  # wipe any longer old frame
@@ -1272,6 +1330,40 @@ def _paint_in_place(frame_lines):
     out.append("\033[J")                   # erase everything below the frame
     sys.stdout.write("".join(out))
     sys.stdout.flush()
+
+
+def _strip_ansi(text):
+    """Drop SGR sequences so the log stays greppable."""
+    import re
+    global _ANSI_RE
+    if _ANSI_RE is None:
+        _ANSI_RE = re.compile("\x1b\\[[0-9;]*m")
+    return _ANSI_RE.sub("", text)
+
+
+def append_log(frame_text, now):
+    """Append one rendered frame to the rolling log (rotate at 1 MB).
+
+    2026-09-14: LOG_PATH and the --log flag have existed since this viewer was
+    written, but nothing ever wrote them -- so this was the only one of the four
+    wallboards with no on-disk record, a crash in its window left no trace, and
+    --log silently did nothing. The frame is logged verbatim (ANSI stripped)
+    rather than as a hand-built digest, so the record cannot drift from what the
+    screen actually showed.
+    """
+    try:
+        os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+        if os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > LOG_MAX:
+            bak = LOG_PATH + ".1"
+            if os.path.exists(bak):
+                os.remove(bak)
+            os.replace(LOG_PATH, bak)
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write("=== %s ===\n" % now.isoformat())
+            for line in _strip_ansi(frame_text).split("\n"):
+                f.write(line.rstrip() + "\n")
+    except OSError:
+        pass  # logging must never take down the wallboard
 
 
 def _pid_alive(pid):
@@ -1367,6 +1459,7 @@ def main():
             sys.stdout.write("\033[2J\033[H")   # clear once on startup
             first = False
         _paint_in_place(text.split("\n"))
+        append_log(text, datetime.now())   # --log finally writes (2026-09-14)
         time.sleep(REFRESH)
 
 

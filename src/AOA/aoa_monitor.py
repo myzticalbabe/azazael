@@ -452,6 +452,53 @@ def _metric(aid, st, wfsteps=None):
     return "ok"
 
 
+def _control_line(state, meta=None):
+    """Return the first-frame control-plane summary for the AOA wallboard.
+
+    The monitor is read-only: it re-renders on a timer but never re-probes on
+    render, so a fresh-looking number is not evidence that the arms are current.
+    This banner states the evidence boundary before the detail panels.
+
+    Banner contract (pinned by tests/test_terminal_monitor_controls.py, shared
+    with the Azazael wallboard and the Ex Machina viewer): every evidence count
+    is printed as `label N/M` and `next=` is the OPERATOR ACTION slot, so the
+    reader of a DEGRADED banner is told what to DO rather than what will run
+    next. `meta["ms_newest_ts"]` is the milestone heartbeat: None means no
+    evidence at all (producer never ran or the state file is unreadable), which
+    must read as DEGRADED, never as a quiet pass.
+    """
+    meta = meta or {}
+    init = {k: v for k, v in (getattr(state, "init_results", {}) or {}).items()
+            if not str(k).startswith("_")}
+    arms_ok = sum(1 for v in init.values() if v is True)
+    workflow = getattr(state, "workflow", {}) or {}
+    wf_total = workflow.get("total")
+    routing = getattr(state, "routing", {}) or {}
+    violations = int(((routing.get("contract") or {}).get("violations")) or 0)
+    newest = meta.get("ms_newest_ts")
+
+    evidence = [f"arms {arms_ok}/{len(init)}"]
+    evidence.append(f"workflow {workflow.get('completed', 0)}/{wf_total}"
+                    if wf_total else "workflow unknown")
+    if violations:
+        evidence.append(f"provenance violations {violations}")
+
+    if newest is None:
+        state_word, colour = "DEGRADED", C_RED
+        evidence.append("loop evidence unknown")
+        action = ("repair routing contract" if violations
+                  else "refresh scheduler/producers")
+    elif violations:
+        state_word, colour = "DEGRADED", C_RED
+        action = "repair routing contract"
+    else:
+        state_word, colour = "LIVE", C_GRN
+        action = "continue observing evidence"
+
+    return (f"{C_BLD}CONTROL {colour}{state_word}{C_RST}  "
+            + "  ".join(evidence) + f"  next={action}")
+
+
 def render(st, now, width, height=40):
     """Full-screen frame. Core (always): header 3 + arms 11 + session 1 +
     routes 1 + kali 1 + bench 1 + footer 1 = ~19. Tall windows add:
