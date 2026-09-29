@@ -35,6 +35,68 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 RESULTS = []
 
+#: Stamp used for rows written before per-estimator stamping existed.
+UNSTAMPED = "<unstamped: pre-estimator-stamp>"
+
+
+def holdout_yield(rows, estimator):
+    """Partition stored evolution_result rows by estimator era (2026-09-28).
+
+    A holdout verdict is only evidence about the estimator that produced
+    it: rows from a superseded estimator (or from before stamping) must
+    neither fail nor pass the current one -- both directions mislead, and
+    the lucky-pre-fix pass is the more dangerous of the two. Cooldown
+    re-reports and holdouts without fresh-pool info are not measurements
+    and are excluded from both buckets.
+
+    Returns {"current": {"verdicts", "held", "fresh"},
+             "superseded": {"verdicts"}, "estimators": {other names seen}}.
+    Pure: no store, no clock, no I/O.
+    """
+    cur = {"verdicts": [], "held": [], "fresh": []}
+    sup = {"verdicts": [], "held": [], "fresh": []}
+    estimators = set()
+    for r in rows or []:
+        d = (r or {}).get("data", {})
+        if isinstance(d, str):
+            try:
+                d = json.loads(d)
+            except Exception:
+                continue
+        if not isinstance(d, dict):
+            continue
+        est = d.get("margin_estimator") or UNSTAMPED
+        hold = d.get("holdout") or {}
+        if not isinstance(hold, dict):
+            hold = {}
+        if est != estimator:
+            estimators.add(est)
+            if "passed" in hold:
+                sup["verdicts"].append(bool(hold["passed"]))
+                try:
+                    sup["held"].append(float(d["best_total"])
+                                       - float(d.get("baseline", 0.0)))
+                    sup["fresh"].append(float(hold.get("margin")))
+                except (TypeError, ValueError, KeyError):
+                    pass
+            continue
+        if hold.get("cooldown"):
+            continue
+        if not isinstance(hold.get("fresh_info"), dict):
+            continue
+        if not isinstance(d.get("best_total"), (int, float)):
+            continue
+        base = d.get("baseline", 0.0)
+        try:
+            held_v = float(d["best_total"]) - float(base)
+            fresh_v = float(hold.get("margin"))
+        except (TypeError, ValueError):
+            continue
+        cur["verdicts"].append(bool(hold.get("passed")))
+        cur["held"].append(held_v)
+        cur["fresh"].append(fresh_v)
+    return {"current": cur, "superseded": sup, "estimators": estimators}
+
 
 def check(name, ok, detail=""):
     RESULTS.append((name, ok, detail))
@@ -76,16 +138,20 @@ def main():
     try:
         from CORE.local_memory import get_memory_store
         store = get_memory_store()
-        before = len(store.query_memories(
-            source="RLTrainLoop", event_type="training_complete", limit=5000))
-        bv = len(store.query_memories(source="ModelVersioner", limit=5000))
+        # count_memories(), not len(query_memories(limit=5000)): the read API
+        # clamps to MAX_QUERY_LIMIT (500) and would report a capped sample as
+        # the population — so this no-write assertion could pass on a truncated
+        # view, or fail spuriously the moment the count crossed 500.
+        before = store.count_memories(
+            source="RLTrainLoop", event_type="training_complete")
+        bv = store.count_memories(source="ModelVersioner")
         loop = RLTrainLoop()
         loop.train_from_memory(
             n_episodes=4, max_steps=10, learning_rate=0.1, discount_factor=0.9,
             epsilon=0.2, exclude_sources=evc.EXCLUDED_TRAINING_SOURCES, persist=False)
-        after = len(store.query_memories(
-            source="RLTrainLoop", event_type="training_complete", limit=5000))
-        av = len(store.query_memories(source="ModelVersioner", limit=5000))
+        after = store.count_memories(
+            source="RLTrainLoop", event_type="training_complete")
+        av = store.count_memories(source="ModelVersioner")
         check("no training_complete / model_registered rows written",
               after == before and av == bv,
               "RLTrainLoop %d->%d, ModelVersioner %d->%d" % (before, after, bv, av))
