@@ -2284,18 +2284,32 @@ class SpineCycleWorm:
             return {"success": True, "skipped": "router_unavailable"}
         out: dict[str, Any] = {"success": True}
 
-        # Phase 1 — settle the route proposed by the previous cycle.
+        # Phase 1 — REPORT the route proposed by the previous cycle, from the
+        # route ledger's own observations. It deliberately does not WRITE.
         prev = self._pending_route
         if prev:
-            rate = self._nature_success_rate(str(prev.get("dst", "")))
-            ok = True if rate is None else rate >= 0.5
-            try:
-                self._router.record_route_result(
-                    str(prev.get("dst", "")), ok, float(prev.get("ms", 0.0)))
-                out["settled"] = {"dst": prev.get("dst"), "success": ok,
-                                  "fleet_rate": None if rate is None else round(rate, 3)}
-            except Exception as exc:
-                out["settled"] = {"error": str(exc)[:80]}
+            dst = str(prev.get("dst", ""))
+            observed = self._route_observation(dst)
+            if observed is None:
+                out["settled"] = {
+                    "dst": dst, "skipped": "no_observation",
+                    "why": "phase 2 proposed the route; only "
+                           "MeshRouterWorm.send() records a delivery outcome, "
+                           "and this cycle does not deliver"}
+            else:
+                succ, total = observed
+                out["settled"] = {"dst": dst, "source": "route_ledger",
+                                  "successes": succ, "evidence": total}
+            # The previous implementation settled this from
+            # `_nature_success_rate(dst)` -- the health of the WORMS on the far
+            # side -- and wrote that number as the route's verdict. Because
+            # phase 2 always proposes to the LEAST-healthy nature and never
+            # probes it, that manufactured a standing -1 for a route that had
+            # never been used: playing-field TODO G2's self-sustaining penalty,
+            # manufactured by the very loop built to close it, and the
+            # dominant writer of the live route ledger (257+ observations on
+            # the two wsl2 routes, zero of them from a delivery).
+            # One writer per fact: send() records, the cycle reads.
             # NOTE: `invalidate_route()` is deliberately NOT called on failure
             # here, although a first draft did exactly that. Its contract is
             # "discount the learned penalty on one route, because its cause is
@@ -2571,6 +2585,29 @@ class SpineCycleWorm:
 
     def _nature_success_rate(self, nature: str) -> float | None:
         return self._nature_rates().get(nature)
+
+    def _route_observation(self, dst_env: str) -> tuple[int, int] | None:
+        """(successes, total) the route ledger holds for this route, or None.
+
+        Read-only. The brainstem's ``route:*`` keys are written in exactly one
+        place -- ``MeshRouterWorm.record_route_result``, which is only reached
+        from ``MeshRouterWorm.send`` after a real delivery attempt. So a
+        ``None`` here is not a missing measurement to be estimated around; it
+        is the honest answer to "this route has never been used".
+        """
+        if _spine is None or not dst_env:
+            return None
+        try:
+            usage = _spine.get_route_usage()
+        except Exception:
+            return None
+        rec = usage.get(f"{_local_env()}>{dst_env}")
+        if not isinstance(rec, dict):
+            return None
+        total = int(rec.get("total") or 0)
+        if total <= 0:
+            return None
+        return int(rec.get("successes") or 0), total
 
     def _process_morphogenesis_output(self, apply: bool = False) -> dict[str, Any]:
         """G8 + audit finding #3: the morphogenesis containment gate.
