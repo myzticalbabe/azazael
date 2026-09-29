@@ -574,9 +574,8 @@ class TERENCE:
                 os.path.abspath(__file__)), "..", "..")
             if _src not in _sys.path:
                 _sys.path.insert(0, _src)
-            from CORE.local_memory import get_memory_store
-            rows = get_memory_store().query_memories(
-                event_type="thought_process", limit=1000)
+            from CORE.direct_memory import DirectMemory
+            rows = DirectMemory().fetch_thoughts(limit=1000)
         except Exception:
             return {}
         import json as _json
@@ -599,8 +598,15 @@ class TERENCE:
             s = stats.setdefault(m.group(1), {"n": 0, "ok": 0})
             s["n"] += 1
             s["ok"] += 1 if d.get("success") else 0
+        # min_samples is a real floor, not decoration. Without it a pattern
+        # seen ONCE and failed reports rate=0.0, which reads as "this pattern
+        # never works" and gets selected against on a single observation —
+        # a false zero that self-reinforces, because selection then stops
+        # producing the successes that would raise n back above the floor.
+        floor = max(1, int(min_samples))
         return {k: {"n": v["n"], "ok": v["ok"],
-                    "rate": round(v["ok"] / v["n"], 3)} for k, v in stats.items()}
+                    "rate": round(v["ok"] / v["n"], 3)}
+                for k, v in stats.items() if v["n"] >= floor}
 
     def fix_all(self, apply: bool = False, max_fixes: (int | None) = None) -> int:
         """Apply all fixes (or just count if apply=False).
@@ -765,23 +771,19 @@ class TERENCE:
                 os.path.abspath(__file__)), "..", "..")
             if _src not in _sys.path:
                 _sys.path.insert(0, _src)
-            from CORE.local_memory import get_memory_store
-            get_memory_store().record_event(
+            from CORE.direct_memory import DirectMemory
+            DirectMemory().record_thought(
+                task="auto-fix %s at %s:%s" % (
+                    fix.error_type, fix.file, fix.line),
+                reasoning=(
+                    "Pattern '%s' matched; applied '%s'. %s." % (
+                        fix.original[:120], fix.fixed[:120], reason)),
+                actions=["scan", "apply", "verify",
+                         "rollback" if not ok else "keep"],
+                success=bool(ok),
                 source="Terence",
-                event_type="thought_process",
-                data={
-                    "task": "auto-fix %s at %s:%s" % (
-                        fix.error_type, fix.file, fix.line),
-                    "reasoning": (
-                        "Pattern '%s' matched; applied '%s'. %s." % (
-                            fix.original[:120], fix.fixed[:120], reason)),
-                    "actions": ["scan", "apply", "verify",
-                                "rollback" if not ok else "keep"],
-                    "success": bool(ok),
-                    "session_id": "terence-%s" % time.strftime("%Y-%m-%d"),
-                },
-                severity="info" if ok else "warning",
-                tags=["thought", "chain-of-thought", "terence"],
+                tags=["terence"],
+                session_id="terence-%s" % time.strftime("%Y-%m-%d"),
             )
         except Exception:
             pass
