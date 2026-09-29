@@ -11,10 +11,15 @@ Appends: a "New Skills - Created 2026-08-23" section for the package batches.
 import os
 import re
 import sys
+from pathlib import Path
 
-AZAZAEL_DIR = "/root/azazael"
-SKILLS_DIR = os.path.join(AZAZAEL_DIR, "skills")
-CATALOG = os.path.join(AZAZAEL_DIR, "SKILLS_CATALOG.md")
+# Windows port (2026-09-29): resolve from this file's location instead of the
+# hardcoded WSL path. Override with AZAZAEL_DIR env var if needed.
+AZAZAEL_DIR = Path(
+    os.environ.get("AZAZAEL_DIR", Path(__file__).resolve().parent.parent)
+)
+SKILLS_DIR = AZAZAEL_DIR / "skills"
+CATALOG = AZAZAEL_DIR / "SKILLS_CATALOG.md"
 
 # Curated categories for legacy-format skills that lack frontmatter category,
 # sourced from the pre-regeneration catalog (June 2026 edition).
@@ -37,19 +42,24 @@ LEGACY_CATEGORIES = {
     "azazael-python3.14-ml": "Neural",
     "azazael-standalone": "Deployment",
     "azazael-standalone-audit": "Deployment",
+    "azazael-release-gate": "Process",
+    "azazael-secure-push": "Security",
     "azazael-sync-kali": "Infrastructure",
     "azazael-system-wiring": "Neural",
     "azazael-wsl-canonical": "Infrastructure",
 }
 
 def make_header(n_core: int, n_kali: int, n_314t: int, n_bin: int) -> str:
+    import datetime
     total = n_core + n_kali + n_314t + n_bin
+    today = datetime.date.today().isoformat()
     return f"""# AZAZAEL SKILLS CATALOG
 # Complete Inventory of Codebuff Skills for the Azazael Project
 
 > Generated: May 29, 2026
-> Last Updated: August 23, 2026 — regenerated to inventory ALL {total:,} canonical skills (core + Kali + 3.14t package + binary-tool skills)
+> Last Updated: {today} — regenerated from canonical `skills/*.md` ({total:,} skills: core + Kali + 3.14t package + binary-tool)
 > Purpose: Single source of truth for all available Azazael skills
+> Source of truth: `skills/` (canonical flat .md) mirrored to `.agents/skills/<name>/SKILL.md`. Table rows below are generated, never hand-edited.
 
 ---
 
@@ -68,10 +78,15 @@ def make_header(n_core: int, n_kali: int, n_314t: int, n_bin: int) -> str:
 
 def frontmatter(path: str) -> dict:
     raw = open(path, encoding="utf-8", errors="replace").read()
+    # Filename stem is the identity (matches sync dir naming). Three legacy
+    # files (azazael_314t_master, azazael_314t_optimum,
+    # azazael_insights_2026-05-28) declare dash-form `name:` in frontmatter
+    # that matches nothing on disk — stem wins (fixed 2026-09-29).
+    stem = Path(path).stem
     m = re.match(r"^---\s*\n(.*?)\n---", raw, re.S)
     info = {
-        "name": os.path.basename(path)[:-3],
-        "category": LEGACY_CATEGORIES.get(os.path.basename(path)[:-3], "?"),
+        "name": stem,
+        "category": LEGACY_CATEGORIES.get(stem, "?"),
         "description": "",
     }
     if not m:
@@ -93,10 +108,9 @@ def frontmatter(path: str) -> dict:
                 break
         return info
     body = m.group(1)
-    for key in ("name", "description"):
-        mm = re.search(rf"^{key}:\s*(.+)$", body, re.M)
-        if mm:
-            info[key] = mm.group(1).strip()
+    mm = re.search(r"^description:\s*(.+)$", body, re.M)
+    if mm:
+        info["description"] = mm.group(1).strip()
     mm = re.search(r"^  category:\s*(.+)$", body, re.M)
     if mm:
         info["category"] = mm.group(1).strip()
@@ -108,7 +122,7 @@ def load_skills() -> list:
     for f in sorted(os.listdir(SKILLS_DIR)):
         if not f.endswith(".md"):
             continue
-        info = frontmatter(os.path.join(SKILLS_DIR, f))
+        info = frontmatter(str(Path(SKILLS_DIR) / f))
         out.append(info)
     return out
 
@@ -144,20 +158,25 @@ def main() -> None:
         key=lambda s: s["name"],
     )
 
-    # Preserve historical sections from the ORIGINAL pre-regeneration catalog
-    # (SKILLS_CATALOG.md.bak). Everything after the old Quick Reference section
-    # header is kept verbatim; the old table itself is dropped.
+    # Preserve historical sections from the CURRENT catalog (which carries the
+    # Sep-14 recount notes and Sep-16 reconciliation). Fall back to the
+    # pre-regeneration backup only if the catalog itself is missing.
+    # Everything after the old Quick Reference section header is kept
+    # verbatim; the old table itself is dropped.
     hist = []
-    bak = CATALOG + ".bak"
-    src = bak if os.path.exists(bak) else CATALOG
+    bak = Path(str(CATALOG) + ".bak")
+    src = CATALOG if Path(CATALOG).exists() else bak
     old = open(src, encoding="utf-8", errors="replace").read()
     idx = old.find("## Skill Quick Reference")
     if idx != -1:
         rest = old[idx:]
-        # drop the old table: from "## Skill Quick Reference" to the next "## "
-        nxt = rest.find("\n## ", 10)
-        if nxt != -1:
-            hist = rest[nxt:].strip()
+        # Drop ALL old Quick Reference tables (core + Kali + 3.14t + bin),
+        # not just the first: split into ## sections and keep every section
+        # whose header is not a Quick Reference table. (2026-09-29 fix: the
+        # old code kept the 2nd-4th tables as "history", duplicating rows.)
+        parts = re.split(r"(?m)^(?=## )", rest)
+        kept = [p for p in parts if not p.startswith("## Skill Quick Reference")]
+        hist = "\n".join(p.rstrip() for p in kept).strip()
 
     lines = []
     lines.append(make_header(len(core), len(pkgs_kali), len(pkgs_314t), len(bins)))
@@ -178,14 +197,9 @@ def main() -> None:
     tbl, n = build_table(bins, n)
     lines.extend(tbl)
     lines.append("")
-    lines.append("## New Skills — Created August 23, 2026")
-    lines.append("")
-    lines.append("| Skill | Path | Purpose | Priority |")
-    lines.append("|-------|------|---------|----------|")
-    lines.append(f"| `azazael-pkg-*` ({len(pkgs_kali)}) | `skills/azazael-pkg-*.md` | Callable skills for Kali Python 3.13.12 system packages — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |")
-    lines.append(f"| `azazael-pkg314t-*` ({len(pkgs_314t)}) | `skills/azazael-pkg314t-*.md` | Callable skills for the Azazael Python 3.14.6 (3.14t) environment — CLI entry points + Python API invocation patterns. Generated from `importlib.metadata` (see `skills_staging/generate_kali_pkg_skills.py`). | Merged |")
-    lines.append(f"| `azazael-bin-*` ({len(bins)}) | `skills/azazael-bin-*.md` | Callable skills for binary/CLI tools (Kali binaries + OSINT + AI/ML) — canonical invocations with live version/status. Generated from `skills_staging/binary_manifest.py` + `generate_bin_skills.py`. | Merged |")
-    lines.append("")
+    # No appended batch summary: the preserved history below already carries
+    # the "New Skills - Created August 23, 2026" batch record. Appending a
+    # second copy caused adjacent duplicate sections (fixed 2026-09-29).
     if hist:
         lines.append("---")
         lines.append("")

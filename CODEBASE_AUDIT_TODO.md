@@ -730,3 +730,12 @@ Classification of all 10 audit findings against existing TODO steps:
 
 **Ratio:** 40% ADDITIVE (4/10) — audit uncovered genuine new gaps. 30% REINFORCES (3/10) — extended existing items. 30% DUPLICATE (3/10) — already covered.
 
+---
+## Correction addendum — 2026-09-29 (stale counts)
+- Dated rows above cite 220/35 (NM-15), 226/35, 91/17 worm counts: live
+  `discover_worms()` now reports **250 worms / 35 categories**
+  (`src/CORE/worm_registry.py`). Inline rows are point-in-time history — do not
+  edit; re-run discovery for fresh numbers.
+- Skill counts: `SKILLS_CATALOG.md` regenerated this date — **1,234** table rows =
+  1,234 mirror dirs = 1,234 canonical files (prior 1,224 / 1,259 claims superseded).
+
