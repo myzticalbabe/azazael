@@ -126,8 +126,8 @@ def load_track_runs(limit_per_track: int = 200) -> dict[str, list[dict]]:
                     rows.append({"slot": int(reg.get("slot", 0)),
                                  "regime": reg, "reward": float(v)})
         else:
-            for r in store.query_memories(
-                    event_type="sb3_training_orchestrated", limit=500):
+            for r in store.fetch_all_memories(
+                    event_type="sb3_training_orchestrated", limit=5000):
                 d = r.get("data", {})
                 if isinstance(d, str):
                     try:

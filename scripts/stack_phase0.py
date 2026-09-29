@@ -84,8 +84,8 @@ def main(argv=None) -> int:
                             spreads += 1
                             break
         else:
-            rows = store.query_memories(event_type="sb3_training_orchestrated",
-                                        limit=500)
+            rows = store.fetch_all_memories(
+                event_type="sb3_training_orchestrated", limit=5000)
             for r in rows:
                 d = r.get("data", {})
                 if isinstance(d, str):
@@ -131,8 +131,8 @@ def main(argv=None) -> int:
     fam_counts: dict[str, int] = defaultdict(int)
     fam_wins: dict[str, int] = defaultdict(int)
     try:
-        rows = store.query_memories(event_type="clusterwormz_worm_executed",
-                                    limit=5000)
+        rows = store.fetch_all_memories(
+            event_type="clusterwormz_worm_executed", limit=5000)
         for r in rows:
             d = r.get("data", {})
             if isinstance(d, str):
