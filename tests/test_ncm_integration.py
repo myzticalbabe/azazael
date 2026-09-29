@@ -16,13 +16,19 @@ sys.path.insert(0, str(SRC))
 
 
 def test_discover_worms_smoke():
-    """Exercise full worm discovery and verify registry is populated."""
+    """Exercise full worm discovery and verify registry is populated.
+
+    `discover_worms()` returns a DELTA (newly registered this call), not the
+    fleet size: it is 0 on every call after the first in one process, which made
+    this test order-dependent -- it passed alone and failed in the full suite.
+    The registry is the invariant, so it is what is asserted.
+    """
     from CORE.worm_registry import discover_worms, WORM_REGISTRY
 
-    count = discover_worms()
-    assert count > 0, "discover_worms() should find worms"
+    newly = discover_worms()
     assert len(WORM_REGISTRY) > 0, "WORM_REGISTRY should be populated"
-    print(f"  discover_worms(): {count} modules, {len(WORM_REGISTRY)} entries")
+    print(f"  discover_worms(): {newly} new this call, "
+          f"{len(WORM_REGISTRY)} entries in the registry")
 
 
 def test_ncm_discover_all_natures():

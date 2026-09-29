@@ -30,7 +30,9 @@ import pytest
 
 # ── Module-level warm-up: discover once, use everywhere ───────────
 
-from CORE.worm_registry import discover_worms, WORM_REGISTRY, get_all_categories
+from CORE.worm_registry import (
+    discover_worms, WORM_REGISTRY, get_all_categories, VALID_CATEGORIES,
+)
 from collections import defaultdict
 
 print("  Warming registry...", end=" ", flush=True)
@@ -51,12 +53,12 @@ for name, entry in ALL_WORMS.items():
 
 EXPECTED_CATEGORIES = 17
 EXPECTED_MIN_WORMS = 75
-VALID_CATEGORIES = {
-    "analysis", "backup", "communication", "config", "container",
-    "diagnostic", "learning", "migration", "ml", "monitor",
-    "orchestration", "profiling", "security", "sync", "telemetry",
-    "utility", "visualization",
-}
+# VALID_CATEGORIES is imported from CORE.worm_registry, not copied. The copy that
+# used to sit here was frozen at 17 natures from before the mesh/immune/
+# xenomorph expansions, so `MeshRouterWorm` (a deliberate `mesh` governor, see
+# FLEET_GOVERNORS) failed this file while the registry was correct: measured 40
+# valid tuples and 0 off-vocabulary worms. A duplicated constant can only drift,
+# which is why the registry exports this alias for consumers to read.
 
 # Worms with C extensions that may not load on 3.14t
 HEAVY_WORMS = {"PROCESSZ", "SMARTDISK", "DISKZ", "SystemZ", "NETWORXZ", "SYSTEMZ_ML"}
@@ -171,18 +173,34 @@ def test_heavy_worms_import():
 
 
 def test_slow_worms_import():
-    """Slow worms should import with adequate time."""
+    """Slow worms should import with adequate time.
+
+    SLOW_WORMS holds CLASS names, and the registry is what knows which module
+    owns each one (`ALL_WORMS[name]["module"]`). The previous body called
+    `__import__(name)`, i.e. it tried to import modules literally named
+    "RLTrainLoop" and "TrainingOrchestrator". Neither exists, so the test
+    reported three ModuleNotFoundErrors for classes that import in well under a
+    second. The owning module is read from the registry instead of assumed.
+    """
+    import importlib
+
     failures = []
     for name in sorted(SLOW_WORMS):
-        if name not in ALL_WORMS:
+        entry = ALL_WORMS.get(name)
+        if entry is None:
+            failures.append(f"{name}: not in the registry")
+            continue
+        module = entry.get("module")
+        if not module:
+            failures.append(f"{name}: registry entry carries no module")
             continue
         try:
             t0 = time.time()
-            __import__(name)
+            importlib.import_module(module)
             elapsed = time.time() - t0
-            print(f"  [OK] {name} ({elapsed:.1f}s)")
+            print(f"  [OK] {name} ({module}, {elapsed:.1f}s)")
         except Exception as e:
-            failures.append(f"{name}: {type(e).__name__}: {e}")
+            failures.append(f"{name} ({module}): {type(e).__name__}: {e}")
     assert not failures, "\n".join(failures[:20])
 
 

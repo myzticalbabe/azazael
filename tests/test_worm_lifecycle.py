@@ -331,10 +331,15 @@ class TestWormLifecycleValidator(unittest.TestCase):
         self.validator = WormLifecycleValidator(timeout=3.0)
 
     def test_discover_loads_registry(self):
-        """discover() should populate WORM_REGISTRY."""
-        count = self.validator.discover()
-        self.assertGreater(count, 0, "Should discover at least one worm")
-        self.assertGreater(len(WORM_REGISTRY), 0)
+        """discover() should populate WORM_REGISTRY.
+
+        `discover()` forwards `discover_worms()`, whose return is a DELTA, so it
+        is 0 whenever another test module already ran discovery in this process.
+        The registry is the invariant that discovery promises.
+        """
+        self.validator.discover()
+        self.assertGreater(len(WORM_REGISTRY), 0,
+                           "Should discover at least one worm")
 
     def test_validate_sample_small(self):
         """validate_all(sample_size=5) should test 5 worms."""
