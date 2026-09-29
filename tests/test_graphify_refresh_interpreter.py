@@ -36,6 +36,7 @@ the real host, to prove the walk is not vacuous where it runs.
 from __future__ import annotations
 
 import ast
+import os
 import sys
 from pathlib import Path
 
@@ -263,3 +264,87 @@ def test_the_candidate_walk_is_not_vacuous_on_this_host():
     assert install is not None
     for part in g.REQUIRED_INSTALL_PARTS:
         assert (install / part).exists(), (chosen, part)
+
+
+# ── the in-flight claim is a claim, and only the claimant may release it ──
+#
+# Found 2026-09-29 by `graphify diagnose multigraph` reporting 451,315 nodes
+# for a graph whose report said 47,273. The hourly spine refresh had been
+# running since 10:00:55 and wrote graph.json at 10:27 -- the full unscoped
+# corpus, 638 MB -- over a scoped rebuild that had finished at 10:25:51 and
+# reported success. `clear_marker()` ran in a `finally` and unlinked
+# unconditionally, so the finishing pass deleted the other pass's claim, and
+# the clobber was invisible until something compared two numbers.
+
+
+def test_clear_marker_does_not_release_a_claim_it_does_not_own(monkeypatch, tmp_path):
+    """The regression: a finishing pass deleted the live pass's claim.
+
+    `_pid_alive` is stubbed rather than probed: the point is that a claim held
+    by a LIVE other process survives, and a bare foreign pid is not evidence
+    of that -- an unused pid is a corpse, and `clear_marker` is supposed to
+    clean corpses up.
+    """
+    monkeypatch.setattr(refresh, "MARKER", tmp_path / "graph_refresh.running")
+    monkeypatch.setattr(refresh, "_pid_alive", lambda pid: True)
+    refresh.MARKER.write_text("100.0 %d" % (os.getpid() + 1_000_000),
+                              encoding="utf-8")
+
+    refresh.clear_marker()
+
+    assert refresh.MARKER.exists(), \
+        "clear_marker released a claim held by another process -- the second " \
+        "pass then raced the first and overwrote its artifact"
+
+
+def test_clear_marker_releases_its_own_claim(monkeypatch, tmp_path):
+    """Ownership is not a reason to leak the slot forever."""
+    monkeypatch.setattr(refresh, "MARKER", tmp_path / "graph_refresh.running")
+    refresh.write_marker()
+    assert refresh.read_marker() is not None
+    refresh.clear_marker()
+    assert refresh.read_marker() is None
+
+
+def test_a_marker_left_by_a_dead_process_is_not_a_claim(monkeypatch, tmp_path):
+    """A corpse must not wedge the refresh permanently after a crash."""
+    monkeypatch.setattr(refresh, "MARKER", tmp_path / "graph_refresh.running")
+    monkeypatch.setattr(refresh, "_pid_alive", lambda pid: False)
+    refresh.MARKER.write_text("100.0 424242", encoding="utf-8")
+
+    assert refresh.in_flight() is None, \
+        "a dead pid was treated as an in-flight refresh, so the artifact " \
+        "could never be rebuilt again"
+    # ...and the corpse is still clearable rather than blocking the start guard.
+    refresh.clear_marker()
+    assert not refresh.MARKER.exists()
+
+
+def test_a_live_other_process_is_a_claim_and_blocks_a_second_pass(
+        monkeypatch, tmp_path, capsys):
+    """The guard that uses both halves: refuse, rather than race."""
+    monkeypatch.setattr(refresh, "MARKER", tmp_path / "graph_refresh.running")
+    monkeypatch.setattr(refresh, "_pid_alive", lambda pid: True)
+    # Belt and braces, and not decoration: with the guard removed, `main([])`
+    # falls through and LAUNCHES A REAL 3-MINUTE REBUILD of graphify-out/.
+    # A test that can rewrite a 46 MB artifact is a test that can silently
+    # take the tree down, and the first bite-check of this fix did exactly
+    # that (178s, rc=0, clobbering the artifact mid-verification).
+    monkeypatch.setattr(refresh, "resolve_graphify_python", lambda **kw: None)
+    refresh.MARKER.write_text("100.0 424242", encoding="utf-8")
+
+    rc = refresh.main([])
+
+    assert rc == 3, "a second pass was allowed to start over the same artifact"
+    out = capsys.readouterr().out
+    assert "already in flight" in out and "424242" in out, \
+        "the refusal did not say who holds the claim or that it would race"
+
+
+def test_an_absent_marker_does_not_block(monkeypatch, tmp_path):
+    """The guard must not be the reason a refresh cannot start."""
+    monkeypatch.setattr(refresh, "MARKER", tmp_path / "graph_refresh.running")
+    assert refresh.in_flight() is None
+    # main() would go on to resolve an interpreter, so only the guard is
+    # exercised here; a claim-free marker must return None, not a refusal.
+    assert not refresh.MARKER.exists()

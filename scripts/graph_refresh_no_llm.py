@@ -122,6 +122,62 @@ def graph_stale(root: Path | None = None) -> bool | None:
     return any(r.get("stale") for r in graph) if graph else None
 
 
+def read_marker() -> tuple[float, int] | None:
+    """The in-flight claim as (start_time, pid), or None if absent/unreadable.
+
+    The reader parses "<start-time> <pid>", so the body must be written in
+    exactly that shape -- a live pid is what lets the guard tell a real pass
+    from a corpse left by a killed one.
+    """
+    try:
+        parts = MARKER.read_text(encoding="utf-8").split()
+        if len(parts) != 2:
+            return None
+        return float(parts[0]), int(parts[1])
+    except (OSError, ValueError):
+        return None
+
+
+def _pid_alive(pid: int) -> bool:
+    """True when a pid names a live process. Best effort, never raises."""
+    if pid <= 0:
+        return False
+    try:
+        import ctypes
+
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        STILL_ACTIVE = 259
+        kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION,
+                                      False, pid)
+        if not handle:
+            return False
+        try:
+            code = ctypes.c_ulong()
+            if kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                return code.value == STILL_ACTIVE
+            return True
+        finally:
+            kernel32.CloseHandle(handle)
+    except Exception:
+        return False
+
+
+def in_flight() -> tuple[float, int] | None:
+    """A claim held by a process that is actually running, else None.
+
+    A marker whose pid is dead is a corpse, not a claim: refusing to start
+    because of it would wedge the refresh permanently after any crash.
+    """
+    claim = read_marker()
+    if claim is None:
+        return None
+    _, pid = claim
+    if pid == os.getpid():
+        return claim
+    return claim if _pid_alive(pid) else None
+
+
 def write_marker() -> None:
     """Claim the in-flight slot so the hourly cycle does not start a second pass.
 
@@ -129,9 +185,7 @@ def write_marker() -> None:
     spawns us, but a standalone run (`python scripts/graph_refresh_no_llm.py`)
     never did. So the scheduled cycle, which only consults the marker, could see
     "nothing in flight" and launch a competing ~31 minute re-extract over the
-    same tree. The reader parses "<start-time> <pid>", so the body must be
-    written in exactly that shape -- a live pid is what lets the guard tell a
-    real pass from a corpse left by a killed one.
+    same tree.
     """
     try:
         MARKER.parent.mkdir(parents=True, exist_ok=True)
@@ -141,6 +195,27 @@ def write_marker() -> None:
 
 
 def clear_marker() -> None:
+    """Release the claim -- but only the one this process actually holds.
+
+    2026-09-29. This used to unlink unconditionally, in a `finally`. Two passes
+    over one artifact is exactly the situation the marker exists to prevent,
+    and unconditional clearing is how the second pass made the first one
+    invisible: a manual scoped rebuild finished at 10:25:51 and cleared the
+    marker, and the hourly spine refresh that had been running since 10:00:55
+    wrote graph.json at 10:27 -- 638 MB and 451,315 nodes, the full unscoped
+    corpus, over the 46 MB scoped graph that had just been built and verified.
+    The rebuild reported success and the clobber was invisible until a later
+    `graphify diagnose` disagreed with the node count the rebuild had printed.
+
+    A marker is a claim, and only the claimant may release it -- or a corpse
+    left by a crashed pass, which is not a claim at all. Checking liveness
+    rather than identity alone is what makes both true: a live foreign claim
+    is left strictly alone, while a dead one is cleaned up instead of sitting
+    on disk until the next successful write happens to overwrite it.
+    """
+    claim = read_marker()
+    if claim is not None and claim[1] != os.getpid() and _pid_alive(claim[1]):
+        return
     try:
         MARKER.unlink()
     except OSError:
@@ -173,6 +248,18 @@ def main(argv: list[str] | None = None) -> int:
         # refresh and left all 451k vendored nodes in place forever.
         steps = (("-m", "graphify", "update", ".", "--force"),) + STEPS[1:]
         log("FORCE rebuild: graph.json may shrink (corpus was narrowed)")
+
+    # Refuse to start a second pass over one artifact. The marker alone was not
+    # enough in either direction: a standalone run never checked it, and
+    # `clear_marker` used to release a claim it did not own. Both halves are
+    # fixed above; this is the guard that uses them.
+    claim = in_flight()
+    if claim is not None and claim[1] != os.getpid():
+        age = max(0.0, time.time() - claim[0])
+        log("REFUSING: a graph refresh is already in flight "
+            f"(pid={claim[1]}, started {age:.0f}s ago). Two passes over one "
+            "artifact race, and the loser silently overwrites the winner.")
+        return 3
 
     log("resolving the graphify install (capability, not path):")
     graphify_py = resolve_graphify_python(report=log)
