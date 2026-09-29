@@ -1,5 +1,25 @@
 # NEURAL MESH BRAINSTEM — PLAYING-FIELD TODO
 
+> ## SUPERSEDED — read `NEURAL_MESH_FORENSIC_2026-09-29.md` first
+>
+> This document is a **dated record of what was believed on its date**. Its
+> central evidence table is now known to be wrong in a way that matters, and
+> the data it cites has been removed from the live ledger.
+>
+> Specifically, the `8000.0` latencies below were **not** a timeout signature.
+> They were the eBPF collection window, hardcoded into a route record by
+> `scripts/spine_cycle_apply.py` and written as if it were a route duration.
+> The sync-path bug this document attributes them to was real and was fixed in
+> `56c15679`, but these numbers never measured it. The per-route counters were
+> an unseparable mix of that alert count and real `wsl echo` probes. All of it
+> was removed on 2026-09-29 and the genuine ~95 ms samples preserved.
+>
+> G2.1 is also marked **done** below, and was not: `invalidate_q` was a total
+> no-op until 2026-09-29, because every read path merged the count back with
+> `max()` and undid the reduction on the next save. The journal counted
+> invalidations that never happened. See the forensic for the fix and for the
+> three further stores that had the same defect.
+
 **Date:** 2026-09-16
 **Scope:** `CORE/spine_registry.py` (the Q brainstem), `CORE/WORMS/expansion/mesh.py` (route
 learning), `CORE/WORMS/expansion/spine.py` (ranking consumers), `tests/conftest.py` (isolation).
@@ -117,6 +137,11 @@ one is visibly a lost *ranking*, not a silent 0.0), and selection no longer need
 ---
 
 ## 3. GEM STONE G2 — the ledger cannot forget, so a fixed fault is a permanent penalty
+
+> **STALE — see the header.** The table below is the fabricated record, not a
+> measurement. The `8000.0` column is an eBPF collection window; the counters
+> are an unseparable mix of an alert count and real probes. Removed from the
+> live ledger 2026-09-29.
 
 **EVIDENCE.** Three routes, from the live table:
 

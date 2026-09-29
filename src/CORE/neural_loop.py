@@ -670,8 +670,30 @@ def _stage_prune(ctx: LoopContext) -> StageResult:
         dreams = sr.get_q_dream_counts()
     except Exception as exc:
         return StageResult("prune", False, error="read failed: %s" % str(exc)[:120])
+    # "No evidence" is not the same claim as "no record of a decision".
+    #
+    # 2026-09-29. This stage calls a key dead when its count is 0, and 0 is
+    # exactly what `invalidate_q(factor=0.0)` and `reset_counters()` write.
+    # So the two repairs that exist to preserve a disowned measurement are the
+    # two that make its key look untouched by the system, and the next hourly
+    # meta cycle purges it. MEASURED on the live ledger: restoring
+    # `route:windows>wsl2-ubuntu` and `route:windows>wsl2-kali` at 09:47 with
+    # their genuine latency history cost two full purge/restore cycles, because
+    # both keys were tombstoned `neural_loop_prune` by 10:05.
+    #
+    # A key carrying an evidence floor or a counter floor has a recorded
+    # decision against it. It is discounted, not absent, and pruning on
+    # absence deletes the record of the discount along with the value --
+    # which is how a repair becomes a second, quieter data-loss path.
+    floored = set()
+    for table in ("_Q_EVIDENCE_FLOOR", "_COUNTER_FLOOR"):
+        floors = getattr(sr, table, None)
+        if isinstance(floors, dict):
+            floored.update(floors)
     dead = [k for k in weights
-            if int(updates.get(k, 0) or 0) == 0 and int(dreams.get(k, 0) or 0) == 0]
+            if int(updates.get(k, 0) or 0) == 0
+            and int(dreams.get(k, 0) or 0) == 0
+            and k not in floored]
     try:
         rep = sr.purge_edges(dead, reason="neural_loop_prune", persist=False)
     except Exception as exc:
