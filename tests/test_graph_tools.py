@@ -572,3 +572,95 @@ def test_dict_key_scope_excludes_duplicates_outside_the_scoped_trees(tmp_path):
     for f in rep["findings"]:
         assert not f["file"].startswith(".."), \
             f"findings must be inside the scoped trees, got {f['file']}"
+
+
+# ---------------------------------------------------------------------
+# shadowed_module_check
+# ---------------------------------------------------------------------
+
+import shadowed_module_check as smc   # noqa: E402
+
+
+def test_shadow_detection_reports_both_directions(tmp_path):
+    """The correction this tool exists for.
+
+    An audit called 8 root-level files "stale shadows" and proposed deleting
+    them on commit-date recency. Measuring content instead: health_server.py
+    has 120 lines the src/ copy lacks and defines a function it does not.
+    Deleting on that reasoning destroys working code, so the tool must
+    report divergence in BOTH directions and refuse to pick a winner.
+    """
+    a = tmp_path / "health_server.py"
+    a.write_text("def get_health_json():\n    pass\n\n"
+                 "def _get_azazael_health():\n    return {}\n", encoding="utf-8")
+    b = tmp_path / "src" / "CORE" / "health_server.py"
+    b.parent.mkdir(parents=True)
+    b.write_text("def get_health_json():\n    pass\n\n"
+                 "def prometheus():\n    pass\n", encoding="utf-8")
+    c = tmp_path / "shadowed_module_check.py"
+    c.write_text(inspect_src(), encoding="utf-8")
+
+    shadowers = smc.top_level_shadowers(tmp_path)
+    assert "health_server.py" in shadowers, "a root file must be detected"
+    tw = smc.twins(tmp_path, shadowers)
+    assert tw["health_server.py"], "its twin must be found"
+
+    counts = smc.unique_line_counts(tmp_path, "health_server.py",
+                                    "src/CORE/health_server.py")
+    assert counts["only_root"] > 0, "root has content the twin lacks"
+    assert counts["only_twin"] > 0, "the twin has content root lacks"
+
+
+def test_identical_shadow_is_flagged_identical(tmp_path):
+    a = tmp_path / "mod.py"
+    a.write_text("x = 1\n", encoding="utf-8")
+    b = tmp_path / "src" / "mod.py"
+    b.parent.mkdir(parents=True)
+    b.write_text("x = 1\n", encoding="utf-8")
+    counts = smc.unique_line_counts(tmp_path, "mod.py", "src/mod.py")
+    assert counts["only_root"] == 0 and counts["only_twin"] == 0
+
+
+def test_archive_twins_are_classified_separately(tmp_path):
+    """A shadow of an archived copy and a shadow of a live module need
+    opposite handling; collapsing them is how the wrong one gets deleted."""
+    a = tmp_path / "thing.py"
+    a.write_text("y = 1\n", encoding="utf-8")
+    c = tmp_path / "archive" / "scripts" / "thing.py"
+    c.parent.mkdir(parents=True)
+    c.write_text("y = 2\n", encoding="utf-8")
+    assert c.as_posix().startswith(smc.ARCHIVE_PREFIXES[0]) or \
+        str(c).replace("\\", "/").find("archive/") >= 0
+    live = tmp_path / "src" / "thing.py"
+    live.parent.mkdir(parents=True, exist_ok=True)
+    live.write_text("y = 3\n", encoding="utf-8")
+    assert "archive/" not in live.as_posix()
+
+
+def test_import_check_finds_a_bare_name_import(tmp_path):
+    """The difference between 'ambiguous' and 'actively dangerous': a shadow
+    nothing imports is a naming problem; one something imports can be
+    resolved to the wrong file at runtime."""
+    caller = tmp_path / "src" / "app.py"
+    caller.parent.mkdir(parents=True)
+    caller.write_text("import health_server\n", encoding="utf-8")
+    root = tmp_path / "health_server.py"
+    root.write_text("x = 1\n", encoding="utf-8")
+    hits = smc.import_check(tmp_path, {"health_server"})
+    assert hits.get("health_server"), "a bare-name import must be detected"
+    assert any("app.py" in s for s in hits["health_server"])
+
+
+def test_import_check_ignores_archives_and_self(tmp_path):
+    arch = tmp_path / "archive" / "old.py"
+    arch.parent.mkdir(parents=True)
+    arch.write_text("import health_server\n", encoding="utf-8")
+    root = tmp_path / "health_server.py"
+    root.write_text("import health_server\n", encoding="utf-8")
+    hits = smc.import_check(tmp_path, {"health_server"})
+    assert not hits, "archives and self-references are not resolution hazards"
+
+
+def inspect_src() -> str:
+    """A stand-in 'twin' so the fixture is a real tracked .py file."""
+    return "z = 0\n"
