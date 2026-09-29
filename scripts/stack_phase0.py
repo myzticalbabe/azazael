@@ -75,8 +75,14 @@ def main(argv=None) -> int:
                 if isinstance(v, (int, float)):
                     vals.append(float(v))
                     total += 1
-                    if isinstance(d.get("eval_std_reward"), (int, float)):
-                        spreads += 1
+                    # Spread coverage for custom tracks: accept any std key.
+                    # RL/DREAMTUNE/WORMGA/ALLPAR emit no eval_std_reward yet,
+                    # so they report 0.0 until instrumented — same rule as SB3.
+                    for _sk in ("eval_std_reward", "std_reward", "std",
+                                "spread", "reward_std"):
+                        if isinstance(d.get(_sk), (int, float)):
+                            spreads += 1
+                            break
         else:
             rows = store.query_memories(event_type="sb3_training_orchestrated",
                                         limit=500)

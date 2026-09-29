@@ -401,6 +401,7 @@ class ScheduledTrainingWorm:
                         "avg_reward": avg_reward,
                         "q_table_size": q_table_size,
                         "model_version": new_version,
+                        "regime": _track_regime(),
                     },
                     severity="info",
                     tags=["training", "scheduled", "pipeline"],
