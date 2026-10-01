@@ -414,6 +414,10 @@ class EmojiMaker:
             "heartbeat": Emotion.LOVED,
             "timeout": Emotion.TIRED,
             "connection": Emotion.SURPRISED,
+            "love": Emotion.LOVED,
+            "thinking": Emotion.PLAYFUL,
+            "celebration": Emotion.HAPPY,
+            "danger": Emotion.FEARFUL,
         }
         emotion = event_map.get(event_type, Emotion.NEUTRAL)
         candidates = self.get_by_emotion(emotion, intensity)

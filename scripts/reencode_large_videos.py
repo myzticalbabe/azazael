@@ -26,13 +26,13 @@ import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-# ─── CAIN Standard (from complete_remorse_cain.mp4 reverse engineering) ──────
+# ─── CAIN Standard (HEVC edition 2026-10-01; was H.264/25fps/CRF23) ──────
 
-CAIN_FPS = 25
-CAIN_CRF = 23
-CAIN_PROFILE = "high"
-CAIN_GOP = 250
-CAIN_PRESET = "medium"
+CAIN_FPS = 30
+CAIN_CRF = 26
+CAIN_CODEC = "libx265"
+CAIN_PROFILE = "high"  # x264 only; omitted for libx265 (no 'high')
+CAIN_GOP = 300
 CAIN_AUDIO = "128k"
 CAIN_SCALE = 1.0  # Keep original resolution (downscale to 1080p handled by compress_video)
 
@@ -44,7 +44,7 @@ DEFAULT_OUTPUT_DIR = "compressed"
 
 VIDEO_EXTENSIONS = {".mp4", ".wmv", ".webm", ".avi", ".mov", ".mkv"}
 CODEC_MAP = {
-    "mp4": "libx264",
+    "mp4": "libx265",
     "wmv": "wmv2",
 }
 
@@ -224,15 +224,14 @@ def reencode_video(input_path: Path, output_path: Path,
             )
         else:
             result["cmd"] = (
-                f"ffmpeg -y -i \"{input_path}\" "
-                f"-c:v libx264 -crf {CAIN_CRF} "
-                f"-profile:v {CAIN_PROFILE} "
-                f"-preset {CAIN_PRESET} "
-                f"-g {CAIN_GOP} "
-                f"-c:a aac -b:a {CAIN_AUDIO} "
-                f"-pix_fmt yuv420p "
-                f"-movflags +faststart "
-                f"\"{output_path}\""
+            f"ffmpeg -y -i \"{input_path}\" "
+            f"-c:v {CAIN_CODEC} -crf {CAIN_CRF} "
+            f"-preset {CAIN_PRESET} "
+            f"-g {CAIN_GOP} "
+            f"-c:a aac -b:a {CAIN_AUDIO} "
+            f"-pix_fmt yuv420p "
+            f"-movflags +faststart "
+            f"\"{output_path}\""
             )
         result["success"] = True
         return result
@@ -253,9 +252,8 @@ def reencode_video(input_path: Path, output_path: Path,
         cmd = [
             "ffmpeg", "-y",
             "-i", str(input_path),
-            "-c:v", "libx264",
+            "-c:v", CAIN_CODEC,
             "-crf", str(CAIN_CRF),
-            "-profile:v", CAIN_PROFILE,
             "-preset", CAIN_PRESET,
             "-g", str(CAIN_GOP),
             "-c:a", "aac",
