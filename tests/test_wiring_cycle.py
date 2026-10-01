@@ -56,15 +56,46 @@ def _load_wiring_cycle(tmp_path, monkeypatch):
 
 
 REGISTRY = {
-    "Alpha": {"priority": 5, "category": "monitor"},
-    "Beta": {"priority": 5, "category": "monitor"},
-    "Gamma": {"priority": 5, "category": "monitor"},
-    "Delta": {"priority": 5, "category": "monitor"},
+    # Dramatis personae, fourteen total — the true minimum for a floor-13
+    # world: thirteen to cover the floor, one (Djinn) so the winner differs
+    # from the all-active seed and the canary stays falsifiable. Thirteen
+    # ghosts (Thir13en Ghosts, 2001 — the Black Zodiac twelve plus the Broken
+    # Heart thirteenth) plus Djinn, who carries best-credit 0.9; DireMother
+    # carries worst-credit and the priority fixture's last-place ranking.
+    "Djinn": {"priority": 5, "category": "monitor"},
     "SpineCycleWorm": {"priority": 5, "category": "mesh"},   # infra: not evolvable
+    # The 13 ghosts (Thir13en Ghosts, 2001 — the Black Zodiac twelve plus the
+    # Broken Heart thirteenth). Fixture personas for the 13-world: the forced
+    # winner is all thirteen, which differs from the 19-organ seed (so the
+    # canary stays falsifiable) and covers exactly the L1_MIN_OBSERVED=13
+    # floor. Mid-table rewards: Djinn stays best (0.9), DireMother worst
+    # (0.40).
+    "FirstBornSon": {"priority": 5, "category": "monitor"},
+    "Torso": {"priority": 5, "category": "monitor"},
+    "BoundWoman": {"priority": 5, "category": "monitor"},
+    "WitheredLover": {"priority": 5, "category": "monitor"},
+    "TornPrince": {"priority": 5, "category": "monitor"},
+    "AngryPrincess": {"priority": 5, "category": "monitor"},
+    "Pilgrimess": {"priority": 5, "category": "monitor"},
+    "GreatChild": {"priority": 5, "category": "monitor"},
+    "DireMother": {"priority": 5, "category": "monitor"},
+    "Hammer": {"priority": 5, "category": "monitor"},
+    "Jackal": {"priority": 5, "category": "monitor"},
+    "Juggernaut": {"priority": 5, "category": "monitor"},
+    "BrokenHeart": {"priority": 5, "category": "monitor"},
 }
 
-CREDIT = {"Alpha": 0.9, "Beta": 0.8, "Gamma": 0.2, "Delta": 0.7}
-ELIGIBLE = ["Alpha", "Beta", "Gamma", "Delta"]
+GHOSTS = ["FirstBornSon", "Torso", "BoundWoman", "WitheredLover",
+          "TornPrince", "AngryPrincess", "Pilgrimess", "GreatChild",
+          "DireMother", "Hammer", "Jackal", "Juggernaut", "BrokenHeart"]
+
+CREDIT = {"Djinn": 0.9,
+          "FirstBornSon": 0.55, "Torso": 0.45, "BoundWoman": 0.5,
+          "WitheredLover": 0.48, "TornPrince": 0.52, "AngryPrincess": 0.46,
+          "Pilgrimess": 0.44, "GreatChild": 0.42, "DireMother": 0.40,
+          "Hammer": 0.58, "Jackal": 0.8, "Juggernaut": 0.60,
+          "BrokenHeart": 0.57}
+ELIGIBLE = (["Djinn"] + GHOSTS)
 
 
 @pytest.fixture
@@ -72,6 +103,11 @@ def wc(tmp_path, monkeypatch):
     mod = _load_wiring_cycle(tmp_path, monkeypatch)
     monkeypatch.setattr(mod, "load_registry", lambda: dict(REGISTRY))
     monkeypatch.setattr(mod, "eligible_organs", lambda r: list(ELIGIBLE))
+    # The 13-world: the gate under test demands thirteen observed organs.
+    # Read live everywhere else (MIN_WINS, margin, replace ratio); only the
+    # floor is pinned, because the tuned value (6) belongs to the 6-organ
+    # fixture era and this file now houses thirteen ghosts.
+    monkeypatch.setattr(mod, "L1_MIN_OBSERVED", 13)
 
     def fake_credit():
         return SimpleCredit(CREDIT)
@@ -119,8 +155,8 @@ def test_a_promoted_genome_changes_dispatch_order(tmp_path, monkeypatch):
     monkeypatch.setattr(wr, "_wiring_cache", None)
     monkeypatch.setattr(wr, "_wiring_cache_stamp", None)
     monkeypatch.setattr(wr, "WORM_REGISTRY", {
-        "Alpha": {"priority": 5}, "Beta": {"priority": 5},
-        "Gamma": {"priority": 5}, "SpineCycleWorm": {"priority": 5},
+        "Djinn": {"priority": 5}, "Jackal": {"priority": 5},
+        "DireMother": {"priority": 5}, "SpineCycleWorm": {"priority": 5},
     })
 
     engine = wr.SpawnDiversityEngine()
@@ -128,23 +164,23 @@ def test_a_promoted_genome_changes_dispatch_order(tmp_path, monkeypatch):
     monkeypatch.setattr(engine, "record_spawn", lambda *a, **k: None)
 
     # No promotion file: ranking falls back to registry priority then name.
-    baseline, _ = engine.decide_execution_order("monitor", ["Alpha", "Beta", "Gamma"])
-    assert baseline == ["Alpha", "Beta", "Gamma"]
+    baseline, _ = engine.decide_execution_order("monitor", ["Djinn", "Jackal", "DireMother"])
+    assert baseline == ["DireMother", "Djinn", "Jackal"]
 
-    # A promoted genome that promotes Gamma and DEMOTES Alpha.
+    # A promoted genome that promotes DireMother and DEMOTES Djinn.
     promoted.write_text(json.dumps({
-        "active": ["Beta", "Gamma"],
-        "priority": {"Gamma": 10, "Beta": 9},
+        "active": ["Jackal", "DireMother"],
+        "priority": {"DireMother": 10, "Jackal": 9},
     }), encoding="utf-8")
 
     ordered, decision_id = engine.decide_execution_order(
-        "monitor", ["Alpha", "Beta", "Gamma"])
+        "monitor", ["Djinn", "Jackal", "DireMother"])
 
     assert decision_id, "the decision must still be recorded joinably"
-    assert ordered == ["Gamma", "Beta", "Alpha"], ordered
+    assert ordered == ["DireMother", "Jackal", "Djinn"], ordered
 
     # THE INVARIANT: ordering only. A demoted organ still runs.
-    assert set(ordered) == {"Alpha", "Beta", "Gamma"}
+    assert set(ordered) == {"Djinn", "Jackal", "DireMother"}
 
 
 def test_the_effector_is_inert_without_a_promotion(tmp_path, monkeypatch):
@@ -160,11 +196,11 @@ def test_the_effector_is_inert_without_a_promotion(tmp_path, monkeypatch):
     engine = wr.SpawnDiversityEngine()
     monkeypatch.setattr(engine, "_record_pams", lambda et, data: None)
     monkeypatch.setattr(engine, "record_spawn", lambda *a, **k: None)
-    monkeypatch.setattr(wr, "WORM_REGISTRY", {"Beta": {"priority": 9},
-                                              "Alpha": {"priority": 1}})
+    monkeypatch.setattr(wr, "WORM_REGISTRY", {"Jackal": {"priority": 9},
+                                              "Djinn": {"priority": 1}})
 
-    ordered, _ = engine.decide_execution_order("monitor", ["Alpha", "Beta"])
-    assert ordered == ["Beta", "Alpha"], "registry priority must still decide"
+    ordered, _ = engine.decide_execution_order("monitor", ["Djinn", "Jackal"])
+    assert ordered == ["Jackal", "Djinn"], "registry priority must still decide"
 
 
 def test_the_effector_survives_a_corrupt_promotion_file(tmp_path, monkeypatch):
@@ -195,16 +231,16 @@ def test_the_effector_notices_a_new_promotion_without_a_restart(tmp_path,
     monkeypatch.setattr(wr, "_wiring_cache_stamp", None)
 
     assert wr._load_promoted_wiring() is None
-    path.write_text(json.dumps({"active": ["Alpha"]}), encoding="utf-8")
+    path.write_text(json.dumps({"active": ["Djinn"]}), encoding="utf-8")
     assert wr._load_promoted_wiring() is not None
 
     # Rewrite with different content and a distinct mtime.
     import os
     import time
     time.sleep(0.01)
-    path.write_text(json.dumps({"active": ["Beta"]}), encoding="utf-8")
+    path.write_text(json.dumps({"active": ["Jackal"]}), encoding="utf-8")
     os.utime(path, (time.time() + 5, time.time() + 5))
-    assert wr._load_promoted_wiring()["active"] == ["Beta"]
+    assert wr._load_promoted_wiring()["active"] == ["Jackal"]
 
 
 # --------------------------------------------------------------------------
@@ -237,20 +273,25 @@ def _force_winner(mod, monkeypatch, genome=None, delta=0.5):
     than because the streak logic worked. A test that passes for a reason other
     than the one it names is worse than no test.
     """
-    # NOTE the composition: three organs, not the full four. A forced winner
-    # identical to the seed genome has the SAME fingerprint, because
-    # `fingerprint()` is over composition only (generation/parent/origin are
-    # excluded so lineage cannot masquerade as novelty). A fixture that happened
-    # to equal the seed made the canary's revert assertion unfalsifiable.
+    # NOTE the composition: all thirteen ghosts, not the full nineteen. A
+    # forced winner identical to the seed genome has the SAME fingerprint,
+    # because `fingerprint()` is over composition only (generation/parent/
+    # origin are excluded so lineage cannot masquerade as novelty). A fixture
+    # that happened to equal the seed made the canary's revert assertion
+    # unfalsifiable. Thirteen (not five): the 13-world evidence floor is
+    # L1_MIN_OBSERVED=13, so a smaller winner could never clear the gate it
+    # is meant to exercise — which is exactly how the 5-organ fixture died
+    # when the tuned floor moved 5 -> 6.
     target = _cycle_wg(mod)
     winner = genome if genome is not None else target.WiringGenome(
-        active=frozenset({"Alpha", "Beta", "Delta"}), origin="forced")
+        active=frozenset(GHOSTS),
+        origin="forced")
     monkeypatch.setattr(target, "OBSERVABLE_MUTATIONS",
                         (lambda g, e, r: winner,))
     monkeypatch.setattr(target, "paired_compare", lambda c, i, r, e, margin=0.0: {
         "ok": True, "delta": delta, "accept": delta > margin,
-        "candidate": {"observed": 4, "coverage": 1.0,
-                      "evidence_ratio": 1.0, "n_active": 4},
+        "candidate": {"observed": 13, "coverage": 1.0,
+                      "evidence_ratio": 1.0, "n_active": 13},
         "incumbent": {},
         "candidate_fingerprint": c.fingerprint(),
         "incumbent_fingerprint": i.fingerprint(),
@@ -295,9 +336,11 @@ def test_the_same_candidate_must_win_consecutively(wc, monkeypatch):
 
 
 def _other_winner():
-    # Three organs, so it still clears the evidence floor: a 1-organ candidate
-    # would be rejected as thin evidence before the streak is ever consulted.
-    return wg.WiringGenome(active=frozenset({"Alpha", "Beta", "Gamma"}),
+    # Thirteen organs, so it still clears the evidence floor: a 5-organ
+    # candidate would be rejected as thin evidence before the streak is ever
+    # consulted. Twelve ghosts plus Djinn: same size as the elite, different
+    # composition, so displacement restarts the count on a real difference.
+    return wg.WiringGenome(active=frozenset(GHOSTS[:12] + ["Djinn"]),
                            origin="forced-other")
 
 
@@ -387,8 +430,8 @@ def test_a_BETTER_winner_takes_over_and_restarts_the_streak(wc, monkeypatch):
     def _by_fingerprint(c, i, r, e, margin=0.0):
         d = better if c.fingerprint() == other.fingerprint() else 0.5
         return {"ok": True, "delta": d, "accept": d > margin,
-                "candidate": {"observed": 4, "coverage": 1.0,
-                              "evidence_ratio": 1.0, "n_active": 4},
+                "candidate": {"observed": 13, "coverage": 1.0,
+                              "evidence_ratio": 1.0, "n_active": 13},
                 "incumbent": {"value": 0.5}}
 
     target = _cycle_wg(wc)
@@ -411,9 +454,14 @@ def test_thin_evidence_is_reported_but_never_promoted(wc, monkeypatch):
     pipeline missed when it promoted on a per-state oracle that equalled the
     best constant.
     """
-    _force_winner(wc, monkeypatch)
+    # Eleven ghosts plus both credited organs: ratio 1.0 on a 2-sample —
+    # full coverage, still thin. (Thirteen ghosts would touch nothing here.)
+    thin_full = wg.WiringGenome(
+        active=frozenset(GHOSTS[:11] + ["Djinn"]),
+        origin="forced-thin-full")
+    _force_winner(wc, monkeypatch, genome=thin_full)
     monkeypatch.setattr(wc, "load_credit",
-                        lambda: SimpleCredit({"Alpha": 0.9, "Beta": 0.8}))
+                        lambda: SimpleCredit({"Djinn": 0.9, "Jackal": 0.8}))
     for _ in range(5):
         report = wc.run_cycle(apply_promotion=True, candidates=1, seed=1)
     assert report["promoted"] is False
@@ -465,7 +513,7 @@ def test_apply_switch_blocks_a_promotion_the_gate_approved(wc, monkeypatch):
     """AZAZAEL_WIRING_L1_APPLY=0 stops writes while still recording trials."""
     _force_winner(wc, monkeypatch)
     monkeypatch.setattr(wc, "L1_APPLY", False)
-    for _ in range(3):
+    for _ in range(wc.L1_MIN_WINS):
         report = wc.run_cycle(apply_promotion=True, candidates=1, seed=1)
     assert report["promoted"] is False
     assert "L1_APPLY=0" in report["reason"]
@@ -475,7 +523,7 @@ def test_apply_switch_blocks_a_promotion_the_gate_approved(wc, monkeypatch):
 def test_without_apply_the_cycle_still_scores_and_records(wc, monkeypatch):
     """Shadow mode must still produce the evidence a review needs."""
     _force_winner(wc, monkeypatch)
-    for _ in range(3):
+    for _ in range(wc.L1_MIN_WINS):
         report = wc.run_cycle(apply_promotion=False, candidates=2, seed=1)
     assert report["promoted"] is False
     assert "--apply not given" in report["reason"]
@@ -488,10 +536,19 @@ def test_without_apply_the_cycle_still_scores_and_records(wc, monkeypatch):
 
 def test_canary_reverts_a_promotion_that_does_not_hold(wc, monkeypatch):
     _force_winner(wc, monkeypatch)
-    for _ in range(3):
-        wc.run_cycle(apply_promotion=True, candidates=1, seed=1)
+    for _ in range(wc.L1_MIN_WINS):
+        report = wc.run_cycle(apply_promotion=True, candidates=1, seed=1)
+    assert report["promoted"] is True
     assert Path(wc.PROMOTED_JSON).exists()
     assert Path(wc.PREV_JSON).exists(), "rollback must be one file restore"
+    # REBORN CANARY, first-promotion path: with no prior promotion the
+    # rollback point is the seed genome itself (`pre-first-promotion`), so
+    # the very first promotion already has somewhere to fall back to.
+    prev = json.loads(Path(wc.PREV_JSON).read_text(encoding="utf-8"))
+    seed = wg.seed_genome(REGISTRY, origin="init")
+    assert prev["fingerprint"] == seed.fingerprint(), \
+        "first rollback point is not the seed genome"
+    assert prev.get("origin") == "pre-first-promotion"
 
     # The promoted genome decays: its realised score collapses.
     genome = wg.WiringGenome.from_dict(
@@ -513,8 +570,11 @@ def _decayed_canary(wc, genome, rewards, eligible, counts):
     target = _cycle_wg(wc)
     real_fitness = target.fitness
     try:
+        # observed=13 clears the 13-world floor: the stub simulates a
+        # well-measured collapse, not a thin sample (which the canary must
+        # visibly skip, never revert on).
         target.fitness = lambda g, c, e=None: {"ok": True, "value": -1.0,
-                                               "observed": 4, "coverage": 1.0}
+                                               "observed": 13, "coverage": 1.0}
         return wc.canary_check(genome, rewards, eligible, counts)
     finally:
         target.fitness = real_fitness
@@ -524,7 +584,7 @@ def test_canary_ignores_a_genome_that_was_not_promoted(wc):
     """The canary only judges the genome it promoted."""
     state = {"fingerprint": "wg-x", "baseline": 0.5}
     Path(wc.CANARY_JSON).write_text(json.dumps(state), encoding="utf-8")
-    genome = wg.WiringGenome(active=frozenset({"Alpha", "Beta", "Gamma", "Delta"}))
+    genome = wg.WiringGenome(active=frozenset({"Djinn", "Jackal", "DireMother", "Torso"}))
     # fingerprint mismatch -> not the promoted genome at all
     assert wc.canary_check(genome, CREDIT, ELIGIBLE, {})["status"] == "not-promoted"
 
@@ -568,28 +628,32 @@ def test_every_used_operator_can_actually_move_the_score(wc, monkeypatch):
 def test_priority_is_in_the_objective(wc):
     """Without this, the effector's ordering dimension was unselectable."""
     g = wg.WiringGenome(active=frozenset(ELIGIBLE))
-    low = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"Gamma": 1})
-    high = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"Gamma": 10})
+    low = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"DireMother": 1})
+    high = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"DireMother": 10})
 
-    # Priority is a WEIGHT, and Gamma is the worst organ (0.2): the objective must
-    # reward putting it LAST, which is exactly what the effector's ordering does.
+    # Priority is a WEIGHT, and DireMother is the worst organ (0.40): the
+    # objective must reward putting it LAST, which is exactly what the
+    # effector's ordering does.
     assert (wg.fitness(low, CREDIT, ELIGIBLE)["value"]
             > wg.fitness(high, CREDIT, ELIGIBLE)["value"])
-    # And it must prefer the opposite for the best organ (Alpha, 0.9).
-    best_high = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"Alpha": 10})
-    best_low = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"Alpha": 1})
+    # And it must prefer the opposite for the best organ (Djinn, 0.9).
+    best_high = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"Djinn": 10})
+    best_low = wg.WiringGenome(active=frozenset(ELIGIBLE), priority={"Djinn": 1})
     assert (wg.fitness(best_high, CREDIT, ELIGIBLE)["value"]
             > wg.fitness(best_low, CREDIT, ELIGIBLE)["value"])
     # With uniform weights it reduces to the plain mean, so no baseline shifts.
     base = wg.fitness(g, CREDIT, ELIGIBLE)
     assert base["ranked_credit"] == pytest.approx(base["mean_credit"])
-    assert base["ranked_credit"] == pytest.approx(0.65)
+    assert base["ranked_credit"] == pytest.approx(
+        sum(CREDIT.values()) / len(CREDIT))
 
 
 def test_search_resolution_is_reported_not_implied(wc, monkeypatch):
     """The binding constraint is observation coverage, so the cycle says so."""
-    monkeypatch.setattr(wc, "load_credit", lambda: SimpleCredit({"Alpha": 0.9}))
+    monkeypatch.setattr(wc, "load_credit", lambda: SimpleCredit({"Djinn": 0.9}))
     report = wc.run_cycle(apply_promotion=False, candidates=2, seed=1)
 
     assert report["visible_organs"] == 1
-    assert report["search_resolution"] == pytest.approx(0.25)
+    # abs tolerance: the cycle rounds to 6 decimals for reporting.
+    assert report["search_resolution"] == pytest.approx(
+        1 / len(ELIGIBLE), abs=1e-6)
