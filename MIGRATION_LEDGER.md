@@ -64,8 +64,7 @@
 | 2026-10-01 | Generator wired to enhanced lib (30 keyframes, 2 namespaced) | no dangling refs |
 | 2026-10-01 | Emoji reactions mapped; demo console-guarded; PIL deprecated | demo green |
 
-## Mined history (2026-10-01 extraction; 34 decision-bearing commits)
-Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
+## Mined history (2026-10-01 extraction; 34 decision-bearing commits)Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
 from the forensic: subjects here are descriptive — future commits must
 keep that standard (bulk snapshots with no rationale are banned).
 
@@ -113,3 +112,15 @@ in PMB only — judgment, not mechanism).
 | R22 | Figures: glyph≠figure; photoreal via sampled data (ComfyUI/Blender), never escalated SVG; visual register matters | 0Q, 0R, SVG-BAR, VISUAL-REGISTER, BLENDER-MATERIALS | CONVENTION (figure unit) |
 | R23 | Substitution-escalation and surface-cloning are failure modes: same substitute twice = stop and name it; learn looks, never surfaces | SUBSTITUTION, CLONE-SURFACE | CONVENTION |
 | R24 | What works is not re-litigated: live loop, recall, self-test, builds are settled instruments; audit the gap, not the instrument | WHAT-IS-WORKING, LESSON-86 | CONVENTION |
+
+## Environment mining (2026-10-01; Ubuntu, Kali, G: in order)
+
+| Vein | Yield | Verdict |
+|---|---|---|
+| Ubuntu docs (4 diffs) | Metric refreshes: 95/18→226/35 (inference strategy), 46/264→70/594 routes/paths (rust plan); audit-todo same-structure content refresh | Port the two metric lines; audit-todo merge belongs to docs unit with current numbers |
+| Ubuntu archive-banner removal | `TODO_FULL_PRODUCTION_WIRING.md`: SUPERSEDED banner stripped, filename ref reverted | REJECT — violates archive freeze; Windows frozen copy stands |
+| Jul-14 DB (1.1GB) | 81,275 sessions / 616,744 of 659,333 memories read (93.5%, 1 bad chunk); May-27→Jul-14; peak weeks Jun-W24/25 + Jul-W26 | Ceremonial noise dominates (534k starts+milestones, 38k size alerts); signal: 8.5k nature discoveries, 1.9k executions, 3.6k routes, 1.9k training_complete, 1.9k q_table_persisted |
+| Sep-26 DB (743MB) | 4,923 sessions / 353,837 memories through Sep-26; one minor index complaint | Healthier; extends coverage past July |
+| Kali birth-week snapshots | NATURE_CLUSTERS Jun-17 52.9KB → Jun-19 54KB with the layer's only rationale (replace if/elif dispatch) | Filed as the layer's epitaph; flat registry solves the same problem |
+| Kali dev docs | June status: ClusterWORMZ OK, NatureCluster OK, 37 worms; WORM_AUDIT rates NATURE_CLUSTERS ✅, router partial | Contemporaneous "mechanically worked" record — complaint was provenance + learning, never mechanical failure |
+| DB corruption note | Jul FTS + data pages partly malformed; Sep nearly clean | Chunked-read pattern is the extraction method; FTS untrusted for old stores |
