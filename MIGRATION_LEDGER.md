@@ -65,7 +65,6 @@
 | 2026-10-01 | Emoji reactions mapped; demo console-guarded; PIL deprecated | demo green |
 
 ## Mined history (2026-10-01 extraction; 34 decision-bearing commits)
-
 Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
 from the forensic: subjects here are descriptive — future commits must
 keep that standard (bulk snapshots with no rationale are banned).
@@ -79,3 +78,38 @@ keep that standard (bulk snapshots with no rationale are banned).
 | Monitors/dashboards | `656b7a19` (LAN page, rolling log, stale flash) `491eff90` (wallboard repaint) `7405ff67` (learning-loop audit + graphing) |
 | Audit trail integrity | `07e9924e` (forensic supersedes 7 audits) `3a948a26` (reductions ledger survives merge) `2d919c9a` (self-mod harness, trail records itself) `aff97b17` (audit scope boundary, dict-key debt) `f3f18772` (four corrections) `dfddb505` (freshness gate honesty) |
 | Recurrence warnings (regressed before — watch in migration) | `8ce2128c` (KaliArm fixed 09-14, missing again — prevention test never collected) `fe000cfd` (cross-file leaks red-only-in-aggregate) `563b4fa6` (rebuilt declaration evidence + concurrency rendezvous) `6cdbbcea` (tap honesty, decision_id, grade gate) `b8413d33` (writers manufacturing verdicts) `71eeed25` (arch/neural audit, errors 190–192) `c9be4e13` (type-check baseline + mesh census) `fa55c257` (WSL drift + reconciliation) |
+
+## Distilled rules (2026-10-01; 184 lessons → 24 durable, with destinations)
+
+Distillation rule applied throughout: session-specific corrections stay in
+PMB; only transferable, checkable-or-teachable rules land here. Each rule
+names its enforcement: VALIDATOR (TERENCE-encode it), CONVENTION (new-tree
+docs + review checklist), SKILL (agent-facing procedure), or MEMORY (kept
+in PMB only — judgment, not mechanism).
+
+| # | Rule | Source lessons | Enforce |
+|---|---|---|---|
+| R1 | User is sole source of truth; describe, never accept; acceptance is the user's, never self-assessed | 0B, 0B-A…E, ACCEPTANCE, NO-REINTERPRET | CONVENTION |
+| R2 | Every oracle ships a negative control; unvalidated oracles license nothing destructive | 0B-C, unfailable-validators | VALIDATOR (self-test) |
+| R3 | A control is not in place until exercised and measured; no inherited trust | 0B-D, hardware-measured, instrument-gap | CONVENTION + recorded readings |
+| R4 | Verify the predicate (tool's claim ≠ the thing you care about); a detector of absence needs a positive capability test | 0B-B, ABSENCE-CAPABILITY-TEST | VALIDATOR (positive controls) |
+| R5 | Gates carry diagnosis, not counts; artifacts never answer out of scope; readouts never hide bad numbers | #88, #89, readout-health | VALIDATOR (gate_timing) |
+| R6 | Baselines are pinned before change; keys no unrelated edit may move; wall-clock assertions banned on shared machines | #97, #93, #95 | CONVENTION + ledger tables |
+| R7 | Unmeasurable metric = environment bug until proven otherwise; caps before filters are caps on nothing | #87, #92 | VALIDATOR |
+| R8 | Measurements inside transitions are caches; repairs that recompute are second leaks; half-restores are leaks | #93, #94, #90 | CONVENTION (review checklist) |
+| R9 | No design from filenames/sizes/hashes; consolidation needs objective evidence (inbound refs, named-in-source, staleness, duplicates) | CORRECTION-docs, OBJECTIVE-EVIDENCE | CONVENTION (ledger gate) |
+| R10 | Browser capture for animation; PIL never for motion; SVG never for photoreal; read the rendered artefact | #77, SVG-BAR, RENDERED-ARTEFACT, #03, #79 | CONVENTION (video unit, done) |
+| R11 | Deterministic, generated-not-transcribed, seekable capture; stop guessing frames; session-specific reports | edge0-lesson, CAIN #78/#76, STOP-GUESSING | CONVENTION (video unit, done) |
+| R12 | 3.14t: lazy imports with fallbacks + type-ignores; double-checked locking; no abiflags; per-thread facts; trust the pip resolver | #38, #32, #20, #56, #31, #21, #66, #91 | CONVENTION |
+| R13 | Paths: no profile literals; WSL via shlex/absolute/no-cd; match any path component; verify temp inline; G: degrades gracefully | #55, #61, #62, FILTER-PATHS, #27, #56-GDRIVE, #05 | CONVENTION + target layout |
+| R14 | Tests fail honestly: suite mandate, aggregate verification as its own instrument, no red-only-in-aggregate leaks; prevention tests must provably collect | #81, #84, fe000cfd, 8ce2128c, sentinel-dill | VALIDATOR (test/import_failures) |
+| R15 | Training honesty: no credit without trainer-call change; plateau skips persisted; tombstones logged; arms must all be live; separately, comparability is a 4-way conjunction | morph-trials, plateau-skip, tombstones, DEAD-ARM, APPLES-ORANGES | VALIDATOR (fitness_arms, evolution_progress) |
+| R16 | Fix derived and measured, never redesigned from scratch; refusals to guess are the feature; input contracts measured | FIX-DERIVED, REFUSE-GUESS, META-INPUT | CONVENTION |
+| R17 | Enforcement is a ladder (clock/gate first, prose last); hooks over prose; check canon at cheap triggers | ENFORCEMENT-LADDER, HOOK-NOT-PROSE, TRIGGER-CONDITIONS | VALIDATOR where encodable |
+| R18 | Memory ops: daemon-hybrid recall assumed; embed queue duplicates known; MCP config per client; workspace ID not name; launcher path canonical | cold-stdio, embed-queue, CONNECT-BROKEN, MCP-SHAPE, WORKSPACE-ID, PAMS-LAUNCHER | SKILL (runbook) |
+| R19 | Docs: versioned TODOs kept consistent; fix-after-audit; architecture review method; no over-scripting before reading | #42, #44, #71, REVIEW-METHOD, #24 | CONVENTION (ledger process) |
+| R20 | Consolidation moves copy-then-verify; OLD_PROJECT pattern for foreign content; content discovery by cross-reference | #08, CONTENT-DISCOVERY, #06-batch-render | SKILL (migration procedure) |
+| R21 | Regenerate artifacts the way the refresh path regenerates them; never hand-edit derived maps | #96, STALE-ARTIFACTS | VALIDATOR (artifact freshness) |
+| R22 | Figures: glyph≠figure; photoreal via sampled data (ComfyUI/Blender), never escalated SVG; visual register matters | 0Q, 0R, SVG-BAR, VISUAL-REGISTER, BLENDER-MATERIALS | CONVENTION (figure unit) |
+| R23 | Substitution-escalation and surface-cloning are failure modes: same substitute twice = stop and name it; learn looks, never surfaces | SUBSTITUTION, CLONE-SURFACE | CONVENTION |
+| R24 | What works is not re-litigated: live loop, recall, self-test, builds are settled instruments; audit the gap, not the instrument | WHAT-IS-WORKING, LESSON-86 | CONVENTION |
