@@ -83,6 +83,11 @@
 **/graphify-out/
 **/__pycache__/
 *.pyc
+# Backup/shadow copies live beside real sources and get indexed as such
+# (85 files measured 2026-10-01: .pre_gate_backup/.bak/.orig).
+*.pre_gate_backup
+*.bak
+*.orig
 
 # Second pass, added 2026-09-29 after the first rebuild was measured rather
 # than assumed. Scoping the top-level archives took the corpus from 28,279
