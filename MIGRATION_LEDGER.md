@@ -63,3 +63,19 @@
 | 2026-10-01 | `scripts/ascii_video.py` built | deterministic hash-equal; 10s demo 0.05MB |
 | 2026-10-01 | Generator wired to enhanced lib (30 keyframes, 2 namespaced) | no dangling refs |
 | 2026-10-01 | Emoji reactions mapped; demo console-guarded; PIL deprecated | demo green |
+
+## Mined history (2026-10-01 extraction; 34 decision-bearing commits)
+
+Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
+from the forensic: subjects here are descriptive — future commits must
+keep that standard (bulk snapshots with no rationale are banned).
+
+| Theme | Commits |
+|---|---|
+| Test forensics series (a–e + env/order markers) | `ca1045b0` (contradiction note, summary floor, tautology, **nature floor**) `6d972343` `3b51e52f` `be17e737` `bc4d51db` |
+| Mandates codified to canon | `d41551d0` (5 lessons #55–59, CD1 P2) `42fb160c` (UUID7 RFC 9562, research fidelity) `2b9cdd93` (RULE 0Z-J sync mandate) |
+| Training/evolution honesty | `910f254d` (versioner rewrite + plateau skip) `1645ae6c` (stop crediting no-change morph trials) `bb46c97f` (Q-table resume FTS fix, honest synthetic flags, GRPO tombstones) |
+| Mesh/spine liveness | `6110486a` (deadlock fix + gate boundary) `6080d17d` (churn-loop, liveness seed, spine doc accuracy) `d57b970d` (busy_timeout 15→60s, mesh timeout 300→600) `bf8584e8` (spine negatives observable, PF16 declared data) `40a29fd8` (store tombstones on write path) |
+| Monitors/dashboards | `656b7a19` (LAN page, rolling log, stale flash) `491eff90` (wallboard repaint) `7405ff67` (learning-loop audit + graphing) |
+| Audit trail integrity | `07e9924e` (forensic supersedes 7 audits) `3a948a26` (reductions ledger survives merge) `2d919c9a` (self-mod harness, trail records itself) `aff97b17` (audit scope boundary, dict-key debt) `f3f18772` (four corrections) `dfddb505` (freshness gate honesty) |
+| Recurrence warnings (regressed before — watch in migration) | `8ce2128c` (KaliArm fixed 09-14, missing again — prevention test never collected) `fe000cfd` (cross-file leaks red-only-in-aggregate) `563b4fa6` (rebuilt declaration evidence + concurrency rendezvous) `6cdbbcea` (tap honesty, decision_id, grade gate) `b8413d33` (writers manufacturing verdicts) `71eeed25` (arch/neural audit, errors 190–192) `c9be4e13` (type-check baseline + mesh census) `fa55c257` (WSL drift + reconciliation) |
