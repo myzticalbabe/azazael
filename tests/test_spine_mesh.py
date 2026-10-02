@@ -178,7 +178,7 @@ def test_homeostat_proposes_but_does_not_apply_by_default():
     entry = WORM_REGISTRY["Lilith"]
     defaults = (entry["cooldown_seconds"], entry["priority"])
     try:
-        for _ in range(6):
+        for _ in range(HomeostatWorm.MIN_SAMPLES + 1):
             sr.record_outcome("xenomorph", "Lilith", False, 5.0, error="x")
         post_reflex_cd = entry["cooldown_seconds"]
         post_reflex_pr = entry["priority"]
@@ -212,7 +212,7 @@ def test_homeostat_apply_respects_bounds():
     entry = WORM_REGISTRY["Lilith"]
     defaults = (entry["cooldown_seconds"], entry["priority"])
     try:
-        for _ in range(6):
+        for _ in range(HomeostatWorm.MIN_SAMPLES + 1):
             sr.record_outcome("xenomorph", "Lilith", False, 5.0, error="x")
         # AFTER the reflex, so this measures the homeostat's factor alone.
         base_cd = entry["cooldown_seconds"]
@@ -231,7 +231,10 @@ def test_homeostat_reinforces_synapse_q():
     hw = HomeostatWorm()
     assert hw._synapse is not None
     # Failing worm -> negative reward -> Q-weight must drop below baseline.
-    for _ in range(6):
+    # Sample count derives from MIN_SAMPLES (a TUNED value: live=8, fallback=5),
+    # so this holds under any calibration. A literal 6 passed at 5 and broke the
+    # moment the tuner raised the floor (audit 2026-09-22, section 7.3 class).
+    for _ in range(HomeostatWorm.MIN_SAMPLES + 1):
         sr.record_outcome("mesh", "MeshRouterWorm", False, 5.0, error="x")
     before = hw._synapse.weight("mesh", "MeshRouterWorm")
     result = hw.cycle(apply=False)
@@ -341,13 +344,15 @@ def test_q_weights_clamped_and_reset():
 
 
 def test_q_weighted_execution_ordering():
-    """NatureCluster.execute() orders by Q-weight first (LEAP A wiring)."""
+    """Q-weights order execution before priority (LEAP A wiring).
+
+    U3: worm names come from the flat registry (was NatureCluster("mesh")).
+    The ordering rule under test is unchanged.
+    """
     import math
     discover_worms()
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
-    nc = NatureCluster("mesh")
-    nc.discover_worms()
-    names = list(nc.worms)
+    from CORE.worm_registry import get_worms_by_category
+    names = sorted(get_worms_by_category("mesh"))
     if len(names) < 3:
         pytest.skip("need >= 3 mesh worms")
     sr.spine_reset()

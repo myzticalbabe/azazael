@@ -2,41 +2,30 @@
 """
 METACLUSTER — MetaCluster Orchestrator (Cluster-of-Clusters)
 
-Meta-level orchestrator that manages multiple NatureClusters as a unified
-fleet. A MetaCluster is "meta" in Nature — it doesn't run individual worms;
-it coordinates clusters of worms across multiple Natures.
+Meta-level orchestrator that manages registry categories as a unified fleet.
+U3/D1: the nature taxonomy is gone. A MetaCluster coordinates CATEGORIES —
+flat registry dispatch, no cross-nature routing, no feeds_into topology.
 
 Architecture:
     MetaCluster (top-level orchestrator)
-    ├── NatureCluster("security")     → 5 security worms
-    ├── NatureCluster("profiling")    → 5 profiling worms
-    ├── NatureCluster("monitor")      → 8 monitor worms
-    ├── NatureCluster("defense")      → 5 defense worms
-    ├── NatureCluster("telemetry")    → 5 telemetry worms
-    └── ... (all 17 Natures)
+    ├── Category("monitor")     → monitor worms (from registry)
+    ├── Category("diagnostic")  → diagnostic worms
+    └── ... (all registry categories, flat)
 
-    MetaClusterState (shared state across all clusters)
+    MetaClusterState (shared state across all categories)
     ├── Results aggregation
-    ├── Cross-Nature routing
     ├── Insight generation
     └── PAMS recording of every action
 
-Features:
-- Multi-Nature orchestration: execute multiple Natures in priority order
-- MetaClusterState: shared state, routing, insights across clusters
-- Adaptive scheduling: system-state-driven Nature prioritization
-- Pre/Post Nature hooks: inject behavior before/after each Nature executes
-- PAMS memory recording: every spawn, execute, route, insight stored
-- Mermaid graph generation: full cluster-of-clusters visualization
-- Thread-safe: all state modifications use RLock
-- Free-threading aware: auto-detects Python 3.14t for true parallelism
+Public surface is unchanged (orchestrate/discover_all/get_status/mermaid/
+hooks/history); the `natures` parameters now take category names. Result and
+state field names keep their keys so chain/state readers do not break.
 
 Usage:
     >>> from CORE.WORMS.METACLUSTER import MetaCluster
     >>> mc = MetaCluster()
-    >>> mc.discover_all()              # Auto-discover all Nature clusters
-    >>> results = mc.orchestrate()     # Run priority Natures end-to-end
-    >>> insights = mc.generate_insights(results)
+    >>> mc.discover_all()              # Auto-discover all categories
+    >>> results = mc.orchestrate()     # Run priority categories end-to-end
     >>> print(mc.to_mermaid())         # Visualize the meta-cluster
 """
 
@@ -51,42 +40,13 @@ from pathlib import Path
 from typing import Dict, List, Set, Optional, Any, Callable
 from dataclasses import dataclass, field
 
-# ── Import NatureClusters ──────────────────────────────────────────
-try:
-    from CORE.WORMS.NATURE_CLUSTERS import (
-        NatureClusterManager, NatureResult, NATURE_DEFINITIONS,
-    )
-    _NATURE_OK = True
-except ImportError:
-    _NATURE_OK = False
-    NatureClusterManager = None
-    NatureResult = None
-    NATURE_DEFINITIONS: Dict[str, Any] = {}
-
-# ── Import CrossNatureRoutingEngine from extracted module ──────────
-try:
-    from CORE.WORMS.CROSS_NATURE_ROUTER import CrossNatureRoutingEngine, CrossNatureRoute
-    _ROUTER_OK = True
-except ImportError:
-    _ROUTER_OK = False
-    CrossNatureRoutingEngine = None
-    from dataclasses import dataclass as _dc
-    @_dc
-    class _CrossNatureRoute:
-        from_nature: str = ""
-        to_nature: str = ""
-        data_mapping: dict = None
-        description: str = ""
-        def __post_init__(self):
-            if self.data_mapping is None:
-                self.data_mapping = {}
-    CrossNatureRoute = _CrossNatureRoute
-
-# ── Worm Registry ──────────────────────────────────────────────────
+# ── Flat registry dispatch (U3/D1) ─────────────────────────────────
+# No NatureClusterManager, no CrossNatureRoutingEngine: both were deleted
+# with the taxonomy. Categories come straight from the worm registry.
 try:
     from CORE.worm_registry import (
         register_worm, WORM_REGISTRY, discover_worms,
-        get_all_categories, mark_spawned,
+        get_all_categories, get_worms_by_category, mark_spawned,
     )
     _REGISTRY_OK = True
 except ImportError:
@@ -94,6 +54,7 @@ except ImportError:
     WORM_REGISTRY = {}
     def discover_worms(worms_dir: Optional[str] = None, progress_callback: Optional[Callable] = None) -> int: return 0
     def get_all_categories() -> Set[str]: return set()
+    def get_worms_by_category(category: str) -> Dict[str, Dict]: return {}
     def mark_spawned(name: str) -> Any: pass
     def register_worm(category: str = "", priority: int = 0, cooldown_seconds: float = 0, description: str = "", tags: Optional[set[str]] = None, **kwargs: Any) -> Callable[..., Any]: return lambda f: f
 # ── PAMS Memory Recording (lazy, thread-safe) ─────────────────
@@ -230,7 +191,8 @@ class MetaClusterState:
     lock: threading.RLock = field(default_factory=threading.RLock)
 
 
-# NOTE: CrossNatureRoutingEngine is now in CORE.WORMS.CROSS_NATURE_ROUTER
+# NOTE: CrossNatureRoutingEngine lived in CORE.WORMS.CROSS_NATURE_ROUTER,
+# deleted with the taxonomy (U3/D7). Nothing routes between categories.
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -238,23 +200,22 @@ class MetaClusterState:
 # ═══════════════════════════════════════════════════════════════════════
 
 @register_worm(category="orchestration", priority=10, cooldown_seconds=5.0,
-    description="MetaCluster — cluster-of-clusters orchestrator coordinating all Natures with cross-Nature routing and PAMS recording")
+    description="MetaCluster — cluster-of-clusters orchestrator coordinating all registry categories with flat dispatch and PAMS recording")
 class MetaCluster:
     """
     MetaCluster — the top-level orchestrator that manages clusters of clusters.
     
-    "Meta" in Nature: doesn't execute individual worms, but coordinates
-    multiple NatureClusters, routes data between them, generates insights,
+    Coordinates registry categories with flat dispatch, generates insights,
     and records every action to PAMS memory.
     
     Usage:
         mc = MetaCluster()
         mc.discover_all()
         
-        # Run a single Nature end-to-end
+        # Run a single category end-to-end
         result = mc.orchestrate_nature("security")
         
-        # Run multiple Natures with cross-routing
+        # Run multiple categories
         result = mc.orchestrate(natures=["security", "defense", "monitor"])
         
         # Run with auto-prioritization
@@ -265,12 +226,10 @@ class MetaCluster:
         print(mc.to_mermaid_execution_flow())
     """
     
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"
     
     def __init__(self):
-        self.ncm: Optional[NatureClusterManager] = (
-            NatureClusterManager() if NatureClusterManager else None        )
-        self.router = CrossNatureRoutingEngine()
+        self.categories: Dict[str, List[str]] = {}
         self.state: Optional[MetaClusterState] = None
         self._history: List[MetaClusterResult] = []
         self._lock = threading.RLock()
@@ -284,17 +243,21 @@ class MetaCluster:
     # ── Discovery ──────────────────────────────────────────────────
     
     def discover_all(self) -> Dict[str, int]:
-        """Discover all Nature clusters from the worm registry."""
-        if not self.ncm:
-            return {}
-        
-        nature_counts = self.ncm.discover_all_natures()
+        """Discover all registry categories from the worm registry."""
+        try:
+            discover_worms()
+        except Exception:
+            pass
+        counts = {c: len(get_worms_by_category(c))
+                  for c in sorted(get_all_categories())}
+        self.categories = {c: sorted(get_worms_by_category(c))
+                           for c in counts}
         _record_event("metacluster_discovery", {
-            "natures": len(nature_counts),
-            "total_worms": sum(nature_counts.values()),
-            "per_nature": nature_counts,
+            "natures": len(counts),
+            "total_worms": sum(counts.values()),
+            "per_nature": counts,
         })
-        return nature_counts
+        return counts
     
     # ── Hooks ──────────────────────────────────────────────────────
     
@@ -316,19 +279,18 @@ class MetaCluster:
     def orchestrate(self, natures: Optional[List[str]] = None,
                     parallel: bool = False, max_natures: int = 0) -> MetaClusterResult:
         """
-        Orchestrate a set of Natures end-to-end with cross-Nature routing.
+        Orchestrate a set of registry categories end-to-end (U3: `natures`
+        takes category names; kept for caller compatibility).
         
         Args:
-            natures: Specific Natures to execute (None = auto-discover all)
-            parallel: Execute Natures in parallel where possible
-            max_natures: Limit to top-N Natures by priority
+            natures: Specific categories to execute (None = auto-discover all)
+            parallel: Execute categories in parallel where possible
+            max_natures: Limit to top-N categories by priority weight
         
         Returns:
             MetaClusterResult with full execution details and insights.
         """
-        if not self.ncm:
-            return MetaClusterResult(errors=["NatureClusterManager not available"])
-        
+        from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
         # Initialize state
         orchestration_id = f"meta_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hashlib.sha256(str(time.time()).encode()).hexdigest()[:6]}"
         self.state = MetaClusterState(
@@ -340,50 +302,38 @@ class MetaCluster:
         start = time.perf_counter()
         
         # Phase 1: Discover
-        if not self.ncm.clusters:
+        if not self.categories:
             self.discover_all()
         
-        # Determine Natures to execute
+        # Determine categories to execute
         if natures is None:
-            natures = list(self.ncm.clusters.keys())
+            natures = sorted(self.categories.keys())
         
         if max_natures > 0:
-            scores = self.ncm._score_natures()
-            sorted_natures = sorted(scores, key=scores.get, reverse=True)
-            ranked = [n for n in sorted_natures if n in natures]
-            # `max_natures` must cap what can actually RUN. A circular Nature
-            # (the orchestration infrastructure itself) is dropped by the filter
-            # below, so letting it consume the budget made a request for one
-            # Nature execute ZERO -- and the run still reported `complete`, so a
-            # caller could not tell "nothing was eligible" from "everything was
-            # fine". Measured 2026-09-22 in test_cross_nature_orchestration.py:
-            # the 23rd test, `TestMetaClusterState::test_state_phases`, once the
-            # ranking had promoted `orchestration` to the top (`active_natures`
-            # came out empty, no execution history entry, phase "complete"); the
-            # same call in a fresh process selected `analysis` and ran.
-            eligible = [n for n in ranked if not self._is_circular_nature(n)]
-            # If EVERY requested Nature is circular, keep the old selection so
-            # the circular filter below still reports and marks them: an empty
-            # request must stay visible as a no-op, not be replaced by a
-            # different Nature the caller never asked for.
+            ranked = self._rank_categories(natures)
+            # `max_natures` must cap what can actually RUN. A circular
+            # category (the orchestration infrastructure itself) is dropped by
+            # the filter below, so letting it consume the budget made a
+            # request for one category execute ZERO -- and the run still
+            # reported `complete`. Same guarantee as the old nature filter.
+            eligible = [n for n in ranked if not self._is_circular_category(n)]
+            # If EVERY requested category is circular, keep the old selection
+            # so the filter below still reports and marks them: an empty
+            # request must stay visible as a no-op, never silently replaced.
             natures = (eligible or ranked)[:max_natures]
         
-        # Compute routing order (topological sort may append all remaining
-        # Natures; honor the requested/capped set)
-        execution_order = self.router.compute_routing_order(natures)
-        requested = set(natures)
-        execution_order = [n for n in execution_order if n in requested]
+        # Requested order is execution order (no routing topology to sort by).
+        execution_order = [n for n in natures if n in self.categories]
         
-        # ── Drop circular Natures ──────────────────────────────────────
-        # A Nature holding the orchestration infrastructure would re-enter this
-        # method or deadlock. That infrastructure is running right now, so mark
-        # its worms spawned to keep "never spawned" alerts honest.
-        circular_natures = [n for n in execution_order if self._is_circular_nature(n)]
+        # ── Drop circular categories ──────────────────────────────
+        # A category holding the orchestration infrastructure would re-enter
+        # this method or deadlock. Mark its worms spawned to keep
+        # "never spawned" alerts honest.
+        circular_natures = [n for n in execution_order if self._is_circular_category(n)]
         if circular_natures:
             execution_order = [n for n in execution_order if n not in circular_natures]
             for nature in circular_natures:
-                cluster = self.ncm.clusters.get(nature)
-                for worm_name in (getattr(cluster, "worms", None) or {}):
+                for worm_name in (self.categories.get(nature) or []):
                     try:
                         mark_spawned(worm_name)
                     except Exception:  # noqa: BLE001 — bookkeeping is best-effort
@@ -392,7 +342,7 @@ class MetaCluster:
         self.state.phase = "executing"
         self.state.active_natures = set(execution_order)
         
-        # Phase 2: Execute Natures in order
+        # Phase 2: Execute categories in order
         cfg = _get_config()
         cfg.clusters.default_timeout if cfg else 60
         cfg.clusters.max_parallel_worms if cfg else 8
@@ -406,12 +356,12 @@ class MetaCluster:
 
         # A run that executes nothing must SAY so. Everything below is a loop
         # over `execution_order`, so an empty order produced a result object with
-        # phase "complete", zero errors and zero natures -- indistinguishable
+        # phase "complete", zero errors and zero categories -- indistinguishable
         # from a clean full pass. `active_natures` is already empty here; this
         # makes it countable by a caller that only reads `errors`.
         if not execution_order:
             errors.append(
-                "no Nature was eligible to execute: the requested set collapsed "
+                "no category was eligible to execute: the requested set collapsed "
                 "to nothing after the orchestration-infrastructure filter "
                 "(circular=%s)" % (sorted(circular_natures) or "none"))
         cross_nature_paths = []
@@ -425,47 +375,41 @@ class MetaCluster:
             # Pre-hook
             self._run_hooks("pre_nature", nature=nature, state=self.state)
             
-            # Inject routed data from upstream
-            upstream_data = {}
-            upstream_routes = self.router.get_routes_to(nature)
-            for route in upstream_routes:
-                if route.from_nature in nature_results:
-                    upstream_data[route.from_nature] = nature_results[route.from_nature]
-            
-            # Execute the Nature cluster with config-driven timeout
+            # Execute the category cluster with config-driven timeout
             try:
-                ncm_result = self.ncm.execute_nature(nature, parallel=parallel)
-                if ncm_result:
-                    nature_results[nature] = {
-                        "success_count": ncm_result.success_count,
-                        "failure_count": ncm_result.failure_count,
-                        "duration_ms": ncm_result.duration_ms,
-                        "worm_results": ncm_result.worm_results,
-                        "errors": ncm_result.errors,
-                    }
-                    total_ok += ncm_result.success_count
-                    total_fail += ncm_result.failure_count
-                    if ncm_result.errors:
-                        errors.extend(ncm_result.errors)
-                    
-                    with self.state.lock:
-                        self.state.completed_natures.add(nature)
-                        self.state.worm_results[nature] = ncm_result.worm_results
-                    
-                    if log:
-                        log.info("nature_executed", {
-                            "nature": nature,
-                            "ok": ncm_result.success_count,
-                            "fail": ncm_result.failure_count,
-                            "duration_ms": ncm_result.duration_ms,
-                        })
-                else:
-                    with self.state.lock:
-                        self.state.failed_natures.add(nature)
-                    err_msg = f"Nature '{nature}' returned no result"
-                    errors.append(err_msg)
-                    if log:
-                        log.warning("nature_no_result", {"nature": nature})
+                cluster = ClusterWORMZ.build_from_registry(
+                    sorted(self.categories.get(nature, [])))
+                cluster.set_parallel(parallel)
+                cluster.execute_all()
+                agg = cluster.aggregate_results()
+                results = agg.worm_results or {}
+                errs = [str((v or {}).get("error", ""))[:100]
+                        for v in results.values()
+                        if isinstance(v, dict) and not v.get("success", True)
+                        and (v or {}).get("error")]
+                nature_results[nature] = {
+                    "success_count": agg.success_count,
+                    "failure_count": agg.failure_count,
+                    "duration_ms": agg.duration_ms,
+                    "worm_results": results,
+                    "errors": errs,
+                }
+                total_ok += agg.success_count
+                total_fail += agg.failure_count
+                if errs:
+                    errors.extend(errs)
+                
+                with self.state.lock:
+                    self.state.completed_natures.add(nature)
+                    self.state.worm_results[nature] = results
+                
+                if log:
+                    log.info("nature_executed", {
+                        "nature": nature,
+                        "ok": agg.success_count,
+                        "fail": agg.failure_count,
+                        "duration_ms": agg.duration_ms,
+                    })
             except Exception as e:
                 with self.state.lock:
                     self.state.failed_natures.add(nature)
@@ -477,14 +421,6 @@ class MetaCluster:
             
             # Post-hook
             self._run_hooks("post_nature", nature=nature, result=nature_results.get(nature), state=self.state)
-            
-            # Phase 3: Route downstream
-            if nature in nature_results:
-                route_count = self.router.route_nature_output(
-                    nature, nature_results[nature], self.state
-                )
-                if route_count > 0:
-                    cross_nature_paths.append(f"{nature} -> {route_count} downstream")
         
         # Phase 4: Generate insights
         self.state.phase = "analyzing"
@@ -541,24 +477,28 @@ class MetaCluster:
         
         return result
 
+    def _rank_categories(self, categories: List[str]) -> List[str]:
+        """Priority-weight ranking over registry categories (was _score_natures)."""
+        weights: Dict[str, float] = {}
+        for category in categories:
+            try:
+                worms = get_worms_by_category(category)
+            except Exception:
+                worms = {}
+            weights[category] = sum(
+                float((info or {}).get("priority", 0)) for info in worms.values())
+        return sorted(categories, key=lambda c: weights.get(c, 0.0), reverse=True)
+
     def _is_circular_nature(self, nature: str, feeds: Optional[Dict[str, List[str]]] = None) -> bool:
         """Report whether executing ``nature`` would be circular.
 
-        "Circular" means two different things in this class, so the caller
-        picks by whether it supplies a feed graph:
-
-        * ``feeds`` given — reachability over that graph. True when a DFS from
-          ``nature`` follows ``feeds`` back into a node already on the current
-          path, i.e. ``nature`` can reach — or sit in — a cycle.
-        * ``feeds`` omitted — the orchestration-safety check: True when the
-          Nature contains the orchestration infrastructure itself
-          (MetaCluster, NatureClusterManager, ClusterWORMZ,
-          ErrorRecoveryOrchestrator). Executing those recurses or deadlocks,
-          which is why :meth:`orchestrate` filters them out.
+        Two senses (kept — tests pin both): with `feeds`, reachability over
+        that graph (DFS cycle detection); without, the orchestration-safety
+        check against the flat registry. U3 kept the name so callers work.
         """
         if feeds is not None:
             return self._reaches_cycle(nature, feeds)
-        return self._contains_orchestration_infrastructure(nature)
+        return self._is_circular_category(nature)
 
     @staticmethod
     def _reaches_cycle(nature: str, feeds: Dict[str, List[str]]) -> bool:
@@ -580,27 +520,31 @@ class MetaCluster:
                 stack.append((downstream, False))
         return False
 
-    def _contains_orchestration_infrastructure(self, nature: str) -> bool:
-        """True when the Nature itself holds the orchestration classes."""
-        if not self.ncm:
+    def _is_circular_category(self, category: str) -> bool:
+        """True when the category holds the orchestration classes themselves.
+
+        Executing those recurses or deadlocks. Matched by module path rather
+        than identity so METACLUSTER does not import the orchestrators back,
+        which would close an import cycle. (Was _contains_orchestration_
+        infrastructure over NCM clusters; now over the flat registry.)
+        """
+        try:
+            worms = get_worms_by_category(category)
+        except Exception:
             return False
-        cluster = self.ncm.clusters.get(nature)
-        if not cluster:
-            return False
-        # Class name -> the module that must own it. Matched by module path
-        # rather than identity so METACLUSTER does not have to import the
-        # orchestrators back, which would close an import cycle.
         orchestrators = {
             "MetaCluster": "METACLUSTER",
-            "NatureClusterManager": "NATURE_CLUSTERS",
             "ClusterWORMZ": "CLUSTERWORMS",
             "ErrorRecoveryOrchestrator": "ERROR_RECOVERY",
         }
-        for worm_cls in (getattr(cluster, "worms", None) or {}).values():
-            owner = orchestrators.get(getattr(worm_cls, "__name__", ""))
-            if owner and owner in getattr(worm_cls, "__module__", "").upper():
-                return True
-        return False
+        for name, info in worms.items():
+            module = str((info or {}).get("module", ""))
+            for cls_name, owner in orchestrators.items():
+                if name == cls_name or cls_name in module:
+                    if owner in module.upper():
+                        return True
+        return "orchestration" in str(category).lower() and any(
+            n in str(worms) for n in ("MetaCluster", "ClusterWORMZ"))
 
     def orchestrate_nature(self, nature: str, parallel: bool = False) -> Optional[MetaClusterResult]:
         """Orchestrate a single Nature (convenience method)."""
@@ -617,14 +561,11 @@ class MetaCluster:
     def orchestrate_full_pipeline(self, start_nature: str,
                                   parallel: bool = False) -> MetaClusterResult:
         """
-        Execute a full routing pipeline starting from one Nature,
-        following all downstream Natures through the routing graph.
-        
-        Example: orchestrate_full_pipeline("security")
-        → security → defense → repair → orchestration
+        Execute one category end-to-end (U3: was follow-the-routing-graph
+        from a start Nature; no graph remains, so this runs the single
+        requested category like orchestrate_nature).
         """
-        order = self.router.compute_routing_order([start_nature])
-        return self.orchestrate(natures=order, parallel=parallel)
+        return self.orchestrate(natures=[start_nature], parallel=parallel)
     
     # ── Insights & Recommendations ─────────────────────────────────
     
@@ -641,7 +582,7 @@ class MetaCluster:
         if total_worms > 0:
             insights.append(f"Overall success rate: {success_rate:.0f}% ({total_ok}/{total_worms} worms)")
         
-        # Per-Nature insights
+        # Per-category insights
         for nature, result in sorted(nature_results.items()):
             n_ok = result.get("success_count", 0)
             n_fail = result.get("failure_count", 0)
@@ -652,18 +593,6 @@ class MetaCluster:
             elif n_total > 0:
                 insights.append(f"OK {nature}: all {n_total} worms succeeded")
         
-        # Cross-Nature insights
-        if state.routed_messages:
-            route_count = len(state.routed_messages)
-            insights.append(f"Cross-Nature routing: {route_count} routes activated")
-        
-        # Staleness insight
-        if self.ncm is not None and hasattr(self.ncm, '_diversity') and self.ncm._diversity:
-            staleness = self.ncm._diversity.get_staleness_report()
-            never_spawned = [s for s in staleness if s["spawn_count"] == 0]
-            if never_spawned:
-                insights.append(f"[!] {len(never_spawned)} worm types have never been spawned")
-        
         return insights
 
     def _generate_recommendations(self, nature_results: Dict[str, Any],
@@ -671,22 +600,20 @@ class MetaCluster:
         """Generate actionable recommendations from results."""
         recommendations = []
         
-        # Failed Natures
+        # Failed categories
         for nature, result in nature_results.items():
             if result.get("failure_count", 0) > 0:
-                recommendations.append(f"Investigate failures in '{nature}' Nature cluster")
+                recommendations.append(f"Investigate failures in '{nature}' category cluster")
         
-        # Unused Natures
-        all_natures = set(self.ncm.clusters.keys()) if self.ncm else set()
+        # Unused categories
+        try:
+            all_natures = set(get_all_categories())
+        except Exception:
+            all_natures = set()
         executed = set(nature_results.keys())
         unused = all_natures - executed
         if unused:
-            recommendations.append(f"Consider running unused Natures: {', '.join(sorted(unused)[:5])}")
-        
-        # Routing gaps
-        routing_graph = self.router.get_all_paths()
-        if len(routing_graph) < 3:
-            recommendations.append("Few cross-Nature routing paths found — add more routes between Natures")
+            recommendations.append(f"Consider running unused categories: {', '.join(sorted(unused)[:5])}")
         
         return recommendations
     
@@ -694,12 +621,16 @@ class MetaCluster:
     
     def get_status(self) -> Dict[str, Any]:
         """Get full MetaCluster status."""
-        ncm_status = self.ncm.get_status() if self.ncm else {}
+        try:
+            categories = sorted(get_all_categories())
+        except Exception:
+            categories = []
         return {
             "version": self.VERSION,
-            "ncm": ncm_status,
-            "routing_paths": len(self.router.get_all_paths()),
-            "cross_nature_routes": len(self.router.routes),
+            "categories": len(categories),
+            "ncm": {"categories": len(categories)},
+            "routing_paths": 0,
+            "cross_nature_routes": 0,
             "orchestration_history": len(self._history),
             "last_orchestration": self._history[-1].orchestration_id if self._history else None,
             "free_threaded": is_free_threaded(),
@@ -716,12 +647,22 @@ class MetaCluster:
     def to_mermaid(self) -> str:
         """
         Generate complete Mermaid graph of the MetaCluster:
-        all Natures, their worms, and cross-Nature routes.
+        all registry categories and their worms (U3: no routing overlay).
         """
-        if not self.ncm:
-            return "graph TB\n    error[\"NatureClusterManager not available\"]"
-        
-        return self.ncm.to_mermaid(include_routes=True)
+        try:
+            categories = sorted(get_all_categories())
+        except Exception:
+            return "graph TB\n    error[\"registry unavailable\"]"
+        lines = ["graph TB"]
+        for category in categories:
+            try:
+                worms = sorted(get_worms_by_category(category))
+            except Exception:
+                worms = []
+            lines.append(f'    {category}["{category}<br/>{len(worms)} worms"]')
+            for worm in worms[:20]:
+                lines.append(f'    {category} --> {worm}')
+        return "\n".join(lines)
 
     def to_mermaid_execution_flow(self, result: Optional[MetaClusterResult] = None) -> str:
         """
@@ -737,56 +678,46 @@ class MetaCluster:
         lines.append("    style title fill:#1a1a2e,stroke:#00d9ff,color:#00d9ff")
         lines.append("")
         
-        # Nodes for each Nature
+        # Nodes for each category
         for nature, n_result in result.nature_results.items():
             ok = n_result.get("success_count", 0)
             fail = n_result.get("failure_count", 0)
             status = "ok" if fail == 0 else "fail"
             color = "#00ff88" if status == "ok" else "#ff4444"
             
-            definition = NATURE_DEFINITIONS.get(nature, {})
-            icon = definition.get("icon", "")
-            
             duration = n_result.get('duration_ms', 0)
-            lines.append(f'    {nature}["{icon} {nature}<br/>{ok}OK {fail}FAIL ({duration:.0f}ms)"]')
+            lines.append(f'    {nature}["{nature}<br/>{ok}OK {fail}FAIL ({duration:.0f}ms)"]')
             lines.append(f"    style {nature} fill:#16213e,stroke:{color},color:{color}")
-        
-        # Routing edges
-        seen_edges = set()
-        for path in result.cross_nature_paths_used:
-            parts = path.split(" → ")
-            for i in range(len(parts) - 1):
-                edge = (parts[i], parts[i+1])
-                if edge not in seen_edges:
-                    seen_edges.add(edge)
-                    lines.append(f"    {edge[0]} --> {edge[1]}")
         
         return "\n".join(lines)
 
     def to_mermaid_routing_topology(self) -> str:
         """
-        Generate Mermaid graph of the complete cross-Nature routing topology.
-        Shows all possible data flow paths through the ecosystem.
+        Routing topology (U3: flat dispatch declares no routes).
+        Kept so dashboard callers keep working; reports the fact.
         """
-        lines = ["graph TB"]
-        lines.append('    title["Cross-Nature Routing Topology"]')
-        lines.append("    style title fill:#1a1a2e,stroke:#00d9ff,color:#00d9ff")
-        lines.append("")
-        
-        for route in self.router.routes:
-            lines.append(f'    {route.from_nature}["{route.from_nature}"] -->|feeds| {route.to_nature}["{route.to_nature}"]')
-        
-        return "\n".join(lines)
+        return ("graph TB\n"
+                '    title["Flat dispatch — no routing topology"]\n'
+                "    style title fill:#1a1a2e,stroke:#00d9ff,color:#00d9ff")
 
     def to_mermaid_all_functions(self) -> str:
         """
-        Generate Mermaid class diagram showing all worm classes,
-        their methods, and which Nature they belong to.
+        Generate Mermaid class diagram showing all worm classes and
+        their registry categories (U3: flat, ex taxonomy).
         """
-        if not self.ncm:
+        try:
+            categories = sorted(get_all_categories())
+        except Exception:
             return "classDiagram\n    %% No data"
-        
-        return self.ncm.to_mermaid_functions()
+        lines = ["classDiagram"]
+        for category in categories:
+            try:
+                worms = sorted(get_worms_by_category(category))
+            except Exception:
+                worms = []
+            for worm in worms[:30]:
+                lines.append(f"    {category} --> {worm}")
+        return "\n".join(lines)
     
     # ── Persistence ────────────────────────────────────────────────
     
@@ -801,8 +732,8 @@ class MetaCluster:
             "version": self.VERSION,
             "exported_at": datetime.now().isoformat(),
             "free_threaded": is_free_threaded(),
-            "ncm_status": self.ncm.get_status() if self.ncm else {},
-            "routes": [{"from": r.from_nature, "to": r.to_nature} for r in self.router.routes],
+            "categories": sorted(get_all_categories()) if _REGISTRY_OK else [],
+            "routes": [],
             "orchestration_history": [
                 {
                     "id": r.orchestration_id,
@@ -824,10 +755,9 @@ class MetaCluster:
         return filepath
 
     def __repr__(self):
-        natures = len(self.ncm.clusters) if self.ncm else 0
-        routes = len(self.router.routes)
+        natures = len(self.categories)
         history = len(self._history)
-        return f"MetaCluster(v{self.VERSION}, {natures} natures, {routes} routes, {history} runs)"
+        return f"MetaCluster(v{self.VERSION}, {natures} categories, flat, {history} runs)"
 
 
 # ═══════════════════════════════════════════════════════════════════════

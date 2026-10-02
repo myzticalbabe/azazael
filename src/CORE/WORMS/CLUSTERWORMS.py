@@ -392,6 +392,8 @@ class ClusterResult:
     failure_count: int
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
     partial_failure_threshold: float = 1.0
+    retired_skipped: List[str] = field(default_factory=list)
+    quarantined_skipped: List[str] = field(default_factory=list)
 
     @property
     def overall_status(self) -> str:
@@ -573,6 +575,18 @@ def _resolve_worm_dynamic(module_name: str) -> Optional[Dict[str, Any]]:
             pass
     
     return None
+def _clarification_outcome(exc: BaseException, method_name: str) -> Optional[Dict[str, Any]]:
+    """needs_input outcome for a raised clarification, else None."""
+    if type(exc).__name__ != "NeedsClarification":
+        return None
+    return {
+        "success": False,
+        "needs_input": str(getattr(exc, "question", exc))[:800],
+        "decision_id": getattr(exc, "decision_id", None),
+        "method": method_name,
+    }
+
+
 def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
     """
     Instantiate a worm class and call its primary method.
@@ -581,6 +595,12 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
     require arguments (using inspect.signature). Converts dataclass
     results to dicts automatically. Falls back to scanning ALL
     public parameterless methods if no standard method works.
+
+    Ask-owner boundary (U3, was NatureCluster._run_worm_method): a raised
+    clarification (duck-typed: question + decision_id) normalises to a
+    needs_input outcome instead of a crash, preserving the decision_id
+    for the rendezvous. Matched by shape, not import, so this module
+    never hard-depends on the delegation machinery.
     """
     try:
         instance = cls()
@@ -614,6 +634,9 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
                     result = result.__dict__
                 return {"success": True, "method": method_name, "result": result}
             except Exception as e:  # noqa: BLE001 — method failure reports, tries fallback
+                clarified = _clarification_outcome(e, method_name)
+                if clarified is not None:
+                    return clarified
                 return {"success": False, "error": str(e), "method": method_name}
 
     # Step 2: Fallback to ANY parameterless public method
@@ -636,7 +659,10 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
             if hasattr(result, "__dict__") and not isinstance(result, dict):
                 result = result.__dict__
             return {"success": True, "method": method_name, "result": result}
-        except Exception:  # noqa: BLE001 — try next standard method
+        except Exception as e:  # noqa: BLE001 — try next standard method
+            clarified = _clarification_outcome(e, method_name)
+            if clarified is not None:
+                return clarified
             continue
 
     if last_error:
@@ -925,6 +951,11 @@ class ClusterWORMZ:
         # Partial-failure bar for overall_status (2026-09-28): a run where
         # at least this share succeeded still counts as success.
         self._partial_failure_threshold = 1.0
+        # U3: retirement/quarantine enforcement moved here from
+        # NatureCluster.execute. Skips from the last run; read by
+        # aggregate_results. A skip is recorded, never silent.
+        self._last_skips: Dict[str, List[str]] = {"retired": [],
+                                                  "quarantined": []}
 
         self._load_cluster_config(cluster_type)
         self._record("cluster_created", {
@@ -1071,16 +1102,22 @@ class ClusterWORMZ:
 
     # ── Execution ─────────────────────────────────────────────────
 
-    def execute_all(self) -> List[Dict[str, Any]]:
+    def execute_all(self, worm_names: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         """Execute all worms in cluster.
-        
+
         Recording strategy:
         - _record() -> PamsRecorder: persistent audit trail (all events)
         - _mem_bus.publish() -> MemoryBus: real-time pub/sub for inter-agent coordination
         These are complementary, not redundant — PAMS is for post-mortem,
         MemoryBus is for live coordination between agents.
+
+        `worm_names` optionally restricts to a subset (unknown names are
+        ignored — ran, nothing invented, nothing lost). Retirement and
+        quarantine are ENFORCED here (U3, was NatureCluster.execute): a
+        retired or quarantined worm is skipped and recorded, never run.
         """
         self._cancel_event = threading.Event()
+        self._last_skips = {"retired": [], "quarantined": []}
         self._record("cluster_execution_started", {
             "cluster_type": self.cluster_type,
             "worm_count": len([c for c in self.configs if c.enabled]),
@@ -1109,6 +1146,14 @@ class ClusterWORMZ:
         
         results = []
         enabled_configs = [c for c in self.configs if c.enabled]
+        if worm_names is not None:
+            wanted = set(worm_names)
+            enabled_configs = [c for c in enabled_configs if c.name in wanted]
+        # U3 enforcement (was NatureCluster.execute): retirement and
+        # quarantine gate the run, visibly. Skips land in _last_skips and
+        # surface on the aggregate — a held-out worm must read as held out.
+        enabled_configs = [c for c in enabled_configs
+                           if not self._skip_enforced(c.name)]
         enabled_configs.sort(key=lambda x: x.priority, reverse=True)
 
         if self.parallel:
@@ -1216,6 +1261,24 @@ class ClusterWORMZ:
 
         return results
 
+    def _skip_enforced(self, name: str) -> bool:
+        """True when a worm must not run: retired or quarantined. Records why."""
+        try:
+            info = (WORM_REGISTRY.get(name) or {}) if _REGISTRY_OK else {}
+        except Exception:
+            info = {}
+        if str(info.get("lifecycle_state") or "") == "retired":
+            self._last_skips["retired"].append(name)
+            return True
+        try:
+            from CORE import spine_registry as _sr
+            if _sr.is_quarantined(name):
+                self._last_skips["quarantined"].append(name)
+                return True
+        except Exception:
+            pass
+        return False
+
     def _execute_single_worm(self, config: WormConfig,
                                decision_id: Any = None) -> Dict[str, Any]:
         """Execute a single worm with retry logic. Runs in a pool thread.
@@ -1315,6 +1378,8 @@ class ClusterWORMZ:
             success_count=success_count,
             failure_count=len(results) - success_count,
             partial_failure_threshold=self._partial_failure_threshold,
+            retired_skipped=list(self._last_skips.get("retired", [])),
+            quarantined_skipped=list(self._last_skips.get("quarantined", [])),
         )
 
     # ── Status ────────────────────────────────────────────────────

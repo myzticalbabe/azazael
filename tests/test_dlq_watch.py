@@ -37,9 +37,9 @@ def test_bucket_errors_empty():
 def test_bucket_errors_single():
     """bucket_errors with single error should create one bucket."""
     errors_list = [{
-        "timestamp": time.time(),
+        "timestamp_epoch": time.time(),
         "worm": "TestWorm",
-        "nature": "test",
+        "category": "test",
         "error": "Something failed",
     }]
     result = watch.bucket_errors(errors_list, bucket_seconds=30)
@@ -54,9 +54,9 @@ def test_bucket_errors_multiple_same_bucket():
     errors_list = []
     for i in range(5):
         errors_list.append({
-            "timestamp": now,
+            "timestamp_epoch": now,
             "worm": f"Worm{i}",
-            "nature": "test",
+            "category": "test",
             "error": f"Error #{i}",
         })
     result = watch.bucket_errors(errors_list, bucket_seconds=30)
@@ -69,8 +69,8 @@ def test_bucket_errors_multiple_buckets():
     """Errors spread across multiple time buckets."""
     now = time.time()
     errors_list = [
-        {"timestamp": now - 60, "worm": "Worm1", "nature": "test", "error": "Old"},
-        {"timestamp": now, "worm": "Worm2", "nature": "test", "error": "New"},
+        {"timestamp_epoch": now - 60, "worm": "Worm1", "category": "test", "error": "Old"},
+        {"timestamp_epoch": now, "worm": "Worm2", "category": "test", "error": "New"},
     ]
     result = watch.bucket_errors(errors_list, bucket_seconds=30)
     assert len(result) == 2, f"Expected 2 buckets, got {len(result)}"
@@ -84,27 +84,27 @@ def test_bucket_errors_examples_capped():
     errors_list = []
     for i in range(10):
         errors_list.append({
-            "timestamp": now,
+            "timestamp_epoch": now,
             "worm": "WormA",
-            "nature": "test",
+            "category": "test",
             "error": f"Error #{i} with lots of detail",
         })
     result = watch.bucket_errors(errors_list, bucket_seconds=30)
     assert len(result[0]["examples"]) <= 2, f"Max 2 examples, got {len(result[0]['examples'])}"
 
 
-def test_bucket_errors_worm_nature_counting():
-    """Worm and nature counts should be accurate."""
+def test_bucket_errors_worm_category_counting():
+    """Worm and category counts should be accurate."""
     now = time.time()
     errors_list = [
-        {"timestamp": now, "worm": "A", "nature": "nat1", "error": "err"},
-        {"timestamp": now, "worm": "B", "nature": "nat1", "error": "err"},
-        {"timestamp": now, "worm": "C", "nature": "nat2", "error": "err"},
+        {"timestamp_epoch": now, "worm": "A", "category": "nat1", "error": "err"},
+        {"timestamp_epoch": now, "worm": "B", "category": "nat1", "error": "err"},
+        {"timestamp_epoch": now, "worm": "C", "category": "nat2", "error": "err"},
     ]
     result = watch.bucket_errors(errors_list, bucket_seconds=30)
     assert result[0]["count"] == 3
     assert len(result[0]["worms"]) == 3
-    assert len(result[0]["natures"]) == 2
+    assert len(result[0]["categories"]) == 2
 
 
 def test_color_mode_switch():
@@ -130,10 +130,10 @@ def test_bucket_errors_varied_timestamps():
     """Errors at varied timestamps should all appear in order."""
     now = time.time()
     errors_list = [
-        {"timestamp": now - 90, "worm": "W1", "nature": "n1", "error": "e"},
-        {"timestamp": now - 60, "worm": "W2", "nature": "n2", "error": "e"},
-        {"timestamp": now - 30, "worm": "W3", "nature": "n3", "error": "e"},
-        {"timestamp": now,       "worm": "W4", "nature": "n4", "error": "e"},
+        {"timestamp_epoch": now - 90, "worm": "W1", "category": "n1", "error": "e"},
+        {"timestamp_epoch": now - 60, "worm": "W2", "category": "n2", "error": "e"},
+        {"timestamp_epoch": now - 30, "worm": "W3", "category": "n3", "error": "e"},
+        {"timestamp_epoch": now,       "worm": "W4", "category": "n4", "error": "e"},
     ]
     result = watch.bucket_errors(errors_list, bucket_seconds=30)
     # Each error should be in its own bucket (30s apart)
@@ -174,7 +174,7 @@ def main():
         ("Multiple errors same bucket", test_bucket_errors_multiple_same_bucket),
         ("Multiple time buckets", test_bucket_errors_multiple_buckets),
         ("Examples capped at 2", test_bucket_errors_examples_capped),
-        ("Worm/nature counting", test_bucket_errors_worm_nature_counting),
+        ("Worm/category counting", test_bucket_errors_worm_category_counting),
         ("Color mode switch", test_color_mode_switch),
         ("format_timestamp", test_format_timestamp),
         ("Varied timestamps ordering", test_bucket_errors_varied_timestamps),

@@ -15,7 +15,8 @@
 | D4 | No PIL for HTML/MP4 work; Blender role = figures per RULE 0R | 2026-10-01 | Operator directive; lesson #77 |
 | D5 | Organization happens at the end (closing stage), not in parallel | 2026-10-01 | Operator directive |
 | D6 | Pre-action gate wiring deferred | 2026-10-01 | Operator directive |
-| OPEN | `.git`: migrate history vs fresh clone + archived bundle | — | Matters at move day only |
+| OPEN | `.git`: migrate history vs fresh clone + archived bundle | 2026-10-01 | Deep dive: 304 commits, ~1.3GB history dominated by generated blobs (ppm frames, 74k-line reports); bundle preserves all commits verifiably (RULE 0T) without checking out junk |
+| D8 | Move-day `.git`: fresh clone + archived bundle (bundle = full `--all` history) | 2026-10-01 | Operator verdict; dive above; backup/var untracked dirt copied aside, never committed into history |
 | D7 | `CROSS_NATURE_ROUTER.py`: DELETE at U3 surgery | 2026-10-01 | Operator verdict; sole live importer METACLUSTER rewritten in same surgery; AOA diagram-only; D1 removes the routed taxonomy |
 | OPEN | Home-dir sprawl in scope (U8) or separate | 2026-10-01 | Operator: IN-SCOPE (desktop sweep migrates; moves at move day) |
 
@@ -34,8 +35,8 @@
 |---|---|---|---|---|---|---|---|
 | U0 substrate | worm_registry, worm_health, paths/, freethreading, direct_memory | ~5 | — (first) | keep, stabilize first | canonical (unmoved until tree moves) | G0 below (247 worms / 57 tests) | closed 2026-10-01 |
 | U1 expansion leaves | WORMS/expansion/* minus substrate (75 top-level; generated/_staging triaged separately) | 75 | U0 | migrate | flat dispatch, same tree | G1 above (75 compile / reg 247 / 205 tests) | closed 2026-10-01 |
-| U2 expansion substrate | spine, mesh, servemesh, synapse, fabric_state | 5 | U0, U1 (runtime last) | migrate last (runtime) | flat dispatch | G2 above — BLOCKED-RED (compile clean, 9 pre-existing wiring_cycle fails) | open-blocked |
-| U3 clusters (surgery) | CLUSTERWORMS, NATURE_CLUSTERS→delete, METACLUSTER→rewrite, CROSS_NATURE_ROUTER→DELETE per D7 | 4 | U0 (registry) | rip-out per D1 | categories / delete | G3 above — spec complete; blocked on green U2 + move day | open-blocked |
+| U2 expansion substrate | spine, mesh, servemesh, synapse, fabric_state | 5 | U0, U1 (runtime last) | migrate last (runtime) | flat dispatch | G2 below — CLOSED via R15 (103 tests, cached loads, 13-world) | closed 2026-10-01 |
+| U3 clusters (surgery) | CLUSTERWORMS kept, NATURE_CLUSTERS→deleted, METACLUSTER→rewritten v2 flat, CROSS_NATURE_ROUTER→deleted per D7 | 4 | U0 (registry) | rip-out per D1 | categories / delete | G3 below — code complete, targeted suites green (297), full suite pending | open |
 | U4 compliance | audit_trail, sentinel_enforcer/gate, TERENCE wiring (6 files; no compliance/ dir in tree) | 6 | U0 | keep + re-verify gates | same | G4 above (compile / 9 edict / 12-12 self-test) | closed 2026-10-01 |
 | U5 satellites | CODEX 87, ORCHESTRATION 84, AOA 30, HYDRA 11, META 16, UTILITIES 23, ML 9, eve_unleashed 11 | 271 | U0 | migrate per-package | `C:\Azazael\` mirror layout | G5 above (271/271 compile) | closed 2026-10-01 |
 | U6 entry points | CLI 2, DAEMONS 3, SCRIPTS 30, INTERPRETERS 3, TOOLKIT 9, TOOLS 10 (57; root scripts 209 + tools 127 also clean) | 57 | U0–U5 (entry points last) | migrate last | same | G6 above (393/393 compile) | closed 2026-10-01 |
@@ -68,6 +69,8 @@ Close rule: G1.1–G1.3 consecutively, no edits in expansion/ since measure.
 | G2.1 | `py_compile` spine, mesh, servemesh, synapse, fabric_state | clean |
 | G2.2 | spine_mesh + telemetry + mesh_transport_e2e + wiring_cycle | 92 passed, 9 failed (37.77s) — all 9 in `tests/test_wiring_cycle.py` (promotion/streak/canary cluster) |
 Diagnosis: pre-existing promotion-gate failures (streak-gate honesty cluster, cf. loop_integrity/genome_seed OPEN WORK), not caused by migration — zero edits in expansion/. Precise mechanism 2026-10-01: live tuned floors are L1_MIN_OBSERVED=6 / L1_MIN_WINS=4 (hyperopt, up from fallbacks); test fixture forces a 5-organ winner (deliberate — 6 organs == seed fingerprint, unfalsifiable canary) which can no longer clear the 6-floor, so `accepted` stays False at the evidence floor while trial-level accept==1, and streak wins read 0. Calibration fork for R15 track (tuned floor vs fixture vs seed-identity — no guess made here). U2 stays OPEN-BLOCKED; fix belongs to R15/training-honesty track, not substrate stabilize. Does not block U4/U5/U6/U7 (depend on U0 only).
+
+### G2-CLOSE — U2 closed 2026-10-01 via merged R15 (e41e09da + 6928656f): gate set 103 passed (92 + 9 fixed + 2 new), repeat cycle 3.46s→0.01s, suite collect 4221+0 errors. U3 surgery unblocked on this axis (needs `.git` move-day call only).
 
 ### G4 — U4 compliance (measured 2026-10-01, read-only)
 Note: no `compliance/` directory exists in tree; U4's keepers are audit_trail.py, sentinel_enforcer.py, sentinel_gate.py + tools/terence_* (6 files measured).
@@ -102,6 +105,9 @@ U7 stays OPEN (triage execution pending); inventory is closed, verdicts are not.
 ### G3 — U3 clusters surgery (spec complete 2026-10-01; execution blocked)
 Router verdict landed: DELETE per D7 (sole live importer METACLUSTER rewritten in same surgery; AOA diagram-only; D1). File NOT deleted yet — deletion happens inside the surgery with the METACLUSTER rewrite, never ahead of it. Remaining preconditions: green U2 (R15) + `.git` move-day call. U3 stays OPEN-BLOCKED on those two.
 
+### G3-EXEC — U3 surgery executed 2026-10-01/02
+Deleted: NATURE_CLUSTERS.py (1701), CROSS_NATURE_ROUTER.py (D7), 9 taxonomy test files (3 nature_clusters, nature_metacluster, 2 metacluster suites, cross_nature, ncm_integration, dlq, spine_mesh_architect, verify_fixes). Rewritten flat: METACLUSTER v2 (no NCM/router; ClusterWORMZ-per-category; signatures kept), run_mesh_cycle (per-category + _NO_EXECUTE guard), db_health + dlq_burndown + dlq_watch (DLQ store), WORMS/__init__ (NCM→ImportError w/ directions), build_all_concurrent + sync_all manifests, AOA diagram labels. Absorbed: DLQ get_dead_letter_summary/retry_all_failed_worms (+epoch, category scope) with 5 tests. Adapted: spawn_decision (engine tests kept), spine_mesh (registry names), spine_wiring (spans test retired w/ note), circuit_breaker (ClusterWORMZ port; found aggregate-timeout defect, logged), colour_queens (enforcement ported INTO ClusterWORMZ: subset execute + retired/quarantine skips), delegation (clarification normalization ported into _execute_worm_class), mesh_fabric (sweep guard), worm_telemetry (third tap → ClusterWORMZ), cluster_integration (circular DFS restored + registry coverage test), full_integration (flat-dispatch check), worm_registry_integration (flat grouping), cluster_worms (module list), worm_registry docstring, wire-or-cut 3 entries retired + counts. Verified: 297 targeted green, TERENCE 12/12, live defense-category execution, collect 3943+0.
+
 ### G8 — U8 sprawl (measured 2026-10-01, scope gate)
 Desktop sweep measured (~610MB, 20 dirs): AOA 103.6, Azazael_Audit 102.0, COSMOS_VIEWER 123.6, Full_Filesystem_Scans 205.0, graphs/audit/cosmos fragments 0.1–36.1, Standalone 1.1, Vault 0.4, CODEX 18.0+1.2. Scope decision (in-scope vs separate) still OPEN per plan — G8 records the measure, not the verdict. U8 stays OPEN pending scope.
 
@@ -115,7 +121,9 @@ Desktop sweep measured (~610MB, 20 dirs): AOA 103.6, Azazael_Audit 102.0, COSMOS
 | `archive/` junk drawer (1.03GB) | clutter policy | sort w/ manifests or delete | — | open |
 | `var/cold/` snapshots (4.06GB) | clutter policy | keep newest 1, purge rest | regenerable | open |
 | `src/CORE/WORMS/expansion/generated/_staging/` (91 gen files) | U1 scoping 2026-10-01 | quarantine, never migrate blind | generated staging; keep iff a unit claims a file | open |
+| `ClusterWORMZ` pool-timeout rows never reach `state.results` (U3 find 2026-10-01) | surgery observation | known defect, not fixed here | `execute_all` timeout branch appends to returned list only; `aggregate_results` reports 0/0 after timeouts — fix changes runtime semantics, belongs to U2/runtime track | open |
 | `src/CODEX/cain_rebuild_final.py` (was SyntaxError L332) | U5 gate 2026-10-01 | fixed, one-char paren | L208 unclosed `T(`; sibling calls single-arg; 271/271 now | closed |
+| `tests/test_spine_mesh_architect.py` VANISHED (U3 note 2026-10-02) | observed then absent | absence = intent | untracked file testing NATURE_DEFINITIONS immutability; purpose moot post-deletion; copy survives on G: mirror; no other tree files missing (G: diff otherwise = own deletions + stale snapshot) | closed |
 
 ## Completed work log
 
@@ -142,6 +150,8 @@ Desktop sweep measured (~610MB, 20 dirs): AOA 103.6, Azazael_Audit 102.0, COSMOS
 | 2026-10-01 | U3 BLOCKED: surgery needs router + .git OPENs and green U2 | — |
 | 2026-10-01 | U8 measured: desktop ~610MB/20 dirs; scope still OPEN | — |
 | 2026-10-01 | D7 router verdict DELETE (AOA diagram-only, quartet zero refs, METACLUSTER rewritten in-surgery); U8 scope IN-SCOPE → U8 CLOSED | file deletion deferred into U3 surgery |
+| 2026-10-01 | ALL FIVE implemented + merged (e41e09da, 6928656f): R15 merged, outer-loop readout live, startup prime wired, collection 4221+0, floor-13 settled test-only; U2 CLOSED (103 tests) | 7 of 9 closed; left U3 (needs .git) + U7 (verdicts track) |
+| 2026-10-01 | D8 EXECUTED: `G:/source-of-truth/azazael/azazael-history-20261001.bundle` 1297MB, `verify` okay, complete history, 7 refs (master, migration branch, r15, gdrive, stash) | fresh clone authorized for move day; backup/var dirt still aside, uncommitted |
 
 ## Mined history (2026-10-01 extraction; 34 decision-bearing commits)Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
 from the forensic: subjects here are descriptive — future commits must
