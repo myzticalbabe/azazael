@@ -26,7 +26,10 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import live_monitor as lm  # noqa: E402  (shares collect/db_connect)
+try:
+    import live_monitor as lm  # noqa: E402  (shares collect/db_connect)
+except ImportError:
+    lm = None  # archived 2026-10-02, pending reengineering (see archive/)
 
 REFRESH = 30
 
@@ -205,6 +208,8 @@ def collect_snapshot():
     Kept as a module-level function (not inlined into the handler) so it can
     be substituted in tests and reused by any other entry point.
     """
+    if lm is None:
+        return None  # monitor archived 2026-10-02; page renders standby
     con = lm.db_connect()
     if con is None:
         return None
