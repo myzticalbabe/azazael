@@ -279,11 +279,14 @@ def test_q_order_preserves_ordering_semantics():
     """G18: dropping `list.index()` must not change the ranking.
 
     2026-09-16: the sort KEY moved from the raw EMA to the evidence-shrunk
-    value (playing-field TODO G1), so the reference below tracks the new key.
-    What this test guards is unchanged -- that the O(n^2) `names.index(n)`
-    expression and the O(n log n) precomputed-position rewrite agree, and
-    that duplicate names keep input order. Pinning the old key here would have
-    made the guard assert a plateau.
+    value (playing-field TODO G1). 2026-09-28: it moved AGAIN to
+    `selection_rank` -- scar band, then value band, then conservative score --
+    so the reference below now calls the SAME public key the selector calls
+    (`selection_rank` is exposed for exactly this). What stays under test is
+    the O(n^2) -> O(n log n) rewrite: that precomputed first-seen positions
+    reproduce the `names.index(n)` tie-break, and that duplicate names keep
+    input order. Pinning a stale key here is how the guard came to assert a
+    plateau -- it failed on a correct selector, not the reverse.
     """
     sr.spine_reset()
     try:
@@ -292,22 +295,24 @@ def test_q_order_preserves_ordering_semantics():
         for i, n in enumerate(names):
             if i % 7 == 0:
                 sr.record_outcome("mesh", n, False, 5.0)
-        else:
-            pass
         sr._Q_WEIGHTS["mesh:W30"] = 0.9
         sr._SCARS["mesh:W5"] = {"since": "now", "reason": "test"}
 
-        # Reference implementation (the original O(n^2) expression, on the
-        # evidence-shrunk key that q_order now sorts by).
+        # Reference implementation: the original O(n^2) `names.index(n)`
+        # expression, evaluated on the SAME public sort key q_order uses.
+        # Lock order mirrors q_order (homeostat outer, scar inner).
         with sr._HOMEOSTAT_LOCK:
-            reference = [(names.index(n),
-                          0 if f"mesh:{n}" in sr._SCARS else 1,
-                          sr.q_effective_from(sr._Q_WEIGHTS.get(f"mesh:{n}", 0.0),
-                                              sr._evidence_unlocked(f"mesh:{n}")),
-                          n)
-                         for n in names]
-        reference.sort(key=lambda t: (-t[1], -t[2], t[0]))
-        expected = [n for _, _, _, n in reference]
+            with sr._SCAR_LOCK:
+                reference = [(names.index(n),
+                              sr.selection_rank(
+                                  sr._Q_WEIGHTS.get(f"mesh:{n}", 0.0),
+                                  sr._evidence_unlocked(f"mesh:{n}"),
+                                  sr._Q_VARIANCE.get(f"mesh:{n}", 0.0),
+                                  scarred=f"mesh:{n}" in sr._SCARS),
+                              n)
+                             for n in names]
+        reference.sort(key=lambda t: (-t[1][0], -t[1][1], -t[1][2], t[0]))
+        expected = [n for _, _, n in reference]
 
         assert sr.q_order("mesh", names) == expected
     finally:
