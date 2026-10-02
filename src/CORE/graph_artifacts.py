@@ -29,21 +29,12 @@ def runtime_overlay() -> tuple[list[GraphNode], list[GraphEdge], list[str]]:
     except Exception as exc:
         warnings.append(f"runtime registry unavailable: {exc}")
 
-    try:
-        # Canonical definitions live in CORE.WORMS.NATURE_CLUSTERS (the
-        # operationally active copy). The top-level CORE.NATURE_CLUSTERS
-        # duplicate was retired to avoid registry stomp; it held a stale,
-        # smaller 16-entry definition set.
-        from CORE.WORMS.NATURE_CLUSTERS import NATURE_DEFINITIONS
-
-        for category, definition in NATURE_DEFINITIONS.items():
-            source = f"runtime:nature:{category}"
-            for target in definition.get("feeds_into", []):
-                target_id = f"runtime:nature:{target}"
-                nodes.append(GraphNode(target_id, target, "runtime_nature"))
-                edges.append(GraphEdge(source, target_id, "routes"))
-    except Exception as exc:
-        warnings.append(f"runtime routing unavailable: {exc}")
+    # U3 surgery: the nature-routing overlay is deleted, not ported.
+    # feeds_into chains described taxonomy routing (NATURE_DEFINITIONS);
+    # D1 removes the taxonomy, so there is nothing to route between and no
+    # edges to draw. The registry block above already carries the flat
+    # category -> worm membership. If routing edges return one day they must
+    # come from a live dispatch table, never a static taxonomy map.
     return _unique_nodes(nodes), _unique_edges(edges), warnings
 
 

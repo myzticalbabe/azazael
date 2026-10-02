@@ -24,6 +24,7 @@ from CORE.worm_registry import (
     get_unspawned_worms,
     mark_spawned,
     reset_registry,
+    discover_worms,
     SpawnDiversityEngine,
     BaseWormMixin,
 )
@@ -111,6 +112,18 @@ def test_valid_tags():
 
 def setup_function():
     reset_registry()
+
+
+def teardown_function():
+    """Restore the full registry after tests that wipe it.
+
+    reset_registry() clears the GLOBAL WORM_REGISTRY and clears the
+    _discovery_done flag. Without restoration, later test modules in the
+    same pytest process see a wiped or partially refilled registry.
+    Re-running discovery here reloads from the pickle
+    cache in <0.2s and makes the suite order-independent.
+    """
+    discover_worms()
 
 
 def test_register_basic():
@@ -416,6 +429,64 @@ def test_concurrent_registry_reads():
     for cats, wcount, ucount in results:
         assert "diagnostic" in cats
         assert wcount >= 1
+
+
+def test_every_registered_class_can_report_its_state():
+    """The registry's summary contract holds for every entry (2026-09-21).
+
+    Measured before the fix: 174 of 218 registered classes had no `get_summary`
+    at all, so `tests/test_worm_smoke.py` could only report `returned NoneType`.
+    The registry now attaches `BaseWormMixin.get_summary` to a class that lacks
+    one, which is the only single place that can cover 145 unrelated
+    `object` subclasses.
+    """
+    discover_worms()
+    missing = [n for n, e in WORM_REGISTRY.items()
+               if not callable(getattr(e.get("class"), "get_summary", None))]
+    assert not missing, f"{len(missing)} registered classes cannot be summarized: {missing[:10]}"
+
+
+def test_summary_provenance_is_recorded():
+    """A default summary must be distinguishable from a declared one.
+
+    Without this, "every worm can be summarized" would go green while 179 organs
+    reported an identical metadata stub, and the difference between reporting
+    real state and satisfying a signature would be invisible in the ledger.
+    """
+    discover_worms()
+    sources = {e.get("summary_source") for e in WORM_REGISTRY.values()}
+    assert sources <= {"declared", "default", "unavailable"}, (
+        f"unexpected summary_source values: {sources}"
+    )
+    declared = [n for n, e in WORM_REGISTRY.items()
+                if e.get("summary_source") == "declared"]
+    assert len(declared) >= 20, (
+        f"only {len(declared)} worms declare their own get_summary — the default "
+        f"is meant for classes that have no state to report, not the fleet"
+    )
+
+
+def test_default_summary_is_side_effect_free():
+    """The attached default must not invoke worm work.
+
+    `tests/test_worm_smoke.py` skips RLTrainLoop and ScheduledTrainingWorm because
+    calling into them is expensive. A default that reached for `run()`/`execute()`
+    through `_DISCOVERY_CANDIDATES` would have turned 174 fast failures into 174
+    10s timeouts, so the metadata branch is the contract, not an implementation
+    detail.
+    """
+    from CORE.worm_registry import BaseWormMixin
+
+    class _Probe:  # no schema, no side effects available to call
+        def run(self):
+            raise AssertionError("the default summary must not call run()")
+
+    _Probe.get_summary = BaseWormMixin.get_summary
+    _Probe.__summary_method__ = ""
+    _Probe.__summary_fields__ = []
+    summary = _Probe().get_summary()
+    assert isinstance(summary, dict)
+    assert summary["result"]["class"] == "_Probe"
 
 
 if __name__ == "__main__":

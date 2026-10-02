@@ -240,30 +240,7 @@ def test_otel_exporter_configures_with_default_batch_size():
         span.set_attribute("ok", True)
 
 
-def test_nature_cluster_emits_spans():
-    """Item 4: a cluster run writes a parent span and one span per worm."""
-    pytest.importorskip("opentelemetry.sdk.trace")
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster, _get_cluster_tracer
-    from CORE.cd3_exporter import DB_PATH
-    if _get_cluster_tracer() is None:
-        pytest.skip("opentelemetry exporter unavailable on this machine")
-    cluster = NatureCluster("mesh")
-    result = cluster.execute()
-    assert result.nature == "mesh"
-    try:
-        from opentelemetry import trace as ot
-        ot.get_tracer_provider().force_flush()
-    except Exception:
-        pass
-    con = sqlite3.connect(str(DB_PATH), timeout=5)
-    try:
-        parent = con.execute(
-            "SELECT COUNT(*) FROM otel_spans WHERE name = ?",
-            ("nature_cluster.execute",)).fetchone()[0]
-        children = con.execute(
-            "SELECT COUNT(*) FROM otel_spans WHERE name = ?",
-            ("worm.execute",)).fetchone()[0]
-    finally:
-        con.close()
-    assert parent >= 1, "no cluster span was exported"
-    assert children >= len(result.worm_results), "worm spans are missing"
+# U3: test_nature_cluster_emits_spans deleted with the layer. Its behavior
+# (OTel parent+child spans per cluster run) lived in NatureCluster.execute;
+# ClusterWORMZ emits no spans. If span-per-run observability returns, it
+# belongs in ClusterWORMZ with a test here — not resurrected from NCM.

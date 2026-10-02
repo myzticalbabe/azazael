@@ -404,19 +404,17 @@ def test_watchdog_detects_timeout():
 # ═══════════════════════════════════════════════════════════════════
 
 def test_ncm_discover_all_natures():
-    """NatureClusterManager should discover >= 17 natures."""
-    from CORE.worm_registry import discover_worms
-    from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
+    """Registry should cover >= 35 categories (U3: was NCM natures >= 17)."""
+    from CORE.worm_registry import discover_worms, get_all_categories, get_worms_by_category
 
     discover_worms()
-    ncm = NatureClusterManager()
-    ncm.discover_all_natures()
+    categories = sorted(get_all_categories())
 
-    assert len(ncm.clusters) >= 17, f"Expected >= 17 natures, got {len(ncm.clusters)}"
+    assert len(categories) >= 35, f"Expected >= 35 categories, got {len(categories)}"
 
-    # Each cluster should have worms
-    empty = [n for n, c in ncm.clusters.items() if len(c.worms) == 0]
-    assert not empty, f"Natures with no worms: {empty}"
+    # Each category should have worms
+    empty = [c for c in categories if len(get_worms_by_category(c)) == 0]
+    assert not empty, f"Categories with no worms: {empty}"
 
 
 def test_metacluster_orchestrate_no_circularity_error():

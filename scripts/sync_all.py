@@ -104,7 +104,6 @@ SYNC_CODE_PATTERNS = [
     "src/CORE/WORMS/METACLUSTER.py",
     "src/CORE/WORMS/NETWORK_DIAG.py",
     "src/CORE/WORMS/CODEX_TOOLS.py",
-    "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
     "src/ORCHESTRATION/hydra_bridge.py",
     "tests/*.py",
 ]

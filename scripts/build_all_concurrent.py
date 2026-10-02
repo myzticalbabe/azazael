@@ -63,9 +63,8 @@ BUILD_TARGETS: Dict[str, Dict] = {
     "metacluster": {"entry": "src/CORE/WORMS/METACLUSTER.py",
                     "output": "azazael-metacluster.exe", "tier": "core"},
     "concurrency": {"entry": "src/CORE/WORMS/CONCURRENCY.py",
-                    "output": "azazael-concurrency.exe", "tier": "core"},
-    "cross_nature": {"entry": "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
-                     "output": "azazael-cross-nature.exe", "tier": "core"},
+                     "output": "azazael-concurrency.exe", "tier": "core"},
+    # U3: cross_nature target removed with CROSS_NATURE_ROUTER.py (D7).
     "network_diag": {"entry": "src/CORE/WORMS/NETWORK_DIAG.py",
                      "output": "azazael-network-diag.exe", "tier": "monitor"},
     "codex_tools": {"entry": "src/CORE/WORMS/CODEX_TOOLS.py",
