@@ -68,6 +68,7 @@ __all__ = [
     "circulation_update",
     "SEARCH_ARMS",
     "MORPH_CANDIDATES",
+    "MORPH_KNOWN_GENES",
     "MORPH_TRAINER_DEFAULTS",
     "morph_candidate_gene",
     "morph_strip",
@@ -369,8 +370,28 @@ def circulation_update(state_path: str, arm: str, outcome: str,
 # --------------------------------------------------------------------------
 # Every entry must name a kwarg `RLTrainMemory.train_from_memory` accepts AND a
 # pass-through in `morph_trainer_kwargs`, or the gene is inert (see module doc).
+#
+# `MORPH_CANDIDATES` is the ROTATION: which gene Phase E adds this cycle.
+# `use_schema_features` was REMOVED from it on 2026-10-02. It was inert by this
+# module's own rule -- `MORPH_TRAINER_DEFAULTS` reads the trainer's own default
+# `use_schema_features: False`, and the gene resolved OFF in 30/30 trials while
+# being credited as a win -- AND, with two candidates, `cycle_index % 2`
+# alternated the search space every cycle, so the per-arm gate (EV-4) could
+# never accumulate a streak. One inert gene was costing the rotation its
+# information. Halving the list makes the schema CONSTANT.
 MORPH_CANDIDATES: Tuple[Tuple[str, str, float, float, str], ...] = (
     # (name, kind, lo, hi, trainer_kwarg)
+    ("by_session", "bool", 0.0, 1.0, "by_session"),
+)
+
+# `MORPH_KNOWN_GENES` is the REGISTRY: every gene this organ has ever rotated,
+# including retired ones. `use_schema_features` is no longer trialled, but rows
+# that carry it already exist in the ledger and MUST still be classifiable --
+# otherwise the historical verdict silently degrades from `inert` to `unknown`
+# and the retire decision loses its evidence. Classification, stripping and the
+# trainer pass-through read THIS list; only `morph_candidate_gene` and
+# `morph_gene_specs` read the rotation above.
+MORPH_KNOWN_GENES: Tuple[Tuple[str, str, float, float, str], ...] = (
     ("use_schema_features", "bool", 0.0, 1.0, "use_schema_features"),
     ("by_session", "bool", 0.0, 1.0, "by_session"),
 )
@@ -438,7 +459,7 @@ def morph_gene_specs(cycle_index: int,
 
 
 def morph_strip(genes: Dict[str, Any],
-                candidates: Sequence[Sequence[Any]] = MORPH_CANDIDATES
+                candidates: Sequence[Sequence[Any]] = MORPH_KNOWN_GENES
                 ) -> Dict[str, Any]:
     """Remove every Phase E gene from a seed genome.
 
@@ -458,7 +479,7 @@ def morph_strip(genes: Dict[str, Any],
 
     Stripping makes each cycle a clean 4 + 1 factorial.
     """
-    drop = {str(c[0]) for c in (candidates or MORPH_CANDIDATES)}
+    drop = {str(c[0]) for c in (candidates or MORPH_KNOWN_GENES)}
     return {k: v for k, v in (genes or {}).items() if k not in drop}
 
 
@@ -470,7 +491,7 @@ def morph_trainer_kwargs(genes: Dict[str, Any]) -> Dict[str, Any]:
     fitness landscape stayed four-dimensional.
     """
     out: Dict[str, Any] = {}
-    for name, kind, _lo, _hi, kwarg in MORPH_CANDIDATES:
+    for name, kind, _lo, _hi, kwarg in MORPH_KNOWN_GENES:
         if name not in (genes or {}):
             continue
         v = genes[name]
@@ -514,7 +535,7 @@ def morph_effective(gene: Any, genes: Dict[str, Any]) -> Any:
     name = str(name or "")
     if not name or not isinstance(genes, dict) or name not in genes:
         return None
-    for cname, kind, _lo, _hi, _kwarg in MORPH_CANDIDATES:
+    for cname, kind, _lo, _hi, _kwarg in MORPH_KNOWN_GENES:
         if cname != name:
             continue
         v = genes[name]
@@ -545,7 +566,7 @@ def morph_is_inert(gene: Any, genes: Dict[str, Any],
     name = str(name or "")
     if not name:
         return False
-    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    kwarg = next((c[4] for c in MORPH_KNOWN_GENES if c[0] == name), None)
     if kwarg is None:
         return False
     table = MORPH_TRAINER_DEFAULTS if defaults is None else defaults
@@ -568,7 +589,7 @@ def morph_treatment_value(gene: Any) -> Any:
     name = str(name or "")
     if not name:
         return None
-    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    kwarg = next((c[4] for c in MORPH_KNOWN_GENES if c[0] == name), None)
     if kwarg is None or kwarg not in MORPH_TRAINER_DEFAULTS:
         return None
     return not bool(MORPH_TRAINER_DEFAULTS[kwarg])
@@ -595,7 +616,7 @@ def morph_ab_plan(gene: Any, genes: Optional[Dict[str, Any]] = None) -> Optional
     name = str(name or "")
     if not name:
         return None
-    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    kwarg = next((c[4] for c in MORPH_KNOWN_GENES if c[0] == name), None)
     if kwarg is None or kwarg not in MORPH_TRAINER_DEFAULTS:
         return None
     if genes is not None and name not in genes:
@@ -662,7 +683,7 @@ def morph_record(history_path: str, cycle_index: int, gene: Optional[dict],
             "baseline_fitness": (None if baseline_fitness is None
                                  else float(baseline_fitness)),
             "extra": {k: genes[k] for k in (genes or {})
-                      if k in [c[0] for c in MORPH_CANDIDATES]},
+                      if k in [c[0] for c in MORPH_KNOWN_GENES]},
             "applied": {k: applied[k] for k in sorted(applied)},
             "inert": morph_is_inert(gene, genes),
             "ab": (dict(ab) if isinstance(ab, dict) and ab else None),
@@ -888,7 +909,7 @@ def _morph_read_rows(history_path: str) -> List[dict]:
 
 def _morph_default_for(name: str) -> Tuple[Any, bool]:
     """(default, known) for a candidate gene, via its trainer kwarg."""
-    kwarg = next((c[4] for c in MORPH_CANDIDATES if c[0] == name), None)
+    kwarg = next((c[4] for c in MORPH_KNOWN_GENES if c[0] == name), None)
     if kwarg is None or kwarg not in MORPH_TRAINER_DEFAULTS:
         return None, False
     return MORPH_TRAINER_DEFAULTS[kwarg], True

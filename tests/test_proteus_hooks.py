@@ -412,29 +412,35 @@ class TestMorphRotation(unittest.TestCase):
         Measured on the live artifact: a row with dimension 6 carrying BOTH
         `use_schema_features` and `by_session`, because the previous cycle's
         winner became the next cycle's seed and the engine never prunes keys.
+
+        The rotation is now single-candidate (`by_session`), so the leaky case
+        is a seed carried over from an older cycle that still holds the RETIRED
+        `use_schema_features`. Stripping must remove that too -- a seed is
+        stripped against the registry, not against the current rotation.
         """
         from CORE.WORMS.expansion.proteus_hooks import morph_strip
         from CORE.WORMS.expansion.evolution import EvolutionEngine
         base = {"learning_rate": (0.01, 0.9), "epsilon": (0.0, 0.5),
                 "discount": (0.5, 0.999), "epsilon_decay": (0.0, 0.3)}
 
-        # Cycle N trialled by_session and won with it.
-        specs_n, gene_n = morph_gene_specs(1, base)          # -> by_session
-        winner = dict(base_sample(base))
-        winner[gene_n["name"]] = True
+        # A stale seed left by a cycle that trialled BOTH genes.
+        stale = dict(base_sample(base))
+        stale["use_schema_features"] = False
+        stale["by_session"] = True
 
-        # Cycle N+1 adds the OTHER gene. Unstripped, the seed carries both.
-        specs_next, gene_next = morph_gene_specs(0, base)    # -> use_schema_features
-        self.assertNotEqual(gene_n["name"], gene_next["name"])
+        # The current cycle adds `by_session` again. Unstripped, the seed keeps
+        # the retired gene alongside the current one -> dimension 6.
+        specs_next, gene_next = morph_gene_specs(0, base)
+        self.assertEqual(gene_next["name"], "by_session")
 
         evo_bad = EvolutionEngine(population_size=24)
-        evo_bad.initialize_population(base, seed_genomes=[dict(winner)],
+        evo_bad.initialize_population(base, seed_genomes=[dict(stale)],
                                       gene_specs=specs_next)
         bad_dims = {len(g.genes) for g in evo_bad._population}
         self.assertIn(6, bad_dims, "the leak should be reproducible")
 
         evo_ok = EvolutionEngine(population_size=24)
-        evo_ok.initialize_population(base, seed_genomes=[morph_strip(winner)],
+        evo_ok.initialize_population(base, seed_genomes=[morph_strip(stale)],
                                      gene_specs=specs_next)
         ok_dims = {len(g.genes) for g in evo_ok._population}
         self.assertEqual(ok_dims, {5}, "stripping must hold the dimension at 4+1")
@@ -512,11 +518,15 @@ class TestMorphAccounting(unittest.TestCase):
     def test_summary_reports_verdict_per_gene(self):
         with tempfile.TemporaryDirectory() as d:
             p = os.path.join(d, "morph.jsonl")
-            g0 = MORPH_CANDIDATES[0][0]
-            g1 = MORPH_CANDIDATES[1][0]
+            # Each gene is moved OFF its trainer default, so both rows are
+            # EFFECTIVE trials -- an inert row is not scored at all. One gene
+            # is retired from the rotation but still known, which is the point:
+            # the verdict reads the registry, not the current rotation.
+            g0 = "use_schema_features"   # default False -> True is a treatment
+            g1 = "by_session"            # default True  -> False is a treatment
             morph_record(p, 0, {"name": None}, {"a": 1, "b": 2, "c": 3, "d": 4}, 25.0)
             morph_record(p, 1, {"name": g0}, {"a": 1, "b": 2, "c": 3, "d": 4, g0: True}, 25.5)
-            morph_record(p, 2, {"name": g1}, {"a": 1, "b": 2, "c": 3, "d": 4, g1: True}, 24.0)
+            morph_record(p, 2, {"name": g1}, {"a": 1, "b": 2, "c": 3, "d": 4, g1: False}, 24.0)
             out = morph_dimension_summary(p)
             self.assertEqual(out["baseline_4gene_best"], 25.0)
             self.assertTrue(out["verdict"][g0]["beats_4gene"])
