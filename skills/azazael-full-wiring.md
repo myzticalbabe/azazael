@@ -38,7 +38,7 @@ This skill documents the complete production wiring roadmap for AZAZAEL — ever
 ## 🔴 CRITICAL — Blocking Production (16 tasks, 40-60 hrs)
 
 ### 1. Test Coverage
-- Unit tests for cluster modules (CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER)
+    - Unit tests for cluster modules (CLUSTERWORMS, METACLUSTER v2 flat)
 - Integration tests for parallel execution (FreeThreadPool, work-stealing)
 - Regression tests for all 226 worms
 - Test coverage reporting (pytest-cov, target 60%+)

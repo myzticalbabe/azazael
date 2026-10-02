@@ -38,9 +38,9 @@ This skill documents the complete production wiring roadmap for AZAZAEL — ever
 ## 🔴 CRITICAL — Blocking Production (16 tasks, 40-60 hrs)
 
 ### 1. Test Coverage
-- Unit tests for cluster modules (CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER)
+    - Unit tests for cluster modules (CLUSTERWORMS, METACLUSTER v2 flat)
 - Integration tests for parallel execution (FreeThreadPool, work-stealing)
-- Regression tests for all 77 worms
+- Regression tests for all 226 worms
 - Test coverage reporting (pytest-cov, target 60%+)
 - **Build command:** `python packages/azazael-core/run_tests.py`
 
@@ -149,7 +149,7 @@ This skill documents the complete production wiring roadmap for AZAZAEL — ever
 
 | AZAZAEL System | Desktop Project | Integration |
 |---------------|-----------------|-------------|
-| Worm registry (77 worms) | EveUnleashed_Selector | Agent types -> worm categories |
+| Worm registry (226 worms) | EveUnleashed_Selector | Agent types -> worm categories |
 | Observability worms | PerformanceMonitor | Telemetry -> SystemZ/NETWORXZ |
 | PAMS/MemoryBus | Ultimate_Agent_Selector | Memory bridge -> event recording |
 | AZAZAEL_LAUNCHER.bat | WSL Models | Add WSL model launch to menu |

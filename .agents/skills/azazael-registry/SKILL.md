@@ -26,7 +26,7 @@ get_worms_by_category(cat: str) -> Dict     # Returns worms in a category
 ### Signature
 ```python
 @register_worm(
-    category: str,          # One of 17 categories (required)
+    category: str,          # One of 35 categories (required)
     priority: int,          # 1-10, higher = more important (required)
     cooldown_seconds: float, # Minimum seconds between spawns (required)
     version: str = "0.0.0", # Semver (optional, default "0.0.0")
@@ -55,7 +55,7 @@ class VulnScanner:
             return {"success": False, "error": str(e)}
 ```
 
-**That's it. No changes needed to CLUSTERWORMS.py, NATURE_CLUSTERS.py, or METACLUSTER.py.**
+    **That's it. No changes needed to CLUSTERWORMS.py or METACLUSTER.py (U3: NATURE_CLUSTERS.py deleted).**
 
 ## Discovery Mechanism
 
@@ -118,4 +118,4 @@ For per-worm details, load skill `azazael-worms-core`, `-monitor`, `-security`, 
 - `azazael-worms-security` — security, config, backup (15 worms)
 - `azazael-worms-devops` — container, communication, migration (15 worms)
 - `azazael-worms-data` — learning, ml, analysis, visualization, sync (16 worms)
-- `azazael-clusters` — CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER consumers
+    - `azazael-clusters` — CLUSTERWORMS, METACLUSTER consumers

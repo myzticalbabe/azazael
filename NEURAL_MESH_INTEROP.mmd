@@ -1,31 +1,22 @@
 graph LR
-  N_analysis["analysis"]
   N_axon["axon"]
   N_backup["backup"]
   N_communication["communication"]
   N_config["config"]
-  N_consensus["consensus"]
   N_consolidation["consolidation"]
   N_container["container"]
-  N_defense["defense"]
   N_dendrite["dendrite"]
-  N_diagnostic["diagnostic"]
   N_engram["engram"]
   N_federated["federated"]
   N_glia["glia"]
-  N_immune["immune"]
   N_learning["learning"]
   N_mesh["mesh"]
   N_migration["migration"]
   N_monitor["monitor"]
-  N_optimization["optimization"]
   N_orchestration["orchestration"]
   N_profiling["profiling"]
-  N_repair["repair"]
   N_security["security"]
-  N_servemesh["servemesh"]
   N_synapse["synapse"]
-  N_sync["sync"]
   N_telemetry["telemetry"]
   N_thalamus["thalamus"]
   N_unknown["unknown"]
@@ -174,7 +165,7 @@ graph LR
   C_DataPipelineWorm --> M_DataPipelineWorm_schedule_dynamic_refresh
   M_DataPipelineWorm_search_memory["search_memory"]:::M
   C_DataPipelineWorm --> M_DataPipelineWorm_search_memory
-  C_PrioritizedReplayBuffer(["PrioritizedReplayBuffer"]):::C_integrate
+  C_PrioritizedReplayBuffer(["PrioritizedReplayBuffer"]):::C_wire
   N_learning --> C_PrioritizedReplayBuffer
   M_PrioritizedReplayBuffer_add_from_memories["add_from_memories"]:::M
   C_PrioritizedReplayBuffer --> M_PrioritizedReplayBuffer_add_from_memories
@@ -378,76 +369,6 @@ graph LR
   N_xenomorph --> C_ResinWorm
   M_ResinWorm_secrete["secrete"]:::M
   C_ResinWorm --> M_ResinWorm_secrete
-  N_analysis -.->|feeds| N_optimization
-  N_analysis -.->|feeds| N_defense
-  N_analysis -.->|feeds| N_visualization
-  N_backup -.->|feeds| N_orchestration
-  N_backup -.->|feeds| N_defense
-  N_communication -.->|feeds| N_orchestration
-  N_communication -.->|feeds| N_telemetry
-  N_config -.->|feeds| N_security
-  N_config -.->|feeds| N_orchestration
-  N_consensus -.->|feeds| N_mesh
-  N_consensus -.->|feeds| N_orchestration
-  N_consensus -.->|feeds| N_immune
-  N_container -.->|feeds| N_monitor
-  N_container -.->|feeds| N_security
-  N_container -.->|feeds| N_orchestration
-  N_defense -.->|feeds| N_repair
-  N_defense -.->|feeds| N_orchestration
-  N_defense -.->|feeds| N_telemetry
-  N_diagnostic -.->|feeds| N_repair
-  N_diagnostic -.->|feeds| N_defense
-  N_diagnostic -.->|feeds| N_orchestration
-  N_engram -.->|feeds| N_learning
-  N_engram -.->|feeds| N_mesh
-  N_engram -.->|feeds| N_telemetry
-  N_federated -.->|feeds| N_learning
-  N_federated -.->|feeds| N_synapse
-  N_federated -.->|feeds| N_mesh
-  N_immune -.->|feeds| N_defense
-  N_immune -.->|feeds| N_orchestration
-  N_immune -.->|feeds| N_mesh
-  N_learning -.->|feeds| N_optimization
-  N_learning -.->|feeds| N_visualization
-  N_learning -.->|feeds| N_orchestration
-  N_mesh -.->|feeds| N_orchestration
-  N_mesh -.->|feeds| N_consensus
-  N_mesh -.->|feeds| N_telemetry
-  N_migration -.->|feeds| N_analysis
-  N_migration -.->|feeds| N_orchestration
-  N_monitor -.->|feeds| N_defense
-  N_monitor -.->|feeds| N_orchestration
-  N_monitor -.->|feeds| N_telemetry
-  N_optimization -.->|feeds| N_monitor
-  N_optimization -.->|feeds| N_orchestration
-  N_optimization -.->|feeds| N_telemetry
-  N_orchestration -.->|feeds| N_monitor
-  N_orchestration -.->|feeds| N_defense
-  N_orchestration -.->|feeds| N_telemetry
-  N_profiling -.->|feeds| N_optimization
-  N_profiling -.->|feeds| N_visualization
-  N_profiling -.->|feeds| N_telemetry
-  N_repair -.->|feeds| N_defense
-  N_repair -.->|feeds| N_orchestration
-  N_security -.->|feeds| N_defense
-  N_security -.->|feeds| N_orchestration
-  N_security -.->|feeds| N_telemetry
-  N_servemesh -.->|feeds| N_synapse
-  N_servemesh -.->|feeds| N_telemetry
-  N_servemesh -.->|feeds| N_mesh
-  N_synapse -.->|feeds| N_orchestration
-  N_synapse -.->|feeds| N_learning
-  N_synapse -.->|feeds| N_servemesh
-  N_sync -.->|feeds| N_monitor
-  N_sync -.->|feeds| N_orchestration
-  N_telemetry -.->|feeds| N_visualization
-  N_telemetry -.->|feeds| N_orchestration
-  N_telemetry -.->|feeds| N_defense
-  N_visualization -.->|feeds| N_orchestration
-  N_xenomorph -.->|feeds| N_immune
-  N_xenomorph -.->|feeds| N_consensus
-  N_xenomorph -.->|feeds| N_mesh
   classDef C_integrate fill:#fdf3d6,stroke:#b8860b;
   classDef C_unresolved fill:#fbe3e3,stroke:#b71c1c;
   classDef C_wire fill:#dff5df,stroke:#2e7d32;

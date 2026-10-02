@@ -40,7 +40,7 @@
 | U4 compliance | audit_trail, sentinel_enforcer/gate, TERENCE wiring (6 files; no compliance/ dir in tree) | 6 | U0 | keep + re-verify gates | same | G4 above (compile / 9 edict / 12-12 self-test) | closed 2026-10-01 |
 | U5 satellites | CODEX 87, ORCHESTRATION 84, AOA 30, HYDRA 11, META 16, UTILITIES 23, ML 9, eve_unleashed 11 | 271 | U0 | migrate per-package | `C:\Azazael\` mirror layout | G5 above (271/271 compile) | closed 2026-10-01 |
 | U6 entry points | CLI 2, DAEMONS 3, SCRIPTS 30, INTERPRETERS 3, TOOLKIT 9, TOOLS 10 (57; root scripts 209 + tools 127 also clean) | 57 | U0–U5 (entry points last) | migrate last | same | G6 above (393/393 compile) | closed 2026-10-01 |
-| U7 skills | 1234 md, 102 L2 families (pkg 968, pkg314t 74, bin 46, …) | 1234 | catalog reconciliation (own track) | triage by family | reconciled catalog | G7 above — inventory closed, verdicts pending | open |
+| U7 skills | 1234 md, 102 L2 families (pkg 968, pkg314t 74, bin 46, …) | 1234 | catalog reconciliation (own track) | triage by family | reconciled catalog | G7 below — CLOSED 2026-10-02 | closed 2026-10-02 |
 | U8 home-dir sprawl | Desktop sweep IN-SCOPE (~610MB/20 dirs); moves at move day, mirror layout | measured | scope decided IN-SCOPE 2026-10-01 | — | G8 above — scope closed, moves deferred | closed 2026-10-01 |
 
 ## Unit gates (exit criteria; a unit closes only when its gate passes on the migration branch)
@@ -97,6 +97,14 @@ Close rule: G6.1 + collect baseline holds (4216+1, verified above). U6 CLOSED 20
 
 ### G7 — U7 skills (measured 2026-10-01, inventory gate)
 Measured: 1234 md, single prefix family `azazael-*`; L2 split 102 families (pkg 968, pkg314t 74, bin 46, devtools 8, worms 6, fix/tool 5 each, autodiff 4, …). Full reconcile (family-by-family keep/drop vs catalog + skills-lock.json) is its own track like the DB extract — G7 records the inventory, not the verdicts.
+
+### G7-CLOSE — U7 verdicts 2026-10-02 (all six recorded, then closed)
+1. Canonical = `skills/` (was already declared); home mirror complete + synced (25 refreshed 10-02); project mirror +13 newest propagated; 7 hand-only agent dirs (archify, gil-sidecar, inference×3, meta-reflection, timesfm) KEPT with reason (agent-local, no flat source).
+2. Bulk 1042 (pkg+pkg314t) KEPT: no code bulk-loads the corpus (session_start/sync only sync; skills load by name on demand), so the 188k-token prune precedent (an all-load path) does not apply. Revisit only if a bulk-loader appears.
+3. 11 stale-ref files fixed to flat language + mirrored to all three trees + catalog row touched (no generator script exists; full regen deferred).
+4. skills-lock.json OUT OF SCOPE (external skill registry, not this corpus).
+5. skills.win-backup (132) + skills_staging (1): left as archive.
+6. Wire-or-cut 3 retirements + counts stood re-verified (29/29) after the surgery.
 | # | Check | Result |
 |---|---|---|
 | G7.1 | Count + L2 family split | 1234 / 102 families recorded above |
@@ -155,6 +163,7 @@ Desktop sweep measured (~610MB, 20 dirs): AOA 103.6, Azazael_Audit 102.0, COSMOS
 | 2026-10-01 | D7 router verdict DELETE (AOA diagram-only, quartet zero refs, METACLUSTER rewritten in-surgery); U8 scope IN-SCOPE → U8 CLOSED | file deletion deferred into U3 surgery |
 | 2026-10-01 | ALL FIVE implemented + merged (e41e09da, 6928656f): R15 merged, outer-loop readout live, startup prime wired, collection 4221+0, floor-13 settled test-only; U2 CLOSED (103 tests) | 7 of 9 closed; left U3 (needs .git) + U7 (verdicts track) |
 | 2026-10-01 | D8 EXECUTED: `G:/source-of-truth/azazael/azazael-history-20261001.bundle` 1297MB, `verify` okay, complete history, 7 refs (master, migration branch, r15, gdrive, stash) | fresh clone authorized for move day; backup/var dirt still aside, uncommitted |
+| 2026-10-02 | U7 CLOSED: mirrors reconciled (home synced, project +13, 7 hand-only kept w/ reason), bulk 1042 kept (lazy-load, no bulk-loader), 11 stale-ref files fixed ×3 mirrors, catalog row touched, lock/win-backup scoped out | 9 of 9 units closed; only move-day execution remains |
 
 ## Mined history (2026-10-01 extraction; 34 decision-bearing commits)Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
 from the forensic: subjects here are descriptive — future commits must

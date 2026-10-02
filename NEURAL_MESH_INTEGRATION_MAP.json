@@ -2,116 +2,16 @@
  "generated_from": "NEURAL_MESH_WIRE_OR_CUT.json",
  "pending": 109,
  "dispositions": {
-  "wire_at_site": 40,
-  "integrate_via_stage": 44,
+  "wire_at_site": 41,
+  "integrate_via_stage": 43,
   "unresolved": 25
  },
- "stage_ownership": {
-  "orchestration": [
-   ".measure_skill_lift",
-   "CheckpointWorm.restore_checkpoint",
-   "DashboardGen.add_panel",
-   "IPCBridge.create_channel",
-   "IPCBridge.receive"
-  ],
-  "security": [
-   "ConfigLinter.lint_yaml"
-  ],
-  "monitor": [
-   "ErrorRecoveryOrchestrator.execute_with_recovery",
-   "ErrorRecoveryOrchestrator.reset_circuit",
-   "ResourceQuotaWatch.set_quota"
-  ],
-  "optimization": [
-   "._schema_state_key",
-   "CPUFlameProfiler.to_flamegraph_data",
-   "CodeProfiler.detect_hotspots",
-   "CodeProfiler.profile_function",
-   "HypnagogicSynthesizer.ingest_domains",
-   "PrioritizedReplayBuffer.add_from_memories"
-  ],
-  "learning": [
-   "RecallRouterWorm.route_recall"
-  ],
-  "analysis": [
-   "CodeMigrator.run_2to3",
-   "LegacyShimGen.write_shim"
-  ],
-  "defense": [
-   "CertMonitor.check_cert",
-   "CertMonitor.get_expiring_soon",
-   "RaceConditionDetector.instrument_worm",
-   "RaceConditionDetector.uninstrument_worm"
-  ],
-  "visualization": [
-   "AlertEscalator.clear_alert",
-   "EventRouter.get_recent_events",
-   "SpanTracer.end_span",
-   "SpanTracer.start_span"
-  ],
-  "immune": [
-   "ChestbursterWorm.burst",
-   "DroneWorm.carry",
-   "OvomorphWorm.hatch",
-   "OvomorphWorm.lay",
-   "ResinWorm.secrete"
-  ]
- },
+ "stage_ownership": {},
  "contract_coverage": {
-  "natures_total": 26,
-  "declared": {
-   "analysis": {
-    "emits": 2,
-    "requires": 1
-   },
-   "defense": {
-    "emits": 2,
-    "requires": 1
-   },
-   "diagnostic": {
-    "emits": 3,
-    "requires": 1
-   },
-   "monitor": {
-    "emits": 4,
-    "requires": 0
-   }
-  },
-  "no_contract_declared": [
-   "backup",
-   "communication",
-   "config",
-   "consensus",
-   "container",
-   "engram",
-   "federated",
-   "immune",
-   "learning",
-   "mesh",
-   "migration",
-   "optimization",
-   "orchestration",
-   "profiling",
-   "repair",
-   "security",
-   "servemesh",
-   "synapse",
-   "sync",
-   "telemetry",
-   "visualization",
-   "xenomorph"
-  ],
-  "declared_emits_nothing_reads": {
-   "diagnostic": [
-    "affected",
-    "diagnosis"
-   ],
-   "monitor": [
-    "cpu_pct",
-    "disk_io",
-    "mem_pct"
-   ]
-  },
+  "natures_total": 0,
+  "declared": {},
+  "no_contract_declared": [],
+  "declared_emits_nothing_reads": {},
   "derived": {
    "analysis": {
     "emits": 20,
@@ -139,11 +39,11 @@
    },
    "monitor": {
     "emits": 15,
-    "members": 16
+    "members": 15
    },
    "orchestration": {
     "emits": 27,
-    "members": 9
+    "members": 8
    },
    "plasticity": {
     "emits": 12,
@@ -249,7 +149,7 @@
    ]
   },
   "derived_natures": 13,
-  "coverage": "4/26 natures declare a contract, 13/26 have one derivable from code"
+  "coverage": "0/0 natures declare a contract, 13/0 have one derivable from code"
  },
  "findings": {
   "NeuralPipeline:NeuralPipeline.replay_failed": {
@@ -260,7 +160,7 @@
    "kind": "reachable_class",
    "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:850, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:847, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -269,7 +169,7 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     850
+     847
     ]
    ]
   },
@@ -359,12 +259,9 @@
    "module": "backup",
    "nature": "backup",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "orchestration",
-    "defense"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; backup declares it feeds into orchestration, defense, so the orchestration stage must drive it",
+   "reason": "class has no production referrer; backup declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -401,12 +298,9 @@
    "module": "communication",
    "nature": "communication",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; communication declares it feeds into orchestration, telemetry, so the orchestration stage must drive it",
+   "reason": "class has no production referrer; communication declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -418,12 +312,9 @@
    "module": "communication",
    "nature": "communication",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; communication declares it feeds into orchestration, telemetry, so the orchestration stage must drive it",
+   "reason": "class has no production referrer; communication declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -435,12 +326,9 @@
    "module": "config",
    "nature": "config",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "security",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; config declares it feeds into security, orchestration, so the security stage must drive it",
+   "reason": "class has no production referrer; config declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -501,13 +389,9 @@
    "module": "container",
    "nature": "container",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "monitor",
-    "security",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; container declares it feeds into monitor, security, orchestration, so the monitor stage must drive it",
+   "reason": "class has no production referrer; container declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -519,23 +403,14 @@
    "module": "db_monitor",
    "nature": "monitor",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "defense",
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/dashboard.py:261, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src"
    ],
-   "emits": {
-    "cpu_pct": "float",
-    "mem_pct": "float",
-    "disk_io": "float",
-    "timestamp": "iso"
-   },
+   "emits": {},
    "requires": {},
    "refs": [
     [
@@ -594,13 +469,9 @@
    "module": "dreaming",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3958, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3953, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src"
@@ -610,7 +481,7 @@
    "refs": [
     [
      "src/CORE/WORMS/expansion/spine.py",
-     3958
+     3953
     ],
     [
      "scripts/dream_cycle.py",
@@ -636,13 +507,9 @@
    "module": "dreaming",
    "nature": "learning",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; learning declares it feeds into optimization, visualization, orchestration, so the optimization stage must drive it",
+   "reason": "class has no production referrer; learning declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -654,11 +521,7 @@
    "module": "driver",
    "nature": "orchestration",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "monitor",
-    "defense",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at scripts/spine_cycle_apply.py:313, so a real call site exists",
    "ref_scope": [
@@ -679,11 +542,7 @@
    "module": "driver",
    "nature": "orchestration",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "monitor",
-    "defense",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at scripts/spine_cycle_apply.py:313, so a real call site exists",
    "ref_scope": [
@@ -704,13 +563,9 @@
    "module": "engram",
    "nature": "engram",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "learning",
-    "mesh",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; engram declares it feeds into learning, mesh, telemetry, so the learning stage must drive it",
+   "reason": "class has no production referrer; engram declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -722,13 +577,9 @@
    "module": "error_recovery",
    "nature": "orchestration",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "monitor",
-    "defense",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; orchestration declares it feeds into monitor, defense, telemetry, so the monitor stage must drive it",
+   "reason": "class has no production referrer; orchestration declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -740,13 +591,9 @@
    "module": "error_recovery",
    "nature": "orchestration",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "monitor",
-    "defense",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; orchestration declares it feeds into monitor, defense, telemetry, so the monitor stage must drive it",
+   "reason": "class has no production referrer; orchestration declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -784,13 +631,9 @@
    "module": "evolution",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3137, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:3132, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src"
@@ -800,11 +643,11 @@
    "refs": [
     [
      "src/CORE/WORMS/expansion/spine.py",
-     3137
+     3132
     ],
     [
      "scripts/evolution_cycle.py",
-     1959
+     2260
     ],
     [
      "scripts/evolve_loop.py",
@@ -826,13 +669,9 @@
    "module": "evolution",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:660, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:657, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -841,11 +680,11 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     660
+     657
     ],
     [
      "scripts/run_training_orchestrator.py",
-     794
+     791
     ]
    ]
   },
@@ -855,13 +694,9 @@
    "module": "evolution",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:660, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:657, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -870,11 +705,11 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     660
+     657
     ],
     [
      "scripts/run_training_orchestrator.py",
-     794
+     791
     ]
    ]
   },
@@ -884,13 +719,9 @@
    "module": "evolution",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:660, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:657, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -899,11 +730,11 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     660
+     657
     ],
     [
      "scripts/run_training_orchestrator.py",
-     794
+     791
     ]
    ]
   },
@@ -941,13 +772,9 @@
    "module": "federated",
    "nature": "federated",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "learning",
-    "synapse",
-    "mesh"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:176, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:177, so a real call site exists",
    "ref_scope": [
     "src"
    ],
@@ -956,15 +783,15 @@
    "refs": [
     [
      "src/CORE/WORMS/expansion/spine.py",
-     176
+     177
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     3008
+     3003
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     3009
+     3004
     ]
    ]
   },
@@ -1000,11 +827,7 @@
    "module": "learning_features",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:173, so a real call site exists",
    "ref_scope": [
@@ -1020,7 +843,7 @@
     ],
     [
      "src/CORE/WORMS/expansion/learning_rl.py",
-     437
+     488
     ],
     [
      "scripts/scenario_a_full_pipeline.py",
@@ -1034,11 +857,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1076,11 +895,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1118,11 +933,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1160,11 +971,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1202,11 +1009,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1244,11 +1047,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1286,11 +1085,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1328,11 +1123,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1370,11 +1161,7 @@
    "module": "learning_pipeline",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:172, so a real call site exists",
    "ref_scope": [
@@ -1411,18 +1198,25 @@
    "method": "add_from_memories",
    "module": "learning_replay",
    "nature": "learning",
-   "kind": "orphan_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
+   "kind": "reachable_class",
+   "consumer_natures": [],
+   "disposition": "wire_at_site",
+   "reason": "class is referenced in production at tools/learner_bridge.py:120, so a real call site exists",
+   "ref_scope": [
+    "tools"
    ],
-   "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; learning declares it feeds into optimization, visualization, orchestration, so the optimization stage must drive it",
-   "ref_scope": [],
    "emits": {},
    "requires": {},
-   "refs": []
+   "refs": [
+    [
+     "tools/learner_bridge.py",
+     120
+    ],
+    [
+     "tools/learner_bridge2.py",
+     95
+    ]
+   ]
   },
   "learning_rl:RLTrainLoop.tune_and_train": {
    "owner": "RLTrainLoop",
@@ -1430,11 +1224,7 @@
    "module": "learning_rl",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:432, so a real call site exists",
    "ref_scope": [
@@ -1458,11 +1248,11 @@
     ],
     [
      "scripts/benchmark_evolution.py",
-     144
+     148
     ],
     [
      "scripts/benchmark_evolution.py",
-     178
+     182
     ]
    ]
   },
@@ -1472,11 +1262,7 @@
    "module": "learning_rl",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/NeuralPipeline.py:432, so a real call site exists",
    "ref_scope": [
@@ -1500,11 +1286,11 @@
     ],
     [
      "scripts/benchmark_evolution.py",
-     144
+     148
     ],
     [
      "scripts/benchmark_evolution.py",
-     178
+     182
     ]
    ]
   },
@@ -1515,12 +1301,8 @@
    "nature": "learning",
    "kind": "module_level",
    "disposition": "integrate_via_stage",
-   "reason": "module-level function with no production referrer; its own module belongs to nature learning, which feeds into optimization, visualization, orchestration, so that stage must drive it",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "reason": "module-level function with no production referrer; its own module belongs to nature learning, which feeds into (nothing), so that stage must drive it",
+   "consumer_natures": [],
    "ref_scope": [],
    "refs": [],
    "emits": {},
@@ -1567,13 +1349,9 @@
    "module": "mesh",
    "nature": "mesh",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "orchestration",
-    "consensus",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:117, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:118, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src"
@@ -1583,15 +1361,15 @@
    "refs": [
     [
      "src/CORE/WORMS/expansion/spine.py",
-     117
+     118
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     1752
+     1747
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     1752
+     1747
     ],
     [
      "scripts/mesh_gossip_cycle.py",
@@ -1609,16 +1387,13 @@
    "module": "meta_cognition",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/dream_policy_bridge.py:67, so a real call site exists",
    "ref_scope": [
     "scripts",
-    "src"
+    "src",
+    "tools"
    ],
    "emits": {},
    "requires": {},
@@ -1651,12 +1426,9 @@
    "module": "migration",
    "nature": "migration",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "analysis",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; migration declares it feeds into analysis, orchestration, so the analysis stage must drive it",
+   "reason": "class has no production referrer; migration declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1668,12 +1440,9 @@
    "module": "migration",
    "nature": "migration",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "analysis",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; migration declares it feeds into analysis, orchestration, so the analysis stage must drive it",
+   "reason": "class has no production referrer; migration declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1753,7 +1522,7 @@
    "kind": "reachable_class",
    "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/evolution_cycle.py:1046, so a real call site exists",
+   "reason": "class is referenced in production at scripts/evolution_cycle.py:1326, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -1762,7 +1531,7 @@
    "refs": [
     [
      "scripts/evolution_cycle.py",
-     1046
+     1326
     ],
     [
      "scripts/verify_oracle_parity.py",
@@ -1790,7 +1559,7 @@
    "kind": "reachable_class",
    "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/evolution_cycle.py:1046, so a real call site exists",
+   "reason": "class is referenced in production at scripts/evolution_cycle.py:1326, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -1799,7 +1568,7 @@
    "refs": [
     [
      "scripts/evolution_cycle.py",
-     1046
+     1326
     ],
     [
      "scripts/verify_oracle_parity.py",
@@ -1825,13 +1594,9 @@
    "module": "profiling",
    "nature": "profiling",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; profiling declares it feeds into optimization, visualization, telemetry, so the optimization stage must drive it",
+   "reason": "class has no production referrer; profiling declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1843,13 +1608,9 @@
    "module": "profiling",
    "nature": "profiling",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; profiling declares it feeds into optimization, visualization, telemetry, so the optimization stage must drive it",
+   "reason": "class has no production referrer; profiling declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1861,13 +1622,9 @@
    "module": "profiling",
    "nature": "profiling",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; profiling declares it feeds into optimization, visualization, telemetry, so the optimization stage must drive it",
+   "reason": "class has no production referrer; profiling declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1893,13 +1650,9 @@
    "module": "race_detector",
    "nature": "security",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "defense",
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; security declares it feeds into defense, orchestration, telemetry, so the defense stage must drive it",
+   "reason": "class has no production referrer; security declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1911,13 +1664,9 @@
    "module": "race_detector",
    "nature": "security",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "defense",
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; security declares it feeds into defense, orchestration, telemetry, so the defense stage must drive it",
+   "reason": "class has no production referrer; security declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -1929,13 +1678,9 @@
    "module": "scheduling",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:576, so a real call site exists",
+   "reason": "class is referenced in production at scripts/run_training_orchestrator.py:573, so a real call site exists",
    "ref_scope": [
     "scripts"
    ],
@@ -1944,7 +1689,7 @@
    "refs": [
     [
      "scripts/run_training_orchestrator.py",
-     576
+     573
     ],
     [
      "scripts/trace_adaptation.py",
@@ -1958,11 +1703,7 @@
    "module": "scheduling",
    "nature": "learning",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "optimization",
-    "visualization",
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/dashboard.py:958, so a real call site exists",
    "ref_scope": [
@@ -1978,7 +1719,7 @@
     ],
     [
      "scripts/run_training_orchestrator.py",
-     1034
+     1031
     ]
    ]
   },
@@ -1988,13 +1729,9 @@
    "module": "security",
    "nature": "security",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "defense",
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; security declares it feeds into defense, orchestration, telemetry, so the defense stage must drive it",
+   "reason": "class has no production referrer; security declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2006,13 +1743,9 @@
    "module": "security",
    "nature": "security",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "defense",
-    "orchestration",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; security declares it feeds into defense, orchestration, telemetry, so the defense stage must drive it",
+   "reason": "class has no production referrer; security declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2094,11 +1827,7 @@
    "module": "spine",
    "nature": "engram",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "learning",
-    "mesh",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/neural_loop.py:764, so a real call site exists",
    "ref_scope": [
@@ -2119,13 +1848,9 @@
    "module": "spine",
    "nature": "orchestration",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "monitor",
-    "defense",
-    "telemetry"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/startup_warm.py:383, so a real call site exists",
+   "reason": "class is referenced in production at src/CORE/startup_warm.py:402, so a real call site exists",
    "ref_scope": [
     "scripts",
     "src",
@@ -2136,7 +1861,7 @@
    "refs": [
     [
      "src/CORE/startup_warm.py",
-     383
+     402
     ],
     [
      "scripts/night_shift.py",
@@ -2163,12 +1888,8 @@
    "nature": "mesh",
    "kind": "module_level",
    "disposition": "integrate_via_stage",
-   "reason": "module-level function with no production referrer; its own module belongs to nature mesh, which feeds into orchestration, consensus, telemetry, so that stage must drive it",
-   "consumer_natures": [
-    "orchestration",
-    "consensus",
-    "telemetry"
-   ],
+   "reason": "module-level function with no production referrer; its own module belongs to nature mesh, which feeds into (nothing), so that stage must drive it",
+   "consumer_natures": [],
    "ref_scope": [],
    "refs": [],
    "emits": {},
@@ -2432,77 +2153,7 @@
    "module": "synapse",
    "nature": "synapse",
    "kind": "reachable_class",
-   "consumer_natures": [
-    "orchestration",
-    "learning",
-    "servemesh"
-   ],
-   "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:203, so a real call site exists",
-   "ref_scope": [
-    "src"
-   ],
-   "emits": {},
-   "requires": {},
-   "refs": [
-    [
-     "src/CORE/WORMS/expansion/spine.py",
-     203
-    ],
-    [
-     "src/CORE/WORMS/expansion/spine.py",
-     1727
-    ],
-    [
-     "src/CORE/WORMS/expansion/spine.py",
-     1727
-    ]
-   ]
-  },
-  "synapse:MoEDispatcherWorm.top_expert": {
-   "owner": "MoEDispatcherWorm",
-   "method": "top_expert",
-   "module": "synapse",
-   "nature": "synapse",
-   "kind": "reachable_class",
-   "consumer_natures": [
-    "orchestration",
-    "learning",
-    "servemesh"
-   ],
-   "disposition": "wire_at_site",
-   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:203, so a real call site exists",
-   "ref_scope": [
-    "src"
-   ],
-   "emits": {},
-   "requires": {},
-   "refs": [
-    [
-     "src/CORE/WORMS/expansion/spine.py",
-     203
-    ],
-    [
-     "src/CORE/WORMS/expansion/spine.py",
-     1727
-    ],
-    [
-     "src/CORE/WORMS/expansion/spine.py",
-     1727
-    ]
-   ]
-  },
-  "synapse:SSMSequenceWorm.train_error": {
-   "owner": "SSMSequenceWorm",
-   "method": "train_error",
-   "module": "synapse",
-   "nature": "synapse",
-   "kind": "reachable_class",
-   "consumer_natures": [
-    "orchestration",
-    "learning",
-    "servemesh"
-   ],
+   "consumer_natures": [],
    "disposition": "wire_at_site",
    "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:204, so a real call site exists",
    "ref_scope": [
@@ -2517,11 +2168,69 @@
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     1726
+     1722
     ],
     [
      "src/CORE/WORMS/expansion/spine.py",
-     1726
+     1722
+    ]
+   ]
+  },
+  "synapse:MoEDispatcherWorm.top_expert": {
+   "owner": "MoEDispatcherWorm",
+   "method": "top_expert",
+   "module": "synapse",
+   "nature": "synapse",
+   "kind": "reachable_class",
+   "consumer_natures": [],
+   "disposition": "wire_at_site",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:204, so a real call site exists",
+   "ref_scope": [
+    "src"
+   ],
+   "emits": {},
+   "requires": {},
+   "refs": [
+    [
+     "src/CORE/WORMS/expansion/spine.py",
+     204
+    ],
+    [
+     "src/CORE/WORMS/expansion/spine.py",
+     1722
+    ],
+    [
+     "src/CORE/WORMS/expansion/spine.py",
+     1722
+    ]
+   ]
+  },
+  "synapse:SSMSequenceWorm.train_error": {
+   "owner": "SSMSequenceWorm",
+   "method": "train_error",
+   "module": "synapse",
+   "nature": "synapse",
+   "kind": "reachable_class",
+   "consumer_natures": [],
+   "disposition": "wire_at_site",
+   "reason": "class is referenced in production at src/CORE/WORMS/expansion/spine.py:205, so a real call site exists",
+   "ref_scope": [
+    "src"
+   ],
+   "emits": {},
+   "requires": {},
+   "refs": [
+    [
+     "src/CORE/WORMS/expansion/spine.py",
+     205
+    ],
+    [
+     "src/CORE/WORMS/expansion/spine.py",
+     1721
+    ],
+    [
+     "src/CORE/WORMS/expansion/spine.py",
+     1721
     ]
    ]
   },
@@ -2531,13 +2240,9 @@
    "module": "telemetry",
    "nature": "telemetry",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "visualization",
-    "orchestration",
-    "defense"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; telemetry declares it feeds into visualization, orchestration, defense, so the visualization stage must drive it",
+   "reason": "class has no production referrer; telemetry declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2549,13 +2254,9 @@
    "module": "telemetry",
    "nature": "telemetry",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "visualization",
-    "orchestration",
-    "defense"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; telemetry declares it feeds into visualization, orchestration, defense, so the visualization stage must drive it",
+   "reason": "class has no production referrer; telemetry declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2567,13 +2268,9 @@
    "module": "telemetry",
    "nature": "telemetry",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "visualization",
-    "orchestration",
-    "defense"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; telemetry declares it feeds into visualization, orchestration, defense, so the visualization stage must drive it",
+   "reason": "class has no production referrer; telemetry declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2585,13 +2282,9 @@
    "module": "telemetry",
    "nature": "telemetry",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "visualization",
-    "orchestration",
-    "defense"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; telemetry declares it feeds into visualization, orchestration, defense, so the visualization stage must drive it",
+   "reason": "class has no production referrer; telemetry declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2631,11 +2324,9 @@
    "module": "visualization",
    "nature": "visualization",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "orchestration"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; visualization declares it feeds into orchestration, so the orchestration stage must drive it",
+   "reason": "class has no production referrer; visualization declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2647,13 +2338,9 @@
    "module": "xenomorph",
    "nature": "xenomorph",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "immune",
-    "consensus",
-    "mesh"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; xenomorph declares it feeds into immune, consensus, mesh, so the immune stage must drive it",
+   "reason": "class has no production referrer; xenomorph declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2665,13 +2352,9 @@
    "module": "xenomorph",
    "nature": "xenomorph",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "immune",
-    "consensus",
-    "mesh"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; xenomorph declares it feeds into immune, consensus, mesh, so the immune stage must drive it",
+   "reason": "class has no production referrer; xenomorph declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2683,13 +2366,9 @@
    "module": "xenomorph",
    "nature": "xenomorph",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "immune",
-    "consensus",
-    "mesh"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; xenomorph declares it feeds into immune, consensus, mesh, so the immune stage must drive it",
+   "reason": "class has no production referrer; xenomorph declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2701,13 +2380,9 @@
    "module": "xenomorph",
    "nature": "xenomorph",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "immune",
-    "consensus",
-    "mesh"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; xenomorph declares it feeds into immune, consensus, mesh, so the immune stage must drive it",
+   "reason": "class has no production referrer; xenomorph declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
@@ -2719,13 +2394,9 @@
    "module": "xenomorph",
    "nature": "xenomorph",
    "kind": "orphan_class",
-   "consumer_natures": [
-    "immune",
-    "consensus",
-    "mesh"
-   ],
+   "consumer_natures": [],
    "disposition": "integrate_via_stage",
-   "reason": "class has no production referrer; xenomorph declares it feeds into immune, consensus, mesh, so the immune stage must drive it",
+   "reason": "class has no production referrer; xenomorph declares it feeds into (nothing), so the consumer stage must drive it",
    "ref_scope": [],
    "emits": {},
    "requires": {},
