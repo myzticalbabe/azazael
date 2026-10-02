@@ -10,6 +10,10 @@ metadata:
 # AZAZAEL — Import Optimization Patterns
 
 > **Session:** 2026-06-01 | **Focus:** Reducing discover_worms() from 8.3s to 0.51s (16x)
+>
+> **U3 note 2026-10-02:** NCM-loop measurements below are pre-taxonomy history
+> (NatureClusterManager deleted, D1). The `discover_worms()` numbers and lazy-import
+> patterns still hold; per-nature loop timings do not apply to flat dispatch.
 > **Key Techniques:** Lazy imports, module splitting, HTTP timeout caching, fast-path registry
 
 ---

@@ -55,7 +55,7 @@ class VulnScanner:
             return {"success": False, "error": str(e)}
 ```
 
-**That's it. No changes needed to CLUSTERWORMS.py, NATURE_CLUSTERS.py, or METACLUSTER.py.**
+    **That's it. No changes needed to CLUSTERWORMS.py or METACLUSTER.py (U3: NATURE_CLUSTERS.py deleted).**
 
 ## Discovery Mechanism
 
@@ -118,4 +118,4 @@ For per-worm details, load skill `azazael-worms-core`, `-monitor`, `-security`, 
 - `azazael-worms-security` — security, config, backup (15 worms)
 - `azazael-worms-devops` — container, communication, migration (15 worms)
 - `azazael-worms-data` — learning, ml, analysis, visualization, sync (16 worms)
-- `azazael-clusters` — CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER consumers
+    - `azazael-clusters` — CLUSTERWORMS, METACLUSTER consumers

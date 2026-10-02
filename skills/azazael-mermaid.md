@@ -21,14 +21,14 @@ metadata:
 ## Graph Types Used in the Codebase
 
 ### Graph TD (Top-Down) — Architecture & Hierarchy
-Used in CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER:
+Used in CLUSTERWORMS, METACLUSTER v2 (U3: NATURE_CLUSTERS deleted):
 ```python
 def to_mermaid(self) -> str:
     lines = ["graph TD"]
-    lines.append(f'    MC[MetaCluster] --> NC1[NatureCluster: security]')
-    lines.append(f'    NC1 --> W1[VulnScanner p=8]')
-    lines.append(f'    NC1 --> W2[PortAuditor p=7]')
-    lines.append(f'    MC --> NC2[NatureCluster: monitor]')
+    lines.append(f'    MC[MetaCluster] --> C1[monitor]')
+    lines.append(f'    C1 --> W1[VulnScanner p=8]')
+    lines.append(f'    C1 --> W2[PortAuditor p=7]')
+    lines.append(f'    MC --> C2[security]')
     lines.append(f'    classDef ok fill:#1a3a1a,stroke:#00ff88,color:#00ff88')
     lines.append(f'    class W1,W2 ok')
     return "\n".join(lines)
@@ -95,8 +95,7 @@ if fail_worms:
 | File | Method | Type |
 |------|--------|------|
 | `CLUSTERWORMS.py` | `to_mermaid_execution_flow()` | Graph TD — execution results |
-| `NATURE_CLUSTERS.py` | `to_mermaid()` | Graph TD — nature hierarchy |
-| `METACLUSTER.py` | `to_mermaid()` | Graph TD — cross-nature routes |
+| `METACLUSTER.py` | `to_mermaid()` | Graph TD — flat category graph (U3: was cross-nature routes) |
 | `METACLUSTER.py` | Custom methods | Sequence diagram — orchestration flow |
 
 ## Output Size Guidelines
@@ -104,9 +103,9 @@ if fail_worms:
 - Architecture graphs: 500-2000 chars
 - Execution flow graphs: 1000-5000 chars (depends on worm count)
 - Sequence diagrams: 500-1500 chars
-- NATURE_CLUSTERS full output: 8,535 chars (largest)
+- Largest measured output was NATURE_CLUSTERS' 8,535 chars (module deleted U3; re-measure for v2 graphs)
 
 ## Related Skills
 - `azazael-conventions` — Parent: Python coding patterns, thread safety, factory methods
-- `azazael-clusters` — CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER (all generate Mermaid)
+- `azazael-clusters` — CLUSTERWORMS, METACLUSTER v2 flat (all generate Mermaid)
 - `azazael-codex` — CODEX video generation (uses Mermaid for flow diagrams)
