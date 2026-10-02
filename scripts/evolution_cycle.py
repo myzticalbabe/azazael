@@ -1194,8 +1194,9 @@ def _tensor_genome_refresh():
         if not rows:
             return {'ok': False, 'skipped': 'no evolution_result rows'}
 
-        # The morph genes are read from MORPH_CANDIDATES, which is the ONE
-        # source of truth for their names and kinds. Hardcoding "morph_switch"
+        # The morph genes are read from MORPH_KNOWN_GENES, the registry of
+        # every gene the organ has trialled (the ONE source of truth for their
+        # names and kinds). Hardcoding "morph_switch"
         # here typed the real gene (`use_schema_features`) as a continuous
         # `float` with `unknown` provenance -- the rotation holds two
         # candidates and neither is named morph_switch, so the declaration was
@@ -1208,8 +1209,13 @@ def _tensor_genome_refresh():
         provenance_map = dict((k, 'core') for k in PROMOTE_KEYS)
         bounds_map = dict(GENE_BOUNDS)
         try:
-            from CORE.WORMS.expansion.proteus_hooks import MORPH_CANDIDATES
-            for _name, _kind, _lo, _hi, _kw in MORPH_CANDIDATES:
+            # MORPH_KNOWN_GENES, not MORPH_CANDIDATES: rows written while
+            # `use_schema_features` was still trialled carry it, and typing it
+            # wrong (continuous float / unknown provenance) is exactly the
+            # defect this map exists to prevent. The registry covers retired
+            # genes; the rotation does not.
+            from CORE.WORMS.expansion.proteus_hooks import MORPH_KNOWN_GENES
+            for _name, _kind, _lo, _hi, _kw in MORPH_KNOWN_GENES:
                 kind_map[_name] = _kind
                 provenance_map[_name] = 'morph'
                 try:
