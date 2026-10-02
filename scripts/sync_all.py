@@ -3,9 +3,9 @@
 sync_all.py - Bidirectional sync across all Azazael environments.
 
 Environments:
-  1. Windows 11   : C:/Users/clint/azazael         (primary dev)
+  1. Windows 11   : <this tree>                         (primary dev, derived)
   2. WSL2         : /root/azazael                  (Linux build target)
-  3. Desktop      : C:/Users/clint/Desktop/AZAZAEL_Standalone (release)
+  3. Desktop      : C:/Azazael/desktop/AZAZAEL_Standalone (release)
   4. G: source    : G:/source-of-truth/azazael      (canonical archive)
   5. G: AZAZAEL   : G:/AZAZAEL/AZAZAEL_ROOT          (primary archive)
   6. Kali WSL2    : E:/Kali/azazael                 (Kali Linux security distro)
@@ -40,13 +40,18 @@ if sys.platform == "win32":
 # Environment Mapping
 # ═══════════════════════════════════════════════════════════════════════
 
+#: This file lives at <root>/scripts/sync_all.py, so the Windows hub root is
+#: derived, never literal (U3/move-day: the tree moved C:/Users/clint/azazael
+#: -> C:/Azazael/azazael; a literal would have pinned the old Ort).
+_WINDOWS_ROOT = Path(__file__).resolve().parent.parent
+
 ENVIRONMENTS: Dict[str, Dict] = {
     "windows": {
         "label": "Windows 11 (primary dev)",
-        "root": Path("C:/Users/clint/azazael"),
-        "src": Path("C:/Users/clint/azazael/src"),
-        "docs": Path("C:/Users/clint/azazael/docs"),
-        "tests": Path("C:/Users/clint/azazael/tests"),
+        "root": _WINDOWS_ROOT,
+        "src": _WINDOWS_ROOT / "src",
+        "docs": _WINDOWS_ROOT / "docs",
+        "tests": _WINDOWS_ROOT / "tests",
         "type": "windows",
     },
     "wsl2": {
@@ -60,9 +65,9 @@ ENVIRONMENTS: Dict[str, Dict] = {
     },
     "desktop": {
         "label": "Desktop AZAZAEL_Standalone",
-        "root": Path("C:/Users/clint/Desktop/AZAZAEL_Standalone"),
+        "root": Path("C:/Azazael/desktop/AZAZAEL_Standalone"),
         "src": None,
-        "docs": Path("C:/Users/clint/Desktop/AZAZAEL_Standalone/docs"),
+        "docs": Path("C:/Azazael/desktop/AZAZAEL_Standalone/docs"),
         "tests": None,
         "type": "release",
         "exe_only": True,
@@ -104,7 +109,6 @@ SYNC_CODE_PATTERNS = [
     "src/CORE/WORMS/METACLUSTER.py",
     "src/CORE/WORMS/NETWORK_DIAG.py",
     "src/CORE/WORMS/CODEX_TOOLS.py",
-    "src/CORE/WORMS/CROSS_NATURE_ROUTER.py",
     "src/ORCHESTRATION/hydra_bridge.py",
     "tests/*.py",
 ]

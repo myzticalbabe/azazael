@@ -2,7 +2,7 @@
 # Complete Inventory of Codebuff Skills for the Azazael Project
 
 > Generated: May 29, 2026
-> Last Updated: 2026-09-29 — regenerated from canonical `skills/*.md` (1,234 skills: core + Kali + 3.14t package + binary-tool)
+> Last Updated: 2026-09-29 — regenerated from canonical `skills/*.md` (1,234 skills: core + Kali + 3.14t package + binary-tool); 2026-10-02 U3 touch: `azazael-clusters` row only (no generator script exists; full regen deferred)
 > Purpose: Single source of truth for all available Azazael skills
 > Source of truth: `skills/` (canonical flat .md) mirrored to `.agents/skills/<name>/SKILL.md`. Table rows below are generated, never hand-edited.
 
@@ -45,7 +45,7 @@
 | 20 | `azazael-architecture-review` | architecture | Systematic project architecture review methodology — 3-pass inventory, 12-dimension quality scoring, coupli... |
 | 21 | `azazael-auto-downloader-fix` | architecture | AUTO_DOWNLOADER.py main() restructuring fix with CODEX/CORE bug chain documentation |
 | 22 | `azazael-cloud-tab` | architecture | Extracted Cloud inference tab module for Inference Studio — reduces God Object anti-pattern |
-| 23 | `azazael-clusters` | architecture | Azazael cluster system — ClusterWORMZ v2.0.0 API, NatureClusters, MetaCluster, CrossNatureRoutingEngine, pa... |
+| 23 | `azazael-clusters` | architecture | Azazael cluster system — ClusterWORMZ v2.0.0 API, MetaCluster v2 flat dispatch, parallel execution, thread safety, Mermaid graphs. |
 | 24 | `azazael-compliance-deep-dive` | architecture | Deep diagnostic of ComplianceOrchestrator self_test — 0X: 8/8 pass, 0Y: 4/5 pass (dual_ledger by-design fai... |
 | 25 | `azazael-dlv-divergence` | architecture | DualLedgerValidator expected divergence pattern — why file_edit, file_create, and inference_spawn counts di... |
 | 26 | `azazael-dual-ledger` | architecture | DLV discrepancy catalog — all known by-design divergences between DirectMemory and .audit/ JSONL ledgers, b... |
@@ -1469,6 +1469,14 @@ Based on the May 29, 2026 session findings, these skills should be created:
 | `azazael-shims` | Deprecation shim pattern, UserWarning usage, testing procedure | High |
 | `azazael-g-sync` | G: drive sync procedure — what to copy, when, verification | Medium |
 | `azazael-separation` | Monolith separation plan — 6 layers, 27 programs, migration steps | High |
+
+---
+
+## New Skill — Created September 30, 2026
+
+| Skill | Path | Purpose | Priority |
+|-------|------|---------|----------|
+| `azazael-gil-sidecar` | `.agents/skills/azazael-gil-sidecar/SKILL.md` | Free-threaded vs GIL Python. A `cpython-314t` build accepts only `cp314t` wheels, and a GIL-built `.so` can never be loaded into it (the extension suffix is compiled in — `-X gil=1` does not help), so resolution happens at the process level. The same-version GIL sidecar (`/usr/local/python3147-gil`, venv `/root/venv-314-gil`, entry point `python3.14-gil`) carries tensorflow, tf2onnx, orjson, langchain, chromadb, polars, ray and spacy, and reuses the prebuilt 11 GB GIL ML stack (tensorflow 2.22.0-dev) via one `.pth`. `CORE/python_env.py` resolves the correct interpreter; `scripts/rebuild_gil_sidecar.sh` rebuilds the sidecar from prebuilt CPython (no compilation). Proven 2026-09-30. | ✅ Created |
 
 ---
 ## Reconciliation — Measured 2026-09-16 (the summary above was stale)

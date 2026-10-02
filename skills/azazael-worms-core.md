@@ -7,16 +7,17 @@ metadata:
 ---
 # Azazael Worms — Core Infrastructure
 
-## orchestration (6 worms) — Priority 3–10, Cooldown 5s–30s
+## orchestration (5 worms, U3) — Priority 3–10, Cooldown 5s–30s
 
 | Worm | P | Cooldown | Ver | Source |
 |------|---|----------|-----|--------|
-| **MetaCluster** | 10 | 5.0s | 1.0.0 | METACLUSTER.py |
-| **NatureClusterManager** | 9 | 10.0s | 1.0.0 | NATURE_CLUSTERS.py |
+| **MetaCluster** | 10 | 5.0s | 2.0.0 | METACLUSTER.py |
 | **ClusterWORMZ** | 8 | 20.0s | 2.0.0 | CLUSTERWORMS.py |
 | ConcurrencyManager | 7 | 20.0s | 1.0.0 | CONCURRENCY.py |
 | WormFleet | 6 | 30.0s | 0.0.0 | WORM_FLEET.py |
-| NatureCluster | 3 | 20.0s | 1.0.0 | NATURE_CLUSTERS.py |
+
+<!-- U3 2026-10-02: NatureClusterManager (p=9) and NatureCluster (p=3) rows
+     removed with NATURE_CLUSTERS.py (D1). MetaCluster 1.0.0 -> 2.0.0 flat. -->
 
 **Key:** MetaCluster (p=10) is the highest-priority worm in the entire ecosystem. ClusterWORMZ at v2.0.0 is the most recently upgraded.
 

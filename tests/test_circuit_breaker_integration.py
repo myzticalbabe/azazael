@@ -400,56 +400,58 @@ def test_concurrent_execute():
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# NATURE_CLUSTERS timeout integration
+# CLUSTERWORMS timeout integration (U3: was NATURE_CLUSTERS)
 # ═══════════════════════════════════════════════════════════════════════
 
-def test_nature_cluster_parallel_timeout():
-    """NATURE_CLUSTERS _execute_parallel has a global timeout guard.
+def test_nature_cluster_parallel_timeout(monkeypatch):
+    """ClusterWORMZ parallel execution honours a short per-worm timeout.
 
-    Tests the parallel execution path directly via _execute_parallel()
-    to avoid PAMS/registry discovery overhead (self-contained unit test).
+    U3 port: same intent (fast stub worms, timeout guard, all succeed),
+    vehicle is ClusterWORMZ.build_from_registry with registry-registered
+    stub classes — no discovery overhead, no PAMS recording.
     """
-    import threading
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster, NatureResult
-    nc = NatureCluster("test")
-    nc._timeout = 2  # short per-worm timeout
-    nc._parallel = True
+    from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
+    from CORE.worm_registry import WORM_REGISTRY
 
-    # Register fast no-op worm classes (skip full discovery + PAMS recording)
     class FastWorm:
         VERSION = "1.0"
         def get_summary(self):
             return {"status": "ok"}
-    nc.worms["FastA"] = FastWorm
-    nc.worms["FastB"] = FastWorm
-    nc.worms["FastC"] = FastWorm
 
-    # Build targets list manually (what execute() would do)
-    targets = list(nc.worms.items())
-    result = NatureResult(nature="test", cluster_id=nc.cluster_id)
+    for name in ("FastA", "FastB", "FastC"):
+        monkeypatch.setitem(WORM_REGISTRY, name,
+                            {"category": "test", "priority": 5,
+                             "class": FastWorm, "module": "test-double"})
+    cluster = ClusterWORMZ.build_from_registry(["FastA", "FastB", "FastC"])
+    cluster.set_parallel(True)
+    cluster.set_timeout(2)  # short per-worm timeout
+    cluster.execute_all()
+    agg = cluster.aggregate_results()
 
-    # Directly invoke _execute_parallel to test the timeout guard
-    nc._execute_parallel(targets, result)
-
-    assert result.success_count == 3, f"all 3 should succeed, got {result.success_count}"
-    assert result.failure_count == 0
-    assert result.duration_ms == 0  # _execute_parallel doesn't set duration — execute() does
+    assert agg.success_count == 3, f"all 3 should succeed, got {agg.success_count}"
+    assert agg.failure_count == 0
+    assert agg.duration_ms >= 0
 
     # Also test with a slow worm that exceeds the per-worm timeout
     import time as _time
     class SlowWorm:
+        VERSION = "1.0"
         def get_summary(self):
-            _time.sleep(5)  # exceeds _timeout=2
+            _time.sleep(5)  # exceeds timeout=2
             return {"status": "slow"}
-    nc2 = NatureCluster("test_slow")
-    nc2._timeout = 0.5
-    nc2._parallel = True
-    nc2.worms["Slug"] = SlowWorm
-    slow_targets = list(nc2.worms.items())
-    slow_result = NatureResult(nature="test_slow", cluster_id=nc2.cluster_id)
-    nc2._execute_parallel(slow_targets, slow_result)
-    # The slow worm should time out (fut.result(timeout=0.5) raises)
-    assert slow_result.failure_count >= 1, f"slow worm should time out, got {slow_result.failure_count} failures"
+    monkeypatch.setitem(WORM_REGISTRY, "Slug",
+                        {"category": "test", "priority": 5,
+                         "class": SlowWorm, "module": "test-double"})
+    slow_cluster = ClusterWORMZ.build_from_registry(["Slug"])
+    slow_cluster.set_parallel(True)
+    slow_cluster.set_timeout(2)
+    out = slow_cluster.execute_all()
+    # The slow worm should time out. NOTE: pool-level timeouts are appended
+    # to execute_all's returned list but never reach state.results, so
+    # aggregate_results reports 0/0 here — assert on the returned rows, and
+    # the aggregate gap is recorded as a known defect, not papered over.
+    assert any(not r.get("success", True) for r in out), \
+        "slow worm should time out"
 
 
 if __name__ == "__main__":

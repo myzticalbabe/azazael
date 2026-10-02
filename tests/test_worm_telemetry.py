@@ -238,14 +238,14 @@ def test_every_producer_writes_the_same_schema(captured):
     """
     from CORE.WORMS.CLUSTERWORMS import _record_cluster_worm_telemetry
     from CORE.WORMS.CONCURRENCY import ExecutionResult, _record_execution
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
+    from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
 
-    cluster = NatureCluster("analysis")
+    cluster = ClusterWORMZ.build_from_registry([])
     _record_cluster_worm_telemetry("SYSTEMZ", {"success": True, "duration_ms": 1.0})
     _record_execution("PROCESSZ", ExecutionResult(
         task_id="t", task_name="PROCESSZ", success=True, duration_ms=2.0))
-    cluster._record_outcome("METAZ", {"success": False, "duration_ms": 3.0,
-                                       "error": "boom"})
+    _record_cluster_worm_telemetry("METAZ", {"success": False, "duration_ms": 3.0,
+                                             "error": "boom"}, cluster=cluster)
 
     assert len(captured.events) == 3, "every producer must reach the tap"
     assert {e["event_type"] for e in captured.events} == {wt.EVENT_TYPE}

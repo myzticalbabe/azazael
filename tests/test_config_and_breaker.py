@@ -501,71 +501,10 @@ class TestCircuitBreakerIntegration:
         assert len(stats) > 0
 
 
-# ═══════════════════════════════════════════════════════════════════
-# Circuit Breaker Integration Tests (NATURE_CLUSTERS)
-# ═══════════════════════════════════════════════════════════════════
-
-
-class TestNatureClusterBreakerIntegration:
-    """Verify circuit breaker integration in NATURE_CLUSTERS."""
-
-    def test_nature_cluster_status_has_breaker_info(self):
-        """Nature cluster status should report breaker info."""
-        from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
-        cluster = NatureCluster("security")
-        status = cluster.get_status()
-        assert "breaker_ok" in status
-
-    def test_execute_with_breaker_does_not_crash(self):
-        """Nature cluster execution with breaker should not crash."""
-        from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
-        cluster = NatureCluster("security")
-        cluster.discover_worms()
-        result = cluster.execute()
-        assert result is not None
-
-
-# ═══════════════════════════════════════════════════════════════════
-# NATURE_CLUSTERS Discovery Edge Cases
-# ═══════════════════════════════════════════════════════════════════
-
-
-class TestNatureDiscoveryEdgeCases:
-    """Verify Nature discovery handles edge cases."""
-
-    def test_discover_all_natures_repeatable(self):
-        """Calling discover_all_natures twice should not error."""
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        first = ncm.discover_all_natures()
-        second = ncm.discover_all_natures()
-        assert first == second  # Should be idempotent
-
-    def test_get_cluster_nonexistent(self):
-        """Getting a non-existent cluster should return None or empty."""
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        ncm.discover_all_natures()
-        # Clusters dict may or may not have already been discovered for unknown natures
-        cluster = ncm.get_cluster("__nonexistent_999__")
-        if cluster is not None:
-            assert cluster.worms == {}  # No worms discovered for unknown nature
-
-    def test_execute_nonexistent_nature_returns_none(self):
-        """Executing non-existent nature should return None."""
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        result = ncm.execute_nature("__nonexistent_nature__")
-        assert result is None
-
-    def test_manager_status_after_execution(self):
-        """Status should reflect execution history."""
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        ncm.discover_all_natures()
-        result = ncm.execute_nature("security")
-        status = ncm.get_status()
-        assert status["execution_history_count"] >= 1
+# U3: the NATURE_CLUSTERS breaker/discovery tail (TestNatureClusterBreaker-
+# Integration, TestNatureDiscoveryEdgeCases) is deleted with the layer. Its
+# live behaviors are already covered above against ClusterWORMZ, and unknown-
+# category handling is asserted in test_worm_registry integration tests.
 
 
 if __name__ == "__main__":

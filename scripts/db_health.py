@@ -16,12 +16,10 @@ import json
 import time
 from pathlib import Path
 
-def _get_ncm():
-    """Lazy-loaded NatureClusterManager singleton for DLQ queries."""
-    from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-    ncm = NatureClusterManager()
-    ncm.discover_all_natures()
-    return ncm
+def _get_dlq():
+    """Lazy-loaded DeadLetterQueue for DLQ queries (flat, U3 — was NCM)."""
+    from CORE.WORMS.dead_letter_queue import DeadLetterQueue
+    return DeadLetterQueue()
 
 # Ensure src/ is in path
 _script_dir = Path(__file__).resolve().parent
@@ -121,19 +119,19 @@ def cmd_report(args):
         total_err = sum(e["errors"] + e["warnings"] for e in errors)
         print(f"  Errors/Warnings (last 7 days): {total_err}")
     
-    # Dead letter queue summary (from NatureCluster DLQ)
+    # Dead letter queue summary (flat DLQ store)
     try:
-        ncm = _get_ncm()
-        dlq = ncm.get_dead_letter_summary()
-        _dlq_alerts(dlq)
-        if dlq["total_failed"] > 0:
-            print_header(f"Dead Letter Queue — {dlq['total_failed']} Failed Executions")
-            print(f"  Affected Natures: {dlq['affected_natures']}")
-            for nature, count in sorted(dlq.get("per_nature", {}).items()):
-                print(f"    {nature}: {count} failures")
+        dlq = _get_dlq()
+        dlq_summary = dlq.get_dead_letter_summary()
+        _dlq_alerts(dlq_summary)
+        if dlq_summary["total_failed"] > 0:
+            print_header(f"Dead Letter Queue — {dlq_summary['total_failed']} Failed Executions")
+            print(f"  Affected Categories: {dlq_summary['affected_categories']}")
+            for category, count in sorted(dlq_summary.get("per_category", {}).items()):
+                print(f"    {category}: {count} failures")
             print(f"  (see --failed for details)")
     except Exception:
-        pass  # NCM not available — skip DLQ section
+        pass  # DLQ store not available — skip DLQ section
 
 
 def cmd_quick(args):
@@ -210,8 +208,9 @@ def _dlq_alerts(summary):
     now = time.time()
     one_hour_ago = now - 3600
 
-    # Count failures in last hour
-    hourly_failures = [e for e in recent if e.get("timestamp", 0) >= one_hour_ago]
+    # Count failures in last hour (numeric epoch; ISO stamps are display-only)
+    hourly_failures = [e for e in recent
+                       if e.get("timestamp_epoch", 0) >= one_hour_ago]
     hourly_count = len(hourly_failures)
 
     if hourly_count > 20:
@@ -228,15 +227,15 @@ def _dlq_alerts(summary):
                 print(f"  ⚠ WARNING: {worm} has failed {count} times (threshold: 3)")
 
 
-def _show_dlq(ncm, args):
+def _show_dlq(dlq, args):
     """Core DLQ display logic — shared by --failed and --watch."""
     clear_flag = "--clear" in args
     retry_flag = "--retry" in args
     retry_all_flag = "--retry-all" in args
     retry_nature_flag = "--retry-nature" in args
 
-    # Use aggregated summary from NCM
-    summary = ncm.get_dead_letter_summary(lookback_seconds=86400 * 7)  # 1 week
+    # Aggregated summary from the flat DLQ store (was NCM per-nature)
+    summary = dlq.get_dead_letter_summary(lookback_seconds=86400 * 7)  # 1 week
 
     # Alert thresholds (warnings/critical before empty check — show even if queue is now empty)
     _dlq_alerts(summary)
@@ -246,16 +245,16 @@ def _show_dlq(ncm, args):
         return
 
     print_header(f"DEAD LETTER QUEUE — {summary['total_failed']} Failed Executions")
-    print(f"  Affected Natures: {summary['affected_natures']}")
-    for nature, count in sorted(summary.get("per_nature", {}).items()):
-        print(f"    {nature}: {count} failures")
+    print(f"  Affected Categories: {summary['affected_categories']}")
+    for category, count in sorted(summary.get("per_category", {}).items()):
+        print(f"    {category}: {count} failures")
 
     print()
     print("  Recent Failures (most recent first):")
     for f in summary["recent_errors"][:15]:
-        ts = time.strftime("%H:%M:%S", time.localtime(f["timestamp"]))
+        ts = time.strftime("%H:%M:%S", time.localtime(f["timestamp_epoch"]))
         state = f" [{f['breaker_state']}]" if f.get("breaker_state") else ""
-        print(f"    [{ts}] {f['nature']}/{f['worm']}{state}: {f['error'][:80]}")
+        print(f"    [{ts}] {f['category']}/{f['worm']}{state}: {f['error'][:80]}")
     if len(summary["recent_errors"]) > 15:
         print(f"    ... and {len(summary['recent_errors']) - 15} more")
 
@@ -266,29 +265,21 @@ def _show_dlq(ncm, args):
             print(f"    {worm}: {count} failures")
 
     if clear_flag:
-        for cluster in ncm.clusters.values():
-            cluster.clear_failed_executions()
+        dlq.clear()
         print()
         print("✅ Dead letter queue cleared")
 
     if retry_flag:
         print()
         print("  Retrying failed worms...")
-        total_retried = 0
-        total_succeeded = 0
-        for nature, cluster in ncm.clusters.items():
-            result = cluster.retry_failed_worms()
-            if result["retried"] > 0:
-                total_retried += result["retried"]
-                total_succeeded += result["succeeded"]
-                for err in result["errors"]:
-                    print(f"    ⚠ {err}")
-        print(f"  Retried: {total_retried}, Succeeded: {total_succeeded}")
+        result = dlq.retry_all_failed_worms()
+        print(f"  Retried: {result['total_retried']}, "
+              f"Succeeded: {result['total_succeeded']}")
 
     if retry_all_flag:
         print()
-        print("  Retrying ALL failed worms across all natures...")
-        result = ncm.retry_all_failed_worms()
+        print("  Retrying ALL failed worms across all categories...")
+        result = dlq.retry_all_failed_worms()
         print(f"  Retried: {result['total_retried']}, Succeeded: {result['total_succeeded']}")
         if result["still_failed"] > 0:
             print(f"  Still Failed: {result['still_failed']}")
@@ -300,21 +291,20 @@ def _show_dlq(ncm, args):
     if retry_nature_flag:
         idx = args.index("--retry-nature")
         if idx + 1 < len(args):
-            nature = args[idx + 1]
-            cluster = ncm.clusters.get(nature)
-            if cluster:
-                print()
-                print(f"  Retrying failed worms in [{nature}]...")
-                result = cluster.retry_failed_worms()
-                print(f"  Retried: {result['retried']}, Succeeded: {result['succeeded']}")
-                if result["still_failed"] > 0:
-                    print(f"  Still Failed: {result['still_failed']}")
-                    for err in result["errors"]:
-                        print(f"    ⚠ {err}")
-            else:
-                print(f"  Nature '{nature}' not found in any cluster")
+            category = args[idx + 1]
+            print()
+            print(f"  Retrying failed worms in [{category}]...")
+            result = dlq.retry_all_failed_worms(category=category)
+            print(f"  Retried: {result['total_retried']}, "
+                  f"Succeeded: {result['total_succeeded']}")
+            if result["still_failed"] > 0:
+                print(f"  Still Failed: {result['still_failed']}")
+                for err in result["errors"]:
+                    print(f"    ⚠ {err}")
+            if result["total_retried"] == 0:
+                print(f"  Category '{category}' has no retryable letters")
         else:
-            print("  Missing nature name for --retry-nature")
+            print("  Missing category name for --retry-nature")
             print("  Usage: --failed --retry-nature security")
 
 
@@ -330,20 +320,18 @@ def _send_notification(title: str, message: str):
 
 
 def cmd_failed(args):
-    """Show dead letter queue (failed worm executions from NatureCluster).
+    """Show dead letter queue (failed worm executions from the DLQ store).
 
     Usage:
         python scripts/db_health.py --failed              # All failures
         python scripts/db_health.py --failed --clear       # Clear the queue
         python scripts/db_health.py --failed --retry       # Retry failed worms
-        python scripts/db_health.py --failed --retry-all   # Retry across ALL natures
-        python scripts/db_health.py --failed --retry-nature NATURE  # Retry one nature
+        python scripts/db_health.py --failed --retry-all   # Retry across ALL categories
+        python scripts/db_health.py --failed --retry-nature CATEGORY  # Retry one category
         python scripts/db_health.py --failed --watch [SECONDS]  # Watch mode
         python scripts/db_health.py --failed --notify      # Desktop notification on alert
     """
-    from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-    ncm = NatureClusterManager()
-    ncm.discover_all_natures()
+    dlq = _get_dlq()
     
     notify_flag = "--notify" in args
 
@@ -365,15 +353,15 @@ def cmd_failed(args):
                 print(f"DLQ Watch Mode — refreshing every {watch_interval}s ({timestamp})")
                 print(f"Press Ctrl+C to stop")
                 print()
-                _show_dlq(ncm, args)
+                _show_dlq(dlq, args)
                 
                 # Desktop notification on new failures
                 if notify_flag:
-                    summary = ncm.get_dead_letter_summary(lookback_seconds=3600)
+                    summary = dlq.get_dead_letter_summary(lookback_seconds=3600)
                     if summary["total_failed"] > last_notify_count and summary["total_failed"] > 5:
                         _send_notification(
                             f"{summary['total_failed']} DLQ Failures",
-                            f"{summary['affected_natures']} natures affected in last hour"
+                            f"{summary['affected_categories']} categories affected in last hour"
                         )
                         last_notify_count = summary["total_failed"]
                 
@@ -383,15 +371,15 @@ def cmd_failed(args):
             print("Watch mode stopped.")
         return
 
-    _show_dlq(ncm, args)
+    _show_dlq(dlq, args)
     
     # One-shot notification
     if notify_flag:
-        summary = ncm.get_dead_letter_summary(lookback_seconds=3600)
+        summary = dlq.get_dead_letter_summary(lookback_seconds=3600)
         if summary["total_failed"] > 5:
             _send_notification(
                 f"{summary['total_failed']} DLQ Failures",
-                f"{summary['affected_natures']} natures affected in last hour. "
+                f"{summary['affected_categories']} categories affected in last hour. "
                 f"Use --failed --retry-all to retry."
             )
         else:
@@ -416,8 +404,8 @@ def main():
         print("  python scripts/db_health.py --failed              Show dead letter queue")
         print("  python scripts/db_health.py --failed --clear       Clear DLQ")
         print("  python scripts/db_health.py --failed --retry       Retry all failed worms")
-        print("  python scripts/db_health.py --failed --retry-all   Retry across ALL natures")
-        print("  python scripts/db_health.py --failed --retry-nature NATURE  Retry one nature")
+        print("  python scripts/db_health.py --failed --retry-all   Retry across ALL categories")
+        print("  python scripts/db_health.py --failed --retry-nature CATEGORY  Retry one category")
         print("  python scripts/db_health.py --failed --watch [SECONDS]      Watch mode (polling)")
         print("  python scripts/db_health.py --failed --notify                Desktop notification on alert")
         return

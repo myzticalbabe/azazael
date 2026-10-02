@@ -10,6 +10,10 @@ metadata:
 # AZAZAEL — Import Optimization Patterns
 
 > **Session:** 2026-06-01 | **Focus:** Reducing discover_worms() from 8.3s to 0.51s (16x)
+>
+> **U3 note 2026-10-02:** NCM-loop measurements below are pre-taxonomy history
+> (NatureClusterManager deleted, D1). The `discover_worms()` numbers and lazy-import
+> patterns still hold; per-nature loop timings do not apply to flat dispatch.
 > **Key Techniques:** Lazy imports, module splitting, HTTP timeout caching, fast-path registry
 
 ---
@@ -211,6 +215,6 @@ Also replaced `inspect.isclass(obj)` with `isinstance(obj, type)` for speed.
 ## FUTURE OPTIMIZATION TARGETS
 
 1. **NCM loop in NatureClusterManager** — The remaining ~2s for `discover_all_natures()` is from PamsRecorder.record_event() fallback path. Could be further reduced by batching events.
-2. **Other heavy modules** — Check for module-level `import psutil`, `import requests`, `from PIL import Image`, etc. across all 77 worms.
+2. **Other heavy modules** — Check for module-level `import psutil`, `import requests`, `from PIL import Image`, etc. across all 226 worms.
 3. **Thread safety** — The `_pams_unreachable` cache uses class-level attributes without a lock. For true 3.14t parallelism, add a `threading.Lock()` around cache checks.
 4. **Slow test (test_metacluster_unit.py)** — 31/33 pass, 2 pre-existing failures. The ~38s discovery phase is now eliminated; the remaining time is from actual worm execution.

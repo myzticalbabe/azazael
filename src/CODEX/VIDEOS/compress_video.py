@@ -34,17 +34,18 @@ AZAZAEL_ROOT = os.environ.get(
 
 DEFAULT_OUTPUT_DIR = Path(AZAZAEL_ROOT) / "output" / "videos" / "compressed"
 
-# CAIN Standard — Established from complete_remorse_cain.mp4 reverse engineering:
-#   Framerate: 25 fps   (H.264, from CAIN MP4's 25/1 r_frame_rate)
+# CAIN Standard — HEVC edition (2026-10-01, edge0 compact recipe as standard):
+#   Framerate: 30 fps   (was 25; matches capture + edge0 scroll_video.js)
 #   Resolution: 1920x1080 (standard 1080p)
-#   Codec: H.264 High profile with B-frames (not Constrained Baseline)
-#   CRF: 23 (balance; CAIN used Constrained Baseline — every frame = keyframe)
-#   Keyframes: every 250 frames (~10s at 25fps)
-#   Target: ~80-120 MB for 7min scroll doc (vs CAIN's 477 MB)
-CAIN_FPS = 25
-CAIN_CRF = 23
-CAIN_PROFILE = "high"
-CAIN_GOP = 250
+#   Codec: HEVC / libx265, CRF 26 (was H.264 High CRF 23 @4Mbps, ~5x the bytes)
+#   Keyframes: every 300 frames (~10s at 30fps, preserves prior cadence)
+#   Loop-safe: +faststart, even dimensions enforced, no audio tail
+#   Target: ~4-7 MB per 45s 1080p (measured edge0BAT: oxford_compact 3.9-6.7MB)
+CAIN_FPS = 30
+CAIN_CRF = 26
+CAIN_CODEC = "libx265"
+CAIN_PROFILE = "high"  # x264 only; omitted automatically for libx265 (no 'high')
+CAIN_GOP = 300
 
 # Encoding profiles
 PROFILES = {
@@ -54,7 +55,7 @@ PROFILES = {
     "cain":    {"crf": CAIN_CRF, "preset": "medium", "scale": 1.0, "audio": "128k", "profile": CAIN_PROFILE, "gop": CAIN_GOP},
 }
 
-DEFAULT_PROFILE = "cain"  # CAIN standard: 25fps, 1920x1080, H.264 High, CRF 23, GOP 250
+DEFAULT_PROFILE = "cain"  # CAIN standard: 30fps, 1920x1080, HEVC CRF 26, GOP 300
 
 # --- Helpers -----------------------------------------------------------------
 
@@ -134,9 +135,50 @@ def calculate_target_bitrate(size_mb, duration_sec):
     return 2000  # fallback
 
 
+def encode_gif(input_path, output_path, fps=15, width=960):
+    """Two-pass palette GIF: small looping output for short clips.
+
+    Missing functionality added 2026-10-01 (no gif path existed).
+    Caps at 15fps / 960px wide; longer inputs should stay mp4.
+    """
+    from pathlib import Path as _P
+    output_path = _P(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    out_file = output_path.with_suffix(".gif")
+    palette = str(output_path.parent / ".gif_palette.png")
+
+    info = probe_video(input_path)
+    print(f"\n  Input:  {info['path']} ({info['size_mb']} MB)")
+    if info["duration"] > 30:
+        print("  [WARN] GIF over 30s gets large; consider mp4 instead")
+
+    vf = f"fps={fps},scale={width}:-1:flags=lanczos"
+    cmd1 = ["ffmpeg", "-y", "-i", str(input_path), "-vf", f"{vf},palettegen",
+            palette]
+    r1 = subprocess.run(cmd1, capture_output=True, text=True)
+    if r1.returncode != 0 or not Path(palette).exists():
+        print(f"  [FAIL] palettegen: {r1.stderr[:200]}")
+        return False
+    cmd2 = ["ffmpeg", "-y", "-i", str(input_path), "-i", palette,
+            "-lavfi", f"{vf} [x]; [x][1:v] paletteuse",
+            "-loop", "0", str(out_file)]
+    print(f"  GIF:    {fps}fps / {width}px / loop forever")
+    r2 = subprocess.run(cmd2, capture_output=True, text=True)
+    try:
+        Path(palette).unlink()
+    except OSError:
+        pass
+    if r2.returncode == 0 and out_file.exists():
+        mb = round(os.path.getsize(out_file) / (1024 * 1024), 2)
+        print(f"  [OK] {out_file.name} ({mb} MB, looping)")
+        return True
+    print(f"  [FAIL] paletteuse: {r2.stderr[:200]}")
+    return False
+
+
 def compress_video(input_path, output_path, profile=None,
                    crf=None, preset=None, scale=None, audio_bitrate=None,
-                   target_size_mb=None, two_pass=False, fmt="mp4"):
+                   target_size_mb=None, two_pass=False, fmt="mp4", codec=None):
     """Compress video with ffmpeg using optimized settings.
 
     Args:
@@ -149,8 +191,14 @@ def compress_video(input_path, output_path, profile=None,
         audio_bitrate: Audio bitrate (e.g., '96k')
         target_size_mb: Target output size in MB (overrides CRF)
         two_pass: Use two-pass encoding for better quality at target size
-        fmt: Output format ('mp4' or 'wmv')
+        fmt: Output format ('mp4', 'gif' or 'wmv'; wmv is legacy)
+        codec: Override ('libx265' default per 2026-10-01 A/B; 'libx264'
+            for high-motion content where x264 holds luma better at
+            matched size — measured 2026-10-01: x264/23 14.8MB SSIM
+            0.963 vs x265/26 14.4MB SSIM 0.942 on 720p scroll motion)
     """
+    if fmt == "gif":
+        return encode_gif(input_path, output_path)
     # Apply profile defaults
     if profile and profile in PROFILES:
         p = PROFILES[profile]
@@ -185,18 +233,20 @@ def compress_video(input_path, output_path, profile=None,
         filters.append(f"scale={new_width}:{new_height}")
         print(f"  Scale:  {new_width}x{new_height} ({scale*100:.0f}%)")
 
-    # fps filter for consistency — CAIN standard is 25, not 30
-    if info["fps"] > 25:
+    # fps filter for consistency — CAIN standard is 30 (edge0 recipe)
+    if info["fps"] > CAIN_FPS:
         filters.append(f"fps={CAIN_FPS}")
         print(f"  FPS:    {CAIN_FPS} (from {info['fps']})")
 
     # Format-specific settings
     if fmt == "mp4":
-        codec = "libx264"
+        codec = codec or CAIN_CODEC
         container = "mp4"
         pix_fmt = "yuv420p"
         profile_opt = (PROFILES[profile]["profile"] if profile and profile in PROFILES and "profile" in PROFILES[profile] else CAIN_PROFILE)
         gop_opt = (PROFILES[profile]["gop"] if profile and profile in PROFILES and "gop" in PROFILES[profile] else CAIN_GOP)
+        # libx265 has no 'high' profile (x264-only); omit -profile:v for HEVC
+        profile_args = [] if codec == "libx265" else ["-profile:v", profile_opt]
     elif fmt == "wmv":
         # Note: ffmpeg wmv2 encoder support varies by build.
         # Falls back to msmpeg4v2 or mpeg4 if wmv2 unavailable.
@@ -226,7 +276,7 @@ def compress_video(input_path, output_path, profile=None,
         cmd1 = [
             "ffmpeg", "-y", "-i", str(input_path),
             "-c:v", codec, "-b:v", f"{bitrate}k",
-            "-profile:v", profile_opt,
+            *profile_args,
             "-preset", preset,
             "-g", str(gop_opt),
             "-pass", "1",
@@ -244,7 +294,7 @@ def compress_video(input_path, output_path, profile=None,
         cmd2 = [
             "ffmpeg", "-y", "-i", str(input_path),
             "-c:v", codec, "-b:v", f"{bitrate}k",
-            "-profile:v", profile_opt,
+            *profile_args,
             "-preset", preset,
             "-g", str(gop_opt),
             "-pass", "2",
@@ -275,7 +325,7 @@ def compress_video(input_path, output_path, profile=None,
         cmd = [
             "ffmpeg", "-y", "-i", str(input_path),
             "-c:v", codec, "-crf", str(crf),
-            "-profile:v", profile_opt,
+            *profile_args,
             "-preset", preset,
             "-g", str(gop_opt),
             "-c:a", "aac", "-b:a", audio_bitrate,
@@ -299,7 +349,7 @@ def compress_video(input_path, output_path, profile=None,
         out_size = round(os.path.getsize(out_file) / (1024 * 1024), 2)
         reduction = round((1 - out_size / info["size_mb"]) * 100, 1) if info["size_mb"] > 0 else 0
         print(f"\n  [OK] Compressed: {out_file}")
-        print(f"    Size: {out_size} MB (↓{reduction}%)")
+        print(f"    Size: {out_size} MB (down {reduction}%)")
         return True
     else:
         print("\n  [FAIL] Compression failed")
@@ -324,6 +374,7 @@ def cmd_compress(args):
         target_size_mb=args.target_size,
         two_pass=args.two_pass,
         fmt=args.format or "mp4",
+        codec=args.codec,
     )
 
 
@@ -358,6 +409,7 @@ def cmd_batch(args):
             target_size_mb=args.target_size,
             two_pass=args.two_pass,
             fmt=args.format or "mp4",
+            codec=args.codec,
         ):
             success += 1
 
@@ -397,8 +449,9 @@ def cmd_analyze(args):
 def cmd_formats(args):
     """list available formats and profiles."""
     print("\n  Output Formats:")
-    print("    mp4  - H.264/AAC in MP4 container (universal)")
-    print("    wmv  - Windows Media Video 9 in ASF container")
+    print("    mp4  - HEVC/AAC in MP4 container (universal, standard)")
+    print("    gif  - looping GIF via two-pass palette (short clips)")
+    print("    wmv  - Windows Media Video 9 in ASF container (legacy)")
     print("\n  Encoding Profiles:")
     for name, p in PROFILES.items():
         prof = p.get('profile', '-')
@@ -440,7 +493,9 @@ Examples:
     p.add_argument("--audio", help="Audio bitrate (e.g., 96k)")
     p.add_argument("--target-size", type=float, help="Target output size in MB")
     p.add_argument("--two-pass", action="store_true", help="Use two-pass encoding")
-    p.add_argument("--format", choices=["mp4", "wmv"], help="Output format")
+    p.add_argument("--format", choices=["mp4", "gif", "wmv"], help="Output format")
+    p.add_argument("--codec", choices=["libx265", "libx264"],
+                   help="Video codec override (default libx265; libx264 for high-motion luma)")
 
     # Batch
     p = sub.add_parser("batch", help="Compress all videos in directory")
@@ -452,7 +507,9 @@ Examples:
     p.add_argument("--scale", type=float, help="Resolution scale factor")
     p.add_argument("--target-size", type=float, help="Target output size in MB")
     p.add_argument("--two-pass", action="store_true", help="Use two-pass encoding")
-    p.add_argument("--format", choices=["mp4", "wmv"], help="Output format")
+    p.add_argument("--format", choices=["mp4", "gif", "wmv"], help="Output format")
+    p.add_argument("--codec", choices=["libx265", "libx264"],
+                   help="Video codec override (default libx265; libx264 for high-motion luma)")
 
     # Analyze
     p = sub.add_parser("analyze", help="Analyze video without compressing")

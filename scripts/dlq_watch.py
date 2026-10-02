@@ -53,19 +53,19 @@ def bucket_errors(errors: list, bucket_seconds: int = 30) -> list:
 
     buckets: dict = {}
     for err in errors:
-        ts = err.get("timestamp", time.time())
+        ts = err.get("timestamp_epoch", 0)
         bucket_key = int(ts / bucket_seconds) * bucket_seconds
         if bucket_key not in buckets:
             buckets[bucket_key] = {
                 "time": bucket_key,
                 "count": 0,
                 "worms": set(),
-                "natures": set(),
+                "categories": set(),
                 "examples": [],
             }
         buckets[bucket_key]["count"] += 1
         buckets[bucket_key]["worms"].add(err["worm"])
-        buckets[bucket_key]["natures"].add(err["nature"])
+        buckets[bucket_key]["categories"].add(err.get("category", "?"))
         if len(buckets[bucket_key]["examples"]) < 2:
             buckets[bucket_key]["examples"].append(err["error"][:60])
 
@@ -79,11 +79,11 @@ def format_timestamp(ts: float) -> str:
     return time.strftime("%H:%M:%S", time.localtime(ts))
 
 
-def show(ncm, interval: int, color: bool, auto_retry: bool, prev_buckets: deque):
+def show(dlq, interval: int, color: bool, auto_retry: bool, prev_buckets: deque):
     """Render the DLQ watch display."""
     c = _color(color)
 
-    summary = ncm.get_dead_letter_summary(lookback_seconds=86400 * 7)
+    summary = dlq.get_dead_letter_summary(lookback_seconds=86400 * 7)
     buckets = bucket_errors(summary.get("recent_errors", []), bucket_seconds=30)
 
     # Track new buckets since last refresh
@@ -107,7 +107,7 @@ def show(ncm, interval: int, color: bool, auto_retry: bool, prev_buckets: deque)
         header_color = c.GREEN
     print(f"{c.BOLD}DLQ WATCH{c.RESET}  {c.DIM}{timestamp}{c.RESET}")
     print(f"  Total: {header_color}{summary['total_failed']}{c.RESET} "
-          f"| Natures: {summary['affected_natures']} "
+          f"| Categories: {summary['affected_categories']} "
           f"| Refresh: {interval}s"
           f"{c.RED if new_this_cycle > 0 else c.GREEN}"
           f" | New: +{new_this_cycle}{c.RESET}")
@@ -117,9 +117,9 @@ def show(ncm, interval: int, color: bool, auto_retry: bool, prev_buckets: deque)
         print(f"  {c.GREEN}✅ No failed executions{c.RESET}")
         return
 
-    # Alert thresholds
+    # Alert thresholds (numeric epoch; ISO stamps are display-only)
     hourly = [e for e in summary.get("recent_errors", [])
-              if e.get("timestamp", 0) >= time.time() - 3600]
+              if e.get("timestamp_epoch", 0) >= time.time() - 3600]
     if len(hourly) > 20:
         print(f"  {c.RED}{c.BOLD}CRITICAL:{c.RESET} {len(hourly)} failures in last hour")
     elif len(hourly) > 5:
@@ -134,7 +134,7 @@ def show(ncm, interval: int, color: bool, auto_retry: bool, prev_buckets: deque)
             bar = "█" * bar_len
             color = c.RED if bucket["count"] >= 5 else (c.YELLOW if bucket["count"] >= 3 else c.CYAN)
             print(f"    {c.DIM}[{ts}]{c.RESET} {color}{bar}{c.RESET} {bucket['count']}x "
-                  f"({len(bucket['worms'])} worms, {len(bucket['natures'])} natures)")
+                  f"({len(bucket['worms'])} worms, {len(bucket['categories'])} categories)")
             for ex in bucket["examples"]:
                 print(f"      {c.DIM}{ex}{c.RESET}")
         if len(buckets) > 8:
@@ -149,12 +149,12 @@ def show(ncm, interval: int, color: bool, auto_retry: bool, prev_buckets: deque)
             bar = "█" * min(count, 30)
             print(f"  {color}{bar}{c.RESET} {worm} ({count}x)")
 
-    # Auto-retry
+    # Auto-retry (eligibility report when no executor is attached)
     if auto_retry and summary["total_failed"] > 0:
         print()
         print(f"  {c.YELLOW}Auto-retrying...{c.RESET}")
-        for cluster in ncm.clusters.values():
-            cluster.retry_failed_worms()
+        result = dlq.retry_all_failed_worms()
+        print(f"  {c.DIM}eligible: {result['total_retried']}{c.RESET}")
 
 
 # ── Main Loop ────────────────────────────────────────────────────
@@ -177,15 +177,14 @@ def main():
     interval = max(1, args.interval)
 
     prev_buckets: deque = deque(maxlen=20)
-    from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-    ncm = NatureClusterManager()
-    ncm.discover_all_natures()
+    from CORE.WORMS.dead_letter_queue import DeadLetterQueue
+    dlq = DeadLetterQueue()
 
     try:
         while True:
-            show(ncm, interval, color, args.retry, prev_buckets)
+            show(dlq, interval, color, args.retry, prev_buckets)
             # Update prev_buckets for next comparison
-            recent_summary = ncm.get_dead_letter_summary(lookback_seconds=86400 * 7)
+            recent_summary = dlq.get_dead_letter_summary(lookback_seconds=86400 * 7)
             buckets = bucket_errors(recent_summary.get("recent_errors", []), bucket_seconds=30)
             prev_buckets.clear()
             prev_buckets.extend(buckets)

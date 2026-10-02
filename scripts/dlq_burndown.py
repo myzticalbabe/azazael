@@ -61,12 +61,12 @@ def get_hourly_buckets(summary, hours: int = 24) -> list:
             "timestamp": bucket_start,
             "count": 0,
             "worms": set(),
-            "natures": set(),
+            "categories": set(),
         }
     
-    # Fill in errors
+    # Fill in errors (numeric epoch stamps; ISO strings are display-only)
     for err in summary.get("recent_errors", []):
-        ts = err.get("timestamp", 0)
+        ts = err.get("timestamp_epoch", 0)
         if ts < cutoff:
             continue
         # Round to hour bucket
@@ -74,7 +74,7 @@ def get_hourly_buckets(summary, hours: int = 24) -> list:
         if bucket_key in buckets:
             buckets[bucket_key]["count"] += 1
             buckets[bucket_key]["worms"].add(err["worm"])
-            buckets[bucket_key]["natures"].add(err["nature"])
+            buckets[bucket_key]["categories"].add(err.get("category", "?"))
     
     result = sorted(buckets.values(), key=lambda x: x["timestamp"])
     return result
@@ -115,11 +115,10 @@ def show(hours: int, color: bool, as_json: bool):
     """Render the burndown chart."""
     c = _c(color)
     
-    from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-    ncm = NatureClusterManager()
-    ncm.discover_all_natures()
+    from CORE.WORMS.dead_letter_queue import DeadLetterQueue
+    dlq = DeadLetterQueue()
     
-    summary = ncm.get_dead_letter_summary(lookback_seconds=hours * 3600)
+    summary = dlq.get_dead_letter_summary(lookback_seconds=hours * 3600)
     buckets = get_hourly_buckets(summary, hours=hours)
     trend = compute_trend(buckets)
     
@@ -130,14 +129,14 @@ def show(hours: int, color: bool, as_json: bool):
         output = {
             "hours": hours,
             "total_failed": summary["total_failed"],
-            "affected_natures": summary["affected_natures"],
+            "affected_categories": summary["affected_categories"],
             "trend": trend,
             "buckets": [
                 {
                     "label": b["label"],
                     "count": b["count"],
                     "worms": len(b["worms"]),
-                    "natures": len(b["natures"]),
+                    "categories": len(b["categories"]),
                 }
                 for b in buckets
             ],
@@ -150,7 +149,7 @@ def show(hours: int, color: bool, as_json: bool):
     trend_color = c.RED if trend["direction"] == "rising" else (c.GREEN if trend["direction"] == "falling" else c.YELLOW)
     
     print(f"{c.BOLD}DLQ BURNDOWN{c.RESET}  —  last {hours}h  |  "
-          f"Total: {summary['total_failed']}  Natures: {summary['affected_natures']}")
+          f"Total: {summary['total_failed']}  Categories: {summary['affected_categories']}")
     print(f"  Trend: {trend_color}{trend['direction']} {trend_icon}{c.RESET}  "
           f"(slope {trend['slope']:+0.1f}/h)  "
           f"Projected next hour: ~{trend['projection_1h']} failures")
