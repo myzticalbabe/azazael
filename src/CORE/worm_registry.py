@@ -551,7 +551,7 @@ def _discover_worms_impl(
     """
     Auto-discover and import all worm modules from CORE/WORMS directory.
 
-    Uses pickle cache (~/.azazael/worm_registry_cache.pkl) to avoid the
+    Uses per-checkout pickle cache (~/.azazael/worm_registry_cache.<ctx>.<root>.pkl) to avoid the
     38-45s cold start. If cache is fresh, loads registry in <0.2s.
     If cache is stale or missing, runs full discovery and rebuilds cache.
 

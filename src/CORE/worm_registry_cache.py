@@ -66,12 +66,24 @@ def _cache_context() -> str:
 
 
 _CACHE_CONTEXT = _cache_context()
-#: The production filename is deliberately unchanged so a warm cache survives
-#: this change; only non-production contexts are suffixed.
-CACHE_FILE = CACHE_DIR / (
-    "worm_registry_cache.pkl" if _CACHE_CONTEXT == "prod"
-    else "worm_registry_cache.%s.pkl" % _CACHE_CONTEXT
-)
+
+
+def _repo_root_fingerprint() -> str:
+    """Short hash of this checkout's root (U3/move-day: two checkouts share
+    a machine). Absolute source_file paths in a shared cache point at the
+    WRONG tree after the second checkout warms it — measured 2026-10-02 as
+    test_no_worm_name_collisions failing in C:\\Azazael with C:\\Users paths.
+    """
+    import hashlib
+    root = Path(__file__).resolve().parents[2]
+    return hashlib.sha1(str(root).encode("utf-8")).hexdigest()[:10]
+
+
+#: Per-checkout filenames: prod and test contexts each get the root
+#: fingerprint, so a warm cache can never serve another tree's absolute
+#: paths. First run per checkout pays one rebuild; everything after hits.
+CACHE_FILE = CACHE_DIR / ("worm_registry_cache.%s.%s.pkl"
+                          % (_CACHE_CONTEXT, _repo_root_fingerprint()))
 
 
 def _ensure_import_paths():
