@@ -164,6 +164,7 @@ Desktop sweep measured (~610MB, 20 dirs): AOA 103.6, Azazael_Audit 102.0, COSMOS
 | 2026-10-01 | ALL FIVE implemented + merged (e41e09da, 6928656f): R15 merged, outer-loop readout live, startup prime wired, collection 4221+0, floor-13 settled test-only; U2 CLOSED (103 tests) | 7 of 9 closed; left U3 (needs .git) + U7 (verdicts track) |
 | 2026-10-01 | D8 EXECUTED: `G:/source-of-truth/azazael/azazael-history-20261001.bundle` 1297MB, `verify` okay, complete history, 7 refs (master, migration branch, r15, gdrive, stash) | fresh clone authorized for move day; backup/var dirt still aside, uncommitted |
 | 2026-10-02 | U7 CLOSED: mirrors reconciled (home synced, project +13, 7 hand-only kept w/ reason), bulk 1042 kept (lazy-load, no bulk-loader), 11 stale-ref files fixed ×3 mirrors, catalog row touched, lock/win-backup scoped out | 9 of 9 units closed; only move-day execution remains |
+| 2026-10-02 | Copy-aside DONE: `G:/source-of-truth/azazael/azazael-dirty-baseline-20261002` 69,196 files, 0 mismatch; 5-file gap = live venv interpreter symlinks under `archive/.../.venv/bin` (ERROR 1920 locked, regenerable, zero source value) | dirty tree preserved; fresh clone cleared after pentest-data archive |
 
 ## Mined history (2026-10-01 extraction; 34 decision-bearing commits)Theme groups with hashes. Full bodies in `git show <h>`. Rule learned
 from the forensic: subjects here are descriptive — future commits must
