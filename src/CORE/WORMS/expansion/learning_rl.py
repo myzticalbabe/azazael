@@ -2,6 +2,7 @@
 """RL training worm -- RLTrainLoop (split from learning.py, 2026-09-07)."""
 
 import json
+import hashlib
 import math
 import time
 import random
@@ -38,6 +39,69 @@ def is_free_threaded() -> bool:
             return False
 
 
+def _schema_state_key(vec, severity: str) -> str:
+    """Stable state key for a feature vector + severity (2026-09-28).
+
+    Restores the contract test_learning_rl_keys pins (deterministic
+    in-process, severity-separated, stable across PYTHONHASHSEED): sha256
+    over rounded components, never bare hash() (which is seed-salted).
+    """
+    try:
+        parts = ["%.4f" % float(v) for v in (vec or [])]
+    except (TypeError, ValueError):
+        parts = []
+    digest = hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:16]
+    return "schema:%s:%s" % (digest, severity)
+
+
+def _annealed_epsilon(epsilon: float, decay: float, episode: int,
+                      floor: float = 0.05) -> float:
+    """Exploration rate after exponential annealing (2026-09-28).
+
+    Extracted from the inline formula so the schedule is unit-testable:
+    decays toward `floor` when decay > 0, clamped, never negative.
+    Replaces the old piecewise `_schedule_value` lists.
+    """
+    try:
+        eps = float(epsilon)
+        dec = float(decay)
+        ep = int(episode)
+    except (TypeError, ValueError):
+        return max(0.0, float(epsilon or 0.0))
+    if dec <= 0.0 or ep < 0:
+        return max(0.0, eps)
+    return max(floor, eps * math.exp(-dec * ep))
+
+
+_UNMAPPED_SEVERITIES: Dict[str, int] = {}
+
+
+def note_unmapped_severity(sev) -> None:
+    """Record a severity the reward table does not cover, and say so once.
+
+    A severity missing from the table scores 0.0 for every action, which is
+    numerically identical to a learner that simply did badly. That is how a
+    dead objective arm stayed invisible: the fitness looked like a measurement
+    when it was a constant. Counting them separately keeps the failure
+    attributable, and `unmapped_severities()` lets a caller assert the
+    vocabulary still covers the data.
+    """
+    key = str(sev)
+    _UNMAPPED_SEVERITIES[key] = _UNMAPPED_SEVERITIES.get(key, 0) + 1
+    if _UNMAPPED_SEVERITIES[key] == 1:
+        try:
+            print("[learning_rl] WARNING: severity %r is not in the reward "
+                  "table; those records score 0.0 for every action and the "
+                  "objective arm is capped at zero. Add it." % key, flush=True)
+        except Exception:
+            pass
+
+
+def unmapped_severities() -> Dict[str, int]:
+    """Severities seen in the data that the reward table does not cover."""
+    return dict(_UNMAPPED_SEVERITIES)
+
+
 def _compute_reward(record: Dict, action: int) -> float:
     """Score how well the CHOSEN action fits the record severity.
 
@@ -68,7 +132,29 @@ def _compute_reward(record: Dict, action: int) -> float:
         "error":   {3: 1.0, 2: 0.4, 1: -0.3, 0: -1.0},
         "warning": {3: 0.2, 2: 0.7, 1: 0.0, 0: -0.7},
         "info":    {3: -0.5, 2: -0.3, 1: 0.3, 0: 0.2},
-    }.get(sev, {0: 0.0, 1: 0.0, 2: 0.0, 3: 0.0})
+        # `critical` (2026-09-30). MEASURED: every row in the db_health_alert
+        # pool carries severity `critical` -- 7 of 7 -- and `critical` was not
+        # in this table, so `.get(sev, {...all zeros...})` returned 0.0 for all
+        # four actions on all seven rows. The alert objective therefore had a
+        # hard ceiling of exactly 0.0 BEFORE any learning happened, which is
+        # why `alert` read 0.0 on all 35 measured cycles and why the promoted
+        # genome carries fitness_detail {info: 16.33, alert: 0.0}. No learner,
+        # tabular or modern, can score above a constant.
+        #
+        # Action indices, per the docstring: 0 ignore, 1 log, 2 alert,
+        # 3 remediate. `critical` is ranked above `error`, so the ordering and
+        # spread are scaled from the `error` row: remediate best, alert next,
+        # log mildly bad, ignore worst.
+        "critical": {3: 1.4, 2: 0.7, 1: -0.5, 0: -1.4},
+    }.get(sev)
+    if base is None:
+        # Previously this collapsed to all-zeros, which is indistinguishable
+        # from "the learner scored zero" -- an unmapped input read as a
+        # measured result. It is now recorded so the gap is visible, and the
+        # neutral row is kept so an unmapped severity still yields a usable
+        # (if uninformative) signal rather than an exception mid-rollout.
+        note_unmapped_severity(sev)
+        base = {3: 0.0, 2: 0.0, 1: 0.0, 0: 0.0}
     reward = base.get(int(action), 0.0)
 
     if isinstance(data, dict) and "success" in data:
@@ -436,9 +522,7 @@ class RLTrainLoop:
             # epsilon annealing (2026-09-08): exploration decays exponentially
             # toward a 5% floor when epsilon_decay > 0, so the agent shifts
             # from exploration to exploitation within a run.
-            eps_eff = epsilon
-            if epsilon_decay and epsilon_decay > 0.0:
-                eps_eff = max(0.05, epsilon * math.exp(-epsilon_decay * episode))
+            eps_eff = _annealed_epsilon(epsilon, epsilon_decay, episode)
             for step in range(min(max_steps, len(records))):
                 record = records[(episode + step) % len(records)]
 

@@ -86,6 +86,90 @@ def _gene_map(data: dict) -> Dict[str, Any]:
     return genes if isinstance(genes, dict) else {}
 
 
+def boruta_relevance(history: Sequence[dict], fitness_key: str = "best_total",
+                     min_rows: int = 20, max_iter: int = 30,
+                     random_state: int = 7) -> Dict[str, Any]:
+    """All-relevant gene ranking via Boruta (shadow-feature bake-off).
+
+    Complements per-gene Spearman `usefulness`: correlation ranks genes one
+    at a time and can crown a passenger that rides a driver's signal, while
+    Boruta keeps EVERY gene that beats its own shuffled shadow — the right
+    question for "which genes actually matter" on a small genome.
+
+    Uses the same row conventions as `correlate` (payload unwrap, skip rows
+    missing genes, dedupe identical vectors). Only genes present in >= half
+    the usable rows enter the matrix (a gene trialled twice cannot beat
+    noise honestly). Fail-open: Boruta missing, too few rows, or any error
+    returns ok=False with a reason — never raises into the refresh cycle.
+    """
+    try:
+        rows = []
+        for row in history or ():
+            data = row_payload(row)
+            if data is None:
+                continue
+            genes = _gene_map(data)
+            if not genes:
+                continue
+            try:
+                fv = float(data.get(fitness_key))
+            except (TypeError, ValueError):
+                continue
+            rows.append((genes, fv))
+        if len(rows) < min_rows:
+            return {"ok": False,
+                    "reason": f"only {len(rows)} usable rows (< {min_rows})"}
+        from collections import Counter
+        present = Counter()
+        for genes, _ in rows:
+            present.update(k for k, v in genes.items()
+                           if isinstance(v, (int, float)))
+        keep = sorted(k for k, n in present.items() if n >= len(rows) // 2)
+        if len(keep) < 2:
+            return {"ok": False,
+                    "reason": "fewer than 2 genes with majority coverage"}
+        import numpy as np
+        Xd_raw, yd_raw = [], []
+        for genes, fv in rows:
+            if all(isinstance(genes.get(k), (int, float)) for k in keep):
+                Xd_raw.append([float(genes[k]) for k in keep])
+                yd_raw.append(float(fv))
+        if len(Xd_raw) < min_rows:
+            return {"ok": False,
+                    "reason": f"only {len(Xd_raw)} complete rows (< {min_rows})"}
+        # Dedupe identical vectors (frozen-pool repeats are one measurement).
+        seen, Xd, yd = set(), [], []
+        for vec, fv in zip(Xd_raw, yd_raw):
+            key = (tuple(round(v, 9) for v in vec), round(fv, 9))
+            if key not in seen:
+                seen.add(key)
+                Xd.append(vec)
+                yd.append(fv)
+        if len(Xd) < min_rows:
+            return {"ok": False,
+                    "reason": f"only {len(Xd)} distinct rows (< {min_rows})"}
+        from sklearn.ensemble import RandomForestRegressor
+        from boruta import BorutaPy
+        est = RandomForestRegressor(n_estimators=100, max_depth=5,
+                                    random_state=random_state, n_jobs=1)
+        selector = BorutaPy(est, n_estimators="auto", max_iter=max_iter,
+                            random_state=random_state, verbose=0)
+        selector.fit(np.array(Xd), np.array(yd))
+        verdict = {}
+        for k, rank, support, weak in zip(
+                keep, selector.ranking_, selector.support_,
+                selector.support_weak_):
+            verdict[k] = ("confirmed" if support
+                          else "tentative" if weak else "rejected")
+        return {"ok": True, "genes": verdict, "n_rows": len(Xd),
+                "n_estimators": int(getattr(selector, "n_estimators_", 0) or 0),
+                "max_iter": int(max_iter)}
+    except ImportError as exc:
+        return {"ok": False, "reason": f"missing dependency: {exc}"}
+    except Exception as exc:
+        return {"ok": False, "reason": str(exc)[:160]}
+
+
 def _ranks(xs: Sequence[float]) -> List[float]:
     """Average ranks (1-based), ties sharing the mean rank."""
     order = sorted(range(len(xs)), key=lambda i: xs[i])
