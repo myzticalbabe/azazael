@@ -183,6 +183,11 @@ L1_MIN_WINS = int(_tuned("wiring.min_wins", 3))
 #: How many mutated candidates to propose per cycle.
 L1_CANDIDATES = 12
 #: Evidence floor. Below either of these a result is REPORTED, never acted on.
+#: Floor-13 status (2026-10-01): evaluated in tests ONLY
+#: (tests/test_wiring_cycle.py pins L1_MIN_OBSERVED=13 in-fixture and proves
+#: the gate works there). Production follows hyperopt (`wiring.min_observed`,
+#: gen 134 = 6); promoting 13 to production requires a hyperopt evaluation,
+#: never a hand-edit — settled, not pending.
 L1_MIN_OBSERVED = int(_tuned("wiring.min_observed", 3))
 L1_MIN_EVIDENCE = float(_tuned("wiring.min_evidence", 0.25))
 #: Elitist replacement. Measured live once the elite was carried forward: the
@@ -325,6 +330,27 @@ def eligible_organs(registry):
     return sorted(n for n in registry if wg.is_evolvable_organ(n))
 
 
+def prime_caches():
+    """Fill the discovery/credit caches now; first-cycle cost paid at startup.
+
+    Best-effort, never raises — the cycle is correct (if slower) without it.
+    Called by `startup_warm` after registry warm; also usable standalone.
+    Returns (registry_cached, credit_cached).
+    """
+    reg_ok, cred_ok = False, False
+    try:
+        load_registry()
+        reg_ok = _REGISTRY_CACHE.get("registry") is not None
+    except Exception as e:
+        log("prime registry failed (non-fatal): %s" % e)
+    try:
+        if load_credit() is not None:
+            cred_ok = _CREDIT_CACHE.get("credit") is not None
+    except Exception as e:
+        log("prime credit failed (non-fatal): %s" % e)
+    return reg_ok, cred_ok
+
+
 def _store_fingerprint(store):
     """(path, mtime_ns, size) of the telemetry store behind a credit handle.
 
@@ -453,6 +479,32 @@ def _now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def promotion_quality(limit=20):
+    """Held-rate over recent promotions. REPORT ONLY — never gates.
+
+    Counts `promotion` vs `canary-revert` rows in the lineage tail: the
+    fraction of promotions still standing. A gate built on this would need
+    its own negative control first (R2); until then it is a readout, and a
+    readout must not hide a bad number (R5).
+    """
+    try:
+        with open(LINEAGE_JSONL, "r", encoding="utf-8") as fh:
+            kinds = []
+            for line in fh:
+                try:
+                    kinds.append(json.loads(line).get("cycle_kind"))
+                except Exception:
+                    continue
+    except Exception:
+        return {"promotions": 0, "reverts": 0, "held_rate": None}
+    tail = [k for k in kinds if k in ("promotion", "canary-revert")][-limit:]
+    promos = sum(1 for k in tail if k == "promotion")
+    reverts = sum(1 for k in tail if k == "canary-revert")
+    return {"promotions": promos, "reverts": reverts,
+            "held_rate": (round((promos - reverts) / promos, 4)
+                          if promos else None)}
+
+
 # ---------------------------------------------------------------------------
 # The cycle
 # ---------------------------------------------------------------------------
@@ -527,6 +579,9 @@ def promote(candidate, report, rewards, eligible, registry):
         "observed": score.get("observed"),
         "at": _now(),
     })
+    _append_lineage({"cycle_kind": "promotion", "at": _now(),
+                     "fingerprint": candidate.fingerprint(),
+                     "delta": round(float(report.get("delta") or 0.0), 6)})
     log("PROMOTED %s delta=%+.6f observed=%d coverage=%.3f"
         % (candidate.fingerprint(), report.get("delta", 0.0),
            score.get("observed", 0), score.get("coverage", 0.0)))
@@ -754,6 +809,7 @@ def run_cycle(apply_promotion=False, candidates=None, seed=None):
         streak = _update_streak(best_fp if accepted else None, accepted)
         report["streak"] = streak
         report["streak_required"] = L1_MIN_WINS
+        report["promotion_quality"] = promotion_quality()
 
         if accepted and streak.get("wins", 0) >= L1_MIN_WINS:
             if not L1_APPLY:

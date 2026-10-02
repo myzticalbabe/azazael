@@ -268,6 +268,25 @@ def _warm_worker(on_complete: (Callable | None) = None,
             start_spine_heart()
         except Exception as exc:
             _log.warning("Spine heart start failed (non-fatal): %s", exc)
+        # Prime the wiring cycle's discovery/credit caches so the first
+        # user-facing run_cycle skips the ~3s cold load (measured 2026-10-01:
+        # repeat cycles run 0.01s). Loaded by path — scripts/ is not a
+        # package — and fully guarded: absence or failure just means the
+        # first cycle pays cold cost, exactly as before.
+        try:
+            import importlib.util as _ilu
+            _wiring_path = (Path(__file__).resolve().parent.parent.parent
+                            / "scripts" / "wiring_cycle.py")
+            if _wiring_path.is_file():
+                _spec = _ilu.spec_from_file_location(
+                    "wiring_cycle_warm", str(_wiring_path))
+                _wmod = _ilu.module_from_spec(_spec)
+                _spec.loader.exec_module(_wmod)
+                _prime = getattr(_wmod, "prime_caches", None)
+                if callable(_prime):
+                    _prime()
+        except Exception as exc:
+            _log.warning("Wiring prime failed (non-fatal): %s", exc)
         if on_complete:
             try:
                 on_complete()
@@ -500,7 +519,9 @@ def cache_status() -> dict:
     if ready:
         try:
             from CORE.worm_registry import WORM_REGISTRY
-            registry_size = sum(len(v) for v in WORM_REGISTRY.values()) if WORM_REGISTRY else 0
+            # 2026-09-29: count worms, not info fields. sum(len(v)) summed
+            # each entry's field count (5-8x the worm count).
+            registry_size = len(WORM_REGISTRY) if WORM_REGISTRY else 0
         except (ImportError, AttributeError):
             pass
 
