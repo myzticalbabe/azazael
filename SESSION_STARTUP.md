@@ -43,6 +43,16 @@ Codebuff agent roster at that time.
 
 Failure to print the gate = 🔴 CRITICAL process violation (Error #146 precedent).
 
+### Step 0.5: Verify the Live Tree Is Not Behind Its Origin (2026-10-02)
+
+**The editable install executes THIS tree (`C:/Azazael/azazael`).** On 2026-10-02 this tree was found **6 commits behind its own `origin`** while `git status` reported "up to date": its `origin/*` tracking refs had frozen at the clone's own HEAD and had not been fetched since the clone was made. A stale tracking ref is indistinguishable from a current one, so the drift was **silent by construction**. The stale ref also meant the live runtime was executing pre-commit code missing, among others, the root `conftest.py` that redirects live stores for every test dir.
+
+```
+python3.14t scripts/origin_freshness_check.py     # FETCHES first, then measures
+```
+
+Exit codes: `0` current · `1` **STALE — do not trust in-tree runs until advanced** · `2` unknown (no upstream / fetch failed). An unanswerable check is **not** a pass. The script never advances the branch — it reports and fails closed, so it cannot race with session WIP.
+
 ### Step 1: Read Canonical Documents + Guardrail Skills (Bypass skill() Cache)
 
 **⚠️ The `skill()` function may return pre-session cached content.** Skills edited this session (azazael-startup, azazael-sop, azazael-error-prevention, azazael-system-startup) have stale caches as of June 9, 2026. Use `read_files()` directly on the `.agents/skills/*/SKILL.md` files instead of `skill()` for these guardrail skills until the cache is refreshed.
