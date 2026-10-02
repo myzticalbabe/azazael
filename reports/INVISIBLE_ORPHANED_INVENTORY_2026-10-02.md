@@ -109,6 +109,57 @@ push, a merge) did not happen**, and every instrument that reads git
 (`git status`, `git log`, the freshness guard) is correct and silent because it
 reports on the committed graph only.
 
+## Decision on `origin/master` (`ef8ac9a8`) — 2026-10-02
+
+**Decision: it stays a fork, recorded as SUPERSEDED by
+`migration/baseline-20261001`. It is not merged.**
+
+Evidence:
+
+- Merge base of `HEAD` and `origin/master` is `0cc201bd`; each side then has
+  its own commits (HEAD 9, `origin/master` 1).
+- The net difference `origin/master..HEAD` is **27 files, +5642/−56** — and
+  every one of the 56 lines that exist on `origin/master` and not on HEAD is an
+  **older version of code HEAD already replaced**: the pre-EV-4 `_compute_streak`
+  / `_sprt_history` signatures, the old `MORPH_CANDIDATES` uses (now the
+  registry split), the fail-open `wsl_files` in `sync_all.py` (now D-2/D-3
+  fixed), the `event_type='db_health_alert'` pool (now EV-6 by severity), and
+  `import live_monitor as lm` (that file moved to `archive/live-monitors-20261002/`).
+- `ef8ac9a8`'s large 120-file diff is mostly the *same* migration content HEAD
+  reached through its own commits;
+`git diff --stat origin/master..HEAD` confirms the residual is only the
+reconciliation, the EV-4 unit, the schema fix and the reports — all HEAD-side.
+
+Merging would resolve every conflict toward HEAD's newer code or, worse,
+reintroduce the superseded variants. Recommended hub action at the next session
+(not done here — it mutates `origin/master`): fast-forward `master` to the
+migration branch, or delete it, so the fork stops being a second live line.
+
+## Decision on WSL Ubuntu-26.04 — RETIRE as a source; re-create it
+
+**Decision: do not reconcile. The tree is retired as a source of truth and
+should be re-created from the canonical branch.**
+
+Evidence:
+
+- Base is `7d883ba` *"milestone: July 29 production readiness"* — **over two
+  months** behind `migration/baseline-20261001`.
+- `git status --porcelain`: **570 modified, 494 untracked, 2 deleted (1066)**
+  (`src` 622, `tests` 223, `docs` 12).
+- Characterising the dirt settles it: the untracked sample
+  (`src/CORE/WORMS/expansion/allocation.py`, `arena.py`, `axon.py`, `chorus.py`,
+  …) are **tracked in the branch** — they are "untracked" in WSL only because
+  the July-29 checkout predates them and `sync_all.py` copies files in *without*
+  git. So the 1066-file set is overwhelmingly the **file-copy sync settling onto
+  a stale git base**, not authored work.
+
+Reconciling that drift would import two-month-old versions of files the branch
+has since changed — the same regression `origin/master` was rejected for. A
+build target this far behind is re-created, not merged. Hub action at the next
+WSL session: preserve any genuinely Linux-native file, then
+`git fetch && git reset --hard origin/migration/baseline-20261001` (or a fresh
+clone) and re-run `sync_all.py --sync-to wsl2`.
+
 ## Recommended disposition (not yet done, needs review each)
 
 1. Hub: separate the 54 modified + 334 untracked code files into (a) validated
