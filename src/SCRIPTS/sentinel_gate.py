@@ -382,6 +382,177 @@ def _count_audit_entries(audit_filepath, entry_type):
     return len(entries)
 
 
+def validate_rule_0i(data, audit_filepath=None):
+    """RULE 0I: algorithmic respawn — no batch script without Gemini.
+
+    Extracted 2026-09-30 from an inline block that could not fail. The old
+    form was three branches, all of which returned True:
+
+        if batch_entries >= 3:  passed = True, "[VERIFIABLE] N edits"
+        else:                   passed = True, "N/A (informational)"
+        (no audit_filepath)     passed = True, "N/A (informational)"
+
+    There was no path to False, so a rule with teeth in its text had none in its
+    code — the same shape as TERENCE reporting 8,009 fixes with files_scanned=0.
+    A check that cannot fail is decoration with a green light.
+
+    The predicate: RULE 0I forbids a BATCH of edits with no Gemini analysis in
+    front of it. So a batch of >=3 file_edit entries with no inference_spawn in
+    the same trail is the violation. Fewer than 3 edits is not a batch, which is
+    a genuine pass, not a dodge.
+
+    UNVERIFIABLE is reported as its own outcome rather than folded into pass. The
+    audit trail is the only evidence this rule can ever have, so with no trail
+    the check cannot see. Returning a plain True there would be exactly the
+    silent-green this function was extracted to remove. The gate stays usable
+    (unverifiable does not block a commit that was never an algorithmic batch)
+    and tools/terence_invariants.py::oracle_unfailable_validators + the coverage
+    registry carry the gap as a machine-readable fault instead of leaving it
+    invisible.
+    """
+    if not audit_filepath or not Path(audit_filepath).exists():
+        return True, ("UNVERIFIABLE - no audit trail. RULE 0I can only be "
+                      "checked against an .audit JSONL trail; this gate "
+                      "invocation had none.")
+
+    edits = _count_audit_entries(audit_filepath, "file_edit")
+    if edits < 0:
+        return True, ("UNVERIFIABLE - audit reader unavailable "
+                      "(entries counted as -1)")
+    if edits < 3:
+        return True, ("N/A - %d file_edit entr%s in trail; RULE 0I governs "
+                      "algorithmic BATCH respawn, and a batch is >=3."
+                      % (edits, "y" if edits == 1 else "ies"))
+
+    spawns = _count_audit_entries(audit_filepath, "inference_spawn")
+    if spawns < 0:
+        return True, "UNVERIFIABLE - audit reader unavailable"
+
+    if spawns <= 0:
+        return False, (
+            "BATCH WITHOUT GEMINI - %d file_edit entries and 0 inference_spawn "
+            "in the trail. RULE 0I: no batch script without Gemini pre-analysis "
+            "and per-file validation." % edits)
+    return True, ("[VERIFIABLE] %d edits backed by %d inference_spawn in audit"
+                  % (edits, spawns))
+
+
+def validate_rule_0b_a(data, audit_filepath=None, full_text=None):
+    """RULE 0B-A EDICTICAL MANDATE — the user is the sole source of truth.
+
+    Added 2026-09-30 after three violations in one session. This is the
+    load-bearing piece, because RULE 0B has been in canon since Jun 7, 2026
+    and was violated anyway -- not in spite of being written, but because
+    nothing READ it. Prose does not enforce itself. A check that returns
+    False does.
+
+    Two things are enforced mechanically, and both are things a human reader
+    waves through:
+
+    1. ACCEPTANCE LANGUAGE. "This passes", "this clears the rule", "this is
+       good enough", "this is done" are acceptance language. The assistant may
+       DESCRIBE an artefact, including its defects; it may not ACCEPT one.
+       Only the user decides whether work is acceptable. A self-assessment is
+       not an acceptance.
+
+    2. THE FIVE ITEMS. The deliverable named is the deliverable produced;
+       the justification for a different answer is not longer than the
+       delivery; no un-invoked mandate was used to reshape the task; a
+       disagreement was stated in one sentence and the ask was still built.
+
+    Returns (passed, message). Never raises — a validator that crashes is a
+    validator that gets disabled.
+    """
+    text_str = str(data if data is not None else "")
+    low = text_str.lower()
+
+    # The acceptance scan must ALSO see the rest of the gate block. The field
+    # regex for "rule_0b_a_edict" stops at the next bullet, so a verdict parked
+    # in GATE DECISION escapes a scan of the 0B-A field alone -- caught by
+    # test_end_to_end_through_the_real_gate, which appends a verdict to a
+    # passing gate and asserts it then fails. Scan the whole block.
+    scan = low
+    if full_text:
+        scan = (low + "\n" + str(full_text).lower())
+
+    # -- 1. acceptance language: the check that did not exist before ---------
+    # Matched as a phrase so a description ("it is done as specified, and here
+    # is the limitation") is not tripped by the bare word.
+    acceptance = [
+        r"this passes", r"it passes\b", r"clears? the rule", r"clears? 0[qp]",
+        r"good enough", r"this is done\b", r"that'?s done\b",
+        r"this is (?:finished|complete|acceptable)\b",
+        r"i consider this (?:done|complete|acceptable|finished)",
+        r"meets? the (?:bar|standard)\b", r"is acceptable\b",
+    ]
+    hits = [p for p in acceptance if re.search(p, scan)]
+    if hits:
+        return False, (
+            "ACCEPTANCE LANGUAGE DETECTED (%s). RULE 0B-A 4: the assistant "
+            "may DESCRIBE an artefact, never ACCEPT one. Only the user "
+            "decides whether work is acceptable. Strike the verdict and hand "
+            "the decision over." % ", ".join(hits)
+        )
+
+    # -- 2. the five items, matched per line -------------------------------
+    # A line-numbered block with arbitrary prose between the number and the
+    # keyword, e.g. "2. Is my justification for a different answer longer than
+    # the delivery?" -- an earlier version anchored keyword-immediately-after-
+    # the number and rejected that, which is a validator that fails honest
+    # input. Match the NUMBER on the line, the KEYWORD on the same line.
+    item_keywords = {
+        "1-named-deliverable": (1, ("named deliverable", "did i deliver")),
+        "2-tell": (2, ("longer than", "justification")),
+        "3-no-acceptance": (3, ("claiming", "acceptance", "accept")),
+        "4-no-uninvoked-mandate": (4, ("uninvoked", "reshape", "did i add a rule")),
+        "5-disagree-and-build": (5, ("disagree", "one sentence")),
+    }
+    lines = low.splitlines()
+    missing = []
+    for name, (num, words) in item_keywords.items():
+        found = False
+        for line in lines:
+            # re.search, not re.match: in the real gate format all five items
+            # arrive on ONE line after the RULE 0B-A label ("... yes. 2. Is my
+            # justification ..."), so anchoring at line start only ever found
+            # item 1 and failed every honest block. Require a non-digit (or
+            # line start) before the number so "1." cannot match inside "21.".
+            m = re.search(r"(?:^|[^\d])%d\s*[.):\-]" % num, line)
+            if m and any(w in line[m.start():] for w in words):
+                found = True
+                break
+        if not found:
+            missing.append(name)
+
+    # N/A is decided STRUCTURALLY, not by string-guarding for "deliver" -- an
+    # earlier version skipped N/A whenever the text merely contained the
+    # substring, which rejected the honest phrase "nothing delivered".
+    has_na = bool(re.search(r"\bn/?a\b", low))
+    if len(missing) == len(item_keywords):
+        if has_na:
+            return True, "N/A - no user-facing deliverable in this turn"
+        return False, (
+            "Missing RULE 0B-A section 3 five-item check entirely. Print it "
+            "verbatim before reporting user-facing work complete (MANDATES.md "
+            "RULE 0B-A section 3). A gate that is skipped is worse than no "
+            "gate: it produces a PASS that means nothing."
+        )
+    if missing:
+        return False, (
+            "RULE 0B-A section 3 incomplete - unanswered: %s. All five must be "
+            "answered, not summarised." % ", ".join(missing)
+        )
+
+    # -- 4. an explicit FAIL anywhere in the block is honoured --------------
+    if re.search(r"\bfail\b|\bhalt\b|\bredo as stated\b", low):
+        return False, (
+            "RULE 0B-A self-check reported FAIL/HALT. The work is NOT "
+            "complete. Redo it as stated before reporting."
+        )
+
+    return True, "RULE 0B-A section 3 five items answered; no acceptance language"
+
+
 def validate_rule_0q_a(data, audit_filepath=None):
     """Check RULE 0Q-A: Post-phase verified with inference cache filepaths.
     [VERIFIABLE via .inference_cache/ files AND audit trail inference_spawn entries]
@@ -589,10 +760,10 @@ def parse_stdin(text):
     data = {}
     patterns = {
         "ap1_scope": r"AP-1[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
+        "rule_0b_a_edict": r"RULE\s*0B-A[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "rule_0g_gemini": r"RULE\s*0G[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "rule_0h_scan": r"RULE\s*0H[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
-        "rule_0i_batch": r"RULE\s*0I[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
-        "rule_0l_test_failure": r"RULE\s*0L[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
+        "rule_0i_batch": r"RULE\s*0I[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",        "rule_0l_test_failure": r"RULE\s*0L[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "rule_0m_concurrent": r"RULE\s*0M[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "rule_0q_post_phase": r"RULE\s*0Q-A[^:\n]*:\s*(.+?)(?=\n\s*-\s*\*\*|\n\s*\n|\Z)",
         "gate_decision": r"GATE\s*DECISION:\s*(.+?)(?=\n|$)",
@@ -627,21 +798,26 @@ class SentinelValidator:
         passed, msg = validate_ap1(data.get("ap1_scope", ""), audit_filepath)
         self.add_result("AP-1 (Scope)", passed, msg)
 
+        # RULE 0B-A EDICT — the user is the sole source of truth. Checked
+        # SECOND, immediately after scope, because it is the check whose
+        # absence let three violations through on 2026-09-30. Scope and
+        # fidelity-to-the-ask belong together.
+        # full_text = every parsed field joined, so a verdict parked in
+        # GATE DECISION cannot dodge the acceptance-language scan.
+        whole = "\n".join(str(v) for v in data.values() if v)
+        passed, msg = validate_rule_0b_a(data.get("rule_0b_a_edict", ""),
+                                         audit_filepath, full_text=whole)
+        self.add_result("RULE 0B-A (Sole Source of Truth)", passed, msg)
+
         passed, msg = validate_rule_0g(data.get("rule_0g_gemini", ""), audit_filepath)
         self.add_result("RULE 0G (Gemini)", passed, msg)
 
         passed, msg = validate_rule_0h(data.get("rule_0h_scan", ""), audit_filepath)
         self.add_result("RULE 0H (Scan)", passed, msg)
 
-        # RULE 0I — informational unless audit verifies batch entries
-        if audit_filepath:
-            batch_entries = _count_audit_entries(audit_filepath, "file_edit")
-            if batch_entries >= 3:
-                passed, msg = True, "[VERIFIABLE] %d edits in audit" % batch_entries
-            else:
-                passed, msg = True, "N/A (informational)"
-        else:
-            passed, msg = True, "N/A (informational)"
+        # RULE 0I — was an inline block that could not fail (every branch True).
+        # Now a function with a real False path; see validate_rule_0i.
+        passed, msg = validate_rule_0i(data.get("rule_0i_batch", ""), audit_filepath)
         self.add_result("RULE 0I (Batch)", passed, msg)
 
         passed, msg = validate_rule_0l(data.get("rule_0l_test_failure", ""), audit_filepath)
@@ -795,6 +971,12 @@ def interactive_mode(validator):
     print("Answer each question. Press Enter on empty to mark as missing.")
     print()
     data["ap1_scope"] = input("AP-1 (Scope): Did user explicitly ask for this EXACT change? ")
+    data["rule_0b_a_edict"] = input(
+        "RULE 0B-A (Sole Source of Truth): answer all five §3 items -- "
+        "named deliverable? / justification not longer than delivery? / "
+        "claiming acceptance (must be no)? / uninvoked mandate used to "
+        "reshape? / disagreement stated in one sentence AND ask still built? "
+    )
     data["rule_0g_gemini"] = input("RULE 0G (Gemini): Was thinker-with-files-gemini spawned? Cite verdict: ")
     data["rule_0h_scan"] = input("RULE 0H (Scan): Scanned for anti-patterns? Cite method + results: ")
     data["rule_0i_batch"] = input("RULE 0I (Batch): If batch, Gemini designed? (Yes/No/N/A): ")
