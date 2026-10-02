@@ -232,3 +232,16 @@ in PMB only — judgment, not mechanism).
 | Kali birth-week snapshots | NATURE_CLUSTERS Jun-17 52.9KB → Jun-19 54KB with the layer's only rationale (replace if/elif dispatch) | Filed as the layer's epitaph; flat registry solves the same problem |
 | Kali dev docs | June status: ClusterWORMZ OK, NatureCluster OK, 37 worms; WORM_AUDIT rates NATURE_CLUSTERS ✅, router partial | Contemporaneous "mechanically worked" record — complaint was provenance + learning, never mechanical failure |
 | DB corruption note | Jul FTS + data pages partly malformed; Sep nearly clean | Chunked-read pattern is the extraction method; FTS untrusted for old stores |
+
+## Decision rationale + negative results (appendix, 2026-10-02)
+
+Why the verdicts, and what failed on the way here. Basis column states;
+this states the chains.
+
+- **D7 router DELETE:** sole live importer METACLUSTER (guarded import, rewritten in-surgery); AOA one diagram string; quartet zero imports; D1 removes the routed taxonomy. Keep-as-generic would preserve a router for nothing.
+- **D8 fresh clone + bundle:** 304 commits but ~1.3GB history dominated by generated blobs (ppm frames, 74k-line reports); bundle preserves all commits verifiably (RULE 0T) without checking out junk.
+- **U8 IN-SCOPE:** desktop sweep measured 911MB/71 items; operator works out of the new folder.
+- **Floor-13 settled test-only:** proven in tests (20/20 at floor 13), never evaluated by hyperopt (production tuned 6); promoting by hand-edit would fight the optimizer's lineage. 13/17/19/14 derivation: 13 covers the floor, +1 differs from seed (14 minimum); 17/19 were minima under keep-the-fixtures constraints; 14 kept the ghost theme + all fixture roles.
+- **Bulk skills KEPT:** no code bulk-loads the corpus (sync only syncs; skills load by name); the 188k-token prune precedent addressed an all-load path that does not exist here.
+- **Negative results:** (1) 19→17 trim broke nothing but earned nothing — reverted, then re-derived to 14 properly; (2) stale-bytecode theory of the prime-test failure was wrong — the `wc` fixture stubs the loader, so priming through it can fill nothing (45-min detour, mechanism documented in test); (3) `Select-Object -First N` hid matches and faked two findings — verify with full-output-to-file; (4) first U7 commit swept an unrelated vendor tree — rescoped and recommitted; (5) shared-pickle cross-tree poisoning fixed by per-checkout filenames, but the live culprit was the editable install shadowing every interpreter; (6) collection-error face rotation (sentinel/dill → replay_failed) was one mechanism (import-time nul probe vs audit hook), fixed once at conftest.
+- **Open threads:** track-content drift (training sessions), bulk-loader watch (revisit keep-verdict only if one appears), promotion_quality readout (report-only; gating needs its own negative control first, R2).
