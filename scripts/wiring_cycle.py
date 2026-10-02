@@ -505,6 +505,27 @@ def promotion_quality(limit=20):
                           if promos else None)}
 
 
+def promotion_gate_ok(min_history: int = 3, min_held_rate: float = 0.5,
+                      quality: dict | None = None) -> dict:
+    """Advisory promotion-quality gate. ADVISORY ONLY — never blocks.
+
+    R2 requires a negative control before any gate enforces, so this reports
+    a verdict instead of acting on it. Its controls (in test_wiring_cycle):
+    empty history does not block, all-held does not block, majority-reverted
+    advises against. Enforcement is a separate, operator-gated change.
+    """
+    q = dict(quality) if quality is not None else promotion_quality()
+    promos = int(q.get("promotions") or 0)
+    if promos < max(1, int(min_history)):
+        return {"block": False, "reason": "insufficient history",
+                "quality": q}
+    held = q.get("held_rate")
+    if held is None or held >= float(min_held_rate):
+        return {"block": False, "reason": "quality sufficient", "quality": q}
+    return {"block": True, "reason": "held_rate %.3f below %.3f over %d" % (
+        held, min_held_rate, promos), "quality": q}
+
+
 # ---------------------------------------------------------------------------
 # The cycle
 # ---------------------------------------------------------------------------
@@ -810,6 +831,8 @@ def run_cycle(apply_promotion=False, candidates=None, seed=None):
         report["streak"] = streak
         report["streak_required"] = L1_MIN_WINS
         report["promotion_quality"] = promotion_quality()
+        report["promotion_gate"] = promotion_gate_ok(
+            quality=report["promotion_quality"])
 
         if accepted and streak.get("wins", 0) >= L1_MIN_WINS:
             if not L1_APPLY:

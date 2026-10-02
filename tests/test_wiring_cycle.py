@@ -694,3 +694,13 @@ def test_promotion_quality_tracks_holds_and_reverts(wc, monkeypatch):
         == "reverted"
     assert wc.promotion_quality() == {"promotions": 1, "reverts": 1,
                                       "held_rate": 0.0}
+
+
+def test_promotion_gate_negative_controls(wc):
+    """R2: the gate's three controls — empty/all-held never block."""
+    assert wc.promotion_gate_ok(quality={"promotions": 0, "reverts": 0,
+                                         "held_rate": None})["block"] is False
+    assert wc.promotion_gate_ok(quality={"promotions": 4, "reverts": 0,
+                                         "held_rate": 1.0})["block"] is False
+    assert wc.promotion_gate_ok(quality={"promotions": 4, "reverts": 3,
+                                         "held_rate": 0.25})["block"] is True
