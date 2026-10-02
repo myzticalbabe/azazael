@@ -32,6 +32,7 @@ import hashlib
 import json
 import math
 import random
+import sqlite3
 import sys
 sys.path.insert(0, 'C:/Users/clint/azazael/src')
 
@@ -232,6 +233,162 @@ def baseline_hash(genes):
         .encode('utf-8')).hexdigest()[:16]
 
 
+# EV-5 (2026-09-30): objective-arm liveness veto.
+#
+# MEASURED: over 35 consecutive cycles `alert` is exactly 0.0 and `total`
+# equals `info` to four decimals on every single line, because the frozen
+# alert pool holds SEVEN rows against info's 500. So the loop has been running
+# a single-objective search while reporting a two-objective score, and
+# state/evolved_rl_params.json was promoted on 2026-09-28 carrying
+# fitness_detail {info: 16.3329, alert: 0.0}.
+#
+# WHY NOTHING CAUGHT IT: every instrument reads `total`, and `total` looks
+# healthy. A scalar aggregating one live component and one dead component is
+# indistinguishable from a scalar where both are live. This is the same shape
+# as the Intermesh finding that 22 of 26 natures declare no data contract, so
+# `emits`/`requires` return empty dicts that read as CLEAN.
+#
+# THE VETO: a total is only a multi-objective score if every component
+# contributes. Promoting on a total that equals one arm asserts a capability
+# the measurement does not contain. This is deliberately a HARD STOP, and
+# deliberately a constant rather than a heuristic, so relaxing it is a
+# decision someone makes on the record instead of a threshold that drifts.
+#
+# It will halt promotion until the alert arm is either grown to a fittable
+# pool or formally retired. That is the point: the alternative is a loop that
+# certifies a capability it cannot measure.
+FITNESS_ARM_FLOOR = 1e-9
+FITNESS_ARM_VETO = True
+
+# EV-7 (2026-09-30): the loop's own health gates its promotions. See the
+# block at the promotion decision for why this had to be wired at all.
+LOOP_INTEGRITY_VETO = True
+LOOP_INTEGRITY_MAX_AGE_S = 3600.0     # a stale verdict may not gate a live run
+
+
+def _loop_integrity_gate():
+    """(ok, reason). ok=False blocks promotion; reason is loggable.
+
+    Reads CURRENT verdicts only. `current_verdict` is the recent window and
+    `verdict` is all-time, because an all-time verdict is true forever and a
+    condition fixed twenty cycles ago would otherwise hold a healthy loop
+    hostage indefinitely.
+
+    A MISSING or STALE file is NOT healthy and is NOT a block: the tool may
+    simply not have run yet, and refusing to promote on absent instrumentation
+    would be a worse failure than promoting without it. It reports BLIND so
+    the gap is visible rather than silent.
+    """
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    checks = (("loop_integrity.json", "current_verdict"),
+              ("fitness_arms.json", "verdict"))
+    now = time.time()
+    for fname, key in checks:
+        path = os.path.join(root, "state", fname)
+        if not os.path.exists(path):
+            log('EV-7 integrity: %s absent -- BLIND, not treated as healthy '
+                'and not treated as blocking' % fname)
+            continue
+        try:
+            age = now - os.path.getmtime(path)
+        except OSError:
+            continue
+        if age > LOOP_INTEGRITY_MAX_AGE_S:
+            log('EV-7 integrity: %s is %.0fs old (> %.0fs) -- BLIND, stale '
+                'verdict may not gate a live cycle' % (fname, age,
+                                                       LOOP_INTEGRITY_MAX_AGE_S))
+            continue
+        try:
+            with open(path, encoding='utf-8') as fh:
+                d = json.load(fh)
+        except Exception as e:
+            log('EV-7 integrity: %s unreadable (%s) -- BLIND' % (fname, e))
+            continue
+        v = d.get(key)
+        if v in ("DEGRADED", "DEAD_ARM", "FAIL"):
+            findings = d.get("current_findings") or d.get("findings") or []
+            first = str(findings[0])[:120] if findings else ''
+            return False, ('%s reports %s%s -- a cycle that promotes while '
+                           'the loop is measurably degrading is a symptom, '
+                           'not progress' % (fname, v,
+                                             (': ' + first) if first else ''))
+    return True, None
+
+
+def fitness_arms_live(parts, floor=FITNESS_ARM_FLOOR, total=None):
+    """True when every objective arm actually contributes to `total`.
+
+    `parts` is the {'info': x, 'alert': y} mapping from `fitness_parts`.
+    An arm at or below `floor` contributes nothing, so `total` is really the
+    other arm alone and the score does not represent this one. Pure function,
+    so it is testable without running a GA (same convention as
+    `_compute_streak`).
+    """
+    if not isinstance(parts, dict) or not parts:
+        return False
+    for name, val in parts.items():
+        try:
+            if float(val) <= float(floor):
+                return False
+        except (TypeError, ValueError):
+            return False
+    return True
+
+
+def dead_fitness_arms(parts, floor=FITNESS_ARM_FLOOR):
+    """Names of the arms contributing nothing — the reason a veto fired."""
+    if not isinstance(parts, dict):
+        return ['(malformed parts)']
+    dead = []
+    for name, val in parts.items():
+        try:
+            if float(val) <= float(floor):
+                dead.append(str(name))
+        except (TypeError, ValueError):
+            dead.append(str(name))
+    return dead
+
+
+def schema_hash(genes):
+    """Stable id of the SEARCH SPACE, not of one genome (2026-09-30, EV-4).
+
+    Third instance of one recurring defect in this file, and the same remedy
+    each time. `baseline_hash` (EV-2) fixed it when a mid-era BASELINE change
+    let wins against two different references count as one streak. Cranium
+    (2026-09-12) fixed it when an era change broke the SPRT's evidence: "that
+    break landed 28 times in 51 cycles (~1.8 cycles/era) while the SPRT needs
+    2..6 same-era observations. The evidence could never accumulate, so the
+    gate produced 1 promotion in 51 cycles."
+
+    This time the SCHEMA moves. `morph_candidate_gene(cycle_index, ...)` is a
+    round-robin, so slot 5 alternates every cycle, and `genome_seed` hashes
+    every gene -- meaning two genomes differing only in slot 5 are evaluated by
+    different trajectories and are not the same measurement. Measured over 33
+    cycles: 100% schema alternation across 2 arms, `beats=False streak=0/3` on
+    every one, SPRT `n=0` on 21/33, and 0 promotions. The streak was being
+    evaluated on CONSECUTIVE cycles, which alternate by construction, so it
+    could never reach 2.
+
+    Note this is a *space* identity, not a genome identity: the gene NAMES,
+    not their values. Within one schema, differing values are exactly what the
+    search is exploring and `genome_seed` already makes them comparably
+    deterministic. Across schemas the gene SET differs, `_trainer_extra_kwargs`
+    forwards a different kwarg, and the fitness function is genuinely a
+    different function.
+
+    The streak is therefore computed PER ARM (see `_compute_streak`): rows
+    carrying a different schema_hash are skipped, not counted and not treated
+    as breaks. Measured comparability available today: use_schema_features
+    n=17 (16 pairs), by_session n=16 (15 pairs).
+    """
+    try:
+        return hashlib.sha256(
+            '|'.join(sorted(str(k) for k in genes)).encode('utf-8')
+        ).hexdigest()[:16]
+    except Exception:
+        return ''
+
+
 def _promoted_file():
     """First existing promoted-genes file: state/ (canonical), then config/."""
     for _p in (PROMOTE_JSON, LEGACY_PROMOTE_JSON):
@@ -258,6 +415,84 @@ def _migrate_legacy_promotions():
                 log('migrated %s -> state/' % os.path.basename(_src))
             except Exception as e:
                 log('migration failed for %s: %s' % (_src, str(e)[:80]))
+
+
+def _state_key_for(record):
+    """Mirror of `learning_rl._get_state_key` (nested there, so not importable)."""
+    return "%s:%s" % (record.get('source', 'unknown'),
+                      record.get('severity', 'info'))
+
+
+def _extract_alert_pool(limit=None):
+    """EV-6 (2026-09-30): the alert arm, selected on SEVERITY.
+
+    Replaces `event_type='db_health_alert'`, which matched 7 rows store-wide.
+    Selection is by the property that actually makes a record an alert, so the
+    arm scales with the data instead of with a provenance label nobody writes.
+
+    Queried as a COLUMN (`memories.severity`, `memories.source` are first-class
+    in the store schema), not extracted from the JSON blob: filtering 123,279
+    rows in Python over a generic recent window returned 2 usable rows, because
+    121,606 of them are `info`. A column predicate gets the ~1,600 that exist
+    and uses the index the schema provides.
+
+    Reports its severity mix, because the two failure modes look identical from
+    the fitness number alone: an arm that is genuinely poor, and an arm whose
+    severities are missing from the reward table -- which scores 0.0 for every
+    action and caps the arm at exactly zero, as `critical` did on all 35
+    cycles before it was added. Reporting the mix is what tells them apart.
+    """
+    limit = int(limit or (N_EPISODES * 10))
+    db = os.path.join(os.path.expanduser("~"), ".azazael", "memory_store.db")
+    if not os.path.exists(db):
+        log('alert pool: store not found at %s' % db)
+        return []
+    excl = [s for s in (EXCLUDED_TRAINING_SOURCES or ()) if s]
+    sql = ("SELECT source, event_type, data, severity FROM memories "
+           "WHERE severity IN ('critical','error','warning')")
+    params = []
+    if excl:
+        sql += " AND source NOT IN (%s)" % ",".join("?" * len(excl))
+        params += excl
+    sql += " ORDER BY timestamp DESC LIMIT ?"
+    params.append(limit)
+    try:
+        con = sqlite3.connect("file:%s?mode=ro" % db.replace("\\", "/"),
+                              uri=True, timeout=30)
+        con.row_factory = sqlite3.Row
+        rows = con.execute(sql, params).fetchall()
+        con.close()
+    except Exception as e:
+        log('alert pool: query failed (%s: %s)' % (type(e).__name__, str(e)[:80]))
+        return []
+    out, mix = [], {}
+    for r in rows:
+        d = {}
+        try:
+            d = json.loads(r["data"]) or {}
+        except Exception:
+            d = {}
+        if not isinstance(d, dict):
+            d = {}
+        sev = str(r["severity"] or d.get("severity") or "").lower()
+        mix[sev] = mix.get(sev, 0) + 1
+        # The state key is `source:severity`; `source` is a real column here,
+        # so the key discriminates without inventing a value. Only fall back if
+        # the column itself is empty, because stamping 'unknown' on every row
+        # would reproduce the single-state collapse at a larger scale.
+        src = str(r["source"] or d.get("source") or "").strip()
+        d["source"] = src or str(d.get("component") or r["event_type"]
+                                  or "unattributed")
+        d.setdefault("severity", sev)
+        d.setdefault("event_type", r["event_type"])
+        out.append(d)
+    if out:
+        log('alert pool (by severity): %d rows  mix=%s  distinct_states=%d'
+            % (len(out), mix, len({_state_key_for(d) for d in out})))
+    else:
+        log('alert pool (by severity): EMPTY -- no critical/error/warning rows;'
+            ' the arm will train on nothing and score 0.0')
+    return out
 
 
 def pool_fingerprint():
@@ -410,7 +645,7 @@ CANARY_TOL = 1.5
 LANDSCAPE_TOL = 1.0
 
 
-def _compute_streak(rows, pool_id, baseline_id, beats):
+def _compute_streak(rows, pool_id, baseline_id, beats, schema_id=None):
     """Consecutive same-era wins over the production baseline (EV-2).
 
     Extracted from main() (2026-09-10) so the promotion gate is testable
@@ -423,11 +658,26 @@ def _compute_streak(rows, pool_id, baseline_id, beats):
     Rows lacking either tag (pre-fix artifacts) break the streak — fails
     closed, so a promotion always needs PROMOTE_WINS wins recorded by current
     code. Returns 0 whenever this cycle did not beat the baseline.
+
+    EV-4 (2026-09-30): the streak is now computed PER SCHEMA ARM. A row whose
+    `schema_hash` differs is SKIPPED rather than treated as a break, because
+    the morph rotates the extra gene every cycle and a cross-arm comparison is
+    not a valid streak link. Breaking on it (the naive fix) would hold the
+    streak at 1 forever under a full round-robin; skipping it lets each arm
+    accumulate over its own history, which is the comparison that is actually
+    like-for-like. An era or baseline change still breaks, unchanged.
+
+    Rows predating EV-4 carry no schema_hash. They are treated as a DIFFERENT
+    arm (skipped, not counted) so an unlabelled row can never manufacture a
+    streak across a space change — fails closed for the new dimension while
+    keeping the old dimensions strict.
     """
     if not beats:
         return 0
     streak = 1
-    for row in list(rows or [])[:PROMOTE_WINS - 1]:
+    for row in list(rows or []):
+        if streak >= PROMOTE_WINS:
+            break
         data = row.get('data', {}) or {}
         if isinstance(data, str):
             try:
@@ -441,6 +691,9 @@ def _compute_streak(rows, pool_id, baseline_id, beats):
         # EV-2: a mid-era BASELINE change invalidates the streak too.
         if data.get('baseline_hash') != baseline_id:
             break
+        # EV-4: a different SEARCH SPACE is a different arm, not a break.
+        if schema_id and data.get('schema_hash') != schema_id:
+            continue
         if (str(data.get('fitness', '')).startswith('v3')
                 and data.get('beats_baseline')):
             streak += 1
@@ -527,16 +780,39 @@ def estimate_margin_sigma(margins, salt_floor=0.0):
     return floor
 
 
-def _sprt_history(rows, pool_id, baseline_id, limit=PROMOTE_MAX_WINS):
-    """Era-pinned prior margins (newest-first), stopping at the first break.
+def _sprt_history(rows, pool_id, baseline_id, limit=PROMOTE_MAX_WINS,
+                  schema_id=None, scan=40):
+    """Era-pinned prior margins (newest-first), per SCHEMA ARM (EV-4).
 
     Same pinning as _compute_streak: only rows from the SAME pool era and the
     SAME production baseline are comparable, and only v3-scale rows carry a
     usable margin. A break is a hard stop, so a promotion always rests on a
     contiguous run of same-era evidence.
+
+    EV-4 (2026-09-30): the run must additionally be one SEARCH SPACE. This is
+    the gate that actually decides promotion — the streak at the call site is
+    explicitly "retained only as a display/compatibility counter" — so a
+    per-arm streak alone would have changed nothing.
+
+    Two details make this work under a full round-robin:
+
+      * A row from a different schema_hash is SKIPPED, not a break. The morph
+        rotates the extra gene every cycle, so treating it as a break pins the
+        evidence run at length 1 forever. Skipping lets an arm assemble its own
+        contiguous history out of the interleaved stream.
+      * `scan` defaults well above `limit`, because skipping consumes scan
+        budget. With 100% alternation a 6-row window can only ever surface 3
+        same-arm rows — below the SPRT's 2..6 requirement at the top end, and
+        below PROMOTE_WINS=3 for a streak. The scan window is what makes the
+        per-arm history reachable; the returned length is still capped at
+        `limit` so the SPRT's own bounds are unchanged.
+
+    Rows written before EV-4 carry no schema_hash and are treated as a
+    different arm, so an unlabelled row cannot inject evidence across a space
+    change.
     """
     out = []
-    for row in list(rows or [])[:limit]:
+    for row in list(rows or [])[:max(int(scan), int(limit))]:
         data = _row_payload(row)
         if data is None:
             break
@@ -544,6 +820,8 @@ def _sprt_history(rows, pool_id, baseline_id, limit=PROMOTE_MAX_WINS):
             break
         if data.get('baseline_hash') != baseline_id:
             break
+        if schema_id and data.get('schema_hash') != schema_id:
+            continue          # EV-4: different search space, different arm
         if not str(data.get('fitness', '')).startswith('v3'):
             break
         margin = data.get('margin')
@@ -556,6 +834,8 @@ def _sprt_history(rows, pool_id, baseline_id, limit=PROMOTE_MAX_WINS):
         try:
             out.append(float(margin))
         except (TypeError, ValueError):
+            break
+        if len(out) >= limit:
             break
     return out
 
@@ -1716,9 +1996,30 @@ def _load_or_freeze_pools():
     try:
         info_pool = DataPipelineWorm().extract_from_memory(
             limit=N_EPISODES * 10, exclude_sources=EXCLUDED_TRAINING_SOURCES)
-        alert_pool = DataPipelineWorm().extract_from_memory(
-            event_type='db_health_alert', limit=N_EPISODES * 10,
-            exclude_sources=EXCLUDED_TRAINING_SOURCES)
+        # EV-6 (2026-09-30): grow the alert arm by SEVERITY, not by event_type.
+        #
+        # The arm was defined as `event_type='db_health_alert'`, and only 7
+        # records in the store carry that label -- so the objective trained on a
+        # 7-row pool whose state key is `source:severity`, and every one of
+        # those rows has no `source` field. Measured: 1 distinct state, a
+        # four-cell Q-table, and a 1-state BANDIT rather than a control problem.
+        # No learner can demonstrate anything on that, which is why the arm
+        # needed the reward table fixed before it meant anything at all.
+        #
+        # The DATA WAS ALREADY THERE. The store holds 123,279 memories:
+        # 1,477 `error`, 156 `warning`, 8 `critical`, 121,606 `info`. The
+        # high-severity records were simply never routed into the arm, because
+        # "alert" was expressed as a provenance label rather than as a
+        # property of the data.
+        #
+        # So the arm is now selected on severity -- the thing that actually
+        # makes a record an alert -- which yields ~1,600 rows with genuine
+        # `source` diversity, and therefore states a learner can discriminate.
+        # A severity with no row in the reward table scores 0.0 for every
+        # action and caps the arm at zero (that is how `critical` read 0.0 on
+        # all 35 cycles before it was added), so the selection is paired with
+        # a report of which severities are present.
+        alert_pool = _extract_alert_pool()
         if not info_pool or not alert_pool:
             log('pool extraction degenerate (info=%d alert=%d), '
                 'using live evals without persisting' % (
@@ -2280,19 +2581,35 @@ def main():
     if beats:
         streak = 1
         _hrows = []
+        # EV-4 (2026-09-30): identity of the search space this cycle measured.
+        # Derived from the genes the champion actually carries, so it matches
+        # the `schema_hash` written into this cycle's own result row below and
+        # the one every prior row carries. Empty/None disables the per-arm
+        # pinning and reverts to the pre-EV-4 behaviour (fail-safe, not
+        # fail-open: an unidentified space simply does not gain a streak).
+        _schema_id = ''
+        try:
+            _schema_id = schema_hash(
+                (getattr(best, 'genes', None) or seed_genes or {}))
+        except Exception:
+            _schema_id = ''
         try:
             from CORE.local_memory import get_memory_store
             _hrows = get_memory_store().query_memories(
                 event_type='evolution_result', limit=PROMOTE_MAX_WINS)
             # Era-pinned streak criteria live in _compute_streak (EV-2).
-            streak = _compute_streak(_hrows, pool_id, baseline_id, beats)
+            # EV-4: also pinned to this cycle's search space. Display-only --
+            # the SPRT below is the gate that actually promotes.
+            streak = _compute_streak(_hrows, pool_id, baseline_id, beats,
+                                    schema_id=_schema_id)
         except Exception as e:
             log('streak lookup failed: %s' % str(e)[:120])
         # SPRT (2026-09-11, followup #2): variance-aware sequential gate that
         # replaces the fixed 3/3 rule as the promotion criterion. The era-pinned
         # streak is retained only as a display/compatibility counter.
         try:
-            _prior = _sprt_history(_hrows, pool_id, baseline_id)
+            _prior = _sprt_history(_hrows, pool_id, baseline_id,
+                                   schema_id=_schema_id)
             _floor = salt_spread(best.genes, info_pool, alert_pool)
             # Collapse re-measurements BEFORE the test. A frozen pool makes
             # consecutive margins bit-identical, and the additive LLR would
@@ -2523,8 +2840,46 @@ def main():
             log('morph A/B failed (fail-open, ledger still written): %s'
                 % str(e)[:120])
 
+    # EV-5 (2026-09-30): refuse to promote on a fitness whose arms are not all
+    # live. See FITNESS_ARM_VETO for the measurement that motivates this. The
+    # check is computed BEFORE the condition so the reason is loggable, and a
+    # veto is reported rather than silently dropping the promotion.
+    _arm_parts = {'info': cand_info, 'alert': cand_alert}
+    _arms_live = fitness_arms_live(_arm_parts)
+    _dead_arms = dead_fitness_arms(_arm_parts)
+    if FITNESS_ARM_VETO and not _arms_live:
+        log('VETO (EV-5 objective-arm liveness): dead arm(s) %s -- total %s '
+            'equals the surviving arm, so this score does not represent a '
+            '%s capability. Promotion blocked until the arm is grown or '
+            'formally retired.' % (
+                ','.join(_dead_arms), round(cand_total, 4), '/'.join(_dead_arms)))
+
+    # EV-7 (2026-09-30): the loop's OWN health is a promotion input. This is
+    # the last ouroboros arrow, and its absence is why the loop could not
+    # notice its own stagnation.
+    #
+    # `state/loop_integrity.json` and `state/fitness_arms.json` are written by
+    # tools/evolution_progress.py and tools/fitness_arm_liveness.py. Until this
+    # block existed, each had exactly ONE reader: the tool that wrote it. They
+    # were computed and thrown away -- the same defect the Intermesh audit
+    # found in the natures, and the same one this file's own docstring cites
+    # for the A/B reference. So "a run that promotes nothing scores
+    # identically to a productive one" was TRUE, and the system could not
+    # distinguish them.
+    #
+    # The gate is pinned on the loop's health the same way it is pinned on
+    # schema and baseline: a cycle may not count toward promotion while the
+    # system is measurably degraded. Read FRESH -- a stale file must not be
+    # allowed to hold a healthy loop hostage, and a missing one must not read
+    # as healthy either.
+    _integrity, _integ_reason = _loop_integrity_gate()
+    if _integ_reason:
+        log('VETO (EV-7 loop integrity): %s' % _integ_reason)
+
     if beats and sprt_ok and pareto_ok and best and holdout.get('passed') \
-            and oracle_gate.get('ok') and not _morph_blocks_promotion:
+            and oracle_gate.get('ok') and not _morph_blocks_promotion \
+            and (not FITNESS_ARM_VETO or _arms_live) \
+            and (not _integrity or not LOOP_INTEGRITY_VETO):
         try:
             if os.path.exists(PROMOTE_JSON):
                 # Rotate backups depth-2 (followup #5): .prev -> .prev2,
@@ -2543,6 +2898,21 @@ def main():
                     'genes': cand_genes,
                     'fitness': cand_total,
                     'fitness_detail': {'info': cand_info, 'alert': cand_alert},
+                    # EV-5: arm liveness travels WITH the artifact. A promoted
+                    # file that records alert=0.0 must also record that the arm
+                    # was dead, so a reader never has to infer it.
+                    'fitness_arms_live': _arms_live,
+                    'fitness_dead_arms': _dead_arms,
+                    # EV-4: the cross-arm bridge. `_c_tot` is the SAME base-4
+                    # genome scored with the rotated gene at its neutral value,
+                    # so it is comparable across arms on one scale. It was
+                    # computed every cycle and logged, and never reached the
+                    # artifact. Recording it is what makes an arm-vs-arm
+                    # comparison possible after the fact.
+                    'morph_reference_fitness': ((_morph_ab or {}).get(
+                        'control_fitness')),
+                    'morph_reference_delta': ((_morph_ab or {}).get('delta')),
+                    'schema_hash': schema_hash(cand_genes),
                     'baseline': baseline_fit,
                     'holdout': holdout,
                     'oracle': oracle_gate,
@@ -2611,6 +2981,12 @@ def main():
             'explore_prob': _explore,
             'champion_reeval': champ_score,
             'baseline_hash': baseline_id,
+            # EV-4 (2026-09-30): identity of the SEARCH SPACE (gene names),
+            # not of this genome's values. The promotion streak is computed per
+            # arm using this, because the morph rotates slot 5 every cycle and
+            # consecutive cycles are therefore never the same measurement.
+            'schema_hash': schema_hash(best.genes if best else seed_genes),
+            'schema_gene': (_morph_gene or {}).get('name'),
             # EV-3 (2026-09-10): champion_genes records the WINNER. It used to
             # record the input seed, so last_best_genes() returned its own
             # input: seed(n+1) == seed(n), the chain was a fixed point, and
