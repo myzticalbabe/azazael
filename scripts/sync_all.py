@@ -513,38 +513,51 @@ def verify_integrity() -> Dict[str, bool]:
     g_source = _resolve_path(ENVIRONMENTS["g_source"]["root"], g_source_type)
     wsl_root = Path("/root/azazael") if IS_WSL else None
 
-    # Helper: get filenames from WSL (direct Path when on WSL, run_wsl otherwise)
-    def wsl_files(subpath: str, ext: str = "*.py") -> set[str]:
-        if IS_WSL and wsl_root:
+    # Helper: get filenames from a WSL distro. Ubuntu-26.04 and Kali both keep
+    # their tree at /root/azazael, so the *distro* — not the path — is what must
+    # select the runner. Keying on the path alone made the two distros
+    # indistinguishable and let Kali diverge unseen (D-2).
+    def wsl_files(subpath: str, ext: str = "*.py", distro: str = "ubuntu") -> set[str]:
+        if IS_WSL and wsl_root and distro == "ubuntu":
             p = wsl_root / subpath
             return set(f.name for f in p.glob(ext)) if p.exists() else set()
-        rc, stdout, _ = run_wsl(f"ls /root/azazael/{subpath}/{ext} 2>/dev/null")
-        return set(Path(f).name for f in stdout.strip().split("\n") if f) if rc == 0 else set()
+        runner = run_wsl_kali if distro == "kali" else run_wsl
+        rc, stdout, _ = runner(f"ls /root/azazael/{subpath}/{ext} 2>/dev/null")
+        if rc != 0 or not stdout.strip():
+            return set()
+        return set(Path(f).name for f in stdout.strip().split("\n") if f)
 
-    # 1. Code: expansion/ parity Windows vs WSL2
+    # 1. Code: expansion/ parity, Windows vs each distro. Ubuntu and Kali are
+    #    probed separately — a shared "/root/azazael" must not merge verdicts.
     win_exp_path = win_root / "src/CORE/WORMS/expansion"
     win_exp = set(f.name for f in win_exp_path.glob("*.py")) if win_exp_path.exists() else set()
-    wsl_exp = wsl_files("src/CORE/WORMS/expansion", "*.py")
-    results["expansion"] = win_exp == wsl_exp
+    results["expansion"] = win_exp == wsl_files("src/CORE/WORMS/expansion")
+    results["expansion_kali"] = win_exp == wsl_files("src/CORE/WORMS/expansion", distro="kali")
 
-    # 2. Docs: Windows vs G: source-of-truth
+    # 2. Docs: Windows vs G: source-of-truth. Fail closed: an unmounted G: is an
+    #    *unknown* archive, not a passing one (D-3). `if g_docs else True` turned
+    #    a missing drive into a green result.
     win_docs_path = win_root / "docs"
     win_docs = set(f.name for f in win_docs_path.glob("*.md")) if win_docs_path.exists() else set()
     g_docs_path = g_source / "docs"
     g_docs = set(f.name for f in g_docs_path.glob("*.md")) if g_docs_path.exists() else set()
-    results["docs_g"] = win_docs.issubset(g_docs) if g_docs else True  # skip if G: unavailable
+    results["docs_g"] = bool(g_docs) and win_docs.issubset(g_docs)
 
-    # 3. Tests: Windows vs WSL2 (subset check)
+    # 3. Tests: Windows vs each distro (subset check)
     win_tests_path = win_root / "tests"
     win_tests = set(f.name for f in win_tests_path.glob("*.py")) if win_tests_path.exists() else set()
-    wsl_tests = wsl_files("tests", "*.py")
+    wsl_tests = wsl_files("tests")
     results["tests"] = win_tests.issubset(wsl_tests) if wsl_tests else False
+    kali_tests = wsl_files("tests", distro="kali")
+    results["tests_kali"] = win_tests.issubset(kali_tests) if kali_tests else False
 
-    # 4. Scripts: Windows vs WSL2 (subset check)
+    # 4. Scripts: Windows vs each distro (subset check)
     win_scripts_path = win_root / "scripts"
     win_scripts = set(f.name for f in win_scripts_path.glob("*.py")) if win_scripts_path.exists() else set()
-    wsl_scripts = wsl_files("scripts", "*.py")
+    wsl_scripts = wsl_files("scripts")
     results["scripts"] = win_scripts.issubset(wsl_scripts) if wsl_scripts else False
+    kali_scripts = wsl_files("scripts", distro="kali")
+    results["scripts_kali"] = win_scripts.issubset(kali_scripts) if kali_scripts else False
 
     results["all_ok"] = all(results.values())
     return results
