@@ -2,6 +2,11 @@
 """
 Azazael Matrix Cascade Animation
 3000+ pieces of information cascading down with dynamic colors.
+
+DEPRECATED for HTML/MP4 animation work (2026-10-01, operator directive):
+PIL stills do not render animation richly — production route is browser
+capture (Puppeteer) of CSS/canvas templates. This module stays for
+static frame synthesis only; do not extend it for video.
 """
 
 import random

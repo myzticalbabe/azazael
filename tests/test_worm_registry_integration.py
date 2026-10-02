@@ -178,31 +178,36 @@ class TestWormDynamicResolutionEndToEnd:
 
 
 class TestNatureClustersRealRegistry:
-    """Verify NatureClusterManager groups the real registry end-to-end."""
+    """Verify the flat registry groups real worms by category end-to-end.
+
+    U3: was NatureClusterManager.discover_all_natures; the grouping now comes
+    straight from get_all_categories/get_worms_by_category.
+    """
 
     def test_nature_grouping_from_real_registry(self):
-        """discover_all_natures should group the bulk of real worms by category."""
+        """Registry categories should group the bulk of real worms."""
         _ensure_discovered()
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        counts = ncm.discover_all_natures()
+        from CORE.worm_registry import get_all_categories, get_worms_by_category
+        counts = {c: len(get_worms_by_category(c))
+                  for c in sorted(get_all_categories())}
         assert isinstance(counts, dict)
-        assert counts, "no natures discovered from real registry"
+        assert counts, "no categories discovered from real registry"
         assert sum(counts.values()) >= 50, f"grouped too few real worms: {counts}"
         cats = get_all_categories()
         for nature in counts:
             assert nature in cats, f"{nature} is not a real registry category"
 
     def test_nature_total_within_registry_bounds(self):
-        """Nature grouping should account for at most the real registered worms."""
+        """Category grouping should account for at most the real registered worms."""
         _ensure_discovered()
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        counts = ncm.discover_all_natures()
+        from CORE.worm_registry import get_all_categories, get_worms_by_category
+        counts = {c: len(get_worms_by_category(c))
+                  for c in sorted(get_all_categories())}
         grouped = sum(counts.values())
         assert 0 < grouped <= len(WORM_REGISTRY)
         # Reproducible across repeated calls (state is shared/cached)
-        counts2 = ncm.discover_all_natures()
+        counts2 = {c: len(get_worms_by_category(c))
+                   for c in sorted(get_all_categories())}
         assert sum(counts2.values()) >= 50
 
 

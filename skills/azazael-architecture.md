@@ -15,8 +15,8 @@ azazael/src/
 │   ├── paths.py              # Centralized path resolution (get_project_root, get_g_drive, etc.)
 │   └── WORMS/
 │       ├── CLUSTERWORMS.py   # ClusterWORMZ v2.0.0 — dynamic worm resolution, Nature-based
-│       ├── NATURE_CLUSTERS.py # NatureCluster + NatureClusterManager with auto-discovery
-│       └── METACLUSTER.py    # MetaCluster orchestrator, CrossNatureRoutingEngine
+    │       ├── CLUSTERWORMS.py     # ClusterWORMZ + flat category dispatch
+    │       └── METACLUSTER.py    # MetaCluster orchestrator v2, flat (U3: router deleted)
 ├── METAWORMS.py              # Deprecation shim → re-exports from METAWORMS_ENRICHED.py
 └── METAWORMS_ENRICHED.py     # Canonical enriched worm implementations
 ```

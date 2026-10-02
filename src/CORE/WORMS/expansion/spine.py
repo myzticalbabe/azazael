@@ -101,10 +101,11 @@ def get_anomaly_meta() -> Any:
     except Exception:
         return None
 
-try:
-    from CORE.WORMS.NATURE_CLUSTERS import NATURE_DEFINITIONS
-except ImportError:  # pragma: no cover
-    NATURE_DEFINITIONS = {}
+#: U3 surgery: the nature taxonomy map is gone (D1). There is no declared
+#: edge set in a flat-dispatch world — every route is discovered, none are
+#: inherited. Code that consumed `NATURE_DEFINITIONS` now sees `{}` here,
+#: which is the honest value, not a placeholder.
+NATURE_DEFINITIONS = {}
 
 # Sibling mesh worms (same package, direct imports — no cycle risk)
 from CORE.WORMS.expansion.xenomorph import Lilith
@@ -311,11 +312,7 @@ class SpineMapperWorm:
         if _spine is not None:
             for name, info in WORM_REGISTRY.items():
                 category = info.get("category", "utility")
-                out_edges = [
-                    {"from": category, "to": dst, "kind": "nature_edge"}
-                    for dst in (NATURE_DEFINITIONS.get(category, {})
-                                .get("feeds_into") or [])
-                ]
+                out_edges = []
                 _spine.record_spine_node(env, name, {
                     "category": category,
                     "priority": info.get("priority", 5),
@@ -328,12 +325,8 @@ class SpineMapperWorm:
                 nodes += 1
 
         edges = 0
-        for nature, defn in NATURE_DEFINITIONS.items():
-            for dst in (defn.get("feeds_into") or []):
-                edges += 1
-                if _spine is not None:
-                    _spine.record_spine_event(
-                        "nature_edge", {"from": nature, "to": dst})
+        # U3: no declared taxonomy edges exist to record. The counter stays
+        # for the return shape; learned edges surface via propose(), below.
 
         # Queen status: throwaway Lilith instance, non-destructive claim
         queen = {"role": "unknown", "env": env}
@@ -1482,12 +1475,13 @@ class MeshArchitectWorm:
 
     @staticmethod
     def _declared_edges() -> set[str]:
-        """Edges the configuration already declares, as "A->B" strings."""
-        declared: set[str] = set()
-        for nature, defn in (NATURE_DEFINITIONS or {}).items():
-            for dst in ((defn or {}).get("feeds_into") or []):
-                declared.add(f"{nature}->{dst}")
-        return declared
+        """Edges the configuration already declares, as "A->B" strings.
+
+        U3: the empty set, by construction. Flat dispatch declares nothing;
+        every observed edge is therefore a discovered path. (Was: the
+        taxonomy's feeds_into chains.)
+        """
+        return set()
 
     def _nature_rates(self) -> dict[str, float]:
         """Per-nature success rate from the brainstem (empty if unavailable)."""
@@ -1531,11 +1525,12 @@ class MeshArchitectWorm:
                 continue
             rate = rates.get(dst)
             # An edge the config does not know about is a discovered path.
+            # (Flat world, U3: the config knows no edges at all.)
             if edge not in declared:
                 proposals.append({
                     "action": "declare", "edge": edge, "weight": weight,
                     "target_rate": None if rate is None else round(rate, 3),
-                    "reason": "learned edge absent from NATURE_DEFINITIONS",
+                    "reason": "learned edge (no declared taxonomy)",
                 })
             if weight >= self.STRENGTHEN_W and rate is not None \
                     and rate >= self.HEALTHY_RATE:

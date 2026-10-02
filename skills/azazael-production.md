@@ -20,7 +20,7 @@ metadata:
 
 ### 1. Test Coverage
 - [ ] Unit tests for CLUSTERWORMS.py dynamic resolution (3 strategies)
-- [ ] Unit tests for NATURE_CLUSTERS.py category discovery
+    - [x] Unit tests for registry category discovery (U3: was NATURE_CLUSTERS.py)
 - [ ] Unit tests for METACLUSTER.py routing engine
 - [ ] Integration tests for parallel execution
 - [ ] Integration tests for cross-nature orchestration

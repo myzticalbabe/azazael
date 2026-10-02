@@ -111,24 +111,37 @@ if __name__ == "__main__":
             check(f"Breaker attempt {attempt+1}: failed -> DLQ", len(dl) > 0,
                   f"got {len(dl)} dead letters")
 
+    # Actually PERFORM the recovery this check is named after. `recovery_timeout=1`,
+    # and the three attempts above run back to back, so the breaker was still OPEN
+    # here and `health = successes / (failures + successes)` was necessarily 0.00:
+    # the assertion could not pass, and the label claimed a recovery the test never
+    # attempted. 2026-09-21 — this file's checks only began running when it stopped
+    # being an uncollected script, which is why the contradiction survived.
+    time.sleep(1.1)
+    try:
+        recovered = cb.retry_with_backoff(flaky_worm, max_retries=0)
+        check("Breaker recovery call succeeded", bool(recovered.get("success")))
+    except Exception as exc:
+        check("Breaker recovery call succeeded", False, f"raised {exc!r}")
+
     cb_stats = cb.stats()
     check("Breaker health after recovery", cb_stats["health"] > 0,
           f"health={cb_stats['health']:.2f}")
 
-    # ── Test 4: CrossNatureRoutingEngine cycle detection ──────────────
-    print("\n--- Test 4: Cycle detection and route optimization ---")
-    from CORE.WORMS.CROSS_NATURE_ROUTER import CrossNatureRoutingEngine
+    # ── Test 4: Flat dispatch replaces routing (U3) ──────────────
+    print("\n--- Test 4: Flat dispatch, no router ---")
+    from CORE.worm_registry import get_all_categories
+    from CORE.WORMS.METACLUSTER import MetaCluster
 
-    router = CrossNatureRoutingEngine()
-    paths = router.get_all_paths()
-    check("Router has paths", len(paths) > 0, f"found {len(paths)} paths")
+    categories = sorted(get_all_categories())
+    check("Registry has categories", len(categories) > 0,
+          f"found {len(categories)} categories")
 
-    # Test compute_routing_order (no cycles should break it)
-    try:
-        order = router.compute_routing_order(["security"])
-        check("Router ordering no crash", len(order) > 0, f"order: {order[:5]}")
-    except Exception as e:
-        check("Router ordering no crash", False, str(e))
+    mc = MetaCluster()
+    check("MetaCluster has no router", not hasattr(mc, "router"),
+          "router deleted with the taxonomy (D7)")
+    check("MetaCluster discovers flat", len(mc.discover_all()) > 0,
+          "discover_all returns per-category counts")
 
     # ── Test 5: End-to-end CLUSTERWORMS with DLQ + WorkStealing ──────
     print("\n--- Test 5: CLUSTERWORMS with DLQ + WorkStealing integration ---")
@@ -154,3 +167,16 @@ if __name__ == "__main__":
     print(f"  RESULTS: {passed}/{total} passed" + (" (ALL PASS)" if failed == 0 else f" ({failed} FAILED)"))
     print("=" * 60)
     sys.exit(0 if failed == 0 else 1)
+
+
+# ── pytest entry point (2026-09-21) ──────────────────────────────────
+# The end-to-end chain (ClusterWORMZ -> DeadLetterQueue -> retry -> success) is
+# asserted only under `if __name__ == "__main__"`, so pytest collected nothing and
+# returned rc=5. It runs the real chain, so it is the single most valuable check
+# in this directory to have actually executing.
+def test_script_passes(run_standalone_script):
+    proc = run_standalone_script(__file__, timeout=300.0)
+    assert proc.returncode == 0, (
+        f"{__file__} exited {proc.returncode}\n"
+        + proc.stdout[-3000:] + "\n" + proc.stderr[-2000:]
+    )

@@ -1,6 +1,6 @@
 ---
 name: azazael-worms
-description: Azazael worm registry — all 77 worms across 17 categories, @register_worm decorator, how to add/register worms, category breakdown, priority/cooldown patterns.
+description: Azazael worm registry — all 226 worms across 35 categories, @register_worm decorator, how to add/register worms, category breakdown, priority/cooldown patterns.
 metadata:
   category: architecture
   project: azazael
@@ -32,7 +32,7 @@ class MyNewWorm:
         ...
 ```
 
-That's it. No changes needed to CLUSTERWORMS.py, NATURE_CLUSTERS.py, or METACLUSTER.py — the registry handles discovery.
+    That's it. No changes needed to CLUSTERWORMS.py or METACLUSTER.py (U3: NATURE_CLUSTERS.py deleted) — the registry handles discovery.
 
 ## Category Breakdown (17 Categories)
 
@@ -60,7 +60,7 @@ That's it. No changes needed to CLUSTERWORMS.py, NATURE_CLUSTERS.py, or METACLUS
 
 1. **62% of worms (48/77) from ECOSYSTEM_EXPANSION.py** — this is the primary worm factory
 2. **Highest priority**: MetaCluster (p=10, 5s cooldown)
-3. **Lowest priority**: MemoryBus, MorphingWorm, NatureCluster, PamsRecorder, LegacyShimGen (p=3)
+3. **Lowest priority**: MemoryBus, MorphingWorm, PamsRecorder, LegacyShimGen (p=3) [U3: NatureCluster removed with the taxonomy]
 4. **Longest cooldown**: ColdArchivist (300s = 5min) — backup ops
 5. **4 worms at v0.0.0**: DiagnosticWorm, FastErrorScanner, OSCongruency, WormFleet (pre-release)
 6. **All worms have 0 spawns** — SpawnDiversityEngine ready but unused
@@ -69,8 +69,7 @@ That's it. No changes needed to CLUSTERWORMS.py, NATURE_CLUSTERS.py, or METACLUS
 
 ### orchestration
 - **MetaCluster** (p=10, 5s) — Top priority, cluster-of-clusters orchestrator
-- **NatureClusterManager** (p=9, 10s) — Auto-discovers nature groups
-- **ClusterWORMZ** (p=8, 20s) — Dynamic worm resolution, Nature-based building
+- **ClusterWORMZ** (p=8, 20s) — Dynamic worm resolution, flat category building [U3: was Nature-based]
 
 ### monitor
 - **SystemZ** (p=8, 15s) — Core system monitoring

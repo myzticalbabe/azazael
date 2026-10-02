@@ -16,8 +16,8 @@ azazael/
 │   │   ├── paths.py                  # Centralized path resolution
 │   │   ├── WORMS/
 │   │   │   ├── CLUSTERWORMS.py       # ClusterWORMZ v2.0.0 — dynamic resolution
-│   │   │   ├── NATURE_CLUSTERS.py    # NatureCluster + NatureClusterManager
-│   │   │   ├── METACLUSTER.py        # MetaCluster orchestrator (46 routes, 264 paths)
+    │   │   │   ├── CLUSTERWORMS.py       # ClusterWORMZ + ClusterWORMZ flat dispatch
+│   │   │   ├── METACLUSTER.py        # MetaCluster orchestrator (70 routes, 594 paths)
 │   │   │   ├── ECOSYSTEM_EXPANSION.py # 48 worms (62% of all worms)
 │   │   │   ├── WORM_FLEET.py         # WormFleet (v0.0.0, p=6)
 │   │   │   └── ...other worm files
@@ -38,7 +38,7 @@ azazael/
 ├── ERROR_LOG.md                      # 15+ errors with cause/fix/prevention
 ├── SYSTEM_INSTRUCTIONS.md            # Mandatory error recording SOP
 ├── PRODUCTION_TODO.md                # Production readiness roadmap
-├── WORM_CONFIG_TRACE.md              # Per-worm config audit (77 worms)
+├── WORM_CONFIG_TRACE.md              # Per-worm config audit (226 worms)
 └── AZAZAEL_INSIGHTS.md               # Architecture deep-dive
 ```
 
@@ -54,7 +54,7 @@ azazael/
 | File | Purpose |
 |------|---------|
 | `CORE/WORMS/CLUSTERWORMS.py` | Dynamic worm resolution, parallel execution |
-| `CORE/WORMS/NATURE_CLUSTERS.py` | Category auto-discovery, Mermaid graphs |
+| `CORE/WORMS/CLUSTERWORMS.py` | Category execution, Mermaid graphs |
 | `CORE/WORMS/METACLUSTER.py` | Cross-nature routing, pipeline execution |
 
 ### Memory Systems

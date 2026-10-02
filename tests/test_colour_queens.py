@@ -10,7 +10,7 @@ Findings covered:
             test_spine_mesh_telemetry-style isolation below, see the gate test).
 - R6        `order_quarantine(force=True)` is the single-env operator channel.
 - §5.1      `BlackQueenWorm` — adaptive loss; a retirement is quorum-gated AND
-            enforced by `NatureCluster.execute` (a decorated table is not a
+            enforced by `ClusterWORMZ.execute_all` (a decorated table is not a
             retirement).
 - §5.2      `GrayQueenWorm` — entrenchment detector over the PF16 census delta,
             snapshot persisted per session, delta reported instead of totals.
@@ -281,12 +281,13 @@ def test_black_force_channel_is_audited_and_effective(twin_registry):
     assert WORM_REGISTRY[rec["worm"]]["lifecycle_state"] == "retired"
 
     # …and the retirement is ENFORCED, not merely recorded.
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
-    cluster = NatureCluster("analysis")
-    cluster.discover_worms()
-    res = cluster.execute(worm_names=[rec["worm"]])
-    assert rec["worm"] in res.retired_skipped
-    assert rec["worm"] not in res.worm_results
+    # U3: enforcement moved from NatureCluster.execute to ClusterWORMZ.
+    from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
+    cluster = ClusterWORMZ.build_from_registry([rec["worm"]])
+    res = cluster.execute_all(worm_names=[rec["worm"]])
+    agg = cluster.aggregate_results()
+    assert rec["worm"] in agg.retired_skipped
+    assert rec["worm"] not in agg.worm_results
 
 
 def test_black_marks_census_rows_retired(tmp_path, monkeypatch, twin_registry):
@@ -330,20 +331,21 @@ def test_quarantine_still_cannot_be_reached_by_one_env_without_force():
     assert not sr.is_quarantined("LonelyWorm"), "the safety intent is preserved"
 
 
-def test_quarantine_gate_holds_a_worm_out_of_the_pipeline():
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
-    cluster = NatureCluster("immune")
-    cluster.discover_worms()
-    victim = sorted(cluster.worms)[0]
+def test_quarantine_gate_holds_a_worm_out_of_the_pipeline(twin_registry):
+    from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
+    cluster = ClusterWORMZ.build_from_registry(["TwinAlphaWorm", "TwinBetaWorm"])
+    victim = sorted(c.name for c in cluster.configs)[0]
     sr.quarantine_item(victim, "test:gate")
     try:
-        res = cluster.execute(worm_names=[victim])
-        assert res.quarantined_skipped == [victim]
-        assert not res.worm_results
+        res = cluster.execute_all(worm_names=[victim])
+        agg = cluster.aggregate_results()
+        assert agg.quarantined_skipped == [victim]
+        assert not agg.worm_results
     finally:
         sr.release_item(victim)
-    res2 = cluster.execute(worm_names=[victim])
-    assert res2.worm_results and not res2.quarantined_skipped
+    res2 = cluster.execute_all(worm_names=[victim])
+    agg2 = cluster.aggregate_results()
+    assert agg2.worm_results and not agg2.quarantined_skipped
 
 
 # ═══════════════════════════════════════════════════════════════════

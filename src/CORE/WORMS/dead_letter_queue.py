@@ -408,5 +408,112 @@ class DeadLetterQueue:
         return self.count_total()
 
 
+    def get_dead_letter_summary(self, lookback_seconds: float = 3600) -> dict[str, Any]:
+        """Windowed failure summary. Absorbed from NatureClusterManager (U3).
+
+        Same contract (total_failed, per_worm, recent_errors), flat dimension:
+        breakdown is by `cluster_id` (registry category) instead of nature —
+        the taxonomy is gone, the shape is not. Timestamps are ISO strings;
+        unparseable stamps stay visible (counted, never silently dropped).
+        """
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc)
+        try:
+            window = float(lookback_seconds)
+        except (TypeError, ValueError):
+            window = 3600.0
+        summary: dict[str, Any] = {
+            "total_failed": 0,
+            "affected_categories": 0,
+            "per_category": {},
+            "per_worm": {},
+            "recent_errors": [],
+        }
+        with self._lock:
+            letters = list(self._letters)
+        for letter in letters:
+            try:
+                stamp = datetime.fromisoformat(str(letter.timestamp))
+                if stamp.tzinfo is None:
+                    stamp = stamp.replace(tzinfo=timezone.utc)
+                epoch = stamp.timestamp()
+                age = (now - stamp).total_seconds()
+            except (ValueError, TypeError):
+                epoch = 0.0
+                age = 0.0
+            if age < 0 or age > window:
+                continue
+            summary["total_failed"] += 1
+            cat = letter.cluster_id or "uncategorized"
+            summary["per_category"][cat] = summary["per_category"].get(cat, 0) + 1
+            summary["per_worm"][letter.worm_name] = (
+                summary["per_worm"].get(letter.worm_name, 0) + 1)
+            summary["recent_errors"].append({
+                "category": cat,
+                "worm": letter.worm_name,
+                "error": str(letter.error_message)[:120],
+                "method": "?",
+                "resolved": letter.resolved,
+                "timestamp": str(letter.timestamp),
+                "timestamp_epoch": epoch,
+            })
+        summary["affected_categories"] = len(summary["per_category"])
+        summary["recent_errors"].sort(key=lambda e: e["timestamp"], reverse=True)
+        summary["recent_errors"] = summary["recent_errors"][:20]
+        return summary
+
+    def retry_all_failed_worms(self, max_retries: int = 2,
+                               execute_fn=None,
+                               category: str | None = None) -> dict[str, Any]:
+        """Retry every retryable letter. Absorbed from NatureClusterManager (U3).
+
+        Without `execute_fn` nothing can execute: reports eligibility per
+        category instead of raising — a reporter must never become an
+        executor to satisfy its contract. With one, delegates to replay_all.
+        `category` scopes to one registry category (was per-nature retry).
+        """
+        results: dict[str, Any] = {
+            "total_retried": 0,
+            "total_succeeded": 0,
+            "still_failed": 0,
+            "per_category": {},
+            "errors": [],
+        }
+        with self._lock:
+            eligible = [l for l in self._letters
+                        if l.can_retry() and l.retry_count < int(max_retries)
+                        and (category is None or (l.cluster_id or "uncategorized") == category)]
+        if execute_fn is None:
+            for letter in eligible:
+                cat = letter.cluster_id or "uncategorized"
+                bucket = results["per_category"].setdefault(cat, {
+                    "retried": 0, "succeeded": 0, "still_failed": 0})
+                bucket["retried"] += 1
+                results["total_retried"] += 1
+            results["still_failed"] = results["total_retried"]
+            return results
+        if category is None:
+            outcome = self.replay_all(execute_fn)
+        else:
+            outcome = []
+            for letter in eligible:
+                res = self.replay(letter, execute_fn)
+                outcome.append({
+                    "worm": letter.worm_name,
+                    "success": res.get("success", False),
+                    "error": res.get("error", ""),
+                })
+        for letter in eligible:
+            cat = letter.cluster_id or "uncategorized"
+            bucket = results["per_category"].setdefault(cat, {
+                "retried": 0, "succeeded": 0, "still_failed": 0})
+            bucket["retried"] += 1
+            results["total_retried"] += 1
+        results["total_succeeded"] = sum(
+            1 for r in outcome if r.get("success"))
+        results["still_failed"] = (results["total_retried"]
+                                   - results["total_succeeded"])
+        return results
+
     def get_summary(self):
         return {"status":"ok","worm":"DeadLetterQueue","method":"count_pending"}

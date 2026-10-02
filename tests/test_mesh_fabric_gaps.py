@@ -171,9 +171,14 @@ def test_spine_cycle_global_gate_serializes_instances():
 
 
 def test_spine_cycle_worm_excluded_from_generic_cluster_sweep():
-    """A generic nature sweep must not drive the self-improvement cycle."""
-    from CORE.WORMS.NATURE_CLUSTERS import NatureCluster
-    assert "SpineCycleWorm" in NatureCluster._NO_EXECUTE
+    """A generic sweep must not drive the self-improvement cycle (U3: flat)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "run_mesh_cycle_under_test",
+        Path(__file__).resolve().parents[1] / "scripts" / "run_mesh_cycle.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert "SpineCycleWorm" in mod._NO_EXECUTE
 
 
 # ── #7 — fabric operational state is persisted ─────────────────────

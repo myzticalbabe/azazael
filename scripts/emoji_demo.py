@@ -4,6 +4,13 @@
 import sys
 from pathlib import Path
 
+# Windows consoles default to cp1252 and crash on emoji output;
+# force UTF-8 so the demo runs everywhere (2026-10-01).
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 # Ensure src/ is importable
 _SRC = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(_SRC))

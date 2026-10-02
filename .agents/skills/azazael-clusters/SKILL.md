@@ -1,42 +1,44 @@
 ---
 name: azazael-clusters
-description: Azazael cluster system — ClusterWORMZ v2.0.0 API, NatureClusters, MetaCluster, CrossNatureRoutingEngine, parallel execution, thread safety, Mermaid graphs.
+description: Azazael cluster system — ClusterWORMZ v2.0.0 API, MetaCluster v2 flat dispatch, parallel execution, thread safety, Mermaid graphs.
 metadata:
   category: architecture
   project: azazael
 ---
-# Azazael Clusters — Three-Tier Architecture
+# Azazael Clusters — Flat Dispatch (U3)
 
-## Architecture
+## Architecture (U3: flat — the nature middle layer is deleted, D1)
 ```
-METACLUSTER.py              NATURE_CLUSTERS.py         CLUSTERWORMS.py
-     │                            │                          │
-     │ MetaCluster                │ NatureCluster            │ ClusterWORMZ v2.0.0
-     │ CrossNatureRoutingEngine   │ NatureClusterManager     │ Dynamic worm resolution
-     │ 46 routes, 264 paths       │ Auto-discovery           │ PAMS/MemoryBus
-     │                            │                          │
-     └────────────────────────────┴──────────────────────────┘
-                              │
-                         WORM_REGISTRY (77 worms)
+METACLUSTER.py                CLUSTERWORMS.py
+     │                              │
+     │ MetaCluster v2               │ ClusterWORMZ v2.0.0
+     │ flat per-category dispatch   │ Dynamic worm resolution
+     │                              │ PAMS/MemoryBus
+     │                              │
+     └──────────────┬───────────────┘
+                    │
+               WORM_REGISTRY (247 worms, 35 categories)
 ```
 
 ## CLUSTERWORMS.py — `CORE/WORMS/CLUSTERWORMS.py` (v2.0.0)
 
 ### Key APIs
 ```python
-# Build cluster from a nature (category)
+# Build cluster from a category
 cluster = ClusterWORMZ.build_from_nature("security")
 # Returns ClusterWORMZ with configs for all security worms
+# (method name kept for compatibility; takes a registry category)
 
 # Build from entire registry
-cluster = ClusterWORMZ.build_from_registry()
-# Returns ClusterWORMZ with all 77 worms
+cluster = ClusterWORMZ.build_full_ecosystem()
+# Returns ClusterWORMZ with the whole fleet
 
 # Build from specific worm names
-cluster = ClusterWORMZ.build_from_worms(["SYSTEMZ", "PROCESSZ"])
+cluster = ClusterWORMZ.build_from_registry(["SYSTEMZ", "PROCESSZ"])
 
 # Build from configs directly
-cluster = ClusterWORMZ(configs=[WormConfig(...), ...])
+cluster = ClusterWORMZ("custom")
+cluster.configs = [WormConfig(...), ...]
 ```
 
 ### Dynamic Worm Resolution (3 strategies)
@@ -45,8 +47,8 @@ cluster = ClusterWORMZ(configs=[WormConfig(...), ...])
 3. **Import-by-convention** — `_WORM_MODULE_MAP` fallback
 
 ### Execution Modes
-- **execute_all()** — Parallel execution with `ThreadPoolExecutor`-style threading
-- **execute_sequential()** — Sequential with retry logic
+- **execute_all()** — Parallel execution with FreeThreadPool (set_parallel)
+- **execute_all(worm_names=[...])** — Subset execution; retired/quarantined skip
 - **to_mermaid_execution_flow()** — Generates Mermaid graph of execution
 
 ### Thread Safety
@@ -59,41 +61,32 @@ cluster = ClusterWORMZ(configs=[WormConfig(...), ...])
 - `_mem_bus.publish()` → MemoryBus (pub/sub lifecycle events)
 - Events: cluster.build, cluster.execute.start, cluster.execute.complete, cluster.execute.error
 
-## NATURE_CLUSTERS.py — `CORE/WORMS/NATURE_CLUSTERS.py`
+## NATURE_CLUSTERS.py — DELETED (U3/D1)
 
-### Key APIs
-```python
-ncm = NatureClusterManager()
-ncm.discover_all_natures()  # Auto-discovers 17 nature groups from registry
-ncm.clusters  # Dict of {nature_name: NatureCluster}
-```
+The 1701-line taxonomy module is gone. Its live behaviors were absorbed:
+execution → `ClusterWORMZ.build_from_registry` per category; dead letters →
+`DeadLetterQueue.get_dead_letter_summary` / `retry_all_failed_worms`;
+ask-owner normalization → `_execute_worm_class`; sweep guard →
+`run_mesh_cycle._NO_EXECUTE`; retirement/quarantine enforcement →
+`ClusterWORMZ.execute_all` skips.
 
-### NatureCluster
-- Per-category grouping of worms
-- Mermaid graph generation (`to_mermaid()`)
-- Execution statistics tracking
-
-## METACLUSTER.py — `CORE/WORMS/METACLUSTER.py`
+## METACLUSTER.py — `CORE/WORMS/METACLUSTER.py` (v2.0.0 flat)
 
 ### Key APIs
 ```python
 mc = MetaCluster()
-mc.discover_all()  # Discovers all natures and builds cross-nature routes
+mc.discover_all()  # Discovers all registry categories (35) with worm counts
 
-# CrossNatureRoutingEngine
-mc.router.routes  # 46 routes
-mc.router.paths    # 264 cross-nature paths
+result = mc.orchestrate()  # Runs all categories via ClusterWORMZ each
+result = mc.orchestrate_nature("security")  # One category end-to-end
+result = mc.orchestrate_adaptive(max_natures=5)  # Top-5 by priority weight
 ```
 
-### CrossNatureRoutingEngine
-- Routes between nature pairs (e.g., security→monitor, profiling→optimization)
-- Pipeline execution: run Natures in sequence
-- Adaptive routing based on results
-
 ### Execution Modes
-- `orchestrate()` — Run all Natures in parallel
-- `orchestrate_adaptive()` — Run with adaptive routing
-- `orchestrate_pipeline(["security", "monitor", "diagnostic"])` — Sequential pipeline
+- `orchestrate()` — Run all categories (requested order, no routing graph)
+- `orchestrate_adaptive()` — Top-N by priority weight, circular-infra filtered
+- `orchestrate_nature(name)` / `orchestrate_full_pipeline(name)` — One category
+- Hooks kept: `pre_nature`, `post_nature`, `on_insight`, `on_error`
 
 ## Related Skills
 - `azazael-parallel` — 3.14t parallel execution optimization for CLUSTERWORMS/FreeThreadPool
@@ -121,6 +114,6 @@ from CORE.WORMS.METACLUSTER import MetaCluster
 mc = MetaCluster()
 mc.discover_all()
 result = mc.orchestrate()
-print(f"Orchestrated {result.natures_executed} Natures: "
+print(f"Orchestrated {result.natures_executed} categories: "
       f"{result.total_worms_ok} OK/{result.total_worms_fail} FAIL")
 ```

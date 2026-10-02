@@ -63,11 +63,11 @@ async function recordSession(retryCount = 0) {
     const outputPath = 'C:/Users/clint/Desktop/CAIN_session_final.mp4';
 
     const recorder = new PuppeteerScreenRecorder(page, {
-      videoCrf: 23,
+      videoCrf: 26,
       videoPreset: 'medium',
       videoPixelFormat: 'yuv420p',
-      videoBitrate: 4000,
-      fps: 25,
+      videoBitrate: 800,
+      fps: 30,
     });
 
     console.log(`Recording to: ${outputPath}`);
@@ -79,7 +79,7 @@ async function recordSession(retryCount = 0) {
       await new Promise(r => setTimeout(r, totalDurationMs));
     } else {
       // Smooth scroll: use requestAnimationFrame for butter-smooth motion
-      const fps = 25;
+      const fps = 30;
       const totalFrames = Math.ceil(totalDurationMs / (1000 / fps));
       const pxPerFrame = scrollDistance / totalFrames;
       const frameTimeMs = 1000 / fps;

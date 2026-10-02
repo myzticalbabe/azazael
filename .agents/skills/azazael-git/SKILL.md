@@ -34,7 +34,7 @@ metadata:
 | Scope | Covers |
 |-------|--------|
 | `worms` | Individual worm files |
-| `clusters` | CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER |
+| `clusters` | CLUSTERWORMS, METACLUSTER |
 | `registry` | worm_registry.py, @register_worm |
 | `codex` | CODEX video generation, PAMS, MemoryBus |
 | `hydra` | HYDRA/ subsystem |
