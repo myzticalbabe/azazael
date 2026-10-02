@@ -657,3 +657,40 @@ def test_search_resolution_is_reported_not_implied(wc, monkeypatch):
     # abs tolerance: the cycle rounds to 6 decimals for reporting.
     assert report["search_resolution"] == pytest.approx(
         1 / len(ELIGIBLE), abs=1e-6)
+
+
+# --------------------------------------------------------------------------
+# 5. Cache priming + promotion-quality readout (perf/outer-loop 2026-10-01)
+# --------------------------------------------------------------------------
+
+def test_prime_caches_fills_without_raising(tmp_path, monkeypatch):
+    """Startup prewarm must never fail a boot: best-effort, tuple-shaped.
+
+    Uses a fresh module WITHOUT the `wc` fixture: `wc` stubs `load_registry`
+    to a fixture dict (no discovery runs), so priming through it can fill
+    nothing by construction. The real loader path is exercised here.
+    """
+    mod = _load_wiring_cycle(tmp_path, monkeypatch)
+    monkeypatch.setenv("AZAZAEL_WIRING_DISCOVER", "1")
+    reg_ok, cred_ok = mod.prime_caches()
+    assert isinstance(reg_ok, bool) and isinstance(cred_ok, bool)
+    assert reg_ok is True, "real discovery must leave a cached registry"
+
+
+def test_promotion_quality_tracks_holds_and_reverts(wc, monkeypatch):
+    """The outer-loop readout: promotions standing vs reverted by canary."""
+    assert wc.promotion_quality() == {"promotions": 0, "reverts": 0,
+                                      "held_rate": None}
+    _force_winner(wc, monkeypatch)
+    for _ in range(wc.L1_MIN_WINS):
+        report = wc.run_cycle(apply_promotion=True, candidates=1, seed=1)
+    assert report["promoted"] is True
+    assert wc.promotion_quality()["promotions"] == 1
+    assert wc.promotion_quality()["held_rate"] == 1.0
+
+    genome = wg.WiringGenome.from_dict(
+        json.loads(Path(wc.PROMOTED_JSON).read_text(encoding="utf-8")))
+    assert _decayed_canary(wc, genome, CREDIT, ELIGIBLE, {})["status"] \
+        == "reverted"
+    assert wc.promotion_quality() == {"promotions": 1, "reverts": 1,
+                                      "held_rate": 0.0}
