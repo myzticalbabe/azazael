@@ -56,6 +56,13 @@
 /backup/
 /output/
 /graphify-out/
+# Generated GRAPH ARTIFACTS, not sources (measured 2026-10-03). `graphs/` holds
+# the atlas's own output -- .gexf/.graphml, communities.json, reports/ -- plus
+# `cosmos/graph.labels.0.js` and `graph.links.js`, which are the serialised
+# nodes/links of THIS graph. Indexing them makes the graph a map of its own
+# rendering: the cosmos .js dumps entered as degree-0 orphan nodes. 5.3 MB of
+# output, zero project source.
+/graphs/
 /nuitka_build_backup/
 /logs/
 /var/
