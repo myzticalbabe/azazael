@@ -98,10 +98,42 @@ def main() -> int:
     check("lesson_impact has outcome signal", outcome_signal)
 
     # 9. adherence pass ------------------------------------------------------
-    check("followcheck runs", lambda: (
-        (lambda r: (isinstance(r, dict), str(r)[:70]))(
-            pmb_client.call_tool("followcheck", {"window": 30})) if _has_tool("followcheck")
-        else (True, "no followcheck tool (adherence via engine API only)")))
+    def followcheck():
+        """The adherence pass runs AND reports its four counters. On an
+        mcp-only host there is no `followcheck` MCP tool, so drive the engine
+        API directly (the same call the Stop hook would make)."""
+        import sys as _sys
+        from pathlib import Path as _P
+        _sys.path.insert(0, str(_P(__file__).resolve().parent))
+        from pmb.core.engine import Engine
+        from pmb.hooks.followcheck import run_followcheck
+        res = run_followcheck(Engine(), window_minutes=30.0, apply=False)
+        d = res.to_dict() if hasattr(res, "to_dict") else dict(res)
+        need = {"checked", "marked_followed", "not_applicable"}
+        missing = need - set(d)
+        return (not missing,
+                "checked=%s marked=%s n/a=%s" % (
+                    d.get("checked"), d.get("marked_followed"),
+                    d.get("not_applicable")))
+    check("followcheck reports counters", followcheck)
+
+    # 9b. the causal arm's input: surface_ids stamped on actions -------------
+    def surface_ids_present():
+        """The join needs `surface_ids` on agent_actions rows. Without it the
+        followed/ignored arm can never populate, so the loop stays associational
+        forever. Assert the COLUMN exists (values may legitimately be empty
+        when no lesson was surfaced in the window)."""
+        import sqlite3
+        dbs = list((Path.home() / ".pmb" / "workspaces").glob("*/events.sqlite"))
+        if not dbs:
+            return False, "no events.sqlite"
+        c = sqlite3.connect(str(dbs[0]))
+        cols = {r[1] for r in c.execute("PRAGMA table_info(agent_actions)").fetchall()}
+        stamped = c.execute(
+            "SELECT COUNT(*) FROM agent_actions WHERE surface_ids IS NOT NULL "
+            "AND surface_ids != ''").fetchone()[0]
+        return ("surface_ids" in cols, "column=%s stamped_rows=%d" % ("surface_ids" in cols, stamped))
+    check("agent_actions has surface_ids", surface_ids_present)
 
     # 10. agent_actions table exists (the loop's input) ---------------------
     def table_exists():
