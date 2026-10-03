@@ -252,7 +252,7 @@ class MeshRouterWorm:
             "evidence": learned.get("evidence", 0),
             "stale_discount": learned.get("stale_discount", 1.0),
             "hops": 1 if is_known_env(dst_env) else -1,
-            "payload_keys": list(payload.keys())[:10],
+            "payload_keys": list(payload)[:10],
         }
 
     def invalidate_route(self, dst_env: str, reason: str = "") -> Dict[str, Any]:

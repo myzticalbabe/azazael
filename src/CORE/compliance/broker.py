@@ -591,7 +591,7 @@ def get_compliance_summary() -> dict:
             "can_edit": can_edit(),
             "eca_halted": eca.is_halted(),
             "eca_halt_reason": eca.get_halt_reason() if eca.is_halted() else "",
-            "decorated_tools": list(_decorated_tools.keys()),
+            "decorated_tools": list(_decorated_tools),
             "wrapt_available": HAS_WRAPT,
             "worm_health": {
                 "status": worm_health["status"],
@@ -647,7 +647,7 @@ def _test_broker():
     # Test decorated tools registry
     decorated = get_decorated_tools()
     assert "test_tool" in decorated, f"Expected 'test_tool' in decorated tools: {decorated}"
-    print(f"  [OK] Decorated tools: {list(decorated.keys())}")
+    print(f"  [OK] Decorated tools: {list(decorated)}")
 
     # Test GateViolationError when gate not passed
     reset_gate()

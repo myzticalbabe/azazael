@@ -483,7 +483,7 @@ class NeuralPipeline:
         )
         return {
             "trainer": "ALL (parallel)",
-            "agents_trained": list(results.keys()),
+            "agents_trained": list(results),
             "success_count": success_count,
             "total_agents": 3,
             "results": results,

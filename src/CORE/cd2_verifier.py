@@ -250,8 +250,8 @@ class PurePythonVerifier:
                 "result": "UNSAT",
                 "violations": violations,
                 "smt2": f"; Pure-Python verifier: {name}\n"
-                        f"; Required fields: {list(required_fields.keys())}\n"
-                        f"; Numeric bounds: {list(numeric_bounds.keys())}\n"
+                        f"; Required fields: {list(required_fields)}\n"
+                        f"; Numeric bounds: {list(numeric_bounds)}\n"
                         f"; Logical exprs: {len(logical_exprs)}\n"
                         f"; Checked: {checked}, Violations: {len(violations)}",
                 "statistics": {
@@ -267,8 +267,8 @@ class PurePythonVerifier:
             "result": "SAT",
             "model_values": model_values,
             "smt2": f"; Pure-Python verifier: {name}\n"
-                    f"; Required fields: {list(required_fields.keys())}\n"
-                    f"; Numeric bounds: {list(numeric_bounds.keys())}\n"
+                    f"; Required fields: {list(required_fields)}\n"
+                    f"; Numeric bounds: {list(numeric_bounds)}\n"
                     f"; Logical exprs: {len(logical_exprs)}\n"
                     f"; Checked: {checked}, All satisfied",
             "statistics": {

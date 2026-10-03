@@ -224,7 +224,7 @@ class WormSelectorWorm:
                             worm_rewards[w].append(rw)
 
                 if len(worm_rewards) >= 2:
-                    group = list(worm_rewards.keys())[:8]
+                    group = list(worm_rewards)[:8]
                     avg_rewards = [sum(worm_rewards[w]) / len(worm_rewards[w]) for w in group]
                     grpo.update_policy(group, avg_rewards, context_key=category)
 

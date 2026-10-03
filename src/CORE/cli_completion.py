@@ -28,7 +28,7 @@ SUBSECTIONS = {
     "inference": ["benchmark", "models", "classify", "stats", "health"],
 }
 
-_MAIN_COMMANDS = list(SUBSECTIONS.keys()) + ["status", "backup", "help",
+_MAIN_COMMANDS = list(SUBSECTIONS) + ["status", "backup", "help",
                                               "--json", "--version"]
 
 FLAGS = ["--help", "--json", "--verbose", "--output", "--limit", "--format",

@@ -310,16 +310,16 @@ class EvolutionEngine:
             if seed_genomes:
                 for genes in seed_genomes:
                     full = dict(genes)
-                    for name in list(bounds.keys()) + [k for k in self._gene_specs if k not in bounds]:
+                    for name in list(bounds) + [k for k in self._gene_specs if k not in bounds]:
                         if name not in full:
                             full[name] = self._sample_gene(name)
                     genome = Genome(genes=full, generation=0)
                     self._population.append(genome)
 
             # Fill remainder with random genomes
-            all_keys = list(bounds.keys()) + [k for k in self._gene_specs if k not in bounds]
+            all_keys = list(bounds) + [k for k in self._gene_specs if k not in bounds]
             if not all_keys and gene_bounds:
-                all_keys = list(gene_bounds.keys())
+                all_keys = list(gene_bounds)
             remaining = self.population_size - len(self._population)
             for _ in range(remaining):
                 genes = {name: self._sample_gene(name) for name in all_keys}
@@ -550,7 +550,7 @@ class EvolutionEngine:
         """
         child = {}
         eta = max(1.0, float(self.eta_c))
-        for key in list(genes1.keys()) + [k for k in genes2 if k not in genes1]:
+        for key in list(genes1) + [k for k in genes2 if k not in genes1]:
             v1 = genes1.get(key, genes2.get(key))
             v2 = genes2.get(key, v1)
             spec = self._gene_specs.get(key)
@@ -1561,7 +1561,7 @@ class SepCMAES:
         }
         import math as _m
         self._lock = threading.Lock()
-        self.names = list(gene_bounds.keys())
+        self.names = list(gene_bounds)
         self.bounds = {k: (float(v[0]), float(v[1])) for k, v in gene_bounds.items()}
         self.n = len(self.names)
         if self.n == 0:
@@ -1696,7 +1696,7 @@ class DifferentialEvolution:
                  popsize: int = 15, F: float = 0.7, CR: float = 0.9,
                  seed_genes: (dict | None) = None):
         self._lock = threading.Lock()
-        self.names = list(gene_bounds.keys())
+        self.names = list(gene_bounds)
         self.bounds = {k: (float(v[0]), float(v[1])) for k, v in gene_bounds.items()}
         self.popsize = max(4, popsize)
         self.F = F

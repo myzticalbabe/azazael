@@ -158,6 +158,11 @@ embedding_config.json
 # every run; the summary is committed to reports/ when it matters.
 logs/suite_chunks.json
 
+# TERENCE last-run record (src/UTILITIES/TERENCE/TERENCE.py _persist_state).
+# LIVE runtime state rewritten by every scan; `--status` answers
+# "no-run-recorded" on a fresh checkout, which is the correct answer.
+logs/terence_last_run.json
+
 # Gray Queen entrenchment baseline — LIVE runtime state, rewritten every spine
 # cycle by SpineCycleWorm._governance_stage(). The DELTA it produces is the
 # whole point, so a git checkout that reverted it would report a false

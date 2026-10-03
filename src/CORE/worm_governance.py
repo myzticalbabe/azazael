@@ -767,7 +767,7 @@ class DedupAnalyzer:
         Returns:
             DedupReport with all matches
         """
-        names = list(registry.keys())
+        names = list(registry)
         exact_matches: list[DedupMatch] = []
         near_matches: list[DedupMatch] = []
         cross_cat: list[DedupMatch] = []

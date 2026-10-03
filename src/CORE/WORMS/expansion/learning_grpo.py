@@ -100,7 +100,7 @@ class GRPOTrainer:
 
         # Get all worm names, prefer matching category
         preferred_category = task_context.get("category", "")
-        all_worms = list(registry.keys())
+        all_worms = list(registry)
 
         # Split into preferred (matching category) and others
         preferred = [w for w in all_worms

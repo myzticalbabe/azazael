@@ -14,6 +14,7 @@ import os
 import re
 import json
 import time
+import contextlib
 from datetime import datetime
 from pathlib import Path
 # from typing import Dict, List, Optional  # removed — all names have native equivalents
@@ -436,6 +437,11 @@ class TERENCE:
                 fix_count += len(fixes)
                 self.fixes.extend(fixes)
 
+            # files_scanned is a reported statistic; the local was never
+            # accumulated, so every run reported 0 files scanned (fixed
+            # 2026-10-03 alongside the --status persistence).
+            files_scanned += file_count
+
             if fix_count > 0:
                 print(f"{folder_name}: {file_count} files, {fix_count} potential fixes")
 
@@ -444,6 +450,7 @@ class TERENCE:
         self.stats.duration_ms = (time.time() - start) * 1000
 
         self._print_summary()
+        self._persist_state()
 
         return self.stats
 
@@ -533,19 +540,39 @@ class TERENCE:
         print()
         print("=" * 70)
 
-    def preview(self, file_filter: (str | None) = None) -> int:
-        """Preview fixes without applying."""
+    def preview(self, file_filter: (str | None) = None,
+                show_withheld: int = 0) -> int:
+        """Preview the APPLY QUEUE - the fixes `fix_all(apply=True)` would try.
+
+        Honesty split (2026-10-03). The old version iterated `self.fixes` and
+        printed the raw pattern+fix for EVERY finding, including rules in
+        UNSAFE_RULES that `fix_all` filters out BEFORE the loop. That made the
+        preview actively misleading: it showed 475 `Use tuple for isinstance`
+        rows whose displayed substitution was `isinstance(v, str)` ->
+        `isinstance(x, (str,))` - which RENAMES the variable (NameError if ever
+        applied) for a change that is a pure runtime no-op. A reader sized the
+        run from the preview and concluded corrupting edits were queued, when
+        the real queue was 31. A preview must describe what WOULD be applied,
+        so this now mirrors `fix_all`: applicable findings in full, advisory
+        findings only summarised. `show_withheld=N` prints the first N advisory
+        spans for rule auditing, clearly labelled as never-applied.
+        """
         print()
         print("=" * 70)
-        print("  FIX PREVIEW")
+        print("  FIX PREVIEW (apply queue)")
         print("=" * 70)
         print()
+
+        applicable = [f for f in self.fixes
+                      if f.error_type not in self.UNSAFE_RULES]
+        withheld = [f for f in self.fixes
+                    if f.error_type in self.UNSAFE_RULES]
+        if file_filter:
+            applicable = [f for f in applicable if file_filter in f.file]
+            withheld = [f for f in withheld if file_filter in f.file]
 
         count = 0
-        for fix in self.fixes:
-            if file_filter and file_filter not in fix.file:
-                continue
-
+        for fix in applicable:
             count += 1
             print(f"File: {fix.file}")
             print(f"Line: {fix.line}")
@@ -556,7 +583,26 @@ class TERENCE:
 
         self.stats.fixes_previewed = count
         print()
-        print(f"Total fixes previewed: {count}")
+        print(f"Total fixes in the apply queue: {count}")
+
+        if withheld:
+            print()
+            print(f"WITHHELD (advisory-only, NEVER auto-applied): {len(withheld)}")
+            _by_type = defaultdict(int)
+            for fix in withheld:
+                _by_type[fix.error_type] += 1
+            for _type, _n in sorted(_by_type.items(),
+                                    key=lambda kv: kv[1], reverse=True)[:10]:
+                print(f"  {_type}: {_n}")
+            print("These delete code or are not behaviour-preserving. Their raw")
+            print("patterns are NOT shown above because they are not fixes.")
+            if show_withheld:
+                print()
+                print(f"First {show_withheld} withheld spans (audit only):")
+                for fix in withheld[:show_withheld]:
+                    print(f"  {fix.file}:{fix.line} [{fix.error_type}]")
+                    print(f"    rule span: {fix.original} -> {fix.fixed}")
+
         print("=" * 70)
 
         return count
@@ -642,17 +688,19 @@ class TERENCE:
         # Advisory rules are filtered BEFORE the loop (2026-09-11). They can
         # never apply, so leaving them queued exhausted a capped training pass
         # on non-attempts (observed: 39 skips, 1 real fix, cap spent).
-        if apply:
-            advisory = sum(1 for f in self.fixes
-                           if f.error_type in self.UNSAFE_RULES)
-            if advisory:
-                print("  %d advisory findings withheld from apply "
-                      "(report-only: they delete code or are not equivalent)"
-                      % advisory)
-            queue = [f for f in self.fixes
-                     if f.error_type not in self.UNSAFE_RULES]
-        else:
-            queue = list(self.fixes)
+        # Advisory filter applies to BOTH the dry run and the real run
+        # (2026-10-03). The dry run used to iterate every finding and count
+        # advisory rows as "would apply", so the same run reported 8,019 in
+        # dry-run and 31 in apply mode. A dry run that disagrees with the
+        # real run is worse than no dry run.
+        advisory = sum(1 for f in self.fixes
+                       if f.error_type in self.UNSAFE_RULES)
+        if advisory:
+            print("  %d advisory findings withheld from apply "
+                  "(report-only: they delete code or are not equivalent)"
+                  % advisory)
+        queue = [f for f in self.fixes
+                 if f.error_type not in self.UNSAFE_RULES]
 
         for fix in queue:
             if apply:
@@ -687,6 +735,7 @@ class TERENCE:
             print("Use fix_all(apply=True) to actually apply")
 
         print("=" * 70)
+        self._persist_state()
 
         return applied
 
@@ -788,14 +837,80 @@ class TERENCE:
         except Exception:
             pass
 
+    def _state_path(self) -> Path:
+        """Path to the persisted last-run record (logs/terence_last_run.json).
+
+        The repo root, NOT the scan root: `scan()` deliberately roots at `src/`
+        (its targets -- CORE, ORCHESTRATION, META, UTILITIES -- live there), but
+        the run record belongs beside `logs/anti_pattern_baseline.json` at the
+        project root. Using the scan root here wrote to `src/logs/`, a directory
+        that did not otherwise exist (caught during the 2026-10-03 runtime run).
+        """
+        root = os.environ.get(
+            "AZAZAEL_ROOT", str(Path(__file__).resolve().parents[3]))
+        return Path(root) / "logs" / "terence_last_run.json"
+
+    def _persist_state(self) -> None:
+        """Persist this run's stats so `--status` can report a REAL run.
+
+        Defect fixed 2026-10-03: `--status` returned all zeros forever. Stats
+        live on the instance and were never written anywhere, and the CLI
+        builds a fresh instance per invocation, so `--status` always described
+        an object that had just been constructed - not the scan that had just
+        found 8,019 findings. Status must describe the last run.
+        """
+        with contextlib.suppress(OSError):
+            p = self._state_path()
+            p.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "version": self.VERSION,
+                "files_scanned": self.stats.files_scanned,
+                "errors_found": self.stats.errors_found,
+                "fixes_applied": self.stats.fixes_applied,
+                "fixes_previewed": self.stats.fixes_previewed,
+                "duration_ms": round(self.stats.duration_ms, 1),
+                "apply_queue": sum(
+                    1 for f in self.fixes
+                    if f.error_type not in self.UNSAFE_RULES),
+                "advisory_withheld": sum(
+                    1 for f in self.fixes
+                    if f.error_type in self.UNSAFE_RULES),
+                "when": datetime.now().isoformat(timespec="seconds"),
+            }
+            p.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
     def status(self) -> dict:
-        """Show current status."""
+        """Show the LAST RUN's status.
+
+        Prefers this instance's in-memory stats when it actually ran; otherwise
+        falls back to the persisted last run so `--status` is informative
+        instead of a fresh set of zeros.
+        """
+        if (self.stats.errors_found or self.stats.fixes_applied
+                or self.stats.fixes_previewed or self.stats.files_scanned):
+            return {
+                "version": self.VERSION,
+                "errors_found": self.stats.errors_found,
+                "fixes_applied": self.stats.fixes_applied,
+                "fixes_previewed": self.stats.fixes_previewed,
+                "duration_ms": self.stats.duration_ms,
+                "source": "this-instance",
+            }
+        data = None
+        with contextlib.suppress(OSError, ValueError):
+            p = self._state_path()
+            if p.exists():
+                data = json.loads(p.read_text(encoding="utf-8"))
+        if data is not None:
+            data["source"] = "last-run"
+            return data
         return {
             "version": self.VERSION,
-            "errors_found": self.stats.errors_found,
-            "fixes_applied": self.stats.fixes_applied,
-            "fixes_previewed": self.stats.fixes_previewed,
-            "duration_ms": self.stats.duration_ms,
+            "errors_found": 0,
+            "fixes_applied": 0,
+            "fixes_previewed": 0,
+            "duration_ms": 0.0,
+            "source": "no-run-recorded",
         }
 
     def fix_syntax_error(self, file_path: str, line_num: int, error_msg: str) -> bool:

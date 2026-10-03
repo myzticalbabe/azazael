@@ -758,7 +758,7 @@ class OpenAIProvider:
         """Load provider config from registry + env vars."""
         if name not in PROVIDER_REGISTRY:
             raise ValueError(
-                f"Unknown provider '{name}'. Available: {list(PROVIDER_REGISTRY.keys())}"
+                f"Unknown provider '{name}'. Available: {list(PROVIDER_REGISTRY)}"
             )
 
         info = PROVIDER_REGISTRY[name]
@@ -2915,7 +2915,7 @@ def get_provider(name):
     """
     name = name.lower()
     if name not in PROVIDER_REGISTRY:
-        available = list(PROVIDER_REGISTRY.keys())
+        available = list(PROVIDER_REGISTRY)
         raise ValueError(f"Unknown provider '{name}'. Available: {available}")
 
     # Fast path: read from cache under lock for 3.14t safety
