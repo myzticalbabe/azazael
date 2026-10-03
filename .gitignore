@@ -154,6 +154,10 @@ state/terence_probe_empty_audit.jsonl
 # machine-specific and must not be committed.
 embedding_config.json
 
+# Chunked-suite run report (tools/run_suite_chunked.py default --out). Regenerated
+# every run; the summary is committed to reports/ when it matters.
+logs/suite_chunks.json
+
 # Gray Queen entrenchment baseline — LIVE runtime state, rewritten every spine
 # cycle by SpineCycleWorm._governance_stage(). The DELTA it produces is the
 # whole point, so a git checkout that reverted it would report a false

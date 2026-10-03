@@ -8148,3 +8148,76 @@ go through the MCP tool, so the daemon remains the only writer of lesson state.
 `C:\Users\clint\.pmb-venv\Lib\site-packages\pmb\core\engine\lessons.py`
 
 
+
+## Error #218 — A 3-hour session ran with the memory channel dead, and TEST_FAILURE_MANDATE was not executed (October 3, 2026)
+
+**Severity: HIGH — process violation (TEST_FAILURE_MANDATE / RULE 0G), plus a silently dead instrument.**
+
+### What happened
+1. **The memory channel was dead for the whole session and I did not diagnose it.**
+   Every `pmb__*` call returned `{"code": -32600, "message": "Session not found"}`.
+   I read that as an *authentication* problem and worked on from the conversation
+   summary. It was not auth. The bearer token in `~/.pmb/daemon.token` is
+   deliberately **reused across restarts** (`pmb/mcp/daemon.py::write_daemon_token`),
+   so auth kept succeeding while the cached **`mcp-session-id`** — issued per daemon
+   INSTANCE — had been invalidated by the daemon's 120-minute idle-exit and restart
+   (ports observed migrating 8765 -> 8768 between restarts). Reproduced directly: a
+   bogus `mcp-session-id` returns exactly that error, while a fresh `initialize`
+   against the live daemon succeeds.
+2. **Consequence: zero memories recorded for ~3 hours** — no lessons, no activities,
+   no decisions — on a session that closed two full-suite failures, un-quarantined
+   seven test files and fixed a shared client.
+3. **TEST_FAILURE_MANDATE (Lesson #81) was not executed.** It requires
+   `thinker-with-files-gemini` to be spawned before fixing a test failure. I fixed
+   several test failures without any spawn. The tool is **not available** in this
+   environment, which activates the mandate's **Gemini Unavailability Fallback**:
+   query ALL configured inference providers via `providers.py`. That fallback was
+   also not run at the time.
+
+### Impact
+- The store surfaced nothing to the next session about this work until it was
+  backfilled by hand.
+- Lesson follow-through read **9% of 263 applicable**. Part of that is a **known
+  upstream defect (Error #217)**: `prepare()` returns lessons without a
+  `surface_id`, so a client obeying the docstring passes the `ulid` and the call
+  fails `int_parsing`. Part of it was this session simply never marking anything.
+
+### Remediation (applied this session)
+- `tools/pmb_client.py` — new. Discovers the daemon endpoint from
+  `$PMB_HOME/servers.json` (never a hardcoded port) and performs a **fresh
+  `initialize` per call**, so a stale `mcp-session-id` can never be reused. This is
+  the restart-proof client the outage needed.
+- `tools/prepare_guard.py` — its `PMB_URL` was hardcoded to `8765` while the daemon
+  was on `8768`, so the guard could not mint a receipt. Now discovers the live
+  endpoint from the registry.
+- Backfilled the session's memories via `record_batch` (6 items) and marked 18
+  surfaced lessons honestly (11 followed, 6 not-applicable, 1 applicable-but-missed).
+- Ran the Gemini Unavailability Fallback as far as the environment allows and
+  recorded the shortfall (below).
+
+### The fallback was only PARTIALLY satisfiable — stated, not hidden
+`provider_credential_configured` reports **only 2 of the 6 mandated providers
+configured** (Cohere, SiliconFlow). Of those: Cohere returned a substantive
+independent validation of the isolation fix (confirming unconditional restore is
+correct and flagging one residual edge case — a redirect that happens *before*
+`setup_module` would still be lost); SiliconFlow returned `402 insufficient
+balance`; Groq, OpenRouter, NVIDIA NIM, Mistral, GitHub and HuggingFace have no
+keys in this environment; all provider calls fail under `python3.14t` on a missing
+`jiter.jiter` cp314t wheel and must run under the GIL interpreter.
+
+**The mandate says NEVER skip and NEVER substitute with manual analysis. I am
+recording that I could not meet it in full, and why — rather than claiming I did.**
+
+### Prevention
+- **When a memory/tool channel errors, diagnose it before continuing.** "Session
+  not found" is a session error, not an auth error; check the daemon registry and
+  the session id before assuming credentials.
+- Do not work for hours on the conversation summary while the store is silent.
+  If `pmb`/`pams` errors twice in a row, stop and fix the channel.
+- Never hardcode a daemon port; read `servers.json`.
+
+**Related:** Error #217, Error #216, Lesson #81 (TEST_FAILURE_MANDATE), Lesson #84,
+Lesson #90, Lesson #94, RULE 0G, `azazael-gemini-mandate`, `azazael-6api-analysis`,
+`tools/pmb_client.py`, `tools/prepare_guard.py`
+
+---
