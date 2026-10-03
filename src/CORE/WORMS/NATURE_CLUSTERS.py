@@ -24,20 +24,37 @@ New code should import the root module directly::
 from __future__ import annotations
 
 import sys
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 # src/CORE/WORMS/NATURE_CLUSTERS.py -> parents[3] is the repository root.
-_ROOT = str(Path(__file__).resolve().parents[3])
-if _ROOT not in sys.path:
-    sys.path.insert(0, _ROOT)
+_ROOT_FILE = Path(__file__).resolve().parents[3] / "NATURE_CLUSTERS.py"
 
-from NATURE_CLUSTERS import (  # noqa: E402,F401
-    NATURE_DEFINITIONS,
-    CrossNatureRoute,
-    NatureCluster,
-    NatureClusterManager,
-    NatureResult,
-)
+#: Load the root module by FILE, not by the name ``NATURE_CLUSTERS``. Worm
+#: discovery puts ``src/CORE/WORMS`` at ``sys.path[0]``, so a bare
+#: ``import NATURE_CLUSTERS`` from inside this shim resolves to the shim itself
+#: -- the file that is executing -- and dies on a circular import (measured
+#: 2026-10-02: ``cannot import name 'NATURE_DEFINITIONS' from partially
+#: initialized module 'NATURE_CLUSTERS'``). That left NatureClusterManager
+#: unregistered, so ``execute_all`` reported ``Unknown module``. Loading the
+#: file under a private name is immune to whichever directory wins the name
+#: lookup, and the ``sys.modules`` guard keeps the root module single.
+_ROOT_NAME = "_azazael_root_nature_clusters"
+if _ROOT_NAME in sys.modules:
+    _root = sys.modules[_ROOT_NAME]
+else:
+    _spec = spec_from_file_location(_ROOT_NAME, _ROOT_FILE)
+    if _spec is None or _spec.loader is None:  # pragma: no cover - defensive
+        raise ImportError(f"cannot load NATURE_CLUSTERS from {_ROOT_FILE}")
+    _root = module_from_spec(_spec)
+    sys.modules[_ROOT_NAME] = _root
+    _spec.loader.exec_module(_root)
+
+NATURE_DEFINITIONS = _root.NATURE_DEFINITIONS
+CrossNatureRoute = _root.CrossNatureRoute
+NatureCluster = _root.NatureCluster
+NatureClusterManager = _root.NatureClusterManager
+NatureResult = _root.NatureResult
 
 __all__ = [
     "NATURE_DEFINITIONS",

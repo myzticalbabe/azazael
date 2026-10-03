@@ -92,8 +92,15 @@ REPORT = REPO / "logs" / "aggregate_suite_report.json"
 #: single-process run and passed alone, (2) `grep -lE "torch|stable_baselines3|
 #: transformers|sklearn"` does not match it, (3) it imports no other test file's
 #: help except through CORE. Rule 2 is what makes the CI baseline honest.
+#: The 2026-10-02 U3 surgery removed the nature-cluster test family
+#: (``test_nature_clusters*``, ``test_cross_nature_orchestration``,
+#: ``test_nature_metacluster_unit``). The first profile entry named one of
+#: them, so the profile drifted against the tree and
+#: ``test_the_isolation_profile_names_only_files_that_exist`` went red. The
+#: entry is dropped rather than restored: those tests targeted the combined
+#: ``CORE.WORMS.NATURE_CLUSTERS`` module that the surgery retired, and its
+#: coverage now lives in ``test_nature_integration_map`` / ``test_spine_mesh``.
 ISOLATION_PROFILE = (
-    "tests/test_nature_metacluster_unit.py",
     "tests/test_wiring_cycle.py",
     "tests/test_registry_importable.py",
     "tests/test_spine_mesh.py",

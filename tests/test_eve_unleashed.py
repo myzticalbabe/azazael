@@ -13,6 +13,8 @@ import tempfile
 import numpy as np
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
@@ -218,6 +220,11 @@ def test_utils_prepare_input_scalar():
 def test_utils_postprocess_torch():
     """Test postprocess_output with torch framework."""
     from eve_unleashed.utils import postprocess_output
+    pytest.importorskip(
+        "torch",
+        reason="torch in site-packages is the cp314 (GIL) wheel; python3.14t "
+               "loads only cp314t, so the C-extension cannot import here",
+    )
     import torch
     t = torch.tensor([[1.0, 2.0, 3.0]])
     result = postprocess_output(t, "torch")

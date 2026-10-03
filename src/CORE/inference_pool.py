@@ -332,6 +332,18 @@ class InferencePool:
                 timeout=t.get("timeout", timeout) or timeout,
             )
 
+        #: `timeout` is the PER-TASK budget, not the pool deadline. Bound the
+        #: pool by the slowest task's own timeout plus a scheduling margin --
+        #: reusing the per-task value as the pool deadline made two 1 s tasks
+        #: fail a 2 s pool timeout whenever a refused connection outlived the
+        #: socket timeout (measured: Windows returns in ~5 s for a filtered
+        #: port, so the pool declared "pool-level timeout" while the tasks were
+        #: still running). 2026-10-02.
+        per_task_timeout = [
+            (t.get("timeout", timeout) or timeout) for t in tasks
+        ]
+        pool_deadline = max(per_task_timeout) + 5.0
+
         with self._pool as pool:
             pool.max_workers = min(self._max_concurrent,
                                    _max_concurrent_for_model(
@@ -339,7 +351,7 @@ class InferencePool:
             futures = pool.submit_all([
                 (_task, (t,), {}) for t in tasks
             ])
-            return pool.collect_results(futures, timeout=timeout)
+            return pool.collect_results(futures, timeout=pool_deadline)
 
     def classify_many(self, items: list[str],
                       model: str = "llama3.2:1b") -> list[dict[str, Any]]:

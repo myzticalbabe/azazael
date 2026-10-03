@@ -39,6 +39,11 @@ def test_numpy_inference():
 
 def test_torch_cpu_inference():
     """Test PyTorch tensor operations and simple neural net inference."""
+    pytest.importorskip(
+        "torch",
+        reason="torch in site-packages is the cp314 (GIL) wheel; python3.14t "
+               "loads only cp314t, so the C-extension cannot import here",
+    )
     import torch
     import torch.nn as nn
 

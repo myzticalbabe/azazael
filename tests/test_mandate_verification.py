@@ -1,14 +1,32 @@
 """Verify the TEST_FAILURE_MANDATE and CONCURRENT_INFERENCE_MANDATE are codified and loadable."""
 import os
-import sys
+from pathlib import Path
+
+#: The Codebuff mandate file is the agent client's config, not a repo artifact.
+#: It has lived at `<home>/.codebuff/rules.md` and, in one tree layout, two
+#: levels above the repo. Resolve it from candidates so the check describes the
+#: mandate rather than one machine's directory depth.
+_MANDATE_CANDIDATES = (
+    Path.home() / ".codebuff" / "rules.md",
+    Path(__file__).resolve().parents[1] / ".codebuff" / "rules.md",
+    Path(__file__).resolve().parents[2] / ".codebuff" / "rules.md",
+)
+
+
+def _mandate_path():
+    for candidate in _MANDATE_CANDIDATES:
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def test_mandate_exists():
     """Verify that both TEST_FAILURE_MANDATE and CONCURRENT_INFERENCE_MANDATE are codified and loadable."""
-    file_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", ".codebuff", "rules.md"
+    file_path = _mandate_path()
+    assert file_path is not None, (
+        "Mandate file must exist at one of: %s"
+        % ", ".join(str(c) for c in _MANDATE_CANDIDATES)
     )
-    assert os.path.exists(file_path), f"Mandate file must exist at {file_path}"
 
     with open(file_path, "r") as f:
         content = f.read()
