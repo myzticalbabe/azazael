@@ -93,7 +93,7 @@ class OvomorphWorm:
 
     def lay(self, egg_id: str, payload: dict, env_hint: str = "any") -> dict[str, Any]:
         with self._lock:
-            self._eggs[egg_id] = {"payload_keys": list(payload.keys())[:8],
+            self._eggs[egg_id] = {"payload_keys": list(payload)[:8],
                                   "env_hint": env_hint,
                                   "at": datetime.now().isoformat(),
                                   "hatched": False}

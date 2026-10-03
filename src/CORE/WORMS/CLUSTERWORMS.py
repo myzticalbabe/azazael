@@ -1587,7 +1587,7 @@ def run_popup():
     cluster_combo = ttk.Combobox(
         control_frame,
         textvariable=cluster_var,
-        values=list(CLUSTER_REGISTRY.keys()),
+        values=list(CLUSTER_REGISTRY),
         width=15,
         font=("Consolas", 10),
     )
@@ -1715,7 +1715,7 @@ def run_popup():
             for cat in sorted(get_all_categories()):
                 cat_worms = get_worms_by_category(cat)
                 log(f"\n[{cat}]: {len(cat_worms)} worms", "INFO")
-                log(f"  {', '.join(sorted(list(cat_worms.keys())[:8]))}", "INFO")
+                log(f"  {', '.join(sorted(list(cat_worms)[:8]))}", "INFO")
 
     btn_run = tk.Button(
         button_frame,
@@ -1796,7 +1796,7 @@ def main():
             for cat in sorted(get_all_categories()):
                 cat_worms = get_worms_by_category(cat)
                 print(f"  [{cat}] {len(cat_worms)} worms")
-                for name in sorted(list(cat_worms.keys())[:8]):
+                for name in sorted(list(cat_worms)[:8]):
                     print(f"    - {name}")
                 if len(cat_worms) > 8:
                     print(f"    ... and {len(cat_worms) - 8} more")

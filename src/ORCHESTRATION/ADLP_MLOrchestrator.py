@@ -190,7 +190,7 @@ class MLOrchestrator:
         return analysis
 
     def _summarize(self, data: dict) -> str:
-        keys = list(data.keys())[:5]
+        keys = list(data)[:5]
         return f"Data contains {len(data)} fields: {', '.join(keys)}"
 
     def _find_patterns(self, data: dict) -> list[str]:

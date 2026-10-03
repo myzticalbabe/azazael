@@ -250,7 +250,7 @@ class AzazaelOptimizer:
 
     def list_scripts(self) -> list[str]:
         """list all available scripts."""
-        return list(SCRIPT_MAP.keys())
+        return list(SCRIPT_MAP)
 
     def get_status(self) -> dict[str, Any]:
         """Get optimizer status."""

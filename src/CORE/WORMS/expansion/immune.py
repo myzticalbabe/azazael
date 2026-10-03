@@ -220,7 +220,7 @@ class QuarantineWorm:
         items = self.active()
         return {"success": True, "method": "execute",
                 "result": {"quarantined": len(items),
-                           "items": list(items.keys())[:10]}}
+                           "items": list(items)[:10]}}
 
 
 @register_worm(category="immune", priority=6, cooldown_seconds=120.0,

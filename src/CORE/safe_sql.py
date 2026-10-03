@@ -143,7 +143,7 @@ class SafeStatement:
                 if token.text not in kwargs:
                     raise ValueError(
                         f"Missing parameter: {{{token.text}}}.\n"
-                        f"Available kwargs: {list(kwargs.keys())}"
+                        f"Available kwargs: {list(kwargs)}"
                     )
                 val = kwargs[token.text]
                 it = Interpolation(value=val, expr=token.text)
@@ -166,7 +166,7 @@ class SafeStatement:
                 if token.text not in kwargs:
                     raise ValueError(
                         f"Missing identifier: {{{token.text}:ident}}.\n"
-                        f"Available kwargs: {list(kwargs.keys())}"
+                        f"Available kwargs: {list(kwargs)}"
                     )
                 val = kwargs[token.text]
                 it = Interpolation(value=val, expr=token.text, fmt_spec="ident")
@@ -188,7 +188,7 @@ class SafeStatement:
                 if token.text not in kwargs:
                     raise ValueError(
                         f"Missing raw parameter: {{{token.text}:raw}}.\n"
-                        f"Available kwargs: {list(kwargs.keys())}"
+                        f"Available kwargs: {list(kwargs)}"
                     )
                 val = kwargs[token.text]
                 if not isinstance(val, str):

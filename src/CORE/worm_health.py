@@ -194,7 +194,7 @@ class WormHealthScorer:
         try:
             from CORE.worm_registry import discover_worms, WORM_REGISTRY
             discover_worms()
-            worm_names = list(WORM_REGISTRY.keys())
+            worm_names = list(WORM_REGISTRY)
         except ImportError:
             pass
 
