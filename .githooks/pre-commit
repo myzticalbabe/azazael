@@ -112,5 +112,20 @@ if [ -f "$SCRIPT_DIR/tools/anti_pattern_gate.py" ]; then
 else
     echo "[Ratchet] gate not found -- passing loud (gate unrunnable)"
 fi
+echo ""
+
+# ─── Check 5 (non-blocking): PMB outcome observer ───
+# A commit is an outcome-bearing turn. Recording it here feeds PMB's
+# Earned-Memory loop (`lesson_impact`) and its adherence pass, both of which
+# read the `agent_actions` table. That table is written on this host by
+# tools/pmb_session_observe.py, wired at the two triggers that ALWAYS fire --
+# the test run (conftest.py) and this commit. Deliberately NON-blocking: a
+# memory side-effect must never reject a commit, so its exit code is ignored.
+if [ -f "$SCRIPT_DIR/tools/pmb_session_observe.py" ]; then
+    PMB_PY="${PMB_VENV_PYTHON:-$HOME/.pmb-venv/Scripts/python.exe}"
+    if [ -x "$PMB_PY" ]; then
+        "$PMB_PY" "$SCRIPT_DIR/tools/pmb_session_observe.py" --commit-ok --quiet 2>/dev/null || true
+    fi
+fi
 
 exit 0

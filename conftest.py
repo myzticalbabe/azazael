@@ -86,3 +86,49 @@ def pytest_unconfigure(config):
         shutil.rmtree(str(_ENTRENCHMENT_OVERRIDE.parent), ignore_errors=True)
     if _MEMORY_DIR_OVERRIDE:
         shutil.rmtree(_MEMORY_DIR_OVERRIDE, ignore_errors=True)
+
+
+# ── PMB outcome observer: the hardwired test trigger ────────────────
+# PMB's Earned-Memory loop (`pmb.health.earned_memory.lesson_impact`) and its
+# adherence pass (`followcheck`) both read the `agent_actions` table, which is
+# written ONLY by the PostToolUse `track-action` hook PMB installs for
+# claude-code. This host (Codebuff) is absent from PMB's capability registry,
+# so no hook fires and the loop is structurally dead here -- it reported
+# `n_outcome_turns: 0` forever. A test run is an outcome-bearing turn that is
+# GUARANTEED to happen, so we record it at the one point every run reaches.
+#
+# This must NOT make a test run fail, so it is entirely best-effort. The
+# observer needs the `pmb` package, which lives in the `.pmb-venv` interpreter,
+# not in the free-threaded `python3.14t` running these tests -- hence the
+# subprocess. Disable with AZAZAEL_PMB_OBSERVE=0.
+_PMB_VENV_PYTHON_CANDIDATES = (
+    os.environ.get("PMB_VENV_PYTHON"),
+    str(pathlib.Path.home() / ".pmb-venv" / "Scripts" / "python.exe"),
+    str(pathlib.Path.home() / ".pmb-venv" / "bin" / "python"),
+)
+
+
+def _pmb_observe_test_outcome(exitstatus) -> None:
+    """Record this run's pass/fail as a PMB agent_action. Best-effort."""
+    if os.environ.get("AZAZAEL_PMB_OBSERVE") == "0":
+        return
+    interp = next((p for p in _PMB_VENV_PYTHON_CANDIDATES
+                   if p and os.path.exists(p)), None)
+    if not interp:
+        return  # no PMB venv on this machine -- nothing to observe into
+    observer = pathlib.Path(__file__).resolve().parent / "tools" / "pmb_session_observe.py"
+    if not observer.exists():
+        return
+    try:
+        import subprocess
+        subprocess.run(
+            [interp, str(observer), "--pytest-exit", str(int(exitstatus)),
+             "--quiet"],
+            timeout=20, capture_output=True,
+        )
+    except Exception:
+        pass  # a memory side-effect must never fail the suite
+
+
+def pytest_sessionfinish(session, exitstatus):
+    _pmb_observe_test_outcome(exitstatus)
