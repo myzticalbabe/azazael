@@ -679,6 +679,30 @@ class DataPipelineWorm:
         """Standard worm execute() — runs pipeline with default params."""
         return self.run_pipeline(limit=100, max_age_days=7)
 
+    def get_summary(self) -> Dict[str, Any]:
+        """Worm contract: return a summary dict (see BaseWormMixin).
+
+        `DataPipelineWorm` was split out of the `learning.py` monolith without
+        a `get_summary()`, so the smoke test that instantiates every registered
+        worm saw `None` here. `BaseWormMixin.__init_subclass__` would otherwise
+        have picked the no-argument `execute()` and run a live 100-row pipeline
+        just to produce a status dict; reporting instance state is cheaper and
+        side-effect free.
+        """
+        with self._lock:
+            execution_count = self._execution_count
+            cached = len(self._cache)
+        return {
+            "success": True,
+            "method": "get_summary",
+            "result": {
+                "version": self.VERSION,
+                "execution_count": execution_count,
+                "cached_extracts": cached,
+                "operations": len(self._operations),
+            },
+        }
+
     # -- Internal ------------------------------------------------------
 
     def _record_fallback(self, operation: str, data: Dict):

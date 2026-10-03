@@ -450,6 +450,17 @@ class GRPOTrainer:
             ) if recent_rewards else None,
         }
 
+    def get_summary(self) -> dict[str, Any]:
+        """Worm contract: return a summary dict (see BaseWormMixin).
+
+        `GRPOTrainer` was split out of the `learning.py` monolith without a
+        `get_summary()`, so the smoke test that instantiates every registered
+        worm saw `None` here. `get_stats()` already computes the policy
+        telemetry; this only adds the `success` envelope the registry executors
+        expect.
+        """
+        return {"success": True, "method": "get_stats", "result": self.get_stats()}
+
 
 # -- A/B Test Runner with DPO ----------------------------------------------
 

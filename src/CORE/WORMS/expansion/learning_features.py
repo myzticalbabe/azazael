@@ -388,6 +388,25 @@ class SchemaAwareFeatureExtractor:
             "shapes_used": static_meta.get("shapes_used", []),
         }
 
+    def get_summary(self) -> Dict[str, Any]:
+        """Worm contract: return a summary dict (see BaseWormMixin).
+
+        `SchemaAwareFeatureExtractor` was split out of the `learning.py`
+        monolith without a `get_summary()`, so the smoke test that instantiates
+        every registered worm saw `None` here. Reports the fitted vocabularies
+        without extracting from any record set.
+        """
+        return {
+            "success": True,
+            "method": "get_summary",
+            "result": {
+                "version": self.VERSION,
+                "fitted": self._fit_done,
+                "vocab_fields": len(self._category_vocabs),
+                "known_shapes": len(DATA_SHAPES),
+            },
+        }
+
 @register_worm(category="learning", priority=5, cooldown_seconds=45.0,
     description="Feature engineer — feature extraction from LocalMemoryStore, normalization, encoding, imputation")
 class FeatureEngineer:
@@ -484,4 +503,24 @@ class FeatureEngineer:
             "features": features,
             "labels": labels,
             "source_categories": source_list,
+        }
+
+    def get_summary(self) -> Dict[str, Any]:
+        """Worm contract: return a summary dict (see BaseWormMixin).
+
+        `FeatureEngineer` was split out of the `learning.py` monolith without a
+        `get_summary()`, so the smoke test that instantiates every registered
+        worm saw `None` here. `BaseWormMixin` would have auto-selected
+        `normalize()`, which requires an argument; reporting cache state is
+        cheaper and side-effect free.
+        """
+        with self._lock:
+            cached = len(self._feature_cache)
+        return {
+            "success": True,
+            "method": "get_summary",
+            "result": {
+                "version": self.VERSION,
+                "cached_features": cached,
+            },
         }

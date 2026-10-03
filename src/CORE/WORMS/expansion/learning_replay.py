@@ -244,3 +244,14 @@ class PrioritizedReplayBuffer:
             "fill_pct": round(n / self._capacity * 100, 1),
             "frame": self._frame,
         }
+
+    def get_summary(self) -> dict[str, Any]:
+        """Worm contract: return a summary dict (see BaseWormMixin).
+
+        `PrioritizedReplayBuffer` was split out of the `learning.py` monolith
+        without a `get_summary()`, so the smoke test that instantiates every
+        registered worm saw `None` here. `get_stats()` already computes the
+        buffer telemetry; this only adds the `success` envelope the registry
+        executors expect.
+        """
+        return {"success": True, "method": "get_stats", "result": self.get_stats()}
