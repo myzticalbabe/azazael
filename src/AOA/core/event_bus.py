@@ -39,6 +39,12 @@ class AOEventType:
 class EventBus:
     def __init__(self, max_history=1000):
         self._subscribers=defaultdict(list); self._history=[]; self._max_history=max_history; self._lock=threading.Lock()
+        # `publish` used to `except: pass`, so a subscriber that raised was
+        # silently never delivered to -- a broken consumer was indistinguishable
+        # from one that legitimately did nothing, with 9 arms subscribed.
+        # Delivery is still isolated (one bad consumer must not break the
+        # publisher) but the failure is now counted and kept.
+        self._cb_errors=[]; self._cb_error_count=0; self._cb_errors_lock=threading.Lock()
     def publish(self, event):
         with self._lock:
             self._history.append(event)
@@ -47,7 +53,31 @@ class EventBus:
             if self._match_pattern(pattern, event.event_type):
                 for cb in cbs:
                     try: cb(event)
-                    except: pass
+                    except Exception as _e:
+                        # Keep the LEAF of the qualname. A long
+                        # `Class.method` truncated from the right keeps the
+                        # class and throws away the identifying method --
+                        # which is the only part that says which consumer broke.
+                        _qn = str(getattr(cb,"__qualname__",None)
+                                  or getattr(cb,"__name__",None) or repr(cb))
+                        if len(_qn)>80:
+                            _qn = "..."+_qn[-77:]
+                        with self._cb_errors_lock:
+                            self._cb_error_count+=1
+                            self._cb_errors.append({
+                                "event_type": getattr(event,"event_type","?"),
+                                "pattern": pattern,
+                                "callback": _qn,
+                                "error": "%s: %s"%(type(_e).__name__,str(_e)[:120]),
+                            })
+                            self._cb_errors=self._cb_errors[-50:]
+    @property
+    def callback_error_count(self):
+        """Subscriber deliveries that raised. Non-zero means a consumer is
+        broken and its events are being dropped."""
+        with self._cb_errors_lock: return self._cb_error_count
+    def get_callback_errors(self, limit=10):
+        with self._cb_errors_lock: return list(self._cb_errors[-limit:])
     def subscribe(self, pattern, cb):
         with self._lock: self._subscribers[pattern].append(cb)
     def unsubscribe(self, pattern, cb):
