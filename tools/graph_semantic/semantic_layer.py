@@ -558,7 +558,7 @@ NODES: list[tuple[str, str, str, str, str]] = [
 # This is what keeps the semantic layer connected to the code graph.
 # ---------------------------------------------------------------------------
 ANCHORS: dict[str, list[str]] = {
-    "azazael_registry_doc": ["@register_worm", "discover_worms"],
+    "azazael_registry_doc": ["@register_worm", "discover_worms", "WORM_REGISTRY"],
     "azazael_clusters_tier1_clusterwormz": ["ClusterWORMZ"],
     "azazael_clusters_tier2_nature": ["NatureCluster"],
     "azazael_clusters_tier3_metacluster": ["MetaCluster", "orchestrate"],
@@ -580,13 +580,12 @@ ANCHORS: dict[str, list[str]] = {
     "anti_pattern_scanner": ["scan_source", "scan_directory"],
     "anti_pattern_ratchet": ["scan_directory"],
     "type_check_gate": ["run_gate"],
-    "canon_drift_check": ["check_drift"],
+    "canon_drift_check": ["cmd_check", "classify"],
     "pmb_session_observer": ["observe_command"],
     "azazael_ctl_doc": ["get_status"],
     "compliance_314t_unprotected_mutations": ["orchestrate"],
     "terence_100_uses_doc": ["fix_all"],
     "docs_cluster_api_reference_doc": ["ClusterWORMZ"],
-    "worm_config_trace": ["WORM_REGISTRY"],
     "azazael_dual_pane_doc": ["get_status"],
 }
 

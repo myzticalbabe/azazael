@@ -18,21 +18,23 @@ plus the mechanical scaffolding to keep it reproducible.
 | | before | after |
 |---|---|---|
 | nodes | 32,303 | **35,888** |
-| links | 56,443 | **63,710** |
-| connected components | 126 | **23** |
+| links | 56,443 | **67,041** |
+| connected components | 126 | **10** |
 | project docs with a node | 151 (of 1,527) | **1,527 (100%)** |
-| nodes carrying `rationale` | 271 | **2,219** |
+| nodes carrying `rationale` | 271 | **2,239** |
 | document / rationale / concept nodes | ~11,572 | **15,159** |
 
 - Extraction mix: **92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS**; INFERRED mean
   confidence **0.88**.
-- 2,272 communities, 12 hyperedges, **1 isolated node** (the remaining 5 non-giant
-  components are 45 / 24 / 13 / 12 / 9 nodes — see the coverage layer).
+- 2,018 communities, 12 hyperedges, **1 isolated node**, **0 self-loop edges**
+  (removed in `build_graph.py`), and **3,426 document→entity `mentions` edges**
+  (see the enhanced-semantic layer). The non-giant components are now tiny
+  (7 / 6 / 4 / 3 / 2 … nodes).
 - `graphify diagnose multigraph`: 0 exact-duplicate edges, 0 collapsed endpoint
   pairs, 0 external-reference edges. 101 self-loop edges remain (harmless,
   uninvestigated).
 
-Net: one pass took the graph from **126 → 23 connected components** while adding
+Net: one pass took the graph from **126 → 10 connected components** while adding
 3,585 nodes. It is now far *more* connected than the git-native graph it started
 from, and doc coverage is total. (The figures above are from the reproduced run;
 the report doc itself is counted too, which is why the doc total is 1,527 rather
@@ -58,6 +60,21 @@ than the 1,526 measured before it was added.)
    `.ps1`/`.sh`/`.java`/`__init__.py` files (no supported AST language, so degree-0
    by construction) grouped under suite/marker concept nodes. Adds 14 authored
    rationale rows and 16 `ATTACH` edges binding authored group nodes to spine nodes.
+5. **Rationale tranche 2** — 20 authored nodes / 26 edges for the large load-bearing
+   docs the first pass had not read (task registry, research record, both
+   full-project audits, session-insight and lesson records, worm audit, project map,
+   cross-environment manifest, Rust tracker, sync strategy, worm proposals,
+   algorithm log).
+6. **Enhanced semantic layer** — 3,426 `mentions` edges across 492 docs. Every
+   document's *body* is matched against known entity labels; an edge is emitted only
+   when the label literally appears in the text. Identifier-shape and
+   document-frequency (≤40) guards stop corpus vocabulary like `Environment` and
+   `Category` from becoming hubs.
+7. **Bridge layer** — 17 grounded edges that pull the last stranded components onto
+   the main graph (noxfile→type gate, cascade→inference endpoints, cluster_route→
+   Tier-2, graph_learn→ML harness, animation/vega→CODEX video, forensic audits→
+   error-lesson audit, mesh resilience→mesh architecture audit, PowerShell suite→
+   launcher/deploy).
 
 ## The design decision that made it work
 
@@ -106,6 +123,18 @@ ranking is all real code:
 
 `--patch-report` rewrites the `## God Nodes` section of `GRAPH_REPORT.md` in place.
 This is applied *after* `cluster-only`, which otherwise regenerates the raw ranking.
+The same correction is available at the source via
+`tools/graph_semantic/graphify_patch.py` (`god_nodes_fixed` + `install()` monkeypatch
++ an upstream unified diff), so an embedder does not have to post-process at all.
+
+**Anchor audit.** `audit_anchors.py` checks the claim that every authored node is
+anchored to a real AST symbol. Two real defects were found and fixed: a
+`canon_drift_check` anchor pointing at a label that does not exist
+(`check_drift` → `cmd_check`/`classify`) and a `worm_config_trace` anchor whose node
+was never defined (removed; `WORM_REGISTRY` folded into `azazael_registry_doc`).
+It also reports the honest caveat that graphify **rewrites 6 authored ids to their
+source-file stem** on merge (`type_check_gate` → `tools_type_check_gate`, etc.) —
+edges survive, but the on-disk id is not the authored one.
 
 ## Traps that cost time (all encoded in the pipeline)
 
@@ -138,15 +167,21 @@ generated content but it is the project's own skill corpus.
 ## Reproduce
 
 ```bash
-python tools/graph_semantic/run_extraction.py                     # 1..8: extract + build
-python tools/graph_semantic/coverage_layer.py                     #   (part of 1..8 via build_graph)
-graphify cluster-only . --no-viz --no-label                        # 9: regenerate GRAPH_REPORT.md
-python tools/graph_semantic/god_nodes.py --top 20 --patch-report   # 10: fix the God Nodes section
+python tools/graph_semantic/run_extraction.py --report   # every layer, then report + God Nodes patch
+python tools/graph_semantic/audit_anchors.py             # anchors resolve to real AST nodes
+graphify diagnose multigraph --graph graphify-out/graph.json   # want 0 collapsed/dup
 ```
 
-`cluster-only` regenerates the report from the graph on disk and **overwrites both
-hub-derived community labels and the patched God Nodes section** — re-apply
-`god_nodes.py --patch-report` after it.
+`run_extraction.py` runs all layers (ast_index → doc_scope → doc_digest →
+semantic_layer → doc_layer → concept_layer → coverage_layer → rationale_tranche2 →
+enhanced_semantic → bridge_layer → build_graph), and `--report` then runs
+`graphify cluster-only` and re-applies `god_nodes.py --patch-report`, because
+`cluster-only` **overwrites both hub-derived community labels and the patched God
+Nodes section**. `run_extraction.py` forces `PYTHONIOENCODING=utf-8` on every child.
+
+`tools/graph_semantic/graphify_patch.py --emit-patch` writes the upstream diff that
+fixes `graphify.analyze.god_nodes` at its source
+(`tools/graph_semantic/patches/graphify_analyze_god_nodes.patch`).
 
 Last verified: 2026-10-03, `tools/graph_semantic/` clean under the AST scanner,
 anti-pattern ratchet unchanged (3,687), type gate unchanged (1,410).
