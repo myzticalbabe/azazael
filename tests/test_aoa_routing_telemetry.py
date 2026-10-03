@@ -235,6 +235,19 @@ class TestDurabilityIsReadFromDisk(unittest.TestCase):
         self.assertNotIn('out["learned"] = sum', body)
         self.assertIn('out["inproc"] = sum', body)
 
+    def test_the_probe_persists_the_write_back_it_measures(self):
+        """The PROV line's own gap must be closed in code, not painted over.
+
+        `save_spine_state` was called from NO AOA consumer: the spine cycle
+        persists in a different process and never sees an Arm outcome, so the
+        write-back the probe performs had no route to disk and the line
+        reported a permanent PERSIST GAP. The probe now saves only when a
+        write actually landed, so an idle refresh still costs nothing.
+        """
+        body = self._probe_src()
+        self.assertIn("save_spine_state", body)
+        self.assertIn('out["persisted"]', body)
+
     def test_the_machine_now_has_durable_aoa_route_keys(self):
         """Pins the finding, not just the code path.
 

@@ -17,6 +17,16 @@ import sys
 import os
 import time
 import concurrent.futures
+import sysconfig
+
+# mygrad -> numba, whose cp314t extension faults at C level in a
+# free-threaded process; a segfault cannot be caught, so check the runtime
+# before the import rather than wrapping it in try/except.
+if sysconfig.get_config_var("Py_GIL_DISABLED"):
+    print("SKIP: mygrad -> numba cannot be imported in a free-threaded build.")
+    print("      Re-run under the GIL interpreter: python tests/benchmark_autodiff_modes.py")
+    sys.exit(0)
+
 import mygrad as mg
 import numpy as np
 

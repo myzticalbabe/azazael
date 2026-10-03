@@ -17,7 +17,20 @@ Uses mygrad 2.3.0 on Python 3.14t free-threading.
 """
 
 import sys
-import mygrad as mg
+import pytest
+
+# `mygrad` is an optional ML dependency (see src/ML/README.md and
+# scripts/run_full_suite.py). It is ABSENT from venv-314t on this host, and a
+# bare `import mygrad` at module scope aborted COLLECTION for the whole session
+# (rc=2) instead of skipping. The guard is deliberately MODULE-level rather than
+# per-test, because mygrad has historically faulted at the C level on a
+# free-threaded build and a segfault cannot be caught -- pytest's "no tests
+# collected" (rc=5) is the documented, safe outcome. `importorskip` sets
+# allow_module_level for us.
+mg = pytest.importorskip(
+    "mygrad",
+    reason="mygrad absent (free-threaded build; see scripts/run_full_suite.py)",
+)
 import numpy as np
 
 PASSED = 0

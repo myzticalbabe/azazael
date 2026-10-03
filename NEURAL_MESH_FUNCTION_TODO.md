@@ -10,10 +10,10 @@ list, plus the insights inferred from the census - lives in
 
 ## Scope
 
-- 1502 functions across the fabric, neural primitives, learning
+- 1504 functions across the fabric, neural primitives, learning
   and plasticity, and operational subsystems
-- 78 pass every automated probe; 1424 have at least one failure
-- P0 148 / P1 386 / P2 890
+- 78 pass every automated probe; 1426 have at least one failure
+- P0 149 / P1 386 / P2 891
 
 ## How to work this list
 
@@ -67,7 +67,7 @@ For each function, in this order:
 | PF01 | 0 |
 | PF02 | 704 |
 | PF03 | 349 |
-| PF04 | 1136 |
+| PF04 | 1137 |
 | PF05 | 0 |
 | PF06 | 0 |
 | PF07 | 0 |
@@ -77,10 +77,10 @@ For each function, in this order:
 | PF11 | 1 |
 | PF12 | 0 |
 | PF13 | 0 |
-| PF14 | 344 |
-| PF15 | 136 |
+| PF14 | 345 |
+| PF15 | 137 |
 | PF16 | 171 |
-| PF17 | 547 |
+| PF17 | 549 |
 | PF18 | 15 |
 | PF19 | 4 |
 | PF20 | 1 |
@@ -104,9 +104,9 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `spine:MorphogenesisWorm.promote` L3741-3855 c=35 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_rl:RLTrainLoop.train_from_memory` L329-607 c=32 fail=PF04,PF14,PF15
+- [ ] `learning_rl:RLTrainLoop.train_from_memory` L380-658 c=32 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:morph_dimension_summary` L731-837 c=30 fail=PF14,PF15,PF16
+- [ ] `proteus_hooks:morph_dimension_summary` L756-862 c=30 fail=PF14,PF15,PF16
   - [ ] M1-M6 manual pass
 - [ ] `spine_registry:purge_edges` L2333-2415 c=28 fail=PF14,PF15
   - [ ] M1-M6 manual pass
@@ -120,13 +120,13 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `evolution:EvolutionEngine.evaluate_population` L330-427 c=21 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_rl:RLTrainLoop.hyperparameter_tune` L608-762 c=20 fail=PF04,PF14,PF15
+- [ ] `learning_rl:RLTrainLoop.hyperparameter_tune` L659-813 c=20 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `threatmon:ThreatIntelMonitorWorm.check_health` L148-208 c=20 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `mesh:PartitionHealerWorm.detect` L505-575 c=19 fail=PF02,PF04,PF09,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_pipeline:DataPipelineWorm.temporal_cross_validation` L438-536 c=17 fail=PF04,PF14,PF15
+- [ ] `learning_pipeline:DataPipelineWorm.temporal_cross_validation` L442-540 c=17 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `spine:SpineCycleWorm.__init__` L1709-1801 c=17 fail=PF02,PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -168,7 +168,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `dreaming:DreamingModule._generate_policy_suggestions` L350-449 c=10 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:morph_record` L644-689 c=10 fail=PF14,PF15
+- [ ] `proteus_hooks:morph_record` L669-714 c=10 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `spine:MeshArchitectWorm.apply` L1573-1600 c=10 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -238,7 +238,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `learning_pipeline:DataPipelineWorm.extract_field._extract` L191-202 c=6 fail=PF02,PF03,PF04,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `learning_pipeline:refresh_dynamic_shapes` L694-731 c=6 fail=PF04,PF14,PF18
+- [ ] `learning_pipeline:refresh_dynamic_shapes` L698-735 c=6 fail=PF04,PF14,PF18
   - [ ] M1-M6 manual pass
 - [ ] `loom:intrinsic_dimension` L110-127 c=6 fail=PF14,PF15
   - [ ] M1-M6 manual pass
@@ -246,7 +246,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `proteus_hooks:_load_allocator` L306-321 c=6 fail=PF02,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:_row_ab_delta` L692-710 c=6 fail=PF15,PF17
+- [ ] `proteus_hooks:_row_ab_delta` L717-735 c=6 fail=PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `race_detector:RaceConditionDetector.execute` L461-482 c=6 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -318,7 +318,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `immune:QuarantineWorm.active` L208-217 c=4 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh` L540-594 c=4 fail=PF04,PF14,PF15,PF16
+- [ ] `learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh` L544-598 c=4 fail=PF04,PF14,PF15,PF16
   - [ ] M1-M6 manual pass
 - [ ] `loom:NoveltyDrive.load` L295-306 c=4 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -361,6 +361,8 @@ first.
 - [ ] `engram:shared_shards` L312-323 c=3 fail=PF17,PF18
   - [ ] M1-M6 manual pass
 - [ ] `error_recovery:ErrorRecoveryOrchestrator._execute_fallback` L206-226 c=3 fail=PF04,PF14,PF15,PF17
+  - [ ] M1-M6 manual pass
+- [ ] `learning_rl:note_unmapped_severity` L79-97 c=3 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `loom:NoveltyDrive._persist` L285-293 c=3 fail=PF02,PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
@@ -411,16 +413,16 @@ first.
 - [ ] `chorus:_apply` L202-262 c=21 fail=PF14,PF17
 - [ ] `dreaming:DreamingModule._mine_historical_recovery_patterns` L535-614 c=21 fail=PF04,PF14,PF17
 - [ ] `evolution:EvolutionEngine.load_checkpoint` L957-1051 c=21 fail=PF04,PF14
-- [ ] `learning_rl:RLTrainLoop.load_q_table_from_store` L264-328 c=21 fail=PF04,PF14
+- [ ] `learning_rl:RLTrainLoop.load_q_table_from_store` L315-379 c=21 fail=PF04,PF14
 - [ ] `meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation` L857-974 c=21 fail=PF04,PF16
 - [ ] `meta_cognition:MetaCognitionWorm.detect_anomalies` L748-853 c=20 fail=PF04
 - [ ] `race_detector:RaceConditionDetector.detect_thread_imports` L354-409 c=20 fail=PF04,PF14
 - [ ] `dreaming:DreamingModule._mine_error_recovery_patterns` L450-533 c=19 fail=PF04
-- [ ] `learning_pipeline:DataPipelineWorm.auto_discover_shapes` L598-672 c=19 fail=PF04
+- [ ] `learning_pipeline:DataPipelineWorm.auto_discover_shapes` L602-676 c=19 fail=PF04
 - [ ] `db_monitor:DatabaseMonitorWorm.check_health` L256-402 c=18 fail=PF04,PF14
 - [ ] `evolution:EvolutionEngine._levy_mutate` L682-728 c=18 fail=PF04
 - [ ] `mesh:GossipSyncWorm.gossip` L426-479 c=18 fail=PF04,PF14
-- [ ] `proteus_hooks:morph_free_growth` L912-1002 c=18 fail=PF14,PF17
+- [ ] `proteus_hooks:morph_free_growth` L937-1027 c=18 fail=PF14,PF17
 - [ ] `spine:SpineCycleWorm._route_synapse_layer` L2210-2267 c=18 fail=PF04,PF14,PF17
 - [ ] `dreaming:DreamingModule.run_dreaming_pipeline` L792-887 c=17 fail=PF04,PF14,PF17
 - [ ] `evolution:EvolutionEngine._sbx_crossover` L545-591 c=17 fail=PF04
@@ -441,11 +443,12 @@ first.
 - [ ] `dreaming:HypnagogicSynthesizer.synthesize` L1033-1110 c=14 fail=PF04,PF17
 - [ ] `evolution:EvolutionEngine._polynomial_mutate` L612-646 c=14 fail=PF04
 - [ ] `exmachina:dfa` L851-902 c=14 fail=PF17
-- [ ] `proteus_hooks:morph_rotation_retired` L1058-1101 c=14 fail=PF17
+- [ ] `proteus_hooks:morph_rotation_retired` L1083-1126 c=14 fail=PF17
 - [ ] `spine:PlasticityEngineWorm.learn` L1268-1325 c=14 fail=PF04
 - [ ] `spine:SpineCycleWorm._model_fork_reports` L2809-2836 c=14 fail=PF04,PF14
 - [ ] `exmachina:_switch_resolver` L1542-1581 c=13 fail=PF14
 - [ ] `glia:AstrocyteWorm.sweep` L35-60 c=13 fail=PF02,PF04,PF14
+- [ ] `learning_rl:_compute_reward` L105-172 c=13 fail=PF17
 - [ ] `loom:spectral_summary` L153-193 c=13 fail=PF14
 - [ ] `race_detector:RaceConditionDetector.detect_data_races` L293-352 c=13 fail=PF04
 - [ ] `spine:RedQueenWorm.pressure_probe` L825-890 c=13 fail=PF04
@@ -459,11 +462,10 @@ first.
 - [ ] `exmachina:invariance_report` L972-1023 c=12 fail=PF17
 - [ ] `exmachina:_inert_resolver` L1584-1628 c=12 fail=PF14,PF17
 - [ ] `exmachina_operators:rank_candidates` L963-1003 c=12 fail=PF14,PF16
-- [ ] `learning_rl:_compute_reward` L76-121 c=12 fail=PF17
-- [ ] `learning_rl:RLTrainLoop.tune_history` L844-897 c=12 fail=PF04,PF14,PF16
+- [ ] `learning_rl:RLTrainLoop.tune_history` L895-948 c=12 fail=PF04,PF14,PF16
 - [ ] `meta_cognition:MetaCognitionWorm.load_state` L694-744 c=12 fail=PF04,PF14,PF17
-- [ ] `proteus_hooks:morph_rotation_verdict` L1018-1055 c=12 fail=PF17
-- [ ] `proteus_hooks:morph_policy_refresh` L1169-1234 c=12 fail=PF16,PF17
+- [ ] `proteus_hooks:morph_rotation_verdict` L1043-1080 c=12 fail=PF17
+- [ ] `proteus_hooks:morph_policy_refresh` L1194-1259 c=12 fail=PF16,PF17
 - [ ] `session_state:SessionStateManager.snapshot_worm` L277-332 c=12 fail=PF04,PF14,PF17
 - [ ] `session_state:SessionStateManager.restore_worm` L386-433 c=12 fail=PF04,PF14,PF17
 - [ ] `spine:RedQueenWorm._probe_candidates` L677-750 c=12 fail=PF04,PF14
@@ -541,12 +543,12 @@ first.
 - [ ] `envmesh:env_id_v2` L44-69 c=6 fail=PF14
 - [ ] `evolution:SepCMAES.optimize` L1663-1686 c=6 fail=PF04,PF14
 - [ ] `exmachina:_binomial_tail` L1641-1656 c=6 fail=PF14,PF17
-- [ ] `learning_rl:RLTrainLoop.register_to_versioner` L183-235 c=6 fail=PF04,PF14
+- [ ] `learning_rl:RLTrainLoop.register_to_versioner` L234-286 c=6 fail=PF04,PF14
 - [ ] `mesh:PartitionHealerWorm._registry_execute` L578-594 c=6 fail=PF14,PF17
 - [ ] `meta_cognition:MetaCognitionWorm._get_store` L166-181 c=6 fail=PF03,PF04,PF14
 - [ ] `migration:DepUpgrader.parse_requirements` L93-109 c=6 fail=PF04,PF16,PF17
 - [ ] `proteus_hooks:circulation_update` L357-379 c=6 fail=PF14
-- [ ] `proteus_hooks:morph_treatment_value` L575-589 c=6 fail=PF16
+- [ ] `proteus_hooks:morph_treatment_value` L600-614 c=6 fail=PF16
 - [ ] `servemesh:ProviderFailoverMeshWorm._http_probe` L482-502 c=6 fail=PF04,PF14,PF17
 - [ ] `spine:RedQueenWorm._hostile_probe` L801-823 c=6 fail=PF04,PF14,PF17
 - [ ] `spine:PlasticityEngineWorm._modulation` L1337-1351 c=6 fail=PF04,PF14,PF17
@@ -564,7 +566,7 @@ first.
 - [ ] `federated:RewardShaperMeshWorm.local_score` L313-329 c=5 fail=PF04,PF16,PF17
 - [ ] `immune:ImmuneSentinelWorm._load_ebpf` L64-81 c=5 fail=PF02,PF04,PF14,PF17
 - [ ] `learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report` L342-389 c=5 fail=PF04,PF16
-- [ ] `learning_rl:RLTrainLoop.train_episode` L815-834 c=5 fail=PF04,PF14,PF16
+- [ ] `learning_rl:RLTrainLoop.train_episode` L866-885 c=5 fail=PF04,PF14,PF16
 - [ ] `metabolic:ThermalThrottleWorm.sample_c` L189-197 c=5 fail=PF02,PF04,PF14,PF17,PF19
 - [ ] `morph:structural_mutate` L335-354 c=5 fail=PF14
 - [ ] `nerve:Neuromodulator.modulations` L266-279 c=5 fail=PF04,PF14
@@ -597,11 +599,11 @@ first.
 - [ ] `immune:QuarantineWorm.quarantine` L158-174 c=4 fail=PF02,PF04,PF14
 - [ ] `immune:QuarantineWorm.release` L176-191 c=4 fail=PF02,PF04,PF14
 - [ ] `immune:AutoencoderAnomalyWorm.load` L509-522 c=4 fail=PF04,PF14
-- [ ] `learning_rl:RLTrainLoop._save_q_table_to_store` L237-263 c=4 fail=PF04,PF14,PF17
+- [ ] `learning_rl:RLTrainLoop._save_q_table_to_store` L288-314 c=4 fail=PF04,PF14,PF17
 - [ ] `mesh:PartitionHealerWorm.heal` L596-614 c=4 fail=PF04,PF14,PF17
 - [ ] `morph:Genome.to_trainer_kwargs` L248-266 c=4 fail=PF04,PF16
 - [ ] `nerve:Neuromodulator.load` L341-350 c=4 fail=PF02,PF04,PF14
-- [ ] `proteus_hooks:_binomial_tail` L864-881 c=4 fail=PF14,PF17
+- [ ] `proteus_hooks:_binomial_tail` L889-906 c=4 fail=PF14,PF17
 - [ ] `servemesh:ProviderFailoverMeshWorm._resolve_chain` L426-451 c=4 fail=PF03,PF04,PF14,PF17
 - [ ] `servemesh:ProviderFailoverMeshWorm._registry_base_url` L473-479 c=4 fail=PF02,PF14,PF17
 - [ ] `spine:MeshArchitectWorm._observed_edges` L1475-1481 c=4 fail=PF02,PF04,PF14,PF17
@@ -742,7 +744,7 @@ first.
 - [ ] `learning_pipeline:DataPipelineWorm.filter_by_severity` L204-208 c=1 fail=PF04,PF16
 - [ ] `learning_pipeline:DataPipelineWorm.filter_by_source` L209-213 c=1 fail=PF04,PF16
 - [ ] `learning_pipeline:DataPipelineWorm.load_to_memory` L246-254 c=1 fail=PF03,PF04,PF16
-- [ ] `learning_rl:RLTrainLoop.tune_and_train` L764-813 c=1 fail=PF04,PF16
+- [ ] `learning_rl:RLTrainLoop.tune_and_train` L815-864 c=1 fail=PF04,PF16
 - [ ] `migration:SchemaVersioner.register_schema` L136-141 c=1 fail=PF02,PF03,PF04,PF16,PF17
 - [ ] `migration:SchemaVersioner.detect_breaking_changes` L143-151 c=1 fail=PF04,PF16,PF17
 - [ ] `migration:ImportPathFixWorm.add_mapping` L168-170 c=1 fail=PF02,PF03,PF04,PF16,PF17
@@ -2136,19 +2138,19 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `DataPipelineWorm.run_pipeline` L277-324 c=2 p=6 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm.split_memories` L328-434 c=6 p=7 auto=PF04
+- [ ] `DataPipelineWorm.split_memories` L328-438 c=6 p=7 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm.temporal_cross_validation` L438-536 c=17 p=6 auto=PF04,PF14,PF15
+- [ ] `DataPipelineWorm.temporal_cross_validation` L442-540 c=17 p=6 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm.schedule_dynamic_refresh` L540-594 c=4 p=4 auto=PF04,PF14,PF15,PF16
+- [ ] `DataPipelineWorm.schedule_dynamic_refresh` L544-598 c=4 p=4 auto=PF04,PF14,PF15,PF16
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm.auto_discover_shapes` L598-672 c=19 p=2 auto=PF04
+- [ ] `DataPipelineWorm.auto_discover_shapes` L602-676 c=19 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm.execute` L674-676 c=0 p=1 auto=PF04
+- [ ] `DataPipelineWorm.execute` L678-680 c=0 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm._record_fallback` L680-686 c=0 p=3 auto=PF03,PF04,PF17
+- [ ] `DataPipelineWorm._record_fallback` L684-690 c=0 p=3 auto=PF03,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `refresh_dynamic_shapes` L694-731 c=6 p=2 auto=PF04,PF14,PF18
+- [ ] `refresh_dynamic_shapes` L698-735 c=6 p=2 auto=PF04,PF14,PF18
   - [ ] manual M1-M6
 
 #### `learning_replay.py` - 7 functions
@@ -2168,7 +2170,7 @@ Every function in scope, grouped by concern and module. Each row is
 - [ ] `PrioritizedReplayBuffer.get_stats` L228-246 c=2 p=1 auto=PF04
   - [ ] manual M1-M6
 
-#### `learning_rl.py` - 18 functions
+#### `learning_rl.py` - 20 functions
 
 - [ ] `register_worm` L21-22 c=0 p=0 auto=PF02,PF03
   - [ ] manual M1-M6
@@ -2178,33 +2180,37 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `_annealed_epsilon` L57-73 c=5 p=4 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_compute_reward` L76-121 c=12 p=2 auto=PF17
+- [ ] `note_unmapped_severity` L79-97 c=3 p=1 auto=PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.__init__` L151-158 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `unmapped_severities` L100-102 c=0 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop._get_pipeline` L161-171 c=6 p=1 auto=PF03,PF04
+- [ ] `_compute_reward` L105-172 c=13 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop._get_versioner` L172-182 c=6 p=1 auto=PF03,PF04
+- [ ] `RLTrainLoop.__init__` L202-209 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.register_to_versioner` L183-235 c=6 p=4 auto=PF04,PF14
+- [ ] `RLTrainLoop._get_pipeline` L212-222 c=6 p=1 auto=PF03,PF04
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop._save_q_table_to_store` L237-263 c=4 p=3 auto=PF04,PF14,PF17
+- [ ] `RLTrainLoop._get_versioner` L223-233 c=6 p=1 auto=PF03,PF04
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.load_q_table_from_store` L264-328 c=21 p=3 auto=PF04,PF14
+- [ ] `RLTrainLoop.register_to_versioner` L234-286 c=6 p=4 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.train_from_memory` L329-607 c=32 p=19 auto=PF04,PF14,PF15
+- [ ] `RLTrainLoop._save_q_table_to_store` L288-314 c=4 p=3 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.train_from_memory._get_state_key` L442-460 c=2 p=1 auto=PF17
+- [ ] `RLTrainLoop.load_q_table_from_store` L315-379 c=21 p=3 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.hyperparameter_tune` L608-762 c=20 p=11 auto=PF04,PF14,PF15
+- [ ] `RLTrainLoop.train_from_memory` L380-658 c=32 p=19 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.tune_and_train` L764-813 c=1 p=11 auto=PF04,PF16
+- [ ] `RLTrainLoop.train_from_memory._get_state_key` L493-511 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.train_episode` L815-834 c=5 p=4 auto=PF04,PF14,PF16
+- [ ] `RLTrainLoop.hyperparameter_tune` L659-813 c=20 p=11 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.get_training_stats` L835-842 c=2 p=1 auto=PF02,PF04
+- [ ] `RLTrainLoop.tune_and_train` L815-864 c=1 p=11 auto=PF04,PF16
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.tune_history` L844-897 c=12 p=2 auto=PF04,PF14,PF16
+- [ ] `RLTrainLoop.train_episode` L866-885 c=5 p=4 auto=PF04,PF14,PF16
+  - [ ] manual M1-M6
+- [ ] `RLTrainLoop.get_training_stats` L886-893 c=2 p=1 auto=PF02,PF04
+  - [ ] manual M1-M6
+- [ ] `RLTrainLoop.tune_history` L895-948 c=12 p=2 auto=PF04,PF14,PF16
   - [ ] manual M1-M6
 
 #### `learning_versioner.py` - 10 functions
@@ -3307,55 +3313,55 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `circulation_update` L357-379 c=6 p=4 auto=PF14
   - [ ] manual M1-M6
-- [ ] `morph_candidate_gene` L409-424 c=2 p=2 auto=OK
+- [ ] `morph_candidate_gene` L434-449 c=2 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_gene_specs` L427-452 c=3 p=4 auto=OK
+- [ ] `morph_gene_specs` L452-477 c=3 p=4 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_strip` L455-477 c=2 p=2 auto=OK
+- [ ] `morph_strip` L480-502 c=2 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_trainer_kwargs` L480-499 c=6 p=1 auto=OK
+- [ ] `morph_trainer_kwargs` L505-524 c=6 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_as_bool` L502-518 c=4 p=1 auto=OK
+- [ ] `_as_bool` L527-543 c=4 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_effective` L521-542 c=10 p=2 auto=OK
+- [ ] `morph_effective` L546-567 c=10 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_is_inert` L545-572 c=8 p=3 auto=OK
+- [ ] `morph_is_inert` L570-597 c=8 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_treatment_value` L575-589 c=6 p=1 auto=PF16
+- [ ] `morph_treatment_value` L600-614 c=6 p=1 auto=PF16
   - [ ] manual M1-M6
-- [ ] `morph_ab_plan` L592-622 c=8 p=2 auto=OK
+- [ ] `morph_ab_plan` L617-647 c=8 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_ab_delta` L625-641 c=6 p=2 auto=OK
+- [ ] `morph_ab_delta` L650-666 c=6 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_record` L644-689 c=10 p=7 auto=PF14,PF15
+- [ ] `morph_record` L669-714 c=10 p=7 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `_row_ab_delta` L692-710 c=6 p=1 auto=PF15,PF17
+- [ ] `_row_ab_delta` L717-735 c=6 p=1 auto=PF15,PF17
   - [ ] manual M1-M6
-- [ ] `_row_inert` L713-728 c=5 p=1 auto=PF17
+- [ ] `_row_inert` L738-753 c=5 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_dimension_summary` L731-837 c=30 p=1 auto=PF14,PF15,PF16
+- [ ] `morph_dimension_summary` L756-862 c=30 p=1 auto=PF14,PF15,PF16
   - [ ] manual M1-M6
-- [ ] `morph_dimension_summary._stat` L779-783 c=0 p=1 auto=PF02,PF17
+- [ ] `morph_dimension_summary._stat` L804-808 c=0 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
-- [ ] `_binomial_tail` L864-881 c=4 p=2 auto=PF14,PF17
+- [ ] `_binomial_tail` L889-906 c=4 p=2 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_morph_read_rows` L884-901 c=8 p=1 auto=PF17
+- [ ] `_morph_read_rows` L909-926 c=8 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_morph_default_for` L904-909 c=2 p=1 auto=PF17
+- [ ] `_morph_default_for` L929-934 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_free_growth` L912-1002 c=18 p=1 auto=PF14,PF17
+- [ ] `morph_free_growth` L937-1027 c=18 p=1 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `morph_rotation_paused` L1005-1015 c=1 p=1 auto=OK
+- [ ] `morph_rotation_paused` L1030-1040 c=1 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_rotation_verdict` L1018-1055 c=12 p=2 auto=PF17
+- [ ] `morph_rotation_verdict` L1043-1080 c=12 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_rotation_retired` L1058-1101 c=14 p=1 auto=PF17
+- [ ] `morph_rotation_retired` L1083-1126 c=14 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_morph_write_policy` L1104-1115 c=5 p=2 auto=PF17
+- [ ] `_morph_write_policy` L1129-1140 c=5 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_evidence_from_ledger` L1118-1166 c=8 p=1 auto=OK
+- [ ] `morph_evidence_from_ledger` L1143-1191 c=8 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_policy_refresh` L1169-1234 c=12 p=3 auto=PF16,PF17
+- [ ] `morph_policy_refresh` L1194-1259 c=12 p=3 auto=PF16,PF17
   - [ ] manual M1-M6
 
 #### `exmachina.py` - 70 functions

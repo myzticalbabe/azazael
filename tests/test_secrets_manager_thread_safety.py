@@ -112,3 +112,16 @@ if __name__ == "__main__":
     else:
         print(f"FAILURES: {FAIL}")
         sys.exit(1)
+
+
+# ── pytest entry point (2026-09-21) ──────────────────────────────────
+# The thread-safety checks above never ran under a test runner: they sit under
+# `if __name__ == "__main__"`, so pytest collected nothing and returned rc=5.
+# Free-threading races are exactly the class of defect that only shows up when the
+# checks actually execute, so leaving them uncollected was the worst case.
+def test_script_passes(run_standalone_script):
+    proc = run_standalone_script(__file__)
+    assert proc.returncode == 0, (
+        f"{__file__} exited {proc.returncode}\n"
+        + proc.stdout[-3000:] + "\n" + proc.stderr[-2000:]
+    )

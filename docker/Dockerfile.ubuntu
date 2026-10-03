@@ -2,7 +2,7 @@
 FROM python:3.14-slim-bookworm
 
 LABEL description="Azazael Adaptive Sequential ML Cluster"
-LABEL version="4.0.0"
+LABEL version="4.1.0"
 
 # Install system deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -14,16 +14,49 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /azazael
 
-# Copy requirements
+# Base requirements (free-threaded-safe subset)
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
+
+# GIL-sidecar requirements (added 2026-09-30).
+# The official python:3.14-slim image is the standard GIL build, so these
+# frameworks install normally here. On the WSL pillar the interpreter is the
+# free-threaded 3.14.7 build, which accepts only cp314t wheels, so the same
+# packages live in the GIL sidecar venv (/root/venv-314-gil) instead.
+# See CORE/python_env.py and /root/PYTHON_CONSOLIDATION_2026-09-30.md.
+COPY requirements-gil.txt .
+RUN pip3 install --no-cache-dir -r requirements-gil.txt \
+    || echo "WARN: some GIL-sidecar packages unavailable on this platform"
+
+# TensorFlow (added 2026-09-30): there is NO tensorflow wheel on PyPI for
+# Python 3.14 on ANY ABI -- verified: tensorflow, tensorflow-cpu and tf-nightly
+# all resolve to "no matching distribution". The WSL pillar runs a local
+# 2.22.0-dev build recovered from /usr/local/lib/python3.14/site-packages.
+# Supply wheels via the build context to enable TensorFlow in the container;
+# otherwise this step is skipped cleanly and the image still builds.
+ARG TENSORFLOW_WHEELS=/wheels/tensorflow
+RUN if ls ${TENSORFLOW_WHEELS}/*.whl >/dev/null 2>&1; then \
+        pip3 install --no-cache-dir ${TENSORFLOW_WHEELS}/*.whl; \
+    else \
+        echo "NOTE: no TensorFlow wheel in ${TENSORFLOW_WHEELS} -- Python 3.14 has no PyPI tensorflow."; \
+    fi
 
 # Copy project files
 COPY azazael-project-e/ .
 
-# Set Keras backend
-ENV KERAS_BACKEND=torch
+# Set Keras backend. torch is present on every pillar; pass
+# --build-arg KERAS_BACKEND=tensorflow when the TensorFlow wheels above
+# were supplied.
+ARG KERAS_BACKEND=torch
+ENV KERAS_BACKEND=${KERAS_BACKEND}
 ENV PYTHONPATH=/azazael
 
 # Default command
-CMD ["python3", "HYDRA.py", "--discover", "--run", "--status"]
+# Fixed 2026-09-30: the entrypoint is src/ORCHESTRATION/HYDRA.py, not a
+# top-level HYDRA.py (which has never existed). The old path made the
+# declared workload unrunnable; verified: `KERAS_BACKEND=torch \
+#   python3 src/ORCHESTRATION/HYDRA.py --discover --run --status` exits 0.
+# NOTE: keras is now available on both pillars -- torch backend on the
+# free-threaded primary, tensorflow backend on the GIL sidecar -- so the math
+# stages have a backend to drive. Resolve with CORE/python_env.py.
+CMD ["python3", "src/ORCHESTRATION/HYDRA.py", "--discover", "--run", "--status"]

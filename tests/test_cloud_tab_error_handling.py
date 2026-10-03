@@ -99,3 +99,16 @@ if __name__ == "__main__":
     else:
         print(f"FAILURES: {FAIL}")
         sys.exit(1)
+
+
+# ── pytest entry point (2026-09-21) ──────────────────────────────────
+# Everything above is guarded by `if __name__ == "__main__"`, so pytest collected
+# ZERO tests from this file and reported rc=5 ("no tests collected") -- i.e. these
+# checks had never run under a test runner at all. See the fixture's docstring in
+# `tests/conftest.py` for why the script is executed instead of rewritten.
+def test_script_passes(run_standalone_script):
+    proc = run_standalone_script(__file__)
+    assert proc.returncode == 0, (
+        f"{__file__} exited {proc.returncode}\n"
+        + proc.stdout[-3000:] + "\n" + proc.stderr[-2000:]
+    )

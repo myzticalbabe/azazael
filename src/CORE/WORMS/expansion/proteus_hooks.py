@@ -313,10 +313,25 @@ def _load_allocator(state_path: str, arms: Sequence[str]) -> ThompsonAllocator:
                     alloc.arms.append(a)
                     alloc._s[a] = alloc._prior[0]
                     alloc._f[a] = alloc._prior[1]
+            _apply_explore_env(alloc)
             return alloc
         except Exception:
             pass
-    return ThompsonAllocator(list(arms), floor=0.02, rng=random.Random())
+    alloc = ThompsonAllocator(list(arms), floor=0.02, rng=random.Random())
+    _apply_explore_env(alloc)
+    return alloc
+
+
+def _apply_explore_env(alloc: ThompsonAllocator) -> None:
+    """PROTEUS_EXPLORE env override (best-effort, never raises)."""
+    try:
+        import os as _os
+        raw = (_os.environ.get("PROTEUS_EXPLORE") or "").strip()
+        if raw == "":
+            return
+        alloc.explore = min(1.0, max(0.0, float(raw)))
+    except Exception:
+        pass
 
 
 def circulation_decide(state_path: str, arms: Sequence[str] = SEARCH_ARMS,

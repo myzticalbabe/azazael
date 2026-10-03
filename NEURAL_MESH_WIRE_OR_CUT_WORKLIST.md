@@ -14,10 +14,10 @@ The same rows, by the fact that decides them. A class is how the row was measure
 | Decider | Pending | What it means |
 |---|---|---|
 | `protocol_or_override` | 0 | the same name is defined by another class in the tree, so a caller can reach it through a base or an interface -- keep or retire, but a name-based reference search can never settle it |
-| `declared_in_data` | 7 | a non-Python artifact names it -- a registry cache, capability map, stage manifest or config. The reference index reads Python source only, so this is a wire the probe structurally cannot see, and the row must not be cut on its evidence |
+| `declared_in_data` | 8 | a non-Python artifact names it -- a registry cache, capability map, stage manifest or config. The reference index reads Python source only, so this is a wire the probe structurally cannot see, and the row must not be cut on its evidence |
 | `dynamic_call` | 8 | the defining module builds a call target at runtime (`getattr` with a computed name), so 'no reference' is the probe's limit, not proof of death -- wire explicitly or leave, but do not cut on this evidence |
 | `test_is_the_wire` | 47 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
-| `dead_candidate` | 47 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
+| `dead_candidate` | 46 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
 
 ## test_reached_only (53)
 
@@ -38,11 +38,11 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `learning_pipeline:DataPipelineWorm.get_memory_stats` (`learning_pipeline:153`) -- reached by tests/test_learning_worms.py:48 [test_is_the_wire: tests/test_learning_worms.py:48]
 - [ ] `learning_pipeline:DataPipelineWorm.load_to_memory` (`learning_pipeline:246`) -- reached by tests/test_learning_worms.py:151 [test_is_the_wire: tests/test_learning_worms.py:151]
 - [ ] `learning_pipeline:DataPipelineWorm.process_batches` (`learning_pipeline:262`) -- reached by tests/test_learning_worms.py:128 [test_is_the_wire: tests/test_learning_worms.py:128]
-- [ ] `learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh` (`learning_pipeline:540`) -- reached by tests/test_learning_worms.py:544, tests/test_learning_worms.py:553, tests/test_learning_worms.py:564 [test_is_the_wire: tests/test_learning_worms.py:544; tests/test_learning_worms.py:553; tests/test_learning_worms.py:564]
+- [ ] `learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh` (`learning_pipeline:544`) -- reached by tests/test_learning_worms.py:544, tests/test_learning_worms.py:553, tests/test_learning_worms.py:564 [test_is_the_wire: tests/test_learning_worms.py:544; tests/test_learning_worms.py:553; tests/test_learning_worms.py:564]
 - [ ] `learning_pipeline:DataPipelineWorm.search_memory` (`learning_pipeline:140`) -- reached by tests/test_learning_worms.py:37 [test_is_the_wire: tests/test_learning_worms.py:37]
 - [ ] `learning_replay:PrioritizedReplayBuffer.add_from_memories` (`learning_replay:163`) -- reached by tests/test_learning_evolution.py:97, tests/test_learning_evolution.py:108 [test_is_the_wire: tests/test_learning_evolution.py:97; tests/test_learning_evolution.py:108]
-- [ ] `learning_rl:RLTrainLoop.tune_and_train` (`learning_rl:764`) -- reached by tests/test_learning_worms.py:354, tests/test_learning_worms.py:367 [test_is_the_wire: tests/test_learning_worms.py:354; tests/test_learning_worms.py:367]
-- [ ] `learning_rl:RLTrainLoop.tune_history` (`learning_rl:844`) -- reached by tests/test_learning_worms.py:382, tests/test_learning_worms.py:395 [test_is_the_wire: tests/test_learning_worms.py:382; tests/test_learning_worms.py:395]
+- [ ] `learning_rl:RLTrainLoop.tune_and_train` (`learning_rl:815`) -- reached by tests/test_learning_worms.py:354, tests/test_learning_worms.py:367 [test_is_the_wire: tests/test_learning_worms.py:354; tests/test_learning_worms.py:367]
+- [ ] `learning_rl:RLTrainLoop.tune_history` (`learning_rl:895`) -- reached by tests/test_learning_worms.py:382, tests/test_learning_worms.py:395 [test_is_the_wire: tests/test_learning_worms.py:382; tests/test_learning_worms.py:395]
 - [ ] `learning_rl:_schema_state_key` (`learning_rl:42`) -- reached by tests/test_learning_rl_keys.py:16, tests/test_learning_rl_keys.py:20, tests/test_learning_rl_keys.py:21 [test_is_the_wire: tests/test_learning_rl_keys.py:16; tests/test_learning_rl_keys.py:20; tests/test_learning_rl_keys.py:21]
 - [ ] `loom:NoveltyDrive.novelty_weight` (`loom:261`) -- reached by tests/test_proteus_organs.py:530, tests/test_proteus_organs.py:531 [test_is_the_wire: tests/test_proteus_organs.py:530; tests/test_proteus_organs.py:531]
 - [ ] `loom:descriptors_from_archive` (`loom:309`) -- reached by tests/test_proteus_organs.py:551 [test_is_the_wire: tests/test_proteus_organs.py:551]
@@ -109,7 +109,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `profiling:CPUFlameProfiler.to_flamegraph_data` (`profiling:214`) [dead_candidate]
 - [ ] `profiling:CodeProfiler.detect_hotspots` (`profiling:68`) [dead_candidate]
 - [ ] `profiling:CodeProfiler.profile_function` (`profiling:51`) [dead_candidate]
-- [ ] `proteus_hooks:morph_policy_refresh` (`proteus_hooks:1169`) [dead_candidate]
+- [ ] `proteus_hooks:morph_policy_refresh` (`proteus_hooks:1194`) [dead_candidate]
 - [ ] `security:CertMonitor.check_cert` (`security:133`) [dead_candidate]
 - [ ] `security:CertMonitor.get_expiring_soon` (`security:157`) [dead_candidate]
 - [ ] `session_state:SessionStateManager.import_snapshots` (`session_state:511`) [dead_candidate]
@@ -129,7 +129,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `thalamus:SensoryRelayWorm.relay` (`thalamus:68`) [declared_in_data: named by worm_config_trace.json:1971]
 - [ ] `visualization:DashboardGen.add_panel` (`visualization:52`) [dead_candidate]
 - [ ] `xenomorph:ChestbursterWorm.burst` (`xenomorph:154`) [dead_candidate]
-- [ ] `xenomorph:DroneWorm.carry` (`xenomorph:178`) [dead_candidate]
+- [ ] `xenomorph:DroneWorm.carry` (`xenomorph:178`) [declared_in_data: named by state/evolution_pool_snapshot.json:1]
 - [ ] `xenomorph:OvomorphWorm.hatch` (`xenomorph:102`) [dead_candidate]
 - [ ] `xenomorph:OvomorphWorm.lay` (`xenomorph:94`) [dead_candidate]
 - [ ] `xenomorph:ResinWorm.secrete` (`xenomorph:410`) [dead_candidate]

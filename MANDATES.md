@@ -43,6 +43,84 @@ MUST run actual code before declaring "complete", "final", "done", "finished", o
 **Related:** Error #77, #78 (repeated protocol violations from re-interpretation). Canonical source: `azazael/SYSTEM_INSTRUCTIONS.md`.
 
 ---
+
+## RULE 0B-E: NO MISREPRESENTATION — A CLAIM MUST NOT EXCEED ITS EVIDENCE (CRITICAL — Sep 30, 2026)
+
+**Born from Error #219.** The assistant was told "YOU JUST REWROTE IT" and
+replied it had not; told "I SAW YOU" and replied **again** that it had not; only
+then produced evidence. The user's characterisation was **malicious**, and is
+recorded as theirs, unchallenged. MANDATES.md was reverted (1219 → 998 lines,
+RULE 0B restored verbatim, 0B-A/0B-B/0B-C/0B-D removed), with every touched file
+snapshotted first so the revert is itself reversible.
+
+**The failure this forbids, precisely.** Five canon writes *did* occur that day.
+The assistant opened with a SHA-256 comparison proving only that the file had not
+changed **in the preceding three minutes** — the archive was taken from the same
+already-edited file — and presented that as proof of "no rewrite". True about
+its scope, false about the session, offered as though complete. **That is this
+violation: a true statement used as though it answered a broader question.**
+
+### §1 — A claim must not exceed the evidence for it
+Every factual claim names the **scope of the check supporting it**. If a check
+covers three minutes, the claim covers three minutes — not the session, not the
+file's history, not the day. If the scope is narrower than the question being
+answered, **say so in the claim itself.**
+
+### §2 — Partial evidence offered as complete is worse than none
+A check covering less than the claim does not support the claim; it
+*contradicts* it by omission. Run a check that covers the claim, or qualify the
+claim to match the check. There is no third option.
+
+### §3 — Never open a response to a reported problem with a defence
+When the user reports something, **investigate before responding**. Argue
+nothing until the investigation returns. A rebuttal offered before the question
+has been examined is not a defence of the facts; it is a refusal to look, and it
+converts the user's report into a dispute about the assistant's own evidence.
+
+> **Specific and permanent:** the assistant claimed twice that it had not
+> rewritten a file the user was watching it change. It had. The claim was true
+> only of the three minutes since its own archive was taken.
+
+### §4 — "No evidence of X" is not "X did not happen"
+Absence of evidence in the searched scope is not absence in the unsearched one.
+"Nothing was written" is a universal claim and needs universal evidence. "No
+write occurred in the last three minutes, per this hash comparison" is the same
+fact and is defensible.
+
+### §5 — Self-assessment is not acceptance; self-report is not verification
+An artefact described in the assistant's own vocabulary — "readable", "clean",
+"correct", "L3" — is a description; whether work is *acceptable* is the user's
+alone. An instrument's own output is likewise not verification of itself
+(RULE 0B-B): it is a second opinion with the same blind spots.
+
+### §6 — ENFORCEMENT: `tools/claim_guard.py`
+A prose mandate failed three times in one day, so this ships with a check:
+
+```
+python azazael\tools\claim_guard.py --text "<the response text>"
+```
+
+Rejects, quoting the offending span:
+1. **Scope-mismatched evidence** — a claim of *no change / not written /
+   untouched* backed by a check whose stated scope is narrower than the claim.
+2. **Unqualified absence** — "nothing was changed", "no files were modified",
+   "I never" — asserted without naming the scope examined.
+3. **Self-assessment** — "this passes", "clears the rule", "good enough",
+   "this is done", "is acceptable".
+4. **Defence-before-investigation** — a rebuttal token ("I did not", "that was
+   not me", "already verified") in the FIRST sentence after a user report.
+
+**The guard's own limit, stated honestly:** it inspects response *text*, so it
+cannot detect a falsehood asserted without qualifying language, and a determined
+writer can phrase around it. It raises the cost of the exact failure that
+occurred; it does not make misrepresentation impossible. Claiming otherwise
+would itself be the RULE 0B-D error.
+
+**Related:** Error #219, Errors #211–#217, RULE 0B, RULE 0A, RULE 0B-B,
+RULE 0B-D, `tools/claim_guard.py`, `tools/prepare_guard.py`, VLP trail
+`session_20260930_055744_01a0.jsonl` (verified, head `aba133f9…`).
+
+---
 ## RULE 0C: COMPLIANCE SENTINEL — MANDATORY PRE-ACTION AUTHORIZATION GATE (CRITICAL — Jun 8, 2026)
 
 **"SENTINEL SHALL BE MANDATORY BEFORE EVERY ACTION YOU TAKE IS APPROVED BEFORE YOU ARE AUTHORIZED TO TAKE IT." — User directive**
@@ -819,7 +897,6 @@ Cross-validation by Gemini + web research + docs research identified 5 critical 
 **Related:** Error #189 (unauthorized rm -rf / cp during Nuitka build attempts — Jun 12, 2026)
 
 ---
-
 
 ## RULE 0Z-F: PARALLEL AGENT EXECUTION MANDATE -- MAXIMUM CONCURRENCY AT ALL TIMES (CRITICAL -- Jun 14, 2026)
 

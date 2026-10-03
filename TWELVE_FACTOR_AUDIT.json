@@ -39,9 +39,9 @@
       "number": 3,
       "name": "Config",
       "verdict": "pass",
-      "detail": "env-driven (468 reads) + declarative sample (.env.example)",
+      "detail": "env-driven (470 reads) + declarative sample (.env.example)",
       "evidence": {
-        "env_reads": 468,
+        "env_reads": 470,
         "sample": ".env.example",
         "live_env_file": null
       }
@@ -117,9 +117,9 @@
       "number": 10,
       "name": "Dev/prod parity",
       "verdict": "pass",
-      "detail": "237 test module(s) sharing the project config",
+      "detail": "248 test module(s) sharing the project config",
       "evidence": {
-        "test_modules": 237,
+        "test_modules": 248,
         "shared_config": "pytest.ini"
       }
     },
@@ -127,11 +127,11 @@
       "number": 11,
       "name": "Logs",
       "verdict": "pass",
-      "detail": "14347 stream/stdout site(s) vs 8 file handler(s); event-stream dominant",
+      "detail": "14492 stream/stdout site(s) vs 8 file handler(s); event-stream dominant",
       "evidence": {
         "file_handlers": 8,
-        "stream_sites": 14347,
-        "ratio": 1793.38
+        "stream_sites": 14492,
+        "ratio": 1811.5
       }
     },
     {

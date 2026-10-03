@@ -358,3 +358,15 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# ── pytest entry point (2026-09-21) ──────────────────────────────────
+# `main()` is a harness, not a test function, so pytest collected ZERO tests from
+# this file (rc=5) and the 19 damage-signature coverage measurements it performs
+# had never run under a test runner.
+def test_script_passes(run_standalone_script):
+    proc = run_standalone_script(__file__, timeout=300.0)
+    assert proc.returncode == 0, (
+        f"{__file__} exited {proc.returncode}\n"
+        + proc.stdout[-3000:] + "\n" + proc.stderr[-2000:]
+    )
