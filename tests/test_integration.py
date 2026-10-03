@@ -16,8 +16,11 @@ def teardown_module():
     import CORE.direct_memory as dm_mod
     if Path(str(dm_mod.DB_PATH)).exists():
         Path(str(dm_mod.DB_PATH)).unlink()
-    if _orig_db:
-        dm_mod.DB_PATH = _orig_db
+    # Restore UNCONDITIONALLY. The old `if _orig_db:` guard made the restore a
+    # no-op whenever the saved value was falsy, which is how the same shape in
+    # test_session_mappings leaked a deleted temp path into the whole process
+    # (see tests/test_memory_db_module_teardown.py).
+    dm_mod.DB_PATH = _orig_db
 
 class TestIntegrationPipeline:
     def test_cross_reference_lifecycle(self):
