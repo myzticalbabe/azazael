@@ -36,14 +36,24 @@ class TestFilteredQuery:
         dm.end({"ok": True})
 
     def test_dedup_by_uuid(self):
-        dm = DirectMemory()
+        # Explicit session_id: `DirectMemory.__init__` performs a Phase-2
+        # reconnect MERGE when no id is given -- it adopts a recent session
+        # instead of starting one, so only the FIRST instance in the process
+        # writes `session_start`. A bare `DirectMemory()` here therefore saw
+        # count == 1 (just the file_read) whenever an earlier test had already
+        # opened a session, and passed when it had not. Naming the session makes
+        # the test assert about its own rows, not about test order.
+        dm = DirectMemory(session_id="dm_adv_dedup_by_uuid")
         dm.file_read(["a.py"])
         count = dm.count()
         assert count >= 2  # session_start + file_read
         dm.end({"ok": True})
 
     def test_replay_session(self):
-        dm = DirectMemory()
+        # Same reason as test_dedup_by_uuid: an explicit session_id suppresses
+        # the reconnect merge, so this instance really does start a session and
+        # `session_start` is guaranteed to be among its events.
+        dm = DirectMemory(session_id="dm_adv_replay_session")
         dm.file_read(["x.py"])
         dm.skill_loaded("test-skill")
         dm.milestone("test", {"ok": True})
