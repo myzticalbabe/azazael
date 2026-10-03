@@ -46,14 +46,27 @@ python tools/graph_semantic/doc_digest.py    # 3. compact digest for LLM reading
 #    -> the agent reads graphify-out/_digest_p1..p4.txt and AUTHORS nodes/edges
 python tools/graph_semantic/semantic_layer.py  # 4. emit the authored fragment
 python tools/graph_semantic/doc_layer.py       # 5. doc node per file + buckets + xrefs
-python tools/graph_semantic/concept_layer.py   # 6. deduped concept hubs
+python tools/graph_semantic/concept_layer.py   # 6. deduped concept hubs from headings
 python tools/graph_semantic/coverage_layer.py  # 7. skills, lexicon, islands, groups
-python tools/graph_semantic/build_graph.py     # 8. merge + cluster + label + export
-graphify cluster-only . --no-viz --no-label    # 9. regenerate GRAPH_REPORT.md
-python tools/graph_semantic/god_nodes.py --top 20 --patch-report  # 10. fix the ranking
+python tools/graph_semantic/rationale_tranche2.py  # 8. authored rationale, next tranche
+python tools/graph_semantic/enhanced_semantic.py   # 9. entity mentions from every doc body
+python tools/graph_semantic/bridge_layer.py        # 10. bridge the last stranded components
+python tools/graph_semantic/build_graph.py         # 11. merge + cluster + label + export
+graphify cluster-only . --no-viz --no-label         # 12. regenerate GRAPH_REPORT.md
+python tools/graph_semantic/god_nodes.py --top 20 --patch-report  # 13. fix the ranking
 ```
 
-Or just `python tools/graph_semantic/run_extraction.py` for steps 1–8.
+Or run steps 1–11 with `python tools/graph_semantic/run_extraction.py`, and steps
+1–13 with `python tools/graph_semantic/run_extraction.py --report` (which runs
+`cluster-only` and re-applies the God Nodes patch for you, in that order).
+
+Supporting checks that do not rebuild anything:
+
+```bash
+python tools/graph_semantic/audit_anchors.py       # ANCHORS -> real AST nodes?
+python tools/graph_semantic/graphify_patch.py       # is the god-node fix applied?
+python tools/graph_semantic/graphify_patch.py --emit-patch  # write the upstream diff
+```
 
 Step 4 is the part a human/LLM does. Steps 1–3 feed it; steps 5–8 are mechanical.
 
@@ -128,6 +141,53 @@ Closes the gaps the first passes leave:
   supported AST language, so they are degree-0 by construction. They are grouped
   under suite/marker concept nodes so they carry identity.
 
+### `rationale_tranche2.py`
+The first authored pass covered the ~120 docs with design intent. This is the next
+tranche: the large load-bearing docs it had not read (the task registry, the
+research record, the two full-project audits, the session-insight and lesson
+records, the worm audit, the project map, the cross-environment manifest, the
+Rust tracker, the sync strategy, the worm proposals, the algorithm log). Each gets
+a rationale and an edge to the subsystem it belongs to. Node id == the doc-layer
+stem, so it upgrades the existing `document` node rather than duplicating it.
+
+### `enhanced_semantic.py`
+Reads **every** document's *body* for mentions of known graph entities (code
+labels, concept and document titles) and adds a `mentions` edge per entity named.
+This is what takes the pass from "every doc has an identity" to "every doc states
+what it is about" — a reader can start at any document and reach its subsystems.
+Two guards prevent the generic-hub defect: a label must be identifier-shaped (an
+uppercase after the first character, an underscore, or a digit), and a label that
+appears in more than `MAX_DOC_FREQ` (40) documents is corpus vocabulary
+(`Environment`, `Category`) and is dropped. An edge exists only when the label
+literally appears in the text — nothing is inferred from topic similarity.
+
+### `bridge_layer.py`
+After every other layer, a few real clusters are still their own connected
+components because the AST pass gives a self-contained file an island and nothing
+links it to a subsystem. This layer adds exactly one *grounded* edge per stranded
+component to a spine node: noxfile's typecheck session to the type gate it
+invokes, the inference cascade to the endpoints it routes between, `cluster_route`
+to the Tier-2 cluster concern, `graph_learn` to the ML harness, the animation and
+vega assets to the CODEX video pipeline, the forensic audits to the error-lesson
+audit, and the mesh-resilience primitives to the mesh architecture audit.
+Components are discovered at run time; a component that disappears stops being
+bridged.
+
+### `audit_anchors.py`
+Checks the claim "every authored node is anchored to a real AST symbol": anchor
+keys that exist in `ANCHORS` but not in `NODES` (silently skipped by `emit()`),
+labels that resolve to no AST node (contribute zero edges), and authored ids that
+**graphify rewrote to a source-file-stem id** on merge (edges survive, but the
+on-disk id differs from the authored one). Exit 1 on a hard problem.
+
+### `graphify_patch.py`
+`god_nodes.py` patches the *report*, which `cluster-only` regenerates. This module
+fixes the ranking at the source: `god_nodes_fixed()` is a drop-in replacement for
+`graphify.analyze.god_nodes` that also excludes document / injected-concept hubs,
+`install()` monkeypatches it for the current process, and `--emit-patch` writes a
+unified diff against the installed `graphify/analyze.py`
+(`tools/graph_semantic/patches/graphify_analyze_god_nodes.patch`) for upstream.
+
 ### `god_nodes.py`
 The raw `graphify` god-node ranking is dominated by documentation reference hubs:
 `CATCHALL_BACKLOG.md` (583 edges) outranked `DirectMemory` (197) as the "#1 core
@@ -136,7 +196,8 @@ abstraction". This tool adds the three filters graphify's own ranking lacks —
 patch the `## God Nodes` section of `GRAPH_REPORT.md` in place.
 
 ### `build_graph.py`
-Feeds all three fragments to `graphify.build.build_merge` in **one** call, clusters,
+Feeds every fragment to `graphify.build.build_merge` in **one** call, drops
+self-loop edges (they carry no information in an undirected graph), clusters,
 labels (hub labels + a few hand labels), attaches hyperedges, exports with
 `to_json(..., force=True)`, and prints a BEFORE/AFTER component count so the
 connectivity effect is measured, not assumed.
@@ -171,20 +232,43 @@ connectivity effect is measured, not assumed.
    generated. That is exactly why this directory exists in `tools/` — so the
    authored content and the method are reproducible and reviewable.
 
+## Adding one authored node (worked example)
+
+To add a hand-written node for a document, add a row to `NODES` in
+`semantic_layer.py` and (optionally) an `ANCHORS` entry so it lands on real code:
+
+```python
+# in NODES
+("docs_backup_restore_doc", "Backup & restore runbook", "document", "docs/BACKUP_RESTORE.md",
+ "Two-person rule on restores; the restore is rehearsed quarterly because an "
+ "unrehearsed backup is a hypothesis, not a recovery path."),
+
+# in ANCHORS (label is matched case/punctuation-insensitively against AST labels)
+"docs_backup_restore_doc": ["BackupManager"],
+```
+
+Then re-run `python tools/graph_semantic/run_extraction.py --report` and confirm
+with `python tools/graph_semantic/audit_anchors.py` that the anchor resolved. Two
+rules to keep: the node id is `{repo_relative_path_stem}` lowercased with
+non-alphanumerics → `_` (do not append a chunk number), and if graphify rewrites
+your id to a source-file stem that is fine — the audit tool reports it.
+
 ## Honest limits
 
-- The authored rationale layer covers ~120 high-value docs (governance, audits,
-  architecture, findings). The other ~1,400 docs get an identity, a bucket, xrefs
-  and their shared headings — not hand-written rationale. Extending coverage means
-  reading more docs and adding rows to `semantic_layer.py`.
+- The authored rationale layer now covers ~140 high-value docs (`semantic_layer.py`
+  plus `rationale_tranche2.py`). The remaining docs get an identity, a bucket, xrefs,
+  their shared headings, and the entities they name — not hand-written rationale.
+  Extending coverage means reading more docs and adding rows.
+- `enhanced_semantic.py` reaches 492 docs with a distinctive entity mention. The
+  rest name no distinctive identifier, so they get no `mentions` edge; that is the
+  intended behaviour, not a gap.
 - Concept hubs from headings are as good as the headings. Several top hubs
   ("Architecture", "Enforcement") are generic; the high-value concepts are the named
   entities in the authored layer.
-- 101 self-loop edges remain in the graph; they are harmless but uninvestigated.
-- The final graph has 23 components and **1** isolated node (at the doc-layer
-  intermediate stage it was 119 components / 43 isolated nodes — the coverage layer
-  bridged the rest). The 5 non-giant components are small polyglot/script clusters
-  (45 / 24 / 13 / 12 / 9 nodes).
+- Self-loop edges are removed in `build_graph.py`, so the exported graph is loop-free.
+- The final graph has 10 components and **1** isolated node (at the doc-layer
+  intermediate stage it was 119 components / 43 isolated nodes). The remaining
+  non-giant components are tiny (7 / 6 / 4 / 3 / 2 … nodes).
 
 ## Verify
 
@@ -202,9 +286,10 @@ PY
 graphify diagnose multigraph --graph graphify-out/graph.json   # want 0 collapsed/dup
 ```
 
-Last run (2026-10-03, after the coverage layer): **35,888 nodes · 63,710 edges ·
-2,272 communities · 12 hyperedges · 23 connected components · 1 isolated node ·
-1,527/1,527 project docs · 2,219 nodes carrying a rationale.**
+Last run (2026-10-03, after the enhanced-semantic + bridge layers): **35,888 nodes ·
+67,041 edges · 2,018 communities · 12 hyperedges · 10 connected components ·
+1 isolated node · 1,527/1,527 project docs · 2,239 nodes carrying a rationale ·
+3,426 document→entity `mentions` edges.**
 
 Re-running `run_extraction.py` end-to-end reproduces these numbers exactly (the
 runner forces `PYTHONIOENCODING=utf-8` on every step; `doc_digest.py` also

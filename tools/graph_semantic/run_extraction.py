@@ -8,11 +8,13 @@ Usage (from the repo root):
     python tools/graph_semantic/run_extraction.py            # full pipeline
     python tools/graph_semantic/run_extraction.py --digest   # stop after the digest
     python tools/graph_semantic/run_extraction.py --no-build # skip merge/export
+    python tools/graph_semantic/run_extraction.py --report   # also regenerate the report
 """
 from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -29,27 +31,57 @@ STEPS = [
     ("doc_layer.py", "one document node per doc + buckets + xrefs"),
     ("concept_layer.py", "deduped concept hubs from headings"),
     ("coverage_layer.py", "skill concepts, lexicon grouping, island bridges"),
+    ("rationale_tranche2.py", "authored rationale for the next tranche of docs"),
+    ("enhanced_semantic.py", "entity mentions from every document body"),
+    ("bridge_layer.py", "grounded edges from the last stranded components"),
 ]
 
 BUILD = ("build_graph.py", "merge + cluster + label + export")
 
 
-def run(script: str, label: str) -> int:
+def child_env() -> dict[str, str]:
+    """Environment for child steps: UTF-8 stdout, unconditionally.
+
+    Steps print doc titles, which can contain non-ASCII (and BOMs). On a cp1252
+    Windows console that raises UnicodeEncodeError and aborts the pipeline, so
+    force UTF-8 on every child regardless of the caller's environment.
+    """
+    return dict(os.environ, PYTHONIOENCODING="utf-8")
+
+
+def run(script: str, label: str, *, argv: list[str] | None = None) -> int:
     print(f"\n=== {script} — {label} ===", flush=True)
-    # Steps print doc titles, which can contain non-ASCII (and BOMs). On a cp1252
-    # Windows console that raises UnicodeEncodeError and aborts the pipeline, so
-    # force UTF-8 on every child regardless of the caller's environment.
-    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    cmd = [sys.executable, str(HERE / script), *(argv or [])] if (HERE / script).exists() else [script, *(argv or [])]
     proc = subprocess.run(
-        [sys.executable, str(HERE / script)],
+        cmd,
         cwd=str(ROOT),
         check=False,
-        env=env,
+        env=child_env(),
         timeout=1800,  # a full merge+cluster can take many minutes
     )
     if proc.returncode != 0:
         print(f"FAILED: {script} (exit {proc.returncode})", file=sys.stderr)
     return proc.returncode
+
+
+def run_graphify_report() -> int:
+    """Regenerate GRAPH_REPORT.md, then re-apply the corrected God Nodes section.
+
+    `graphify cluster-only` rewrites the report from the graph and overwrites both
+    the hub-derived community labels and any patched God Nodes section, so the
+    patch is applied here immediately after, in one command, instead of being a
+    step a human has to remember.
+    """
+    exe = shutil.which("graphify")
+    if not exe:
+        print("graphify not on PATH; skip report regeneration", file=sys.stderr)
+        return 0
+    print("\n=== graphify cluster-only + god_nodes --patch-report ===", flush=True)
+    rc = subprocess.run([exe, "cluster-only", ".", "--no-viz", "--no-label"],
+                        cwd=str(ROOT), check=False, env=child_env(), timeout=1800)
+    if rc.returncode != 0:
+        return rc.returncode
+    return run("god_nodes.py", "correct the God Nodes ranking", argv=["--top", "20", "--patch-report"])
 
 
 def main() -> int:
@@ -58,6 +90,8 @@ def main() -> int:
                     help="stop after the digest so the agent can author")
     ap.add_argument("--no-build", action="store_true",
                     help="emit fragments but do not merge/export the graph")
+    ap.add_argument("--report", action="store_true",
+                    help="after build, regenerate GRAPH_REPORT.md and re-apply the God Nodes patch")
     args = ap.parse_args()
 
     for script, label in STEPS:
@@ -74,8 +108,14 @@ def main() -> int:
         rc = run(*BUILD)
         if rc != 0:
             return rc
-        print("\nNext: graphify cluster-only . --no-viz --no-label  (regenerate report)",
-              flush=True)
+        if args.report:
+            rc = run_graphify_report()
+            if rc != 0:
+                return rc
+        else:
+            print("\nNext: python tools/graph_semantic/run_extraction.py --report "
+                  "(or graphify cluster-only . --no-viz --no-label then "
+                  "god_nodes.py --patch-report)", flush=True)
     return 0
 
 

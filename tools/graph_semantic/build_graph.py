@@ -24,6 +24,9 @@ FRAGS = [
     Path("graphify-out/doc_layer_fragment.json"),
     Path("graphify-out/concept_layer_fragment.json"),
     Path("graphify-out/coverage_layer_fragment.json"),
+    Path("graphify-out/rationale_tranche2_fragment.json"),
+    Path("graphify-out/enhanced_semantic_fragment.json"),
+    Path("graphify-out/bridge_layer_fragment.json"),
 ]
 
 chunks = [json.loads(p.read_text(encoding="utf-8")) for p in FRAGS]
@@ -39,6 +42,14 @@ n_before, e_before = G_before.number_of_nodes(), G_before.number_of_edges()
 print(f"BEFORE  nodes={n_before} edges={e_before} components={comp_before}")
 
 G = build_merge(chunks, str(GRAPH), root=".")
+
+# Self-loops carry no information in an undirected graph (source == target) and
+# graphify's diagnose reports them; drop them so the exported graph is loop-free.
+loops = list(nx.selfloop_edges(G))
+if loops:
+    G.remove_edges_from(loops)
+    print(f"removed {len(loops)} self-loop edge(s)")
+
 comp_after = nx.number_connected_components(G)
 print(f"AFTER   nodes={G.number_of_nodes()} edges={G.number_of_edges()} components={comp_after}")
 
