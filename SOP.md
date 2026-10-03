@@ -1173,3 +1173,75 @@ footer; `SKILLS_CATALOG.md` claimed 1,224 total against 1,259 table rows.
 **4. Corrections carry provenance.** Superseded figures are annotated where they
 stand, not overwritten, so that the drift stays visible — a corrected number with no
 record of its predecessor is indistinguishable from one that was always right.
+
+
+---
+
+## Environment-scoped learning (added 2026-09-30)
+
+TERENCE's invariant faults are recorded **per pillar**. Every fault carries
+`environment=<pillar>`; the `error_log.note` carries `env=<pillar>`; the ledger
+report and every autonomous-attempt record carry it too.
+
+**Mandate:** any agent reading TERENCE history MUST bucket by
+`(klass, environment)`, never by `klass` alone. The same path means different
+things in different pillars — `src/CODEX/VIDEOS` is a role violation on Ubuntu
+(the ML accelerator) and the assigned workload on Windows. A lesson learned in
+one pillar is NOT applicable to another without checking the pillar's declared
+role (`ENV_CONTRACT` in `tools/terence_invariants.py`).
+
+Review the cross-pillar view with `tools/terence_invariants.py --environments`.
+Audit any tree read-only with `--env-audit <PATH>` (writes nothing, safe for the
+G: source-of-truth archive). The rip-out of a pipeline from a pillar is a
+**DECISION across four environments**, reported and refused, never auto-repaired.
+
+---
+
+## PYTHON INTERPRETER RULE — FREE-THREADED PRIMARY + GIL SIDECAR
+
+> Added: 2026-09-30 · Canonical code: `CORE/python_env.py` · Skill: `azazael-gil-sidecar`
+
+**Rule:** the Ubuntu pillar runs **two** interpreters, both **CPython 3.14.7**. Use the
+primary by default; use the GIL sidecar only for frameworks that have no
+`cp314t` (free-threaded) wheel.
+
+| Role | Path | ABI | Use for |
+|------|------|-----|---------|
+| **Primary** | `/usr/local/python314t/bin/python3.14t` | `cpython-314t` | anything with a `cp314t` wheel (torch, keras, numpy, scipy, pandas, sklearn, jax, transformers, onnxruntime, xgboost, lightgbm, faiss) |
+| **GIL sidecar** | `/usr/local/bin/python3.14-gil` → `/root/venv-314-gil` | `cpython-314` | `tensorflow`, `tf2onnx`, `orjson`, `langchain`, `chromadb`, `polars`, `ray`, `spacy` |
+
+**Why a separate interpreter is required.** A free-threaded build compiles the
+extension suffix `.cpython-314t-…` into the interpreter, so a GIL-built `.so`
+(`.cpython-314-…`) can never be imported into it. Setting `PYTHON_GIL=1` or
+`-X gil=1` only re-enables the GIL *inside* a free-threaded build — it does **not**
+make `cp314` wheels loadable. Resolution must therefore happen at the **process**
+level: choose the interpreter, then spawn it.
+
+### Mandatory practices
+1. **Never** install a GIL-only package into the primary and expect it to import.
+2. **Always** resolve an interpreter through `CORE.python_env.interpreter_for(module)`
+   or `CORE.python_env.probe(code, module=...)` — never hard-code an interpreter
+   path (the old `VENV_PYTHON = .../.venv/Scripts/python.exe` constant made
+   `NODE.activate_ml()` unrunnable on this pillar).
+3. **Always** clear `PYTHON_GIL` before launching a GIL interpreter. `/root/.bashrc`
+   exports `PYTHON_GIL=0`, and a GIL build treats that as fatal
+   (`config_read_gil: Disabling the GIL is not supported by this build`).
+   `CORE/python_env.py` and the `python3.14-gil` wrapper both do this.
+4. **Never** delete `/usr/bin/python3.14` (3.14.4) to reduce the interpreter count:
+   `apt` reverse-deps `python3.14-minimal`, `python3` and `python3-minimal`.
+
+### TensorFlow
+There is **no `tensorflow` wheel on PyPI for Python 3.14 on any ABI** (verified:
+`tensorflow`, `tensorflow-cpu`, `tf-nightly` all resolve to none). The pillar's TF
+is a local `2.22.0-dev` build inside the prebuilt GIL stack at
+`/usr/local/lib/python3.14/site-packages`; the container takes vendored wheels via
+`ARG TENSORFLOW_WHEELS` in `docker/Dockerfile.ubuntu`.
+
+### Rebuild
+```bash
+bash scripts/rebuild_gil_sidecar.sh                 # idempotent
+GIL_VERSION=3.14.8 bash scripts/rebuild_gil_sidecar.sh
+```
+The interpreter comes from `astral-sh/python-build-standalone`
+(`…-install_only.tar.gz`; **no** `freethreaded` marker means the GIL build), so
+nothing is compiled. Full detail: `/root/PYTHON_CONSOLIDATION_2026-09-30.md`.

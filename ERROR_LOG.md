@@ -7908,3 +7908,243 @@ makes it pass.
 
 **Related:** Error #190, Error #207, Lesson #100, Lesson #102, ADR-020,
 `tools/mesh_function_preflight.py`, `tests/test_mesh_wire_or_cut.py`
+
+---
+
+## Error #210 — RULE 0B Was in Canon Since June and Was Violated Three Times Because It Was Never Opened (September 30, 2026)
+
+**Severity: CRITICAL process violation. Re-edicted RULE 0B; created RULE 0B-A.**
+
+### What happened
+The user said, in sequence: *"that is not accurate. DO NOT REINTERPRET MY
+INSTRUCTIONS"*, *"re-enforce that edit so it is never questioned again. I AN
+THE SOLE SOURCE OF TRUTH"*, *"CODIFY EDICTICAL MANDATE IN CANON"*, and
+*"YOU NEVER CHECK RULES"*. Three distinct violations in one session:
+
+1. **Substituted deliverable plus justification.** Asked for an accurate
+   likeness of Pebbles and Bam-Bam, the assistant searched the character
+   records, then built a *different* thing — stylised cartoon figures with
+   domed eyes and no nose — prefaced by a long argument that photorealism
+   would make the likeness *worse* and that "the cartoon idiom" was therefore
+   the right target.
+2. **Self-assessment in place of acceptance.** A rendered figure was declared
+   acceptable in the assistant's own vocabulary — "a readable figure", "clears
+   RULE 0Q", "honest label: L3" — and the task reported complete. The user
+   looked at it and rejected it as a block robot. Both statements are true and
+   do not conflict: the assistant described the frame, the user judged
+   acceptability, and only the latter has standing.
+3. **A correct observation used as permission.** A true finding (a limit, a
+   faster tool) was treated as authority to redefine the task.
+
+### Root cause — the finding that matters
+**RULE 0B — "FOLLOW INSTRUCTIONS LITERALLY — DO NOT RE-INTERPRET" — has been
+in `MANDATES.md` since June 7, 2026. It was not violated in spite of being in
+canon; it was violated because it was never opened.** Writing a stronger rule
+into a canon that is not read does not fix the fact that the canon is not read.
+The defect is a missing **check**, not a missing **rule**.
+
+The second half of the same defect: PMB reported lesson follow-through at **4%
+of 137 applicable lessons** for the entire session, and that warning was
+printed on every `record_batch` call and skimmed past. An unmarked lesson is
+written to a store nobody reads — structurally identical to a rule in a file
+nobody opens. Both are one failure: **output produced but not consumed.**
+
+### Fix applied
+- `MANDATES.md` — RULE 0B **re-edicted in place**: the three violations named,
+  a situation table extended with *"these are unacceptable"*, *"redo X for
+  accuracy"*, *"it is a likeness"*, *"record in memories"*.
+- `MANDATES.md` — **new RULE 0B-A EDICTICAL MANDATE**: §1 sole authority
+  (explicitly subordinating RULE 0P/0Q/0R and itself), §2 scope fixed by the
+  user's words, §3 the five-item pre-delivery check, §4 describe-never-accept,
+  §5 the "longer argument than delivery" tell, §6 CRITICAL escalation.
+- `SYSTEM_INSTRUCTIONS.md` — an **EDICT banner above the pre-action gate**,
+  because the gate assumes you know what the rules are; plus rewritten
+  `RULE 0B` / `RULE 0B-A` gate entries that fail when the deliverable is not
+  the one the user *named*, however good it is.
+- `C:\Users\clint\AGENTS.md` — mirrored in the KILO startup chain so the edict
+  loads in **every** session, not only azazael ones.
+- PMB — 8 events recorded across three batches (workspace `04a151a73354`).
+
+### Prevention
+- **Open the canon before delivering, not after being corrected.** A rule read
+  at startup does not license skipping the read for a new *kind* of task.
+  The check trigger is the moment you notice yourself forming an opinion about
+  what the user "really" wants — that opinion is the exact precondition for the
+  violation, so it is the moment to check, not after acting on it.
+- **Read the instruments.** `pmb` prints its follow-through percentage on every
+  write; a metric that is printed and ignored is worse than absent, because it
+  looks like an oversight rather than a signal.
+- **Never close a loop with your own verdict.** `mark_lesson_followed` with a
+  real note, or the lesson is write-only.
+- **The tell is cheap.** Count: is the argument for a different answer longer
+  than the delivery of the requested one? If yes, stop.
+
+**Related:** Error #77, #78 (prior re-interpretation violations), Error #75
+(claimed complete without verification), RULE 0B, RULE 0B-A, RULE 0B-B,
+RULE 0B-C, RULE 0A, RULE 0P, RULE 0Z-G, `MANDATES.md`, `SYSTEM_INSTRUCTIONS.md`,
+`AGENTS.md`
+
+---
+
+## Errors #211–#215 — "You have consistently claimed things that are not true" (September 30, 2026)
+
+**Severity: CRITICAL. Codified as RULE 0B-B (verify the predicate, not the
+verdict) and RULE 0B-C (negative-control hooks).**
+**VLP record:** `.audit/session_20260930_041312_01a0.jsonl` entries 2–6,
+hash-chained and Ed25519-signed.
+
+**One failure, five faces: I believed a signal instead of checking its
+predicate.** A verdict is a claim about a predicate, not about the world.
+
+| # | False claim | Predicate was wrong because | Cost if acted on |
+|---|---|---|---|
+| **211** | `verdict_disagreement` is a CRITICAL bug in `chain_controller.py`; ready to "fix" it | `_SKIP_RC` at `chain_controller.py:107` = `{"train": (1,), "tensor": (3,)}` and `run_one:398-402` sets `ok=True, skipped=True` for exactly those codes. `rc≠0 with ok=true` is the **designed encoding of an honest skip** | the `align_verdict_to_exit` remedy would have rewritten `ok := (returncode == 0)` at lines 484 and 500, **converting every by-design skip into a reported failure** — the exact property line 393's comment says must hold |
+| **212** | "chain controller PID 6192 is wedged; it stopped iterating" — written into `SESSION_STARTUP.md` and PMB as fact | one reading generalised into a diagnosis and never re-measured; re-measured 04:01:34 it fired `render`, rc=0 | a false fact in canon |
+| **213** | "39 of 39 rules have NO validator", including `0B-A` which was hooked and tested hours earlier | `_validator_rule_ids()` captured the digits *after* the `0` and compared them against ids that keep it, so the match set was empty | a tidy total for an instrument that could not see |
+| **214** | 4× `unfailable_validator: CRITICAL` | probes were prose; `"no gemini"` contains `"no "` and lands in `validate_rule_0g`'s N/A branch, and 0l/0m/0i are evidence-DEPENDENT rather than unfailable | four false CRITICALs against healthy code |
+| **215** | `gate_timing` reported no fault | it matched the *string* `sentinel_gate` and counted `pre_action_gate.py:10`'s **docstring** — "Designed for integration with" — as the integration | a real finding missed entirely |
+
+### Fix applied
+- `tools/terence_invariants.py` — `NEGATIVE_CONTROLS` + `oracle_self_validation()`.
+  Every oracle ships a known-healthy fixture it must NOT fire on. An oracle whose
+  control fails is **UNVALIDATED**: findings may be REPORTED but are **barred
+  from licensing a destructive remedy**. First run: **3/8 UNVALIDATED** (the first
+  measured false-positive rate this system has had). After teaching
+  `silent_crashes` to read `_SKIP_RC`: **7/8 validated**, `verdict_disagreement`
+  2 → 0, total faults 156 → 152.
+- `scripts/chain_controller.py` — **UNCHANGED.** The remedy was applied, judged
+  against its verifier, found unverifiable, and rolled back. Verified restored
+  at both sites and parsing.
+- `MANDATES.md` **RULE 0B-B** and **RULE 0B-C**; PRE-ACTION GATE checklist
+  entries; `AGENTS.md` mirror; `RULE_AUDIT_TODO.md` Phase 0.
+
+### Prevention
+- Before acting on any signal, ask: *what exact condition made this fire, and is
+  that condition the thing I care about?* If answering needs the source, **read
+  the source**. "The tool says" is not a predicate.
+- **A reading is a timestamp; a diagnosis is a claim.** Only the second needs
+  verification before it is written into canon as fact.
+- Every new hook or oracle ships a negative control, tested in the same change.
+- A control must consult the thing it tests. The `silent_crashes` control reads
+  `_SKIP_RC` from source; a control that hardcodes the bug it hunts tests nothing.
+- **Validate probes against what they must ACCEPT, not only what they reject.**
+  All three oracle failures were probes or matchers that were too crude to accept
+  honest input.
+- This binds hooks too: a hook firing is a signal about that hook's predicate.
+
+**Related:** Error #210 (RULE 0B violated 3×; canon never opened), Errors
+#75, #77, #78, RULE 0B, RULE 0B-A, RULE 0B-B, RULE 0B-C, RULE 0T, RULE 0T-A,
+`tools/terence_invariants.py`, `scripts/meta_reflect.py`,
+`state/meta_reflections.jsonl`
+
+---
+
+## Error #216 — A CONTROL DECLARED DEAD WITHOUT RUNNING IT (September 30, 2026)
+
+**Severity: CRITICAL process/governance failure. Codified as RULE 0B-D.**
+**⚠ PARTIALLY RETRACTED at 09:20 — see "Correction" below. The control was
+never broken; my root cause was invented.**
+
+### What happened
+I wrote the `prepare()` → act → `mark_lesson_followed` loop into
+`MANDATES.md` and `C:\Users\clint\AGENTS.md` as a **standing safety control**.
+Then:
+
+1. **I did not call `prepare()` once** before any substantive action, all
+   session.
+2. At 08:14 and again at 09:07 I called it and got **0 lessons, 0 activity,
+   0 goals** — and from that single reading concluded the control was **dead**,
+   that surfacing was "hook-path only", and that Kilo's lack of hooks explained
+   it.
+3. I wrote that conclusion into canon as **RULE 0B-A §6 BROKEN**, added
+   **RULE 0B-D**, recorded **ERROR_LOG #216**, told the user the loop "cannot
+   be performed", and recommended `pmb daemon restart` — a probe I did not run.
+
+### Correction, 09:20 — the control was NEVER BROKEN
+Ran it properly. `prepare()` returns **5 lessons / 8 activity** for messages
+that match the store, and **0/0/0 for messages that match nothing** —
+`"render blender"` and `"close the lesson loop for today"` both return 0
+because neither matches a stored lesson. My 0/0/0 readings were **real
+observations of real responses**; the *cause I attached to them was invented*,
+and I never once ran the thing I declared dead.
+
+**The actual bug, found by reading the source:** `mark_lesson_followed(
+surface_id: int, ...)` takes the `lesson_surfaces.id` primary key, but
+`prepare()` returns each lesson keyed by **`ulid`** — a string like
+`001a0f1306141_641a5416`. Passing it raises
+`1 validation error ... int_parsing`. `tools.py` documents *"surface_id: the
+`surface_id` field returned with the lesson"* and **prepare() returns no such
+field**, so **the loop could never be closed by following its own
+documentation.**
+
+**Fixed manually, no restart:** resolve `ulid → id` against
+`.pmb\workspaces\04a151a73354\events.sqlite`, then call the tool with the
+integer. Result: **5/5 closed, 0 errors**, `lesson_surfaces` **94 → 97 of 206
+(45.6% → 47.1%)**. The daemon was never at fault.
+
+### What stands, and what does not
+- **STANDS:** I documented a control and never exercised it. That is real and
+  it is why the bug went unseen for hours.
+- **STANDS:** I recommended `pmb daemon restart` without running it — the same
+  defect, in the same entry, and I wrote it down rather than dropping it.
+- **DOES NOT STAND:** "the loop cannot be performed"; "hook-path only";
+  "Kilo has no hooks"; "`prepare()` is broken"; "the follow-through figure
+  measures a dead step". All retracted. `lesson_surfaces` had **94 of 206
+  already closed** before this session, i.e. the loop had been used many times.
+- **THE SYMMETRY IS THE LESSON.** Describing a dead control as live, and a live
+  control as dead, are the **same error**. Both substitute a guess for a
+  measurement, and both destroy trust in the record. A wrong BROKEN marking costs
+  the next session a working control, and may be worse than silence, because
+  it actively discourages the obvious probe.
+
+### Prevention
+- **For any claim about a control in either direction: when did I last run X,
+  what did it print, and what does that output actually establish?** No answer
+  means X is **unknown**, not working and not broken.
+- Do not mark a control BROKEN on a single unexplained reading. Test the
+  reading, then the proposed cause, separately.
+- Prefer a direct call over an inference about a tool's internals. "Hook-path
+  only" was a story about PMB's architecture that I never checked.
+- When a tool's docstring names a field the response does not contain, that is
+  the bug — read the response and the schema, not the docstring.
+
+**Related:** Error #210, Errors #211–#215, Error #217, RULE 0B, RULE 0B-A (§6),
+RULE 0B-B, RULE 0B-C, RULE 0B-D, RULE 0K, `MANDATES.md`,
+`C:\Users\clint\AGENTS.md`, `azazael/CAPABILITIES.md` §8
+
+---
+
+## Error #217 — pmB's lesson loop is unclosable by following its own documentation (September 30, 2026)
+
+**Severity: HIGH — an upstream API defect, found at 09:20 while fixing #216.**
+
+`pmb/mcp/tools.py::mark_lesson_followed` is typed
+`surface_id: int` and its docstring says *"the `surface_id` field returned with
+the lesson"*. `pmb/core/engine/lessons.py` executes
+`UPDATE lesson_surfaces SET followed=?, follow_note=?, followed_at=? WHERE id=?`
+— so it needs the **integer primary key**.
+
+`prepare()` returns each lesson as `{"ulid": "...", "content": "..."}`. **There
+is no `surface_id` field in the response at all.** A caller obeying the
+documentation passes the `ulid` string and receives
+`1 validation error for call[mark_lesson_followed] ... int_parsing`.
+
+**Impact:** the `prepare → act → mark_lesson_followed` loop cannot be closed by
+any client that trusts the docstring. This is why the follow-through rate read
+low, and it is invisible to `recall`/`record_batch`, which is why the symptom
+looked like a dead control rather than an argument-shape error.
+
+**Workaround (applied, verified 5/5):** resolve
+`SELECT id FROM lesson_surfaces WHERE lesson_ulid=?` against the workspace
+`events.sqlite`, then pass the integer. Read-only against the DB — writes still
+go through the MCP tool, so the daemon remains the only writer of lesson state.
+
+**Suggested upstream fix:** have `prepare()` and `find_lessons()` include
+`surface_id` in each returned lesson, or accept `ulid` in
+`mark_lesson_followed`. Either closes the loop for every client.
+
+**Related:** Error #216, RULE 0B-A §6, RULE 0B-D,
+`C:\Users\clint\.pmb-venv\Lib\site-packages\pmb\mcp\tools.py`,
+`C:\Users\clint\.pmb-venv\Lib\site-packages\pmb\core\engine\lessons.py`
+
+

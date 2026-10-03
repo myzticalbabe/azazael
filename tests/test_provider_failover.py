@@ -98,3 +98,26 @@ if __name__ == "__main__":
     else:
         print(f"FAILURES: {FAIL}")
         sys.exit(1)
+
+
+# ── pytest entry point (2026-09-21) ──────────────────────────────────
+# Collected nothing before this (rc=5, "no tests collected"), so these checks had
+# never run under a test runner. Unlike the other standalone scripts in this
+# directory, this one makes LIVE inference calls (`prov.chat(...)`), so it is
+# gated: a suite that needs provider credentials and network is not something CI
+# should run by default, and a default that silently hits the network is worse
+# than one that visibly skips. Set AZAZAEL_LIVE_NETWORK=1 to run it.
+import pytest as _pytest  # noqa: E402  (appended after the script body by design)
+
+pytestmark = _pytest.mark.skipif(
+    os.environ.get("AZAZAEL_LIVE_NETWORK") != "1",
+    reason="live inference providers; set AZAZAEL_LIVE_NETWORK=1 to run",
+)
+
+
+def test_script_passes(run_standalone_script):
+    proc = run_standalone_script(__file__)
+    assert proc.returncode == 0, (
+        f"{__file__} exited {proc.returncode}\n"
+        + proc.stdout[-3000:] + "\n" + proc.stderr[-2000:]
+    )

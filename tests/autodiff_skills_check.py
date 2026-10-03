@@ -15,6 +15,19 @@ NOTE: mygrad 2.3.0 limitation — .backward(seed) on vector outputs does not
 """
 
 import sys
+import sysconfig
+
+# mygrad pulls in numba, and numba's cp314t extension faults at C level inside
+# a free-threaded process. A segfault cannot be caught, so a try/except around
+# `import mygrad` would never get to run -- the runtime has to be checked
+# first. (The docstring's older claim that mygrad 2.3.0 runs on 3.14t is
+# superseded by that measurement.) Run this file with python.exe instead.
+if sysconfig.get_config_var("Py_GIL_DISABLED"):
+    print("SKIP: mygrad -> numba cannot be imported in a free-threaded build "
+          "(numba's cp314t extension faults at C level).")
+    print("      Re-run under the GIL interpreter: python tests/autodiff_skills_check.py")
+    sys.exit(0)
+
 import mygrad as mg
 import numpy as np
 

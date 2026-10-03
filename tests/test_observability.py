@@ -97,3 +97,25 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ── pytest entry point (2026-09-21) ──────────────────────────────────
+# This file is a RUNNER, not a test module: pytest collected nothing from it
+# (rc=5), and `main()` shells out to a whole suite, so wrapping it the way the
+# other standalone scripts in this directory are wrapped would mean the suite
+# running itself. What is worth asserting instead is the MANIFEST: the runner
+# declares which files make up the observability set, and a declared test file
+# that does not exist is a silent hole -- `--list` would print a name that runs
+# nothing, and the "observability suite passed" claim would be about fewer files
+# than it names.
+def test_observability_manifest_is_real():
+    here = os.path.dirname(os.path.abspath(__file__))
+    missing = [name for group in OBSERVABILITY_TESTS.values() for name in group
+               if not os.path.isfile(os.path.join(here, name))]
+    assert not missing, f"manifest names test files that do not exist: {missing}"
+
+
+def test_runner_it_delegates_to_exists():
+    assert os.path.isfile(RUN_TESTS), (
+        f"test_observability.py delegates to {RUN_TESTS}, which does not exist"
+    )

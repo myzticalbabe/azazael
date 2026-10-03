@@ -12,10 +12,13 @@ Functions tested indirectly:
 """
 
 import sys
+import threading
 import time
 from pathlib import Path
 
-import pytest  # type: ignore[import-not-found]
+import pytest
+
+pytestmark = pytest.mark.env  # type: ignore[import-not-found]
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -377,11 +380,93 @@ class TestCacheStatus:
         warm_caches_now()
         status = cache_status()
 
-        # Compute expected registry size: sum of all worm entries per category
-        expected = sum(len(v) for v in WORM_REGISTRY.values()) if WORM_REGISTRY else 0
+        # Registry size means worm count (fixed 2026-09-29: both sides
+        # previously summed info-field counts, passing on a wrong property).
+        expected = len(WORM_REGISTRY) if WORM_REGISTRY else 0
         assert status["registry_size"] == expected, (
             f"cache_status reports {status['registry_size']} but WORM_REGISTRY has {expected}"
         )
+
+    def test_ensure_registry_warm_does_not_validate_on_the_caller(self, monkeypatch):
+        """MEASURED DEFECT. `ensure_registry_warm()` is documented as
+        "non-blocking if already warm", and its warm branch called
+        `_run_registry_validation()` INLINE. Observed: a warm-up
+        `DirectMemory()` returned in 71 ms and the very next one blocked for
+        1837 ms, because the background warm thread had populated
+        `WORM_REGISTRY` in between -- so whether `__init__` met its <100 ms
+        contract depended on a race with another thread."""
+        import CORE.startup_warm as sw
+        import CORE.worm_registry as wr
+
+        monkeypatch.setattr(wr, "WORM_REGISTRY",
+                            {"A": {"category": "utility", "priority": 5}})
+        monkeypatch.setattr(sw, "_warmed", threading.Event())
+        monkeypatch.setattr(sw, "_validation_started", threading.Event())
+        monkeypatch.setattr(sw, "_validation_done", threading.Event())
+
+        # Which THREAD ran the validation, not merely whether it ran: the whole
+        # defect was that this branch ran it on the CALLER, and a worker thread
+        # doing it is the fix, not the bug.
+        ran_on = []
+        monkeypatch.setattr(sw, "_run_registry_validation",
+                            lambda *a, **k: ran_on.append(
+                                threading.current_thread().name))
+        started = []
+        real_async = sw._ensure_registry_validation_async
+        monkeypatch.setattr(sw, "_ensure_registry_validation_async",
+                            lambda: (started.append(1), real_async())[1])
+
+        t0 = time.perf_counter()
+        assert sw.ensure_registry_warm() is True
+        elapsed = time.perf_counter() - t0
+
+        assert started == [1], "the warm path must hand validation off"
+        # THE assertion: which THREAD ran it. A regression back to inline
+        # validation would run the (patched) body on this thread and fail here.
+        assert threading.current_thread().name not in ran_on, (
+            "the caller ran the validation inline: %s" % ran_on)
+        # A loose ceiling only, because `Thread.start()` blocks until the worker
+        # is running and measured ~100 ms on this free-threaded build -- the
+        # inline regression this guards against cost 1837 ms.
+        assert elapsed < 0.5, (
+            f"warm registry path took {elapsed*1000:.1f}ms on the caller"
+        )
+
+    def test_registry_validation_runs_once_unless_forced(self, monkeypatch):
+        """It ran on EVERY call, so a hot path calling it once per
+        `DirectMemory()` paid the full 232-entry walk every time -- and the cost
+        was indistinguishable from general slowness."""
+        import CORE.startup_warm as sw
+        import CORE.worm_registry as wr
+
+        monkeypatch.setattr(sw, "_validation_started", threading.Event())
+        monkeypatch.setattr(sw, "_validation_done", threading.Event())
+        monkeypatch.setattr(sw, "_registry_validation", None)
+        calls = []
+        monkeypatch.setattr(wr, "validate_registry_importable",
+                            lambda: (calls.append(1), {"valid": True, "total": 1,
+                                                       "checked": 1,
+                                                       "broken": []})[1])
+
+        sw._run_registry_validation()
+        sw._run_registry_validation()
+        assert len(calls) == 1, "an unforced call must reuse the stored result"
+
+        sw._run_registry_validation(force=True)
+        assert len(calls) == 2, "an explicit re-run must actually re-run"
+
+    def test_the_async_starter_launches_at_most_one_validation(self, monkeypatch):
+        """A second caller must not queue a second 232-entry walk behind the
+        first; the guard is the Started event, not a thread's liveness."""
+        import CORE.startup_warm as sw
+
+        monkeypatch.setattr(sw, "_validation_started", threading.Event())
+        monkeypatch.setattr(sw, "_validation_done", threading.Event())
+
+        assert sw._ensure_registry_validation_async() is True
+        assert sw._ensure_registry_validation_async() is False
+        sw._validation_done.set()
+        assert sw._ensure_registry_validation_async() is False
 
     def test_cache_status_after_warm_caches_ready_before_warm(self):
         """cache_status should show ready=False before any warm has completed.

@@ -12,6 +12,24 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
+def _ensure_test_agent_registered():
+    """Register TestAgent if the registry does not already hold it.
+
+    Registration is a precondition of three tests here, not a side effect of a
+    fourth: relying on `test_register_agent_decorator` to run first made
+    `get_agents_by_category`, `get_all_categories` and `get_agent_class` fail
+    whenever they were run alone or after anything reset the registry.
+    """
+    from CORE.agent_registry import AGENT_REGISTRY, register_agent
+
+    if "TestAgent" not in AGENT_REGISTRY:
+        @register_agent(category="test_rl", priority=5, description="Test agent")
+        class TestAgent:
+            VERSION = "1.0.0"
+
+    return AGENT_REGISTRY["TestAgent"]
+
+
 class TestAgentRegistry(unittest.TestCase):
     """Test the AgentRegistry module."""
 
@@ -21,6 +39,7 @@ class TestAgentRegistry(unittest.TestCase):
         self.register_agent = register_agent
         self.get_agents_by_category = get_agents_by_category
         self.get_all_categories = get_all_agent_categories
+        _ensure_test_agent_registered()
 
     def test_registry_exists(self):
         """AGENT_REGISTRY should be a dict."""

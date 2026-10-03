@@ -19,6 +19,7 @@ Run:
 import importlib.util
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -27,6 +28,35 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DRIVER = REPO_ROOT / "scripts" / "evolution_cycle.py"
 SRC = REPO_ROOT / "src"
+
+# --- gate-contract guard (2026-09-30) ---------------------------------------
+# The `evo` fixture needs the estimator-identity stamp and the era-pinning
+# helpers to exist on the driver. The stamp producer was missing from the
+# working tree (nothing wrote `margin_estimator`) and was restored 2026-09-30;
+# the era pinning lives in `_sprt_history` / `_compute_streak` (there is no
+# function literally named `_same_measurement_era`). Guard on the symbols that
+# must exist so a future regression skips with ONE reason instead of emitting
+# 61 identical setup errors. See RECOVERY_REMEDIATION_PLAN_2026-09-30.md WS-2.
+_CONTRACT_SYMBOLS = (
+    "MARGIN_ESTIMATOR", "N_EPISODES", "_sprt_history", "_compute_streak",
+)
+if DRIVER.exists():
+    _driver_src = DRIVER.read_text(encoding="utf-8", errors="replace")
+    _missing = [s for s in _CONTRACT_SYMBOLS if s not in _driver_src]
+else:
+    _missing = ["<driver missing>"]
+if _missing:
+    pytest.skip(
+        "evolution_cycle.py no longer exposes the gate contract this file "
+        "tests (%s) - see RECOVERY_REMEDIATION_PLAN_2026-09-30.md WS-2"
+        % ", ".join(_missing),
+        allow_module_level=True,
+    )
+
+
+#: The instrument stamp every CURRENT row carries. Populated from the driver by
+#: the `evo` fixture so `_row()` can build a row the guards will accept.
+_INSTRUMENT = {}
 
 
 @pytest.fixture(scope="module")
@@ -39,16 +69,31 @@ def evo():
     module = importlib.util.module_from_spec(spec)
     # Must not run a GA, promote anything, or touch live state.
     spec.loader.exec_module(module)
+    _INSTRUMENT["estimator"] = module.MARGIN_ESTIMATOR
+    _INSTRUMENT["episodes"] = module.N_EPISODES
     return module
 
 
-def _row(pool_id, baseline_id, beats=True, fitness="v3-dual-robust", as_json=False):
-    """Build one prior evolution_result row in the store's row shape."""
+def _row(pool_id, baseline_id, beats=True, fitness="v3-dual-robust", as_json=False,
+         estimator=None, episodes=None):
+    """Build one prior evolution_result row in the store's row shape.
+
+    The instrument stamp (`margin_estimator` / `eval_episodes`) is part of a
+    row's identity since 2026-09-18: `_same_measurement_era()` fails closed on
+    rows that lack it, so a fixture without it makes every row break the streak
+    and the assertion reads as a streak bug rather than as a stale fixture.
+    Defaults to the CURRENT instrument, which is what a live row carries; pass
+    explicit values to build a row from a different measurement era.
+    """
     data = {
         "pool_id": pool_id,
         "baseline_hash": baseline_id,
         "fitness": fitness,
         "beats_baseline": beats,
+        "margin_estimator": (_INSTRUMENT.get("estimator") if estimator is None
+                             else estimator),
+        "eval_episodes": (_INSTRUMENT.get("episodes") if episodes is None
+                          else episodes),
     }
     return {"data": json.dumps(data) if as_json else data}
 
@@ -332,10 +377,15 @@ def test_sigma_is_never_zero(evo):
     assert evo.estimate_margin_sigma([], salt_floor=0.0) > 0.0
 
 
-def _sprt_row(pool, base, margin):
+def _sprt_row(pool, base, margin, estimator=None, episodes=None):
+    """A v3 SPRT row carrying the CURRENT instrument stamp (see _row)."""
     return {"data": {"pool_id": pool, "baseline_hash": base,
                      "fitness": "v3-dual-robust", "beats_baseline": True,
-                     "margin": margin}}
+                     "margin": margin,
+                     "margin_estimator": (_INSTRUMENT.get("estimator")
+                                          if estimator is None else estimator),
+                     "eval_episodes": (_INSTRUMENT.get("episodes")
+                                       if episodes is None else episodes)}}
 
 
 def test_sprt_history_is_era_and_baseline_pinned(evo):
@@ -347,7 +397,9 @@ def test_sprt_history_is_era_and_baseline_pinned(evo):
 
 def test_sprt_history_derives_margin_for_rows_predating_the_key(evo):
     data = {"pool_id": POOL, "baseline_hash": BASE, "fitness": "v3-dual-robust",
-            "beats_baseline": True, "best_total": 31.0, "baseline": 29.5}
+            "beats_baseline": True, "best_total": 31.0, "baseline": 29.5,
+            "margin_estimator": _INSTRUMENT.get("estimator"),
+            "eval_episodes": _INSTRUMENT.get("episodes")}
     assert evo._sprt_history([{"data": data}], POOL, BASE) == [pytest.approx(1.5)]
 
 
@@ -511,3 +563,102 @@ def test_prioritize_pool_returns_new_list_never_mutates_input(evo):
     out = evo.prioritize_pool(pool, seed=3, now=NOW)
     assert out is not pool
     assert pool == before
+
+
+# ---------------------------------------------------------------------------
+# 2026-09-19: the promotion margin must be applied ONCE, on fresh pools.
+#
+# It used to be applied twice -- once as the entry gate via `beats` (frozen
+# pool) and again at the holdout (fresh pools). On the frozen pool it is a
+# pool-fit measure, not a capability measure, so requiring it before the SPRT
+# selected candidates *for* pool fit. Measured over 40 live cycles:
+# 5 candidates cleared the frozen gate (margins 1.84x the threshold), 0
+# generalised (0.17x on fresh pools), 0/5 holdout passes, 0 promotions -- while
+# cycles below the frozen gate were recorded as `sprt not_run` with
+# `cranium {}` and contributed nothing to the cross-era pooling that exists to
+# accumulate exactly this evidence.
+#
+# These are source-level guards because the alternative is running a GA. The
+# invariant is worth guarding directly: re-introducing the double application
+# is a one-word edit and it silently restores the overfitting filter.
+# ---------------------------------------------------------------------------
+
+# Prerequisite forms only. `if not beats:` inside _compute_streak (the early
+# return) and `elif not beats:` in the verdict text are legitimate reporting and
+# are deliberately not matched.
+_GATE_USE = re.compile(
+    r"(?:if|and|or|elif)\s+beats\b"      # `if beats`, `... and beats`
+    r"|\bbeats\s+and\b"                   # `beats and ...`
+)
+
+
+def _gating_sites(source):
+    """Gating occurrences of `beats` in CODE, ignoring comments.
+
+    Comments discuss the old form, and a comment is not a gate.
+    """
+    found = []
+    for line in source.splitlines():
+        code = line.split("#", 1)[0]
+        if _GATE_USE.search(code):
+            found.append(code.strip())
+    return found
+
+
+def test_promote_margin_is_not_reused_as_an_entry_gate(evo):
+    """`beats` (frozen margin > PROMOTE_MARGIN) must not gate the pipeline."""
+    source = DRIVER.read_text(encoding="utf-8")
+    gating = _gating_sites(source)
+    assert not gating, (
+        "`beats` is being used as a gate again: %r. The frozen-margin test is "
+        "the pool-fit filter; entry must use _candidate_worthy." % gating
+    )
+
+
+def test_entry_gate_is_defined_before_every_use(evo):
+    source = DRIVER.read_text(encoding="utf-8")
+    defined = source.index("_candidate_worthy = bool(best)")
+    uses = [m.start() for m in re.finditer(r"_candidate_worthy", source)]
+    assert uses, "_candidate_worthy is missing entirely"
+    assert min(uses) == defined, "_candidate_worthy is used before it is defined"
+
+
+def test_frozen_gate_outcome_is_still_recorded(evo):
+    """`beats_baseline` must keep meaning 'cleared the frozen gate'.
+
+    The benchmark asserts this field against the frozen margin, so redefining
+    it to the new entry condition would silently break that check.
+    """
+    source = DRIVER.read_text(encoding="utf-8")
+    assert "'beats_baseline': beats," in source
+    assert "'candidate_worthy': _candidate_worthy," in source
+    assert "beats = bool(best) and (_margin_raw > PROMOTE_MARGIN)" in source
+
+
+def test_streak_still_requires_a_frozen_gate_win(evo):
+    """The streak stays a frozen-gate counter, unchanged by the entry fix."""
+    rows = [_row(1, "b1"), _row(1, "b1")]
+    assert evo._compute_streak(rows, 1, "b1", True) == 3
+    assert evo._compute_streak(rows, 1, "b1", False) == 0
+
+
+def test_streak_fails_closed_on_rows_without_the_instrument_stamp(evo):
+    """A pre-2026-09-18 row must not count toward a promotion.
+
+    This is the guard whose absence made 7 tests in this file fail unnoticed
+    from 2026-09-18: the fixture was stale, not the guard. Pinning it here means
+    the next instrument change fails loudly in one place.
+    """
+    rows = [_row(1, "b1"), _row(1, "b1")]
+    assert evo._compute_streak(rows, 1, "b1", True) == 3
+    # a different estimator
+    old_est = [_row(1, "b1", estimator="unpaired-min"), _row(1, "b1")]
+    assert evo._compute_streak(old_est, 1, "b1", True) == 1
+    # a different eval budget
+    old_budget = [_row(1, "b1", episodes=64), _row(1, "b1")]
+    assert evo._compute_streak(old_budget, 1, "b1", True) == 1
+    # no stamp at all (as a pre-fix row would be)
+    bare = [{"data": {"pool_id": 1, "baseline_hash": "b1",
+                       "fitness": "v3-dual-robust", "beats_baseline": True}},
+            _row(1, "b1")]
+    assert evo._compute_streak(bare, 1, "b1", True) == 1

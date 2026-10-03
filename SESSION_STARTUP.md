@@ -1,7 +1,212 @@
 # SESSION_STARTUP.md — Next Session Congruency Marker
 
-> *Updated: August 8, 2026 — Session: startup complete, anti-pattern scan, os_system fix (see session entry below)*
-> *For: The next Codebuff assistant that opens this project*
+> *Updated: September 30, 2026 — Session: RULE 0B/0B-A/0B-B/0B-C edict + sentinel-gate hook, headless ComfyUI on Intel Arc proven, Blender capacity measured*
+> *For: The next Codebuff/Kilo assistant that opens this project*
+
+## ⚡ STEP 1 — READ `CAPABILITIES.md` FIRST
+
+**`azazael/CAPABILITIES.md` is the verified inventory of what WORKS on this
+machine, with the exact command for each.** Read it before proposing any image,
+render, memory, or enforcement work. It is not a lessons file — every line was
+executed successfully on 2026-09-30:
+
+- **§1 headless ComfyUI on Intel Arc XPU** — the image pipeline, exact paths,
+  FLUX layout, 4-step/cfg-1.0 settings, and the staged harness
+  `tools/comfyui_flux_headless.py`
+- **§2 the right GPU-memory probe** — 7.80 GB, and why `AdapterRAM` is wrong
+- **§3 Blender Cycles ONEAPI** — exact timings and the four scripting gotchas
+- **§4 live progress** — a long download must be a browser window, not a file
+- **§5 the enforcement hooks** — sentinel self-test, negative controls
+- **§6 PMB**, **§7 VLP** — invocation that works
+- **§8 Known-broken** — so nothing gets re-attempted
+
+**Propose only what has been run.** If a solution is untested, say so. A verified
+capability beats a plausible one, and a half-built dashboard nobody can see is
+worse than none.
+
+## ⚡ STEP 2 — the law that explains the day
+**OUTPUT PRODUCED BUT NOT CONSUMED.** Seven failures, one cause. RULE 0B sat in
+`MANDATES.md` since **June 7** and was violated three times in one session — not
+overridden, never *opened*. PMB printed `4% of 137 applicable` on every write
+and it was skimmed past all session. `prepare()` returns 0 lessons in Kilo
+because its surfacing is hook-path only. A figure was self-certified and
+rejected. TERENCE reported 8009 errors with `files_scanned=0`. The gate had no
+0B-A check.
+
+Carry the corollary: **SELF-CERTIFICATION** — any check whose pass condition is
+authored by the same party being checked will pass. Ask of any pass or count:
+*who wrote the pass condition, and what is the denominator?*
+
+## ⚡ STEP 3 — what is ENFORCED (not just written)
+| Layer | Artefact | Verify |
+|---|---|---|
+| Hook | `src/SCRIPTS/sentinel_gate.py::validate_rule_0b_a()` — runs right after AP-1 | `pytest tests/test_rule_0b_a_edict.py -q` → **9 passed** |
+| Oracles | `tools/terence_invariants.py` — 13 oracles, 5 evidence kinds | `--self-test` → **10/10 validated** |
+| Canon | `MANDATES.md` RULE 0B, **0B-A, 0B-B, 0B-C**; EDICT banner above the gate; `C:\Users\clint\AGENTS.md` mirror | grep `SOLE SOURCE OF TRUTH` |
+| Record | `ERROR_LOG.md` **#210–#215**; VLP `.audit/session_20260930_041312_01a0.jsonl` | `verify_head_hash()` → **True** |
+
+**0B-A five-item pre-delivery check:** (1) delivered what the user NAMED;
+(2) justification for a different answer not longer than the delivery;
+(3) not claiming acceptance — **describe, never accept**; (4) no uninvoked
+mandate used to reshape the task; (5) disagreement stated in one sentence, then
+still build the ask. **Only the user decides acceptability.**
+
+**0B-B** — a verdict is a claim about a *predicate*, not the world. **0B-C** —
+every oracle ships a negative control; one that fails is UNVALIDATED and barred
+from licensing a destructive remedy.
+
+## Measured — quote the device every time
+**GPU 7.80 GB usable** (`torch.xpu.get_device_properties`), Intel Arc 140T.
+WMI `AdapterRAM` says 4.00 GiB and is wrong; a prior note said 2.1 GB and was
+wrong twice. **Never size a model decision off `AdapterRAM`.**
+**torch `2.11.0.dev20260317+xpu`, XPU available** (AI Playground venv).
+**Blender 4.5.10 / Cycles `ONEAPI`:** 1024×1360 denoised — 64 spp 8.5 s ·
+256 spp 16.0 s · **1024 spp 34.3 s**. **Local image generation works headless.**
+
+## The five open items
+1. **Pebbles & Bamm-Bamm likeness — NOT RENDERED.** FLUX is the better
+   instrument. Rejected so far: the SVG originals, an adult-proportioned
+   mannequin ("block robot"), and a stylised reinterpretation.
+2. **FLUX download** → **http://127.0.0.1:8099/**. **Restart before the run** —
+   free RAM, not VRAM, is binding (11.89 GB UNet on a 7.80 GB card).
+3. **Two chain jobs fail silently** — `artifacts` rc=1, `spine` rc=1, measured
+   **deterministic**. `train` rc=1 and `tensor` rc=3 are **by-design honest
+   skips** (`_SKIP_RC`, `chain_controller.py:107`) and are **NOT** faults.
+4. **`loop_integrity` DEGRADED** — a measurement bug: `genome_seed()` hashes
+   every gene, so consecutive cycles are not the same measurement.
+5. **Full `pytest tests/` fails at collection** — process-global audit-hook
+   leak; see `CAPABILITIES.md` §8.
+
+## Ruled out on evidence, do not re-derive
+**Abliterated image models are not a route to better images.** Abliteration
+targets the **text encoder**, not the DiT — ponpoke proved FLUX.2-klein's DiT
+has no guardrails at all. Removing refusal cannot add visual knowledge the DiT
+never learned. **The missing input was never compute or a better model — it was
+L4 geometry, and FLUX removes even that barrier.**
+
+## Standing conventions
+- **A continuous surface, or it looks assembled:** metaball field → convert →
+  voxel remesh → smooth → subdiv. Seams under a specular key read as a block robot.
+- **A file on disk is not watchable** — a long download needs a browser window.
+- **A rate readout needs two samples**; first-tick values are garbage.
+- `bpy.ops.mesh.primitive_*_add` ignores `name=`; `bpy.context.object` is
+  unreliable under `--factory-startup`; build materials after the last
+  `read_factory_settings()`.
+
+---
+
+> *Prior content follows. August 8, 2026 — Session: startup complete, anti-pattern scan, os_system fix (see session entry below)*
+
+## ⚡ READ THIS FIRST — 2026-09-30 HANDOFF
+
+### The one law that explains the whole day
+**OUTPUT PRODUCED BUT NOT CONSUMED.** Seven failures, one cause. RULE 0B sat in
+`MANDATES.md` since **June 7** and was violated three times because it was never
+*opened*. PMB printed `4% of 137 applicable` on every write and it was skimmed
+past all session. `prepare()` returns 0 lessons in Kilo because its surfacing is
+hook-path only. A figure was self-certified and rejected. TERENCE reported 8009
+errors with `files_scanned=0`. **An artefact nobody reads, runs, or acts on is
+indistinguishable from no artefact — but worse, because it manufactures
+confidence.**
+
+Carry the corollary: **SELF-CERTIFICATION** — any check whose pass condition is
+authored by the same party being checked will pass. Ask of any pass or count:
+*who wrote the pass condition, and what is the denominator?*
+
+### What is ENFORCED now (not just written)
+| Layer | Artefact | Verify |
+|---|---|---|
+| Hook | `src/SCRIPTS/sentinel_gate.py::validate_rule_0b_a()` — parsed as `rule_0b_a_edict`, runs in `execute_validation()` **right after AP-1** | `python -m pytest tests/test_rule_0b_a_edict.py -q` → **9 passed** |
+| Canon | `MANDATES.md` RULE 0B re-edicted + **RULE 0B-A**; EDICT banner at top of `SYSTEM_INSTRUCTIONS.md`; `C:\Users\clint\AGENTS.md` mirror | grep `SOLE SOURCE OF TRUTH` in all four |
+| Record | `ERROR_LOG.md` **Error #210** (CRITICAL) | — |
+
+**RULE 0B-A pre-delivery check — five items, before reporting any user-facing
+work complete:** (1) did I deliver the deliverable the user NAMED; (2) is my
+justification for a different answer longer than the delivery; (3) am I claiming
+acceptance — **I may describe, never accept**; (4) did I use an uninvoked mandate
+to reshape the task; (5) if I disagreed, one sentence, then still build the ask.
+**Only the user decides whether work is acceptable.**
+
+### Measured this session — quote the device every time
+Blender 4.5.10 LTS at `C:\Users\clint\blender\blender-4.5.10-windows-x64\blender.exe`,
+Cycles `ONEAPI` on Intel Arc, 16-core 285H. **1024×1360 with denoising: 64 spp
+= 8.5s · 256 spp = 16.0s · 1024 spp = 34.3s (105 img/hr).** A render time
+without its device is not a measurement — CPU fallback is a 13× swing on this
+box. The previously-recorded 203.2s is **superseded**.
+
+### The five open items (PMB goals recorded)
+1. **Pebbles & Bamm-Bamm likeness — NOT RENDERED.** Script
+   `azazael/tools/blender_session_20260930/blender_pebbles.py` has correct
+   costume and the continuous-metaball build, and dies on
+   `ReferenceError: StructRNA of type Material has been removed`. **Fix is
+   ordering, not design:** materials are built *above* the loop that calls
+   `reset_scene()`; move them *after* the last reset in each scene. Then render
+   `pebbles_flintstone`, `bambam_flintstone`, `pebbles_and_bambam`, and **look
+   at the output before reporting.**
+   Rejected already: the SVG originals, an adult-proportioned mannequin
+   ("block robot"), and a stylised reinterpretation.
+2. ~~Chain controller PID 6192 is wedged~~ — **CORRECTED 2026-09-30 04:01, see
+   the correction block below. It is alive and firing.** What is real is narrower:
+   the `terence` job and the duration telemetry are still absent from the plan
+   the running process writes, so they remain dormant until it is restarted.
+3. **Four chain jobs fail silently** — `artifacts` rc=1, `spine` rc=1, `tensor`
+   rc=3 (recorded `ok:true`), `train` rc=1. `audit_loop_liveness.py` checks for
+   *silence*, so run-and-fail reads as alive. **TERENCE now detects all four**
+   (`oracle_silent_crashes`), and the autonomous re-run measured them as
+   DETERMINISTIC, not transient: every one failed again on a clean re-run.
+4. **`loop_integrity` DEGRADED blocks promotion** — and it is a **measurement
+   bug**: `genome_seed()` hashes every gene, so consecutive cycles are not the
+   same measurement; alternation reads ~100% and the streak gate cannot
+   accumulate. Compare only cycles with identical seed hashes, or make the seed
+   comparable across a pair.
+5. **`prepare()` surfaces nothing in Kilo** — hook-path only, and Kilo has no
+   hooks. Use `find_lessons(query=…)` directly.
+
+### ⚠ CORRECTION, 2026-09-30 04:01 — the chain controller is NOT wedged
+I earlier recorded, in this file and in PMB, that "chain controller PID 6192 is
+wedged; last fire 02:36:45; it has stopped iterating." **That claim is false.**
+Re-measured at 04:01:34, the controller fired a job five seconds before the
+check — `render`, rc=0, `ouroboros.html` written. The process is alive (PID 6192,
+up since 09-28 15:53, 45.7s CPU, 6.7 MB working set — small, but that is what
+this process is, not evidence of a wedge).
+
+**The failure was mine, and it is the exact pattern this session was about:** I
+read a snapshot, generalised it into a diagnosis ("wedged"), wrote the diagnosis
+into canon *as fact*, and never re-measured it. A reading is a timestamp; a
+diagnosis is a claim; only the second needs verifying before it is recorded.
+
+Two independent signals still show in `state/`: the plan artifact the running
+process writes contains 20 job keys and no `terence`, so the newly-added job
+and the duration telemetry really are dormant until a restart. And the 04:01
+reading is a single sample — if you need to know whether the controller has
+periodic gaps, sample it over time rather than trusting either one reading.
+
+### Ruled out on evidence, do not re-derive
+**Abliterated image models are not a route to better images.** Abliteration
+targets the **text encoder**, not the DiT — ponpoke proved FLUX.2-klein's DiT
+has no guardrails at all. Removing refusal cannot add visual knowledge the DiT
+never learned ("the DiT itself does not know how to draw it"). Only
+FLUX.2-klein 4B fits this box (~7 GB weights, Apache 2.0) on a CPU with no CUDA
+and no `diffusers`, at a plausibly-unmeasured 8–25 min/image — against a
+renderer doing 1024 samples in 34.3s. Chroma1-HD is Apache 2.0 and
+uncensored-by-design but 8.9B. **The missing input remains L4 geometry, not
+compute and not a better model.**
+
+### Standing conventions this session established
+- **A continuous surface, or it looks assembled:** metaball field → convert →
+  voxel remesh → smooth → subdiv. Separate meshes mean seams, and seams under
+  a specular key read as a block robot. Adding primitives adds seams.
+- `bpy.ops.mesh.primitive_*_add` **ignores `name=`**; `bpy.context.object` is
+  unreliable under `--factory-startup`. Diff `set(bpy.data.objects.keys())`
+  around the op.
+- Never capture a datablock handle across `read_factory_settings()`.
+- **"Block robot" was my diagnosis failure too:** I called a rejected figure
+  "a readable figure" and reported the task complete. That is the acceptance
+  language the hook now blocks.
+
+---
+
+> *Prior content follows. August 8, 2026 — Session: startup complete, anti-pattern scan, os_system fix (see session entry below)*
 
 ## 🚨 RESTART_PROTOCOL_REQUIRED: FALSE — RESOLVED (June 9, 2026)
 

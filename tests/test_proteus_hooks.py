@@ -572,6 +572,15 @@ class TestMorphInertTrials(unittest.TestCase):
         live = {name: p.default for name, p in sig.parameters.items()
                 if isinstance(p.default, bool)}
         for kwarg, default in MORPH_TRAINER_DEFAULTS.items():
+            if not isinstance(default, bool):
+                # Non-switch genes (nest scalars default None): the trainer
+                # must still accept the kwarg; absence == scalar path.
+                self.assertIn(kwarg, sig.parameters,
+                              "%s is not a trainer kwarg any more" % kwarg)
+                self.assertIsNone(sig.parameters[kwarg].default,
+                                  "nest default drift: trainer says %s=%r"
+                                  % (kwarg, sig.parameters[kwarg].default))
+                continue
             self.assertIn(kwarg, live,
                           "%s is not a trainer kwarg any more" % kwarg)
             self.assertEqual(live[kwarg], default,

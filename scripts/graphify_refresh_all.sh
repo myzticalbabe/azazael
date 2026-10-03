@@ -102,7 +102,7 @@ REPOS_UPDATE=(
   "azazael|C:/Users/clint/azazael"
 )
 REPOS_EXTRACT=(
-  "vermillion_lightfury|C:/Users/clint/vermillion_lightfury"
+  "vermillion_lightfury|C:/Users/clint/.kali_staging/vermillion_lightfury"
   "aoa_g|G:/AZAZAEL/AOA"
   "aoa_source|G:/AZAZAEL_SOURCE_OF_TRUTH/AOA"
   "kali|C:/Users/clint/Desktop/Graphify_Codebase_Atlas_2026-08-27/kali_src"
