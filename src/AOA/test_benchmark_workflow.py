@@ -12,6 +12,18 @@ import arms.azazael_arm, arms.codex_arm, arms.eve_arm, arms.libra_arm, arms.supp
 from core.arm_registry import ArmRegistry
 from core.event_bus import get_event_bus, AOEvent, AOEventType
 from core.router import CrossArmRouter, WorkflowStep
+from core.session_manager import get_session_manager, MilestoneStatus
+
+# Session audit trail (2026-09-28): the run records itself -- init
+# outcomes and every step -- so the session dir cannot stay empty.
+_sess_mgr = None
+_benchmark_session = None
+try:
+    _sess_mgr = get_session_manager()
+    _benchmark_session = _sess_mgr.create_session(
+        name="AOA Benchmark Verification", tags=["benchmark", "aoa"])
+except Exception as _e:
+    print(f"  [WARN] session init failed: {_e}")
 
 # Load benchmark data
 bm_path = Path(__file__).resolve().parent / "benchmark_data.json"
@@ -162,6 +174,27 @@ print(f"Executing...")
 t0 = time.perf_counter()
 results = router.execute_workflow(wf.workflow_id)
 elapsed = (time.perf_counter() - t0) * 1000
+# Step milestones stamped with the ROUTER timestamps (started_at /
+# completed_at): durations exist instead of being invented here.
+try:
+    from datetime import datetime as _dt
+    for _r in results:
+        try:
+            _st = _dt.fromisoformat(_r.get("started_at", ""))
+            _en = _dt.fromisoformat(_r.get("completed_at", ""))
+            _ms = max(0.0, (_en - _st).total_seconds() * 1000.0)
+        except Exception:
+            _ms = 0.0
+        _ok = (_r.get("status") == "completed"
+               and (_r.get("result") or {}).get("status") == "ok")
+        if _sess_mgr is not None:
+            _sess_mgr.record_milestone(
+                _r.get("arm_id", "?"), _r.get("capability", "?"),
+                description="benchmark step %s" % _r.get("step_id", "?"),
+                status=None if _ok else MilestoneStatus.FAILED,
+                duration_ms=_ms)
+except Exception as _e:
+    print(f"  [WARN] step milestone recording failed: {_e}")
 
 # Verify ALL steps completed successfully
 for r in results:
@@ -283,5 +316,18 @@ else:
 print(f"  All {summary['total_steps']} arms executed through CrossArmRouter")
 print(f"  EventBus history: {bus.history_count} events")
 print(f"  Total time: {elapsed:.0f}ms")
+
+benchmark_verdict = "pass" if all_pass else "fail"
+if _sess_mgr is not None and _benchmark_session is not None:
+    try:
+        _sess_mgr.complete_session(
+            status="completed" if all_pass else "failed")
+    except Exception as _e:
+        print(f"  [WARN] session complete failed: {_e}")
+    try:
+        _saved = _sess_mgr.save_session(_benchmark_session.session_id)
+        print(f"  Session saved: {_saved} (benchmark_verdict={benchmark_verdict})")
+    except Exception as _e:
+        print(f"  session save FAILED: {_e}")
 
 registry.shutdown_all()
