@@ -126,6 +126,60 @@ resolution threshold (fewer, larger communities) would make the bridge table mea
 
 ---
 
+## Finding 9 — The fragmentation is a DOCUMENTATION artifact, not a clustering problem
+
+Follow-up investigation ("how do we fix structural fragmentation?"). The graph
+has **1,584 connected components** for 49,666 nodes / 75,974 edges (mean degree
+3.06 — it is sparse). Two candidate fixes were tested and **both failed**:
+
+- **`--exclude-hubs N` made it worse.** The parameter is a degree PERCENTILE
+  below which nodes are *kept* for partitioning, so `5` keeps only the bottom 5%
+  (29,021 communities) and `99` still excludes the top 1% (6,433). The sparse
+  graph cannot tolerate hub removal.
+- **`--resolution` barely moves it.** `0.2` (coarser) gave 3,378 communities vs
+  3,368 at the default `1.0`; the number of components is unchanged either way.
+
+Re-projecting the graph with different exclusion sets shows the real cause:
+
+| Scenario | Components | Largest |
+|---|---:|---:|
+| Full graph | 1,584 | 36,941 |
+| Drop `skills/` | **390** | 36,405 |
+| Drop `skills/` + `docs/` | 370 | 35,620 |
+| Drop all docs (any `.md`) | **258** | 32,114 |
+| CODE dirs only | 607 | 26,136 |
+
+**`skills/` alone accounts for ~75% of the components: 8,011 of its 8,547 nodes
+(93.7%) sit in components of their own.** Root-level `.md` files are 28.2%
+stranded and `docs/` 43.0%, while the code trees are almost fully connected
+(`tests/` 0.0%, `packages/` 1.1%, `tools/` 3.8%, `scripts/` 8.2%, `src/` 11.9%).
+
+**What the components are:** the largest is 36,941 nodes — the real code graph.
+Everything after it is a document cluster: `src/CODEX/Azazael_DUAL_PANE.md` (781),
+`src/CODEX/DOCUMENTATION/CHANGELOG.md` (284), `MEMORIES.md` (100),
+`RECONCILIATION_AND_INTERMESH_2026-09-28.md` (79), one cluster per skill, one per
+doc.
+
+**The fix (three options, in order of effort):**
+
+1. **Separate the two layers.** The graph is the union of a well-connected CODE
+graph and a fragmented DOC graph. For "what calls this?" questions, exclude the
+doc trees — `drop all docs` gives **258 components** (an 84% reduction) with the
+code core intact at 32,114. `skills/` is the same tooling content the project
+already excludes as `.agents/skills` ("a map of its own tooling"), so excluding
+`/skills/` is consistent with the existing scope decision — but it is a scope
+change, so it belongs to the maintainer, not to an unattended edit.
+2. **Keep both, as two graphs.** `graphify update` reads `.graphifyignore` and
+`.gitignore`; maintain a code graph and a doc graph and query them separately.
+3. **Wire the doc layer in.** Give each skill/doc a `references` edge to the code
+it documents, so it joins the main component. This is semantic extraction (the
+part that needs an LLM) and is the only option that both keeps and connects the
+docs.
+
+Until then: **read the graph's centrality/bridge output as two graphs, not one.**
+A `skills/` node's isolation is not a defect in the code — it is the code graph
+being asked to answer a documentation question.
+
 ## Recommended actions (in priority order)
 
 1. **Filter stdlib concept nodes** out of every centrality/bridge metric, or collapse them
