@@ -134,6 +134,25 @@ class DreamingModule:
         if not records:
             return {"recalled": 0, "message": "No scenarios found"}
 
+        # Stratify errors in (2026-09-28): the unfiltered window is ~99%
+        # info, so the error->recovery miner starves on samples with zero
+        # errors. A bounded error top-up guarantees material; dedup by id.
+        errors_added = 0
+        try:
+            from CORE.local_memory import get_memory_store as _gs
+            _store = _gs()
+            _have = {str(r.get("id")) for r in records if r.get("id")}
+            _errs = _store.query_memories(
+                source=source, event_type=event_type, severity="error",
+                limit=25, max_age_days=max_age_days)
+            for _e in _errs:
+                if str(_e.get("id")) not in _have:
+                    records.append(_e)
+                    _have.add(str(_e.get("id")))
+                    errors_added += 1
+        except Exception:
+            pass
+
         with self._lock:
             self._scenario_memory = records
             if len(self._scenario_memory) > 500:
@@ -141,6 +160,7 @@ class DreamingModule:
 
         return {
             "recalled": len(records),
+            "errors_added": errors_added,
             "sources": list(set(r.get("source", "unknown") for r in records)),
             "event_types": list(set(r.get("event_type", "unknown") for r in records)),
             "timestamp": datetime.now().isoformat(),
@@ -354,6 +374,8 @@ class DreamingModule:
             suggestions.append({
                 "type": "error_mitigation",
                 "source": es.get("source", "unknown"),
+                "worm": es.get("worm"),
+                "nature": es.get("nature"),
                 "error_event": es.get("error", ""),
                 "recovery_action": es.get("recovery", "retry_with_backoff"),
                 "confidence": round(min(0.95, 0.5 + es.get("evidence_count", 1) * 0.1), 3),
@@ -425,16 +447,20 @@ class DreamingModule:
             pass
 
         return suggestions
-
     def _mine_error_recovery_patterns(self, scenarios: list[dict]) -> list[dict]:
         """Mine error->success sequences from scenario data.
 
         Analyzes chronological scenario sequences to find pairs where
-        an error event was followed within a short window by a successful event
-        from the same source, suggesting an effective recovery strategy.
+        an error event was followed within a short window by a successful
+        event from the same source, suggesting an effective recovery
+        strategy. Non-adjacent by design (2026-09-28): requiring list
+        adjacency lost pairs to unrelated interleaved records, so each
+        error scans forward for its first same-source success.
 
         Returns:
-            list of dicts with source, error, recovery, evidence_count
+            list of dicts with source, worm, nature, error, recovery,
+            evidence_count. worm/nature are the ORGAN (from the error's
+            data), distinct from source (the emitter).
         """
         if len(scenarios) < 2:
             return []
@@ -445,39 +471,53 @@ class DreamingModule:
             key=lambda s: s.get("timestamp", s.get("created_at", "")),
         )
 
+        def _data(ev: dict) -> dict:
+            d = ev.get("data", {})
+            if isinstance(d, str):
+                try:
+                    d = json.loads(d)
+                except (json.JSONDecodeError, TypeError):
+                    d = {}
+            return d if isinstance(d, dict) else {}
+
+        def _ts(ev: dict) -> float:
+            for key in ("timestamp", "created_at"):
+                raw = ev.get(key)
+                if raw:
+                    try:
+                        from datetime import datetime as _dt
+                        return _dt.fromisoformat(str(raw)).timestamp()
+                    except (ValueError, TypeError):
+                        continue
+            return 0.0
+
+        # 5-minute pairing window: recovery follows failure promptly; a
+        # same-source success hours later is a different story.
+        WINDOW_S = 300.0
         recovery_patterns: dict[tuple[str, str], dict] = {}
 
-        for i in range(len(sorted_scenarios) - 1):
-            current = sorted_scenarios[i]
-            next_ev = sorted_scenarios[i + 1]
-
-            curr_data = current.get("data", {})
-            next_data = next_ev.get("data", {})
-            if isinstance(curr_data, str):
-                try:
-                    curr_data = json.loads(curr_data)
-                except (json.JSONDecodeError, TypeError):
-                    curr_data = {}
-            if isinstance(next_data, str):
-                try:
-                    next_data = json.loads(next_data)
-                except (json.JSONDecodeError, TypeError):
-                    next_data = {}
-
-            curr_severity = current.get("severity", "")
-            next_severity = next_ev.get("severity", "")
+        for i, current in enumerate(sorted_scenarios):
+            if current.get("severity", "") != "error":
+                continue
             curr_source = current.get("source", "unknown")
-            next_source = next_ev.get("source", "unknown")
-
-            # Detect: error -> success from same source
-            if curr_severity == "error" and next_severity == "info" and curr_source == next_source:
+            curr_data = _data(current)
+            t0 = _ts(current)
+            for nxt in sorted_scenarios[i + 1:]:
+                if nxt.get("source", "unknown") != curr_source:
+                    continue
+                if nxt.get("severity", "") != "info":
+                    continue
+                if t0 and _ts(nxt) - t0 > WINDOW_S:
+                    break
+                next_data = _data(nxt)
                 error_msg = curr_data.get("error", curr_data.get("msg", "unknown")) or "unknown"
                 recovery_action = next_data.get("action", next_data.get("strategy", "retry_with_backoff")) or "retry_with_backoff"
                 key = (curr_source, error_msg[:800])
-
                 if key not in recovery_patterns:
                     recovery_patterns[key] = {
                         "source": curr_source,
+                        "worm": curr_data.get("worm"),
+                        "nature": curr_data.get("nature"),
                         "error": error_msg,
                         "recovery": recovery_action,
                         "evidence_count": 1,
@@ -485,6 +525,7 @@ class DreamingModule:
                 else:
                     recovery_patterns[key]["evidence_count"] += 1
                     recovery_patterns[key]["recovery"] = recovery_action  # Latest recovery
+                break
 
         return sorted(
             recovery_patterns.values(),

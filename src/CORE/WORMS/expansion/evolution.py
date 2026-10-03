@@ -159,9 +159,11 @@ class EvolutionEngine:
                  crossover_rate: float = 0.7, mutation_rate: float = 0.1,
                  tournament_size: int = 3, early_stop_patience: int = 5,
                  early_stop_tolerance: float = 0.01, memory_store=None,
-                 crossover_operator: str = "sbx",
-                 mutation_operator: str = "polynomial",
-                 eta_c: float = 15.0, eta_m: float = 20.0):
+                  crossover_operator: str = "sbx",
+                  mutation_operator: str = "polynomial",
+                  eta_c: float = 15.0, eta_m: float = 20.0,
+                  levy_alpha: float = 1.5,
+                  adaptive_levy: bool = False):
         self._lock = threading.Lock()
         self._memory_store = memory_store  # Injected store (None = use global, "none" = disabled)
         # Why the store could not be resolved, so an unpersisted checkpoint can
@@ -176,11 +178,16 @@ class EvolutionEngine:
         self.early_stop_tolerance = early_stop_tolerance
         # -- v2.0 real-coded operators (audit item 1: SBX + poly mutation) --
         # crossover_operator: "uniform" (legacy) | "sbx"
-        # mutation_operator: "uniform" (legacy) | "polynomial" | "gaussian"
+        # mutation_operator: "uniform" (legacy) | "polynomial" | "gaussian" | "levy"
         self.crossover_operator = crossover_operator
         self.mutation_operator = mutation_operator
         self.eta_c = float(eta_c)
         self.eta_m = float(eta_m)
+        # -- adaptive Levy flight (2026-09-28): heavy-tailed jumps engage
+        # only after patience//2 stagnant gens; counted, never silent.
+        self.levy_alpha = float(levy_alpha)
+        self.adaptive_levy = bool(adaptive_levy)
+        self._levy_gens = 0
         # -- v2.0 mixed-type genome specs (audit item 3) --
         # {name: ("float"|"int"|"bool"|"choice", lo, hi, choices)}
         # Empty = legacy float-only inferred from bounds tuples.
@@ -445,6 +452,19 @@ class EvolutionEngine:
         # -- Adapt mutation rate before selection --
         self._adapt_mutation_rate(current_pop, gene_bounds)
 
+        # -- Adaptive Levy flight: engage heavy tails only when stuck --
+        # A flat search gets jumps; an improving one keeps its operator.
+        # The effective operator is reported (never the configured one when
+        # they differ), and levy children are counted, so the choice is
+        # auditable per generation instead of folklore.
+        _prev_operator = self.mutation_operator
+        _levy_engaged = bool(
+            self.adaptive_levy
+            and self._stagnant_gens() >= max(1, self.early_stop_patience // 2))
+        _levy_children = 0
+        if _levy_engaged:
+            self.mutation_operator = "levy"
+            self._levy_gens += 1
         # -- Selection + Crossover + Mutation --
         while len(new_population) < self.population_size:
             # Tournament selection
@@ -459,6 +479,8 @@ class EvolutionEngine:
 
             # Mutation (polynomial dispatch)
             child_genes = self._mutate(child_genes, gene_bounds)
+            if _levy_engaged:
+                _levy_children += 1
 
             child = Genome(
                 genes=child_genes,
@@ -487,11 +509,15 @@ class EvolutionEngine:
         # Persist generation
         self._persist_generation()
 
+        effective_operator = self.mutation_operator
+        self.mutation_operator = _prev_operator
         return {
             "generation": self._generation,
             "population_size": len(self._population),
             "elites_preserved": self.elitism_count,
             "timestamp": datetime.now().isoformat(),
+            "mutation_operator": effective_operator,
+            "levy_children": _levy_children,
         }
 
     def _tournament_select(self, population: list[Genome]) -> Genome:
@@ -566,11 +592,13 @@ class EvolutionEngine:
 
     def _mutate(self, genes: dict,
                 gene_bounds: dict[str, tuple[float, float]]) -> dict:
-        """Dispatch: polynomial (default) / gaussian / uniform (legacy)."""
+        """Dispatch: polynomial (default) / gaussian / levy / uniform (legacy)."""
         if self.mutation_operator == "polynomial":
             return self._polynomial_mutate(genes, gene_bounds)
         if self.mutation_operator == "gaussian":
             return self._gaussian_mutate(genes, gene_bounds)
+        if self.mutation_operator == "levy":
+            return self._levy_mutate(genes, gene_bounds)
         for key, (min_val, max_val) in gene_bounds.items():
             if random.random() < self.mutation_rate:
                 perturbation = random.uniform(-0.1, 0.1) * (max_val - min_val)
@@ -627,6 +655,76 @@ class EvolutionEngine:
             except (TypeError, ValueError):
                 continue
             genes[key] = max(lo, min(hi, random.gauss(x, sigma_frac * (hi - lo))))
+        return genes
+
+    def _stagnant_gens(self) -> int:
+        """Trailing generations without improvement (2026-09-28).
+
+        Counts gens after the last strict improvement of best_fitness, so
+        [1.0, 1.0, 1.2, 1.2, 1.2] reports 2 and a fresh improvement
+        reports 0. Empty history reports 0 (nothing to be stagnant about).
+        """
+        hist = self._generation_history or []
+        best = None
+        last_improved = -1
+        for i, row in enumerate(hist):
+            try:
+                v = float((row or {}).get("best_fitness"))
+            except (TypeError, ValueError):
+                continue
+            if best is None or v > best:
+                best = v
+                last_improved = i
+        if last_improved < 0:
+            return 0
+        return max(0, len(hist) - 1 - last_improved)
+
+    def _levy_mutate(self, genes: dict, gene_bounds: dict) -> dict:
+        """Heavy-tailed Levy-flight mutation (Mantegna's algorithm).
+
+        Occasional long jumps escape local optima that Gaussian steps orbit;
+        clamping keeps every step in bounds and discrete genes resample like
+        the sibling operators. alpha in (0, 2]; smaller alpha, heavier tail.
+        """
+        import math as _math
+        beta = min(1.99, max(0.3, float(self.levy_alpha)))
+        try:
+            sigma = (_math.gamma(1.0 + beta)
+                     * _math.sin(_math.pi * beta / 2.0)
+                     / (_math.gamma((1.0 + beta) / 2.0) * beta
+                        * (2.0 ** ((beta - 1.0) / 2.0)))) ** (1.0 / beta)
+        except (ValueError, ZeroDivisionError):
+            sigma = 1.0
+        for key, bounds in gene_bounds.items():
+            if random.random() >= self.mutation_rate:
+                continue
+            if key in self._gene_specs and self._gene_specs[key].get("type") in ("bool", "choice"):
+                genes[key] = self._sample_gene(key)
+                continue
+            lo, hi = float(bounds[0]), float(bounds[1])
+            if hi <= lo:
+                continue
+            try:
+                x = float(genes.get(key, (lo + hi) / 2.0))
+            except (TypeError, ValueError):
+                continue
+            x = max(lo, min(hi, x))
+            try:
+                u = random.gauss(0.0, sigma)
+                v = random.gauss(0.0, 1.0)
+                step = u / (abs(v) ** (1.0 / beta)) if v != 0 else 0.0
+            except (ValueError, ZeroDivisionError):
+                step = 0.0
+            span = hi - lo
+            x_new = max(lo, min(hi, x + step * 0.1 * span))
+            if key in self._gene_specs and self._gene_specs[key].get("type") == "int":
+                genes[key] = int(round(x_new))
+            else:
+                genes[key] = x_new
+        for key, spec in self._gene_specs.items():
+            if key not in gene_bounds and spec.get("type") in ("bool", "choice"):
+                if random.random() < self.mutation_rate:
+                    genes[key] = self._sample_gene(key)
         return genes
 
     def _govern_evolution_gate(self, phase: str, context: dict) -> None:
