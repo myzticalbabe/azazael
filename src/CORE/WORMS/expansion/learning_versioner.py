@@ -66,6 +66,27 @@ class ModelVersioner:
         self._lock = threading.Lock()
         self._store = None  # Lazy LocalMemoryStore
 
+    def get_summary(self) -> Dict[str, Any]:
+        """Worm contract: return a summary dict (see BaseWormMixin).
+
+        `ModelVersioner` was split out of the `learning.py` monolith without a
+        `get_summary()`, so the smoke test that instantiates every registered
+        worm saw `None` here. Reports the in-memory version registry without
+        touching LocalMemoryStore, so it is safe to call from the smoke test.
+        """
+        with self._lock:
+            model_count = len(self._models)
+            version_count = sum(len(v) for v in self._models.values())
+        return {
+            "success": True,
+            "method": "get_summary",
+            "result": {
+                "version": self.VERSION,
+                "model_count": model_count,
+                "version_count": version_count,
+            },
+        }
+
     def _get_store(self):
         """Lazy LocalMemoryStore connection — double-checked locking for 3.14t."""
         if self._store is None:

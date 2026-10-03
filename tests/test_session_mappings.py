@@ -19,9 +19,16 @@ from pathlib import Path
 def setup_module():
     """Use a temp DB for tests to avoid polluting the real database."""
     global _orig_db
-    _orig_db = str(DirectMemory.__dict__.get('DB_PATH', ''))
-    # Override DB_PATH for tests
+    # DB_PATH is a MODULE-level variable that DirectMemory reads at
+    # construction time -- it is not a class attribute, so
+    # `DirectMemory.__dict__.get('DB_PATH', '')` is always '' and the old
+    # teardown's `if _orig_db:` never restored anything. That leaked a
+    # deleted temp path into every later test that uses the shared store
+    # (they wrote to the temp DB via DirectMemory and read the real one via
+    # get_memory_store), so the leak is fixed at the source: capture and
+    # restore the module global unconditionally.
     import CORE.direct_memory as dm_mod
+    _orig_db = dm_mod.DB_PATH
     dm_mod.DB_PATH = Path(tempfile.mktemp(suffix='_test.db'))
 
 
@@ -29,8 +36,7 @@ def teardown_module():
     import CORE.direct_memory as dm_mod
     if Path(str(dm_mod.DB_PATH)).exists():
         Path(str(dm_mod.DB_PATH)).unlink()
-    if _orig_db:
-        dm_mod.DB_PATH = _orig_db
+    dm_mod.DB_PATH = _orig_db
 
 
 class TestSessionMappings:
