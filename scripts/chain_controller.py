@@ -39,6 +39,21 @@ JOBS: dict[str, tuple[Any, int, str, str, tuple[str, ...]]] = {
     # (not mutations), so this job stays out of MUTATING_JOBS and runs even in
     # observation-only mode. Fail-open per renderer inside the wrapper.
     "render": (300, 240, "py", "tools/render_all_monitors.py", ()),
+    # TERENCE re-engineered (operator request 2026-09-30): 4 oracles over
+    # MEASURED state, replacing a source-pattern sweep that reported 8,009
+    # "fixes" on a tree with 0 compile failures in 1,668 files -- and whose
+    # two largest-volume fixes would have deleted 2,876 prints and commented
+    # out 895 control-flow statements. Scan + verify only: `--apply` mutates
+    # source and stays off, so this is NOT in MUTATING_JOBS and runs in
+    # observation-only mode. Every fault it reports without a checkable
+    # predicate is reportable and deliberately not auto-fixable.
+    "terence": (1800, 900, "py", "tools/terence_invariants.py", ()),
+    # Cross-pillar TERENCE digest (2026-09-30): the environment-scoped history
+    # is only a tracking signal if it is WRITTEN on a cadence. Nightly, after
+    # the scan, it persists state/terence_env_digest.{json,md} so drift across
+    # the four pillars is a tracked artifact rather than a thing you look for
+    # by hand. Display output; non-mutating, so it stays out of MUTATING_JOBS.
+    "terence-env": ("nightly:01:30", 600, "py", "tools/terence_env_digest.py", ()),
     # Operator decision 2026-09-25: meta is AUTHORIZED to mutate. With apply
     # pinned off the self-modification loop sat on verdict=DRY ("no mutation
     # authorized") every cycle -- observe -> select -> blocked, forever
@@ -95,7 +110,13 @@ JOBS: dict[str, tuple[Any, int, str, str, tuple[str, ...]]] = {
 }
 
 #: Honest-skip exit codes per job (see run_one): a by-design skip is ok.
-_SKIP_RC: dict[str, tuple[int, ...]] = {"train": (1,), "tensor": (3,)}
+#: `terence` rc=1 is not a skip but a REPORT -- the invariant scan exits 1
+#: because it FOUND faults (195 on a healthy tree), which is the job working.
+#: Without this it logged a false failure every 1800s and drowned the real
+#: ones. The oracle that reads _SKIP_RC (silent_crashes) is told the same
+#: thing, so rc=1 here is never mistaken for a silent crash.
+_SKIP_RC: dict[str, tuple[int, ...]] = {"train": (1,), "tensor": (3,),
+                                       "terence": (1,)}
 
 JOB_PRIORITY = {name: index for index, name in enumerate(JOBS)}
 
@@ -106,6 +127,7 @@ JOB_PRIORITY = {name: index for index, name in enumerate(JOBS)}
 #   {"job": [interval, timeout, "py"|"bat", "target", [args...]]}
 # The table above stays the default; the override wins per-name.
 JOBS_OVERRIDE = ROOT / "state" / "jobs_override.json"
+SKIP_RC_OVERRIDE = ROOT / "state" / "skip_rc_override.json"
 
 
 def _current_jobs() -> dict[str, tuple[Any, int, str, str, tuple[str, ...]]]:
@@ -124,6 +146,31 @@ def _read_json(path: Path, default: Any) -> Any:
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return default
+
+
+def _current_skip_rc() -> dict[str, tuple[int, ...]]:
+    """Honest-skip codes, re-read from state/skip_rc_override.json every call.
+
+    Same rationale as the jobs override: a fix must not wait for a restart. The
+    first version read a module constant once at import, so adding
+    `terence: (1,)` to the table was INERT in the running controller -- it kept
+    logging a false failure every 1800s and would have kept doing so until a
+    restart. The built-in table stays the default; the override wins per-name.
+    """
+    codes = dict(_SKIP_RC)
+    override = _read_json(SKIP_RC_OVERRIDE, {})
+    if isinstance(override, dict):
+        for name, rcs in override.items():
+            if isinstance(rcs, (list, tuple)):
+                vals = []
+                for x in rcs:
+                    try:
+                        vals.append(int(x))
+                    except (TypeError, ValueError):
+                        pass
+                if vals:
+                    codes[str(name)] = tuple(vals)
+    return codes
 
 
 def _write_json(path: Path, payload: Mapping[str, Any]) -> None:
@@ -367,6 +414,14 @@ def run_one(name: str, *, dry_run: bool = False) -> dict[str, Any]:
     }
     if dry_run:
         return row
+    # Duration telemetry (2026-09-30). `started_at` was ALREADY being recorded
+    # as an ISO string and simply never carried forward, while the state file
+    # wrote `last_attempt` as an epoch float -- so any consumer computing a
+    # duration got (str, float) and produced nothing. Measured: tools/chain_ops
+    # reported "0/20 jobs measurable", which is what a job with no duration
+    # looks like. You cannot choose a cadence for a process you have never
+    # timed, so this is measured HERE, in float seconds, and propagated.
+    _t0 = time.perf_counter()
     try:
         result = subprocess.run(command, cwd=str(ROOT), capture_output=True,
                                 text=True, timeout=timeout)
@@ -378,14 +433,19 @@ def run_one(name: str, *, dry_run: bool = False) -> dict[str, Any]:
         # is not a failure, but a bare nonzero check cannot tell. Skips
         # are carved out per job; every other nonzero stays loud so real
         # failures never hide inside a skip.
-        if result.returncode in _SKIP_RC.get(name, ()):
+        if result.returncode in _current_skip_rc().get(name, ()):
             row["ok"] = True
             row["skipped"] = True
         else:
             row["ok"] = result.returncode == 0
     except Exception as exc:
         row.update({"ok": False, "error": str(exc)[:300]})
+    row["duration_s"] = round(time.perf_counter() - _t0, 3)
+    row["timed_out"] = False
+    if row.get("error") and "timed out" in str(row.get("error", "")).lower():
+        row["timed_out"] = True
     row["finished_at"] = datetime.now().isoformat()
+    row["finished_epoch"] = time.time()
     return row
 
 
@@ -444,11 +504,29 @@ def _mark_completed(name: str, result: Mapping[str, Any]) -> None:
         return
     due = _read_json(DUE_PATH, {})
     row = dict(due.get(name) or {})
+    _now = time.time()
     row.update({
-        "last": time.time(),
-        "last_attempt": time.time(),
+        "last": _now,
+        "last_attempt": _now,
+        "started_at": result.get("started_at"),
         "finished_at": result.get("finished_at"),
+        # Epoch floats on BOTH sides. The previous state file wrote
+        # `finished_at` as an ISO string while `last_attempt` was an epoch
+        # float, so every duration consumer had to bail on a type mismatch and
+        # report "unmeasurable" for all 20 jobs. Recorded here once, correctly.
+        "started_epoch": _now - float(result.get("duration_s") or 0.0),
+        "finished_epoch": float(result.get("finished_epoch") or _now),
+        "duration_s": result.get("duration_s"),
+        "timed_out": bool(result.get("timed_out")),
         "returncode": result.get("returncode"),
+        # Persist the honest-skip flag. _run_job sets ok=True, skipped=True for
+        # a BY-DESIGN non-zero exit (train rc=1, tensor rc=3), but the flag was
+        # computed here and never written, so the due file showed only `rc!=0`
+        # with `ok=true` -- indistinguishable from a copied verdict. That is why
+        # the liveness auditor could not tell an honest skip from a hidden
+        # failure, and why TERENCE's verdict_disagreement fired on a designed
+        # skip. The distinction now survives the trip into the artifact.
+        "skipped": bool(result.get("skipped")),
         "ok": bool(result.get("ok")),
         "error": result.get("error", ""),
     })
@@ -467,6 +545,9 @@ def _write_job_heartbeat(name: str, result: Mapping[str, Any]) -> None:
         "job": name,
         "ok": bool(result.get("ok")),
         "returncode": result.get("returncode"),
+        # Same reason as the due file: a skip that is not recorded cannot be
+        # told apart from a failure by anyone reading the heartbeat.
+        "skipped": bool(result.get("skipped")),
         "error": result.get("error", ""),
     }
     with path.open("a", encoding="utf-8") as handle:

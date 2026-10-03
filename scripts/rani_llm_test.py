@@ -108,7 +108,7 @@ def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
     # back to the `wsl` subprocess bridge. GOSP_WSL_DISTRO overrides.)
     import subprocess as _sp
     candidates = [os.environ.get("GOSP_PARSER_PATH") or "",
-                  "/root/workspace/projects/gossamer-oxford-parser"]
+                  "/root/gossamer-oxford-parser"]
     for _base in candidates:
         if not _base:
             continue
@@ -129,7 +129,7 @@ def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
     _errs = []
     for _d in _distros:
         _cmd = (["wsl", "-d", _d] if _d else ["wsl"]) + [
-            "python3", "/root/workspace/projects/gossamer-oxford-parser/"
+            "python3", "/root/gossamer-oxford-parser/"
             "semantical_main.py",
             "--text", prompt, "--format", "json"]
         try:

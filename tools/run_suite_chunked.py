@@ -44,6 +44,13 @@ DEFAULT_OUT = REPO / "logs" / "suite_chunks.json"
 
 #: pytest's own summary line, e.g. "2 failed, 149 passed, 1 skipped in 34.8s"
 _COUNT_RE = re.compile(r"(\d+)\s+(passed|failed|skipped|error|errors|xfailed|xpassed)")
+
+#: rc=5 is pytest's "no tests collected". It is only a non-failure when the file
+#: says why: a module-level `pytest.skip(..., allow_module_level=True)` or
+#: `pytest.importorskip(...)` guarded by a genuinely-absent optional dependency.
+#: `scripts/run_full_suite.py` already reports that case as SKIP; mirror it here
+#: so a chunked run does not invent a broken chunk out of a correct guard.
+NO_TESTS_COLLECTED = 5
 _DURATION_RE = re.compile(r"in\s+([\d.]+)s")
 _FAILED_RE = re.compile(r"^FAILED\s+(\S+)", re.MULTILINE)
 
@@ -120,13 +127,20 @@ def run_chunk(index: int, total: int, files: list[str],
     record = {"index": index, "files": files, "timed_out": False,
               "returncode": proc.returncode, "wall_s": wall,
               "timeout_s": timeout, **parsed}
-    if proc.returncode != 0:
+    if (proc.returncode == NO_TESTS_COLLECTED
+            and not any(parsed[k] for k in ("passed", "failed", "errors"))):
+        record["rc5_skip"] = True
+    if proc.returncode != 0 and not record.get("rc5_skip"):
         record["tail"] = (proc.stdout or "")[-1500:]
         if proc.stderr:
             record["stderr"] = proc.stderr[-600:]
-    print("    -> rc=%s passed=%d failed=%d errors=%d skipped=%d in %ss"
-          % (proc.returncode, parsed["passed"], parsed["failed"],
-             parsed["errors"], parsed["skipped"], wall), flush=True)
+    if record.get("rc5_skip"):
+        print("    -> rc=5 no tests collected (module-level skip) in %ss" % wall,
+              flush=True)
+    else:
+        print("    -> rc=%s passed=%d failed=%d errors=%d skipped=%d in %ss"
+              % (proc.returncode, parsed["passed"], parsed["failed"],
+                 parsed["errors"], parsed["skipped"], wall), flush=True)
     if parsed["failed_ids"]:
         for fid in parsed["failed_ids"][:6]:
             print("       FAILED %s" % fid, flush=True)
@@ -172,16 +186,20 @@ def main() -> int:
     for i, group in enumerate(groups, 1):
         record = run_chunk(i, len(groups), group, args.timeout, env)
         records.append(record)
-        if args.fail_fast and (record["returncode"] or record["timed_out"]):
+        if args.fail_fast and ((record["returncode"] and not record.get("rc5_skip"))
+                               or record["timed_out"]):
             print("\n--fail-fast: stopping after chunk %d" % i, flush=True)
             break
 
     totals = {k: sum(r.get(k) or 0 for r in records)
               for k in ("passed", "failed", "errors", "skipped")}
-    bad = [r for r in records if r["returncode"] or r["timed_out"]]
+    bad = [r for r in records
+           if (r["returncode"] and not r.get("rc5_skip")) or r["timed_out"]]
     report = {"chunks": len(groups), "chunks_run": len(records),
               "files": len(files), "wall_s": round(time.time() - started, 1),
               "totals": totals, "failing_chunks": [r["index"] for r in bad],
+              "no_tests_chunks": [r["index"] for r in records
+                                  if r.get("rc5_skip")],
               "records": records}
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -191,6 +209,11 @@ def main() -> int:
     print("passed=%d failed=%d errors=%d skipped=%d in %ss"
           % (totals["passed"], totals["failed"], totals["errors"],
              totals["skipped"], report["wall_s"]))
+    for record in records:
+        if record.get("rc5_skip"):
+            print("chunk %d SKIPPED (no tests collected): %s"
+                  % (record["index"],
+                     ", ".join(f.split("/")[-1] for f in record["files"][:6])))
     for record in bad:
         why = "TIMEOUT" if record["timed_out"] else "rc=%s" % record["returncode"]
         print("chunk %d %s: %s" % (record["index"], why,

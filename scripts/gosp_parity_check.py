@@ -16,7 +16,7 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, "/root/workspace/projects/gossamer-oxford-parser")
+sys.path.insert(0, "/root/gossamer-oxford-parser")
 from semantical_main import GossamerOxfordParser  # noqa: E402
 
 def _find_gosp_exe() -> str:

@@ -54,8 +54,20 @@ class UnifiedInstaller:
         - Audit trail and reporting
     """
 
+    # Packages that cannot be pip-installed for the primary free-threaded
+    # interpreter (no PyPI wheel on any ABI) and are instead provided by the
+    # GIL sidecar interpreter at runtime.  Maps pip-name -> import name to
+    # probe, resolved through CORE/python_env.py.
+    SIDECAR_PACKAGES: dict[str, str] = {
+        "tensorflow": "tensorflow",
+    }
+
     CORE_PACKAGES = [
         "torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118",
+        # Listed so the installer tracks it, but install_category() SKIPs it:
+        # no PyPI wheel exists for Python 3.14 on any ABI.  The GIL sidecar
+        # provides it (see SIDECAR_PACKAGES, CORE/python_env.py,
+        # scripts/rebuild_gil_sidecar.sh).
         "tensorflow>=2.15.0",
         "jax jaxlib",
         "numpy>=1.24.0",
@@ -121,6 +133,14 @@ class UnifiedInstaller:
         self.rollback_stack: list[str] = []
         self._compat_cache: dict[str, CompatibilityRule] = {}
 
+    @staticmethod
+    def _bare_name(spec: str) -> str:
+        """Reduce a pip requirement spec to its bare distribution name."""
+        name = spec.split()[0] if spec.split() else spec
+        for sep in ("[", "=", ">", "<", "~", "!"):
+            name = name.split(sep)[0]
+        return name.strip()
+
     def _run_command(self, cmd: list[str], desc: str = "") -> tuple[bool, str]:
         """Execute command and return success status and output."""
         if self.dry_run:
@@ -154,8 +174,52 @@ class UnifiedInstaller:
         success, output = self._run_command(cmd, f"Installing {package}")
         return success
 
+    def _python_env(self):
+        """Best-effort import of the canonical interpreter resolver."""
+        if getattr(self, "_python_env_mod", "unset") != "unset":
+            return self._python_env_mod
+        mod = None
+        try:
+            from CORE import python_env as mod  # type: ignore[no-redef]
+        except Exception:
+            try:
+                from pathlib import Path
+
+                src_root = Path(__file__).resolve().parents[2]
+                if str(src_root) not in sys.path:
+                    sys.path.insert(0, str(src_root))
+                from CORE import python_env as mod  # type: ignore[no-redef]
+            except Exception:
+                mod = None
+        self._python_env_mod = mod
+        return mod
+
+    def _sidecar_version(self, module: str) -> str | None:
+        """Resolve a sidecar-provided package version via CORE/python_env."""
+        python_env = self._python_env()
+        if python_env is None:
+            return None
+        try:
+            code = (
+                f"import {module} as _m; "
+                "print(getattr(_m, '__version__', 'unknown'))"
+            )
+            result = python_env.probe(code, module=module, timeout=60)
+            if result.get("ok"):
+                version = (result.get("stdout") or "").strip()
+                return version or None
+        except Exception:
+            pass
+        return None
+
     def check_version(self, package: str) -> (str | None):
-        """Check installed version of a package."""
+        """Check installed version of a package.
+
+        Packages that live in the GIL sidecar (e.g. tensorflow) are probed in
+        the sidecar interpreter instead of the current process.
+        """
+        if package in self.SIDECAR_PACKAGES:
+            return self._sidecar_version(self.SIDECAR_PACKAGES[package])
         try:
             result = subprocess.run(
                 [
@@ -212,10 +276,16 @@ class UnifiedInstaller:
             (
                 "tensorflow",
                 "keras",
-                "TensorFlow 2.x bundles Keras; separate Keras may conflict",
+                "TensorFlow 2.x bundles Keras; separate Keras may conflict "
+                "(TensorFlow is sidecar-provided via CORE/python_env.py)",
             ),
             ("onnx", "onnxruntime", "Version mismatch can cause import errors"),
-            ("numpy", "tensorflow", "TensorFlow requires specific NumPy version"),
+            (
+                "numpy",
+                "tensorflow",
+                "TensorFlow requires specific NumPy version "
+                "(TensorFlow is sidecar-provided via CORE/python_env.py)",
+            ),
         ]
 
         detected: list[tuple[str, str, str]] = []
@@ -251,6 +321,15 @@ class UnifiedInstaller:
 
         for pkg in packages:
             package_name = pkg.split()[0]
+            bare_name = self._bare_name(pkg)
+            if bare_name in self.SIDECAR_PACKAGES:
+                if self.verbose:
+                    print(
+                        f"[SKIP] {package_name} is provided by the GIL sidecar "
+                        "(see CORE/python_env.py); not pip-installable here"
+                    )
+                results[bare_name] = InstallStatus.SKIPPED
+                continue
             success = self.pip_install(pkg, upgrade=True)
             results[package_name] = (
                 InstallStatus.INSTALLED if success else InstallStatus.FAILED
