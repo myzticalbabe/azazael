@@ -35,6 +35,7 @@ import argparse
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -84,6 +85,35 @@ def _get_tokens_dir() -> Path:
 _ED25519_KEY = None
 _ED25519_AVAILABLE = None
 
+# Isolated-import cache: module -> bool. A native extension built for the GIL
+# ABI aborts the free-threaded interpreter on import, and an access violation
+# cannot be caught by try/except -- it ends the process. So importability is
+# decided in a child that is allowed to die, and cached.
+_NATIVE_IMPORT_OK: dict[str, bool] = {}
+
+
+def _native_import_ok(module: str) -> bool:
+    """True only if `module` imports cleanly in a child interpreter.
+
+    Measured 2026-10-02: under Python 3.14t,
+    ``cryptography.hazmat.primitives.serialization`` pulls ``bcrypt``, whose
+    GIL-only wheel crashes on import. The Ed25519 path must fall back to
+    BLAKE2b instead of taking the whole process down with it.
+    """
+    if module in _NATIVE_IMPORT_OK:
+        return _NATIVE_IMPORT_OK[module]
+    ok = False
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c", "import %s" % module],
+            capture_output=True, text=True, timeout=60)
+        ok = proc.returncode == 0
+    except Exception:
+        ok = False
+    _NATIVE_IMPORT_OK[module] = ok
+    return ok
+
+
 def _get_ed25519_key():
     """Load or generate the Ed25519 signing key from ~/.azazael/."""
     global _ED25519_KEY, _ED25519_AVAILABLE
@@ -91,6 +121,10 @@ def _get_ed25519_key():
         return _ED25519_KEY
     if _ED25519_AVAILABLE is False and _ED25519_KEY is None:
         # Already tried and failed — don't retry
+        return None
+    if not _native_import_ok("cryptography.hazmat.primitives.serialization"):
+        # The import below would abort the interpreter, not raise. Fall back.
+        _ED25519_AVAILABLE = False
         return None
     try:
         from cryptography.hazmat.primitives.asymmetric import ed25519
