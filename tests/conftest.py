@@ -466,6 +466,24 @@ def pytest_runtest_setup(item):  # noqa: ARG001 - pytest hook signature
     _permit_sentinel_writes()
 
 
+def pytest_collectstart(collector):  # noqa: ARG001 - pytest hook signature
+    """Permit the write guard during COLLECTION too, not only test setup.
+
+    `pytest_runtest_setup` is too late for collection: pytest imports every
+    test module up front, before a single test runs. A module imported during
+    collection that arms the sentinel hook (any compliance import -- the hook
+    is armed at `CORE/sentinel_enforcer.py` import) then blocks the
+    import-time writes of every module collected AFTER it. Measured
+    2026-10-02: `tests/test_monitor_artifact_paths.py` collected cleanly in the
+    full suite but errored with `PermissionError: CRITICAL: Unauthorized write`
+    whenever a compliance-importing module preceded it, because collection
+    order differs once the suite is split. Nothing under `tests/` asserts that
+    the hook blocks, so latching it here cannot mask a real check; a test that
+    wants to observe blocking still sets `_GATED_CALL.is_active = False`.
+    """
+    _permit_sentinel_writes()
+
+
 @pytest.fixture(autouse=True)
 def _permit_sentinel_test_writes():
     """Hold the sentinel write token open for the duration of each test."""

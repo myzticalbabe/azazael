@@ -90,7 +90,15 @@ class TestPamsConfig:
         assert cfg.poll_interval_sec == 1.0
         assert cfg.use_local_fallback is True
 
-    def test_from_dict(self):
+    def test_from_dict(self, monkeypatch):
+        # This test asserts the DICT wins, so it must not inherit a PAMS_URL
+        # another module left in os.environ. Four test modules set
+        # PAMS_URL=http://127.0.0.1:99999 at import scope (test_agent,
+        # test_memorybus, test_memorybus_persistent, test_pool), so in an
+        # aggregate run the dict lost to that ambient value -- the isolation
+        # defect this describes. Clear it for the duration (monkeypatch
+        # restores it). 2026-10-02.
+        monkeypatch.delenv("PAMS_URL", raising=False)
         cfg = PamsConfig.from_dict({
             "url": "http://custom:9999",
             "session_prefix": "custom",
