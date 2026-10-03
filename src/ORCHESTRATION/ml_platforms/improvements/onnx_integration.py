@@ -26,16 +26,32 @@ import numpy as np
 import os
 import sys
 
+# Both `onnx` and `onnxruntime` ship GIL-ABI wheels that fault at C level under a
+# free-threaded build (an access violation, not an ImportError), so no
+# try/except can catch them. Every decision is a child-process probe in
+# CORE.native_guard, never an in-process import.
 try:
+    from CORE.native_guard import import_ok as _import_ok
+except Exception:  # pragma: no cover - CORE not on path
+    def _import_ok(_name):
+        return False
+
+if _import_ok("onnx"):
     import onnx
-    import onnxruntime as ort
 
     HAS_ONNX = True
-    ort_available = True
-except ImportError:
+else:
     HAS_ONNX = False
-    ort_available = False
+
+if _import_ok("onnxruntime"):
+    import onnxruntime as ort
+
+    ort_available = True
+else:
     ort = None
+    ort_available = False
+
+HAS_ONNX = HAS_ONNX and ort_available
 try:
     import torch
 

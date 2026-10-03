@@ -375,5 +375,14 @@ def main():
         sys.exit(0)
 
 
+# ── collection opt-out ───────────────────────────────────────────────
+# `test` and `test_convergence` are harness helpers that take parameters, not
+# pytest test functions. pytest collects any module-level `test*` callable, so
+# it would try to inject fixtures for their arguments and error before a single
+# assertion runs. Opt them out explicitly; `main()` is the real entry point.
+test.__test__ = False
+test_convergence.__test__ = False
+
+
 if __name__ == '__main__':
     main()
