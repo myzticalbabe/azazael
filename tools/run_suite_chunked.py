@@ -108,7 +108,16 @@ def run_chunk(index: int, total: int, files: list[str],
           % (index, total, len(files), ", ".join(f.split("/")[-1] for f in files[:4]),
              " ..." if len(files) > 4 else ""), flush=True)
     started = time.time()
-    cmd = [sys.executable, "-m", "pytest", *files, "-q", "--no-header"]
+    # `-p no:hypothesispytest`: the environment has no `hypothesis._native`
+    # (a cp314t wheel gap), and that plugin imports it from its
+    # `pytest_terminal_summary` hook. Without this the whole chunk still runs
+    # but the summary hook raises at the very end, so pytest exits non-zero
+    # with no counts on stdout and the runner reports a broken chunk that is
+    # actually a clean pass. `pytest.ini` already disables the three plugins
+    # that abort at COLLECTION time; this one only breaks the summary, which
+    # is why it was not caught there.
+    cmd = [sys.executable, "-m", "pytest", *files, "-q", "--no-header",
+           "-p", "no:hypothesispytest"]
     try:
         proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True,
                               text=True, timeout=timeout, env=env)
