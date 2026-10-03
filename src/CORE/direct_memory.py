@@ -680,11 +680,19 @@ class DirectMemory:
                 action = data.get("action", "") if isinstance(data, dict) else ""
                 cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
                 conn0 = self._get_conn()
+                # Per-SESSION scope. This gate dedups a reconnect/startup storm
+                # WITHIN one session, so it must never suppress a DIFFERENT
+                # session's first event. Without `session_id` in the predicate a
+                # `session_start` from any session in the last 30 min silently
+                # dropped every new session's own `session_start`, leaving that
+                # session with no start row at all (the symptom: a fresh
+                # DirectMemory whose list_events() has no "session_start").
                 rows = conn0.execute(
                     "SELECT timestamp FROM memories WHERE source = ? AND event_type = ? "
+                    "AND session_id = ? "
                     "AND json_extract(data, '$.action') = ? "
                     "AND id > (SELECT COALESCE(MAX(id), 0) - 5000 FROM memories)",
-                    (source, event_type, action)).fetchall()
+                    (source, event_type, self._session_id, action)).fetchall()
                 conn0.close()
                 for (ts,) in rows:
                     if "T" in ts and ts > cutoff:
