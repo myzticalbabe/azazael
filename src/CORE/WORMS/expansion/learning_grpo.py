@@ -216,8 +216,15 @@ class GRPOTrainer:
         """
         advantages = self.compute_advantages(rewards)
 
-        # DAPO: skip no-signal groups instead of no-op update
+        # DAPO: skip no-signal groups instead of no-op update. The group still
+        # ran in this context, so register it (with neutral scores) before
+        # returning -- get_policy() must report every evaluated context, even
+        # ones that produced no gradient.
         if not advantages:
+            with self._lock:
+                policy = self._policy.setdefault(context_key, {})
+                for worm in group:
+                    policy.setdefault(worm, 0.0)
             return {"skipped": True, "reason": "zero-variance"}
 
         with self._lock:
