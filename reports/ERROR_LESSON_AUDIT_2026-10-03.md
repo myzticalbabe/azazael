@@ -33,21 +33,34 @@ demonstrably wired in.
 | code defect (one-off logic) | 7 | n/a — each is a distinct bug | n/a | no | **LEARNED (no recurrence class)** |
 | shell / path escaping | 6 | **NO** — three skills (`azazael-fix-gitbash-paths`, `azazael-powershell-escape`, `azazael-crossplat-fileops`), **zero tests or lints** | no | low recent recurrence | **NOT MECHANIZED** |
 | process violation (gemini / gate / sentinel / mandate) | 39 | **YES** — `sentinel_enforcer.py`, `compliance_auditor.py`, 13 gate/compliance tests | yes | **YES** — #210 (Sept 30) "RULE 0B violated 3× because it was never opened"; #218 (Oct 3) TEST_FAILURE_MANDATE not executed | **NOT APPLIED** |
-| anti-pattern backlog | 54 | **NO** — no anti-pattern scanner; only one-off audit scripts | no | backlog unresolved | **NOT APPLIED** |
+| anti-pattern backlog | 54 | **YES** — `src/CORE/compliance/scanner.py` (RULE 0X-7, AST, 7 categories) + `tests/test_scanner.py` + `scripts/worm_pre_commit_hook.sh` | **NO** — the pre-commit hook is **not installed** in `.git/hooks/` | backlog partly reduced, 2,224 findings remain | **MECHANIZED BUT NOT ENFORCED** |
 
 ## The four genuine gaps
 
-### 1. Anti-pattern backlog — 54 entries, unresolved, unmechanized
-Errors #81–#86 and #94–#143 recorded 2,378 unicode non-ASCII instances, 564
-import-in-function instances, 56 hardcoded Windows paths, and more, in 48
-batches. Measured on the current tree:
+### 1. Anti-pattern backlog — 54 entries, MECHANIZED but NOT ENFORCED
 
-- **25,381** non-ASCII characters across **437** `src/**.py` files.
-- **397** files still contain function-body imports.
+**Correction to the first version of this audit, which claimed there was no
+scanner. That was wrong.** `src/CORE/compliance/scanner.py` is a full RULE 0X-7
+AST scanner covering exactly the seven categories #81–#86 recorded, with
+`tests/test_scanner.py`, a `--fail-on`/`--ci` exit code, and a
+`scripts/worm_pre_commit_hook.sh` that runs it as check 3 of 5.
 
-The recording mandate was satisfied; the *reduction* was not, and there is no
-scanner that fails when the count goes up. This is Lesson #86 exactly: the
-backlog is documented and unchecked.
+What is actually true, measured by running the scanner over `src/`:
+
+| category | findings now | backlog entry | note |
+|---|---|---|---|
+| `unicode_emoji` | **1,260** | #81 (2,378), #94–#143 | still large |
+| `import_inside_function` | **950** | #83 (564) | grew past the recorded figure |
+| `hardcoded_win_path` | **14** | #85 (56) | reduced |
+| `t_string` | **0** | #82 (45) | **driven to zero** |
+| `os_system` | **0** | #84 (5) | **driven to zero** |
+| `cls_new` | **0** | #86 (4) | **driven to zero** |
+
+So the mechanism exists and three categories were fully closed. The gap is
+**enforcement**: `.git/hooks/pre-commit` is absent, so the hook script never
+runs, and the default `pytest` suite does not gate on the scanner. A commit that
+adds 500 emoji still passes. This is Lesson #86 in its purest form — the check
+was built and is not wired to anything that blocks.
 
 ### 2. Process violations — 39 entries, the class recurred into October
 `sentinel_enforcer.py`, `compliance_auditor.py` and 13 gate/compliance tests
@@ -83,10 +96,11 @@ hazards (#53, #58, #89); no mechanism.
 
 ## Recommendations, in priority order
 
-1. **Make the anti-pattern backlog a checked number, not a document.** One tool
-   that counts non-ASCII chars, function-body imports and hardcoded Windows paths,
-   with a recorded baseline that fails on increase (the `type_check_gate.py`
-   pattern). Without it, #81–#143 cannot be shown to have improved.
+1. **Enforce the scanner that already exists.** Install
+   `scripts/worm_pre_commit_hook.sh` as `.git/hooks/pre-commit` (or add the
+   scanner to the CI/test gate). The mechanism is built and thorough; it is simply
+   not connected. Then ratchet: record the current counts (1,260 / 950 / 14) as a
+   baseline and fail on increase, the way `tools/type_check_gate.py` does.
 2. **Force the process gate to the point of action.** The gate exists; make the
    write itself impossible without a fresh permit — which is what
    `tools/prepare_guard.py` already attempts for canon files. Extend it to
@@ -103,3 +117,11 @@ hazards (#53, #58, #89); no mechanism.
 This audit measures mechanism **existence and wiring**, not mechanism
 **effectiveness**. A guard that cannot fail (Lesson #86) would pass this audit.
 Mutation-testing each guard is the natural next step and was not done here.
+
+It also **got one finding wrong on the first pass**: it asserted the anti-pattern
+backlog was unmechanized when `src/CORE/compliance/scanner.py` already existed
+and had closed three of the six categories. The error was reading the cluster
+by *title keyword* and concluding "no scanner" from the absence of a file named
+`anti_pattern*.py` — an inference, not a measurement. The correction came from
+running the scanner, not from re-reading the log. That is itself the audit's
+thesis: measure, do not infer.
