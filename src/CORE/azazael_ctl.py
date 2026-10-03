@@ -11,6 +11,8 @@ __all__ = [
     "cmd_stats",
     "cmd_status",
     "cmd_status_json",
+    "cmd_registry",
+    "cmd_cluster",
     "main",
 ]
 
@@ -384,6 +386,137 @@ def cmd_inference(args: list):
             print(f"  {k}: {v}")
 
 
+def cmd_registry(args: list) -> int:
+    """`azazael-ctl registry` — worm registry inspection.
+
+    Implements the `registry validate|health|stats` subcommands that the
+    `azazael-ctl` wrapper help advertises. Before 2026-10-03 the router in
+    `main()` never learned the `registry` section, so the advertised command
+    answered "Unknown section: registry" while the same help listed it.
+
+    Every subcommand discovers first: the registry is process-global and empty
+    until discovery runs, and validating an empty registry is a vacuous pass
+    (measured 2026-10-03: `valid=True` with `total=0`).
+    """
+    import CORE.worm_registry as reg
+
+    sub = args[0] if args else "health"
+    if sub not in ("validate", "health", "stats"):
+        print(f"  Unknown registry subcommand: {sub}")
+        print("  Usage: azazael-ctl registry validate|health|stats")
+        return 1
+
+    try:
+        reg.discover_worms()
+    except Exception as exc:  # noqa: BLE001 - surfaced to the operator
+        print(f"  registry discovery failed: {type(exc).__name__}: {exc}")
+        return 1
+
+    if sub == "validate":
+        result = reg.validate_registry_importable()
+        clr = "green" if result["valid"] else "red"
+        print(f"  Registry valid:   {_color(str(result['valid']), clr)}")
+        print(f"  Total entries:    {result['total']}")
+        print(f"  Confirmed:        {result['checked']}")
+        broken = result.get("broken") or []
+        print(f"  Broken imports:   "
+              f"{_color(str(len(broken)), 'red' if broken else 'green')}")
+        for b in broken[:20]:
+            print(f"    {b.get('name', '?')} ({b.get('module', '?')}): "
+                  f"{b.get('error', '?')}")
+        return 0 if result["valid"] else 1
+
+    if sub == "health":
+        cats = reg.get_all_categories()
+        print(f"  Worms registered: {len(reg.WORM_REGISTRY)}")
+        print(f"  Categories:       {len(cats)}")
+        print(f"  Discovery done:   {reg.discovery_completed()}")
+        return 0
+
+    # stats
+    cats = sorted(reg.get_all_categories())
+    rows = [(c, len(reg.get_worms_by_category(c))) for c in cats]
+    total = sum(n for _, n in rows)
+    print(f"  {len(cats)} categories, {total} worms")
+    for cat, n in sorted(rows, key=lambda kv: kv[1], reverse=True):
+        print(f"    {cat:<24} {n}")
+    return 0
+
+
+def cmd_cluster(args: list) -> int:
+    """`azazael-ctl cluster` — cluster ecosystem inspection.
+
+    Implements `cluster status|list|natures|dead-letter`, documented in
+    `docs/CLUSTER_API_REFERENCE.md` and advertised by the wrapper help - both
+    of which the router did not honour before 2026-10-03.
+    """
+    from CORE.WORMS import CLUSTERWORMS as cw
+
+    sub = args[0] if args else "status"
+
+    if sub == "list":
+        print("  Available Clusters:")
+        for name, info in cw.CLUSTER_REGISTRY.items():
+            worms = ", ".join(info.get("worms", []))
+            print(f"    {name:<12} {info.get('description', '')}")
+            print(f"                 worms: {worms}")
+        return 0
+
+    if sub == "natures":
+        from CORE.WORMS.NATURE_CLUSTERS import NATURE_DEFINITIONS
+        print(f"  Nature categories: {len(NATURE_DEFINITIONS)}")
+        for name in sorted(NATURE_DEFINITIONS):
+            print(f"    {name}")
+        return 0
+
+    if sub == "dead-letter":
+        lookback = 3600.0
+        if "--lookback" in args:
+            idx = args.index("--lookback")
+            if idx + 1 < len(args):
+                try:
+                    lookback = float(args[idx + 1]) * 3600.0
+                except ValueError:
+                    print("  --lookback expects hours (e.g. --lookback 24)")
+                    return 1
+        registry = cw._get_breaker_registry()
+        if not registry:
+            print("  Circuit breaker registry unavailable")
+            return 0
+        summary = registry.get_dead_letter_summary(lookback_seconds=lookback)
+        n = summary.get("total_dead_letters", 0)
+        clr = "red" if n else "green"
+        print(f"  Dead letters: {_color(str(n), clr)}")
+        for name, count in summary.get("per_breaker", {}).items():
+            print(f"    {name}: {count}")
+        for err in summary.get("recent_errors", [])[:10]:
+            print(f"    [{err.get('breaker', '?')}] {err.get('error', '?')}")
+        return 0
+
+    if sub == "status":
+        try:
+            cluster = cw.ClusterWORMZ("system")
+            status = cluster.get_status()
+        except Exception as exc:  # noqa: BLE001 - surfaced to the operator
+            print(f"  cluster status unavailable: {type(exc).__name__}: {exc}")
+            return 1
+        print(f"  Cluster:          {status.get('cluster_type')} "
+              f"({status.get('cluster_id')})")
+        print(f"  Worms:            {status.get('worm_count')} "
+              f"({status.get('enabled_count')} enabled)")
+        print(f"  Free-threaded:    {status.get('free_threaded')}")
+        print(f"  Registry/PAMS/Bus:{status.get('registry_ok')}/"
+              f"{status.get('pams_ok')}/{status.get('bus_ok')}")
+        print(f"  Circuit breaker:  {status.get('breaker_ok')}")
+        print(f"  Predefined:       {len(cw.CLUSTER_REGISTRY)} clusters")
+        return 0
+
+    print(f"  Unknown cluster subcommand: {sub}")
+    print("  Usage: azazael-ctl cluster "
+          "status|list|natures|dead-letter")
+    return 1
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -465,6 +598,10 @@ def main():
         mem_main()
     elif section == "inference":
         cmd_inference(rest_args)
+    elif section == "registry":
+        sys.exit(cmd_registry(rest_args))
+    elif section == "cluster":
+        sys.exit(cmd_cluster(rest_args))
     elif section == "graph":
         cmd_graph(rest_args)
     elif section == "atlas":

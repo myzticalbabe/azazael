@@ -1793,6 +1793,23 @@ def validate_registry_importable() -> Dict[str, Any]:
     with _registry_lock:
         entries = list(WORM_REGISTRY.items())
 
+    # Vacuous-pass guard (2026-10-03). A validator that returns `valid: True`
+    # over ZERO entries has validated nothing, yet `azazael-ctl status` read it
+    # as "Import valid: True / Total entries: 0" - a passing report on an empty
+    # registry. The registry is process-global and empty until discovery runs,
+    # so an empty registry here means NOT YET DISCOVERED, not "nothing to
+    # check". Trigger discovery so the verdict describes the real registry.
+    discovered = False
+    discovery_error: (str | None) = None
+    if not entries:
+        try:
+            discover_worms()
+            discovered = True
+        except Exception as exc:  # noqa: BLE001 - recorded, not swallowed
+            discovery_error = f"{type(exc).__name__}: {exc}"
+        with _registry_lock:
+            entries = list(WORM_REGISTRY.items())
+
     broken: List[Dict[str, Any]] = []
     checked = 0
 
@@ -1813,13 +1830,23 @@ def validate_registry_importable() -> Dict[str, Any]:
                 "error": f"{type(exc).__name__}: {exc}",
             })
 
-    return {
-        "valid": len(broken) == 0,
+    # `valid` requires a NON-EMPTY registry: an empty registry can never be a
+    # pass, or the check silently stops meaning anything.
+    result: Dict[str, Any] = {
+        "valid": len(broken) == 0 and bool(entries),
         "total": len(entries),
         "checked": checked,
         "broken": broken,
+        "empty": not entries,
         "validated_at": datetime.now().isoformat(),
     }
+    if not entries:
+        result["note"] = (
+            "registry is empty after discovery" if discovered
+            else "registry empty and discovery did not run")
+    if discovery_error:
+        result["discovery_error"] = discovery_error
+    return result
 
 
 def repair_registry() -> Dict[str, Any]:
