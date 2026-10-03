@@ -78,6 +78,20 @@ class PamsRecorder:
     _pams_unreachable = False
     _pams_retry_interval = 60.0
     _pams_last_attempt = 0.0
+    # NOTE (2026-09-21): the constructor is deliberately NOT a singleton.
+    #
+    # `get_recorder()` is the singleton accessor and has used double-checked
+    # locking on `_instance`/`_instance_lock` since the June 11 2026 P0 fix.
+    # Making `__new__` cache as well was tried and reverted, because the test suite
+    # states BOTH contracts and they cannot both hold: `test_same_instance` asserts
+    # `PamsRecorder() is PamsRecorder()`, while four lazy-init tests assert that a
+    # freshly constructed recorder has `_local_store_init_attempted is False` --
+    # which is only true for a new object. Four tests to one, and the code ships a
+    # dedicated accessor for the singleton, so the accessor is the contract and
+    # `tests/test_pams_recorder.py::test_same_instance` was corrected to test it.
+    # The real remaining question is whether the twelve production call sites that
+    # do `_pams = PamsRecorder()` at import should use `get_recorder()` instead;
+    # that is a behaviour change and is deliberately not made here.
 
     def __init__(self):
         self.session_id = uuid7().hex[:8]

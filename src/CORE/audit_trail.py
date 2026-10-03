@@ -98,6 +98,7 @@ def _compute_hash(entry: dict, prev_hash: str) -> str:
     """Compute deterministic SHA-256 hash of entry + previous hash."""
     payload = entry.copy()
     payload.pop("hash", None)
+    payload.pop("signature", None)  # Added after the hash is computed
     payload.pop("entry_count", None)  # Excluded from hash (truncation detection)
     payload["prev_hash"] = prev_hash
     canonical = json.dumps(payload, sort_keys=True, separators=(',', ':'),

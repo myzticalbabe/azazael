@@ -15,7 +15,23 @@ import pytest
 
 
 class TestPamsRecorderSingleton:
-    """PamsRecorder is a singleton — verify identity across calls."""
+    """PamsRecorder is a singleton — verify identity via its accessor.
+
+    2026-09-21: these two tests used `PamsRecorder()` directly and asserted the
+    CONSTRUCTOR was the singleton, which the class does not and cannot honour:
+    four lazy-init tests in this same file require a freshly constructed recorder
+    to have `_local_store_init_attempted is False`, which is only true for a new
+    object. Two contradictory contracts, four tests to one, and the class ships a
+    dedicated accessor — so the accessor is the contract. `get_recorder()` has done
+    double-checked locking since the June 11 2026 P0 fix; these tests now exercise
+    the thing that provides the guarantee.
+
+    `test_session_id_persists` was worse than failing: it PASSED against two
+    distinct objects, because `session_id = uuid7().hex[:8]` takes its first 8 hex
+    characters from the timestamp, so two constructions in the same millisecond
+    share a prefix. It was asserting a clock, not persistence. Both now go through
+    `get_recorder()`, where the assertion is about the object.
+    """
 
     def setup_method(self):
         from CORE.PamsRecorder import PamsRecorder
@@ -26,19 +42,16 @@ class TestPamsRecorderSingleton:
         PamsRecorder.reset_for_testing()
 
     def test_same_instance(self):
-        """Calling PamsRecorder() twice should return the same instance."""
-        from CORE.PamsRecorder import PamsRecorder
-        p1 = PamsRecorder()
-        p2 = PamsRecorder()
-        assert p1 is p2
+        """get_recorder() twice should return the same instance."""
+        from CORE.PamsRecorder import get_recorder
+        assert get_recorder() is get_recorder()
 
     def test_session_id_persists(self):
         """Session ID should be stable across references to the singleton."""
-        from CORE.PamsRecorder import PamsRecorder
-        p1 = PamsRecorder()
+        from CORE.PamsRecorder import get_recorder
+        p1 = get_recorder()
         sid = p1.session_id
-        p2 = PamsRecorder()
-        assert p2.session_id == sid
+        assert get_recorder().session_id == sid
 
 
 class TestPamsRecorderLazyInit:

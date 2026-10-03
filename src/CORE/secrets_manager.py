@@ -145,8 +145,40 @@ class SecretsManager:
 
     _instance: ("SecretsManager" | None) = None
     _instance_lock = threading.Lock()
+    _initialized = False
+
+    def __new__(cls, *args, **kwargs):
+        """Return the global instance, as this class's own docstring promises.
+
+        2026-09-21: `_instance` and `_instance_lock` were DECLARED and the
+        docstring said "Thread-safe via double-checked locking for Python 3.14t
+        free-threading", but no `__new__` existed, so nothing ever read either
+        field and every `SecretsManager()` built a new object. Measured by
+        `tests/test_secrets_manager_thread_safety.py`, which until today was not
+        collected by pytest at all: `sm1 is sm2` was False, and 20 threads
+        produced **20 distinct instances**. The declared lock was inert.
+
+        This matters beyond identity: `_refresh()` reads the process environment
+        into a per-instance cache, so N instances meant N divergent views of the
+        same secrets.
+        """
+        if cls._instance is None:
+            with cls._instance_lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self):
+        # `__new__` returns a cached instance, but Python still calls `__init__`
+        # after it, so without this guard every `SecretsManager()` would re-run
+        # `_refresh()` and wipe the shared cache. Guarded under the same lock for
+        # the same reason the instance cache is: two threads constructing at once.
+        if type(self)._initialized:
+            return
+        with type(self)._instance_lock:
+            if type(self)._initialized:
+                return
+            type(self)._initialized = True
         self._cache: dict[str, (str | None)] = {}
         self._cache_lock = threading.RLock()
         self._env_path = Path.home() / ".env"
