@@ -79,13 +79,19 @@ class ThompsonAllocator:
 
     def __init__(self, arms: Iterable[str], alpha: float = 1.0,
                  beta: float = 1.0, floor: float = DEFAULT_FLOOR,
-                 rng: Optional[random.Random] = None):
+                 rng: Optional[random.Random] = None,
+                 explore: float = 0.0):
         self.arms: List[str] = list(arms)
         if not self.arms:
             raise ValueError("ThompsonAllocator needs at least one arm")
         self.floor = max(0.0, float(floor))
         self._rng = rng or random.Random()
         self._prior = (float(alpha), float(beta))
+        # Epsilon exploration (2026-09-28): with probability `explore`, pick
+        # uniformly instead of drawing posteriors, so a collapsed arm keeps
+        # recovering pulls. Counted in _explore_hits; survives round-trips.
+        self.explore = min(1.0, max(0.0, float(explore)))
+        self._explore_hits = 0
         # success/failure pseudo-counts, seeded with the prior
         self._s: Dict[str, float] = {a: float(alpha) for a in self.arms}
         self._f: Dict[str, float] = {a: float(beta) for a in self.arms}
@@ -98,15 +104,28 @@ class ThompsonAllocator:
         return self.choose(k)[0] if k == 1 else self.choose(k)
 
     def choose(self, k: int = 1) -> List[str]:
-        """Top-k arms by posterior draw (Thompson sampling)."""
+        """Top-k arms by posterior draw (Thompson sampling).
+
+        With probability `explore`, one slot is filled by a uniform pick
+        instead (epsilon exploration against posterior collapse).
+        """
         if k <= 0:
             return []
         k = min(k, len(self.arms))
+        out: List[str] = []
+        if self.explore > 0.0 and self._rng.random() < self.explore:
+            out.append(self._rng.choice(self.arms))
+            self._explore_hits += 1
         draws = []
         for a in self.arms:
             draws.append((self._rng.betavariate(self._s[a], self._f[a]), a))
         draws.sort(reverse=True)
-        return [a for _, a in draws[:k]]
+        for _, a in draws:
+            if len(out) >= k:
+                break
+            if a not in out:
+                out.append(a)
+        return out[:k]
 
     def weights(self) -> Dict[str, float]:
         """Posterior mean success probability per arm."""
@@ -201,6 +220,8 @@ class ThompsonAllocator:
                 "successes": round(self._s[a] - self._prior[0], 3),
                 "failures": round(self._f[a] - self._prior[1], 3),
             }
+        out["_meta"] = {"explore": self.explore,
+                        "explore_hits": self._explore_hits}
         return out
 
     def starved(self, threshold: float = 1e-9) -> List[str]:
@@ -212,16 +233,22 @@ class ThompsonAllocator:
         return {
             "arms": self.arms, "floor": self.floor, "prior": self._prior,
             "s": self._s, "f": self._f, "pulls": self._pulls, "wins": self._wins,
+            "explore": self.explore, "explore_hits": self._explore_hits,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "ThompsonAllocator":
-        obj = cls(data.get("arms") or ["ga"], floor=data.get("floor", DEFAULT_FLOOR))
+        obj = cls(data.get("arms") or ["ga"], floor=data.get("floor", DEFAULT_FLOOR),
+                  explore=data.get("explore", 0.0))
         obj._prior = tuple(data.get("prior", (1.0, 1.0)))
         obj._s = dict(data.get("s") or obj._s)
         obj._f = dict(data.get("f") or obj._f)
         obj._pulls = dict(data.get("pulls") or obj._pulls)
         obj._wins = dict(data.get("wins") or obj._wins)
+        try:
+            obj._explore_hits = int(data.get("explore_hits", 0) or 0)
+        except (TypeError, ValueError):
+            obj._explore_hits = 0
         for a in obj._s:
             if a not in obj.arms:
                 obj.arms.append(a)
