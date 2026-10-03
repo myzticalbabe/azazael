@@ -1,3 +1,13 @@
+---
+name: azazael-system-wiring
+description: System-level neural wiring map — how LocalMemoryStore, DataPipelineWorm, DirectMemory and neural subsystems connect.
+metadata:
+  category: architecture
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # Azazael System-Level Neural Wiring
 
 ## Complete Neural Subsystem Map

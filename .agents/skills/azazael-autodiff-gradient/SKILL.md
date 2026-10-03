@@ -1,3 +1,13 @@
+---
+name: azazael-autodiff-gradient
+description: Gradient descent and variants (SGD, Momentum, Adam and more) implemented from first principles with mygrad.
+metadata:
+  category: algorithm
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-autodiff-gradient
 **Category:** Algorithm / Optimization
 **Priority:** HIGH

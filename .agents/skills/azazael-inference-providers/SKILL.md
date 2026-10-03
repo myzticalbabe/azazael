@@ -1,3 +1,13 @@
+---
+name: azazael-inference-providers
+description: 16+ free inference APIs behind a unified OpenAI-compatible provider pattern with worm-based dispatch.
+metadata:
+  category: domain
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # Azazael Inference Provider Integration
 
 ## Overview

@@ -143,6 +143,7 @@ skill("azazael-error-prevention")
 skill("azazael-mandates")
 skill("azazael-sop")
 skill("azazael-pams-memory")
+skill("azazael-hats")
 ```
 
 > **Note:** `skill("azazael-sop")` loads the SOP skill (mirror of `azazael/SOP.md`). `skill("azazael-mandates")` loads the MANDATES skill (mirror of `azazael/MANDATES.md`). The canonical docs are already read in Step 1 via `read_files()`. These skills provide loadable references for in-session access via `skill()`. If these skills are unloadable (pre-loaded list limitation), use `read_files(["azazael/SOP.md"])` and `read_files(["azazael/MANDATES.md"])` as fallback.
@@ -303,12 +304,13 @@ Any response spawning agents sequentially when they could run in parallel = CRIT
 
 ### Step 5: Load Domain Skills Based on Task
 
-> **New (Jun 12, 2026):** The following **14** system skills now have `auto_load: true` and are already available without explicit `skill()` calls:
+> **New (Jun 12, 2026):** The following **16** system skills now have `auto_load: true` and are already available without explicit `skill()` calls:
 > - `azazael-pre-action-gate` — PRE-ACTION GATE assertion format (RULE 0J/0S)
 > - `azazael-verifiable-truth` — 15-layer VLP framework (RULE 0T)
 > - `azazael-agent-utilization` — Minimum agent spawns, 100% capacity (RULE 0W)
 > - `azazael-compliance-orchestrator` — 13 compliance components (RULE 0X/0Y)
 > - `azazael-direct-memory` — DirectMemory canonical recording API
+> - `azazael-hats` — Tool hat codification (White / Red-reserved / Cerulean)
 > - `azazael-sync-patterns` — Multi-environment sync infrastructure
 > - `azazael-sentinel-gate` — COMPLIANCE SENTINEL 25-item checklist (RULE 0C)
 > - `azazael-inference-protocol` — 12-provider failover protocol (RULE 0D/0Z-A)

@@ -39,7 +39,7 @@ This handles: RULE 0K 7-file reading, guardrail skills, FreeBuff/Bun check, Dire
 
 > **Note:** `azazael-system-startup` and `azazael-startup` were consolidated June 9, 2026. This skill is now a reference catalog; execution lives in `azazael-system-startup`.
 
-## Complete Skill Catalog (25 Skills)
+## Complete Skill Catalog (26 Skills)
 
 | # | Skill | Category | Purpose |
 |---|-------|----------|---------|
@@ -54,7 +54,7 @@ This handles: RULE 0K 7-file reading, guardrail skills, FreeBuff/Bun check, Dire
 | 9 | azazael-files | architecture | File index, import resolution |
 | 10 | azazael-threading | architecture | 3.14t threading patterns |
 | 11 | azazael-mermaid | domain | Mermaid graph generation |
-| 12 | azazael-worms | architecture | Parent: 77 worms, 17 categories |
+| 12 | azazael-worms | architecture | Parent: 226 worms, 35 categories |
 | 13 | azazael-worms-core | architecture | orchestration + utility + diagnostic (15) |
 | 14 | azazael-worms-monitor | architecture | monitor + profiling + telemetry (16) |
 | 15 | azazael-worms-security | architecture | security + config + backup (15) |
@@ -68,6 +68,7 @@ This handles: RULE 0K 7-file reading, guardrail skills, FreeBuff/Bun check, Dire
 | 23 | azazael-deploy | planning | Docker, CLI packaging, scheduling |
 | 24 | azazael-production | planning | 12-section production roadmap |
 | 25 | azazael-eleven-followups | workflow | RULE 0Z-B: 11 followups mandate |
+| 26 | azazael-sync-wsl | infrastructure | WSL-aware sync_all.py — bidirectional sync from WSL, status/verify |
 
 ## Environment
 
@@ -153,7 +154,7 @@ Previous sessions repeatedly made 15+ preventable mistakes:
 | MetaCluster routes | 46 |
 | MetaCluster paths | 264 |
 | Worms from ECOSYSTEM_EXPANSION.py | 48 (62%) |
-| Skills available | 25 |
+| Skills available | 26 |
 
 ## Error Recording SOP
 
