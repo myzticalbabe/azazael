@@ -325,6 +325,22 @@ class FreeThreadPool:
             self._executor.shutdown(wait=False, cancel_futures=True)
             self._executor = None
 
+    def shutdown(self, wait: bool = True, *,
+                 cancel_futures: bool = False) -> None:
+        """Standard executor shutdown (2026-09-28).
+
+        The context-manager protocol was the only exit path, so any holder
+        calling the normal ``shutdown()`` API (e.g. agent lifecycle code)
+        crashed with AttributeError. Delegates when entered, no-ops when
+        not -- never raises on an idle pool.
+        """
+        exe, self._executor = self._executor, None
+        if exe is not None:
+            try:
+                exe.shutdown(wait=wait, cancel_futures=cancel_futures)
+            except TypeError:
+                exe.shutdown(wait=wait)
+
     @property
     def executor(self) -> ThreadPoolExecutor:
         if self._executor is None:

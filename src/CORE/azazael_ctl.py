@@ -317,7 +317,10 @@ def cmd_atlas(args: list[str]):
     from CORE.project_atlas import scan_projects
     roots = {
         "azazael": Path("C:/Users/clint/azazael"),
-        "vermillion_lightfury": Path("C:/Users/clint/vermillion_lightfury"),
+        # Relocated 2026-09-30: vermillion_lightfury is Kali-native and
+        # deprecated on Windows (SYNC.md), so it no longer sits in the
+        # Windows pillar. Staged here until the Kali pillar absorbs it.
+        "vermillion_lightfury": Path("C:/Users/clint/.kali_staging/vermillion_lightfury"),
         "tigger": Path("C:/Users/clint/tigger"),
         "aoa_g_archive": Path("G:/AZAZAEL/AOA"),
         "aoa_source_truth": Path("G:/AZAZAEL_SOURCE_OF_TRUTH/AOA"),
