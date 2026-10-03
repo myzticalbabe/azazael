@@ -17,19 +17,26 @@ plus the mechanical scaffolding to keep it reproducible.
 
 | | before | after |
 |---|---|---|
-| nodes | 32,303 | **34,624** |
-| links | 56,443 | **60,813** |
-| connected components | 126 | **118** |
-| project docs with a node | 151 (of 1,525) | **1,525 (100%)** |
-| nodes carrying `rationale` | 271 | **926** |
-| document / rationale / concept nodes | ~11,572 | **13,895** |
+| nodes | 32,303 | **35,888** |
+| links | 56,443 | **63,710** |
+| connected components | 126 | **23** |
+| project docs with a node | 151 (of 1,527) | **1,527 (100%)** |
+| nodes carrying `rationale` | 271 | **2,219** |
+| document / rationale / concept nodes | ~11,572 | **15,159** |
 
 - Extraction mix: **92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS**; INFERRED mean
   confidence **0.88**.
-- 1,632 communities, 12 hyperedges.
+- 2,272 communities, 12 hyperedges, **1 isolated node** (the remaining 5 non-giant
+  components are 45 / 24 / 13 / 12 / 9 nodes — see the coverage layer).
 - `graphify diagnose multigraph`: 0 exact-duplicate edges, 0 collapsed endpoint
   pairs, 0 external-reference edges. 101 self-loop edges remain (harmless,
   uninvestigated).
+
+Net: one pass took the graph from **126 → 23 connected components** while adding
+3,585 nodes. It is now far *more* connected than the git-native graph it started
+from, and doc coverage is total. (The figures above are from the reproduced run;
+the report doc itself is counted too, which is why the doc total is 1,527 rather
+than the 1,526 measured before it was added.)
 
 ## What the layers are
 
@@ -43,6 +50,14 @@ plus the mechanical scaffolding to keep it reproducible.
    from backticked paths).
 3. **Concept layer** — 580 deduped concept hubs extracted from headings that appear
    in 2–60 docs, with 1,516 edges.
+4. **Coverage layer** — 1,297 nodes / 2,902 edges. Closes the gaps the first three
+   layers leave: the 1,234 `skills/*.md` files (frontmatter `name`/`description`/
+   `metadata.category` → concept node + 43 category hubs), the 36 BIBL lexicon
+   volumes, the 13 `src/CODEX/DOCUMENTATION/*` duplicates linked to their canonical
+   `docs/*` twin, the three degree-0 polyglot islands, and the dimensionless
+   `.ps1`/`.sh`/`.java`/`__init__.py` files (no supported AST language, so degree-0
+   by construction) grouped under suite/marker concept nodes. Adds 14 authored
+   rationale rows and 16 `ATTACH` edges binding authored group nodes to spine nodes.
 
 ## The design decision that made it work
 
@@ -67,26 +82,30 @@ nodes. The full pass ends at 118, i.e. **more connected than the git-native 126*
   problem" was **right about the cause and wrong about the fix**. It is an
   *edge* problem: docs lacked identity and edges. Giving them both fixed it. Clustering
   knobs (`--resolution`, `--exclude-hubs`) remain useless for this — unchanged.
-- Three polyglot sub-projects remain degree-0 islands (`packages/azazael-core`,
-  `gateway-go`, `native/worm_manifest`). Unresolved.
+- Three polyglot sub-projects were degree-0 islands (`packages/azazael-core`,
+  `gateway-go`, `native/worm_manifest`). **Resolved** by the coverage layer: each now
+  has a concept node whose rationale is quoted from its own manifest, with grounded
+  edges into the subsystem it belongs to. `gateway-go` alone links 11 nodes.## New trap this pass created — and its fix
 
-## New trap this pass created (honest)
+With docs as first-class nodes, **doc-reference hubs took over the god-node list**:
+`Catch-All Refactoring Backlog` hit **583 edges**, outranking `DirectMemory` (197).
+That is the **same defect class as the stdlib god nodes and the `indirect_call` false
+hub**: a high-degree node encoding "this file mentions many things", not "this is a
+core abstraction".
 
-With docs as first-class nodes, **doc-reference hubs now top the god-node list**:
+`tools/graph_semantic/god_nodes.py` fixes the *measurement* (it does not delete
+nodes). It adds the filters graphify's own ranking lacks: `file_type in
+{document, concept, rationale}` (md and non-md), graphify's file/concept/json-key
+nodes, stdlib module names, ≤2-character names, and test-local helpers. The corrected
+ranking is all real code:
 
-1. `Catch-All Refactoring Backlog (graphify-prioritized)` — **583 edges**
-2. `f()` — 260 (known false hub)
-3. `DirectMemory` — 197
-4. `LocalMemoryStore` — 109
-5. `SKILLS_CATALOG — the skills inventory` — 100
-7. `Azazael Ecosystem: Comprehensive Task Registry [TASK_REGISTRY.md]` — 92
+1. `DirectMemory` 197 · 2. `LocalMemoryStore` 109 · 3. `EvolutionEngine` 93 ·
+4. `MemoryBus` 84 · 5. `SpineCycleWorm` 83 · 6. `ClusterWORMZ` 80 ·
+7. `SessionMemory` 63 · 8. `ComplianceOrchestrator` 58 · 9. `ParallelInferenceEngine` 56 ·
+10. `FreeThreadedAgent` 53
 
-A backlog document that lists per-line file detail now outranks every real code
-abstraction. That is the **same defect class as the stdlib god nodes and the
-`indirect_call` false hub**: a high-degree node that encodes "this file mentions
-many things" rather than "this is a core abstraction". Any centrality ranking must
-now filter `file_type in {document, concept}` reference hubs, or weight by relation
-type, in addition to the existing stdlib filter.
+`--patch-report` rewrites the `## God Nodes` section of `GRAPH_REPORT.md` in place.
+This is applied *after* `cluster-only`, which otherwise regenerates the raw ranking.
 
 ## Traps that cost time (all encoded in the pipeline)
 
@@ -119,9 +138,15 @@ generated content but it is the project's own skill corpus.
 ## Reproduce
 
 ```bash
-python tools/graph_semantic/run_extraction.py          # 1..7
-graphify cluster-only . --no-viz --no-label            # 8 regenerate report
+python tools/graph_semantic/run_extraction.py                     # 1..8: extract + build
+python tools/graph_semantic/coverage_layer.py                     #   (part of 1..8 via build_graph)
+graphify cluster-only . --no-viz --no-label                        # 9: regenerate GRAPH_REPORT.md
+python tools/graph_semantic/god_nodes.py --top 20 --patch-report   # 10: fix the God Nodes section
 ```
+
+`cluster-only` regenerates the report from the graph on disk and **overwrites both
+hub-derived community labels and the patched God Nodes section** — re-apply
+`god_nodes.py --patch-report` after it.
 
 Last verified: 2026-10-03, `tools/graph_semantic/` clean under the AST scanner,
 anti-pattern ratchet unchanged (3,687), type gate unchanged (1,410).

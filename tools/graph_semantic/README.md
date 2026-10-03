@@ -16,8 +16,8 @@ pass — **the agent IS the LLM here.** These scripts are the pipeline that turn
 that into a repeatable job instead of a one-off.
 
 Before this pass: 3,014 of 3,021 docs had no node at all, and the ones that did
-were stranded islands. After: **1,525 / 1,525 project docs have a node**, and the
-whole graph is *more* connected than before (126 → 119 connected components).
+were stranded islands. After: **1,527 / 1,527 project docs have a node**, and the
+whole graph is *more* connected than before (126 → 23 connected components).
 
 ## The trap that shapes the design
 
@@ -47,9 +47,13 @@ python tools/graph_semantic/doc_digest.py    # 3. compact digest for LLM reading
 python tools/graph_semantic/semantic_layer.py  # 4. emit the authored fragment
 python tools/graph_semantic/doc_layer.py       # 5. doc node per file + buckets + xrefs
 python tools/graph_semantic/concept_layer.py   # 6. deduped concept hubs
-python tools/graph_semantic/build_graph.py     # 7. merge + cluster + label + export
-graphify cluster-only . --no-viz --no-label    # 8. regenerate GRAPH_REPORT.md
+python tools/graph_semantic/coverage_layer.py  # 7. skills, lexicon, islands, groups
+python tools/graph_semantic/build_graph.py     # 8. merge + cluster + label + export
+graphify cluster-only . --no-viz --no-label    # 9. regenerate GRAPH_REPORT.md
+python tools/graph_semantic/god_nodes.py --top 20 --patch-report  # 10. fix the ranking
 ```
+
+Or just `python tools/graph_semantic/run_extraction.py` for steps 1–8.
 
 Step 4 is the part a human/LLM does. Steps 1–3 feed it; steps 5–8 are mechanical.
 
@@ -107,6 +111,30 @@ hubs. Headings above N docs are template artefacts (the generated skill docs emi
 `Related` / `Verify` / `Identity` in ~1,090 files each — those are noise, not
 concepts).
 
+### `coverage_layer.py`
+Closes the gaps the first passes leave:
+
+- **Skills corpus.** The 1,235 `skills/*.md` files carry YAML frontmatter
+  (`name`, `description`, `metadata.category`). Each becomes a `concept` node with
+  its description as rationale, grouped under a category hub (43 categories). This
+  is the real semantic content of the skill corpus — not their section headings.
+- **BIBL lexicon.** Every lexicon volume points at the shared `bibl_lexicon` node.
+- **Duplicated tree.** `src/CODEX/DOCUMENTATION/*` is linked to its canonical
+  `docs/*` twin (13 pairs), so a reader lands on one copy instead of two.
+- **Polyglot islands.** `packages/azazael-core`, `gateway-go` and
+  `native/worm_manifest` get concept nodes whose rationale is quoted from their own
+  manifest, plus grounded edges to the subsystem they belong to.
+- **Dimensionless files.** `.ps1`, `.sh`, `.java` and `__init__.py` have no
+  supported AST language, so they are degree-0 by construction. They are grouped
+  under suite/marker concept nodes so they carry identity.
+
+### `god_nodes.py`
+The raw `graphify` god-node ranking is dominated by documentation reference hubs:
+`CATCHALL_BACKLOG.md` (583 edges) outranked `DirectMemory` (197) as the "#1 core
+abstraction". This tool adds the three filters graphify's own ranking lacks —
+`file_type in {document, concept}`, stdlib names, and test-local helpers — and can
+patch the `## God Nodes` section of `GRAPH_REPORT.md` in place.
+
 ### `build_graph.py`
 Feeds all three fragments to `graphify.build.build_merge` in **one** call, clusters,
 labels (hub labels + a few hand labels), attaches hyperedges, exports with
@@ -153,8 +181,10 @@ connectivity effect is measured, not assumed.
   ("Architecture", "Enforcement") are generic; the high-value concepts are the named
   entities in the authored layer.
 - 101 self-loop edges remain in the graph; they are harmless but uninvestigated.
-- The measured 119 components include ~43 genuinely isolated nodes (mostly
-  pre-existing degree-0 AST nodes, not docs).
+- The final graph has 23 components and **1** isolated node (at the doc-layer
+  intermediate stage it was 119 components / 43 isolated nodes — the coverage layer
+  bridged the rest). The 5 non-giant components are small polyglot/script clusters
+  (45 / 24 / 13 / 12 / 9 nodes).
 
 ## Verify
 
@@ -172,5 +202,11 @@ PY
 graphify diagnose multigraph --graph graphify-out/graph.json   # want 0 collapsed/dup
 ```
 
-Last run: 34,622 nodes · 60,811 edges · 1,632 communities · 12 hyperedges ·
-1,525/1,525 docs · 92% EXTRACTED / 8% INFERRED.
+Last run (2026-10-03, after the coverage layer): **35,888 nodes · 63,710 edges ·
+2,272 communities · 12 hyperedges · 23 connected components · 1 isolated node ·
+1,527/1,527 project docs · 2,219 nodes carrying a rationale.**
+
+Re-running `run_extraction.py` end-to-end reproduces these numbers exactly (the
+runner forces `PYTHONIOENCODING=utf-8` on every step; `doc_digest.py` also
+reconfigures its own stdout, because doc titles contain non-ASCII and a cp1252
+console otherwise aborts the pipeline).

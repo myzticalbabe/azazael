@@ -23,6 +23,7 @@ FRAGS = [
     Path("graphify-out/semantic_fragment.json"),
     Path("graphify-out/doc_layer_fragment.json"),
     Path("graphify-out/concept_layer_fragment.json"),
+    Path("graphify-out/coverage_layer_fragment.json"),
 ]
 
 chunks = [json.loads(p.read_text(encoding="utf-8")) for p in FRAGS]
