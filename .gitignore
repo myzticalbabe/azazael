@@ -141,6 +141,19 @@ state/worm_policy.json.tmp
 session_log*.txt
 nul
 
+# Runtime probe artifacts (2026-10-03): the Terence invariants oracle writes
+# its own audit-trail fixtures on demand (tools/terence_invariants.py creates
+# state/terence_probe_*.jsonl when absent), and chain_controller rewrites
+# state/chain_controller_plan.json every cycle. Regenerable, environment
+# specific, never read by a test.
+state/chain_controller_plan.json
+state/terence_probe_batch_audit.jsonl
+state/terence_probe_empty_audit.jsonl
+
+# Local embedding endpoint config — names a LAN LM Studio host, so it is
+# machine-specific and must not be committed.
+embedding_config.json
+
 # Gray Queen entrenchment baseline — LIVE runtime state, rewritten every spine
 # cycle by SpineCycleWorm._governance_stage(). The DELTA it produces is the
 # whole point, so a git checkout that reverted it would report a false
