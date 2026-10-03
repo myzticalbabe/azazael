@@ -29,6 +29,7 @@ import time
 import threading
 import hashlib
 import math
+import sysconfig
 from datetime import datetime
 from typing import Any, Optional
 
@@ -143,13 +144,20 @@ class _VectorIndex:
                 self._np = _n
             except Exception:
                 self._np = False
-        # faiss (preferred when present)
+        # faiss (preferred when present) -- but its wheel on this host is
+        # GIL-ABI: importing it under a free-threaded build faults at C level
+        # (an access violation, not an ImportError), which no try/except can
+        # catch. So decide by the RUNTIME, not by the import -- the docstring's
+        # "fail-open" promise is only true if the fault is never attempted.
         if self._faiss is None:
-            try:
-                import faiss as _f
-                self._faiss = _f
-            except Exception:
+            if sysconfig.get_config_var("Py_GIL_DISABLED"):
                 self._faiss = False
+            else:
+                try:
+                    import faiss as _f
+                    self._faiss = _f
+                except Exception:
+                    self._faiss = False
         if self._faiss:
             self._backend = "faiss"
         elif self._np:
