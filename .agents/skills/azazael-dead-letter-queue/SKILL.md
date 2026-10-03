@@ -1,3 +1,13 @@
+---
+name: azazael-dead-letter-queue
+description: Dead Letter Queue — persistent storage for failed worm executions, configurable retry with exponential backoff, analytics, circuit breaker integration.
+metadata:
+  category: domain
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-dead-letter-queue
 **Category:** Domain Knowledge
 **Priority:** HIGH

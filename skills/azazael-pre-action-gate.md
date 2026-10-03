@@ -58,7 +58,38 @@ you MUST print the following assertion block in your **response text** (NOT in a
 | User says "analyze X", you write fix for X | **HALT** — AP-1: user didn't ask for fix |
 | You notice a bug and want to fix it | **HALT** — AP-1: user didn't ask |
 | Batch script without Gemini + one-file test + backup | **HALT** — RULE 0I |
-| Batch script with Gemini + one-file test + backup | **PROCEED** |
+| Batch script with Gemini + one-file test + backup | **PROCEED** |## Action-Class Routing (additive — does not alter the 13 checks above)
+
+This gate covers file-edit actions. Three OTHER action classes sit outside the
+13 checks — route each to its gate-owner skill before acting (all wired
+2026-09-04, Sep-4(58)/(64)):
+
+1. **Synthetic GUI input on LIVE windows** (pyautogui clicks/typewrite/hotkeys)
+   → run `desktop-automation-safety`'s GUI-AUTOMATION GATE (single process,
+   minimize-world, content-verified focus, no keystroke without pixel proof,
+   restore-at-end). Keystrokes without content-verified focus are a CRITICAL
+   violation (lost focus once sent input to Facebook/Messenger — Sep-4(55)).
+2. **Live web collection / network data pulls** (scraping / curl-API / headed-
+   browser CDP / bulk export sweeps vs third-party systems) → run
+   `investigation-osint`'s DATA-COLLECTION GATE (404-≠-blocked-≠-absent;
+   no second pull at the same wall without a documented state change;
+   official-export / records-request when public channels are exhausted).
+3. **Batch / long background runs** (sweeps, refreshes, fetchers, model
+   pilots, est. runtime approaching the command timeout) → run
+   `background-sweep-resilience`'s LONG-RUN GATE (size from a pilot,
+   background + log over foreground hold, per-unit isolation, resume plan).
+
+4. **External sends / filings** (emails, complaints, RTK/FOIA, records
+   requests) → **user-executed ONLY** — absolute rule, never an agent action
+   (Sep-4(65) audit). All items stay DRAFT/UNSENT in the corpus send matrix
+   until the user executes; BCC excluded from all recipient lists.
+5. **Tool / package installs** (pip / winget / apt / go install) →
+   `azazael-environment` (3.14t-only discipline) + `azazael-error-resolution`
+   Step 4 (cp314t wheel selection).
+
+Agent spawns stay inside this gate's RULE 0I / 0W / 0Z checks (no separate
+route). Prefer headless/deterministic execution whenever the engine result is
+what matters.
 
 ## Related Skills
 
@@ -74,3 +105,7 @@ you MUST print the following assertion block in your **response text** (NOT in a
 - `azazael-direct-memory` — Canonical recording (gate decisions must be recorded)
 - `azazael-sync-patterns` — Multi-environment sync (RULE 0R sync check after gate pass)
 - `azazael-system-startup` — Activates the gate at session start
+
+- `desktop-automation-safety` *(auto_load: false — load on demand)* — the gate for synthetic-input GUI automation (routing note above)
+- `investigation-osint` *(auto_load: false — load on demand)* — the DATA-COLLECTION GATE for live web collection / network pulls (routing #2 above)
+- `background-sweep-resilience` *(auto_load: false — load on demand)* — the LONG-RUN GATE for batch / background runs (routing #3 above)

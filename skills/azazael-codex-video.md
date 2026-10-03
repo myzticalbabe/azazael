@@ -66,10 +66,35 @@ Covers HTML animation patterns, frame rendering, FFmpeg encoding, and batch auto
 ### Specialty Generators (from E:\ backup)
 - `create_azazael_educational_video.py` — Educational content
 - `create_dual_pane_popup.py` — Dual pane + popup effects
+- `create_dual_pane_video.py` — Dual-pane HTML preview generator (canonical producer of `AZAAZEL_DUAL_PANE.html` → `Azazael_DUAL_PANE.html`; see builder status below)
 - `create_reference_video.py` — Reference documentation video
 - `generate_matrix_video.py` — Matrix-style effects
 - `generate_video.py` / `generate_video_v2.py` — Alternative pipelines
 - `make_video_docs.py` — Documentation video
+
+### Builder status map (audited 2026-09-02)
+
+Know which producer owns which HTML before editing:
+
+| Artifact | Canonical producer | Status | Notes |
+|---|---|---|---|
+| `Azazael_DUAL_PANE.html` (in VIDEOS/) | `create_dual_pane_video.py` | ✅ **CANONICAL** | Generates the HTML preview; flat `src/CODEX/Azazael_DUAL_PANE.html` + archived copies (Documents, archived_unified, G: FROM Z) are historical/older-generation — do NOT edit those; regenerate through the script |
+| Any CODEX video HTML | `CODEX_Studio.py` (v3.1, recommended) or the named `create_*` script | ✅ **CANONICAL** | Script is the producer; the .html is a build artifact |
+
+**REAL INCIDENT (2026-09-02, multi-line-string defect):** `Azazael_DUAL_PANE.html`
+carried a JS `SyntaxError` — an `alert('...')` single-quoted string spanned real
+newlines (lines 558–562) with plain-text lines inside, stranding the closing
+`');`. Root cause was in the GENERATOR: `create_dual_pane_video.py` wrote the alert
+as `'…' + scenes.length + '…'` with literal `\n` inside a regular triple-quoted
+Python string — Python turned those `\n` into REAL newlines in the emitted HTML,
+which is illegal inside a JS single-quoted string. **Fix:** the emitted JS now uses
+a backtick template literal (`` `Frame export would generate ${scenes.length} …` ``)
+— real newlines are legal inside backticks, and `${…}` survives verbatim because
+the Python string is not an f-string. Verified: regenerated output renders in
+headless Chrome with **0 console errors / 0 exceptions** (the same defect class as
+the AOA literal-`\n` join — see `html-render-verification` skill). Lesson: **when
+you fix a generated .html, also fix its generator — otherwise the next run
+reintroduces the bug.**
 - `make_video_quad.py` / `make_video_v2.py` / `make_video_v3.py` — Multi-panel variants
 - `make_video_vibrant.py` — High-saturation rendering
 - `make_video_zip.py` / `make_video_zipper.py` — Compression-focused
@@ -136,3 +161,4 @@ ffmpeg -encoders | grep -E "libx264|wmv2"
 - `azazael-codex-studio` — Standalone desktop app
 - `azazael-files` — File structure and conventions
 - `azazael-deploy` — Deployment and .exe packaging
+- `html-render-verification` — CDP render gate; every generated .html must pass 0 console errors (the 2026-09-02 multi-line-string defect was caught only by rendering)

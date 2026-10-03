@@ -1,3 +1,13 @@
+---
+name: azazael-autodiff-higher-order
+description: Higher-order derivatives — Jacobians, Hessians and beyond — using mygrad automatic differentiation.
+metadata:
+  category: algorithm
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-autodiff-higher-order
 **Category:** Algorithm / Automatic Differentiation
 **Priority:** HIGH

@@ -1,8 +1,6 @@
 ---
 name: azazael-sync-kali
-description: >-
-  Kali WSL2 sync integration — cross-distro sync via the E: drive bridge,
-  run_wsl_kali(), batch copy patterns, get_env_status() probing
+description: Kali WSL2 sync integration — cross-distro sync via E: drive bridge, run_wsl_kali(), batch copy patterns, get_env_status() probing
 auto_load: false
 ---
 

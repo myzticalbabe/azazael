@@ -127,6 +127,17 @@ def _print_summary(payload: object) -> None:
         if not value:
             continue
         print("--%s--" % key)
+        # `project_context` is a DICT (not a list) in prepare()'s payload, and
+        # the first version sliced it unconditionally -> KeyError: slice(...).
+        # A summary printer that crashes on a valid payload is the same class
+        # of defect as a guard that reports OK while wrong.
+        if isinstance(value, dict):
+            for k, v in list(value.items())[:12]:
+                print("  %s: %s" % (k, str(v)[:120]))
+            continue
+        if not isinstance(value, (list, tuple)):
+            print("  -", str(value)[:140])
+            continue
         for item in value[:8]:
             text = item.get("content", item) if isinstance(item, dict) else item
             print("  -", str(text)[:140])

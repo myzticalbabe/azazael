@@ -1,3 +1,13 @@
+---
+name: azazael-autodiff-forward
+description: Forward-mode automatic differentiation using mygrad — derivatives via tangent values propagated forward alongside primals.
+metadata:
+  category: algorithm
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # azazael-autodiff-forward
 **Category:** Algorithm / Automatic Differentiation
 **Priority:** HIGH

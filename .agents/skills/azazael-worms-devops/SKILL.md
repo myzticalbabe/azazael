@@ -1,6 +1,6 @@
 ---
 name: azazael-worms-devops
-description: Azazael DevOps worms — container (5), communication (5), migration (5). Load when working with Docker, IPC, RPC, message brokering, code migration, or schema versioning.
+description: Azazael DevOps worms — container (5), communication (6), migration (5). Load when working with Docker, IPC, RPC, message brokering, code migration, or schema versioning.
 metadata:
   category: architecture
   project: azazael
@@ -57,7 +57,7 @@ container (orchestration)    communication (messaging)    migration (evolution)
          │                              │                            │
          └──────────────────────────────┴────────────────────────────┘
                                     │
-                            WORM_REGISTRY (77 worms)
+                            WORM_REGISTRY (226 worms)
 ```
 
 ## Usage Pattern

@@ -1,11 +1,33 @@
 #!/bin/sh
-# Pre-commit hook: run compliance scanner on staged .py files
-# Installed by: git config core.hooksPath .githooks
+# Pre-commit hook: compliance scanner + anti-pattern ratchet on staged .py files
+# Installed by: python tools/install_git_hooks.py  (sets core.hooksPath=.githooks)
+#
+# Check order (cheap-and-broad first, so a bad commit is rejected early):
+#   1. bulk-diff focus gate      (scripts/commit_gate.py)
+#   2. per-file staged snapshot  (scanner, --severity warning)
+#   3. canon drift check         (tools/canon_drift_check.py --check)
+#   4. repo-wide anti-pattern ratchet (tools/anti_pattern_gate.py --check)
+#
+# Why check 3 exists even though check 2 already scans: check 2 runs on a
+# TEMP SNAPSHOT of the staged files, so it catches an anti-pattern being
+# ADDED but cannot see the running total. The ratchet compares the whole
+# `src/` tree against logs/anti_pattern_baseline.json and fails on any
+# category INCREASE, which is what keeps the 2,224-finding backlog from
+# growing while it is paid down (reports/ERROR_LESSON_AUDIT_2026-10-03.md,
+# gap 1: "MECHANIZED BUT NOT ENFORCED").
+#
+# Check 3 runs on EVERY commit, including commits with no staged .py files:
+# check 2 skips in that case, and it is exactly the docs/data commit that
+# could still have grown the tree. A check that is skipped when it is
+# inconvenient is the defect this hook exists to stop.
 
-# Bulk-diff gate (2026-09-28): runs FIRST, on every commit, because the
-# scanner below exits early when no .py files are staged -- and bulk dirt
-# is usually docs/data, not code. Focused commits pass; deliberate bulk
-# ops declare ALLOW_BULK_COMMIT=1.
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$SCRIPT_DIR" || exit 1
+
+# ─── Check 1: bulk-diff focus gate ───
+# Runs FIRST, on every commit, because the scanner below skips when no .py
+# files are staged -- and bulk dirt is usually docs/data, not code. Focused
+# commits pass; deliberate bulk ops declare ALLOW_BULK_COMMIT=1.
 echo "[Gate] Checking changeset focus..."
 if command -v python3 >/dev/null 2>&1; then
     python3 scripts/commit_gate.py --hook 2>&1
@@ -18,41 +40,77 @@ if command -v python3 >/dev/null 2>&1; then
 else
     echo "[Gate] python3 not found -- passing loud (gate unrunnable)"
 fi
+echo ""
 
+# ─── Check 2: compliance scanner on the staged .py snapshot ───
 echo "[Scanner] Checking staged .py files for anti-patterns..."
-
-# Get list of staged .py files
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.py$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
-    echo "[Scanner] No .py files staged, skipping."
-    exit 0
+    echo "[Scanner] No .py files staged, skipping snapshot scan."
+else
+    # Create temp directory with staged file contents
+    TMPDIR=$(mktemp -d)
+    for f in $STAGED_FILES; do
+        mkdir -p "$TMPDIR/$(dirname "$f")" 2>/dev/null || true
+        git show ":0:$f" > "$TMPDIR/$f" 2>/dev/null || true
+    done
+
+    # Gate on WARNING and above: import_inside_function is INFO-only and
+    # matches the deliberate lazy-import pattern, so it must not block commits.
+    PYTHONPATH="src:${PYTHONPATH:-}" python -m CORE.compliance.scanner --report --ci --severity warning --dir "$TMPDIR" --exclude-dirs __pycache__,.git,.venv 2>&1
+    EXIT_CODE=$?
+    rm -rf "$TMPDIR"
+
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo ""
+        echo "[Scanner] Anti-patterns detected in staged files!"
+        echo "[Scanner] Fix them or use 'git commit --no-verify' to bypass."
+        exit 1
+    fi
+    echo "[Scanner] All staged .py files pass compliance check."
+fi
+echo ""
+
+# ─── Check 3: canon drift (source corpus vs load path) ───
+# `skills/` is the source corpus (RULE 0R); `.agents/skills/<n>/SKILL.md` is
+# what `skill()` loads. Nothing checked that sync happened, and 44 skills had
+# drifted -- 26 with the load-path copy missing its YAML frontmatter entirely.
+echo "[Canon] Checking skill corpus against the load path..."
+if [ -f "$SCRIPT_DIR/tools/canon_drift_check.py" ]; then
+    # Capture first, then print: `cmd | tail` would make $? tail's status, not
+    # the check's, and a gate that reads the wrong exit code is worse than none.
+    CANON_OUT=$(python "$SCRIPT_DIR/tools/canon_drift_check.py" --check 2>&1)
+    CANON_EXIT=$?
+    echo "$CANON_OUT" | tail -12
+    if [ $CANON_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Canon] Skill drift between skills/ and .agents/skills/."
+        echo "[Canon] Reconcile: python tools/canon_drift_check.py --fix"
+        exit 1
+    fi
+else
+    echo "[Canon] check not found -- passing loud (check unrunnable)"
+fi
+echo ""
+
+# ─── Check 4: repo-wide anti-pattern ratchet ───
+# Fails on any category COUNT increase over the recorded baseline. This is
+# deliberately repo-wide and runs unconditionally: the scanner snapshot in
+# check 2 cannot see the running total, and the backlog is what is ratcheted.
+echo "[Ratchet] Comparing anti-pattern counts against baseline..."
+if [ -f "$SCRIPT_DIR/tools/anti_pattern_gate.py" ]; then
+    PYTHONPATH="src:${PYTHONPATH:-}" python "$SCRIPT_DIR/tools/anti_pattern_gate.py" --check 2>&1
+    RATCHET_EXIT=$?
+    if [ $RATCHET_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Ratchet] Anti-pattern count INCREASED over baseline. Fix the new"
+        echo "[Ratchet] finding(s), or -- for a reviewed, deliberate increase --"
+        echo "[Ratchet] re-run: python tools/anti_pattern_gate.py --baseline"
+        exit 1
+    fi
+else
+    echo "[Ratchet] gate not found -- passing loud (gate unrunnable)"
 fi
 
-# Create temp directory with staged file contents
-TMPDIR=$(mktemp -d)
-for f in $STAGED_FILES; do
-    mkdir -p "$TMPDIR/$(dirname "$f")" 2>/dev/null || true
-    git show ":0:$f" > "$TMPDIR/$f" 2>/dev/null || true
-done
-
-# Run scanner on the staged snapshot
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$SCRIPT_DIR"
-
-# Gate on WARNING and above: import_inside_function is INFO-only and matches
-# the deliberate lazy-import pattern, so it must not block commits.
-PYTHONPATH="src:${PYTHONPATH:-}" python -m CORE.compliance.scanner --report --ci --severity warning --dir "$TMPDIR" --exclude-dirs __pycache__,.git,.venv 2>&1
-EXIT_CODE=$?
-
-rm -rf "$TMPDIR"
-
-if [ $EXIT_CODE -ne 0 ]; then
-    echo ""
-    echo "[Scanner] Anti-patterns detected in staged files!"
-    echo "[Scanner] Fix them or use 'git commit --no-verify' to bypass."
-    exit 1
-fi
-
-echo "[Scanner] All staged .py files pass compliance check."
 exit 0

@@ -1,6 +1,6 @@
 ---
 name: azazael-worms-monitor
-description: Azazael observability worms — monitor (6), profiling (5), telemetry (5). Load when working with SystemZ, NETWORXZ, PROCESSZ, profiling tools, or telemetry/alerting.
+description: Azazael observability worms — monitor (12), profiling (5), telemetry (6). Load when working with SystemZ, NETWORXZ, PROCESSZ, profiling tools, or telemetry/alerting.
 metadata:
   category: architecture
   project: azazael

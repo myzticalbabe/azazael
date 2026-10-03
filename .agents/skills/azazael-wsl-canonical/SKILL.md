@@ -1,3 +1,13 @@
+---
+name: azazael-wsl-canonical
+description: WSL canonical environment reference — the Linux mirror at /root/azazael/ and its differences from Windows production.
+metadata:
+  category: environment
+  project: azazael
+  priority: high
+  auto_load: false
+---
+
 # SKILL: azazael-wsl-canonical
 # PURPOSE: WSL Canonical Environment Reference
 

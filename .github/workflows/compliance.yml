@@ -4,9 +4,17 @@ on:
   push:
     paths:
       - 'src/**/*.py'
+      - 'tools/**/*.py'
+      - 'skills/**'
+      - '.agents/skills/**'
+      - 'logs/anti_pattern_baseline.json'
   pull_request:
     paths:
       - 'src/**/*.py'
+      - 'tools/**/*.py'
+      - 'skills/**'
+      - '.agents/skills/**'
+      - 'logs/anti_pattern_baseline.json'
 
 jobs:
   compliance:
@@ -52,3 +60,14 @@ jobs:
         run: |
           echo "Compliance scan complete. Findings artifact uploaded."
           cat compliance_report.json | python -c "import sys,json; d=json.load(sys.stdin); print(f'Files: {d[\"total_files\"]}, Findings: {d[\"total_findings\"]}, Files with issues: {d[\"files_with_findings\"]}')"
+
+      # The scan above only reports; these two steps GATE. They run in CI as
+      # well as in the local pre-commit hook because a fresh clone has no hook
+      # installed, and the audit (reports/ERROR_LESSON_AUDIT_2026-10-03.md)
+      # found the mechanism built and wired to nothing that blocks.
+      - name: Anti-pattern ratchet (fail on increase over baseline)
+        run: python tools/anti_pattern_gate.py --check
+
+      - name: Canon drift (skills/ vs .agents/skills/)
+        run: python tools/canon_drift_check.py --check
+
