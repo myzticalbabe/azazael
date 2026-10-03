@@ -1,11 +1,14 @@
 graph LR
+  N_analysis["analysis"]
   N_axon["axon"]
   N_backup["backup"]
   N_communication["communication"]
   N_config["config"]
   N_consolidation["consolidation"]
   N_container["container"]
+  N_defense["defense"]
   N_dendrite["dendrite"]
+  N_diagnostic["diagnostic"]
   N_engram["engram"]
   N_federated["federated"]
   N_glia["glia"]
@@ -17,6 +20,7 @@ graph LR
   N_profiling["profiling"]
   N_security["security"]
   N_synapse["synapse"]
+  N_sync["sync"]
   N_telemetry["telemetry"]
   N_thalamus["thalamus"]
   N_unknown["unknown"]
@@ -29,8 +33,14 @@ graph LR
   C_NeuralPipeline --> M_NeuralPipeline_replay_failed
   C_ThompsonAllocator(["ThompsonAllocator"]):::C_wire
   N_unknown --> C_ThompsonAllocator
+  M_ThompsonAllocator_allocation["allocation"]:::M
+  C_ThompsonAllocator --> M_ThompsonAllocator_allocation
   M_ThompsonAllocator_choose_with_bonus["choose_with_bonus"]:::M
   C_ThompsonAllocator --> M_ThompsonAllocator_choose_with_bonus
+  D_arena[["arena"]]:::C_unresolved
+  N_unknown --> D_arena
+  M_mod_keeper_split["keeper_split"]:::M
+  D_arena --> M_mod_keeper_split
   C_LatencyCompensatorWorm(["LatencyCompensatorWorm"]):::C_integrate
   N_axon --> C_LatencyCompensatorWorm
   M_LatencyCompensatorWorm_compensate["compensate"]:::M
@@ -45,7 +55,7 @@ graph LR
   N_backup --> C_CheckpointWorm
   M_CheckpointWorm_restore_checkpoint["restore_checkpoint"]:::M
   C_CheckpointWorm --> M_CheckpointWorm_restore_checkpoint
-  C_FailureDigest(["FailureDigest"]):::C_wire
+  C_FailureDigest(["FailureDigest"]):::C_unresolved
   N_unknown --> C_FailureDigest
   M_FailureDigest_from_analysis["from_analysis"]:::M
   C_FailureDigest --> M_FailureDigest_from_analysis
@@ -75,6 +85,10 @@ graph LR
   N_container --> C_ResourceQuotaWatch
   M_ResourceQuotaWatch_set_quota["set_quota"]:::M
   C_ResourceQuotaWatch --> M_ResourceQuotaWatch_set_quota
+  C_CPPNGenome(["CPPNGenome"]):::C_unresolved
+  N_unknown --> C_CPPNGenome
+  M_CPPNGenome_phenotype["phenotype"]:::M
+  C_CPPNGenome --> M_CPPNGenome_phenotype
   C_DatabaseMonitorWorm(["DatabaseMonitorWorm"]):::C_wire
   N_monitor --> C_DatabaseMonitorWorm
   M_DatabaseMonitorWorm_create_backup["create_backup"]:::M
@@ -165,7 +179,7 @@ graph LR
   C_DataPipelineWorm --> M_DataPipelineWorm_schedule_dynamic_refresh
   M_DataPipelineWorm_search_memory["search_memory"]:::M
   C_DataPipelineWorm --> M_DataPipelineWorm_search_memory
-  C_PrioritizedReplayBuffer(["PrioritizedReplayBuffer"]):::C_wire
+  C_PrioritizedReplayBuffer(["PrioritizedReplayBuffer"]):::C_integrate
   N_learning --> C_PrioritizedReplayBuffer
   M_PrioritizedReplayBuffer_add_from_memories["add_from_memories"]:::M
   C_PrioritizedReplayBuffer --> M_PrioritizedReplayBuffer_add_from_memories
@@ -179,14 +193,20 @@ graph LR
   N_learning --> D_learning_rl
   M_mod__schema_state_key["_schema_state_key"]:::M
   D_learning_rl --> M_mod__schema_state_key
-  C_NoveltyDrive(["NoveltyDrive"]):::C_wire
+  M_mod_unmapped_severities["unmapped_severities"]:::M
+  D_learning_rl --> M_mod_unmapped_severities
+  C_NoveltyDrive(["NoveltyDrive"]):::C_unresolved
   N_unknown --> C_NoveltyDrive
   M_NoveltyDrive_novelty_weight["novelty_weight"]:::M
   C_NoveltyDrive --> M_NoveltyDrive_novelty_weight
+  M_NoveltyDrive_should_restart["should_restart"]:::M
+  C_NoveltyDrive --> M_NoveltyDrive_should_restart
   D_loom[["loom"]]:::C_unresolved
   N_unknown --> D_loom
   M_mod_descriptors_from_archive["descriptors_from_archive"]:::M
   D_loom --> M_mod_descriptors_from_archive
+  M_mod_intrinsic_dimension["intrinsic_dimension"]:::M
+  D_loom --> M_mod_intrinsic_dimension
   C_MeshRouterWorm(["MeshRouterWorm"]):::C_wire
   N_mesh --> C_MeshRouterWorm
   M_MeshRouterWorm_invalidate_route["invalidate_route"]:::M
@@ -205,20 +225,40 @@ graph LR
   C_LegacyShimGen --> M_LegacyShimGen_write_shim
   C_Genome(["Genome"]):::C_wire
   N_unknown --> C_Genome
+  M_Genome_from_flat["from_flat"]:::M
+  C_Genome --> M_Genome_from_flat
   M_Genome_to_trainer_kwargs["to_trainer_kwargs"]:::M
   C_Genome --> M_Genome_to_trainer_kwargs
   D_morph[["morph"]]:::C_unresolved
   N_unknown --> D_morph
+  M_mod_dimension_report["dimension_report"]:::M
+  D_morph --> M_mod_dimension_report
   M_mod_load_genome["load_genome"]:::M
   D_morph --> M_mod_load_genome
+  M_mod_prune_zero_variance["prune_zero_variance"]:::M
+  D_morph --> M_mod_prune_zero_variance
   M_mod_save_genome["save_genome"]:::M
   D_morph --> M_mod_save_genome
+  M_mod_seed_pool_from_bounds["seed_pool_from_bounds"]:::M
+  D_morph --> M_mod_seed_pool_from_bounds
+  M_mod_structural_mutate["structural_mutate"]:::M
+  D_morph --> M_mod_structural_mutate
+  D_nerve[["nerve"]]:::C_unresolved
+  N_unknown --> D_nerve
+  M_mod_modulated_q_update["modulated_q_update"]:::M
+  D_nerve --> M_mod_modulated_q_update
   C_FitnessOracle(["FitnessOracle"]):::C_wire
   N_unknown --> C_FitnessOracle
   M_FitnessOracle_acquisition["acquisition"]:::M
   C_FitnessOracle --> M_FitnessOracle_acquisition
+  M_FitnessOracle_era_robust_decision["era_robust_decision"]:::M
+  C_FitnessOracle --> M_FitnessOracle_era_robust_decision
   M_FitnessOracle_era_robust_probability["era_robust_probability"]:::M
   C_FitnessOracle --> M_FitnessOracle_era_robust_probability
+  M_FitnessOracle_export_json["export_json"]:::M
+  C_FitnessOracle --> M_FitnessOracle_export_json
+  M_FitnessOracle_is_fitted["is_fitted"]:::M
+  C_FitnessOracle --> M_FitnessOracle_is_fitted
   C_CPUFlameProfiler(["CPUFlameProfiler"]):::C_integrate
   N_profiling --> C_CPUFlameProfiler
   M_CPUFlameProfiler_to_flamegraph_data["to_flamegraph_data"]:::M
@@ -291,8 +331,6 @@ graph LR
   D_spine_registry --> M_mod_get_module_health
   M_mod_get_q_evidence["get_q_evidence"]:::M
   D_spine_registry --> M_mod_get_q_evidence
-  M_mod_get_q_updates["get_q_updates"]:::M
-  D_spine_registry --> M_mod_get_q_updates
   M_mod_get_q_variance["get_q_variance"]:::M
   D_spine_registry --> M_mod_get_q_variance
   M_mod_homeostat_reset["homeostat_reset"]:::M
@@ -369,6 +407,42 @@ graph LR
   N_xenomorph --> C_ResinWorm
   M_ResinWorm_secrete["secrete"]:::M
   C_ResinWorm --> M_ResinWorm_secrete
+  N_analysis -.->|feeds| N_defense
+  N_analysis -.->|feeds| N_visualization
+  N_backup -.->|feeds| N_orchestration
+  N_backup -.->|feeds| N_defense
+  N_communication -.->|feeds| N_orchestration
+  N_communication -.->|feeds| N_telemetry
+  N_config -.->|feeds| N_security
+  N_config -.->|feeds| N_orchestration
+  N_container -.->|feeds| N_monitor
+  N_container -.->|feeds| N_security
+  N_container -.->|feeds| N_orchestration
+  N_defense -.->|feeds| N_orchestration
+  N_defense -.->|feeds| N_telemetry
+  N_diagnostic -.->|feeds| N_defense
+  N_diagnostic -.->|feeds| N_orchestration
+  N_learning -.->|feeds| N_visualization
+  N_learning -.->|feeds| N_orchestration
+  N_migration -.->|feeds| N_analysis
+  N_migration -.->|feeds| N_orchestration
+  N_monitor -.->|feeds| N_defense
+  N_monitor -.->|feeds| N_orchestration
+  N_monitor -.->|feeds| N_telemetry
+  N_orchestration -.->|feeds| N_monitor
+  N_orchestration -.->|feeds| N_defense
+  N_orchestration -.->|feeds| N_telemetry
+  N_profiling -.->|feeds| N_visualization
+  N_profiling -.->|feeds| N_telemetry
+  N_security -.->|feeds| N_defense
+  N_security -.->|feeds| N_orchestration
+  N_security -.->|feeds| N_telemetry
+  N_sync -.->|feeds| N_monitor
+  N_sync -.->|feeds| N_orchestration
+  N_telemetry -.->|feeds| N_visualization
+  N_telemetry -.->|feeds| N_orchestration
+  N_telemetry -.->|feeds| N_defense
+  N_visualization -.->|feeds| N_orchestration
   classDef C_integrate fill:#fdf3d6,stroke:#b8860b;
   classDef C_unresolved fill:#fbe3e3,stroke:#b71c1c;
   classDef C_wire fill:#dff5df,stroke:#2e7d32;
