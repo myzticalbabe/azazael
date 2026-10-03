@@ -50,6 +50,54 @@ def _check_xpu_available() -> bool:
 
     return _XPU_AVAILABLE
 
+# Cached isolated-import results: {module: bool}. A native extension built for
+# the GIL ABI aborts the free-threaded interpreter on import (measured
+# 2026-10-02: `import onnxruntime` raises a Fatal Python error), and an access
+# violation cannot be caught by try/except -- it takes the whole process. So
+# availability is decided in a child that is allowed to die; the parent only
+# reads the exit code. find_spec is used first so an uninstalled module costs
+# no subprocess at all.
+_IMPORT_OK: dict[str, bool] = {}
+
+
+def _module_installed(name: str) -> bool:
+    """True if `name` can be located WITHOUT executing it.
+
+    ``find_spec`` does not import a top-level module, so this is safe even for
+    the modules whose import crashes.
+    """
+    try:
+        import importlib.util
+        return importlib.util.find_spec(name) is not None
+    except Exception:
+        return False
+
+
+def _import_ok(name: str) -> bool:
+    """True only if `name` imports cleanly in a child interpreter.
+
+    Guards the parent against a GIL-only wheel that aborts on import under the
+    free-threaded build. Result is cached for the process lifetime.
+    """
+    if name in _IMPORT_OK:
+        return _IMPORT_OK[name]
+    ok = False
+    if _module_installed(name):
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", "import %s" % name],
+                capture_output=True,
+                text=True,
+                timeout=60,
+                env=os.environ.copy(),
+            )
+            ok = proc.returncode == 0
+        except Exception:
+            ok = False
+    _IMPORT_OK[name] = ok
+    return ok
+
+
 # PIL / image support detection
 try:
     from PIL import Image
@@ -111,11 +159,9 @@ class ModelLoader:
             if name == "vl":
                 frameworks[name] = frameworks.get("transformers", False) and HAS_PIL
                 continue
-            try:
-                __import__(module)
-                frameworks[name] = True
-            except ImportError:
-                frameworks[name] = False
+            # Probed in a child process: a direct __import__ here is a
+            # process-kill for a GIL-ABI wheel, not a False. See _import_ok.
+            frameworks[name] = _import_ok(module)
 
         # GPU acceleration detection
         if frameworks.get("torch"):
@@ -133,23 +179,24 @@ class ModelLoader:
 
         # OpenCL detection (for Intel iGPU/dGPU, AMD GPUs)
         frameworks["opencl"] = False
-        try:
-            import pyopencl
-            platforms = pyopencl.get_platforms()
-            frameworks["opencl"] = len(platforms) > 0
-        except ImportError:
-            pass
+        if _import_ok("pyopencl"):
+            try:
+                import pyopencl
+                platforms = pyopencl.get_platforms()
+                frameworks["opencl"] = len(platforms) > 0
+            except Exception:
+                pass
 
         # Vulkan detection (cross-platform GPU compute)
         frameworks["vulkan"] = False
-        try:
-            # Check for Vulkan via torch backend or vulkan-compute library
-            import torch
-            frameworks["vulkan"] = (
-                hasattr(torch, "vulkan") and torch.vulkan.is_available()
-            )
-        except Exception:
-            pass
+        if _import_ok("torch"):
+            try:
+                import torch
+                frameworks["vulkan"] = (
+                    hasattr(torch, "vulkan") and torch.vulkan.is_available()
+                )
+            except Exception:
+                pass
 
         return frameworks
 
