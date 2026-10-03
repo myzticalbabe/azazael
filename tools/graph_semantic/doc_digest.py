@@ -9,7 +9,13 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from pathlib import Path
+
+# Doc titles can contain non-ASCII and leading BOMs; on a cp1252 Windows console
+# printing them raises UnicodeEncodeError. Make this script safe to run standalone.
+if hasattr(sys.stdout, "reconfigure"):  # TextIOWrapper on all supported consoles
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 SKIP_DIRS = {
     ".git", "archived", "archive", "archived_unified", "backup", "graphify-out",

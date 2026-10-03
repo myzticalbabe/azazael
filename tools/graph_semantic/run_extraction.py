@@ -12,6 +12,7 @@ Usage (from the repo root):
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -27,6 +28,7 @@ STEPS = [
     ("semantic_layer.py", "emit the authored semantic fragment"),
     ("doc_layer.py", "one document node per doc + buckets + xrefs"),
     ("concept_layer.py", "deduped concept hubs from headings"),
+    ("coverage_layer.py", "skill concepts, lexicon grouping, island bridges"),
 ]
 
 BUILD = ("build_graph.py", "merge + cluster + label + export")
@@ -34,10 +36,15 @@ BUILD = ("build_graph.py", "merge + cluster + label + export")
 
 def run(script: str, label: str) -> int:
     print(f"\n=== {script} — {label} ===", flush=True)
+    # Steps print doc titles, which can contain non-ASCII (and BOMs). On a cp1252
+    # Windows console that raises UnicodeEncodeError and aborts the pipeline, so
+    # force UTF-8 on every child regardless of the caller's environment.
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
     proc = subprocess.run(
         [sys.executable, str(HERE / script)],
         cwd=str(ROOT),
         check=False,
+        env=env,
         timeout=1800,  # a full merge+cluster can take many minutes
     )
     if proc.returncode != 0:
