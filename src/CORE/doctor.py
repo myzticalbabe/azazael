@@ -134,6 +134,23 @@ def check_disk_space() -> dict:
     return result
 
 
+def _check_ok(result) -> bool:
+    """Single predicate for "did this check pass".
+
+    Defect fixed 2026-10-03: `run_all()` computed health from
+    `.get("ok", True)` while `cmd_verify()` counted issues from
+    `.get("ok", result.get("healthy", True))`. The ollama check returns
+    `healthy` and no `ok`, so the two disagreed on the SAME data: doctor
+    printed `[FAIL] ollama`, verify printed `PASS — 1 issues`, and the
+    aggregate said `HEALTHY`. Two predicates over one dataset is the bug.
+    `healthy` is now honoured everywhere, so the per-check label, the issue
+    count, and the aggregate all answer the same question the same way.
+    """
+    if not isinstance(result, dict):
+        return True
+    return bool(result.get("ok", result.get("healthy", True)))
+
+
 def check_registry_importable() -> dict:
     """Validate every registered worm's module is importable.
 
@@ -260,11 +277,9 @@ def run_all(quick: bool = False) -> dict:
     except Exception as e:
         report["checks"]["sessions"] = {"error": str(e)}
 
-    # Overall health
-    all_ok = all(
-        c.get("ok", True) if isinstance(c, dict) else True
-        for c in report["checks"].values() if isinstance(c, dict)
-    )
+    # Overall health — same predicate as the per-check label and the verify
+    # issue count, so the three can never disagree (see `_check_ok`).
+    all_ok = all(_check_ok(c) for c in report["checks"].values())
     report["healthy"] = all_ok
     return report
 
@@ -278,7 +293,7 @@ def cmd_doctor():
     print("=" * cols)
     for check_name, result in report["checks"].items():
         if isinstance(result, dict):
-            status = "[OK]" if result.get("ok", result.get("healthy", True)) else "[FAIL]"
+            status = "[OK]" if _check_ok(result) else "[FAIL]"
             print(f"\n  {status} {check_name}")
             for k, v in result.items():
                 if k not in ("ok", "healthy", "error"):
@@ -304,7 +319,8 @@ def cmd_verify():
     """Run verification checks and print summary."""
     report = run_all(quick=True)
     all_ok = report.get("healthy", False)
-    print(f"Verify: {'PASS' if all_ok else 'FAIL'} — {sum(1 for c in report['checks'].values() if isinstance(c, dict) and not c.get('ok', c.get('healthy', True)))} issues")
+    issues = sum(1 for c in report["checks"].values() if not _check_ok(c))
+    print(f"Verify: {'PASS' if all_ok else 'FAIL'} — {issues} issues")
     return report
 
 
