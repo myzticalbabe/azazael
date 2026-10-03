@@ -29,7 +29,6 @@ import time
 import threading
 import hashlib
 import math
-import sysconfig
 from datetime import datetime
 from typing import Any, Optional
 
@@ -150,14 +149,21 @@ class _VectorIndex:
         # catch. So decide by the RUNTIME, not by the import -- the docstring's
         # "fail-open" promise is only true if the fault is never attempted.
         if self._faiss is None:
-            if sysconfig.get_config_var("Py_GIL_DISABLED"):
-                self._faiss = False
-            else:
+            try:
+                from CORE.native_guard import import_ok as _import_ok
+
+                _ok = _import_ok("faiss")
+            except Exception:
+                _ok = False
+            if _ok:
                 try:
                     import faiss as _f
+
                     self._faiss = _f
                 except Exception:
                     self._faiss = False
+            else:
+                self._faiss = False
         if self._faiss:
             self._backend = "faiss"
         elif self._np:
