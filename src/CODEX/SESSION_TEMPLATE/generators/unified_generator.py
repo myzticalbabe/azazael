@@ -5480,7 +5480,35 @@ def get_style_css(style_name):
         "firehorse": CSS_FIREHORSE,
         "cain": CSS_CAIN,
     }
-    return styles.get(style_name, CSS_REPORT)
+    base = styles.get(style_name, CSS_REPORT)
+    return base + _enhanced_animation_css()
+
+
+def _enhanced_animation_css():
+    """Append the enhanced-animation library (30 techniques) to theme CSS.
+
+    Routed into production 2026-10-01: the library was demonstrated but no
+    generator consumed it. Two keyframe names collide with theme keyframes
+    (shimmer, sparkle) and are namespaced az* so theme behavior is untouched.
+    Missing library -> theme CSS unchanged (graceful, never fatal).
+    """
+    try:
+        from CODEX.CORE.enhanced_animations import generate_css
+    except Exception:
+        try:
+            from enhanced_animations import generate_css
+        except Exception:
+            return ""
+    try:
+        css = generate_css()
+    except Exception:
+        return ""
+    for name in ("shimmer", "sparkle"):
+        css = css.replace("@keyframes %s" % name,
+                          "@keyframes az%s" % name.capitalize())
+        css = css.replace("animation: %s " % name,
+                          "animation: az%s " % name.capitalize())
+    return "\n/* ---- enhanced_animations (production-wired 2026-10-01) ---- */\n" + css
 
 
 def main():

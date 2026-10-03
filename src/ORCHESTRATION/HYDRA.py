@@ -662,16 +662,23 @@ def launcher():
     cluster = HYDRACluster(config)
     cluster.load_state()
 
-    if args.status:
-        cluster.print_status()
-    elif args.popup:
-        cluster.run_with_popup()
-    elif args.discover:
+    # Independent actions (fixed 2026-09-30). This was an `elif` chain, so
+    # `--discover --run --status` -- the CMD declared in Dockerfile.ubuntu --
+    # executed ONLY `--status` and reported "Stages: 0 total, Last Run: Never".
+    # Every requested flag now acts, in order, and status is printed last so it
+    # reflects the run that just happened.
+    acted = False
+    if args.discover:
+        acted = True
         nodes = cluster.discover_nodes()
         print(f"Discovered {len(nodes)} nodes")
         for group, count in cluster._count_by_group().items():
             print(f"  {group}: {count}")
-    elif args.run:
+    if args.popup:
+        acted = True
+        cluster.run_with_popup()
+    if args.run:
+        acted = True
         if args.stages:
             stages = [ProcessingStage(s) for s in args.stages]
         else:
@@ -684,7 +691,10 @@ def launcher():
             print(
                 f"  [{status}] {result.stage.value}: {result.modules_processed} modules in {result.duration:.2f}s"
             )
-    else:
+    if args.status:
+        acted = True
+        cluster.print_status()
+    if not acted:
         parser.print_help()
 
 

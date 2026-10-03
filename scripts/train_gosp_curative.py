@@ -210,7 +210,7 @@ def main():
 def run_gosp_learner_pass(kb_path: str = "gosp_knowledge.json") -> None:
     """Optional post-training pass using the FIXED RecursiveLearner (Sep-5).
 
-    Gossamer lives in WSL2 (/root/workspace/projects/gossamer-oxford-parser); on
+    Gossamer lives in WSL2 (/root/gossamer-oxford-parser); on
     Windows this is skipped with a notice. When runnable, feeds the KB entries
     through GossamerOxfordParser.parse(learn=True) so the 8 native-intelligence
     dimension weights adjust (convergence-before-application ordering bug fixed).
@@ -230,7 +230,7 @@ def run_gosp_learner_pass(kb_path: str = "gosp_knowledge.json") -> None:
         print("[gosp-learner] no entries; skipping")
         return
 
-    sys.path.insert(0, "/root/workspace/projects/gossamer-oxford-parser")
+    sys.path.insert(0, "/root/gossamer-oxford-parser")
     try:
         from semantical_main import GossamerOxfordParser
     except ImportError:

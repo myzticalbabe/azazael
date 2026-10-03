@@ -2,7 +2,7 @@
 """
 gosp_rani_integration.py -- Test Gossamer Oxford Semantical Parser with Eve Unleashed RANI
 
-Wires the Gossamer Oxford Semantical Parser (WSL2: /root/workspace/projects/gossamer-oxford-parser)
+Wires the Gossamer Oxford Semantical Parser (WSL2: /root/gossamer-oxford-parser)
 into RANI's (Recursive Adversarial Native Intelligence, EveUnleashed_Selector) AdversarialEngine
 as the registered inference backend. RANI runs adversarial batteries + recursive deep-dives;
 GOSP supplies every response via Montague-grammar/lambda-calculus semantic parsing with
@@ -17,7 +17,7 @@ import json
 import time
 from pathlib import Path
 
-GOSSAMER = "/root/workspace/projects/gossamer-oxford-parser"
+GOSSAMER = "/root/gossamer-oxford-parser"
 RANI = "/mnt/c/Users/clint/Desktop/EveUnleashed_Selector/agents/adversarial"
 OUT = "/mnt/c/Users/clint/GOSP_RANI_INTEGRATION_evidence.json"
 

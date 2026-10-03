@@ -86,6 +86,31 @@ def _as_dict(data):
         return {}
 
 
+def evolution_flatness(traj, traj_avg):
+    """EV-8 flatness semantics, as a pure function.
+
+    Returns ``(flat, flat_best_only)``. ``flat`` is the WARN condition: it
+    requires BOTH the best trajectory and the population mean to be unchanged,
+    and a mean series to actually be present. With elitism ``best_fitness`` is
+    flat BY CONSTRUCTION until a child beats the elite, so a flat best alone is
+    a healthy search, not a stall. ``flat_best_only`` (best flat, mean still
+    moving) names that benign case so a reader does not have to infer it.
+
+    Measured 2026-09-28: best=[16.276]*6 while the mean moved 14.42 -> 15.38,
+    and the old best-only check cried "no gradient" on a healthy search.
+
+    Pure and public so the semantics can be pinned without a live store.
+    """
+    def _flat(vals):
+        return bool(vals) and len(set(round(float(x), 4)
+                                      for x in vals)) == 1
+
+    flat_best = _flat(traj)
+    flat_mean = _flat(traj_avg)
+    flat = (flat_best and flat_mean) if traj_avg else flat_best
+    return flat, (flat_best and not flat_mean)
+
+
 def run_check(db, minutes):
     """Run one health check. Returns (report, fails, warns)."""
     window_s = minutes * 60
@@ -226,25 +251,15 @@ def run_check(db, minutes):
         traj = d.get("trajectory") or []
         traj_avg = d.get("trajectory_avg") or []
         genes = d.get("best_genes") or {}
-        # EV-8 semantics: with elitism, best_fitness is flat BY CONSTRUCTION
-        # until a child beats the elite, so a flat best alone is not evidence
-        # of a no-gradient stall -- the population MEAN is. Only when BOTH
-        # are flat is the fitness genuinely gradient-free. (Measured
-        # 2026-09-28: best=[16.276]*6 while mean moved 14.42->15.38; the
-        # old best-only check cried 'no gradient' on a healthy search.)
-        def _flat(vals):
-            return bool(vals) and len(set(round(float(x), 4)
-                                          for x in vals)) == 1
-        flat_best = _flat(traj)
-        flat_mean = _flat(traj_avg)
-        flat = (flat_best and flat_mean) if traj_avg else flat_best
+        # EV-8 semantics live in `evolution_flatness` (pure, unit-tested).
+        flat, flat_best_only = evolution_flatness(traj, traj_avg)
         report["signals"]["evolution"] = {
             "timestamp": ev_row[0],
             "seeded_from_prior": bool(d.get("seeded_from_prior")),
             "generations": d.get("generations"),
             "best_genes": genes,
             "flat_trajectory": flat,
-            "flat_best_only": flat_best and not flat_mean,
+            "flat_best_only": flat_best_only,
             "trajectory": traj[-6:],
             "trajectory_avg": traj_avg[-6:],
         }
