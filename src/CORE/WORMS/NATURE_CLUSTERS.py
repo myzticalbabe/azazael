@@ -30,17 +30,30 @@ from pathlib import Path
 # src/CORE/WORMS/NATURE_CLUSTERS.py -> parents[3] is the repository root.
 _ROOT_FILE = Path(__file__).resolve().parents[3] / "NATURE_CLUSTERS.py"
 
-#: Load the root module by FILE, not by the name ``NATURE_CLUSTERS``. Worm
-#: discovery puts ``src/CORE/WORMS`` at ``sys.path[0]``, so a bare
-#: ``import NATURE_CLUSTERS`` from inside this shim resolves to the shim itself
-#: -- the file that is executing -- and dies on a circular import (measured
-#: 2026-10-02: ``cannot import name 'NATURE_DEFINITIONS' from partially
-#: initialized module 'NATURE_CLUSTERS'``). That left NatureClusterManager
-#: unregistered, so ``execute_all`` reported ``Unknown module``. Loading the
-#: file under a private name is immune to whichever directory wins the name
-#: lookup, and the ``sys.modules`` guard keeps the root module single.
-_ROOT_NAME = "_azazael_root_nature_clusters"
-if _ROOT_NAME in sys.modules:
+#: Load the root module FROM ITS FILE, under its true name ``NATURE_CLUSTERS``.
+#: Two problems meet here. Worm discovery puts ``src/CORE/WORMS`` at
+#: ``sys.path[0]`` and imports top-level modules by bare name, so
+#: ``import NATURE_CLUSTERS`` resolves to THIS shim (the file executing) and
+#: dies on a circular import (measured 2026-10-02: ``cannot import name
+#: 'NATURE_DEFINITIONS' from partially initialized module 'NATURE_CLUSTERS'``);
+#: that left NatureClusterManager unregistered and ``execute_all`` reported
+#: ``Unknown module``. And the registry stores each class's ``__module__`` as
+#: its import name, so loading under a synthetic name makes the registry entry
+#: unimportable for the smoke tests.
+#:
+#: Loading by file under the real name solves both: the module object is built
+#: from the root file (no name lookup), and its classes report
+#: ``__module__ == "NATURE_CLUSTERS"``, which IS importable once this shim has
+#: installed it in ``sys.modules``. The guard reuses it only when the cached
+#: module really is the root file -- if a caller imported this shim bare, the
+#: cached entry is the shim and must be replaced.
+_ROOT_NAME = "NATURE_CLUSTERS"
+
+def _is_root_module(module: object) -> bool:
+    path = getattr(module, "__file__", None)
+    return bool(path) and Path(path).resolve() == _ROOT_FILE
+
+if _is_root_module(sys.modules.get(_ROOT_NAME)):
     _root = sys.modules[_ROOT_NAME]
 else:
     _spec = spec_from_file_location(_ROOT_NAME, _ROOT_FILE)
