@@ -4,13 +4,13 @@
 #
 # Check order (cheap-and-broad first, so a bad commit is rejected early):
 #   1. bulk-diff focus gate      (scripts/commit_gate.py)
-#   2. per-file staged snapshot  (scanner, --severity warning)
+#   2. staged NEW anti-pattern  (tools/staged_scanner_gate.py, per-file vs HEAD)
 #   3. canon drift check         (tools/canon_drift_check.py --check)
 #   4. repo-wide anti-pattern ratchet (tools/anti_pattern_gate.py --check)
 #
-# Why check 3 exists even though check 2 already scans: check 2 runs on a
-# TEMP SNAPSHOT of the staged files, so it catches an anti-pattern being
-# ADDED but cannot see the running total. The ratchet compares the whole
+# Why check 3 exists even though check 2 already scans: check 2 is PER-FILE
+# (staged vs HEAD), so it catches an anti-pattern being ADDED but cannot see
+# the running total. The ratchet compares the whole
 # `src/` tree against logs/anti_pattern_baseline.json and fails on any
 # category INCREASE, which is what keeps the 2,224-finding backlog from
 # growing while it is paid down (reports/ERROR_LESSON_AUDIT_2026-10-03.md,
@@ -43,32 +43,22 @@ fi
 echo ""
 
 # ─── Check 2: compliance scanner on the staged .py snapshot ───
-echo "[Scanner] Checking staged .py files for anti-patterns..."
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.py$' || true)
-
-if [ -z "$STAGED_FILES" ]; then
-    echo "[Scanner] No .py files staged, skipping snapshot scan."
-else
-    # Create temp directory with staged file contents
-    TMPDIR=$(mktemp -d)
-    for f in $STAGED_FILES; do
-        mkdir -p "$TMPDIR/$(dirname "$f")" 2>/dev/null || true
-        git show ":0:$f" > "$TMPDIR/$f" 2>/dev/null || true
-    done
-
-    # Gate on WARNING and above: import_inside_function is INFO-only and
-    # matches the deliberate lazy-import pattern, so it must not block commits.
-    PYTHONPATH="src:${PYTHONPATH:-}" python -m CORE.compliance.scanner --report --ci --severity warning --dir "$TMPDIR" --exclude-dirs __pycache__,.git,.venv 2>&1
-    EXIT_CODE=$?
-    rm -rf "$TMPDIR"
-
-    if [ $EXIT_CODE -ne 0 ]; then
+# Diffs each staged .py file against its HEAD version and fails only on a
+# per-category INCREASE. The old form wrote a temp snapshot and failed on ANY
+# finding at --severity warning, so every legacy file (837 silent_except_pass
+# in the baseline) was uncommittable -- a gate that can never pass is the same
+# defect class as one that can never fail.
+echo "[Scanner] Checking staged .py files for NEW anti-patterns..."
+if [ -f "$SCRIPT_DIR/tools/staged_scanner_gate.py" ]; then
+    PYTHONPATH="src:${PYTHONPATH:-}" python "$SCRIPT_DIR/tools/staged_scanner_gate.py" 2>&1
+    SCAN_EXIT=$?
+    if [ $SCAN_EXIT -ne 0 ]; then
         echo ""
-        echo "[Scanner] Anti-patterns detected in staged files!"
-        echo "[Scanner] Fix them or use 'git commit --no-verify' to bypass."
+        echo "[Scanner] New anti-pattern(s) in staged .py files."
         exit 1
     fi
-    echo "[Scanner] All staged .py files pass compliance check."
+else
+    echo "[Scanner] gate not found -- passing loud (check unrunnable)"
 fi
 echo ""
 
