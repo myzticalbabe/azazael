@@ -176,3 +176,12 @@ src/ORCHESTRATION/BIBL/lexicon/
 # format nothing can now generate. Not source; see _spec_snapshot_20260929/
 # for the Kali copy that is worth keeping.
 src/ORCHESTRATION/BIBL/archive/
+
+# MorphogenesisWorm staging output (2026-10-02). Every file under here is
+# auto-generated ("do not edit by hand"), non-autonomous -- execute() only
+# records evidence -- and named `gen_<worm>_<unknown|nature>.py`. The migration
+# ledger quarantined the 91-file set (`keep iff a unit claims a file`) and no
+# unit does, so they are excluded rather than adopted. `pyrightconfig.json`
+# already excludes the same glob; this stops them entering `git status` as
+# invisible work as well. Delete this line only alongside a claim on a file.
+src/CORE/WORMS/expansion/generated/_staging/
