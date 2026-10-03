@@ -121,13 +121,19 @@ def _pmb_observe_test_outcome(exitstatus) -> None:
         return
     try:
         import subprocess
+        import time as _time
+        # A distinct session id per RUN: `lesson_impact` groups actions into
+        # turns by session_id + time gap, so without this two runs minutes apart
+        # collapse into one turn and the outcome count under-reports. Each pytest
+        # invocation IS a separate session, so this is the honest id.
         subprocess.run(
             [interp, str(observer), "--pytest-exit", str(int(exitstatus)),
+             "--session-id", "pytest-%d" % int(_time.time()),
              "--quiet"],
             timeout=20, capture_output=True,
         )
     except Exception:
-        pass  # a memory side-effect must never fail the suite
+        pass  # scanner:ignore -- a memory side-effect must never fail the suite
 
 
 def pytest_sessionfinish(session, exitstatus):
