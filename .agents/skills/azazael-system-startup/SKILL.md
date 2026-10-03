@@ -346,6 +346,59 @@ Any response spawning agents sequentially when they could run in parallel = CRIT
 They raise `ImportError` on import. Use `DirectMemory` for ALL session recording.
 See `azazael/DIRECT_MEMORY_INSTRUCTIONS.md` for the complete mandate.
 
+## PMB Memory — CAPTURE IN THE MOMENT (MANDATORY)
+
+**This host (Codebuff) has NO PMB hooks.** PMB's `_AGENT_CAP` registry lists
+codebuff as `mcp-only`, so nothing pushes memory into context — retrieval is
+**PULL-ONLY**. The consequence, named by the user on 2026-10-03: **an insight
+that is not recorded while it is in hand is LOST when the session ends.** The
+failure is not that PMB forgets; it is that nobody wrote it down.
+
+### The rule — record at the moment of vision, not at the end
+
+**The moment you have a durable insight — a non-obvious cause, a rule that
+generalizes, a decision and its reason — record it in that moment, before the
+next tool call.** Do not defer capture to the end of the task. The end is
+exactly where the knowledge dies (context compaction, session exit, the next
+task's momentum).
+
+One command, any combination of item types:
+
+```bash
+C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_capture.py \
+    --lesson "the procedural rule" --fact "the durable fact" --project azazael
+```
+
+Also accepts `--decision`, `--activity`, `--goal`. This wraps `record_batch` so
+there is no JSON-shape friction to skip over.
+
+### At session start — pull what past sessions recorded
+
+```bash
+C:/Users/clint/.pmb-venv/Scripts/python.exe tools/pmb_client.py prepare "<what you are about to do>"
+```
+
+Returns project context, surfaced lessons, recent activity and open goals.
+Because nothing pushes this, **calling it is the only way a past session's work
+reaches this one.** `find_lessons "<topic>"` and `recall "<question>"` are the
+other pull paths.
+
+### What is already automatic (do not duplicate it)
+
+The test and commit triggers record **OUTCOMES** automatically —
+`conftest.py::pytest_sessionfinish` and `.githooks/pre-commit` call
+`tools/pmb_session_observe.py`, which writes the `agent_actions` rows that
+`lesson_impact` scores. **Outcomes are automatic; lessons are yours.** A lesson
+never captured cannot be scored, surfaced, or learned from.
+
+### Why prose alone will not hold this
+
+This section is the WEAKEST rung of the enforcement ladder (RULE 0B's own
+lesson): prose in canon costs nothing and enforces nothing. It is here because a
+lesson must be *explainable*, but the durable half is mechanical — the
+`tools/pmb_capture.py` command, the outcome observer, and
+`tests/test_pmb_loop_liveness.py`, which fails if the wiring is removed.
+
 ## Known Architecture Issues (2026-06-06)
 
 ### Worm Execution Blocked by Import Chain
