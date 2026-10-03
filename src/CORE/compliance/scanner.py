@@ -1,18 +1,31 @@
 """
 RULE 0X-7: Automated AST Anti-Pattern Scanning
 
-Hooks into the ast module to scan Python files for 7 anti-pattern categories
+Hooks into the ast module to scan Python files for anti-pattern categories
 automatically on every code change. Provides both file-level and string-level
 scanning.
 
-Anti-patterns detected:
-1. Unicode emoji / non-ASCII chars in code strings
-2. f-string backslash escapes (f"...{\\...}...")
-3. t-strings (PEP 750 draft — invalid Python syntax)
-4. os.system() calls
-5. Hardcoded C:\\ Windows paths
-6. import inside function bodies
-7. cls.__new__() factory methods
+Anti-patterns detected (12 categories):
+1.  Unicode emoji / non-ASCII chars in code strings
+2.  f-string backslash escapes (f"...{\\...}...")
+3.  t-strings (PEP 750 draft — invalid Python syntax)
+4.  os.system() calls
+5.  Hardcoded C:\\ Windows paths
+6.  import inside function bodies
+7.  cls.__new__() factory methods
+8.  shell=True in a subprocess call (added 2026-10-03)
+9.  subprocess call with no timeout= (added 2026-10-03)
+10. open() with no encoding= (added 2026-10-03)
+11. except block that does nothing but pass (added 2026-10-03)
+12. except block that returns a success-shaped default (added 2026-10-03)
+
+Rules 8-12 were added after measuring each candidate against src/ (657 files);
+only rules with real evidence were added. `print` (7,328 hits) was rejected
+because prints are legitimate here; TODO/assert were rejected as tracked
+elsewhere or noisy. Rule 8 closes a consistency hole: rule 4 bans os.system()
+for command injection, but its fix suggestion was `subprocess.run(args,
+shell=True)` -- the same injection class. Rules 11-12 mechanize the defect class
+behind the 2026-10-03 PMB dead loop (an error indistinguishable from success).
 """
 
 import ast
@@ -42,6 +55,15 @@ FINDING_SEVERITIES = {
     "hardcoded_win_path": "warning",
     "import_inside_function": "info",
     "cls_new_factory": "warning",
+    # ── Added 2026-10-03 after measuring each candidate against src/ (657 files).
+    # Only rules with real evidence were added; `print` (7,328 hits) was rejected
+    # because prints are legitimate here, and TODO/assert were rejected as
+    # tracked-elsewhere / noisy.
+    "shell_true": "error",            # 11 hits -- the sanctioned os.system "fix"
+    "silent_except_pass": "warning",  # 842 -- the exact class behind the PMB dead loop
+    "except_return_default": "warning",  # 692 -- a metric that reads success on error
+    "subprocess_no_timeout": "warning",  # 244 -- hangs (documented in pytest.ini)
+    "open_no_encoding": "warning",    # 228 -- cp1252 mojibake (documented in pmb)
     "syntax_error": "error",
     "read_error": "error",
 }
@@ -51,10 +73,16 @@ FIX_SUGGESTIONS = {
     "unicode_emoji": "Replace emoji with ASCII (e.g., OK/FAIL/*/>>)",
     "fstring_backslash": "Pre-extract variable before f-string",
     "t_string": "Replace t\"...\" with regular string or f-string",
-    "os_system": "Replace with subprocess.run(args, shell=True)",
+    # NOT shell=True: that is the same injection class (see the shell_true rule).
+    "os_system": "Replace with a subprocess call that takes an argument list (no shell=True)",
     "hardcoded_win_path": "Use Path.home() or get_project_root()",
     "import_inside_function": "Move import to module level if possible",
     "cls_new_factory": "Use @classmethod or factory function",
+    "shell_true": "Pass an argument list without shell=True",
+    "silent_except_pass": "Log or record the exception; never swallow it silently",
+    "except_return_default": "Re-raise or return an explicit failure, not a success-shaped default",
+    "subprocess_no_timeout": "Pass timeout=<seconds>",
+    "open_no_encoding": "Pass encoding='utf-8' (or open in binary mode)",
 }
 
 # Explanations for each finding category (used by --explain)
@@ -62,9 +90,14 @@ FINDING_EXPLANATIONS = {
     "unicode_emoji": "Emoji in source code causes encoding issues on different platforms. Use ASCII alternatives.",
     "fstring_backslash": "Backslash escapes inside f-string expressions are illegal in Python 3.12+. Pre-extract the value.",
     "t_string": "t-strings are a PEP 750 draft proposal, not valid Python syntax. Will cause SyntaxError at runtime.",
-    "os_system": "Shelling out through the os module is vulnerable to shell injection and discards the exit code. Use subprocess.run() instead.",
+    "os_system": "Shelling out through the os module is vulnerable to shell injection and discards the exit code. Use a subprocess call with an argument list instead.",
     "hardcoded_win_path": "An absolute drive path hardcodes one machine's layout; it breaks on other systems and user profiles.",
     "import_inside_function": "Import inside functions slows performance and confuses static analysis.",
+    "shell_true": "shell=True runs the command through a shell, so any interpolated value is a command-injection vector -- the same class os.system() is banned for. Pass an argument list instead.",
+    "silent_except_pass": "`except Exception: pass` discards the failure. A swallowed error is indistinguishable from success: this is the defect class that let PMB's lesson_impact report a clean zero while its input table was never written.",
+    "except_return_default": "`except: return <default>` turns an error into a normal-looking success value, so every caller reads a well-formed result and the fault is invisible.",
+    "subprocess_no_timeout": "A subprocess without a timeout can hang forever; the suite already documents files that hung past a 90s budget.",
+    "open_no_encoding": "open() without encoding= uses the platform default (cp1252 on Windows), which mojibakes non-ASCII and crashes on characters it cannot decode.",
 }
 
 
@@ -132,6 +165,20 @@ _PATTERN_OS_SYSTEM = re.compile(r'\bos\.system\s*\(')
 _PATTERN_WIN_PATH = re.compile(r'[Cc]:\\\\')
 _PATTERN_CLS_NEW = re.compile(r'cls\(\)\.__new__\(')
 
+# ── Rules added 2026-10-03 (measured first, see FINDING_SEVERITIES) ────────
+# The os_system rule bans os.system() for command injection, but its own fix
+# suggestion is `subprocess.run(args, shell=True)` -- which reintroduces exactly
+# the injection vector. shell_true closes that consistency hole.
+_PATTERN_SHELL_TRUE = re.compile(r'\bshell\s*=\s*True\b')
+# subprocess.<fn>( on one line with no timeout=. A call wrapped across lines
+# without a timeout is a false negative; accepted (conservative, never a false
+# positive) rather than reading whole call expressions.
+_PATTERN_SUBPROCESS = re.compile(
+    r'\bsubprocess\.(run|Popen|call|check_call|check_output)\s*\(')
+# open( on one line with no encoding= and no binary mode. Same single-line
+# trade-off as subprocess: it may miss a multiline call, never invents one.
+_PATTERN_OPEN = re.compile(r'(?<![\w.])open\s*\(')
+
 # Per-line opt-out, in the spirit of `# noqa`. Some lines *have* to contain a
 # pattern as data: this scanner's own test suite passes sample sources into
 # scan_source(), so a repo-wide sweep gates those samples as violations. An
@@ -157,7 +204,7 @@ def _documentation_spans(source: str) -> list[tuple[int, int, int, int]]:
             if tok.type == tokenize.COMMENT:
                 spans.append((tok.start[0], tok.start[1], tok.end[0], tok.end[1]))
     except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
-        pass
+        pass  # scanner:ignore -- best-effort tokenizing; advisory spans only
 
     # Docstrings, meaning only the leading string of a module/class/function body.
     try:
@@ -188,7 +235,7 @@ def _string_literal_spans(source: str) -> list[tuple[int, int, int, int]]:
             if tok.type == tokenize.STRING:
                 spans.append((tok.start[0], tok.start[1], tok.end[0], tok.end[1]))
     except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
-        pass
+        pass  # scanner:ignore -- best-effort tokenizing; advisory spans only
     return spans
 
 
@@ -217,6 +264,32 @@ def _in_string_body(line: int, col: int, spans: list[tuple[int, int, int, int]])
             continue
         return True
     return False
+
+
+def _call_text(lines: list[str], line_idx: int, col: int, cap: int = 20) -> str:
+    """The text of a call starting at (line_idx, col), across lines.
+
+    Tracks parenthesis balance so a multiline call is measured as a whole:
+    `subprocess.run(\n  [...],\n  timeout=5,\n)` has its timeout on a later
+    line, and a same-line-only check would report a false positive on it.
+    Bounded by `cap` lines so a malformed file cannot walk the whole source.
+    """
+    depth = 0
+    started = False
+    chunks: list[str] = []
+    for i in range(line_idx, min(len(lines), line_idx + cap)):
+        text = lines[i]
+        start = col if i == line_idx else 0
+        chunks.append(text[start:])
+        for ch in text[start:]:
+            if ch == "(":
+                depth += 1
+                started = True
+            elif ch == ")":
+                depth -= 1
+        if started and depth <= 0:
+            break
+    return "".join(chunks)
 
 
 def _in_documentation(line: int, col: int, spans: list[tuple[int, int, int, int]]) -> bool:
@@ -337,7 +410,49 @@ class ASTAntiPatternScanner:
                     findings.append((i, "hardcoded_win_path", line.strip()[:80]))
                     break
 
-        # 6. AST-based: import inside function bodies
+        # 5b. shell=True (the os.system injection class, in its sanctioned fix)
+        for i, line in enumerate(lines, 1):
+            for m in _PATTERN_SHELL_TRUE.finditer(line):
+                if _in_documentation(i, m.start(), doc_spans):
+                    continue
+                if _in_string_body(i, m.start(), string_spans):
+                    continue
+                findings.append((i, "shell_true", line.strip()[:80]))
+                break
+
+        # 5c. subprocess call with no timeout=. Like os_system, a match inside a
+        # string BODY is not a call -- it is a detector, a rule's own fix
+        # template, or a test sample. The call is measured across lines so a
+        # multiline call with its timeout on a later line is not a false hit.
+        for i, line in enumerate(lines, 1):
+            m = _PATTERN_SUBPROCESS.search(line)
+            if not m:
+                continue
+            if "timeout" in _call_text(lines, i - 1, m.start()):
+                continue
+            if _in_documentation(i, m.start(), doc_spans):
+                continue
+            if _in_string_body(i, m.start(), string_spans):
+                continue
+            findings.append((i, "subprocess_no_timeout", line.strip()[:80]))
+
+        # 5d. open() with no encoding= and not binary mode.
+        for i, line in enumerate(lines, 1):
+            m = _PATTERN_OPEN.search(line)
+            if not m:
+                continue
+            call = _call_text(lines, i - 1, m.start())
+            # Binary mode needs no encoding; a text open() does.
+            if "encoding" in call or "'b'" in call or '"b"' in call:
+                continue
+            if _in_documentation(i, m.start(), doc_spans):
+                continue
+            if _in_string_body(i, m.start(), string_spans):
+                continue
+            findings.append((i, "open_no_encoding", line.strip()[:80]))
+
+        # 6/7b. AST-based rules, in ONE parse: imports inside function bodies
+        # and except blocks that swallow the failure (6b).
         try:
             tree = ast.parse(source)
             for node in ast.walk(tree):
@@ -351,6 +466,31 @@ class ASTAntiPatternScanner:
                                     findings.append((child.lineno, "import_inside_function", f"import at line {child.lineno}"))
                                     break
                             break  # Only report first import per function
+                elif isinstance(node, ast.ExceptHandler):
+                    # 6b. A single-statement body of `pass` discards the error; a
+                    # single `return` turns it into a success-shaped default.
+                    # Both make a failure indistinguishable from success -- the
+                    # class that hid PMB's dead loop. Bodies with logging/raise
+                    # are untouched (they act on the exception).
+                    body = node.body
+                    if len(body) != 1:
+                        continue
+                    stmt = body[0]
+                    # Report at the STATEMENT's line, not the `except` line, so a
+                    # `# scanner:ignore` on the pass/return line suppresses it
+                    # (the line-based rules work the same way).
+                    if isinstance(stmt, ast.Pass):
+                        findings.append((stmt.lineno, "silent_except_pass",
+                                         "except: pass"))
+                    elif isinstance(stmt, ast.Return):
+                        # Only a SUCCESS-SHAPED default: a bare return, or a
+                        # constant (None/False/0/""). A constructed failure
+                        # value (e.g. `return Result(error=...)`) is a real
+                        # error path, not a swallow, so it is not flagged.
+                        value = stmt.value
+                        if value is None or isinstance(value, ast.Constant):
+                            findings.append((stmt.lineno, "except_return_default",
+                                             "except: return"))
         except SyntaxError:
             findings.append((0, "syntax_error", "Cannot parse source — syntax error"))
 
@@ -1154,7 +1294,7 @@ def run_cli():
                 "results": [r.to_dict() for r in results],
             })
         except Exception:
-            pass  # DB storage is advisory, never block scan
+            pass  # scanner:ignore -- DB storage is advisory, never block a scan
 
         # Apply --threshold: only fail if findings exceed threshold
         if args.threshold > 0 and total_findings <= args.threshold:
@@ -1410,7 +1550,7 @@ def _init_config():
     if config_path.exists():
         print(f"Config file already exists: {config_path}")
         return
-    with open(config_path, "w") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         yaml.dump(config, f, default_flow_style=False)
     print(f"Created default config: {config_path}")
 
@@ -1564,7 +1704,7 @@ def _run_daemon_mode(directory: str, fmt: str, exclude_dirs: (list[str] | None),
                         "results": [r.to_dict() for r in results],
                     })
                 except Exception:
-                    pass
+                    pass  # scanner:ignore -- DB storage is advisory
 
                 if fmt == "junit-xml" and total_findings > 0:
                     _print_junit_xml(results, total_files, total_findings)
@@ -1666,7 +1806,7 @@ $$balloon.Dispose()
         encoded = base64.b64encode(ps_script.encode('utf-16le')).decode()
         subprocess.run(["powershell", "-EncodedCommand", encoded], capture_output=True, timeout=15)
     except Exception:
-        pass  # Notification is advisory
+        pass  # scanner:ignore -- a notification is advisory, never fatal
 
 
 # ---------------------------------------------------------------------------
@@ -1726,10 +1866,12 @@ def _apply_auto_fixes(results, dry_run=False, quiet=False):
 
             elif cat == "os_system":
                 line = lines[idx]
-                # Replace subprocess.run("...", shell=True) with subprocess.run("...", shell=True)
+                # os.system("cmd") -> a subprocess call on shlex.split("cmd").
+                # NOT shell=True: that reintroduces the very injection vector
+                # this rule removes (the shell_true rule exists for it).
                 new_line = re.sub(
                     r"os\.system\(([\"\'])(.*?)\1\)",
-                    r"subprocess.run(\1\2\1, shell=True)",
+                    r"subprocess.run(shlex.split(\1\2\1))",
                     line
                 )
                 if new_line != line:

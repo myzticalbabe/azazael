@@ -45,6 +45,23 @@ _WIN_PATH_SOURCE = 'path = "C:' + _BS * 2 + "Users" + _BS * 2 + 'test"'
 _OS_CALL = "os" + "." + "system(" + '"ls")'
 _OS_CALL_IN_FUNCTION_SOURCE = "import os" + chr(10) + "def main():" + chr(10) + "    " + _OS_CALL
 
+# ── Samples for the rules added 2026-10-03 (assembled, same reason) ──
+_SUBPROCESS = "subprocess" + "." + "run"
+_SHELL_TRUE_SOURCE = _SUBPROCESS + '("ls", ' + "shell" + "=True)"
+_SUBPROCESS_NO_TIMEOUT_SOURCE = _SUBPROCESS + '(["ls"])'
+_SUBPROCESS_WITH_TIMEOUT_SOURCE = _SUBPROCESS + '(["ls"], timeout=5)'
+_OPEN_NO_ENCODING_SOURCE = "f = open(" + chr(34) + "x.txt" + chr(34) + ")"
+_OPEN_WITH_ENCODING_SOURCE = "f = open(" + chr(34) + "x.txt" + chr(34) + ", encoding=" + chr(34) + "utf-8" + chr(34) + ")"
+_EXCEPT_PASS_SOURCE = "try:" + chr(10) + "    x = 1" + chr(10) + "except Exception:" + chr(10) + "    pass"
+_EXCEPT_RETURN_SOURCE = (
+    "def f():" + chr(10) + "    try:" + chr(10) + "        return 1" + chr(10)
+    + "    except Exception:" + chr(10) + "        return None"
+)
+_EXCEPT_RAISE_SOURCE = (
+    "def f():" + chr(10) + "    try:" + chr(10) + "        return 1" + chr(10)
+    + "    except Exception:" + chr(10) + "        raise"
+)
+
 
 # ---------------------------------------------------------------------------
 # Tests
@@ -101,9 +118,9 @@ class TestASTAntiPatternScanner:
         td = tempfile.mkdtemp()
         try:
             os.makedirs(os.path.join(td, "excluded"), exist_ok=True)
-            with open(os.path.join(td, "excluded", "bad.py"), "w") as f:
+            with open(os.path.join(td, "excluded", "bad.py"), "w", encoding="utf-8") as f:
                 f.write(_OS_CALL_IN_FUNCTION_SOURCE)
-            with open(os.path.join(td, "good.py"), "w") as f:
+            with open(os.path.join(td, "good.py"), "w", encoding="utf-8") as f:
                 f.write("x = 1")
 
             results_all = s.scan_directory(td, "*.py")
@@ -149,7 +166,8 @@ class TestASTAntiPatternScanner:
             [sys.executable, "src/CORE/compliance/scanner.py",
              "--report", "--dir", "src/CORE/compliance",
              "--format", "json"],
-            capture_output=True, text=True, cwd=os.path.join(os.path.dirname(__file__), ".."),
+            capture_output=True, text=True, timeout=120,
+            cwd=os.path.join(os.path.dirname(__file__), ".."),
         )
         data = json.loads(result.stdout)
         assert "total_files" in data
@@ -236,6 +254,42 @@ class TestScannerPrecision:
         marked = _OS_CALL + "  # scanner:ignore" + chr(10)
         assert "os_system" not in self._categories(marked)
         assert "os_system" in self._categories(_OS_CALL + chr(10))
+
+    # ── New rules (2026-10-03) ──────────────────────────────────────
+
+    def test_shell_true_is_flagged(self):
+        assert "shell_true" in self._categories(_SHELL_TRUE_SOURCE + chr(10))
+
+    def test_subprocess_without_timeout_is_flagged(self):
+        cats = self._categories(_SUBPROCESS_NO_TIMEOUT_SOURCE + chr(10))
+        assert "subprocess_no_timeout" in cats
+
+    def test_subprocess_with_timeout_is_not_flagged(self):
+        cats = self._categories(_SUBPROCESS_WITH_TIMEOUT_SOURCE + chr(10))
+        assert "subprocess_no_timeout" not in cats
+
+    def test_open_without_encoding_is_flagged(self):
+        assert "open_no_encoding" in self._categories(_OPEN_NO_ENCODING_SOURCE + chr(10))
+
+    def test_open_with_encoding_is_not_flagged(self):
+        cats = self._categories(_OPEN_WITH_ENCODING_SOURCE + chr(10))
+        assert "open_no_encoding" not in cats
+
+    def test_except_pass_is_flagged(self):
+        assert "silent_except_pass" in self._categories(_EXCEPT_PASS_SOURCE + chr(10))
+
+    def test_except_return_default_is_flagged(self):
+        cats = self._categories(_EXCEPT_RETURN_SOURCE + chr(10))
+        assert "except_return_default" in cats
+
+    def test_except_raise_is_not_flagged(self):
+        cats = self._categories(_EXCEPT_RAISE_SOURCE + chr(10))
+        assert "except_return_default" not in cats
+        assert "silent_except_pass" not in cats
+
+    def test_suppression_marker_works_on_new_rules(self):
+        src = _EXCEPT_PASS_SOURCE + "  # scanner:ignore" + chr(10)
+        assert "silent_except_pass" not in self._categories(src)
 
     def test_scanner_source_passes_its_own_gate(self):
         """The rule file must be committable under the rules it enforces."""
