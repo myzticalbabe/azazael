@@ -59,7 +59,27 @@ CANON_GLOBS = [
 RECEIPT = AZ / "azazael" / "state" / "prepare_receipt.json"
 PERMIT_TTL_S = 1800          # a permit expires, so a stale one buys nothing
 PMB_TOKEN = Path(r"C:\Users\clint\.pmb\daemon.token")
-PMB_URL = "http://127.0.0.1:8765/mcp"
+
+
+def pmb_url() -> str:
+    """The LIVE daemon URL, discovered — never a constant.
+
+    The daemon idle-exits after 120 min and is restarted on demand, and it
+    migrates ports when the old one is taken (observed 8765 -> 8766 -> 8768).
+    This was hardcoded to 8765 and went stale, so the guard could not mint a
+    receipt. `servers.json` is the daemon's own registry; read it.
+    """
+    try:
+        entries = json.loads((PMB_TOKEN.parent / "servers.json").read_text(
+            encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — fall back to the conventional port
+        entries = []
+    for entry in entries if isinstance(entries, list) else []:
+        if isinstance(entry, dict) and entry.get("port"):
+            host = entry.get("host") or "127.0.0.1"
+            return "http://%s:%s%s" % (host, entry["port"],
+                                       entry.get("path") or "/mcp")
+    return "http://127.0.0.1:8765/mcp"
 
 
 # ── receipts ──────────────────────────────────────────────────────────────
@@ -147,11 +167,12 @@ def cmd_record(msg: str) -> int:
     from mcp.client.streamable_http import streamable_http_client
 
     token = PMB_TOKEN.read_text(encoding="utf-8").strip()
+    url = pmb_url()
 
     async def go():
         c = httpx2.AsyncClient(headers={"Authorization": f"Bearer {token}"},
                                timeout=300.0)
-        async with streamable_http_client(PMB_URL, http_client=c) as st:
+        async with streamable_http_client(url, http_client=c) as st:
             async with ClientSession(st[0], st[1]) as s:
                 await s.initialize()
                 raw = "".join(getattr(x, "text", "") for x in
