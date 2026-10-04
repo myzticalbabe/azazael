@@ -390,7 +390,8 @@ class RLTrainLoop:
                           exclude_sources: Optional[List[str]] = None,
                           records: Optional[List[Dict]] = None,
                           persist: bool = True,
-                          rng: Optional[random.Random] = None) -> Dict[str, Any]:
+                          rng: Optional[random.Random] = None,
+                          use_replay: bool = False) -> Dict[str, Any]:
         """Train from real execution data in LocalMemoryStore.
 
         Uses DataPipelineWorm to extract records, then treats each
@@ -515,6 +516,12 @@ class RLTrainLoop:
         # Isolated RNG (2026-09-09): callers pass a seeded Random for
         # deterministic thread-safe evals; default preserves old behavior.
         R = rng if rng is not None else random
+        # Experience replay (2026-10-03, advisory stage): when use_replay,
+        # every step is also stored in a bounded buffer and each episode
+        # ends with extra Q-updates sampled from it via R, so the draws
+        # stay deterministic under a seeded rng. Off by default: the base
+        # trajectory is byte-identical with use_replay=False.
+        replay_buf: list = [] if use_replay else None  # type: ignore
 
         for episode in range(n_episodes):
             total_reward = 0.0
@@ -547,6 +554,18 @@ class RLTrainLoop:
 
                 action_counts[action] += 1
                 total_reward += reward
+                if replay_buf is not None:
+                    replay_buf.append((state_key, action, reward))
+                    if len(replay_buf) > 5000:
+                        del replay_buf[:len(replay_buf) - 5000]
+
+            if replay_buf:
+                for _ in range(min(len(replay_buf), max_steps)):
+                    rs, ra, rr = replay_buf[R.randrange(len(replay_buf))]
+                    ro = self._q_table[rs].get(ra, 0.0)
+                    rn = max(self._q_table[rs].values(), default=0.0)
+                    self._q_table[rs][ra] = ro + learning_rate * (
+                        rr + discount_factor * rn - ro)
 
             episode_rewards.append(total_reward)
 
@@ -891,6 +910,54 @@ class RLTrainLoop:
             return {"episodes": len(rewards), "avg_reward": round(sum(rewards) / len(rewards), 2),
                     "max_reward": max(rewards), "min_reward": min(rewards),
                     "q_table_size": len(self._q_table)}
+
+    def recommend(self, severity: str, source: str = "db") -> Dict[str, Any]:
+        """Advisory action query over the learned Q-table (2026-10-03).
+
+        Read-only: returns the argmax action for `source:severity`, falls
+        back to any `*:severity` key when the source is unseen, and returns
+        action -1 / known False (never raises) when nothing is known. A
+        monitor calls this to ATTACH advice; firing decisions stay with the
+        monitor, so a wrong table cannot trigger anything by itself.
+        """
+        sev = str(severity or "")
+        src = str(source or "")
+        key = "%s:%s" % (src, sev)
+        try:
+            table = getattr(self, "_q_table", None) or {}
+            row = table.get(key)
+            if row is None:
+                suffix = ":" + sev
+                for k, v in table.items():
+                    if isinstance(k, str) and k.endswith(suffix) and v:
+                        row, key = v, k
+                        break
+            if row is None:
+                try:
+                    loader = getattr(self, "load_q_table_from_store", None)
+                    if callable(loader):
+                        loader()
+                except Exception:
+                    pass
+                table = getattr(self, "_q_table", None) or {}
+                row = table.get(key)
+            if not row:
+                return {"action": -1, "action_name": "unknown",
+                        "known": False, "state_key": key, "source": src}
+            action = max(row, key=lambda a: row.get(a, 0.0))
+            names = list(getattr(self, "ACTION_NAMES",
+                                 ["ignore", "log", "alert", "remediate"]))
+            try:
+                action = int(action)
+            except (TypeError, ValueError):
+                pass
+            name = (names[action] if isinstance(action, int)
+                    and 0 <= action < len(names) else "unknown")
+            return {"action": action, "action_name": name, "known": True,
+                    "state_key": key, "source": src}
+        except Exception:
+            return {"action": -1, "action_name": "unknown",
+                    "known": False, "state_key": key, "source": src}
 
     def tune_history(self, limit: int = 20) -> Dict[str, Any]:
         """Query tune_config_registered events from LocalMemoryStore.

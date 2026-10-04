@@ -1,0 +1,195 @@
+"""Regression contracts for the executable algorithm laboratory."""
+
+from __future__ import annotations
+
+import importlib.util
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+SCRIPTS = ROOT / "scripts"
+for entry in (SRC, SCRIPTS):
+    if str(entry) not in sys.path:
+        sys.path.insert(0, str(entry))
+
+from CORE.algorithm_qualification import (  # noqa: E402
+    QualificationEvidence,
+    classify,
+    qualified_components,
+)
+from CORE.WORMS.expansion.diversity import (  # noqa: E402
+    Individual,
+    NSGAIII,
+    PersistentMAPElites,
+    run_diversity_evidence,
+)
+from CORE.WORMS.expansion.policy_optimization import (  # noqa: E402
+    TokenTrace,
+    grpo_advantages,
+    reinforce_plus_plus_advantages,
+    rloo_advantages,
+    select_dapo_groups,
+    sequence_policy_loss,
+    token_policy_loss,
+)
+
+
+class TestPolicyContracts(unittest.TestCase):
+    def test_advantage_estimators_have_explicit_contracts(self):
+        self.assertEqual(rloo_advantages([1, 2, 4]), [-2.0, -0.5, 2.5])
+        self.assertEqual(grpo_advantages([1, 1, 1]), [0.0, 0.0, 0.0])
+        self.assertEqual(
+            reinforce_plus_plus_advantages([1, 2], global_rewards=[1, 2, 3]),
+            [1.224744871391589, 2.449489742783178],
+        )
+
+    def test_dapo_requires_informative_group_and_budget(self):
+        groups = [
+            TokenTrace((0.0, 0.0), group_rewards=(0.0, 1.0)),
+            TokenTrace((0.0, 0.0), group_rewards=(1.0, 1.0)),
+            TokenTrace((0.0, 0.0), group_rewards=(0.0, 1.0), overlong=True),
+        ]
+        selected, skipped = select_dapo_groups(groups, max_tokens=2, target_groups=2)
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(skipped, 2)
+
+    def test_masked_tokens_are_ignored_and_clipping_is_bounded(self):
+        trace = TokenTrace((0.0, 0.0), mask=(True, False))
+        self.assertAlmostEqual(token_policy_loss(trace, 1.0), -0.28)
+        self.assertAlmostEqual(sequence_policy_loss(trace, 1.0), -0.28)
+        self.assertEqual(trace.valid_indices(), (0,))
+
+
+class TestDiversityContracts(unittest.TestCase):
+    def test_persistent_map_elites_round_trip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "archive.json"
+            archive = PersistentMAPElites(
+                [("speed", 2, 0.0, 1.0)],
+                {"x": (0.0, 1.0)},
+                seed=9,
+                path=path,
+            )
+            self.assertTrue(archive.add(Individual({"x": 0.2}, (), 1.0, (0.1,))))
+            self.assertTrue(archive.add(Individual({"x": 0.8}, (), 2.0, (0.9,))))
+            archive.save()
+            loaded = PersistentMAPElites(
+                [("speed", 2, 0.0, 1.0)],
+                {"x": (0.0, 1.0)},
+                path=path,
+            )
+            self.assertTrue(loaded.load())
+            self.assertEqual(loaded.stats()["filled"], 2)
+            self.assertEqual(
+                loaded.archive,
+                {
+                    key: {
+                        **value,
+                        "objectives": list(value["objectives"]),
+                        "behavior": list(value["behavior"]),
+                    }
+                    for key, value in archive.archive.items()
+                },
+            )
+
+    def test_nsga3_selects_valid_objective_width(self):
+        candidates = [
+            Individual({"x": float(index)}, (float(index % 3), float(index // 3)))
+            for index in range(8)
+        ]
+        selected = NSGAIII(population_size=4, divisions=2).select(candidates)
+        self.assertEqual(len(selected), 4)
+        self.assertTrue(all(len(row.objectives) == 2 for row in selected))
+
+    def test_evidence_is_deterministic(self):
+        with tempfile.TemporaryDirectory() as directory:
+            first = run_diversity_evidence(
+                seed=17, archive_path=Path(directory) / "first.json"
+            )
+            second = run_diversity_evidence(
+                seed=17, archive_path=Path(directory) / "second.json"
+            )
+        self.assertEqual(first, second)
+        self.assertEqual(first["nsga3"]["selected"], 4)
+
+
+class TestQualificationContracts(unittest.TestCase):
+    def test_gate_fails_closed_and_requires_all_obligations(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            executable = root / "runner.py"
+            artifact = root / "result.json"
+            executable.write_text("pass\n", encoding="utf-8")
+            artifact.write_text("{}", encoding="utf-8")
+            base = dict(
+                component="LAB",
+                executable_path=str(executable),
+                deterministic_seed=11,
+                result_artifact=str(artifact),
+            )
+            self.assertEqual(classify(QualificationEvidence(**base))["status"], "executable")
+            passing = dict(
+                base,
+                regression_evidence={"passed": 3, "vacuous": False},
+            )
+            self.assertEqual(classify(QualificationEvidence(**passing))["status"], "qualified")
+            served = dict(passing, production_callable="scripts/runner.py")
+            self.assertEqual(classify(QualificationEvidence(**served))["status"], "served")
+            self.assertEqual(qualified_components([classify(QualificationEvidence(**served))]), ["LAB"])
+
+    def test_lab_components_are_production_but_not_rotation(self):
+        import track_registry
+
+        # ROTATION stays disjoint on purpose: it is the training
+        # orchestrator's dispatch table (kind sb3/cycle/neural) and the lab
+        # components have no reward event and no orchestrator runner.
+        self.assertTrue(set(track_registry.LAB_COMPONENTS).isdisjoint(track_registry.ROTATION))
+        # Inverted 2026-09-24 when the laboratory went to production
+        # (operator decision): the components must be production WITH a
+        # recorded callable, so `classify` can reach `served` on real
+        # evidence. The old pin (`all(not row["production"])`) now guards the
+        # opposite drift -- a component silently demoted back to manual-only.
+        self.assertTrue(all(row["production"] for row in track_registry.LAB_COMPONENTS.values()))
+        self.assertTrue(all(row.get("production_callable")
+                            for row in track_registry.LAB_COMPONENTS.values()))
+
+
+class TestLabRunner(unittest.TestCase):
+    def test_runner_writes_evidence_without_promoting(self):
+        spec = importlib.util.spec_from_file_location(
+            "algorithm_lab_cycle_test", SCRIPTS / "algorithm_lab_cycle.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = module.run_cycle(
+                seed=5,
+                output=root / "lab.json",
+                archive=root / "archive.json",
+            )
+            self.assertTrue((root / "lab.json").is_file())
+            self.assertTrue((root / "archive.json").is_file())
+            self.assertEqual(len(report["policy"]), 5)
+            # Production default (2026-09-24): the chain's `algolab` run
+            # carries the regression evidence and reaches `served` through the
+            # recorded production callable.
+            self.assertTrue(all(row["status"] == "served" for row in report["qualification"]))
+            self.assertFalse(report["production_rotation_changed"])
+            # Fail closed: evidence explicitly withheld -> the runner cannot
+            # qualify past `executable`, whichever way it is invoked.
+            bare = module.run_cycle(
+                seed=5,
+                output=root / "lab_bare.json",
+                archive=root / "archive_bare.json",
+                regression_report=None,
+            )
+            self.assertTrue(all(row["status"] == "executable" for row in bare["qualification"]))
+
+
+if __name__ == "__main__":
+    unittest.main()
