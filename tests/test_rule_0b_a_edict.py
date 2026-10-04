@@ -1,9 +1,21 @@
-"""tests/test_rule_0b_a_edict.py — the RULE 0B-A hook must actually FAIL.
+# coding: utf-8
+"""tests/test_rule_0b_a_edict.py — the gate-block check must actually FAIL.
 
 A gate that has never been seen to reject anything is not a gate; it is
 decoration with a green light. These tests exist to prove the sentinel's
-0B-A validator rejects the exact three failure modes from 2026-09-30 and
-accepts honest output. If someone later loosens the patterns, this fails.
+gate-block validator rejects a missing gate, a partial gate, and acceptance
+language, and accepts honest output. If someone later loosens the patterns,
+this fails.
+
+HISTORY (2026-10-04 repoint): this file pinned the RULE 0B-A five-item
+recitation. MANDATES.md reverted 0B-A/0B-B/0B-C/0B-D outright (0B-E era),
+so the recitation demand made programmatic writes undecidable. The
+validator now checks the LIVE pre-action gate markers (AP-1 scope answer +
+GATE DECISION line, RULE 0J/0S) plus the acceptance scan (now cited to
+0B-E). Function names, parse keys, and result keys are STABLE identifiers
+(they key the chain, governance, and verify scripts) even though the
+checked content changed — see validate_rule_0b_a's docstring before
+"fixing" the names.
 
 Run:  python -m pytest tests/test_rule_0b_a_edict.py -q
 """
@@ -31,11 +43,10 @@ validate = sg.validate_rule_0b_a
 
 
 CLEAN = """
-1. Did I deliver the deliverable the user NAMED? yes, the likeness render.
-2. Is my justification for a different answer longer than the delivery? no.
-3. Am I claiming ACCEPTANCE? no. Describing only.
-4. Did I add a rule the user did not invoke? no.
-5. If I disagreed, did I say so in ONE sentence and still build the ask? yes.
+[PRE-ACTION GATE ASSERTION]
+- **AP-1 (Scope Check):** user asked for this exact render
+- **RULE 0H (Anti-Pattern Scan):** Passed - AST scan: 0 Unicode, 0 fstring backslash
+- **GATE DECISION:** PROCEED
 """
 
 
@@ -45,7 +56,7 @@ def test_clean_block_passes():
 
 
 def test_acceptance_language_fails():
-    """Violation 2: self-assessment substituted for acceptance."""
+    """Acceptance substituted for description."""
     for phrase in ("this passes", "this clears the rule",
                    "this is good enough", "this is done",
                    "that meets the bar", "i consider this complete"):
@@ -54,22 +65,23 @@ def test_acceptance_language_fails():
         assert "ACCEPTANCE" in msg.upper()
 
 
-def test_missing_five_item_block_fails():
+def test_missing_gate_block_fails():
     """A skipped check must not read as a pass."""
     ok, msg = validate("")
     assert not ok
-    assert "five-item" in msg
+    assert "gate-block" in msg
 
 
-def test_partial_five_item_block_fails():
-    ok, msg = validate("1. named deliverable yes. 2. no. 3. no.")
+def test_partial_gate_block_fails():
+    ok, msg = validate("[PRE-ACTION GATE ASSERTION]\n"
+                       "- **AP-1 (Scope Check):** user asked for this")
     assert not ok
     assert "incomplete" in msg
 
 
 def test_self_reported_fail_is_honoured():
     """If the assistant's own check says FAIL, the gate says FAIL."""
-    ok, msg = validate(CLEAN + "\n5. FAIL - I built a different artefact.\n")
+    ok, msg = validate(CLEAN + "\nGATE DECISION: HALT - redo as stated.\n")
     assert not ok
     assert "NOT" in msg
 
@@ -88,17 +100,10 @@ def test_validator_never_raises_on_junk():
 
 
 def test_real_gate_format_single_line_passes():
-    """The format actually used: all five items on ONE line after the label.
-
-    An earlier per-line regex anchored at line start, so it found only item 1
-    and failed every honest block in real gate output. This locks that in.
-    """
+    """The format actually used: AP-1 and GATE DECISION on one line."""
     block = (
-        "** 1. Did I deliver the deliverable the user NAMED? yes. "
-        "2. Is my justification for a different answer longer than the "
-        "delivery? no. 3. Am I claiming ACCEPTANCE? no. 4. Did I add a rule "
-        "the user did not invoke? no. 5. If I disagreed, did I say so in ONE "
-        "sentence and still build the ask? yes."
+        "**AP-1 (Scope Check):** user asked for this exact render. "
+        "**RULE 0H:** Passed - AST scan clean. **GATE DECISION:** PROCEED"
     )
     ok, msg = validate(block)
     assert ok, msg
@@ -109,16 +114,10 @@ def test_end_to_end_through_the_real_gate():
     gate = (
         "[PRE-ACTION GATE ASSERTION]\n"
         "- **AP-1 (Scope Check):** user asked for this exact render\n"
-        "- **RULE 0B-A (Sole Source of Truth):** 1. Did I deliver the "
-        "deliverable the user NAMED? yes. 2. Is my justification for a "
-        "different answer longer than the delivery? no. 3. Am I claiming "
-        "ACCEPTANCE? no. 4. Did I add a rule the user did not invoke? no. "
-        "5. If I disagreed, did I say so in ONE sentence and still build the "
-        "ask? yes.\n"
+        "- **RULE 0H (Anti-Pattern Scan):** Passed - AST scan clean\n"
         "- **GATE DECISION:** PROCEED"
     )
     data = sg.parse_stdin(gate)
-    assert data.get("rule_0b_a_edict"), "0B-A not parsed out of a real gate block"
     v = sg.SentinelValidator(mode="validate", silent=True)
     v.execute_validation(data)
     row = [r for r in v.results if "0B-A" in r["key"]]
@@ -126,14 +125,13 @@ def test_end_to_end_through_the_real_gate():
     assert row[0]["passed"], row[0]["message"]
 
     # ...and the same gate with a verdict appended must FAIL. The verdict is
-    # parked in GATE DECISION, which is the realistic place to put it, and it
-    # is outside the captured 0B-A field -- so this also proves the whole-block
-    # acceptance scan works. Before that scan existed, the verdict escaped.
+    # parked in GATE DECISION, which is the realistic place to put it, and
+    # the whole-block acceptance scan must catch it there.
     data2 = sg.parse_stdin(gate.replace("PROCEED", "PROCEED. This passes."))
     v2 = sg.SentinelValidator(mode="validate", silent=True)
     v2.execute_validation(data2)
     row2 = [r for r in v2.results if "0B-A" in r["key"]]
     assert row2 and not row2[0]["passed"], "verdict in GATE DECISION dodged the scan"
     assert not sg.validate_rule_0b_a(data2.get("rule_0b_a_edict", ""),
-                                     full_text="\n".join(
-                                         str(v) for v in data2.values() if v))[0]
+                                      full_text="\n".join(
+                                          str(v) for v in data2.values() if v))[0]

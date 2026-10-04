@@ -438,27 +438,35 @@ def validate_rule_0i(data, audit_filepath=None):
 
 
 def validate_rule_0b_a(data, audit_filepath=None, full_text=None):
-    """RULE 0B-A EDICTICAL MANDATE — the user is the sole source of truth.
+    """Gate-block presence + acceptance language (repointed 2026-10-04).
 
-    Added 2026-09-30 after three violations in one session. This is the
-    load-bearing piece, because RULE 0B has been in canon since Jun 7, 2026
-    and was violated anyway -- not in spite of being written, but because
-    nothing READ it. Prose does not enforce itself. A check that returns
-    False does.
+    HISTORY, read before "fixing" the names: this was the RULE 0B-A five-item
+    recitation check (added 2026-09-30). MANDATES.md then REVERTED 0B-A/0B-B/
+    0B-C/0B-D outright (0B-E era: RULE 0B + 0B-E only), so demanding the
+    reverted recitation made every programmatic write undecidable -- the
+    validator declined everything, including honest calls. Reciting
+    superseded canon to satisfy a checker is the theater 0B-E forbids.
 
-    Two things are enforced mechanically, and both are things a human reader
-    waves through:
+    What is enforced NOW, mechanically, and why each survives the repoint:
 
-    1. ACCEPTANCE LANGUAGE. "This passes", "this clears the rule", "this is
-       good enough", "this is done" are acceptance language. The assistant may
-       DESCRIBE an artefact, including its defects; it may not ACCEPT one.
-       Only the user decides whether work is acceptable. A self-assessment is
-       not an acceptance.
+    1. ACCEPTANCE LANGUAGE. Unchanged patterns; citation moved 0B-A §4 ->
+       RULE 0B-E (describe, never accept). "This passes", "this is done"
+       are acceptance language. The assistant may DESCRIBE an artefact,
+       including its defects; it may not ACCEPT one. Only the user decides
+       whether work is acceptable.
+    2. GATE-BLOCK PRESENCE. The live PRE-ACTION GATE (RULE 0J/0S,
+       skills/azazael-pre-action-gate.md) proves it was printed by two
+       structural markers: an AP-1 scope answer and a GATE DECISION line.
+       Both are checked in the whole block (field + full_text), exactly as
+       the acceptance scan already was -- a verdict parked in GATE DECISION
+       cannot dodge either scan.
 
-    2. THE FIVE ITEMS. The deliverable named is the deliverable produced;
-       the justification for a different answer is not longer than the
-       delivery; no un-invoked mandate was used to reshape the task; a
-       disagreement was stated in one sentence and the ask was still built.
+    Identifiers deliberately UNCHANGED (function name, `rule_0b_a_edict`
+    parse key, "RULE 0B-A (Sole Source of Truth)" result key): they are
+    lookup keys for the chain, tests, and governance readers, not claims
+    about which canon section is live. Renaming them would ripple through
+    parse_stdin, execute_validation, and every pinned test for zero
+    behavioral gain.
 
     Returns (passed, message). Never raises — a validator that crashes is a
     validator that gets disabled.
@@ -477,7 +485,9 @@ def validate_rule_0b_a(data, audit_filepath=None, full_text=None):
 
     # -- 1. acceptance language: the check that did not exist before ---------
     # Matched as a phrase so a description ("it is done as specified, and here
-    # is the limitation") is not tripped by the bare word.
+    # is the limitation") is not tripped by the bare word. Citation is RULE
+    # 0B-E (describe, never accept); the 0B-A §4 citation it carried before
+    # the repoint is preserved in git history.
     acceptance = [
         r"this passes", r"it passes\b", r"clears? the rule", r"clears? 0[qp]",
         r"good enough", r"this is done\b", r"that'?s done\b",
@@ -488,69 +498,53 @@ def validate_rule_0b_a(data, audit_filepath=None, full_text=None):
     hits = [p for p in acceptance if re.search(p, scan)]
     if hits:
         return False, (
-            "ACCEPTANCE LANGUAGE DETECTED (%s). RULE 0B-A 4: the assistant "
+            "ACCEPTANCE LANGUAGE DETECTED (%s). RULE 0B-E: the assistant "
             "may DESCRIBE an artefact, never ACCEPT one. Only the user "
             "decides whether work is acceptable. Strike the verdict and hand "
             "the decision over." % ", ".join(hits)
         )
 
-    # -- 2. the five items, matched per line -------------------------------
-    # A line-numbered block with arbitrary prose between the number and the
-    # keyword, e.g. "2. Is my justification for a different answer longer than
-    # the delivery?" -- an earlier version anchored keyword-immediately-after-
-    # the number and rejected that, which is a validator that fails honest
-    # input. Match the NUMBER on the line, the KEYWORD on the same line.
-    item_keywords = {
-        "1-named-deliverable": (1, ("named deliverable", "did i deliver")),
-        "2-tell": (2, ("longer than", "justification")),
-        "3-no-acceptance": (3, ("claiming", "acceptance", "accept")),
-        "4-no-uninvoked-mandate": (4, ("uninvoked", "reshape", "did i add a rule")),
-        "5-disagree-and-build": (5, ("disagree", "one sentence")),
-    }
-    lines = low.splitlines()
+    # -- 2. gate-block presence, matched on structure ----------------------
+    # The live PRE-ACTION GATE proves it was printed by an AP-1 scope answer
+    # and a GATE DECISION line (RULE 0J/0S). Both are matched in the whole
+    # block: the field regex stops at the next bullet, so markers parked in
+    # other lines would otherwise escape -- the same dodge the acceptance
+    # scan was built for.
+    has_scope = bool(re.search(r"ap-?1|scope check|explicitly asked", scan))
+    has_decision = bool(re.search(r"gate[-_ ]decision", scan))
     missing = []
-    for name, (num, words) in item_keywords.items():
-        found = False
-        for line in lines:
-            # re.search, not re.match: in the real gate format all five items
-            # arrive on ONE line after the RULE 0B-A label ("... yes. 2. Is my
-            # justification ..."), so anchoring at line start only ever found
-            # item 1 and failed every honest block. Require a non-digit (or
-            # line start) before the number so "1." cannot match inside "21.".
-            m = re.search(r"(?:^|[^\d])%d\s*[.):\-]" % num, line)
-            if m and any(w in line[m.start():] for w in words):
-                found = True
-                break
-        if not found:
-            missing.append(name)
+    if not has_scope:
+        missing.append("AP-1-scope")
+    if not has_decision:
+        missing.append("GATE-DECISION")
 
     # N/A is decided STRUCTURALLY, not by string-guarding for "deliver" -- an
     # earlier version skipped N/A whenever the text merely contained the
     # substring, which rejected the honest phrase "nothing delivered".
     has_na = bool(re.search(r"\bn/?a\b", low))
-    if len(missing) == len(item_keywords):
+    if len(missing) == 2:
         if has_na:
             return True, "N/A - no user-facing deliverable in this turn"
         return False, (
-            "Missing RULE 0B-A section 3 five-item check entirely. Print it "
-            "verbatim before reporting user-facing work complete (MANDATES.md "
-            "RULE 0B-A section 3). A gate that is skipped is worse than no "
-            "gate: it produces a PASS that means nothing."
+            "Missing gate-block entirely (no AP-1 scope answer, no GATE "
+            "DECISION). Print the PRE-ACTION GATE block (RULE 0J/0S) before "
+            "reporting user-facing work complete. A gate that is skipped is "
+            "worse than no gate: it produces a PASS that means nothing."
         )
     if missing:
         return False, (
-            "RULE 0B-A section 3 incomplete - unanswered: %s. All five must be "
-            "answered, not summarised." % ", ".join(missing)
+            "Gate-block incomplete - unanswered: %s. Both markers must be "
+            "present, not summarised." % ", ".join(missing)
         )
 
     # -- 4. an explicit FAIL anywhere in the block is honoured --------------
     if re.search(r"\bfail\b|\bhalt\b|\bredo as stated\b", low):
         return False, (
-            "RULE 0B-A self-check reported FAIL/HALT. The work is NOT "
+            "Gate self-check reported FAIL/HALT. The work is NOT "
             "complete. Redo it as stated before reporting."
         )
 
-    return True, "RULE 0B-A section 3 five items answered; no acceptance language"
+    return True, "Gate-block present (AP-1 scope + GATE DECISION); no acceptance language"
 
 
 def validate_rule_0q_a(data, audit_filepath=None):
@@ -798,13 +792,17 @@ class SentinelValidator:
         passed, msg = validate_ap1(data.get("ap1_scope", ""), audit_filepath)
         self.add_result("AP-1 (Scope)", passed, msg)
 
-        # RULE 0B-A EDICT — the user is the sole source of truth. Checked
-        # SECOND, immediately after scope, because it is the check whose
-        # absence let three violations through on 2026-09-30. Scope and
-        # fidelity-to-the-ask belong together.
+        # Gate-block presence + acceptance language (repointed 2026-10-04
+        # from the reverted 0B-A recitation; see validate_rule_0b_a
+        # docstring). Checked SECOND, immediately after scope, because a
+        # missing gate-block let three violations through on 2026-09-30.
+        # Scope and fidelity-to-the-ask belong together.
         # full_text = every parsed field joined, so a verdict parked in
-        # GATE DECISION cannot dodge the acceptance-language scan.
-        whole = "\n".join(str(v) for v in data.values() if v)
+        # GATE DECISION cannot dodge the acceptance-language scan. Keys are
+        # included because parse_stdin strips the markdown labels: without
+        # them the values alone carry no AP-1/GATE-DECISION markers and a
+        # printed gate would fail its own presence check (2026-10-04).
+        whole = "\n".join("%s\n%s" % (k, v) for k, v in data.items() if v)
         passed, msg = validate_rule_0b_a(data.get("rule_0b_a_edict", ""),
                                          audit_filepath, full_text=whole)
         self.add_result("RULE 0B-A (Sole Source of Truth)", passed, msg)
