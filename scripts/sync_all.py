@@ -559,6 +559,19 @@ def verify_integrity() -> Dict[str, bool]:
     kali_scripts = wsl_files("scripts", distro="kali")
     results["scripts_kali"] = win_scripts.issubset(kali_scripts) if kali_scripts else False
 
+    # 5. Desktop release (D-1): the standalone folder is a build artifact
+    #    tree, not a mirror, so parity is the wrong check — presence of the
+    #    release markers is. Without this, verify could report ALL SYNCED
+    #    while the release folder was deleted out from under it.
+    desk = ENVIRONMENTS.get("desktop", {}).get("root")
+    if desk is not None:
+        desk = _resolve_path(desk, ENVIRONMENTS["desktop"].get("type"))
+        results["desktop"] = bool(
+            desk and desk.is_dir()
+            and (desk / "docs").is_dir() and (desk / "skills").is_dir())
+    else:
+        results["desktop"] = False
+
     results["all_ok"] = all(results.values())
     return results
 
