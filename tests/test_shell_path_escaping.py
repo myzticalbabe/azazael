@@ -43,7 +43,34 @@ from pathlib import Path, PureWindowsPath
 
 import pytest
 
-_BASH = shutil.which("bash")
+def _probe_bash(exe: str | None) -> str | None:
+    """Return exe iff it actually executes a script (rc=0 AND output).
+
+    `C:\\WINDOWS\\system32\\bash.EXE` (the WSL launcher stub) returns rc=0
+    with EMPTY output here — a silent lie, exactly the hazard class under
+    test. Probing for real execution keeps the suite honest: a bash that
+    cannot run is absence, not a passing environment.
+    """
+    if not exe:
+        return None
+    try:
+        r = subprocess.run([exe, "-c", "printf '%s' ok"], capture_output=True,
+                           text=True, timeout=30)
+    except Exception:
+        return None
+    return exe if (r.returncode == 0 and r.stdout == "ok") else None
+
+
+def _find_bash() -> str | None:
+    cands = [r"C:\Program Files\Git\bin\bash.exe", shutil.which("bash")]
+    for cand in cands:
+        hit = _probe_bash(cand)
+        if hit:
+            return hit
+    return None
+
+
+_BASH = _find_bash()
 
 requires_bash = pytest.mark.skipif(
     _BASH is None, reason="bash not available; this class is a bash hazard")
@@ -181,6 +208,40 @@ class TestPathlibGotcha:
     def test_path_as_posix_uses_forward_slashes(self, tmp_path):
         """`.as_posix()` is how a Windows Path becomes a shell-safe string."""
         assert "\\" not in tmp_path.as_posix()
+
+
+# ── #61: backslashes inside f-string expressions ───────────────────────
+
+
+class TestFStringBackslash:
+    def test_no_backslash_inside_fstring_expression(self):
+        """#61: `{'\n'.join(...)}` is a SyntaxError — backslashes are illegal
+        inside f-string `{...}`. Walk src/ with ast and flag any
+        FormattedValue whose source segment carries a backslash, so the
+        anti-pattern cannot be reintroduced where py_compile would only
+        catch it after the fact (a file that fails to parse breaks the
+        whole suite's collection)."""
+        import ast as _ast
+
+        root = Path(__file__).resolve().parents[1] / "src"
+        bad: list[str] = []
+        for path in sorted(root.rglob("*.py")):
+            if "__pycache__" in path.parts:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+                tree = _ast.parse(text)
+            except (OSError, SyntaxError):
+                continue
+            for node in _ast.walk(tree):
+                if not isinstance(node, _ast.FormattedValue):
+                    continue
+                seg = _ast.get_source_segment(text, node)
+                if seg and "\\" in seg:
+                    bad.append("%s:%s: %s" % (
+                        path.relative_to(root), node.lineno, seg[:80]))
+        assert not bad, "backslash inside f-string expression:\n" + "\n".join(
+            bad[:10])
 
 
 # ── the three skills must exist and stay loadable ────────────────────────
