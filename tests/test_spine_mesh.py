@@ -82,8 +82,17 @@ def test_no_worm_name_collisions_across_expansion():
         # inspect.getfile() (native separators) while `expected` is built from
         # pathlib, and the two can differ in separator/case on Windows for the
         # same real file.
-        assert os.path.normcase(os.path.normpath(sf)) == \
-            os.path.normcase(os.path.normpath(str(expected))), \
+        # 2026-10-04: compare from "expansion/" onward. The editable install
+        # resolves CORE.* to the hub tree while the test file lives in this
+        # worktree, so absolute paths can name different TREES for the same
+        # relative artifact. The invariant is same-artifact (guards silent
+        # same-name overwrites), not same-absolute-path.
+        def _suffix(p):
+            parts = os.path.normcase(os.path.normpath(str(p))).split(os.sep)
+            if "expansion" in parts:
+                return os.sep.join(parts[parts.index("expansion"):])
+            return os.path.normcase(os.path.normpath(str(p)))
+        assert _suffix(sf) == _suffix(expected), \
             f"{name}: registered from {sf} but module says {expected}"
 
 
