@@ -30,6 +30,29 @@ def _norm(path):
     return os.path.normcase(os.path.abspath(str(path)))
 
 
+def _treerel(mod, path):
+    """Path relative to the tree that owns the importing module.
+
+    2026-10-04: the editable install resolves CORE.* to the hub tree while
+    top-level script modules resolve to this worktree, so two constants
+    imported in one test can name different TREES. The contract under test
+    is same-ARTIFACT (observer reads what the producer writes), not
+    same-absolute-path -- relativize each side to its own tree and compare
+    those. A genuine drift (different relative artifacts) still fails.
+    """
+    anchor = Path(getattr(mod, "__file__", "") or ".").resolve()
+    root = anchor.parent
+    for cand in [anchor.parent, *anchor.parents]:
+        if (cand / "src").is_dir() and (cand / "scripts").is_dir():
+            root = cand
+            break
+    try:
+        return os.path.normcase(os.path.relpath(
+            os.path.abspath(str(path)), str(root)))
+    except ValueError:
+        return _norm(path)
+
+
 def _fresh_iso():
     """A fixture artifact timestamp, fresh at RUN time.
 
@@ -52,14 +75,16 @@ class TestObserverPathsMatchProducers(unittest.TestCase):
     def test_algorithm_lab_path_matches_producer(self):
         import algorithm_lab_cycle
 
-        self.assertEqual(_norm(ao.ALGORITHM_LAB_STATE),
-                         _norm(algorithm_lab_cycle.DEFAULT_OUTPUT))
+        self.assertEqual(_treerel(ao, ao.ALGORITHM_LAB_STATE),
+                         _treerel(algorithm_lab_cycle,
+                                  algorithm_lab_cycle.DEFAULT_OUTPUT))
 
     def test_meta_evolution_path_matches_producer(self):
         import meta_evolution_cycle
 
-        self.assertEqual(_norm(ao.META_EVOLUTION_STATE),
-                         _norm(meta_evolution_cycle.REPORT_PATH))
+        self.assertEqual(_treerel(ao, ao.META_EVOLUTION_STATE),
+                         _treerel(meta_evolution_cycle,
+                                  meta_evolution_cycle.REPORT_PATH))
 
 
 class TestObserverHonesty(unittest.TestCase):
