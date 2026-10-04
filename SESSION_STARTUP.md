@@ -441,3 +441,18 @@ dm = DirectMemory()  # Auto-starts session, stdlib-only, <0.1s
 
 **Pending:**
 - 79 hardcoded_win_path findings · 1,154 emoji backlog · telemetry generation (sentinel_enforcer block) · t_string scanner false positives
+
+
+### Session 2026-10-03 - FLIP AUTHORITY parity guard (behind-check)
+
+**Status:** Standing directive — run FIRST, before trusting either tree.
+
+**Command:** `python scripts/check_tree_parity.py` (from B; compares A/B HEADs,
+commit dates, dirt counts; exit 1 on ANY divergence with exact state).
+
+**Why:** A once reported 0/0 up-to-date while 6 commits behind — drift was
+invisible by construction. The editable install executes C:\Azazael\azazael
+(A, de-facto hub); sync roots are derived (hub = whichever tree runs the
+script), so no literal remains to repoint. This check is the visibility half
+of FLIP AUTHORITY. Verified live 2026-10-03: caught A 76058e35 vs B 46cc8687
+with per-tree dirt (5/398).
