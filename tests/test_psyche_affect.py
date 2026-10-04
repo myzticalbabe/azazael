@@ -135,7 +135,10 @@ def test_no_demographic_inputs():
         r"stereotype)$", re.I)
     import PSYCHE.affect as _mod
     import PSYCHE.traits as _tmod
-    for mod in (_mod, _tmod):
+    import PSYCHE.identify as _imod
+    import PSYCHE.distill as _dmod
+    import PSYCHE.artifact as _amod
+    for mod in (_mod, _tmod, _imod, _dmod, _amod):
         tree = _ast.parse(inspect.getsource(mod))
         for node in _ast.walk(tree):
             if isinstance(node, _ast.arg):
