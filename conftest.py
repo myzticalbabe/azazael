@@ -138,3 +138,45 @@ def _pmb_observe_test_outcome(exitstatus) -> None:
 
 def pytest_sessionfinish(session, exitstatus):
     _pmb_observe_test_outcome(exitstatus)
+
+
+# ── Shadow-split visibility guard (2026-10-04) ──────────────────────────
+# The editable install resolves CORE.* to the hub tree (C:\Azazael) while
+# top-level script modules resolve via sys.path to THIS worktree. Tests that
+# import both sides in one process (observers, spine registry, operator
+# scoring) then compare constants from two different TREES and fail on a
+# split that is environmental, not behavioral. This guard makes the split
+# VISIBLE at session start (a warning, never a failure): path-asserting
+# tests must relativize (see test_algorithm_observers._treerel), and suite
+# runs that must be single-tree should run from the hub tree.
+def _tree_root(start: str) -> str:
+    p = pathlib.Path(start).resolve()
+    if p.is_file():
+        p = p.parent
+    for cand in [p, *p.parents]:
+        if (cand / "src").is_dir() and (cand / "scripts").is_dir():
+            return os.path.normcase(str(cand))
+    return os.path.normcase(str(p))
+
+
+def pytest_configure(config):
+    try:
+        import importlib.util as _ilu
+        import warnings as _w
+        spec = _ilu.find_spec("CORE")
+        origin = (getattr(spec, "origin", "") or "")
+        if not origin:
+            return
+        core_tree = _tree_root(os.path.dirname(os.path.abspath(origin)))
+        test_tree = _tree_root(str(pathlib.Path(__file__).resolve().parent))
+        if core_tree != test_tree:
+            _w.warn(
+                "SHADOW-SPLIT: CORE resolves under %s but tests run from %s. "
+                "Tests importing both CORE.* and top-level script modules "
+                "compare constants from two different TREES. Path-asserting "
+                "tests must relativize (test_algorithm_observers._treerel "
+                "pattern); for single-tree runs, run pytest from the tree "
+                "the editable install points at." % (core_tree, test_tree),
+                RuntimeWarning, stacklevel=2)
+    except Exception:
+        pass
