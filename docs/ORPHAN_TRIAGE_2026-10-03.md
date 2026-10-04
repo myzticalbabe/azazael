@@ -1,0 +1,109 @@
+# Orphan triage verdicts 2026-10-03
+
+Rule: adopt load-bearing (imported by tracked code, validated by a
+green held test, or a referenced deliverable). Session probes,
+dated one-shots, and forensic one-offs are HELD untracked — they
+are another session's active debris; deletion races live work.
+
+## Adopted this pass (2)
+- scripts/neural_loop_monitor.py (imported by tracked scripts/neural_loop.py)
+- tools/render_ouroboros.py (renders dashboard/ouroboros.html via render_all_monitors.py)
+
+## Held as scratch (97)
+- .deps-jiter/jiter/__init__.py
+- dashboard/archetypes/blender_figure/blender_bench.py
+- dashboard/archetypes/blender_figure/blender_figure.py
+- reports/env_inventory/build_matrix.py
+- scripts/_compages_study.py
+- scripts/_cranium_degeneracy_probe.py
+- scripts/_cranium_reality_check.py
+- scripts/_db_rows.py
+- scripts/_db_shape.py
+- scripts/_evo_graph_build.py
+- scripts/_ex_timing.py
+- scripts/_glyph_widths.py
+- scripts/_morph_polymorphy_probe.py
+- scripts/analyze_evolution_runs.py
+- scripts/apply_runtime_baseline.py
+- scripts/audit_loop_budgets.py
+- scripts/bcc_open_tasks_join.py
+- scripts/bcc_part7_officers.py
+- scripts/chain_watchdog.py
+- scripts/check_runtime_baseline.py
+- scripts/compare_training.py
+- scripts/diagnose_fitness_gradient.py
+- scripts/diagnose_margin_gate.py
+- scripts/embedding_dashboard.py
+- scripts/env_drift_alarm.py
+- scripts/fix_poindexter_indent.py
+- scripts/inject_alert_drill.py
+- scripts/jev_advise.py
+- scripts/launch_live_windows.py
+- scripts/make_task_xml_utf16.py
+- scripts/observation_coverage.py
+- scripts/promotion_signals.py
+- scripts/prune_tensor_genome.py
+- scripts/rate_promotion.py
+- scripts/run_db_monitor.py
+- scripts/run_training_cycles.py
+- scripts/scrub_probe_telemetry.py
+- scripts/verify_oracle_parity.py
+- src/CODEX/cain_apply_emoji_20260930.py
+- src/CODEX/cain_archetypes_all_20260930.py
+- src/CODEX/cain_fill_all_20260930.py
+- src/CODEX/cain_fill_sections_20260930.py
+- src/CODEX/cain_house_style_20260930.py
+- src/CODEX/cain_meta_reflect_20260930.py
+- src/CODEX/cain_pecuniary_20260930.py
+- src/CODEX/cain_precheck_20260930.py
+- src/CODEX/cain_redo.py
+- src/CODEX/cain_render_20260930.py
+- src/CODEX/cain_validate_20260930.py
+- src/CODEX/inject_cain_20260930.py
+- tools/blender_session_20260930/blender_bench.py
+- tools/blender_session_20260930/blender_figure.py
+- tools/blender_session_20260930/blender_pebbles.py
+- tools/cain_basis.py
+- tools/cain_coherence.py
+- tools/cain_complete.py
+- tools/cain_complete2.py
+- tools/cain_cost_blocks.py
+- tools/cain_culpable.py
+- tools/cain_emo_map.py
+- tools/cain_female.py
+- tools/cain_figures.py
+- tools/cain_final_clean.py
+- tools/cain_fix_checks.py
+- tools/cain_fix_two.py
+- tools/cain_full_audit.py
+- tools/cain_last3.py
+- tools/cain_last_figs.py
+- tools/cain_law.py
+- tools/cain_legal_all.py
+- tools/cain_legal_cells.py
+- tools/cain_legal_final.py
+- tools/cain_legal_last.py
+- tools/cain_reanalyze.py
+- tools/cain_recalc.py
+- tools/cain_reconcile.py
+- tools/cain_render_gate.py
+- tools/cain_restore_words.py
+- tools/cain_serpent.py
+- tools/cain_sin_words.py
+- tools/cain_societal.py
+- tools/cain_stale_by_section.py
+- tools/cain_strip_advocacy.py
+- tools/cain_the_analysis.py
+- tools/cain_value.py
+- tools/cain_verify_analysis.py
+- tools/cain_words_next_to_marks.py
+- tools/flux_dash.py
+- tools/hook_dispatch.py
+- tools/learner_bridge.py
+- tools/learner_bridge2.py
+- tools/mesh_repaird.py
+- tools/meta_reflect_run_20260930.py
+- tools/mete_reflect_20260930.py
+- tools/module_ownership.py
+- tools/revert_selftest.py
+- tools/vlp_reflect_20260930.py
