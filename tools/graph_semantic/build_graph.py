@@ -25,6 +25,7 @@ FRAGS = [
     Path("graphify-out/concept_layer_fragment.json"),
     Path("graphify-out/coverage_layer_fragment.json"),
     Path("graphify-out/rationale_tranche2_fragment.json"),
+    Path("graphify-out/rationale_tranche3_fragment.json"),
     Path("graphify-out/enhanced_semantic_fragment.json"),
     Path("graphify-out/bridge_layer_fragment.json"),
 ]

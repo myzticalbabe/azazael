@@ -17,25 +17,25 @@ plus the mechanical scaffolding to keep it reproducible.
 
 | | before | after |
 |---|---|---|
-| nodes | 32,303 | **35,888** |
-| links | 56,443 | **67,041** |
-| connected components | 126 | **10** |
-| project docs with a node | 151 (of 1,527) | **1,527 (100%)** |
-| nodes carrying `rationale` | 271 | **2,239** |
-| document / rationale / concept nodes | ~11,572 | **15,159** |
+| nodes | 32,303 | **35,889** |
+| links | 56,443 | **65,900** |
+| connected components | 126 | **4** |
+| project docs with a node | 151 (of 1,528) | **1,528 (100%)** |
+| nodes carrying `rationale` | 271 | **2,259** |
+| document / rationale / concept nodes | ~11,572 | **15,160** |
 
 - Extraction mix: **92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS**; INFERRED mean
   confidence **0.88**.
-- 2,018 communities, 12 hyperedges, **1 isolated node**, **0 self-loop edges**
-  (removed in `build_graph.py`), and **3,426 document→entity `mentions` edges**
-  (see the enhanced-semantic layer). The non-giant components are now tiny
-  (7 / 6 / 4 / 3 / 2 … nodes).
+- 2,198 communities, 12 hyperedges, **1 isolated node**, **0 self-loop edges**
+  (removed in `build_graph.py`), and **2,205 document→entity `mentions` edges**
+  (see the enhanced-semantic layer). The three non-giant components (2 + 2 + 1) are
+  deliberate leaves listed in `bridge_layer.EXPLAIN`.
 - `graphify diagnose multigraph`: 0 exact-duplicate edges, 0 collapsed endpoint
   pairs, 0 external-reference edges. 101 self-loop edges remain (harmless,
   uninvestigated).
 
-Net: one pass took the graph from **126 → 10 connected components** while adding
-3,585 nodes. It is now far *more* connected than the git-native graph it started
+Net: one pass took the graph from **126 → 4 connected components** while adding
+3,586 nodes. It is now far *more* connected than the git-native graph it started
 from, and doc coverage is total. (The figures above are from the reproduced run;
 the report doc itself is counted too, which is why the doc total is 1,527 rather
 than the 1,526 measured before it was added.)
@@ -60,12 +60,12 @@ than the 1,526 measured before it was added.)
    `.ps1`/`.sh`/`.java`/`__init__.py` files (no supported AST language, so degree-0
    by construction) grouped under suite/marker concept nodes. Adds 14 authored
    rationale rows and 16 `ATTACH` edges binding authored group nodes to spine nodes.
-5. **Rationale tranche 2** — 20 authored nodes / 26 edges for the large load-bearing
+5. **Rationale tranches 2 + 3** — 40 authored nodes for the large load-bearing
    docs the first pass had not read (task registry, research record, both
    full-project audits, session-insight and lesson records, worm audit, project map,
    cross-environment manifest, Rust tracker, sync strategy, worm proposals,
    algorithm log).
-6. **Enhanced semantic layer** — 3,426 `mentions` edges across 492 docs. Every
+6. **Enhanced semantic layer** — 2,205 `mentions` edges across 324 docs. Every
    document's *body* is matched against known entity labels; an edge is emitted only
    when the label literally appears in the text. Identifier-shape and
    document-frequency (≤40) guards stop corpus vocabulary like `Environment` and
@@ -167,7 +167,7 @@ generated content but it is the project's own skill corpus.
 ## Reproduce
 
 ```bash
-python tools/graph_semantic/run_extraction.py --report   # every layer, then report + God Nodes patch
+python tools/graph_semantic/run_extraction.py --report --heartbeat   # layers + report + PMB milestone
 python tools/graph_semantic/audit_anchors.py             # anchors resolve to real AST nodes
 graphify diagnose multigraph --graph graphify-out/graph.json   # want 0 collapsed/dup
 ```

@@ -9,14 +9,18 @@ Usage (from the repo root):
     python tools/graph_semantic/run_extraction.py --digest   # stop after the digest
     python tools/graph_semantic/run_extraction.py --no-build # skip merge/export
     python tools/graph_semantic/run_extraction.py --report   # also regenerate the report
+    python tools/graph_semantic/run_extraction.py --report --heartbeat  # + PMB milestone
 """
 from __future__ import annotations
 
 import argparse
+import collections
+import json
 import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -32,6 +36,7 @@ STEPS = [
     ("concept_layer.py", "deduped concept hubs from headings"),
     ("coverage_layer.py", "skill concepts, lexicon grouping, island bridges"),
     ("rationale_tranche2.py", "authored rationale for the next tranche of docs"),
+    ("rationale_tranche3.py", "authored rationale for the remaining distinct docs"),
     ("enhanced_semantic.py", "entity mentions from every document body"),
     ("bridge_layer.py", "grounded edges from the last stranded components"),
 ]
@@ -84,6 +89,44 @@ def run_graphify_report() -> int:
     return run("god_nodes.py", "correct the God Nodes ranking", argv=["--top", "20", "--patch-report"])
 
 
+def run_heartbeat() -> int:
+    """Best-effort: record the graph's headline stats as a PMB milestone.
+
+    Optional (`--heartbeat`) because it depends on a host-specific PMB client. It
+    never fails the build: a missing client or interpreter is reported and skipped.
+    """
+    graph = ROOT / "graphify-out/graph.json"
+    client = ROOT / "tools/pmb_client.py"
+    pmb_py = os.environ.get("PMB_PYTHON", r"C:\Users\clint\.pmb-venv\Scripts\python.exe")
+    if not graph.exists() or not client.exists() or not Path(pmb_py).exists():
+        print("PMB heartbeat skipped (no graph.json or pmb client)", file=sys.stderr)
+        return 0
+    data = json.loads(graph.read_text(encoding="utf-8"))
+    nodes, links = data["nodes"], data["links"]
+    types = collections.Counter(n.get("file_type") for n in nodes)
+    state = {
+        "date": time.strftime("%Y-%m-%d"),
+        "nodes": len(nodes),
+        "links": len(links),
+        "self_loops": sum(1 for e in links if e["source"] == e["target"]),
+        "document_nodes": types.get("document", 0),
+        "rationale_nodes": sum(1 for n in nodes if n.get("rationale")),
+        "mention_edges": sum(1 for e in links if e.get("relation") == "mentions"),
+    }
+    payload = {
+        "chain_name": "azazael_graph_components",
+        "title": f"build {state['date']}: {state['nodes']} nodes / {state['links']} links",
+        "state": state,
+        "importance": 0.5,
+    }
+    proc = subprocess.run(
+        [pmb_py, str(client), "call", "record_milestone", json.dumps(payload)],
+        cwd=str(ROOT), check=False, env=child_env(), timeout=120,
+    )
+    print(f"PMB heartbeat exit {proc.returncode}", file=sys.stderr)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--digest", action="store_true",
@@ -92,6 +135,8 @@ def main() -> int:
                     help="emit fragments but do not merge/export the graph")
     ap.add_argument("--report", action="store_true",
                     help="after build, regenerate GRAPH_REPORT.md and re-apply the God Nodes patch")
+    ap.add_argument("--heartbeat", action="store_true",
+                    help="after build, record the graph stats as a PMB milestone (best-effort)")
     args = ap.parse_args()
 
     for script, label in STEPS:
@@ -112,7 +157,9 @@ def main() -> int:
             rc = run_graphify_report()
             if rc != 0:
                 return rc
-        else:
+        if args.heartbeat:
+            run_heartbeat()
+        if not args.report and not args.heartbeat:
             print("\nNext: python tools/graph_semantic/run_extraction.py --report "
                   "(or graphify cluster-only . --no-viz --no-label then "
                   "god_nodes.py --patch-report)", flush=True)

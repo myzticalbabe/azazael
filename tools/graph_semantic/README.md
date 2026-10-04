@@ -48,12 +48,13 @@ python tools/graph_semantic/semantic_layer.py  # 4. emit the authored fragment
 python tools/graph_semantic/doc_layer.py       # 5. doc node per file + buckets + xrefs
 python tools/graph_semantic/concept_layer.py   # 6. deduped concept hubs from headings
 python tools/graph_semantic/coverage_layer.py  # 7. skills, lexicon, islands, groups
-python tools/graph_semantic/rationale_tranche2.py  # 8. authored rationale, next tranche
-python tools/graph_semantic/enhanced_semantic.py   # 9. entity mentions from every doc body
-python tools/graph_semantic/bridge_layer.py        # 10. bridge the last stranded components
-python tools/graph_semantic/build_graph.py         # 11. merge + cluster + label + export
-graphify cluster-only . --no-viz --no-label         # 12. regenerate GRAPH_REPORT.md
-python tools/graph_semantic/god_nodes.py --top 20 --patch-report  # 13. fix the ranking
+python tools/graph_semantic/rationale_tranche2.py  # 8. authored rationale, large docs
+python tools/graph_semantic/rationale_tranche3.py  # 9. authored rationale, remaining docs
+python tools/graph_semantic/enhanced_semantic.py   # 10. entity mentions from every doc body
+python tools/graph_semantic/bridge_layer.py        # 11. bridge the last stranded components
+python tools/graph_semantic/build_graph.py         # 12. merge + cluster + label + export
+graphify cluster-only . --no-viz --no-label         # 13. regenerate GRAPH_REPORT.md
+python tools/graph_semantic/god_nodes.py --top 20 --patch-report  # 14. fix the ranking
 ```
 
 Or run steps 1–11 with `python tools/graph_semantic/run_extraction.py`, and steps
@@ -161,6 +162,29 @@ appears in more than `MAX_DOC_FREQ` (40) documents is corpus vocabulary
 (`Environment`, `Category`) and is dropped. An edge exists only when the label
 literally appears in the text — nothing is inferred from topic similarity.
 
+It runs token-based (one cheap tokeniser pass, then dict lookups), not one giant
+alternation regex — that took the layer from tens of seconds to ~1.3 s on this
+corpus. Measured tuning: raising `GS_MENTION_MAX_DF` from 40 to 60 to 90 adds no
+coverage (the cap is a plateau, not the constraint), and case-insensitive matching
+is *worse* — it merges `Hydra`/`HYDRA`/`hydra` into one document frequency and
+pushes real entities (hydra 86, directmemory 49) over the cap. Coverage is bounded
+by whether a document names a distinctive identifier at all; 883 documents only
+ever match their own title. Safe result: **324 documents** with a genuine
+cross-document mention.
+
+### Edge relations this pipeline adds
+
+| relation | writer | meaning |
+|---|---|---|
+| `references` | semantic, doc, coverage, bridge | points at a specific node |
+| `conceptually_related_to` | semantic, coverage | same topic, weaker than a reference |
+| `rationale_for` | semantic, tranche 2/3 | the *why* behind a concept |
+| `mentions` | enhanced_semantic | this document's body literally names this entity |
+
+`mentions` is deliberately the weakest claim in the graph: it encodes "the text
+contains this label", not "the author intended this link". Weight is mention count
+(capped at 5).
+
 ### `bridge_layer.py`
 After every other layer, a few real clusters are still their own connected
 components because the AST pass gives a self-contained file an island and nothing
@@ -259,16 +283,17 @@ your id to a source-file stem that is fine — the audit tool reports it.
   plus `rationale_tranche2.py`). The remaining docs get an identity, a bucket, xrefs,
   their shared headings, and the entities they name — not hand-written rationale.
   Extending coverage means reading more docs and adding rows.
-- `enhanced_semantic.py` reaches 492 docs with a distinctive entity mention. The
-  rest name no distinctive identifier, so they get no `mentions` edge; that is the
-  intended behaviour, not a gap.
+- `enhanced_semantic.py` reaches 324 docs with a distinctive entity mention. The
+  rest name no distinctive identifier (883 match only their own title), so they get
+  no `mentions` edge; that is the intended behaviour, not a gap.
 - Concept hubs from headings are as good as the headings. Several top hubs
   ("Architecture", "Enforcement") are generic; the high-value concepts are the named
   entities in the authored layer.
 - Self-loop edges are removed in `build_graph.py`, so the exported graph is loop-free.
-- The final graph has 10 components and **1** isolated node (at the doc-layer
-  intermediate stage it was 119 components / 43 isolated nodes). The remaining
-  non-giant components are tiny (7 / 6 / 4 / 3 / 2 … nodes).
+- The final graph has 4 components and **1** isolated node (at the doc-layer
+  intermediate stage it was 119 components / 43 isolated nodes). The three
+  non-giant components are deliberately-leaf and listed in `EXPLAIN` in
+  `bridge_layer.py` (two 2-node test fixtures and a stray top-level test file).
 
 ## Verify
 
@@ -286,10 +311,10 @@ PY
 graphify diagnose multigraph --graph graphify-out/graph.json   # want 0 collapsed/dup
 ```
 
-Last run (2026-10-03, after the enhanced-semantic + bridge layers): **35,888 nodes ·
-67,041 edges · 2,018 communities · 12 hyperedges · 10 connected components ·
-1 isolated node · 1,527/1,527 project docs · 2,239 nodes carrying a rationale ·
-3,426 document→entity `mentions` edges.**
+Last run (2026-10-03, clean-fragment rebuild): **35,889 nodes · 65,900 edges ·
+2,198 communities · 12 hyperedges · 4 connected components (giant 35,884 +
+2 + 2 + 1 deliberate leaves) · 1 isolated node · 0 self-loops · 1,528/1,528 project
+docs · 2,259 nodes carrying a rationale · 2,205 document→entity `mentions` edges.**
 
 Re-running `run_extraction.py` end-to-end reproduces these numbers exactly (the
 runner forces `PYTHONIOENCODING=utf-8` on every step; `doc_digest.py` also

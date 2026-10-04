@@ -53,8 +53,8 @@ jobs:
             -q -p no:hypothesispytest
 
       - name: Compliance scanner on the pipeline directory (must be clean)
+        # --ci makes the scanner itself exit non-zero when findings exist, so CI
+        # does not have to parse the report to decide whether to fail.
         run: |
           python src/CORE/compliance/scanner.py \
-            --report --dir tools/graph_semantic --severity warning --format json \
-            > graph_semantic_scan.json
-          python -c "import json; d=json.load(open('graph_semantic_scan.json', encoding='utf-8')); n=d.get('total_findings', 0); print('findings:', n); raise SystemExit(1 if n else 0)"
+            --report --dir tools/graph_semantic --severity warning --ci
