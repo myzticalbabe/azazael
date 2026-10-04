@@ -415,6 +415,37 @@ class DatabaseMonitorWorm:
             if len(self._alerts) > 100:
                 self._alerts = self._alerts[-100:]
 
+    # -- Learned-policy advice (advisory stage, 2026-10-03) --------------
+
+    def _policy_advice(self, severity: str, source: str = "db") -> dict:
+        """Attach learned-policy advice WITHOUT changing firing.
+
+        Pure query: delegates to RLTrainLoop.recommend (itself read-only
+        and never-raising) and returns its envelope. No alerts are
+        recorded, no cooldowns touched, no thresholds moved — a wrong
+        table therefore cannot trigger anything by itself. Works on a
+        partially constructed worm: any failure degrades to unknown.
+        """
+        try:
+            loop = getattr(self, "_rl_loop", None)
+            if loop is None:
+                try:
+                    from CORE.WORMS.expansion.learning_rl import RLTrainLoop
+                    loop = RLTrainLoop()
+                except Exception:
+                    loop = None
+            if loop is None:
+                raise RuntimeError("no policy loop available")
+            out = loop.recommend(severity, source=source)
+            if out.get("action_name") not in (
+                    "ignore", "log", "alert", "remediate", "unknown"):
+                out["action_name"] = "unknown"
+            return out
+        except Exception:
+            return {"action": -1, "action_name": "unknown", "known": False,
+                    "state_key": "%s:%s" % (source, severity),
+                    "source": source}
+
     # -- Recording to Memory ----------------------------------------
 
     def _record_snapshot(self, snapshot: DbHealthSnapshot):
