@@ -25,21 +25,35 @@ class of mistake returning -- a one-sided test is passed by a no-op classifier.
 from __future__ import annotations
 
 import importlib
+import os
 import sys
 from pathlib import Path
 
 import pytest
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
+# Tree-habitat root: the operator instrument (azazael_operator_task.py)
+# lives next to its tree -- C:\Users\clint for the hub tree, C:\Azazael
+# for the flat tree -- and the nesting depth differs (home vs drive
+# root), so no fixed parent-count works for both. Walk up to the first
+# ancestor holding the instrument instead. Fixed 2026-10-04: a fixed
+# grandparent resolved to C:\ for the flat tree and the suite could only
+# pass on hub.
+def _habitat():
+    for cand in Path(__file__).resolve().parents:
+        if (cand / "azazael_operator_task.py").exists():
+            return cand
+    return None
+
+_HABITAT = _habitat()
+if _HABITAT is not None and str(_HABITAT) not in sys.path:
+    sys.path.insert(0, str(_HABITAT))
 
 ot = importlib.import_module("azazael_operator_task")
 ROOT = ot.AZAZAEL_ROOT
 
-CORRECT = r"C:\Users\clint\azazael\src\CORE\worm_registry.py"
+CORRECT = os.path.join(ROOT, "src", "CORE", "worm_registry.py")
 # Doubled separators: this is how paths are actually stored in records.
-CORRECT_ESCAPED = r"C:\\Users\\clint\\azazael\\src\\CORE\\worm_registry.py"
+CORRECT_ESCAPED = CORRECT.replace("\\", "\\\\")
 DECOY = r"C:\Users\clint\azazael-dev\src\worm_registry.py"
 OPS_OUT = r"C:\Users\clint\venv-314t\_ops\lbl\report.txt"
 
