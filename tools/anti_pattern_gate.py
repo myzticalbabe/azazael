@@ -67,15 +67,32 @@ DEFAULT_DIR = "src"
 BASELINE = ROOT / "logs" / "anti_pattern_baseline.json"
 
 
-def scan(target: str) -> tuple[Counter, int]:
+def scan(target: str, tracked_only: bool = False) -> tuple[Counter, int]:
     """Return (per-category counts, files scanned) for a directory.
 
     Imports the scanner programmatically rather than shelling out, so the gate
     and the hook measure the SAME instrument the audit measured.
+
+    --tracked-only (2026-10-04): scan only `git ls-files` paths. The default
+    worktree scan counts untracked scratch (session probes, dated one-shots)
+    that are not part of any commit; gating a commit on the desk drawer
+    blocks reviewed changesets for files no commit contains. Tracked-only
+    keeps the gate on the commit while the full scan stays one flag away.
     """
     from CORE.compliance.scanner import ASTAntiPatternScanner  # noqa: PLC0415
 
-    results = ASTAntiPatternScanner().scan_directory(str(ROOT / target))
+    if tracked_only:
+        import subprocess
+        proc = subprocess.run(
+            ["git", "ls-files", "--full-name", "-z"],
+            capture_output=True, text=True, errors="replace", timeout=120,
+            cwd=str(ROOT))
+        prefix = target.strip("/") + "/"
+        files = [str(ROOT / p) for p in proc.stdout.split("\0")
+                 if p.startswith(prefix) and p.endswith(".py")]
+        results = ASTAntiPatternScanner().scan_files(files)
+    else:
+        results = ASTAntiPatternScanner().scan_directory(str(ROOT / target))
     counts: Counter = Counter()
     for r in results:
         for _line, category, _snippet in r.findings:
@@ -115,8 +132,9 @@ def _resolve_out(path_arg: str | None, narrowed: bool, kind: str) -> Path:
     return BASELINE
 
 
-def cmd_baseline(target: str, out: Path, narrowed: bool) -> int:
-    counts, files = scan(target)
+def cmd_baseline(target: str, out: Path, narrowed: bool,
+                 tracked_only: bool = False) -> int:
+    counts, files = scan(target, tracked_only)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(baseline_payload(counts, files, target), indent=2),
                    encoding="utf-8")
@@ -130,8 +148,8 @@ def cmd_baseline(target: str, out: Path, narrowed: bool) -> int:
     return 0
 
 
-def cmd_report(target: str) -> int:
-    counts, files = scan(target)
+def cmd_report(target: str, tracked_only: bool = False) -> int:
+    counts, files = scan(target, tracked_only)
     print("anti-pattern report -- %s" % (ROOT / target))
     print("  %d file(s), %d finding(s)" % (files, sum(counts.values())))
     for cat, n in sorted(counts.items(), key=lambda kv: -kv[1]):
@@ -139,7 +157,8 @@ def cmd_report(target: str) -> int:
     return 0
 
 
-def cmd_check(target: str, baseline_path: Path) -> int:
+def cmd_check(target: str, baseline_path: Path,
+              tracked_only: bool = False) -> int:
     base = load_baseline(baseline_path)
     if base.get("identity_scheme") != IDENTITY_SCHEME:
         print("baseline %s uses identity_scheme=%r, this gate uses %r -- re-run "
@@ -149,7 +168,7 @@ def cmd_check(target: str, baseline_path: Path) -> int:
         return 2
 
     recorded: dict = base.get("category_counts") or {}
-    current, files = scan(target)
+    current, files = scan(target, tracked_only)
 
     regressions = []
     for cat, n in current.items():
@@ -217,18 +236,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dir", default=DEFAULT_DIR,
                     help="directory to scan, repo-relative (default: %s)" % DEFAULT_DIR)
     ap.add_argument("--baseline-file", metavar="JSON")
+    ap.add_argument("--tracked-only", action="store_true",
+                    help="scan only git-tracked files (ignore untracked scratch)")
     args = ap.parse_args(argv)
 
     target = args.dir.replace("\\", "/")
     narrowed = target.strip("/") != DEFAULT_DIR
+    tracked = bool(args.tracked_only)
+    if tracked and not narrowed:
+        narrowed = True  # a subset scan must not overwrite the whole-tree file
 
     if args.baseline:
         out = _resolve_out(args.baseline_file, narrowed, "baseline")
-        return cmd_baseline(target, out, narrowed)
+        return cmd_baseline(target, out, narrowed, tracked)
     if args.report:
-        return cmd_report(target)
+        return cmd_report(target, tracked)
     path = Path(args.baseline_file).resolve() if args.baseline_file else BASELINE
-    return cmd_check(target, path)
+    return cmd_check(target, path, tracked)
 
 
 if __name__ == "__main__":
