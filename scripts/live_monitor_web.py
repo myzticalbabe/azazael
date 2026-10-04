@@ -27,9 +27,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
-    import live_monitor as lm  # noqa: E402  (shares collect/db_connect)
+    import track_monitor as lm  # noqa: E402  (reengineered 2026-10-03;
+    # rotation comes from track_registry. Archive: live_monitor.py retired
+    # for carrying a drifted track list; see archive/live-monitors-20261002/)
 except ImportError:
-    lm = None  # archived 2026-10-02, pending reengineering (see archive/)
+    lm = None  # page renders standby (collect_snapshot returns None)
 
 REFRESH = 30
 
