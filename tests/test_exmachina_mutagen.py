@@ -379,7 +379,15 @@ class TestRealLedger(unittest.TestCase):
 
     def test_real_ledger_produces_a_verdict(self):
         m = ex.mutagenesis(self.rows)
-        self.assertEqual(m["trials"], len(self.rows))
+        # Usable rows only: mutagenesis deliberately skips no-op cycles
+        # (no gene) and rows without fitness — counting them would bias the
+        # share, per the function's own documented rationale. The test pins
+        # THAT contract, not raw row count.
+        usable = [r for r in self.rows
+                  if isinstance(r, dict) and r.get("gene")
+                  and r.get("fitness") is not None
+                  and r.get("baseline_fitness") is not None]
+        self.assertEqual(m["trials"], len(usable))
         self.assertIn(m["verdict"], ("free growth", "drift", "selection active"))
         self.assertIsNotNone(m["free_growth"])
         self.assertGreaterEqual(m["free_growth"], 0.0)
