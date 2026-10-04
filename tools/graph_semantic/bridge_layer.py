@@ -31,6 +31,7 @@ FRAGMENTS = [
     ROOT / "concept_layer_fragment.json",
     ROOT / "coverage_layer_fragment.json",
     ROOT / "rationale_tranche2_fragment.json",
+    ROOT / "rationale_tranche3_fragment.json",
     ROOT / "enhanced_semantic_fragment.json",
 ]
 
@@ -124,7 +125,35 @@ BRIDGES: list[tuple[str, str, str, str, float, str]] = [
      "INFERRED", 0.9, "brainstem playing-field work is the mesh architecture audit's subject"),
     ("mesh_resilience_fencing_tokens", "neural_mesh_architecture_audit_doc", "rationale_for",
      "INFERRED", 0.85, "the four resilience primitives came out of the mesh per-function audit"),
+    # --- the tiny (<=7 node) components ---
+    ("src_core_forecast_baselines", "ml_platforms_harness", "conceptually_related_to", "INFERRED", 0.8,
+     "ARIMA-lite/seasonal-naive baselines are the forecasting half of the ML platform"),
+    ("scripts_graphify_huge_mode", "graphify_atlas_doc", "references", "INFERRED", 0.8,
+     "huge-mode renders a graph too large for one page — the atlas/ graphify tooling"),
+    ("src_core_worms_cain_analyzer", "codex_video_generation", "conceptually_related_to", "INFERRED", 0.75,
+     "CAIN_ANALYZER is the analysis stub for the CODEX/CAIN video pipeline"),
+    ("tools_visualize_ner", "ml_platforms_harness", "conceptually_related_to", "INFERRED", 0.7,
+     "NER visualization is an ML tooling script"),
+    ("githooks_pre_commit", "tools_type_check_gate", "references", "INFERRED", 0.85,
+     "the .githooks pre-commit runs the type gate"),
+    ("scripts_hooks_pre_commit", "tools_type_check_gate", "references", "INFERRED", 0.85,
+     "the scripts/hooks pre-commit runs the type gate"),
+    ("src_core_worms_cain_data", "src_core_worms_cain_analyzer", "conceptually_related_to", "INFERRED", 0.9,
+     "CAIN data tables belong to the CAIN analyzer"),
+    ("src_codex_videos_create_reference_video", "codex_video_generation", "references", "INFERRED", 0.85,
+     "reference-video creation is part of the CODEX video pipeline"),
+    ("src_codex_comprehensive_twitler_analysis", "codex_video_generation", "conceptually_related_to", "INFERRED", 0.8,
+     "the twitler analysis drives a CODEX video asset"),
 ]
+
+# Components that are legitimately leaves — bridging them would be fabrication, so
+# they are reported rather than connected. Each is a standalone test fixture or a
+# config file with no subsystem relation.
+EXPLAIN: dict[str, str] = {
+    "tests_test_calc": "a two-node test fixture (calculate + file) with no dependency on project code",
+    "src_aoa_conftest": "pytest configuration; a conftest is a leaf by construction",
+    "test_auth_pipeline_fixed": "a stray top-level test file, not part of the tests/ suite",
+}
 
 nodes: list[dict] = []
 edges: list[dict] = []  # placeholder, replaced by edges_out below
@@ -148,6 +177,20 @@ print(f"components before bridge: {len(_components())}")
 print(f"bridge edges: {len(edges)}")
 for e in edges:
     print(f"  {e['source']} -> {e['target']}  ({e['source_file']})")
+
+# Any component still stranded and not deliberately explained is a gap to report.
+bridged_sources = {src for src, *_ in BRIDGES}
+unexplained = 0
+for comp in _components()[1:]:
+    if set(comp) & bridged_sources:
+        continue
+    why = next((EXPLAIN[n] for n in comp if n in EXPLAIN), None)
+    if why:
+        print(f"  explained leaf (size {len(comp)}): {why}")
+    else:
+        unexplained += 1
+        print(f"  UNEXPLAINED component (size {len(comp)}): {comp[:5]}")
+print(f"unexplained stranded components: {unexplained}")
 
 frag = {"nodes": nodes, "edges": edges, "hyperedges": [], "input_tokens": 0, "output_tokens": 0}
 out = ROOT / "bridge_layer_fragment.json"
