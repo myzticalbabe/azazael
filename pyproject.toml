@@ -7,14 +7,14 @@ name = "azazael"
 version = "1.0.0"
 description = "Azazael — self-replicating AI worm ecosystem for autonomous system administration"
 readme = "README.md"
-# REQUIRES Python 3.14t (free-threaded build). The GIL-disabled build is
+# REQUIRES Python 3.15t (free-threaded build). The GIL-disabled build is
 # mandatory for concurrent worm execution (CLUSTERWORMS, CONCURRENCY).
-# Standard Python 3.14 (non-free-threaded) will also work but with
+# Standard Python 3.15 (non-free-threaded) will also work but with
 # degraded parallel performance.
-requires-python = ">=3.14"
+requires-python = ">=3.15"
 classifiers = [
     "Development Status :: 4 - Beta",
-    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: 3 :: Only",
     "Operating System :: Microsoft :: Windows",
 ]

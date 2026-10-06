@@ -5,7 +5,7 @@
 # Run:    docker run -p 18420:18420 -v G:/:/archive azazael
 # =============================================================================
 
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 LABEL org.opencontainers.image.title="AZAZAEL"
 LABEL org.opencontainers.image.description="Multi-agent worm orchestration ecosystem"
