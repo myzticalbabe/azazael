@@ -1,19 +1,25 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 """
-patch_nuitka_314t.py — Apply/verify 3.14t free-threading patches for Nuitka.
+patch_nuitka_315t.py — Apply/verify 3.15t free-threading patches for Nuitka.
 
-Nuitka 4.1.2+ requires C-level patches for Python 3.14t free-threading support.
+Nuitka 4.1.2+ requires C-level patches for Python free-threading support.
+Patches below were authored against 3.14t (PY_VERSION_HEX >= 0x030e0000,
+_CompiledFrameType _PyStackRef shape); they have NOT been re-validated
+against 3.15 headers, and Nuitka is not installed in the 3.15t venv
+(.exe builds remain SUSPENDED — see CODEBASE_AUDIT_TODO.md).
+Re-audit against 3.15 headers before --apply.
 This script manages patching of:
 1. allocator.h — PyObject allocation for free-threaded builds
-2. SconsPythonBuild.py — 3.14t build flags and detection
+2. SconsPythonBuild.py — 3.15t build flags and detection
 3. code_generation templates — thread-local storage in generated C code
 
 Usage:
-    python3.14t docs/scripts/patch_nuitka_314t.py --apply
-    python3.14t docs/scripts/patch_nuitka_314t.py --verify
-    python3.14t docs/scripts/patch_nuitka_314t.py --rollback
+    python3.15t docs/scripts/patch_nuitka_315t.py --apply
+    python3.15t docs/scripts/patch_nuitka_315t.py --verify
+    python3.15t docs/scripts/patch_nuitka_315t.py --rollback
 
 Created: June 4, 2026 — Recovered from G:\\ source-of-truth
+Ported: Oct 6, 2026 — renamed 314t->315t, C-patch body UNVERIFIED on 3.15
 Reference: azazael-packaging skill, LESSONS_TASK_D_NUITKA_BUILD.md
 """
 

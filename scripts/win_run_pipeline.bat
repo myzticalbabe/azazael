@@ -1,11 +1,11 @@
 @echo off
 REM win_run_pipeline.bat - run the graphing pipeline with the GIL-enabled
-REM Windows Python 3.14 against the live memory DB (native env, no WSL mangling).
+REM Windows Python 3.15 against the live memory DB (native env, no WSL mangling).
 REM Usage:  win_run_pipeline.bat  [learning_loop|ecosystem|temporal|all|desktop]
 REM   desktop = copy the canonical graphs/ to Desktop\azazael_graphs (no rebuild)
 setlocal
 set AZAZAEL_MEMORY_DIR=C:\Users\clint\.azazael
-set PYW=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe
+set PYW=C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe
 set DESKTOP=C:\Users\clint\Desktop\azazael_graphs
 cd /d C:\Users\clint\azazael
 

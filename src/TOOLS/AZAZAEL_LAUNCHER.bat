@@ -216,13 +216,13 @@ goto menu
   goto menu
 
 :setup
-  echo  Running NVIDIA NCG + Python 3.14.5 free-threaded installer...
+  echo  Running NVIDIA NCG + Python 3.15.0 free-threaded installer...
   echo.
-  if exist "%AZAZAEL_ROOT%\src\TOOLS\install_nvidia_ncg_python314.bat" (
-    call "%AZAZAEL_ROOT%\src\TOOLS\install_nvidia_ncg_python314.bat"
+  if exist "%AZAZAEL_ROOT%\src\TOOLS\install_nvidia_ncg_python315.bat" (
+    call "%AZAZAEL_ROOT%\src\TOOLS\install_nvidia_ncg_python315.bat"
   ) else (
     echo  Installer script not found. Download from:
-    echo  %AZAZAEL_ROOT%\src\TOOLS\install_nvidia_ncg_python314.bat
+    echo  %AZAZAEL_ROOT%\src\TOOLS\install_nvidia_ncg_python315.bat
   )
   echo.
   pause
