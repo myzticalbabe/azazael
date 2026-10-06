@@ -185,7 +185,14 @@ def test_execute_reports_per_nature_coverage():
     from CORE.WORMS.expansion.spine import RedQueenWorm
     result = RedQueenWorm().execute(limit=1)["result"]
     if result["stood_down"]:
-        pytest.skip("host is not queen-capable in this environment")
+        # Stood down is a topology verdict (foreign lease / bare peer /
+        # capability gate), NOT a hardware verdict — report which one so a
+        # skip line is attributable instead of "not queen-capable".
+        pytest.skip(
+            "RedQueen stood down (role=%s reason=%s env=%s; host capable, see Lilith.claim)"
+            % (result.get("queen_role", "?"), result.get("queen_reason", ""),
+               result.get("queen_env", "?"))
+        )
     assert set(result["coverage"]) == set(RedQueenWorm.PROBE_NATURES)
     assert result["natures_probed"] == sorted(RedQueenWorm.PROBE_NATURES)
     assert all(n >= 1 for n in result["coverage"].values())
