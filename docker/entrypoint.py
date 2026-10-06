@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.14t
+#!/usr/bin/env python3.15t
 """
 entrypoint.py - Azazael Core Docker Entrypoint (CD5 Split WAL Config)
 

@@ -1,17 +1,17 @@
 # =============================================================================
-# Azazael Core Dockerfile - Python 3.14t Free-Threading + CD5 WAL Optimization
+# Azazael Core Dockerfile - Python 3.15t Free-Threading + CD5 WAL Optimization
 # =============================================================================
 # Source: research/CROSS_DOMAIN.md sec.CD5 (June 11, 2026)
 #
 # Features:
-#   - Python 3.14.0-slim-bookworm base (free-threading ready)
+#   - Python 3.15.0-slim-bookworm base (free-threading ready)
 #   - Non-root azazael user (uid=1000, gid=1000)
 #   - Read-only root filesystem compatible
 #   - All dependencies installed in a single layer
 #   - WAL-optimized SQLite configuration via env vars
 # =============================================================================
 
-FROM python:3.14.0-slim-bookworm AS base
+FROM python:3.15.0-slim-bookworm AS base
 
 # ---------------------------------------------------------------------------
 # System dependencies
@@ -36,10 +36,10 @@ RUN set -eux; \
 # ---------------------------------------------------------------------------
 # Copy and install Python dependencies
 # ---------------------------------------------------------------------------
-COPY --chown=azazael:azazael requirements-3.14t.txt /tmp/requirements-3.14t.txt
+COPY --chown=azazael:azazael requirements-3.15t.txt /tmp/requirements-3.15t.txt
 RUN set -eux; \
-    pip install --no-cache-dir -r /tmp/requirements-3.14t.txt; \
-    rm -f /tmp/requirements-3.14t.txt
+    pip install --no-cache-dir -r /tmp/requirements-3.15t.txt; \
+    rm -f /tmp/requirements-3.15t.txt
 
 # ---------------------------------------------------------------------------
 # Copy application code (ownership preserved for bind-mount override)
