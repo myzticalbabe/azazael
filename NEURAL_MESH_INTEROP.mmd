@@ -33,14 +33,8 @@ graph LR
   C_NeuralPipeline --> M_NeuralPipeline_replay_failed
   C_ThompsonAllocator(["ThompsonAllocator"]):::C_wire
   N_unknown --> C_ThompsonAllocator
-  M_ThompsonAllocator_allocation["allocation"]:::M
-  C_ThompsonAllocator --> M_ThompsonAllocator_allocation
   M_ThompsonAllocator_choose_with_bonus["choose_with_bonus"]:::M
   C_ThompsonAllocator --> M_ThompsonAllocator_choose_with_bonus
-  D_arena[["arena"]]:::C_unresolved
-  N_unknown --> D_arena
-  M_mod_keeper_split["keeper_split"]:::M
-  D_arena --> M_mod_keeper_split
   C_LatencyCompensatorWorm(["LatencyCompensatorWorm"]):::C_integrate
   N_axon --> C_LatencyCompensatorWorm
   M_LatencyCompensatorWorm_compensate["compensate"]:::M
@@ -55,7 +49,7 @@ graph LR
   N_backup --> C_CheckpointWorm
   M_CheckpointWorm_restore_checkpoint["restore_checkpoint"]:::M
   C_CheckpointWorm --> M_CheckpointWorm_restore_checkpoint
-  C_FailureDigest(["FailureDigest"]):::C_unresolved
+  C_FailureDigest(["FailureDigest"]):::C_wire
   N_unknown --> C_FailureDigest
   M_FailureDigest_from_analysis["from_analysis"]:::M
   C_FailureDigest --> M_FailureDigest_from_analysis
@@ -85,12 +79,10 @@ graph LR
   N_container --> C_ResourceQuotaWatch
   M_ResourceQuotaWatch_set_quota["set_quota"]:::M
   C_ResourceQuotaWatch --> M_ResourceQuotaWatch_set_quota
-  C_CPPNGenome(["CPPNGenome"]):::C_unresolved
-  N_unknown --> C_CPPNGenome
-  M_CPPNGenome_phenotype["phenotype"]:::M
-  C_CPPNGenome --> M_CPPNGenome_phenotype
   C_DatabaseMonitorWorm(["DatabaseMonitorWorm"]):::C_wire
   N_monitor --> C_DatabaseMonitorWorm
+  M_DatabaseMonitorWorm__policy_advice["_policy_advice"]:::M
+  C_DatabaseMonitorWorm --> M_DatabaseMonitorWorm__policy_advice
   M_DatabaseMonitorWorm_create_backup["create_backup"]:::M
   C_DatabaseMonitorWorm --> M_DatabaseMonitorWorm_create_backup
   C_AttentionGateWorm(["AttentionGateWorm"]):::C_integrate
@@ -189,24 +181,20 @@ graph LR
   C_RLTrainLoop --> M_RLTrainLoop_tune_and_train
   M_RLTrainLoop_tune_history["tune_history"]:::M
   C_RLTrainLoop --> M_RLTrainLoop_tune_history
-  D_learning_rl[["learning_rl"]]:::C_integrate
+  D_learning_rl[["learning_rl"]]:::C_wire
   N_learning --> D_learning_rl
   M_mod__schema_state_key["_schema_state_key"]:::M
   D_learning_rl --> M_mod__schema_state_key
   M_mod_unmapped_severities["unmapped_severities"]:::M
   D_learning_rl --> M_mod_unmapped_severities
-  C_NoveltyDrive(["NoveltyDrive"]):::C_unresolved
+  C_NoveltyDrive(["NoveltyDrive"]):::C_wire
   N_unknown --> C_NoveltyDrive
   M_NoveltyDrive_novelty_weight["novelty_weight"]:::M
   C_NoveltyDrive --> M_NoveltyDrive_novelty_weight
-  M_NoveltyDrive_should_restart["should_restart"]:::M
-  C_NoveltyDrive --> M_NoveltyDrive_should_restart
   D_loom[["loom"]]:::C_unresolved
   N_unknown --> D_loom
   M_mod_descriptors_from_archive["descriptors_from_archive"]:::M
   D_loom --> M_mod_descriptors_from_archive
-  M_mod_intrinsic_dimension["intrinsic_dimension"]:::M
-  D_loom --> M_mod_intrinsic_dimension
   C_MeshRouterWorm(["MeshRouterWorm"]):::C_wire
   N_mesh --> C_MeshRouterWorm
   M_MeshRouterWorm_invalidate_route["invalidate_route"]:::M
@@ -225,28 +213,14 @@ graph LR
   C_LegacyShimGen --> M_LegacyShimGen_write_shim
   C_Genome(["Genome"]):::C_wire
   N_unknown --> C_Genome
-  M_Genome_from_flat["from_flat"]:::M
-  C_Genome --> M_Genome_from_flat
   M_Genome_to_trainer_kwargs["to_trainer_kwargs"]:::M
   C_Genome --> M_Genome_to_trainer_kwargs
   D_morph[["morph"]]:::C_unresolved
   N_unknown --> D_morph
-  M_mod_dimension_report["dimension_report"]:::M
-  D_morph --> M_mod_dimension_report
   M_mod_load_genome["load_genome"]:::M
   D_morph --> M_mod_load_genome
-  M_mod_prune_zero_variance["prune_zero_variance"]:::M
-  D_morph --> M_mod_prune_zero_variance
   M_mod_save_genome["save_genome"]:::M
   D_morph --> M_mod_save_genome
-  M_mod_seed_pool_from_bounds["seed_pool_from_bounds"]:::M
-  D_morph --> M_mod_seed_pool_from_bounds
-  M_mod_structural_mutate["structural_mutate"]:::M
-  D_morph --> M_mod_structural_mutate
-  D_nerve[["nerve"]]:::C_unresolved
-  N_unknown --> D_nerve
-  M_mod_modulated_q_update["modulated_q_update"]:::M
-  D_nerve --> M_mod_modulated_q_update
   C_FitnessOracle(["FitnessOracle"]):::C_wire
   N_unknown --> C_FitnessOracle
   M_FitnessOracle_acquisition["acquisition"]:::M
@@ -255,10 +229,6 @@ graph LR
   C_FitnessOracle --> M_FitnessOracle_era_robust_decision
   M_FitnessOracle_era_robust_probability["era_robust_probability"]:::M
   C_FitnessOracle --> M_FitnessOracle_era_robust_probability
-  M_FitnessOracle_export_json["export_json"]:::M
-  C_FitnessOracle --> M_FitnessOracle_export_json
-  M_FitnessOracle_is_fitted["is_fitted"]:::M
-  C_FitnessOracle --> M_FitnessOracle_is_fitted
   C_CPUFlameProfiler(["CPUFlameProfiler"]):::C_integrate
   N_profiling --> C_CPUFlameProfiler
   M_CPUFlameProfiler_to_flamegraph_data["to_flamegraph_data"]:::M
