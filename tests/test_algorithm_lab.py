@@ -29,6 +29,8 @@ from CORE.WORMS.expansion.diversity import (  # noqa: E402
 )
 from CORE.WORMS.expansion.policy_optimization import (  # noqa: E402
     TokenTrace,
+    cispo_is_weights,
+    cispo_policy_loss,
     gdpo_advantages,
     grpo_advantages,
     reinforce_plus_plus_advantages,
@@ -81,6 +83,36 @@ class TestPolicyContracts(unittest.TestCase):
             gdpo_advantages({"a": [1.0, 2.0], "b": [1.0]})
         with self.assertRaises(ValueError):
             gdpo_advantages({})
+
+    def test_cispo_weights_clip_stale_tokens(self):
+        # Identical policies -> unit weights; a token the behavior policy
+        # favored 10x over current is clipped instead of exploding.
+        self.assertEqual(
+            cispo_is_weights([0.1, 0.2], [0.1, 0.2]),
+            [1.0, 1.0],
+        )
+        weights = cispo_is_weights([2.302585092994046, 0.0], [0.0, 0.0],
+                                   clip_high=2.0)
+        self.assertAlmostEqual(weights[0], 2.0)
+        self.assertAlmostEqual(weights[1], 1.0)
+
+    def test_cispo_rejects_mismatched_and_nonfinite_ratios(self):
+        with self.assertRaises(ValueError):
+            cispo_is_weights([0.1], [0.1, 0.2])
+        with self.assertRaises(ValueError):
+            cispo_is_weights([float("inf")], [0.0])
+
+    def test_cispo_loss_reweights_stale_batch(self):
+        # On-policy: plain negative advantage.
+        trace = TokenTrace((0.0, 0.0), mask=(True, True))
+        self.assertAlmostEqual(
+            cispo_policy_loss(trace, 1.0, [0.0, 0.0]), -1.0)
+        # Current policy 2x above the rollout policy: clipped weight 2.0
+        # doubles the gradient instead of discarding the stale batch.
+        moved = TokenTrace((0.6931471805599453,) * 2, mask=(True, True))
+        self.assertAlmostEqual(
+            cispo_policy_loss(moved, 1.0, [0.0, 0.0],
+                              clip_high=2.0), -2.0)
 
 
 class TestDiversityContracts(unittest.TestCase):

@@ -151,6 +151,67 @@ def gdpo_advantages(streams: Mapping[str, Sequence[float]]) -> list[float]:
             for index in range(width)]
 
 
+def cispo_is_weights(
+    log_ratios: Sequence[float],
+    behavior_log_ratios: Sequence[float],
+    *,
+    clip_high: float = 2.0,
+) -> list[float]:
+    """CISPO clipped importance-sampling weights for off-policy reuse.
+
+    Rollouts generated under a stale behavior policy stay trainable by
+    weighting each token with w = pi_new/pi_old, clipped above at
+    ``clip_high`` (and floored at 0.0 — a token the current policy
+    rejects carries no gradient). Inputs are LOG ratios; the weight is
+    exp(current - behavior). More reuse = cheaper training per token but
+    higher off-policy error, so callers should track the mean weight as a
+    staleness meter alongside the loss.
+    """
+
+    current = [float(value) for value in log_ratios]
+    behavior = [float(value) for value in behavior_log_ratios]
+    if len(current) != len(behavior):
+        raise ValueError("current and behavior log-ratios must have equal length")
+    if not all(isfinite(value) for value in current + behavior):
+        raise ValueError("log-ratios must be finite")
+    weights = []
+    for new, old in zip(current, behavior):
+        weight = exp(new - old)
+        if weight < 0.0:
+            weight = 0.0
+        elif weight > clip_high:
+            weight = clip_high
+        weights.append(weight)
+    return weights
+
+
+def cispo_policy_loss(
+    trace: TokenTrace,
+    advantage: float,
+    behavior_log_ratios: Sequence[float],
+    *,
+    clip_high: float = 2.0,
+) -> float:
+    """CISPO off-policy token loss: clipped IS weight times advantage.
+
+    Same surrogate shape as the DAPO token loss, but each token's
+    contribution is reweighted for the drift between the rollout policy
+    and the current policy, so stale batches remain trainable instead of
+    discarded. Valid (masked-in) tokens only.
+    """
+
+    valid = trace.valid_indices()
+    current = [float(trace.log_ratios[index]) for index in valid]
+    behavior_all = [float(value) for value in behavior_log_ratios]
+    if len(behavior_all) != len(trace.log_ratios):
+        raise ValueError("behavior log-ratios must match trace length")
+    behavior = [behavior_all[index] for index in valid]
+    if not current:
+        return 0.0
+    weights = cispo_is_weights(current, behavior, clip_high=clip_high)
+    return -fmean(weight * advantage for weight in weights)
+
+
 @dataclass(frozen=True)
 class TokenTrace:
     """Token log-probability deltas and validity mask for one rollout."""
