@@ -54,7 +54,9 @@ SAFE_EXECUTE_WORMS = [
     "EnvValidator",        # config / scans env files (empty-files degree of freedom)
     "PortAuditor",         # security / port audit
     "ConfigLinter",        # config / lint of empty config dir
-    "NatureClusterManager",# orchestration / category grouping summary
+    "ClusterWORMZ",         # orchestration / cluster status report (D1/U3:
+                           # NatureClusterManager removed; ClusterWORMZ
+                           # subsumed category grouping)
 ]
 
 
@@ -114,26 +116,21 @@ class TestExecuteAllEndToEnd:
         _ensure_discovered()
         cluster = ClusterWORMZ("e2e_single_unused_type")  # not in CLUSTER_REGISTRY -> no preload
         cluster.set_parallel(False)
-        cluster.add_worm("NatureClusterManager", "NatureClusterManager")
+        cluster.add_worm("ClusterWORMZ", "ClusterWORMZ")
         out = cluster.execute_all()
         assert len(out) == 1
         r = out[0]
-        assert r["name"] == "NatureClusterManager"
+        assert r["name"] == "ClusterWORMZ"
         assert r["success"] is True
         res = r["result"]
-        # Environment-dependent natures count, but must be a real dict report.
         # A class-level resolution arrives as an ENVELOPE that names the method
-        # and carries its output one level down -- measured 2026-09-22:
-        # {"success": True, "method": "get_summary",
-        #  "result": {"class": "NatureClusterManager", "version": "1.0.0"}}
-        # so the report is inside `result`, and asserting at the top level reads
-        # the envelope instead of the report.
+        # and carries its output one level down; the report is inside `result`,
+        # and asserting at the top level reads the envelope instead of the report.
         assert isinstance(res, dict)
-        # The mixin's ``get_summary()`` may wrap whichever method it dispatched
+        # The mixin's ``get_summary()``
         # to, so the report can sit one level down or arrive directly. The
-        # fields are environment-dependent (nature counts today, class/version
-        # before 2026-09-25), so pin the CONTRACT -- a real, non-empty dict
-        # report -- rather than a field name that is allowed to move.
+        # fields are environment-dependent, so pin the CONTRACT -- a real,
+        # non-empty dict report -- rather than a field name that may move.
         payload = res.get("result") if "result" in res else res
         assert isinstance(payload, dict)
         assert payload, "the worm returned an empty report"

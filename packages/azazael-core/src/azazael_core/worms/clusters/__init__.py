@@ -24,20 +24,12 @@ except ImportError:
     ClusterWORMZ = None
     CLUSTER_REGISTRY = {}
 
-# ── NATURE_CLUSTERS ────────────────────────────────────────────────
-try:
-    from .NATURE_CLUSTERS import (
-        NatureCluster,
-        NatureClusterManager,
-        NatureResult,
-        CrossNatureRoute,
-        NATURE_DEFINITIONS,
-    )
-    _NATURE_OK = True
-except ImportError:
-    _NATURE_OK = False
-    NatureClusterManager = None
-    NATURE_DEFINITIONS = {}
+# ── NATURE_CLUSTERS (removed, D1/U3) ───────────────────────────── Investigators
+# The nature taxonomy was ripped out per MIGRATION_LEDGER D1; execution moved
+# to ClusterWORMZ-by-category and METACLUSTER degraded gracefully. D1 flat:
+_NATURE_OK = False
+NatureClusterManager = None  # type: ignore[assignment]
+NATURE_DEFINITIONS = {}
 
 # ── METACLUSTER ────────────────────────────────────────────────────
 try:
@@ -58,9 +50,8 @@ __all__ = [
     # CLUSTERWORMS
     "ClusterWORMZ", "ClusterResult", "ClusterState", "WormConfig",
     "CLUSTER_REGISTRY", "run_popup",
-    # NATURE_CLUSTERS
-    "NatureCluster", "NatureClusterManager", "NatureResult",
-    "CrossNatureRoute", "NATURE_DEFINITIONS",
+    # NATURE_CLUSTERS removal artifacts (kept importable = error-free no-ops)
+    "NatureClusterManager", "NATURE_DEFINITIONS",
     # METACLUSTER
     "MetaCluster", "MetaClusterResult", "MetaClusterState",
     "CrossNatureRoutingEngine",

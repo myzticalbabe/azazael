@@ -17,7 +17,7 @@ def test_import_lightweight_worms():
     """Lightweight WORMS should import without errors."""
     lightweight = [
         "CLOCKZ", "DISKZ", "CONCURRENCY", "ERROR_SCAN_WORM",
-        "METACLUSTER", "NATURE_CLUSTERS", "CLUSTERWORMS", "NETWORXZ"
+        "METACLUSTER", "CLUSTERWORMS", "NETWORXZ"
     ]
     for mod in lightweight:
         try:
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     ok, bad = _import_mods([
         "CLOCKZ", "DISKZ", "CONCURRENCY", "ERROR_SCAN_WORM",
-        "METACLUSTER", "NATURE_CLUSTERS", "CLUSTERWORMS", "NETWORXZ",
+        "METACLUSTER", "CLUSTERWORMS", "NETWORXZ",
     ])
     print(f"lightweight: {ok} OK, {bad} FAIL")
     sys.exit(1 if bad else 0)

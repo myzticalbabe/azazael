@@ -697,10 +697,10 @@ def main():
 
     ncm = None
     if args.cluster:
-        from CORE.WORMS.NATURE_CLUSTERS import NatureClusterManager
-        ncm = NatureClusterManager()
-        ncm.discover_all_natures()
-        print("NatureClusterManager: " + str(len(ncm.clusters)) + " natures discovered", flush=True)
+        # D1/U3: NatureClusterManager removed; cluster mode is subsumed by
+        # category-grouped execution below and ClusterWORMZ.
+        print("--cluster: NatureClusterManager removed (D1/U3); using category grouping", flush=True)
+        args.cluster = False
 
     print("\nExecuting " + str(total) + " worms (mode=" + mode + ", timeout=" + str(timeout) + "s)...", flush=True)
     print("-" * 70, flush=True)

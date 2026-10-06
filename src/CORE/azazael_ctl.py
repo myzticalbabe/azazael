@@ -463,10 +463,9 @@ def cmd_cluster(args: list) -> int:
         return 0
 
     if sub == "natures":
-        from CORE.WORMS.NATURE_CLUSTERS import NATURE_DEFINITIONS
-        print(f"  Nature categories: {len(NATURE_DEFINITIONS)}")
-        for name in sorted(NATURE_DEFINITIONS):
-            print(f"    {name}")
+        # D1/U3: the nature taxonomy was removed.
+        print("  Nature categories: 0 (taxonomy removed - MIGRATION_LEDGER D1/U3)")
+        print("    Execution is by category: ClusterWORMZ.build_from_registry(worms)")
         return 0
 
     if sub == "dead-letter":

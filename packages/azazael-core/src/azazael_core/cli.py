@@ -124,7 +124,7 @@ def cmd_clusters():
     p("  AZAZAEL Core — Cluster System")
     p("=" * 60)
     p(f"  CLUSTERWORMS     : {'OK' if _CLUSTERWORMS_OK else 'UNAVAILABLE'}")
-    p(f"  NATURE_CLUSTERS  : {'OK' if _NATURE_OK else 'UNAVAILABLE'}")
+    p(f"  NATURE_CLUSTERS  : removed (D1/U3 taxonomy)")
     p(f"  METACLUSTER      : {'OK' if _META_OK else 'UNAVAILABLE'}")
     p("")
 
