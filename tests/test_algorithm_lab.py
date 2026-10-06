@@ -29,6 +29,7 @@ from CORE.WORMS.expansion.diversity import (  # noqa: E402
 )
 from CORE.WORMS.expansion.policy_optimization import (  # noqa: E402
     TokenTrace,
+    gdpo_advantages,
     grpo_advantages,
     reinforce_plus_plus_advantages,
     rloo_advantages,
@@ -62,6 +63,24 @@ class TestPolicyContracts(unittest.TestCase):
         self.assertAlmostEqual(token_policy_loss(trace, 1.0), -0.28)
         self.assertAlmostEqual(sequence_policy_loss(trace, 1.0), -0.28)
         self.assertEqual(trace.valid_indices(), (0,))
+
+    def test_gdpo_preserves_within_stream_differences(self):
+        # Two streams where joint normalization collapses resolution:
+        # stream A separates samples 0/1, stream B is flat. GDPO keeps
+        # A's ordering (adv[0] < adv[1]) instead of washing it out.
+        adv = gdpo_advantages({"a": [0.0, 10.0], "b": [5.0, 5.0]})
+        self.assertEqual(len(adv), 2)
+        self.assertLess(adv[0], adv[1])
+
+    def test_gdpo_zero_variance_stream_contributes_nothing(self):
+        adv = gdpo_advantages({"flat": [3.0, 3.0, 3.0]})
+        self.assertEqual(adv, [0.0, 0.0, 0.0])
+
+    def test_gdpo_rejects_ragged_streams_and_empties(self):
+        with self.assertRaises(ValueError):
+            gdpo_advantages({"a": [1.0, 2.0], "b": [1.0]})
+        with self.assertRaises(ValueError):
+            gdpo_advantages({})
 
 
 class TestDiversityContracts(unittest.TestCase):
@@ -160,6 +179,12 @@ class TestQualificationContracts(unittest.TestCase):
 
 class TestLabRunner(unittest.TestCase):
     def test_runner_writes_evidence_without_promoting(self):
+        import pytest as _pytest
+        default_report = ROOT / "state" / "algorithm_lab" / "regression_report.json"
+        if not default_report.exists():
+            # No in-repo producer writes this file: the default-evidence
+            # branch is only exercisable where a lab run left it behind.
+            _pytest.skip("no default regression evidence at %s" % default_report)
         spec = importlib.util.spec_from_file_location(
             "algorithm_lab_cycle_test", SCRIPTS / "algorithm_lab_cycle.py"
         )
