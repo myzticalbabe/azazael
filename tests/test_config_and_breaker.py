@@ -7,9 +7,9 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-# ── Python 3.14t Free-Threading Guard (module level — before imports) ──
-from _env_314t import setup_314t
-setup_314t(mock_pams=True)
+# ── Python 3.15t Free-Threading Guard (module level — before imports) ──
+from _env_315t import setup_315t
+setup_315t(mock_pams=True)
 
 try:
     import pytest
@@ -516,12 +516,26 @@ class TestCircuitBreakerIntegration:
 
 
 if __name__ == "__main__":
+    import inspect
     p = f = s = 0
     for name, obj in list(globals().items()):
         if isinstance(obj, type) and name.startswith("Test"):
             inst = obj()
             for mn in dir(inst):
                 if mn.startswith("test_"):
+                    # Standalone has no pytest fixture injection: skip tests
+                    # declaring fixture params (e.g. monkeypatch) instead of
+                    # failing on missing args. They run under pytest.
+                    # Bound method: signature already excludes self, so any
+                    # remaining param is a pytest fixture.
+                    try:
+                        params = list(inspect.signature(getattr(inst, mn)).parameters)
+                    except (TypeError, ValueError):
+                        params = []
+                    if params:
+                        print(f"  [SKIP] {name}.{mn}: needs pytest fixture(s) {params}")
+                        s += 1
+                        continue
                     try:
                         getattr(inst, mn)()
                         print(f"  [OK] {name}.{mn}")

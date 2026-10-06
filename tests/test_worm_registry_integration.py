@@ -23,9 +23,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 os.environ.setdefault("AZAZAEL_TEST_QUICK", "1")
 
-# ── Python 3.14t Free-Threading Guard (module level — before imports) ──
-from _env_314t import setup_314t
-setup_314t(mock_pams=True)
+# ── Python 3.15t Free-Threading Guard (module level — before imports) ──
+from _env_315t import setup_315t
+setup_315t(mock_pams=True)
 
 try:
     import pytest

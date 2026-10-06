@@ -960,6 +960,8 @@ class RedQueenWorm:
             "success": True, "method": "execute",
             "result": {
                 "queen_role": queen.get("role", "?"),
+                "queen_reason": queen.get("reason", ""),
+                "queen_env": queen.get("env", "?"),
                 "stood_down": not queen.get("role", "").startswith("queen"),
                 "probes": probes, "quarantined": quarantined,
                 "coverage": coverage,
