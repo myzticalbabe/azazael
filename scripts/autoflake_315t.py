@@ -1,5 +1,5 @@
 """
-autoflake_314t.py — Batch autoflake wrapper for project-wide import cleanup.
+autoflake_315t.py — Batch autoflake wrapper for project-wide import cleanup.
 
 Provides a robust batch runner that detects and removes unused imports across
 the Azazael project. Works on any Python 3.x (including 3.14t free-threading)
@@ -11,16 +11,16 @@ isolation, and summary reporting.
 
 Usage:
     # Dry-run (check only, no modifications):
-    python scripts/autoflake_314t.py --check src/
+    python scripts/autoflake_315t.py --check src/
 
     # Remove unused imports (modifies files in-place):
-    python scripts/autoflake_314t.py --fix src/
+    python scripts/autoflake_315t.py --fix src/
 
     # Check a single file:
-    python scripts/autoflake_314t.py --check src/CORE/Agent.py
+    python scripts/autoflake_315t.py --check src/CORE/Agent.py
 
     # Recursive scan with verbose output:
-    python scripts/autoflake_314t.py --check src/ --recursive --verbose
+    python scripts/autoflake_315t.py --check src/ --recursive --verbose
 
 Features:
     - Batch scanning: check or fix entire directories
@@ -93,9 +93,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/autoflake_314t.py --check src/ --recursive
-  python scripts/autoflake_314t.py --fix src/CORE/
-  python scripts/autoflake_314t.py --check src/CORE/Agent.py --verbose
+  python scripts/autoflake_315t.py --check src/ --recursive
+  python scripts/autoflake_315t.py --fix src/CORE/
+  python scripts/autoflake_315t.py --check src/CORE/Agent.py --verbose
         """
     )
     parser.add_argument('paths', nargs='+', help='Files or directories to scan')

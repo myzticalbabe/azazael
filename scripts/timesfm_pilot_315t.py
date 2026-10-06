@@ -1,12 +1,12 @@
-"""timesfm_pilot_314t.py — TimesFM 3 second-opinion anomaly layer on BCC FY series.
+"""timesfm_pilot_315t.py — TimesFM 3 second-opinion anomaly layer on BCC FY series.
 
-Runs on the free-threaded 3.14t venv (venv-314t). Loads bcc_990_series.json
+Runs on the free-threaded 3.15t venv (venv-315t). Loads bcc_990_series.json
 (FY2011-2025), forecasts the last point (FY2025) zero-shot with TimesFM 3 for
 each metric (revenue, expenses, officer_comp), computes the forecast-vs-actual
 residual, and compares it against the rolling z-score baseline.
 
-Usage (3.14t venv):
-    venv-314t/Scripts/python.exe timesfm_pilot_314t.py [--metrics revenue expenses officer_comp]
+Usage (3.15t venv):
+    venv-315t/Scripts/python.exe timesfm_pilot_315t.py [--metrics revenue expenses officer_comp]
 """
 import argparse
 import json

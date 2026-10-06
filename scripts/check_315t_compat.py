@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-check_314t_compat.py — Verify all RL/ML packages work on Python 3.14t free-threading.
+check_315t_compat.py — Verify all RL/ML packages work on Python 3.15t free-threading.
 
 Usage:
-    python scripts/check_314t_compat.py              # Full check
-    python scripts/check_314t_compat.py --quick       # Quick check (imports only)
-    python scripts/check_314t_compat.py --verbose     # Detailed output
-    python scripts/check_314t_compat.py --json        # JSON output
+    python scripts/check_315t_compat.py              # Full check
+    python scripts/check_315t_compat.py --quick       # Quick check (imports only)
+    python scripts/check_315t_compat.py --verbose     # Detailed output
+    python scripts/check_315t_compat.py --json        # JSON output
 
 Exit codes:
     0 — All packages OK
@@ -69,9 +69,9 @@ CHECK_LIST = {
 
 # Optional packages — failure is warning, not error
 OPTIONAL_PACKAGES = {
-    "cv2": "opencv-python (no cp314t support until 4.14.0)",
-    "tensorflow": "TensorFlow (may not have cp314t wheels)",
-    "jax": "JAX (may not have cp314t wheels)",
+    "cv2": "opencv-python (no cp315t support until 4.14.0)",
+    "tensorflow": "TensorFlow (may not have cp315t wheels)",
+    "jax": "JAX (may not have cp315t wheels)",
     "flax": "Flax (JAX-dependent)",
 }
 
@@ -183,9 +183,9 @@ def check_optional_package(name: str, description: str) -> dict:
     return result
 
 
-def check_cp314t(mod_name: str) -> dict:
-    """Check if a module has a cp314t C extension (.pyd file)."""
-    result = {"module": mod_name, "has_cp314t": False, "pyd_files": []}
+def check_cp315t(mod_name: str) -> dict:
+    """Check if a module has a cp315t C extension (.pyd file)."""
+    result = {"module": mod_name, "has_cp315t": False, "pyd_files": []}
 
     success, mod, _ = import_module(mod_name)
     if not success:
@@ -201,8 +201,8 @@ def check_cp314t(mod_name: str) -> dict:
         for f in files:
             if f.endswith(".pyd"):
                 pyd_files.append(os.path.relpath(os.path.join(root, f), mod_dir))
-                if "cp314t" in f:
-                    result["has_cp314t"] = True
+                if "cp315t" in f:
+                    result["has_cp315t"] = True
 
     result["pyd_files"] = pyd_files[:10]  # Limit output
     return result
@@ -269,16 +269,16 @@ def run_check(quick: bool = False, verbose: bool = False) -> dict:
                 print(f"    [{status}] {name}: {desc}")
             total += 1
 
-    # cp314t C extension check (not in quick mode)
+    # cp315t C extension check (not in quick mode)
     if not quick:
         if verbose:
             print(f"\n  [C Extension Check]")
         for mod_name in ["torch", "psutil", "gymnasium"]:
-            r = check_cp314t(mod_name)
+            r = check_cp315t(mod_name)
             results.setdefault("c_extensions", []).append(r)
             if verbose and r["pyd_files"]:
-                has_314t = "yes" if r["has_cp314t"] else "no"
-                print(f"    [{has_314t}] {mod_name}: {len(r['pyd_files'])} .pyd files")
+                has_315t = "yes" if r["has_cp315t"] else "no"
+                print(f"    [{has_315t}] {mod_name}: {len(r['pyd_files'])} .pyd files")
 
     results["summary"] = {
         "total": total,
