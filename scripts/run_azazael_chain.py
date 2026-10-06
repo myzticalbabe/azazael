@@ -44,7 +44,7 @@ _TOOLS = os.path.join(_ROOT, "tools")
 if _TOOLS not in sys.path:
     sys.path.insert(0, _TOOLS)
 
-PY = r"C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe"
+PY = r"C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe"
 if not os.path.exists(PY):
     PY = sys.executable
 

@@ -31,17 +31,26 @@ or a promotion write.
 import hashlib
 import json
 import math
+import os
 import random
 import sqlite3
 import sys
-sys.path.insert(0, 'C:/Users/clint/azazael/src')
+# Repo-relative src (Oct 6, 2026 fix): the hardcoded
+# 'C:/Users/clint/azazael/src' pointed at a STALE checkout and poisoned
+# sys.path for any pytest process importing this module, so later CORE.*
+# imports resolved stale (e.g. web_dashboard SB3 card "No data" vs live
+# "No SB3 training runs yet" — isolation failure in chunked runs).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_REPO = os.path.dirname(_HERE)
+_SRC = os.path.join(_REPO, 'src')
+if _SRC not in sys.path:
+    sys.path.insert(0, _SRC)
 
-import os
 import time
 from datetime import datetime, timezone
 
-os.makedirs(r'C:\Users\clint\azazael\logs', exist_ok=True)
-_LOG = open(r'C:\Users\clint\azazael\logs\evolution_cycle.log', 'a', encoding='utf-8')
+os.makedirs(os.path.join(_REPO, 'logs'), exist_ok=True)
+_LOG = open(os.path.join(_REPO, 'logs', 'evolution_cycle.log'), 'a', encoding='utf-8')
 
 
 def log(msg):
@@ -1276,7 +1285,7 @@ def _morph_cycle_index():
 # runs in the GIL interpreter as a subprocess and only JSON crosses back.
 PY_GIL = os.environ.get(
     'AZAZAEL_PY_GIL',
-    r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe')
+    r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe')
 TRAIN_ORACLE_SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'train_fitness_oracle.py')
 
@@ -2543,6 +2552,25 @@ def main():
         except Exception as e:
             log('champion re-eval failed: %s' % str(e)[:120])
 
+    # ARMOR anchor (2026-10-06 retrofit): no-regression vs the reigning
+    # champion on the CURRENT pools. beats compares candidate vs production
+    # baseline; this compares candidate vs seed champion re-scored on the
+    # same current pools, so a candidate that regressed relative to the
+    # incumbent cannot promote even while beating a stale baseline.
+    # champ_score None (cold start, no seed) disables the pin (fail-open
+    # only when there is nothing to regress from).
+    beats_anchor = True
+    margin_vs_champ = 0.0
+    if champ_score is not None and best:
+        try:
+            margin_vs_champ = round(best_total - champ_score, 4)
+            beats_anchor = bool(margin_vs_champ >= 0.0)
+        except Exception:
+            beats_anchor = True
+    if not beats_anchor:
+        log('ANCHOR VETO: candidate regressed vs reigning champion '
+            '(margin_vs_champ=%s)' % margin_vs_champ)
+
     # (baseline evaluated above, ahead of the CMA gate)
     baseline_id = baseline_hash(baseline_genes) if baseline_genes else ''
     _margin_raw = (best_total - baseline_fit) if best else 0.0
@@ -2882,7 +2910,26 @@ def main():
     if _integ_reason:
         log('VETO (EV-7 loop integrity): %s' % _integ_reason)
 
-    if beats and sprt_ok and pareto_ok and best and holdout.get('passed') \
+    # ARMOR adaptive margin (2026-10-06 retrofit): the required margin
+    # scales with measurement staleness. A margin recomputed on a reused
+    # pool (_repeat>0, see stall check above) is weaker evidence, so it must
+    # clear a HIGHER bar; a fresh-pool margin uses the base bar. This is the
+    # adaptive trust region: uncertain measurements need more evidence.
+    # streak/SPRT above keep the raw beats (evidence chain undisturbed);
+    # only the final promotion decision uses the adaptive bar.
+    try:
+        _stale_cycles = min(int(_repeat), 4) if pool_reused else 0
+    except Exception:
+        _stale_cycles = 0
+    _eff_margin = PROMOTE_MARGIN * (1.0 + 0.25 * _stale_cycles)
+    _adaptive_ok = bool(margin_now >= _eff_margin)
+    if not _adaptive_ok:
+        log('VETO (adaptive margin): margin %s < effective bar %s '
+            '(base %s x staleness %d)' % (
+                margin_now, round(_eff_margin, 4), PROMOTE_MARGIN,
+                _stale_cycles))
+
+    if beats and beats_anchor and _adaptive_ok and sprt_ok and pareto_ok and best and holdout.get('passed') \
             and oracle_gate.get('ok') and not _morph_blocks_promotion \
             and (not FITNESS_ARM_VETO or _arms_live) \
             and (not _integrity or not LOOP_INTEGRITY_VETO):

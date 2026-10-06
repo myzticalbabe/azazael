@@ -14,9 +14,9 @@ import time
 import traceback
 from pathlib import Path
 
-sys.path.insert(0, 'C:/Users/clint/azazael/src')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 
-LOG_DIR = r'C:\Users\clint\azazael\logs'
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs")
 LOCK_FILE = os.path.join(tempfile.gettempdir(), 'dream_cycle.lock')
 FAIL_FILE = os.path.join(tempfile.gettempdir(), 'dream_cycle_fails.txt')
 

@@ -38,7 +38,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
-PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe'
+PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe'
 CYCLE = os.path.join(HERE, 'evolution_cycle.py')
 LOG = os.path.join(ROOT, 'logs', 'run_evolution_n.log')
 OUT = os.path.join(ROOT, 'logs', 'run_evolution_n.json')
