@@ -136,7 +136,7 @@ BUILD_TARGETS: Dict[str, Dict] = {
 
 def verify_windows_nuitka() -> bool:
     """Verify Nuitka patches on Windows."""
-    patch = PROJECT_ROOT / "docs" / "scripts" / "patch_nuitka_314t.py"
+    patch = PROJECT_ROOT / "docs" / "scripts" / "patch_nuitka_315t.py"
     if not patch.exists():
         return True
     try:
@@ -155,7 +155,7 @@ def verify_wsl_nuitka() -> bool:
     try:
         r = subprocess.run(
             ["wsl", "-d", "Ubuntu-26.04", "-e", "bash", "-c",
-             "python3.14t /root/azazael/docs/scripts/patch_nuitka_314t.py --verify 2>&1"],
+             "python3.15t /root/azazael/docs/scripts/patch_nuitka_315t.py --verify 2>&1"],
             capture_output=True, text=True, timeout=30,
         )
         return r.returncode == 0

@@ -1,15 +1,17 @@
 @echo off
 :: ═══════════════════════════════════════════════════════════════
-::  AZAZAEL — NVIDIA NCG + Python 3.14.5 Free-Threaded Installer
+::  AZAZAEL — NVIDIA NCG + Python 3.15.0 Free-Threaded Installer
 ::  Run as Administrator for full driver installation
+::  NOTE (Oct 6, 2026): ported 3.15.0->3.15.0. Verify the python.org
+::  3.15.0 amd64 URL exists before running (3.15.0-final re-audit).
 :: ═══════════════════════════════════════════════════════════════
 
-title AZAZAEL: NVIDIA NCG + Python 3.14.5 Installer
+title AZAZAEL: NVIDIA NCG + Python 3.15.0 Installer
 chcp 65001 >nul
 
 echo.
 echo  ╔═══════════════════════════════════════════════════════════╗
-echo  ║  🜁 AZAZAEL: NVIDIA NCG + Python 3.14.5 (Free-Threaded)  ║
+echo  ║  🜁 AZAZAEL: NVIDIA NCG + Python 3.15.0 (Free-Threaded)  ║
 echo  ║     Multi-Stage Installer for Windows 10/11              ║
 echo  ╚═══════════════════════════════════════════════════════════╝
 echo.
@@ -23,37 +25,37 @@ if %errorlevel% neq 0 (
     echo.
 )
 
-:: ─── Stage 1: Python 3.14.5 Free-Threaded ─────────────────────
+:: ─── Stage 1: Python 3.15.0 Free-Threaded ─────────────────────
 :stage_python
 echo  ┌─────────────────────────────────────────────────────────┐
-echo  │  STAGE 1: Python 3.14.5  (Free-Threaded / GIL-disabled) │
+echo  │  STAGE 1: Python 3.15.0  (Free-Threaded / GIL-disabled) │
 echo  └─────────────────────────────────────────────────────────┘
 echo.
-echo  This installs Python 3.14.5 with --disable-gil build option.
+echo  This installs Python 3.15.0 with --disable-gil build option.
 echo  Free-threaded Python allows true multi-core parallelism.
 echo.
 
-set PYTHON_URL=https://www.python.org/ftp/python/3.14.5/python-3.14.5-amd64.exe
-set PYTHON_INSTALLER=%TEMP%\python-3.14.5-amd64.exe
+set PYTHON_URL=https://www.python.org/ftp/python/3.15.0/python-3.15.0-amd64.exe
+set PYTHON_INSTALLER=%TEMP%\python-3.15.0-amd64.exe
 
-where python3.14 >nul 2>&1
+where python3.15 >nul 2>&1
 if %errorlevel% equ 0 (
-    python3.14 --version 2>nul
-    echo  [OK] Python 3.14.x already found.
+    python3.15 --version 2>nul
+    echo  [OK] Python 3.15.x already found.
     goto check_free_threaded
 )
 
-echo  Downloading Python 3.14.5...
+echo  Downloading Python 3.15.0...
 curl -L -o "%PYTHON_INSTALLER%" "%PYTHON_URL%" --progress-bar 2>nul
 if %errorlevel% neq 0 (
-    echo  [FAIL] Could not download Python 3.14.5.
+    echo  [FAIL] Could not download Python 3.15.0.
     echo  Please download manually from: %PYTHON_URL%
     echo  Be sure to check "Install for all users" and "Add to PATH"
     pause
     goto stage_nvidia
 )
 
-echo  Installing Python 3.14.5...
+echo  Installing Python 3.15.0...
 echo  NOTE: Choose "Customize installation" and enable:
 echo        [✓] Install for all users
 echo        [✓] Add Python to environment variables
@@ -64,17 +66,17 @@ del "%PYTHON_INSTALLER%" 2>nul
 :check_free_threaded
 echo.
 echo  Checking free-threaded Python availability...
-python3.14 -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))" 2>nul | find "1" >nul
+python3.15 -c "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED'))" 2>nul | find "1" >nul
 if %errorlevel% equ 0 (
-    echo  [OK] Python 3.14.5 is FREE-THREADED (GIL disabled)
+    echo  [OK] Python 3.15.0 is FREE-THREADED (GIL disabled)
     echo.
-    echo  Verify with: python3.14t -c "import sys; print(sys._is_gil_enabled())"
+    echo  Verify with: python3.15t -c "import sys; print(sys._is_gil_enabled())"
 ) else (
-    echo  [NOTE] Standard Python 3.14.5 detected (GIL still enabled).
+    echo  [NOTE] Standard Python 3.15.0 detected (GIL still enabled).
     echo  To enable free-threading, rebuild Python with:
     echo    ./configure --disable-gil && make -j
     echo.
-    echo  Or use: python3.14t (free-threaded binary, if installed)
+    echo  Or use: python3.15t (free-threaded binary, if installed)
 )
 
 :: ─── Stage 2: NVIDIA CUDA Toolkit + NCG Catalog ────────────────
@@ -126,23 +128,23 @@ echo  └───────────────────────�
 echo.
 
 :: Install NCG via pip
-echo  Installing NVIDIA NCG packages for Python 3.14...
+echo  Installing NVIDIA NCG packages for Python 3.15...
 echo.
 echo  Core CUDA Python bindings:
-python3.14 -m pip install nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12 nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 nvidia-cusolver-cu12 nvidia-cusparse-cu12 nvidia-nccl-cu12 --upgrade 2>&1 | find "Successfully" >nul
+python3.15 -m pip install nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12 nvidia-cublas-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 nvidia-cusolver-cu12 nvidia-cusparse-cu12 nvidia-nccl-cu12 --upgrade 2>&1 | find "Successfully" >nul
 if %errorlevel% equ 0 (
     echo  [OK] Core NVIDIA CUDA packages installed
 ) else (
     echo  [RETRY] Installing individually...
     for %%p in (nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12 nvidia-cublas-cu12) do (
         echo    %%p...
-        python3.14 -m pip install %%p --upgrade 2>nul
+        python3.15 -m pip install %%p --upgrade 2>nul
     )
 )
 
 echo.
 echo  NCG / cuPyNumeric:
-python3.14 -m pip install cupy-cuda12x --upgrade 2>nul
+python3.15 -m pip install cupy-cuda12x --upgrade 2>nul
 if %errorlevel% equ 0 (
     echo  [OK] CuPy installed (GPU-accelerated NumPy)
 ) else (
@@ -152,17 +154,17 @@ if %errorlevel% equ 0 (
 
 echo.
 echo  PyTorch with CUDA 12.8:
-python3.14 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade 2>nul
+python3.15 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 --upgrade 2>nul
 if %errorlevel% equ 0 (
     echo  [OK] PyTorch with CUDA 12.8 installed
 ) else (
-    echo  [NOTE] PyTorch wheel may not be available for Python 3.14 yet.
+    echo  [NOTE] PyTorch wheel may not be available for Python 3.15 yet.
     echo  Check: https://pytorch.org/get-started/locally/
 )
 
 echo.
 echo  cuDF / RAPIDS:
-python3.14 -m pip install cudf-cu12 dask-cudf-cu12 --upgrade 2>nul
+python3.15 -m pip install cudf-cu12 dask-cudf-cu12 --upgrade 2>nul
 if %errorlevel% equ 0 (
     echo  [OK] cuDF installed (GPU DataFrame)
 ) else (
@@ -179,11 +181,11 @@ echo  └───────────────────────�
 echo.
 
 echo  Installing core AZAZAEL dependencies...
-python3.14 -m pip install numpy scipy matplotlib pillow opencv-python --upgrade 2>nul
-python3.14 -m pip install requests aiohttp websockets --upgrade 2>nul
-python3.14 -m pip install pyyaml toml rich colorama tqdm --upgrade 2>nul
-python3.14 -m pip install pytest pytest-asyncio pytest-cov --upgrade 2>nul
-python3.14 -m pip install pydantic cattrs orjson --upgrade 2>nul
+python3.15 -m pip install numpy scipy matplotlib pillow opencv-python --upgrade 2>nul
+python3.15 -m pip install requests aiohttp websockets --upgrade 2>nul
+python3.15 -m pip install pyyaml toml rich colorama tqdm --upgrade 2>nul
+python3.15 -m pip install pytest pytest-asyncio pytest-cov --upgrade 2>nul
+python3.15 -m pip install pydantic cattrs orjson --upgrade 2>nul
 
 echo  [OK] Core dependencies installed.
 
@@ -196,7 +198,7 @@ echo  └───────────────────────�
 echo.
 
 echo  === Python ===
-python3.14 --version 2>nul || echo  Python 3.14.5 NOT FOUND
+python3.15 --version 2>nul || echo  Python 3.15.0 NOT FOUND
 
 echo  === CUDA ===
 nvcc --version 2>nul | find "release" || echo  CUDA toolkit NOT FOUND
@@ -205,13 +207,13 @@ echo  === NVIDIA GPU ===
 nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv 2>nul || echo  nvidia-smi NOT FOUND
 
 echo  === Free-Threaded Check ===
-python3.14 -c "import sysconfig; v=sysconfig.get_config_var('Py_GIL_DISABLED'); print(f'GIL Disabled: {v}')" 2>nul || echo  Free-threaded check FAILED
+python3.15 -c "import sysconfig; v=sysconfig.get_config_var('Py_GIL_DISABLED'); print(f'GIL Disabled: {v}')" 2>nul || echo  Free-threaded check FAILED
 
 echo  === CuPy ===
-python3.14 -c "import cupy; print(f'CuPy {cupy.__version__} — Devices: {cupy.cuda.runtime.getDeviceCount()}')" 2>nul || echo  CuPy NOT FOUND
+python3.15 -c "import cupy; print(f'CuPy {cupy.__version__} — Devices: {cupy.cuda.runtime.getDeviceCount()}')" 2>nul || echo  CuPy NOT FOUND
 
 echo  === PyTorch ===
-python3.14 -c "import torch; print(f'PyTorch {torch.__version__} — CUDA: {torch.cuda.is_available()}')" 2>nul || echo  PyTorch NOT FOUND
+python3.15 -c "import torch; print(f'PyTorch {torch.__version__} — CUDA: {torch.cuda.is_available()}')" 2>nul || echo  PyTorch NOT FOUND
 
 echo.
 echo  ╔═══════════════════════════════════════════════════════════╗
