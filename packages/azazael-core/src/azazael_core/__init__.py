@@ -14,7 +14,7 @@ Key modules:
 
 The 50 expansion worms (from CORE/WORMS/expansion/) are bundled at
 `azazael_core.worms` and auto-register on import.
-The 3 cluster modules (CLUSTERWORMS, NATURE_CLUSTERS, METACLUSTER)
+The 3 cluster modules (CLUSTERWORMS, METACLUSTER; NATURE_CLUSTERS removed per D1/U3)
 are bundled at `azazael_core.worms.clusters` with graceful fallbacks.
 """
 
