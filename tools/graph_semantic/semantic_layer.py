@@ -987,6 +987,58 @@ HYPEREDGES: list[tuple[str, str, list[str], str, str, float]] = [
      "participate_in", "EXTRACTED", 1.0),
 ]
 
+# ---------------------------------------------------------------------------
+# 2026-10-06 tranche — authored from the Oct 4-6 state change (3.15t wave,
+# Oct-6 forensic, orphan triage). Anchors resolve against the _ast_index.json
+# built from the fresh 2026-10-06 base graph.
+
+NODES = NODES + [
+    ("docs_orphan_triage_2026_10_03", "Orphan triage verdicts 2026-10-03", "document",
+     "docs/ORPHAN_TRIAGE_2026-10-03.md",
+     "Adopt-vs-held policy for untracked files: adopt only load-bearing files (imported by tracked code, validated by a green held test, or a referenced deliverable). 2 adopted this pass (neural_loop_monitor, render_ouroboros), 97 held as scratch. Rationale: session probes and dated one-shots are another session's active debris; deletion races live work."),
+    ("natures_resurrection_defect", "Natures resurrection defect (D1 not fully landed)", "concept",
+     "MIGRATION_LEDGER.md",
+     "Ledger decision D1 (2026-10-01) ordered the Natures rip-out and U3 surgery closed 2026-10-02 (3cb704fd), yet NATURE_CLUSTERS.py persists in 3 divergent git-tracked copies (repo root, src/CORE/WORMS/, packages/azazael-core/.../clusters/) plus a stale hub-root copy, with live cpython-314 AND cpython-315 pyc imports as of 2026-10-06 and 60+ referencing files. The removal must be a coordinated multi-copy refactor of import sites, not a file delete - single-point deletions resurrect from the sibling copies."),
+    ("python_315t_production_transition", "Python 3.15t production transition", "concept",
+     "MIGRATION_LEDGER.md",
+     "The 2026-10-04..06 commit wave made 3.15t the production runtime: CI workflow 3.14->3.15t, requires-python>=3.15, scripts/launchers/build renamed 314->315 (nuitka patch C-body flagged UNVERIFIED in d5a959c9), venvs py315t/py315/build315t at C:/Azazael/.venvs. The 3.14 pair (9.0G with 7.1G site-packages) plus uv 3.14.3+ft and Store 3.13 form the retirement backlog."),
+    ("gdpo_cispo_algorithm_lab", "GDPO + CISPO algorithm lab", "concept",
+     "tests/test_algorithm_lab.py",
+     "Off-policy optimization work at the head of the tree: GDPO decoupled multi-reward normalization with space-labeled evidence, then CISPO clipped off-policy importance-sampling weights + loss with GDPO docstring repair (5bc7ca63, ed64ba80)."),
+    ("reports_forensic_environments_2026_10_06", "Environment + git forensic 2026-10-06", "document",
+     "reports/FORENSIC_ENVIRONMENTS_2026-10-06.md",
+     "Supersedes the 2026-10-02 forensic. Headline: the Oct-2 divergence inverted - the running tree (C:/Azazael/azazael) is now 11 commits ahead of the hub, histories diverged, G: backup 12 commits stale. Also records the lancedb/maturin build takeover, the Natures resurrection, and the full 3.15t version census."),
+    ("lancedb_315t_wheel_build", "lancedb 0.39.0 cp315t wheel build", "concept",
+     "reports/FORENSIC_ENVIRONMENTS_2026-10-06.md",
+     "No prebuilt cp315t wheel exists for lancedb, so it is compiled from vendored source via maturin --release (build315t venv, out C:/Azazael/.build/wheels) for the PMB vector store. App code and requirements have zero lancedb references: the dependency belongs to the memory layer, not azazael itself."),
+]
+
+EDGES = EDGES + [
+    ("docs_orphan_triage_2026_10_03", "reports_invisible_orphaned_inventory", "conceptually_related_to", "INFERRED", 0.85),
+    ("docs_orphan_triage_2026_10_03", "migration_ledger_doc", "conceptually_related_to", "INFERRED", 0.75),
+    ("natures_resurrection_defect", "migration_ledger_doc", "rationale_for", "EXTRACTED", 1.0),
+    ("reports_forensic_environments_2026_10_06", "natures_resurrection_defect", "rationale_for", "INFERRED", 0.95),
+    ("reports_forensic_environments_2026_10_06", "reports_forensic_environments", "conceptually_related_to", "EXTRACTED", 1.0),
+    ("python_315t_production_transition", "migration_ledger_doc", "conceptually_related_to", "INFERRED", 0.75),
+    ("gdpo_cispo_algorithm_lab", "python_315t_production_transition", "participate_in", "INFERRED", 0.75),
+    ("lancedb_315t_wheel_build", "python_315t_production_transition", "participate_in", "INFERRED", 0.85),
+    ("lancedb_315t_wheel_build", "reports_forensic_environments_2026_10_06", "references", "EXTRACTED", 1.0),
+]
+
+ANCHORS.update({
+    "natures_resurrection_defect": ["NATURE_CLUSTERS", "CLUSTERWORMS", "worm_registry"],
+    "python_315t_production_transition": ["patch_nuitka_315t", "conftest", "startup_warm"],
+    "gdpo_cispo_algorithm_lab": ["test_algorithm_lab", "CISPO", "GDPO"],
+    "docs_orphan_triage_2026_10_03": ["neural_loop_monitor", "render_ouroboros"],
+})
+
+HYPEREDGES = HYPEREDGES + [
+    ("he_315t_migration_wave", "The Python 3.15t production migration set",
+     ["python_315t_production_transition", "gdpo_cispo_algorithm_lab",
+      "lancedb_315t_wheel_build", "reports_forensic_environments_2026_10_06"],
+     "participate_in", "INFERRED", 0.85),
+]
+
 # Drop the placeholder row and any typo'd ids that do not exist.
 NODE_IDS = {n[0] for n in NODES}
 EDGES = list(EDGES) + list(CONNECTORS)
