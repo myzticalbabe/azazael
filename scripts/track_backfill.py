@@ -5,12 +5,12 @@ orchestrator's single-instance lock serializes with any concurrent
 scheduled fire. Progress appends to backfill.log; rerun-safe (recomputes
 shortfalls from the store at start).
 """
-import sys, json, time, subprocess, sqlite3
-sys.path.insert(0, 'C:/Users/clint/azazael/src')
+import sys, json, time, subprocess, sqlite3, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 from CORE.local_memory import get_memory_store
 
 TARGET = 30
-PYTHON = r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe'
+PYTHON = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
 ORCH = r'C:\Users\clint\azazael\scripts\run_training_orchestrator.py'
 LOG = r'C:\Users\clint\azazael\logs\track_backfill.log'
 TRACK_EVENTS = ('sb3_training_orchestrated', 'grpo_training_orchestrated',
