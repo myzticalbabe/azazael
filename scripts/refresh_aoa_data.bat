@@ -22,11 +22,11 @@ rem live registry, baselines are never rewritten (only stamped with the date
 rem they were taken), and recorded milestone history is preserved verbatim.
 cd /d "%~dp0.."
 
-rem The 3.14t build is the project's dominant target and the hybrid site-packages
+rem The 3.15t build is the project's dominant target and the hybrid site-packages
 rem serves both ABIs, so this runs on the free-threaded interpreter. Fall back to
-rem the GIL build if 3.14t is absent, then to whatever `python` resolves to.
-set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe
-if not exist "%PY%" set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe
+rem the GIL build if 3.15t is absent, then to whatever `python` resolves to.
+set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe
+if not exist "%PY%" set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe
 if not exist "%PY%" set PY=python
 
 rem Log every run, so a silent failure is visible rather than assumed.
