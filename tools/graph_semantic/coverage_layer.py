@@ -32,6 +32,17 @@ SEM_IDS = {n["id"] for n in SEM["nodes"]}
 
 # Existing node ids on disk, so every edge lands on a real node.
 EXISTING_IDS = {n["id"] for n in GRAPH["nodes"]}
+
+# In a single-shot run_extraction pass, graph.json still holds only the BASE
+# code graph when this layer executes: doc_layer/concept_layer fragments are
+# not merged into graph.json until build_graph runs after us. Resolving doc
+# ids against the base graph silently dropped every doc->skill / BIBL /
+# duplicate-tree / ATTACH edge (34 category islands measured 2026-10-06).
+# Union the sibling fragments so doc ids resolve in the same pass.
+for _frag_name in ("doc_layer_fragment.json", "concept_layer_fragment.json"):
+    _frag = Path("graphify-out") / _frag_name
+    if _frag.exists():
+        EXISTING_IDS |= {n["id"] for n in json.loads(_frag.read_text(encoding="utf-8"))["nodes"]}
 BY_LABEL: dict[str, list[str]] = collections.defaultdict(list)
 for _n in GRAPH["nodes"]:
     BY_LABEL[re.sub(r"[^a-z0-9]+", "", str(_n.get("label", "")).lower())].append(_n["id"])
