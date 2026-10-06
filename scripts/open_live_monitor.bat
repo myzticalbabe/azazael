@@ -13,7 +13,7 @@ rem all 28 render lines + the header with headroom).
 mode con: cols=118 lines=34
 cd /d "%~dp0.."
 
-set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe
+set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe
 if not exist "%PY%" set PY=python
 
 :loop

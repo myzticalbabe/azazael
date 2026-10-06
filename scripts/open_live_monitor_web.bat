@@ -6,7 +6,7 @@ title AZAZAEL LIVE MONITOR (WEB)
 color 0D
 cd /d "%~dp0.."
 
-set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe
+set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe
 if not exist "%PY%" set PY=python
 
 :loop

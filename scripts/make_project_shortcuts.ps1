@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Continue'
 $ws = New-Object -ComObject WScript.Shell
-$py = 'C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe'
+$py = 'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
 $iconDir = 'C:\Users\clint\azazael\scripts\icons'
 $groupDir = 'C:\Users\clint\Desktop\Project Launchers'
 

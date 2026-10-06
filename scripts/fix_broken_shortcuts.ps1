@@ -2,7 +2,7 @@ $ws = New-Object -ComObject WScript.Shell
 
 # 1. Agent Selector -> real launcher (script moved to Ultimate_Agent_Selector)
 $lnk = $ws.CreateShortcut("$env:USERPROFILE\Desktop\Agent Selector.lnk")
-$lnk.TargetPath = 'C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe'
+$lnk.TargetPath = 'C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe'
 $lnk.Arguments = 'C:\Users\clint\Desktop\Ultimate_Agent_Selector\launcher\agent_orchestrator.py'
 $lnk.WorkingDirectory = 'C:\Users\clint\Desktop\Ultimate_Agent_Selector'
 $lnk.Description = 'Ultimate Agent Selector - orchestrator'
