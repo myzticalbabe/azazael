@@ -1,9 +1,18 @@
 """Critic-free policy optimization contracts used by the algorithm laboratory.
 
 This module implements the mathematical update contracts needed to compare
-REINFORCE, RLOO, REINFORCE++, Dr GRPO, DAPO, and GSPO without claiming that a
-name alone makes an algorithm production-ready. Callers must still provide real
-rollouts, deterministic seeds, and qualification evidence.
+REINFORCE, RLOO, REINFORCE++, Dr GRPO, DAPO, GSPO, and GDPO without claiming
+that a name alone makes an algorithm production-ready. Callers must still
+provide real rollouts, deterministic seeds, and qualification evidence.
+
+Measurement-space note (forensic, 2026-10-06): each estimator's advantage
+lives in its own space — raw returns (REINFORCE), leave-one-out deltas
+(RLOO), batch z-scores (REINFORCE++), group z-scores (GRPO), centered
+deltas (Dr GRPO), decoupled multi-stream z-scores (GDPO). The per-algorithm
+``loss`` in run_policy_lab is therefore NOT comparable across estimators;
+PolicyEvidence.normalization names the space so no consumer can silently
+rank across it. Cross-space decisions (promotion, gating) must go through
+an explicit common scale (see bounded_margin in expansion/exmachina.py).
 """
 
 from __future__ import annotations
@@ -11,7 +20,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from math import exp, isfinite, log, sqrt
 from statistics import fmean, pstdev
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 
 @dataclass(frozen=True)
@@ -26,6 +35,7 @@ class PolicyEvidence:
     loss: float
     accepted_groups: int
     skipped_groups: int
+    normalization: str = "unknown"
 
     def as_dict(self) -> dict[str, float | int | str]:
         return asdict(self)
@@ -101,6 +111,44 @@ def dr_grpo_advantages(rewards: Sequence[float]) -> list[float]:
     values = _validate_rewards(rewards)
     mean = fmean(values)
     return [value - mean for value in values]
+
+
+def gdpo_advantages(streams: Mapping[str, Sequence[float]]) -> list[float]:
+    """GDPO decoupled multi-reward normalization (ICML 2026, NVIDIA).
+
+    Joint GRPO-style normalization over combined multi-reward rollouts
+    collapses distinct reward combinations into identical advantages,
+    destroying resolution. GDPO normalizes each reward stream
+    INDEPENDENTLY (z-score within stream, zero-variance streams contribute
+    0.0 rather than NaN) and combines per-sample by mean. Relative
+    differences WITHIN each stream are preserved; no stream's scale can
+    swamp another's.
+
+    Args:
+        streams: mapping of stream name -> per-sample rewards. All streams
+            must cover the same samples in the same order with equal length.
+
+    Returns:
+        Per-sample combined advantages (mean of per-stream z-scores).
+    """
+
+    if not streams:
+        raise ValueError("streams must be a non-empty mapping")
+    names = list(streams)
+    columns = [_validate_rewards(streams[name]) for name in names]
+    width = len(columns[0])
+    if any(len(column) != width for column in columns):
+        raise ValueError("all streams must have equal length")
+    norms: list[list[float]] = []
+    for column in columns:
+        scale = pstdev(column)
+        if scale <= 1e-12:
+            norms.append([0.0 for _ in column])
+            continue
+        mean = fmean(column)
+        norms.append([(value - mean) / scale for value in column])
+    return [fmean([norms[stream][index] for stream in range(len(names))])
+            for index in range(width)]
 
 
 @dataclass(frozen=True)
@@ -202,18 +250,19 @@ def run_policy_lab(
     """Run deterministic advantage contracts and return comparable evidence."""
 
     estimators = {
-        "REINFORCE": reinforce_advantages,
-        "RLOO": rloo_advantages,
-        "REINFORCE++": reinforce_plus_plus_advantages,
-        "GRPO": grpo_advantages,
-        "DR_GRPO": dr_grpo_advantages,
+        "REINFORCE": (reinforce_advantages, "raw returns"),
+        "RLOO": (rloo_advantages, "leave-one-out deltas"),
+        "REINFORCE++": (reinforce_plus_plus_advantages, "batch z-scores"),
+        "GRPO": (grpo_advantages, "group z-scores"),
+        "DR_GRPO": (dr_grpo_advantages, "centered deltas"),
     }
     evidence: list[PolicyEvidence] = []
     for algorithm, rewards in rewards_by_algorithm.items():
         if algorithm not in estimators:
             raise ValueError(f"unsupported laboratory algorithm: {algorithm}")
+        fn, space = estimators[algorithm]
         values = _validate_rewards(rewards)
-        advantages = estimators[algorithm](values)
+        advantages = fn(values)
         loss = -fmean(advantage * value for advantage, value in zip(advantages, values))
         evidence.append(PolicyEvidence(
             algorithm=algorithm,
@@ -224,5 +273,6 @@ def run_policy_lab(
             loss=float(loss),
             accepted_groups=1 if advantages else 0,
             skipped_groups=0 if advantages else 1,
+            normalization=space,
         ))
     return evidence
