@@ -262,14 +262,14 @@ def main():
         print(f"    {status} {pkg}: {info.get('version', info.get('error', '?'))}")
         results["npm_packages"].append(info)
 
-    # -- 4. Python 3.14t check --
-    print("\n  [4] Python 3.14t:")
-    python314_paths = [
-        r"C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe",
-        os.path.expanduser("~/.local/bin/python3.14t.exe"),
+    # -- 4. Python 3.15t check --
+    print("\n  [4] Python 3.15t:")
+    python315_paths = [
+        r"C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe",
+        os.path.expanduser("~/.local/bin/python3.15t.exe"),
     ]
-    found_314t = False
-    for p in python314_paths:
+    found_315t = False
+    for p in python315_paths:
         if os.path.exists(p):
             try:
                 result = subprocess.run(
@@ -277,12 +277,12 @@ def main():
                 )
                 print(f"    [OK] {p}")
                 print(f"          {result.stdout.strip()}")
-                found_314t = True
-                results["python_314t"] = result.stdout.strip()
+                found_315t = True
+                results["python_315t"] = result.stdout.strip()
             except Exception:
                 print(f"    [--] {p} (exists but failed)")
-    if not found_314t:
-        print("    [??] python3.14t not found at expected paths")
+    if not found_315t:
+        print("    [??] python3.15t not found at expected paths")
 
     # -- 5. LocalMemoryStore schema check --
     print("\n  [5] LocalMemoryStore Schema:")
@@ -332,12 +332,12 @@ def main():
         print(f"    [OK] Python (default): {pyver}")
         major = int(pyver.split(".")[0])
         minor = int(pyver.split(".")[1])
-        if major == 3 and minor == 14:
-            print(f"         Nuitka-ready: YES (Python {pyver} is the build Python, patches applied via patch_nuitka_314t.py)")
+        if major == 3 and minor == 15:
+            print(f"         Nuitka-ready: YES (Python {pyver} is the build Python, patches applied via patch_nuitka_315t.py)")
         elif major == 3 and minor == 13:
-            print(f"         Nuitka-ready: check (Python {pyver} - use 3.14t for builds)")
+            print(f"         Nuitka-ready: check (Python {pyver} - use 3.15t for builds)")
         else:
-            print(f"         Nuitka-ready: check (Python {pyver} - builds require 3.14t)")
+            print(f"         Nuitka-ready: check (Python {pyver} - builds require 3.15t)")
     except Exception as e:
         print(f"    [--] Python version check: {e}")
 

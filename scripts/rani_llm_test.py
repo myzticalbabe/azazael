@@ -71,7 +71,7 @@ def provider_infer(provider_name: str, model: str | None, prompt: str,
                    max_tokens: int) -> tuple[str, int]:
     """Stdlib OpenAI-compatible call (works on 3.14t where the openai SDK
     can't import). URL/model/key resolve via the provider registry."""
-    sys.path.insert(0, "C:/Users/clint/azazael/src")
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
     from CORE.inference.providers import get_provider
     prov = get_provider(provider_name)
     if not prov.has_valid_key():

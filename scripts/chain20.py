@@ -8,8 +8,8 @@ each round is independent; failures logged, chain continues.
 import subprocess
 import time
 
-PY = r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe'
-PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe'
+PY = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
+PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe'
 SCRIPTS = r'C:\Users\clint\azazael\scripts'
 LOG = r'C:\Users\clint\azazael\logs\chain20.log'
 ROUNDS = 20

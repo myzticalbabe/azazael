@@ -13,8 +13,9 @@ Feeding the health monitor is what gives the evidence channel a signal on
 cadence even when no cluster batch is running.
 """
 import json
+import os
 import sys
-sys.path.insert(0, 'C:/Users/clint/azazael/src')
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 
 from CORE.local_memory import get_memory_store
 
