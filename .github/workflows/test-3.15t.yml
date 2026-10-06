@@ -1,27 +1,27 @@
-# Azazael CI — Python 3.14t Free-Threading Tests
+# Azazael CI — Python 3.15t Free-Threading Tests
 #
-# Runs the standalone test suite on Python 3.14t (free-threading).
+# Runs the standalone test suite on Python 3.15t (free-threading).
 # Uses run_tests.py with --skip-slow for quick CI feedback (~3 min).
 # The full suite (including MetaCluster orchestration) takes ~6 min.
 #
-# Note on pytest and 3.14t: the earlier claim that "pytest segfaults on 3.14t
+# Note on pytest and 3.15t: the earlier claim that "pytest segfaults on 3.14t
 # (Error #48)" no longer holds and is corrected here rather than left standing.
 # Measured 2026-09-22 on the canonical interpreter
-# (3.14.7 free-threading build, cp314t-win_amd64, sys._is_gil_enabled() False):
+# (3.15.0 free-threading build, cp315t-win_amd64, sys._is_gil_enabled() False):
 # pytest 9.1.1 runs the whole tests/ tree in one process, 3,606 passed. The
 # standalone runner is still what --skip-slow uses (it needs no pytest and it
 # is how the per-file suite has always run), but the AGGREGATE isolation gate
 # below needs pytest, because the defect it exists to catch only appears when
 # many files share one interpreter.
 #
-# Note on 3.14t CI availability:
-# GitHub Actions setup-python may not yet support "3.14t" (free-threading)
-# builds on Windows. If standard 3.14 is used instead, test results will
-# differ (e.g., psutil won't have the cp314t segfault, pytest may work).
+# Note on 3.15t CI availability:
+# GitHub Actions setup-python may not yet support "3.15t" (free-threading)
+# builds on Windows. If standard 3.15 is used instead, test results will
+# differ (e.g., psutil won't have the cp315t segfault, pytest may work).
 # Run `python -c "import sys; print('GIL:', sys._is_gil_enabled())"` to
 # verify whether free-threading is active.
 
-name: Test (3.14+)
+name: Test (3.15+)
 
 on:
   push:
@@ -39,10 +39,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.14
+      - name: Setup Python 3.15
         uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.15"
           allow-prereleases: true
 
       - name: Check free-threading status
@@ -55,7 +55,7 @@ jobs:
       - name: Install dependencies
         shell: pwsh
         run: |
-          # Force psutil cp314t wheel for free-threading compatibility
+          # Force psutil cp315t wheel for free-threading compatibility
           pip install --force-reinstall --no-deps psutil
           python -c "import psutil; print(f'psutil {psutil.__version__}: OK (cpu={psutil.cpu_count()})')"
           # basedpyright is the type checker (mypy cannot read this tree).
@@ -67,7 +67,7 @@ jobs:
         run: |
           python tools/type_check_gate.py --check
         # NON-BLOCKING, and the reason matters: the committed baseline
-        # (logs/basedpyright_baseline.json) was recorded on the canonical 3.14t
+        # (logs/basedpyright_baseline.json) was recorded on the canonical 3.15t
         # venv WITH the ML stack installed. This runner installs psutil only, so
         # an unresolvable `import torch` changes inferred types downstream and
         # shifts the diagnostic set -- a diff here is not (yet) evidence of a
