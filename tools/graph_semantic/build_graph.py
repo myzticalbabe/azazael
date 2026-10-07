@@ -12,8 +12,6 @@ from pathlib import Path
 
 import networkx as nx
 
-sys.path.insert(0, r"C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\site-packages")
-
 from graphify.build import build_merge
 from graphify.cluster import cluster, label_communities_by_hub
 from graphify.export import attach_hyperedges, to_json
