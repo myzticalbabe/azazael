@@ -1,0 +1,461 @@
+{
+  "baseline": "C:\\Users\\clint\\azazael\\config\\runtime_baseline.toml",
+  "verdict": "FAIL \u2014 50 contract violation(s)/gap(s)",
+  "probe_failures": [],
+  "environments": {
+    "win-main": {
+      "status": "fail",
+      "packages": 637,
+      "contract_violations": {
+        "aiohappyeyeballs": {
+          "baseline": "2.7.1",
+          "found": "2.6.2"
+        },
+        "aiohttp": {
+          "baseline": "3.14.3",
+          "found": "3.13.5"
+        },
+        "filelock": {
+          "baseline": "3.32.5",
+          "found": "3.32.3"
+        },
+        "typing-inspection": {
+          "baseline": "0.4.4",
+          "found": "0.4.2"
+        },
+        "yarl": {
+          "baseline": "1.24.5",
+          "found": "1.24.2"
+        }
+      },
+      "contract_gaps": [],
+      "supporting_drift": {
+        "annotated-doc": {
+          "baseline": "0.0.5",
+          "found": "0.0.4"
+        },
+        "annotated-types": {
+          "baseline": "0.8.0",
+          "found": "0.7.0"
+        },
+        "asttokens": {
+          "baseline": "3.0.2",
+          "found": "3.0.1"
+        },
+        "ipython": {
+          "baseline": "9.17.1",
+          "found": "9.12.0"
+        },
+        "prompt-toolkit": {
+          "baseline": "3.0.53",
+          "found": "3.0.52"
+        },
+        "python-dotenv": {
+          "baseline": "1.2.3",
+          "found": "1.2.2"
+        },
+        "traitlets": {
+          "baseline": "5.16.1",
+          "found": "5.15.0"
+        },
+        "typer": {
+          "baseline": "0.27.2",
+          "found": "0.12.5"
+        },
+        "wcwidth": {
+          "baseline": "0.8.2",
+          "found": "0.7.0"
+        }
+      }
+    },
+    "win-314t": {
+      "status": "fail",
+      "packages": 178,
+      "contract_violations": {
+        "filelock": {
+          "baseline": "3.32.5",
+          "found": "4.0.0"
+        },
+        "fsspec": {
+          "baseline": "2026.7.0",
+          "found": "2026.6.0"
+        },
+        "idna": {
+          "baseline": "3.19",
+          "found": "3.20"
+        },
+        "multidict": {
+          "baseline": "6.7.1",
+          "found": "6.9.0"
+        },
+        "numpy": {
+          "baseline": "2.5.3",
+          "found": "2.4.6"
+        },
+        "propcache": {
+          "baseline": "0.5.2",
+          "found": "0.5.4"
+        },
+        "pydantic": {
+          "baseline": "2.13.4",
+          "found": "2.13.5"
+        },
+        "pydantic-core": {
+          "baseline": "2.46.4",
+          "found": "2.46.5"
+        },
+        "urllib3": {
+          "baseline": "2.7.0",
+          "found": "2.8.0"
+        },
+        "yarl": {
+          "baseline": "1.24.5",
+          "found": "1.25.1"
+        }
+      },
+      "contract_gaps": [],
+      "supporting_drift": {
+        "openai": {
+          "baseline": "3.16.2",
+          "found": "3.16.0"
+        },
+        "pip": {
+          "baseline": "26.2.1",
+          "found": "26.1.2"
+        },
+        "pure-eval": {
+          "baseline": "0.2.3",
+          "found": "0.2.4"
+        },
+        "pygments": {
+          "baseline": "2.20.0",
+          "found": "2.21.0"
+        },
+        "wcwidth": {
+          "baseline": "0.8.2",
+          "found": "0.8.4"
+        },
+        "websocket-client": {
+          "baseline": "1.9.0",
+          "found": "1.9.2"
+        }
+      }
+    },
+    "win-313tools": {
+      "status": "fail",
+      "packages": 127,
+      "contract_violations": {
+        "anyio": {
+          "baseline": "4.15.1",
+          "found": "4.15.0"
+        },
+        "numpy": {
+          "baseline": "2.5.3",
+          "found": "2.5.2"
+        },
+        "pydantic": {
+          "baseline": "2.13.4",
+          "found": "2.13.5"
+        },
+        "pydantic-core": {
+          "baseline": "2.46.4",
+          "found": "2.46.5"
+        }
+      },
+      "contract_gaps": [],
+      "supporting_drift": {
+        "openai": {
+          "baseline": "3.16.2",
+          "found": "3.8.0"
+        },
+        "pygments": {
+          "baseline": "2.20.0",
+          "found": "2.21.0"
+        },
+        "tqdm": {
+          "baseline": "4.70.1",
+          "found": "4.70.0"
+        },
+        "wcwidth": {
+          "baseline": "0.8.2",
+          "found": "0.8.3"
+        },
+        "websocket-client": {
+          "baseline": "1.9.0",
+          "found": "1.9.2"
+        }
+      }
+    },
+    "win-interp": {
+      "status": "fail",
+      "packages": 149,
+      "contract_violations": {
+        "aiohttp": {
+          "baseline": "3.14.3",
+          "found": "3.14.1"
+        },
+        "anyio": {
+          "baseline": "4.15.1",
+          "found": "4.14.1"
+        },
+        "certifi": {
+          "baseline": "2026.7.22",
+          "found": "2026.6.17"
+        },
+        "charset-normalizer": {
+          "baseline": "3.5.1",
+          "found": "3.4.9"
+        },
+        "click": {
+          "baseline": "8.5.0",
+          "found": "8.4.2"
+        },
+        "filelock": {
+          "baseline": "3.32.5",
+          "found": "3.29.6"
+        },
+        "fsspec": {
+          "baseline": "2026.7.0",
+          "found": "2026.6.0"
+        },
+        "idna": {
+          "baseline": "3.19",
+          "found": "3.18"
+        },
+        "numpy": {
+          "baseline": "2.5.3",
+          "found": "2.5.1"
+        },
+        "packaging": {
+          "baseline": "26.3",
+          "found": "26.2"
+        },
+        "typing-inspection": {
+          "baseline": "0.4.4",
+          "found": "0.4.2"
+        },
+        "yarl": {
+          "baseline": "1.24.5",
+          "found": "1.24.2"
+        }
+      },
+      "contract_gaps": [],
+      "supporting_drift": {
+        "annotated-doc": {
+          "baseline": "0.0.5",
+          "found": "0.0.4"
+        },
+        "annotated-types": {
+          "baseline": "0.8.0",
+          "found": "0.7.0"
+        },
+        "asttokens": {
+          "baseline": "3.0.2",
+          "found": "3.0.1"
+        },
+        "ipython": {
+          "baseline": "9.17.1",
+          "found": "9.15.0"
+        },
+        "joblib": {
+          "baseline": "1.6.0",
+          "found": "1.5.3"
+        },
+        "openai": {
+          "baseline": "3.16.2",
+          "found": "2.44.0"
+        },
+        "pip": {
+          "baseline": "26.2.1",
+          "found": "26.1.2"
+        },
+        "prompt-toolkit": {
+          "baseline": "3.0.53",
+          "found": "3.0.52"
+        },
+        "python-dotenv": {
+          "baseline": "1.2.3",
+          "found": "1.2.2"
+        },
+        "tqdm": {
+          "baseline": "4.70.1",
+          "found": "4.68.4"
+        },
+        "traitlets": {
+          "baseline": "5.16.1",
+          "found": "5.15.1"
+        },
+        "typer": {
+          "baseline": "0.27.2",
+          "found": "0.26.8"
+        }
+      }
+    },
+    "ubuntu": {
+      "status": "fail",
+      "packages": 300,
+      "contract_violations": {
+        "anyio": {
+          "baseline": "4.15.1",
+          "found": "4.13.0"
+        },
+        "certifi": {
+          "baseline": "2026.7.22",
+          "found": "2026.5.20"
+        },
+        "charset-normalizer": {
+          "baseline": "3.5.1",
+          "found": "3.4.7"
+        },
+        "click": {
+          "baseline": "8.5.0",
+          "found": "8.4.1"
+        },
+        "filelock": {
+          "baseline": "3.32.5",
+          "found": "3.29.0"
+        },
+        "fsspec": {
+          "baseline": "2026.7.0",
+          "found": "2026.4.0"
+        },
+        "idna": {
+          "baseline": "3.19",
+          "found": "3.16"
+        },
+        "numpy": {
+          "baseline": "2.5.3",
+          "found": "2.4.6"
+        },
+        "packaging": {
+          "baseline": "26.3",
+          "found": "26.2"
+        },
+        "rpds-py": {
+          "baseline": "2026.6.3",
+          "found": "2026.5.1"
+        },
+        "typing-extensions": {
+          "baseline": "4.16.0",
+          "found": "4.15.0"
+        },
+        "typing-inspection": {
+          "baseline": "0.4.4",
+          "found": "0.4.2"
+        }
+      },
+      "contract_gaps": [],
+      "supporting_drift": {
+        "annotated-doc": {
+          "baseline": "0.0.5",
+          "found": "0.0.4"
+        },
+        "annotated-types": {
+          "baseline": "0.8.0",
+          "found": "0.7.0"
+        },
+        "asttokens": {
+          "baseline": "3.0.2",
+          "found": "3.0.1"
+        },
+        "ipython": {
+          "baseline": "9.17.1",
+          "found": "9.14.0"
+        },
+        "joblib": {
+          "baseline": "1.6.0",
+          "found": "1.5.3"
+        },
+        "openai": {
+          "baseline": "3.16.2",
+          "found": "2.41.1"
+        },
+        "prompt-toolkit": {
+          "baseline": "3.0.53",
+          "found": "3.0.52"
+        },
+        "tqdm": {
+          "baseline": "4.70.1",
+          "found": "4.67.3"
+        },
+        "traitlets": {
+          "baseline": "5.16.1",
+          "found": "5.15.0"
+        },
+        "typer": {
+          "baseline": "0.27.2",
+          "found": "0.25.1"
+        },
+        "wcwidth": {
+          "baseline": "0.8.2",
+          "found": "0.7.0"
+        }
+      }
+    },
+    "kali": {
+      "status": "fail",
+      "packages": 1009,
+      "contract_violations": {
+        "charset-normalizer": {
+          "baseline": "3.5.1",
+          "found": "3.5.0"
+        },
+        "click": {
+          "baseline": "8.5.0",
+          "found": "8.4.2"
+        },
+        "fsspec": {
+          "baseline": "2026.7.0",
+          "found": "2025.12.0"
+        },
+        "jsonschema-specifications": {
+          "baseline": "2025.9.1",
+          "found": "2023.12.1"
+        },
+        "packaging": {
+          "baseline": "26.3",
+          "found": "24.2"
+        },
+        "rich": {
+          "baseline": "15.0.0",
+          "found": "13.9.4"
+        },
+        "rpds-py": {
+          "baseline": "2026.6.3",
+          "found": "0.30.0"
+        }
+      },
+      "contract_gaps": [],
+      "supporting_drift": {
+        "ipython": {
+          "baseline": "9.17.1",
+          "found": "9.16.1"
+        },
+        "joblib": {
+          "baseline": "1.6.0",
+          "found": "1.5.3"
+        },
+        "openai": {
+          "baseline": "3.16.2",
+          "found": "2.21.0"
+        },
+        "pip": {
+          "baseline": "26.2.1",
+          "found": "26.1.2"
+        },
+        "python-dotenv": {
+          "baseline": "1.2.3",
+          "found": "1.2.2"
+        },
+        "tqdm": {
+          "baseline": "4.70.1",
+          "found": "4.70.0"
+        },
+        "typer": {
+          "baseline": "0.27.2",
+          "found": "0.20.0"
+        }
+      }
+    }
+  }
+}

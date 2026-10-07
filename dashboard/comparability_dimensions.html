@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Apples-to-Oranges in the 4th Dimension — comparability is a conjunction of four pins</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --line:#30363d; --ink:#e6edf3; --dim:#8b949e;
+    --pin:#58a6ff; --bridge:#3fb950; --warn:#f0883e; --bad:#f85149; --gold:#d29922;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 22px 64px}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.2px}
+  h1 .dim4{color:var(--gold)}
+  .sub{color:var(--dim);margin:0 0 26px;max-width:76ch}
+  .lede{color:var(--ink);border-left:3px solid var(--gold);padding:10px 0 10px 14px;
+        margin:0 0 30px;max-width:80ch;background:linear-gradient(90deg,rgba(210,153,34,.07),transparent)}
+  .lede b{color:var(--gold)}
+  svg{display:block;max-width:100%;height:auto}
+  .foot{margin-top:30px;color:var(--dim);font-size:12.5px;max-width:88ch}
+  .foot code{background:var(--panel);padding:1px 5px;border-radius:3px;color:var(--ink)}
+  .tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;
+       font-weight:600;letter-spacing:.3px}
+  .t-pin{background:rgba(88,166,255,.15);color:var(--pin);border:1px solid rgba(88,166,255,.4)}
+  .t-bridge{background:rgba(63,185,80,.15);color:var(--bridge);border:1px solid rgba(63,185,80,.4)}
+  .t-bad{background:rgba(248,81,73,.13);color:var(--bad);border:1px solid rgba(248,81,73,.35)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Apples-to-Oranges in the <span class="dim4">4th Dimension</span></h1>
+<p class="sub">Comparability is not one property. It is a conjunction of four independent pins, and a
+break in any single one truncates the evidence run. Every dimension below broke. Three were
+instability — the same quantity changing underneath the comparison. The fourth is heterogeneity —
+two quantities that were never comparable at all.</p>
+
+<div class="lede">
+<b>The remedy depends on which kind of break it is, and conflating the two is the meta-error behind all four.</b>
+Instability is fixed by <b>pinning more</b>. Heterogeneity cannot be pinned at all — you cannot hash
+two different action spaces into one identity — and is fixed by <b>constructing a bridge</b>. Reaching
+for "add a hash" on dimension 4 would have produced a stable hash of an invalid comparison, which is
+worse than no comparison because it looks rigorous.
+</div>
+
+<svg viewBox="0 0 1140 830" role="img" aria-label="Four comparability pins feeding one promotion gate, with the remedy class for each">
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+    </marker>
+    <marker id="arwB" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+
+  <!-- ===== the conjunction ===== -->
+  <rect x="0" y="0" width="1140" height="86" rx="9" fill="#161b22" stroke="#30363d"/>
+  <text x="20" y="26" fill="#e6edf3" font-size="14" font-weight="700">A comparison is valid only when ALL FOUR hold</text>
+  <text x="20" y="46" fill="#8b949e" font-size="12">A break in any one discards the evidence. None of the four produces an error, an alarm, or a non-zero exit.</text>
+  <g font-size="11.5" font-weight="600">
+    <rect x="20" y="58" width="256" height="20" rx="10" fill="rgba(88,166,255,.14)" stroke="rgba(88,166,255,.42)"/>
+    <text x="32" y="72" fill="#58a6ff">1 · pool_id — era</text>
+    <rect x="288" y="58" width="256" height="20" rx="10" fill="rgba(88,166,255,.14)" stroke="rgba(88,166,255,.42)"/>
+    <text x="300" y="72" fill="#58a6ff">2 · baseline_hash — reference</text>
+    <rect x="556" y="58" width="256" height="20" rx="10" fill="rgba(88,166,255,.14)" stroke="rgba(88,166,255,.42)"/>
+    <text x="568" y="72" fill="#58a6ff">3 · schema_hash — search space</text>
+    <rect x="824" y="58" width="296" height="20" rx="10" fill="rgba(210,153,34,.16)" stroke="rgba(210,153,34,.5)"/>
+    <text x="836" y="72" fill="#d29922">4 · action space — learner semantics</text>
+  </g>
+
+  <!-- ===== four lanes ===== -->
+  <!-- lane 1 -->
+  <rect x="0" y="104" width="272" height="336" rx="9" fill="#161b22" stroke="#30363d"/>
+  <text x="14" y="128" fill="#58a6ff" font-size="12.5" font-weight="700">1 · INSTABILITY</text>
+  <text x="14" y="147" fill="#e6edf3" font-size="12" font-weight="600">pool_id / era</text>
+  <text x="14" y="165" fill="#8b949e" font-size="11">Cranium · 2026-09-12</text>
+  <line x1="14" y1="176" x2="258" y2="176" stroke="#30363d"/>
+  <text x="14" y="195" fill="#8b949e" font-size="11">What it pins</text>
+  <text x="14" y="212" fill="#e6edf3" font-size="11.5">The data era a row was</text>
+  <text x="14" y="228" fill="#e6edf3" font-size="11.5">measured against.</text>
+  <text x="14" y="252" fill="#8b949e" font-size="11">How it broke</text>
+  <text x="14" y="269" fill="#e6edf3" font-size="11.5">Era changed 28 times in</text>
+  <text x="14" y="285" fill="#e6edf3" font-size="11.5">51 cycles (~1.8/era) while</text>
+  <text x="14" y="301" fill="#e6edf3" font-size="11.5">SPRT needs 2–6 same-era</text>
+  <text x="14" y="317" fill="#e6edf3" font-size="11.5">observations.</text>
+  <text x="14" y="341" fill="#f85149" font-size="11.5" font-weight="600">1 promotion in 51 cycles</text>
+  <text x="14" y="370" fill="#8b949e" font-size="11">Remedy</text>
+  <text x="14" y="390" fill="#58a6ff" font-size="12" font-weight="700">PIN — pool by grand mean</text>
+  <text x="14" y="409" fill="#8b949e" font-size="10.5">treat era as a random effect</text>
+
+  <!-- lane 2 -->
+  <rect x="282" y="104" width="272" height="336" rx="9" fill="#161b22" stroke="#30363d"/>
+  <text x="296" y="128" fill="#58a6ff" font-size="12.5" font-weight="700">2 · INSTABILITY</text>
+  <text x="296" y="147" fill="#e6edf3" font-size="12" font-weight="600">baseline_hash</text>
+  <text x="296" y="165" fill="#8b949e" font-size="11">EV-2 · 2026-09-10</text>
+  <line x1="296" y1="176" x2="540" y2="176" stroke="#30363d"/>
+  <text x="296" y="195" fill="#8b949e" font-size="11">What it pins</text>
+  <text x="296" y="212" fill="#e6edf3" font-size="11.5">The production genome a</text>
+  <text x="296" y="228" fill="#e6edf3" font-size="11.5">win was measured against.</text>
+  <text x="296" y="252" fill="#8b949e" font-size="11">How it broke</text>
+  <text x="296" y="269" fill="#e6edf3" font-size="11.5">An external restore reverted</text>
+  <text x="296" y="285" fill="#e6edf3" font-size="11.5">production 29.67 → 28.23</text>
+  <text x="296" y="301" fill="#e6edf3" font-size="11.5">fitness while pool_id stayed</text>
+  <text x="296" y="317" fill="#e6edf3" font-size="11.5">identical.</text>
+  <text x="296" y="341" fill="#f85149" font-size="11.5" font-weight="600">wins vs 2 refs = 1 streak</text>
+  <text x="296" y="370" fill="#8b949e" font-size="11">Remedy</text>
+  <text x="296" y="390" fill="#58a6ff" font-size="12" font-weight="700">PIN — hash the baseline</text>
+  <text x="296" y="409" fill="#8b949e" font-size="10.5">fails closed; no hash ⇒ no streak</text>
+
+  <!-- lane 3 -->
+  <rect x="564" y="104" width="272" height="336" rx="9" fill="#161b22" stroke="#30363d"/>
+  <text x="578" y="128" fill="#58a6ff" font-size="12.5" font-weight="700">3 · INSTABILITY</text>
+  <text x="578" y="147" fill="#e6edf3" font-size="12" font-weight="600">schema_hash</text>
+  <text x="578" y="165" fill="#8b949e" font-size="11">EV-4 · 2026-09-30</text>
+  <line x1="578" y1="176" x2="822" y2="176" stroke="#30363d"/>
+  <text x="578" y="195" fill="#8b949e" font-size="11">What it pins</text>
+  <text x="578" y="212" fill="#e6edf3" font-size="11.5">The search space — gene</text>
+  <text x="578" y="228" fill="#e6edf3" font-size="11.5">NAMES, not their values.</text>
+  <text x="578" y="252" fill="#8b949e" font-size="11">How it broke</text>
+  <text x="578" y="269" fill="#e6edf3" font-size="11.5">Morph rotates slot 5 every</text>
+  <text x="578" y="285" fill="#e6edf3" font-size="11.5">cycle: 100% alternation.</text>
+  <text x="578" y="301" fill="#e6edf3" font-size="11.5">genome_seed hashes every gene,</text>
+  <text x="578" y="317" fill="#e6edf3" font-size="11.5">so arms are different fits.</text>
+  <text x="578" y="341" fill="#f85149" font-size="11.5" font-weight="600">streak 0/3 · SPRT n=0 ×21/33</text>
+  <text x="578" y="370" fill="#8b949e" font-size="11">Remedy</text>
+  <text x="578" y="390" fill="#58a6ff" font-size="12" font-weight="700">PIN — per-arm streak</text>
+  <text x="578" y="409" fill="#8b949e" font-size="10.5">skip ≠ break; scan past other arms</text>
+
+  <!-- lane 4 — the new one -->
+  <rect x="846" y="104" width="294" height="336" rx="9" fill="#161b22" stroke="#d29922" stroke-width="1.6"/>
+  <text x="860" y="128" fill="#d29922" font-size="12.5" font-weight="700">4 · HETEROGENEITY  ← different in kind</text>
+  <text x="860" y="147" fill="#e6edf3" font-size="12" font-weight="600">action space</text>
+  <text x="860" y="165" fill="#8b949e" font-size="11">2026-09-30</text>
+  <line x1="860" y1="176" x2="1126" y2="176" stroke="#30363d"/>
+  <text x="860" y="195" fill="#8b949e" font-size="11">What it pins</text>
+  <text x="860" y="212" fill="#e6edf3" font-size="11.5">Nothing — the two sides</text>
+  <text x="860" y="228" fill="#e6edf3" font-size="11.5">were never the same thing.</text>
+  <text x="860" y="252" fill="#8b949e" font-size="11">How it broke</text>
+  <text x="860" y="269" fill="#e6edf3" font-size="11.5">sb3_agent.py:844</text>
+  <text x="860" y="285" fill="#f85149" font-size="11.5">Discrete(3) — SEVERITIES</text>
+  <text x="860" y="301" fill="#e6edf3" font-size="11.5">learning_rl.py:493</text>
+  <text x="860" y="317" fill="#f85149" font-size="11.5">4 actions — REMEDIATIONS</text>
+  <text x="860" y="341" fill="#8b949e" font-size="10.5">Different objective. Different</text>
+  <text x="860" y="357" fill="#8b949e" font-size="10.5">reward model. Never comparable.</text>
+  <text x="860" y="385" fill="#8b949e" font-size="11">Remedy</text>
+  <text x="860" y="405" fill="#3fb950" font-size="12" font-weight="700">BRIDGE — construct, don't pin</text>
+  <text x="860" y="424" fill="#8b949e" font-size="10.5">shared action space + imported reward</text>
+
+  <!-- ===== feeds one gate ===== -->
+  <path d="M136,440 L136,470" stroke="#6e7681" stroke-width="1.6" marker-end="url(#arw)"/>
+  <path d="M418,440 L418,470" stroke="#6e7681" stroke-width="1.6" marker-end="url(#arw)"/>
+  <path d="M700,440 L700,470" stroke="#6e7681" stroke-width="1.6" marker-end="url(#arw)"/>
+  <path d="M993,440 L993,470" stroke="#3fb950" stroke-width="1.6" marker-end="url(#arwB)"/>
+
+  <rect x="300" y="472" width="540" height="62" rx="9" fill="#161b22" stroke="#30363d"/>
+  <text x="320" y="498" fill="#e6edf3" font-size="13" font-weight="700">The promotion gate / the learner comparison</text>
+  <text x="320" y="518" fill="#8b949e" font-size="11.5">Evidence accumulates only across a contiguous run in every pinned dimension.</text>
+
+  <!-- ===== shared failure mode ===== -->
+  <rect x="0" y="560" width="1140" height="152" rx="9" fill="#161b22" stroke="#f85149" stroke-width="1.2"/>
+  <text x="20" y="586" fill="#f85149" font-size="13" font-weight="700">THE SHARED FAILURE MODE — why all four survived</text>
+
+  <g font-size="11.5">
+    <rect x="20" y="602" width="180" height="34" rx="6" fill="#0d1117" stroke="#30363d"/>
+    <text x="32" y="624" fill="#e6edf3">a pin breaks</text>
+
+    <rect x="230" y="602" width="196" height="34" rx="6" fill="#0d1117" stroke="#30363d"/>
+    <text x="242" y="624" fill="#e6edf3">evidence run truncated</text>
+
+    <rect x="456" y="602" width="180" height="34" rx="6" fill="#0d1117" stroke="#30363d"/>
+    <text x="468" y="624" fill="#e6edf3">reads as “no evidence”</text>
+
+    <rect x="666" y="602" width="196" height="34" rx="6" fill="#0d1117" stroke="#30363d"/>
+    <text x="678" y="624" fill="#e6edf3">reads as “not good enough”</text>
+
+    <rect x="892" y="602" width="228" height="34" rx="6" fill="rgba(248,81,73,.12)" stroke="rgba(248,81,73,.5)"/>
+    <text x="904" y="624" fill="#f85149" font-weight="700">reads as PATIENCE</text>
+
+    <path d="M200,619 L226,619" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arw)"/>
+    <path d="M426,619 L452,619" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arw)"/>
+    <path d="M636,619 L662,619" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arw)"/>
+    <path d="M862,619 L888,619" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arw)"/>
+  </g>
+
+  <text x="20" y="664" fill="#8b949e" font-size="11.5">Nothing errors. Nothing alarms. No exit code is non-zero. The loop looks alive, rigorous, and appropriately conservative.</text>
+  <text x="20" y="684" fill="#8b949e" font-size="11.5">Measured here: 0 promotions / 33 cycles · QD frozen at 419.41, +0 ×33 · streak pinned 0/3 · SPRT n=0 on 21/33.</text>
+  <text x="20" y="704" fill="#d29922" font-size="11.5" font-weight="600">The generic detector: a gate waiting on evidence that is being discarded will wait forever and look correct while doing it. Assert the evidence is REACHABLE before trusting the wait.</text>
+
+  <!-- ===== remedy classes legend ===== -->
+  <rect x="0" y="730" width="1140" height="92" rx="9" fill="#161b22" stroke="#30363d"/>
+  <text x="20" y="754" fill="#e6edf3" font-size="12.5" font-weight="700">Two remedy classes — picking the wrong one is the meta-error</text>
+
+  <rect x="20" y="766" width="540" height="44" rx="6" fill="rgba(88,166,255,.08)" stroke="rgba(88,166,255,.35)"/>
+  <text x="32" y="784" fill="#58a6ff" font-size="11.5" font-weight="700">INSTABILITY (1–3) → PIN MORE</text>
+  <text x="32" y="801" fill="#8b949e" font-size="10.5">The same quantity moved. Hash it, pin it, and fail closed when it changes.</text>
+
+  <rect x="580" y="766" width="540" height="44" rx="6" fill="rgba(63,185,80,.08)" stroke="rgba(63,185,80,.35)"/>
+  <text x="592" y="784" fill="#3fb950" font-size="11.5" font-weight="700">HETEROGENEITY (4) → CONSTRUCT A BRIDGE</text>
+  <text x="592" y="801" fill="#8b949e" font-size="10.5">Two different things. Cannot be hashed into one identity — build a shared space and share the reward.</text>
+</svg>
+
+<p class="foot">
+Evidence: <code>evolution_cycle.py</code> <code>baseline_hash</code> (L219) and the Cranium block (L2313+);
+<code>learning_rl.py</code> L475–495 and <code>_get_state_key</code> L493; <code>sb3_agent.py</code> L844;
+<code>tools/evolution_progress.py</code>, <code>tools/learner_bridge2.py</code>,
+<code>src/CORE/WORMS/expansion/remediation_env.py</code>.
+Bridge verdict on the 7-record alert pool: 1 state / 4 actions — a bandit, so the tool reports
+<em>NOT MEANINGFUL</em> rather than ranking its own arms.
+</p>
+
+</div>
+</body>
+</html>

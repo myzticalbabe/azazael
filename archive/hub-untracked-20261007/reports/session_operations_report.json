@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-24T16:47:25+00:00",
+  "project_root": "C:\\Users\\clint\\azazael",
+  "status": "closed",
+  "sync": {
+    "skipped": true
+  },
+  "direct_memory": {
+    "verified": true,
+    "session_id": "session_workflow_20260924_164725_7032",
+    "event_count": 3,
+    "total_events": 244112,
+    "open_sessions": 7,
+    "mapping_count": 1,
+    "mappings": [
+      {
+        "dm_session_id": "session_workflow_20260924_164725_7032",
+        "audit_filepath": ".audit\\session_20260924_124725_01a0.jsonl",
+        "audit_session_id": "01a0",
+        "correlation_id": "01a0d45092ae700092d2259e2d57f45d",
+        "linked_at": "2026-09-24 16:47:25",
+        "mapping_type": "manual",
+        "confidence": 1.0,
+        "notes": "session_start workflow"
+      }
+    ]
+  },
+  "audit": {
+    "path": ".audit\\session_20260924_124725_01a0.jsonl",
+    "linked": true,
+    "closed": true
+  },
+  "compliance": {
+    "available": true,
+    "state": "CODE_EDIT",
+    "component_count": 13,
+    "status": {
+      "check_count": 0,
+      "state_machine": {
+        "current_state": "CODE_EDIT",
+        "transitions": 2,
+        "gate_assertions": 0,
+        "history_length": 3,
+        "can_edit": true,
+        "can_review": false
+      },
+      "score": {
+        "ts": "2026-09-24T16:47:25+00:00",
+        "weighted_score": 1.0,
+        "halt_threshold": 0.5,
+        "should_halt": false,
+        "metrics": {
+          "gate_assertion_rate": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          },
+          "code_review_rate": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          },
+          "agent_utilization": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          },
+          "inference_usage": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          },
+          "error_recurrence": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          },
+          "sync_compliance": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          },
+          "verification_completeness": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "score": 1.0
+          }
+        }
+      },
+      "telemetry": {
+        "total_events": 0,
+        "enabled": true,
+        "by_type": {},
+        "by_status": {},
+        "by_component": {}
+      },
+      "graph": {
+        "total_actions": 0,
+        "action_counts": {},
+        "anomalies": []
+      },
+      "rules": 9
+    },
+    "rule_0x": {
+      "all_passed": true,
+      "components": {
+        "policy_gate": {
+          "allowed": true,
+          "reason": "Rule allow: PolicyRule(allow, action=*, role=developer)",
+          "action": "read_files",
+          "role": "developer",
+          "policy_version": "1.0.0"
+        },
+        "broker_interception": {
+          "active": true,
+          "note": "Broker interception active via @enforce_gate decorator"
+        },
+        "formal_verification": {
+          "passed": true,
+          "total_constraints": 4,
+          "passed_count": 4,
+          "failed_count": 0,
+          "results": [
+            {
+              "constraint": "RULE 0J: PRE-ACTION GATE assertion required",
+              "passed": true
+            },
+            {
+              "constraint": "RULE 0V: Code review required before/after changes",
+              "passed": true
+            },
+            {
+              "constraint": "RULE 0R: Skills sync required",
+              "passed": true
+            },
+            {
+              "constraint": "RULE 0X: State machine must be in valid state",
+              "passed": true
+            }
+          ],
+          "verified_at": "2026-09-24T16:47:25+00:00"
+        },
+        "state_machine": {
+          "valid": true,
+          "current_state": "CODE_EDIT",
+          "transitions": 2
+        },
+        "schema_validation": {
+          "passed": true,
+          "errors": [],
+          "validated_data": {
+            "scope_check_ok": true,
+            "gemini_phase_ok": true,
+            "anti_pattern_scanned": true,
+            "batch_script_ok": true,
+            "test_failure_handled": true,
+            "concurrent_inference_ok": true,
+            "post_phase_verified": true,
+            "system_reminders_obeyed": true,
+            "code_reviewer_spawned": true,
+            "agent_utilization_ok": true,
+            "gate_decision": "PROCEED"
+          },
+          "schema_name": "pre_action_gate",
+          "validated_at": "2026-09-24T16:47:25+00:00"
+        },
+        "compliance_scoring": {
+          "weighted_score": 1.0,
+          "should_halt": false,
+          "threshold": 0.5
+        },
+        "ast_scanning": {
+          "passed": true,
+          "note": "No file provided to scan"
+        },
+        "telemetry": {
+          "active": true,
+          "total_events": 5,
+          "event_types": {
+            "policy_gate": 1,
+            "broker": 1,
+            "verification": 1,
+            "state_machine": 1,
+            "schema_validation": 1
+          }
+        }
+      },
+      "component_count": 8
+    },
+    "sentinel_entrypoint": "C:\\Users\\clint\\azazael\\src\\scripts\\sentinel_gate.py"
+  },
+  "startup_checks": {
+    "ran": true,
+    "all_passed": true,
+    "results": [
+      {
+        "name": "direct_memory",
+        "passed": true,
+        "message": "DirectMemory: OK - 244110 events, 349 session_start, 4122 sessions, db=575.64 MB, open_sessions=7"
+      },
+      {
+        "name": "registry_warm",
+        "passed": true,
+        "message": "Registry warm: OK - ready=True, valid=True, size=3912 (1203 ms)"
+      },
+      {
+        "name": "telemetry",
+        "passed": true,
+        "message": "Telemetry: OK - compliance_ratio=75.0, parallel=3, sequential_violations=1, age=11.1h"
+      }
+    ],
+    "passed": 3,
+    "failed": 0
+  },
+  "reads": [
+    {
+      "path": "azazael/MEMORIES.md",
+      "resolved_path": "C:\\Users\\clint\\azazael\\MEMORIES.md",
+      "offset": 1,
+      "limit": 2000,
+      "total_lines": 1365,
+      "returned_lines": 1365,
+      "error": null
+    }
+  ],
+  "vlp": {
+    "all_passed": true,
+    "layer_results": [
+      {
+        "layer": 1,
+        "name": "File existence",
+        "passed": true
+      },
+      {
+        "layer": 2,
+        "name": "Line existence (chain integrity)",
+        "passed": true
+      },
+      {
+        "layer": 3,
+        "name": "Type match (entry types valid)",
+        "passed": true
+      },
+      {
+        "layer": 4,
+        "name": "Agent match (hash chain valid)",
+        "passed": true
+      },
+      {
+        "layer": 5,
+        "name": "Per-entry hash",
+        "passed": true
+      },
+      {
+        "layer": 6,
+        "name": "Full chain",
+        "passed": true
+      },
+      {
+        "layer": 7,
+        "name": "Ed25519 signature",
+        "passed": true
+      },
+      {
+        "layer": 8,
+        "name": "Merkle inclusion proof",
+        "passed": true
+      },
+      {
+        "layer": 9,
+        "name": "Proof of omission",
+        "passed": true
+      },
+      {
+        "layer": 10,
+        "name": "Anomaly detection",
+        "passed": true,
+        "anomalies": []
+      },
+      {
+        "layer": 11,
+        "name": "Non-canonical signature check",
+        "passed": true
+      },
+      {
+        "layer": 12,
+        "name": "Replay prevention (monotonic)",
+        "passed": true
+      },
+      {
+        "layer": 13,
+        "name": "Cross-session hash chaining",
+        "passed": true
+      },
+      {
+        "layer": 14,
+        "name": "Truncation defense (anchor)",
+        "passed": true
+      },
+      {
+        "layer": 15,
+        "name": "Quantum-resistant hybrid backup",
+        "passed": true,
+        "note": "ADVISORY \u2014 requires liboqs-python"
+      }
+    ],
+    "failed_layers": [],
+    "passed_count": 15,
+    "total_layers": 15,
+    "audit_file": ".audit\\session_20260924_124725_01a0.jsonl",
+    "processed_at": "2026-09-24T16:47:26+00:00"
+  },
+  "dual_ledger": {
+    "consistent": true,
+    "validated": true,
+    "validation_scope": "mapped",
+    "discrepancies": [],
+    "total_audit_events": 3,
+    "total_memory_events": 4,
+    "matching_sessions": 1,
+    "matched_mappings": 1,
+    "note": "",
+    "validated_at": "2026-09-24T16:47:27+00:00"
+  },
+  "closeout": {
+    "requested": true,
+    "errors": []
+  },
+  "warnings": [],
+  "audit_review": {
+    "status": "attention",
+    "findings": [
+      {
+        "severity": "info",
+        "code": "preexisting_open_sessions",
+        "message": "Other DirectMemory sessions remain open; this report only closes its own session.",
+        "remediation": "Review stale sessions with DirectMemory.close_stale_sessions when appropriate."
+      },
+      {
+        "severity": "info",
+        "code": "skill_sync_skipped",
+        "message": "Skill synchronization was explicitly skipped for this run.",
+        "remediation": "Run the default workflow without --no-sync before relying on skill freshness."
+      }
+    ],
+    "finding_count": 2,
+    "reviewed_at": "2026-09-24T16:47:28+00:00"
+  },
+  "next_task": {
+    "schema_version": 1,
+    "objective": "Review the seven open DirectMemory sessions, close only stale ones, then run the default session workflow with skill synchronization",
+    "status": "ready",
+    "context": {
+      "report": "C:\\Users\\clint\\azazael\\reports\\session_operations_report.json",
+      "audit_session": ".audit\\session_20260924_124725_01a0.jsonl",
+      "direct_memory_session": "session_workflow_20260924_164725_7032"
+    },
+    "preflight": [
+      "Read the named source files with plain string paths or path dictionaries",
+      "Initialize DirectMemory and link the active audit session",
+      "Run the focused tests and record their actual result"
+    ],
+    "acceptance_criteria": [
+      "The requested behavior is implemented without unrelated changes",
+      "Focused tests execute successfully",
+      "The audit chain and mapped dual-ledger result are reported honestly",
+      "Temporary files and generated artifacts are accounted for"
+    ],
+    "handoff_fields": [
+      "files_read",
+      "files_changed",
+      "tests_run",
+      "verification_output",
+      "remaining_risks",
+      "next_action"
+    ]
+  }
+}

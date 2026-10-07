@@ -1,0 +1,44 @@
+{
+  "timestamp": "2026-10-06T06:00:01.656882-04:00",
+  "verdict": "drift",
+  "accepted": [
+    "disk-headroom"
+  ],
+  "shape": {
+    "win-main": 655,
+    "win-314t": 193,
+    "win-313tools": 158,
+    "win-interp": 149,
+    "ubuntu": 420,
+    "kali": 1009
+  },
+  "signals": [
+    {
+      "name": "baseline-contract",
+      "status": "fail",
+      "detail": "3 contract violation(s) across win-313tools, ubuntu"
+    },
+    {
+      "name": "environment-shape",
+      "status": "fail",
+      "detail": "win-main: 637 -> 655 (+18); win-313tools: 127 -> 158 (+31); ubuntu: 300 -> 420 (+120)"
+    },
+    {
+      "name": "sync-integrity",
+      "status": "fail",
+      "detail": "OUT OF SYNC | failing: docs_g, tests, tests_kali, scripts, scripts_kali"
+    },
+    {
+      "name": "disk-headroom",
+      "status": "accepted",
+      "detail": "C: 18G free (floor 40G)  [ACCEPTED since 2026-09-20]",
+      "accepted_since": "2026-09-20",
+      "accepted_reason": "C: headroom deliberately not reclaimed. The model-store relocation (Ollama 25G -> D:, LM Studio 53G -> G:) was planned and declined 2026-09-20; C: stays near-full by decision. D: 70G and G: 90G remain free if this is revisited. Procedure is staged in scripts/relocate_model_stores.sh --plan."
+    },
+    {
+      "name": "adaptation-stack",
+      "status": "ok",
+      "detail": "8/8 import free-threaded"
+    }
+  ]
+}

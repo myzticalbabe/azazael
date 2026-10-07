@@ -10,10 +10,10 @@ list, plus the insights inferred from the census - lives in
 
 ## Scope
 
-- 1504 functions across the fabric, neural primitives, learning
+- 1512 functions across the fabric, neural primitives, learning
   and plasticity, and operational subsystems
-- 78 pass every automated probe; 1426 have at least one failure
-- P0 149 / P1 386 / P2 891
+- 77 pass every automated probe; 1435 have at least one failure
+- P0 150 / P1 387 / P2 898
 
 ## How to work this list
 
@@ -67,7 +67,7 @@ For each function, in this order:
 | PF01 | 0 |
 | PF02 | 704 |
 | PF03 | 349 |
-| PF04 | 1137 |
+| PF04 | 1145 |
 | PF05 | 0 |
 | PF06 | 0 |
 | PF07 | 0 |
@@ -77,10 +77,10 @@ For each function, in this order:
 | PF11 | 1 |
 | PF12 | 0 |
 | PF13 | 0 |
-| PF14 | 345 |
-| PF15 | 137 |
+| PF14 | 347 |
+| PF15 | 138 |
 | PF16 | 171 |
-| PF17 | 549 |
+| PF17 | 561 |
 | PF18 | 15 |
 | PF19 | 4 |
 | PF20 | 1 |
@@ -100,13 +100,13 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `exmachina:epistemic_report` L2352-2454 c=37 fail=PF15
   - [ ] M1-M6 manual pass
+- [ ] `learning_rl:RLTrainLoop.train_from_memory` L380-677 c=37 fail=PF04,PF14,PF15
+  - [ ] M1-M6 manual pass
 - [ ] `spine_registry:record_outcome` L1368-1572 c=36 fail=PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:MorphogenesisWorm.promote` L3741-3855 c=35 fail=PF04,PF14,PF15
+- [ ] `spine:MorphogenesisWorm.promote` L3736-3850 c=35 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_rl:RLTrainLoop.train_from_memory` L380-658 c=32 fail=PF04,PF14,PF15
-  - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:morph_dimension_summary` L756-862 c=30 fail=PF14,PF15,PF16
+- [ ] `proteus_hooks:morph_dimension_summary` L752-858 c=30 fail=PF14,PF15,PF16
   - [ ] M1-M6 manual pass
 - [ ] `spine_registry:purge_edges` L2333-2415 c=28 fail=PF14,PF15
   - [ ] M1-M6 manual pass
@@ -114,35 +114,37 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `exmachina:detect_gaming` L196-275 c=26 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine:SpineCycleWorm._metabolic_stage` L2486-2539 c=26 fail=PF04,PF14,PF15,PF17
+- [ ] `spine:SpineCycleWorm._metabolic_stage` L2481-2534 c=26 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `spine_registry:_load_trusted_keys` L3286-3332 c=24 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `evolution:EvolutionEngine.evaluate_population` L330-427 c=21 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_rl:RLTrainLoop.hyperparameter_tune` L659-813 c=20 fail=PF04,PF14,PF15
+- [ ] `learning_rl:RLTrainLoop.hyperparameter_tune` L678-832 c=20 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `threatmon:ThreatIntelMonitorWorm.check_health` L148-208 c=20 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
+- [ ] `learning_rl:RLTrainLoop.recommend` L914-960 c=19 fail=PF04,PF14,PF15
+  - [ ] M1-M6 manual pass
 - [ ] `mesh:PartitionHealerWorm.detect` L505-575 c=19 fail=PF02,PF04,PF09,PF14,PF15
+  - [ ] M1-M6 manual pass
+- [ ] `learning_grpo:GRPOTrainer.update_policy` L205-303 c=17 fail=PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `learning_pipeline:DataPipelineWorm.temporal_cross_validation` L442-540 c=17 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:SpineCycleWorm.__init__` L1709-1801 c=17 fail=PF02,PF03,PF04,PF14,PF15
+- [ ] `spine:SpineCycleWorm.__init__` L1704-1796 c=17 fail=PF02,PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:MorphogenesisWorm._opportunity_patterns` L3443-3526 c=17 fail=PF04,PF14,PF15
+- [ ] `spine:MorphogenesisWorm._opportunity_patterns` L3438-3521 c=17 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `spine_registry:reset_counters` L2132-2179 c=16 fail=PF14,PF15,PF16
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:cranium_decide` L137-247 c=16 fail=PF15
+- [ ] `proteus_hooks:cranium_decide` L138-248 c=16 fail=PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:SpineCycleWorm._anomaly_stage` L2433-2484 c=16 fail=PF04,PF14,PF15
+- [ ] `spine:SpineCycleWorm._anomaly_stage` L2428-2479 c=16 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `spine_registry:invalidate_q` L2062-2129 c=15 fail=PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_grpo:GRPOTrainer.update_policy` L205-296 c=15 fail=PF03,PF04,PF14,PF15
-  - [ ] M1-M6 manual pass
-- [ ] `spine:SpineCycleWorm._mesh_route_feedback` L2269-2368 c=15 fail=PF04,PF14,PF15
+- [ ] `spine:SpineCycleWorm._mesh_route_feedback` L2264-2363 c=15 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `NeuralPipeline:NeuralPipeline.run_cross_api_analysis` L600-665 c=14 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
@@ -158,9 +160,9 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `evolution:GeneticOptimizer.optimize` L1422-1485 c=12 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `learning_versioner:ModelVersioner.register_model` L80-124 c=11 fail=PF04,PF14,PF15
+- [ ] `learning_versioner:ModelVersioner.register_model` L101-145 c=11 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:SpineGossipWorm.exchange` L1078-1124 c=11 fail=PF04,PF14,PF15
+- [ ] `spine:SpineGossipWorm.exchange` L1071-1117 c=11 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `synapse:AttentionRouterWorm.attend` L495-526 c=11 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
@@ -168,9 +170,9 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `dreaming:DreamingModule._generate_policy_suggestions` L350-449 c=10 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:morph_record` L669-714 c=10 fail=PF14,PF15
+- [ ] `proteus_hooks:morph_record` L665-710 c=10 fail=PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:MeshArchitectWorm.apply` L1573-1600 c=10 fail=PF04,PF14,PF15
+- [ ] `spine:MeshArchitectWorm.apply` L1568-1595 c=10 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `spine_registry:_remember_gossip` L3458-3472 c=9 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
@@ -188,17 +190,17 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `mesh:MeshRouterWorm.send` L322-373 c=8 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:SpineCycleWorm._apply_plasticity` L2143-2180 c=8 fail=PF04,PF14,PF15
+- [ ] `spine:SpineCycleWorm._apply_plasticity` L2138-2175 c=8 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `synapse:MoEDispatcherWorm.dispatch` L212-239 c=8 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `NeuralPipeline:NeuralPipeline._llm_evaluate_worm` L494-550 c=7 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `spine_registry:publish_anomaly_model` L3556-3575 c=7 fail=PF18
+- [ ] `spine_registry:publish_anomaly_model` L3556-3575 c=7 fail=PF17,PF18
   - [ ] M1-M6 manual pass
 - [ ] `berks:_pams` L37-50 c=7 fail=PF02,PF03,PF14,PF18
   - [ ] M1-M6 manual pass
-- [ ] `learning_grpo:GRPOTrainer.select_best` L298-331 c=7 fail=PF04,PF14,PF15
+- [ ] `learning_grpo:GRPOTrainer.select_best` L305-338 c=7 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `nerve:Neuromodulator.get_params` L282-298 c=7 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -232,21 +234,21 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `evolution:EvolutionEngine._govern_evolution_gate` L730-747 c=6 fail=PF04,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `learning_grpo:ABTestRunner.record_preference` L548-601 c=6 fail=PF04,PF14,PF15
+- [ ] `learning_grpo:ABTestRunner.record_preference` L566-619 c=6 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `learning_pipeline:DataPipelineWorm.extract_field` L189-203 c=6 fail=PF04,PF15,PF16
   - [ ] M1-M6 manual pass
 - [ ] `learning_pipeline:DataPipelineWorm.extract_field._extract` L191-202 c=6 fail=PF02,PF03,PF04,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `learning_pipeline:refresh_dynamic_shapes` L698-735 c=6 fail=PF04,PF14,PF18
+- [ ] `learning_pipeline:refresh_dynamic_shapes` L722-759 c=6 fail=PF04,PF14,PF18
   - [ ] M1-M6 manual pass
 - [ ] `loom:intrinsic_dimension` L110-127 c=6 fail=PF14,PF15
   - [ ] M1-M6 manual pass
 - [ ] `mesh:MeshRouterWorm.record_route_result` L280-320 c=6 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:_load_allocator` L306-321 c=6 fail=PF02,PF14,PF15
+- [ ] `proteus_hooks:_load_allocator` L307-322 c=6 fail=PF02,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:_row_ab_delta` L717-735 c=6 fail=PF15,PF17
+- [ ] `proteus_hooks:_row_ab_delta` L713-731 c=6 fail=PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `race_detector:RaceConditionDetector.execute` L461-482 c=6 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -284,9 +286,9 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `session_state:SessionStateManager.execute` L551-587 c=5 fail=PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:PlasticityEngineWorm.__init__` L1239-1265 c=5 fail=PF02,PF03,PF04,PF14,PF15
+- [ ] `spine:PlasticityEngineWorm.__init__` L1232-1258 c=5 fail=PF02,PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `spine:SpineCycleWorm._record_beat` L1850-1881 c=5 fail=PF04,PF14,PF15,PF17
+- [ ] `spine:SpineCycleWorm._record_beat` L1845-1876 c=5 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `threatmon:_bus` L51-62 c=5 fail=PF02,PF03,PF18
   - [ ] M1-M6 manual pass
@@ -304,9 +306,9 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `db_monitor:DatabaseMonitorWorm._record_backup_event` L238-252 c=4 fail=PF03,PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `db_monitor:DatabaseMonitorWorm._record_snapshot` L420-446 c=4 fail=PF03,PF04,PF14,PF15,PF17
+- [ ] `db_monitor:DatabaseMonitorWorm._record_snapshot` L451-477 c=4 fail=PF03,PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `db_monitor:DatabaseMonitorWorm._record_alert` L482-505 c=4 fail=PF03,PF04,PF14,PF15,PF17
+- [ ] `db_monitor:DatabaseMonitorWorm._record_alert` L513-536 c=4 fail=PF03,PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `driver:GemmaDriverWorm.propose_goal` L100-125 c=4 fail=PF04,PF14,PF15,PF16,PF17
   - [ ] M1-M6 manual pass
@@ -334,7 +336,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `nerve:NerveTrainer._persist` L443-450 c=4 fail=PF02,PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
-- [ ] `proteus_hooks:_apply_explore_env` L324-333 c=4 fail=PF14,PF15,PF17
+- [ ] `proteus_hooks:_apply_explore_env` L325-334 c=4 fail=PF14,PF15,PF17
   - [ ] M1-M6 manual pass
 - [ ] `scheduling:ScheduledTrainingWorm.__init__` L150-165 c=4 fail=PF02,PF03,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
@@ -358,7 +360,7 @@ first.
   - [ ] M1-M6 manual pass
 - [ ] `code_audit:WeeklyCodeAuditWorm._loop` L183-189 c=3 fail=PF02,PF04,PF14,PF15
   - [ ] M1-M6 manual pass
-- [ ] `engram:shared_shards` L312-323 c=3 fail=PF17,PF18
+- [ ] `engram:shared_shards` L326-337 c=3 fail=PF17,PF18
   - [ ] M1-M6 manual pass
 - [ ] `error_recovery:ErrorRecoveryOrchestrator._execute_fallback` L206-226 c=3 fail=PF04,PF14,PF15,PF17
   - [ ] M1-M6 manual pass
@@ -395,20 +397,20 @@ first.
 
 - [ ] `exmachina:mutagenesis` L1701-1939 c=62 fail=PF14
 - [ ] `exmachina:organ_readings` L2174-2349 c=56 fail=PF14,PF17
-- [ ] `spine:SpineCycleWorm.run_cycle` L1883-2117 c=52 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm.run_cycle` L1878-2112 c=52 fail=PF04,PF14
 - [ ] `exmachina_operators:operator_report` L1010-1139 c=36 fail=PF14,PF16
-- [ ] `spine:SpineCycleWorm._fabric_resilience` L3177-3329 c=35 fail=PF04,PF14,PF17
-- [ ] `spine:ConsolidationWorm.consolidate` L3947-4057 c=32 fail=PF02,PF04,PF14
+- [ ] `spine:SpineCycleWorm._fabric_resilience` L3172-3324 c=35 fail=PF04,PF14,PF17
+- [ ] `spine:ConsolidationWorm.consolidate` L3942-4052 c=32 fail=PF02,PF04,PF14
 - [ ] `spine_registry:purge_implausible_stamps` L3067-3142 c=30 fail=PF14,PF16
 - [ ] `learning_features:SchemaAwareFeatureExtractor.extract` L227-325 c=28 fail=PF04
 - [ ] `meta_cognition:MetaCognitionWorm.adapt_strategy` L357-498 c=26 fail=PF04,PF17
-- [ ] `spine:SpineMapperWorm.map_topology` L290-409 c=25 fail=PF02,PF04,PF14
-- [ ] `spine:SpineCycleWorm._fabric_servemesh` L2838-2906 c=25 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._fabric_servemesh` L2833-2901 c=25 fail=PF04,PF14
+- [ ] `spine_registry:_valid_anomaly_model` L3513-3553 c=24 fail=PF17
 - [ ] `evolution:EvolutionEngine.optimize_multi_objective` L1177-1330 c=24 fail=PF04,PF21
 - [ ] `spine_registry:check_gossip_trust` L3347-3455 c=23 fail=PF14
-- [ ] `spine:SpineCycleWorm._fabric_federated` L2990-3061 c=23 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._fabric_consensus` L2908-2988 c=22 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._fabric_variation` L3063-3175 c=22 fail=PF04,PF14,PF17
+- [ ] `spine:SpineCycleWorm._fabric_federated` L2985-3056 c=23 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._fabric_consensus` L2903-2983 c=22 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._fabric_variation` L3058-3170 c=22 fail=PF04,PF14,PF17
 - [ ] `tensorgene:boruta_relevance` L89-170 c=22 fail=PF14,PF16
 - [ ] `chorus:_apply` L202-262 c=21 fail=PF14,PF17
 - [ ] `dreaming:DreamingModule._mine_historical_recovery_patterns` L535-614 c=21 fail=PF04,PF14,PF17
@@ -417,86 +419,87 @@ first.
 - [ ] `meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation` L857-974 c=21 fail=PF04,PF16
 - [ ] `meta_cognition:MetaCognitionWorm.detect_anomalies` L748-853 c=20 fail=PF04
 - [ ] `race_detector:RaceConditionDetector.detect_thread_imports` L354-409 c=20 fail=PF04,PF14
+- [ ] `spine:SpineMapperWorm.map_topology` L291-402 c=20 fail=PF02,PF04,PF14
 - [ ] `dreaming:DreamingModule._mine_error_recovery_patterns` L450-533 c=19 fail=PF04
 - [ ] `learning_pipeline:DataPipelineWorm.auto_discover_shapes` L602-676 c=19 fail=PF04
 - [ ] `db_monitor:DatabaseMonitorWorm.check_health` L256-402 c=18 fail=PF04,PF14
 - [ ] `evolution:EvolutionEngine._levy_mutate` L682-728 c=18 fail=PF04
 - [ ] `mesh:GossipSyncWorm.gossip` L426-479 c=18 fail=PF04,PF14
-- [ ] `proteus_hooks:morph_free_growth` L937-1027 c=18 fail=PF14,PF17
-- [ ] `spine:SpineCycleWorm._route_synapse_layer` L2210-2267 c=18 fail=PF04,PF14,PF17
+- [ ] `proteus_hooks:morph_free_growth` L933-1023 c=18 fail=PF14,PF17
+- [ ] `spine:SpineCycleWorm._route_synapse_layer` L2205-2262 c=18 fail=PF04,PF14,PF17
 - [ ] `dreaming:DreamingModule.run_dreaming_pipeline` L792-887 c=17 fail=PF04,PF14,PF17
 - [ ] `evolution:EvolutionEngine._sbx_crossover` L545-591 c=17 fail=PF04
 - [ ] `oracle:build_dataset` L478-512 c=17 fail=PF03,PF04,PF14
 - [ ] `scheduling:ScheduledTrainingWorm._plateau_skip_reason` L258-304 c=17 fail=PF04,PF14
 - [ ] `scheduling:ScheduledTrainingWorm.execute` L306-484 c=17 fail=PF04,PF14
 - [ ] `scheduling:TrainingOrchestrator.execute` L896-1018 c=17 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._publish_local_shards` L2756-2807 c=17 fail=PF04,PF14,PF17
+- [ ] `spine:SpineCycleWorm._publish_local_shards` L2751-2802 c=17 fail=PF04,PF14,PF17
 - [ ] `learning_features:SchemaAwareFeatureExtractor.fit` L188-226 c=16 fail=PF03,PF04
-- [ ] `spine:HomeostatWorm.cycle` L484-556 c=16 fail=PF02,PF04
+- [ ] `spine:HomeostatWorm.cycle` L477-549 c=16 fail=PF02,PF04
 - [ ] `berks:BerksMonitorWorm._check_one` L116-173 c=15 fail=PF02,PF04,PF14,PF17
 - [ ] `consensus:LeaderElectorWorm.apply_placement` L183-226 c=15 fail=PF04,PF14
 - [ ] `dreaming:DreamingModule.dream` L194-305 c=15 fail=PF04,PF17
 - [ ] `evolution:EvolutionEngine.initialize_population` L268-328 c=15 fail=PF04
 - [ ] `fabric_state:hydrate` L115-151 c=15 fail=PF14,PF17
 - [ ] `federated:FederatedAggregatorWorm.aggregate` L111-181 c=15 fail=PF04
-- [ ] `spine:SpineCycleWorm._anomaly_metrics` L2370-2431 c=15 fail=PF04,PF14,PF17
+- [ ] `spine:SpineCycleWorm._anomaly_metrics` L2365-2426 c=15 fail=PF04,PF14,PF17
 - [ ] `dreaming:HypnagogicSynthesizer.synthesize` L1033-1110 c=14 fail=PF04,PF17
 - [ ] `evolution:EvolutionEngine._polynomial_mutate` L612-646 c=14 fail=PF04
 - [ ] `exmachina:dfa` L851-902 c=14 fail=PF17
-- [ ] `proteus_hooks:morph_rotation_retired` L1083-1126 c=14 fail=PF17
-- [ ] `spine:PlasticityEngineWorm.learn` L1268-1325 c=14 fail=PF04
-- [ ] `spine:SpineCycleWorm._model_fork_reports` L2809-2836 c=14 fail=PF04,PF14
+- [ ] `proteus_hooks:morph_rotation_retired` L1079-1122 c=14 fail=PF17
+- [ ] `spine:PlasticityEngineWorm.learn` L1261-1318 c=14 fail=PF04
+- [ ] `spine:SpineCycleWorm._model_fork_reports` L2804-2831 c=14 fail=PF04,PF14
+- [ ] `engram:_VectorIndex._ensure_backend` L135-174 c=13 fail=PF04,PF14,PF17
 - [ ] `exmachina:_switch_resolver` L1542-1581 c=13 fail=PF14
 - [ ] `glia:AstrocyteWorm.sweep` L35-60 c=13 fail=PF02,PF04,PF14
 - [ ] `learning_rl:_compute_reward` L105-172 c=13 fail=PF17
 - [ ] `loom:spectral_summary` L153-193 c=13 fail=PF14
 - [ ] `race_detector:RaceConditionDetector.detect_data_races` L293-352 c=13 fail=PF04
-- [ ] `spine:RedQueenWorm.pressure_probe` L825-890 c=13 fail=PF04
-- [ ] `spine:MeshArchitectWorm.propose` L1517-1569 c=13 fail=PF04
+- [ ] `spine:RedQueenWorm.pressure_probe` L818-883 c=13 fail=PF04
+- [ ] `spine:MeshArchitectWorm.propose` L1511-1564 c=13 fail=PF04
 - [ ] `spine_registry:_gossip_crypto` L3212-3264 c=12 fail=PF03,PF14,PF17
-- [ ] `db_monitor:DatabaseMonitorWorm._recently_alerted` L448-480 c=12 fail=PF04,PF14,PF17
-- [ ] `engram:_VectorIndex._rebuild` L162-193 c=12 fail=PF04,PF14,PF17
+- [ ] `db_monitor:DatabaseMonitorWorm._recently_alerted` L479-511 c=12 fail=PF04,PF14,PF17
+- [ ] `engram:_VectorIndex._rebuild` L176-207 c=12 fail=PF04,PF14,PF17
 - [ ] `evidence:evidence_from_rows` L247-274 c=12 fail=PF14,PF16,PF17
 - [ ] `evolution:EvolutionEngine._compute_population_diversity` L804-845 c=12 fail=PF04
 - [ ] `exmachina:feature_keys` L756-787 c=12 fail=PF17
 - [ ] `exmachina:invariance_report` L972-1023 c=12 fail=PF17
 - [ ] `exmachina:_inert_resolver` L1584-1628 c=12 fail=PF14,PF17
 - [ ] `exmachina_operators:rank_candidates` L963-1003 c=12 fail=PF14,PF16
-- [ ] `learning_rl:RLTrainLoop.tune_history` L895-948 c=12 fail=PF04,PF14,PF16
+- [ ] `learning_rl:RLTrainLoop.tune_history` L962-1015 c=12 fail=PF04,PF14,PF16
 - [ ] `meta_cognition:MetaCognitionWorm.load_state` L694-744 c=12 fail=PF04,PF14,PF17
-- [ ] `proteus_hooks:morph_rotation_verdict` L1043-1080 c=12 fail=PF17
-- [ ] `proteus_hooks:morph_policy_refresh` L1194-1259 c=12 fail=PF16,PF17
+- [ ] `proteus_hooks:morph_rotation_verdict` L1039-1076 c=12 fail=PF17
+- [ ] `proteus_hooks:morph_policy_refresh` L1190-1255 c=12 fail=PF16,PF17
 - [ ] `session_state:SessionStateManager.snapshot_worm` L277-332 c=12 fail=PF04,PF14,PF17
 - [ ] `session_state:SessionStateManager.restore_worm` L386-433 c=12 fail=PF04,PF14,PF17
-- [ ] `spine:RedQueenWorm._probe_candidates` L677-750 c=12 fail=PF04,PF14
-- [ ] `spine:RedQueenWorm.order_quarantine` L892-938 c=12 fail=PF04
+- [ ] `spine:RedQueenWorm._probe_candidates` L670-743 c=12 fail=PF04,PF14
+- [ ] `spine:RedQueenWorm.order_quarantine` L885-931 c=12 fail=PF04
 - [ ] `synapse:MoEDispatcherWorm.dispatch_cascade` L258-308 c=12 fail=PF04,PF14,PF16
 - [ ] `container:ComposeValidator.validate` L109-132 c=11 fail=PF04,PF14,PF19
 - [ ] `error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery` L89-204 c=11 fail=PF04,PF14,PF16
-- [ ] `learning_grpo:ABTestRunner.load_pairs` L485-532 c=11 fail=PF04,PF14,PF17
+- [ ] `learning_grpo:ABTestRunner.load_pairs` L503-550 c=11 fail=PF04,PF14,PF17
 - [ ] `learning_replay:PrioritizedReplayBuffer.add_from_memories` L163-226 c=11 fail=PF04,PF16
 - [ ] `oracle:era_descriptor` L60-92 c=11 fail=PF14,PF17
-- [ ] `spine:SpineCycleWorm._provider_key_state` L2709-2754 c=11 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._provider_key_state` L2704-2749 c=11 fail=PF04,PF14
 - [ ] `NeuralPipeline:NeuralPipeline.run_end_to_end` L207-349 c=10 fail=PF04,PF14,PF17
 - [ ] `spine_registry:publish_fabric_state` L870-907 c=10 fail=PF14
 - [ ] `chorus:parse_proposals` L174-199 c=10 fail=PF14
 - [ ] `code_audit:WeeklyCodeAuditWorm._scan` L73-104 c=10 fail=PF04,PF14
 - [ ] `driver:GemmaDriverWorm._judge_once` L152-180 c=10 fail=PF04,PF14,PF17
-- [ ] `engram:_VectorIndex._ensure_backend` L135-160 c=10 fail=PF04,PF14,PF17
 - [ ] `fabric_state:publish` L154-180 c=10 fail=PF14
 - [ ] `learning_grpo:GRPOTrainer.compute_group_rewards` L128-183 c=10 fail=PF04,PF14,PF17
 - [ ] `race_detector:RaceConditionDetector.instrument_worm` L117-177 c=10 fail=PF04,PF16
 - [ ] `spine_registry:purge_implausible_stamps._fix` L3091-3109 c=9 fail=PF02,PF14
 - [ ] `chaos:ChaosWorm.drill` L42-71 c=9 fail=PF04,PF14,PF17
 - [ ] `driver:GemmaDriverWorm.judge_dream` L182-199 c=9 fail=PF04,PF16,PF17
-- [ ] `engram:RecallRouterWorm.route_recall` L344-371 c=9 fail=PF02,PF04,PF16
-- [ ] `engram:DreamConsolidatorWorm.consolidate` L469-491 c=9 fail=PF02,PF04,PF14
+- [ ] `engram:RecallRouterWorm.route_recall` L358-385 c=9 fail=PF02,PF04,PF16
+- [ ] `engram:DreamConsolidatorWorm.consolidate` L483-505 c=9 fail=PF02,PF04,PF14
 - [ ] `immune:AttestationWorm.attest_file` L237-262 c=9 fail=PF02,PF04,PF14,PF17
-- [ ] `learning_grpo:GRPOTrainer.load_policy` L393-423 c=9 fail=PF04,PF14,PF17
-- [ ] `spine:RedQueenWorm._run_probe` L752-799 c=9 fail=PF04,PF14,PF17
-- [ ] `spine:MeshArchitectWorm._nature_rates` L1492-1513 c=9 fail=PF04,PF14,PF17
-- [ ] `spine:SpineCycleWorm._nature_rates` L2564-2584 c=9 fail=PF04,PF14,PF17
-- [ ] `spine:MorphogenesisWorm.retrieve_staged` L3708-3739 c=9 fail=PF04,PF16
+- [ ] `learning_grpo:GRPOTrainer.load_policy` L400-430 c=9 fail=PF04,PF14,PF17
+- [ ] `spine:RedQueenWorm._run_probe` L745-792 c=9 fail=PF04,PF14,PF17
+- [ ] `spine:MeshArchitectWorm._nature_rates` L1486-1507 c=9 fail=PF04,PF14,PF17
+- [ ] `spine:SpineCycleWorm._nature_rates` L2559-2579 c=9 fail=PF04,PF14,PF17
+- [ ] `spine:MorphogenesisWorm.retrieve_staged` L3703-3734 c=9 fail=PF04,PF16
 - [ ] `NeuralPipeline:NeuralPipeline._augment_rewards` L552-596 c=8 fail=PF04,PF14,PF17
 - [ ] `spine_registry:_stamp_newer` L821-867 c=8 fail=PF14
 - [ ] `spine_registry:audit_state` L2218-2271 c=8 fail=PF16
@@ -511,31 +514,32 @@ first.
 - [ ] `exmachina:novelty_ncd` L313-334 c=8 fail=PF14,PF16,PF17
 - [ ] `exmachina:row_data` L678-698 c=8 fail=PF14,PF17
 - [ ] `glia:MicrogliaWorm.check_path` L113-136 c=8 fail=PF04,PF16,PF17
-- [ ] `metabolic:PowerBudgetWorm.sample_load` L66-91 c=8 fail=PF04,PF14
+- [ ] `metabolic:PowerBudgetWorm.sample_load` L66-91 c=8 fail=PF04,PF14,PF17
 - [ ] `nerve:Neuromodulator.__init__` L218-252 c=8 fail=PF02,PF03,PF04,PF14
 - [ ] `profiling:MemoryLeakDetector.compare_snapshots` L111-124 c=8 fail=PF04,PF16,PF17
 - [ ] `race_detector:RaceConditionDetector._detect_shared_attrs` L261-284 c=8 fail=PF04,PF14,PF17
 - [ ] `scheduling:ScheduleConfig.apply_evolved_overrides` L62-108 c=8 fail=PF04,PF14,PF17
 - [ ] `servemesh:ProviderFailoverMeshWorm.probe_due` L361-386 c=8 fail=PF04,PF14
 - [ ] `servemesh:ProviderFailoverMeshWorm.reprobe` L504-537 c=8 fail=PF04,PF14
-- [ ] `spine:MeshArchitectWorm.load` L1644-1662 c=8 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._self_image_stale` L1810-1848 c=8 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._topology_stage` L2541-2562 c=8 fail=PF04,PF14,PF17
-- [ ] `spine:SpineCycleWorm._route_observation` L2589-2610 c=8 fail=PF04,PF14,PF17
-- [ ] `spine:MorphogenesisWorm._stage` L3610-3650 c=8 fail=PF04,PF14
+- [ ] `spine:MeshArchitectWorm.load` L1639-1657 c=8 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._self_image_stale` L1805-1843 c=8 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._topology_stage` L2536-2557 c=8 fail=PF04,PF14,PF17
+- [ ] `spine:SpineCycleWorm._route_observation` L2584-2605 c=8 fail=PF04,PF14,PF17
+- [ ] `spine:MorphogenesisWorm._stage` L3605-3645 c=8 fail=PF04,PF14
 - [ ] `visualization:ReportCompiler.compile_html` L138-160 c=8 fail=PF04,PF16,PF17
 - [ ] `spine_registry:q_stale_discount` L1871-1892 c=7 fail=PF14,PF17
 - [ ] `consensus:QuorumVoterWorm.vote` L78-112 c=7 fail=PF02,PF04,PF14
 - [ ] `db_monitor:DatabaseMonitorWorm.create_backup` L201-236 c=7 fail=PF04,PF14,PF16
+- [ ] `db_monitor:DatabaseMonitorWorm._policy_advice` L420-447 c=7 fail=PF04,PF14,PF16
 - [ ] `envmesh:BarePassthroughWorm.probe_ssh` L190-203 c=7 fail=PF02,PF04,PF14,PF17
 - [ ] `exmachina:_read_jsonl` L431-445 c=7 fail=PF02,PF14,PF17
 - [ ] `federated:_age_seconds` L41-57 c=7 fail=PF14,PF17
-- [ ] `learning_grpo:GRPOTrainer.save_policy` L347-391 c=7 fail=PF04,PF14,PF17
+- [ ] `learning_grpo:GRPOTrainer.save_policy` L354-398 c=7 fail=PF04,PF14,PF17
 - [ ] `loom:descriptors_from_archive` L309-325 c=7 fail=PF16
 - [ ] `metabolic:ThermalThrottleWorm._temp_from_psutil` L173-187 c=7 fail=PF04,PF14,PF17
 - [ ] `nerve:_LazyTorch.get` L136-160 c=7 fail=PF03,PF04,PF14
-- [ ] `spine:SpineCycleWorm._gate_salience` L2182-2208 c=7 fail=PF04,PF14,PF17
-- [ ] `spine:SpineCycleWorm._process_morphogenesis_output` L2612-2661 c=7 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._gate_salience` L2177-2203 c=7 fail=PF04,PF14,PF17
+- [ ] `spine:SpineCycleWorm._process_morphogenesis_output` L2607-2656 c=7 fail=PF04,PF14
 - [ ] `spine_registry:_rec_stamp` L767-786 c=6 fail=PF14
 - [ ] `config:ConfigLinter.lint_json` L52-65 c=6 fail=PF04,PF16
 - [ ] `config:EnvValidator.scan_env_files` L93-111 c=6 fail=PF04,PF16
@@ -547,14 +551,14 @@ first.
 - [ ] `mesh:PartitionHealerWorm._registry_execute` L578-594 c=6 fail=PF14,PF17
 - [ ] `meta_cognition:MetaCognitionWorm._get_store` L166-181 c=6 fail=PF03,PF04,PF14
 - [ ] `migration:DepUpgrader.parse_requirements` L93-109 c=6 fail=PF04,PF16,PF17
-- [ ] `proteus_hooks:circulation_update` L357-379 c=6 fail=PF14
-- [ ] `proteus_hooks:morph_treatment_value` L600-614 c=6 fail=PF16
+- [ ] `proteus_hooks:circulation_update` L358-380 c=6 fail=PF14
+- [ ] `proteus_hooks:morph_treatment_value` L596-610 c=6 fail=PF16
 - [ ] `servemesh:ProviderFailoverMeshWorm._http_probe` L482-502 c=6 fail=PF04,PF14,PF17
-- [ ] `spine:RedQueenWorm._hostile_probe` L801-823 c=6 fail=PF04,PF14,PF17
-- [ ] `spine:PlasticityEngineWorm._modulation` L1337-1351 c=6 fail=PF04,PF14,PF17
-- [ ] `spine:PlasticityEngineWorm.consolidate` L1361-1382 c=6 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._governance_stage` L2119-2141 c=6 fail=PF04,PF14,PF17
-- [ ] `spine:measure_skill_lift` L3862-3881 c=6 fail=PF16
+- [ ] `spine:RedQueenWorm._hostile_probe` L794-816 c=6 fail=PF04,PF14,PF17
+- [ ] `spine:PlasticityEngineWorm._modulation` L1330-1344 c=6 fail=PF04,PF14,PF17
+- [ ] `spine:PlasticityEngineWorm.consolidate` L1354-1375 c=6 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._governance_stage` L2114-2136 c=6 fail=PF04,PF14,PF17
+- [ ] `spine:measure_skill_lift` L3857-3876 c=6 fail=PF16
 - [ ] `spine_registry:_fabric_field_stamp` L749-764 c=5 fail=PF14,PF17
 - [ ] `spine_registry:get_q_evidence` L2029-2059 c=5 fail=PF16
 - [ ] `backup:StateSnapshotter.create_snapshot` L54-71 c=5 fail=PF04,PF14,PF17
@@ -566,18 +570,18 @@ first.
 - [ ] `federated:RewardShaperMeshWorm.local_score` L313-329 c=5 fail=PF04,PF16,PF17
 - [ ] `immune:ImmuneSentinelWorm._load_ebpf` L64-81 c=5 fail=PF02,PF04,PF14,PF17
 - [ ] `learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report` L342-389 c=5 fail=PF04,PF16
-- [ ] `learning_rl:RLTrainLoop.train_episode` L866-885 c=5 fail=PF04,PF14,PF16
+- [ ] `learning_rl:RLTrainLoop.train_episode` L885-904 c=5 fail=PF04,PF14,PF16
 - [ ] `metabolic:ThermalThrottleWorm.sample_c` L189-197 c=5 fail=PF02,PF04,PF14,PF17,PF19
 - [ ] `morph:structural_mutate` L335-354 c=5 fail=PF14
 - [ ] `nerve:Neuromodulator.modulations` L266-279 c=5 fail=PF04,PF14
 - [ ] `nerve:NerveTrainer.step` L408-441 c=5 fail=PF04,PF14
-- [ ] `proteus_hooks:row_payload` L88-102 c=5 fail=PF14
+- [ ] `proteus_hooks:row_payload` L89-103 c=5 fail=PF14
 - [ ] `race_detector:RaceConditionDetector.uninstrument_worm` L223-259 c=5 fail=PF04,PF16
 - [ ] `scheduling:ScheduledDbMonitorWorm.execute` L640-703 c=5 fail=PF04,PF14
 - [ ] `servemesh:InferenceLoadBalancerWorm._is_open` L133-150 c=5 fail=PF04,PF14,PF17
 - [ ] `servemesh:ProviderFailoverMeshWorm._is_open` L350-359 c=5 fail=PF02,PF04,PF14,PF17
-- [ ] `spine:RedQueenWorm._queen_check` L665-675 c=5 fail=PF02,PF04,PF14,PF17
-- [ ] `spine:MorphogenesisWorm.morph` L3652-3692 c=5 fail=PF04,PF14
+- [ ] `spine:RedQueenWorm._queen_check` L658-668 c=5 fail=PF02,PF04,PF14,PF17
+- [ ] `spine:MorphogenesisWorm.morph` L3647-3687 c=5 fail=PF04,PF14
 - [ ] `synapse:MoEDispatcherWorm.available_experts` L198-210 c=5 fail=PF04,PF14
 - [ ] `telemetry:LogStreamer.read_new_lines` L138-154 c=5 fail=PF04,PF16,PF17
 - [ ] `tensorgene:row_payload` L63-80 c=5 fail=PF14
@@ -603,10 +607,10 @@ first.
 - [ ] `mesh:PartitionHealerWorm.heal` L596-614 c=4 fail=PF04,PF14,PF17
 - [ ] `morph:Genome.to_trainer_kwargs` L248-266 c=4 fail=PF04,PF16
 - [ ] `nerve:Neuromodulator.load` L341-350 c=4 fail=PF02,PF04,PF14
-- [ ] `proteus_hooks:_binomial_tail` L889-906 c=4 fail=PF14,PF17
+- [ ] `proteus_hooks:_binomial_tail` L885-902 c=4 fail=PF14,PF17
 - [ ] `servemesh:ProviderFailoverMeshWorm._resolve_chain` L426-451 c=4 fail=PF03,PF04,PF14,PF17
 - [ ] `servemesh:ProviderFailoverMeshWorm._registry_base_url` L473-479 c=4 fail=PF02,PF14,PF17
-- [ ] `spine:MeshArchitectWorm._observed_edges` L1475-1481 c=4 fail=PF02,PF04,PF14,PF17
+- [ ] `spine:MeshArchitectWorm._observed_edges` L1468-1474 c=4 fail=PF02,PF04,PF14,PF17
 - [ ] `synapse:MoEDispatcherWorm.get_expert` L241-251 c=4 fail=PF03,PF04,PF14
 - [ ] `telemetry:AlertEscalator.check_threshold` L208-219 c=4 fail=PF04,PF16,PF17
 - [ ] `tensorgene:dedupe_observations` L212-234 c=4 fail=PF16
@@ -626,12 +630,12 @@ first.
 - [ ] `federated:RewardShaperMeshWorm._load_reward_model` L302-311 c=3 fail=PF02,PF04,PF14,PF17
 - [ ] `glia:MicrogliaWorm._load_density` L102-111 c=3 fail=PF02,PF04,PF14,PF17
 - [ ] `glia:EpendymalWorm.scan` L164-175 c=3 fail=PF02,PF04,PF09
-- [ ] `learning_features:FeatureEngineer.one_hot_encode` L415-423 c=3 fail=PF04,PF16
-- [ ] `learning_features:FeatureEngineer.impute_missing` L425-431 c=3 fail=PF04,PF16
+- [ ] `learning_features:FeatureEngineer.one_hot_encode` L434-442 c=3 fail=PF04,PF16
+- [ ] `learning_features:FeatureEngineer.impute_missing` L444-450 c=3 fail=PF04,PF16
 - [ ] `learning_pipeline:DataPipelineWorm.transform` L179-188 c=3 fail=PF04,PF14
 - [ ] `learning_pipeline:DataPipelineWorm.process_batches` L262-273 c=3 fail=PF04,PF14,PF16
 - [ ] `learning_rl:_schema_state_key` L42-54 c=3 fail=PF04,PF16
-- [ ] `learning_versioner:ModelVersioner.compare_versions` L125-139 c=3 fail=PF04,PF16,PF17
+- [ ] `learning_versioner:ModelVersioner.compare_versions` L146-160 c=3 fail=PF04,PF16,PF17
 - [ ] `mesh:_bounded_exists` L15-45 c=3 fail=PF09,PF14,PF17
 - [ ] `mesh:_read_text` L125-130 c=3 fail=PF02,PF14,PF17,PF19
 - [ ] `mesh:MeshRouterWorm.invalidate_route` L258-278 c=3 fail=PF04,PF14,PF16,PF17
@@ -645,8 +649,8 @@ first.
 - [ ] `servemesh:ProviderFailoverMeshWorm._breaker` L318-327 c=3 fail=PF02,PF03,PF04,PF14
 - [ ] `session_state:SessionStateManager.import_snapshots` L511-533 c=3 fail=PF04,PF16,PF17
 - [ ] `spine:get_anomaly_meta` L95-102 c=3 fail=PF14,PF17
-- [ ] `spine:_local_env` L236-250 c=3 fail=PF14
-- [ ] `spine:SpineCycleWorm._fabric_stage` L2680-2693 c=3 fail=PF04,PF14
+- [ ] `spine:_local_env` L237-251 c=3 fail=PF14
+- [ ] `spine:SpineCycleWorm._fabric_stage` L2675-2688 c=3 fail=PF04,PF14
 - [ ] `telemetry:SpanTracer.end_span` L64-73 c=3 fail=PF04,PF16,PF17
 - [ ] `telemetry:MetricAggregator.get_snapshot` L108-115 c=3 fail=PF04,PF16
 - [ ] `visualization:TimelineViz.to_timeline_html` L214-231 c=3 fail=PF04,PF16,PF17
@@ -691,13 +695,13 @@ first.
 - [ ] `security:PortAuditor.audit_exposure` L111-119 c=2 fail=PF04,PF16,PF17
 - [ ] `servemesh:_breaker_state` L69-74 c=2 fail=PF14,PF17
 - [ ] `session_state:SessionStateManager.register_migration` L197-226 c=2 fail=PF04,PF16,PF17
-- [ ] `spine:_tuned` L214-219 c=2 fail=PF02,PF14,PF17
-- [ ] `spine:_tuned_int` L222-226 c=2 fail=PF02,PF14,PF17
-- [ ] `spine:_tuned_float` L229-233 c=2 fail=PF02,PF14,PF17
-- [ ] `spine:RedQueenWorm._run_probe._run` L771-775 c=2 fail=PF02,PF04,PF14
-- [ ] `spine:PlasticityEngineWorm._dt_ms` L1328-1335 c=2 fail=PF14
-- [ ] `spine:MeshArchitectWorm.save` L1627-1642 c=2 fail=PF04,PF14
-- [ ] `spine:SpineCycleWorm._provider_alias` L2702-2706 c=2 fail=PF02,PF04,PF14,PF17
+- [ ] `spine:_tuned` L215-220 c=2 fail=PF02,PF14,PF17
+- [ ] `spine:_tuned_int` L223-227 c=2 fail=PF02,PF14,PF17
+- [ ] `spine:_tuned_float` L230-234 c=2 fail=PF02,PF14,PF17
+- [ ] `spine:RedQueenWorm._run_probe._run` L764-768 c=2 fail=PF02,PF04,PF14
+- [ ] `spine:PlasticityEngineWorm._dt_ms` L1321-1328 c=2 fail=PF14
+- [ ] `spine:MeshArchitectWorm.save` L1622-1637 c=2 fail=PF04,PF14
+- [ ] `spine:SpineCycleWorm._provider_alias` L2697-2701 c=2 fail=PF02,PF04,PF14,PF17
 - [ ] `synapse:MoEDispatcherWorm.top_expert` L253-256 c=2 fail=PF03,PF04,PF16,PF17
 - [ ] `synapse:SSMSequenceWorm.train_error` L450-453 c=2 fail=PF04,PF16
 - [ ] `telemetry:LogStreamer.watch_file` L129-136 c=2 fail=PF04,PF16,PF17
@@ -708,7 +712,6 @@ first.
 - [ ] `xenomorph:OvomorphWorm.hatch` L102-109 c=2 fail=PF02,PF04,PF16,PF17
 - [ ] `xenomorph:ResinWorm.secrete` L410-418 c=2 fail=PF02,PF04,PF09,PF16,PF17
 - [ ] `spine_registry:get_policy_latest` L522-525 c=1 fail=PF16
-- [ ] `spine_registry:get_q_updates` L1765-1783 c=1 fail=PF16
 - [ ] `spine_registry:get_q_variance` L1895-1906 c=1 fail=PF16,PF17
 - [ ] `spine_registry:q_confidence` L1983-2003 c=1 fail=PF16,PF17
 - [ ] `spine_registry:homeostat_reset` L2949-2953 c=1 fail=PF16
@@ -744,7 +747,7 @@ first.
 - [ ] `learning_pipeline:DataPipelineWorm.filter_by_severity` L204-208 c=1 fail=PF04,PF16
 - [ ] `learning_pipeline:DataPipelineWorm.filter_by_source` L209-213 c=1 fail=PF04,PF16
 - [ ] `learning_pipeline:DataPipelineWorm.load_to_memory` L246-254 c=1 fail=PF03,PF04,PF16
-- [ ] `learning_rl:RLTrainLoop.tune_and_train` L815-864 c=1 fail=PF04,PF16
+- [ ] `learning_rl:RLTrainLoop.tune_and_train` L834-883 c=1 fail=PF04,PF16
 - [ ] `migration:SchemaVersioner.register_schema` L136-141 c=1 fail=PF02,PF03,PF04,PF16,PF17
 - [ ] `migration:SchemaVersioner.detect_breaking_changes` L143-151 c=1 fail=PF04,PF16,PF17
 - [ ] `migration:ImportPathFixWorm.add_mapping` L168-170 c=1 fail=PF02,PF03,PF04,PF16,PF17
@@ -778,7 +781,7 @@ first.
 - [ ] `migration:LegacyShimGen.generate_shim` L203-213 c=0 fail=PF04,PF16,PF17
 - [ ] `oracle:FitnessOracle.acquisition` L252-255 c=0 fail=PF04,PF16,PF17
 - [ ] `security:CertMonitor.get_expiring_soon` L157-159 c=0 fail=PF04,PF16,PF17
-- [ ] `spine:SpineCycleWorm._nature_success_rate` L2586-2587 c=0 fail=PF02,PF04,PF16,PF17
+- [ ] `spine:SpineCycleWorm._nature_success_rate` L2581-2582 c=0 fail=PF02,PF04,PF16,PF17
 
 ## Full inventory
 
@@ -1036,219 +1039,219 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `get_anomaly_meta` L95-102 c=3 p=0 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_tuned` L214-219 c=2 p=2 auto=PF02,PF14,PF17
+- [ ] `_tuned` L215-220 c=2 p=2 auto=PF02,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_tuned_int` L222-226 c=2 p=2 auto=PF02,PF14,PF17
+- [ ] `_tuned_int` L223-227 c=2 p=2 auto=PF02,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_tuned_float` L229-233 c=2 p=2 auto=PF02,PF14,PF17
+- [ ] `_tuned_float` L230-234 c=2 p=2 auto=PF02,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_local_env` L236-250 c=3 p=0 auto=PF14
+- [ ] `_local_env` L237-251 c=3 p=0 auto=PF14
   - [ ] manual M1-M6
-- [ ] `SpineMapperWorm.__init__` L280-288 c=0 p=2 auto=PF02,PF03,PF04
+- [ ] `SpineMapperWorm.__init__` L281-289 c=0 p=2 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `SpineMapperWorm.map_topology` L290-409 c=25 p=1 auto=PF02,PF04,PF14
+- [ ] `SpineMapperWorm.map_topology` L291-402 c=20 p=1 auto=PF02,PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineMapperWorm.execute` L411-413 c=0 p=1 auto=PF02,PF04
+- [ ] `SpineMapperWorm.execute` L404-406 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `HomeostatWorm.__init__` L471-474 c=1 p=1 auto=PF02,PF03,PF04
+- [ ] `HomeostatWorm.__init__` L464-467 c=1 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `HomeostatWorm._adjust_cooldown` L476-479 c=0 p=3 auto=PF02,PF04,PF17
+- [ ] `HomeostatWorm._adjust_cooldown` L469-472 c=0 p=3 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `HomeostatWorm._clamp_priority` L481-482 c=0 p=3 auto=PF02,PF04,PF17
+- [ ] `HomeostatWorm._clamp_priority` L474-475 c=0 p=3 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `HomeostatWorm.cycle` L484-556 c=16 p=2 auto=PF02,PF04
+- [ ] `HomeostatWorm.cycle` L477-549 c=16 p=2 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `HomeostatWorm.execute` L558-560 c=0 p=1 auto=PF02,PF04
+- [ ] `HomeostatWorm.execute` L551-553 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm.__init__` L643-663 c=1 p=1 auto=PF02,PF03,PF04
+- [ ] `RedQueenWorm.__init__` L636-656 c=1 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm._queen_check` L665-675 c=5 p=1 auto=PF02,PF04,PF14,PF17
+- [ ] `RedQueenWorm._queen_check` L658-668 c=5 p=1 auto=PF02,PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm._probe_candidates` L677-750 c=12 p=3 auto=PF04,PF14
+- [ ] `RedQueenWorm._probe_candidates` L670-743 c=12 p=3 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm._run_probe` L752-799 c=9 p=2 auto=PF04,PF14,PF17
+- [ ] `RedQueenWorm._run_probe` L745-792 c=9 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm._run_probe._run` L771-775 c=2 p=2 auto=PF02,PF04,PF14
+- [ ] `RedQueenWorm._run_probe._run` L764-768 c=2 p=2 auto=PF02,PF04,PF14
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm._hostile_probe` L801-823 c=6 p=3 auto=PF04,PF14,PF17
+- [ ] `RedQueenWorm._hostile_probe` L794-816 c=6 p=3 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm.pressure_probe` L825-890 c=13 p=3 auto=PF04
+- [ ] `RedQueenWorm.pressure_probe` L818-883 c=13 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm.order_quarantine` L892-938 c=12 p=3 auto=PF04
+- [ ] `RedQueenWorm.order_quarantine` L885-931 c=12 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `RedQueenWorm.execute` L940-983 c=5 p=2 auto=PF04
+- [ ] `RedQueenWorm.execute` L933-976 c=5 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm.__init__` L1007-1011 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `SpineGossipWorm.__init__` L1000-1004 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm._compute_id` L1014-1018 c=0 p=1 auto=PF17
+- [ ] `SpineGossipWorm._compute_id` L1007-1011 c=0 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm._xor_distance` L1021-1023 c=0 p=2 auto=PF17
+- [ ] `SpineGossipWorm._xor_distance` L1014-1016 c=0 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm._bucket_index` L1025-1030 c=1 p=2 auto=PF04,PF17
+- [ ] `SpineGossipWorm._bucket_index` L1018-1023 c=1 p=2 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm._add_peer` L1032-1042 c=4 p=2 auto=PF04,PF17
+- [ ] `SpineGossipWorm._add_peer` L1025-1035 c=4 p=2 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm._route_targets` L1044-1076 c=7 p=1 auto=PF04,PF17
+- [ ] `SpineGossipWorm._route_targets` L1037-1069 c=7 p=1 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm.exchange` L1078-1124 c=11 p=2 auto=PF04,PF14,PF15
+- [ ] `SpineGossipWorm.exchange` L1071-1117 c=11 p=2 auto=PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `SpineGossipWorm.execute` L1126-1128 c=0 p=1 auto=PF02,PF04
+- [ ] `SpineGossipWorm.execute` L1119-1121 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `EligibilityTraceTable.__init__` L1156-1164 c=0 p=5 auto=PF02,PF03,PF04
+- [ ] `EligibilityTraceTable.__init__` L1149-1157 c=0 p=5 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `EligibilityTraceTable.accumulate` L1166-1173 c=3 p=4 auto=PF04
+- [ ] `EligibilityTraceTable.accumulate` L1159-1166 c=3 p=4 auto=PF04
   - [ ] manual M1-M6
-- [ ] `EligibilityTraceTable.decay_all` L1175-1184 c=3 p=1 auto=PF04,PF17
+- [ ] `EligibilityTraceTable.decay_all` L1168-1177 c=3 p=1 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `EligibilityTraceTable.credit` L1186-1196 c=1 p=1 auto=PF04
+- [ ] `EligibilityTraceTable.credit` L1179-1189 c=1 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `EligibilityTraceTable.snapshot` L1198-1207 c=1 p=1 auto=PF02,PF04
+- [ ] `EligibilityTraceTable.snapshot` L1191-1200 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `EligibilityTraceTable.clear` L1209-1211 c=1 p=1 auto=PF02,PF04
+- [ ] `EligibilityTraceTable.clear` L1202-1204 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.__init__` L1239-1265 c=5 p=4 auto=PF02,PF03,PF04,PF14,PF15
+- [ ] `PlasticityEngineWorm.__init__` L1232-1258 c=5 p=4 auto=PF02,PF03,PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.learn` L1268-1325 c=14 p=3 auto=PF04
+- [ ] `PlasticityEngineWorm.learn` L1261-1318 c=14 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm._dt_ms` L1328-1335 c=2 p=2 auto=PF14
+- [ ] `PlasticityEngineWorm._dt_ms` L1321-1328 c=2 p=2 auto=PF14
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm._modulation` L1337-1351 c=6 p=2 auto=PF04,PF14,PF17
+- [ ] `PlasticityEngineWorm._modulation` L1330-1344 c=6 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm._enforce_cap` L1353-1358 c=1 p=1 auto=PF04,PF17
+- [ ] `PlasticityEngineWorm._enforce_cap` L1346-1351 c=1 p=1 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.consolidate` L1361-1382 c=6 p=1 auto=PF04,PF14
+- [ ] `PlasticityEngineWorm.consolidate` L1354-1375 c=6 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.weight` L1384-1386 c=1 p=3 auto=PF02,PF04
+- [ ] `PlasticityEngineWorm.weight` L1377-1379 c=1 p=3 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.edge_weights` L1388-1396 c=1 p=1 auto=PF04
+- [ ] `PlasticityEngineWorm.edge_weights` L1381-1389 c=1 p=1 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.top_edges` L1398-1402 c=1 p=2 auto=PF02,PF04,PF17
+- [ ] `PlasticityEngineWorm.top_edges` L1391-1395 c=1 p=2 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.summary` L1404-1415 c=0 p=1 auto=PF02,PF04
+- [ ] `PlasticityEngineWorm.summary` L1397-1408 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `PlasticityEngineWorm.execute` L1417-1418 c=0 p=1 auto=PF02,PF04
+- [ ] `PlasticityEngineWorm.execute` L1410-1411 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.__init__` L1466-1471 c=0 p=2 auto=PF02,PF03,PF04
+- [ ] `MeshArchitectWorm.__init__` L1459-1464 c=0 p=2 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm._observed_edges` L1475-1481 c=4 p=1 auto=PF02,PF04,PF14,PF17
+- [ ] `MeshArchitectWorm._observed_edges` L1468-1474 c=4 p=1 auto=PF02,PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm._declared_edges` L1484-1490 c=5 p=0 auto=PF17
+- [ ] `MeshArchitectWorm._declared_edges` L1477-1484 c=0 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm._nature_rates` L1492-1513 c=9 p=1 auto=PF04,PF14,PF17
+- [ ] `MeshArchitectWorm._nature_rates` L1486-1507 c=9 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.propose` L1517-1569 c=13 p=1 auto=PF04
+- [ ] `MeshArchitectWorm.propose` L1511-1564 c=13 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.apply` L1573-1600 c=10 p=2 auto=PF04,PF14,PF15
+- [ ] `MeshArchitectWorm.apply` L1568-1595 c=10 p=2 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.overlay` L1602-1605 c=1 p=1 auto=PF04
+- [ ] `MeshArchitectWorm.overlay` L1597-1600 c=1 p=1 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.rollback` L1607-1618 c=4 p=2 auto=PF04
+- [ ] `MeshArchitectWorm.rollback` L1602-1613 c=4 p=2 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.overlay_path` L1623-1625 c=0 p=1 auto=PF02,PF03,PF04,PF17
+- [ ] `MeshArchitectWorm.overlay_path` L1618-1620 c=0 p=1 auto=PF02,PF03,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.save` L1627-1642 c=2 p=1 auto=PF04,PF14
+- [ ] `MeshArchitectWorm.save` L1622-1637 c=2 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.load` L1644-1662 c=8 p=1 auto=PF04,PF14
+- [ ] `MeshArchitectWorm.load` L1639-1657 c=8 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.stats` L1664-1668 c=1 p=1 auto=PF02,PF04
+- [ ] `MeshArchitectWorm.stats` L1659-1663 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `MeshArchitectWorm.execute` L1670-1673 c=0 p=1 auto=PF02,PF04
+- [ ] `MeshArchitectWorm.execute` L1665-1668 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm.__init__` L1709-1801 c=17 p=2 auto=PF02,PF03,PF04,PF14,PF15
+- [ ] `SpineCycleWorm.__init__` L1704-1796 c=17 p=2 auto=PF02,PF03,PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._throttled` L1803-1808 c=1 p=1 auto=PF02,PF04,PF17
+- [ ] `SpineCycleWorm._throttled` L1798-1803 c=1 p=1 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._self_image_stale` L1810-1848 c=8 p=1 auto=PF04,PF14
+- [ ] `SpineCycleWorm._self_image_stale` L1805-1843 c=8 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._record_beat` L1850-1881 c=5 p=5 auto=PF04,PF14,PF15,PF17
+- [ ] `SpineCycleWorm._record_beat` L1845-1876 c=5 p=5 auto=PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm.run_cycle` L1883-2117 c=52 p=3 auto=PF04,PF14
+- [ ] `SpineCycleWorm.run_cycle` L1878-2112 c=52 p=3 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._governance_stage` L2119-2141 c=6 p=2 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._governance_stage` L2114-2136 c=6 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._apply_plasticity` L2143-2180 c=8 p=1 auto=PF04,PF14,PF15
+- [ ] `SpineCycleWorm._apply_plasticity` L2138-2175 c=8 p=1 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._gate_salience` L2182-2208 c=7 p=2 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._gate_salience` L2177-2203 c=7 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._route_synapse_layer` L2210-2267 c=18 p=1 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._route_synapse_layer` L2205-2262 c=18 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._mesh_route_feedback` L2269-2368 c=15 p=1 auto=PF04,PF14,PF15
+- [ ] `SpineCycleWorm._mesh_route_feedback` L2264-2363 c=15 p=1 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._anomaly_metrics` L2370-2431 c=15 p=1 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._anomaly_metrics` L2365-2426 c=15 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._anomaly_stage` L2433-2484 c=16 p=1 auto=PF04,PF14,PF15
+- [ ] `SpineCycleWorm._anomaly_stage` L2428-2479 c=16 p=1 auto=PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._metabolic_stage` L2486-2539 c=26 p=1 auto=PF04,PF14,PF15,PF17
+- [ ] `SpineCycleWorm._metabolic_stage` L2481-2534 c=26 p=1 auto=PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._topology_stage` L2541-2562 c=8 p=2 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._topology_stage` L2536-2557 c=8 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._nature_rates` L2564-2584 c=9 p=1 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._nature_rates` L2559-2579 c=9 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._nature_success_rate` L2586-2587 c=0 p=2 auto=PF02,PF04,PF16,PF17
+- [ ] `SpineCycleWorm._nature_success_rate` L2581-2582 c=0 p=2 auto=PF02,PF04,PF16,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._route_observation` L2589-2610 c=8 p=2 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._route_observation` L2584-2605 c=8 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._process_morphogenesis_output` L2612-2661 c=7 p=2 auto=PF04,PF14
+- [ ] `SpineCycleWorm._process_morphogenesis_output` L2607-2656 c=7 p=2 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_stage` L2680-2693 c=3 p=1 auto=PF04,PF14
+- [ ] `SpineCycleWorm._fabric_stage` L2675-2688 c=3 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._provider_alias` L2702-2706 c=2 p=2 auto=PF02,PF04,PF14,PF17
+- [ ] `SpineCycleWorm._provider_alias` L2697-2701 c=2 p=2 auto=PF02,PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._provider_key_state` L2709-2754 c=11 p=2 auto=PF04,PF14
+- [ ] `SpineCycleWorm._provider_key_state` L2704-2749 c=11 p=2 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._publish_local_shards` L2756-2807 c=17 p=2 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._publish_local_shards` L2751-2802 c=17 p=2 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._model_fork_reports` L2809-2836 c=14 p=2 auto=PF04,PF14
+- [ ] `SpineCycleWorm._model_fork_reports` L2804-2831 c=14 p=2 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_servemesh` L2838-2906 c=25 p=1 auto=PF04,PF14
+- [ ] `SpineCycleWorm._fabric_servemesh` L2833-2901 c=25 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_consensus` L2908-2988 c=22 p=1 auto=PF04,PF14
+- [ ] `SpineCycleWorm._fabric_consensus` L2903-2983 c=22 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_federated` L2990-3061 c=23 p=1 auto=PF04,PF14
+- [ ] `SpineCycleWorm._fabric_federated` L2985-3056 c=23 p=1 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_variation` L3063-3175 c=22 p=1 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._fabric_variation` L3058-3170 c=22 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_variation._cosine_from` L3126-3129 c=1 p=1 auto=PF02,PF17
+- [ ] `SpineCycleWorm._fabric_variation._cosine_from` L3121-3124 c=1 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_variation._fitness` L3131-3133 c=1 p=1 auto=PF02,PF17
+- [ ] `SpineCycleWorm._fabric_variation._fitness` L3126-3128 c=1 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm._fabric_resilience` L3177-3329 c=35 p=1 auto=PF04,PF14,PF17
+- [ ] `SpineCycleWorm._fabric_resilience` L3172-3324 c=35 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `SpineCycleWorm.execute` L3331-3333 c=0 p=1 auto=PF02,PF04
+- [ ] `SpineCycleWorm.execute` L3326-3328 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm.__init__` L3402-3404 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `MorphogenesisWorm.__init__` L3397-3399 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm._chronic_patterns` L3408-3441 c=8 p=1 auto=PF04
+- [ ] `MorphogenesisWorm._chronic_patterns` L3403-3436 c=8 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm._opportunity_patterns` L3443-3526 c=17 p=1 auto=PF04,PF14,PF15
+- [ ] `MorphogenesisWorm._opportunity_patterns` L3438-3521 c=17 p=1 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm._scaffold` L3528-3606 c=1 p=5 auto=PF04
+- [ ] `MorphogenesisWorm._scaffold` L3523-3601 c=1 p=5 auto=PF04
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm._stage` L3610-3650 c=8 p=5 auto=PF04,PF14
+- [ ] `MorphogenesisWorm._stage` L3605-3645 c=8 p=5 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm.morph` L3652-3692 c=5 p=2 auto=PF04,PF14
+- [ ] `MorphogenesisWorm.morph` L3647-3687 c=5 p=2 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm.staged` L3694-3706 c=4 p=1 auto=PF04
+- [ ] `MorphogenesisWorm.staged` L3689-3701 c=4 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm.retrieve_staged` L3708-3739 c=9 p=3 auto=PF04,PF16
+- [ ] `MorphogenesisWorm.retrieve_staged` L3703-3734 c=9 p=3 auto=PF04,PF16
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm.promote` L3741-3855 c=35 p=4 auto=PF04,PF14,PF15
+- [ ] `MorphogenesisWorm.promote` L3736-3850 c=35 p=4 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `MorphogenesisWorm.execute` L3857-3859 c=0 p=1 auto=PF02,PF04
+- [ ] `MorphogenesisWorm.execute` L3852-3854 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `measure_skill_lift` L3862-3881 c=6 p=2 auto=PF16
+- [ ] `measure_skill_lift` L3857-3876 c=6 p=2 auto=PF16
   - [ ] manual M1-M6
-- [ ] `_generated_dir` L3884-3899 c=1 p=0 auto=PF03
+- [ ] `_generated_dir` L3879-3894 c=1 p=0 auto=PF03
   - [ ] manual M1-M6
-- [ ] `_staging_dir` L3902-3912 c=0 p=0 auto=PF03
+- [ ] `_staging_dir` L3897-3907 c=0 p=0 auto=PF03
   - [ ] manual M1-M6
-- [ ] `ConsolidationWorm.__init__` L3942-3945 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `ConsolidationWorm.__init__` L3937-3940 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `ConsolidationWorm.consolidate` L3947-4057 c=32 p=2 auto=PF02,PF04,PF14
+- [ ] `ConsolidationWorm.consolidate` L3942-4052 c=32 p=2 auto=PF02,PF04,PF14
   - [ ] manual M1-M6
-- [ ] `ConsolidationWorm.consolidate._skip` L3986-3987 c=0 p=1 auto=PF02,PF17
+- [ ] `ConsolidationWorm.consolidate._skip` L3981-3982 c=0 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
-- [ ] `ConsolidationWorm.execute` L4059-4061 c=0 p=1 auto=PF02,PF04
+- [ ] `ConsolidationWorm.execute` L4054-4056 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
 
 #### `consensus.py` - 13 functions
@@ -1465,55 +1468,55 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `_VectorIndex.__len__` L130-132 c=1 p=1 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `_VectorIndex._ensure_backend` L135-160 c=10 p=1 auto=PF04,PF14,PF17
+- [ ] `_VectorIndex._ensure_backend` L135-174 c=13 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_VectorIndex._rebuild` L162-193 c=12 p=1 auto=PF04,PF14,PF17
+- [ ] `_VectorIndex._rebuild` L176-207 c=12 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_VectorIndex.search` L196-220 c=8 p=3 auto=PF04
+- [ ] `_VectorIndex.search` L210-234 c=8 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `_VectorIndex.vector` L222-225 c=2 p=2 auto=PF02,PF04
+- [ ] `_VectorIndex.vector` L236-239 c=2 p=2 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `_VectorIndex.has` L227-229 c=1 p=2 auto=PF02,PF04,PF17
+- [ ] `_VectorIndex.has` L241-243 c=1 p=2 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `_VectorIndex.stats` L231-239 c=3 p=1 auto=PF02,PF04
+- [ ] `_VectorIndex.stats` L245-253 c=3 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `VectorShardWorm.__init__` L255-261 c=0 p=3 auto=PF02,PF03,PF04
+- [ ] `VectorShardWorm.__init__` L269-275 c=0 p=3 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `VectorShardWorm.shard_for` L263-270 c=1 p=2 auto=PF04
+- [ ] `VectorShardWorm.shard_for` L277-284 c=1 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `VectorShardWorm.add` L272-280 c=3 p=4 auto=PF04
+- [ ] `VectorShardWorm.add` L286-294 c=3 p=4 auto=PF04
   - [ ] manual M1-M6
-- [ ] `VectorShardWorm.search` L282-297 c=6 p=4 auto=PF04
+- [ ] `VectorShardWorm.search` L296-311 c=6 p=4 auto=PF04
   - [ ] manual M1-M6
-- [ ] `VectorShardWorm.stats` L299-302 c=1 p=1 auto=PF02,PF04
+- [ ] `VectorShardWorm.stats` L313-316 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `VectorShardWorm.execute` L304-305 c=0 p=1 auto=PF02,PF04
+- [ ] `VectorShardWorm.execute` L318-319 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `shared_shards` L312-323 c=3 p=0 auto=PF17,PF18
+- [ ] `shared_shards` L326-337 c=3 p=0 auto=PF17,PF18
   - [ ] manual M1-M6
-- [ ] `RecallRouterWorm.__init__` L339-342 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `RecallRouterWorm.__init__` L353-356 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `RecallRouterWorm.route_recall` L344-371 c=9 p=5 auto=PF02,PF04,PF16
+- [ ] `RecallRouterWorm.route_recall` L358-385 c=9 p=5 auto=PF02,PF04,PF16
   - [ ] manual M1-M6
-- [ ] `RecallRouterWorm.stats` L373-377 c=1 p=1 auto=PF02,PF04
+- [ ] `RecallRouterWorm.stats` L387-391 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `RecallRouterWorm.execute` L379-380 c=0 p=1 auto=PF02,PF04
+- [ ] `RecallRouterWorm.execute` L393-394 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `CoherenceValidatorWorm.__init__` L399-404 c=0 p=2 auto=PF02,PF03,PF04
+- [ ] `CoherenceValidatorWorm.__init__` L413-418 c=0 p=2 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `CoherenceValidatorWorm.check` L406-435 c=9 p=5 auto=PF02,PF04
+- [ ] `CoherenceValidatorWorm.check` L420-449 c=9 p=5 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `CoherenceValidatorWorm.report` L437-444 c=1 p=1 auto=PF02,PF04
+- [ ] `CoherenceValidatorWorm.report` L451-458 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `CoherenceValidatorWorm.execute` L446-447 c=0 p=1 auto=PF02,PF04
+- [ ] `CoherenceValidatorWorm.execute` L460-461 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `DreamConsolidatorWorm.__init__` L463-467 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `DreamConsolidatorWorm.__init__` L477-481 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `DreamConsolidatorWorm.consolidate` L469-491 c=9 p=3 auto=PF02,PF04,PF14
+- [ ] `DreamConsolidatorWorm.consolidate` L483-505 c=9 p=3 auto=PF02,PF04,PF14
   - [ ] manual M1-M6
-- [ ] `DreamConsolidatorWorm.stats` L493-496 c=1 p=1 auto=PF02,PF04
+- [ ] `DreamConsolidatorWorm.stats` L507-510 c=1 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `DreamConsolidatorWorm.execute` L498-499 c=0 p=1 auto=PF02,PF04
+- [ ] `DreamConsolidatorWorm.execute` L512-513 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
 
 ### Neural primitives
@@ -2018,7 +2021,7 @@ Every function in scope, grouped by concern and module. Each row is
 - [ ] `ABTestRunner.get_summary` L69-70 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
 
-#### `learning_features.py` - 13 functions
+#### `learning_features.py` - 15 functions
 
 - [ ] `register_worm` L19-20 c=0 p=0 auto=PF02,PF03
   - [ ] manual M1-M6
@@ -2036,18 +2039,22 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `SchemaAwareFeatureExtractor.fallback_accuracy_report` L342-389 c=5 p=2 auto=PF04,PF16
   - [ ] manual M1-M6
-- [ ] `FeatureEngineer.__init__` L403-405 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `SchemaAwareFeatureExtractor.get_summary` L391-408 c=0 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `FeatureEngineer.normalize` L406-413 c=2 p=2 auto=PF04
+- [ ] `FeatureEngineer.__init__` L422-424 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `FeatureEngineer.one_hot_encode` L415-423 c=3 p=3 auto=PF04,PF16
+- [ ] `FeatureEngineer.normalize` L425-432 c=2 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `FeatureEngineer.impute_missing` L425-431 c=3 p=3 auto=PF04,PF16
+- [ ] `FeatureEngineer.one_hot_encode` L434-442 c=3 p=3 auto=PF04,PF16
   - [ ] manual M1-M6
-- [ ] `FeatureEngineer.extract_worm_features` L433-487 c=9 p=2 auto=PF04
+- [ ] `FeatureEngineer.impute_missing` L444-450 c=3 p=3 auto=PF04,PF16
+  - [ ] manual M1-M6
+- [ ] `FeatureEngineer.extract_worm_features` L452-506 c=9 p=2 auto=PF04
+  - [ ] manual M1-M6
+- [ ] `FeatureEngineer.get_summary` L508-526 c=1 p=1 auto=PF04
   - [ ] manual M1-M6
 
-#### `learning_grpo.py` - 20 functions
+#### `learning_grpo.py` - 21 functions
 
 - [ ] `GRPOTrainer.__init__` L62-77 c=1 p=4 auto=PF03,PF04
   - [ ] manual M1-M6
@@ -2057,40 +2064,42 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `GRPOTrainer.compute_advantages` L185-203 c=5 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `GRPOTrainer.update_policy` L205-296 c=15 p=4 auto=PF03,PF04,PF14,PF15
+- [ ] `GRPOTrainer.update_policy` L205-303 c=17 p=4 auto=PF03,PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `GRPOTrainer.select_best` L298-331 c=7 p=2 auto=PF04,PF14,PF15
+- [ ] `GRPOTrainer.select_best` L305-338 c=7 p=2 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `GRPOTrainer.get_policy` L333-345 c=2 p=2 auto=PF04
+- [ ] `GRPOTrainer.get_policy` L340-352 c=2 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `GRPOTrainer.save_policy` L347-391 c=7 p=1 auto=PF04,PF14,PF17
+- [ ] `GRPOTrainer.save_policy` L354-398 c=7 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `GRPOTrainer.load_policy` L393-423 c=9 p=1 auto=PF04,PF14,PF17
+- [ ] `GRPOTrainer.load_policy` L400-430 c=9 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `GRPOTrainer.get_stats` L425-444 c=3 p=1 auto=PF04
+- [ ] `GRPOTrainer.get_stats` L432-451 c=3 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.__init__` L480-483 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `GRPOTrainer.get_summary` L453-462 c=0 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.load_pairs` L485-532 c=11 p=3 auto=PF04,PF14,PF17
+- [ ] `ABTestRunner.__init__` L498-501 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.create_experiment` L534-538 c=2 p=3 auto=PF02,PF03,PF04
+- [ ] `ABTestRunner.load_pairs` L503-550 c=11 p=3 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.track` L540-546 c=3 p=4 auto=PF02,PF03,PF04
+- [ ] `ABTestRunner.create_experiment` L552-556 c=2 p=3 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.record_preference` L548-601 c=6 p=7 auto=PF04,PF14,PF15
+- [ ] `ABTestRunner.track` L558-564 c=3 p=4 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.get_preference_pairs` L603-616 c=1 p=3 auto=PF04
+- [ ] `ABTestRunner.record_preference` L566-619 c=6 p=7 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.compute_preference_scores` L618-655 c=5 p=2 auto=PF04
+- [ ] `ABTestRunner.get_preference_pairs` L621-634 c=1 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.compute_dpo_loss` L657-691 c=3 p=3 auto=PF04
+- [ ] `ABTestRunner.compute_preference_scores` L636-673 c=5 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.get_results` L693-710 c=4 p=2 auto=PF02,PF04
+- [ ] `ABTestRunner.compute_dpo_loss` L675-709 c=3 p=3 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ABTestRunner.get_summary` L712-713 c=0 p=1 auto=PF02,PF03,PF04
+- [ ] `ABTestRunner.get_results` L711-728 c=4 p=2 auto=PF02,PF04
+  - [ ] manual M1-M6
+- [ ] `ABTestRunner.get_summary` L730-731 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
 
-#### `learning_pipeline.py` - 30 functions
+#### `learning_pipeline.py` - 31 functions
 
 - [ ] `register_worm` L19-20 c=0 p=0 auto=PF02,PF03
   - [ ] manual M1-M6
@@ -2148,12 +2157,14 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `DataPipelineWorm.execute` L678-680 c=0 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DataPipelineWorm._record_fallback` L684-690 c=0 p=3 auto=PF03,PF04,PF17
+- [ ] `DataPipelineWorm.get_summary` L682-704 c=1 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `refresh_dynamic_shapes` L698-735 c=6 p=2 auto=PF04,PF14,PF18
+- [ ] `DataPipelineWorm._record_fallback` L708-714 c=0 p=3 auto=PF03,PF04,PF17
+  - [ ] manual M1-M6
+- [ ] `refresh_dynamic_shapes` L722-759 c=6 p=2 auto=PF04,PF14,PF18
   - [ ] manual M1-M6
 
-#### `learning_replay.py` - 7 functions
+#### `learning_replay.py` - 8 functions
 
 - [ ] `PrioritizedReplayBuffer.__init__` L44-62 c=0 p=5 auto=PF03,PF04
   - [ ] manual M1-M6
@@ -2169,8 +2180,10 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `PrioritizedReplayBuffer.get_stats` L228-246 c=2 p=1 auto=PF04
   - [ ] manual M1-M6
+- [ ] `PrioritizedReplayBuffer.get_summary` L248-257 c=0 p=1 auto=PF04
+  - [ ] manual M1-M6
 
-#### `learning_rl.py` - 20 functions
+#### `learning_rl.py` - 21 functions
 
 - [ ] `register_worm` L21-22 c=0 p=0 auto=PF02,PF03
   - [ ] manual M1-M6
@@ -2198,22 +2211,24 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `RLTrainLoop.load_q_table_from_store` L315-379 c=21 p=3 auto=PF04,PF14
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.train_from_memory` L380-658 c=32 p=19 auto=PF04,PF14,PF15
+- [ ] `RLTrainLoop.train_from_memory` L380-677 c=37 p=20 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.train_from_memory._get_state_key` L493-511 c=2 p=1 auto=PF17
+- [ ] `RLTrainLoop.train_from_memory._get_state_key` L494-512 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.hyperparameter_tune` L659-813 c=20 p=11 auto=PF04,PF14,PF15
+- [ ] `RLTrainLoop.hyperparameter_tune` L678-832 c=20 p=11 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.tune_and_train` L815-864 c=1 p=11 auto=PF04,PF16
+- [ ] `RLTrainLoop.tune_and_train` L834-883 c=1 p=11 auto=PF04,PF16
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.train_episode` L866-885 c=5 p=4 auto=PF04,PF14,PF16
+- [ ] `RLTrainLoop.train_episode` L885-904 c=5 p=4 auto=PF04,PF14,PF16
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.get_training_stats` L886-893 c=2 p=1 auto=PF02,PF04
+- [ ] `RLTrainLoop.get_training_stats` L905-912 c=2 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
-- [ ] `RLTrainLoop.tune_history` L895-948 c=12 p=2 auto=PF04,PF14,PF16
+- [ ] `RLTrainLoop.recommend` L914-960 c=19 p=3 auto=PF04,PF14,PF15
+  - [ ] manual M1-M6
+- [ ] `RLTrainLoop.tune_history` L962-1015 c=12 p=2 auto=PF04,PF14,PF16
   - [ ] manual M1-M6
 
-#### `learning_versioner.py` - 10 functions
+#### `learning_versioner.py` - 11 functions
 
 - [ ] `register_worm` L19-20 c=0 p=0 auto=PF02,PF03
   - [ ] manual M1-M6
@@ -2221,19 +2236,21 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `ModelVersioner.__init__` L64-67 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `ModelVersioner._get_store` L69-79 c=6 p=1 auto=PF03,PF04
+- [ ] `ModelVersioner.get_summary` L69-88 c=1 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ModelVersioner.register_model` L80-124 c=11 p=5 auto=PF04,PF14,PF15
+- [ ] `ModelVersioner._get_store` L90-100 c=6 p=1 auto=PF03,PF04
   - [ ] manual M1-M6
-- [ ] `ModelVersioner.compare_versions` L125-139 c=3 p=4 auto=PF04,PF16,PF17
+- [ ] `ModelVersioner.register_model` L101-145 c=11 p=5 auto=PF04,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `ModelVersioner.list_versions` L141-144 c=1 p=2 auto=PF04
+- [ ] `ModelVersioner.compare_versions` L146-160 c=3 p=4 auto=PF04,PF16,PF17
   - [ ] manual M1-M6
-- [ ] `ModelVersioner.get_latest_version` L145-149 c=2 p=2 auto=PF04
+- [ ] `ModelVersioner.list_versions` L162-165 c=1 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ModelVersioner.rollback` L150-174 c=3 p=3 auto=PF04
+- [ ] `ModelVersioner.get_latest_version` L166-170 c=2 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `ModelVersioner.get_history` L176-203 c=8 p=3 auto=PF04
+- [ ] `ModelVersioner.rollback` L171-195 c=3 p=3 auto=PF04,PF17
+  - [ ] manual M1-M6
+- [ ] `ModelVersioner.get_history` L197-224 c=8 p=3 auto=PF04
   - [ ] manual M1-M6
 
 #### `plasticity.py` - 15 functions
@@ -2320,7 +2337,7 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `DreamingModule._mine_error_recovery_patterns` L450-533 c=19 p=2 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DreamingModule._mine_error_recovery_patterns._data` L474-481 c=4 p=1 auto=PF02
+- [ ] `DreamingModule._mine_error_recovery_patterns._data` L474-481 c=4 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
 - [ ] `DreamingModule._mine_error_recovery_patterns._ts` L483-492 c=4 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
@@ -2414,11 +2431,11 @@ Every function in scope, grouped by concern and module. Each row is
 
 - [ ] `PowerBudgetWorm.__init__` L61-64 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `PowerBudgetWorm.sample_load` L66-91 c=8 p=1 auto=PF04,PF14
+- [ ] `PowerBudgetWorm.sample_load` L66-91 c=8 p=1 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `PowerBudgetWorm.estimate_watts` L93-113 c=4 p=3 auto=PF04
+- [ ] `PowerBudgetWorm.estimate_watts` L93-113 c=4 p=3 auto=PF04,PF17
   - [ ] manual M1-M6
-- [ ] `PowerBudgetWorm.spend_from_load` L115-121 c=0 p=2 auto=PF04
+- [ ] `PowerBudgetWorm.spend_from_load` L115-121 c=0 p=2 auto=PF04,PF17
   - [ ] manual M1-M6
 - [ ] `PowerBudgetWorm.spend` L123-130 c=2 p=3 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
@@ -2434,7 +2451,7 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `ThermalThrottleWorm._load_percent` L199-204 c=2 p=1 auto=PF02,PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `ThermalThrottleWorm.recommend_threads` L206-237 c=10 p=2 auto=PF02,PF04
+- [ ] `ThermalThrottleWorm.recommend_threads` L206-237 c=10 p=2 auto=PF02,PF04,PF17
   - [ ] manual M1-M6
 - [ ] `ThermalThrottleWorm.execute` L239-241 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
@@ -3192,7 +3209,7 @@ Every function in scope, grouped by concern and module. Each row is
 - [ ] `BerksMonitorWorm.execute` L272-273 c=0 p=1 auto=PF02,PF04
   - [ ] manual M1-M6
 
-#### `db_monitor.py` - 18 functions
+#### `db_monitor.py` - 19 functions
 
 - [ ] `DatabaseMonitorWorm.__init__` L125-134 c=0 p=3 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
@@ -3210,25 +3227,27 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `DatabaseMonitorWorm._add_alert` L404-416 c=2 p=6 auto=PF03,PF04,PF17
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm._record_snapshot` L420-446 c=4 p=2 auto=PF03,PF04,PF14,PF15,PF17
+- [ ] `DatabaseMonitorWorm._policy_advice` L420-447 c=7 p=3 auto=PF04,PF14,PF16
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm._recently_alerted` L448-480 c=12 p=4 auto=PF04,PF14,PF17
+- [ ] `DatabaseMonitorWorm._record_snapshot` L451-477 c=4 p=2 auto=PF03,PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm._record_alert` L482-505 c=4 p=2 auto=PF03,PF04,PF14,PF15,PF17
+- [ ] `DatabaseMonitorWorm._recently_alerted` L479-511 c=12 p=4 auto=PF04,PF14,PF17
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.execute` L509-560 c=2 p=1 auto=PF04
+- [ ] `DatabaseMonitorWorm._record_alert` L513-536 c=4 p=2 auto=PF03,PF04,PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.start_monitor` L564-587 c=5 p=2 auto=PF03,PF04
+- [ ] `DatabaseMonitorWorm.execute` L540-591 c=2 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.start_monitor._monitor_loop` L575-582 c=3 p=0 auto=PF02,PF03,PF17
+- [ ] `DatabaseMonitorWorm.start_monitor` L595-618 c=5 p=2 auto=PF03,PF04
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.stop_monitor` L589-591 c=0 p=1 auto=PF03,PF04
+- [ ] `DatabaseMonitorWorm.start_monitor._monitor_loop` L606-613 c=3 p=0 auto=PF02,PF03,PF17
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.is_monitor_running` L593-595 c=1 p=1 auto=PF04
+- [ ] `DatabaseMonitorWorm.stop_monitor` L620-622 c=0 p=1 auto=PF03,PF04
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.get_report` L599-643 c=3 p=1 auto=PF04
+- [ ] `DatabaseMonitorWorm.is_monitor_running` L624-626 c=1 p=1 auto=PF04
   - [ ] manual M1-M6
-- [ ] `DatabaseMonitorWorm.get_db_summary` L645-666 c=1 p=1 auto=PF04
+- [ ] `DatabaseMonitorWorm.get_report` L630-674 c=3 p=1 auto=PF04
+  - [ ] manual M1-M6
+- [ ] `DatabaseMonitorWorm.get_db_summary` L676-697 c=1 p=1 auto=PF04
   - [ ] manual M1-M6
 
 #### `threatmon.py` - 10 functions
@@ -3266,9 +3285,9 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `GraphRenderer.__init__` L87-90 c=0 p=1 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `GraphRenderer.add_node` L92-94 c=1 p=3 auto=PF02,PF03,PF04,PF17
+- [ ] `GraphRenderer.add_node` L92-94 c=1 p=3 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
-- [ ] `GraphRenderer.add_edge` L96-98 c=1 p=4 auto=PF02,PF03,PF04,PF17
+- [ ] `GraphRenderer.add_edge` L96-98 c=1 p=4 auto=PF02,PF03,PF04
   - [ ] manual M1-M6
 - [ ] `GraphRenderer.to_dot` L100-110 c=2 p=2 auto=PF04
   - [ ] manual M1-M6
@@ -3297,71 +3316,71 @@ Every function in scope, grouped by concern and module. Each row is
 
 #### `proteus_hooks.py` - 33 functions
 
-- [ ] `row_payload` L88-102 c=5 p=1 auto=PF14
+- [ ] `row_payload` L89-103 c=5 p=1 auto=PF14
   - [ ] manual M1-M6
-- [ ] `_margin_of` L105-117 c=6 p=1 auto=PF17
+- [ ] `_margin_of` L106-118 c=6 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `cranium_decide` L137-247 c=16 p=6 auto=PF15
+- [ ] `cranium_decide` L138-248 c=16 p=6 auto=PF15
   - [ ] manual M1-M6
-- [ ] `cranium_override` L269-303 c=6 p=2 auto=OK
+- [ ] `cranium_override` L270-304 c=6 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `_load_allocator` L306-321 c=6 p=2 auto=PF02,PF14,PF15
+- [ ] `_load_allocator` L307-322 c=6 p=2 auto=PF02,PF14,PF15
   - [ ] manual M1-M6
-- [ ] `_apply_explore_env` L324-333 c=4 p=1 auto=PF14,PF15,PF17
+- [ ] `_apply_explore_env` L325-334 c=4 p=1 auto=PF14,PF15,PF17
   - [ ] manual M1-M6
-- [ ] `circulation_decide` L336-354 c=2 p=3 auto=OK
+- [ ] `circulation_decide` L337-355 c=2 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `circulation_update` L357-379 c=6 p=4 auto=PF14
+- [ ] `circulation_update` L358-380 c=6 p=4 auto=PF14
   - [ ] manual M1-M6
-- [ ] `morph_candidate_gene` L434-449 c=2 p=2 auto=OK
+- [ ] `morph_candidate_gene` L430-445 c=2 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_gene_specs` L452-477 c=3 p=4 auto=OK
+- [ ] `morph_gene_specs` L448-473 c=3 p=4 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_strip` L480-502 c=2 p=2 auto=OK
+- [ ] `morph_strip` L476-498 c=2 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_trainer_kwargs` L505-524 c=6 p=1 auto=OK
+- [ ] `morph_trainer_kwargs` L501-520 c=6 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `_as_bool` L527-543 c=4 p=1 auto=OK
+- [ ] `_as_bool` L523-539 c=4 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_effective` L546-567 c=10 p=2 auto=OK
+- [ ] `morph_effective` L542-563 c=10 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_is_inert` L570-597 c=8 p=3 auto=OK
+- [ ] `morph_is_inert` L566-593 c=8 p=3 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_treatment_value` L600-614 c=6 p=1 auto=PF16
+- [ ] `morph_treatment_value` L596-610 c=6 p=1 auto=PF16
   - [ ] manual M1-M6
-- [ ] `morph_ab_plan` L617-647 c=8 p=2 auto=OK
+- [ ] `morph_ab_plan` L613-643 c=8 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_ab_delta` L650-666 c=6 p=2 auto=OK
+- [ ] `morph_ab_delta` L646-662 c=6 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_record` L669-714 c=10 p=7 auto=PF14,PF15
+- [ ] `morph_record` L665-710 c=10 p=7 auto=PF14,PF15
   - [ ] manual M1-M6
-- [ ] `_row_ab_delta` L717-735 c=6 p=1 auto=PF15,PF17
+- [ ] `_row_ab_delta` L713-731 c=6 p=1 auto=PF15,PF17
   - [ ] manual M1-M6
-- [ ] `_row_inert` L738-753 c=5 p=1 auto=PF17
+- [ ] `_row_inert` L734-749 c=5 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_dimension_summary` L756-862 c=30 p=1 auto=PF14,PF15,PF16
+- [ ] `morph_dimension_summary` L752-858 c=30 p=1 auto=PF14,PF15,PF16
   - [ ] manual M1-M6
-- [ ] `morph_dimension_summary._stat` L804-808 c=0 p=1 auto=PF02,PF17
+- [ ] `morph_dimension_summary._stat` L800-804 c=0 p=1 auto=PF02,PF17
   - [ ] manual M1-M6
-- [ ] `_binomial_tail` L889-906 c=4 p=2 auto=PF14,PF17
+- [ ] `_binomial_tail` L885-902 c=4 p=2 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `_morph_read_rows` L909-926 c=8 p=1 auto=PF17
+- [ ] `_morph_read_rows` L905-922 c=8 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_morph_default_for` L929-934 c=2 p=1 auto=PF17
+- [ ] `_morph_default_for` L925-930 c=2 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_free_growth` L937-1027 c=18 p=1 auto=PF14,PF17
+- [ ] `morph_free_growth` L933-1023 c=18 p=1 auto=PF14,PF17
   - [ ] manual M1-M6
-- [ ] `morph_rotation_paused` L1030-1040 c=1 p=1 auto=OK
+- [ ] `morph_rotation_paused` L1026-1036 c=1 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_rotation_verdict` L1043-1080 c=12 p=2 auto=PF17
+- [ ] `morph_rotation_verdict` L1039-1076 c=12 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_rotation_retired` L1083-1126 c=14 p=1 auto=PF17
+- [ ] `morph_rotation_retired` L1079-1122 c=14 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `_morph_write_policy` L1129-1140 c=5 p=2 auto=PF17
+- [ ] `_morph_write_policy` L1125-1136 c=5 p=2 auto=PF17
   - [ ] manual M1-M6
-- [ ] `morph_evidence_from_ledger` L1143-1191 c=8 p=1 auto=OK
+- [ ] `morph_evidence_from_ledger` L1139-1187 c=8 p=1 auto=OK
   - [ ] manual M1-M6
-- [ ] `morph_policy_refresh` L1194-1259 c=12 p=3 auto=PF16,PF17
+- [ ] `morph_policy_refresh` L1190-1255 c=12 p=3 auto=PF16,PF17
   - [ ] manual M1-M6
 
 #### `exmachina.py` - 70 functions
@@ -3838,7 +3857,7 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `get_q_weight` L1758-1762 c=1 p=2 auto=OK
   - [ ] manual M1-M6
-- [ ] `get_q_updates` L1765-1783 c=1 p=2 auto=PF16
+- [ ] `get_q_updates` L1765-1783 c=1 p=2 auto=OK
   - [ ] manual M1-M6
 - [ ] `get_q_update_counts` L1786-1804 c=1 p=0 auto=OK
   - [ ] manual M1-M6
@@ -3940,13 +3959,13 @@ Every function in scope, grouped by concern and module. Each row is
   - [ ] manual M1-M6
 - [ ] `get_gossip_trust_state` L3475-3487 c=1 p=0 auto=PF16
   - [ ] manual M1-M6
-- [ ] `_valid_anomaly_model` L3513-3553 c=24 p=1 auto=OK
+- [ ] `_valid_anomaly_model` L3513-3553 c=24 p=1 auto=PF17
   - [ ] manual M1-M6
-- [ ] `publish_anomaly_model` L3556-3575 c=7 p=1 auto=PF18
+- [ ] `publish_anomaly_model` L3556-3575 c=7 p=1 auto=PF17,PF18
   - [ ] manual M1-M6
 - [ ] `get_anomaly_model` L3578-3584 c=3 p=0 auto=PF17
   - [ ] manual M1-M6
-- [ ] `get_anomaly_model_meta` L3587-3592 c=3 p=0 auto=OK
+- [ ] `get_anomaly_model_meta` L3587-3592 c=3 p=0 auto=PF17
   - [ ] manual M1-M6
 - [ ] `_iso_or` L3602-3606 c=3 p=1 auto=PF16,PF17
   - [ ] manual M1-M6

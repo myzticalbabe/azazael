@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Cluster Orchestration — MetaCluster to Worm Execution",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "circularity",
+      "type": "security",
+      "label": "_is_circular_nature",
+      "sublabel": "re-entrancy guard :517",
+      "pos": [40, 100],
+      "size": [200, 60]
+    },
+    {
+      "id": "registry",
+      "type": "backend",
+      "label": "Worm Registry",
+      "sublabel": "226 worms, 35 categories",
+      "pos": [640, 100],
+      "size": [200, 60]
+    },
+    {
+      "id": "watchdog",
+      "type": "security",
+      "label": "_WatchdogThread",
+      "sublabel": "per-worm timeout :767",
+      "pos": [940, 100],
+      "size": [200, 60]
+    },
+    {
+      "id": "metacluster",
+      "type": "backend",
+      "label": "MetaCluster",
+      "sublabel": "orchestrate() METACLUSTER:242",
+      "pos": [40, 290],
+      "size": [200, 66]
+    },
+    {
+      "id": "router",
+      "type": "backend",
+      "label": "CrossNatureRoutingEngine",
+      "sublabel": "compute_routing_order() :240",
+      "pos": [340, 290],
+      "size": [200, 66]
+    },
+    {
+      "id": "ncm",
+      "type": "backend",
+      "label": "NatureClusterManager",
+      "sublabel": "execute_nature() :1106",
+      "pos": [640, 290],
+      "size": [200, 66]
+    },
+    {
+      "id": "clusterz",
+      "type": "backend",
+      "label": "ClusterWORMZ 2.2.0",
+      "sublabel": "execute_all() CLUSTERWORMS:862",
+      "pos": [940, 290],
+      "size": [200, 66]
+    },
+    {
+      "id": "dm",
+      "type": "database",
+      "label": "DirectMemory",
+      "sublabel": "execute_start / _complete :87",
+      "pos": [640, 480],
+      "size": [200, 60]
+    },
+    {
+      "id": "result",
+      "type": "backend",
+      "label": "ClusterResult",
+      "sublabel": "overall_status + threshold :291",
+      "pos": [940, 480],
+      "size": [200, 60]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "src/CORE/WORMS — orchestration",
+      "wraps": ["circularity", "registry", "watchdog", "metacluster", "router", "ncm", "clusterz", "dm", "result"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Entry guard",
+      "wraps": ["metacluster", "circularity"]
+    }
+  ],
+  "connections": [
+    { "id": "start-natures", "from": "metacluster", "to": "router", "label": "start natures", "variant": "emphasis" },
+    { "id": "route-order", "from": "router", "to": "ncm", "label": "feeds_into order" },
+    { "id": "run-nature", "from": "ncm", "to": "clusterz", "label": "per nature", "variant": "emphasis" },
+    { "id": "guard-check", "from": "metacluster", "to": "circularity", "label": "re-entrancy check", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "supervise", "from": "clusterz", "to": "watchdog", "label": "arm timeout", "variant": "security", "fromSide": "top", "toSide": "bottom",        "labelAt": [1150, 222] },
+    { "id": "aggregate", "from": "clusterz", "to": "result", "label": "aggregate", "fromSide": "bottom", "toSide": "top",        "labelAt": [1040, 418] },
+    { "id": "drain", "from": "clusterz", "to": "registry", "label": "drain + spawn", "fromSide": "top", "toSide": "bottom" },
+    { "id": "ledger", "from": "clusterz", "to": "dm", "label": "hash-chained events", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Flow and the guards that fail closed",
+      "items": [
+        "orchestrate() selects natures; compute_routing_order() resolves feeds_into",
+        "execute_nature() runs one nature; execute_all() drains the registry",
+        "_is_circular_nature() blocks re-entrant natures; _WatchdogThread bounds each worm",
+        "partial_failure_threshold decides success, partial, or failure",
+        "ClusterResult returns to the MetaCluster caller; that feedback edge is omitted"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Provenance limits — read before citing",
+      "items": [
+        "Line numbers are the current working tree, not a pinned commit",
+        "Both cited files are modified vs HEAD (git status: M), so no revision honestly represents these lines",
+        "Commit-pinned evidence was deliberately omitted rather than pinned to a stale revision",
+        "Both guards were restored in this session — the circularity guard had been absent from orchestrate() entirely"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Evolution Evidence — BASE (nothing audits it)",
+    "quality_profile": "standard"
+  },
+  "components": [
+    {
+      "id": "bench",
+      "type": "backend",
+      "label": "benchmark_evolution.py",
+      "sublabel": "main() :55 — exits 1 on failure :346",
+      "pos": [40, 100],
+      "size": [220, 66]
+    },
+    {
+      "id": "promo",
+      "type": "database",
+      "label": "state/evolved_rl_params.json",
+      "sublabel": "promoted champion on disk",
+      "pos": [340, 100],
+      "size": [220, 66]
+    },
+    {
+      "id": "apply",
+      "type": "backend",
+      "label": "apply_evolved_overrides",
+      "sublabel": "scheduling.py:98",
+      "pos": [640, 100],
+      "size": [220, 66]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "LocalMemoryStore",
+      "sublabel": "evolution_result rows",
+      "pos": [340, 300],
+      "size": [220, 66]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "evolution subsystem — evidence produced, nothing scheduled to read it",
+      "wraps": ["bench", "promo", "apply", "store"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "loaded-by",
+      "from": "promo",
+      "to": "apply",
+      "label": "loaded at startup",
+      "labelAt": [600, 90]
+    },
+    {
+      "id": "bench-reads",
+      "from": "bench",
+      "to": "store",
+      "label": "reads live store",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [300, 240]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "The gap this base records",
+      "items": [
+        "benchmark_evolution.py is CI-ready (return 0 if passed == total else 1) and returns 1 on failure",
+        "Nothing invokes it: no CI workflow, no scheduler, no pre-commit reference",
+        "start_scheduler() — the 'worm with a scheduler' idiom — is itself called by nothing",
+        "So a failing check could sit red indefinitely and no operator surface would say so"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Provenance limits — read before citing",
+      "items": [
+        "Line numbers are the current working tree, not a pinned commit",
+        "The cited files are modified vs HEAD, so no revision honestly represents these lines",
+        "Commit-pinned evidence was deliberately omitted rather than pinned to a stale revision"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Apples and Oranges, the Fourth Dimension — interpretive plate</title>
+<style>
+  html,body{margin:0;background:#0a0a0c;}
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:26px;}
+  svg{display:block;width:100%;max-width:1180px;height:auto;}
+  .cap{fill:#6f6a64;font-size:13px;letter-spacing:5.5px;font-family:ui-serif,Georgia,serif;}
+  .no{fill:#4a4640;font-size:11px;letter-spacing:3px;font-family:ui-monospace,Menlo,monospace;}
+</style>
+</head>
+<body>
+<svg viewBox="0 0 1200 780" role="img"
+     aria-label="Two fruit, apple and orange, resting on the same measured ground under an exhaustive apparatus. Every visible axis agrees. A fourth axis, unrepresented, holds them apart.">
+
+  <defs>
+    <radialGradient id="vign" cx="50%" cy="42%" r="72%">
+      <stop offset="0%"   stop-color="#16161a"/>
+      <stop offset="55%"  stop-color="#0e0e11"/>
+      <stop offset="100%" stop-color="#08080a"/>
+    </radialGradient>
+
+    <linearGradient id="apple" x1="22%" y1="12%" x2="78%" y2="92%">
+      <stop offset="0%"   stop-color="#8e2f3a"/>
+      <stop offset="42%"  stop-color="#6d1f2b"/>
+      <stop offset="100%" stop-color="#3d1119"/>
+    </linearGradient>
+    <radialGradient id="appleHi" cx="34%" cy="26%" r="42%">
+      <stop offset="0%"   stop-color="#c8686a" stop-opacity=".55"/>
+      <stop offset="60%"  stop-color="#8e2f3a" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#3d1119" stop-opacity="0"/>
+    </radialGradient>
+
+    <radialGradient id="orange" cx="36%" cy="30%" r="78%">
+      <stop offset="0%"   stop-color="#c98a3c"/>
+      <stop offset="55%"  stop-color="#a5651f"/>
+      <stop offset="100%" stop-color="#5e3710"/>
+    </radialGradient>
+    <radialGradient id="orangeHi" cx="33%" cy="24%" r="30%">
+      <stop offset="0%"   stop-color="#e8bd7c" stop-opacity=".5"/>
+      <stop offset="100%" stop-color="#e8bd7c" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="stemG" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4a3a22"/>
+      <stop offset="100%" stop-color="#241b10"/>
+    </linearGradient>
+
+    <!-- the measuring field: one pattern, infinitely tiled -->
+    <pattern id="field" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0 H0 V40" fill="none" stroke="#2a2a30" stroke-width=".7" opacity=".55"/>
+      <circle cx="0" cy="0" r=".9" fill="#3a3a42" opacity=".5"/>
+    </pattern>
+    <pattern id="fieldFine" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M8 0 H0 V8" fill="none" stroke="#232329" stroke-width=".5" opacity=".5"/>
+    </pattern>
+
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+    <filter id="softer" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <!-- ── ground ──────────────────────────────────────────────────────── -->
+  <rect width="1200" height="780" fill="url(#vign)"/>
+
+  <!-- the plate's own coordinate field -->
+  <rect x="60" y="70" width="1080" height="560" fill="url(#fieldFine)" opacity=".5"/>
+  <rect x="60" y="70" width="1080" height="560" fill="url(#field)"/>
+  <rect x="60" y="70" width="1080" height="560" fill="none" stroke="#2e2e36" stroke-width="1"/>
+
+  <!-- plate number -->
+  <text class="no" x="60" y="52">PLATE IV</text>
+
+  <!-- ── apparatus: the three visible axes, measured ──────────────────── -->
+  <!-- axis I: the ground line -->
+  <g stroke="#5c5a54" stroke-width="1.1" fill="none">
+    <path d="M60 546 H1140"/>
+  </g>
+  <g stroke="#5c5a54" stroke-width="1" opacity=".85">
+    <path d="M60 546 v9 M150 546 v6 M240 546 v6 M330 546 v9 M420 546 v6
+             M510 546 v6 M600 546 v9 M690 546 v6 M780 546 v6 M870 546 v9
+             M960 546 v6 M1050 546 v6 M1140 546 v9"/>
+  </g>
+
+  <!-- axis II: the receding depth line, in perspective, vanishing right -->
+  <g stroke="#4e4c47" stroke-width="1" fill="none" opacity=".9">
+    <path d="M600 118 L1140 546"/>
+    <path d="M600 118 L60 546" opacity=".5"/>
+    <path d="M690 190 L1050 546" opacity=".35"/>
+    <path d="M510 190 L150 546" opacity=".35"/>
+  </g>
+  <circle cx="600" cy="118" r="2.6" fill="#6b6862"/>
+
+  <!-- axis III: the caliper beneath, spans identical -->
+  <g stroke="#7a7770" stroke-width="1.3" fill="none">
+    <path d="M330 620 H870"/>
+    <path d="M330 608 v24 M870 608 v24"/>
+    <path d="M600 612 v16"/>
+  </g>
+  <g fill="#7a7770">
+    <rect x="330" y="618" width="1.3" height="10"/>
+    <rect x="869" y="618" width="1.3" height="10"/>
+  </g>
+
+  <!-- the radii: a specimen-plate apparatus, concentric and reverent -->
+  <g fill="none" stroke="#3c3a36" stroke-width=".8" opacity=".85">
+    <circle cx="382" cy="424" r="150"/>
+    <circle cx="382" cy="424" r="196" stroke-dasharray="1 9"/>
+    <circle cx="382" cy="424" r="238" stroke-dasharray="1 14" opacity=".6"/>
+    <path d="M382 186 v476 M144 424 h476" stroke-dasharray="1 11" opacity=".45"/>
+  </g>
+  <g fill="none" stroke="#3c3a36" stroke-width=".8" opacity=".85">
+    <circle cx="818" cy="424" r="150"/>
+    <circle cx="818" cy="424" r="196" stroke-dasharray="1 9"/>
+    <circle cx="818" cy="424" r="238" stroke-dasharray="1 14" opacity=".6"/>
+    <path d="M818 186 v476 M580 424 h476" stroke-dasharray="1 11" opacity=".45"/>
+  </g>
+
+  <!-- ── the shadows: the tell ──────────────────────────────────────── -->
+  <!-- Each casts away from its own centre, and the two do not share a source. -->
+  <ellipse cx="470" cy="548" rx="118" ry="15" fill="#000" opacity=".55" filter="url(#soft)"
+           transform="rotate(-7 470 548)"/>
+  <ellipse cx="742" cy="548" rx="126" ry="13" fill="#000" opacity=".5" filter="url(#soft)"
+           transform="rotate(6 742 548)"/>
+  <!-- and the deeper, cooler void each falls into -->
+  <ellipse cx="520" cy="562" rx="180" ry="24" fill="#1b2430" opacity=".2" filter="url(#softer)"/>
+  <ellipse cx="700" cy="562" rx="180" ry="24" fill="#2a1f14" opacity=".2" filter="url(#softer)"/>
+
+  <!-- ── the two specimens ───────────────────────────────────────────── -->
+  <!-- apple: two lobes, a shoulder, a dimple, a stem -->
+  <g>
+    <path d="M382 316
+             C350 296 312 302 299 342
+             C286 382 294 440 319 481
+             C341 517 367 531 382 522
+             C397 531 423 517 445 481
+             C470 440 478 382 465 342
+             C452 302 414 296 382 316 Z"
+          fill="url(#apple)"/>
+    <path d="M382 316
+             C350 296 312 302 299 342
+             C286 382 294 440 319 481
+             C341 517 367 531 382 522
+             C397 531 423 517 445 481
+             C470 440 478 382 465 342
+             C452 302 414 296 382 316 Z"
+          fill="url(#appleHi)"/>
+    <path d="M382 318 C382 300 383 286 389 272" stroke="url(#stemG)" stroke-width="7"
+          fill="none" stroke-linecap="round"/>
+    <path d="M389 280 C404 268 422 270 430 282 C414 292 398 290 389 280 Z"
+          fill="#2f3a24" opacity=".8"/>
+  </g>
+
+  <!-- orange: a perfect circle. Fits every aperture. Aligns to nothing. -->
+  <g>
+    <circle cx="818" cy="424" r="118" fill="url(#orange)"/>
+    <circle cx="818" cy="424" r="118" fill="url(#orangeHi)"/>
+    <!-- pores: fine stipple, the texture that no caliper has a jaw for -->
+    <g fill="#e0b071" opacity=".16">
+      <circle cx="778" cy="384" r="2.1"/><circle cx="812" cy="372" r="1.7"/>
+      <circle cx="848" cy="392" r="2.3"/><circle cx="866" cy="424" r="1.8"/>
+      <circle cx="844" cy="458" r="2.2"/><circle cx="806" cy="474" r="1.9"/>
+      <circle cx="770" cy="452" r="2.1"/><circle cx="760" cy="414" r="1.6"/>
+      <circle cx="800" cy="412" r="2.2"/><circle cx="834" cy="430" r="1.7"/>
+      <circle cx="792" cy="444" r="1.8"/><circle cx="828" cy="400" r="1.5"/>
+    </g>
+    <circle cx="818" cy="424" r="6" fill="#7c4a15" opacity=".7"/>
+  </g>
+
+  <!-- ── the fourth axis: not a line, an absence ────────────────────── -->
+  <!-- a seam in the ground, running away from the viewer between the two -->
+  <g>
+    <path d="M600 546 L600 300" stroke="#050507" stroke-width="15" opacity=".85"
+          filter="url(#softer)"/>
+    <path d="M600 546 L600 300" stroke="#1d2430" stroke-width="2" opacity=".7"
+          stroke-dasharray="2 12"/>
+    <path d="M600 546 L600 300" stroke="#33404f" stroke-width=".8" opacity=".5"
+          stroke-dasharray="1 26"/>
+  </g>
+  <!-- the gap measured but not named -->
+  <g stroke="#3a3f48" stroke-width=".8" fill="none" opacity=".7">
+    <path d="M500 660 H700"/>
+    <path d="M500 652 v16 M700 652 v16"/>
+  </g>
+  <text class="no" x="600" y="682" text-anchor="middle" opacity=".8">IV</text>
+
+  <!-- ── the caption: one line, and the word that carries it ─────────── -->
+  <text class="cap" x="600" y="742" text-anchor="middle">EVERY VISIBLE AXIS AGREES</text>
+</svg>
+</body>
+</html>

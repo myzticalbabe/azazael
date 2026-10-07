@@ -1,18 +1,18 @@
 {
-  "recorded_at": "2026-10-04T12:37:07+00:00",
+  "recorded_at": "2026-10-07T02:43:46+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 669,
+  "files_scanned": 675,
   "category_counts": {
     "except_return_default": 287,
     "hardcoded_win_path": 14,
     "import_inside_function": 953,
     "open_no_encoding": 242,
     "shell_true": 1,
-    "silent_except_pass": 839,
+    "silent_except_pass": 840,
     "subprocess_no_timeout": 95,
     "unicode_emoji": 1272
   },
-  "total_findings": 3703
+  "total_findings": 3704
 }

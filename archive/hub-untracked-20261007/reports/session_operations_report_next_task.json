@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "objective": "Review the seven open DirectMemory sessions, close only stale ones, then run the default session workflow with skill synchronization",
+  "status": "ready",
+  "context": {
+    "report": "C:\\Users\\clint\\azazael\\reports\\session_operations_report.json",
+    "audit_session": ".audit\\session_20260924_124725_01a0.jsonl",
+    "direct_memory_session": "session_workflow_20260924_164725_7032"
+  },
+  "preflight": [
+    "Read the named source files with plain string paths or path dictionaries",
+    "Initialize DirectMemory and link the active audit session",
+    "Run the focused tests and record their actual result"
+  ],
+  "acceptance_criteria": [
+    "The requested behavior is implemented without unrelated changes",
+    "Focused tests execute successfully",
+    "The audit chain and mapped dual-ledger result are reported honestly",
+    "Temporary files and generated artifacts are accounted for"
+  ],
+  "handoff_fields": [
+    "files_read",
+    "files_changed",
+    "tests_run",
+    "verification_output",
+    "remaining_risks",
+    "next_action"
+  ]
+}

@@ -1,0 +1,12 @@
+.................................                                        [100%]
+============================== warnings summary ===============================
+tests/test_chain_refactor.py::test_self_check_reports_disabled_and_arms_an_obligation
+  C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+tests/test_chain_refactor.py::test_self_check_reports_disabled_and_arms_an_obligation
+  C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\site-packages\torch\cuda\__init__.py:68: FutureWarning: The pynvml package is deprecated. Please install nvidia-ml-py instead. If you did not install pynvml directly, please report this to the maintainers of the package that installed pynvml for you.
+    import pynvml  # type: ignore[import]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+33 passed, 2 warnings in 66.13s (0:01:06)
