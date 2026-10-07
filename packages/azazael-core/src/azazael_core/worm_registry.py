@@ -111,9 +111,15 @@ def register_worm(
 
 # ─── Auto-Discovery ─────────────────────────────────────────────────
 
-def discover_worms(worms_dir: Optional[str] = None) -> int:
+def discover_worms(
+    worms_dir: Optional[str] = None,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+) -> int:
     """
     Auto-discover and import all worm modules from CORE/WORMS directory.
+
+    progress_callback: Optional callback(processed, total, module_name),
+    mirroring the canonical src/CORE/worm_registry.py API.
 
     Returns number of newly discovered worm classes.
     """
@@ -133,54 +139,53 @@ def discover_worms(worms_dir: Optional[str] = None) -> int:
     if worms_dir not in sys.path:
         sys.path.insert(0, worms_dir)
 
-    for filename in sorted(os.listdir(worms_dir)):
-        if filename.startswith("_") or filename.startswith("."):
-            continue
-        if not filename.endswith(".py"):
-            continue
-
+    _candidates = sorted(
+        fn for fn in os.listdir(worms_dir)
+        if not fn.startswith(("_", ".")) and fn.endswith(".py")
+    )
+    for _idx, filename in enumerate(_candidates):
         module_name = filename[:-3]  # strip .py
         # Skip already-registered modules by checking if we have classes from this module
         already_registered = any(
             info.get("source_file", "").endswith(filename)
             for info in WORM_REGISTRY.values()
         )
-        if already_registered:
-            continue
+        if not already_registered:
+            try:
+                module = importlib.import_module(module_name)
+                # Find all classes in the module that look like worms (have VERSION attr)
+                for attr_name in dir(module):
+                    obj = getattr(module, attr_name)
+                    if not inspect.isclass(obj):
+                        continue
+                    if attr_name.startswith("_"):
+                        continue
+                    if not hasattr(obj, "VERSION"):
+                        continue
+                    # Skip config classes
+                    if attr_name.endswith("Config"):
+                        continue
 
-        try:
-            module = importlib.import_module(module_name)
-            # Find all classes in the module that look like worms (have VERSION attr)
-            for attr_name in dir(module):
-                obj = getattr(module, attr_name)
-                if not inspect.isclass(obj):
-                    continue
-                if attr_name.startswith("_"):
-                    continue
-                if not hasattr(obj, "VERSION"):
-                    continue
-                # Skip config classes
-                if attr_name.endswith("Config"):
-                    continue
+                    # Auto-categorize based on name
+                    category = _guess_category(attr_name, module_name)
+                    priority = _guess_priority(attr_name, module_name)
+                    cooldown = _guess_cooldown(category)
 
-                # Auto-categorize based on name
-                category = _guess_category(attr_name, module_name)
-                priority = _guess_priority(attr_name, module_name)
-                cooldown = _guess_cooldown(category)
+                    # Register if not already
+                    if attr_name not in WORM_REGISTRY:
+                        register_fn = register_worm(
+                            category=category,
+                            priority=priority,
+                            cooldown_seconds=cooldown,
+                            description=obj.__doc__ or "",
+                        )
+                        register_fn(obj)
+            except Exception as e:
+                # Module might have import issues or psutil segfaults
+                pass
 
-                # Register if not already
-                if attr_name not in WORM_REGISTRY:
-                    register_fn = register_worm(
-                        category=category,
-                        priority=priority,
-                        cooldown_seconds=cooldown,
-                        description=obj.__doc__ or "",
-                    )
-                    register_fn(obj)
-
-        except Exception as e:
-            # Module might have import issues or psutil segfaults
-            pass
+        if progress_callback:
+            progress_callback(_idx + 1, len(_candidates), module_name)
 
     _discovery_done = True
     return len(WORM_REGISTRY) - before_count

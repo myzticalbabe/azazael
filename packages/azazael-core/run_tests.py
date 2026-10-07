@@ -38,7 +38,7 @@ def main():
         _CLUSTERWORMS_OK, _NATURE_OK, _META_OK,
     )
     test("CLUSTERWORMS import OK", _CLUSTERWORMS_OK)
-    test("NATURE_CLUSTERS import OK", _NATURE_OK)
+    test("NATURE_CLUSTERS removed (D1/U3)", _NATURE_OK is False)
     test("METACLUSTER import OK", _META_OK)
 
     from azazael_core.worm_registry import WORM_REGISTRY
@@ -69,10 +69,11 @@ def main():
     print("\n--- CLI: clusters ---")
     r = cli("clusters")
     test("exit code 0", r.returncode == 0, f"got {r.returncode}")
-    for section in ["Cluster System", "Predefined Clusters", "Nature Categories"]:
+    for section in ["Cluster System", "Predefined Clusters"]:
         test(f"shows {section}", section in r.stdout)
-    for mod in ["CLUSTERWORMS", "NATURE_CLUSTERS", "METACLUSTER"]:
+    for mod in ["CLUSTERWORMS", "METACLUSTER"]:
         test(f"shows {mod}", mod in r.stdout)
+    test("NATURE_CLUSTERS reported removed", "removed" in r.stdout)
 
     print("\n--- CLI: config ---")
     r = cli("config")
@@ -101,11 +102,7 @@ def main():
     mermaid = cluster.to_mermaid()
     test("ClusterWORMZ Mermaid", "graph TB" in mermaid)
 
-    ncm = NatureClusterManager()
-    ncm.discover_all_natures()
-    nstatus = ncm.get_status()
-    test("NatureClusterManager natures", nstatus["natures"] > 0,
-         f"{nstatus['natures']} natures, {nstatus['total_worms']} worms")
+    test("NatureClusterManager is D1 no-op shim", NatureClusterManager is None)
 
     mc = MetaCluster()
     mc.discover_all()
@@ -116,8 +113,8 @@ def main():
 
     test("CLUSTER_REGISTRY types", len(CLUSTER_REGISTRY) >= 8,
          f"{len(CLUSTER_REGISTRY)} types")
-    test("NATURE_DEFINITIONS count", len(NATURE_DEFINITIONS) >= 17,
-         f"{len(NATURE_DEFINITIONS)} natures")
+    test("NATURE_DEFINITIONS empty (D1)", NATURE_DEFINITIONS == {},
+         f"{len(NATURE_DEFINITIONS)} leftover defs")
 
     # ── Summary ────────────────────────────────────────────────────
     print("\n" + "=" * 50)

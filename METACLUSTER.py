@@ -54,17 +54,94 @@ from dataclasses import dataclass, field
 
 
 __all__ = ['MetaCluster', 'MetaClusterResult', 'MetaClusterState', 'main']
-# ── Import NatureClusters ──────────────────────────────────────────
+# ── D1 FLAT (2026-10-06): category orchestration core ───────────────
+# The nature taxonomy was removed (MIGRATION_LEDGER D1; NATURE_CLUSTERS
+# deleted). The "nature" axis of this orchestrator is now the REGISTRY OWN
+# category field - the D1 flat-dispatch ruling: no replacement taxonomy, the
+# categories ARE the taxonomy. NATURE-compatible shims keep the public surface
+# importable:
+#   NatureResult   -> CategoryResult (same field contract)
+#   NATURES        -> registry categories by name (same .get dict access)
+#   execute_nature -> ClusterWORMZ.by_category (same worm_results/ok/fail contract)
 try:
-    from CORE.WORMS.NATURE_CLUSTERS import (
-        NatureClusterManager, NatureResult, NATURE_DEFINITIONS,
-    )
-    _NATURE_OK = True
+    from CORE.WORMS.CLUSTERWORMS import ClusterResult as NatureResult  # noqa: F401
 except ImportError:
-    _NATURE_OK = False
-    NatureClusterManager = None
     NatureResult = None
-    NATURE_DEFINITIONS: dict[str, Any] = {}  # type: ignore[no-redef]
+
+def _get_natures() -> dict[str, Any]:
+    """D1 flat: natures == registry categories. Cheap discovery; cached."""
+    global _CATEGORIES_CACHE
+    if _CATEGORIES_CACHE is not None:
+        return _CATEGORIES_CACHE
+    from CORE.worm_registry import discover_worms, WORM_REGISTRY
+    discover_worms()
+    natures: dict[str, dict[str, Any]] = {}
+    for worm_name, entry in WORM_REGISTRY.items():
+        cat = entry.get("category", "uncategorized")
+        natures.setdefault(cat, {"worms": [], "target_worms": []})["worms"].append(worm_name)
+    _CATEGORIES_CACHE = natures
+    return natures
+
+_CATEGORIES_CACHE: dict[str, Any] | None = None
+
+class NatureClusterManager:
+    """D1 flat shim over the registry's categories.
+
+    Keeps the MetaCluster surface untouched while the underlying axis is the
+    registry category, not a separate taxonomy. Replaces the NATURE_CLUSTERS
+    manager deleted by D1.
+    """
+
+    def __init__(self) -> None:
+        self.clusters: dict[str, Any] = {}
+        for cat, info in _get_natures().items():
+            self.clusters[cat] = type("Cat", (), {"worms": info["worms"], "name": cat})()
+
+    def discover_all_natures(self) -> dict[str, int]:
+        return {cat: len(info["worms"]) for cat, info in self.clusters.items()}
+
+    def _score_natures(self) -> dict[str, int]:
+        return {cat: len(getattr(info, "worms", [])) for cat, info in self.clusters.items()}
+
+    def execute_nature(self, category: str, parallel: bool = True) -> "NatureResult | None":
+        worms = self.clusters.get(category, {})
+        worm_names = list(getattr(worms, "worms", []))
+        if not worm_names:
+            return None
+        from CORE.worm_registry import WORM_REGISTRY
+        from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
+        names = [n for n in worm_names if n in WORM_REGISTRY]
+        cwz = ClusterWORMZ.build_from_registry(names)
+        cwz.set_parallel(parallel)
+        summary = cwz.execute_all()
+        ok = sum(1 for r in summary if r.get("success"))
+        fail = sum(1 for r in summary if not r.get("success"))
+        return NatureResult(
+            category=category,
+            worm_results=summary,
+            success_count=ok,
+            failure_count=fail,
+            duration_ms=0.0,
+            errors=[r.get("error") for r in summary if r.get("error")],
+            all_cached=False,
+        )
+
+    def get_status(self) -> dict[str, Any]:
+        return {"mode": "D1_flat_registry_categories",
+                "clusters": {c: len(i.worms) for c, i in self.clusters.items()}}
+
+    def to_mermaid(self, include_routes: bool = False) -> str:
+        lines = ["graph TB", "    registry[CORE worm registry]"]
+        for cat, info in self.clusters.items():
+            lines.append(f"    registry -->|{len(info.worms)}| {cat}")
+        return "\n".join(lines)
+
+    def to_mermaid_functions(self) -> str:
+        return self.to_mermaid()
+
+    def clear_mermaid_cache(self) -> None:
+        global _CATEGORIES_CACHE
+        _CATEGORIES_CACHE = None
 
 # ── Import ClusterWORMZ (for circularity detection) ───────────────
 try:
@@ -82,24 +159,57 @@ except ImportError:
     _ERROR_RECOVERY_OK = False
     ErrorRecoveryOrchestrator = None  # type: ignore[assignment,misc]
 
-# ── Import CrossNatureRoutingEngine from extracted module ──────────
-try:
-    from CORE.WORMS.CROSS_NATURE_ROUTER import CrossNatureRoutingEngine, CrossNatureRoute
-    _ROUTER_OK = True
-except ImportError:
-    _ROUTER_OK = False
-    CrossNatureRoutingEngine = None
-    from dataclasses import dataclass as _dc
-    @_dc
-    class _CrossNatureRoute:
-        from_nature: str = ""
-        to_nature: str = ""
-        data_mapping: dict | None = None
-        description: str = ""
-        def __post_init__(self):
-            if self.data_mapping is None:
-                self.data_mapping = {}
-    CrossNatureRoute = _CrossNatureRoute
+# ── D1/U3: CrossNatureRoutingEngine was here; router deleted (D7) ────
+# The old fallback below re-declared a stubbed engine that crashed MetaCluster
+# (TypeError: 'NoneType' object is not callable). D1 flat: routing moves to the
+# registry category axis; a no-op router keeps orchestrate() working without
+# a routing topology.
+from dataclasses import dataclass as _dc
+
+@_dc
+class NatureResult:
+    """D1 flat per-category execution result (replaces the old per-nature
+    result from NATURE_CLUSTERS; same field contract MetaCluster reads:
+    worm_results / success_count / failure_count / duration_ms / errors)."""
+    category: str = ""
+    worm_results: list = field(default_factory=list)
+    aggregated_metrics: dict = field(default_factory=dict)
+    duration_ms: float = 0.0
+    success_count: int = 0
+    failure_count: int = 0
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    errors: list = field(default_factory=list)
+    all_cached: bool = False
+
+@_dc
+class CrossNatureRoute:
+    from_nature: str = ""
+    to_nature: str = ""
+    data_mapping: dict | None = None
+    description: str = ""
+    def __post_init__(self):
+        if self.data_mapping is None:
+            self.data_mapping = {}
+
+class CrossNatureRoutingEngine:
+    """D1 no-op router: category order = registry insertion order; no routes."""
+
+    def __init__(self) -> None:
+        self.routes: list[CrossNatureRoute] = []
+
+    def compute_routing_order(self, natures):
+        return list(natures)
+
+    def get_routes_to(self, nature):
+        return []
+
+    def route_nature_output(self, nature, data, state=None):
+        return 0
+
+    def get_all_paths(self):
+        return []
+
+_ROUTER_OK = True
 
 # ── Worm Registry ──────────────────────────────────────────────────
 try:
@@ -379,7 +489,14 @@ class MetaCluster(BaseWormMixin):
         cluster = self.ncm.clusters.get(nature)
         if not cluster:
             return False
-        for worm_cls in cluster.worms.values():
+        # D1 flat: cluster.worms is a list of worm NAMES (strings), not a
+        # class map. Circular-detection contract is infra-by-name now.
+        worm_names = list(getattr(cluster, "worms", []) or [])
+        if worm_names and isinstance(worm_names[0], str):
+            infra = {"MetaCluster", "NatureClusterManager", "ClusterWORMZ",
+                     "ErrorRecoveryOrchestrator"}
+            return any(n in infra for n in worm_names)
+        for worm_cls in worm_names:
             if (worm_cls is MetaCluster or worm_cls is NatureClusterManager
                     or worm_cls is ClusterWORMZ or worm_cls is ErrorRecoveryOrchestrator):
                 return True
@@ -446,14 +563,10 @@ class MetaCluster(BaseWormMixin):
             except Exception:
                 pass
         
-        # Start PAMS batch mode — buffer all per-nature _record() calls
-        # and flush once at orchestrate completion (saves ~85ms SQLite overhead)
-        try:
-            from CORE.PamsRecorder import PamsRecorder
-            PamsRecorder.start_batch()
-            _pams_batching = True
-        except ImportError:
-            _pams_batching = False
+        # PAMS batch mode: the current PamsRecorder has record_batch(events)
+        # but no start_batch()/flush_batch() class API (batch-buffering removed
+        # in the CD1 schema rework); without a buffer, skip silently.
+        _pams_batching = False
         
         # Phase 1: Discover
         if not self.ncm.clusters:
