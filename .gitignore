@@ -207,3 +207,8 @@ src/ORCHESTRATION/BIBL/archive/
 # already excludes the same glob; this stops them entering `git status` as
 # invisible work as well. Delete this line only alongside a claim on a file.
 src/CORE/WORMS/expansion/generated/_staging/
+
+# Tool/agent runtime caches (hub-local working dirs; untracked in both trees)
+.claude/
+.deps-jiter/
+.graphify-live/

@@ -102,7 +102,11 @@ def main():
     mermaid = cluster.to_mermaid()
     test("ClusterWORMZ Mermaid", "graph TB" in mermaid)
 
-    test("NatureClusterManager is D1 no-op shim", NatureClusterManager is None)
+    ncm = NatureClusterManager()
+    ncm_status = ncm.get_status()
+    test("NatureClusterManager D1 flat shim live",
+         ncm_status["mode"] == "D1_flat_registry_categories",
+         f"{len(ncm.clusters)} categories")
 
     mc = MetaCluster()
     mc.discover_all()
