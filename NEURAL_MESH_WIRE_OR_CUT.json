@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-04T08:53:44.594689",
+ "generated_at": "2026-10-06T22:55:43.768705",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
@@ -1033,7 +1033,7 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:505",
     "src/CORE/worm_registry.py:1131"
    ],
-   "line": 885,
+   "line": 888,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.train_episode",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1046,7 +1046,7 @@
     "tests/test_learning_worms.py:354",
     "tests/test_learning_worms.py:367"
    ],
-   "line": 834,
+   "line": 837,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_and_train",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1064,7 +1064,7 @@
     "tests/test_learning_worms.py:382",
     "tests/test_learning_worms.py:395"
    ],
-   "line": 962,
+   "line": 965,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_history",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1076,25 +1076,13 @@
     "tests/test_learning_worms.py:395"
    ]
   },
-  "learning_rl:_schema_state_key": {
-   "decider": "test_is_the_wire",
-   "decider_evidence": [
-    "tests/test_learning_rl_keys.py:16",
-    "tests/test_learning_rl_keys.py:20",
-    "tests/test_learning_rl_keys.py:21"
-   ],
-   "line": 42,
+  "learning_rl:unmapped_severities": {
    "module": "learning_rl",
-   "qualname": "_schema_state_key",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def _schema_state_key(vec, severity: str) -> str:\n    \"\"\"Stable state key for a feature vector + severity (2026-09-28).\n\n    Restores the contract test_learning_rl_keys pins (deterministic\n    in-process, severity-separated, stable across PYTHONHASHSEED): sha256\n    over rounded components, never bare hash() (which is seed-salted).\n    \"\"\"\n    try:\n        parts = [\"%.4f\" % float(v) for v in (vec or [])]\n    except (TypeError, ValueError):\n        parts = []\n    digest = hashlib.sha256(\"|\".join(parts).encode(\"utf-8\")).hexdigest()[:16]\n    return \"schema:%s:%s\" % (digest, severity)",
+   "qualname": "unmapped_severities",
+   "line": 100,
+   "seg": "def unmapped_severities() -> Dict[str, int]:\n    \"\"\"Severities seen in the data that the reward table does not cover.\"\"\"\n    return dict(_UNMAPPED_SEVERITIES)",
    "status": "pending",
-   "triage": "test_reached_only",
-   "triage_evidence": [
-    "tests/test_learning_rl_keys.py:16",
-    "tests/test_learning_rl_keys.py:20",
-    "tests/test_learning_rl_keys.py:21"
-   ]
+   "reason": ""
   },
   "learning_versioner:ModelVersioner.compare_versions": {
    "evidence": [
@@ -1649,7 +1637,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 3703,
+   "line": 3705,
    "module": "spine",
    "qualname": "MorphogenesisWorm.retrieve_staged",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1666,7 +1654,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 2581,
+   "line": 2583,
    "module": "spine",
    "qualname": "SpineCycleWorm._nature_success_rate",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1680,7 +1668,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 3857,
+   "line": 3859,
    "module": "spine",
    "qualname": "measure_skill_lift",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
