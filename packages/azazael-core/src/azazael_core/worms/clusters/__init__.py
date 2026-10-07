@@ -24,12 +24,20 @@ except ImportError:
     ClusterWORMZ = None
     CLUSTER_REGISTRY = {}
 
-# ── NATURE_CLUSTERS (removed, D1/U3) ───────────────────────────── Investigators
+# ── NATURE_CLUSTERS (removed, D1/U3) ────────────────────────────────
 # The nature taxonomy was ripped out per MIGRATION_LEDGER D1; execution moved
-# to ClusterWORMZ-by-category and METACLUSTER degraded gracefully. D1 flat:
+# to ClusterWORMZ-by-category. D1 flat: NatureClusterManager is a live shim
+# over registry categories (defined in METACLUSTER, mirrors root flat-v2).
 _NATURE_OK = False
-NatureClusterManager = None  # type: ignore[assignment]
-NATURE_DEFINITIONS = {}
+try:
+    from .METACLUSTER import (
+        NatureClusterManager,
+        NatureResult,
+        NATURE_DEFINITIONS,
+    )
+except ImportError:  # pragma: no cover - METACLUSTER broken
+    NatureClusterManager = None  # type: ignore[assignment]
+    NATURE_DEFINITIONS = {}
 
 # ── METACLUSTER ────────────────────────────────────────────────────
 try:
@@ -51,7 +59,7 @@ __all__ = [
     "ClusterWORMZ", "ClusterResult", "ClusterState", "WormConfig",
     "CLUSTER_REGISTRY", "run_popup",
     # NATURE_CLUSTERS removal artifacts (kept importable = error-free no-ops)
-    "NatureClusterManager", "NATURE_DEFINITIONS",
+    "NatureClusterManager", "NatureResult", "NATURE_DEFINITIONS",
     # METACLUSTER
     "MetaCluster", "MetaClusterResult", "MetaClusterState",
     "CrossNatureRoutingEngine",

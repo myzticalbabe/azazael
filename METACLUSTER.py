@@ -60,13 +60,11 @@ __all__ = ['MetaCluster', 'MetaClusterResult', 'MetaClusterState', 'main']
 # category field - the D1 flat-dispatch ruling: no replacement taxonomy, the
 # categories ARE the taxonomy. NATURE-compatible shims keep the public surface
 # importable:
-#   NatureResult   -> CategoryResult (same field contract)
+#   NatureResult   -> local dataclass below (full per-category contract:
+#                     category/worm_results/errors/all_cached; ClusterResult
+#                     itself lacks those fields, so no alias)
 #   NATURES        -> registry categories by name (same .get dict access)
-#   execute_nature -> ClusterWORMZ.by_category (same worm_results/ok/fail contract)
-try:
-    from CORE.WORMS.CLUSTERWORMS import ClusterResult as NatureResult  # noqa: F401
-except ImportError:
-    NatureResult = None
+#   execute_nature -> ClusterWORMZ.build_from_registry (same worm_results/ok/fail contract)
 
 def _get_natures() -> dict[str, Any]:
     """D1 flat: natures == registry categories. Cheap discovery; cached."""
@@ -98,7 +96,7 @@ class NatureClusterManager:
             self.clusters[cat] = type("Cat", (), {"worms": info["worms"], "name": cat})()
 
     def discover_all_natures(self) -> dict[str, int]:
-        return {cat: len(info["worms"]) for cat, info in self.clusters.items()}
+        return {cat: len(getattr(info, "worms", [])) for cat, info in self.clusters.items()}
 
     def _score_natures(self) -> dict[str, int]:
         return {cat: len(getattr(info, "worms", [])) for cat, info in self.clusters.items()}

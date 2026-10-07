@@ -56,30 +56,116 @@ from dataclasses import dataclass, field
 from collections import defaultdict, OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# ── Import NatureClusters ──────────────────────────────────────────
-try:
-    from azazael_core.worms.clusters.NATURE_CLUSTERS import (
-        NatureCluster, NatureClusterManager, NatureResult,
-        CrossNatureRoute, NATURE_DEFINITIONS,
-    )
-    _NATURE_OK = True
-except ImportError:
-    _NATURE_OK = False
-    NatureClusterManager = None
-    NatureResult = None
-    NATURE_DEFINITIONS = {}
-    # Fallback CrossNatureRoute so _build_routes() doesn't crash on NoneType
-    from dataclasses import dataclass as _dc
-    @_dc
-    class _CrossNatureRoute:
-        from_nature: str = ""
-        to_nature: str = ""
-        data_mapping: dict = None
-        description: str = ""
-        def __post_init__(self):
-            if self.data_mapping is None:
-                self.data_mapping = {}
-    CrossNatureRoute = _CrossNatureRoute
+# ── D1 FLAT (2026-10-06): category orchestration shim ──────────────
+# NATURE_CLUSTERS was deleted (MIGRATION_LEDGER D1); this mirrors root
+# METACLUSTER.py flat-v2. The "nature" axis is now the registry's own
+# category field — the categories ARE the taxonomy. Shims keep the public
+# surface importable and MetaCluster fully functional.
+_NATURE_OK = False          # NATURE_CLUSTERS module is gone
+NATURE_DEFINITIONS = {}     # router iterates this: empty = no cross-routes
+
+
+@dataclass
+class CrossNatureRoute:
+    from_nature: str = ""
+    to_nature: str = ""
+    data_mapping: Optional[dict] = None
+    description: str = ""
+    def __post_init__(self):
+        if self.data_mapping is None:
+            self.data_mapping = {}
+
+
+@dataclass
+class NatureResult:
+    """D1 flat per-category execution result (full root flat-v2 contract)."""
+    category: str = ""
+    worm_results: list = field(default_factory=list)
+    aggregated_metrics: dict = field(default_factory=dict)
+    duration_ms: float = 0.0
+    success_count: int = 0
+    failure_count: int = 0
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    errors: list = field(default_factory=list)
+    all_cached: bool = False
+
+
+def _get_natures() -> Dict[str, Dict[str, Any]]:
+    """D1 flat: natures == registry categories. Cheap discovery; cached."""
+    global _CATEGORIES_CACHE
+    if _CATEGORIES_CACHE is not None:
+        return _CATEGORIES_CACHE
+    discover_worms()
+    natures: Dict[str, Dict[str, Any]] = {}
+    for worm_name, entry in WORM_REGISTRY.items():
+        cat = (entry.get("category", "uncategorized")
+               if isinstance(entry, dict) else "uncategorized")
+        natures.setdefault(cat, {"worms": [], "target_worms": []})["worms"].append(worm_name)
+    _CATEGORIES_CACHE = natures
+    return natures
+
+
+_CATEGORIES_CACHE: Optional[Dict[str, Dict[str, Any]]] = None
+
+
+class NatureClusterManager:
+    """D1 flat shim over the registry's categories (mirror of root flat-v2).
+
+    Keeps the MetaCluster surface untouched while the underlying axis is the
+    registry category, not a separate taxonomy.
+    """
+
+    def __init__(self) -> None:
+        self.clusters: Dict[str, Any] = {}
+        for cat, info in _get_natures().items():
+            self.clusters[cat] = type("Cat", (), {"worms": info["worms"], "name": cat})()
+
+    def discover_all_natures(self) -> Dict[str, int]:
+        return {cat: len(getattr(info, "worms", [])) for cat, info in self.clusters.items()}
+
+    def _score_natures(self) -> Dict[str, int]:
+        return {cat: len(getattr(info, "worms", [])) for cat, info in self.clusters.items()}
+
+    def execute_nature(self, category: str, parallel: bool = True) -> Optional["NatureResult"]:
+        worms = self.clusters.get(category)
+        worm_names = list(getattr(worms, "worms", [])) if worms else []
+        if not worm_names:
+            return None
+        from azazael_core.worms.clusters.CLUSTERWORMS import ClusterWORMZ
+        names = [n for n in worm_names if n in WORM_REGISTRY]
+        if not names:
+            return None
+        cwz = ClusterWORMZ.build_from_registry(names)
+        cwz.set_parallel(parallel)
+        summary = cwz.execute_all()
+        ok = sum(1 for r in summary if r.get("success"))
+        fail = sum(1 for r in summary if not r.get("success"))
+        return NatureResult(
+            category=category,
+            worm_results=summary,
+            success_count=ok,
+            failure_count=fail,
+            duration_ms=0.0,
+            errors=[r.get("error") for r in summary if r.get("error")],
+            all_cached=False,
+        )
+
+    def get_status(self) -> Dict[str, Any]:
+        return {"mode": "D1_flat_registry_categories",
+                "clusters": {c: len(i.worms) for c, i in self.clusters.items()}}
+
+    def to_mermaid(self, include_routes: bool = False) -> str:
+        lines = ["graph TB", "    registry[azazael-core worm registry]"]
+        for cat, info in self.clusters.items():
+            lines.append(f"    registry -->|{len(info.worms)}| {cat}")
+        return "\n".join(lines)
+
+    def to_mermaid_functions(self) -> str:
+        return self.to_mermaid()
+
+    def clear_mermaid_cache(self) -> None:
+        global _CATEGORIES_CACHE
+        _CATEGORIES_CACHE = None
 
 # ── Worm Registry ──────────────────────────────────────────────────
 try:
