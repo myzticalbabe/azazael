@@ -212,6 +212,270 @@ def cispo_policy_loss(
     return -fmean(weight * advantage for weight in weights)
 
 
+def depo_filter(
+    difficulties: Mapping[str, float],
+    *,
+    low: float = 0.05,
+    high: float = 0.95,
+) -> list[str]:
+    """DEPO difficulty-estimated online filtering (2026).
+
+    Rollout budget is wasted on prompts the policy already masters
+    (difficulty ~= 0) or cannot touch yet (difficulty ~= 1): both yield
+    zero-variance groups downstream. Keep only the competence frontier —
+    prompts strictly inside (low, high). Difficulty is a caller-supplied
+    estimate in [0, 1] (e.g. recent fail rate); this contract only applies
+    the band, it does not estimate. Orthogonal to DAPO's dynamic sampling,
+    which filters AFTER rollout; DEPO filters BEFORE, saving the rollout.
+    """
+
+    if not 0.0 <= low < high <= 1.0:
+        raise ValueError("require 0 <= low < high <= 1")
+    kept = []
+    for name, difficulty in difficulties.items():
+        value = float(difficulty)
+        if not isfinite(value):
+            raise ValueError(f"difficulty for {name!r} must be finite")
+        if low < value < high:
+            kept.append(name)
+    return kept
+
+
+def dppo_rescale(keep_prob: float) -> float:
+    """DPPO unbiased-pruning rescale factor (2026).
+
+    Pruning low-value completions shifts the sampling distribution; the
+    retained gradient stays unbiased only when reweighted by 1/keep_prob
+    (importance-sampling correction). Heuristic pruning without this
+    factor is estimation bias, not efficiency.
+    """
+
+    prob = float(keep_prob)
+    if not isfinite(prob) or prob <= 0.0 or prob > 1.0:
+        raise ValueError("keep_prob must be in (0, 1]")
+    return 1.0 / prob
+
+
+class SPOTracker:
+    """SPO persistent global tracker (2025-26 lineage).
+
+    Per-prompt grouping degenerates when a group's rewards have zero
+    variance (sigma -> 0, advantages vanish). SPO keeps ONE persistent
+    running mean/variance across batches (Welford, numerically stable)
+    and normalizes against it — no per-prompt sync, no zero-variance
+    collapse, at the cost of losing prompt-local difficulty adjustment.
+    The tracker object IS the state; serialize count/mean/m2 to persist.
+    """
+
+    def __init__(self) -> None:
+        self.count = 0
+        self.mean = 0.0
+        self.m2 = 0.0
+
+    def update(self, rewards: Sequence[float]) -> None:
+        """Fold a batch into the running statistics."""
+
+        for value in _validate_rewards(rewards):
+            self.count += 1
+            delta = value - self.mean
+            self.mean += delta / self.count
+            self.m2 += delta * (value - self.mean)
+
+    @property
+    def variance(self) -> float:
+        """Population variance of everything seen (0.0 when empty)."""
+
+        if self.count < 1:
+            return 0.0
+        return self.m2 / self.count
+
+    def advantages(self, rewards: Sequence[float]) -> list[float]:
+        """Advantages against the persistent baseline (pre-update stats)."""
+
+        values = _validate_rewards(rewards)
+        scale = sqrt(self.variance)
+        if self.count < 1 or scale <= 1e-12:
+            return [0.0 for _ in values]
+        return [(value - self.mean) / scale for value in values]
+
+
+def dpo_loss(
+    chosen_logprob: float,
+    rejected_logprob: float,
+    ref_chosen_logprob: float,
+    ref_rejected_logprob: float,
+    *,
+    beta: float = 0.1,
+) -> float:
+    """DPO logistic preference loss (Rafailov et al. 2023).
+
+    No reward model: the optimal reward is implicit in the policy /
+    reference log-ratio gap. Pushes P(chosen) above P(rejected) while the
+    beta-scaled ratios keep the policy near the reference. Sensitive to
+    noisy pairs (gap pushed toward infinity even for near-ties).
+    """
+
+    for value in (chosen_logprob, rejected_logprob,
+                  ref_chosen_logprob, ref_rejected_logprob, beta):
+        if not isfinite(float(value)):
+            raise ValueError("DPO inputs and beta must be finite")
+    if beta <= 0.0:
+        raise ValueError("beta must be positive")
+    gap = ((chosen_logprob - ref_chosen_logprob)
+           - (rejected_logprob - ref_rejected_logprob))
+    return log(1.0 + exp(-beta * gap))
+
+
+def ipo_loss(
+    chosen_logprob: float,
+    rejected_logprob: float,
+    ref_chosen_logprob: float,
+    ref_rejected_logprob: float,
+    *,
+    beta: float = 0.1,
+) -> float:
+    """IPO squared-error preference loss (2024).
+
+    DPO's sigmoid pushes the winner/loser gap toward infinity even when
+    the loser is merely second-best. IPO replaces it with an MSE target
+    of 1/(2*beta) on the same log-ratio gap: near-ties saturate instead
+    of diverging. Same signature as DPO, different pathology.
+    """
+
+    for value in (chosen_logprob, rejected_logprob,
+                  ref_chosen_logprob, ref_rejected_logprob, beta):
+        if not isfinite(float(value)):
+            raise ValueError("IPO inputs and beta must be finite")
+    if beta <= 0.0:
+        raise ValueError("beta must be positive")
+    gap = ((chosen_logprob - ref_chosen_logprob)
+           - (rejected_logprob - ref_rejected_logprob))
+    return (gap - 1.0 / (2.0 * beta)) ** 2
+
+
+def kto_loss(
+    logprob: float,
+    ref_logprob: float,
+    *,
+    desirable: bool,
+    beta: float = 0.1,
+    loss_aversion: float = 2.0,
+) -> float:
+    """KTO prospect-theoretic loss (2024): no pairs required.
+
+    Single completions labeled desirable/undesirable; the reference
+    point is the policy-vs-reference gap and LOSSES weigh
+    ``loss_aversion``x more than equal wins (Kahneman-Tversky asymmetry).
+    For unpaired/binary feedback where pair construction is impossible.
+    """
+
+    for value in (logprob, ref_logprob, beta, loss_aversion):
+        if not isfinite(float(value)):
+            raise ValueError("KTO inputs must be finite")
+    if beta <= 0.0 or loss_aversion <= 0.0:
+        raise ValueError("beta and loss_aversion must be positive")
+    gap = logprob - ref_logprob
+    if desirable:
+        return log(1.0 + exp(-beta * gap))
+    return loss_aversion * log(1.0 + exp(beta * gap))
+
+
+def simpo_loss(
+    chosen_logprob: float,
+    rejected_logprob: float,
+    *,
+    chosen_len: int,
+    rejected_len: int,
+    beta: float = 2.0,
+    gamma: float = 0.5,
+) -> float:
+    """SimPO reference-free preference loss (2024).
+
+    Drops the reference model entirely (halves memory): length-normalized
+    log-probabilities stand in for the ratios, and a target margin gamma
+    keeps a fixed gap between winner and loser. beta scales the margin.
+    Length normalization removes the verbosity bias DPO inherits.
+    """
+
+    for value in (chosen_logprob, rejected_logprob, beta, gamma):
+        if not isfinite(float(value)):
+            raise ValueError("SimPO inputs must be finite")
+    if chosen_len <= 0 or rejected_len <= 0:
+        raise ValueError("lengths must be positive")
+    if beta <= 0.0:
+        raise ValueError("beta must be positive")
+    gap = chosen_logprob / chosen_len - rejected_logprob / rejected_len
+    return log(1.0 + exp(-beta * (gap - gamma)))
+
+
+def sapo_gate(ratio: float, *, temperature: float = 1.0) -> float:
+    """SAPO soft gate (2026): smooth attenuation instead of hard clipping.
+
+    Hard PPO/DAPO clipping zeroes the gradient the instant a ratio crosses
+    epsilon, discarding moderately off-policy tokens that still carry
+    signal. The soft gate attenuates smoothly — full weight near 1.0,
+    decaying tails — so the update degrades gracefully with staleness.
+    temperature < 1 sharpens the gate, > 1 softens it.
+    """
+
+    value = float(ratio)
+    if not isfinite(value) or value < 0.0:
+        raise ValueError("ratio must be a finite non-negative number")
+    if not isfinite(temperature) or temperature <= 0.0:
+        raise ValueError("temperature must be positive")
+    return 2.0 / (1.0 + exp(abs(log(max(value, 1e-12))) / temperature))
+
+
+def sapo_policy_loss(
+    trace: TokenTrace,
+    advantage: float,
+    *,
+    temperature: float = 1.0,
+) -> float:
+    """SAPO off-policy-tolerant token loss via the soft gate."""
+
+    ratios = [exp(value) for value in _valid_log_ratios(trace)]
+    if not ratios:
+        return 0.0
+    return -fmean(sapo_gate(value, temperature=temperature) * advantage
+                  for value in ratios)
+
+
+def ngrpo_mix(
+    anchor: Sequence[float],
+    neighbors: Sequence[Sequence[float]],
+    *,
+    alpha: float = 0.5,
+) -> list[float]:
+    """N-GRPO semantic-neighbor mixing stub (2026).
+
+    Token-level sampling only paraphrases; isotropic noise derails
+    rollouts off the semantic manifold. N-GRPO mixes the anchor embedding
+    with its nearest semantic neighbors: pure function on vectors, no
+    model needed. alpha blends anchor (1-alpha) with the neighbor mean
+    (alpha); alpha=0 recovers the anchor exactly. Callers supply
+    similarity-retrieved neighbors — the contract only guarantees the
+    convex geometry, not the retrieval.
+    """
+
+    base = [float(value) for value in anchor]
+    if not base or any(not isfinite(value) for value in base):
+        raise ValueError("anchor must be a non-empty finite vector")
+    if not 0.0 <= float(alpha) <= 1.0 or not isfinite(float(alpha)):
+        raise ValueError("alpha must be in [0, 1]")
+    if not neighbors:
+        return list(base)
+    hood = [[float(value) for value in neighbor] for neighbor in neighbors]
+    if any(len(member) != len(base) for member in hood):
+        raise ValueError("neighbors must match anchor dimension")
+    if any(not isfinite(value) for member in hood for value in member):
+        raise ValueError("neighbors must be finite")
+    mean = [fmean([member[index] for member in hood])
+            for index in range(len(base))]
+    weight = float(alpha)
+    return [(1.0 - weight) * a + weight * m for a, m in zip(base, mean)]
+
+
 @dataclass(frozen=True)
 class TokenTrace:
     """Token log-probability deltas and validity mask for one rollout."""

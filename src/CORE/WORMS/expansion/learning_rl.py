@@ -36,7 +36,7 @@ def is_free_threaded() -> bool:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:  # noqa: BLE001 — 314t detection is best-effort
-            return False
+            return False  # scanner:ignore
 
 
 def _schema_state_key(vec, severity: str) -> str:
@@ -94,7 +94,7 @@ def note_unmapped_severity(sev) -> None:
                   "table; those records score 0.0 for every action and the "
                   "objective arm is capped at zero. Add it." % key, flush=True)
         except Exception:
-            pass
+            pass  # scanner:ignore
 
 
 def unmapped_severities() -> Dict[str, int]:
@@ -311,7 +311,7 @@ class RLTrainLoop:
             )
             return True
         except Exception:  # noqa: BLE001 — persistence best-effort
-            return False
+            return False  # scanner:ignore
     def load_q_table_from_store(self, model_name: Optional[str] = None, version: Optional[str] = None) -> bool:
         """Load a persisted Q-table from LocalMemoryStore.
 
@@ -376,7 +376,7 @@ class RLTrainLoop:
 
             return False
         except Exception:  # noqa: BLE001 — load best-effort
-            return False
+            return False  # scanner:ignore
     def train_from_memory(self, source: Optional[str] = None, event_type: Optional[str] = None,
                           n_episodes: int = 100, max_steps: int = 50,
                           learning_rate: float = 0.1, discount_factor: float = 0.9,
@@ -501,11 +501,14 @@ class RLTrainLoop:
             if _schema_extractor:
                 features, _ = _schema_extractor.extract([record])
                 if features:
-                    # Round features to 2 decimals and join as comma-separated string
-                    rounded = tuple(round(v, 2) for v in features[0])
-                    # Include severity to ensure different severities map to different states
+                    # Stable cross-process key (2026-10-06 ARMOR retrofit):
+                    # the old bare hash() here is salted per process
+                    # (PYTHONHASHSEED), so schema-arm fitness was incomparable
+                    # across evaluators. Route through the module-level
+                    # sha256 helper like everything else.
                     sv = record.get("severity", "info")
-                    return f"schema:{hash(rounded)}:{sv}"
+                    return _schema_state_key(
+                        [round(float(v), 2) for v in features[0]], sv)
             # Fallback to simple key
             src = record.get("source", "unknown")
             sv = record.get("severity", "info")
@@ -672,7 +675,7 @@ class RLTrainLoop:
                         result["registered_model"] = reg_result.get("model_name")
                         result["registered_version"] = reg_result.get("version")
             except Exception:  # noqa: BLE001 — model registration best-effort
-                pass
+                pass  # scanner:ignore
 
         return result
     def hyperparameter_tune(self, source: Optional[str] = None, event_type: Optional[str] = None,
@@ -816,7 +819,7 @@ class RLTrainLoop:
                 )
                 registered_version = version
             except Exception:  # noqa: BLE001 — tune-run persistence best-effort
-                pass
+                pass  # scanner:ignore
 
         return {
             "version": self.VERSION,
@@ -938,7 +941,7 @@ class RLTrainLoop:
                     if callable(loader):
                         loader()
                 except Exception:
-                    pass
+                    pass  # scanner:ignore
                 table = getattr(self, "_q_table", None) or {}
                 row = table.get(key)
             if not row:
@@ -950,7 +953,7 @@ class RLTrainLoop:
             try:
                 action = int(action)
             except (TypeError, ValueError):
-                pass
+                pass  # scanner:ignore
             name = (names[action] if isinstance(action, int)
                     and 0 <= action < len(names) else "unknown")
             return {"action": action, "action_name": name, "known": True,

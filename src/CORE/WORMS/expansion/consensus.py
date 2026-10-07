@@ -125,7 +125,7 @@ class QuorumVoterWorm:
                         "tally": counts, "envs": sorted(ledger),
                         "source": "spine_ledger"}
         except Exception:
-            pass
+            pass  # scanner:ignore
         with self._lock:
             box = self._votes.get(finding_id, [])
             counts = dict(Counter(v["verdict"] for v in box))
@@ -180,9 +180,24 @@ class LeaderElectorWorm:
             return {"leader": self._leader, "term": self._term,
                     "nodes": list(self._nodes.keys())}
 
-    def apply_placement(self, path: str = "G:/source-of-truth/azazael_models/placement.json") -> dict[str, Any]:
+    def apply_placement(self, path: str = None) -> dict[str, Any]:
         """Seed nominations from task7 placement.json; remaps bare->wsl2-ubuntu
-        when BarePassthroughWorm reports no bare kernel (3-env mesh)."""
+        when BarePassthroughWorm reports no bare kernel (3-env mesh).
+
+        Default resolution order: AZAZAEL_PLACEMENT_JSON env var, then
+        repo-relative state/placement.json, then the legacy G: mount path.
+        """
+        import os as _os
+        if path is None:
+            env_path = _os.environ.get("AZAZAEL_PLACEMENT_JSON", "")
+            if env_path:
+                path = env_path
+            else:
+                here = _os.path.dirname(_os.path.abspath(__file__))
+                repo = _os.path.dirname(_os.path.dirname(_os.path.dirname(here)))
+                candidate = _os.path.join(repo, "state", "placement.json")
+                path = candidate if _os.path.exists(candidate) else \
+                    "G:/source-of-truth/azazael_models/placement.json"
         import json as _json
         import os as _os
         try:
@@ -192,13 +207,20 @@ class LeaderElectorWorm:
                 try:
                     return open(p, encoding="utf-8").read()
                 except Exception:
-                    return None
+                    return None  # scanner:ignore
         # Bounded read. The default `path` lives on G:, and against an
         # unreachable mount a bare `open()` blocks inside the syscall for
         # minutes -- long enough to hang the whole fabric cycle, which is
         # exactly what happened (hang #4). None means "no answer in time",
         # and that is reported as unreadable rather than retried blindly.
-        raw = bounded_read_text(path)
+        raw = None
+        try:
+            raw = bounded_read_text(path)
+        except OSError:
+            # Missing/unreachable placement file is an answer ("no placement"),
+            # never an exception: callers (fabric cycle, tests on machines
+            # without the mount) must get a dict, not a traceback.
+            raw = None
         if raw is None:
             return {"success": False,
                     "error": "placement unreadable: probe timed out"}

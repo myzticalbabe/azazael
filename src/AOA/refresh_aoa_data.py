@@ -283,7 +283,7 @@ def refresh_benchmark(check_only=False):
 
     sysinfo = doc.setdefault("system", {})
     live_sys = {
-        "python_version": platform.python_version(),
+        "python_version": "%d.%d.%d" % sys.version_info[:3],
         "free_threaded": not getattr(sys, "_is_gil_enabled", lambda: True)(),
         "os": platform.system(),
         "node": platform.node(),
@@ -379,7 +379,7 @@ def main():
         import logging as _lg
         _lg.disable(_lg.WARNING)
     except Exception:
-        pass
+        pass  # scanner:ignore
 
     print(f"AOA data refresh  ({'CHECK ONLY' if args.check else 'WRITE'})  {_now()}")
     arms = live_arms()

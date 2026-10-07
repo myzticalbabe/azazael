@@ -1,12 +1,10 @@
-........................................................................ [ 23%]
-........................................................................ [ 46%]
-...................................s.................................... [ 69%]
-........................................................................ [ 92%]
-.......................                                                  [100%]
+........................................................................ [ 38%]
+....................................s............ssssssss............... [ 76%]
+............................................                             [100%]
 ============================== warnings summary ===============================
-tests/test_registry_importable.py::test_resolve_package_qualified_passthrough
-  C:\Users\clint\AppData\Local\Programs\Python\Python314\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
+tests/test_wiring_cycle.py::test_prime_caches_fills_without_raising
+  C:\Users\clint\AppData\Local\Programs\Python\Python315\Lib\importlib\__init__.py:88: DeprecationWarning: CORE.WORMS.ECOSYSTEM_EXPANSION is deprecated. Use CORE.WORMS.expansion (split into 10 category modules). This shim re-exports all 50 worm classes for backward compatibility.
     return _bootstrap._gcd_import(name[level:], package, level)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-310 passed, 1 skipped, 1 warning in 85.36s (0:01:25)
+179 passed, 10 skipped, 1 warning in 34.69s

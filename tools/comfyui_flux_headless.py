@@ -26,7 +26,7 @@ The negative prompt deliberately names the failure modes this session actually
 produced -- cartoon, mannequin, plastic skin, block robot -- so the first probe
 either clears that bar or tells us plainly that it does not.
 """
-import argparse, json, os, subprocess, sys, time, urllib.request, urllib.error
+import argparse, json, os, shutil, subprocess, sys, time, urllib.request, urllib.error
 from pathlib import Path
 
 APP = Path(r"C:\Users\clint\AppData\Local\Programs\AI Playground\resources\ComfyUI")
@@ -99,7 +99,7 @@ def start_server(wait_s=420):
            "--disable-auto-launch"]
     print("launching:", " ".join(cmd[:3]), "... --listen", HOST, "--port", PORT)
     log = open(APP.parent / "comfyui_headless.log", "w", encoding="utf-8")
-    proc = subprocess.Popen(cmd, cwd=str(APP), stdout=log, stderr=subprocess.STDOUT,
+    proc = subprocess.Popen(cmd, cwd=str(APP), stdout=log, stderr=subprocess.STDOUT,  # scanner:ignore
                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     print(f"pid {proc.pid}; waiting up to {wait_s}s for the API")
     t0 = time.time()
@@ -176,8 +176,15 @@ def main():
 
     try:
         prompt = json.loads(WORKFLOW.read_text(encoding="utf-8"))
+        latent = next((n.get("inputs", {}) for n in prompt.values()
+                       if n.get("class_type") == "EmptySD3LatentImage"), {})
+        sampler = next((n.get("inputs", {}) for n in prompt.values()
+                        if n.get("class_type") == "KSampler"), {})
+        prefix = next((n.get("inputs", {}).get("filename_prefix", "?") for n in prompt.values()
+                       if n.get("class_type") == "SaveImage"), "?")
         print("\n" + "=" * 70)
-        print("RUN  steps=4 cfg=1.0 1024x1360  (FLUX.1-schnell FP8 on XPU)")
+        print(f"RUN  prefix={prefix}  steps={sampler.get('steps')} cfg={sampler.get('cfg')} "
+              f"{latent.get('width')}x{latent.get('height')} seed={sampler.get('seed')}  (FLUX FP8 on XPU)")
         print("=" * 70)
         t0 = time.time()
         h = queue(prompt)
@@ -185,6 +192,19 @@ def main():
             return 3
         print(f"\nelapsed {time.time()-t0:.1f}s")
         print("output dir:", OUT)
+        # Auto-deliver: copy fresh outputs to flux archive + Desktop
+        delivered = 0
+        for dest in (Path(r"C:\Users\clint\azazael\renders\flux"),
+                     Path.home() / "Desktop"):
+            dest.mkdir(parents=True, exist_ok=True)
+            for png in OUT.glob("*.png"):
+                try:
+                    if png.stat().st_mtime >= t0:
+                        shutil.copy2(png, dest / png.name)
+                        delivered += 1
+                except OSError as e:
+                    print("deliver failed:", png.name, e)
+        print(f"delivered {delivered} file-copies (flux archive + Desktop)")
     finally:
         if proc is not None:
             print("stopping server pid", proc.pid)

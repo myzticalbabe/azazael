@@ -42,7 +42,7 @@ import anti_pattern_gate as gate  # noqa: E402
 
 def _fake_scan(counts: dict, files: int = 10):
     """Return a replacement for gate.scan yielding fixed counts."""
-    def _scan(target: str):
+    def _scan(target: str, *a, **k):
         return Counter(counts), files
     return _scan
 

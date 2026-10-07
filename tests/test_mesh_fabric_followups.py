@@ -335,7 +335,12 @@ def test_consensus_nominates_from_the_placement_file(pen, tmp_path, monkeypatch)
         return real(self, str(placement))
 
     monkeypatch.setattr(LeaderElectorWorm, "apply_placement", patched)
-    cyc = SP.SpineCycleWorm()
+    # Fresh spine binding: module-top SP predates any in-suite registry
+    # reset (reset_registry purges + re-imports worm modules), so SP may
+    # point at a stale SpineCycleWorm whose consensus class is NOT the
+    # patched one. Re-import here to bind the live modules.
+    from CORE.WORMS.expansion import spine as _live_spine
+    cyc = _live_spine.SpineCycleWorm()
     monkeypatch.setattr(cyc, "_publish_local_shards", lambda shards: 0)
     res = cyc._fabric_consensus()
     assert res["placement"]["scanner"] == "wsl2-kali"

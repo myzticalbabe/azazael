@@ -28,15 +28,25 @@ from CORE.WORMS.expansion.diversity import (  # noqa: E402
     run_diversity_evidence,
 )
 from CORE.WORMS.expansion.policy_optimization import (  # noqa: E402
+    SPOTracker,
     TokenTrace,
     cispo_is_weights,
     cispo_policy_loss,
+    depo_filter,
+    dpo_loss,
+    dppo_rescale,
     gdpo_advantages,
     grpo_advantages,
+    ipo_loss,
+    kto_loss,
+    ngrpo_mix,
     reinforce_plus_plus_advantages,
     rloo_advantages,
+    sapo_gate,
+    sapo_policy_loss,
     select_dapo_groups,
     sequence_policy_loss,
+    simpo_loss,
     token_policy_loss,
 )
 
@@ -113,6 +123,72 @@ class TestPolicyContracts(unittest.TestCase):
         self.assertAlmostEqual(
             cispo_policy_loss(moved, 1.0, [0.0, 0.0],
                               clip_high=2.0), -2.0)
+
+    def test_depo_keeps_only_the_competence_frontier(self):
+        kept = depo_filter({"easy": 0.0, "mid": 0.5, "hard": 1.0,
+                            "a": 0.2, "b": 0.9})
+        self.assertEqual(kept, ["mid", "a", "b"])
+        with self.assertRaises(ValueError):
+            depo_filter({"x": 0.5}, low=0.9, high=0.1)
+
+    def test_dppo_rescale_is_inverse_keep_prob(self):
+        self.assertEqual(dppo_rescale(0.5), 2.0)
+        self.assertEqual(dppo_rescale(1.0), 1.0)
+        with self.assertRaises(ValueError):
+            dppo_rescale(0.0)
+        with self.assertRaises(ValueError):
+            dppo_rescale(1.5)
+
+    def test_spo_tracker_normalizes_against_history(self):
+        tracker = SPOTracker()
+        self.assertEqual(tracker.advantages([1.0, 2.0]), [0.0, 0.0])
+        tracker.update([1.0, 2.0, 3.0])
+        adv = tracker.advantages([1.0, 2.0, 3.0])
+        self.assertAlmostEqual(adv[0], -1.224744871391589, places=6)
+        self.assertAlmostEqual(adv[1], 0.0, places=6)
+        self.assertAlmostEqual(adv[2], 1.224744871391589, places=6)
+
+    def test_dpo_prefers_winners_with_reference_anchor(self):
+        self.assertAlmostEqual(
+            dpo_loss(0.0, 0.0, 0.0, 0.0, beta=1.0), 0.6931471805599453)
+        self.assertAlmostEqual(
+            dpo_loss(1.0, 0.0, 0.0, 0.0, beta=1.0), 0.3133, places=4)
+        with self.assertRaises(ValueError):
+            dpo_loss(1.0, 0.0, 0.0, 0.0, beta=0.0)
+
+    def test_ipo_saturates_near_ties(self):
+        self.assertAlmostEqual(
+            ipo_loss(1.0, 0.0, 0.0, 0.0, beta=1.0), 0.25)
+
+    def test_kto_weighs_losses_more_than_wins(self):
+        win = kto_loss(1.0, 0.0, desirable=True, beta=1.0)
+        loss = kto_loss(1.0, 0.0, desirable=False, beta=1.0)
+        self.assertAlmostEqual(win, 0.3133, places=4)
+        self.assertAlmostEqual(loss, 2.6265, places=4)
+        self.assertGreater(loss, win)
+
+    def test_simpo_needs_no_reference_model(self):
+        self.assertAlmostEqual(
+            simpo_loss(-10.0, -30.0, chosen_len=10, rejected_len=10,
+                       beta=2.0, gamma=0.5), 0.0486, places=4)
+        with self.assertRaises(ValueError):
+            simpo_loss(-10.0, -30.0, chosen_len=0, rejected_len=10)
+
+    def test_sapo_gate_is_soft_not_hard(self):
+        self.assertEqual(sapo_gate(1.0), 1.0)
+        self.assertAlmostEqual(sapo_gate(100.0), 0.0198, places=4)
+        self.assertGreater(sapo_gate(2.0), sapo_gate(100.0))
+        with self.assertRaises(ValueError):
+            sapo_gate(-1.0)
+
+    def test_ngrpo_mixing_stays_convex(self):
+        self.assertEqual(
+            ngrpo_mix([1.0, 0.0], [[0.0, 1.0]], alpha=0.5), [0.5, 0.5])
+        self.assertEqual(
+            ngrpo_mix([1.0, 0.0], [[0.0, 1.0]], alpha=0.0), [1.0, 0.0])
+        self.assertEqual(ngrpo_mix([1.0, 0.0], [], alpha=0.5), [1.0, 0.0])
+        with self.assertRaises(ValueError):
+            ngrpo_mix([1.0, 0.0], [[0.0]], alpha=0.5)
 
 
 class TestDiversityContracts(unittest.TestCase):

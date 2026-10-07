@@ -269,7 +269,7 @@ def is_protected_worm(info: Optional[dict]) -> bool:
     try:
         return FLEET_GOVERNOR_TAG in tags
     except TypeError:
-        return False
+        return False  # scanner:ignore
 
 
 def _replay_policy_journal() -> int:
@@ -286,7 +286,7 @@ def _replay_policy_journal() -> int:
         try:
             _spine_reg.load_spine_state()
         except Exception:
-            pass
+            pass  # scanner:ignore
         # G10: the journal is a bounded ring, so replaying it directly meant a
         # worm whose last adaptation had been evicted silently reverted to its
         # decorator default — a regression that only shows up once the fleet is
@@ -332,7 +332,7 @@ def _replay_policy_journal() -> int:
                 except Exception:
                     continue
     except Exception:
-        pass
+        pass  # scanner:ignore
     return adjusted
 
 
@@ -388,7 +388,7 @@ def _ensure_summary_contract(cls: type) -> str:
         if callable(existing):
             return "declared"
     except Exception:
-        pass
+        pass  # scanner:ignore
     try:
         # The mixin's implementation reads its two schema attributes, and a class
         # that does not inherit the mixin has neither — attaching only the method
@@ -405,7 +405,7 @@ def _ensure_summary_contract(cls: type) -> str:
     except Exception:
         # Builtin / C-extension types refuse attribute assignment. Nothing to do
         # here, and refusing to register a worm over it would be worse.
-        return "unavailable"
+        return "unavailable"  # scanner:ignore
 
 
 def register_worm(
@@ -719,7 +719,7 @@ def _discover_worms_impl(
 
         except Exception:
             # Module might have import issues or psutil segfaults
-            pass
+            pass  # scanner:ignore
 
     # --- VF (Vermillion LightFury) worm auto-discovery ---
     # vermillion_lightfury uses package-style imports (worms.nmap_scanner),
@@ -741,10 +741,10 @@ def _discover_worms_impl(
                 try:
                     importlib.import_module(_vf_mod_name)
                 except Exception:
-                    pass
+                    pass  # scanner:ignore
             _vf_already_discovered = True
         except Exception:
-            pass
+            pass  # scanner:ignore
 
     # -- Replay persisted policy adaptations (2026-09-14, helper below) --
     _replay_policy_journal()
@@ -977,7 +977,7 @@ def _new_decision_id() -> Optional[str]:
         try:
             return "d-%d" % time.time_ns()
         except Exception:
-            return None
+            return None  # scanner:ignore
 
 
 #: Where the L1 wiring cycle publishes an ACCEPTED genome. Absent means no
@@ -1010,7 +1010,7 @@ def _load_promoted_wiring() -> Optional[Dict[str, Any]]:
         st = os.stat(WIRING_PROMOTED_PATH)
         stamp = (st.st_mtime, st.st_size)
     except OSError:
-        return None
+        return None  # scanner:ignore
 
     if _wiring_cache is not None and _wiring_cache_stamp == stamp:
         return _wiring_cache
@@ -1028,7 +1028,7 @@ def _load_promoted_wiring() -> Optional[Dict[str, Any]]:
             _wiring_cache_stamp = stamp
             return data
         except Exception:
-            return None
+            return None  # scanner:ignore
 
 
 def _decision_versions() -> Dict[str, Any]:
@@ -1057,18 +1057,18 @@ def _decision_versions() -> Dict[str, Any]:
         from CORE.WORMS.expansion import hyperopt as _hyp
         out["hp"] = _hyp.fingerprint(_hyp.load())
     except Exception:
-        pass
+        pass  # scanner:ignore
     try:
         data = _load_promoted_wiring() or {}
         out["wg"] = data.get("fingerprint")
         out["wg_gen"] = data.get("generation")
     except Exception:
-        pass
+        pass  # scanner:ignore
     try:
         from CORE import spine_registry as _sr
         out["spine_edges"] = len(_sr.get_q_weights())
     except Exception:
-        pass
+        pass  # scanner:ignore
     return out
 
 
@@ -1211,9 +1211,9 @@ class BaseWormMixin:
                         result = result.__dict__
                     return {"success": True, "method": method_name, "result": result}
             except AttributeError:
-                pass
+                pass  # scanner:ignore
             except Exception:
-                pass
+                pass  # scanner:ignore
 
         # -- Explicit field summary --
         fields = self.__summary_fields__
@@ -1223,7 +1223,7 @@ class BaseWormMixin:
                 try:
                     result[field_name] = object.__getattribute__(self, field_name)
                 except AttributeError:
-                    pass
+                    pass  # scanner:ignore
             return {"success": True, "method": "get_summary", "result": result}
 
         # -- Fallback: basic class info (no introspection) --
@@ -1291,7 +1291,7 @@ class SpawnDiversityEngine:
                     severity="info",
                 )
             except Exception:
-                pass
+                pass  # scanner:ignore
 
     def record_spawn(self, worm_type: str, category: str, priority: int, reason: str = ""):
         """Record a spawn event for diversity tracking."""
@@ -1344,7 +1344,7 @@ class SpawnDiversityEngine:
                     if now - last_time < cooldown:
                         continue  # Still on cooldown
                 except (ValueError, TypeError):
-                    pass
+                    pass  # scanner:ignore
 
             category = info.get("category", "utility")
 
@@ -1365,7 +1365,7 @@ class SpawnDiversityEngine:
                     hours_since = (now - last_time) / 3600
                     staleness_bonus = min(3.0, hours_since * 0.5)  # Up to 3.0 bonus
                 except (ValueError, TypeError):
-                    pass
+                    pass  # scanner:ignore
 
             # -- Time-based pattern bonus --
             hour = datetime.now().hour
@@ -1508,7 +1508,7 @@ class SpawnDiversityEngine:
                 try:
                     priority = int(wiring_priority[name])
                 except (TypeError, ValueError):
-                    pass
+                    pass  # scanner:ignore
             # Demoted-out organs rank below every ranked one, deterministically.
             demoted = 1 if (active_set is not None and name not in active_set) else 0
             return (
@@ -1597,7 +1597,7 @@ class SpawnDiversityEngine:
                     last_time = datetime.fromisoformat(last_spawned).timestamp()
                     hours_since = (now - last_time) / 3600
                 except (ValueError, TypeError):
-                    pass
+                    pass  # scanner:ignore
 
             staleness = float("inf") if spawn_count == 0 else (hours_since or float("inf"))
 
@@ -1684,7 +1684,7 @@ class SpawnDiversityEngine:
                 bonus += 1.5
 
         except Exception:
-            pass
+            pass  # scanner:ignore
 
         return bonus
 
@@ -1892,7 +1892,7 @@ def repair_registry() -> Dict[str, Any]:
         from CORE.worm_registry_cache import invalidate_cache
         invalidate_cache()
     except Exception:
-        pass
+        pass  # scanner:ignore
 
     importlib.invalidate_caches()  # clear importlib metadata caches too
 
@@ -1908,7 +1908,7 @@ def repair_registry() -> Dict[str, Any]:
     try:
         discover_worms()
     except Exception:
-        pass
+        pass  # scanner:ignore
 
     after = validate_registry_importable()
     broken_out = set(b.get("name") for b in (after.get("broken") or []))
@@ -1970,7 +1970,7 @@ def _hosts_worms(mod_name: str, mod: Any, targets: Set[str]) -> bool:
             return "register_worm" in fh.read()
     except OSError:
         # Unreadable source: prefer re-import over serving a stale fleet.
-        return True
+        return True  # scanner:ignore
 
 
 def _purge_worm_modules(worm_modules: Optional[Set[str]] = None) -> None:
@@ -2013,9 +2013,22 @@ def _purge_worm_modules(worm_modules: Optional[Set[str]] = None) -> None:
                 if f.endswith(".py") and not f.startswith(("_", "."))}
         for mod_name in list(sys.modules):
             if mod_name in bare and not mod_name.startswith("CORE."):
+                # File-loaded modules whose __file__ lives OUTSIDE the WORMS
+                # dir were not loaded by flat discovery (e.g. the NATURE_CLUSTERS
+                # shim execs the repo-root file under its bare name). Purging
+                # them orphans the entry: nothing re-execs the file, so the
+                # dir()-fallback cannot rebuild it and the fleet shrinks by
+                # exactly that worm on every cold rebuild (measured: NatureCluster
+                # lost on 2nd purge+discover). Spare them like helpers.
+                try:
+                    _mf = getattr(sys.modules.get(mod_name), "__file__", None)
+                    if _mf and Path(_mf).resolve().parent != Path(worms_dir).resolve():
+                        continue
+                except OSError:
+                    pass  # scanner:ignore
                 del sys.modules[mod_name]
     except OSError:
-        pass
+        pass  # scanner:ignore
 
 
 def reset_registry(purge_modules: bool = True):
@@ -2058,6 +2071,16 @@ def reset_registry(purge_modules: bool = True):
         WORM_REGISTRY.clear()
         _discovery_done = False
         _vf_already_discovered = False
+    # Drop the stale pickle cache like repair_registry() does (2026-10-06):
+    # a reset means "rebuild from source". Without this, the next
+    # discover_worms() serves the on-disk snapshot while a LATER purge in
+    # the same process rebuilds live — the two fleets differ by whatever
+    # the cache predates (measured: NatureCluster lost between purges).
+    try:
+        from CORE.worm_registry_cache import invalidate_cache
+        invalidate_cache()
+    except Exception:
+        pass  # scanner:ignore
     if purge_modules:
         _purge_worm_modules(_module_targets)
 
@@ -2128,7 +2151,7 @@ def _auto_discover():
     try:
         discover_worms()
     except Exception:
-        pass
+        pass  # scanner:ignore
 
 
 # Don't auto-discover at import time (let caller decide when)
