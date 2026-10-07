@@ -216,6 +216,7 @@ src/CORE/WORMS/expansion/generated/_staging/
 # Vendored tools / regenerable runtime (2026-10-07 triage)
 gateway-go/*.exe
 tools/*.exe
+tools/procdump/
 config/track_bandit.json
 dashboard/archetypes/
 
