@@ -139,8 +139,10 @@ class TestSchedulingCardWebDashboard(unittest.TestCase):
 
     def test_build_html_sb3_section_structure(self):
         """SB3 Training section should have proper HTML structure."""
+        from unittest import mock
         from CORE.web_dashboard import build_html_page
-        html = build_html_page()
+        with mock.patch("CORE.dashboard.get_report", return_value={}):
+            html = build_html_page()
         # Should contain the section header
         self.assertIn("SB3 Training", html)
         # Should have the sub text for no data

@@ -30,6 +30,16 @@ if __name__ == "__main__":
 
     from CORE.secrets_manager import SecretsManager
 
+    # Deterministic concurrency probe, not a secret-presence check: seed a
+    # scratch value BEFORE the first SecretsManager() call freezes the cache
+    # (WSL/CI have no GROQ_API_KEY; without this every call returns None and
+    # the race test fails deterministically). setdefault never overrides real keys.
+    os.environ.setdefault("GROQ_API_KEY", "test-concurrency-probe-key")
+    # secrets_manager.py builds a module-level `_secrets = SecretsManager()`
+    # AT IMPORT, freezing the cache before this line runs. reload() re-reads
+    # the live environment into the shared singleton.
+    SecretsManager().reload()
+
     # ── Test 1: Singleton returns same instance ────────────────────────
     sm1 = SecretsManager()
     sm2 = SecretsManager()

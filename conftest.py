@@ -76,6 +76,16 @@ if not os.environ.get("AZAZAEL_MEMORY_DIR"):
     os.environ["AZAZAEL_MEMORY_DIR"] = _MEMORY_DIR_OVERRIDE
 
 
+# ── Heart pen: no autonomous beats under test ─────────────────────────
+# `warm_caches_now()` starts the spine-heart daemon, whose first beat runs a
+# FULL worm cycle immediately on its own thread. Under a suite that also runs
+# torch construction on worker threads, the daemon's concurrent torch entry
+# AVs inside torch C code on 3.15 (measured via faulthandler: spine-heart
+# thread in parameter.__new__). setdefault so an explicit export wins.
+if not os.environ.get("AZAZAEL_NO_HEART"):
+    os.environ["AZAZAEL_NO_HEART"] = "1"
+
+
 def pytest_unconfigure(config):
     """Remove the session's redirected pen, snapshot and store."""
     import shutil
@@ -140,6 +150,76 @@ def pytest_sessionfinish(session, exitstatus):
     _pmb_observe_test_outcome(exitstatus)
 
 
+# ── PMB live-suggestion hook (2026-10-06) ─────────────────────────────
+# The missing half of "live error resolution": on test failure, query PMB
+# recall with the failure text BEFORE the human (or agent) diagnoses by hand.
+# Proven: recall(error_string) returned the exact recorded fix first try.
+# Best-effort, capped, never fails the suite. Disable with
+# AZAZAEL_PMB_SUGGEST=0. Uses the .pmb-venv interpreter like the observer.
+_FAILED_FOR_SUGGEST: list = []
+
+
+def pytest_runtest_logreport(report):
+    if report.failed and report.when in ("setup", "call"):
+        try:
+            msg = ""
+            if hasattr(report, "longrepr"):
+                msg = str(report.longrepr)[:400]
+            _FAILED_FOR_SUGGEST.append((report.nodeid, msg))
+        except Exception:
+            pass  # scanner:ignore
+
+
+def _pmb_suggest_for(error_text):
+    """Ask PMB recall for matching fixes. Returns text or ''."""
+    if os.environ.get("AZAZAEL_PMB_SUGGEST") == "0":
+        return ""
+    interp = next((p for p in _PMB_VENV_PYTHON_CANDIDATES
+                   if p and os.path.exists(p)), None)
+    if not interp:
+        return ""
+    client = pathlib.Path(__file__).resolve().parent / "tools" / "pmb_client.py"
+    if not client.exists():
+        return ""
+    try:
+        import subprocess
+        # Bytes + replace: client output may carry non-UTF8 console bytes;
+        # text=True would die in the reader thread instead (measured).
+        r = subprocess.run(
+            [interp, str(client), "recall", error_text[:200], "--top-k", "2"],
+            timeout=25, capture_output=True,
+        )
+        out = (r.stdout or b"").decode("utf-8", "replace").strip()
+        return out[:900] if out else ""
+    except Exception:
+        return ""  # scanner:ignore
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    if not _FAILED_FOR_SUGGEST:
+        return
+    if os.environ.get("AZAZAEL_PMB_SUGGEST") == "0":
+        return
+    terminalreporter.write_sep("=", "PMB LIVE SUGGESTIONS (recorded fixes matching these failures)")
+    for nodeid, msg in _FAILED_FOR_SUGGEST[:3]:
+        terminalreporter.write_line(f"-- {nodeid}")
+        if not msg.strip():
+            terminalreporter.write_line("   (no error text captured)")
+            continue
+        sugg = _pmb_suggest_for(msg)
+        terminalreporter.write_line("   " + (sugg.replace("\n", "\n   ")
+                                     if sugg else "(PMB unreachable or no match)"))
+    remaining = len(_FAILED_FOR_SUGGEST) - 3
+    if remaining > 0:
+        terminalreporter.write_line(f"... +{remaining} more failures (see above)")
+
+
+# NOTE (2026-10-06): a torch session warmup lived here and was removed the
+# same day it was added -- measured to turn a passing solo run into an
+# access violation on 3.15. Lesson kept, code gone: never pre-touch native
+# runtimes at session scope to fix worker-scope races.
+
+
 # ── Shadow-split visibility guard (2026-10-04) ──────────────────────────
 # The editable install resolves CORE.* to the hub tree (C:\Azazael) while
 # top-level script modules resolve via sys.path to THIS worktree. Tests that
@@ -179,4 +259,4 @@ def pytest_configure(config):
                 "the editable install points at." % (core_tree, test_tree),
                 RuntimeWarning, stacklevel=2)
     except Exception:
-        pass
+        pass  # scanner:ignore

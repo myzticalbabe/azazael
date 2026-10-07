@@ -30,7 +30,17 @@ def _state(**kw):
     return base
 
 
-RECENT = "2026-09-29T09:00:00"
+from datetime import datetime, timedelta, timezone
+
+
+def _recent_iso():
+    # Rolling "recent" (2026-10-06): a PINNED date rots — the staleness
+    # window flipped these tests from FAIL to DORMANT the day the pin aged
+    # past it. Relative to now, the semantics ("active route") never drift.
+    return (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+
+
+RECENT = _recent_iso()
 OLD = "2025-01-01T00:00:00"
 
 

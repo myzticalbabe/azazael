@@ -51,7 +51,13 @@ class TestHealthEndpointIntegration(unittest.TestCase):
         s.settimeout(5)
         try:
             s.connect(("127.0.0.1", self.HEALTH_PORT))
-            data = s.recv(65535)
+            chunks = []
+            while True:
+                part = s.recv(65535)
+                if not part:
+                    break
+                chunks.append(part)
+            data = b"".join(chunks)
             return json.loads(data.decode("utf-8"))
         finally:
             s.close()

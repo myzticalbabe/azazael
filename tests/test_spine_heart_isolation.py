@@ -34,6 +34,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 # `src` must be on sys.path explicitly: a POSIX-style PYTHONPATH does not reach
 # the Windows interpreter, so the suite's convention is that each test module
 # inserts it itself. Without this the imports below fail with
@@ -42,10 +44,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 
-def test_heart_started_by_this_test_is_alive():
+@pytest.mark.slow  # starts a LIVE heart (daemon torch cycles): solo process.
+def test_heart_started_by_this_test_is_alive(monkeypatch):
     """A heart we start here must actually be running at the end of this test."""
     from CORE import startup_warm as sw
 
+    # Opt out of the suite-wide heart pen (root conftest sets
+    # AZAZAEL_NO_HEART=1): this test's whole point is a LIVE heart.
+    monkeypatch.delenv("AZAZAEL_NO_HEART", raising=False)
     assert sw.start_spine_heart(interval=30.0) is True
     assert sw._SPINE_HEART_ALIVE.is_set(), "the heart should be beating"
     assert sw.spine_heart_status()["beating"] is True

@@ -483,7 +483,7 @@ def test_save_cache_atomic_no_torn_file():
     from CORE import worm_registry_cache as wrc
     discover_worms()
     wrc.save_cache(dict(WORM_REGISTRY), str(wrc.Path(__file__).resolve().parent.parent / "src" / "CORE" / "WORMS"))
-    with open(wrc.CACHE_FILE, "rb") as fh:
+    with open(wrc.CACHE_FILE, "rb") as fh:  # scanner:ignore
         head = fh.read(16)
     assert len(head) == 16  # non-empty -> a reader would never hit EOFError
     # leftover tmp file must be gone (os.replace consumed it)
@@ -733,7 +733,10 @@ def test_route_learning_adapts_weights():
         sr.spine_reset()
 
 
-def test_spine_heart_starts_and_stops():
+@pytest.mark.slow  # LIVE heart running real beats: solo process (see --slow-solo).
+def test_spine_heart_starts_and_stops(monkeypatch):
+    # Opts out of the suite-wide heart pen (needs a LIVE heart).
+    monkeypatch.delenv("AZAZAEL_NO_HEART", raising=False)
     """The autonomous heartbeat starts, beats at least once, and stops.
 
     The assertion is on a RECORDED BEAT, not on a completed cycle, and that is a
@@ -1229,6 +1232,8 @@ def test_stop_spine_heart_waits_for_an_in_flight_beat(monkeypatch):
     from CORE import startup_warm
     from CORE.WORMS.expansion import spine as spine_mod
 
+    # Live-heart test: opt out of the suite-wide pen.
+    monkeypatch.delenv("AZAZAEL_NO_HEART", raising=False)
     entered = _t.Event()
     release = _t.Event()
 

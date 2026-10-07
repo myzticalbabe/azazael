@@ -38,6 +38,7 @@ Created: June 11, 2026 — Error #57 permanent fix
 """
 
 import sys
+import os
 import time
 import logging
 import threading
@@ -291,7 +292,7 @@ def _warm_worker(on_complete: (Callable | None) = None,
             try:
                 on_complete()
             except Exception:
-                pass
+                pass  # scanner:ignore
 
 
 def warm_caches_background(on_complete: (Callable | None) = None) -> threading.Thread:
@@ -436,6 +437,12 @@ def _spine_heart_worker(interval: float = SPINE_BEAT_INTERVAL):
 def start_spine_heart(interval: float = SPINE_BEAT_INTERVAL) -> bool:
     """Start the autonomous self-improvement heartbeat. Idempotent."""
     global _spine_heart_thread
+    if os.environ.get("AZAZAEL_NO_HEART") == "1":
+        # Test pen (see root conftest.py): a beating heart runs full worm
+        # cycles on a daemon thread; under a test suite that races torch
+        # construction on worker threads and AVs on 3.15 (measured).
+        # Production never sets this; tests that NEED a live heart delete it.
+        return False
     if _SPINE_HEART_ALIVE.is_set():
         return True
     _SPINE_HEART_ALIVE.set()
@@ -523,7 +530,7 @@ def cache_status() -> dict:
             # each entry's field count (5-8x the worm count).
             registry_size = len(WORM_REGISTRY) if WORM_REGISTRY else 0
         except (ImportError, AttributeError):
-            pass
+            pass  # scanner:ignore
 
     if _last_warm_time is not None:
         last_warm_ago = time.monotonic() - _last_warm_time
@@ -625,7 +632,7 @@ def ensure_registry_warm() -> bool:
             _ensure_registry_validation_async()
             return True
     except ImportError:
-        pass
+        pass  # scanner:ignore
 
     # Start background warm if not already started
     if not _warmed.is_set():

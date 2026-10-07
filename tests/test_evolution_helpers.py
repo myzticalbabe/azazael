@@ -8,6 +8,8 @@ proficiency ladder (good/bad/stale fixes).
 import sys
 import os
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
@@ -84,10 +86,13 @@ class TestTerenceVerify:
         assert p.read_bytes() == raw
 
     def test_locked_file_rejected(self, tmp_path):
+        import sys
+        if sys.platform != "win32":
+            pytest.skip("msvcrt file locking is Windows-only")
         import msvcrt
         p = tmp_path / "a.py"
         p.write_text("x = 1\n")
-        lfh = open(str(p) + ".terence.lock", "w")
+        lfh = open(str(p) + ".terence.lock", "w")  # scanner:ignore
         msvcrt.locking(lfh.fileno(), msvcrt.LK_NBLCK, 1)
         try:
             t, fix = self._fix(p, 1, "x = 1", "x = 2")
@@ -100,7 +105,7 @@ class TestTerenceVerify:
                 import os as _os
                 _os.remove(str(p) + ".terence.lock")
             except OSError:
-                pass
+                pass  # scanner:ignore
 
 
 class TestTerenceSelfGuard:

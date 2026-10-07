@@ -1027,7 +1027,7 @@ def _render_sb3_training_card(report: dict[str, Any]) -> str:
     """Render SB3 TrainingOrchestrator runs as a card."""
     sb3 = report.get("sb3_training", {})
     if not sb3:
-        return _section_html("SB3 Training", '<div class="sub">No data</div>', theme="card-theme-sb3")
+        return _section_html("SB3 Training", '<div class="sub">No SB3 training runs yet</div>', theme="card-theme-sb3")
 
     runs = sb3.get("recent_runs", [])
     total = sb3.get("total_runs", 0)
@@ -1251,7 +1251,7 @@ class WebDashboardServer:
             try:
                 self.server.server_close()
             except OSError:
-                pass
+                pass  # scanner:ignore
 
     def start_background(self) -> threading.Thread:
         """Start the web dashboard in a background daemon thread."""

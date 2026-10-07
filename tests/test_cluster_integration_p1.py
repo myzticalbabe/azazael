@@ -22,6 +22,7 @@ import re
 import time
 import threading
 import tempfile
+import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch, PropertyMock
 
@@ -53,6 +54,9 @@ def run_test(name, fn):
 # Section 1: 89-Worm Full Orchestration Validation
 # ═══════════════════════════════════════════════════════════════════
 
+@pytest.mark.slow  # executes 200+ worms incl. daemons/threads: must run in its
+# own process (see --slow-solo). Leftover worker state AVs later parallel
+# tests in the same process on 3.15 (measured).
 def test_all_worms_execute_without_crash():
     """Every registered worm should execute via dynamic resolution without crashing."""
     from CORE.worm_registry import WORM_REGISTRY, discover_worms
@@ -417,6 +421,8 @@ def test_ncm_discover_all_natures():
     assert not empty, f"Categories with no worms: {empty}"
 
 
+@pytest.mark.slow  # full-fleet parallel orchestration: solo process (see --slow-solo).
+# Leftover worker threads from earlier tests AV inside torch C code on 3.15.
 def test_metacluster_orchestrate_no_circularity_error():
     """MetaCluster orchestrate() should not crash on circularity check."""
     from CORE.worm_registry import discover_worms
@@ -433,6 +439,7 @@ def test_metacluster_orchestrate_no_circularity_error():
     assert result.total_worms_ok + result.total_worms_fail > 0
 
 
+@pytest.mark.slow  # same solo-process rationale as the orchestrate test above.
 def test_metacluster_to_mermaid_after_orchestration():
     """Mermaid graphs should work after orchestration."""
     from CORE.worm_registry import discover_worms

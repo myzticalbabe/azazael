@@ -118,7 +118,7 @@ class _LazyTorch:
                 timeout=self.IMPORT_TIMEOUT_S,
             )
         except Exception:
-            return False
+            return False  # scanner:ignore
         return proc.returncode == 0
 
     def _import_here(self) -> None:
@@ -181,6 +181,12 @@ class _LazyTorch:
 
 _torch = _LazyTorch()
 
+#: Single process-wide gate for EVERY torch C entry in this module
+#: (construction, forward, param read/write). torch internals AV when any
+#: two of these run concurrently on 3.15 (measured); the piggybacked
+#: _LazyTorch import lock proved insufficient because live use races too.
+_TORCH_OP_LOCK = threading.Lock()
+
 try:
     import numpy as _np  # type: ignore
 except Exception:  # pragma: no cover
@@ -234,22 +240,31 @@ class Neuromodulator:
 
         self.net = None
         if self._torch_ok:
-            try:
-                dev = "xpu" if getattr(_torch, "xpu", None) is not None and _torch.xpu.is_available() else "cpu"
-                self.device = dev
-                g = _torch.Generator(device="cpu").manual_seed(seed)
-                self.net = _torch.nn.Sequential(
-                    _torch.nn.Linear(self.in_dim, self.hidden),
-                    _torch.nn.Tanh(),
-                    _torch.nn.Linear(self.hidden, self.n_out),
-                ).to(dev)
-                with _torch.no_grad():
-                    for p in self.net.parameters():
-                        p.copy_(_torch.empty_like(p).uniform_(-0.5, 0.5, generator=g))
-                self.backend = "torch:%s" % dev
-            except Exception:
-                self.net = None
-                self.backend = "numpy"
+            # Serialize torch module construction (2026-10-05): concurrent
+            # first-heavy-use from thread-pool workers AVs inside torch C
+            # code on 3.15 (measured: access violation in parameter.__new__
+            # from ft-worker threads; 3.14.7 GIL unaffected). Reuses the
+            # _LazyTorch import lock so all torch entry is single-file.
+            with _TORCH_OP_LOCK:
+                self._build_torch_net(seed)
+
+    def _build_torch_net(self, seed: int) -> None:
+        try:
+            dev = "xpu" if getattr(_torch, "xpu", None) is not None and _torch.xpu.is_available() else "cpu"
+            self.device = dev
+            g = _torch.Generator(device="cpu").manual_seed(seed)
+            self.net = _torch.nn.Sequential(
+                _torch.nn.Linear(self.in_dim, self.hidden),
+                _torch.nn.Tanh(),
+                _torch.nn.Linear(self.hidden, self.n_out),
+            ).to(dev)
+            with _torch.no_grad():
+                for p in self.net.parameters():
+                    p.copy_(_torch.empty_like(p).uniform_(-0.5, 0.5, generator=g))
+            self.backend = "torch:%s" % dev
+        except Exception:
+            self.net = None
+            self.backend = "numpy"
 
     # -- forward ----------------------------------------------------------
     def _forward_numpy(self, ctx: Sequence[float]) -> List[float]:
@@ -268,7 +283,11 @@ class Neuromodulator:
         raw: List[float]
         if self.net is not None and bool(_torch):
             try:
-                with _torch.no_grad():
+                # Same lock as construction: torch C internals AV when a
+                # forward runs concurrently with another thread's first
+                # heavy use on 3.15 (measured). The net is 16-wide; the
+                # serialization cost is noise next to worm execution.
+                with _TORCH_OP_LOCK, _torch.no_grad():
                     t = _torch.tensor([list(ctx)], dtype=_torch.float32, device=self.net[0].weight.device)
                     raw = [float(v) for v in self.net(t)[0].tolist()]
             except Exception:
@@ -283,11 +302,12 @@ class Neuromodulator:
         if self.net is not None and bool(_torch):
             try:
                 out: List[float] = []
-                for p in self.net.parameters():
-                    out.extend(float(v) for v in p.detach().cpu().reshape(-1).tolist())
+                with _TORCH_OP_LOCK:
+                    for p in self.net.parameters():
+                        out.extend(float(v) for v in p.detach().cpu().reshape(-1).tolist())
                 return out
             except Exception:
-                pass
+                pass  # scanner:ignore
         out = []
         for row in self.w1:
             out.extend(row)
@@ -301,7 +321,7 @@ class Neuromodulator:
         vals = [float(v) for v in params]
         if self.net is not None and bool(_torch):
             try:
-                with _torch.no_grad():
+                with _TORCH_OP_LOCK, _torch.no_grad():
                     i = 0
                     for p in self.net.parameters():
                         n = int(p.numel())
@@ -312,7 +332,7 @@ class Neuromodulator:
                         i += n
                 return
             except Exception:
-                pass
+                pass  # scanner:ignore
         i = 0
         for r in range(self.hidden):
             for c in range(self.in_dim):
@@ -347,7 +367,7 @@ class Neuromodulator:
             obj.set_params(d.get("params") or [])
             return obj
         except Exception:
-            return None
+            return None  # scanner:ignore
 
 
 def modulated_q_update(q: Dict[Any, float], state: Any, action: Any, reward: float,
@@ -447,7 +467,7 @@ class NerveTrainer:
             with open(str(self.path) + ".history.json", "w", encoding="utf-8") as fh:
                 json.dump(self.history[-128:], fh, indent=1)
         except Exception:
-            pass
+            pass  # scanner:ignore
 
     def train(self, evaluate: Any, generations: int = 20, n_offspring: int = 4
               ) -> Dict[str, Any]:

@@ -68,6 +68,9 @@ def test_a_failed_probe_declines_without_importing(monkeypatch):
     returns a module here.
     """
     monkeypatch.setattr(_LazyTorch, "_probe", lambda self: False)
+    import importlib.util
+    if importlib.util.find_spec("torch") is None:
+        pytest.skip("torch absent here: probe premise needs torch installed")
     lazy = _LazyTorch()
     assert lazy.get() is None
     assert lazy.state == "timeout"
