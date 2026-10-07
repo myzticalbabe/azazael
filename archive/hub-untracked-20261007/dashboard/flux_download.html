@@ -1,0 +1,112 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  @font-face{font-family:mono;src:local("Cascadia Mono"),local("Consolas")}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{width:900px;background:#0d1117;color:#e6edf3;
+       font-family:"Cascadia Mono",Consolas,monospace;padding:34px 38px}
+  h1{font-size:23px;font-weight:700;letter-spacing:.4px}
+  h1 span{color:#58a6ff}
+  .sub{color:#8b949e;font-size:12.5px;margin-top:7px;letter-spacing:.3px}
+  .hero{margin:26px 0 8px;display:flex;align-items:baseline;gap:14px}
+  .pct{font-size:64px;font-weight:700;color:#58a6ff;line-height:1}
+  .of{font-size:15px;color:#8b949e}
+  .trackO{height:16px;background:#161b22;border-radius:8px;overflow:hidden;
+          border:1px solid #30363d;margin:14px 0 22px}
+  .fillO{height:100%;background:linear-gradient(90deg,#1f6feb,#58a6ff);
+         border-radius:8px;transition:width .8s ease}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .cell{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px 14px}
+  .k{font-size:10.5px;color:#8b949e;letter-spacing:1.1px;text-transform:uppercase}
+  .v{font-size:20px;font-weight:700;margin-top:5px}
+  .v.blue{color:#58a6ff}.v.green{color:#3fb950}.v.amber{color:#d29922}
+  .row{display:grid;grid-template-columns:190px 1fr 168px;align-items:center;
+       gap:14px;padding:11px 0;border-top:1px solid #21262d}
+  .rl{display:flex;flex-direction:column;gap:2px}
+  .lbl{font-size:13.5px;font-weight:600}
+  .note{font-size:10.5px;color:#6e7681}
+  .track{height:9px;background:#161b22;border-radius:5px;overflow:hidden;
+         border:1px solid #30363d}
+  .fill{height:100%;background:#3fb950;border-radius:5px;transition:width .8s ease}
+  .downloading .fill{background:linear-gradient(90deg,#1f6feb,#58a6ff)}
+  .queued .fill{background:#30363d}
+  .rn{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .rn .pct{font-size:13.5px;font-weight:700}
+  .rn .sz{font-size:10.5px;color:#6e7681}
+  .done .pct{color:#3fb950}
+  .foot{margin-top:22px;padding-top:14px;border-top:1px solid #21262d;
+        font-size:11px;color:#6e7681;line-height:1.7}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+       background:#3fb950;margin-right:7px;
+       animation:p 1.6s ease-in-out infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.25}}
+  </style></head><body>
+  <h1>FLUX<span>.1-schnell</span> FP8 &mdash; local image stack</h1>
+  <div class="sub">Intel Arc 140T &middot; 7.80 GB XPU &middot; headless ComfyUI &middot; 4 steps &middot; 1024&times;1360</div>
+
+  <div class="hero">
+    <div class="pct">100.0%</div>
+    <div class="of">16.26 of 16.26 GB &middot; 4/4 files</div>
+  </div>
+  <div class="trackO"><div class="fillO" style="width:100.00%"></div></div>
+
+  <div class="grid">
+    <div class="cell"><div class="k">Speed now</div><div class="v blue">1.3<span style="font-size:11px;color:#8b949e"> MB/s</span></div></div>
+    <div class="cell"><div class="k">Average</div><div class="v">0.0<span style="font-size:11px;color:#8b949e"> MB/s</span></div></div>
+    <div class="cell"><div class="k">Remaining</div><div class="v amber">--:--:--</div></div>
+    <div class="cell"><div class="k">Elapsed</div><div class="v">01:27:14</div></div>
+  </div>
+
+  
+      <div class="row DONE">
+        <div class="rl">
+          <span class="lbl">UNet</span>
+          <span class="note">FLUX.1-schnell FP8 e4m3fn</span>
+        </div>
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+        <div class="rn">
+          <span class="pct">100.0%</span>
+          <span class="sz">11.07 / 11.07 GB</span>
+        </div>
+      </div>
+      <div class="row DONE">
+        <div class="rl">
+          <span class="lbl">Text encoder</span>
+          <span class="note">T5-XXL FP8 scaled</span>
+        </div>
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+        <div class="rn">
+          <span class="pct">100.0%</span>
+          <span class="sz">4.80 / 4.80 GB</span>
+        </div>
+      </div>
+      <div class="row DONE">
+        <div class="rl">
+          <span class="lbl">CLIP-L</span>
+          <span class="note">246 MB</span>
+        </div>
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+        <div class="rn">
+          <span class="pct">100.0%</span>
+          <span class="sz">0.23 / 0.23 GB</span>
+        </div>
+      </div>
+      <div class="row DONE">
+        <div class="rl">
+          <span class="lbl">VAE</span>
+          <span class="note">flux-vae bf16</span>
+        </div>
+        <div class="track"><div class="fill" style="width:100%"></div></div>
+        <div class="rn">
+          <span class="pct">100.0%</span>
+          <span class="sz">0.16 / 0.16 GB</span>
+        </div>
+      </div>
+
+  <div class="foot">
+    <span class="dot"></span>live &mdash; this card re-renders every tick; open
+    <b>azazael/dashboard/flux_download.png</b><br>
+    Link is ~3 MB/s, so expect ~1.5 h for 16.26 GB. curl runs with <b>-C -</b>,
+    so a dropped connection resumes instead of restarting.<br>
+    UNet is 11.89 GB on a 7.80 GB card, so ComfyUI will offload to system RAM &mdash;
+    free RAM, not VRAM, is the binding constraint. Restart before the run.
+  </div>
+  </body></html>

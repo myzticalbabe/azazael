@@ -1,0 +1,78 @@
+{
+ "span_hours": 10.68,
+ "failures": [
+  "span_hours"
+ ],
+ "checks": {
+  "span_hours": [
+   10.68,
+   "recomputed",
+   false
+  ],
+  "flux1-schnell-fp8-e4m3fn.safeten": [
+   11891329784,
+   11891329784,
+   true
+  ],
+  "t5xxl_fp8_e4m3fn_scaled.safetens": [
+   5157348688,
+   5157348688,
+   true
+  ],
+  "clip_l.safetensors": [
+   246144152,
+   246144152,
+   true
+  ],
+  "flux-vae-bf16.safetensors": [
+   167664710,
+   167664710,
+   true
+  ],
+  "flux1-dev-fp8.safetensors": [
+   11901525888,
+   11901525888,
+   true
+  ],
+  "flux1-dev-Q4_K_S.gguf": [
+   6805988640,
+   6805988640,
+   true
+  ],
+  "downloaded_GB": [
+   33.69,
+   33.69,
+   true
+  ],
+  "h2_sections": [
+   28,
+   28,
+   true
+  ],
+  "session_blocks": [
+   28,
+   28,
+   true
+  ],
+  "span_claim_stale": [
+   true,
+   true,
+   true
+  ],
+  "prior_session_residue": [
+   [],
+   [],
+   true
+  ],
+  "div_imbalance": [
+   -4,
+   -4,
+   true
+  ],
+  "css_brace_imbalance": [
+   -3,
+   -3,
+   true
+  ]
+ }
+}

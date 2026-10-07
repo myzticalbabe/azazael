@@ -1,0 +1,35 @@
+=============================================================================================================
+  EX MACHINA LIVE MONITOR   2026-09-24 13:22:53   (refresh 30s, Ctrl+C to stop)
+=============================================================================================================
+[1;38;5;202m-- EX MACHINA -- :O ALARMED 0.38 | 10 judged + 7 operators --------------------------------------------------[0m
+ :O ~ [=---] alive [|||||...]  ~ vitality 0.95 exploring  o belief +20.2 bits  cycles 120  [mood up]
+[91m SEVERITY [#####-------] 0.38  active 13 worst causal_absence   1.00[0m
+ x [38;5;190mESCALATE[0m [91mcausal_absence, non_invariance, staleness (mood forced up)[0m  hard 3/13  raw 0.377  worst 1.00
+ ! causal_absence  [##########] 1.00  objective d-separated from the check
+ ! non_invariance  [##########] 1.00  fitness relation does not transport across eras
+ ! staleness       [##########] 1.00  an artifact stopped being written
+ ! mutagenesis     [########--] 0.76  the genome grows on trials that never changed the trainer call
+ - surrogate       [#####-----] 0.53  no fitted surrogate can predict the objective
+ - mdl             [#---------] 0.12  fitness bought with description length
+ ! [38;5;154mFUNNEL[0m attempts 26  [92mpasses 9[0m  promoted 39  cooldowns 13  margin_sd 0.932
+ ~ [38;5;118mADVANCE[0m oracle [91m3d[0m 42 eras  cooldown margin 1.9812 age 8d
+ ~ VITALS x 0/7     alloc 3d STALE  archive 4d STALE  gate 3d STALE  morph 3d STALE  oracle 3d STALE  promote
+ ~ FRESH oracle 100% STALE  gate 100% STALE  alloc 100% STALE  archive 100% STALE  promote 100% STALE  tensor
+  [38;5;214mSPECULUM [0m [1m[92m+ OK     [0m gaming 0.00 margin +1.09 hold 6/10   [38;5;190mTESTUDO  [0m [1m[91mx UNCAL  [0m coverage 0.8 vs 0.9 q 1.8663
+  [38;5;118mVIGIL    [0m [1m[92m+ reject [0m wealth 1221323.10 belief 20.22   [38;5;46mFILUM    [0m [1m[92m+ exploring[0m vit 0.95 alpha 0.889
+  [38;5;48mPERENNIS [0m [1m[91mx inv    [0m 0.00 of 7 predictors stable   [38;5;50mCOMPAGES [0m [1m[91mx NO LINK[0m t -1.388 crit -3.399
+  [38;5;45mBREVIS   [0m [1m[92m+ mdl    [0m genome 0.1022 of bits, 4 genes   [38;5;33mEMERGON  [0m [1m[91mx flat   [0m dEI -0.3588 via bit0+2
+  [38;5;21mFULCRUM  [0m [1m[92m+ rdy    [0m NCD on gene dicts; needs behaviour traces
+ ~ [38;5;82mEVIDENCE[0m rows 120  complete 26  complete-models 120  holdout 26  check=_holdout
+ + [38;5;208mOPERATORS[0m [1m[92m+ 7      [0m RADIX 6n/2e d-sep  CATENA r=0.040  NAVIS mae 0.965  NEXUS H 1.79/2.00  OPUS mae 82.103
+                       VELA rec 1.00  LIMEN idle
+ o [38;5;46mORACLE[0m [1m[92m+ on     [0m 500 rows  42 eras  5 models  499KB  loss 0.128
+ m [38;5;48mMORPH[0m [1m[92m+ grown  [0m 5 gene  dims [4, 5]  trial 26.046 vs base 22.196 (+3.850)
+ c [38;5;50mCIRC[0m [1m[92m+ live   [0m ga 0.50 cma 0.54 de 0.40
+ T [38;5;33mTENSOR[0m [1m[92m+ declared[0m 4 genes  width 16  3/4 above floor  500 rows
+   + epsilon_decay        [####----] +0.527 up    n=389
+   + epsilon              [###-----] -0.419 down  n=389
+   z compiles to in=16 hidden=32x16  UNTRAINED spec
+ R [38;5;45mMUTAGEN[0m [1m[91mx free growth[0m [######--]  76% inert  68/68 won  dF +1.02  P <1e-15
+   R by_session 21c/25i ab-0.54  use_schema_features 0c/43i NEVER-TREATED
+ # [38;5;45mPROTEUS[0m [1m[92m+ pass   [0m gate=pass era_robust_p=0.3333

@@ -1,0 +1,265 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1320" font-family="Consolas,monospace" font-size="11">
+<rect width="1240" height="1320" fill="#f8fafc"/>
+<text x="20" y="20" font-size="14" font-weight="bold" fill="#0f172a">AZAZAEL evolution subsystem - call graph (verified from source, 2026-09-11)</text>
+<text x="20" y="36" font-size="10" fill="#64748b">columns: driver script | GA engine | RL/eval + consumption | storage/config</text>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#94a3b8"/></marker></defs>
+<rect x="30" y="944" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="962" fill="#0f172a">main(evolution_cycle)</text>
+<text x="38" y="976" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="892" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="910" fill="#0f172a">last_best_genes()</text>
+<text x="38" y="924" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="632" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="650" fill="#0f172a">_tpe_seeds()</text>
+<text x="38" y="664" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="216" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="234" fill="#0f172a">_load_qd_archive()</text>
+<text x="38" y="248" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="372" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="390" fill="#0f172a">_qd_suggest()</text>
+<text x="38" y="404" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="528" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="546" fill="#0f172a">_select_hof()</text>
+<text x="38" y="560" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="330" y="60" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="78" fill="#0f172a">EvolutionEngine.__init__</text>
+<text x="338" y="92" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="788" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="806" fill="#0f172a">EvolutionEngine.initialize_population</text>
+<text x="338" y="820" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="580" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="598" fill="#0f172a">EvolutionEngine.evaluate_population</text>
+<text x="338" y="612" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="684" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="702" fill="#0f172a">EvolutionEngine.get_best_genome</text>
+<text x="338" y="716" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="736" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="754" fill="#0f172a">EvolutionEngine.has_converged</text>
+<text x="338" y="768" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="632" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="650" fill="#0f172a">EvolutionEngine.evolve</text>
+<text x="338" y="664" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="30" y="424" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="442" fill="#0f172a">_run_cma_arm()</text>
+<text x="38" y="456" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="320" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="338" fill="#0f172a">_pareto_refine()</text>
+<text x="38" y="352" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="268" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="286" fill="#0f172a">_pareto_gate()</text>
+<text x="38" y="300" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="580" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="598" fill="#0f172a">_sprt_decide()</text>
+<text x="38" y="612" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="164" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="182" fill="#0f172a">_holdout_gate()</text>
+<text x="38" y="196" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="60" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="78" fill="#0f172a">_check_canary()</text>
+<text x="38" y="92" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="788" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="806" fill="#0f172a">fitness_parts()</text>
+<text x="38" y="820" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="736" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="754" fill="#0f172a">fitness_genes()</text>
+<text x="38" y="768" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="1048" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="1066" fill="#0f172a">production_genes()</text>
+<text x="38" y="1080" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="930" y="112" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="130" fill="#0f172a">DirectMemory.record(evolution_result)</text>
+<text x="938" y="144" fill="#64748b" font-size="9">direct_memory.py</text>
+<rect x="930" y="60" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="78" fill="#0f172a">DirectMemory.record(evolution_promotion)</text>
+<text x="938" y="92" fill="#64748b" font-size="9">direct_memory.py</text>
+<rect x="330" y="1048" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="1066" fill="#0f172a">SepCMAES.optimize</text>
+<text x="338" y="1080" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="1100" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="1118" fill="#0f172a">TPESurrogate.suggest</text>
+<text x="338" y="1132" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="892" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="910" fill="#0f172a">EvolutionEngine.optimize_multi_objective</text>
+<text x="338" y="924" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="630" y="112" width="270" height="40" rx="6" fill="#e0e7ff" stroke="#94a3b8"/>
+<text x="638" y="130" fill="#0f172a">DataPipelineWorm.extract_from_memory</text>
+<text x="638" y="144" fill="#64748b" font-size="9">learning_pipeline.py</text>
+<rect x="930" y="216" width="270" height="40" rx="6" fill="#fee2e2" stroke="#94a3b8"/>
+<text x="938" y="234" fill="#0f172a">state/evolved_rl_params.json.prev</text>
+<text x="938" y="248" fill="#64748b" font-size="9">state/evolved_rl_params.json</text>
+<rect x="30" y="476" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="494" fill="#0f172a">_save_qd_archive()</text>
+<text x="38" y="508" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="684" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="702" fill="#0f172a">fitness(genome)</text>
+<text x="38" y="716" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="840" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="858" fill="#0f172a">genome_seed()</text>
+<text x="38" y="872" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="30" y="112" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="130" fill="#0f172a">_eval_salt()</text>
+<text x="38" y="144" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="630" y="580" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="598" fill="#0f172a">RLTrainLoop.train_from_memory(info pool)</text>
+<text x="638" y="612" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="630" y="528" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="546" fill="#0f172a">RLTrainLoop.train_from_memory(alert pool)</text>
+<text x="638" y="560" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="30" y="996" width="270" height="40" rx="6" fill="#dbeafe" stroke="#94a3b8"/>
+<text x="38" y="1014" fill="#0f172a">pool_fingerprint()</text>
+<text x="38" y="1028" fill="#64748b" font-size="9">evolution_cycle.py</text>
+<rect x="930" y="320" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="338" fill="#0f172a">store.query_memories(evolution_result)</text>
+<text x="938" y="352" fill="#64748b" font-size="9">local_memory.py</text>
+<rect x="930" y="164" width="270" height="40" rx="6" fill="#fee2e2" stroke="#94a3b8"/>
+<text x="938" y="182" fill="#0f172a">state/evolved_rl_params.json</text>
+<text x="938" y="196" fill="#64748b" font-size="9">state/evolved_rl_params.json</text>
+<rect x="630" y="632" width="270" height="40" rx="6" fill="#fce7f3" stroke="#94a3b8"/>
+<text x="638" y="650" fill="#0f172a">ScheduleConfig() defaults</text>
+<text x="638" y="664" fill="#64748b" font-size="9">scheduling.py</text>
+<rect x="330" y="320" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="338" fill="#0f172a">EvolutionEngine._govern_evolution_gate</text>
+<text x="338" y="352" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="112" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="130" fill="#0f172a">EvolutionEngine._adapt_mutation_rate</text>
+<text x="338" y="144" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="528" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="546" fill="#0f172a">EvolutionEngine._tournament_select</text>
+<text x="338" y="560" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="268" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="286" fill="#0f172a">EvolutionEngine._crossover</text>
+<text x="338" y="300" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="372" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="390" fill="#0f172a">EvolutionEngine._mutate</text>
+<text x="338" y="404" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="476" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="494" fill="#0f172a">EvolutionEngine._persist_generation</text>
+<text x="338" y="508" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="216" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="234" fill="#0f172a">EvolutionEngine._compute_population_div...</text>
+<text x="338" y="248" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="944" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="962" fill="#0f172a">EvolutionEngine.save_checkpoint</text>
+<text x="338" y="976" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="930" y="372" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="390" fill="#0f172a">store.record_event(checkpoint_saved)</text>
+<text x="938" y="404" fill="#64748b" font-size="9">local_memory.py</text>
+<rect x="330" y="840" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="858" fill="#0f172a">EvolutionEngine.load_checkpoint</text>
+<text x="338" y="872" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="930" y="476" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="494" fill="#0f172a">store.search_memories(checkpoint_saved)</text>
+<text x="938" y="508" fill="#64748b" font-size="9">local_memory.py</text>
+<rect x="630" y="268" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="286" fill="#0f172a">RLTrainLoop._get_pipeline</text>
+<text x="638" y="300" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="630" y="60" width="270" height="40" rx="6" fill="#e0e7ff" stroke="#94a3b8"/>
+<text x="638" y="78" fill="#0f172a">DataPipelineWorm()</text>
+<text x="638" y="92" fill="#64748b" font-size="9">learning_pipeline.py</text>
+<rect x="630" y="320" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="338" fill="#0f172a">RLTrainLoop._get_state_key</text>
+<text x="638" y="352" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="630" y="216" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="234" fill="#0f172a">RLTrainLoop._compute_reward</text>
+<text x="638" y="248" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="930" y="424" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="442" fill="#0f172a">store.record_event(training_complete)</text>
+<text x="938" y="456" fill="#64748b" font-size="9">local_memory.py</text>
+<rect x="630" y="424" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="442" fill="#0f172a">RLTrainLoop.register_to_versioner</text>
+<text x="638" y="456" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="630" y="164" width="270" height="40" rx="6" fill="#ffedd5" stroke="#94a3b8"/>
+<text x="638" y="182" fill="#0f172a">ModelVersioner.register_model</text>
+<text x="638" y="196" fill="#64748b" font-size="9">learning_versioner.py</text>
+<rect x="630" y="372" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="390" fill="#0f172a">RLTrainLoop._save_q_table_to_store</text>
+<text x="638" y="404" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="630" y="736" width="270" height="40" rx="6" fill="#fce7f3" stroke="#94a3b8"/>
+<text x="638" y="754" fill="#0f172a">ScheduledTrainingWorm.execute</text>
+<text x="638" y="768" fill="#64748b" font-size="9">scheduling.py</text>
+<rect x="630" y="684" width="270" height="40" rx="6" fill="#fce7f3" stroke="#94a3b8"/>
+<text x="638" y="702" fill="#0f172a">ScheduleConfig.apply_evolved_overrides</text>
+<text x="638" y="716" fill="#64748b" font-size="9">scheduling.py</text>
+<rect x="630" y="476" width="270" height="40" rx="6" fill="#fef9c3" stroke="#94a3b8"/>
+<text x="638" y="494" fill="#0f172a">RLTrainLoop.train_from_memory</text>
+<text x="638" y="508" fill="#64748b" font-size="9">learning_rl.py</text>
+<rect x="930" y="268" width="270" height="40" rx="6" fill="#e5e7eb" stroke="#94a3b8"/>
+<text x="938" y="286" fill="#0f172a">store.query_memories</text>
+<text x="938" y="300" fill="#64748b" font-size="9">local_memory.py</text>
+<rect x="330" y="424" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="442" fill="#0f172a">EvolutionEngine._non_dominated_sort</text>
+<text x="338" y="456" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="164" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="182" fill="#0f172a">EvolutionEngine._compute_crowding_distance</text>
+<text x="338" y="196" fill="#64748b" font-size="9">evolution.py</text>
+<rect x="330" y="996" width="270" height="40" rx="6" fill="#dcfce7" stroke="#94a3b8"/>
+<text x="338" y="1014" fill="#0f172a">GeneticOptimizer.optimize</text>
+<text x="338" y="1028" fill="#64748b" font-size="9">evolution.py</text>
+<path d="M 300 964 C 165 964, 165 912, 30 912" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 652, 30 652" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 236, 30 236" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 392, 30 392" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 548, 30 548" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 315 964, 315 80, 330 80" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 315 964, 315 808, 330 808" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 315 964, 315 600, 330 600" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 315 964, 315 704, 330 704" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 315 964, 315 756, 330 756" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 315 964, 315 652, 330 652" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 444, 30 444" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 340, 30 340" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 288, 30 288" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 600, 30 600" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 184, 30 184" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 80, 30 80" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 808, 30 808" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 756, 30 756" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 1068, 30 1068" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 615 964, 615 132, 930 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 615 964, 615 80, 930 80" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 444 C 315 444, 315 1068, 330 1068" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 652 C 315 652, 315 1120, 330 1120" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 340 C 315 340, 315 912, 330 912" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 184 C 465 184, 465 132, 630 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 80 C 615 80, 615 236, 930 236" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 964 C 165 964, 165 496, 30 496" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 704 C 165 704, 165 756, 30 756" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 756 C 165 756, 165 860, 30 860" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 756 C 165 756, 165 132, 30 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 808 C 165 808, 165 132, 30 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 132 C 465 132, 465 600, 630 600" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 132 C 465 132, 465 548, 630 548" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 1016 C 465 1016, 465 132, 630 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 912 C 615 912, 615 340, 930 340" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 1068 C 615 1068, 615 184, 930 184" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 300 1068 C 465 1068, 465 652, 630 652" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 600 C 465 600, 465 340, 330 340" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 600 C 315 600, 315 704, 30 704" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 652 C 465 652, 465 132, 330 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 652 C 465 652, 465 548, 330 548" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 652 C 465 652, 465 288, 330 288" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 652 C 465 652, 465 392, 330 392" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 652 C 465 652, 465 496, 330 496" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 132 C 465 132, 465 236, 330 236" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 964 C 765 964, 765 392, 930 392" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 860 C 765 860, 765 496, 930 496" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 600 C 765 600, 765 288, 630 288" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 548 C 765 548, 765 288, 630 288" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 288 C 765 288, 765 80, 630 80" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 600 C 765 600, 765 340, 630 340" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 600 C 765 600, 765 236, 630 236" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 600 C 915 600, 915 444, 930 444" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 600 C 765 600, 765 444, 630 444" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 444 C 765 444, 765 184, 630 184" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 444 C 765 444, 765 392, 630 392" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 756 C 765 756, 765 704, 630 704" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 704 C 915 704, 915 184, 930 184" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 756 C 765 756, 765 496, 630 496" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 756 C 765 756, 765 132, 630 132" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 756 C 765 756, 765 184, 630 184" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 900 132 C 915 132, 915 288, 930 288" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 912 C 465 912, 465 444, 330 444" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 912 C 465 912, 465 184, 330 184" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 1016 C 465 1016, 465 600, 330 600" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+<path d="M 600 1016 C 465 1016, 465 652, 330 652" stroke="#94a3b8" stroke-width="1" fill="none" marker-end="url(#arrow)"/>
+</svg>

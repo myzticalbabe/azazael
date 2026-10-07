@@ -1,0 +1,109 @@
+{
+ "R": {
+  "console": [],
+  "errors": [],
+  "failed": [],
+  "responses": [],
+  "checks": [
+   {
+    "n": "no uncaught exceptions",
+    "ok": true,
+    "d": ""
+   },
+   {
+    "n": "no console errors",
+    "ok": true,
+    "d": ""
+   },
+   {
+    "n": "no failed requests",
+    "ok": true,
+    "d": ""
+   },
+   {
+    "n": "no HTTP >= 400",
+    "ok": true,
+    "d": ""
+   },
+   {
+    "n": "28 h2 sections",
+    "ok": true,
+    "d": "28"
+   },
+   {
+    "n": "all 28 have a session block",
+    "ok": false,
+    "d": "26/28"
+   },
+   {
+    "n": "session blocks rendered",
+    "ok": false,
+    "d": "26"
+   },
+   {
+    "n": "svg figures present",
+    "ok": true,
+    "d": "24"
+   },
+   {
+    "n": "nothing zero-size",
+    "ok": true,
+    "d": "0 "
+   },
+   {
+    "n": "no clipped text",
+    "ok": true,
+    "d": "0 "
+   },
+   {
+    "n": "no horizontal overflow",
+    "ok": true,
+    "d": "1920px wide"
+   },
+   {
+    "n": "reveal CSS present in source",
+    "ok": true,
+    "d": "found=true"
+   },
+   {
+    "n": "reveal gated on reduced-motion",
+    "ok": true,
+    "d": "reduce=true name=none"
+   },
+   {
+    "n": "no template face remains",
+    "ok": true,
+    "d": "template faces x0"
+   }
+  ]
+ },
+ "dom": {
+  "title": "LM Studio Connection Debug Session",
+  "h2": 28,
+  "sessionBlocks": 26,
+  "svgFigures": 24,
+  "tables": 56,
+  "rows": 404,
+  "docHeight": 54440,
+  "docWidth": 1920,
+  "horizontalOverflow": false,
+  "zeroSize": [],
+  "clipped": [],
+  "revealApplied": "auto",
+  "revealName": "none",
+  "reduceMotion": true,
+  "revealCSS": true,
+  "unstyled": 0,
+  "marks": {
+   "thinking": 35,
+   "angry": 0,
+   "content": 3,
+   "grimace": 2,
+   "pensive": 2,
+   "flat": 2,
+   "blank": 2,
+   "templateFace": 0
+  },
+  "headsWithBlock": 26
+ }
+}

@@ -1,0 +1,40 @@
+===================================================================================================
+  AZAZAEL LIVE MONITOR   2026-09-24 13:22:53   (refresh 30s, Ctrl+C to stop)
+===================================================================================================
+LOOPS  evolution 6336.8m   metacog/steer 492.7m   dreaming 492.7m   training 463.9m   mesh 487.3m
+MESH   09-24T05:15 487.3m  248/248 ok  36n  cpu 12%  %%###%#    mem 60%  db 607MB
+EVO    best 22.790  info=13.2131 alert=9.5769  vs base 22.3  sprt=continue(n=1 llr=-83.9)
+ADVANCE sprt=6 prom=0 die(p=0/h=6/post=0) best 19.0506->22.79 (+3.74) oracle=90.1h STALE
+META   mut=0.25 xov=0.65 tour=5 pat=5 tol=0.010  ema +0.76/763r STALE 6336m
+Gossamer Oxford Semantical Parser
+[38;5;214mG[38;5;220mO[38;5;190mS[38;5;154mP[38;5;118m [38;5;82m [38;5;46m [38;5;49m [38;5;51mc[38;5;45mo[38;5;39mn[38;5;33mv[38;5;27m=[38;5;93mT[38;5;129mr[38;5;165mu[38;5;201me[38;5;196m [38;5;202ma[38;5;208mc[38;5;214mc[38;5;220m=[38;5;190m0[38;5;154m.[38;5;118m7[38;5;82m7[38;5;46m5[38;5;49m [38;5;51md[38;5;45mo[38;5;39mc[38;5;33ms[38;5;27m=[38;5;93m1[38;5;129m5[38;5;165m [38;5;201m [38;5;196mt[38;5;202mo[38;5;208mp[38;5;214m [38;5;220mm[38;5;190mo[38;5;154mv[38;5;118me[38;5;82mr[38;5;46m [38;5;49ml[38;5;51me[38;5;45mx[38;5;39mi[38;5;33mc[38;5;27ma[38;5;93ml[38;5;129m_[38;5;165ms[38;5;201me[38;5;196mm[38;5;202ma[38;5;208mn[38;5;214mt[38;5;220mi[38;5;190mc[38;5;154ms[38;5;118m [38;5;82m0[38;5;46m.[38;5;49m1[38;5;51m2[38;5;45m5[38;5;39m-[38;5;33m>[38;5;27m0[38;5;93m.[38;5;129m5[38;5;165m [38;5;201m [38;5;196mp[38;5;202ma[38;5;208mr[38;5;214mi[38;5;220mt[38;5;190my[38;5;154m [38;5;118m5[38;5;82m/[38;5;46m5[38;5;49m [38;5;51m [38;5;45mr[38;5;39ma[38;5;33mn[38;5;27mi[38;5;93m [38;5;129md[38;5;165me[38;5;201mt[38;5;196me[38;5;202mr
+EVE    backend=GOSP  5 rounds  adv=0  score=1.00  lat=490ms  tok=500  (2026-09-13T04:30)
+AOA    9 arm classes defined (9 re-exported)  ms v1.1.0 x6  newest 86d  bench 29d ago eve14mdl
+EVO2   champ 22.27->20.24  beats 0/10  pool info=295/warning=5  run gens=7
+GENES lr=0.8741 eps=0.4998 disc=0.5394 dec=0.0601  [v3-dual-robust]  hard 500@07:22Z
+CLIMB (20 runs, newest right) -#++=+*%+-+:.    #*%
+TRAJ   22.35 22.49 22.57 22.79 22.79 22.79 22.79  [++0.44 over 7 gens]
+ARMS   cma 1/10 -0.58  de 0/2 -1.32  [GGGGGGGGGGCG]  pareto 6/6 holdout 0  qd 15/16 cov=0.9375  tpe
+STEER  defensive (24/24h)     [last change -> retry_with_backoff 500.6m ago]
+POLICY applied 3 skipped 2  [######----]  global->aggressive conf=0.041 held  493m ago
+THOUGHT 1000 traces 1089 ok  6337m ago STALE
+DIR    next GRPOTUNE  WORMGA(0.93)  DPO(0.53)  DDPG(0.53)
+TRAIN  next slot MaskablePPO   (reward ^/v vs previous run, yellow = new)
+    PPO     v10 259.9^  DQN      v6 246.8v  A2C      v3 260.2v  SAC      v2 178.5v
+    TD3    vuntracked 252.4v  DDPG   vuntracked 265.7^  QRDQN  vuntracked 290.5^  TRPO   vuntracked 249.3^
+    TQC    vuntracked 313.0^  ARS    vuntracked 291.3^  MaskPPOvuntracked 309.0v  GRPO      v86 0.1v
+    DPO    v114 144.1v  OFFLINE   v99 0.2^  RL             n/a  DREAMTUNE   v87 0.9^
+    WORMGA   v146 1.0^  GRPOTUNE         --
+RUNS   500 total  WORMGAx69  DPOx55  OFFLINEx40  RLx36  DREAMTUNEx33  GRPOx32  PPOx30  DDPGx27  TQC
+LAST   RL 3.6 (464m ago)   RL 4.5 (490m ago)   RL 3.0 (494m ago)   RL 4.0 (498m ago)
+PROMO  lr=0.9 eps=0.5 disc=0.5 fit=22.0312 wins=2 12749.9m ago
+TUNE   dreamtune cf=0.21 sc=60 fit=0.950
+WBOARD SYS 100%  PRC 100%  DSK 100%  NET 100%  CLK 100%  HLT 100% fit=0.989  (WORMGA eval, 106h old
+CYCLES evo 48.9h   train 105.6h   dream 8.2h   meta 105.6h   maint 106.1h   dbmon 67.3h
+STORE  DB UNHEALTHY err930/7d vac-off  603.7MB 244,116 rows  +31/hr  trim -1,843  triage 23c 56x Da
+SRV    :18090 DOWN   :18091 DOWN   :18080 DOWN
+KEYS   groq+  cerebras+  openrouter+  gemini+  mistral+  nvidia_nim+  siliconflow+  cohere+  github
+MODELS gemma-4-E4B-ng 20/15/sT   jan-v3.5-4B 35/20/s   omnicoder 20/8/sT   gemma-4-E2B 75/21/sT
+AUDIT  audit 841f compile ok bare=2 uncov=312  mutants exmachina_operators.py 11/20 (0.55)
+STALE  evolution, metacog/steer, dreaming, training, mesh >15 min - check Task Scheduler.
+    Verdict: Training is stalled (every cycle stale): 5 loop(s) stale; evolution best 22.79 (climbi

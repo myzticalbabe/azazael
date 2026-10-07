@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "operation": "dry_run",
+  "dry_run": true,
+  "database": "C:\\Users\\clint\\.azazael\\memory_store.db",
+  "max_age_hours": 1.0,
+  "closed_count": 0,
+  "candidate_count": 0,
+  "before": {
+    "schema_version": 1,
+    "generated_at": "2026-09-24T16:59:53.886603+00:00",
+    "database": "C:\\Users\\clint\\.azazael\\memory_store.db",
+    "max_age_hours": 1.0,
+    "cutoff": "2026-09-24T15:59:53.886603+00:00",
+    "dry_run": true,
+    "protected_session_ids": [
+      "cd2_verifier",
+      "clusterwormz",
+      "parallel_inference_worm",
+      "session_state_manager"
+    ],
+    "open_count": 1,
+    "candidate_count": 0,
+    "protected_count": 1,
+    "active_count": 0,
+    "candidates": [],
+    "protected": [
+      {
+        "session_id": "clusterwormz",
+        "started_at": "2026-09-19T15:25:23.977116+00:00",
+        "event_count": 886,
+        "latest_event": "2026-09-24T09:37:54.528011+00:00",
+        "latest_type": "clusterwormz_execute_complete",
+        "end_events": 34,
+        "mappings": null,
+        "age_hours": 121.575,
+        "reason": "protected_operational_session"
+      }
+    ],
+    "active": []
+  },
+  "after": {
+    "schema_version": 1,
+    "generated_at": "2026-09-24T16:59:53.889306+00:00",
+    "database": "C:\\Users\\clint\\.azazael\\memory_store.db",
+    "max_age_hours": 1.0,
+    "cutoff": "2026-09-24T15:59:53.889306+00:00",
+    "dry_run": true,
+    "protected_session_ids": [
+      "cd2_verifier",
+      "clusterwormz",
+      "parallel_inference_worm",
+      "session_state_manager"
+    ],
+    "open_count": 1,
+    "candidate_count": 0,
+    "protected_count": 1,
+    "active_count": 0,
+    "candidates": [],
+    "protected": [
+      {
+        "session_id": "clusterwormz",
+        "started_at": "2026-09-19T15:25:23.977116+00:00",
+        "event_count": 886,
+        "latest_event": "2026-09-24T09:37:54.528011+00:00",
+        "latest_type": "clusterwormz_execute_complete",
+        "end_events": 34,
+        "mappings": null,
+        "age_hours": 121.575,
+        "reason": "protected_operational_session"
+      }
+    ],
+    "active": []
+  },
+  "remaining_candidates": []
+}

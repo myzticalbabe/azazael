@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Evolution Audit Loop — HEAD (alarm wired)",
+    "quality_profile": "standard"
+  },
+  "components": [
+    {
+      "id": "watch",
+      "type": "backend",
+      "label": "dashboard --watch",
+      "sublabel": "dashboard.py:1002 — persistent process",
+      "pos": [40, 100],
+      "size": [220, 66]
+    },
+    {
+      "id": "worm",
+      "type": "backend",
+      "label": "EvolutionIntegrityWorm",
+      "sublabel": "execute() :238 — category=monitor :349",
+      "pos": [340, 100],
+      "size": [220, 66]
+    },
+    {
+      "id": "classify",
+      "type": "security",
+      "label": "regression vs environmental",
+      "sublabel": "_run_benchmark() :121",
+      "pos": [640, 100],
+      "size": [220, 66]
+    },
+    {
+      "id": "apply",
+      "type": "backend",
+      "label": "apply_evolved_overrides",
+      "sublabel": "asserts champion == config",
+      "pos": [40, 300],
+      "size": [220, 66]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "LocalMemoryStore",
+      "sublabel": "evolution_result rows",
+      "pos": [340, 300],
+      "size": [220, 66]
+    },
+    {
+      "id": "bench",
+      "type": "backend",
+      "label": "benchmark_evolution.py",
+      "sublabel": "run as subprocess, not copied",
+      "pos": [640, 300],
+      "size": [220, 66]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "evolution audit loop — added this session",
+      "wraps": ["watch", "worm", "classify", "apply", "store", "bench"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "starts",
+      "from": "watch",
+      "to": "worm",
+      "label": "starts (6h interval)",
+      "variant": "emphasis",
+      "labelAt": [300, 195]
+    },
+    {
+      "id": "splits",
+      "from": "classify",
+      "to": "worm",
+      "label": "named findings",
+      "variant": "emphasis",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelAt": [600, 195]
+    },
+    {
+      "id": "reads",
+      "from": "worm",
+      "to": "store",
+      "label": "reads evidence",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [443, 215]
+    },
+    {
+      "id": "runs",
+      "from": "worm",
+      "to": "bench",
+      "label": "runs the real script",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [620, 245]
+    },
+    {
+      "id": "invariant",
+      "from": "worm",
+      "to": "apply",
+      "label": "champion-on-disk invariant",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "top",
+      "labelAt": [185, 245]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "What the loop asserts",
+      "items": [
+        "Runs benchmark_evolution.py as a subprocess, so its logic is not duplicated",
+        "Separates regressions from environmental gaps — a fresh store fails two checks for reasons that are not regressions",
+        "Asserts the champion on disk is the config in use (previously unasserted)",
+        "Registers as category=monitor, so it is schedulable through the existing registry"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Provenance limits — read before citing",
+      "items": [
+        "Line numbers are the current working tree, not a pinned commit",
+        "The cited files are modified vs HEAD, so no revision honestly represents these lines",
+        "Commit-pinned evidence was deliberately omitted rather than pinned to a stale revision"
+      ]
+    }
+  ]
+}

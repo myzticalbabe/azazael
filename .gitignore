@@ -212,3 +212,9 @@ src/CORE/WORMS/expansion/generated/_staging/
 .claude/
 .deps-jiter/
 .graphify-live/
+
+# Vendored tools / regenerable runtime (2026-10-07 triage)
+gateway-go/*.exe
+tools/*.exe
+config/track_bandit.json
+dashboard/archetypes/

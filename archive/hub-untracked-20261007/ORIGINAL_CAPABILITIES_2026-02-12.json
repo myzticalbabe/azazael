@@ -1,0 +1,639 @@
+{
+  "source": "/mnt/c/Users/clint/Documents/WORKING.HTML.AZAZAEL/Azazael1/Azazael_BACKUP_20260212_060745",
+  "note": "Original pre-Nature worm inventory (2026-02-12). Seed for WS-1 capability registry.",
+  "worms": {
+    "CLOCKZ": {
+      "file": "CLOCKZ.py",
+      "summary": "CLOCKZ - Time Management Worm",
+      "features": [
+        "Time synchronization",
+        "Schedule management",
+        "Cron-like scheduling",
+        "Timezone handling"
+      ],
+      "classes": [
+        "ScheduledTask",
+        "CLOCKZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "CLUSTERWORMS": {
+      "file": "CLUSTERWORMS.py",
+      "summary": "CLUSTERWORMS - Coordinated Worm Collectives",
+      "features": [
+        "Worm coordination with shared state",
+        "Inter-worm messaging",
+        "Cluster lifecycle management",
+        "Result aggregation",
+        "Cluster persistence"
+      ],
+      "classes": [
+        "ClusterResult",
+        "WormConfig",
+        "ClusterState",
+        "WormExecutor",
+        "ClusterWORMZ"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "CONCURRENCY": {
+      "file": "CONCURRENCY.py",
+      "summary": "CONCURRENCY MANAGER - Cotemporaneous Execution Engine",
+      "features": [
+        "Thread pool execution",
+        "Async/await support",
+        "Process pool execution",
+        "Concurrent worm execution",
+        "Parallel cluster operations",
+        "Thread-safe operations"
+      ],
+      "classes": [
+        "ExecutionResult",
+        "ConcurrencyConfig",
+        "TaskManager",
+        "WormExecutor",
+        "ClusterExecutor",
+        "ConcurrencyManager"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "DISKZ": {
+      "file": "DISKZ.py",
+      "summary": "DISKZ - Disk Management Worm",
+      "features": [
+        "Disk usage monitoring",
+        "Partition analysis",
+        "I/O statistics",
+        "Directory size analysis",
+        "Large file finder",
+        "Disk health check"
+      ],
+      "classes": [
+        "DiskUsage",
+        "DISKZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "NETWORXZ": {
+      "file": "NETWORXZ.py",
+      "summary": "NETWORXZ - Network Management Worm",
+      "features": [
+        "Network interface listing",
+        "Connection monitoring",
+        "Bandwidth statistics",
+        "Ping monitoring",
+        "Port checking",
+        "DNS resolution"
+      ],
+      "classes": [
+        "NetworkInterface",
+        "NETWORXZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "OS_CONGRUENCY": {
+      "file": "OS_CONGRUENCY.py",
+      "summary": "OS CONGRUENCY MANAGER - Windows System Integration",
+      "features": [
+        "Windows Services management",
+        "Registry monitoring/editing",
+        "Event log analysis",
+        "Startup program management",
+        "Windows Update monitoring",
+        "Defender status",
+        "Deep disk/partition management",
+        "Network adapter control"
+      ],
+      "classes": [
+        "SystemStatus",
+        "WindowsService",
+        "StartupItem",
+        "DiskPartition",
+        "OSCongruency"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "PROCESSZ": {
+      "file": "PROCESSZ.py",
+      "summary": "PROCESSZ - Process Management Worm",
+      "features": [
+        "Process enumeration",
+        "Process details (CPU, memory, threads)",
+        "Process killing",
+        "Process filtering",
+        "Resource usage tracking",
+        "Process tree visualization"
+      ],
+      "classes": [
+        "ProcessInfo",
+        "PROCESSZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "SMARTDISK": {
+      "file": "SMARTDISK.py",
+      "summary": "SMARTDISK - Disk Health Monitoring & Failure Prediction",
+      "features": [
+        "SMART attribute monitoring",
+        "Failure probability prediction",
+        "Disk health scoring",
+        "Predictive maintenance alerts",
+        "Historical trend analysis"
+      ],
+      "classes": [
+        "SMARTAttribute",
+        "DiskHealth",
+        "DiskAlert",
+        "SMARTDISKConfig",
+        "SMARTDISK"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "SYSTEMZ": {
+      "file": "SYSTEMZ.py",
+      "summary": "SYSTEMZ - System Information Worm",
+      "features": [
+        "CPU usage monitoring",
+        "Memory usage tracking",
+        "Disk space analysis",
+        "System uptime and load",
+        "Process enumeration",
+        "Temperature monitoring (if available)"
+      ],
+      "classes": [
+        "SystemStatus",
+        "SystemZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "SYSTEMZ_ML": {
+      "file": "SYSTEMZ_ML.py",
+      "summary": "SYSTEMZ_ML - ML-Enhanced System Monitoring with Anomaly Detection",
+      "features": [
+        "ML anomaly detection",
+        "Predictive resource forecasting",
+        "Pattern-based alerts",
+        "Historical analysis",
+        "Adaptive thresholds"
+      ],
+      "classes": [
+        "SystemSnapshot",
+        "AnomalyResult",
+        "ResourcePrediction",
+        "SYSTEMZ_MLConfig",
+        "SYSTEMZ_ML"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "WORMZ": {
+      "file": "WORMZ.py",
+      "summary": "WORMZ - Web-like Organizational Recursive Mapper Zystem",
+      "features": [
+        "Recursive folder crawling",
+        "Python file parsing (classes, functions, docstrings)",
+        "Markdown file parsing (headers, code blocks)",
+        "JSON file parsing",
+        "Auto-updates BIBL lexicon",
+        "Delta updates (only new/changed items)",
+        "Multi-threaded crawling",
+        "Rate limiting and retry logic"
+      ],
+      "classes": [
+        "BIBLEntry",
+        "CrawlResult",
+        "WORMZConfig",
+        "WORMZ"
+      ],
+      "functions": [
+        "run_with_popup",
+        "main"
+      ]
+    },
+    "WORMZ_ML": {
+      "file": "WORMZ_ML.py",
+      "summary": "WORMZ_ML - ML-Enhanced BIBL Terminology Crawler",
+      "features": [
+        "Predictive file prioritization",
+        "ML-based content classification",
+        "Anomaly detection in file patterns",
+        "Intelligent delta updates",
+        "Learned terminology patterns"
+      ],
+      "classes": [
+        "MLEntry",
+        "CrawlPrediction",
+        "WORMZ_MLConfig",
+        "WORMZ_ML"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "WORMZ_POPUP": {
+      "file": "WORMZ_POPUP.py",
+      "summary": "WORMZ POPUP LAUNCHER",
+      "features": [],
+      "classes": [],
+      "functions": [
+        "run_wormz_popup"
+      ]
+    }
+  },
+  "meta": {
+    "DOCKERZ": {
+      "file": "DOCKERZ.py",
+      "summary": "DOCKERZ - Container Management for Azazael Ecosystem",
+      "features": [
+        "Container lifecycle management",
+        "Image building and registry",
+        "Volume mounting",
+        "Network configuration",
+        "Container monitoring",
+        "Compose support"
+      ],
+      "classes": [
+        "ContainerInfo",
+        "ImageInfo",
+        "DOCKERZConfig",
+        "DOCKERZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "ERRORZ": {
+      "file": "ERRORZ.py",
+      "summary": "ERRORZ - Code Error Crawler Worm",
+      "features": [
+        "Syntax error detection",
+        "Runtime error patterns",
+        "Import errors",
+        "Type errors",
+        "Attribute errors",
+        "Reference errors",
+        "Indentation errors",
+        "Tab/space consistency"
+      ],
+      "classes": [
+        "ErrorEntry",
+        "ErrorReport",
+        "ERRORZConfig",
+        "ERRORZ"
+      ],
+      "functions": [
+        "run_with_popup",
+        "main"
+      ]
+    },
+    "HEALTHZ": {
+      "file": "HEALTHZ.py",
+      "summary": "HEALTHZ - Health Check Meta-Worm",
+      "features": [
+        "Health status reporting",
+        "Service checks",
+        "Dependency validation",
+        "Uptime monitoring",
+        "Health history tracking"
+      ],
+      "classes": [
+        "HealthStatus",
+        "HEALTHZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "HYDRAMETA": {
+      "file": "HYDRAMETA.py",
+      "summary": "HYDRAMETA - Hydratic Meta-Worms with HYDRA ML Optimization",
+      "features": [
+        "HYDRA ML cluster integration for optimization",
+        "Alternating worm execution strategies",
+        "Persistence state management",
+        "ML-driven performance optimization",
+        "Trial-based parameter tuning",
+        "Adaptive worm selection"
+      ],
+      "classes": [
+        "TrialResult",
+        "WormPerformance",
+        "HYDRAMETAConfig",
+        "HYDRAOptimizer",
+        "PersistenceManager",
+        "HYDRAMETA"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "HYDRAMETA_UV": {
+      "file": "HYDRAMETA_UV.py",
+      "summary": "HYDRAMETA_UV - uv-Powered Hydratic Optimization",
+      "features": [
+        "uv-powered package installation",
+        "Isolated trial environments",
+        "Fast dependency caching",
+        "Parallel trial execution",
+        "ML-optimized worm sequencing"
+      ],
+      "classes": [
+        "UVTrialResult",
+        "UVWormPerformance",
+        "HYDRAMETA_UVConfig",
+        "HYDRAMETA_UV"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "HYDRA_CONTAINER": {
+      "file": "HYDRA_CONTAINER.py",
+      "summary": "HYDRA_CONTAINER - Containerized Worm Execution with HYDRA Integration",
+      "features": [
+        "Containerized worm execution",
+        "HYDRA cluster integration",
+        "Isolated dependency environments",
+        "Resource limits and monitoring",
+        "Parallel container orchestration",
+        "Container lifecycle management"
+      ],
+      "classes": [
+        "ContainerExecution",
+        "ClusterContainerConfig",
+        "HYDRA_CONTAINERConfig",
+        "HYDRA_CONTAINER"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "METAWORMS": {
+      "file": "METAWORMS.py",
+      "summary": "METAWORMS - Meta Worm Management System",
+      "features": [
+        "WORMZ   : Terminology crawler (EXISTING)",
+        "METAZ   : Metadata extractor",
+        "DEPENDZ : Dependency mapper",
+        "VALIDZ  : Syntax validator",
+        "DEADZ   : Dead code detector",
+        "METRICZ : Code metrics collector",
+        "LOGZ    : Log analyzer",
+        "CHANGEZ : Change tracker"
+      ],
+      "classes": [
+        "WormResult",
+        "MetaWormConfig",
+        "METAZ",
+        "DEPENDZ",
+        "VALIDZ",
+        "DEADZ",
+        "METRICZ",
+        "LOGZ"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "METAWORMS_ENRICHED": {
+      "file": "METAWORMS_ENRICHED.py",
+      "summary": "METAWORMS - Meta Worm Management System (ENRICHED OUTPUT)",
+      "features": [
+        "Rich console output with colors and formatting",
+        "Detailed progress tracking",
+        "Comprehensive result summaries",
+        "JSON and HTML report generation",
+        "Popup monitoring window",
+        "WORMZ   : Terminology crawler (EXISTING)",
+        "METAZ   : Metadata extractor",
+        "DEPENDZ : Dependency mapper"
+      ],
+      "classes": [
+        "Colors",
+        "WormResult",
+        "MetaWormConfig",
+        "RichOutput",
+        "METAZ",
+        "DEPENDZ",
+        "VALIDZ",
+        "DEADZ"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "METAWORMS_POPUP": {
+      "file": "METAWORMS_POPUP.py",
+      "summary": "METAWORMS POPUP LAUNCHER",
+      "features": [],
+      "classes": [],
+      "functions": [
+        "run_metaworms_popup"
+      ]
+    },
+    "METRICZ": {
+      "file": "METRICZ.py",
+      "summary": "METRICZ - Execution Telemetry for Azazael Ecosystem",
+      "features": [
+        "Execution metrics collection",
+        "Performance tracing",
+        "Resource utilization tracking",
+        "Success/failure analytics",
+        "Time series storage",
+        "Alert generation"
+      ],
+      "classes": [
+        "MetricPoint",
+        "ExecutionRecord",
+        "PerformanceSummary",
+        "METRICZConfig",
+        "METRICZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "OPTIMIZ": {
+      "file": "OPTIMIZ.py",
+      "summary": "OPTIMIZ - Optimization Meta-Worm",
+      "features": [
+        "Performance analysis",
+        "Resource optimization recommendations",
+        "Bottleneck detection",
+        "Efficiency scoring",
+        "Auto-tuning suggestions"
+      ],
+      "classes": [
+        "OptimizationResult",
+        "OPTIMIZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "TELEMETRYZ": {
+      "file": "TELEMETRYZ.py",
+      "summary": "TELEMETRYZ - Performance Tracing for Azazael Ecosystem",
+      "features": [
+        "Function call tracing",
+        "Call stack recording",
+        "Flame graph generation",
+        "Hot path detection",
+        "Bottleneck identification",
+        "Execution path visualization"
+      ],
+      "classes": [
+        "TraceEvent",
+        "FunctionStats",
+        "CallPath",
+        "TELEMETRYZConfig",
+        "TELEMETRYZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    },
+    "TRIMZ": {
+      "file": "TRIMZ.py",
+      "summary": "TRIMZ - BIBL-Conjunctive Content Trimmer",
+      "features": [
+        "Reads .md and .txt files conjunctively with BIBL entries",
+        "Trims outdated content while preserving BIBL references",
+        "Updates file content based on BIBL term changes",
+        "Maintains synchronization between files and BIBL lexicon",
+        "Popup window with persistence for monitoring",
+        "Dry-run mode to preview changes before applying"
+      ],
+      "classes": [
+        "TrimResult",
+        "BiblEntryRef",
+        "TrimzConfig",
+        "BIBLIntegrator",
+        "TRIMZ"
+      ],
+      "functions": [
+        "run_popup",
+        "main"
+      ]
+    },
+    "UVZ": {
+      "file": "UVZ.py",
+      "summary": "UVZ - uv Integration Layer for Azazael Ecosystem",
+      "features": [
+        "uv-based dependency management",
+        "Virtual environment orchestration",
+        "Fast package installation",
+        "Lockfile generation",
+        "Multi-environment support"
+      ],
+      "classes": [
+        "UVResult",
+        "UVZ"
+      ],
+      "functions": [
+        "main"
+      ]
+    }
+  },
+  "legacy_compositions": {},
+  "subsystems": {
+    "BIBL": {
+      "py_files": 0,
+      "sample": []
+    },
+    "CODEX": {
+      "py_files": 0,
+      "sample": []
+    },
+    "HYDRA": {
+      "py_files": 1,
+      "sample": [
+        "pipeline_specs.py"
+      ]
+    },
+    "KLINK": {
+      "py_files": 1,
+      "sample": [
+        "klink.py"
+      ]
+    },
+    "METAWORMS": {
+      "py_files": 14,
+      "sample": [
+        "DOCKERZ.py",
+        "ERRORZ.py",
+        "HEALTHZ.py",
+        "HYDRAMETA.py",
+        "HYDRAMETA_UV.py",
+        "HYDRA_CONTAINER.py"
+      ]
+    },
+    "PERSEPHONE": {
+      "py_files": 2,
+      "sample": [
+        "persephone.py",
+        "version.py"
+      ]
+    },
+    "POINDEXTER": {
+      "py_files": 1,
+      "sample": [
+        "POINDEXTER.py"
+      ]
+    },
+    "SHORTY": {
+      "py_files": 0,
+      "sample": []
+    },
+    "TARBABY": {
+      "py_files": 1,
+      "sample": [
+        "TARBABY.py"
+      ]
+    },
+    "TERENCE": {
+      "py_files": 2,
+      "sample": [
+        "TERENCE.py",
+        "__init__.py"
+      ]
+    },
+    "WORMZ": {
+      "py_files": 13,
+      "sample": [
+        "CLOCKZ.py",
+        "CLUSTERWORMS.py",
+        "CONCURRENCY.py",
+        "DISKZ.py",
+        "NETWORXZ.py",
+        "OS_CONGRUENCY.py"
+      ]
+    }
+  },
+  "legacy_compositions_source": "CLUSTER_REGISTRY = {\n    \"bibl\": {\n        \"description\": \"BIBL crawling and trimming\",\n        \"worms\": [\"WORMZ\", \"TRIMZ\"],\n    },\n    \"system\": {\n        \"description\": \"Full system monitoring\",\n        \"worms\": [\"SYSTEMZ\", \"PROCESSZ\", \"DISKZ\"],\n    },\n    \"network\": {\n        \"description\": \"Network and time management\",\n        \"worms\": [\"NETWORXZ\", \"CLOCKZ\", \"DISKZ\"],\n    },\n    \"security\": {\n        \"description\": \"Security auditing\",\n        \"worms\": [\"PROCESSZ\", \"NETWORXZ\", \"SYSTEMZ\"],\n    },\n    \"analysis\": {\n        \"description\": \"Code analysis and metrics\",\n        \"worms\": [\"METAZ\", \"METRICZ\", \"DEPENDZ\"],\n    },\n    \"validation\": {\n        \"description\": \"Code validation and error checking\",\n        \"worms\": [\"VALIDZ\", \"DEADZ\", \"ERRORZ\"],\n    },\n    \"health\": {\n        \"description\": \"System health monitoring\",\n        \"worms\": [\"HEALTHZ\", \"OPTIMIZ\", \"SYSTEMZ\"],\n    },\n    \"full\": {\n        \"description\": \"Complete ecosystem scan\",\n        \"worms\": [\"SYSTEMZ\", \"PROCESSZ\", \"DISKZ\", \"NETWORXZ\", \"WORMZ\"],\n    },\n}"
+}

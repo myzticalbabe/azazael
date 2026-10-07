@@ -1,0 +1,14 @@
+{
+ "span_h": 10.74,
+ "destroyed_h": 3.0,
+ "kwh": 2.2339,
+ "draw_w": 208.0,
+ "elec_raw": 0.3798,
+ "elec_infl": 0.4417,
+ "time_raw": 1020.3,
+ "dest_raw": 285.0,
+ "tot_time_raw": 1305.3,
+ "tot_time_infl": 1349.6802,
+ "cash_raw": 0.3798,
+ "cash_infl": 0.4417
+}

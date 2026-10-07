@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-10-02T23:59:39.194009",
+ "generated_at": "2026-10-04T08:53:44.594689",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
   "dispatched": 59,
-  "pending": 123
+  "pending": 109
  },
- "total": 185,
+ "total": 171,
  "declared": {
   "NeuralPipeline:NeuralPipeline.replay_failed": {
    "decider": "test_is_the_wire",
@@ -30,14 +30,6 @@
     "tests/test_replay_failed.py:47"
    ]
   },
-  "allocation:ThompsonAllocator.allocation": {
-   "module": "allocation",
-   "qualname": "ThompsonAllocator.allocation",
-   "line": 138,
-   "seg": "def allocation(self, total: int, temperature: float = 1.0) -> Dict[str, int]:\n        \"\"\"Integer budget split proportional to posterior means.\n\n        Normalised weights do not sum with a floor applied, so the remainder is\n        handed back to the strongest arms. The floor guarantees every arm keeps\n        a minimum share, which is the whole point (see E10 in\n        EVOLUTION_50RUN_GAPS_AND_FIXES.md).\n        \"\"\"\n        total = int(total)\n        if total <= 0:\n            return {a: 0 for a in self.arms}\n        raw = self.weights()\n        t = max(float(temperature), 1e-6)\n        powered = {a: max(w, 1e-9) ** (1.0 / t) for a, w in raw.items()}\n        denom = sum(powered.values()) or 1.0\n        share = {a: powered[a] / denom for a in self.arms}\n\n        # apply the exploration floor, then renormalise\n        f = self.floor\n        floored = {a: max(share[a], f) for a in self.arms}\n        fdenom = sum(floored.values()) or 1.0\n        floored = {a: v / fdenom for a, v in floored.items()}\n\n        out = {a: int(v * total) for a, v in floored.items()}\n        # hand the rounding remainder to the highest-posterior arms\n        remainder = total - sum(out.values())\n        for a in sorted(self.arms, key=lambda x: floored[x], reverse=True):\n            if remainder <= 0:\n                break\n            out[a] += 1\n            remainder -= 1\n        return out",
-   "status": "pending",
-   "reason": ""
-  },
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "declared_in_data",
    "decider_evidence": [
@@ -51,14 +43,6 @@
    "status": "pending",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
-  },
-  "arena:keeper_split": {
-   "module": "arena",
-   "qualname": "keeper_split",
-   "line": 300,
-   "seg": "def keeper_split(worlds: Sequence[ArenaWorld], keeper_frac: float = 0.25\n                 ) -> Tuple[List[ArenaWorld], List[ArenaWorld]]:\n    \"\"\"Partition an arena into `search` worlds and disjoint `keeper` worlds.\n\n    The keeper set exists to satisfy the one constraint Arena must never break:\n    a promotion gate may read keepers or imagined eras, **never** the worlds the\n    search is actively optimising. Keeping them disjoint at the type level is\n    cheaper than remembering the rule.\n    \"\"\"\n    if not worlds:\n        return [], []\n    n_keep = max(1, int(len(worlds) * float(keeper_frac)))\n    ordered = sorted(worlds, key=lambda w: w.env.fingerprint())\n    return ordered[n_keep:], ordered[:n_keep]",
-   "status": "pending",
-   "reason": ""
   },
   "axon:LatencyCompensatorWorm.compensate": {
    "decider": "declared_in_data",
@@ -413,11 +397,11 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
-  "cppn:CPPNGenome.phenotype": {
-   "module": "cppn",
-   "qualname": "CPPNGenome.phenotype",
-   "line": 172,
-   "seg": "def phenotype(self, vec: Sequence[float], n_params: int,\n                  coords: Optional[Sequence[Sequence[float]]] = None,\n                  use_torch: bool = True) -> List[float]:\n        \"\"\"Query the CPPN at `n_params` coordinates -> a phenotype of that size.\n\n        Default coordinates are a deterministic low-discrepancy sweep of the\n        unit square plus a radial term, so the same genome always yields the\n        same phenotype (reproducibility matters more than aesthetics here).\n        \"\"\"\n        n = int(n_params)\n        if n <= 0:\n            return []\n        if coords is None:\n            coords = self.default_coords(n)\n        mats = self._unpack(vec)\n\n        if use_torch and self.n_in <= 3:\n            try:\n                out = self._forward_torch(coords, mats)\n                flat = out.reshape(-1).tolist() if hasattr(out, \"reshape\") else list(out)\n                return [float(v) for v in flat[:n]]\n            except Exception:\n                pass  # fall through to pure Python\n\n        vals = []\n        for c in coords[:n]:\n            vals.append(self._forward_python(list(c), mats)[0])\n        return vals",
+  "db_monitor:DatabaseMonitorWorm._policy_advice": {
+   "module": "db_monitor",
+   "qualname": "DatabaseMonitorWorm._policy_advice",
+   "line": 420,
+   "seg": "def _policy_advice(self, severity: str, source: str = \"db\") -> dict:\n        \"\"\"Attach learned-policy advice WITHOUT changing firing.\n\n        Pure query: delegates to RLTrainLoop.recommend (itself read-only\n        and never-raising) and returns its envelope. No alerts are\n        recorded, no cooldowns touched, no thresholds moved \u2014 a wrong\n        table therefore cannot trigger anything by itself. Works on a\n        partially constructed worm: any failure degrades to unknown.\n        \"\"\"\n        try:\n            loop = getattr(self, \"_rl_loop\", None)\n            if loop is None:\n                try:\n                    from CORE.WORMS.expansion.learning_rl import RLTrainLoop\n                    loop = RLTrainLoop()\n                except Exception:\n                    loop = None\n            if loop is None:\n                raise RuntimeError(\"no policy loop available\")\n            out = loop.recommend(severity, source=source)\n            if out.get(\"action_name\") not in (\n                    \"ignore\", \"log\", \"alert\", \"remediate\", \"unknown\"):\n                out[\"action_name\"] = \"unknown\"\n            return out\n        except Exception:\n            return {\"action\": -1, \"action_name\": \"unknown\", \"known\": False,\n                    \"state_key\": \"%s:%s\" % (source, severity),\n                    \"source\": source}",
    "status": "pending",
    "reason": ""
   },
@@ -842,7 +826,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1168"
    ],
-   "line": 425,
+   "line": 444,
    "module": "learning_features",
    "qualname": "FeatureEngineer.impute_missing",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
@@ -853,7 +837,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1168"
    ],
-   "line": 415,
+   "line": 434,
    "module": "learning_features",
    "qualname": "FeatureEngineer.one_hot_encode",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1049,7 +1033,7 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:505",
     "src/CORE/worm_registry.py:1131"
    ],
-   "line": 866,
+   "line": 885,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.train_episode",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:391, src/CORE/worm_registry.py:1118), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1062,7 +1046,7 @@
     "tests/test_learning_worms.py:354",
     "tests/test_learning_worms.py:367"
    ],
-   "line": 815,
+   "line": 834,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_and_train",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1080,7 +1064,7 @@
     "tests/test_learning_worms.py:382",
     "tests/test_learning_worms.py:395"
    ],
-   "line": 895,
+   "line": 962,
    "module": "learning_rl",
    "qualname": "RLTrainLoop.tune_history",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1112,20 +1096,12 @@
     "tests/test_learning_rl_keys.py:21"
    ]
   },
-  "learning_rl:unmapped_severities": {
-   "module": "learning_rl",
-   "qualname": "unmapped_severities",
-   "line": 100,
-   "seg": "def unmapped_severities() -> Dict[str, int]:\n    \"\"\"Severities seen in the data that the reward table does not cover.\"\"\"\n    return dict(_UNMAPPED_SEVERITIES)",
-   "status": "pending",
-   "reason": ""
-  },
   "learning_versioner:ModelVersioner.compare_versions": {
    "evidence": [
     "src/CORE/WORMS/CLUSTERWORMS.py:504",
     "src/CORE/worm_registry.py:1129"
    ],
-   "line": 125,
+   "line": 146,
    "module": "learning_versioner",
    "qualname": "ModelVersioner.compare_versions",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:390, src/CORE/worm_registry.py:1116), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1150,14 +1126,6 @@
     "tests/test_proteus_organs.py:531"
    ]
   },
-  "loom:NoveltyDrive.should_restart": {
-   "module": "loom",
-   "qualname": "NoveltyDrive.should_restart",
-   "line": 265,
-   "seg": "def should_restart(self, run_threshold: int = 3) -> bool:\n        \"\"\"True when collapse has persisted: the outer loop should mutate the\n        SEARCH SPACE (Morph) rather than keep sampling a collapsed box.\"\"\"\n        return self.collapse_run >= int(run_threshold)",
-   "status": "pending",
-   "reason": ""
-  },
   "loom:descriptors_from_archive": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -1173,14 +1141,6 @@
    "triage_evidence": [
     "tests/test_proteus_organs.py:551"
    ]
-  },
-  "loom:intrinsic_dimension": {
-   "module": "loom",
-   "qualname": "intrinsic_dimension",
-   "line": 110,
-   "seg": "def intrinsic_dimension(points: Sequence[Sequence[float]],\n                        already_symmetric: bool = False) -> float:\n    \"\"\"Participation ratio of the descriptor covariance spectrum.\"\"\"\n    if not points or len(points) < 2:\n        return 0.0\n    if _np is not None:\n        try:\n            x = _np.asarray(points, dtype=float)\n            x = x - x.mean(axis=0, keepdims=True)\n            if x.shape[0] <= x.shape[1]:\n                cov = (x.T @ x) / float(x.shape[0] - 1)\n            else:\n                cov = (x.T @ x) / float(x.shape[0] - 1)\n            eigs = _np.linalg.eigvalsh(cov)[::-1]\n            return float(participation_ratio([float(v) for v in eigs]))\n        except Exception:\n            pass\n    return participation_ratio(jacobi_eigenvalues(_covariance(points)))",
-   "status": "pending",
-   "reason": ""
   },
   "mesh:MeshRouterWorm.invalidate_route": {
    "decider": "dead_candidate",
@@ -1317,14 +1277,6 @@
    "seg": "def register_schema(self, name: str, schema: dict[str, Any]):\n        version = len(self._schemas.get(name, [])) + 1\n        entry = {\"version\": version, \"schema\": schema, \"date\": datetime.now().isoformat()}\n        if name not in self._schemas:\n            self._schemas[name] = []\n        self._schemas[name].append(entry)",
    "status": "dispatched"
   },
-  "morph:Genome.from_flat": {
-   "module": "morph",
-   "qualname": "Genome.from_flat",
-   "line": 203,
-   "seg": "def from_flat(cls, bounds: Dict[str, Tuple[float, float]],\n                  values: Dict[str, float]) -> \"Genome\":\n        \"\"\"Bridge the legacy fixed dict-of-bounds world into Morph.\"\"\"\n        specs, vals = [], []\n        for name, (lo, hi) in bounds.items():\n            specs.append(GeneSpec(name, \"float\", lo, hi))\n            vals.append(float(values.get(name, lo)))\n        return cls(specs, vals)",
-   "status": "pending",
-   "reason": ""
-  },
   "morph:Genome.to_trainer_kwargs": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -1345,14 +1297,6 @@
     "tests/test_proteus_organs.py:138"
    ]
   },
-  "morph:dimension_report": {
-   "module": "morph",
-   "qualname": "dimension_report",
-   "line": 425,
-   "seg": "def dimension_report(rows: Iterable[dict]) -> dict:\n    \"\"\"Group results by genome dimension \u2014 the discipline the plan demands.\n\n    `rows` are artifact dicts carrying `dimension` and `fitness`. Headline\n    fitness must never be compared across dimensions without this grouping.\n    \"\"\"\n    by_dim: Dict[int, List[float]] = {}\n    for r in rows:\n        # An explicit dimension is required. Defaulting a missing one to 0 would\n        # silently merge legacy rows into a bucket labelled \"dimension 0\", which\n        # is exactly the cross-dimensional comparison this function exists to\n        # prevent.\n        if not isinstance(r, dict) or \"dimension\" not in r:\n            continue\n        try:\n            d = int(r.get(\"dimension\"))\n            f = float(r.get(\"fitness\"))\n        except (TypeError, ValueError):\n            continue\n        if math.isnan(f) or math.isinf(f):\n            continue\n        by_dim.setdefault(d, []).append(f)\n\n    out: Dict[str, Any] = {\"by_dimension\": {}}\n    best_overall: Optional[float] = None\n    for d in sorted(by_dim):\n        fs = by_dim[d]\n        mean = sum(fs) / len(fs)\n        var = sum((x - mean) ** 2 for x in fs) / len(fs)\n        entry = {\"n\": len(fs), \"best\": max(fs), \"mean\": mean,\n                 \"sd\": math.sqrt(var), \"worst\": min(fs)}\n        out[\"by_dimension\"][str(d)] = entry\n        if best_overall is None or entry[\"best\"] > best_overall:\n            best_overall = entry[\"best\"]\n            out[\"best_dimension\"] = d\n    out[\"best_fitness\"] = best_overall\n    return out",
-   "status": "pending",
-   "reason": ""
-  },
   "morph:load_genome": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -1371,14 +1315,6 @@
     "tests/test_proteus_organs.py:320"
    ]
   },
-  "morph:prune_zero_variance": {
-   "module": "morph",
-   "qualname": "prune_zero_variance",
-   "line": 391,
-   "seg": "def prune_zero_variance(genomes: Sequence[Genome], min_spread: float = 1e-4\n                        ) -> Tuple[List[str], List[str]]:\n    \"\"\"Find genes whose value never varies across the archive.\n\n    Returns `(prune, keep)` gene names. A gene collapsed to a single value\n    contributes no search dimension and is reclaimed by the caller; the freed\n    slot is what triggers re-exploration. Genes missing from some genomes are\n    treated as varying (they are still being explored).\n    \"\"\"\n    if not genomes:\n        return [], []\n    n = len(genomes)\n    seen: Dict[str, int] = {}\n    buckets: Dict[str, List[float]] = {}\n\n    for g in genomes:\n        for s, v in zip(g.specs, g.values):\n            seen[s.name] = seen.get(s.name, 0) + 1\n            try:\n                num = float(v[0]) if isinstance(v, (list, tuple)) and v else float(v)\n            except (TypeError, ValueError):\n                num = float(bool(v))\n            buckets.setdefault(s.name, []).append(num)\n\n    prune, keep = [], []\n    for name, vals in buckets.items():\n        if seen.get(name, 0) < n or len(vals) < 2:\n            keep.append(name)\n            continue\n        spread = max(vals) - min(vals)\n        (prune if spread <= min_spread else keep).append(name)\n    return sorted(prune), sorted(keep)",
-   "status": "pending",
-   "reason": ""
-  },
   "morph:save_genome": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -1395,30 +1331,6 @@
     "tests/test_proteus_organs.py:313"
    ]
   },
-  "morph:seed_pool_from_bounds": {
-   "module": "morph",
-   "qualname": "seed_pool_from_bounds",
-   "line": 464,
-   "seg": "def seed_pool_from_bounds(bounds: Dict[str, Tuple[float, float]]) -> List[GeneSpec]:\n    \"\"\"The candidate gene pool: today's bounds plus genuinely new dimensions.\n\n    Only switch-like, genuinely-free kwargs are offered as additions.\n    `n_episodes`/`max_steps` are deliberately withheld (fake selection\n    pressure, per `learning_rl.py:335`).\n    \"\"\"\n    pool = [GeneSpec(name, \"float\", lo, hi) for name, (lo, hi) in bounds.items()]\n    pool.append(GeneSpec(\"use_schema_features\", \"bool\", 0, 1))\n    pool.append(GeneSpec(\"use_data_split\", \"bool\", 0, 1))\n    pool.append(GeneSpec(\"by_session\", \"bool\", 0, 1))\n    pool.append(GeneSpec(\"val_ratio\", \"float\", 0.05, 0.35))\n    pool.append(GeneSpec(\"test_ratio\", \"float\", 0.05, 0.35))\n    return pool",
-   "status": "pending",
-   "reason": ""
-  },
-  "morph:structural_mutate": {
-   "module": "morph",
-   "qualname": "structural_mutate",
-   "line": 335,
-   "seg": "def structural_mutate(g: Genome, pool: Sequence[GeneSpec],\n                      rng: Optional[random.Random] = None,\n                      attempts: int = 4) -> Tuple[Genome, str]:\n    \"\"\"Apply one structural operator, retrying past lethal (None) results.\n\n    Returns `(child, op_name)`. If every attempt is lethal the parent is\n    returned unchanged with op `\"none\"` \u2014 structural mutation is expected to\n    fail often and must never raise into the outer loop.\n    \"\"\"\n    rng = rng or random.Random()\n    ops = list(STRUCTURAL_OPS)\n    for _ in range(max(1, attempts)):\n        op = rng.choice(ops)\n        try:\n            child = STRUCTURAL_OPS[op](g, rng, pool)\n        except Exception:\n            child = None\n        if child is not None:\n            return child, op\n    return g, \"none\"",
-   "status": "pending",
-   "reason": ""
-  },
-  "nerve:modulated_q_update": {
-   "module": "nerve",
-   "qualname": "modulated_q_update",
-   "line": 353,
-   "seg": "def modulated_q_update(q: Dict[Any, float], state: Any, action: Any, reward: float,\n                       next_state: Any, alpha: float, gamma: float,\n                       mod: Sequence[float]) -> float:\n    \"\"\"One Q-update whose three plasticity parameters are individually modulated.\n\n    `mod = [alpha_mult, gamma_mult, temperature_mult]`. Returns the TD error so\n    callers can log learning progress without recomputing it.\n    \"\"\"\n    a_m = float(mod[0]) if len(mod) > 0 else 1.0\n    g_m = float(mod[1]) if len(mod) > 1 else 1.0\n    alpha_t = min(1.0, max(1e-4, alpha * a_m))\n    gamma_t = min(0.999, max(0.0, gamma * g_m))\n\n    key = (state, action)\n    prev = float(q.get(key, 0.0))\n    nxt = q.get(next_state)\n    if isinstance(nxt, dict):\n        best_next = max((float(v) for v in nxt.values()), default=0.0)\n    else:\n        best_next = float(nxt) if nxt is not None else 0.0\n    td = reward + gamma_t * best_next - prev\n    q[key] = prev + alpha_t * td\n    return td",
-   "status": "pending",
-   "reason": ""
-  },
   "oracle:FitnessOracle.acquisition": {
    "decider": "dead_candidate",
    "decider_evidence": [],
@@ -1431,14 +1343,6 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
-  "oracle:FitnessOracle.era_robust_decision": {
-   "module": "oracle",
-   "qualname": "FitnessOracle.era_robust_decision",
-   "line": 278,
-   "seg": "def era_robust_decision(self, genes: Sequence[float],\n                            era_features: Sequence[Sequence[float]],\n                            threshold: float, min_prob: float = 0.75,\n                            z: float = 1.0, jitter: float = 0.05,\n                            rng=None) -> dict:\n        \"\"\"Boolean gate + the numbers behind it, for logging.\n\n        Reported pred_mean/pred_sd describe the SAME first imagined era that\n        `era_robust_decision_pure` reports, so the two interpreters cannot\n        disagree about what the gate saw.\n        \"\"\"\n        if not era_features:\n            return {\"era_robust_p\": 0.0, \"passed\": False, \"threshold\": threshold,\n                    \"min_prob\": min_prob, \"z\": z, \"n_imagined_eras\": 0,\n                    \"pred_mean\": None, \"pred_sd\": None}\n        rows = imagined_rows(genes, era_features, jitter, rng or random.Random(0))\n        mean, sd = self.predict(rows)\n        wins = sum(1 for m, s in zip(mean, sd) if (m - z * s) > threshold)\n        p = wins / float(len(rows))\n        return {\n            \"era_robust_p\": round(p, 4),\n            \"passed\": bool(p >= min_prob),\n            \"threshold\": threshold,\n            \"min_prob\": min_prob,\n            \"z\": z,\n            \"n_imagined_eras\": len(rows),\n            \"pred_mean\": round(mean[0], 4),\n            \"pred_sd\": round(sd[0], 4),\n        }",
-   "status": "pending",
-   "reason": ""
-  },
   "oracle:FitnessOracle.era_robust_probability": {
    "decider": "dead_candidate",
    "decider_evidence": [],
@@ -1450,22 +1354,6 @@
    "status": "pending",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
-  },
-  "oracle:FitnessOracle.export_json": {
-   "module": "oracle",
-   "qualname": "FitnessOracle.export_json",
-   "line": 309,
-   "seg": "def export_json(self, path: str) -> dict:\n        \"\"\"Serialise the ensemble to plain JSON so any interpreter can query it.\n\n        Constraint 2 of the PROTEUS plan: GPU components run in the GIL\n        interpreter, the pipeline runs free-threaded, and the two communicate\n        via artefacts. Weights as nested lists fulfil that with no shared\n        objects and no live handle.\n        \"\"\"\n        if not self._fitted or not self._models:\n            raise RuntimeError(\"export_json before fit\")\n        models = []\n        for net in self._models:\n            layers = []\n            for mod in net:\n                w = getattr(mod, \"weight\", None)\n                b = getattr(mod, \"bias\", None)\n                if w is None or b is None:\n                    continue\n                layers.append({\n                    \"w\": [[float(v) for v in row] for row in w.detach().cpu().tolist()],\n                    \"b\": [float(v) for v in b.detach().cpu().tolist()],\n                })\n            models.append(layers)\n        payload = {\n            \"schema\": \"fitness-oracle/1\",\n            \"config\": {\"n_gene\": self.n_gene, \"n_era\": self.n_era,\n                       \"hidden\": self.hidden, \"n_models\": self.n_models,\n                       \"seed\": self.seed},\n            \"mu\": self._mu, \"sd\": self._sd, \"models\": models,\n            \"trained_at\": time.strftime(\"%Y-%m-%dT%H:%M:%S\"),\n            \"n_rows\": self.meta.get(\"n_rows\"),\n            \"loss_mean\": self.meta.get(\"loss_mean\"),\n            # The era descriptors the model was trained across travel WITH the\n            # model, so the gate imagines exactly the eras this model knows\n            # instead of re-deriving them from the store at gate time.\n            \"eras\": self.meta.get(\"eras\"),\n        }\n        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)\n        tmp = path + \".tmp\"\n        with open(tmp, \"w\", encoding=\"utf-8\") as fh:\n            json.dump(payload, fh)\n        os.replace(tmp, path)\n        return {\"path\": path, \"bytes\": os.path.getsize(path),\n                \"models\": len(models)}",
-   "status": "pending",
-   "reason": ""
-  },
-  "oracle:FitnessOracle.is_fitted": {
-   "module": "oracle",
-   "qualname": "FitnessOracle.is_fitted",
-   "line": 157,
-   "seg": "def is_fitted(self) -> bool:\n        return self._fitted",
-   "status": "pending",
-   "reason": ""
   },
   "profiling:CPUFlameProfiler.to_flamegraph_data": {
    "decider": "dead_candidate",
@@ -2430,7 +2318,7 @@
    "module": "xenomorph",
    "qualname": "OvomorphWorm.lay",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def lay(self, egg_id: str, payload: dict, env_hint: str = \"any\") -> dict[str, Any]:\n        with self._lock:\n            self._eggs[egg_id] = {\"payload_keys\": list(payload.keys())[:8],\n                                  \"env_hint\": env_hint,\n                                  \"at\": datetime.now().isoformat(),\n                                  \"hatched\": False}\n            return {\"success\": True, \"eggs\": len(self._eggs)}",
+   "seg": "def lay(self, egg_id: str, payload: dict, env_hint: str = \"any\") -> dict[str, Any]:\n        with self._lock:\n            self._eggs[egg_id] = {\"payload_keys\": list(payload)[:8],\n                                  \"env_hint\": env_hint,\n                                  \"at\": datetime.now().isoformat(),\n                                  \"hatched\": False}\n            return {\"success\": True, \"eggs\": len(self._eggs)}",
    "status": "pending",
    "triage": "no_reference_anywhere",
    "triage_evidence": []

@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "authored",
+  "base": {
+    "title": "Evolution Evidence — BASE (nothing audits it)",
+    "rawSha256": "cb3982bc64743f7f81b500f9e35fa3a787f5bee53815112d1aabbb82a3d9f238",
+    "semanticSha256": "10f6f8b947619acdead51dda30873de5dd90a10676e94da7170fb2dbbca00ec9",
+    "bytes": 2468
+  },
+  "head": {
+    "title": "Evolution Audit Loop — HEAD (alarm wired)",
+    "rawSha256": "515b16b57a93aeedeca2861ac97246e80c58c7750cbb18e0c44ddb2c299e523f",
+    "semanticSha256": "c7ddde26801bd982a88625737656eda4ac6a610b672adaead0c5f745816ed0ff",
+    "bytes": 3545
+  },
+  "summary": {
+    "components": {
+      "added": 3,
+      "changed": 2,
+      "evidenceChanged": 0,
+      "removed": 1,
+      "moved": 0
+    },
+    "connections": {
+      "added": 5,
+      "changed": 0,
+      "removed": 2,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 1,
+      "changed": 0,
+      "removed": 1,
+      "geometryChanged": 0
+    },
+    "presentationChanged": true,
+    "provenanceChanged": false
+  },
+  "changes": {
+    "components": [
+      {
+        "id": "apply",
+        "baseLabel": "apply_evolved_overrides",
+        "headLabel": "apply_evolved_overrides",
+        "status": "changed",
+        "classifications": [
+          "geometry",
+          "semantic"
+        ],
+        "changedFields": [
+          "/pos",
+          "/sublabel"
+        ]
+      },
+      {
+        "id": "bench",
+        "baseLabel": "benchmark_evolution.py",
+        "headLabel": "benchmark_evolution.py",
+        "status": "changed",
+        "classifications": [
+          "geometry",
+          "semantic"
+        ],
+        "changedFields": [
+          "/pos",
+          "/sublabel"
+        ]
+      },
+      {
+        "id": "classify",
+        "headLabel": "regression vs environmental",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "promo",
+        "baseLabel": "state/evolved_rl_params.json",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "watch",
+        "headLabel": "dashboard --watch",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "worm",
+        "headLabel": "EvolutionIntegrityWorm",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      }
+    ],
+    "connections": [
+      {
+        "id": "bench-reads",
+        "base": {
+          "from": "bench",
+          "to": "store",
+          "label": "reads live store"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "invariant",
+        "head": {
+          "from": "worm",
+          "to": "apply",
+          "label": "champion-on-disk invariant"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "loaded-by",
+        "base": {
+          "from": "promo",
+          "to": "apply",
+          "label": "loaded at startup"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "reads",
+        "head": {
+          "from": "worm",
+          "to": "store",
+          "label": "reads evidence"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "runs",
+        "head": {
+          "from": "worm",
+          "to": "bench",
+          "label": "runs the real script"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "splits",
+        "head": {
+          "from": "classify",
+          "to": "worm",
+          "label": "named findings"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "starts",
+        "head": {
+          "from": "watch",
+          "to": "worm",
+          "label": "starts (6h interval)"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      }
+    ],
+    "boundaries": [
+      {
+        "key": "region:evolution audit loop — added this session",
+        "kind": "region",
+        "label": "evolution audit loop — added this session",
+        "status": "added",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": []
+      },
+      {
+        "key": "region:evolution subsystem — evidence produced, nothing scheduled to read it",
+        "kind": "region",
+        "label": "evolution subsystem — evidence produced, nothing scheduled to read it",
+        "status": "removed",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": []
+      }
+    ]
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "f2d74e35f13c13245d5ad279185913a46caf2584ad800cdd4870fafcf253e9c6",
+    "bytes": 2202611
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

@@ -1,0 +1,92 @@
+{
+ "tags_unclosed_at_eof": [],
+ "tags_mismatched": [
+  [
+   "h4",
+   36177,
+   "span"
+  ],
+  [
+   "h4",
+   37062,
+   "span"
+  ],
+  [
+   "h4",
+   37922,
+   "span"
+  ],
+  [
+   "h4",
+   38805,
+   "span"
+  ],
+  [
+   "h4",
+   39638,
+   "span"
+  ],
+  [
+   "h4",
+   40471,
+   "span"
+  ],
+  [
+   "h4",
+   41299,
+   "span"
+  ],
+  [
+   "h4",
+   42144,
+   "span"
+  ],
+  [
+   "h4",
+   43001,
+   "span"
+  ],
+  [
+   "h4",
+   43860,
+   "span"
+  ],
+  [
+   "h4",
+   44707,
+   "span"
+  ],
+  [
+   "div",
+   79609,
+   "body"
+  ]
+ ],
+ "tags_unclosed_midway": [
+  [
+   "span",
+   11
+  ]
+ ],
+ "div_open": 342,
+ "div_close": 346,
+ "div_balanced": false,
+ "replacement_char_count": 0,
+ "mojibake_markers": 0,
+ "utf8_strict": true,
+ "emoji_total": 542,
+ "person_emoji_zwj_intact": 16,
+ "zwj_stray": 0,
+ "prior_session_residue": {},
+ "placeholders": {
+  "None</": 4
+ },
+ "h2_sections": 28,
+ "session_blocks": 0,
+ "session_blocks_per_section": 0.0,
+ "css_brace_balance": -3,
+ "tables": 66,
+ "tr": 483,
+ "td": 1310,
+ "empty_table_rows": 0
+}
