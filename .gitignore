@@ -218,3 +218,18 @@ gateway-go/*.exe
 tools/*.exe
 config/track_bandit.json
 dashboard/archetypes/
+
+# Runtime-state buckets (2026-10-07 second pass). LIVE telemetry and locks
+# rewritten by running jobs -- same reasoning as the evolved_rl_params block
+# above: tracking them means every cycle dirties the tree and a checkout can
+# silently revert production state. Nearest surviving record is the disk copy
+# itself; point-in-time snapshots belong in archive/, not git.
+logs/
+state/
+backup/
+renders/
+reports/env_inventory/
+
+# Hub-local scratch that never carried content (2026-10-07): stray file whose
+# name is a single U+F0220 private-use character.
+\357\200\242
