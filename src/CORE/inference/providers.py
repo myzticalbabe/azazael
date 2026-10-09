@@ -55,6 +55,16 @@ import threading
 import time
 from urllib.parse import urlparse
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # Inference cache for file-backed citations (RULE 0Q-A) — graceful degradation
 try:
     from CORE.inference.inference_cache import record_inference as _cache_record_inference
@@ -79,15 +89,6 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Iterator
 
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-_SWALLOWED: List[str] = []
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        _SWALLOWED.append("%s:no-recorder" % where)
 
 # 3.14t port: the `openai` SDK depends on pydantic_core, which ships no
 # free-threaded build — a top-level import made this entire registry

@@ -17,6 +17,16 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from collections import defaultdict
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
@@ -51,15 +61,6 @@ from CORE.WORMS.expansion.learning_versioner import ModelVersioner
 from CORE.WORMS.expansion.learning_pipeline import DataPipelineWorm, DYNAMIC_SHAPES, refresh_dynamic_shapes
 from CORE.WORMS.expansion.learning_features import DATA_SHAPES, SchemaAwareFeatureExtractor, FeatureEngineer
 
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-_SWALLOWED: List[str] = []
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ABTestRunner: prefer the v2.0.0 DPO-capable version from learning_grpo.py;
 # fall back to the v1.0.0 basic stub in learning_ab.py only if that fails.
