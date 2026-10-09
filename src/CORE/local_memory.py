@@ -36,6 +36,26 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 from CORE.uuid7 import uuid7
 
+#: Fail-open swallows recorded when the runtime recorder is unavailable. An
+#: unrecorded swallow is indistinguishable from success, so every handler in
+#: this module records first (degradation stays observable).
+_SWALLOWED: List[str] = []
+
+
+try:
+    from CORE.technique_runtime import note_failure
+except ImportError:                               # runtime absent: stay importable
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
+
+def _note_failure(where: str, exc: BaseException | None = None) -> None:
+    """Record a fail-open swallow. Never raises."""
+    try:
+        note_failure(where, exc)
+    except Exception as _e:
+        _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
+
 # -- Storage location ------------------------------------------------------
 def _get_store_path() -> Path:
     """Determine storage path.
@@ -918,6 +938,111 @@ class LocalMemoryStore:
     def recall_recent(self, limit: int = 20, source: Optional[str] = None) -> List[Dict]:
         """Get the most recent memories, optionally filtered by source."""
         return self.query_memories(source=source, limit=limit)
+
+    # -- P0 MAFIA retrieval audit (SOTA blueprint slice 2, defensive) --------
+
+    def audit_retrieval(self, results: List[Dict],
+                        query_context: str = "") -> Dict[str, Any]:
+        """Audit a recall result set for memory-poisoning signals (MAFIA).
+
+        Runs the shared `audit_result_set` heuristics, then records a
+        `retrieval_audit` event in this store plus a matching entry on the
+        hash-chained audit ledger (lazy import, fails open). Callers filter
+        with `filter_quarantined(results, report)`.
+        """
+        report = audit_result_set(results, query_context)
+        try:
+            self.record_event("local_memory", "retrieval_audit", report,
+                              severity="warning" if report["n_quarantined"] else "info",
+                              tags=["verification", "mafia-audit"])
+        except Exception as exc:                  # noqa: BLE001 — audit publish best-effort
+            _note_failure("local_memory:retrieval-audit-event", exc)
+        try:
+            from CORE import audit_trail as _at  # noqa: PLC0415 (lazy: no cycle)
+            _at.audit_retrieval(query_context, report["n_checked"],
+                                report["n_quarantined"],
+                                report["quarantined_ids"], report["reasons"])
+        except Exception as exc:                  # noqa: BLE001 — ledger citation best-effort
+            _note_failure("local_memory:retrieval-audit-trail", exc)
+        return report
+
+    @staticmethod
+    def filter_quarantined(results: List[Dict],
+                           report: Dict[str, Any]) -> List[Dict]:
+        """Drop quarantined rows from a result set per an audit report."""
+        bad = set(report.get("quarantined_ids", []))
+        return [r for r in results if r.get("id") not in bad]
+
+    # -- P0 MemHarness reconstructive recall (SOTA blueprint slice 3) --------
+
+    @staticmethod
+    def reconstruct_events(events: List[Dict], current_task: str,
+                           max_items: int = 20,
+                           max_chars_per_item: int = 200) -> Dict[str, Any]:
+        """Reconstruct recalled events into a task-conditioned brief.
+
+        MemHarness rule: memories are ADAPTED to the present context, never
+        injected verbatim. Each event is reduced to one line
+        `[source:event_type] <truncated summary> (id, ts)` — full payloads
+        stay in the ledger (audit exactness) and never enter the context.
+
+        Verified negatives govern: events whose data-subject matches a
+        negated subject in the same set are SUPPRESSED, and the negations
+        are listed under "verified absent" instead.
+        """
+        negatives: List[Dict[str, str]] = []
+        for ev in events:
+            if ev.get("event_type") == "verified_negative":
+                d = ev.get("data") if isinstance(ev.get("data"), dict) else {}
+                negatives.append({
+                    "subject": str(d.get("subject", "")),
+                    "claim": str(d.get("claim", "")),
+                })
+        neg_subjects = {n["subject"] for n in negatives if n["subject"]}
+
+        lines: List[str] = []
+        suppressed = 0
+        for ev in events[:max_items]:
+            if ev.get("event_type") == "verified_negative":
+                continue
+            d = ev.get("data")
+            subj = d.get("subject", "") if isinstance(d, dict) else ""
+            if subj and subj in neg_subjects:
+                suppressed += 1
+                continue
+            try:
+                summary = json.dumps(d, ensure_ascii=False,
+                                     default=str)[:max_chars_per_item]
+            except Exception:
+                summary = "<unserializable>"
+            lines.append(
+                f"[{ev.get('source')}:{ev.get('event_type')}] {summary} "
+                f"(id={ev.get('id')}, ts={ev.get('timestamp')})")
+
+        brief = (f"Task: {current_task}\n"
+                 f"Reconstructed from {len(events)} recalled events "
+                 f"({len(lines)} kept, {suppressed} suppressed by negatives):\n"
+                 + "\n".join(lines))
+        if negatives:
+            absent = "; ".join(
+                f"{n['subject']}: {n['claim']}" for n in negatives)
+            brief += f"\nVerified absent: {absent}"
+        return {"brief": brief, "n_in": len(events), "n_out": len(lines),
+                "n_suppressed": suppressed, "negatives": negatives}
+
+    def reconstruct_context(self, current_task: str,
+                            limit: int = 20) -> Dict[str, Any]:
+        """Audited reconstructive recall: recent events -> task brief.
+
+        Runs recall_recent through the MAFIA audit (quarantine first),
+        then reconstructs. Returns {"brief", "audit", ...reconstruct stats}.
+        """
+        events = self.recall_recent(limit=limit)
+        audit = self.audit_retrieval(events, query_context=current_task)
+        kept = self.filter_quarantined(events, audit)
+        out = self.reconstruct_events(kept, current_task)
+        out["audit"] = audit
+        return out
 
     # -- Quantitative: Index Usage Analysis ----------------------------------
 
@@ -2083,6 +2208,62 @@ def get_memory_store(db_path: Optional[str] = None) -> LocalMemoryStore:
             if _global_store is None:
                 _global_store = LocalMemoryStore(db_path=db_path)
     return _global_store
+
+
+# -- P0 shared MAFIA heuristics (pure function, no store needed) --------------
+def audit_result_set(results: List[Dict],
+                     query_context: str = "") -> Dict[str, Any]:
+    """Inspect a recall result set for MAFIA poisoning signals.
+
+    Pure function shared by LocalMemoryStore and DirectMemory paths:
+
+    - no-provenance: row carries neither audit_hash nor event_uuid
+      (pre-CD1 rows and foreign writes) -> QUARANTINED from context.
+    - placement-crowding: 3+ rows with identical (source, event_type)
+      AND identical data payload in one result set (retrieval-competitive
+      placement, MAFIA's delivery mechanism) -> QUARANTINED.
+    - cloak-watch: data asserts fact/claim/conclusion keys with no
+      evidence/source companion (factual-cloak shape) -> NOTED only,
+      never quarantined on shape alone.
+    """
+    quarantined_ids: List[Any] = []
+    reasons: List[str] = []
+    watches: List[Any] = []
+    seen_payloads: Dict[str, int] = {}
+
+    for row in results:
+        rid = row.get("id")
+        if not row.get("audit_hash") and not row.get("event_uuid"):
+            quarantined_ids.append(rid)
+            reasons.append(f"{rid}:no-provenance")
+            continue
+        try:
+            payload_hash = hashlib.sha256(
+                json.dumps(row.get("data", {}), sort_keys=True,
+                           ensure_ascii=False, default=str
+                           ).encode("utf-8")).hexdigest()
+        except Exception:
+            continue
+        key = f"{row.get('source')}|{row.get('event_type')}|{payload_hash}"
+        seen_payloads[key] = seen_payloads.get(key, 0) + 1
+        if seen_payloads[key] >= 3 and rid not in quarantined_ids:
+            quarantined_ids.append(rid)
+            reasons.append(f"{rid}:placement-crowding")
+        data = row.get("data")
+        if isinstance(data, dict):
+            keys = set(data.keys())
+            if keys & {"fact", "claim", "conclusion"} and not (
+                    keys & {"evidence", "source", "citation", "proof"}):
+                watches.append(rid)
+
+    return {
+        "query_context": query_context,
+        "n_checked": len(results),
+        "n_quarantined": len(quarantined_ids),
+        "quarantined_ids": quarantined_ids,
+        "reasons": reasons,
+        "cloak_watch_ids": watches,
+    }
 
 
 # -- Self-test -------------------------------------------------------------

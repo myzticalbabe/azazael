@@ -233,3 +233,28 @@ then verify — verified `True` on
   skill copies under `azazael/skills`, `.agents/skills`, `~/.agents/skills` and
   `skills.win-backup`, which were **never diffed** and may still carry the
   pre-0B-A text. `RULE_AUDIT_TODO.md` P4.3.
+
+---
+
+## 9. TECHNIQUE LAYER — how much is actually adopted (measured 2026-10-09)
+
+Call path: `src/CORE/technique_runtime.py` registers 181 harvested techniques, and
+`tools/exercise_technique_runtime.py` reports `corpus 181 / wired 181 / engaged 181 /
+errored 0`. **That is a statement about the registry, not about the codebase** — read
+alone it overstates capability, so it must not be quoted as coverage.
+
+Production call sites into the layer, measured by grep over `src/` excluding the
+layer itself and `tools/`:
+
+| technique boundary | production caller |
+|---|---|
+| plan modelling | `WORMS/METACLUSTER.py` (`plan_dag`) |
+| edit verification | `sentinel_enforcer.py` (`verify_boundary`) |
+| failure reflection | `circuit_breaker.py`, `WORMS/METACLUSTER.py` (`reflect_on_failure`) |
+| read-driven consolidation | `WORMS/expansion/engram.py` (read pressure) |
+
+So: **181 techniques have a call path; 5 production call sites reach it.** The
+remaining adoption work is T-13 in `TODO_315T_BUILD.md`; the reassignment of the 48
+rows that pointed at the wrong host is in `SOTA_ROW_RESCORE.md`. Coverage must
+be counted as production call sites per technique, with exercise-only engagement
+scored zero.
