@@ -20,6 +20,17 @@ from pathlib import Path
 import subprocess
 import sys
 import json
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def test_module_syntax(path: str) -> dict:
@@ -30,8 +41,10 @@ def test_module_syntax(path: str) -> dict:
             compile(f.read(), path, "exec")
         result["passed"] = True
     except SyntaxError as e:
+        note_failure("run_tests:L32", e)
         result["error"] = f"Syntax: {e.msg}"
     except Exception as e:
+        note_failure("run_tests:L34", e)
         result["error"] = str(e)[:800]
     return result
 
@@ -50,8 +63,10 @@ def test_module_import(path: str) -> dict:
         if proc.returncode != 0:
             result["error"] = proc.stderr[:200]
     except subprocess.TimeoutExpired:
+        note_failure("run_tests:L52", None)
         result["error"] = "Timeout"
     except Exception as e:
+        note_failure("run_tests:L54", e)
         result["error"] = str(e)[:800]
     return result
 
@@ -78,6 +93,7 @@ def test_documentation(path: str) -> dict:
         result["has_classes"] = "class " in content
 
     except Exception as e:
+        note_failure("run_tests:L80", e)
         result["error"] = str(e)
 
     return result
@@ -107,6 +123,7 @@ def test_bat_file(path: str) -> dict:
         )
 
     except Exception as e:
+        note_failure("run_tests:L109", e)
         result["error"] = str(e)
 
     return result

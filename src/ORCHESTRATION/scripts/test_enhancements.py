@@ -17,12 +17,24 @@ Usage:
 
 import sys
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from hypothesis import given, strategies as st, settings
 
     HYPOTHESIS_AVAILABLE = True
 except ImportError:
+    note_failure("test_enhancements:L25", None)
     HYPOTHESIS_AVAILABLE = False
 
 try:
@@ -30,6 +42,7 @@ try:
 
     FUZZING_AVAILABLE = True
 except ImportError:
+    note_failure("test_enhancements:L32", None)
     FUZZING_AVAILABLE = False
 
 
@@ -209,7 +222,7 @@ class TestFuzzing:
                     assert isinstance(action, str)
                     assert isinstance(args, list)
             except Exception:
-                pass
+                note_failure("test_enhancements:L211", None)
 
     def test_path_fuzz(self):
         """Path handling should be robust."""
@@ -231,7 +244,7 @@ class TestFuzzing:
                 parts = p.parts
                 assert isinstance(parts, tuple)
             except Exception:
-                pass
+                note_failure("test_enhancements:L233", None)
 
     def test_json_fuzz(self):
         """JSON parsing should handle invalid input."""
@@ -253,7 +266,7 @@ class TestFuzzing:
             try:
                 json.loads(json_str)
             except (json.JSONDecodeError, TypeError, ValueError):
-                pass
+                note_failure("test_enhancements:L255", None)
 
 
 class TestConcurrencyProperties:

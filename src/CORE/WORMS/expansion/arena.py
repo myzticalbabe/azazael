@@ -41,6 +41,16 @@ import math
 import random
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = [
     "Environment",
     "ArenaWorld",
@@ -175,6 +185,7 @@ class Arena:
         try:
             return float(self.solver(genome, env.config()))
         except Exception:
+            note_failure("arena:L177", None)
             return float("-inf")
 
     def populate(self, seed_env: Environment, genome: Any, n: int = 8) -> List[ArenaWorld]:
@@ -294,7 +305,7 @@ class Arena:
                            for w in d.get("worlds", [])]
             self.history = list(d.get("history", []))
         except Exception:
-            pass
+            note_failure("arena:L296", None)
 
 
 def keeper_split(worlds: Sequence[ArenaWorld], keeper_frac: float = 0.25

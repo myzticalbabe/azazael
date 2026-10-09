@@ -18,10 +18,20 @@ import re
 import time
 from pathlib import Path
 from enum import Enum
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field, asdict
 from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 LOG_DIR = Path(os.environ.get("APPDATA", "~/.appdata")).expanduser() / "AssistantLogs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -175,6 +185,7 @@ class AssistantLogProtocol:
             with open(path, "r") as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
+            note_failure("AssistantLogProtocol_Enhanced:L177", None)
             return {
                 "version": self.VERSION,
                 "entries": [],

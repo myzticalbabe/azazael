@@ -24,7 +24,7 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 from dataclasses import dataclass, field
 
 _AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
@@ -39,11 +39,22 @@ sys.path.insert(0, _UTIL_DIR) if _UTIL_DIR not in sys.path else None
 # Import core components
 from HYDRA import HYDRACluster, ClusterConfig, ProcessingStage, StageResult
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # PAMS recording
 try:
     from CORE.PamsRecorder import PamsRecorder
     PAMS_REC = PamsRecorder()
 except ImportError:
+    note_failure("hydra_bridge:L46", None)
     PAMS_REC = None
 
 # InferenceBridge (may fail if llama-server not running)
@@ -51,6 +62,7 @@ try:
     from InferenceBridge import InferenceBridge
     BRIDGE_AVAILABLE = True
 except ImportError:
+    note_failure("hydra_bridge:L53", None)
     BRIDGE_AVAILABLE = False
 
 
@@ -83,7 +95,7 @@ class HydraBridge:
             try:
                 self.bridge = InferenceBridge()
             except Exception:
-                pass
+                note_failure("hydra_bridge:L85", None)
         self._recorder = PAMS_REC
 
     def run_full_pipeline(self, use_llm: bool = True) -> PipelineReport:
@@ -198,7 +210,7 @@ What went well? What can be improved? Respond concisely (2-3 sentences)."""
             if resp.success:
                 return resp.response
         except Exception:
-            pass
+            note_failure("hydra_bridge:L200", None)
 
         return None
 

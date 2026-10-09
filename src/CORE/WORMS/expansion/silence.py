@@ -56,7 +56,17 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import Any, Optional
+from typing import Any, Optional, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = [
     "ignoring", "record", "silence_report", "silence_reset",
@@ -212,6 +222,7 @@ def record(tag: str, exc: BaseException) -> int:
     try:
         return LEDGER.note(str(tag), exc)
     except Exception:  # pragma: no cover - defensive
+        note_failure("silence:L214", None)
         return 0
 
 
@@ -220,6 +231,7 @@ def tripped(tag: Optional[str] = None) -> Any:
     try:
         return LEDGER.tripped(tag)
     except Exception:  # pragma: no cover - defensive
+        note_failure("silence:L222", None)
         return False if tag is not None else []
 
 
@@ -228,6 +240,7 @@ def signatures(tag: str) -> dict[str, int]:
     try:
         return LEDGER.signatures(tag)
     except Exception:  # pragma: no cover - defensive
+        note_failure("silence:L230", None)
         return {}
 
 
@@ -236,6 +249,7 @@ def silence_report() -> dict:
     try:
         return LEDGER.snapshot()
     except Exception:  # pragma: no cover - defensive
+        note_failure("silence:L238", None)
         return {"tags": 0, "total_ignored": 0, "tripped": [], "counts": {},
                 "signatures": {}, "first_seen": {}, "last_seen": {}}
 
@@ -245,4 +259,5 @@ def silence_reset() -> int:
     try:
         return LEDGER.reset()
     except Exception:  # pragma: no cover - defensive
+        note_failure("silence:L247", None)
         return 0

@@ -16,13 +16,24 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Optional networkx for graph analysis
 try:
     import networkx as nx
     HAS_NETWORKX = True
 except ImportError:
+    note_failure("governance:L25", None)
     HAS_NETWORKX = False
     nx = None
 
@@ -131,6 +142,7 @@ class MultiAgentJudge:
                 verdict = evaluator(action, context)
                 verdicts[judge_id] = verdict
             except Exception as e:
+                note_failure("governance:L133", e)
                 verdicts[judge_id] = JudgeVerdict(
                     judge_id=judge_id,
                     approved=False,
@@ -447,7 +459,7 @@ class BehavioralGraphAnalyzer:
                                 "description": f"Detected action cycle: {' -> '.join(cycle)}",
                             })
                 except (nx.NetworkXNoCycle, nx.NetworkXError):
-                    pass
+                    note_failure("governance:L449", None)
 
         return anomalies
 
@@ -604,8 +616,9 @@ class DualLedgerValidator:
                             try:
                                 events.append(json.loads(line))
                             except json.JSONDecodeError:
-                                pass
+                                note_failure("governance:L606", None)
                 except OSError:
+                    note_failure("governance:L608", None)
                     continue
 
         return events
@@ -637,10 +650,10 @@ class DualLedgerValidator:
                 try:
                     events.append(dict(row))
                 except Exception:
-                    pass
+                    note_failure("governance:L639", None)
             conn.close()
         except (sqlite3.Error, OSError):
-            pass
+            note_failure("governance:L642", None)
 
         return events
 
@@ -741,8 +754,10 @@ class RealtimeAuditPipeline:
                             sig_ok = verify_signature(entry)
                             break
                     except (json.JSONDecodeError, TypeError):
+                        note_failure("governance:L743", None)
                         continue
         except Exception:
+            note_failure("governance:L745", None)
             sig_ok = False
         layer_results.append({"layer": 7, "name": "Ed25519 signature", "passed": sig_ok})
         if not sig_ok:

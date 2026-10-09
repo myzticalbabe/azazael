@@ -8,8 +8,18 @@ FederatedAggregatorWorm, NASMeshSearcherWorm, RewardShaperMeshWorm
 
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import defaultdict
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Fabric operational state (audit 2026-09-15, finding #7): federated round
 # counters, client submissions, NAS proposals and reward history used to be
@@ -19,6 +29,7 @@ try:
         hydrate, publish, cap_list, cap_map,
     )
 except ImportError:  # pragma: no cover - defensive
+    note_failure("federated:L21", None)
     def hydrate(instance, provider, attrs):
         return 0
 
@@ -34,6 +45,7 @@ except ImportError:  # pragma: no cover - defensive
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("federated:L36", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -50,10 +62,12 @@ def _age_seconds(at: Any, now: datetime | None = None) -> float:
     try:
         ts = datetime.fromisoformat(at)
     except Exception:
+        note_failure("federated:L52", None)
         return 0.0
     try:
         return max(0.0, ((now or datetime.now()) - ts).total_seconds())
     except Exception:
+        note_failure("federated:L56", None)
         return 0.0
 
 
@@ -307,6 +321,7 @@ class RewardShaperMeshWorm:
             cls._REWARD_MODEL = _json.load(
                 open("G:/source-of-truth/azazael_models/reward_model.json", encoding="utf-8"))
         except Exception:
+            note_failure("federated:L309", None)
             cls._REWARD_MODEL = {}
         return cls._REWARD_MODEL
 

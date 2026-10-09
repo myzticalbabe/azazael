@@ -56,7 +56,17 @@ import sys
 import time
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Nuitka availability detection -----------------------------------
 NUITKA_AVAILABLE = False
@@ -70,7 +80,7 @@ try:
         NUITKA_AVAILABLE = True
         NUITKA_VERSION = result.stdout.strip()
 except Exception:
-    pass
+    note_failure("cd4_pipeline:L72", None)
 
 
 # ====================================================================
@@ -120,7 +130,7 @@ def load_build_manifest(project_root: (str | None) = None) -> dict[str, Any]:
             spec.loader.exec_module(mod)
             return getattr(mod, "BUILD_TARGETS", {})
     except Exception:
-        pass
+        note_failure("cd4_pipeline:L122", None)
     return {}
 
 
@@ -329,6 +339,7 @@ class NuitkaBuildPipeline:
                 },
             )
         except subprocess.TimeoutExpired:
+            note_failure("cd4_pipeline:L331", None)
             return self._stage_result(
                 STAGE_INTERPRETED, False,
                 "pytest timed out after 300s",
@@ -398,7 +409,7 @@ class NuitkaBuildPipeline:
                     capture_output=True, text=True, timeout=60,
                 )
             except Exception:
-                pass  # Non-fatal - build may still work
+                note_failure("cd4_pipeline:L400", None) # Non-fatal - build may still work
 
         # Build target
         if target:
@@ -446,6 +457,7 @@ class NuitkaBuildPipeline:
                     },
                 )
             except subprocess.TimeoutExpired:
+                note_failure("cd4_pipeline:L448", None)
                 return self._stage_result(
                     STAGE_COMPILATION, False,
                     f"Nuitka build timed out (600s): {target}",
@@ -539,6 +551,7 @@ class NuitkaBuildPipeline:
                 },
             )
         except subprocess.TimeoutExpired:
+            note_failure("cd4_pipeline:L541", None)
             return self._stage_result(
                 STAGE_VALIDATION, False,
                 "Compiled validation timed out after 300s",

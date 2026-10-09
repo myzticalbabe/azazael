@@ -25,6 +25,17 @@ import threading
 import time
 import uuid
 import zlib
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 ENV_PORTS = {
     "windows": 18210,
@@ -66,7 +77,7 @@ def env_host(env: str) -> str:
             if host:
                 return host
         except (ValueError, TypeError):
-            pass  # a broken table must not break delivery; loopback is the truth
+            note_failure("mesh_transport:L68", None) # a broken table must not break delivery; loopback is the truth
     return "127.0.0.1"
 
 
@@ -102,6 +113,7 @@ def load_spilled(env: str, limit: int = 1000) -> list:
         rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()
                 if line.strip()]
     except (OSError, ValueError):
+        note_failure("mesh_transport:L104", None)
         return []
     mine = [r.get("msg") for r in rows if r.get("env") == env and isinstance(r.get("msg"), dict)][:limit]
     rest = [r for r in rows if not (r.get("env") == env and isinstance(r.get("msg"), dict))]
@@ -112,7 +124,7 @@ def load_spilled(env: str, limit: int = 1000) -> list:
                 fh.write(json.dumps(r, ensure_ascii=False) + "\n")
         tmp.replace(path)
     except OSError:
-        pass  # spill read-back is best-effort; a lost tail is logged by stats
+        note_failure("mesh_transport:L114", None) # spill read-back is best-effort; a lost tail is logged by stats
     return mine
 
 def port_for(env: str) -> int:
@@ -191,8 +203,10 @@ class MeshTransport:
             try:
                 conn, _ = self._srv.accept()
             except socket.timeout:
+                note_failure("mesh_transport:L193", None)
                 continue
             except OSError:
+                note_failure("mesh_transport:L195", None)
                 break
             try:
                 with conn:
@@ -222,6 +236,7 @@ class MeshTransport:
                                           "at": time.time()}).encode()
                     conn.sendall(struct.pack("!I", len(receipt)) + receipt)
             except Exception:
+                note_failure("mesh_transport:L224", None)
                 with self._lock:
                     self.errors += 1
 
@@ -249,6 +264,7 @@ class MeshTransport:
                 return False, str(trust.get("reason") or verdict or "untrusted")
             return True, ""
         except Exception as exc:
+            note_failure("mesh_transport:L251", exc)
             return False, "trust check unavailable: %s" % str(exc)[:80]
 
     def close(self):
@@ -257,7 +273,7 @@ class MeshTransport:
             try:
                 srv.close()
             except Exception:
-                pass
+                note_failure("mesh_transport:L259", None)
         with self._lock:
             leftover, self._inbox = self._inbox, []
         self.spilled += spill_inbox(self.env, leftover)
@@ -308,6 +324,7 @@ class MeshTransport:
                         "status": "delivered" if ok else "peer_rejected",
                         "learnable": True}
         except Exception as e:
+            note_failure("mesh_transport:L310", e)
             with self._lock:
                 self.errors += 1
             return {"success": False, "id": msg["id"], "error": str(e)[:120],

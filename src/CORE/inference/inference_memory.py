@@ -46,6 +46,16 @@ import os
 import threading
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = [
     "record_turn",
     "record_failure",
@@ -84,6 +94,7 @@ try:  # pragma: no cover - availability depends on the deployment
     from CORE.PamsRecorder import get_recorder  # type: ignore
     HAS_PAMS = True
 except ImportError:  # pragma: no cover
+    note_failure("inference_memory:L86", None)
     HAS_PAMS = False
     get_recorder = None  # type: ignore
 
@@ -106,6 +117,7 @@ def _get_recorder():
         try:
             _recorder = get_recorder()
         except Exception:  # noqa: BLE001 — memory is optional
+            note_failure("inference_memory:L108", None)
             _recorder = None
     return _recorder
 
@@ -145,6 +157,7 @@ def _record(event_type: str, data: Dict[str, Any], severity: str = "info",
             tags=[src, str(data.get("provider", ""))],
         ))
     except Exception:  # noqa: BLE001 — must never break inference
+        note_failure("inference_memory:L147", None)
         return False
     if stored:
         _maybe_retention()
@@ -182,6 +195,7 @@ def _max_turns() -> int:
     try:
         return int(raw)
     except ValueError:
+        note_failure("inference_memory:L184", None)
         return _DEFAULT_MAX_TURNS
 
 
@@ -192,6 +206,7 @@ def _max_operator() -> int:
     try:
         return int(raw)
     except ValueError:
+        note_failure("inference_memory:L194", None)
         return _DEFAULT_MAX_OPERATOR
 
 
@@ -257,6 +272,7 @@ def enforce_retention(max_turns: Optional[int] = None,
         recorder._ensure_local_store()  # noqa: SLF001 — the only way to force init
         store = getattr(recorder, "_local_store", None)
     except Exception:  # noqa: BLE001
+        note_failure("inference_memory:L259", None)
         store = None
     if store is None:
         return {"ok": False, "reason": "no local store"}
@@ -266,6 +282,7 @@ def enforce_retention(max_turns: Optional[int] = None,
         turns = _prune(store, cap, source=SOURCE)
         operators = _prune(store, op_cap, event_type=EVENT_OPERATOR)
     except Exception:  # noqa: BLE001
+        note_failure("inference_memory:L268", None)
         return {"ok": False, "reason": "query or tombstone failed"}
 
     result: Dict[str, Any] = {
@@ -278,6 +295,7 @@ def enforce_retention(max_turns: Optional[int] = None,
             store.vacuum()
             result["vacuumed"] = True
         except Exception:  # noqa: BLE001
+            note_failure("inference_memory:L280", None)
             result["vacuumed"] = False
     return result
 
@@ -294,7 +312,7 @@ def _maybe_retention() -> None:
         if _max_turns() > 0:
             enforce_retention()
     except Exception:  # noqa: BLE001 — maintenance must never break inference
-        pass
+        note_failure("inference_memory:L296", None)
 
 
 # -- Public API ---------------------------------------------------------
@@ -347,6 +365,7 @@ def recall_turns(limit: int = 20, provider: Optional[str] = None) -> List[Dict[s
     try:
         rows = recorder.query_memories(source=SOURCE, event_type=EVENT_TURN, limit=limit)
     except Exception:  # noqa: BLE001
+        note_failure("inference_memory:L349", None)
         return []
     if provider:
         rows = [r for r in rows
@@ -418,6 +437,7 @@ def recall_operator_sessions(limit: int = 10,
             event_type=EVENT_OPERATOR, limit=limit,
             source=operator_source(model) if model else None)
     except Exception:  # noqa: BLE001
+        note_failure("inference_memory:L420", None)
         return []
     return list(rows)
 
@@ -434,5 +454,6 @@ def memory_stats() -> Dict[str, Any]:
         try:
             stats["store"] = recorder.get_stats()
         except Exception:  # noqa: BLE001
+            note_failure("inference_memory:L436", None)
             stats["store"] = "unavailable"
     return stats

@@ -33,6 +33,17 @@ import time
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 sys.path.insert(0, Path.home() / "Desktop" / "Azazael" / "ml_platforms")
 
@@ -71,31 +82,31 @@ def load_frameworks():
 
         loaded["torch"] = {"version": torch.__version__, "device": "cpu"}
     except Exception:
-        pass
+        note_failure("run_qanalysis_multi:L73", None)
     try:
         import tensorflow as tf
 
         loaded["tensorflow"] = {"version": tf.__version__}
     except Exception:
-        pass
+        note_failure("run_qanalysis_multi:L79", None)
     try:
         import jax
 
         loaded["jax"] = {"version": jax.__version__}
     except Exception:
-        pass
+        note_failure("run_qanalysis_multi:L85", None)
     try:
         import numpy as np
 
         loaded["numpy"] = {"version": np.__version__}
     except Exception:
-        pass
+        note_failure("run_qanalysis_multi:L91", None)
     try:
         import scipy
 
         loaded["scipy"] = {"version": scipy.__version__}
     except Exception:
-        pass
+        note_failure("run_qanalysis_multi:L97", None)
     return loaded
 
 

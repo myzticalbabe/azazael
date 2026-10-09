@@ -21,8 +21,18 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 DATA_DIR = Path(__file__).parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -281,7 +291,7 @@ class SmartCache:
             try:
                 __import__(module)
             except ImportError:
-                pass
+                note_failure("strategic_intelligence:L283", None)
 
 
 class PerformanceProfiler:
@@ -389,6 +399,7 @@ class AutoDocumentation:
                 "total_classes": len(classes),
             }
         except ImportError as e:
+            note_failure("strategic_intelligence:L391", e)
             return {"error": str(e)}
 
 

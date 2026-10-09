@@ -16,11 +16,23 @@ from datetime import datetime
 from pathlib import Path
 # from typing import Dict, Optional  # removed — all names have native equivalents
 from dataclasses import dataclass
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Dynamic path resolution
 try:
     from CORE.paths import get_src_dir
 except ImportError:
+    note_failure("HORUS_LIVE_MONITOR:L23", None)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_src_dir
 
@@ -79,6 +91,7 @@ class HORUSLiveMonitor:
             info.last_output = output[:500]
             info.status = "error" if "error" in output.lower() else "active"
         except Exception as e:
+            note_failure("HORUS_LIVE_MONITOR:L81", e)
             info.last_output = str(e)
             info.status = "error"
 

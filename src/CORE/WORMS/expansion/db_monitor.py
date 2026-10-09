@@ -25,8 +25,18 @@ import random
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Module-level integrity cache -------------------------------------
 # PRAGMA integrity_check on a large SQLite DB takes seconds; check_health()
@@ -42,6 +52,7 @@ try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("db_monitor:L44", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -51,12 +62,14 @@ try:
     from CORE.freethreading import is_free_threaded
     _FREETHREAD = True
 except ImportError:
+    note_failure("db_monitor:L53", None)
     _FREETHREAD = False
     def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:
+            note_failure("db_monitor:L59", None)
             return False
 
 
@@ -150,11 +163,12 @@ class DatabaseMonitorWorm:
                 from CORE.postgres_memory import PostgresMemoryStore
                 return PostgresMemoryStore()
             except (ImportError, Exception):
-                pass  # Fall through to SQLite
+                note_failure("db_monitor:L152", None) # Fall through to SQLite
         try:
             from CORE.local_memory import get_memory_store
             return get_memory_store()
         except ImportError:
+            note_failure("db_monitor:L157", None)
             return None
 
     def _get_store_backend(self) -> str:
@@ -196,6 +210,7 @@ class DatabaseMonitorWorm:
             _INTEGRITY_CACHE_TIME = now
             return dict(result)
         except Exception as e:
+            note_failure("db_monitor:L198", e)
             return {"passed": False, "ok": False, "errors": [str(e)]}
 
     def create_backup(self, target_dir: str = None) -> str:
@@ -232,6 +247,7 @@ class DatabaseMonitorWorm:
             self._record_backup_event(target_path, True)
             return result
         except Exception as e:
+            note_failure("db_monitor:L234", e)
             self._record_backup_event(target_path, False, str(e))
             return ""
 
@@ -249,7 +265,7 @@ class DatabaseMonitorWorm:
                 tags=["db_monitor", "backup"],
             )
         except Exception:
-            pass
+            note_failure("db_monitor:L251", None)
 
     # -- Core Monitoring Logic --------------------------------------
 
@@ -392,6 +408,7 @@ class DatabaseMonitorWorm:
             return snapshot
 
         except Exception:
+            note_failure("db_monitor:L394", None)
             return DbHealthSnapshot(
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 db_size_mb=0.0, total_memories=0, total_sessions=0,
@@ -433,6 +450,7 @@ class DatabaseMonitorWorm:
                     from CORE.WORMS.expansion.learning_rl import RLTrainLoop
                     loop = RLTrainLoop()
                 except Exception:
+                    note_failure("db_monitor:L435", None)
                     loop = None
             if loop is None:
                 raise RuntimeError("no policy loop available")
@@ -442,6 +460,7 @@ class DatabaseMonitorWorm:
                 out["action_name"] = "unknown"
             return out
         except Exception:
+            note_failure("db_monitor:L444", None)
             return {"action": -1, "action_name": "unknown", "known": False,
                     "state_key": "%s:%s" % (source, severity),
                     "source": source}
@@ -474,7 +493,7 @@ class DatabaseMonitorWorm:
                 tags=["db_monitor", "health", "snapshot"],
             )
         except Exception:
-            pass
+            note_failure("db_monitor:L476", None)
 
     def _recently_alerted(self, store: Any, metric: str, severity: str) -> bool:
         """True when the same metric+severity was recorded within cooldown.
@@ -490,6 +509,7 @@ class DatabaseMonitorWorm:
                 source="DatabaseMonitorWorm", event_type="db_health_alert",
                 limit=30)
         except Exception:
+            note_failure("db_monitor:L492", None)
             return False
         now = datetime.now(timezone.utc)
         local_tz = datetime.now().astimezone().tzinfo
@@ -507,6 +527,7 @@ class DatabaseMonitorWorm:
                 if (now - ts).total_seconds() < self.ALERT_COOLDOWN_S:
                     return True
             except Exception:
+                note_failure("db_monitor:L509", None)
                 continue
         return False
 
@@ -533,7 +554,7 @@ class DatabaseMonitorWorm:
                 tags=["db_monitor", "alert", alert.severity],
             )
         except Exception:
-            pass
+            note_failure("db_monitor:L535", None)
 
     # -- Execute (Single Run) ---------------------------------------
 

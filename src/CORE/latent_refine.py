@@ -28,7 +28,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -60,6 +60,7 @@ def bounded_correct(state: List[float], correction: List[float],
         co = [float(x) for x in (correction or [])]
         bd = float(bound)
     except (TypeError, ValueError):
+        note_failure("latent_refine:L62", None)
         return {"state": [], "applied_norm": 0.0, "scale": 0.0,
                 "gaps": ["non-numeric"]}
     if len(st) != len(co):
@@ -90,6 +91,7 @@ def refine(initial: List[float],
     try:
         state = [float(x) for x in (initial or [])]
     except (TypeError, ValueError):
+        note_failure("latent_refine:L92", None)
         return {"refined": [], "residuals": [], "steps": 0,
                 "contracted": False, "gaps": ["non-numeric-initial"]}
     residuals: List[float] = []

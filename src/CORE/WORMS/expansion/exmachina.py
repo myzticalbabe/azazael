@@ -44,6 +44,16 @@ import time
 import zlib
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = [
     "ORGANS",
     "SPECULUM",
@@ -218,7 +228,8 @@ def detect_gaming(rows: Iterable[Any], window: int = 40,
             if isinstance(data, str):
                 try:
                     data = json.loads(data)
-                except Exception:
+                except Exception as exc:
+                    note_failure("exmachina:L221", exc)
                     continue
         if not isinstance(data, dict):
             continue
@@ -230,7 +241,8 @@ def detect_gaming(rows: Iterable[Any], window: int = 40,
                 m = float(data.get("best_total")) - float(data.get("baseline"))
             if m is not None and math.isfinite(float(m)):
                 margins.append(float(m))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L233", exc)
             pass
         h = data.get("holdout")
         if isinstance(h, dict):
@@ -286,7 +298,8 @@ def _as_bytes(x: Any) -> bytes:
         return x.encode("utf-8", "replace")
     try:
         return json.dumps(x, sort_keys=True, default=str).encode("utf-8", "replace")
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L289", exc)
         return str(x).encode("utf-8", "replace")
 
 
@@ -324,7 +337,8 @@ def novelty_ncd(candidate: Any, archive: Sequence[Any],
     for i, m in enumerate(members):
         try:
             d = ncd(candidate, m)
-        except Exception:
+        except Exception as exc:
+            note_failure("exmachina:L327", exc)
             continue
         if best_d is None or d < best_d:
             best_d, best_i = d, i
@@ -424,7 +438,8 @@ def _read_json(path: str) -> Optional[dict]:
     try:
         with open(path, "r", encoding="utf-8") as fh:
             return json.load(fh)
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L427", exc)
         return None
 
 
@@ -438,9 +453,11 @@ def _read_jsonl(path: str, limit: int = 400) -> List[dict]:
                     continue
                 try:
                     out.append(json.loads(line))
-                except Exception:
+                except Exception as exc:
+                    note_failure("exmachina:L441", exc)
                     continue
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L443", exc)
         return []
     return out[-int(limit):]
 
@@ -497,7 +514,8 @@ def collect_state(root: str, history_rows: Optional[Iterable[Any]] = None,
                 if r.get("fitness") is None:
                     continue
                 by_dim.setdefault(int(r.get("dimension", 0)), []).append(float(r["fitness"]))
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                note_failure("exmachina:L500", exc)
                 continue
         out["morph"] = {
             "n": len(mrows),
@@ -516,7 +534,8 @@ def collect_state(root: str, history_rows: Optional[Iterable[Any]] = None,
     if history_rows is not None:
         try:
             out["organs"]["speculum"] = detect_gaming(history_rows)
-        except Exception:
+        except Exception as exc:
+            note_failure("exmachina:L519", exc)
             pass
     # All organs, one pass, plus the aggregate band. `history_rows` is the
     # only input: no organ may require a second query, or the panel would
@@ -531,6 +550,7 @@ def collect_state(root: str, history_rows: Optional[Iterable[Any]] = None,
             if report["readings"].get("speculum") is not None:
                 out["organs"]["speculum"] = report["readings"]["speculum"]
         except Exception as exc:
+            note_failure("exmachina:L533", exc)
             out["report_error"] = "%s: %s" % (type(exc).__name__, exc)
     if "organs" not in out:
         out["organs"] = {}
@@ -691,7 +711,8 @@ def row_data(row: Any) -> Optional[dict]:
         if isinstance(raw, str):
             try:
                 d = json.loads(raw)
-            except Exception:
+            except Exception as exc:
+                note_failure("exmachina:L694", exc)
                 return None
         else:
             return None
@@ -705,7 +726,8 @@ def _margin_of(d: dict) -> Optional[float]:
         if m is None:
             m = float(d.get("best_total")) - float(d.get("baseline"))
         m = float(m)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
+        note_failure("exmachina:L708", exc)
         return None
     return m if math.isfinite(m) else None
 
@@ -722,7 +744,8 @@ def extract(rows: Iterable[Any], field: str = "margin") -> List[float]:
             if v is None:
                 continue
             f = float(v)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L725", exc)
             continue
         if math.isfinite(f):
             out.append(f)
@@ -775,7 +798,8 @@ def feature_keys(rows: Iterable[Any], min_frac: float = 0.5) -> List[str]:
                 if v is None or isinstance(v, bool):
                     continue
                 f = float(v)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                note_failure("exmachina:L778", exc)
                 continue
             if math.isfinite(f):
                 seen[k] = seen.get(k, 0) + 1
@@ -792,7 +816,8 @@ def _finite(xs: Iterable[Any]) -> List[float]:
     for x in (xs or []):
         try:
             v = float(x)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L795", exc)
             continue
         if math.isfinite(v):
             out.append(v)
@@ -1548,10 +1573,12 @@ def _switch_resolver() -> Tuple[Any, str]:
     mtk = None
     try:
         from proteus_hooks import morph_trainer_kwargs as mtk          # type: ignore
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L1551", exc)
         try:
             from .proteus_hooks import morph_trainer_kwargs as mtk      # type: ignore
-        except Exception:
+        except Exception as exc:
+            note_failure("exmachina:L1554", exc)
             mtk = None
     if mtk is None:
         # Reuse the package module ONLY if something else already loaded it.
@@ -1567,7 +1594,8 @@ def _switch_resolver() -> Tuple[Any, str]:
             try:
                 vals = list(mtk({name: raw}).values())
                 return vals[0] if vals else None
-            except Exception:
+            except Exception as exc:
+                note_failure("exmachina:L1570", exc)
                 return None
         return _producer, "producer"
 
@@ -1576,7 +1604,8 @@ def _switch_resolver() -> Tuple[Any, str]:
             return raw
         try:
             return float(raw) >= _MORPH_SWITCH_AT
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L1579", exc)
             return None
     return _mirror, "threshold:%s" % _MORPH_SWITCH_AT
 
@@ -1593,10 +1622,12 @@ def _inert_resolver(resolve: Any) -> Tuple[Any, str]:
     producer = None
     try:
         from proteus_hooks import morph_is_inert as producer        # type: ignore
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L1596", exc)
         try:
             from .proteus_hooks import morph_is_inert as producer   # type: ignore
-        except Exception:
+        except Exception as exc:
+            note_failure("exmachina:L1599", exc)
             producer = None
     if producer is None:
         _mod = sys.modules.get("CORE.WORMS.expansion.proteus_hooks")
@@ -1614,7 +1645,8 @@ def _inert_resolver(resolve: Any) -> Tuple[Any, str]:
                 return None
             try:
                 return bool(producer(name, {name: raw}))
-            except Exception:
+            except Exception as exc:
+                note_failure("exmachina:L1617", exc)
                 return None
         return _from_producer, "producer"
 
@@ -1649,10 +1681,12 @@ def _binomial_tail(k: int, n: int) -> Optional[float]:
         for i in range(k, n + 1):
             try:
                 num += math.comb(n, i)
-            except AttributeError:                        # pragma: no cover
+            except AttributeError as exc:   # pragma: no cover
+                note_failure("exmachina:L1652", exc)
                 num += _comb(n, i)
         return num / float(2 ** n)
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L1655", exc)
         return None
 
 
@@ -1667,7 +1701,8 @@ def _wilson(k: Any, n: Any, z: float = 1.96) -> Optional[float]:
         c = (p + z * z / (2.0 * n)) / den
         hw = z * math.sqrt(p * (1.0 - p) / n + z * z / (4.0 * n * n)) / den
         return round(max(0.0, c - hw), 4)
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L1670", exc)
         return None
 
 
@@ -1694,7 +1729,8 @@ def _ab_delta_of(row: Any) -> Optional[float]:
         if d != d or d in (float("inf"), float("-inf")):
             return None
         return round(d, 4)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
+        note_failure("exmachina:L1697", exc)
         return None
 
 
@@ -1712,7 +1748,8 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     trials: List[Tuple[Any, Any, float, int]] = []
     try:
         source = list(morph_rows or [])
-    except TypeError:                 # a non-iterable is absent data, not a crash
+    except TypeError as exc:          # a non-iterable is absent data, not a crash
+        note_failure("exmachina:L1715", exc)
         source = []
     for r in source:
         if not isinstance(r, dict):
@@ -1729,13 +1766,15 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
             continue
         try:
             delta = float(f) - float(b)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L1732", exc)
             continue
         extra = r.get("extra") if isinstance(r.get("extra"), dict) else {}
         raw = next(iter(extra.values())) if extra else None
         try:
             dim = int(r.get("dimension") or 0)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L1738", exc)
             dim = 0
         trials.append((r.get("gene"), raw, delta, dim, r))
 
@@ -1877,7 +1916,8 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
         for g in gs:
             try:
                 u = abs(float(g.get("usefulness")))
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                note_failure("exmachina:L1880", exc)
                 continue
             us.append(u)
             if floor is not None and u < floor:
@@ -1895,7 +1935,8 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
     if isinstance(mutation, dict):
         try:
             n_m, k_m = int(mutation.get("mutants")), int(mutation.get("killed"))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L1898", exc)
             n_m = k_m = None
         if n_m:
             age_h = None
@@ -1906,7 +1947,8 @@ def mutagenesis(morph_rows: Optional[Iterable[Any]] = None,
                         age_h = round((time.time()
                                        - time.mktime(time.strptime(at, fmt))) / 3600.0, 2)
                         break
-                    except Exception:
+                    except Exception as exc:
+                        note_failure("exmachina:L1909", exc)
                         continue
             tests = {"mutants": n_m, "killed": k_m,
                      "score": (round(k_m / float(n_m), 4) if k_m is not None else None),
@@ -1994,7 +2036,8 @@ def _unit(x: Any) -> Optional[float]:
         return None
     try:
         v = float(x)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
+        note_failure("exmachina:L1997", exc)
         return None
     if not math.isfinite(v):
         return None
@@ -2144,7 +2187,8 @@ def vital_signs(ages: Optional[Dict[str, Any]], cutoff: float = 900.0) -> Dict[s
             continue
         try:
             secs = float(age)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L2147", exc)
             continue
         if not math.isfinite(secs):
             out["signals"][name] = {"age": None, "pct": None, "fresh": False}
@@ -2273,7 +2317,8 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
         try:
             if raw_genes.get(k) is not None and not isinstance(raw_genes.get(k), bool):
                 genes[k] = float(raw_genes[k])
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina:L2276", exc)
             continue
     mdl = None
     if genes and margins:
@@ -2299,10 +2344,12 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
     op_report = None
     try:
         from exmachina_operators import operator_report as op_report      # type: ignore
-    except Exception:
+    except Exception as exc:
+        note_failure("exmachina:L2302", exc)
         try:
             from .exmachina_operators import operator_report as op_report  # type: ignore
-        except Exception:
+        except Exception as exc:
+            note_failure("exmachina:L2305", exc)
             op_report = None
     if op_report is None or not data:
         out["operators"] = {"note": "operator tier unavailable"}
@@ -2345,6 +2392,7 @@ def organ_readings(rows: Iterable[Any], margin_floor: float = 1.0,
         out["operators"]["check_key"] = check_key
         out["operators"]["n_holdout"] = n_holdout
     except Exception as exc:
+        note_failure("exmachina:L2347", exc)
         out["operators"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
     return out
 
@@ -2412,7 +2460,8 @@ def epistemic_report(rows: Iterable[Any], ages: Optional[Dict[str, Any]] = None,
     try:
         if nex.get("usage_entropy") is not None and nex.get("max_entropy"):
             sig["routing"] = round(1.0 - min(1.0, float(nex["usage_entropy"]) / float(nex["max_entropy"])), 4)
-    except (TypeError, ValueError, ZeroDivisionError):
+    except (TypeError, ValueError, ZeroDivisionError) as exc:
+        note_failure("exmachina:L2415", exc)
         pass
 
     vel = ops.get("vela") or {}

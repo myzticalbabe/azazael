@@ -31,9 +31,19 @@ import uuid
 # the single use was a plain mean — stdlib statistics instead.
 import statistics
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # NOTE (3.14t port): tkinter imports live inside run_popup() — a top-level
 # import pointlessly hard-requires Tk on headless interpreters.
 
@@ -78,6 +88,7 @@ class HYDRAMETA_UVConfig:
         _PROJECT_ROOT = str(get_src_dir())
         _HAS_PATHS = True
     except ImportError:
+        note_failure("HYDRAMETA_UV:L80", None)
         _HAS_PATHS = False
         _PROJECT_ROOT = str(Path(__file__).resolve().parent)
         # Standalone mirror of CORE/paths/targets.py (kept in sync manually)
@@ -191,6 +202,7 @@ class HYDRAMETA_UV:
                 return True, r.stdout.strip()[:80]
             return False, (r.stderr or r.stdout or "exit %s" % r.returncode)[:160]
         except Exception as e:
+            note_failure("HYDRAMETA_UV:L193", e)
             return False, "%s: %s" % (type(e).__name__, str(e)[:140])
 
     def preflight(self) -> dict[str, Any]:
@@ -215,12 +227,13 @@ class HYDRAMETA_UV:
                 with open(state_file, encoding="utf-8") as f:
                     self.state = json.load(f)
             except Exception:
+                note_failure("HYDRAMETA_UV:L217", None)
                 bad = state_file.with_name(
                     state_file.name + ".corrupt-%d" % int(time.time()))
                 try:
                     state_file.replace(bad)
                 except Exception:
-                    pass
+                    note_failure("HYDRAMETA_UV:L222", None)
                 self.state = {"best_sequence": [], "best_params": {}}
 
     def _save_state(self):
@@ -252,8 +265,10 @@ class HYDRAMETA_UV:
                 int((time.time() - start) * 1000),
             )
         except subprocess.TimeoutExpired:
+            note_failure("HYDRAMETA_UV:L254", None)
             return False, "Timeout", int((time.time() - start) * 1000)
         except Exception as e:
+            note_failure("HYDRAMETA_UV:L256", e)
             return False, str(e), int((time.time() - start) * 1000)
 
     def _create_trial_venv(self, trial_id: str) -> str:
@@ -323,6 +338,7 @@ class HYDRAMETA_UV:
                 else:
                     box["result"] = {"success": True}
             except Exception as e:  # noqa: BLE001 — recorded, not raised
+                note_failure("HYDRAMETA_UV:L325", e)
                 box["error"] = str(e)[:300]
 
         start = time.time()
@@ -422,6 +438,7 @@ class HYDRAMETA_UV:
             return trial_result
 
         except Exception as e:
+            note_failure("HYDRAMETA_UV:L424", e)
             return UVTrialResult(
                 trial_id=trial_id,
                 worm_sequence=worm_sequence or [],
@@ -466,6 +483,7 @@ class HYDRAMETA_UV:
             try:
                 workers = int(self.config.DEFAULT_PARAMS.get("uv_workers", 4))
             except Exception:
+                note_failure("HYDRAMETA_UV:L468", None)
                 workers = 4
         workers = max(1, workers)
 

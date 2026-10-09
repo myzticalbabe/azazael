@@ -22,6 +22,17 @@ from pathlib import Path
 from datetime import datetime
 # from typing import List, Tuple  # removed — all names have native equivalents
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 AZAZAEL_ROOT = Path(os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")))
@@ -77,7 +88,7 @@ class ArchiveSystem:
                 try:
                     d.rmdir()
                 except OSError:
-                    pass
+                    note_failure("archive_system:L79", None)
 
         self.archived.append(("PPM frames", f"{len(ppm_files)} files", total_size))
         self.total_size += total_size
@@ -156,7 +167,7 @@ class ArchiveSystem:
                 try:
                     d.rmdir()
                 except OSError:
-                    pass
+                    note_failure("archive_system:L158", None)
 
         self.archived.append(("Large videos", f"{len(video_files)} files", total_size))
         self.total_size += total_size

@@ -6,6 +6,17 @@ augment + refit, report delta-F1 under jitter. SMOTE: kNN interpolation for
 the minority class (sklearn NearestNeighbors if present, else brute force).
 """
 import random
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def fgsm_delta_f1(X, y, eps: float = 0.05, seed: int = 0) -> dict:
@@ -23,6 +34,7 @@ def fgsm_delta_f1(X, y, eps: float = 0.05, seed: int = 0) -> dict:
             m.fit(Xt, yt)
             return lambda v: float(m.predict_proba([v])[0][1])
         except Exception:
+            note_failure("robust:L25", None)
             mu1 = [sum(r[i] for r, t in zip(Xt, yt) if t) / max(1, sum(yt))
                    for i in range(len(Xt[0]))]
             mu0 = [sum(r[i] for r, t in zip(Xt, yt) if not t) / max(1, len(yt) - sum(yt))
@@ -67,6 +79,7 @@ def smote(X, y, k: int = 3, seed: int = 0):
         _, idx = nn.kneighbors([X[i] for i in mn])
         nbrs = [[mn[j] for j in row[1:]] for row in idx]
     except Exception:
+        note_failure("robust:L69", None)
         nbrs = []
         for i in mn:
             ds = sorted(((dist(i, j), j) for j in mn if j != i))[:k]

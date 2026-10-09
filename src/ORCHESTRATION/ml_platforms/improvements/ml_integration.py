@@ -23,9 +23,19 @@ Usage:
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from enum import Enum
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -599,6 +609,7 @@ class SuccessiveComputation:
                 stage_result["status"] = "success"
                 stage_result["output_type"] = "processed_data"
             except Exception as e:
+                note_failure("ml_integration:L601", e)
                 stage_result["status"] = "failed"
                 stage_result["error"] = str(e)
                 results["success"] = False

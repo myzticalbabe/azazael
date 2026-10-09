@@ -58,6 +58,16 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Iterable, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 #: Fail-open swallows, recorded LOCALLY on purpose: this module's documented
 #: contract is "stdlib-only, zero CORE imports, always works in <0.1s" (see the
 #: module docstring), so it must not depend on the shared runtime recorder. An
@@ -269,6 +279,7 @@ def _ensure_wal(conn: sqlite3.Connection) -> None:
     try:
         key = str(conn.execute("PRAGMA database_list").fetchone()[2])
     except sqlite3.Error:
+        _note_failure("direct_memory:L271", None)
         key = ""
     if key and key in _WAL_CONFIRMED:
         return
@@ -279,6 +290,7 @@ def _ensure_wal(conn: sqlite3.Connection) -> None:
                 _WAL_CONFIRMED.add(key)
             return
     except sqlite3.Error:
+        _note_failure("direct_memory:L281", None)
         return
     with _WAL_LOCK:
         if key and key in _WAL_CONFIRMED:
@@ -291,7 +303,7 @@ def _ensure_wal(conn: sqlite3.Connection) -> None:
             # Another process holds the file; the store stays in whatever mode it
             # already is. Correct either way -- only slower under contention -- so
             # this must not fail the caller's operation.
-            pass
+            _note_failure("direct_memory:L290", None)
 
 
 def _ensure_schema(conn: sqlite3.Connection) -> None:
@@ -312,7 +324,7 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
         conn.commit()
     except sqlite3.Error:
-        pass
+        _note_failure("direct_memory:L314", None)
 
 
 # -- Process-local TTL cache -----------------------------------------
@@ -450,6 +462,7 @@ class DirectMemory:
             try:
                 sig_name = signal.Signals(signum).name
             except (ValueError, AttributeError):
+                _note_failure("direct_memory:L452", None)
                 sig_name = f"signal_{signum}"
             try:
                 # Direct DB write to avoid lock contention in signal context
@@ -477,7 +490,7 @@ class DirectMemory:
                 conn.commit()
                 conn.close()
             except Exception:
-                pass
+                _note_failure("direct_memory:L479", None)
             finally:
                 self._ended = True
             os._exit(128 + signum)
@@ -486,12 +499,12 @@ class DirectMemory:
             try:
                 signal.signal(sig, _handle_signal)
             except (ValueError, OSError):
-                pass
+                _note_failure("direct_memory:L488", None)
         if hasattr(signal, 'SIGBREAK'):
             try:
                 signal.signal(signal.SIGBREAK, _handle_signal)
             except (ValueError, OSError):
-                pass
+                _note_failure("direct_memory:L493", None)
 
     def _atexit_handler(self):
         """Auto-end session on unexpected process exit."""
@@ -500,7 +513,7 @@ class DirectMemory:
                 self.end({"auto_recorded_by": "atexit_handler",
                           "note": "Session ended via atexit (unexpected exit)"})
             except Exception:
-                pass
+                _note_failure("direct_memory:L502", None)
 
     def _prewarm_registry(self):
         """Fire-and-forget worm registry prewarm (Error #57 permanent fix).
@@ -515,7 +528,7 @@ class DirectMemory:
             ensure_registry_warm()
         except Exception:
             # Bare except: startup must not block on a broken warm module.
-            pass
+            _note_failure("direct_memory:L516", None)
 
     def _get_conn(self) -> sqlite3.Connection:
         # Delegates to the module-level policy so instance writes and the static
@@ -621,7 +634,7 @@ class DirectMemory:
             if row and row[0] != self._session_id:
                 return row[0]
         except Exception:
-            pass
+            _note_failure("direct_memory:L623", None)
         return None
 
     def _start_session(self):
@@ -647,7 +660,7 @@ class DirectMemory:
                 conn.commit()
                 conn.close()
             except sqlite3.Error:
-                pass
+                _note_failure("direct_memory:L649", None)
 
         if not self._merged_session_id:
             self.record("session_start", {
@@ -727,7 +740,7 @@ class DirectMemory:
                     if "T" in ts and ts > cutoff:
                         return 0
             except Exception:
-                pass
+                _note_failure("direct_memory:L729", None)
 
         # 2026-09-07 recorder gates (approved): throttle alert/error loops.
         # Per-session scope (fixes self-test: different sessions must not
@@ -759,7 +772,7 @@ class DirectMemory:
                 if cnt and cnt[0] > 50:
                     return 0
             except Exception:
-                pass
+                _note_failure("direct_memory:L761", None)
 
         # CD1 correlation (June 11 2026): Generate UUID7 for cross-ledger linking
         ev_uuid = _uuid7()
@@ -918,6 +931,7 @@ class DirectMemory:
                 try:
                     d = json.loads(d)
                 except (json.JSONDecodeError, TypeError):
+                    _note_failure("direct_memory:L920", None)
                     continue
             if not isinstance(d, dict):
                 continue
@@ -956,7 +970,7 @@ class DirectMemory:
             if cnt and cnt[0] >= 20:
                 return 0
         except Exception:
-            pass
+            _note_failure("direct_memory:L958", None)
         return self.record("milestone_reached", {
             "action": f"milestone: {title}",
             "title": title,
@@ -1002,7 +1016,7 @@ class DirectMemory:
         try:
             atexit.unregister(self._atexit_handler)
         except Exception:
-            pass
+            _note_failure("direct_memory:L1004", None)
 
         summary = summary or {}
         summary.update({
@@ -1094,6 +1108,7 @@ class DirectMemory:
                 item["age_hours"] = round(max(0.0, (now - started).total_seconds() / 3600.0), 3)
                 item["started_at"] = started.isoformat()
             except (TypeError, ValueError):
+                _note_failure("direct_memory:L1096", None)
                 item["age_hours"] = None
             sid = str(item["session_id"])
             if sid in protected:
@@ -1307,6 +1322,7 @@ class DirectMemory:
                     "GROUP BY mapping_type ORDER BY COUNT(*) DESC")
             }
         except sqlite3.Error:
+            _note_failure("direct_memory:L1309", None)
             total, dm, aj, by_type = 0, 0, 0, {}
         finally:
             conn.close()
@@ -1362,6 +1378,7 @@ class DirectMemory:
         try:
             rows = conn.execute(sql, params).fetchall()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1364", None)
             return []
         finally:
             conn.close()
@@ -1386,6 +1403,7 @@ class DirectMemory:
         try:
             from CORE.audit_trail import AUDIT_DIR
         except Exception:
+            _note_failure("direct_memory:L1388", None)
             AUDIT_DIR = None
         mapped_dm = set(
             r["dm_session_id"]
@@ -1404,6 +1422,7 @@ class DirectMemory:
                 for r in DirectMemory.query_cross_reference()
             }
         except sqlite3.Error:
+            _note_failure("direct_memory:L1406", None)
             rows, mapped_aj = [], set()
         finally:
             conn.close()
@@ -1424,7 +1443,7 @@ class DirectMemory:
                 try:
                     mtime = fp.stat().st_mtime
                 except OSError:
-                    pass
+                    _note_failure("direct_memory:L1426", None)
                 unlinked_aj.append({"filepath": key, "ts": mtime})
 
         return {
@@ -1463,6 +1482,7 @@ class DirectMemory:
                 "ORDER BY started_at ASC"
             ).fetchall()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1465", None)
             dm_sessions = []
         finally:
             conn.close()
@@ -1471,6 +1491,7 @@ class DirectMemory:
         try:
             from CORE.audit_trail import AUDIT_DIR
         except Exception:
+            _note_failure("direct_memory:L1473", None)
             AUDIT_DIR = None
         if AUDIT_DIR is not None and AUDIT_DIR.exists():
             audit_files = sorted(
@@ -1497,6 +1518,7 @@ class DirectMemory:
             try:
                 fp.stat()
             except OSError:
+                _note_failure("direct_memory:L1499", None)
                 audit_sid = ""
             conn = sqlite3.connect(str(DB_PATH), timeout=5, check_same_thread=False)
             try:
@@ -1510,7 +1532,7 @@ class DirectMemory:
                 )
                 conn.commit()
             except sqlite3.Error:
-                pass
+                _note_failure("direct_memory:L1512", None)
             finally:
                 conn.close()
             mapped_aj.add(key)
@@ -1573,6 +1595,7 @@ class DirectMemory:
                     conn.close()
             return True
         except sqlite3.Error:
+            _note_failure("direct_memory:L1575", None)
             return False
 
     def list_mappings(self, limit: int = 0) -> List[Dict[str, Any]]:
@@ -1595,6 +1618,7 @@ class DirectMemory:
                 params.append(int(limit))
             return [dict(r) for r in conn.execute(sql, params).fetchall()]
         except sqlite3.Error:
+            _note_failure("direct_memory:L1597", None)
             return []
         finally:
             conn.close()
@@ -1618,7 +1642,7 @@ class DirectMemory:
                     try:
                         d[field] = json.loads(val)
                     except (json.JSONDecodeError, TypeError):
-                        pass
+                        _note_failure("direct_memory:L1620", None)
             out.append(d)
         return out
 
@@ -1640,6 +1664,7 @@ class DirectMemory:
                 params.append(int(limit))
             rows = conn.execute(sql, params).fetchall()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1642", None)
             return []
         finally:
             conn.close()
@@ -1664,6 +1689,7 @@ class DirectMemory:
             conn.execute("DELETE FROM sessions WHERE session_id = ?", (sid,))
             conn.commit()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1666", None)
             return 0
         finally:
             conn.close()
@@ -1699,6 +1725,7 @@ class DirectMemory:
                 conn.execute("DELETE FROM sessions WHERE session_id = ?", (src,))
             conn.commit()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1701", None)
             return 0
         finally:
             conn.close()
@@ -1721,6 +1748,7 @@ class DirectMemory:
                 "SELECT COUNT(*) FROM memories WHERE session_id = ?", (sid,)
             ).fetchone()[0]
         except sqlite3.Error:
+            _note_failure("direct_memory:L1723", None)
             return {"duration_s": 0, "events": 0,
                     "started_at": None, "ended_at": None}
         finally:
@@ -1739,6 +1767,7 @@ class DirectMemory:
                 t1 = t1.replace(tzinfo=timezone.utc)
             duration = max(0.0, (t1 - t0).total_seconds())
         except (TypeError, ValueError):
+            _note_failure("direct_memory:L1741", None)
             duration = 0.0
         return {"duration_s": round(duration, 3), "events": int(events or 0),
                 "started_at": started, "ended_at": ended}
@@ -1763,6 +1792,7 @@ class DirectMemory:
             conn.commit()
             return int(cur.rowcount or 0)
         except sqlite3.Error:
+            _note_failure("direct_memory:L1765", None)
             return 0
         finally:
             conn.close()
@@ -1810,6 +1840,7 @@ class DirectMemory:
             conn.row_factory = sqlite3.Row
             rows = conn.execute(sql, params).fetchall()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1812", None)
             return []
         finally:
             conn.close()
@@ -1829,6 +1860,7 @@ class DirectMemory:
                 "FROM memories GROUP BY bucket ORDER BY bucket DESC LIMIT ?",
                 (fmt, int(limit) if limit else -1)).fetchall()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1831", None)
             return []
         finally:
             conn.close()
@@ -1879,6 +1911,7 @@ class DirectMemory:
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?)", rows)
             conn.commit()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1881", None)
             return 0
         finally:
             conn.close()
@@ -1909,6 +1942,7 @@ class DirectMemory:
                 "SELECT event_type, COUNT(*) FROM memories GROUP BY event_type"
             ).fetchall()
         except sqlite3.Error:
+            _note_failure("direct_memory:L1911", None)
             return []
         finally:
             conn.close()
@@ -2064,7 +2098,7 @@ class DirectMemory:
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    _note_failure("direct_memory:L2066", None)
             results.append(d)
         return results
 
@@ -2084,7 +2118,7 @@ class DirectMemory:
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    _note_failure("direct_memory:L2086", None)
             results.append(d)
         return results
 

@@ -11,6 +11,17 @@ import sys
 # Add src/ to path for CORE imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from CORE.paths import get_src_dir
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def generate_docstring(module_path: Path) -> str:
@@ -34,6 +45,7 @@ def generate_docstring(module_path: Path) -> str:
                 classes.append(node.name)
 
     except Exception:
+        note_failure("generate_docstrings:L36", None)
         functions = []
         classes = []
 
@@ -88,6 +100,7 @@ Functions:
             return True
 
     except Exception:
+            note_failure("generate_docstrings:L90", None)
             return False
 
 

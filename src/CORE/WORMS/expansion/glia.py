@@ -11,11 +11,22 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("glia:L18", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -42,6 +53,7 @@ class AstrocyteWorm:
                                         or f.name == "__pycache__"):
                         victims.append(str(f))
                 except Exception:
+                    note_failure("glia:L44", None)
                     continue
                 if len(victims) >= 200:
                     break
@@ -52,6 +64,7 @@ class AstrocyteWorm:
                     Path(v).unlink(missing_ok=True)
                     removed += 1
                 except Exception:
+                    note_failure("glia:L54", None)
                     continue
         with self._lock:
             self._cleaned += removed
@@ -107,6 +120,7 @@ class MicrogliaWorm:
             cls._SIZE_DENSITY = _json.load(
                 open("G:/source-of-truth/azazael_models/size_density.json", encoding="utf-8"))
         except Exception:
+            note_failure("glia:L109", None)
             cls._SIZE_DENSITY = {}
         return cls._SIZE_DENSITY
 
@@ -116,6 +130,7 @@ class MicrogliaWorm:
         try:
             size = _os.stat(path).st_size
         except OSError as exc:
+            note_failure("glia:L118", exc)
             return {"success": False, "path": path, "error": str(exc)[:800]}
         model = self._load_density()
         # match by topdir name fragment, else global fallback

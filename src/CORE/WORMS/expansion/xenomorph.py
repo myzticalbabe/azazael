@@ -14,11 +14,22 @@ Queen election consults EnvBeaconWorm peers + LeaderElectorWorm terms.
 
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("xenomorph:L21", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -32,6 +43,7 @@ try:
         publish as fabric_publish,
     )
 except ImportError:  # pragma: no cover - defensive
+    note_failure("xenomorph:L34", None)
     def fabric_hydrate(instance, provider, attrs):
         return 0
 
@@ -51,6 +63,7 @@ def _local_env() -> str:
         from CORE.env_id import env_id
         return env_id()
     except Exception:  # pragma: no cover - defensive
+        note_failure("xenomorph:L53", None)
         import os
         return "windows" if os.name == 'nt' else "bare"
 
@@ -75,6 +88,7 @@ def _host_capable(min_cpu: int = 2, min_ram_gb: float = 2.0) -> dict:
         if ram_gb < min_ram_gb:
             reasons.append(f"ram {ram_gb}GB < {min_ram_gb}GB")
     except Exception:
+        note_failure("xenomorph:L77", None)
         reasons.append("ram unknown (psutil missing)")
     return {"ok": not reasons, "reasons": reasons, "cpu": cpu, "ram_gb": ram_gb}
 
@@ -276,6 +290,7 @@ class Lilith:
         try:
             return datetime.fromisoformat(lease_until).timestamp()
         except Exception:
+            note_failure("xenomorph:L278", None)
             return 0.0
 
     def _lease_snapshot(self, now: float | None = None) -> dict[str, Any]:
@@ -376,6 +391,7 @@ class Lilith:
             vote = _spine.cast_quarantine_vote(
                 finding, "operator" if force else env, "moult", quorum=quorum)
         except Exception:
+            note_failure("xenomorph:L378", None)
             vote = {}
         decided = bool(force) or bool(vote.get("decided"))
         if not decided:

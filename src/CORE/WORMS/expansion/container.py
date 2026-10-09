@@ -9,13 +9,24 @@ import time
 import threading
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("container:L18", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -25,6 +36,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("container:L27", None)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -34,6 +46,7 @@ except ImportError:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:
+            note_failure("container:L36", None)
             return False
 
 
@@ -62,6 +75,7 @@ class ContainerOrch:
                 self._containers[name] = {"id": cid, "image": image, "status": "running", "launched": time.time()}
             return {"success": True, "container_id": cid}
         except Exception as e:
+            note_failure("container:L64", e)
             return {"success": False, "error": str(e)}
 
     def health_check(self, name: str) -> dict[str, Any]:
@@ -73,7 +87,7 @@ class ContainerOrch:
                 state = data[0].get("State", {}) if data else {}
                 return {"name": name, "running": state.get("Running", False), "status": state.get("Status", "unknown")}
         except Exception:
-            pass
+            note_failure("container:L75", None)
         return {"name": name, "running": False, "status": "error"}
 
     def stop(self, name: str) -> dict[str, Any]:
@@ -86,6 +100,7 @@ class ContainerOrch:
                     self._containers[name]["status"] = "stopped"
             return {"success": True, "container": name, "output": r.stdout.strip()}
         except Exception as e:
+            note_failure("container:L88", e)
             return {"success": False, "error": str(e)}
 
     def list_all(self) -> list[dict]:
@@ -123,10 +138,12 @@ class ComposeValidator:
                     if "image" not in svc and "build" not in svc:
                         issues.append({"msg": f"Service '{svc_name}' missing image or build"})
         except ImportError:
+            note_failure("container:L125", None)
             content = path.read_text(encoding="utf-8")
             if "services:" not in content:
                 issues.append({"msg": "Missing 'services:' section"})
         except Exception as e:
+            note_failure("container:L129", e)
             issues.append({"msg": str(e)})
         self._issues = issues
         return {"valid": len(issues) == 0, "issues": issues}
@@ -159,6 +176,7 @@ class ImageAuditor:
                 self._audits[image] = audit
                 return audit
         except Exception as e:
+            note_failure("container:L161", e)
             return {"image": image, "error": str(e)}
         return {"image": image, "error": "Not found"}
 
@@ -186,6 +204,7 @@ class RegistryPoller:
                 self._tags[image] = {"status": status, "checked": time.time()}
             return {"image": image, "status": status}
         except Exception as e:
+            note_failure("container:L188", e)
             return {"image": image, "error": str(e)}
 
     def get_summary(self):
@@ -221,7 +240,7 @@ class ResourceQuotaWatch:
                         "over_cpu": cpu > quota.get("cpu_limit", 100),
                         "over_mem": mem_mb > quota.get("mem_mb", 1024)}
         except Exception:
-            pass
+            note_failure("container:L223", None)
         return {"container": container, "error": "Could not read stats"}
 
     def get_summary(self):

@@ -8,8 +8,18 @@ import os
 import subprocess
 import sys
 import time
-from typing import Any
+from typing import Any, List
 from pathlib import Path
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Cached XPU availability check (subprocess-based to survive segfaults)
 _XPU_AVAILABLE: (bool | None) = None
@@ -46,6 +56,7 @@ def _check_xpu_available() -> bool:
             result.returncode == 0 and result.stdout.strip() == "True"
         )
     except (subprocess.TimeoutExpired, subprocess.SubprocessError, Exception):
+        note_failure("core:L48", None)
         _XPU_AVAILABLE = False
 
     return _XPU_AVAILABLE
@@ -70,6 +81,7 @@ def _module_installed(name: str) -> bool:
         import importlib.util
         return importlib.util.find_spec(name) is not None
     except Exception:
+        note_failure("core:L72", None)
         return False
 
 
@@ -93,6 +105,7 @@ def _import_ok(name: str) -> bool:
             )
             ok = proc.returncode == 0
         except Exception:
+            note_failure("core:L95", None)
             ok = False
     _IMPORT_OK[name] = ok
     return ok
@@ -103,6 +116,7 @@ try:
     from PIL import Image
     HAS_PIL = True
 except ImportError:
+    note_failure("core:L105", None)
     HAS_PIL = False
     Image = None  # type: ignore
 
@@ -111,6 +125,8 @@ try:
     from shared.models import InferenceResult, BatchResult
 except ImportError:
     # Fallback: define locally if shared module not available
+    # Fallback: define locally if shared module not available
+    note_failure("core:L112", None)
     from dataclasses import dataclass, field
 
     @dataclass
@@ -135,6 +151,7 @@ except ImportError:
 try:
     pass
 except ImportError:
+    note_failure("core:L137", None)
     _shared_path = Path(__file__).resolve().parents[4] / "workspace" / "projects"
     if str(_shared_path) not in sys.path:
         sys.path.insert(0, str(_shared_path))
@@ -173,6 +190,7 @@ class ModelLoader:
                 # Uses subprocess sandbox to survive segfaults on headless systems
                 frameworks["xpu"] = _check_xpu_available()
             except Exception:
+                note_failure("core:L175", None)
                 frameworks["cuda"] = False
                 frameworks["metal"] = False
                 frameworks["xpu"] = False
@@ -185,7 +203,7 @@ class ModelLoader:
                 platforms = pyopencl.get_platforms()
                 frameworks["opencl"] = len(platforms) > 0
             except Exception:
-                pass
+                note_failure("core:L187", None)
 
         # Vulkan detection (cross-platform GPU compute)
         frameworks["vulkan"] = False
@@ -196,7 +214,7 @@ class ModelLoader:
                     hasattr(torch, "vulkan") and torch.vulkan.is_available()
                 )
             except Exception:
-                pass
+                note_failure("core:L198", None)
 
         return frameworks
 
@@ -299,6 +317,7 @@ class ModelLoader:
                             "backend": "xpu",
                         })
                     except Exception:
+                        note_failure("core:L301", None)
                         info["devices"].append({
                             "index": i,
                             "name": f"Intel XPU Device {i}",
@@ -311,7 +330,7 @@ class ModelLoader:
                     "backend": "mps",
                 })
         except ImportError:
-            pass
+            note_failure("core:L313", None)
 
         # OpenCL detection (independent of torch)
         try:
@@ -329,7 +348,7 @@ class ModelLoader:
                             "platform": plat.name,
                         })
         except ImportError:
-            pass
+            note_failure("core:L331", None)
 
         # Vulkan detection (via torch backend)
         try:
@@ -338,7 +357,7 @@ class ModelLoader:
                 hasattr(torch, "vulkan") and torch.vulkan.is_available()
             )
         except Exception:
-            pass
+            note_failure("core:L340", None)
 
         info["device_count"] = len(info["devices"])
 
@@ -363,7 +382,7 @@ class ModelLoader:
             if torch.backends.mps.is_available():
                 return "mps"
         except ImportError:
-            pass
+            note_failure("core:L365", None)
         return "cpu"
 
     @staticmethod

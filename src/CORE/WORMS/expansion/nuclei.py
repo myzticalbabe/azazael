@@ -17,7 +17,17 @@ import tempfile
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def _optional_import(module: str, attr: str) -> Any:
@@ -32,6 +42,7 @@ def _optional_import(module: str, attr: str) -> Any:
     try:
         return getattr(importlib.import_module(module), attr)
     except (ImportError, AttributeError):
+        note_failure("nuclei:L34", None)
         return None
 
 
@@ -69,7 +80,7 @@ def _decode_wsl_output(data: bytes) -> str:
         try:
             return data.decode("utf-16")
         except (UnicodeDecodeError, ValueError):
-            pass
+            note_failure("nuclei:L71", None)
     return data.decode("utf-8", errors="replace")
 
 
@@ -117,6 +128,7 @@ class NucleiBridge:
             probe = _run_wsl(["which", "nuclei"], timeout=60)
             return probe.returncode == 0 and bool(probe.stdout.strip())
         except Exception:
+            note_failure("nuclei:L119", None)
             return False
 
     # -- template feed ------------------------------------------------
@@ -129,7 +141,7 @@ class NucleiBridge:
                 if line:
                     return line
         except Exception:
-            pass
+            note_failure("nuclei:L131", None)
         return ""
 
     def update_templates(self, timeout: int = 600) -> dict[str, Any]:
@@ -139,6 +151,7 @@ class NucleiBridge:
                 proc = _run_wsl(["nuclei", "-update-templates"], timeout=timeout)
                 ok = proc.returncode == 0
             except Exception as exc:
+                note_failure("nuclei:L141", exc)
                 return {"ok": False, "error": str(exc)}
             state = {
                 "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -149,7 +162,7 @@ class NucleiBridge:
                 self._state_path.parent.mkdir(parents=True, exist_ok=True)
                 self._state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
             except Exception:
-                pass
+                note_failure("nuclei:L151", None)
             return state
 
     def templates_status(self) -> dict[str, Any]:
@@ -158,7 +171,7 @@ class NucleiBridge:
             if self._state_path.exists():
                 return json.loads(self._state_path.read_text(encoding="utf-8"))
         except Exception:
-            pass
+            note_failure("nuclei:L160", None)
         return {}
 
     # -- scanning -----------------------------------------------------
@@ -191,7 +204,7 @@ class NucleiBridge:
             try:
                 Path(targets_file).unlink()
             except Exception:
-                pass
+                note_failure("nuclei:L193", None)
         findings: list[dict[str, Any]] = []
         for line in proc.stdout.splitlines():
             line = line.strip()
@@ -200,6 +213,7 @@ class NucleiBridge:
             try:
                 event = json.loads(line)
             except (json.JSONDecodeError, ValueError):
+                note_failure("nuclei:L202", None)
                 continue
             info = event.get("info", {}) if isinstance(event.get("info"), dict) else {}
             findings.append({

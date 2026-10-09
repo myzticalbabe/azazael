@@ -9,8 +9,18 @@ InferenceLoadBalancerWorm, ProviderFailoverMeshWorm, ModelShardServerWorm
 import time
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import deque
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Fabric operational state (audit 2026-09-15, finding #7): the endpoint
 # registry and shard catalogue are durable; in-flight load and per-host
@@ -23,6 +33,7 @@ try:
         cap_map as fabric_cap_map,
     )
 except ImportError:  # pragma: no cover - defensive
+    note_failure("servemesh:L25", None)
     def fabric_hydrate(instance, provider, attrs):
         return 0
 
@@ -38,6 +49,7 @@ except ImportError:  # pragma: no cover - defensive
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("servemesh:L40", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -53,6 +65,7 @@ try:
         CircuitConfig, CircuitState, breaker_registry,
     )
 except ImportError:  # pragma: no cover - defensive
+    note_failure("servemesh:L55", None)
     CircuitConfig = None
     CircuitState = None
     breaker_registry = None
@@ -71,6 +84,7 @@ def _breaker_state(breaker: Any) -> str:
     try:
         return str(breaker.state.value)
     except Exception:
+        note_failure("servemesh:L73", None)
         return "n/a"
 
 
@@ -128,6 +142,7 @@ class InferenceLoadBalancerWorm:
                                half_open_max_requests=1)
             return breaker_registry.get(f"servemesh:lb:{name}", cfg)
         except Exception:
+            note_failure("servemesh:L130", None)
             return None
 
     def _is_open(self, name: str) -> bool:
@@ -147,6 +162,7 @@ class InferenceLoadBalancerWorm:
                 return False
             return (time.time() - b.last_failure_time) < b.config.recovery_timeout
         except Exception:
+            note_failure("servemesh:L149", None)
             return False
 
     def _record(self, name: str, ok: bool) -> None:
@@ -159,7 +175,7 @@ class InferenceLoadBalancerWorm:
         except Exception:
             # OPEN/HALF_OPEN refusal and the deliberate failure probe both
             # surface here; the breaker has already recorded the transition.
-            pass
+            note_failure("servemesh:L159", None)
 
     # -- registry ------------------------------------------------------
 
@@ -324,6 +340,7 @@ class ProviderFailoverMeshWorm:
                                half_open_max_requests=1)
             return breaker_registry.get(f"servemesh:provider:{provider}", cfg)
         except Exception:
+            note_failure("servemesh:L326", None)
             return None
 
     def _backoff_locked(self, provider: str) -> float:
@@ -345,7 +362,7 @@ class ProviderFailoverMeshWorm:
         try:
             b.config.recovery_timeout = self._backoff_locked(provider)
         except Exception:
-            pass
+            note_failure("servemesh:L347", None)
 
     def _is_open(self, provider: str) -> bool:
         b = self._breaker(provider)
@@ -356,6 +373,7 @@ class ProviderFailoverMeshWorm:
                 return False
             return (time.time() - b.last_failure_time) < b.config.recovery_timeout
         except Exception:
+            note_failure("servemesh:L358", None)
             return False
 
     def probe_due(self, now: float | None = None) -> list:
@@ -382,6 +400,7 @@ class ProviderFailoverMeshWorm:
                 if now - b.last_failure_time >= b.config.recovery_timeout:
                     due.append(p)
             except Exception:
+                note_failure("servemesh:L384", None)
                 due.append(p)
         return due
 
@@ -401,7 +420,7 @@ class ProviderFailoverMeshWorm:
             try:
                 b.execute(_fail_probe)
             except Exception:
-                pass
+                note_failure("servemesh:L403", None)
         return {"success": True, "provider": provider, "down": True,
                 "reason": reason, "streak": streak, "retry_in": delay,
                 "error": str(error)[:80]}
@@ -418,7 +437,7 @@ class ProviderFailoverMeshWorm:
                     b.reset()
                     b.config.recovery_timeout = self.RECOVERY_BASE_S
                 except Exception:
-                    pass
+                    note_failure("servemesh:L420", None)
         return {"success": True, "provider": provider, "down": False,
                 "was_down": was_down}
 
@@ -441,6 +460,7 @@ class ProviderFailoverMeshWorm:
         try:
             from CORE.inference.providers import PROVIDER_REGISTRY
         except Exception:
+            note_failure("servemesh:L443", None)
             return list(cls.CHAIN), []
         resolvable: list = []
         unresolvable: list = []
@@ -474,6 +494,7 @@ class ProviderFailoverMeshWorm:
         try:
             from CORE.inference.providers import PROVIDER_REGISTRY
         except Exception:
+            note_failure("servemesh:L476", None)
             return ""
         pid = ProviderFailoverMeshWorm.PROVIDER_ALIASES.get(provider, provider)
         return str((PROVIDER_REGISTRY.get(pid) or {}).get("base_url") or "")
@@ -497,8 +518,10 @@ class ProviderFailoverMeshWorm:
             with urllib.request.urlopen(req, timeout=timeout or cls.PROBE_TIMEOUT_S):
                 return True
         except urllib.error.HTTPError:
+            note_failure("servemesh:L499", None)
             return True
         except Exception:
+            note_failure("servemesh:L501", None)
             return False
 
     def reprobe(self, probe=None, limit: int | None = None) -> dict[str, Any]:
@@ -526,6 +549,7 @@ class ProviderFailoverMeshWorm:
             try:
                 ok = bool(probe(provider))
             except Exception:
+                note_failure("servemesh:L528", None)
                 ok = False
             if ok:
                 self.mark_up(provider)

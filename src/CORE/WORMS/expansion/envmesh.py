@@ -14,22 +14,35 @@ import subprocess
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("envmesh:L21", None)
     def register_worm(**kw):
         return lambda cls: cls
 
 try:
     from CORE.freethreading import is_free_threaded
 except ImportError:
+    note_failure("envmesh:L27", None)
     def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
         except Exception:
+            note_failure("envmesh:L32", None)
             return False
 
 
@@ -38,6 +51,7 @@ def _read(path: str) -> str:
         with open(path, "r", errors="replace") as f:
             return f.read()
     except Exception:
+        note_failure("envmesh:L40", None)
         return ""
 
 
@@ -60,6 +74,7 @@ def env_id_v2() -> str:
         from CORE.env_id import env_id
         return env_id()
     except Exception:  # pragma: no cover - defensive
+        note_failure("envmesh:L62", None)
         if os.name == "nt":
             return "windows"
         ver = _read("/proc/version").lower()
@@ -88,6 +103,7 @@ class WinBridgeWorm:
             return {"success": True, "raw_lines": len(out.splitlines()),
                     "ubuntu2604": has_ubuntu, "kali": has_kali}
         except Exception as e:
+            note_failure("envmesh:L90", e)
             return {"success": False, "error": str(e)[:200]}
 
     def g_mount(self) -> dict[str, Any]:
@@ -133,6 +149,7 @@ class WslKaliWorm:
             try:
                 avail[t] = _iu.find_spec(t) is not None
             except Exception:
+                note_failure("envmesh:L135", None)
                 avail[t] = False
         for b in ("nmap", "masscan", "nikto", "sqlmap"):
             avail[b + ":bin"] = any(
@@ -200,6 +217,7 @@ class BarePassthroughWorm:
             return {"success": r.returncode == 0, "path": f"ssh:{target}",
                     "is_bare_kernel": is_bare, "out": out[:400]}
         except Exception as e:
+            note_failure("envmesh:L202", e)
             return {"success": False, "path": "ssh", "error": str(e)[:200]}
 
     def probe_vsock(self) -> dict[str, Any]:
@@ -209,6 +227,7 @@ class BarePassthroughWorm:
             s.close()
             return {"success": True, "path": "vsock:8420", "pams_local": True}
         except Exception as e:
+            note_failure("envmesh:L211", e)
             return {"success": False, "path": "vsock:8420", "error": str(e)[:120]}
 
     def probe(self) -> dict[str, Any]:

@@ -68,6 +68,16 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -287,6 +297,7 @@ def _try_data(raw: Any) -> Optional[Dict[str, Any]]:
         try:
             parsed = json.loads(raw)
         except (ValueError, TypeError):
+            note_failure("spawn_credit:L289", None)
             return None
         return parsed if isinstance(parsed, dict) else None
     return None
@@ -346,6 +357,7 @@ def _fetch(store: Any, event_type: str, limit: int,
             batch = store.query_memories(event_type=event_type, limit=want,
                                          offset=offset)
         except Exception as exc:  # noqa: BLE001 - reported, never raised
+            note_failure("spawn_credit:L348", exc)
             if errors is not None:
                 errors.append(f"{event_type}: {type(exc).__name__}: {exc}")
             return rows
@@ -404,6 +416,7 @@ def read_outcomes(store: Any = None, limit: int = 20000,
         try:
             dur = float(d.get("duration_ms") or 0.0)
         except (TypeError, ValueError):
+            note_failure("spawn_credit:L406", None)
             dur = 0.0
         if dur > 0:
             acc["durs"].append(dur)
@@ -498,6 +511,7 @@ def read_outcome_decisions(store: Any = None, limit: int = 20000,
         try:
             dur = float(d.get("duration_ms") or 0.0)
         except (TypeError, ValueError):
+            note_failure("spawn_credit:L500", None)
             dur = 0.0
         out.setdefault(str(d["decision_id"]), {})[worm] = {
             "success": bool(d.get("success")),
@@ -567,18 +581,19 @@ def build_spawn_credit(store: Any = None, outcome_limit: int = 20000,
                 if true_outcomes > sampled_outcomes:
                     credit.n_outcome_rows = true_outcomes
             except Exception:
-                pass
+                note_failure("spawn_credit:L569", None)
             try:
                 true_choices = int(store.count_memories(event_type=SPAWN_EVENT))
                 if true_choices > sampled_choices:
                     credit.n_choice_rows = true_choices
             except Exception:
-                pass
+                note_failure("spawn_credit:L575", None)
         durations = [o.mean_duration_ms for o in credit.outcomes.values()
                      if o.mean_duration_ms > 0]
         credit.median_duration_ms = (statistics.median(durations) if durations
                                      else 0.0)
     except Exception as exc:  # noqa: BLE001 - must never break a schedule
+        note_failure("spawn_credit:L581", exc)
         credit.errors.append(f"{type(exc).__name__}: {exc}")
     return credit
 
@@ -633,6 +648,7 @@ def resolve_store() -> Any:
         from CORE.local_memory import get_memory_store
         return get_memory_store()
     except Exception:
+        note_failure("spawn_credit:L635", None)
         return None
 
 

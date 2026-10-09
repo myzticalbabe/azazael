@@ -58,42 +58,22 @@ __all__ = [
 #: from the slice modules and by the direct helpers below.
 ADAPTERS: Dict[str, Dict[str, Any]] = {}
 
-#: Swallowed failures, by "where:ExcType". Every fail-open handler in this
-#: subsystem records here first. Fail-open is the contract (a wiring must never
-#: break the boundary it guards), but an unrecorded swallow is indistinguishable
-#: from success -- the defect class this project already paid for once, when a
-#: metric read a clean zero on a table that was never written. `failure_notes()`
-#: is how a silent degradation becomes visible.
-_FAILURE_NOTES: Dict[str, int] = {}
-_FAILURE_LOCK = threading.Lock()
+#: The ledger lives in a leaf module (stdlib only, zero CORE imports) so that
+#: any module can import the recorder without risking an import cycle -- a cycle
+#: caught by a guarded import would silently turn every recording into a no-op.
+#: Re-exported here because callers and tests reach it as
+#: `technique_runtime.note_failure` / `technique_runtime.failure_notes`.
+from CORE.failure_ledger import failure_notes, note_failure  # noqa: F401
 
-#: Times the recorder itself could not record. Non-zero means the real count is
-#: higher than `failure_notes()` reports -- never silently zero.
-_LOST_NOTES = [0]
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
 
-
-def note_failure(where: str, exc: BaseException | None = None) -> None:
-    """Record a swallowed failure. Cheap, bounded, thread-safe, never raises."""
-    try:
-        key = "%s:%s" % (where, type(exc).__name__ if exc is not None
-                         else "unknown")
-        with _FAILURE_LOCK:
-            _FAILURE_NOTES[key] = _FAILURE_NOTES.get(key, 0) + 1
-    except Exception:                             # never raise from the recorder
-        _LOST_NOTES[0] += 1
-
-
-def failure_notes() -> Dict[str, int]:
-    """A snapshot of recorded swallowed failures (empty = nothing degraded).
-
-    The reserved key ``__lost__:recorder`` is present only when the recorder
-    itself failed, i.e. the real count exceeds the reported one.
-    """
-    with _FAILURE_LOCK:
-        out = dict(_FAILURE_NOTES)
-    if _LOST_NOTES[0]:
-        out["__lost__:recorder"] = _LOST_NOTES[0]
-    return out
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 #: Slice modules under CORE.technique_wiring/. Imported lazily so a slice that
 #: fails to import (a missing optional dep) degrades to "that layer is not wired"
@@ -150,6 +130,7 @@ def load_slices(force: bool = False) -> Dict[str, str]:
             importlib.import_module(mod)
             report[name] = "ok"
         except Exception as exc:                      # pragma: no cover - env
+            note_failure("technique_runtime:L122", exc)
             report[name] = f"MISSING: {type(exc).__name__}: {exc}"
     _loaded = True
     return report
@@ -160,6 +141,7 @@ def _ep_key(ep: str) -> tuple:
     try:
         return (0, int(ep[2:]))
     except ValueError:
+        note_failure("technique_runtime:L132", None)
         return (1, 0)
 
 
@@ -205,6 +187,7 @@ def run_all(record: bool = True) -> Dict[str, Any]:
             if isinstance(value, dict):
                 entry["verdict"] = _verdict_keys(value)
         except Exception as exc:
+            note_failure("technique_runtime:L177", exc)
             errored += 1
             entry = {"ok": False, "where": a["where"],
                      "error": f"{type(exc).__name__}: {exc}",
@@ -303,6 +286,7 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
         if predicted is not None:
             _record_calibration(question, predicted, decision_id)
     except Exception:
+        note_failure("technique_runtime:L275", None)
         written = False
     return {"written": written, "question": _short(question),
             "predicted": predicted}
@@ -343,6 +327,7 @@ def recall_with_feedback(query: str, **kwargs: Any) -> Dict[str, Any]:
                 "mode": (route or {}).get("mode"),
                 "hits": len(getattr(router, "_hits", []) or [])}
     except Exception as exc:
+        note_failure("technique_runtime:L315", exc)
         return {"routed": False, "reason": f"{type(exc).__name__}"}
 
 

@@ -37,6 +37,17 @@ import random
 
 from PSYCHE import affect as A
 from PSYCHE import identify as I
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 DOMAINS = ("O", "C", "E", "A", "N", "H")
 
@@ -56,6 +67,7 @@ def recall_episodic(rows: list[dict], top_k: int = 5,
             age_h = max(0.0, float(row.get("age_h", 0.0)))
             sal = max(0.0, min(1.0, float(row.get("salience", 0.5))))
         except (TypeError, ValueError):
+            note_failure("evaluate:L58", None)
             continue
         score = sal * 0.5 ** (age_h / max(1e-9, half_life_h))
         if query_pad is not None and row.get("pad"):
@@ -65,7 +77,7 @@ def recall_episodic(rows: list[dict], top_k: int = 5,
                 nb = math.sqrt(sum(b * b for b in query_pad)) or 1.0
                 score += 0.5 * max(0.0, dot / (na * nb))
             except (TypeError, ValueError):
-                pass
+                note_failure("evaluate:L67", None)
         scored.append((score, row))
     scored.sort(key=lambda r: -r[0])
     return [row for _s, row in scored[:max(0, top_k)]]

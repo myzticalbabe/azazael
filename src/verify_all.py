@@ -42,6 +42,17 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 ROOT = Path(__file__).resolve().parent
 PY = sys.executable
@@ -62,8 +73,10 @@ def run_cmd(args: list[str], timeout: int = 120, label: str = "") -> tuple[bool,
             timeout=timeout,
         )
     except subprocess.TimeoutExpired:
+        note_failure("verify_all:L64", None)
         return False, f"[TIMEOUT after {timeout}s] {label}"
     except OSError as exc:
+        note_failure("verify_all:L66", exc)
         return False, f"[OSError: {exc}] {label}"
     out = (proc.stdout or "") + (proc.stderr or "")
     tail = "\n".join(line for line in out.splitlines() if line.strip())[-600:]

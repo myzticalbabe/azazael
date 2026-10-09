@@ -27,11 +27,21 @@ import random
 import shutil
 import numpy as np
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -150,6 +160,7 @@ class HYDRAMETA_UV:
                 with open(state_file) as f:
                     self.state = json.load(f)
             except Exception:
+                note_failure("HYDRAMETA_UV:L152", None)
                 self.state = {"best_sequence": [], "best_params": {}}
 
     def _save_state(self):
@@ -179,8 +190,10 @@ class HYDRAMETA_UV:
                 int((time.time() - start) * 1000),
             )
         except subprocess.TimeoutExpired:
+            note_failure("HYDRAMETA_UV:L181", None)
             return False, "Timeout", int((time.time() - start) * 1000)
         except Exception as e:
+            note_failure("HYDRAMETA_UV:L183", e)
             return False, str(e), int((time.time() - start) * 1000)
 
     def _create_trial_venv(self, trial_id: str) -> str:
@@ -234,6 +247,7 @@ class HYDRAMETA_UV:
             duration = (time.time() - start) * 1000
             return True, duration, result
         except Exception as e:
+            note_failure("HYDRAMETA_UV:L236", e)
             duration = (time.time() - start) * 1000
             return False, duration, {"error": str(e)}
 
@@ -290,6 +304,7 @@ class HYDRAMETA_UV:
             return trial_result
 
         except Exception as e:
+            note_failure("HYDRAMETA_UV:L292", e)
             return UVTrialResult(
                 trial_id=trial_id,
                 worm_sequence=worm_sequence or [],

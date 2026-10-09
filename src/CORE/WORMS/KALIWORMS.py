@@ -14,10 +14,22 @@ Autonomy contract (see CLUSTERWORMS._STANDARD_METHODS + DnsWorm precedent):
 """
 
 import subprocess
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("KALIWORMS:L20", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -36,6 +48,7 @@ def _wsl(argv, timeout=_PROBE_TIMEOUT):
         text = ((r.stdout or "") + (r.stderr or "")).strip()[:400]
         return r.returncode, text
     except Exception as e:
+        note_failure("KALIWORMS:L38", e)
         return -1, str(e)[:200]
 
 

@@ -8,12 +8,23 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Dynamic path resolution
 try:
     from CORE.paths import get_src_dir
 except ImportError:
+    note_failure("HYDRA_ANALYZER:L16", None)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_src_dir
 
@@ -91,7 +102,7 @@ def load_json(path: Path) -> dict:
         if path.exists():
             return json.loads(path.read_text())
     except Exception:
-        pass
+        note_failure("HYDRA_ANALYZER:L93", None)
     return {}
 
 
@@ -125,6 +136,7 @@ def discover_modules() -> dict[str, Any]:
                     "lines": len(content.splitlines()),
                 }
             except Exception:
+                note_failure("HYDRA_ANALYZER:L127", None)
                 modules[f.replace(".py", "")] = {
                     "path": str(p),
                     "size": p.stat().st_size,

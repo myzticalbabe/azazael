@@ -4,6 +4,16 @@ from pathlib import Path
 from typing import Dict, List
 from core.arm_registry import BaseArm, ArmCapability, register_arm
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 _EVE_DIR = Path.home() / "Desktop" / "EveUnleashed_Selector"
 _EVE_APP = _EVE_DIR / "eve_unleashed_app.py"
 
@@ -33,6 +43,7 @@ class EveArm(BaseArm):
                 try:
                     data = json.loads(result.stdout) if result.stdout.strip() else {}
                 except json.JSONDecodeError:
+                    note_failure("eve_arm:L35", None)
                     data = {"output": result.stdout[:200]}
                 return {"status": "ok", "data": {"selected_model": data.get("model", "gemini"), "task": task, "confidence": data.get("confidence", 0.9)}}
 
@@ -46,6 +57,7 @@ class EveArm(BaseArm):
                 try:
                     data = json.loads(result.stdout) if result.stdout.strip() else {}
                 except json.JSONDecodeError:
+                    note_failure("eve_arm:L48", None)
                     data = {"output": result.stdout[:200]}
                 return {"status": "ok", "data": {"models_tested": data.get("models_tested", 5), "top_model": data.get("top_model", "gemini-2.5-pro"), "score": data.get("score", 94.2)}}
 
@@ -69,8 +81,10 @@ class EveArm(BaseArm):
                 }
             return {"status": "error", "error": "Unknown: " + capability}
         except subprocess.TimeoutExpired:
+            note_failure("eve_arm:L71", None)
             return {"status": "error", "error": "EveUnleashed operation timed out"}
         except Exception as e:
+            note_failure("eve_arm:L73", e)
             return {"status": "error", "error": str(e)}
 
     def get_capabilities(self)->List[ArmCapability]:

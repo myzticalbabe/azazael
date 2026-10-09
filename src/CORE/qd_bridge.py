@@ -4,7 +4,17 @@
 One call = one island generation (with ring migration) + archive each
 island's best into the QD grid by behavior descriptor. Returns stats.
 """
-from typing import Callable
+from typing import Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def qd_step(map_elites, island, fitness_fn: Callable,
@@ -23,6 +33,7 @@ def qd_step(map_elites, island, fitness_fn: Callable,
         try:
             behavior = tuple(behavior_fn(dict(best.genes)))
         except Exception:
+            note_failure("qd_bridge:L25", None)
             continue
         if map_elites.add(dict(best.genes), float(best.fitness), behavior):
             archived += 1

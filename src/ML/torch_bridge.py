@@ -10,7 +10,17 @@ the exact blocker instead of a bare ``ImportError``.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _TORCH_ERROR: str | None = None
 
@@ -24,6 +34,7 @@ def torch_available() -> bool:
         _ = torch.zeros(1)
         return True
     except Exception as exc:  # noqa: BLE001 - the message IS the API
+        note_failure("torch_bridge:L26", exc)
         _TORCH_ERROR = f"{type(exc).__name__}: {exc}"
         return False
 

@@ -21,6 +21,17 @@ import re
 import py_compile
 import sys
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SRC_DIR = PROJECT_ROOT / "src"
@@ -32,6 +43,7 @@ def find_bare_except_lines(filepath: Path) -> list:
     try:
         tree = ast.parse(content, filename=str(filepath))
     except SyntaxError:
+        note_failure("fix_bare_excepts:L34", None)
         return []
 
     lines = []

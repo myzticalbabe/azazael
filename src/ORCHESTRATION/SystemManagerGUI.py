@@ -18,6 +18,17 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
 import shutil
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 LOG_DIR = Path(os.environ.get("APPDATA", "~/.appdata")).expanduser() / "AssistantLogs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -224,7 +235,7 @@ class SystemManagerGUI:
         try:
             style.theme_use("dark")
         except Exception:
-            pass
+            note_failure("SystemManagerGUI:L226", None)
         style.configure("TFrame", background=COLOR_BG)
         style.configure(
             "TLabel", background=COLOR_BG, foreground=COLOR_FG, font=("Consolas", 10)
@@ -587,7 +598,7 @@ class SystemManagerGUI:
                         os.remove(path)
                         count += 1
                 except Exception:
-                    pass
+                    note_failure("SystemManagerGUI:L589", None)
         return {"files_removed": count}
 
     def _cleanup_installers(self) -> dict:
@@ -600,7 +611,7 @@ class SystemManagerGUI:
                         os.remove(os.path.join(downloads, f))
                         removed += 1
                     except Exception:
-                        pass
+                        note_failure("SystemManagerGUI:L602", None)
         return {"count": removed}
 
     def _update_tree_view(self, root_node: FileNode):

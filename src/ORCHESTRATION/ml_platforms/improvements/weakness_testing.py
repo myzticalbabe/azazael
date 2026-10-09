@@ -33,6 +33,17 @@ from datetime import datetime
 from pathlib import Path
 # from typing import Dict, List, Optional  # removed — all names have native equivalents
 from dataclasses import dataclass, field
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -322,6 +333,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L324", e)
             self.suite.add(
                 TestResult(
                     test_name="cold_start_empty",
@@ -363,6 +375,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L365", e)
             self.suite.add(
                 TestResult(
                     test_name="cold_start_minimal_data",
@@ -405,6 +418,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L407", e)
             self.suite.add(
                 TestResult(
                     test_name="cold_start_no_relevant_history",
@@ -450,6 +464,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L452", e)
             self.suite.add(
                 TestResult(
                     test_name="concept_drift_gradual",
@@ -502,6 +517,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L504", e)
             self.suite.add(
                 TestResult(
                     test_name="concept_drift_sudden",
@@ -544,6 +560,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L546", e)
             self.suite.add(
                 TestResult(
                     test_name="performance_degradation",
@@ -574,6 +591,7 @@ class WeaknessTester:
                     success=True,
                 )
             except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
+                note_failure("weakness_testing:L576", e)
                 passed = False
                 errors.append(f"Empty action: {e}")
 
@@ -581,6 +599,7 @@ class WeaknessTester:
             try:
                 ai.get_framework_recommendation("")
             except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
+                note_failure("weakness_testing:L583", e)
                 passed = False
                 errors.append(f"Empty task_type: {e}")
 
@@ -594,6 +613,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L596", e)
             self.suite.add(
                 TestResult(
                     test_name="test_empty_inputs",
@@ -622,6 +642,7 @@ class WeaknessTester:
                     success=True,
                 )
             except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
+                note_failure("weakness_testing:L624", e)
                 passed = False
                 errors.append(f"None action: {e}")
 
@@ -629,6 +650,7 @@ class WeaknessTester:
             try:
                 ai.get_framework_recommendation(None)
             except Exception as e:  # noqa: BLE001 — harness verifies target does not raise
+                note_failure("weakness_testing:L631", e)
                 passed = False
                 errors.append(f"None task_type: {e}")
 
@@ -641,6 +663,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L643", e)
             self.suite.add(
                 TestResult(
                     test_name="test_null_handling",
@@ -682,6 +705,7 @@ class WeaknessTester:
                         event_kwargs["metrics"] = {attr: value}
                     ai.record_event(**event_kwargs)
                 except Exception as e:  # noqa: BLE001 — harness verifies extreme input does not raise
+                    note_failure("weakness_testing:L684", e)
                     passed = False
                     errors.append(f"Extreme {attr}={value}: {e}")
 
@@ -694,6 +718,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L696", e)
             self.suite.add(
                 TestResult(
                     test_name="test_extreme_values",
@@ -722,6 +747,7 @@ class WeaknessTester:
                 try:
                     ai.get_framework_recommendation(task)
                 except Exception:  # noqa: BLE001 — harness verifies invalid task does not raise
+                    note_failure("weakness_testing:L724", None)
                     passed = False
                     break
 
@@ -735,6 +761,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L737", e)
             self.suite.add(
                 TestResult(
                     test_name="test_invalid_task_types",
@@ -780,6 +807,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L782", e)
             self.suite.add(
                 TestResult(
                     test_name="test_rapid_successive_calls",
@@ -821,6 +849,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L823", e)
             self.suite.add(
                 TestResult(
                     test_name="test_memory_pressure",
@@ -862,6 +891,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L864", e)
             self.suite.add(
                 TestResult(
                     test_name="test_thread_safety",
@@ -889,6 +919,7 @@ class WeaknessTester:
                     success=True,
                 )
             except Exception:  # noqa: BLE001 — harness verifies target does not raise
+                note_failure("weakness_testing:L891", None)
                 passed = False
 
             self.suite.add(
@@ -900,6 +931,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L902", e)
             self.suite.add(
                 TestResult(
                     test_name="test_import_failures",
@@ -953,6 +985,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L955", e)
             self.suite.add(
                 TestResult(
                     test_name="test_component_integration",
@@ -993,6 +1026,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L995", e)
             self.suite.add(
                 TestResult(
                     test_name="test_confidence_calibration",
@@ -1027,6 +1061,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L1029", e)
             self.suite.add(
                 TestResult(
                     test_name="test_prediction_variance",
@@ -1061,6 +1096,7 @@ class WeaknessTester:
                 ai.get_framework_recommendation("test")
                 recovered = True
             except Exception:  # noqa: BLE001 — recovery test expects no exception
+                note_failure("weakness_testing:L1063", None)
                 recovered = False
 
             passed = recovered
@@ -1074,6 +1110,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L1076", e)
             self.suite.add(
                 TestResult(
                     test_name="test_partial_data_recovery",
@@ -1106,6 +1143,7 @@ class WeaknessTester:
                 )
             )
         except Exception as e:  # noqa: BLE001 — weakness harness must capture any failure
+            note_failure("weakness_testing:L1108", e)
             self.suite.add(
                 TestResult(
                     test_name="test_graceful_degradation",

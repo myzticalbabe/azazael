@@ -52,10 +52,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("wiring_audit:L58", None)
     _REGISTRY = False
 
     def register_worm(**kw):  # noqa: D103
@@ -66,6 +77,7 @@ try:
     from CORE.local_memory import get_memory_store
     _STORE = True
 except ImportError:
+    note_failure("wiring_audit:L68", None)
     _STORE = False
 
     def get_memory_store(*a, **k):  # noqa: D103
@@ -132,6 +144,7 @@ class WiringAuditWorm:
             with contextlib.redirect_stdout(buf):
                 return module.self_test() == 0
         except Exception:  # noqa: BLE001 — an unvalidatable instrument is not ok
+            note_failure("wiring_audit:L134", None)
             return False
 
     # -- Execution ------------------------------------------------------
@@ -160,6 +173,7 @@ class WiringAuditWorm:
         try:
             report = module.audit(root)
         except Exception as e:  # noqa: BLE001
+            note_failure("wiring_audit:L162", e)
             report = {"findings": [], "allowed": [], "scanned_files": 0,
                       "candidates": 0, "error": f"{type(e).__name__}: {e}"}
 
@@ -218,7 +232,7 @@ class WiringAuditWorm:
                 tags=["audit", "wiring", "monitor"],
             )
         except Exception:  # noqa: BLE001 — recording is best-effort
-            pass
+            note_failure("wiring_audit:L220", None)
 
     # -- Scheduler ------------------------------------------------------
 
@@ -227,7 +241,7 @@ class WiringAuditWorm:
             try:
                 self.execute()
             except Exception:  # noqa: BLE001 — a monitor must survive its own failures
-                pass
+                note_failure("wiring_audit:L229", None)
             self._stop.wait(self.config.interval_seconds)
 
     def start_scheduler(self) -> None:

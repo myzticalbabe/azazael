@@ -6,6 +6,17 @@ emits instruction/response pairs + quality stats. The trainer (overnight
 LoRA) consumes pairs.jsonl; this module is the verified daytime half.
 """
 import json
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def consume(ledger_path: str, out_path: str = "") -> dict:
@@ -13,11 +24,13 @@ def consume(ledger_path: str, out_path: str = "") -> dict:
     try:
         lines = open(ledger_path, encoding="utf-8").read().splitlines()
     except Exception:
+        note_failure("escalation_sft:L15", None)
         return {"pairs": 0, "skipped": 0, "error": "ledger-unreadable"}
     for line in lines:
         try:
             r = json.loads(line)
         except Exception:
+            note_failure("escalation_sft:L20", None)
             skipped += 1
             continue
         task, big = (r.get("task") or "").strip(), (r.get("big_answer") or "").strip()

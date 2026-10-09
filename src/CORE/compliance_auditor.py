@@ -59,7 +59,17 @@ import sqlite3
 import threading
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # --- Constants ------------------------------------------------------
@@ -160,7 +170,7 @@ class ComplianceAuditor:
                     encoding="utf-8"
                 )
             except OSError:
-                pass
+                note_failure("compliance_auditor:L162", None)
             # Record to DB
             conn = self._get_conn()
             conn.execute(
@@ -181,7 +191,7 @@ class ComplianceAuditor:
                 if HALT_FLAG_PATH.exists():
                     HALT_FLAG_PATH.unlink()
             except OSError:
-                pass
+                note_failure("compliance_auditor:L183", None)
             # Close open halt event in DB
             conn = self._get_conn()
             conn.execute(
@@ -215,7 +225,7 @@ class ComplianceAuditor:
                         self._halt_reason = data.get("reason", "External halt")
                     return True
             except (json.JSONDecodeError, OSError):
-                pass
+                note_failure("compliance_auditor:L217", None)
         return False
 
     def get_halt_reason(self) -> str:
@@ -332,7 +342,7 @@ class ComplianceAuditor:
             try:
                 d["details"] = json.loads(d["details"])
             except (json.JSONDecodeError, TypeError):
-                pass
+                note_failure("compliance_auditor:L334", None)
             results.append(d)
         return results
 
@@ -461,7 +471,7 @@ class EcaHttpServer:
                         payload = json.loads(body)
                         reason = payload.get("reason", reason)
                 except (json.JSONDecodeError, IndexError):
-                    pass
+                    note_failure("compliance_auditor:L463", None)
                 eca.halt(reason, triggered_by="http_api")
                 self._send_json(conn, {"status": "halted", "reason": reason})
 
@@ -508,18 +518,20 @@ class EcaHttpServer:
                 self._send_json(conn, {"error": f"Unknown path: {path}"}, status=404)
 
         except socket.timeout:
-            pass
+            note_failure("compliance_auditor:L510", None)
         except (OSError, ValueError, sqlite3.Error) as e:
             # Request-error boundary: socket I/O, body parsing, or audit DB access.
+            # Request-error boundary: socket I/O, body parsing, or audit DB access.
+            note_failure("compliance_auditor:L512", e)
             try:
                 self._send_json(conn, {"error": str(e)}, status=500)
             except OSError:
-                pass  # client already gone / connection reset
+                note_failure("compliance_auditor:L516", None) # client already gone / connection reset
         finally:
             try:
                 conn.close()
             except OSError:
-                pass
+                note_failure("compliance_auditor:L521", None)
 
     def _send_json(self, conn: socket.socket, data: Any, status: int = 200):
         body = json.dumps(data, indent=2, default=str)
@@ -569,8 +581,10 @@ class EcaHttpServer:
                 t = threading.Thread(target=self.handle_client, args=(conn,), daemon=True)
                 t.start()
             except socket.timeout:
+                note_failure("compliance_auditor:L571", None)
                 continue
             except OSError:
+                note_failure("compliance_auditor:L573", None)
                 break
 
         eca.record_compliance_check("eca_server_stopped", "ECA_STOP",
@@ -584,7 +598,7 @@ class EcaHttpServer:
                     self.server.close()
                     self.server = None
                 except OSError:
-                    pass
+                    note_failure("compliance_auditor:L586", None)
 
     def start_background(self) -> threading.Thread:
         t = threading.Thread(target=self.start, daemon=True)
@@ -641,7 +655,7 @@ try:
     from CORE.direct_memory import record as _dm_record
     _DM_RECORD = _dm_record
 except ImportError:
-    pass
+    note_failure("compliance_auditor:L643", None)
 
 
 class ComplianceError(Exception):
@@ -695,7 +709,7 @@ def compliance_gate(action: str, rule_id: str = "COMPLIANCE_GATE",
                     "reason": result["reason"],
                 }, severity="error", tags=["compliance", "eca", "halt"])
             except (OSError, ValueError, sqlite3.Error):
-                pass  # best-effort audit record — never block the gate
+                note_failure("compliance_auditor:L697", None) # best-effort audit record — never block the gate
         raise ComplianceError(
             f"ECA HALT: {result['reason']} "
             f"(action={action}, rule={rule_id})"

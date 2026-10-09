@@ -17,6 +17,17 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import Dict, Optional  # removed — all names have native equivalents
 
 
@@ -48,6 +59,7 @@ def compute_hashes(directory: Path) -> dict[str, str]:
             content = fpath.read_bytes()
             hashes[str(fpath.relative_to(directory))] = hashlib.md5(content).hexdigest()
         except OSError:
+            note_failure("auto_sync:L50", None)
             continue
     return hashes
 
@@ -148,6 +160,7 @@ def watch_loop(interval: int = 5, quiet: bool = False, watchdog: bool = False):
                     break
                 time.sleep(1)
         except KeyboardInterrupt:
+            note_failure("auto_sync:L150", None)
             break
         except Exception as e:
             if not quiet:

@@ -10,6 +10,17 @@ informational, not functional — the current project lives at azazael/src/.
 """
 
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 FULL_ECOSYSTEM = {
     "version": "1.0.0",
@@ -343,6 +354,7 @@ if __name__ == "__main__":
         from CORE.paths import get_desktop_dir
         out_dir = get_desktop_dir() / "CODEX" / "comprehensive"
     except ImportError:
+        note_failure("FULL_ECOSYSTEM_ANALYSIS:L345", None)
         out_dir = Path.home() / "Desktop" / "CODEX" / "comprehensive"
 
     out_dir.mkdir(parents=True, exist_ok=True)

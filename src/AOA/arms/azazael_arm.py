@@ -3,6 +3,16 @@ import sys
 from typing import Dict, List
 from core.arm_registry import BaseArm, ArmCapability, register_arm
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 @register_arm(arm_id="azazael",name="Azazael Neural Mesh",version="3.14.0",description="77-worm neural agent system with 3-tier cluster architecture, PAMS/MemoryBus, and CODEX video generation",category="quartet",priority=10,dependencies=["pams"])
 class AzazaelArm(BaseArm):
     def initialize(self)->bool:
@@ -38,6 +48,7 @@ class AzazaelArm(BaseArm):
                 return {"status":"ok","data":{"total_worms":len(WORM_REGISTRY),"initialized":self._initialized}}
             return {"status":"error","error":"Unknown: "+capability}
         except Exception as e:
+            note_failure("azazael_arm:L40", e)
             return {"status":"error","error":str(e)}
     def get_capabilities(self)->List[ArmCapability]:
         return [ArmCapability("discover_worms","Discover all 77 registered worms",category="registry"),ArmCapability("run_cluster","Execute a NatureCluster by category",category="execution"),ArmCapability("run_metacluster","Run full MetaCluster orchestration",category="execution"),ArmCapability("get_status","Get Azazael status",category="monitoring")]

@@ -28,7 +28,17 @@ import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Iterator, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ===========================================================================
 # PERMANENT ENFORCEMENT: sys.addaudithook — CPython-level I/O interception
@@ -120,18 +130,21 @@ try:
     from SCRIPTS.sentinel_gate import SentinelValidator, parse_stdin
     _SENTINEL_AVAILABLE = True
 except ImportError:
+    note_failure("sentinel_enforcer:L122", None)
     _SENTINEL_AVAILABLE = False
 
 try:
     from CORE.compliance.scanner import ASTAntiPatternScanner, AntiPatternResult
     _SCANNER_AVAILABLE = True
 except ImportError:
+    note_failure("sentinel_enforcer:L128", None)
     _SCANNER_AVAILABLE = False
 
 try:
     from CORE.compliance.pre_action_gate import PreActionGate, get_pre_action_gate
     _PAG_AVAILABLE = True
 except ImportError:
+    note_failure("sentinel_enforcer:L134", None)
     _PAG_AVAILABLE = False
     PreActionGate = None
     get_pre_action_gate = None
@@ -176,6 +189,7 @@ def _backup_path(filepath: str) -> str:
         _os.makedirs(_os.path.dirname(out), exist_ok=True)
         return out
     except Exception:
+        note_failure("sentinel_enforcer:L178", None)
         return filepath + ".pre_gate_backup"
 
 
@@ -190,6 +204,7 @@ def _create_backup(filepath: str) -> str:
         Path(backup_path).write_text(content, encoding="utf-8")
         return backup_path
     except Exception:
+        note_failure("sentinel_enforcer:L192", None)
         return ""
 
 
@@ -224,6 +239,7 @@ def _consult_verification_gate(filepath: str, action: str) -> str:
         return "verify:%s:%d" % ("accepted" if accepted else "flagged",
                                  len(reasons))
     except Exception as exc:            # never block an edit on the verifier
+        note_failure("sentinel_enforcer:L226", exc)
         _LAST_VERIFY = {"subject": subject, "accepted": True,
                         "error": type(exc).__name__}
         return ""
@@ -278,6 +294,7 @@ def _enforce_impl(
                     # old_string not found in current file - this will fail anyway
                     proposed = current
             except Exception:
+                note_failure("sentinel_enforcer:L280", None)
                 proposed = new_content
         else:
             proposed = new_content
@@ -352,6 +369,7 @@ def _enforce_impl(
     try:
         ast.parse(proposed)
     except SyntaxError as e:
+        note_failure("sentinel_enforcer:L354", e)
         with _lock:
             _denial_count += 1
         return False, f"DENIED: Syntax error at line {e.lineno}: {e.msg}"
@@ -378,7 +396,7 @@ def enforce_write(filepath: str, content: str) -> tuple[bool, str]:
         try:
             old = fp.read_text(encoding="utf-8")
         except Exception:
-            pass
+            note_failure("sentinel_enforcer:L380", None)
     return enforce(filepath, old, content, action="write_file")
 
 
@@ -411,6 +429,7 @@ def rollback(filepath: str) -> bool:
                 _rollback_count += 1
             return True
     except Exception:
+        note_failure("sentinel_enforcer:L413", None)
         return False
 
 
@@ -430,12 +449,14 @@ def post_validate(filepath: str) -> tuple[bool, str]:
     try:
         content = fp.read_text(encoding="utf-8")
     except Exception as e:
+        note_failure("sentinel_enforcer:L432", e)
         return False, f"Cannot read file for post-validation: {e}"
 
     # Syntax check
     try:
         ast.parse(content)
     except SyntaxError as e:
+        note_failure("sentinel_enforcer:L438", e)
         rolled = rollback(filepath)
         msg = f"POST-EDIT SYNTAX ERROR at line {e.lineno}: {e.msg}"
         if rolled:
@@ -660,7 +681,7 @@ def self_test() -> bool:
             try:
                 os.unlink(p)
             except OSError:
-                pass
+                note_failure("sentinel_enforcer:L662", None)
 
 
 if __name__ == "__main__":

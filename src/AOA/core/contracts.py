@@ -38,6 +38,16 @@ from typing import Any, Dict, List, Optional
 import logging
 import threading
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 log = logging.getLogger(__name__)
 
 
@@ -81,6 +91,7 @@ def parse_timestamp(value: Any) -> Optional[datetime]:
         text = str(value).strip().replace("Z", "+00:00")
         parsed = datetime.fromisoformat(text)
     except (ValueError, TypeError):
+        note_failure("contracts:L83", None)
         return None
     if parsed.tzinfo is not None:
         parsed = parsed.astimezone().replace(tzinfo=None)
@@ -258,6 +269,7 @@ def check_result(result: ArmResult, at: Optional[datetime] = None) -> List[str]:
             if value <= 0 or value != value or value == float("inf"):
                 violations.append("stale_after_s_not_positive")
         except (TypeError, ValueError):
+            note_failure("contracts:L260", None)
             violations.append("stale_after_s_not_numeric")
     elif result.status == "ok" and result.data is not None:
         # A datum handed back with no declared lifetime is the original gap.

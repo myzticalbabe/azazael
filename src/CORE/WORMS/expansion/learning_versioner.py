@@ -10,11 +10,22 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from collections import defaultdict
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("learning_versioner:L17", None)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -25,6 +36,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("learning_versioner:L27", None)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -34,6 +46,7 @@ def is_free_threaded() -> bool:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning_versioner:L36", None)
             return False
 
 @register_worm(category="learning", priority=5, cooldown_seconds=60.0,
@@ -96,6 +109,7 @@ class ModelVersioner:
                         from CORE.local_memory import get_memory_store
                         self._store = get_memory_store()
                     except ImportError:
+                        note_failure("learning_versioner:L98", None)
                         self._store = False
         return self._store if self._store else None
     def register_model(self, name: str, version: str, metrics: Dict[str, float],
@@ -140,7 +154,7 @@ class ModelVersioner:
                     severity="info", tags=["model", "versioner"]
                 )
             except Exception:  # noqa: BLE001 — version-clone telemetry best-effort
-                pass
+                note_failure("learning_versioner:L142", None)
 
         return entry
     def compare_versions(self, name: str, v1: str, v2: str) -> Dict[str, Any]:

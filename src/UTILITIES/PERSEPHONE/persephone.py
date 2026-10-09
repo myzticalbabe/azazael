@@ -29,6 +29,17 @@ from pathlib import Path
 # from typing import Dict, List, Optional, Tuple  # removed — all names have native equivalents
 from dataclasses import dataclass
 from enum import Enum
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class Platform(Enum):
@@ -57,6 +68,7 @@ class PersephoneConfig:
 try:
     from version import Azazael_VERSION, PROTOCOL_VERSION, PERSEPHONE_VERSION
 except ImportError:
+    note_failure("persephone:L59", None)
     Azazael_VERSION = "2.1.0"
     PROTOCOL_VERSION = "2.0.0"
     PERSEPHONE_VERSION = "1.0.0"
@@ -354,6 +366,7 @@ class Persephone:
                 results["files_synced"] = "multiple"
 
         except subprocess.CalledProcessError as e:
+            note_failure("persephone:L356", e)
             results["errors"].append(str(e))
 
         return results
@@ -382,6 +395,7 @@ class Persephone:
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
+            note_failure("persephone:L384", e)
             return "", str(e), -1
 
     def setup_environment(self, shell: str = "bash") -> str:

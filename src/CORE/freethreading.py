@@ -26,6 +26,16 @@ from concurrent.futures import ThreadPoolExecutor, Future, as_completed
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Cancellation Token --------------------------------------------------
 
 
@@ -69,7 +79,7 @@ class CancellationToken:
             try:
                 cb()
             except Exception:
-                pass
+                note_failure("freethreading:L71", None)
 
     @property
     def is_cancelled(self) -> bool:
@@ -95,7 +105,7 @@ class CancellationToken:
                 try:
                     cb()
                 except Exception:
-                    pass
+                    note_failure("freethreading:L97", None)
             else:
                 self._callbacks.append(cb)
 
@@ -120,6 +130,8 @@ def is_free_threaded() -> bool:
         return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
     except Exception:
         # Fallback for older Python or unusual builds
+        # Fallback for older Python or unusual builds
+        note_failure("freethreading:L121", None)
         return hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
 
 def get_thread_info() -> dict:
@@ -339,6 +351,7 @@ class FreeThreadPool:
             try:
                 exe.shutdown(wait=wait, cancel_futures=cancel_futures)
             except TypeError:
+                note_failure("freethreading:L341", None)
                 exe.shutdown(wait=wait)
 
     @property
@@ -391,17 +404,20 @@ class FreeThreadPool:
                         "result": future.result(timeout=1.0), "error": None,
                     })
                 except TimeoutError:
+                    note_failure("freethreading:L393", None)
                     future.cancel()
                     results.append({
                         "label": label, "success": False,
                         "result": None, "error": "timeout",
                     })
                 except Exception as e:
+                    note_failure("freethreading:L399", e)
                     results.append({
                         "label": label, "success": False,
                         "result": None, "error": str(e),
                     })
         except TimeoutError:
+            note_failure("freethreading:L404", None)
             for future, label in futures.items():
                 if not future.done():
                     future.cancel()
@@ -695,6 +711,7 @@ class WorkStealingPool:
             success = True
             error = None
         except Exception as e:
+            note_failure("freethreading:L697", e)
             result = None
             success = False
             error = str(e)
@@ -805,7 +822,7 @@ def detect_devices() -> list[DeviceParallelConfig]:
             elif 'NPU' in d.upper():
                 configs.append(DeviceParallelConfig.for_npu())
     except ImportError:
-        pass
+        note_failure("freethreading:L807", None)
     return configs
 
 
@@ -851,6 +868,8 @@ class OpenVINOAsyncRunner:
                 )
             except TypeError:
                 # Fallback: older OpenVINO versions
+                # Fallback: older OpenVINO versions
+                note_failure("freethreading:L852", None)
                 self._infer_queue = ov.AsyncInferQueue(
                     self._compiled_model, self._num_requests
                 )
@@ -907,6 +926,7 @@ class OpenVINOAsyncRunner:
             import openvino as ov
             return ov.Core().available_devices
         except ImportError:
+            note_failure("freethreading:L909", None)
             return []
 
     def __repr__(self) -> str:
@@ -1100,6 +1120,7 @@ class ConcurrentTaskRunner:
                 self._results[f"{device}_elapsed_sec"] = elapsed
                 self._results[f"{device}_workers"] = config.optimal_workers
             except Exception as e:
+                note_failure("freethreading:L1102", e)
                 self._errors.append({'device': device, 'error': str(e)})
 
         threads = []

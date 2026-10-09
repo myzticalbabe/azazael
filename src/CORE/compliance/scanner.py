@@ -42,6 +42,17 @@ from pathlib import Path
 # from typing import Dict, List, Optional, Tuple  # removed — all names have native equivalents
 
 import fnmatch
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Default directories to exclude from scanning (merged with user-provided --exclude-dirs)
 DEFAULT_EXCLUDES = {"__pycache__", ".git", ".github", "node_modules", ".venv", "eggs", "egg-info"}
@@ -204,12 +215,13 @@ def _documentation_spans(source: str) -> list[tuple[int, int, int, int]]:
             if tok.type == tokenize.COMMENT:
                 spans.append((tok.start[0], tok.start[1], tok.end[0], tok.end[1]))
     except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
-        pass  # scanner:ignore -- best-effort tokenizing; advisory spans only
+        note_failure("scanner:L206", None) # scanner:ignore -- best-effort tokenizing; advisory spans only
 
     # Docstrings, meaning only the leading string of a module/class/function body.
     try:
         tree = ast.parse(source)
     except SyntaxError:
+        note_failure("scanner:L212", None)
         return spans
     for node in ast.walk(tree):
         if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -235,7 +247,7 @@ def _string_literal_spans(source: str) -> list[tuple[int, int, int, int]]:
             if tok.type == tokenize.STRING:
                 spans.append((tok.start[0], tok.start[1], tok.end[0], tok.end[1]))
     except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
-        pass  # scanner:ignore -- best-effort tokenizing; advisory spans only
+        note_failure("scanner:L237", None) # scanner:ignore -- best-effort tokenizing; advisory spans only
     return spans
 
 
@@ -492,6 +504,7 @@ class ASTAntiPatternScanner:
                             findings.append((stmt.lineno, "except_return_default",
                                              "except: return"))
         except SyntaxError:
+            note_failure("scanner:L494", None)
             findings.append((0, "syntax_error", "Cannot parse source — syntax error"))
 
         # 7. cls.__new__() patterns
@@ -540,6 +553,7 @@ class ASTAntiPatternScanner:
             source = path.read_text(encoding="utf-8")
             return self.scan_source(str(path), source)
         except (OSError, UnicodeDecodeError) as e:
+            note_failure("scanner:L542", e)
             return AntiPatternResult(
                 filepath=str(path),
                 lines_scanned=0,
@@ -981,6 +995,7 @@ def run_cli():
                     if mtime_dt >= _since_dt:
                         filtered.append(r)
                 except OSError:
+                    note_failure("scanner:L983", None)
                     filtered.append(r)
             results = filtered
         
@@ -1294,7 +1309,7 @@ def run_cli():
                 "results": [r.to_dict() for r in results],
             })
         except Exception:
-            pass  # scanner:ignore -- DB storage is advisory, never block a scan
+            note_failure("scanner:L1296", None) # scanner:ignore -- DB storage is advisory, never block a scan
 
         # Apply --threshold: only fail if findings exceed threshold
         if args.threshold > 0 and total_findings <= args.threshold:
@@ -1509,6 +1524,7 @@ def _run_watch_mode(directory: str, fmt: str, exclude_dirs: (list[str] | None), 
         while observer.is_alive():
             observer.join(1)
     except KeyboardInterrupt:
+        note_failure("scanner:L1511", None)
         observer.stop()
     except Exception as e:
         print(f"\n  Watch error: {e}")
@@ -1704,7 +1720,7 @@ def _run_daemon_mode(directory: str, fmt: str, exclude_dirs: (list[str] | None),
                         "results": [r.to_dict() for r in results],
                     })
                 except Exception:
-                    pass  # scanner:ignore -- DB storage is advisory
+                    note_failure("scanner:L1706", None) # scanner:ignore -- DB storage is advisory
 
                 if fmt == "junit-xml" and total_findings > 0:
                     _print_junit_xml(results, total_files, total_findings)
@@ -1806,7 +1822,7 @@ $$balloon.Dispose()
         encoded = base64.b64encode(ps_script.encode('utf-16le')).decode()
         subprocess.run(["powershell", "-EncodedCommand", encoded], capture_output=True, timeout=15)
     except Exception:
-        pass  # scanner:ignore -- a notification is advisory, never fatal
+        note_failure("scanner:L1808", None) # scanner:ignore -- a notification is advisory, never fatal
 
 
 # ---------------------------------------------------------------------------
@@ -1845,6 +1861,7 @@ def _apply_auto_fixes(results, dry_run=False, quiet=False):
             with open(filepath, "r", encoding="utf-8") as f:
                 lines = f.readlines()
         except (OSError, UnicodeDecodeError):
+            note_failure("scanner:L1847", None)
             continue
 
         original = lines.copy()

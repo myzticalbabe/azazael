@@ -33,6 +33,16 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 CANONICAL_DIM = 768
 OLLAMA_URL = "http://127.0.0.1:11434/api/embeddings"
 DEFAULT_MODEL = "nomic-embed-text"
@@ -81,6 +91,8 @@ class _EmbeddingCache:
             self._db_path.parent.mkdir(parents=True, exist_ok=True)
         except OSError:
             # D: not writable/absent — fall back to user home
+            # D: not writable/absent — fall back to user home
+            note_failure("embedding_backend:L82", None)
             self._db_path = Path.home() / ".azazael" / "embedding_cache.db"
             self._db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._lock:
@@ -119,6 +131,7 @@ class _EmbeddingCache:
             vec = json.loads(row[0])
             return vec if isinstance(vec, list) else None
         except Exception:
+            note_failure("embedding_backend:L121", None)
             return None
 
     def put(self, text: str, vec: List[float], backend: str,
@@ -135,7 +148,7 @@ class _EmbeddingCache:
             )
             conn.commit()
         except Exception:
-            pass
+            note_failure("embedding_backend:L137", None)
 
     def stats(self) -> Dict[str, Any]:
         try:
@@ -146,6 +159,7 @@ class _EmbeddingCache:
             ).fetchall())
             return {"cache_path": str(self._db_path), "cached": total, "by_backend": by_backend}
         except Exception:
+            note_failure("embedding_backend:L148", None)
             return {"cache_path": str(self._db_path), "cached": 0, "by_backend": {}}
 
 
@@ -179,6 +193,7 @@ class _OllamaBackend:
                 resp.read()
             return True
         except Exception:
+            note_failure("embedding_backend:L181", None)
             with self._lock:
                 self._down_until[model] = time.time() + _NEGATIVE_CACHE_TTL
             return False
@@ -199,6 +214,7 @@ class _OllamaBackend:
                 return None
             return [float(x) for x in vec]
         except Exception:
+            note_failure("embedding_backend:L201", None)
             with self._lock:
                 self._down_until[model] = time.time() + _NEGATIVE_CACHE_TTL
             return None
@@ -235,6 +251,7 @@ class _LlamaServerBackend:
                 raise RuntimeError("not ready")
             return True
         except Exception:
+            note_failure("embedding_backend:L237", None)
             with self._lock:
                 self._down_until = time.time() + _NEGATIVE_CACHE_TTL
             return False
@@ -264,6 +281,7 @@ class _LlamaServerBackend:
                 pooled = [x / norm for x in pooled]
             return pooled
         except Exception:
+            note_failure("embedding_backend:L266", None)
             with self._lock:
                 self._down_until = time.time() + _NEGATIVE_CACHE_TTL
             return None
@@ -315,6 +333,7 @@ def _pulled_models() -> List[str]:
             data = json.loads(resp.read().decode("utf-8"))
         names = {m.get("name", "").split(":")[0] for m in data.get("models", [])}
     except Exception:
+        note_failure("embedding_backend:L317", None)
         names = set()
     for name in names:
         if name in MODEL_REGISTRY:
@@ -337,6 +356,7 @@ def _config_get(key: str, default: Any = None) -> Any:
             return default
         return json.loads(row[0])
     except Exception:
+        note_failure("embedding_backend:L339", None)
         return default
 
 
@@ -352,7 +372,7 @@ def _config_put(key: str, value: Any) -> None:
         )
         conn.commit()
     except Exception:
-        pass
+        note_failure("embedding_backend:L354", None)
 
 
 def optimal_dim() -> int:
@@ -406,11 +426,13 @@ def _corpus_for_optimization(limit: int = 200) -> List[Dict[str, Any]]:
         ).fetchall()
         conn.close()
     except Exception:
+        note_failure("embedding_backend:L408", None)
         return docs
     for r in rows:
         try:
             m = json.loads(r["metadata"])
         except Exception:
+            note_failure("embedding_backend:L413", None)
             continue
         if not isinstance(m, dict):
             continue
@@ -465,6 +487,7 @@ def _mrr_at_dim(docs: List[Dict[str, Any]], k: int, model: str = DEFAULT_MODEL) 
         np.fill_diagonal(sim, -1.0)  # exclude self
         mat = sim
     except Exception:
+        note_failure("embedding_backend:L467", None)
         mat = None
 
     def _order(i: int) -> List[int]:
@@ -485,6 +508,7 @@ def _mrr_at_dim(docs: List[Dict[str, Any]], k: int, model: str = DEFAULT_MODEL) 
             qsim = Q @ M.T
             qmat = True
         except Exception:
+            note_failure("embedding_backend:L487", None)
             qmat = False
         for qi, (q, expected) in enumerate(_PARAPHRASE_EVAL):
             if q not in q_proj:
@@ -551,6 +575,7 @@ def optimize_dimension(verbose: bool = True) -> Dict[str, Any]:
         try:
             scores[str(d)] = round(_mrr_at_dim(docs, d, m), 4)
         except Exception:
+            note_failure("embedding_backend:L553", None)
             scores[str(d)] = 0.0
     best_dim = max(_CANDIDATE_DIMS, key=lambda d: scores[str(d)])
     best_model = models_used.get(str(best_dim)) or DEFAULT_MODEL
@@ -613,6 +638,7 @@ def embed_text(text: str, model: str = DEFAULT_MODEL) -> List[float]:
             else:
                 vec = backend.embed(text)
         except Exception:
+            note_failure("embedding_backend:L615", None)
             vec = None
         if vec is not None:
             with _pick_lock:
@@ -632,6 +658,7 @@ def embed_many(texts: List[str], model: str = DEFAULT_MODEL) -> List[List[float]
         try:
             out.append(embed_text(t, model))
         except Exception:
+            note_failure("embedding_backend:L634", None)
             out.append([0.0] * CANONICAL_DIM)
     return out
 

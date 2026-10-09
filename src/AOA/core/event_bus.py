@@ -5,6 +5,16 @@ from datetime import datetime
 from collections import defaultdict
 import threading, uuid
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 
 class EventPriority:
     LOW = 0
@@ -58,6 +68,11 @@ class EventBus:
                         # `Class.method` truncated from the right keeps the
                         # class and throws away the identifying method --
                         # which is the only part that says which consumer broke.
+                        # Keep the LEAF of the qualname. A long
+                        # `Class.method` truncated from the right keeps the
+                        # class and throws away the identifying method --
+                        # which is the only part that says which consumer broke.
+                        note_failure("event_bus:L56", _e)
                         _qn = str(getattr(cb,"__qualname__",None)
                                   or getattr(cb,"__name__",None) or repr(cb))
                         if len(_qn)>80:
@@ -117,6 +132,7 @@ class EventPipeline:
                 if nxt is None: break
                 results.append(nxt); current=nxt
             except Exception as e:
+                note_failure("event_bus:L119", e)
                 results.append(AOEvent(event_type=AOEventType.WORKFLOW_FAILED,source_arm="pipeline."+self.name,payload={"step":i,"error":str(e)},correlation_id=initial.correlation_id,priority=3))
                 break
         return results

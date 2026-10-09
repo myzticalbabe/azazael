@@ -19,6 +19,17 @@ from core.arm_registry import ArmRegistry
 from core.event_bus import get_event_bus, AOEvent, AOEventType
 from core.session_manager import get_session_manager, MilestoneStatus
 from core.router import CrossArmRouter, WorkflowStep
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 SEPARATOR = "=" * 70
 

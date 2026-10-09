@@ -17,6 +17,16 @@ from typing import Dict, List, Optional, Callable, Any
 from datetime import datetime
 from pathlib import Path
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 
 @dataclass
 class ArmCapability:
@@ -182,6 +192,7 @@ def _ensure_arms_imported() -> None:
             _ARMS_IMPORTED = True
             return
         except Exception:
+            note_failure("arm_registry:L184", None)
             continue
     # The arm modules import ``core.*`` ABSOLUTELY, so the package only resolves
     # when the AOA root (the parent of ``core``) is importable. The documented
@@ -191,13 +202,14 @@ def _ensure_arms_imported() -> None:
         if aoa_root not in sys.path:
             sys.path.insert(0, aoa_root)
     except Exception:
-        pass
+        note_failure("arm_registry:L193", None)
     for name in _arms_package_names():
         try:
             importlib.import_module(name)
             _ARMS_IMPORTED = True
             return
         except Exception:
+            note_failure("arm_registry:L200", None)
             continue
     # Last resort: import the modules one by one. The package ``__init__`` fails
     # as a unit on a single bad arm, which would otherwise hide all the others.
@@ -208,6 +220,7 @@ def _ensure_arms_imported() -> None:
                 importlib.import_module("%s.%s" % (base, mod))
                 ok = True
             except Exception:
+                note_failure("arm_registry:L210", None)
                 continue
     _ARMS_IMPORTED = ok
 
@@ -322,6 +335,7 @@ class ArmRegistry:
                 else:
                     arm.metadata.status = "init_failed"
             except Exception as e:
+                note_failure("arm_registry:L324", e)
                 results[arm_id] = False
                 if arm.metadata:
                     arm.metadata.status = f"error: {e}"
@@ -339,6 +353,7 @@ class ArmRegistry:
                     if arm.metadata:
                         arm.metadata.status = "shutdown"
                 except Exception as e:
+                    note_failure("arm_registry:L341", e)
                     results[arm_id] = False
                 self._initialized_arms.discard(arm_id)
         return results

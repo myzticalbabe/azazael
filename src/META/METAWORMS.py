@@ -34,11 +34,21 @@ import hashlib
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from collections import defaultdict
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -123,7 +133,7 @@ class METAZ:
                         }
                         items += 1
                     except Exception:
-                        pass
+                        note_failure("METAWORMS:L125", None)
 
         return WormResult(
             name="METAZ",
@@ -139,6 +149,7 @@ class METAZ:
         try:
             return hashlib.md5(path.read_bytes()).hexdigest()[:16]
         except Exception:
+            note_failure("METAWORMS:L141", None)
             return ""
 
 
@@ -179,7 +190,7 @@ class DEPENDZ:
                                 dependencies[str(f)].append(dep)
                                 items += 1
                 except Exception:
-                    pass
+                    note_failure("METAWORMS:L181", None)
 
         return WormResult(
             name="DEPENDZ",
@@ -219,9 +230,10 @@ class VALIDZ:
                     ast.parse(content)
                     items += 1
                 except SyntaxError as e:
+                    note_failure("METAWORMS:L221", e)
                     errors.append(f"{f}:{e.lineno} - {e.msg}")
                 except Exception:
-                    pass
+                    note_failure("METAWORMS:L223", None)
 
         return WormResult(
             name="VALIDZ",
@@ -273,7 +285,7 @@ class DEADZ:
 
                     items += 1
                 except Exception:
-                    pass
+                    note_failure("METAWORMS:L275", None)
 
         return WormResult(
             name="DEADZ",
@@ -340,7 +352,7 @@ class METRICZ:
 
                     items += 1
                 except Exception:
-                    pass
+                    note_failure("METAWORMS:L342", None)
 
         return WormResult(
             name="METRICZ",
@@ -384,7 +396,7 @@ class LOGZ:
                                 logs["INFO"] += 1
                             items += 1
                 except Exception:
-                    pass
+                    note_failure("METAWORMS:L386", None)
 
         return WormResult(
             name="LOGZ",
@@ -429,7 +441,7 @@ class CHANGEZ:
                         if changes[str(f)]["recent"]:
                             items += 1
                     except Exception:
-                        pass
+                        note_failure("METAWORMS:L431", None)
 
         return WormResult(
             name="CHANGEZ",

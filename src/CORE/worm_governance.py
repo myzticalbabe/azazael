@@ -42,7 +42,17 @@ import inspect
 import logging
 import threading
 from datetime import datetime
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _log = logging.getLogger("worm_governance")
 
@@ -450,7 +460,7 @@ class DedupAnalyzer:
                           if p.name != "self" and p.name != "cls"]
                 signatures[name] = params
             except (ValueError, TypeError):
-                pass
+                note_failure("worm_governance:L452", None)
 
         self._sig_cache[cls_id] = signatures
         return signatures
@@ -503,6 +513,7 @@ class DedupAnalyzer:
                 elif tok.type in (tokenize.STRING, tokenize.NUMBER):
                     tokens.add(tok.string.strip().lower()[:40])
         except Exception:
+            note_failure("worm_governance:L505", None)
             tokens = set()
         result = frozenset(tokens)
         self._impl_cache[cls_id] = result
@@ -681,6 +692,7 @@ class DedupAnalyzer:
                 match = self.compare_worms(label, _info(cls_a),
                                            label + "_b", _info(cls_b))
             except Exception as exc:
+                note_failure("worm_governance:L683", exc)
                 controls[label] = {"passed": False, "raised": repr(exc)[:160]}
                 failures.append(label)
                 return
@@ -731,6 +743,7 @@ class DedupAnalyzer:
             try:
                 from CORE.worm_registry import WORM_REGISTRY as registry
             except Exception as exc:
+                note_failure("worm_governance:L733", exc)
                 return {"available": False, "reason": repr(exc)[:160]}
         names = [n for n, i in registry.items()
                  if isinstance(i, dict) and i.get("class")]
@@ -911,6 +924,7 @@ class LifecycleManager:
                     if hours_since > self.STALE_HOURS:
                         stale.append(name)
                 except (ValueError, TypeError):
+                    note_failure("worm_governance:L913", None)
                     stale.append(name)
 
         return stale
@@ -944,7 +958,7 @@ class LifecycleManager:
                     last_time = datetime.fromisoformat(last_spawned)
                     hours_since = (now - last_time).total_seconds() / 3600
                 except (ValueError, TypeError):
-                    pass
+                    note_failure("worm_governance:L946", None)
 
             vitality = self.get_vitality_score(name, info)
             deprecation_reason = info.get("deprecation_reason")
@@ -1213,6 +1227,7 @@ class WormGovernor:
                     if not legacy:
                         reasons.append("naming_violation")
             except Exception:
+                note_failure("worm_governance:L1215", None)
                 reasons.append("naming_check_error")
         changes = entry.get("changes") or {}
         if isinstance(changes, dict):

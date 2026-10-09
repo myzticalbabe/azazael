@@ -51,11 +51,21 @@ import subprocess
 import sys
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from collections import defaultdict
 from datetime import datetime
 import ast
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -149,6 +159,7 @@ class PythonModuleFinder:
                         self.modules[full_path] = module_info
 
                     except (PermissionError, OSError):
+                        note_failure("comprehensive_analysis:L151", None)
                         continue
 
         print(f"Found {len(self.modules)} Python modules")
@@ -206,8 +217,10 @@ class ModuleAnalyzer:
                 module.has_init = True
 
         except SyntaxError as e:
+            note_failure("comprehensive_analysis:L208", e)
             module.errors.append(f"Syntax error: {e}")
         except Exception as e:
+            note_failure("comprehensive_analysis:L210", e)
             module.errors.append(f"Analysis error: {e}")
 
         return module
@@ -253,8 +266,10 @@ class ModuleTester:
                 result.errors.append(proc.stderr)
 
         except subprocess.TimeoutExpired:
+            note_failure("comprehensive_analysis:L255", None)
             result.errors.append("Test timed out (>30s)")
         except Exception as e:
+            note_failure("comprehensive_analysis:L257", e)
             result.errors.append(str(e))
         finally:
             result.duration_ms = (datetime.now() - start_time).total_seconds() * 1000
@@ -308,6 +323,7 @@ class ModuleFixer:
                         "Potential encoding issues - recommend adding # coding: utf-8"
                     )
         except Exception:
+            note_failure("comprehensive_analysis:L310", None)
             issues.append("Cannot read file for encoding check")
 
         # Issue 2: Missing imports
@@ -330,6 +346,7 @@ class ModuleFixer:
                     result.fix_applied = True
                     result.fix_details = "Added UTF-8 encoding declaration"
                 except Exception as e:
+                    note_failure("comprehensive_analysis:L332", e)
                     result.fix_details = f"Failed to apply encoding fix: {e}"
 
             elif "syntax" in issue.lower():
@@ -474,6 +491,7 @@ class PrerequisiteChecker:
                     try:
                         __import__(pkg)
                     except ImportError:
+                        note_failure("comprehensive_analysis:L476", None)
                         if pkg not in report["missing_packages"]:
                             report["missing_packages"].append(
                                 {"package": pkg, "install": install_cmd}
@@ -532,6 +550,7 @@ class BATImprover:
                 Path(bat_path).write_text("\n".join(lines))
 
         except Exception as e:
+            note_failure("comprehensive_analysis:L534", e)
             improvements["error"] = str(e)
 
         self.improvements.append(improvements)

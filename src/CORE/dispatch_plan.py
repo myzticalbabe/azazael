@@ -35,7 +35,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)

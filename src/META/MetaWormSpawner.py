@@ -40,8 +40,18 @@ import json
 import hashlib
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 import argparse
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Add project paths for standalone execution
 _META_DIR = Path(__file__).resolve().parent
@@ -156,6 +166,7 @@ class CurativePool:
                 self.metrics.record_action(scope_result, necessity_result, emotion_result)
                 audit_result.update(audit)
             except Exception as e:
+                note_failure("MetaWormSpawner:L158", e)
                 pool_errors.append(f"pool2: {e}")
 
         def run_pool3():
@@ -167,6 +178,7 @@ class CurativePool:
                 routing_result["action_type"] = action_type
                 routing_result["archetype"] = self.ACTION_ARCHETYPE_MAP.get(action_type, "The Hero")
             except Exception as e:
+                note_failure("MetaWormSpawner:L169", e)
                 pool_errors.append(f"pool3: {e}")
 
         t2 = threading.Thread(target=run_pool2, daemon=True)

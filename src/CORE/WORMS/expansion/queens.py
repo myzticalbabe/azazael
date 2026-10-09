@@ -50,9 +50,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 try:
     from CORE.worm_registry import register_worm, WORM_REGISTRY
 except ImportError:  # pragma: no cover — registry optional
+    note_failure("queens:L55", None)
     def register_worm(**kw):
         return lambda cls: cls
     WORM_REGISTRY: Dict[str, Dict[str, Any]] = {}
@@ -60,6 +71,7 @@ except ImportError:  # pragma: no cover — registry optional
 try:
     from CORE import spine_registry as _spine
 except ImportError:  # pragma: no cover — ledger optional
+    note_failure("queens:L62", None)
     _spine = None
 
 
@@ -86,6 +98,7 @@ def _load_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
+        note_failure("queens:L88", None)
         return None
 
 
@@ -132,6 +145,7 @@ def _scan_production_mentions() -> Dict[str, set]:
         # disable this guard, so it is asserted below rather than assumed.
         src = Path(__file__).resolve().parents[3]
     except Exception:  # pragma: no cover - defensive
+        note_failure("queens:L134", None)
         return out
     if not src.exists() or not (src / "CORE").exists():
         return out
@@ -147,6 +161,7 @@ def _scan_production_mentions() -> Dict[str, set]:
         try:
             tree = _ast.parse(path.read_text(encoding="utf-8", errors="replace"))
         except Exception:
+            note_failure("queens:L149", None)
             continue
         rel = str(path)
         hits = {n.id for n in _ast.walk(tree) if isinstance(n, _ast.Name)}
@@ -186,6 +201,7 @@ def _is_wired_in_production(name: str, info: Dict[str, Any]) -> bool:
             target = getattr(handle, "__file__", None)
             own_file = str(target) if target else None
         except Exception:  # pragma: no cover - defensive
+            note_failure("queens:L188", None)
             own_file = None
     files = _production_mentions().get(name) or set()
     return bool({f for f in files if f != own_file})
@@ -366,7 +382,7 @@ class GrayQueenWorm:
                 import os
                 os.replace(str(tmp), str(snap_path))
             except Exception:
-                pass  # a failed snapshot must never break the observer
+                note_failure("queens:L368", None) # a failed snapshot must never break the observer
 
         with self._lock:
             self._sessions += 1
@@ -388,7 +404,7 @@ class GrayQueenWorm:
                     "entrenched": len(entrenched),
                     "delta": result["counts"]["delta"]})
             except Exception:
-                pass
+                note_failure("queens:L390", None)
         return result
 
     def execute(self) -> Dict[str, Any]:
@@ -473,6 +489,7 @@ class BlackQueenWorm:
         try:
             view = _spine.get_homeostat_view()
         except Exception:
+            note_failure("queens:L475", None)
             return 0
         suffix = ":" + name
         total = 0
@@ -487,6 +504,7 @@ class BlackQueenWorm:
         try:
             from CORE.worm_governance import DedupAnalyzer
         except Exception:
+            note_failure("queens:L489", None)
             return None
         analyzer = DedupAnalyzer()
         best: Optional[Dict[str, Any]] = None
@@ -504,6 +522,7 @@ class BlackQueenWorm:
             try:
                 match = analyzer.compare_worms(name, info, other, oinfo)
             except Exception:
+                note_failure("queens:L506", None)
                 continue
             if match is None:
                 continue
@@ -531,6 +550,7 @@ class BlackQueenWorm:
         try:
             from CORE.worm_registry import is_protected_worm
         except Exception:
+            note_failure("queens:L533", None)
             def is_protected_worm(_info):  # type: ignore
                 return False
         for name, info in list(WORM_REGISTRY.items()):
@@ -583,6 +603,7 @@ class BlackQueenWorm:
                     from CORE.worm_governance import DedupAnalyzer
                     self._metric = DedupAnalyzer().self_check()
                 except Exception as exc:
+                    note_failure("queens:L585", exc)
                     self._metric = {"trustworthy": False,
                                     "reason": "self_check_failed",
                                     "detail": repr(exc)[:160]}
@@ -639,6 +660,7 @@ class BlackQueenWorm:
                         finding, "operator" if force else env, "retire",
                         quorum=self.QUORUM)
                 except Exception:
+                    note_failure("queens:L641", None)
                     vote = {}
             decided = bool(force) or bool(vote.get("decided"))
             if not decided:
@@ -665,7 +687,7 @@ class BlackQueenWorm:
                         "forced": bool(force), "envs": vote.get("envs"),
                         "applied": rec["applied"]})
                 except Exception:
-                    pass
+                    note_failure("queens:L667", None)
             proposed.append(rec)
         return {"success": True, "evaluated": len(cands),
                 "retired": len(proposed), "held": len(held),
@@ -715,6 +737,7 @@ class BlackQueenWorm:
                 tmp.write_text(json.dumps(raw, indent=1), encoding="utf-8")
                 os.replace(str(tmp), str(census_path))
             except Exception:
+                note_failure("queens:L717", None)
                 return touched  # the in-memory decision still stands
         return touched
 
@@ -735,5 +758,6 @@ def _local_env() -> str:
         from CORE.env_id import env_id
         return str(env_id())
     except Exception:  # pragma: no cover - CORE.env_id is stdlib-only
+        note_failure("queens:L737", None)
         import os
         return "windows" if os.name == "nt" else "bare"

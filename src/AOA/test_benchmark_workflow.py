@@ -13,6 +13,17 @@ from core.arm_registry import ArmRegistry
 from core.event_bus import get_event_bus, AOEvent, AOEventType
 from core.router import CrossArmRouter, WorkflowStep
 from core.session_manager import get_session_manager, MilestoneStatus
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Session audit trail (2026-09-28): the run records itself -- init
 # outcomes and every step -- so the session dir cannot stay empty.
@@ -184,6 +195,7 @@ try:
             _en = _dt.fromisoformat(_r.get("completed_at", ""))
             _ms = max(0.0, (_en - _st).total_seconds() * 1000.0)
         except Exception:
+            note_failure("test_benchmark_workflow:L186", None)
             _ms = 0.0
         _ok = (_r.get("status") == "completed"
                and (_r.get("result") or {}).get("status") == "ok")

@@ -25,7 +25,17 @@ import os
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 VERSION = "1.0.0"
 PHASES: tuple[str, ...] = (
@@ -162,6 +172,7 @@ def _candidate_from_finding(root: Path, finding: Mapping[str, Any]) -> Candidate
         detector = str(finding["detector"])
         severity = str(finding.get("severity", "LOW")).upper()
     except (KeyError, TypeError, ValueError, MetaEvolutionError):
+        note_failure("meta_evolution:L164", None)
         return None
     if not path.is_file() or is_protected_path(rel):
         return None
@@ -325,6 +336,7 @@ def _function_rows(root: Path, rel: str) -> list[dict[str, Any]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
     except (OSError, SyntaxError) as exc:
+        note_failure("meta_evolution:L327", exc)
         return [{"name": "<module>", "qualname": "<module>", "line": 0,
                  "parse_error": str(exc)}]
     rows: list[dict[str, Any]] = []
@@ -351,6 +363,7 @@ def _build_call_index(root: Path) -> dict[str, list[str]]:
         try:
             tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
         except (OSError, SyntaxError):
+            note_failure("meta_evolution:L353", None)
             continue
         for node in ast.walk(tree):
             if not isinstance(node, ast.Call):
@@ -380,6 +393,7 @@ def _chain_job_specs(root: Path) -> dict[str, dict[str, Any]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
     except (OSError, SyntaxError):
+        note_failure("meta_evolution:L382", None)
         return {}
     for node in tree.body:
         if not isinstance(node, ast.Assign):
@@ -395,6 +409,7 @@ def _chain_job_specs(root: Path) -> dict[str, dict[str, Any]]:
             try:
                 elements = [ast.literal_eval(item) for item in value.elts]
             except (ValueError, TypeError):
+                note_failure("meta_evolution:L397", None)
                 continue
             if len(elements) == 5:
                 out[str(key.value)] = {

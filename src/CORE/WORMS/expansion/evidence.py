@@ -33,7 +33,17 @@ from __future__ import annotations
 import json
 import math
 from statistics import NormalDist
-from typing import Any, Optional
+from typing import Any, Optional, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = ["EraEvidence", "evidence_from_rows"]
 
@@ -85,6 +95,7 @@ class EraEvidence:
         try:
             m = float(margin)
         except (TypeError, ValueError):
+            note_failure("evidence:L87", None)
             return
         if not math.isfinite(m):
             return
@@ -261,6 +272,7 @@ def evidence_from_rows(rows: Any, margin_key: str = "margin",
             try:
                 data = json.loads(data)
             except Exception:
+                note_failure("evidence:L263", None)
                 continue
         if not isinstance(data, dict):
             continue
@@ -269,6 +281,7 @@ def evidence_from_rows(rows: Any, margin_key: str = "margin",
             try:
                 margin = float(data.get("best_total")) - float(data.get("baseline"))
             except (TypeError, ValueError):
+                note_failure("evidence:L271", None)
                 continue
         ev.observe(str(data.get(era_key, "unknown")), margin)
     return ev

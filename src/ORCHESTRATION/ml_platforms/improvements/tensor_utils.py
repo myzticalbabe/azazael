@@ -47,12 +47,24 @@ Usage:
 
 # from typing import Union, Optional  # removed — all names have native equivalents
 import numpy as np
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     import torch
 
     HAS_TORCH = True
 except ImportError:
+    note_failure("tensor_utils:L55", None)
     HAS_TORCH = False
 
 try:
@@ -60,6 +72,7 @@ try:
 
     HAS_TF = True
 except ImportError:
+    note_failure("tensor_utils:L62", None)
     HAS_TF = False
 
 try:
@@ -67,6 +80,7 @@ try:
 
     HAS_JAX = True
 except ImportError:
+    note_failure("tensor_utils:L69", None)
     HAS_JAX = False
 
 

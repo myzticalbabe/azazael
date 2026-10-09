@@ -25,6 +25,17 @@ from datetime import datetime
 # from typing import Dict, List, Optional  # removed — all names have native equivalents
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class ConflictType(Enum):
@@ -94,6 +105,7 @@ class HydraProtocols:
             _desktop = get_desktop_dir()
             get_src_dir()
         except ImportError:
+            note_failure("hydra_protocols:L96", None)
             import sys as _sys
             _sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
             from CORE.paths import get_src_dir, get_desktop_dir
@@ -236,6 +248,7 @@ class HydraProtocols:
                     print(f"[MISSING] {pkg}")
                     result.conflicts_remaining += 1
             except Exception as e:
+                note_failure("hydra_protocols:L238", e)
                 result.errors.append(f"{pkg}: {str(e)}")
                 result.conflicts_remaining += 1
 
@@ -294,6 +307,7 @@ class HydraProtocols:
                     print(f"[MODIFIED] {py_file.relative_to(self.root)}")
 
             except Exception as e:
+                note_failure("hydra_protocols:L296", e)
                 result.errors.append(f"{py_file}: {str(e)}")
 
         result.duration_ms = (time.time() - start) * 1000
@@ -350,6 +364,7 @@ class HydraProtocols:
                     print(f"[SPELLING] {py_file.relative_to(self.root)}")
 
             except Exception as e:
+                note_failure("hydra_protocols:L352", e)
                 result.errors.append(f"{py_file}: {str(e)}")
 
         result.duration_ms = (time.time() - start) * 1000
@@ -412,6 +427,7 @@ class HydraProtocols:
                     print(f"[IMPORT_FIX] {py_file.relative_to(self.root)}")
 
             except Exception as e:
+                note_failure("hydra_protocols:L414", e)
                 result.errors.append(f"{py_file}: {str(e)}")
 
         result.duration_ms = (time.time() - start) * 1000
@@ -536,6 +552,7 @@ class HydraProtocols:
             try:
                 results[name] = protocol()
             except Exception as e:
+                note_failure("hydra_protocols:L538", e)
                 results[name] = ProtocolResult(
                     protocol=name,
                     success=False,

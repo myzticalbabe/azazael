@@ -59,6 +59,16 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 #: TypeSafe's System One endpoint, as used by the local `jev-ultrafast` client.
 JEV_ENDPOINT = "https://api.typesafe.ai/v1/systemone"
 
@@ -182,6 +192,7 @@ def validate_choice(answer: Any, candidates: Mapping[str, str]) -> Dict[str, Any
             and probabilities[choice] >= max(probabilities.values()) - 1e-6
         )
     except (KeyError, TypeError, ValueError, ZeroDivisionError):
+        note_failure("jev_advisor:L184", None)
         valid = False
     if not valid:
         raise JevError("answer failed validation against the offered candidates")
@@ -287,6 +298,7 @@ class JevAdvisor:
             )
             return True
         except Exception:
+            note_failure("jev_advisor:L289", None)
             return False
 
     # -- the call ------------------------------------------------------
@@ -389,6 +401,7 @@ def _data_of(row: Mapping[str, Any]) -> Dict[str, Any]:
         try:
             data = json.loads(data)
         except (ValueError, TypeError):
+            note_failure("jev_advisor:L391", None)
             return {}
     return data if isinstance(data, dict) else {}
 

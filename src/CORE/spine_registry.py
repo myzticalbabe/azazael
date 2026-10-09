@@ -32,6 +32,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __version__ = "1.0.0"
 
 # ── SPINE MAP (topology snapshot) ────────────────────────────────────
@@ -355,6 +365,7 @@ def _adopt_counter(key: str, field: str, incoming: int, current: int) -> int:
     try:
         n = int(incoming)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L357", None)
         return current
     cur = max(int(current), n)
     floor = (_COUNTER_FLOOR.get(key) or {}).get(field)
@@ -375,6 +386,7 @@ def _adopt_evidence(key: str, incoming: int) -> int:
     try:
         n = int(incoming)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L377", None)
         return _Q_UPDATE_COUNTS.get(key, 0)
     cur = max(_Q_UPDATE_COUNTS.get(key, 0), n)
     floor = _Q_EVIDENCE_FLOOR.get(key)
@@ -408,6 +420,7 @@ def _note_blocked_write(key: str) -> None:
     try:
         _PURGED_BLOCKED_WRITES[key] = _PURGED_BLOCKED_WRITES.get(key, 0) + 1
     except Exception:
+        note_failure("spine_registry:L410", None)
         pass
 
 
@@ -716,6 +729,7 @@ def _hlc_now() -> str:
         from CORE.hlc import hlc
         return hlc().stamp()
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L718", None)
         return _now_iso()
 
 
@@ -729,6 +743,7 @@ def _observe_stamp(stamp: Any) -> None:
         from CORE.hlc import hlc
         hlc().observe(str(stamp or ""))
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L731", None)
         pass
 
 
@@ -743,6 +758,7 @@ def get_clock_skew_ms() -> int:
         from CORE.hlc import hlc
         return int(hlc().skew_ms())
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L745", None)
         return 0
 
 
@@ -761,6 +777,7 @@ def _fabric_field_stamp(rec: Dict[str, Any], attr: str) -> str:
             return normalize_stamp(str(own))
         return _rec_stamp(rec, "updated_at")
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L763", None)
         return str(rec.get("updated_at") or "")
 
 
@@ -783,6 +800,7 @@ def _rec_stamp(rec: Any, iso_field: str) -> str:
         from CORE.hlc import normalize_stamp
         return normalize_stamp(str(stamp or ""))
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L785", None)
         return str(stamp or "")
 
 
@@ -815,6 +833,7 @@ def _stamp_adoptable(stamp: str) -> bool:
             return True
         return u[0] <= int(_t.time() * 1000) + MAX_DRIFT_MS
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L817", None)
         return True
 
 
@@ -855,6 +874,7 @@ def _stamp_newer(candidate: Any, current: Any) -> bool:
         a = normalize_stamp(raw)
         b = normalize_stamp(str(current if current is not None else ""))
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L857", None)
         a = raw
         b = str(current or "")
     if not _stamp_adoptable(a):
@@ -904,6 +924,7 @@ def publish_fabric_state(provider: str, state: Dict[str, Any]) -> Dict[str, Any]
         return {"success": True, "provider": provider,
                 "keys": sorted(state.keys())[:12]}
     except Exception as exc:
+        note_failure("spine_registry:L906", exc)
         return {"success": False, "error": str(exc)[:120]}
 
 
@@ -1108,6 +1129,7 @@ def _migrate_state(payload: Any) -> Dict[str, Any]:
     try:
         report["from_version"] = int(payload.get("schema_version") or 0)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L1110", None)
         report["from_version"] = 0
     report["previous_schema"] = report["from_version"] < _STATE_SCHEMA_VERSION
     qw = payload.get("q_weights")
@@ -1129,6 +1151,7 @@ def _migrate_state(payload: Any) -> Dict[str, Any]:
         try:
             n = int(rec.get("successes") or 0) + int(rec.get("failures") or 0)
         except (TypeError, ValueError):
+            note_failure("spine_registry:L1131", None)
             continue
         if n > 0:
             counts[key] = n
@@ -1154,6 +1177,7 @@ def _merge_disk_state() -> None:
             return
         payload = json.loads(_STATE_FILE.read_text(encoding="utf-8"))
     except Exception:
+        note_failure("spine_registry:L1156", None)
         return
     # Read-path migration. Both readers (`load_spine_state` is the other) run
     # it, so the file is interpreted identically whichever entry point touches
@@ -1181,6 +1205,7 @@ def _merge_disk_state() -> None:
                 try:
                     _Q_DREAM_COUNTS[k] = max(_Q_DREAM_COUNTS.get(k, 0), int(n))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L1183", None)
                     pass
             for k, v in (payload.get("homeostat") or {}).items():
                 if _purged_blocked(k) or not isinstance(v, dict):
@@ -1194,6 +1219,7 @@ def _merge_disk_state() -> None:
                         cur[f] = _adopt_counter(
                             k, f, int(v.get(f, 0)), int(cur.get(f, 0)))
                     except (TypeError, ValueError):
+                        note_failure("spine_registry:L1196", None)
                         pass
                 if _stamp_newer(_rec_stamp(v, "last_at"),
                                 _rec_stamp(cur, "last_at")):
@@ -1208,6 +1234,7 @@ def _merge_disk_state() -> None:
                     try:
                         _Q_WEIGHTS[k] = max(_Q_MIN, min(_Q_MAX, float(w)))
                     except (TypeError, ValueError):
+                        note_failure("spine_registry:L1210", None)
                         pass
             for k, n in (payload.get("q_evidence_floor") or {}).items():
                 if _purged_blocked(k):
@@ -1215,6 +1242,7 @@ def _merge_disk_state() -> None:
                 try:
                     _Q_EVIDENCE_FLOOR[str(k)] = int(n)
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L1217", None)
                     pass
             for k, floors in (payload.get("counter_floor") or {}).items():
                 if _purged_blocked(str(k)) or not isinstance(floors, dict):
@@ -1224,6 +1252,7 @@ def _merge_disk_state() -> None:
                         f: int(n) for f, n in floors.items()
                         if f in ("successes", "failures")}
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L1226", None)
                     pass
             for k, n in (payload.get("q_update_counts") or {}).items():
                 if _purged_blocked(k):
@@ -1235,6 +1264,7 @@ def _merge_disk_state() -> None:
                 try:
                     _Q_VARIANCE.setdefault(k, float(var))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L1237", None)
                     pass
             for k, v in (payload.get("scars") or {}).items():
                 if _purged_blocked(k):
@@ -1248,6 +1278,7 @@ def _merge_disk_state() -> None:
         _merge_quarantine_items(payload.get("quarantined_items"))
         _merge_fabric(payload.get("fabric_state"))
     except Exception:
+        note_failure("spine_registry:L1250", None)
         pass
 
 
@@ -1275,6 +1306,7 @@ def _ensure_loaded() -> None:
             if _STATE_FILE.exists():
                 load_spine_state()
         except Exception:
+            note_failure("spine_registry:L1277", None)
             pass
 
 
@@ -1299,6 +1331,7 @@ def _ordering_stamp(info: Dict[str, Any]) -> str:
             from CORE.hlc import normalize_stamp
             return normalize_stamp(str(pinned))
         except Exception:  # pragma: no cover - defensive
+            note_failure("spine_registry:L1301", None)
             return str(pinned)
     return _hlc_now()
 
@@ -1465,6 +1498,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                 try:
                     signal = max(_Q_MIN, min(_Q_MAX, float(delta)))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L1467", None)
                     signal = 0.0
                 rec["last_reward"] = round(signal, 4)
                 rec["last_signal_kind"] = "delta"
@@ -1478,6 +1512,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                     try:
                         signal = max(_Q_MIN, min(_Q_MAX, float(reward)))
                     except (TypeError, ValueError):
+                        note_failure("spine_registry:L1480", None)
                         signal = 1.0 if success else -1.0
                 rec["last_reward"] = round(signal, 4)
                 rec["last_signal_kind"] = "target"
@@ -1526,6 +1561,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                                      "to": info["priority"]},
                     })
             except Exception:
+                note_failure("spine_registry:L1528", None)
                 pass
             with _SCAR_LOCK:
                 _SCARS[key] = {"since": last_at,
@@ -1536,6 +1572,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                     "action": "cooldown+priority+scar",
                 })
             except Exception:
+                note_failure("spine_registry:L1538", None)
                 pass
         elif success:
             # G7: Graduated scar healing. Instead of instant full heal,
@@ -1560,6 +1597,7 @@ def record_outcome(nature: str, worm: str, success: bool,
                     record_spine_event("scar_healed", {"key": key,
                         "heal_count": healed})
                 except Exception:
+                    note_failure("spine_registry:L1562", None)
                     pass
             elif scar:
                 try:
@@ -1567,8 +1605,10 @@ def record_outcome(nature: str, worm: str, success: bool,
                         "heal_count": scar.get("heal_count"),
                         "threshold": _HEAL_THRESHOLD})
                 except Exception:
+                    note_failure("spine_registry:L1569", None)
                     pass
     except Exception:
+        note_failure("spine_registry:L1571", None)
         pass  # feedback is best-effort by design
 
 
@@ -1735,6 +1775,7 @@ def dream_reinforce(nature: str, worm: str, reward: float) -> bool:
         _reinforce_q_simulated(key, max(_Q_MIN, min(_Q_MAX, float(reward))))
         return True
     except Exception:
+        note_failure("spine_registry:L1737", None)
         return False
 
 
@@ -1752,6 +1793,7 @@ def is_idle(window_seconds: float = 300.0) -> bool:
         with _HOMEOSTAT_LOCK:
             return not any(e.get("at", "") >= since for e in _merged_outcome_events())
     except Exception:
+        note_failure("spine_registry:L1754", None)
         return False
 
 
@@ -1840,6 +1882,7 @@ def _evidence_unlocked(key: str) -> int:
         try:
             return max(0, int(n))
         except (TypeError, ValueError):
+            note_failure("spine_registry:L1849", None)
             return 0
     rec = _HOMEOSTAT.get(key)
     if isinstance(rec, dict):
@@ -1847,6 +1890,7 @@ def _evidence_unlocked(key: str) -> int:
             return max(0, int(rec.get("successes") or 0)
                        + int(rec.get("failures") or 0))
         except (TypeError, ValueError):
+            note_failure("spine_registry:L1842", None)
             return 0
     return 0
 
@@ -1861,6 +1905,7 @@ def q_effective_from(q: float, n: int, k: float = _Q_SHRINK_K) -> float:
         qf = float(q)
         nf = max(0, int(n))
     except (TypeError, ValueError):
+        note_failure("spine_registry:L1863", None)
         return 0.0
     if nf <= 0:
         return 0.0
@@ -1882,12 +1927,14 @@ def q_stale_discount(last_at_iso: str,
             ts = ts.replace(tzinfo=_dt.timezone.utc)
         age = (_dt.datetime.now(_dt.timezone.utc) - ts).total_seconds()
     except Exception:
+        note_failure("spine_registry:L1884", None)
         return 1.0
     if age <= 0:
         return 1.0
     try:
         hl = max(1.0, float(half_life_s))
     except (TypeError, ValueError):
+        note_failure("spine_registry:L1890", None)
         hl = _Q_STALE_HALF_LIFE_S
     return 0.5 ** (age / hl)
 
@@ -1929,10 +1976,12 @@ def selection_score_from(q: float, n: int, var: float,
     try:
         v = max(0.0, float(var))
     except (TypeError, ValueError):
+        note_failure("spine_registry:L1931", None)
         v = 0.0
     try:
         obs = max(0, int(n))
     except (TypeError, ValueError):
+        note_failure("spine_registry:L1935", None)
         obs = 0
     if v > 0.0:
         eff -= abs(float(c)) * (v ** 0.5) / ((obs + 1) ** 0.5)
@@ -1960,6 +2009,7 @@ def selection_band(q: float) -> int:
     try:
         qf = float(q)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L1962", None)
         return 1
     if qf > 0.0:
         return 2
@@ -2089,6 +2139,7 @@ def invalidate_q(key: str, reason: str = "", factor: float = 0.5) -> Dict[str, A
     try:
         f = float(factor)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L2091", None)
         return {"success": False, "error": "factor must be numeric"}
     f = max(0.0, min(1.0, f))
     with _HOMEOSTAT_LOCK:
@@ -2114,6 +2165,7 @@ def invalidate_q(key: str, reason: str = "", factor: float = 0.5) -> Dict[str, A
             "reason": str(reason or "")[:120],
         })
     except Exception:
+        note_failure("spine_registry:L2116", None)
         pass
     try:
         record_spine_event("q_invalidated", {
@@ -2121,6 +2173,7 @@ def invalidate_q(key: str, reason: str = "", factor: float = 0.5) -> Dict[str, A
             "reason": str(reason or "")[:120],
         })
     except Exception:
+        note_failure("spine_registry:L2123", None)
         pass
     return {"success": True, "key": key, "evidence_from": before_n,
             "evidence_to": new_n, "q": round(before_q, 6),
@@ -2167,12 +2220,14 @@ def reset_counters(key: str, reason: str = "") -> Dict[str, Any]:
             "before": before, "after": {"successes": 0, "failures": 0},
             "reason": str(reason or "")[:200]})
     except Exception:
+        note_failure("spine_registry:L2169", None)
         pass
     try:
         record_spine_event("counters_reset", {
             "key": key, "before": before,
             "reason": str(reason or "")[:200]})
     except Exception:
+        note_failure("spine_registry:L2175", None)
         pass
     return {"success": True, "key": key, "before": before,
             "after": {"successes": 0, "failures": 0},
@@ -2324,6 +2379,7 @@ def purge_fixtures(persist: bool = False) -> Dict[str, Any]:
             "tombstoned": len(purged), "persisted": bool(saved.get("saved")),
         })
     except Exception:
+        note_failure("spine_registry:L2326", None)
         pass
     return {"success": True, "removed": removed,
             "removed_count": sum(len(v) for v in removed.values()),
@@ -2365,6 +2421,7 @@ def purge_edges(keys: Iterable[str], reason: str = "unevidenced",
         try:
             ks = str(k)
         except Exception:
+            note_failure("spine_registry:L2367", None)
             continue
         if ks and ks not in wanted:
             wanted.append(ks)
@@ -2377,6 +2434,7 @@ def purge_edges(keys: Iterable[str], reason: str = "unevidenced",
                 try:
                     n_dream = int(_Q_DREAM_COUNTS.get(k, 0) or 0)
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2379", None)
                     n_dream = 0
                 if n_obs > 0 or n_dream > 0:
                     refused.append(k)
@@ -2408,6 +2466,7 @@ def purge_edges(keys: Iterable[str], reason: str = "unevidenced",
                 "refused": len(refused), "persisted": bool(saved.get("saved")),
             })
         except Exception:
+            note_failure("spine_registry:L2410", None)
             pass
     return {"success": True, "removed": removed, "removed_count": len(removed),
             "refused": refused, "refused_count": len(refused),
@@ -2432,6 +2491,7 @@ def route_weight(q_effective: float, base_w: float = 1.0) -> float:
     try:
         bw = float(base_w)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L2434", None)
         bw = 1.0
     return round(max(_ROUTE_WEIGHT_MIN,
                      min(_ROUTE_WEIGHT_MAX, bw * (1.0 + float(q_effective)))), 4)
@@ -2501,6 +2561,7 @@ def cap_q_tables() -> int:
                               _Q_VARIANCE):
                     table.pop(k, None)
     except Exception:
+        note_failure("spine_registry:L2503", None)
         return 0
     # Tombstone, or the fold-in on the next save re-adopts every key just
     # dropped and the bound silently reverts.
@@ -2522,6 +2583,7 @@ def cap_q_tables() -> int:
                                                   "keys": len(_Q_WEIGHTS),
                                                   "bound": _Q_KEYS_MAX})
         except Exception:
+            note_failure("spine_registry:L2524", None)
             pass
     return dropped
 
@@ -2570,6 +2632,7 @@ def route_weight_range(base_w: float = 1.0) -> Dict[str, float]:
     try:
         bw = float(base_w)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L2572", None)
         bw = 1.0
     return {"base_weight": bw, "q_min": _Q_MIN, "q_max": _Q_MAX,
             "min_reachable": route_weight(_Q_MIN, bw),
@@ -2772,6 +2835,7 @@ def save_spine_state() -> Dict[str, Any]:
                    "quarantined_items": quarantine_count(),
                    "fabric_providers": len(fabric_state)}
     except Exception as exc:
+        note_failure("spine_registry:L2774", exc)
         summary = {"saved": False, "error": str(exc)[:120]}
     return summary
 
@@ -2800,6 +2864,7 @@ def load_spine_state() -> Dict[str, Any]:
                     "backfilled": len(migration.get("backfilled") or []),
                 })
             except Exception:
+                note_failure("spine_registry:L2802", None)
                 pass
         spine_map = payload.get("spine_map") or {}
         spine_events = payload.get("spine_events") or []
@@ -2841,6 +2906,7 @@ def load_spine_state() -> Dict[str, Any]:
                 try:
                     _Q_WEIGHTS.setdefault(k, max(_Q_MIN, min(_Q_MAX, float(w))))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2843", None)
                     pass
             # Counts are monotone observations: take MAX so N parallel
             # save-then-exit processes compose instead of overwriting (same
@@ -2851,6 +2917,7 @@ def load_spine_state() -> Dict[str, Any]:
                 try:
                     _Q_EVIDENCE_FLOOR[str(k)] = int(n)
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2853", None)
                     pass
             for k, floors in (payload.get("counter_floor") or {}).items():
                 if _purged_blocked(str(k)) or not isinstance(floors, dict):
@@ -2860,6 +2927,7 @@ def load_spine_state() -> Dict[str, Any]:
                         f: int(n) for f, n in floors.items()
                         if f in ("successes", "failures")}
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2862", None)
                     pass
             for k, n in (payload.get("q_update_counts") or {}).items():
                 if _purged_blocked(k):
@@ -2871,6 +2939,7 @@ def load_spine_state() -> Dict[str, Any]:
                 try:
                     _Q_DREAM_COUNTS[k] = max(_Q_DREAM_COUNTS.get(k, 0), int(n))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2873", None)
                     pass
             # Variance: adopt only when we have none; a restored value must not
             # overwrite variance this process has already measured.
@@ -2880,6 +2949,7 @@ def load_spine_state() -> Dict[str, Any]:
                 try:
                     _Q_VARIANCE.setdefault(k, float(var))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2882", None)
                     pass
             for k, v in (payload.get("scars") or {}).items():
                 if _purged_blocked(k):
@@ -2919,12 +2989,14 @@ def load_spine_state() -> Dict[str, Any]:
                     _GOSSIP_SEQ_LOCAL = max(_GOSSIP_SEQ_LOCAL,
                                             int(gossip.get("seq") or 0))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L2921", None)
                     pass
                 for env, seq in (gossip.get("seq_seen") or {}).items():
                     try:
                         _GOSSIP_SEQ_SEEN[str(env)] = max(
                             int(_GOSSIP_SEQ_SEEN.get(str(env), -1)), int(seq))
                     except (TypeError, ValueError):
+                        note_failure("spine_registry:L2927", None)
                         continue
                 for env, key in (gossip.get("keys") or {}).items():
                     if isinstance(key, str) and key:
@@ -2942,6 +3014,7 @@ def load_spine_state() -> Dict[str, Any]:
                     "quarantined_items": quarantine_count(),
                     "fabric_providers": len(payload.get("fabric_state") or {})}
     except Exception as exc:
+        note_failure("spine_registry:L2944", exc)
         restored = {"restored": False, "error": str(exc)[:120]}
     return restored
 
@@ -2990,6 +3063,7 @@ def revert_policy(actor: str = "operator", count: int = 1) -> List[Dict[str, Any
     try:
         from CORE.worm_registry import WORM_REGISTRY as _WR
     except ImportError:
+        note_failure("spine_registry:L2992", None)
         return reverted
     with _POLICY_LOCK:
         for entry in reversed(_POLICY_JOURNAL):
@@ -3015,6 +3089,7 @@ def revert_policy(actor: str = "operator", count: int = 1) -> List[Dict[str, Any
             record_spine_event("policy_reverted", {"by": actor,
                                                    "entries": len(reverted)})
         except Exception:
+            note_failure("spine_registry:L3017", None)
             pass
     return reverted
 
@@ -3106,6 +3181,7 @@ def purge_implausible_stamps(dry_run: bool = True) -> Dict[str, Any]:
             from CORE.hlc import normalize_stamp
             rec["hlc"] = normalize_stamp(str(rec.get(iso_field) or ""))
         except Exception:  # pragma: no cover - defensive
+            note_failure("spine_registry:L3108", None)
             rec.pop("hlc", None)
 
     try:
@@ -3136,8 +3212,10 @@ def purge_implausible_stamps(dry_run: bool = True) -> Dict[str, Any]:
                                 stamps[key] = normalize_stamp(
                                     str(rec.get("updated_at") or ""))
                             except Exception:  # pragma: no cover - defensive
+                                note_failure("spine_registry:L3138", None)
                                 stamps.pop(key, None)
     except Exception as exc:  # pragma: no cover - defensive
+        note_failure("spine_registry:L3140", exc)
         report["error"] = str(exc)[:160]
     return report
 
@@ -3227,11 +3305,13 @@ def _gossip_crypto():
         from cryptography.hazmat.primitives.asymmetric import ed25519
         from CORE.audit_trail import PUBLIC_KEY_PATH, _get_signing_key
     except Exception:
+        note_failure("spine_registry:L3229", None)
         return None
     try:
         key = _get_signing_key()
         local_pub = _b64.b64encode(PUBLIC_KEY_PATH.read_bytes()).decode("ascii")
     except Exception:
+        note_failure("spine_registry:L3234", None)
         return None
     if not key or not local_pub:
         return None
@@ -3242,6 +3322,7 @@ def _gossip_crypto():
             return _b64.b64encode(
                 priv.sign(canonical.encode("utf-8"))).decode("ascii")
         except Exception:
+            note_failure("spine_registry:L3244", None)
             return ""
 
     def _verify(canonical: str, sig_b64: str, pub_b64: str) -> bool:
@@ -3250,6 +3331,7 @@ def _gossip_crypto():
             pub.verify(_b64.b64decode(sig_b64), canonical.encode("utf-8"))
             return True
         except Exception:
+            note_failure("spine_registry:L3252", None)
             # Retry against the local public key: same-machine envs sharing
             # a home dir sign with one key, so a peer's declared key may be
             # absent from an older payload while ours still verifies it.
@@ -3259,6 +3341,7 @@ def _gossip_crypto():
                 pub.verify(_b64.b64decode(sig_b64), canonical.encode("utf-8"))
                 return True
             except Exception:
+                note_failure("spine_registry:L3261", None)
                 return False
 
     return _sign, _verify, local_pub
@@ -3306,16 +3389,19 @@ def _load_trusted_keys() -> tuple:
             p = Path(raw)
             sources.append(p.read_text(encoding="utf-8") if p.is_file() else raw)
         except Exception:
+            note_failure("spine_registry:L3308", None)
             sources.append(raw)
     try:
         if _TRUSTED_KEYS_FILE.exists():
             sources.append(_TRUSTED_KEYS_FILE.read_text(encoding="utf-8"))
     except Exception:
+        note_failure("spine_registry:L3313", None)
         pass
     for src in sources:
         try:
             data = json.loads(src)
         except Exception:
+            note_failure("spine_registry:L3318", None)
             continue  # unreadable source: fail closed (empty contribution)
         if not isinstance(data, dict):
             continue
@@ -3380,6 +3466,7 @@ def check_gossip_trust(payload: Any,
         try:
             seq = int(payload.get("seq") or 0)
         except (TypeError, ValueError):
+            note_failure("spine_registry:L3382", None)
             seq = 0
         res["seq"] = seq
 
@@ -3451,6 +3538,7 @@ def check_gossip_trust(payload: Any,
         res["signature"] = "invalid"
         return res
     except Exception as exc:  # never raise out of a trust check
+        note_failure("spine_registry:L3453", exc)
         res["reason"] = f"trust_error:{str(exc)[:60]}"
         return res
 
@@ -3469,6 +3557,7 @@ def _remember_gossip(trust: Dict[str, Any]) -> None:
             if pub and not _GOSSIP_KEYS.get(env):
                 _GOSSIP_KEYS[env] = pub
     except Exception:
+        note_failure("spine_registry:L3471", None)
         pass
 
 
@@ -3523,6 +3612,7 @@ def _valid_anomaly_model(model: Any) -> bool:
         n = int(model.get("input_dim"))
         h = int(model.get("hidden_dim"))
     except (TypeError, ValueError):
+        note_failure("spine_registry:L3525", None)
         return False
     if not (1 <= n <= _ANOMALY_MAX_DIM and 1 <= h <= _ANOMALY_MAX_DIM):
         return False
@@ -3549,6 +3639,7 @@ def _valid_anomaly_model(model: Any) -> bool:
                     return False
         obs = int(model.get("observations") or 0)
     except (TypeError, ValueError):
+        note_failure("spine_registry:L3551", None)
         return False
     return 0 <= obs <= _ANOMALY_MAX_OBSERVATIONS
 
@@ -3694,6 +3785,7 @@ def export_spine_gossip() -> Dict[str, Any]:
             payload["signer_pub"] = local_pub
             payload["signature"] = sign(_gossip_canonical(payload))
         except Exception:
+            note_failure("spine_registry:L3696", None)
             pass  # unsigned export; receiver reports the degradation
     return payload
 
@@ -3734,6 +3826,7 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                     "signature": trust.get("signature", "?"),
                 })
             except Exception:
+                note_failure("spine_registry:L3736", None)
                 pass
             return stats
         remote_map = payload.get("spine_map")
@@ -3849,6 +3942,7 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
                 try:
                     wv = max(_Q_MIN, min(_Q_MAX, float(w)))
                 except (TypeError, ValueError):
+                    note_failure("spine_registry:L3851", None)
                     continue
                 # Recency decides, which is what this function's docstring has
                 # always claimed and what the old "conservative" comment only
@@ -3923,6 +4017,7 @@ def merge_spine_gossip(payload: Any) -> Dict[str, Any]:
         })
         return stats
     except Exception as exc:
+        note_failure("spine_registry:L3925", exc)
         return {"merged": False, "error": str(exc)[:120]}
 
 
@@ -3952,6 +4047,7 @@ def _local_env_name() -> str:
         from CORE.env_id import env_id
         return env_id()[:40]
     except Exception:  # pragma: no cover - defensive
+        note_failure("spine_registry:L3954", None)
         env = os.environ.get("AZAZAEL_ENV")
         if env:
             return env[:40]
@@ -3998,11 +4094,13 @@ def gossip_exchange(publish: bool = True) -> Dict[str, Any]:
                     continue  # stale peer drop
                 peer_payload = json.loads(f.read_text(encoding="utf-8"))
             except Exception:
+                note_failure("spine_registry:L4000", None)
                 continue  # corrupt/in-flight file — skip, never raise
             summary["merges"][env_name] = merge_spine_gossip(peer_payload)
             summary["peers"].append(env_name)
         summary["exchanged"] = True
         return summary
     except Exception as exc:
+        note_failure("spine_registry:L4006", exc)
         summary["error"] = str(exc)[:120]
         return summary

@@ -9,6 +9,17 @@ __all__ = [
 
 import json
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 def audit_to_html(filepath: str) -> str:
     fp = Path(filepath)
@@ -21,6 +32,7 @@ def audit_to_html(filepath: str) -> str:
                 d = json.loads(line)
                 entries.append((i, d))
             except json.JSONDecodeError:
+                note_failure("audit_export_html:L23", None)
                 entries.append((i, {"_corrupt": True, "_raw": line[:200]}))
 
     rows = ""

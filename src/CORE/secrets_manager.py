@@ -32,6 +32,17 @@ import json
 import os
 import threading
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import Dict, List, Optional, Tuple  # removed — all names have native equivalents
 
 # Provider definitions: {provider_id: {env_var, config_file, signup_url, description}}
@@ -204,7 +215,7 @@ class SecretsManager:
                     if key and value:
                         env_vars_from_file[key] = value
             except OSError:
-                pass
+                note_failure("secrets_manager:L206", None)
 
         # Load config JSONs (no lock needed — file reads are safe)
         config_vars: dict[str, str] = {}
@@ -217,7 +228,7 @@ class SecretsManager:
                         stem = cf.stem.replace("_config", "")
                         config_vars[stem] = api_key
                 except (json.JSONDecodeError, OSError):
-                    pass
+                    note_failure("secrets_manager:L219", None)
 
         # Build cache under lock — single atomic update
         with self._cache_lock:
@@ -336,6 +347,7 @@ class SecretsManager:
             self._refresh()
             return True
         except OSError:
+            note_failure("secrets_manager:L338", None)
             return False
 
     def reload(self) -> None:

@@ -59,6 +59,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 VERSION = "1.0.0"
 
 __all__ = [
@@ -217,7 +227,8 @@ def weights_signature(q_weights: MappingLike) -> str:
     for k in sorted(q_weights):
         try:
             parts.append("%s=%.9f" % (k, float(q_weights[k])))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("neural_loop:L220", exc)
             parts.append("%s=?" % k)
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:16]
 
@@ -247,7 +258,8 @@ def state_fingerprint(q_weights: Dict[str, float]) -> Dict[str, Any]:
     for v in q_weights.values():
         try:
             vals.append(float(v))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("neural_loop:L250", exc)
             continue
     if not vals:
         return out
@@ -309,7 +321,8 @@ def _stage_perceive(ctx: LoopContext) -> StageResult:
     for name, outcome in (getattr(credit, "outcomes", {}) or {}).items():
         try:
             ctx.evidence[name] = int(getattr(outcome, "n", 0) or 0)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("neural_loop:L312", exc)
             ctx.evidence[name] = 0
     never = list(getattr(credit, "chosen_but_never_run", lambda: [])() or [])
     grounded = sum(1 for n in ctx.evidence.values() if n >= MIN_EVIDENCE)
@@ -352,8 +365,8 @@ def _stage_credit(ctx: LoopContext) -> StageResult:
     from CORE.worm_registry import WORM_REGISTRY, discover_worms
     try:
         discover_worms()
-    except Exception:
-        pass
+    except Exception as exc:
+        note_failure("neural_loop:L355", exc)
     unresolved, nonzero = [], 0
     for name, val in ctx.rewards.items():
         nature = _nature_of(WORM_REGISTRY.get(name))
@@ -433,7 +446,8 @@ def _stage_plasticity(ctx: LoopContext) -> StageResult:
                               duration_ms=0.0, delta=step)
             updates += 1
             wrote += 1
-        except Exception:
+        except Exception as exc:
+            note_failure("neural_loop:L436", exc)
             errored += 1
     return StageResult(
         "plasticity", True, changed=wrote > 0,
@@ -461,7 +475,8 @@ def _stage_route(ctx: LoopContext) -> StageResult:
     for nature, names in sorted(natures.items()):
         try:
             order.extend(sr.q_order(nature, names))
-        except Exception:
+        except Exception as exc:
+            note_failure("neural_loop:L464", exc)
             order.extend(sorted(names))
     ctx.order = order
     # The head is reported because an order's TAIL changing is not observable
@@ -485,9 +500,11 @@ def _stage_act(ctx: LoopContext) -> StageResult:
     try:
         proc = subprocess.run([sys.executable, str(script)],
                               capture_output=True, text=True, timeout=ctx.limit)
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
+        note_failure("neural_loop:L488", exc)
         return StageResult("act", False, error="executor timed out after %ds" % ctx.limit)
     except Exception as exc:
+        note_failure("neural_loop:L490", exc)
         return StageResult("act", False, error="executor error: %s" % str(exc)[:120])
     tail = [ln for ln in (proc.stdout or "").splitlines() if " cycle " in ln]
     summary = tail[-1] if tail else ""
@@ -499,7 +516,8 @@ def _stage_act(ctx: LoopContext) -> StageResult:
         if tok.startswith("ok="):
             try:
                 ran = int(tok[3:])
-            except ValueError:
+            except ValueError as exc:
+                note_failure("neural_loop:L502", exc)
                 ran = 0
     ctx.executed = [{"summary": summary, "rc": proc.returncode}]
     return StageResult(
@@ -528,6 +546,7 @@ def _stage_grade(ctx: LoopContext) -> StageResult:
     try:
         after = int(getattr(spawn_credit.live_spawn_credit(), "n_outcome_rows", 0) or 0)
     except Exception as exc:
+        note_failure("neural_loop:L530", exc)
         return StageResult("grade", True, changed=False,
                            blocked="could not re-read the outcome tap: %s" % str(exc)[:80])
     new_rows = after - ctx.outcome_rows_before
@@ -552,8 +571,8 @@ def _stage_grade(ctx: LoopContext) -> StageResult:
         evidence["abstain_reason"] = _stat["reason"]
         if _stat["abstain"] and _stat["reason"] == "uncalibrated_perfect":
             evidence["uncalibrated_perfect"] = True
-    except Exception:
-        pass
+    except Exception as exc:
+        note_failure("neural_loop:L555", exc)
     return StageResult("grade", True, changed=False, evidence=evidence)
 
 
@@ -592,7 +611,8 @@ def _stage_consolidate(ctx: LoopContext) -> StageResult:
     before_sig = weights_signature(_disk_weights())
     try:
         before_dreams = sum(int(v or 0) for v in sr.get_q_dream_counts().values())
-    except Exception:
+    except Exception as exc:
+        note_failure("neural_loop:L595", exc)
         before_dreams = 0
     # (1) the dream cycle -- real subsystem, real process
     dream = _run_script_stage("consolidate", "dream_cycle.py", ctx.limit)
@@ -605,6 +625,7 @@ def _stage_consolidate(ctx: LoopContext) -> StageResult:
         dreams_n = int(rep.get("dreams") or 0)
         skipped = rep.get("skipped")
     except Exception as exc:
+        note_failure("neural_loop:L607", exc)
         channel_error = "%s: %s" % (type(exc).__name__, str(exc)[:100])
     # Read the evidence BEFORE deciding to persist, and persist on the EVIDENCE.
     # The first version saved when the worm's own report said `reinforced > 0`,
@@ -614,14 +635,15 @@ def _stage_consolidate(ctx: LoopContext) -> StageResult:
     # in-process state, so they are visible the moment the worm returns.
     try:
         after_dreams = sum(int(v or 0) for v in sr.get_q_dream_counts().values())
-    except Exception:
+    except Exception as exc:
+        note_failure("neural_loop:L617", exc)
         after_dreams = before_dreams
     dream_delta = after_dreams - before_dreams
     if dream_delta > 0:
         try:
             sr.save_spine_state()
-        except Exception:
-            pass
+        except Exception as exc:
+            note_failure("neural_loop:L623", exc)
     after_sig = weights_signature(_disk_weights())
     moved = after_sig != before_sig
     return StageResult(
@@ -669,6 +691,7 @@ def _stage_prune(ctx: LoopContext) -> StageResult:
         updates = sr.get_q_update_counts()
         dreams = sr.get_q_dream_counts()
     except Exception as exc:
+        note_failure("neural_loop:L671", exc)
         return StageResult("prune", False, error="read failed: %s" % str(exc)[:120])
     # "No evidence" is not the same claim as "no record of a decision".
     #
@@ -697,13 +720,15 @@ def _stage_prune(ctx: LoopContext) -> StageResult:
     try:
         rep = sr.purge_edges(dead, reason="neural_loop_prune", persist=False)
     except Exception as exc:
+        note_failure("neural_loop:L699", exc)
         return StageResult("prune", False,
                            error="purge_edges raised: %s" % str(exc)[:120])
     removed = int(rep.get("removed_count") or 0)
     refused = int(rep.get("refused_count") or 0)
     try:
         capped = int(sr.cap_q_tables() or 0)
-    except Exception:
+    except Exception as exc:
+        note_failure("neural_loop:L706", exc)
         capped = 0
     # `persist=False` is deliberate: the tombstones and the deletions are
     # durable because the `persist` stage that follows saves in THIS process,
@@ -736,10 +761,12 @@ def _run_script_stage(stage: str, script_name: str, timeout: int,
     try:
         proc = subprocess.run([sys.executable, str(script)],
                               capture_output=True, text=True, timeout=timeout)
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
+        note_failure("neural_loop:L739", exc)
         return StageResult(stage, True, changed=False,
                            blocked="timed out after %ds" % timeout)
     except Exception as exc:
+        note_failure("neural_loop:L742", exc)
         return StageResult(stage, False, error=str(exc)[:120])
     tail = [ln for ln in (proc.stdout or "").splitlines() if ln.strip()]
     return StageResult(
@@ -764,6 +791,7 @@ def _stage_grow(ctx: LoopContext) -> StageResult:
         worm = MorphogenesisWorm()
         preview = worm.morph(dry_run=True) or {}
     except Exception as exc:
+        note_failure("neural_loop:L766", exc)
         return StageResult("grow", False,
                            error="morphogenesis scan raised: %s" % str(exc)[:120])
     ev = {"patterns": preview.get("patterns"),
@@ -777,6 +805,7 @@ def _stage_grow(ctx: LoopContext) -> StageResult:
         staged = worm.morph(dry_run=False) or {}
         gate = worm.promote() or {}
     except Exception as exc:
+        note_failure("neural_loop:L779", exc)
         return StageResult("grow", False,
                            error="morphogenesis apply raised: %s" % str(exc)[:120],
                            evidence=ev)
@@ -795,6 +824,7 @@ def _l1_stage(ctx: LoopContext) -> StageResult:
     try:
         rep = mod.run_cycle(apply_promotion=bool(ctx.apply))
     except Exception as exc:
+        note_failure("neural_loop:L797", exc)
         return StageResult("l1", False, error="wiring cycle raised: %s" % str(exc)[:120])
     # The promotion decision alone does not say whether the SEARCH is going
     # anywhere: `promoted=False` is equally consistent with "nothing beat the
@@ -808,6 +838,7 @@ def _l1_stage(ctx: LoopContext) -> StageResult:
         from CORE import l1_wiring_audit
         genome = l1_wiring_audit.compact(l1_wiring_audit.audit())
     except Exception as exc:
+        note_failure("neural_loop:L810", exc)
         genome = {"verdict": "AUDIT_FAILED",
                   "error": "%s: %s" % (type(exc).__name__, str(exc)[:100])}
     return StageResult("l1", bool(rep.get("ok", True)), changed=bool(rep.get("promoted")),
@@ -840,6 +871,7 @@ def _l2_stage(ctx: LoopContext) -> StageResult:
     try:
         rep = mod.step(apply_promotion=bool(ctx.apply))
     except Exception as exc:
+        note_failure("neural_loop:L842", exc)
         return StageResult("l2", False, error="hyperopt step raised: %s" % str(exc)[:120])
     obj = rep.get("objective") or {}
     return StageResult(
@@ -861,7 +893,8 @@ def _disk_weights() -> Dict[str, float]:
     from CORE import spine_registry as sr
     try:
         payload = json.loads(Path(sr._STATE_FILE).read_text(encoding="utf-8"))
-    except Exception:
+    except Exception as exc:
+        note_failure("neural_loop:L864", exc)
         return {}
     return {k: float(v) for k, v in (payload.get("q_weights") or {}).items()}
 
@@ -888,6 +921,7 @@ def _stage_persist(ctx: LoopContext) -> StageResult:
     try:
         saved = sr.save_spine_state() or {}
     except Exception as exc:
+        note_failure("neural_loop:L890", exc)
         return StageResult("persist", False,
                            error="save_spine_state raised: %s" % str(exc)[:140])
     after_weights = _disk_weights()
@@ -996,7 +1030,8 @@ def _load_script_module(name: str):
         sys.modules[mod_name] = mod
         spec.loader.exec_module(mod)  # type: ignore[union-attr]
         return mod
-    except Exception:
+    except Exception as exc:
+        note_failure("neural_loop:L999", exc)
         sys.modules.pop(mod_name, None)
         return None
 
@@ -1025,6 +1060,7 @@ class Loop:
             try:
                 res = fn(ctx)
             except Exception as exc:
+                note_failure("neural_loop:L1027", exc)
                 res = StageResult(name, ok=False,
                                   error="unhandled: %s" % str(exc)[:160])
             res.ms = (time.perf_counter() - t0) * 1000.0
@@ -1101,5 +1137,5 @@ def _append_ledger(path: str, rep: Dict[str, Any]) -> None:
                                  "before": rep.get("state_before"),
                                  "after": rep.get("state_after")},
                                 sort_keys=True) + "\n")
-    except Exception:
-        pass
+    except Exception as exc:
+        note_failure("neural_loop:L1104", exc)

@@ -27,6 +27,16 @@ from typing import Any, Dict, List, Tuple
 
 from CORE.technique_runtime import register
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 LAYER = "L6"
 REPO = Path(__file__).resolve().parents[3]
 
@@ -39,6 +49,7 @@ def _import(candidates: Tuple[str, ...]) -> Tuple[Any, str]:
         try:
             return importlib.import_module(name), "ok"
         except Exception as exc:                      # pragma: no cover - env
+            note_failure("_l6_evolve:L41", exc)
             last = f"{name}: {type(exc).__name__}"
     return None, last
 
@@ -64,6 +75,7 @@ def _signature(mod_name: str, symbol: str) -> str:
     try:
         return f"{symbol}{inspect.signature(fn)}"
     except Exception as exc:                          # pragma: no cover - C fn
+        note_failure("_l6_evolve:L66", exc)
         return f"(signature unreadable: {type(exc).__name__})"
 
 
@@ -82,6 +94,7 @@ def _source_has(mod_name: str, symbol: str, *needles: str) -> Dict[str, Any]:
     try:
         src = inspect.getsource(fn)
     except Exception as exc:
+        note_failure("_l6_evolve:L84", exc)
         return {"read": False, "reason": type(exc).__name__, "matched": []}
     return {"read": True, "matched": [n for n in needles if n in src],
             "lines": len(src.splitlines())}
@@ -95,6 +108,7 @@ def _state_file(rel: str) -> Dict[str, Any]:
     try:
         rows = sum(1 for _ in p.open(encoding="utf-8", errors="replace"))
     except Exception:
+        note_failure("_l6_evolve:L97", None)
         rows = -1
     return {"exists": True, "path": rel, "rows": rows}
 
@@ -294,6 +308,7 @@ def _ep309() -> Dict[str, Any]:
             snap = snapshot(REPO)
             keys = sorted(snap.keys())[:8] if isinstance(snap, dict) else []
         except Exception:
+            note_failure("_l6_evolve:L296", None)
             keys = []
     return {"engaged": True,
             "surfaced": _surface("CORE.meta_evolution", "choose_candidate",
@@ -332,6 +347,7 @@ def _ep294() -> Dict[str, Any]:
         if rows and isinstance(rows[0], dict):
             keys = sorted(rows[0].keys())
     except Exception:
+        note_failure("_l6_evolve:L334", None)
         keys = []
     src = _source_has("CORE.WORMS.expansion.reflexion", "record_reflection",
                       "outcome", "utility")
@@ -434,6 +450,7 @@ def _ep280() -> Dict[str, Any]:
                                   [{"state": "s1"}, {"state": "s2"}],
                                   extra_rounds=1, seed=0)
     except Exception as exc:
+        note_failure("_l6_evolve:L436", exc)
         out = {"error": f"{type(exc).__name__}"}
     return {"engaged": True,
             "refine_ran": isinstance(out, dict) and "error" not in out,

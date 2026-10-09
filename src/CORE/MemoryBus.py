@@ -38,6 +38,16 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List, Tuple
 from collections import defaultdict
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Import CORE utilities ----------------------------------------------------
 _azazael_src = str(Path(__file__).resolve().parent.parent)
 if _azazael_src not in sys.path:
@@ -47,6 +57,7 @@ try:
     from CORE.freethreading import is_free_threaded, ThreadSafeDict, ThreadSafeList
     HAS_FREETHREADING = True
 except ImportError:
+    note_failure("MemoryBus:L49", None)
     HAS_FREETHREADING = False
     ThreadSafeDict: Any = dict  # type: ignore[no-redef]
     ThreadSafeList: Any = list  # type: ignore[no-redef]
@@ -60,6 +71,7 @@ try:
     import requests
     HAS_REQUESTS = True
 except ImportError:
+    note_failure("MemoryBus:L62", None)
     HAS_REQUESTS = False
     import urllib.request
     import urllib.error
@@ -113,6 +125,7 @@ def _resolve_pams_url() -> str:
             if url:
                 return url.rstrip("/")
         except Exception:
+            note_failure("MemoryBus:L115", None)
             continue
     return PAMS_URL.rstrip("/")
 
@@ -139,7 +152,7 @@ def _pams_api_key() -> str | None:
         if kf.is_file():
             _PAMS_API_KEY = kf.read_text(encoding="utf-8").strip() or None
     except Exception:
-        pass
+        note_failure("MemoryBus:L141", None)
     return _PAMS_API_KEY
 
 
@@ -187,6 +200,7 @@ def _get_memorybus_db_path() -> Path:
         from CORE.direct_memory import _get_telemetry_db_path
         return _get_telemetry_db_path()
     except Exception:
+        note_failure("MemoryBus:L189", None)
         env_dir = os.environ.get("AZAZAEL_MEMORY_DIR", "")
         if env_dir:
             base = Path(env_dir)
@@ -320,7 +334,7 @@ class MemoryBus:
             conn.close()
             self._persistent_queue_initialized = True
         except Exception:
-            pass
+            note_failure("MemoryBus:L322", None)
 
     def _migrate_queue_schema(self, conn: sqlite3.Connection):
         """Run additive schema migrations for existing queue tables.
@@ -396,6 +410,7 @@ class MemoryBus:
             conn.close()
             return row_id
         except Exception:
+            note_failure("MemoryBus:L398", None)
             self._increment('pams_errors')
             return 0
 
@@ -437,6 +452,7 @@ class MemoryBus:
                         )
                     return msg_id
             except Exception:
+                note_failure("MemoryBus:L439", None)
                 self._increment('pams_errors')
 
         # -- Fallback: store locally + persist to SQLite -----------------
@@ -581,6 +597,7 @@ class MemoryBus:
                 if pams_msgs:
                     messages.extend(pams_msgs)
             except Exception:
+                note_failure("MemoryBus:L583", None)
                 self._increment('pams_errors')
 
         # Deduplicate by message_id
@@ -640,7 +657,7 @@ class MemoryBus:
                 pq_size = conn.execute("SELECT COUNT(*) FROM memorybus_queue WHERE flushed=0").fetchone()[0]
                 conn.close()
         except Exception:
-            pass
+            note_failure("MemoryBus:L642", None)
 
         with self._stats_lock:
             stats_snapshot = dict(self._stats_data)
@@ -700,6 +717,7 @@ class MemoryBus:
                     else:
                         remaining.append(msg)
                 except Exception:
+                    note_failure("MemoryBus:L702", None)
                     remaining.append(msg)
             self._local_queue = remaining
 
@@ -724,7 +742,7 @@ class MemoryBus:
                             flushed += 1
                             self._increment('persistent_flushed')
                     except Exception:
-                        pass
+                        note_failure("MemoryBus:L726", None)
                 # Batch update all flushed messages in one query
                 if flushed_ids:
                     conn2 = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
@@ -736,7 +754,7 @@ class MemoryBus:
                     conn2.commit()
                     conn2.close()
             except Exception:
-                pass
+                note_failure("MemoryBus:L738", None)
 
         # Retire flushed rows: they live in PAMS now. Without this the queue
         # table grows forever (was 214MB, zero rows ever flushed). Best
@@ -754,7 +772,7 @@ class MemoryBus:
             conn3.commit()
             conn3.close()
         except Exception:
-            pass
+            note_failure("MemoryBus:L756", None)
 
         return flushed
 
@@ -771,6 +789,7 @@ class MemoryBus:
                 with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
                     return resp.status == 200
         except Exception:
+            note_failure("MemoryBus:L773", None)
             return False
 
     def _post_to_pams(self, topic: str, content: Any,
@@ -850,7 +869,7 @@ class MemoryBus:
                     self._increment('delivered')
             except Exception:
                 # Don't let one bad callback crash the bus
-                pass
+                note_failure("MemoryBus:L851", None)
 
         return count
 
@@ -879,7 +898,7 @@ class MemoryBus:
                 conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 conn.close()
             except Exception:
-                pass
+                note_failure("MemoryBus:L881", None)
 
     @staticmethod
     def _matches_topic(pattern: str, topic: str) -> bool:

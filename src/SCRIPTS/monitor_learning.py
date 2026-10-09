@@ -40,6 +40,17 @@ import sys
 import sysconfig
 import time
 from datetime import datetime, timezone
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 CYCLE_MINUTES = 5  # nominal loop cadence
 
@@ -74,6 +85,7 @@ def _parse_ts(s):
     try:
         return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
     except ValueError:
+        note_failure("monitor_learning:L76", None)
         return None
 
 
@@ -83,6 +95,7 @@ def _as_dict(data):
     try:
         return json.loads(data)
     except (TypeError, json.JSONDecodeError):
+        note_failure("monitor_learning:L85", None)
         return {}
 
 
@@ -120,6 +133,7 @@ def run_check(db, minutes):
         con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
         cur = con.cursor()
     except Exception as e:
+        note_failure("monitor_learning:L122", e)
         return {"error": f"cannot open DB {db}: {e}"}, [f"cannot open DB {db}: {e}"], []
 
     def count_events(event_type, minutes_=None):

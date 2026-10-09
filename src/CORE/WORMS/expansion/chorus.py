@@ -38,6 +38,16 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from .morph import (GeneSpec, Genome, STRUCTURAL_OPS, TRAINER_KWARGS,
                     viability, NON_GENE_KWARGS)
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = ["Chorus", "FailureDigest", "parse_proposals"]
 
 PROPOSAL_OPS = ("add_gene", "drop_gene", "rewire_gene", "nest", "tune")
@@ -88,12 +98,13 @@ class FailureDigest:
             try:
                 dims.append(int(r.get("dimension", 0)))
             except (TypeError, ValueError):
-                pass
+                note_failure("chorus:L90", None)
         best = None
         if top_rows:
             try:
                 best = max(float(r.get("fitness")) for r in top_rows if r.get("fitness") is not None)
             except (TypeError, ValueError):
+                note_failure("chorus:L96", None)
                 best = None
         return cls(holdout, pinned, flat, starved, dims, best)
 
@@ -188,6 +199,7 @@ def parse_proposals(text: str, limit: int = 8) -> List[dict]:
         try:
             data = json.loads(c)
         except Exception:
+            note_failure("chorus:L190", None)
             continue
         if isinstance(data, dict):
             data = [data]
@@ -254,6 +266,7 @@ def _apply(op: dict, genome: Genome, pool: Sequence[GeneSpec]
         else:
             return None, "unknown_op"
     except Exception as exc:  # never let one bad proposal break the loop
+        note_failure("chorus:L256", exc)
         return None, "apply_error:%s" % type(exc).__name__
 
     ok, why = viability(child)
@@ -292,14 +305,17 @@ class Chorus:
         try:
             from CORE.inference.providers import get_best_provider  # type: ignore
         except Exception:
+            note_failure("chorus:L294", None)
             try:
                 from src.CORE.inference.providers import get_best_provider  # type: ignore
             except Exception:
+                note_failure("chorus:L297", None)
                 self._provider = None
                 return None
         try:
             self._provider = get_best_provider()
         except Exception:
+            note_failure("chorus:L302", None)
             self._provider = None
         return self._provider
 
@@ -316,6 +332,7 @@ class Chorus:
                                  model=self.model, max_tokens=self.max_tokens,
                                  temperature=self.temperature)
         except Exception:
+            note_failure("chorus:L318", None)
             return ""
         if not isinstance(resp, dict) or resp.get("error"):
             return ""
@@ -326,7 +343,7 @@ class Chorus:
                 record_inference(self.agent_name, resp.get("model", "unknown"), prompt,
                                  content, metadata={"module": "chorus"})
             except Exception:
-                pass
+                note_failure("chorus:L328", None)
         return content
 
     # -- main entry point --------------------------------------------------

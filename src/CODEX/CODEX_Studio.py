@@ -21,12 +21,24 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from html.parser import HTMLParser
 from datetime import datetime
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ─── PIL Import ───
 try:
     from PIL import Image, ImageDraw, ImageFont
     HAS_PIL = True
 except ImportError:
+    note_failure("CODEX_Studio:L29", None)
     HAS_PIL = False
 
 # ─── Constants ───
@@ -306,7 +318,7 @@ def render_scenes_to_png(scenes, frames_dir, width, height, fps,
                     tx = (width - (tbbox[2] - tbbox[0])) // 2
                     draw.text((tx, 5), sd["title"], font=header_font, fill="#00f5ff")
                 except Exception:
-                    pass
+                    note_failure("CODEX_Studio:L308", None)
                 # Scene counter
                 counter = f"Scene {scene_idx + 1}/{n_scenes}"
                 try:
@@ -314,7 +326,7 @@ def render_scenes_to_png(scenes, frames_dir, width, height, fps,
                     draw.text((width - (cbbox[2] - cbbox[0]) - 20, 10),
                              counter, font=body_font, fill="#707090")
                 except Exception:
-                    pass
+                    note_failure("CODEX_Studio:L316", None)
 
             # Draw text lines
             current_y = -y_offset + 60
@@ -337,7 +349,7 @@ def render_scenes_to_png(scenes, frames_dir, width, height, fps,
                     x = max(margin, (width - text_w) // 2)
                     draw.text((x, current_y), line, font=font, fill=color)
                 except Exception:
-                    pass
+                    note_failure("CODEX_Studio:L339", None)
                 current_y += sd["heights"][i]
 
             # Save frame
@@ -398,7 +410,7 @@ def _render_crossfade_transition(from_scene, to_scene, frames_dir,
             draw.text((lx, 10), label, font=body_font,
                      fill=(fade_color, fade_color, fade_color))
         except Exception:
-            pass
+            note_failure("CODEX_Studio:L400", None)
 
         # Draw from_scene text fading out
         from_y = int(-alpha * height) + 60
@@ -418,7 +430,7 @@ def _render_crossfade_transition(from_scene, to_scene, frames_dir,
                 draw.text((max(margin, (width - tw) // 2), from_y),
                          line.rstrip(), font=font, fill=blend)
             except Exception:
-                pass
+                note_failure("CODEX_Studio:L420", None)
             from_y += from_scene["heights"][i]
 
         # Draw to_scene text fading in
@@ -439,7 +451,7 @@ def _render_crossfade_transition(from_scene, to_scene, frames_dir,
                 draw.text((max(margin, (width - tw) // 2), to_y),
                          line.rstrip(), font=font, fill=blend)
             except Exception:
-                pass
+                note_failure("CODEX_Studio:L441", None)
             to_y += to_scene["heights"][i]
 
         frame.save(os.path.join(frames_dir, f"frame_{frame_idx:06d}.png"), "PNG")
@@ -519,7 +531,7 @@ def render_frames_to_png(text_lines, frames_dir, width, height, fps, total_frame
                 x = max(margin, (width - text_w) // 2)
                 draw.text((x, current_y), line, font=font, fill=color)
             except Exception:
-                pass
+                note_failure("CODEX_Studio:L521", None)
 
             current_y += line_heights[i]
 
@@ -540,6 +552,7 @@ def _load_fonts():
         small_font = ImageFont.truetype("consolas.ttf", 20)
         mono_font = ImageFont.truetype("consolas.ttf", 24)
     except Exception:
+        note_failure("CODEX_Studio:L542", None)
         try:
             title_font = ImageFont.truetype("arial.ttf", 56)
             header_font = ImageFont.truetype("arial.ttf", 38)
@@ -547,6 +560,7 @@ def _load_fonts():
             small_font = ImageFont.truetype("cour.ttf", 18)
             mono_font = body_font
         except Exception:
+            note_failure("CODEX_Studio:L549", None)
             title_font = header_font = body_font = \
                 small_font = mono_font = ImageFont.load_default()
     return title_font, header_font, body_font, small_font, mono_font
@@ -1085,6 +1099,7 @@ class CODEXStudio:
                 self._log_safe("RENDER FAILED — See FFmpeg output above.", "error")
 
         except Exception as e:
+            note_failure("CODEX_Studio:L1087", e)
             self._log_safe(f"RENDER ERROR: {e}", "error")
             import traceback
             self._log_safe(traceback.format_exc(), "error")
@@ -1095,7 +1110,7 @@ class CODEXStudio:
                     shutil.rmtree(frames_dir, ignore_errors=True)
                     self._log_safe("  Temp frames cleaned up after error.", "info")
             except Exception:
-                pass
+                note_failure("CODEX_Studio:L1097", None)
         finally:
             self._finish_render()
 
@@ -1192,9 +1207,11 @@ class CODEXStudio:
                         self._log_safe(f"    {line.strip()}", "error")
                 return False
         except subprocess.TimeoutExpired:
+            note_failure("CODEX_Studio:L1194", None)
             self._log_safe("  FFmpeg encoding timed out (>1 hour)", "error")
             return False
         except Exception as e:
+            note_failure("CODEX_Studio:L1197", e)
             self._log_safe(f"  FFmpeg error: {e}", "error")
             return False
 
@@ -1264,6 +1281,7 @@ CAIN Standard: 25 fps @ 1920x1080, H.264 High, CRF 23, keyframe every 250 frames
     try:
         w, h = map(int, args.resolution.lower().replace("x", " ").split())
     except Exception:
+        note_failure("CODEX_Studio:L1266", None)
         w, h = 1920, 1080
 
     out_format = "wmv" if args.output.lower().endswith(".wmv") else "mp4"
@@ -1371,7 +1389,7 @@ def main():
             if os.path.exists(icon_path):
                 root.iconbitmap(icon_path)
         except Exception:
-            pass
+            note_failure("CODEX_Studio:L1373", None)
 
         CODEXStudio(root)
         root.mainloop()

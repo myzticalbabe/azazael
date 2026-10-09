@@ -30,6 +30,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from CORE.direct_memory import DirectMemory, record as dm_record  # noqa: E402
 from CORE.startup_warm import cache_status, warm_caches_blocking  # noqa: E402
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Config ────────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -83,6 +94,7 @@ def check_telemetry() -> tuple[bool, str]:
     try:
         data = json.loads(TELEMETRY_PATH.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as e:
+        note_failure("session_start_check:L85", e)
         return False, f"Telemetry: FAIL - unreadable: {e}"
 
     ts_raw = data.get("timestamp")
@@ -94,7 +106,7 @@ def check_telemetry() -> tuple[bool, str]:
                 ts = ts.replace(tzinfo=timezone.utc)
             age_hours = (datetime.now(timezone.utc) - ts).total_seconds() / 3600.0
         except ValueError:
-            pass
+            note_failure("session_start_check:L96", None)
 
     ratio = data.get("compliance_ratio")
     parts = [

@@ -42,6 +42,16 @@ import threading
 import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = [
     "Neuromodulator",
     "modulated_q_update",
@@ -118,6 +128,7 @@ class _LazyTorch:
                 timeout=self.IMPORT_TIMEOUT_S,
             )
         except Exception:
+            note_failure("nerve:L120", None)
             return False  # scanner:ignore
         return proc.returncode == 0
 
@@ -126,6 +137,7 @@ class _LazyTorch:
         try:
             import torch as _mod
         except Exception:
+            note_failure("nerve:L128", None)
             self._mod = None
             self._state = "absent"
         else:
@@ -155,6 +167,7 @@ class _LazyTorch:
                     return None
                 self._import_here()
             except Exception:
+                note_failure("nerve:L157", None)
                 self._mod = None
                 self._state = "absent"
         return self._mod
@@ -190,6 +203,7 @@ _TORCH_OP_LOCK = threading.Lock()
 try:
     import numpy as _np  # type: ignore
 except Exception:  # pragma: no cover
+    note_failure("nerve:L192", None)
     _np = None
 
 
@@ -263,6 +277,7 @@ class Neuromodulator:
                     p.copy_(_torch.empty_like(p).uniform_(-0.5, 0.5, generator=g))
             self.backend = "torch:%s" % dev
         except Exception:
+            note_failure("nerve:L265", None)
             self.net = None
             self.backend = "numpy"
 
@@ -291,6 +306,7 @@ class Neuromodulator:
                     t = _torch.tensor([list(ctx)], dtype=_torch.float32, device=self.net[0].weight.device)
                     raw = [float(v) for v in self.net(t)[0].tolist()]
             except Exception:
+                note_failure("nerve:L293", None)
                 raw = self._forward_numpy(ctx)
         else:
             raw = self._forward_numpy(ctx)
@@ -307,7 +323,7 @@ class Neuromodulator:
                         out.extend(float(v) for v in p.detach().cpu().reshape(-1).tolist())
                 return out
             except Exception:
-                pass  # scanner:ignore
+                note_failure("nerve:L309", None) # scanner:ignore
         out = []
         for row in self.w1:
             out.extend(row)
@@ -332,7 +348,7 @@ class Neuromodulator:
                         i += n
                 return
             except Exception:
-                pass  # scanner:ignore
+                note_failure("nerve:L334", None) # scanner:ignore
         i = 0
         for r in range(self.hidden):
             for c in range(self.in_dim):
@@ -367,6 +383,7 @@ class Neuromodulator:
             obj.set_params(d.get("params") or [])
             return obj
         except Exception:
+            note_failure("nerve:L369", None)
             return None  # scanner:ignore
 
 
@@ -421,6 +438,7 @@ class NerveTrainer:
             self.mod.set_params(params)
             return float(evaluate(self.mod))
         except Exception:
+            note_failure("nerve:L423", None)
             return float("-inf")
         finally:
             self.mod.set_params(saved)
@@ -432,6 +450,7 @@ class NerveTrainer:
         try:
             base_score = float(evaluate(self.mod))
         except Exception:
+            note_failure("nerve:L434", None)
             base_score = float("-inf")
 
         improvements: List[Tuple[float, List[float]]] = []
@@ -467,7 +486,7 @@ class NerveTrainer:
             with open(str(self.path) + ".history.json", "w", encoding="utf-8") as fh:
                 json.dump(self.history[-128:], fh, indent=1)
         except Exception:
-            pass  # scanner:ignore
+            note_failure("nerve:L469", None) # scanner:ignore
 
     def train(self, evaluate: Any, generations: int = 20, n_offspring: int = 4
               ) -> Dict[str, Any]:

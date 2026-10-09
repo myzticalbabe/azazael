@@ -9,14 +9,25 @@ import time
 import threading
 import subprocess
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import defaultdict
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("visualization:L19", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -26,6 +37,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("visualization:L28", None)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -35,6 +47,7 @@ except ImportError:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:
+            note_failure("visualization:L37", None)
             return False
 
 
@@ -117,6 +130,7 @@ class GraphRenderer:
                 input=dot, capture_output=True, text=True, timeout=10)
             return r.returncode == 0
         except Exception:
+            note_failure("visualization:L119", None)
             return False
 
 

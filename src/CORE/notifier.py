@@ -46,8 +46,18 @@ import time
 import argparse
 import urllib.request
 import urllib.error
-from typing import Any
+from typing import Any, List
 from datetime import datetime
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def get_webhook_url() -> (str | None):
@@ -306,6 +316,7 @@ def check_clock_and_alert(webhook_url: (str | None) = None) -> int:
         skew_limit = int(os.environ.get("AZAZAEL_CLOCK_SKEW_ALERT_MS", "60000"))
         refuse_limit = int(os.environ.get("AZAZAEL_CLOCK_REJECT_ALERT", "1"))
     except ValueError:
+        note_failure("notifier:L308", None)
         skew_limit, refuse_limit = 60000, 1
 
     critical = 0

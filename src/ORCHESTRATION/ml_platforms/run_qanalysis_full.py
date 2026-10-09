@@ -10,6 +10,17 @@ import time
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "HYDRA" / "ml_platforms"))
 
@@ -64,7 +75,7 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         q_table[1, 0] += current_alpha * (0.90 - q_table[1, 0])
         q_table[3, 0] += current_alpha * (0.95 - q_table[3, 0])
     except Exception:
-        pass
+        note_failure("run_qanalysis_full:L66", None)
 
     try:
         import tensorflow as tf
@@ -79,7 +90,7 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         q_table[0, 1] += current_alpha * (tf_score - q_table[0, 1])
         q_table[1, 1] += current_alpha * (0.88 - q_table[1, 1])
     except Exception:
-        pass
+        note_failure("run_qanalysis_full:L81", None)
 
     try:
         import jax.numpy as jnp
@@ -92,7 +103,7 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         q_table[4, 3] += current_alpha * (0.92 - q_table[4, 3])
         q_table[3, 3] += current_alpha * (0.88 - q_table[3, 3])
     except Exception:
-        pass
+        note_failure("run_qanalysis_full:L94", None)
 
     try:
         import numpy as np
@@ -103,7 +114,7 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
 
         q_table[2, 2] += current_alpha * (0.95 - q_table[2, 2])
     except Exception:
-        pass
+        note_failure("run_qanalysis_full:L105", None)
 
     try:
         from scipy import stats
@@ -113,7 +124,7 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
 
         q_table[2, 4] += current_alpha * (0.85 - q_table[2, 4])
     except Exception:
-        pass
+        note_failure("run_qanalysis_full:L115", None)
 
     q_table[2, 5] += current_alpha * (0.75 - q_table[2, 5])
 

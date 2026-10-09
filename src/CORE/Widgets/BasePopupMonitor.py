@@ -38,7 +38,17 @@ import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -192,11 +202,13 @@ class BasePopupMonitor:
             self.q.put_nowait(QueueMessage(action=action, payload=payload))
         except queue.Full:
             # Queue backpressure — drop oldest to make room
+            # Queue backpressure — drop oldest to make room
+            note_failure("BasePopupMonitor:L193", None)
             try:
                 self.q.get_nowait()
                 self.q.put_nowait(QueueMessage(action=action, payload=payload))
             except queue.Empty:
-                pass
+                note_failure("BasePopupMonitor:L198", None)
 
     def _safe_log(self, message: str, level: str = "INFO"):
         """Convenience: enqueue a log message."""
@@ -234,7 +246,7 @@ class BasePopupMonitor:
                 self.handle_message(msg)
 
         except queue.Empty:
-            pass
+            note_failure("BasePopupMonitor:L236", None)
 
         if self.running and self.root:
             self.root.after(100, self._process_queue_internal)
@@ -297,7 +309,7 @@ class BasePopupMonitor:
                 self.root.quit()
                 self.root.destroy()
             except tk.TclError:
-                pass  # Window already destroyed
+                note_failure("BasePopupMonitor:L299", None) # Window already destroyed
 
     def close(self):
         """Request window close from any thread (via queue)."""

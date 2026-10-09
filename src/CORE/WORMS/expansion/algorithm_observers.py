@@ -39,12 +39,23 @@ import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:  # standalone import: keep the class usable without the mesh
+    note_failure("algorithm_observers:L47", None)
     _REGISTRY = False
 
     def register_worm(**kw):  # noqa: D103 - shim, see code_audit.py pattern
@@ -72,6 +83,7 @@ def _age_min(iso: Optional[str]) -> Optional[float]:
     try:
         stamp = datetime.fromisoformat(iso.replace("Z", "+00:00"))
     except ValueError:
+        note_failure("algorithm_observers:L74", None)
         return None
     if stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=timezone.utc)
@@ -85,6 +97,7 @@ def _read_json(path: Path) -> Optional[Dict[str, Any]]:
             data = json.load(f)
         return data if isinstance(data, dict) else None
     except (OSError, ValueError):
+        note_failure("algorithm_observers:L87", None)
         return None
 
 

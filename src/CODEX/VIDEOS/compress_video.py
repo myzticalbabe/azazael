@@ -24,6 +24,17 @@ import uuid
 import argparse
 import subprocess
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # --- Configuration -----------------------------------------------------------
 
@@ -67,6 +78,7 @@ def _codec_available(codec_name):
         )
         return codec_name in result.stdout
     except Exception:
+        note_failure("compress_video:L69", None)
         return False
 
 
@@ -167,7 +179,7 @@ def encode_gif(input_path, output_path, fps=15, width=960):
     try:
         Path(palette).unlink()
     except OSError:
-        pass
+        note_failure("compress_video:L169", None)
     if r2.returncode == 0 and out_file.exists():
         mb = round(os.path.getsize(out_file) / (1024 * 1024), 2)
         print(f"  [OK] {out_file.name} ({mb} MB, looping)")
@@ -316,7 +328,7 @@ def compress_video(input_path, output_path, profile=None,
             try:
                 logfile.unlink()
             except OSError:
-                pass
+                note_failure("compress_video:L318", None)
 
         success = r2.returncode == 0
 

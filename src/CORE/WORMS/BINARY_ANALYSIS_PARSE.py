@@ -16,7 +16,7 @@ import subprocess
 import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from collections import Counter
 
 _LOCK = threading.Lock()
@@ -26,6 +26,16 @@ from CORE.WORMS.BINARY_ANALYSIS_TYPES import (
     _get_pams, IS_WINDOWS, IS_LINUX,
     MACHINE_TYPES, CHARACTERISTICS, SUBSYSTEMS, SECTION_FLAGS,
 )
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # -- Helpers -----------------------------------------------------------
@@ -41,7 +51,7 @@ def _record(event_type: str, data: dict[str, Any], severity: str = "info"):
                     data=data, source="BinaryAnalysis", severity=severity,
                 )
             except Exception:
-                pass
+                note_failure("BINARY_ANALYSIS_PARSE:L43", None)
 
 
 def _shannon_entropy(data: bytes) -> float:
@@ -73,6 +83,7 @@ def is_pe_file(path: Path) -> bool:
             pe_sig = f.read(4)
             return pe_sig == b"PE\x00\x00"
     except Exception:
+        note_failure("BINARY_ANALYSIS_PARSE:L75", None)
         return False
 
 
@@ -83,6 +94,7 @@ def is_elf_file(path: Path) -> bool:
             magic = f.read(4)
             return magic == b"\x7fELF"
     except Exception:
+        note_failure("BINARY_ANALYSIS_PARSE:L85", None)
         return False
 
 
@@ -110,7 +122,7 @@ def _rva_to_offset(f, rva: int) -> (int | None):
             if sec_vaddr <= rva < sec_vaddr + sec_vsize:
                 return (rva - sec_vaddr) + sec_raw_offset
     except Exception:
-        pass
+        note_failure("BINARY_ANALYSIS_PARSE:L112", None)
     return None
 
 
@@ -161,7 +173,7 @@ def _parse_exports(f, dir_info: tuple[int, int]) -> list[SymbolEntry]:
                     section=f"export_{i}",
                 ))
     except Exception:
-        pass
+        note_failure("BINARY_ANALYSIS_PARSE:L163", None)
     return symbols
 
 
@@ -200,7 +212,7 @@ def _parse_imports(f, dir_info: tuple[int, int]) -> list[SymbolEntry]:
                     section="IMPORT",
                 ))
     except Exception:
-        pass
+        note_failure("BINARY_ANALYSIS_PARSE:L202", None)
     return symbols
 
 
@@ -264,11 +276,13 @@ def _nm_linux(path: Path, demangle: bool = False) -> list[SymbolEntry]:
             try:
                 addr = int(parts[0], 16) if parts[0] != "U" else 0
             except ValueError:
+                note_failure("BINARY_ANALYSIS_PARSE:L266", None)
                 addr = 0
             size_str = parts[1]
             try:
                 size = int(size_str, 16)
             except ValueError:
+                note_failure("BINARY_ANALYSIS_PARSE:L271", None)
                 size = 0
             sym_type = parts[2]
             name = parts[3] if len(parts) > 3 else ""
@@ -302,11 +316,11 @@ def _nm_external(path: Path) -> list[SymbolEntry]:
                                 symbol_type="?", section="external",
                             ))
                         except ValueError:
-                            pass
+                            note_failure("BINARY_ANALYSIS_PARSE:L304", None)
                 if symbols:
                     break
         except Exception:
-            pass
+            note_failure("BINARY_ANALYSIS_PARSE:L308", None)
     return symbols
 
 
@@ -422,6 +436,7 @@ def parse_pe_headers(path: str) -> PeHeaders:
             try:
                 symbols = _nm_pe(full_path)
             except Exception:
+                note_failure("BINARY_ANALYSIS_PARSE:L424", None)
                 symbols = []
             for s in symbols:
                 if s.symbol_type == "T":

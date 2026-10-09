@@ -27,9 +27,19 @@ import json
 import time
 import urllib.request
 import urllib.error
-from typing import Any
+from typing import Any, List
 
 from CORE.freethreading import FreeThreadPool
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # ── Ollama API Client ──────────────────────────────────────────────
@@ -60,12 +70,15 @@ def _ollama_infer(prompt: str, model: str = "llama3.2:1b",
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
+        note_failure("inference_pool:L62", e)
         return {"success": False, "error": f"HTTP {e.code}: {e.reason}",
                 "elapsed_ms": (time.perf_counter() - start) * 1000}
     except urllib.error.URLError as e:
+        note_failure("inference_pool:L65", e)
         return {"success": False, "error": f"Connection failed: {e.reason}",
                 "elapsed_ms": (time.perf_counter() - start) * 1000}
     except Exception as e:
+        note_failure("inference_pool:L68", e)
         return {"success": False, "error": str(e),
                 "elapsed_ms": (time.perf_counter() - start) * 1000}
 
@@ -164,7 +177,7 @@ class InferencePool:
             try:
                 _ollama_infer("warmup", model=mw, max_tokens=1, timeout=5.0)
             except Exception:
-                pass
+                note_failure("inference_pool:L166", None)
 
     def _check_connectivity(self) -> bool:
         """Check if Ollama server is reachable."""
@@ -180,6 +193,7 @@ class InferencePool:
                 self._health_ok = resp.status == 200
                 return self._health_ok
         except Exception:
+            note_failure("inference_pool:L182", None)
             self._health_ok = False
             return False
 
@@ -291,7 +305,7 @@ class InferencePool:
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            pass
+            note_failure("inference_pool:L293", None)
         # Try finding JSON object in text
         start = text.find("{")
         end = text.rfind("}")
@@ -299,7 +313,7 @@ class InferencePool:
             try:
                 return json.loads(text[start:end+1])
             except json.JSONDecodeError:
-                pass
+                note_failure("inference_pool:L301", None)
         return {"_raw": response}
 
     @staticmethod
@@ -400,6 +414,7 @@ class InferencePool:
                 data = json.loads(resp.read().decode("utf-8"))
                 return data.get("models", [])
         except Exception:
+            note_failure("inference_pool:L402", None)
             return []
 
     def infer_with_fallback(self, prompt: str,
@@ -450,6 +465,7 @@ class InferencePool:
             return {"success": True, "response": data.get("message", {}).get("content", ""),
                     "elapsed_ms": round((time.perf_counter()-start)*1000, 1)}
         except Exception as e:
+            note_failure("inference_pool:L452", e)
             return {"success": False, "error": str(e),
                     "elapsed_ms": round((time.perf_counter()-start)*1000, 1)}
 

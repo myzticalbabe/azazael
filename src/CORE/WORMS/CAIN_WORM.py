@@ -23,7 +23,7 @@ import json
 import sys
 import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 # --- Import shared data --------------------------------------------
 
@@ -43,12 +43,24 @@ from CORE.WORMS.CAIN_DATA import (
     TOTAL_DAMAGE_PER_INCIDENT,
 )
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # --- Worm Registration ---------------------------------------------
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
     # No-op fallback so the module works without the registry
+    # No-op fallback so the module works without the registry
+    note_failure("CAIN_WORM:L50", None)
     def register_worm(**kwargs):
         def decorator(cls):
             return cls
@@ -237,7 +249,7 @@ if __name__ == "__main__":
             try:
                 session_data = json.loads(path.read_text(encoding="utf-8"))
             except Exception:
-                pass
+                note_failure("CAIN_WORM:L239", None)
 
     result = CainWorm.run_complete_analysis()
     if output_format == "json":
@@ -251,4 +263,5 @@ if __name__ == "__main__":
             result = self.run_complete_analysis()
             return {"status": "ok", "worm": "CainWorm", "method":"run_complete_analysis", "result": str(result)[:200]}
         except Exception as e:
+            note_failure("CAIN_WORM:L253", e)
             return {"status": "ok", "worm": "CainWorm", "method":"run_complete_analysis", "error": str(e)[:800]}

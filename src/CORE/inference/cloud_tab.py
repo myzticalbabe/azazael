@@ -15,12 +15,23 @@ import functools
 import threading
 import tkinter as tk
 from tkinter import ttk, messagebox
-from typing import Callable
+from typing import Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.inference.providers import get_provider, list_providers, get_best_provider
     HAS_CLOUD_PROVIDERS = True
 except ImportError:
+    note_failure("cloud_tab:L23", None)
     HAS_CLOUD_PROVIDERS = False
 
 VERSION = "1.0.0"
@@ -74,7 +85,7 @@ class CloudTab:
                     if p["has_api_key"]:
                         prov_values.append(p["id"])
             except Exception:
-                pass
+                note_failure("cloud_tab:L76", None)
         self.prov_cb = ttk.Combobox(prov_row, textvariable=self.prov_var,
                                      values=prov_values, state="readonly",
                                      font=("Segoe UI", 10), width=18)
@@ -134,6 +145,7 @@ class CloudTab:
         try:
             return self.prompt_input.get("1.0", "end-1c")
         except Exception:
+            note_failure("cloud_tab:L136", None)
             return "Explain quantum computing in one sentence."
 
     def _on_provider_select(self, event=None):
@@ -151,7 +163,7 @@ class CloudTab:
                         configured.append(p["id"])
                 self.parent.after(0, functools.partial(self._on_refreshed, configured))
             except Exception:
-                pass
+                note_failure("cloud_tab:L153", None)
         threading.Thread(target=do_refresh, daemon=True).start()
 
     def _on_refreshed(self, configured):
@@ -173,6 +185,7 @@ class CloudTab:
                     best = get_best_provider()
                     provider_name = best.provider_name
                 except Exception:
+                    note_failure("cloud_tab:L175", None)
                     provider_name = "none"
             else:
                 provider_name = "none"
@@ -203,6 +216,7 @@ class CloudTab:
                 result = prov.chat(prompt, max_tokens=safe_tokens, temperature=safe_temp)
                 self.parent.after(0, functools.partial(self._finish, provider_name, result))
             except Exception as e:
+                note_failure("cloud_tab:L205", e)
                 self.parent.after(0, functools.partial(self._finish, provider_name,
                                                        {"error": str(e)}))
 
@@ -214,6 +228,7 @@ class CloudTab:
             if not self.launch_btn.winfo_exists():
                 return
         except Exception:
+            note_failure("cloud_tab:L216", None)
             return
 
         self.launch_btn.configure(state="normal", text="SEND TO CLOUD",
@@ -234,7 +249,7 @@ class CloudTab:
             try:
                 err = err.encode("ascii", errors="replace").decode("ascii")
             except Exception:
-                pass
+                note_failure("cloud_tab:L236", None)
             # Redact API keys that may leak in error messages
             err_safe = err[:120]
             out.insert("1.0", f"ERROR [{provider_name}]:\n{err_safe}")
@@ -249,7 +264,7 @@ class CloudTab:
             try:
                 content = content.encode("ascii", errors="replace").decode("ascii")
             except Exception:
-                pass
+                note_failure("cloud_tab:L251", None)
             model = result.get("model", "?")
             tokens = result.get("usage", {}).get("total_tokens", 0)
             ms = result.get("elapsed_ms", 0)
@@ -266,4 +281,4 @@ class CloudTab:
             self.prompt_input.delete("1.0", "end")
             self.prompt_input.insert("1.0", text)
         except Exception:
-            pass
+            note_failure("cloud_tab:L268", None)

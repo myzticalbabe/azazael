@@ -41,11 +41,21 @@ import ast
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from collections import defaultdict
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 try:
@@ -53,6 +63,7 @@ try:
 
     OPTIMIZ_AVAILABLE = True
 except ImportError:
+    note_failure("METAWORMS_ENRICHED:L55", None)
     OPTIMIZ_AVAILABLE = False
 
 try:
@@ -60,6 +71,7 @@ try:
 
     HEALTHZ_AVAILABLE = True
 except ImportError:
+    note_failure("METAWORMS_ENRICHED:L62", None)
     HEALTHZ_AVAILABLE = False
 
 
@@ -68,6 +80,7 @@ try:
 
     TRIMZ_AVAILABLE = True
 except ImportError:
+    note_failure("METAWORMS_ENRICHED:L70", None)
     TRIMZ_AVAILABLE = False
 
 
@@ -268,6 +281,7 @@ class METAZ:
 
                         items += 1
                     except Exception as e:
+                        note_failure("METAWORMS_ENRICHED:L270", e)
                         errors.append(f"{f}: {str(e)}")
 
         # Convert large_files to sorted list
@@ -327,6 +341,7 @@ class DEPENDZ:
                                 dependencies[dep]["imports"].append(line.strip())
                                 items += 1
                 except Exception as e:
+                    note_failure("METAWORMS_ENRICHED:L329", e)
                     errors.append(f"{f}: {str(e)}")
 
         # Convert sets to lists for JSON serialization
@@ -378,6 +393,7 @@ class VALIDZ:
                     valid_files.append(str(f))
                     items += 1
                 except SyntaxError as e:
+                    note_failure("METAWORMS_ENRICHED:L380", e)
                     invalid_files.append(
                         {
                             "file": str(f),
@@ -560,7 +576,7 @@ class METRICZ:
                     metrics["by_file"].append(file_metrics)
                     items += 1
                 except Exception:
-                    pass
+                    note_failure("METAWORMS_ENRICHED:L562", None)
 
         # Calculate averages
         if metrics["totals"]["classes"] > 0:
@@ -618,7 +634,7 @@ class LOGZ:
                             logs["debug"]["total"] += 1
                             items += 1
                 except Exception:
-                    pass
+                    note_failure("METAWORMS_ENRICHED:L620", None)
 
         return WormResult(
             name="LOGZ",
@@ -697,7 +713,7 @@ class CHANGEZ:
                             )
                             items += 1
                     except Exception:
-                        pass
+                        note_failure("METAWORMS_ENRICHED:L699", None)
 
         changes["recent"] = sorted(changes["recent"], key=lambda x: x["age_hours"])[:30]
 

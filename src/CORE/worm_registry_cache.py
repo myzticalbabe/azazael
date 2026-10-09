@@ -31,7 +31,17 @@ import sys
 import pickle
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __version__ = "1.1.0"
 
@@ -135,7 +145,7 @@ def _get_module_mtimes(worms_dir: str) -> dict:
                 rel = str(f.relative_to(worms_path))
                 mtimes[rel] = f.stat().st_mtime
     except OSError:
-        pass
+        note_failure("worm_registry_cache:L137", None)
     return mtimes
 
 
@@ -167,9 +177,11 @@ def _count_declared_worms(worms_dir: str) -> int:
             try:
                 text = f.read_text(encoding="utf-8", errors="replace")
             except OSError:
+                note_failure("worm_registry_cache:L169", None)
                 continue
             total += len(pattern.findall(text))
     except OSError:
+        note_failure("worm_registry_cache:L172", None)
         return 0
     return total
 
@@ -206,6 +218,7 @@ def _registry_fingerprint() -> str:
                 return "unknown"
             digest.update(source.read_bytes())
     except OSError:
+        note_failure("worm_registry_cache:L208", None)
         return "unknown"
     return digest.hexdigest()
 
@@ -251,6 +264,7 @@ def _is_cache_fresh(worms_dir: str) -> bool:
             return False
         return True
     except (pickle.PickleError, KeyError, OSError, EOFError, ModuleNotFoundError, ImportError, AttributeError):
+        note_failure("worm_registry_cache:L253", None)
         return False
 
 
@@ -282,6 +296,7 @@ def _load_cache_readonly(worms_dir: str) -> (dict[str, Any] | None):
             return None
         return {k: v for k, v in cache.items() if not k.startswith("_")}
     except (pickle.PickleError, KeyError, OSError, EOFError, ModuleNotFoundError, ImportError, AttributeError):
+        note_failure("worm_registry_cache:L284", None)
         return None
 
 
@@ -315,6 +330,7 @@ def save_cache(registry: dict[str, Any], worms_dir: str) -> dict:
         try:
             pickle.dumps(info, protocol=pickle.HIGHEST_PROTOCOL)
         except Exception:
+            note_failure("worm_registry_cache:L317", None)
             excluded.append(str(name))
             continue
         payload[name] = info
@@ -383,7 +399,7 @@ def load_registry(worms_dir: (str | None) = None, force_rebuild: bool = False) -
                     if name not in WORM_REGISTRY:
                         WORM_REGISTRY[name] = info
             except ImportError:
-                pass
+                note_failure("worm_registry_cache:L385", None)
             return registry
 
     # Rebuild: run full discover_worms()
@@ -430,6 +446,7 @@ def cache_status() -> dict:
             "cache_size_kb": round(CACHE_FILE.stat().st_size / 1024, 1),
         }
     except Exception as e:
+        note_failure("worm_registry_cache:L432", e)
         return {"exists": False, "reason": str(e)}
 
 

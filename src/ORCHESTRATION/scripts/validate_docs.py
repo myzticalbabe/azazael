@@ -56,6 +56,17 @@ from pathlib import Path
 from datetime import datetime, timedelta
 import tempfile
 import os
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class DocumentationValidator:
@@ -146,7 +157,7 @@ class DocumentationValidator:
                 if date < datetime.now() - timedelta(days=365):
                     issues.append(f"Document is over 1 year old ({date_str})")
             except ValueError:
-                pass
+                note_failure("validate_docs:L148", None)
 
         return issues
 
@@ -223,6 +234,7 @@ class DocumentationValidator:
                 else:
                     self.external_link_results[url] = True
             except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+                note_failure("validate_docs:L225", None)
                 issues.append(f"Could not verify external link: {url}")
                 self.external_link_results[url] = None
 
@@ -257,8 +269,10 @@ class DocumentationValidator:
                     issues.append(f"Code block {i + 1} error: {'; '.join(error_lines)}")
 
             except subprocess.TimeoutExpired:
+                note_failure("validate_docs:L259", None)
                 issues.append(f"Code block {i + 1} timed out (>30s)")
             except Exception as e:
+                note_failure("validate_docs:L261", e)
                 issues.append(f"Code block {i + 1} validation error: {str(e)}")
             finally:
                 if temp_file and os.path.exists(temp_file):

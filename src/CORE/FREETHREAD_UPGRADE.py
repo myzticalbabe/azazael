@@ -23,6 +23,16 @@ from typing import Any, Callable, Dict, List, Tuple
 from concurrent.futures import ThreadPoolExecutor, Future, as_completed
 from datetime import datetime
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Import Free-Threading Core ----------------------------------------------
 try:
     from CORE.freethreading import (
@@ -39,6 +49,7 @@ except ImportError:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:
+            note_failure("FREETHREAD_UPGRADE:L41", None)
             return False
 
     class FreeThreadPool:
@@ -183,6 +194,7 @@ class WormPool:
                     elapsed_ms=round((time.perf_counter() - start) * 1000, 2),
                 )
             except Exception as e:
+                note_failure("FREETHREAD_UPGRADE:L185", e)
                 task = TaskResult(
                     task_id=f"{self.worm_name}-{idx}",
                     worm_name=self.worm_name,
@@ -308,6 +320,7 @@ class ClusterRunner:
                         elapsed_ms=round((time.perf_counter() - task_start) * 1000, 2),
                     ))
                 except Exception as e:
+                    note_failure("FREETHREAD_UPGRADE:L310", e)
                     results.append(TaskResult(
                         task_id=task_id, worm_name=worm_name, success=False,
                         error=str(e),

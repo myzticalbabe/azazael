@@ -47,7 +47,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -70,6 +70,7 @@ try:
     )
     _REGISTRY_OK = True
 except ImportError:
+    note_failure("METACLUSTER:L72", None)
     _REGISTRY_OK = False
     WORM_REGISTRY = {}
     def discover_worms(worms_dir: Optional[str] = None, progress_callback: Optional[Callable] = None) -> int: return 0
@@ -90,6 +91,7 @@ def _get_pams():
                     from CORE.PamsRecorder import PamsRecorder
                     _pams = PamsRecorder()
                 except ImportError:
+                    note_failure("METACLUSTER:L92", None)
                     _pams = False
     return _pams if _pams else None
 
@@ -107,6 +109,7 @@ def _get_mem_bus():
                     from CORE.MemoryBus import MemoryBus
                     _mem_bus = MemoryBus()
                 except ImportError:
+                    note_failure("METACLUSTER:L109", None)
                     _mem_bus = False
     return _mem_bus if _mem_bus else None
 
@@ -115,11 +118,13 @@ try:
     from CORE.freethreading import is_free_threaded
     _FREETHREAD_OK = True
 except ImportError:
+    note_failure("METACLUSTER:L117", None)
     _FREETHREAD_OK = False
     def is_free_threaded() -> bool:
         try:
             return not sys._is_gil_enabled()
         except Exception:
+            note_failure("METACLUSTER:L122", None)
             return False
 
 # ── Config (lazy, thread-safe) ─────────────────────────────────
@@ -135,6 +140,7 @@ def _get_config():
                     from CORE.config import get_config
                     _cfg = get_config()
                 except ImportError:
+                    note_failure("METACLUSTER:L137", None)
                     _cfg = False
     return _cfg if _cfg else None
 
@@ -152,6 +158,7 @@ def _get_breakers():
                     from CORE.circuit_breaker import BreakerRegistry
                     _breaker_registry = BreakerRegistry()
                 except ImportError:
+                    note_failure("METACLUSTER:L154", None)
                     _breaker_registry = False
     return _breaker_registry if _breaker_registry else None
 
@@ -169,6 +176,7 @@ def _get_log():
                     from CORE.azazael_logging import get_logger
                     _logger = get_logger("MetaCluster")
                 except ImportError:
+                    note_failure("METACLUSTER:L171", None)
                     _logger = False
     return _logger if _logger else None
 
@@ -267,7 +275,7 @@ class MetaCluster:
         try:
             discover_worms()
         except Exception:
-            pass
+            note_failure("METACLUSTER:L269", None)
         counts = {c: len(get_worms_by_category(c))
                   for c in sorted(get_all_categories())}
         self.categories = {c: sorted(get_worms_by_category(c))
@@ -292,7 +300,7 @@ class MetaCluster:
             try:
                 cb(**kwargs)
             except Exception:
-                pass
+                note_failure("METACLUSTER:L294", None)
     
     # ── Orientation ────────────────────────────────────────────────
     
@@ -331,6 +339,7 @@ class MetaCluster:
                 eliminate_common_subgraphs, plan_dag, record_dispatch_plan,
             )
         except Exception as exc:  # noqa: BLE001 — planning is optional
+            note_failure("METACLUSTER:L333", exc)
             return names, {}, "plan-fallback:%s" % type(exc).__name__
         try:
             idx = {n: i for i, n in enumerate(names)}
@@ -367,6 +376,7 @@ class MetaCluster:
                 _note_failure("metacluster:plan-event", exc)
             return ordered, levels, note
         except Exception as exc:  # noqa: BLE001 — never break orchestration
+            note_failure("METACLUSTER:L369", exc)
             return names, {}, "plan-fallback:%s" % type(exc).__name__
 
     def orchestrate(self, natures: Optional[List[str]] = None,
@@ -430,7 +440,7 @@ class MetaCluster:
                     try:
                         mark_spawned(worm_name)
                     except Exception:  # noqa: BLE001 — bookkeeping is best-effort
-                        pass
+                        note_failure("METACLUSTER:L432", None)
 
         # ── Plan the dispatch (Helium) ──────────────────────────────
         # Derive the execution order and its levels from a task DAG. Planning
@@ -615,7 +625,7 @@ class MetaCluster:
             metrics_collector.record("metacluster.orchestrate.worms_fail", total_fail)
             metrics_collector.record("metacluster.orchestrate.natures", len(nature_results))
         except Exception:
-            pass
+            note_failure("METACLUSTER:L617", None)
         
         # Build result
         result = MetaClusterResult(
@@ -657,6 +667,7 @@ class MetaCluster:
             try:
                 worms = get_worms_by_category(category)
             except Exception:
+                note_failure("METACLUSTER:L659", None)
                 worms = {}
             weights[category] = sum(
                 float((info or {}).get("priority", 0)) for info in worms.values())
@@ -704,6 +715,7 @@ class MetaCluster:
         try:
             worms = get_worms_by_category(category)
         except Exception:
+            note_failure("METACLUSTER:L706", None)
             return False
         orchestrators = {
             "MetaCluster": "METACLUSTER",
@@ -782,6 +794,7 @@ class MetaCluster:
         try:
             all_natures = set(get_all_categories())
         except Exception:
+            note_failure("METACLUSTER:L784", None)
             all_natures = set()
         executed = set(nature_results.keys())
         unused = all_natures - executed
@@ -797,6 +810,7 @@ class MetaCluster:
         try:
             categories = sorted(get_all_categories())
         except Exception:
+            note_failure("METACLUSTER:L799", None)
             categories = []
         return {
             "version": self.VERSION,
@@ -825,12 +839,14 @@ class MetaCluster:
         try:
             categories = sorted(get_all_categories())
         except Exception:
+            note_failure("METACLUSTER:L827", None)
             return "graph TB\n    error[\"registry unavailable\"]"
         lines = ["graph TB"]
         for category in categories:
             try:
                 worms = sorted(get_worms_by_category(category))
             except Exception:
+                note_failure("METACLUSTER:L833", None)
                 worms = []
             lines.append(f'    {category}["{category}<br/>{len(worms)} worms"]')
             for worm in worms[:20]:
@@ -881,12 +897,14 @@ class MetaCluster:
         try:
             categories = sorted(get_all_categories())
         except Exception:
+            note_failure("METACLUSTER:L883", None)
             return "classDiagram\n    %% No data"
         lines = ["classDiagram"]
         for category in categories:
             try:
                 worms = sorted(get_worms_by_category(category))
             except Exception:
+                note_failure("METACLUSTER:L889", None)
                 worms = []
             for worm in worms[:30]:
                 lines.append(f"    {category} --> {worm}")
@@ -948,7 +966,7 @@ def _record_event(event_type: str, data: Dict[str, Any]):
                 severity="info",
             )
         except Exception:
-            pass
+            note_failure("METACLUSTER:L950", None)
 
 
 # ═══════════════════════════════════════════════════════════════════════

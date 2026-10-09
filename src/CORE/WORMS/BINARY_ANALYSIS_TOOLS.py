@@ -16,12 +16,22 @@ import math
 import subprocess
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from collections import Counter
 
 from CORE.WORMS.BINARY_ANALYSIS_TYPES import (
     EntropyResult, _get_pams, IS_WINDOWS, IS_LINUX,
 )
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # -- Helpers -----------------------------------------------------------
@@ -40,7 +50,7 @@ def _record(event_type: str, data: dict[str, Any], severity: str = "info"):
                     data=data, source="BinaryAnalysis", severity=severity,
                 )
             except Exception:
-                pass
+                note_failure("BINARY_ANALYSIS_TOOLS:L42", None)
 
 
 # -- objdump (Disassembly) --------------------------------------------
@@ -102,7 +112,7 @@ def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
                     if current_section not in result["sections_found"]:
                         result["sections_found"].append(current_section)
                 except IndexError:
-                    pass
+                    note_failure("BINARY_ANALYSIS_TOOLS:L104", None)
 
             if ":" in line and len(line.split(":", 1)[0].strip()) >= 8:
                 try:
@@ -124,14 +134,16 @@ def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
                         "section": current_section,
                     })
                 except Exception:
-                    pass
+                    note_failure("BINARY_ANALYSIS_TOOLS:L126", None)
 
             if len(result["instructions"]) >= max_ins:
                 break
 
     except FileNotFoundError:
+        note_failure("BINARY_ANALYSIS_TOOLS:L132", None)
         result["error"] = "dumpbin not found. Install Visual Studio Build Tools."
     except Exception as e:
+        note_failure("BINARY_ANALYSIS_TOOLS:L134", e)
         result["error"] = str(e)
 
     return result
@@ -177,14 +189,16 @@ def _objdump_linux(path: Path, section: str, max_ins: int) -> dict[str, Any]:
                         "section": current_section,
                     })
                 except Exception:
-                    pass
+                    note_failure("BINARY_ANALYSIS_TOOLS:L179", None)
 
             if len(result["instructions"]) >= max_ins:
                 break
 
     except FileNotFoundError:
+        note_failure("BINARY_ANALYSIS_TOOLS:L185", None)
         result["error"] = "objdump not found. Install binutils."
     except Exception as e:
+        note_failure("BINARY_ANALYSIS_TOOLS:L187", e)
         result["error"] = str(e)
 
     return result
@@ -233,7 +247,7 @@ def extract_strings(
                 if line not in results:
                     results.append(line)
         except Exception:
-            pass
+            note_failure("BINARY_ANALYSIS_TOOLS:L235", None)
 
     _record("strings", {
         "path": str(full_path), "strings_found": len(results), "min_length": min_length,
@@ -312,12 +326,13 @@ def analyze_memory_maps(pid: (int | None) = None) -> dict[int, list[dict[str, An
         try:
             processes = [psutil.Process(pid)]
         except psutil.NoSuchProcess:
+            note_failure("BINARY_ANALYSIS_TOOLS:L314", None)
             return {}
     else:
         try:
             processes = list(psutil.process_iter())[:50]
         except Exception:
-            pass
+            note_failure("BINARY_ANALYSIS_TOOLS:L319", None)
 
     for proc in processes:
         mappings = []
@@ -330,7 +345,7 @@ def analyze_memory_maps(pid: (int | None) = None) -> dict[int, list[dict[str, An
                     "perms": "rwx",
                 })
         except (psutil.AccessDenied, psutil.NoSuchProcess):
-            pass
+            note_failure("BINARY_ANALYSIS_TOOLS:L332", None)
 
         if mappings:
             result[proc.pid] = mappings
@@ -372,6 +387,7 @@ def generate_hexdump(
             lines.append(f"{offset + i:08X}  {hex_part} |{ascii_part}|")
 
     except Exception as e:
+        note_failure("BINARY_ANALYSIS_TOOLS:L374", e)
         return f"Error: {e}"
 
     return "\n".join(lines)
@@ -397,6 +413,7 @@ def run_sed(
             with open(input_path, "r", encoding="utf-8", errors="replace") as f:
                 text = f.read()
         except Exception as e:
+            note_failure("BINARY_ANALYSIS_TOOLS:L399", e)
             return f"Error reading file: {e}"
 
     if not text:
@@ -446,6 +463,7 @@ def run_awk(
             with open(input_path, "r", encoding="utf-8", errors="replace") as f:
                 text = f.read()
         except Exception as e:
+            note_failure("BINARY_ANALYSIS_TOOLS:L448", e)
             return f"Error reading file: {e}"
 
     if not text:
@@ -472,6 +490,7 @@ def run_awk(
                     try:
                         selected.append(fields[idx])
                     except IndexError:
+                        note_failure("BINARY_ANALYSIS_TOOLS:L474", None)
                         selected.append("")
             lines_out.append(output_separator.join(selected))
         else:

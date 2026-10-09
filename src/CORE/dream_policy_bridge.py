@@ -28,6 +28,16 @@ no production caller currently passes.
 
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # Minimum confidence gate (2026-09-08: 0.05 -> 0.01). The dream generator
 # deliberately emits tepid low-confidence strategy_exploration suggestions
 # (confidence = max(0.05, creativity) * U(0.2, 0.5), i.e. a 0.01-0.10 band
@@ -52,6 +62,7 @@ def _governance_blocked(suggestion: Dict[str, Any]) -> bool:
         )
         return result.get("decision") == "blocked"
     except Exception:
+        note_failure("dream_policy_bridge:L54", None)
         return True
 
 
@@ -66,6 +77,7 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
         from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
         mc = MetaCognitionWorm()
     except Exception as e:
+        note_failure("dream_policy_bridge:L68", e)
         return {"applied": applied,
                 "skipped": [{"reason": f"mc-unavailable: {e}"}],
                 "governed": False}
@@ -100,6 +112,7 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
                 "all_scores": res.get("all_scores"),
             })
         except Exception as e:
+            note_failure("dream_policy_bridge:L102", e)
             skipped.append({"reason": f"error: {e}"})
 
     # Persist state so the next cycle resumes from the updated strategy.
@@ -107,7 +120,7 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
         try:
             mc.save_state()
         except Exception:
-            pass
+            note_failure("dream_policy_bridge:L109", None)
 
     try:
         from CORE.direct_memory import DirectMemory
@@ -119,5 +132,5 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
             "governance_min_confidence": min_confidence,
         }, tags=["policy", "dream", "bridge"])
     except Exception:
-        pass
+        note_failure("dream_policy_bridge:L121", None)
     return {"applied": applied, "skipped": skipped}

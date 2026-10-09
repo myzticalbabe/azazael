@@ -6,9 +6,19 @@ Skips .venv and site-packages for speed
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 import json
 import subprocess
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 __all__ = ['FastErrorScanner']
@@ -16,6 +26,7 @@ __all__ = ['FastErrorScanner']
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("ERROR_SCAN_WORM:L18", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -52,6 +63,7 @@ class FastErrorScanner:
                 or first_bytes.startswith(b"\xfe\xff")
             )
         except Exception:
+            note_failure("ERROR_SCAN_WORM:L54", None)
             return False
 
     def remove_bom(self, file_path: Path) -> bool:
@@ -63,6 +75,7 @@ class FastErrorScanner:
                 f.write(content)
             return True
         except Exception:
+            note_failure("ERROR_SCAN_WORM:L65", None)
             return False
 
     def check_syntax(self, file_path: Path) -> tuple[bool, str]:
@@ -72,8 +85,10 @@ class FastErrorScanner:
             compile(code, str(file_path), "exec")
             return True, ""
         except SyntaxError as e:
+            note_failure("ERROR_SCAN_WORM:L74", e)
             return False, f"Line {e.lineno}: {e.msg}"
         except Exception as e:
+            note_failure("ERROR_SCAN_WORM:L76", e)
             return False, str(e)
 
     def check_imports(self, file_path: Path) -> list[str]:
@@ -90,6 +105,7 @@ class FastErrorScanner:
                     if "ModuleNotFoundError" in line or "ImportError" in line:
                         missing.append(line.strip())
         except Exception as e:
+            note_failure("ERROR_SCAN_WORM:L92", e)
             missing.append(str(e))
         return missing
 

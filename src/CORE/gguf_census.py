@@ -7,6 +7,17 @@ limits so a malformed quant can never cost a 400s hang again.
 (Eve-V2 incident: 3-section rope where 4 required.)
 """
 import struct
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 KNOWN = {
     # arch -> {rope_sections: expected_len or None (don't care)}
@@ -47,6 +58,7 @@ def fingerprint(path: str) -> dict:
             if rope_key in kv:
                 rec["rope_sections"] = list(kv[rope_key])
     except Exception as e:
+        note_failure("gguf_census:L49", e)
         rec.update(loadable=False, reason="header-read-fail:" + str(e)[:80])
         return rec
     exp = (KNOWN.get(rec.get("arch", ""), {}) or {}).get("rope_sections")

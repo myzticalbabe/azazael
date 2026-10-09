@@ -52,9 +52,20 @@ import random
 from itertools import combinations
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 try:                                       # same-directory import, no package init
     from exmachina import ncd, ridge_fit, _finite   # type: ignore
 except Exception:                          # pragma: no cover - import shape guard
+    note_failure("exmachina_operators:L57", None)
     from .exmachina import ncd, ridge_fit, _finite   # type: ignore
 
 __all__ = [
@@ -977,6 +988,7 @@ def rank_candidates(items: Sequence[dict], covered: Optional[Sequence[Any]] = No
         try:
             p = float(it.get(field, it.get("p", 0.5)))
         except (TypeError, ValueError):
+            note_failure("exmachina_operators:L979", None)
             continue
         # A nan probability is MISSING information, not zero information.
         # Ranking it last would quietly put an unmeasured item behind a
@@ -991,6 +1003,7 @@ def rank_candidates(items: Sequence[dict], covered: Optional[Sequence[Any]] = No
                 try:
                     sims.append(1.0 - ncd(it, h))
                 except Exception:
+                    note_failure("exmachina_operators:L993", None)
                     continue
             red = max(sims) if sims else 0.0
         score = eig * (1.0 - float(redundancy_penalty) * max(0.0, min(1.0, red)))
@@ -1034,6 +1047,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
             try:
                 f = float(v)
             except (TypeError, ValueError):
+                note_failure("exmachina_operators:L1036", None)
                 continue
             if math.isfinite(f):
                 got[k] = f
@@ -1076,6 +1090,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
                                     check=check if check in pairs else None,
                                     max_cond=max_cond)
         except Exception as exc:
+            note_failure("exmachina_operators:L1078", exc)
             out["radix"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
     else:
         out["radix"] = {"note": "need >=12 rows and >=1 numeric predictor"}
@@ -1085,6 +1100,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
         hdc = HDC(dim=512)
         out["vela"] = hdc.selftest(n_items=24, n_queries=12)
     except Exception as exc:
+        note_failure("exmachina_operators:L1087", exc)
         out["vela"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
 
     # NEXUS + OPUS + NAVIS on the real series when there is enough of it.
@@ -1103,6 +1119,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
             moe_rep["holdout_mae"] = round(sum(err) / len(err), 4) if err else None
             out["nexus"] = moe_rep
         except Exception as exc:
+            note_failure("exmachina_operators:L1105", exc)
             out["nexus"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
         try:
             kan = KAN(n_in=len(keys), n_grid=5).fit(X[:split], y[:split])
@@ -1112,6 +1129,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
             krep["holdout_mae"] = round(sum(kerr) / len(kerr), 4) if kerr else None
             out["opus"] = krep
         except Exception as exc:
+            note_failure("exmachina_operators:L1114", exc)
             out["opus"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
         try:
             esn = EchoState(n_in=len(keys), n_res=32, seed=7)
@@ -1122,6 +1140,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
                             "trained": esn.readout is not None,
                             "holdout_mae": round(sum(eerr) / len(eerr), 4) if eerr else None}
         except Exception as exc:
+            note_failure("exmachina_operators:L1124", exc)
             out["navis"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
         try:
             bo = TrustRegionBO({k: (min(data[k]), max(data[k])) for k in keys})
@@ -1129,6 +1148,7 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
                 bo.tell(X[i], y[i])
             out["catena"] = bo.report()
         except Exception as exc:
+            note_failure("exmachina_operators:L1131", exc)
             out["catena"] = {"error": "%s: %s" % (type(exc).__name__, exc)}
     else:
         for k in ("nexus", "opus", "navis", "catena"):

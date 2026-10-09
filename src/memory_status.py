@@ -17,8 +17,18 @@ Usage:
 
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -123,6 +133,7 @@ class MemoryStatus:
                 "flow_snapshots": snapshot_count,
             }
         except Exception as e:
+            note_failure("memory_status:L125", e)
             status.errors.append(f"SQL memory error: {e}")
 
         return status
@@ -163,7 +174,7 @@ class MemoryStatus:
                         sesh["failed"] = data.get("failed", 0)
                         sesh["timestamp"] = data.get("timestamp", "")
                     except Exception:
-                        pass
+                        note_failure("memory_status:L165", None)
                 session_data.append(sesh)
 
             status.available = True
@@ -173,6 +184,7 @@ class MemoryStatus:
                 "sessions": session_data[:10],
             }
         except Exception as e:
+            note_failure("memory_status:L175", e)
             status.errors.append(f"Debug sessions error: {e}")
 
         return status
@@ -213,8 +225,10 @@ class MemoryStatus:
                 logger = DynamicLogger()
                 status.details["singleton"] = "active"
             except Exception:
+                note_failure("memory_status:L215", None)
                 status.details["singleton"] = "not available"
         except Exception as e:
+            note_failure("memory_status:L217", e)
             status.errors.append(f"Dynamic logger error: {e}")
 
         return status
@@ -243,6 +257,7 @@ class MemoryStatus:
                 status.details["saved_trace"] = str(trace_file)
                 status.details["trace_size"] = trace_file.stat().st_size
         except Exception as e:
+            note_failure("memory_status:L245", e)
             status.errors.append(f"TELEMETRYZ error: {e}")
         return status
 
@@ -267,6 +282,7 @@ class MemoryStatus:
                 "components_monitored": summary.get("components_monitored"),
             }
         except Exception as e:
+            note_failure("memory_status:L269", e)
             status.errors.append(f"METRICZ error: {e}")
         return status
 
@@ -293,6 +309,7 @@ class MemoryStatus:
                 "categories": stats.get("lesson_categories", {}),
             }
         except Exception as e:
+            note_failure("memory_status:L295", e)
             status.errors.append(f"Session memory error: {e}")
         return status
 
@@ -316,6 +333,7 @@ class MemoryStatus:
                 "best_params": hm_status.get("best_params"),
             }
         except Exception as e:
+            note_failure("memory_status:L318", e)
             status.errors.append(f"HYDRAMETA error: {e}")
         return status
 

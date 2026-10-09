@@ -35,6 +35,16 @@ from typing import Any, Dict, List
 
 from CORE.technique_runtime import register
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # A representative multi-nature dispatch: shared prefix (discover, execute),
 # then two divergent tails. Shared prefix is the CSE target; the tails make the
 # fan-out real rather than a single chain.
@@ -351,6 +361,7 @@ def _surface(module: str, symbol: str, note: str = "") -> Dict[str, Any]:
     try:
         mod = __import__(module, fromlist=["*"])
     except Exception as exc:
+        note_failure("_l5_dispatch:L353", exc)
         return {"accepted": False, "engaged": False,
                 "reason": f"no-module:{type(exc).__name__}",
                 "where": f"{module}:{symbol}"}
@@ -379,6 +390,7 @@ def _ep215() -> Dict[str, Any]:
     try:
         from CORE.agent_registry import AGENT_REGISTRY
     except Exception as exc:
+        note_failure("_l5_dispatch:L381", exc)
         return {"accepted": False, "engaged": False,
                 "reason": f"no-registry:{type(exc).__name__}"}
     index: Dict[str, List[str]] = {}
@@ -458,6 +470,7 @@ def _safe(ep: str, name: str, where: str, fn):
         try:
             return fn()
         except Exception as exc:
+            note_failure("_l5_dispatch:L460", exc)
             return {"accepted": False, "engaged": False,
                     "error": f"{type(exc).__name__}: {exc}", "where": where}
     _reg(ep, name, where, _wrapped)

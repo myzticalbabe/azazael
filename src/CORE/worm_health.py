@@ -32,7 +32,17 @@ __all__ = [
 
 import time
 import threading
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class WormHealthScorer:
@@ -128,7 +138,7 @@ class WormHealthScorer:
                     execution_count = w.get("execution_count", 0)
                     break
         except ImportError:
-            pass
+            note_failure("worm_health:L130", None)
 
         try:
             from CORE.worm_registry import WORM_REGISTRY
@@ -136,7 +146,7 @@ class WormHealthScorer:
             spawn_count = info.get("spawn_count", 0)
             last_spawned = info.get("last_spawned")
         except ImportError:
-            pass
+            note_failure("worm_health:L138", None)
 
         # ── Dimension 1: Success rate (0-50) ───────────────────────
         success_rate_score = (success_rate / 100.0) * 50.0
@@ -196,7 +206,7 @@ class WormHealthScorer:
             discover_worms()
             worm_names = list(WORM_REGISTRY)
         except ImportError:
-            pass
+            note_failure("worm_health:L198", None)
 
         if not worm_names:
             return {
@@ -246,7 +256,7 @@ class WormHealthScorer:
                     "critical": sum(1 for s in scores if s < self.DEGRADED_THRESHOLD),
                 }
         except ImportError:
-            pass
+            note_failure("worm_health:L248", None)
 
         return {
             "overall_health": overall_health,
@@ -346,6 +356,8 @@ class WormHealthScorer:
                 last_time = datetime.fromisoformat(str(last_spawned)).timestamp()
         except (ValueError, TypeError):
             # Can't parse — assume moderate activity
+            # Can't parse — assume moderate activity
+            note_failure("worm_health:L347", None)
             return min(spawn_count * 3.0, max_score)
 
         hours_since = (time.time() - last_time) / 3600.0

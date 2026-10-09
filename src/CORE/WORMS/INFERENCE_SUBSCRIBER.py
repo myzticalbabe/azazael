@@ -34,10 +34,20 @@ Version: 1.0.0
 
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import deque
 
 from CORE.worm_registry import register_worm
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __version__ = "1.0.0"
 
@@ -86,7 +96,7 @@ class InferenceSubscriberWorm:
             self._bus.subscribe("nature.>", self._on_nature_event)
             self._bus.subscribe("inference.>", self._on_inference_event)
         except ImportError:
-            pass
+            note_failure("INFERENCE_SUBSCRIBER:L88", None)
 
     def stop(self):
         """Stop listening and clean up subscriptions."""
@@ -96,7 +106,7 @@ class InferenceSubscriberWorm:
                 try:
                     self._bus.unsubscribe(pattern)
                 except Exception:
-                    pass
+                    note_failure("INFERENCE_SUBSCRIBER:L98", None)
 
     # -- Event Handlers ----------------------------------------------
 
@@ -253,7 +263,7 @@ class InferenceSubscriberWorm:
                         })
                 return alerts
         except Exception:
-            pass
+            note_failure("INFERENCE_SUBSCRIBER:L255", None)
 
         return []
 
@@ -266,6 +276,7 @@ class InferenceSubscriberWorm:
                 from CORE.WORMS.INFERENCE_WORM import InferenceWorm
                 self._inference_worm = InferenceWorm()
             except ImportError:
+                note_failure("INFERENCE_SUBSCRIBER:L268", None)
                 self._inference_worm = False
         return self._inference_worm if self._inference_worm else None
 
@@ -279,7 +290,7 @@ class InferenceSubscriberWorm:
                     source="InferenceSubscriberWorm",
                 )
         except Exception:
-            pass
+            note_failure("INFERENCE_SUBSCRIBER:L281", None)
 
     # -- Public API --------------------------------------------------
 

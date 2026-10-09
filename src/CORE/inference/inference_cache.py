@@ -25,11 +25,23 @@ import datetime
 import re
 import threading
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Auto-record inference spawns in audit trail for RULE 0T verifiable citations
 try:
     from CORE.audit_trail import audit_inference_spawn as _audit_inference_spawn
 except ImportError:
+    note_failure("inference_cache:L32", None)
     _audit_inference_spawn = None  # audit_trail not available — graceful degradation
 
 
@@ -112,14 +124,16 @@ def record_inference(agent_name, model, prompt, response, metadata=None):
             try:
                 _audit_inference_spawn(agent_name, str(filepath), model)
             except Exception:
-                pass  # audit trail failure must not block inference recording
+                note_failure("inference_cache:L114", None) # audit trail failure must not block inference recording
     except Exception:
         # Graceful degradation — never crash the caller
+        # Graceful degradation — never crash the caller
+        note_failure("inference_cache:L116", None)
         if temp_path.exists():
             try:
                 temp_path.unlink()
             except Exception:
-                pass
+                note_failure("inference_cache:L121", None)
         return ""
 
     return str(filepath)

@@ -15,12 +15,22 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime
-from typing import Callable
+from typing import Callable, List
 from dataclasses import dataclass
 from collections import defaultdict, deque
 from enum import Enum
 import logging
 import argparse
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -315,6 +325,7 @@ class TerenceEnhanced:
                                 files_modified.add(file_path)
                                 resolutions_applied += 1
                         except Exception as e:
+                            note_failure("terence_enhanced:L317", e)
                             errors.append(f"{file_path}:{line_num} - {str(e)}")
                     else:
                         resolutions_previewed += 1

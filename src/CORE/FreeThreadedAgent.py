@@ -19,7 +19,7 @@ Provides:
 import logging
 import threading
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, List
 
 try:
     from CORE.freethreading import FreeThreadPool, is_free_threaded
@@ -50,6 +50,16 @@ except ImportError:
                 raise RuntimeError("FreeThreadPool not entered")
             return self._executor.map(fn, *it, **kw)
 from CORE.MemoryBus import MemoryBus
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 
@@ -153,6 +163,7 @@ class FreeThreadedAgent(ABC):
             try:
                 msg_str = str(message)
             except Exception:
+                note_failure("FreeThreadedAgent:L155", None)
                 msg_str = repr(message)
         else:
             msg_str = str(message)
@@ -194,6 +205,7 @@ class FreeThreadedAgent(ABC):
         try:
             self.run()
         except Exception as exc:
+            note_failure("FreeThreadedAgent:L196", exc)
             self.tlog("error", f'Agent crashed: {exc}')
             self.on_error(exc)
             import traceback

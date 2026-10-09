@@ -11,7 +11,17 @@ import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -96,6 +106,7 @@ class CodebaseGraph:
         try:
             lines = path.read_text(encoding="utf-8").count("\n") + 1
         except (OSError, UnicodeError):
+            note_failure("codebase_graph:L98", None)
             lines = 0
         self.nodes[module_id] = GraphNode(
             node_id=module_id,
@@ -110,6 +121,7 @@ class CodebaseGraph:
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         except (OSError, UnicodeError, SyntaxError) as exc:
+            note_failure("codebase_graph:L112", exc)
             self.parse_errors.append({"path": str(path), "error": str(exc)})
             return
         for node in ast.walk(tree):

@@ -18,7 +18,17 @@ them goes through durable artefacts, never through an imported module handle.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = [
     "torch_available", "numpy_available", "get_device", "device_label",
@@ -48,6 +58,7 @@ def _load_torch():
         import torch  # noqa: PLC0415
         _TORCH = torch
     except Exception as exc:  # ImportError on 3.14t, OSError on a broken install
+        note_failure("device:L50", exc)
         _TORCH_ERR = "%s: %s" % (type(exc).__name__, exc)
         _TORCH = None
     return _TORCH
@@ -61,6 +72,7 @@ def _load_numpy():
         import numpy as np  # noqa: PLC0415
         _NUMPY = np
     except Exception as exc:
+        note_failure("device:L63", exc)
         _NUMPY_ERR = "%s: %s" % (type(exc).__name__, exc)
         _NUMPY = None
     return _NUMPY
@@ -106,14 +118,14 @@ def get_device():
             _RESOLVED = torch.device("xpu:0")
             return _RESOLVED
     except Exception:
-        pass
+        note_failure("device:L108", None)
 
     try:
         if torch.cuda.is_available():
             _RESOLVED = torch.device("cuda:0")
             return _RESOLVED
     except Exception:
-        pass
+        note_failure("device:L115", None)
 
     _RESOLVED = torch.device("cpu")
     return _RESOLVED
@@ -140,6 +152,7 @@ def to_device(obj, dtype=None):
             return obj.to(dev, dtype)
         return obj.to(dev)
     except Exception:
+        note_failure("device:L142", None)
         return obj
 
 
@@ -155,7 +168,7 @@ def synchronize() -> None:
         elif dev == "cuda":
             torch.cuda.synchronize()
     except Exception:
-        pass
+        note_failure("device:L157", None)
 
 
 def empty_cache() -> None:
@@ -168,7 +181,7 @@ def empty_cache() -> None:
         elif device_label() == "cuda":
             torch.cuda.empty_cache()
     except Exception:
-        pass
+        note_failure("device:L170", None)
 
 
 def describe() -> dict:
@@ -193,6 +206,7 @@ def describe() -> dict:
             info["total_memory_gib"] = round(
                 getattr(props, "total_memory", 0) / 2 ** 30, 2)
     except Exception as exc:
+        note_failure("device:L195", exc)
         info["device_error"] = str(exc)[:160]
     return info
 
@@ -210,6 +224,7 @@ def suggest_batch_size(base: int = 64, cap: int = 512) -> int:
     try:
         mem_gib = getattr(torch.xpu.get_device_properties(0), "total_memory", 0) / 2 ** 30
     except Exception:
+        note_failure("device:L212", None)
         mem_gib = 0.0
     if mem_gib <= 0:
         return base

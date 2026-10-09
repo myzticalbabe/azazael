@@ -132,6 +132,16 @@ from CORE.inference.providers import get_provider
 
 # -- LocalMemoryStore --------------------------------------------------
 from CORE.local_memory import LocalMemoryStore
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 class NeuralPipeline:
     """Unified end-to-end ML orchestrator with 3.14t safety and LLM-augmented rewards.
 
@@ -200,7 +210,7 @@ class NeuralPipeline:
                     self._api_providers[api_name] = provider
                     self._api_scores[api_name] = 1.0  # Start with perfect score
             except Exception:
-                pass
+                note_failure("NeuralPipeline:L202", None)
 
     # -- Pipeline Orchestration ----------------------------------------
 
@@ -329,6 +339,8 @@ class NeuralPipeline:
 
         except Exception as e:
             # -- Error Recovery: DeadLetterQueue ------------------
+            # -- Error Recovery: DeadLetterQueue ------------------
+            note_failure("NeuralPipeline:L330", e)
             metrics["status"] = "failed"
             metrics["error"] = str(e)
             metrics["error_type"] = type(e).__name__
@@ -539,9 +551,11 @@ class NeuralPipeline:
                         )
                         return score
                     except (ValueError, TypeError):
-                        pass
+                        note_failure("NeuralPipeline:L541", None)
             except Exception:
                 # Penalize failing API
+                # Penalize failing API
+                note_failure("NeuralPipeline:L543", None)
                 self._api_scores[api_name] = max(
                     0.1,
                     self._api_scores.get(api_name, 1.0) - 0.05
@@ -583,8 +597,10 @@ class NeuralPipeline:
                             "explanation": parts[1] if len(parts) > 1 else "",
                         }
                     except (ValueError, IndexError):
+                        note_failure("NeuralPipeline:L585", None)
                         api_details[api_name] = {"raw": content}
             except Exception:
+                note_failure("NeuralPipeline:L587", None)
                 api_details[api_name] = {"error": "API call failed"}
 
         avg_score = round(sum(scores) / len(scores), 4) if scores else None
@@ -642,8 +658,9 @@ class NeuralPipeline:
                         score_part = content.split("SCORE:")[-1].strip()
                         scores.append(int(score_part.split()[0]))
                     except (ValueError, IndexError):
-                        pass
+                        note_failure("NeuralPipeline:L644", None)
             except Exception as e:
+                note_failure("NeuralPipeline:L646", e)
                 api_results[api_name] = {"status": "ERROR", "error": str(e)}
 
         # Convergence analysis
@@ -678,7 +695,7 @@ class NeuralPipeline:
                 tags=["neural_pipeline", metrics.get("agent_type", "unknown")],
             )
         except Exception:
-            pass
+            note_failure("NeuralPipeline:L680", None)
 
         with self._lock:
             self._run_history.append(metrics)

@@ -45,6 +45,17 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Project root resolution
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -118,6 +129,7 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
     try:
         data = json.loads(token_path.read_text())
     except (json.JSONDecodeError, OSError) as e:
+        note_failure("parallax_validator:L120", e)
         return False, f"Token unreadable: {e}"
     
     # Verify target matches
@@ -132,6 +144,7 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
         if age > max_age_seconds:
             return False, f"Token expired ({age:.1f}s > {max_age_seconds}s max)"
     except (ValueError, TypeError):
+        note_failure("parallax_validator:L134", None)
         return False, "Token timestamp invalid"
     
     # Verify signature (Ed25519 preferred, BLAKE2b fallback)
@@ -162,8 +175,10 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
                     public_key.verify(sig_bytes, payload)
                     valid_sig = True
                 except InvalidSignature:
+                    note_failure("parallax_validator:L164", None)
                     valid_sig = False
         except (ImportError, OSError, ValueError) as e:
+            note_failure("parallax_validator:L166", e)
             valid_sig = False
     elif sig.startswith("blake2b:"):
         # BLAKE2b fallback verification
@@ -238,8 +253,10 @@ def revert_file(filepath: str) -> tuple[bool, str]:
         return False, f"Revert failed: git={result.stderr.strip()}, no backup"
     
     except subprocess.TimeoutExpired:
+        note_failure("parallax_validator:L240", None)
         return False, "Git checkout timed out"
     except Exception as e:
+        note_failure("parallax_validator:L242", e)
         return False, f"Revert error: {e}"
 
 
@@ -368,6 +385,7 @@ class ParallaxHandler:
         try:
             rel_path = str(Path(filepath).relative_to(_WORKSPACE))
         except ValueError:
+            note_failure("parallax_validator:L370", None)
             rel_path = filepath
         
         valid, reason = verify_token(rel_path)
@@ -430,6 +448,7 @@ def audit_once(dry_run: bool = False) -> dict:
         )
         modified = [f.strip() for f in result.stdout.split("\n") if f.strip()]
     except Exception:
+        note_failure("parallax_validator:L432", None)
         modified = []
     
     for filepath in modified:

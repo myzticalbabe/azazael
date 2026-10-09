@@ -22,6 +22,17 @@ from enum import Enum
 from datetime import datetime
 import logging
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -261,6 +272,7 @@ class TarbabyEnhanced:
                     )
 
         except json.JSONDecodeError as e:
+            note_failure("tarbaby_enhanced:L263", e)
             conflicts.append(
                 BinaryConflict(
                     conflict_type=ConflictType.ENCODING_ERROR,
@@ -287,6 +299,7 @@ class TarbabyEnhanced:
                 yaml.safe_load(f)
 
         except yaml.YAMLError as e:
+            note_failure("tarbaby_enhanced:L289", e)
             conflicts.append(
                 BinaryConflict(
                     conflict_type=ConflictType.ENCODING_ERROR,
@@ -325,6 +338,7 @@ class TarbabyEnhanced:
                 )
 
         except Exception as e:
+            note_failure("tarbaby_enhanced:L327", e)
             conflicts.append(
                 BinaryConflict(
                     conflict_type=ConflictType.FORMAT_INCOMPATIBLE,
@@ -509,6 +523,7 @@ class TarbabyEnhanced:
             )
 
         except Exception as e:
+            note_failure("tarbaby_enhanced:L511", e)
             return ConflictResolution(
                 conflict=conflict,
                 success=False,
@@ -536,6 +551,7 @@ class TarbabyEnhanced:
                 error_message=None,
             )
         except Exception as e:
+            note_failure("tarbaby_enhanced:L538", e)
             return ConflictResolution(
                 conflict=conflict,
                 success=False,
@@ -563,6 +579,7 @@ class TarbabyEnhanced:
                 error_message=None,
             )
         except Exception as e:
+            note_failure("tarbaby_enhanced:L565", e)
             return ConflictResolution(
                 conflict=conflict,
                 success=False,
@@ -591,6 +608,7 @@ class TarbabyEnhanced:
                     error_message=None,
                 )
             except Exception:
+                note_failure("tarbaby_enhanced:L593", None)
                 continue
 
         return ConflictResolution(
@@ -636,6 +654,7 @@ class TarbabyEnhanced:
             )
 
         except Exception as e:
+            note_failure("tarbaby_enhanced:L638", e)
             return ConflictResolution(
                 conflict=conflict,
                 success=False,
@@ -722,6 +741,7 @@ class TarbabyEnhanced:
                     files_migrated += 1
 
             except Exception as e:
+                note_failure("tarbaby_enhanced:L724", e)
                 errors.append(f"{py_file}: {str(e)}")
 
         return {

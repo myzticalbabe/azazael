@@ -29,6 +29,16 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 #: Envelope key. Underscore-prefixed by the convention that caller payload
 #: keys are domain words; a collision with a real arm payload key would
 #: silently change what the arm computes.
@@ -110,6 +120,7 @@ def from_route(capability: str,
             degraded=degraded,
         )
     except Exception:
+        note_failure("delegation_spec:L112", None)
         safe_ctx = dict(payload) if isinstance(payload, dict) else {}
         return DelegationSpec(
             instruction=str(capability or ""),

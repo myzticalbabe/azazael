@@ -26,7 +26,7 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 
 # ── Worm Registry ─────────────────────────────────────────────────────
@@ -34,12 +34,23 @@ try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("DOCKERZ:L36", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
 
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Portability: use env vars with local fallbacks
 _PROJECT_ROOT = str(Path(__file__).resolve().parent)
@@ -110,10 +121,13 @@ class DOCKERZ:
             )
             return result.returncode == 0, result.stdout, result.stderr
         except subprocess.TimeoutExpired:
+            note_failure("DOCKERZ:L112", None)
             return False, "", "Command timed out"
         except FileNotFoundError:
+            note_failure("DOCKERZ:L114", None)
             return False, "", "Docker not found"
         except Exception as e:
+            note_failure("DOCKERZ:L116", e)
             return False, "", str(e)
 
     def is_available(self) -> bool:

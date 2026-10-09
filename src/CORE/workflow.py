@@ -38,10 +38,20 @@ Usage:
 import time
 import threading
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor, as_completed  # TimeoutError is a builtin — no import needed
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Lazy Config (thread-safe) ------------------------------------
 _cfg = None
@@ -58,6 +68,7 @@ def _get_config():
                     from CORE.config import get_config
                     _cfg = get_config()
                 except ImportError:
+                    note_failure("workflow:L60", None)
                     _cfg = False
     return _cfg if _cfg else None
 
@@ -323,16 +334,19 @@ class ConditionalRouter:
                 try:
                     return float(left) == float(right)
                 except ValueError:
+                    note_failure("workflow:L325", None)
                     return left_lower == right_lower
             elif op_str == ">":
                 try:
                     return float(left) > float(right)
                 except ValueError:
+                    note_failure("workflow:L330", None)
                     return left_lower > right_lower
             elif op_str == "<":
                 try:
                     return float(left) < float(right)
                 except ValueError:
+                    note_failure("workflow:L335", None)
                     return left_lower < right_lower
 
         # -- Dot-path comparison — e.g. "step_id.field == value" --
@@ -362,6 +376,7 @@ class ConditionalRouter:
                 try:
                     return value == float(right)
                 except ValueError:
+                    note_failure("workflow:L364", None)
                     return str(value) == right
             return str(value).lower() == right.lower()
 
@@ -369,12 +384,14 @@ class ConditionalRouter:
             try:
                 return float(value) > float(right)
             except (ValueError, TypeError):
+                note_failure("workflow:L371", None)
                 return False
 
         elif op_str == "<":
             try:
                 return float(value) < float(right)
             except (ValueError, TypeError):
+                note_failure("workflow:L377", None)
                 return False
 
         return True
@@ -800,6 +817,7 @@ class WorkflowEngine:
         try:
             layers = graph.get_execution_order()
         except RuntimeError as e:
+            note_failure("workflow:L802", e)
             return WorkflowResult(
                 workflow_id=workflow.id,
                 workflow_name=workflow.name,
@@ -849,6 +867,7 @@ class WorkflowEngine:
                         success_count += 1
                         outputs[step_id] = result
                 except Exception as e:
+                    note_failure("workflow:L851", e)
                     with results_lock:
                         step_results[step_id] = {
                             "success": False,
@@ -865,6 +884,7 @@ class WorkflowEngine:
                         # _run_step handles its own exceptions and updates shared state via lock
                         pass
                 except TimeoutError:
+                    note_failure("workflow:L867", None)
                     for fut, sid in fut_map.items():
                         if not fut.done():
                             fut.cancel()
@@ -907,7 +927,7 @@ class WorkflowEngine:
                 tags=["workflow", workflow.name],
             )
         except Exception:
-            pass
+            note_failure("workflow:L909", None)
 
         with self._lock:
             self._history.append(result)

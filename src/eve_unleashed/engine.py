@@ -15,7 +15,7 @@ import concurrent.futures
 import os
 import time
 from pathlib import Path
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, List
 
 import numpy as np
 
@@ -32,6 +32,16 @@ from .utils import (
     prepare_input_tensor,
     postprocess_output,
 )
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 if HAS_PIL:
     from PIL import Image  # noqa: F811
@@ -200,7 +210,7 @@ class InferenceEngine:
                 _lat = float(result.total_time_ms) / max(1, len(result.results))
             get_registry().record_inference(_mpath, _lat, framework)
         except Exception:
-            pass
+            note_failure("engine:L202", None)
 
         # Store in cache
         if not batch and self._cache is not None:
@@ -532,7 +542,7 @@ class InferenceEngine:
                 elif framework in ("gguf", "transformers", "vl"):
                     self._single_infer(model, framework, "warmup")
             except Exception:
-                pass  # Warmup failures are non-fatal
+                note_failure("engine:L534", None) # Warmup failures are non-fatal
 
     def batch_infer(self, handle: str, inputs_list: list) -> BatchResult:
         """Run batched inference (public API for backward compatibility)."""
@@ -548,7 +558,7 @@ class InferenceEngine:
         try:
             self._executor.shutdown(wait=False)
         except Exception:
-            pass
+            note_failure("engine:L550", None)
 
 
 def create_engine(config_path: (str | None) = None) -> InferenceEngine:

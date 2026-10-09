@@ -9,6 +9,17 @@ import json
 import math
 import random
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 BACKENDS = ("cpu", "sycl", "ollama")
 BENCH = Path(r"C:\Users\clint\AppData\Local\Temp\opencode\bench_results.jsonl")
@@ -29,11 +40,13 @@ class BackendBandit:
         try:
             lines = BENCH.read_text().splitlines()
         except Exception:
+            note_failure("backend_bandit:L31", None)
             return
         for line in lines:
             try:
                 r = json.loads(line)
             except Exception:
+                note_failure("backend_bandit:L36", None)
                 continue
             if r.get("type") == "backend-compare":
                 m = r.get("model", "?")
@@ -69,7 +82,7 @@ class BackendBandit:
                 if fp.get("magic_ok") and fp.get("loadable") is False:
                     return "ollama"
             except Exception:
-                pass
+                note_failure("backend_bandit:L71", None)
         cands = {}
         for (m, b), (s, f, _t, _n) in self._stats.items():
             if m in model or model in m:

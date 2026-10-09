@@ -47,10 +47,22 @@ from html.parser import HTMLParser
 
 # --- PIL availability ---
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 try:
     from PIL import Image, ImageDraw, ImageFont
     HAS_PIL = True
 except ImportError:
+    note_failure("generate_dashboard_video:L53", None)
     HAS_PIL = False
 
 # --- Project paths ---
@@ -383,6 +395,7 @@ class DashboardCardDataExtractor(HTMLParser):
             else:
                 char = chr(int(name))
         except (ValueError, OverflowError):
+            note_failure("generate_dashboard_video:L385", None)
             char = f"&#{name};"
         self._append_to_current(char)
 
@@ -446,12 +459,13 @@ def render_vibrant_dashboard_frames(cards_data, frames_dir, width, height, fps,
             try:
                 return ImageFont.truetype(name, size)
             except Exception:
+                note_failure("generate_dashboard_video:L448", None)
                 continue
         # Try loading default with larger size (Pillow >= 9.0)
         try:
             return ImageFont.load_default().font_variant(size=size)
         except Exception:
-            pass
+            note_failure("generate_dashboard_video:L453", None)
         return None
 
     title_font = _try_load_font(["segoeuib.ttf", "arialbd.ttf", "arial.ttf"], 52)
@@ -1019,7 +1033,7 @@ def browser_visual_mode(html_path, output_path, fps, duration, width, height,
         if os.path.exists(capture_script_path):
             os.remove(capture_script_path)
     except Exception:
-        pass
+        note_failure("generate_dashboard_video:L1021", None)
 
     if success and os.path.exists(output_path):
         size_mb = os.path.getsize(output_path) / 1024 / 1024

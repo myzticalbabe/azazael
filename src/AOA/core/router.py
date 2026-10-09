@@ -66,6 +66,16 @@ from .contracts import (
     now_iso,
 )
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 
 class StepStatus(Enum):
     PENDING = "pending"
@@ -185,6 +195,7 @@ def _spine():
         from CORE import spine_registry as spine
         return spine
     except Exception:
+        note_failure("router:L187", None)
         return None
 
 
@@ -222,6 +233,7 @@ class CrossArmRouter:
         try:
             return tuple(sorted(self.registry.arms.keys()))
         except Exception:
+            note_failure("router:L224", None)
             return ("<unavailable>",)
 
     def capability_index(self) -> Dict[str, List[str]]:
@@ -238,6 +250,7 @@ class CrossArmRouter:
         try:
             items = list(self.registry.arms.items())
         except Exception:
+            note_failure("router:L240", None)
             items = []
         for arm_id, arm in items:
             try:
@@ -246,6 +259,10 @@ class CrossArmRouter:
                 # An Arm whose capability listing raises is skipped for
                 # ROUTING only; it stays registered and explicitly pinned
                 # calls to it still work.
+                # An Arm whose capability listing raises is skipped for
+                # ROUTING only; it stays registered and explicitly pinned
+                # calls to it still work.
+                note_failure("router:L245", None)
                 continue
             for cap in caps:
                 name = getattr(cap, "name", None)
@@ -264,6 +281,7 @@ class CrossArmRouter:
             meta = arm.metadata if arm else None
             return int(getattr(meta, "priority", 0) or 0)
         except Exception:
+            note_failure("router:L266", None)
             return 0
 
     # ── learned-Q evidence ─────────────────────────────────────────────
@@ -286,6 +304,7 @@ class CrossArmRouter:
         try:
             spine = _spine()
         except Exception:
+            note_failure("router:L288", None)
             spine = None
         if spine is None:
             for arm_id in arm_ids:
@@ -298,6 +317,7 @@ class CrossArmRouter:
                 pulls = int(spine.get_q_updates(ARM_ROUTE_NATURE, worm))
                 evidence[arm_id] = {"q": q, "pulls": pulls, "known": pulls > 0}
             except Exception:
+                note_failure("router:L300", None)
                 evidence[arm_id] = {"q": 0.0, "pulls": 0, "known": False}
         return evidence, False, (time.perf_counter() - started) * 1000.0
 
@@ -415,6 +435,7 @@ class CrossArmRouter:
                                  bool(success), float(duration_ms),
                                  censored=bool(censored))
         except Exception:
+            note_failure("router:L417", None)
             with self._stats_lock:
                 self._stats["write_backs_suppressed"] += 1
             return False
@@ -510,6 +531,7 @@ class CrossArmRouter:
             _spec = from_route(capability, payload, decision, selected)
             _exec_payload = _spec.to_payload(payload)
         except Exception:
+            note_failure("router:L512", None)
             _spec = None
             _exec_payload = payload
         try:
@@ -533,7 +555,7 @@ class CrossArmRouter:
                 try:
                     _spec.attach(flat)
                 except Exception:
-                    pass
+                    note_failure("router:L535", None)
             if decision:
                 flat["routing"] = {
                     "reason": decision.get("reason"),
@@ -560,6 +582,7 @@ class CrossArmRouter:
                                   duration_ms, stored, violations)
             return flat
         except Exception as e:
+            note_failure("router:L562", e)
             duration_ms = (time.perf_counter() - started_perf) * 1000.0
             self.bus.publish(AOEvent(
                 event_type=AOEventType.ARM_ERROR, source_arm=selected,

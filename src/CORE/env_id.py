@@ -31,6 +31,17 @@ Design constraints:
 """
 
 import os
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = ["env_id", "describe_env", "is_known_env", "VALID_ENVS",
            "WSL_ENVS", "canonical_env"]
@@ -49,6 +60,7 @@ def _read(path: str) -> str:
         with open(path, "r", errors="replace") as f:
             return f.read()
     except Exception:
+        note_failure("env_id:L51", None)
         return ""
 
 
@@ -148,11 +160,13 @@ def describe_env() -> dict:
         import psutil
         mem_gb = round(psutil.virtual_memory().total / 1e9, 1)
     except Exception:
+        note_failure("env_id:L150", None)
         try:
             with open("/proc/meminfo", "r") as f:
                 mem_kb = int(f.readline().split()[1])
             mem_gb = round(mem_kb / 1e6, 1)
         except Exception:
+            note_failure("env_id:L155", None)
             mem_gb = 0.0
     return {"env": env, "virt": virt, "cpu": os.cpu_count() or 0,
             "mem_gb": mem_gb, "bare_likely": env == "bare" and virt == "bare_metal_or_unknown"}
@@ -173,4 +187,5 @@ def _windows_hypervisor_present() -> bool:
             val, _ = winreg.QueryValueEx(k, "HypervisorPresent")
         return bool(val)
     except Exception:
+        note_failure("env_id:L175", None)
         return False

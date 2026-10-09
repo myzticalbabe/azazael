@@ -48,7 +48,7 @@ import numpy as np
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 # -- Import CORE utilities ----------------------------------------------------
 # Add parent dir (src/) to sys.path, NOT CORE/ directly, to avoid CORE/logging.py
@@ -56,6 +56,16 @@ from typing import Any
 _azazael_src = str(Path(__file__).resolve().parent.parent)
 if _azazael_src not in sys.path:
     sys.path.insert(0, _azazael_src)
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 from CORE.Agent import FreeThreadedAgent, AgentConfig, IS_FREE_THREADED
 
@@ -72,7 +82,8 @@ try:
         and not sys._is_gil_enabled()
         and os.environ.get("AZAZAEL_GIL_ENFORCED") != "1"
     )
-except Exception:
+except Exception as exc:
+    note_failure("sb3_agent:L75", exc)
     _SKIP_SB3_IMPORT = False
 
 if not _SKIP_SB3_IMPORT:
@@ -80,7 +91,8 @@ if not _SKIP_SB3_IMPORT:
         from stable_baselines3 import PPO, DQN, A2C, SAC, TD3, DDPG
         from stable_baselines3.common.base_class import BaseAlgorithm
         HAS_SB3 = True
-    except ImportError:
+    except ImportError as exc:
+        note_failure("sb3_agent:L83", exc)
         HAS_SB3 = False
         PPO = DQN = A2C = SAC = TD3 = DDPG = None
         BaseAlgorithm = object
@@ -94,42 +106,48 @@ else:
 try:
     from sb3_contrib import QRDQN, TRPO, TQC, ARS, MaskablePPO
     HAS_SB3_CONTRIB = True
-except Exception:
+except Exception as exc:
+    note_failure("sb3_agent:L97", exc)
     HAS_SB3_CONTRIB = False
     QRDQN = TRPO = TQC = ARS = MaskablePPO = None
 
 try:
     from sb3_contrib.common.wrappers import ActionMasker
     HAS_ACTION_MASKER = True
-except Exception:
+except Exception as exc:
+    note_failure("sb3_agent:L104", exc)
     HAS_ACTION_MASKER = False
     ActionMasker = None
 
 try:
     import gymnasium as gym
     HAS_GYM = True
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L111", exc)
     HAS_GYM = False
     gym = None
 
 try:
     import torch
     HAS_TORCH = True
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L118", exc)
     HAS_TORCH = False
     torch = None
     torch = None
 
 try:
     HAS_SKLEARN = True
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L125", exc)
     HAS_SKLEARN = False
 
 # -- DataPipelineWorm for training data --------------------------------------
 try:
     from CORE.WORMS.expansion.learning import DataPipelineWorm
     HAS_PIPELINE = True
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L132", exc)
     HAS_PIPELINE = False
     DataPipelineWorm = None
 
@@ -137,20 +155,24 @@ except ImportError:
 try:
     from CORE.WORMS.expansion.learning import ModelVersioner
     HAS_VERSIONER = True
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L140", exc)
     HAS_VERSIONER = False
     ModelVersioner = None
 
 # -- MemoryBus for messaging -------------------------------------------------
 try:
     HAS_MEMORYBUS = True
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L147", exc)
     HAS_MEMORYBUS = False
 
 # -- Agent registry ----------------------------------------------------------
 try:
     from CORE.agent_registry import register_agent
-except ImportError:
+except ImportError as exc:
+    note_failure("sb3_agent:L153", exc)
+
     def register_agent(**kw):
         return lambda cls: cls
 
@@ -168,7 +190,8 @@ def _needs_gil_enforcement() -> bool:
         return (sysconfig.get_config_var("Py_GIL_DISABLED") == 1
                 and hasattr(sys, "_is_gil_enabled")
                 and not sys._is_gil_enabled())
-    except Exception:
+    except Exception as exc:
+        note_failure("sb3_agent:L171", exc)
         return False
 
 
@@ -190,8 +213,8 @@ def _find_gil_python() -> (str | None):
         sib = Path(sys.executable).with_name("python.exe")
         if sib.is_file() and sib.resolve() != Path(sys.executable).resolve():
             return str(sib)
-    except Exception:
-        pass
+    except Exception as exc:
+        note_failure("sb3_agent:L193", exc)
 
     # 3. py launcher discovery (best-effort, non-fatal)
     try:
@@ -204,8 +227,8 @@ def _find_gil_python() -> (str | None):
             p = proc.stdout.strip().splitlines()[-1].strip()
             if p and os.path.isfile(p):
                 return p
-    except Exception:
-        pass
+    except Exception as exc:
+        note_failure("sb3_agent:L207", exc)
     return None
 
 
@@ -243,9 +266,11 @@ def _run_training_in_gil_subprocess(
         proc = subprocess.run(
             cmd, capture_output=True, text=True, timeout=1800, env=env,
         )
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
+        note_failure("sb3_agent:L246", exc)
         return {"error": "GIL subprocess training timed out (30 min)", "trained": False}
-    except FileNotFoundError:
+    except FileNotFoundError as exc:
+        note_failure("sb3_agent:L248", exc)
         return {"error": f"GIL interpreter not found: {gil_py}", "trained": False}
 
     # Parse the last JSON line of stdout (prints may precede it)
@@ -256,7 +281,8 @@ def _run_training_in_gil_subprocess(
             try:
                 payload = json.loads(line)
                 break
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:
+                note_failure("sb3_agent:L259", exc)
                 continue
     if payload is None:
         return {
@@ -447,8 +473,8 @@ def _next_model_version(versioner, name: str, fallback: int = 1) -> str:
         if latest:
             n = int(str(latest.get("version", "v0")).lstrip("v").split(".")[0])
             return f"v{n + 1}"
-    except (ValueError, TypeError, AttributeError):
-        pass
+    except (ValueError, TypeError, AttributeError) as exc:
+        note_failure("sb3_agent:L450", exc)
     return f"v{max(int(fallback or 1), 1)}"
 
 
@@ -634,6 +660,7 @@ class SB3Agent(FreeThreadedAgent):
 
                 env = ActionMasker(env, _noop_mask)
         except Exception as e:
+            note_failure("sb3_agent:L636", e)
             return {"error": f"Failed to create environment: {e}", "trained": False}
 
         # -- Step 3: Override params ----------------------------------
@@ -668,6 +695,7 @@ class SB3Agent(FreeThreadedAgent):
                 self._total_timesteps_trained += n
 
         except Exception as e:
+            note_failure("sb3_agent:L670", e)
             return {"error": f"Training failed: {e}", "trained": False}
 
         duration_ms = (time.perf_counter() - start) * 1000
@@ -687,8 +715,8 @@ class SB3Agent(FreeThreadedAgent):
                 self._model, env, n_eval_episodes=10, deterministic=True)
             eval_mean_reward = round(float(_er_mean), 4)
             eval_std_reward = round(float(_er_std), 4)
-        except Exception:
-            pass
+        except Exception as exc:
+            note_failure("sb3_agent:L690", exc)
 
         # -- Step 5: Record training stats -----------------------------
         train_result = {
@@ -748,6 +776,7 @@ class SB3Agent(FreeThreadedAgent):
                 )
                 train_result["registered_model"] = mname
             except Exception as e:
+                note_failure("sb3_agent:L750", e)
                 train_result["registry_error"] = str(e)
 
         return train_result
@@ -775,7 +804,8 @@ class SB3Agent(FreeThreadedAgent):
 
         try:
             return self._model.predict(observation, deterministic=deterministic, state=state)
-        except Exception:
+        except Exception as exc:
+            note_failure("sb3_agent:L778", exc)
             self._increment_stat('tasks_failed')
             # Same default-action contract as the untrained fallback.
             return np.asarray(0, dtype=np.int64), None
@@ -801,7 +831,8 @@ class SB3Agent(FreeThreadedAgent):
             path = str(path)
             self._model.save(path)
             return True
-        except Exception:
+        except Exception as exc:
+            note_failure("sb3_agent:L804", exc)
             return False
 
     def load(self, path: str | Path, env: Any = None) -> bool:
@@ -825,7 +856,8 @@ class SB3Agent(FreeThreadedAgent):
             with self._model_lock:
                 self._model = algo_cls.load(path, env=env or self._env)
             return True
-        except Exception:
+        except Exception as exc:
+            note_failure("sb3_agent:L828", exc)
             return False
 
     def get_training_history(self, limit: int = 10) -> list[dict]:
@@ -858,7 +890,8 @@ class SB3Agent(FreeThreadedAgent):
             if isinstance(data, str):
                 try:
                     data = json.loads(data)
-                except (json.JSONDecodeError, TypeError):
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("sb3_agent:L861", exc)
                     data = {}
             if not isinstance(data, dict):
                 data = {}
@@ -1009,7 +1042,8 @@ class SB3Agent(FreeThreadedAgent):
         if self._pipeline is None and HAS_PIPELINE:
             try:
                 self._pipeline = DataPipelineWorm()
-            except Exception:
+            except Exception as exc:
+                note_failure("sb3_agent:L1012", exc)
                 self._pipeline = False  # Sentinel
         return self._pipeline if self._pipeline else None
 
@@ -1018,7 +1052,8 @@ class SB3Agent(FreeThreadedAgent):
         if self._versioner is None and HAS_VERSIONER:
             try:
                 self._versioner = ModelVersioner()
-            except Exception:
+            except Exception as exc:
+                note_failure("sb3_agent:L1021", exc)
                 self._versioner = False
         return self._versioner if self._versioner else None
 

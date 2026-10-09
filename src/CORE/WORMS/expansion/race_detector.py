@@ -16,13 +16,24 @@ Part of AZAZAEL Worm Registry — Category: security, Priority: 9
 import os
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import defaultdict
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("race_detector:L25", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -32,6 +43,7 @@ try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
 except ImportError:
+    note_failure("race_detector:L34", None)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
@@ -198,6 +210,8 @@ class RaceConditionDetector:
                 type.__setattr__(worm_type, '_rcd_original_setattr', original_setattr)
             except TypeError:
                 # C extension types don't allow attribute setting — tracing unavailable
+                # C extension types don't allow attribute setting — tracing unavailable
+                note_failure("race_detector:L199", None)
                 return False
 
         detector_ref = self  # Capture reference for the closure
@@ -275,9 +289,11 @@ class RaceConditionDetector:
                 try:
                     attr = getattr(instance, name)
                 except Exception:
+                    note_failure("race_detector:L277", None)
                     try:
                         attr = object.__getattribute__(instance, name)
                     except AttributeError:
+                        note_failure("race_detector:L280", None)
                         continue
                 if isinstance(attr, (dict, list, set, bytearray)):
                     shared.add(name)
@@ -327,6 +343,7 @@ class RaceConditionDetector:
                         dt_j = datetime.fromisoformat(t_j)
                         delta_ms = abs((dt_j - dt_i).total_seconds() * 1000)
                     except (ValueError, TypeError):
+                        note_failure("race_detector:L329", None)
                         continue
 
                     if delta_ms <= self._concurrent_write_window_ms:
@@ -381,6 +398,7 @@ class RaceConditionDetector:
                 with open(path, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
             except Exception:
+                note_failure("race_detector:L383", None)
                 continue
 
             in_function = 0
@@ -477,6 +495,6 @@ class RaceConditionDetector:
                     tags=["race_detection", "3.14t", "thread_safety"],
                 )
         except Exception:
-            pass
+            note_failure("race_detector:L479", None)
 
         return report

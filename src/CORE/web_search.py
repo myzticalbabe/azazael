@@ -38,6 +38,16 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 #: Hard ceiling per fetch. A search helper that buffers megabytes is how a
 #: tap becomes slow enough that someone disables it.
 MAX_BYTES = 200_000
@@ -82,6 +92,7 @@ def fetch_url(url: str, *,
     try:
         scheme = urllib.parse.urlparse(str(url)).scheme.lower()
     except Exception:
+        note_failure("web_search:L84", None)
         scheme = ""
     if scheme not in ("http", "https"):
         return FetchResult(url=str(url), retrieved_at=ts,
@@ -98,6 +109,7 @@ def fetch_url(url: str, *,
             try:
                 ctype = str(resp.headers.get("Content-Type", ""))
             except Exception:
+                note_failure("web_search:L100", None)
                 ctype = ""
             if ctype and not ctype.split(";")[0].strip().startswith(
                     ("text/", "application/json", "application/xml",
@@ -112,14 +124,16 @@ def fetch_url(url: str, *,
             try:
                 charset = resp.headers.get_content_charset() or charset
             except Exception:
-                pass
+                note_failure("web_search:L114", None)
             try:
                 text = raw.decode(charset, errors="replace")
             except Exception:
+                note_failure("web_search:L118", None)
                 text = raw.decode("utf-8", errors="replace")
             try:
                 final_url = resp.geturl()
             except Exception:
+                note_failure("web_search:L122", None)
                 final_url = str(url)
             return FetchResult(url=str(url), final_url=str(final_url),
                                status=status, text=text,
@@ -128,12 +142,14 @@ def fetch_url(url: str, *,
             try:
                 resp.close()
             except Exception:
-                pass
+                note_failure("web_search:L130", None)
     except urllib.error.HTTPError as e:
+        note_failure("web_search:L132", e)
         return FetchResult(url=str(url), status=getattr(e, "code", None),
                            retrieved_at=ts,
                            error="http %s" % getattr(e, "code", "?"))
     except Exception as e:  # noqa: BLE001 — transport boundary reports
+        note_failure("web_search:L136", e)
         return FetchResult(url=str(url), retrieved_at=ts,
                            error="%s: %s" % (type(e).__name__, str(e)[:200]))
 
@@ -159,6 +175,7 @@ class WikipediaProvider:
             data = _json.loads(res.text)
             return data if isinstance(data, dict) else {"_error": "non-dict"}
         except Exception as e:
+            note_failure("web_search:L161", e)
             return {"_error": "bad json: %s" % str(e)[:120]}
 
     def search(self, query: str, limit: int = 5) -> List[SearchResult]:
@@ -172,6 +189,7 @@ class WikipediaProvider:
                                    "srlimit": max(1, min(int(limit), 20)),
                                    "srprop": "snippet"})
         except Exception:
+            note_failure("web_search:L174", None)
             return []
         out = []
         try:
@@ -184,6 +202,7 @@ class WikipediaProvider:
                     snippet=_strip_tags(str(item.get("snippet", ""))),
                     source=self.NAME, retrieved_at=ts))
         except Exception:
+            note_failure("web_search:L186", None)
             return out
         return out
 
@@ -193,6 +212,7 @@ class WikipediaProvider:
         try:
             title = result.title
         except Exception:
+            note_failure("web_search:L195", None)
             return FetchResult(retrieved_at=ts, error="bad result")
         if not title:
             return FetchResult(retrieved_at=ts, error="empty title")
@@ -202,6 +222,7 @@ class WikipediaProvider:
                  "explaintext": 1, "exsectionformat": "plain",
                  "titles": title})
         except Exception as e:
+            note_failure("web_search:L204", e)
             return FetchResult(url=result.url, retrieved_at=ts,
                                error=str(e)[:200])
         if "_error" in data:
@@ -216,6 +237,7 @@ class WikipediaProvider:
                                truncated=len(str(text)) >= MAX_BYTES,
                                retrieved_at=ts)
         except Exception as e:
+            note_failure("web_search:L218", e)
             return FetchResult(url=result.url, retrieved_at=ts,
                                error=str(e)[:200])
 
@@ -257,6 +279,7 @@ def search(query: str, provider: str = "wikipedia",
         return {"results": [asdict(r) for r in results],
                 "provider": str(provider), "error": None}
     except Exception as e:  # noqa: BLE001 — provider boundary reports
+        note_failure("web_search:L259", e)
         return {"results": [], "provider": str(provider),
                 "error": "%s: %s" % (type(e).__name__, str(e)[:200])}
 
@@ -286,6 +309,7 @@ def search_and_cite(query: str, provider: str = "wikipedia",
                                              "source", "retrieved_at")})
             fetched = asdict(cls().fetch(top))
         except Exception as e:  # noqa: BLE001 — fetch is optional detail
+            note_failure("web_search:L288", e)
             fetched = {"error": str(e)[:200]}
     out["fetched"] = fetched
     out["citations"] = cite(out["results"])

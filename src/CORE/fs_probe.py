@@ -91,7 +91,17 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 #: How long a probe waits before declaring "no answer". Deliberately short:
 #: a mount that cannot answer within a couple of seconds is unusable for the
@@ -157,6 +167,7 @@ def _carried_permit() -> Callable[[], Any]:
         held = bool(guard.permit_active())
         factory = guard.worker_permit
     except Exception:
+        note_failure("fs_probe:L159", None)
         return contextlib.nullcontext
 
     def _make():
@@ -303,10 +314,12 @@ def bounded_call(fn: Callable[[], Any],
             try:
                 box["value"] = fn()
             except PermissionError as exc:  # our own guard, not the caller's bug
+                note_failure("fs_probe:L305", exc)
                 _note_denied()
                 box["denied"] = True
                 box["error"] = exc
             except BaseException as exc:  # noqa: BLE001 - reported, not swallowed
+                note_failure("fs_probe:L309", exc)
                 box["error"] = exc
             finally:
                 done.set()
@@ -358,15 +371,16 @@ def bounded_subprocess_output(argv, timeout_s: float = 10.0) -> Dict[str, Any]:
                     try:
                         proc.wait(timeout=timeout_s)
                     except Exception:
+                        note_failure("fs_probe:L360", None)
                         box["timeout"] = True
                         try:
                             proc.kill()
                         except Exception:
-                            pass
+                            note_failure("fs_probe:L364", None)
                         try:
                             proc.wait(timeout=1.0)
                         except Exception:
-                            pass
+                            note_failure("fs_probe:L368", None)
                     out.seek(0)
                     err.seek(0)
                     raw = out.read() + err.read()
@@ -378,10 +392,15 @@ def bounded_subprocess_output(argv, timeout_s: float = 10.0) -> Dict[str, Any]:
                 # Our own sentinel denied this probe's scratch write. Record it as
                 # a distinct outcome: it is evidence about the guard, not about
                 # the path being probed.
+                # Our own sentinel denied this probe's scratch write. Record it as
+                # a distinct outcome: it is evidence about the guard, not about
+                # the path being probed.
+                note_failure("fs_probe:L377", exc)
                 _note_denied()
                 box["denied"] = True
                 box["error"] = str(exc)[:120]
             except Exception as exc:  # last resort: never let the probe raise here
+                note_failure("fs_probe:L384", exc)
                 box["error"] = str(exc)[:120]
 
     worker = threading.Thread(target=_run, name="bounded-subprocess", daemon=True)
@@ -423,6 +442,7 @@ def _child_probe(op: str, path: str, timeout_s: float) -> Any:
             with open(outp, "r", encoding="utf-8") as fh:
                 payload = json.load(fh)
         except Exception:
+            note_failure("fs_probe:L425", None)
             return _UNANSWERED
         if not isinstance(payload, dict):
             return _UNANSWERED
@@ -434,7 +454,7 @@ def _child_probe(op: str, path: str, timeout_s: float) -> Any:
         try:
             os.unlink(outp)
         except OSError:
-            pass
+            note_failure("fs_probe:L436", None)
 
 
 def _bounded_io(path, fn: Callable[[], Any], timeout_s: float,
@@ -484,6 +504,7 @@ def bounded_path_probe(fn: Callable[[], bool],
         try:
             return bool(fn())
         except Exception:
+            note_failure("fs_probe:L486", None)
             return False
 
     return bounded_call(_predicate, timeout_s=timeout_s, default=None,

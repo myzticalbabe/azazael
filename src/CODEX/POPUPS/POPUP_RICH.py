@@ -3,6 +3,17 @@
 import tkinter as tk
 from tkinter import scrolledtext
 import time
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class RichPopup:
@@ -248,7 +259,7 @@ HORUS INTEGRATION
                 self.status_label.config(fg=colors[idx[0]])
                 self.root.after(600, cycle_color)
             except Exception:
-                pass
+                note_failure("POPUP_RICH:L250", None)
 
         cycle_color()
 
@@ -256,7 +267,7 @@ HORUS INTEGRATION
         try:
             self.root.destroy()
         except Exception:
-            pass
+            note_failure("POPUP_RICH:L258", None)
         import sys
 
         sys.exit(0)

@@ -11,6 +11,17 @@ Unit Tests for HYDRA
 import pytest
 from pathlib import Path
 import sys
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _src_hydra = Path(__file__).resolve().parent.parent.parent.parent  # UNIT/ -> TESTING/ -> CODEX/ -> src/
 if str(_src_hydra) not in sys.path:
@@ -28,6 +39,7 @@ class TestHYDRACluster:
             cluster = HYDRACluster()
             assert cluster is not None
         except ImportError:
+            note_failure("test_hydra:L30", None)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_run_discover(self):
@@ -38,6 +50,7 @@ class TestHYDRACluster:
             cluster = HYDRACluster()
             assert hasattr(cluster, "run_discover")
         except ImportError:
+            note_failure("test_hydra:L40", None)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_run_all(self):
@@ -49,6 +62,7 @@ class TestHYDRACluster:
             assert hasattr(cluster, "run_all")
             assert callable(cluster.run_all)
         except ImportError:
+            note_failure("test_hydra:L51", None)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_stages(self):
@@ -69,6 +83,7 @@ class TestHYDRACluster:
             # Just verify initialization works
             assert cluster is not None
         except ImportError:
+            note_failure("test_hydra:L71", None)
             pytest.skip("HYDRACluster not implemented")
 
 
@@ -83,6 +98,7 @@ class TestHYDRADataClasses:
             stage = ProcessingStage(name="test_stage", enabled=True, duration_ms=100.0)
             assert stage.name == "test_stage"
         except ImportError:
+            note_failure("test_hydra:L85", None)
             pytest.skip("ProcessingStage not implemented")
 
 

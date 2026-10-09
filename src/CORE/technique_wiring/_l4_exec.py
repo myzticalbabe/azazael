@@ -30,6 +30,16 @@ from typing import Any, Dict, List, Sequence
 
 from CORE.technique_runtime import note_failure, register
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = ["replan_from_dead_letters", "infer_phase", "ADAPTERS"]
 
 
@@ -58,6 +68,7 @@ def _symbols(rel: str) -> set:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
     except Exception:
+        note_failure("_l4_exec:L60", None)
         _SYMBOL_CACHE[rel] = found
         return found
     for node in tree.body:
@@ -138,6 +149,7 @@ def replan_from_dead_letters(name: str | None = None,
         letters = breaker_registry.get_dead_letters(name=name, since=since) or []
         out["summary"] = breaker_registry.get_dead_letter_summary() or {}
     except Exception as exc:
+        note_failure("_l4_exec:L140", exc)
         out["gaps"].append(f"dlq-unavailable:{type(exc).__name__}")
         return out
 
@@ -195,6 +207,7 @@ def _dlq_fields() -> set:
         from CORE.circuit_breaker import DeadLetter
         return set(getattr(DeadLetter, "__dataclass_fields__", {}) or {})
     except Exception:
+        note_failure("_l4_exec:L197", None)
         return set()
 
 
@@ -243,6 +256,7 @@ def _ep129_demo() -> Dict[str, Any]:
                        demo_phase=(infer_phase(letters[0].error) if letters else ""),
                        private_registry=True)
     except Exception as exc:
+        note_failure("_l4_exec:L245", exc)
         return _result(demo_dead_letters=0,
                        error=f"{type(exc).__name__}: {exc}")
 
@@ -310,6 +324,7 @@ def _instrument() -> Dict[str, Any]:
     try:
         text = (_repo_root() / rel).read_text(encoding="utf-8", errors="replace")
     except Exception as exc:
+        note_failure("_l4_exec:L312", exc)
         _INSTRUMENT_CACHE.update({"ok": False, "error": f"{type(exc).__name__}"})
         return _INSTRUMENT_CACHE
     labels = [lab for lab in _REACHABILITY_LABELS if lab in text]
@@ -401,6 +416,7 @@ def _ep238() -> Dict[str, Any]:
                             "no state and takes no action, so it cannot predict "
                             "a next state")
     except Exception as exc:
+        note_failure("_l4_exec:L403", exc)
         return _result(engaged=False, error=f"{type(exc).__name__}: {exc}")
 
 
@@ -415,6 +431,7 @@ def _ep425() -> Dict[str, Any]:
                        note="rehearsal invocation exists; the environment it "
                             "should rehearse against and its budget do not")
     except Exception as exc:
+        note_failure("_l4_exec:L417", exc)
         return _result(engaged=False, error=f"{type(exc).__name__}: {exc}")
 
 

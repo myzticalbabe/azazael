@@ -30,6 +30,16 @@ import math
 import random
 from typing import List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = ["CPPNGenome", "DEFAULT_HIDDEN"]
 
 DEFAULT_HIDDEN: Tuple[int, ...] = (16, 16)
@@ -191,7 +201,7 @@ class CPPNGenome:
                 flat = out.reshape(-1).tolist() if hasattr(out, "reshape") else list(out)
                 return [float(v) for v in flat[:n]]
             except Exception:
-                pass  # fall through to pure Python
+                note_failure("cppn:L193", None) # fall through to pure Python
 
         vals = []
         for c in coords[:n]:

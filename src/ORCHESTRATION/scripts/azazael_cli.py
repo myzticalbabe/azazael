@@ -28,13 +28,24 @@ import subprocess
 import json
 import importlib
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from colorama import Fore, Style, init
 
     COLORAMA_AVAILABLE = True
 except ImportError:
+    note_failure("azazael_cli:L37", None)
     COLORAMA_AVAILABLE = False
 
 try:
@@ -48,6 +59,7 @@ try:
 
     RICH_AVAILABLE = True
 except ImportError:
+    note_failure("azazael_cli:L50", None)
     RICH_AVAILABLE = False
 
 
@@ -127,6 +139,7 @@ class AzazaelConfig:
                     config.update(loaded)
                     return config
             except Exception:
+                note_failure("azazael_cli:L129", None)
                 return self.DEFAULT_CONFIG.copy()
         return self.DEFAULT_CONFIG.copy()
 

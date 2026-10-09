@@ -11,6 +11,17 @@ Integration Tests for Azazael Ecosystem
 import pytest
 import sys
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _src_integ = Path(__file__).resolve().parent.parent.parent.parent  # INTEGRATION/ -> TESTING/ -> CODEX/ -> src/
 if str(_src_integ) not in sys.path:
@@ -33,6 +44,7 @@ class TestWORMZHydraIntegration:
             assert wormz is not None
             assert hydra is not None
         except ImportError as e:
+            note_failure("test_ecosystem_integration:L35", e)
             pytest.skip(f"Integration component not available: {e}")
 
 
@@ -48,6 +60,7 @@ class TestMetaWormsIntegration:
             result = WormResult(name="test", success=True, output={})
             assert result.success is True
         except ImportError:
+            note_failure("test_ecosystem_integration:L50", None)
             pytest.skip("METAWORMS not available")
 
 
@@ -72,6 +85,7 @@ class TestKLINKIntegration:
             for cmd in expected:
                 assert cmd in COMMANDS, f"Missing command: {cmd}"
         except ImportError:
+            note_failure("test_ecosystem_integration:L74", None)
             pytest.skip("KLINK not available")
 
 

@@ -22,12 +22,23 @@ Usage:
 
 import json
 import socket
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("NETWORXZ:L30", None)
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
 
 
@@ -142,6 +153,7 @@ class NETWORXZ:
                 "error": result.stderr[:500] if result.stderr else None,
             }
         except Exception as e:
+            note_failure("NETWORXZ:L144", e)
             return {"host": host, "success": False, "error": str(e)}
 
     def check_port(self, host: str, port: int, timeout: int = 2) -> dict[str, Any]:
@@ -152,6 +164,7 @@ class NETWORXZ:
             result = sock.connect_ex((host, port))
             return {"host": host, "port": port, "open": result == 0}
         except Exception as e:
+            note_failure("NETWORXZ:L154", e)
             return {"host": host, "port": port, "open": False, "error": str(e)}
         finally:
             sock.close()
@@ -162,6 +175,7 @@ class NETWORXZ:
             ip = socket.gethostbyname(hostname)
             return {"hostname": hostname, "ip": ip, "success": True}
         except socket.gaierror as e:
+            note_failure("NETWORXZ:L164", e)
             return {"hostname": hostname, "success": False, "error": str(e)}
 
     def get_summary(self) -> dict[str, Any]:

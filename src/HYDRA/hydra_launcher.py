@@ -34,6 +34,17 @@ from datetime import datetime
 # from typing import Dict, List  # removed — all names have native equivalents
 from dataclasses import dataclass, field
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 ROOT = Path(__file__).parent.parent
 HYDRA_ROOT = Path(__file__).parent
@@ -81,6 +92,7 @@ class HydraLauncher:
             result.conflicts_resolved = protocol_result.conflicts_resolved
             result.files_modified = len(protocol_result.files_modified)
         except Exception as e:
+            note_failure("hydra_launcher:L83", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -100,6 +112,7 @@ class HydraLauncher:
             result.conflicts_resolved = protocol_result.conflicts_resolved
             result.files_modified = len(protocol_result.files_modified)
         except Exception as e:
+            note_failure("hydra_launcher:L102", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -118,6 +131,7 @@ class HydraLauncher:
             protocol_result = protocols.resolve_python_conflict()
             result.conflicts_resolved = protocol_result.conflicts_resolved
         except Exception as e:
+            note_failure("hydra_launcher:L120", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -137,6 +151,7 @@ class HydraLauncher:
             report = terence.analyze_conflicts()
             result.conflicts_resolved = report.total_conflicts
         except Exception as e:
+            note_failure("hydra_launcher:L139", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -157,6 +172,7 @@ class HydraLauncher:
             report = tarbaby.analyze_binary_conflicts()
             result.conflicts_resolved = report.conflicts_found
         except Exception as e:
+            note_failure("hydra_launcher:L159", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -187,6 +203,7 @@ class HydraLauncher:
             result.output = json.dumps(status)
 
         except Exception as e:
+            note_failure("hydra_launcher:L189", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -236,6 +253,7 @@ class HydraLauncher:
             )
 
         except Exception as e:
+            note_failure("hydra_launcher:L238", e)
             result.success = False
             result.errors.append(str(e))
 
@@ -317,6 +335,7 @@ class HydraLauncher:
                     "by_severity": report.conflicts_by_severity,
                 }
             except Exception as e:
+                note_failure("hydra_launcher:L319", e)
                 analysis["conflicts_by_source"]["terence"] = {"error": str(e)}
 
         print(json.dumps(analysis, indent=2))

@@ -64,6 +64,16 @@ import random
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # ---------------------------------------------------------------------------
 # The space
 # ---------------------------------------------------------------------------
@@ -234,6 +244,7 @@ def _read_json(path) -> Optional[dict]:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         return data if isinstance(data, dict) else None
     except Exception:
+        note_failure("hyperopt:L236", None)
         return None
 
 
@@ -257,6 +268,7 @@ def clamp(name: str, value: Any) -> Any:
     try:
         v = int(round(float(value))) if spec["kind"] == "int" else float(value)
     except (TypeError, ValueError):
+        note_failure("hyperopt:L259", None)
         return spec["default"]
     return max(spec["low"], min(spec["high"], v))
 
@@ -283,6 +295,7 @@ def get(name: str, default: Any = None) -> Any:
         raw = (data or {}).get("params") or {}
         return clamp(name, raw.get(name, spec["default"]))
     except Exception:
+        note_failure("hyperopt:L285", None)
         return spec["default"] if default is None else default
 
 
@@ -290,6 +303,7 @@ def get_int(name: str, default: int) -> int:
     try:
         return int(get(name, default))
     except Exception:
+        note_failure("hyperopt:L292", None)
         return int(default)
 
 
@@ -297,6 +311,7 @@ def get_float(name: str, default: float) -> float:
     try:
         return float(get(name, default))
     except Exception:
+        note_failure("hyperopt:L299", None)
         return float(default)
 
 
@@ -465,6 +480,7 @@ def measure(limit: int = 20000) -> Dict[str, Any]:
         credit = build_spawn_credit(resolve_store(), outcome_limit=int(limit),
                                     choice_limit=int(limit))
     except Exception as exc:
+        note_failure("hyperopt:L467", exc)
         out["reason"] = "credit unavailable: %s" % str(exc)[:120]
         return out
 
@@ -483,6 +499,7 @@ def measure(limit: int = 20000) -> Dict[str, Any]:
         n_seen = sum(int(o.n) for o in credit.outcomes.values())
         successes = sum(int(o.ok) for o in credit.outcomes.values())
     except Exception as exc:
+        note_failure("hyperopt:L485", exc)
         out["reason"] = "credit shape unexpected: %s" % str(exc)[:120]
         return out
 
@@ -503,9 +520,10 @@ def measure(limit: int = 20000) -> Dict[str, Any]:
             try:
                 discover_worms()
             except Exception:
-                pass
+                note_failure("hyperopt:L505", None)
         registered = len(WORM_REGISTRY)
     except Exception:
+        note_failure("hyperopt:L508", None)
         registered = 0
 
     observed = sum(1 for n in outcomes.values() if n > 0)
@@ -561,6 +579,7 @@ def _coerce_float(value: Any) -> Optional[float]:
     try:
         return float(value)
     except (TypeError, ValueError):
+        note_failure("hyperopt:L563", None)
         return None
 
 
@@ -683,6 +702,7 @@ def canary_tolerance(m: Optional[Dict[str, Any]] = None) -> float:
     try:
         n = int(m.get("n_outcome_rows") or 0)
     except (TypeError, ValueError):
+        note_failure("hyperopt:L685", None)
         n = 0
     if n <= 0:
         return CANARY_TOLERANCE_FLOOR
@@ -705,12 +725,14 @@ def load_lineage(limit: int = 4000) -> List[Dict[str, Any]]:
                 try:
                     row = json.loads(line)
                 except Exception:
+                    note_failure("hyperopt:L707", None)
                     continue
                 if isinstance(row, dict):
                     out.append(row)
                     if len(out) >= limit:
                         break
     except Exception:
+        note_failure("hyperopt:L713", None)
         return []
     return out
 
@@ -798,6 +820,7 @@ def objective_health(m: Optional[Dict[str, Any]] = None,
     try:
         n = int(m.get("n_outcome_rows") or 0)
     except (TypeError, ValueError):
+        note_failure("hyperopt:L800", None)
         n = 0
     return {
         "ok": bool(states),

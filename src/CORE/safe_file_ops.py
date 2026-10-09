@@ -44,8 +44,18 @@ import tempfile
 import hashlib
 import logging
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 from datetime import datetime
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _log = logging.getLogger("safe_file_ops")
 
@@ -243,6 +253,7 @@ def safe_copytree(
             symlinks=symlinks,
         )
     except (shutil.Error, OSError) as e:
+        note_failure("safe_file_ops:L245", e)
         return {"success": False, "detail": f"Copy failed: {e}"}
 
     if not verify:
@@ -306,6 +317,7 @@ def safe_rmtree(
             try:
                 os.remove(path_p)
             except OSError as e:
+                note_failure("safe_file_ops:L308", e)
                 return {"success": False, "detail": str(e)}
         return {"success": True, "detail": "File removed"}
 
@@ -358,6 +370,7 @@ def safe_rmtree(
         shutil.rmtree(path_p, ignore_errors=ignore_errors)
         return {"success": True, "detail": "Removed successfully"}
     except OSError as e:
+        note_failure("safe_file_ops:L360", e)
         return {"success": False, "detail": str(e)}
 
 
@@ -427,6 +440,7 @@ def safe_move(
             src_p.unlink()
             return {"success": True, "detail": "File moved with verification"}
         except OSError as e:
+            note_failure("safe_file_ops:L429", e)
             return {"success": False, "detail": str(e)}
 
     # Simple move (no verification)
@@ -435,6 +449,7 @@ def safe_move(
         shutil.move(str(src_p), str(dst_p))
         return {"success": True, "detail": "File moved (no verification)"}
     except OSError as e:
+        note_failure("safe_file_ops:L437", e)
         return {"success": False, "detail": str(e)}
 
 
@@ -469,7 +484,7 @@ def atomic_write(
         try:
             shutil.copy2(str(path_p), str(backup))
         except OSError:
-            pass
+            note_failure("safe_file_ops:L471", None)
 
     # Write to temp file in same directory (atomic rename)
     fd, tmp_path = tempfile.mkstemp(
@@ -490,6 +505,7 @@ def atomic_write(
         os.replace(tmp_path, str(path_p))
         return {"success": True, "detail": "Written atomically"}
     except OSError as e:
+        note_failure("safe_file_ops:L492", e)
         return {"success": False, "detail": str(e)}
     finally:
         if fd is not None:
@@ -499,7 +515,7 @@ def atomic_write(
             try:
                 os.unlink(tmp_path)
             except OSError:
-                pass
+                note_failure("safe_file_ops:L501", None)
 
 
 # ── Chunked Copy (for large directories) ────────────────────────────
@@ -544,6 +560,7 @@ def safe_copytree_chunked(
         try:
             completed = json.loads(cp.read_text())
         except (json.JSONDecodeError, OSError):
+            note_failure("safe_file_ops:L546", None)
             completed = {}
 
     # Collect all files to copy
@@ -571,6 +588,7 @@ def safe_copytree_chunked(
             completed[rel] = size
             copied += 1
         except OSError as e:
+            note_failure("safe_file_ops:L573", e)
             errors.append(f"{rel}: {e}")
 
         # Save checkpoint every 10 files
@@ -578,7 +596,7 @@ def safe_copytree_chunked(
             try:
                 cp.write_text(json.dumps(completed))
             except OSError:
-                pass
+                note_failure("safe_file_ops:L580", None)
 
         if progress_callback:
             progress_callback(i + 1, total, rel)
@@ -587,14 +605,14 @@ def safe_copytree_chunked(
     try:
         cp.write_text(json.dumps(completed))
     except OSError:
-        pass
+        note_failure("safe_file_ops:L589", None)
 
     # Clean up checkpoint on success
     if not errors:
         try:
             cp.unlink()
         except OSError:
-            pass
+            note_failure("safe_file_ops:L596", None)
 
     result: dict[str, object] = {
         "success": len(errors) == 0,
@@ -625,4 +643,5 @@ def is_same_drive(path1: str | Path, path2: str | Path) -> bool:
     try:
         return os.stat(path1).st_dev == os.stat(path2).st_dev
     except OSError:
+        note_failure("safe_file_ops:L627", None)
         return False

@@ -22,6 +22,7 @@ try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("learning:L24", None)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -32,6 +33,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("learning:L34", None)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -41,6 +43,7 @@ def is_free_threaded() -> bool:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning:L43", None)
             return False
 
 from CORE.WORMS.expansion.learning_rl import RLTrainLoop
@@ -48,11 +51,22 @@ from CORE.WORMS.expansion.learning_versioner import ModelVersioner
 from CORE.WORMS.expansion.learning_pipeline import DataPipelineWorm, DYNAMIC_SHAPES, refresh_dynamic_shapes
 from CORE.WORMS.expansion.learning_features import DATA_SHAPES, SchemaAwareFeatureExtractor, FeatureEngineer
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # ABTestRunner: prefer the v2.0.0 DPO-capable version from learning_grpo.py;
 # fall back to the v1.0.0 basic stub in learning_ab.py only if that fails.
 try:
     from CORE.WORMS.expansion.learning_grpo import ABTestRunner  # noqa: E402, F401
 except ImportError:
+    note_failure("learning:L55", None)
     from CORE.WORMS.expansion.learning_ab import ABTestRunner  # noqa: E402, F401
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -66,8 +80,8 @@ except ImportError:
 try:
     from CORE.WORMS.expansion.learning_replay import PrioritizedReplayBuffer  # noqa: E402, F401
 except ImportError:
-    pass
+    note_failure("learning:L68", None)
 try:
     from CORE.WORMS.expansion.learning_grpo import GRPOTrainer  # noqa: E402, F401
 except ImportError:
-    pass
+    note_failure("learning:L72", None)

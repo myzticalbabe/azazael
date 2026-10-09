@@ -7,9 +7,19 @@ Unified installer with version compatibility, conflict resolution, and rollback 
 import subprocess
 import sys
 import time
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from enum import Enum
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class InstallStatus(Enum):
@@ -160,8 +170,10 @@ class UnifiedInstaller:
             else:
                 return False, result.stderr[:500]
         except subprocess.TimeoutExpired:
+            note_failure("install_manager:L162", None)
             return False, "Command timed out"
         except Exception as e:
+            note_failure("install_manager:L164", e)
             return False, str(e)
 
     def pip_install(self, package: str, upgrade: bool = False) -> bool:
@@ -182,6 +194,7 @@ class UnifiedInstaller:
         try:
             from CORE import python_env as mod  # type: ignore[no-redef]
         except Exception:
+            note_failure("install_manager:L184", None)
             try:
                 from pathlib import Path
 
@@ -190,6 +203,7 @@ class UnifiedInstaller:
                     sys.path.insert(0, str(src_root))
                 from CORE import python_env as mod  # type: ignore[no-redef]
             except Exception:
+                note_failure("install_manager:L192", None)
                 mod = None
         self._python_env_mod = mod
         return mod
@@ -209,7 +223,7 @@ class UnifiedInstaller:
                 version = (result.get("stdout") or "").strip()
                 return version or None
         except Exception:
-            pass
+            note_failure("install_manager:L211", None)
         return None
 
     def check_version(self, package: str) -> (str | None):
@@ -233,7 +247,7 @@ class UnifiedInstaller:
             if result.returncode == 0:
                 return result.stdout.strip()
         except Exception:
-            pass
+            note_failure("install_manager:L235", None)
         return None
 
     def check_compatibility(self) -> dict[str, tuple[bool, str]]:

@@ -39,7 +39,17 @@ from __future__ import annotations
 import re
 import threading
 import time
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = [
     "HybridLogicalClock", "hlc", "pack_stamp", "unpack_stamp",
@@ -88,6 +98,7 @@ def _node_id() -> str:
         from CORE.env_id import env_id
         return str(env_id())[:24] or "unknown"
     except Exception:  # pragma: no cover - defensive
+        note_failure("hlc:L90", None)
         return "unknown"
 
 
@@ -100,6 +111,7 @@ def pack_stamp(physical_ms: int, counter: int, node: str = "") -> str:
     try:
         physical = int(physical_ms)
     except Exception:
+        note_failure("hlc:L102", None)
         physical = 0
     return "%0*d-%0*d-%s" % (
         PHYSICAL_DIGITS, max(0, min(MAX_PHYSICAL, physical)),
@@ -145,7 +157,7 @@ def normalize_stamp(value: str, node: str = _LEGACY_NODE) -> str:
                 return pack_stamp(int(datetime.fromisoformat(text).timestamp() * 1000),
                                   0, node)
             except Exception:
-                pass
+                note_failure("hlc:L147", None)
             try:
                 magnitude = abs(float(text))
                 # Unit detection by MAGNITUDE. Note the old code multiplied by
@@ -166,7 +178,7 @@ def normalize_stamp(value: str, node: str = _LEGACY_NODE) -> str:
                     millis = magnitude * 1000
                 return pack_stamp(int(millis), 0, node)
             except Exception:
-                pass
+                note_failure("hlc:L168", None)
     return pack_stamp(0, 0, node)
 
 

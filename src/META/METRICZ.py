@@ -28,12 +28,22 @@ import statistics
 import threading
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field, asdict
 from collections import defaultdict, deque
 from contextlib import contextmanager
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -308,7 +318,7 @@ class METRICZ:
                                 }
                             )
                 except Exception:
-                    pass
+                    note_failure("METRICZ:L310", None)
 
         return results
 
@@ -346,6 +356,7 @@ class METRICZ:
                     last = datetime.fromisoformat(comp_records[-1].start_time)
                     time_span = (last - first).total_seconds()
                 except Exception:
+                    note_failure("METRICZ:L348", None)
                     time_span = 1
 
             throughput = len(comp_records) / max(time_span / 60, 1)
@@ -463,6 +474,7 @@ class METRICZ:
                     json.dump(metrics, f, indent=2)
             return True
         except Exception:
+            note_failure("METRICZ:L465", None)
             return False
 
     def _save_metrics(self):
@@ -486,7 +498,7 @@ class METRICZ:
                     indent=2,
                 )
         except Exception:
-            pass
+            note_failure("METRICZ:L488", None)
 
     def _save_executions(self):
         """Persist executions."""
@@ -514,7 +526,7 @@ class METRICZ:
                     indent=2,
                 )
         except Exception:
-            pass
+            note_failure("METRICZ:L516", None)
 
     def _save_alerts(self):
         """Persist alerts."""
@@ -524,7 +536,7 @@ class METRICZ:
             with open(alerts_file, "w") as f:
                 json.dump(self.alerts[-1000:], f, indent=2)
         except Exception:
-            pass
+            note_failure("METRICZ:L526", None)
 
     def _load_data(self):
         """Load persisted data."""
@@ -544,7 +556,7 @@ class METRICZ:
                             )
                         )
             except Exception:
-                pass
+                note_failure("METRICZ:L546", None)
 
     def run_popup(self):
         """Run with GUI popup."""

@@ -32,6 +32,17 @@ import sqlite3
 import shutil
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def check_db_integrity() -> dict:
@@ -46,6 +57,7 @@ def check_db_integrity() -> dict:
         conn.close()
         return {"ok": result == "ok", "result": result, "elapsed_ms": round(elapsed, 1)}
     except Exception as e:
+        note_failure("doctor:L48", e)
         return {"ok": False, "error": str(e)}
 
 
@@ -68,7 +80,7 @@ def check_index_usage() -> list:
             results.append({"query": query[:60], "expected_index": expected_index, "uses_index": uses_index, "plan": plan_str[:800]})
         conn.close()
     except Exception:
-        pass
+        note_failure("doctor:L70", None)
     return results
 
 
@@ -102,7 +114,7 @@ def check_file_permissions() -> list:
             if is_writable:
                 issues.append(f"{fp.name}: writable (should be read-only)")
         except Exception:
-            pass
+            note_failure("doctor:L104", None)
     return issues
 
 
@@ -130,7 +142,7 @@ def check_disk_space() -> dict:
             pct = round(usage.used / usage.total * 100, 1)
             result[label] = {"free_gb": free_gb, "total_gb": total_gb, "used_pct": pct}
         except Exception:
-            pass
+            note_failure("doctor:L132", None)
     return result
 
 
@@ -180,7 +192,7 @@ def check_registry_importable() -> dict:
             out["ok"] = bool(cached.get("valid"))
             return out
     except Exception:
-        pass
+        note_failure("doctor:L182", None)
 
     try:
         # Ensure the registry is populated so validation isn't vacuous.
@@ -188,7 +200,7 @@ def check_registry_importable() -> dict:
             from CORE.startup_warm import ensure_registry_warm
             ensure_registry_warm()
         except Exception:
-            pass
+            note_failure("doctor:L190", None)
         from CORE.worm_registry import validate_registry_importable
         res = validate_registry_importable()
         out = dict(res)
@@ -210,11 +222,13 @@ def check_registry_importable() -> dict:
                     out["checked"] = repair.get("checked", out.get("checked", 0))
                     out["total"] = repair.get("total", out.get("total", 0))
             except Exception as re:
+                note_failure("doctor:L212", re)
                 out["repair_error"] = str(re)
         out["source"] = "direct"
         out["ok"] = bool(out.get("valid"))
         return out
     except Exception as e:
+        note_failure("doctor:L217", e)
         return {
             "valid": False,
             "total": 0,
@@ -254,6 +268,7 @@ def run_all(quick: bool = False) -> dict:
         pool = InferencePool(max_concurrent=1)
         report["checks"]["ollama"] = pool.health()
     except Exception as e:
+        note_failure("doctor:L256", e)
         report["checks"]["ollama"] = {"healthy": False, "error": str(e)}
 
     # Audit trail health
@@ -262,6 +277,7 @@ def run_all(quick: bool = False) -> dict:
         broken = verify_on_startup()
         report["checks"]["audit"] = {"broken_files": len(broken), "broken": [b.get("file", "")[-40:] for b in broken]}
     except Exception as e:
+        note_failure("doctor:L264", e)
         report["checks"]["audit"] = {"error": str(e)}
 
     # Registry importability (every registered worm must resolve)
@@ -275,6 +291,7 @@ def run_all(quick: bool = False) -> dict:
             "total_events": DirectMemory.summary_stats().get("total_events", 0),
         }
     except Exception as e:
+        note_failure("doctor:L277", e)
         report["checks"]["sessions"] = {"error": str(e)}
 
     # Overall health — same predicate as the per-check label and the verify

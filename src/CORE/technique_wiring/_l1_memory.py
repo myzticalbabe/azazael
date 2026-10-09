@@ -25,12 +25,24 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 try:                                                    # pragma: no cover
     from CORE.technique_runtime import register
 except Exception:                                       # pragma: no cover
+    note_failure("_l1_memory:L30", None)
     try:
         from ..technique_runtime import register
     except Exception:
+        note_failure("_l1_memory:L33", None)
         def register(*_a: Any, **_k: Any) -> None:       # type: ignore[misc]
             """No-op when the runtime is unavailable: this module must import."""
             return None
@@ -55,6 +67,7 @@ def _safe(fn):
         try:
             return fn()
         except Exception as exc:                        # pragma: no cover
+            note_failure("_l1_memory:L57", exc)
             return {"verified": False,
                     "reason": f"{type(exc).__name__}: {exc}"}
     wrapper.__name__ = getattr(fn, "__name__", "adapter")

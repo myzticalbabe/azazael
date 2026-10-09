@@ -5,10 +5,20 @@ Usage: python unified_generator.py [style] [json_file]
 Styles: ultimate, neon, cosmic, glass, report, mystical, occult, ethereal, grimoire
 """
 
-from typing import Any
+from typing import Any, List
 import json
 import sys
 from pathlib import Path
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 STYLES = {
     "ultimate": "consequences_ultimate.html",
@@ -5495,13 +5505,16 @@ def _enhanced_animation_css():
     try:
         from CODEX.CORE.enhanced_animations import generate_css
     except Exception:
+        note_failure("unified_generator:L5497", None)
         try:
             from enhanced_animations import generate_css
         except Exception:
+            note_failure("unified_generator:L5500", None)
             return ""
     try:
         css = generate_css()
     except Exception:
+        note_failure("unified_generator:L5504", None)
         return ""
     for name in ("shimmer", "sparkle"):
         css = css.replace("@keyframes %s" % name,

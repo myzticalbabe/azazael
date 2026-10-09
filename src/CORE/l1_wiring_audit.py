@@ -34,6 +34,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 VERSION = "1.1.0"
 
 __all__ = ["audit", "compact", "load_promoted", "load_lineage", "effector_effect",
@@ -57,6 +67,7 @@ def _promoted_path() -> Path:
         from CORE import worm_registry as wr
         return Path(wr.WIRING_PROMOTED_PATH)
     except Exception:
+        note_failure("l1_wiring_audit:L59", None)
         return _state_dir() / "wiring_promoted.json"
 
 
@@ -73,12 +84,14 @@ def load_lineage(limit: int = 4000) -> List[Dict[str, Any]]:
                 try:
                     row = json.loads(line)
                 except Exception:
+                    note_failure("l1_wiring_audit:L75", None)
                     continue
                 if isinstance(row, dict):
                     out.append(row)
                     if len(out) >= limit:
                         break
     except Exception:
+        note_failure("l1_wiring_audit:L81", None)
         return []
     return out
 
@@ -88,6 +101,7 @@ def load_promoted() -> Optional[Dict[str, Any]]:
     try:
         data = json.loads(_promoted_path().read_text(encoding="utf-8"))
     except Exception:
+        note_failure("l1_wiring_audit:L90", None)
         return None
     return data if isinstance(data, dict) else None
 
@@ -139,6 +153,7 @@ def dimensions(genome: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         observable = {op.__name__ for op in wg.OBSERVABLE_MUTATIONS}
         exists = {op.__name__ for op in wg.MUTATIONS}
     except Exception:
+        note_failure("l1_wiring_audit:L141", None)
         observable, exists = set(), set()
     live, excluded, unwired = [], [], []
     for field, op in _AXIS_OPERATOR.items():
@@ -210,6 +225,7 @@ def effector_effect(q_weights: Optional[Dict[str, float]] = None,
                 from CORE import spine_registry as sr
                 q_weights = sr.get_q_weights()
             except Exception:
+                note_failure("l1_wiring_audit:L212", None)
                 q_weights = {}
 
         engine = wr.SpawnDiversityEngine()
@@ -218,7 +234,7 @@ def effector_effect(q_weights: Optional[Dict[str, float]] = None,
         try:
             os.remove(absent)
         except OSError:
-            pass
+            note_failure("l1_wiring_audit:L220", None)
         try:
             for nat, cands in by_nature.items():
                 if len(cands) < 2:
@@ -248,6 +264,7 @@ def effector_effect(q_weights: Optional[Dict[str, float]] = None,
             wr.WIRING_PROMOTED_PATH = real_path
         result["ok"] = True
     except Exception as exc:
+        note_failure("l1_wiring_audit:L250", exc)
         result["reason"] = "%s: %s" % (type(exc).__name__, str(exc)[:140])
     return result
 
@@ -290,6 +307,7 @@ def objective_health() -> Dict[str, Any]:
             "historical": health.get("historical") or {},
         })
     except Exception as exc:
+        note_failure("l1_wiring_audit:L292", exc)
         out["reason"] = "%s: %s" % (type(exc).__name__, str(exc)[:140])
     return out
 
@@ -298,6 +316,7 @@ def _coerce_float(value: Any) -> Optional[float]:
     try:
         return float(value)
     except (TypeError, ValueError):
+        note_failure("l1_wiring_audit:L300", None)
         return None
 
 
@@ -356,6 +375,7 @@ def margin_reachability(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
             d = float(r["best_delta"])
             m = float(r["margin"])
         except (TypeError, ValueError):
+            note_failure("l1_wiring_audit:L358", None)
             continue
         samples += 1
         deltas.append(d)

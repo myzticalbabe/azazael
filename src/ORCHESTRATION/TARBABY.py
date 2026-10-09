@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 import tkinter as tk
 from tkinter import ttk
 import argparse
@@ -39,10 +39,21 @@ import argparse
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from CORE.Widgets.BasePopupMonitor import BasePopupMonitor
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # Dynamic path resolution
 try:
     from CORE.paths import get_output_dir
 except ImportError:
+    note_failure("TARBABY:L45", None)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_output_dir
 
@@ -259,7 +270,7 @@ class TARBABYCompiler:
                     elif item.suffix.lower() in (".py", ".pyw"):
                         python_files.append(str(item))
             except PermissionError:
-                pass
+                note_failure("TARBABY:L261", None)
 
         try:
             if recursive:
@@ -272,7 +283,7 @@ class TARBABYCompiler:
                     if not self._should_skip(py_file):
                         python_files.append(str(py_file))
         except PermissionError:
-            pass
+            note_failure("TARBABY:L274", None)
         return python_files
 
     def _should_skip(self, path: Path) -> bool:

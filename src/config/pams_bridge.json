@@ -6,7 +6,7 @@
     "url": "http://127.0.0.1:21434",
     "port": 21434,
     "wrapper_script": "C:/temp/start_pams.py",
-    "db_directory": "C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/site-packages/memory_data",
+    "db_directory": "C:/Users/clint/.pams/memory_data",
     "databases": {
       "conversations": "conversations.db",
       "ai_memories": "ai_memories.db",

@@ -29,6 +29,17 @@ Copy-paste this entire block into LM Studio Python interpreter
 """
 
 import sys
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # 1. Add ML platforms to path PERMANENTLY
 ML_PATH = Path.home() / "Desktop" / "Azazael" / "ml_platforms"
@@ -41,7 +52,7 @@ if ML_PATH not in sys.path:
             f.write(f"\nimport sys\nsys.path.insert(0, r'{ML_PATH}')\n")
         print("[OK] Persisted to user sitecustomize.py")
     except Exception:
-        pass
+        note_failure("PERMANENT_LOAD:L43", None)
 
 # 2. Import all ML platform tools
 try:

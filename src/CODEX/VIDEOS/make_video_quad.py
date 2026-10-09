@@ -12,6 +12,17 @@ Azazael 4-Quadrant Scrolling Video - Vibrant & Whimsical
 import os
 
 from PIL import Image, ImageDraw, ImageFont
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 
@@ -262,6 +273,7 @@ def create_video():
 
         except Exception:
 
+            note_failure("make_video_quad:L263", None)
             font_huge = ImageFont.load_default()
 
             font_large = ImageFont.load_default()

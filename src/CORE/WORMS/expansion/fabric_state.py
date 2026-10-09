@@ -42,7 +42,17 @@ Both are best-effort and never raise — losing persistence must not break the
 mesh's ability to run.
 """
 
-from typing import Any, Iterable, Optional
+from typing import Any, Iterable, Optional, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = ["hydrate", "publish", "fabric_state_enabled", "cap_list", "cap_map"]
 
@@ -61,7 +71,7 @@ def cap_list(seq: Any, limit: int) -> Any:
         if isinstance(seq, list) and limit > 0 and len(seq) > limit:
             del seq[:len(seq) - limit]
     except Exception:
-        pass
+        note_failure("fabric_state:L63", None)
     return seq
 
 
@@ -77,7 +87,7 @@ def cap_map(d: Any, limit: int) -> Any:
             for k in list(d)[:len(d) - limit]:
                 d.pop(k, None)
     except Exception:
-        pass
+        note_failure("fabric_state:L79", None)
     return d
 
 
@@ -86,6 +96,7 @@ def _spine() -> Optional[Any]:
         from CORE import spine_registry
         return spine_registry
     except Exception:  # pragma: no cover - defensive
+        note_failure("fabric_state:L88", None)
         return None
 
 
@@ -127,6 +138,7 @@ def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
     try:
         state = spi.get_fabric_state(str(provider))
     except Exception:
+        note_failure("fabric_state:L129", None)
         return 0
     if not isinstance(state, dict):
         return 0
@@ -147,6 +159,7 @@ def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
                 setattr(instance, attr, saved)
             restored += 1
         except Exception:
+            note_failure("fabric_state:L149", None)
             continue
     return restored
 
@@ -166,6 +179,7 @@ def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
         try:
             val = getattr(instance, attr, None)
         except Exception:
+            note_failure("fabric_state:L168", None)
             continue
         if val is None:
             continue
@@ -177,4 +191,5 @@ def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
         spi.publish_fabric_state(str(provider), state)
         return True
     except Exception:
+        note_failure("fabric_state:L179", None)
         return False

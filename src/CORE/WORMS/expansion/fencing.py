@@ -56,7 +56,17 @@ Usage::
 from __future__ import annotations
 
 import threading
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __all__ = ["Fence", "fence_for", "fences_reset", "fence_report"]
 
@@ -97,6 +107,7 @@ class Fence:
         try:
             return int(token) == self.token()
         except Exception:
+            note_failure("fencing:L99", None)
             return False
 
     # -- committing ------------------------------------------------------
@@ -116,6 +127,7 @@ class Fence:
             try:
                 value = apply()
             except Exception as exc:  # a failed apply must not burn the token
+                note_failure("fencing:L118", exc)
                 return False, exc
             self._commits += 1
             return True, value
@@ -158,6 +170,7 @@ def fence_for(name: str) -> Fence:
                 _FENCES[key] = f
             return f
     except Exception:  # pragma: no cover - defensive
+        note_failure("fencing:L160", None)
         return Fence(key)
 
 
@@ -169,6 +182,7 @@ def fences_reset() -> int:
             _FENCES.clear()
             return n
     except Exception:  # pragma: no cover - defensive
+        note_failure("fencing:L171", None)
         return 0
 
 
@@ -178,5 +192,6 @@ def fence_report() -> dict:
         with _FENCES_LOCK:
             return {k: f.snapshot() for k, f in _FENCES.items()}
     except Exception:  # pragma: no cover - defensive
+        note_failure("fencing:L180", None)
         return {}
 

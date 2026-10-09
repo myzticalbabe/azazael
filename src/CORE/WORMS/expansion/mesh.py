@@ -10,7 +10,17 @@ import os
 import threading
 import platform
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 def _bounded_exists(path: str, timeout_s: float = 5.0) -> bool | None:
     """`os.path.exists` with a deadline. None means the probe never returned.
@@ -35,6 +45,7 @@ def _bounded_exists(path: str, timeout_s: float = 5.0) -> bool | None:
         try:
             box["exists"] = bool(os.path.exists(path))
         except Exception:
+            note_failure("mesh:L37", None)
             box["exists"] = False
 
     worker = threading.Thread(target=_probe, name="exists-probe", daemon=True)
@@ -55,6 +66,7 @@ try:
     from CORE.env_id import is_known_env, VALID_ENVS
     _CANONICAL_ENV = True
 except ImportError:  # pragma: no cover - defensive
+    note_failure("mesh:L57", None)
     _CANONICAL_ENV = False
     VALID_ENVS = ("windows", "wsl2-ubuntu", "wsl2-kali", "bare", "kali")
 
@@ -66,6 +78,7 @@ try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("mesh:L68", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -74,6 +87,7 @@ try:
     from CORE.freethreading import is_free_threaded, ThreadSafeDict
     _FREETHREAD = True
 except ImportError:
+    note_failure("mesh:L76", None)
     _FREETHREAD = False
     ThreadSafeDict = dict
     def is_free_threaded() -> bool:
@@ -81,6 +95,7 @@ except ImportError:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:
+            note_failure("mesh:L83", None)
             return False
 
 # Fabric operational state (audit 2026-09-15, finding #7): hydrate in
@@ -91,6 +106,7 @@ try:
         hydrate, publish, cap_list, cap_map,
     )
 except ImportError:  # pragma: no cover - defensive, keeps mesh importable alone
+    note_failure("mesh:L93", None)
     def hydrate(instance, provider, attrs):
         return 0
 
@@ -127,6 +143,7 @@ def _read_text(path: str) -> str:
         with open(path, 'r', errors='replace') as f:
             return f.read()
     except Exception:
+        note_failure("mesh:L129", None)
         return ""
 
 
@@ -242,7 +259,7 @@ class MeshRouterWorm:
             from CORE import spine_registry as _spine
             learned = _spine.route_weight_learned(self._env, dst_env, base_w)
         except Exception:
-            pass  # fail open on the static weight; routing must not fail on learning
+            note_failure("mesh:L244", None) # fail open on the static weight; routing must not fail on learning
         return {
             "success": True, "src": self._env, "dst": dst_env,
             "weight": base_w,
@@ -275,6 +292,7 @@ class MeshRouterWorm:
             return _spine.invalidate_q(f"route:{self._env}>{dst_env}",
                                        reason or f"route repair: {dst_env}")
         except Exception as exc:
+            note_failure("mesh:L277", exc)
             return {"success": False, "error": str(exc)[:120]}
 
     def record_route_result(self, dst_env: str, success: bool,
@@ -317,7 +335,7 @@ class MeshRouterWorm:
                                   bool(success), float(duration_ms),
                                   error=error, censored=censored)
         except Exception:
-            pass  # learning is best-effort; routing must not fail on it
+            note_failure("mesh:L319", None) # learning is best-effort; routing must not fail on it
 
     def send(self, dst_env: str, payload: dict,
              timeout: float = 10.0) -> dict[str, Any]:
@@ -340,6 +358,7 @@ class MeshRouterWorm:
             res = MeshTransport(self._env).send(dst_env, payload,
                                                 timeout=timeout)
         except Exception as e:
+            note_failure("mesh:L342", e)
             res = {"success": False, "error": str(e)[:120],
                    "status": "env_error", "learnable": False}
         learnable = bool(res.get("learnable", True))
@@ -365,7 +384,7 @@ class MeshRouterWorm:
                     "error": str(res.get("error") or "")[:120],
                     "ms": round(duration_ms, 2)})
             except Exception:
-                pass
+                note_failure("mesh:L367", None)
         scored.update({"delivered": bool(res.get("success")),
                        "receipt": res.get("receipt"),
                        "error": res.get("error"),
@@ -437,6 +456,7 @@ class GossipSyncWorm:
             try:
                 from CORE import spine_registry as _spine
             except Exception as exc:  # pragma: no cover - defensive
+                note_failure("mesh:L439", exc)
                 return {"success": False, "error": str(exc)[:800]}
             trust = _spine.check_gossip_trust(peer_state)
             out["trust"] = trust.get("signature", "?")
@@ -451,6 +471,7 @@ class GossipSyncWorm:
                 try:
                     out["spine_merge"] = _spine.merge_spine_gossip(peer_state)
                 except Exception as exc:
+                    note_failure("mesh:L453", exc)
                     out["spine_merge"] = {"merged": False,
                                           "error": str(exc)[:80]}
 
@@ -535,6 +556,7 @@ class PartitionHealerWorm:
             try:
                 from CORE.fs_probe import bounded_subprocess_output
             except Exception:  # pragma: no cover - helper optional
+                note_failure("mesh:L537", None)
                 bounded_subprocess_output = None
             probe = (bounded_subprocess_output(["wsl", "-l", "-v"], timeout_s=10.0)
                      if bounded_subprocess_output else
@@ -556,11 +578,12 @@ class PartitionHealerWorm:
                     try:
                         _s.connect(("127.0.0.1", _port))
                     except Exception:
+                        note_failure("mesh:L558", None)
                         issues.append(f"peer_down:{_env}")
                     finally:
                         _s.close()
             except Exception:
-                pass
+                note_failure("mesh:L562", None)
         else:
             if _bounded_exists('/mnt/g', timeout_s=5.0) is not True:
                 issues.append("g_unmounted")
@@ -591,6 +614,7 @@ class PartitionHealerWorm:
             res.setdefault("success", True)
             return res
         except Exception as e:
+            note_failure("mesh:L593", e)
             return {"success": False, "error": str(e)[:200]}
 
     def heal(self, execute_fn=None) -> dict[str, Any]:
@@ -604,6 +628,7 @@ class PartitionHealerWorm:
             results = dlq.replay_all(execute_fn or self._registry_execute)
             ok = sum(1 for r in results if r.get("success"))
         except Exception as e:
+            note_failure("mesh:L606", e)
             return {"success": False, "error": str(e)[:200]}
         with self._lock:
             n = len(self._partitions)
@@ -650,6 +675,7 @@ class EnvBeaconWorm:
                 t: bool(_iu.find_spec(t)) for t in ("nmap", "torch", "onnx")
             }
         except Exception:
+            note_failure("mesh:L652", None)
             cap["tools"] = {}
         with self._lock:
             self._beacons[cap["env"]] = cap

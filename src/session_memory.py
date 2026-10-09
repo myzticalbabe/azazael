@@ -35,9 +35,19 @@ import sys
 import subprocess as _sp
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 from contextlib import contextmanager
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # ---------------------------------------------------------------------------
@@ -170,6 +180,8 @@ class SessionMemory:
                     current_version = int(row[0])
                 except ValueError:
                     # Old format like "1.0.0" — treat as version 1
+                    # Old format like "1.0.0" — treat as version 1
+                    note_failure("session_memory:L171", None)
                     current_version = 1
             else:
                 current_version = 0
@@ -352,6 +364,7 @@ class SessionMemory:
                 pm = PerformanceMonitor()
                 self._session_start_perf = pm.capture()
             except Exception:
+                note_failure("session_memory:L354", None)
                 self._session_start_perf = None
         else:
             self._session_start_perf = None
@@ -435,7 +448,7 @@ class SessionMemory:
         try:
             self.record_operability_snapshot()
         except Exception:
-            pass  # Snapshot failure should not block session close
+            note_failure("session_memory:L437", None) # Snapshot failure should not block session close
 
         self._current_session_id = None
 
@@ -488,6 +501,7 @@ class SessionMemory:
                 else:
                     result["errors"].append(f"dashboard: {r.stderr.strip()[:200]}")
             except Exception as e:
+                note_failure("session_memory:L490", e)
                 result["errors"].append(f"dashboard exception: {e}")
 
         # 2. Regenerate project READMEs
@@ -504,6 +518,7 @@ class SessionMemory:
                 else:
                     result["errors"].append(f"readmes: {r.stderr.strip()[:200]}")
             except Exception as e:
+                note_failure("session_memory:L506", e)
                 result["errors"].append(f"readmes exception: {e}")
 
         return result
@@ -1480,6 +1495,7 @@ class SessionMemory:
                 "current_at": current.get("captured_at"),
             }
         except Exception:
+            note_failure("session_memory:L1482", None)
             return None
 
     def get_statistics(self) -> dict[str, Any]:

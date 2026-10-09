@@ -33,7 +33,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -143,6 +143,7 @@ def drive(app: str, plan: List[str], contract: Dict[str, Any],
         try:
             proposal = thought_fn(dict(state)) if callable(thought_fn) else None
         except Exception as exc:  # a broken thought is a named gap, not a crash
+            note_failure("structured_action:L145", exc)
             gaps.append(f"thought-failed:{type(exc).__name__}")
             break
         if not proposal:

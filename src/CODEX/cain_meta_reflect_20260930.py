@@ -6,6 +6,17 @@ Q2: are there emotions or archetypes representative of ME that I want added?
 Both answered from the record, with the basis for each answer stated.
 """
 import json, os, re, sqlite3, sys
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 AZ = r"C:\Users\clint\azazael"
 TPL = os.path.join(AZ, "src", "CODEX", "SESSION_TEMPLATE", "templates", "output_cain.html")

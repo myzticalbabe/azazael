@@ -43,12 +43,24 @@ from CORE.audit_trail import (
     get_anchored_files,
     verify_completeness,
 )
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # EVENT_VOCAB / EVENT_VOCAB_REVERSE — not yet defined in audit_trail.py.
 # Fall back to empty dicts to avoid blocking all CORE imports.
 try:
     from CORE.audit_trail import EVENT_VOCAB, EVENT_VOCAB_REVERSE
 except ImportError:
+    note_failure("__init__:L51", None)
     EVENT_VOCAB: dict = {}
     EVENT_VOCAB_REVERSE: dict = {}
 
@@ -57,6 +69,7 @@ try:
     from CORE.inference_pool import InferencePool
     _has_inference_pool = True
 except ImportError:
+    note_failure("__init__:L59", None)
     _has_inference_pool = False
     InferencePool = None  # type: ignore
 

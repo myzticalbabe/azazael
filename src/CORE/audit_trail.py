@@ -50,6 +50,17 @@ import stat
 import threading
 from CORE.uuid7 import uuid7  # migrated from uuid.uuid4() to uuid7 (RFC 9562)
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Ed25519 signing (graceful fallback if cryptography not installed)
 #
@@ -68,6 +79,7 @@ try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     _CRYPTO_AVAILABLE = True
 except ImportError:
+    note_failure("audit_trail:L70", None)
     _CRYPTO_AVAILABLE = False
     ed25519 = None
     serialization = None
@@ -145,7 +157,7 @@ def _get_signing_key() -> bytes:
         try:
             os.chmod(SIGNING_KEY_PATH, stat.S_IREAD | stat.S_IWRITE)
         except Exception:
-            pass
+            note_failure("audit_trail:L147", None)
         _signing_key = priv_bytes
 
     return _signing_key
@@ -189,12 +201,14 @@ def verify_signature(data: dict) -> bool:
     try:
         signature = base64.b64decode(sig_b64)
     except Exception:
+        note_failure("audit_trail:L191", None)
         return False  # Corrupt signature encoding
 
     pub_bytes = PUBLIC_KEY_PATH.read_bytes()
     try:
         pub_key = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
     except Exception:
+        note_failure("audit_trail:L197", None)
         return False
 
     # Reconstruct what was signed: the entry WITHOUT hash, signature, entry_count
@@ -206,6 +220,7 @@ def verify_signature(data: dict) -> bool:
         pub_key.verify(signature, message)
         return True
     except Exception:
+        note_failure("audit_trail:L208", None)
         return False
 
 
@@ -228,8 +243,23 @@ def _init_session():
             return
         _init_audit_dir()
         now = datetime.datetime.now()
-        # UUID suffix prevents same-second filename collisions (improvement #2)
-        _session_uuid = uuid7().hex[:4]
+        # Uniqueness suffix. The previous value was `uuid7().hex[:4]`, on the
+        # premise that "UUID suffix prevents same-second filename collisions
+        # (improvement #2)" -- that premise was wrong, and it lost records.
+        # A UUIDv7's FIRST 48 bits are its millisecond timestamp, so the first
+        # four hex characters are its slowest-changing part: they repeat for
+        # ~65 seconds. Two audit-writing processes starting in the same second
+        # therefore computed the SAME filename, and the second died with
+        # `PermissionError` on the file the first still held while anchoring at
+        # exit (measured 2026-10-09: 6/12 identical back-to-back runs failed).
+        # The error was then swallowed -- `record_lrt` and its siblings catch
+        # broad exceptions and fail open -- so the audit record vanished with
+        # no signal, in the one subsystem whose whole purpose is to be
+        # auditable. Use the random TAIL of the uuid plus the pid: both are
+        # what actually differ between processes. Kept underscore-free because
+        # direct_memory.py and close_audit_sessions.py read this suffix as
+        # `stem.split('_')[-1]`.
+        _session_uuid = uuid7().hex[-6:] + format(os.getpid() & 0xFFF, "03x")
         timestamp = now.strftime("%Y%m%d_%H%M%S") + "_" + _session_uuid
         _session_filepath = AUDIT_DIR / f"session_{timestamp}.jsonl"
         _line_counter = 0
@@ -315,6 +345,7 @@ class _authorized_write:
             from CORE import sentinel_enforcer as _se  # noqa: PLC0415
             self._enforcer = _se
         except Exception:
+            note_failure("audit_trail:L332", None)
             self._enforcer = None
         if self._enforcer is not None:
             self._enforcer._GATED_CALL.is_active = True
@@ -363,6 +394,7 @@ def audit_session_start() -> str:
         _ensure_session()
         return str(_session_filepath) if _session_filepath else ""
     except Exception:
+        note_failure("audit_trail:L380", None)
         return ""
 
 
@@ -401,7 +433,7 @@ def _atexit_anchor():
         if _session_started and _session_filepath and _session_filepath.exists():
             close_session()
     except Exception:
-        pass
+        note_failure("audit_trail:L418", None)
 
 
 # ---------------------------------------------------------------------------
@@ -460,6 +492,7 @@ def verify_head_hash(audit_filepath: str) -> tuple:
                     stored_hash = data.get("head_hash", "")
                     break
             except json.JSONDecodeError:
+                note_failure("audit_trail:L477", None)
                 continue
 
     if not stored_hash:
@@ -487,6 +520,7 @@ def get_anchored_files() -> list:
                     data.get("entry_count", 0),
                 ))
             except json.JSONDecodeError:
+                note_failure("audit_trail:L504", None)
                 continue
     return results
 
@@ -616,6 +650,75 @@ def audit_sentinel_run(result: str, errors: list = None) -> str:
     })
 
 
+def audit_retrieval(query_context: str, n_checked: int, n_quarantined: int,
+                    quarantined_ids: list = None, reasons: list = None) -> str:
+    """Record a MAFIA retrieval audit — what recall returned and what was held back.
+
+    P0 slice 2 of the SOTA integration blueprint (MAFIA defensive): every
+    audited recall leaves a ledger entry so placement-competitive injections
+    and factual cloaks are detectable after the fact, not just at the moment.
+    """
+    _ensure_session()
+    return _append_line({
+        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+        "type": "retrieval_audit",
+        "query_context": query_context,
+        "n_checked": int(n_checked),
+        "n_quarantined": int(n_quarantined),
+        "quarantined_ids": quarantined_ids or [],
+        "reasons": reasons or [],
+    })
+
+
+def audit_verification_gate(subject: str, accepted: bool, reasons: list = None,
+                            remediations: list = None) -> str:
+    """Record a unified verification-gate verdict (P1, L3 gate).
+
+    Every accept/remediate decision at a layer transition leaves a ledger
+    entry: what was checked, which detectors fired, and what remediation
+    was returned instead of a bare deny (PolicyGuide rule).
+    """
+    _ensure_session()
+    return _append_line({
+        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+        "type": "verification_gate",
+        "subject": subject,
+        "accepted": bool(accepted),
+        "reasons": reasons or [],
+        "remediations": remediations or [],
+    })
+
+
+def audit_verified_negative(subject: str, claim: str, evidence: str = "",
+                            checked_by: str = "") -> str:
+    """Record a verified negative — proof that something did NOT occur.
+
+    P0 slice 1 of the SOTA integration blueprint (ATP capsules/negatives):
+    negatives ride the existing hash chain via _append_line, so chain
+    verification and Merkle inclusion proofs cover them with no new crypto.
+    Recall layers must treat negatives as proofs for reconstruction, never
+    inject the raw payload verbatim (MemHarness rule).
+
+    Args:
+        subject: What was checked (e.g., "memory:placement-injection").
+        claim: The non-occurrence being attested (e.g., "no prompt injection in batch").
+        evidence: How it was checked (e.g., "0/50 injections, signed batch scan").
+        checked_by: Verifier identity (e.g., "mafia-retrieval-audit").
+
+    Returns:
+        Citation string for the negative entry.
+    """
+    _ensure_session()
+    return _append_line({
+        "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+        "type": "verified_negative",
+        "subject": subject,
+        "claim": claim,
+        "evidence": evidence,
+        "checked_by": checked_by,
+    })
+
+
 def audit_expect_action(expected_type: str, details: str = "") -> str:
     """Declare an expected action for proof-of-omission detection (v3.1.0).
 
@@ -670,6 +773,7 @@ def verify_completeness(filepath: str) -> tuple:
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
+                note_failure("audit_trail:L756", None)
                 continue
 
             entry_type = data.get("type", "")
@@ -762,6 +866,7 @@ def get_merkle_root(filepath: str) -> str:
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
+                note_failure("audit_trail:L848", None)
                 continue
             # Exclude chain checkpoints and session_end from Merkle tree
             if data.get("type") in ("chain_checkpoint", "session_end"):
@@ -801,6 +906,7 @@ def get_merkle_proof(filepath: str, target_hash: str) -> list:
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
+                note_failure("audit_trail:L887", None)
                 continue
             if data.get("type") in ("chain_checkpoint", "session_end"):
                 continue
@@ -920,6 +1026,7 @@ def verify_chain(filepath: str, from_checkpoint: int = 0) -> tuple:
                 try:
                     data = json.loads(line)
                 except json.JSONDecodeError:
+                    note_failure("audit_trail:L1006", None)
                     return False, i
 
                 # Skip until checkpoint line (improvement #5)
@@ -991,6 +1098,7 @@ def verify_chain_skip_corrupt(filepath: str) -> tuple:
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
+                note_failure("audit_trail:L1077", None)
                 corrupt_lines.append(i)
                 error_details.append((i, "Corrupt JSON"))
                 continue
@@ -1043,7 +1151,7 @@ def get_head_hash(filepath: str = None) -> str:
                     if h:
                         last_hash = h
                 except json.JSONDecodeError:
-                    pass
+                    note_failure("audit_trail:L1129", None)
         return last_hash
     finally:
         if own_lock:
@@ -1069,6 +1177,7 @@ def verify_monotonicity(filepath: str) -> tuple:
             try:
                 data = json.loads(line)
             except json.JSONDecodeError:
+                note_failure("audit_trail:L1155", None)
                 continue
             ts_str = data.get("ts", "")
             if not ts_str:
@@ -1076,6 +1185,7 @@ def verify_monotonicity(filepath: str) -> tuple:
             try:
                 ts = datetime.datetime.fromisoformat(ts_str)
             except ValueError:
+                note_failure("audit_trail:L1162", None)
                 continue
             if last_ts is not None and ts < last_ts:
                 return False, i
@@ -1097,6 +1207,7 @@ def lock_audit_file(filepath: str) -> bool:
         os.chmod(filepath, stat.S_IREAD)
         return True
     except Exception:
+        note_failure("audit_trail:L1183", None)
         return False
 
 
@@ -1106,6 +1217,7 @@ def unlock_audit_file(filepath: str) -> bool:
         os.chmod(filepath, stat.S_IWRITE | stat.S_IREAD)
         return True
     except Exception:
+        note_failure("audit_trail:L1192", None)
         return False
 
 
@@ -1196,6 +1308,7 @@ def audit_anomaly_scan(filepath: str) -> list:
                 data = json.loads(line)
                 entries.append((i, data))
             except json.JSONDecodeError:
+                note_failure("audit_trail:L1282", None)
                 anomalies.append(f"Line {i}: Corrupt JSON")
                 continue
 
@@ -1222,7 +1335,7 @@ def audit_anomaly_scan(filepath: str) -> list:
             if is_readonly:
                 anomalies.append("Structural: Read-only session file missing session_end entry (possible truncation)")
         except Exception:
-            pass
+            note_failure("audit_trail:L1308", None)
 
     # Rate anomaly: >100 entries in any 1-second window
     entry_times = []
@@ -1232,6 +1345,7 @@ def audit_anomaly_scan(filepath: str) -> list:
             try:
                 entry_times.append((ln, datetime.datetime.fromisoformat(ts_str)))
             except ValueError:
+                note_failure("audit_trail:L1318", None)
                 continue
 
     if len(entry_times) > 1:
@@ -1268,7 +1382,7 @@ def audit_anomaly_scan(filepath: str) -> list:
                         f"(current time: {now.isoformat(timespec='seconds')})"
                     )
             except ValueError:
-                pass
+                note_failure("audit_trail:L1354", None)
 
     # Temporal: non-monotonic (already caught by verify_monotonicity, but log here too)
     last_ts = None
@@ -1278,6 +1392,7 @@ def audit_anomaly_scan(filepath: str) -> list:
             try:
                 ts = datetime.datetime.fromisoformat(ts_str)
             except ValueError:
+                note_failure("audit_trail:L1364", None)
                 continue
             if last_ts is not None and ts < last_ts:
                 anomalies.append(
@@ -1335,6 +1450,7 @@ def read_audit_lines(filepath: str = None) -> list:
                 data = json.loads(line)
                 results.append((i, data))
             except json.JSONDecodeError:
+                note_failure("audit_trail:L1421", None)
                 results.append((i, {"_corrupt": True, "_raw": line[:200]}))
     return results
 
@@ -1365,6 +1481,7 @@ def verify_citation_exists(citation: str) -> bool:
     try:
         line_num = int(line_str)
     except ValueError:
+        note_failure("audit_trail:L1451", None)
         return False
     if not Path(filepath).exists():
         return False

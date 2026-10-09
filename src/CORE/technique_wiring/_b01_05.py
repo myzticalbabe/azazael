@@ -14,6 +14,17 @@ mechanism was invented for it — the honest form for a paper with no technique.
 """
 
 from CORE.technique_runtime import register
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def _safe(fn):
@@ -22,6 +33,7 @@ def _safe(fn):
         try:
             return fn() or {}
         except Exception as exc:                      # noqa: BLE001 - contract
+            note_failure("_b01_05:L24", exc)
             return {"invoked": False,
                     "error": f"{type(exc).__name__}: {exc}"}
     return _run

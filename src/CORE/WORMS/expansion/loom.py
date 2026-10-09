@@ -38,6 +38,16 @@ import json
 import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = [
     "intrinsic_dimension",
     "participation_ratio",
@@ -49,6 +59,7 @@ __all__ = [
 try:  # GIL interpreter only; the free-threaded build cannot load cp314 wheels.
     import numpy as _np  # type: ignore
 except Exception:  # pragma: no cover - expected under python3.14t
+    note_failure("loom:L51", None)
     _np = None
 
 
@@ -123,7 +134,7 @@ def intrinsic_dimension(points: Sequence[Sequence[float]],
             eigs = _np.linalg.eigvalsh(cov)[::-1]
             return float(participation_ratio([float(v) for v in eigs]))
         except Exception:
-            pass
+            note_failure("loom:L125", None)
     return participation_ratio(jacobi_eigenvalues(_covariance(points)))
 
 
@@ -169,6 +180,7 @@ def spectral_summary(points: Sequence[Sequence[float]], top_k: int = 3) -> Dict[
             eigs = [float(v) for v in _np.linalg.eigvalsh(cov)[::-1]]
             used_numpy = True
         except Exception:
+            note_failure("loom:L171", None)
             eigs = []
     if not eigs:
         eigs = jacobi_eigenvalues(_covariance(points))
@@ -290,7 +302,7 @@ class NoveltyDrive:
                            "collapse_run": self.collapse_run,
                            "history": self.history[-128:]}, fh, indent=1)
         except Exception:
-            pass
+            note_failure("loom:L292", None)
 
     def load(self) -> None:
         if not self.path:
@@ -303,7 +315,7 @@ class NoveltyDrive:
             self.collapse_run = int(d.get("collapse_run", 0))
             self.history = list(d.get("history", []))
         except Exception:
-            pass
+            note_failure("loom:L305", None)
 
 
 def descriptors_from_archive(cells: Iterable[dict]) -> List[List[float]]:
@@ -321,5 +333,6 @@ def descriptors_from_archive(cells: Iterable[dict]) -> List[List[float]]:
             try:
                 out.append([float(x) for x in d])
             except (TypeError, ValueError):
+                note_failure("loom:L323", None)
                 continue
     return out
