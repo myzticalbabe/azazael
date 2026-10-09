@@ -47,6 +47,70 @@ except ImportError:
         return lambda cls: cls
 
 
+def internalize(observation: dict[str, Any], *, worm: str = "global",
+                persist: bool = False, store: Any = None) -> dict[str, Any]:
+    """Run analyse -> recommend -> adapt over one observation (EP435).
+
+    EP435's fourth phase is Internalize (Explore -> Evaluate -> Reflect ->
+    Internalize). This engine already had Evaluate (`analyze_patterns`), Reflect
+    (`recommend_from_evidence`) and Adapt (`adapt_strategy`) -- and nothing ran
+    the three in sequence, so the technique existed as parts with no chain. This
+    is that chain, in one fail-open call.
+
+    The confidence gate is the engine's own `ADOPT_CONFIDENCE`: a recommendation
+    below it is REPORTED but not adopted, so a self-test invocation cannot churn
+    the active strategy on thin evidence.
+
+    Read-mostly by default: `persist=False` builds the engine with persistence
+    disabled, so running this from a self-test never writes a live store. A
+    caller that wants the adaptation remembered passes `persist=True` (or an
+    explicit `store`).
+
+    Args:
+        observation: {"worm_type", "action", "outcome" (required keys of the
+            observe contract), plus optional "context", "duration_ms",
+            "error".
+        worm: fallback worm_type when the observation omits one.
+        persist: allow the engine to read/write persistent state.
+        store: an explicit memory store (overrides `persist`).
+
+    Returns:
+        dict with the chain's verdict: error_rate, recommended, confidence,
+        adopted, strategy, reason. On failure: {"error", "adopted": False}.
+    """
+    try:
+        engine = MetaCognitionWorm(
+            memory_store=(store if store is not None
+                          else (None if persist else _PERSISTENCE_DISABLED)))
+        obs = dict(observation or {})
+        target = str(obs.get("worm_type") or worm)
+        engine.observe(
+            worm_type=target,
+            action=str(obs.get("action", "unknown")),
+            outcome=str(obs.get("outcome", "success")),
+            context=obs.get("context") or {},
+            duration_ms=float(obs.get("duration_ms", 0.0) or 0.0),
+            error=obs.get("error"),
+        )
+        analysis = engine.analyze_patterns(worm_type=target)
+        rec = engine.recommend_from_evidence(target)
+        recommended = rec.get("recommended")
+        confidence = float(rec.get("confidence", 0.0) or 0.0)
+        adopted = False
+        if recommended and confidence >= engine.ADOPT_CONFIDENCE:
+            engine.adapt_strategy(worm_type=target, recommended=recommended,
+                                  confidence=confidence)
+            adopted = True
+        return {"engine": "meta_cognition", "worm_type": target,
+                "error_rate": analysis.get("error_rate"),
+                "recommended": recommended, "confidence": confidence,
+                "adopted": adopted,
+                "strategy": engine.get_current_strategy(target),
+                "reason": rec.get("reason")}
+    except Exception as exc:
+        return {"error": f"{type(exc).__name__}: {exc}", "adopted": False}
+
+
 @register_worm(
     category="learning", priority=7, cooldown_seconds=90.0,
     description="MetaCognition engine — self-reflection, error pattern learning, strategy adaptation for autonomous improvement"

@@ -40,6 +40,26 @@ from pathlib import Path
 from typing import Dict, List, Set, Optional, Any, Callable
 from dataclasses import dataclass, field
 
+#: Fail-open swallows recorded when the runtime recorder is unavailable. A
+#: ledger or reflection failure must never break orchestration, but it must not
+#: be indistinguishable from success either.
+_SWALLOWED: List[str] = []
+
+
+try:
+    from CORE.technique_runtime import note_failure
+except ImportError:                               # runtime absent: stay importable
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
+
+def _note_failure(where: str, exc: BaseException | None = None) -> None:
+    """Record a fail-open swallow. Never raises."""
+    try:
+        note_failure(where, exc)
+    except Exception as _e:
+        _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
+
 # ── Flat registry dispatch (U3/D1) ─────────────────────────────────
 # No NatureClusterManager, no CrossNatureRoutingEngine: both were deleted
 # with the taxonomy. Categories come straight from the worm registry.
@@ -276,6 +296,79 @@ class MetaCluster:
     
     # ── Orientation ────────────────────────────────────────────────
     
+    # ── Plan model (Helium EP130/EP171): order + levels for a dispatch ──
+    #: Above this many categories a plan is not worth building (quadratic
+    #: dependency scan); the caller's order is used unchanged instead.
+    _PLAN_MAX_CATEGORIES = 64
+
+    def _plan_execution_order(self, order: List[str]) -> tuple:
+        """Derive category execution order and levels from a dispatch plan.
+
+        `order` is the caller's requested order, already filtered to known,
+        non-circular categories. Returns (ordered_names, level_of, note).
+
+        The plan is REAL, not decorative. U3/D1 deleted the nature taxonomy
+        and with it every declared dependency edge, so the edges are derived
+        from the data instead: two categories that share a worm are dependent
+        (re-running the same worm is exactly the duplication Helium's
+        common-subgraph elimination exists to expose). Categories sharing
+        nothing land at the same level and are safe to run concurrently.
+
+        The caller's order stays authoritative WITHIN a level -- the result is
+        sorted by (level, requested index), so it can reorder only where a
+        dependency actually requires it.
+
+        Any failure returns the input order with an empty level map: planning
+        must never be able to break orchestration.
+        """
+        names = [str(n) for n in (order or [])]
+        if len(names) < 2:
+            return names, {}, "plan-skipped:single"
+        if len(names) > self._PLAN_MAX_CATEGORIES:
+            return names, {}, "plan-skipped:too-many"
+        try:
+            from CORE.dispatch_plan import (
+                eliminate_common_subgraphs, plan_dag, record_dispatch_plan,
+            )
+        except Exception as exc:  # noqa: BLE001 — planning is optional
+            return names, {}, "plan-fallback:%s" % type(exc).__name__
+        try:
+            idx = {n: i for i, n in enumerate(names)}
+            worms = {n: set(self.categories.get(n) or []) for n in names}
+            tasks = [{"id": n,
+                      "deps": [m for m in names
+                               if idx[m] < idx[n] and (worms[m] & worms[n])]}
+                     for n in names]
+            plan = plan_dag(tasks)
+            if not plan.get("valid"):
+                gaps = ";".join(str(g) for g in (plan.get("gaps") or []))
+                return names, {}, "plan-fallback:invalid(%s)" % gaps[:120]
+            levels = plan.get("levels") or {}
+            ordered = sorted(plan.get("order") or names,
+                             key=lambda n: (levels.get(n, 0), idx.get(n, 0)))
+            sharing = eliminate_common_subgraphs(
+                {n: sorted(worms[n]) for n in names})
+            note = "planned:levels=%d,shared_segments=%d,dedup_savings=%d" % (
+                (max(levels.values()) + 1) if levels else 0,
+                len(sharing.get("shared") or []),
+                int(sharing.get("savings") or 0))
+            if sharing.get("savings"):
+                # Shared worms are work this run can do once. Recorded, not
+                # silently acted on: the report must stay readable.
+                note += ",shared_worms=%d" % int(sharing.get("savings") or 0)
+            try:
+                record_dispatch_plan("metacluster", plan)
+            except Exception as exc:  # noqa: BLE001 — ledger is best-effort
+                _note_failure("metacluster:dispatch-plan-ledger", exc)
+            try:
+                _record_event("metacluster_plan", {
+                    "note": note, "order": ordered, "levels": levels})
+            except Exception as exc:  # noqa: BLE001 — telemetry is best-effort
+                _note_failure("metacluster:plan-event", exc)
+            return ordered, levels, note
+        except Exception as exc:  # noqa: BLE001 — never break orchestration
+            return names, {}, "plan-fallback:%s" % type(exc).__name__
+
     def orchestrate(self, natures: Optional[List[str]] = None,
                     parallel: bool = False, max_natures: int = 0) -> MetaClusterResult:
         """
@@ -339,6 +432,14 @@ class MetaCluster:
                     except Exception:  # noqa: BLE001 — bookkeeping is best-effort
                         pass
 
+        # ── Plan the dispatch (Helium) ──────────────────────────────
+        # Derive the execution order and its levels from a task DAG. Planning
+        # is fail-open: on any failure `level_of` is empty and `execution_order`
+        # is exactly what it was above, so the executor below is the same
+        # sequential loop this method always ran.
+        execution_order, level_of, plan_note = self._plan_execution_order(
+            execution_order)
+
         self.state.phase = "executing"
         self.state.active_natures = set(execution_order)
         
@@ -369,8 +470,26 @@ class MetaCluster:
         log = _get_log()
         _get_breakers()
         
-        for nature in execution_order:
-            self.state.phase = f"executing_{nature}"
+        # Shared-accumulator lock: `parallel` runs same-level categories on
+        # threads, and free-threaded 3.14t gives no GIL safety net for a
+        # read-modify-write on an int. Held only around the accumulator writes.
+        _acc_lock = threading.Lock()
+
+        def _execute_nature(nature: str) -> None:
+            """Execute one category end-to-end.
+
+            Extracted from the sequential loop verbatim so a level's independent
+            categories can run concurrently; only the accumulator writes are
+            locked, so the work itself stays parallel.
+            """
+            nonlocal total_ok, total_fail
+            # Bind the state once: this closure runs on a worker thread, so the
+            # type checker cannot narrow `self.state` here even though
+            # `orchestrate` has already constructed it before dispatch.
+            state = self.state
+            if state is None:  # defensive: refused rather than crashing later
+                raise RuntimeError("orchestrate: state not initialised")
+            state.phase = f"executing_{nature}"
             
             # Pre-hook
             self._run_hooks("pre_nature", nature=nature, state=self.state)
@@ -387,21 +506,22 @@ class MetaCluster:
                         for v in results.values()
                         if isinstance(v, dict) and not v.get("success", True)
                         and (v or {}).get("error")]
-                nature_results[nature] = {
-                    "success_count": agg.success_count,
-                    "failure_count": agg.failure_count,
-                    "duration_ms": agg.duration_ms,
-                    "worm_results": results,
-                    "errors": errs,
-                }
-                total_ok += agg.success_count
-                total_fail += agg.failure_count
-                if errs:
-                    errors.extend(errs)
+                with _acc_lock:
+                    nature_results[nature] = {
+                        "success_count": agg.success_count,
+                        "failure_count": agg.failure_count,
+                        "duration_ms": agg.duration_ms,
+                        "worm_results": results,
+                        "errors": errs,
+                    }
+                    total_ok += agg.success_count
+                    total_fail += agg.failure_count
+                    if errs:
+                        errors.extend(errs)
                 
-                with self.state.lock:
-                    self.state.completed_natures.add(nature)
-                    self.state.worm_results[nature] = results
+                with state.lock:
+                    state.completed_natures.add(nature)
+                    state.worm_results[nature] = results
                 
                 if log:
                     log.info("nature_executed", {
@@ -411,16 +531,68 @@ class MetaCluster:
                         "duration_ms": agg.duration_ms,
                     })
             except Exception as e:
-                with self.state.lock:
-                    self.state.failed_natures.add(nature)
+                with state.lock:
+                    state.failed_natures.add(nature)
                 err_msg = f"Nature '{nature}' failed: {str(e)}"
-                errors.append(err_msg)
+                with _acc_lock:
+                    errors.append(err_msg)
                 self._run_hooks("on_error", nature=nature, error=str(e), state=self.state)
                 if log:
                     log.error("nature_failed", {"nature": nature, "error": str(e)})
+
+                # EP113 Reflexion: a failed category leaves a REUSABLE lesson,
+                # not only an error string in a log. Before this call
+                # `reflect_on_failure` had zero production callers -- the buffer
+                # was complete and nothing ever wrote to it.
+                #
+                # Deliberately last in the handler and fully fail-open: the
+                # bookkeeping above (failed_natures, errors, hooks, log) has
+                # already happened, so a reflection can neither change control
+                # flow nor lose a failure record. `what_next` is derived from the
+                # nature and the phase so the lesson is actionable rather than
+                # filler.
+                try:
+                    from CORE.technique_runtime import reflect_on_failure
+                    reflect_on_failure(
+                        question=f"nature:{nature}",
+                        what_failed=err_msg[:300],
+                        what_next=(
+                            f"re-run nature '{nature}' alone to isolate the "
+                            f"fault; it failed during phase "
+                            f"'{state.phase}'. Check its category's worm "
+                            f"dependencies before re-running the full set."),
+                        decision_id=f"metacluster:{nature}")
+                except Exception as exc:              # noqa: BLE001 — reflection best-effort
+                    _note_failure("metacluster:reflect", exc)
             
             # Post-hook
             self._run_hooks("post_nature", nature=nature, result=nature_results.get(nature), state=self.state)
+
+        # ── Execute in plan order, fanning out each independent level ──
+        # `level_of` comes from the plan; empty means no plan was built, which
+        # makes this the sequential loop unchanged. Concurrency needs BOTH a
+        # plan and the caller's `parallel` opt-in, so the default path is
+        # byte-for-byte the old behaviour.
+        if level_of and parallel and len(execution_order) > 1:
+            budget = max(1, int(cfg.clusters.max_parallel_worms if cfg else 8))
+            for level in sorted(set(level_of.values())):
+                group = [n for n in execution_order
+                         if level_of.get(n, 0) == level]
+                for i in range(0, len(group), budget):
+                    batch = group[i:i + budget]
+                    if len(batch) == 1:
+                        _execute_nature(batch[0])
+                        continue
+                    threads = [threading.Thread(target=_execute_nature,
+                                                args=(n,), daemon=True)
+                               for n in batch]
+                    for t in threads:
+                        t.start()
+                    for t in threads:
+                        t.join()
+        else:
+            for nature in execution_order:
+                _execute_nature(nature)
         
         # Phase 4: Generate insights
         self.state.phase = "analyzing"
@@ -473,6 +645,7 @@ class MetaCluster:
             "ok": total_ok, "fail": total_fail,
             "duration_ms": result.duration_ms,
             "insights": len(insights),
+            "plan": plan_note,
         })
         
         return result

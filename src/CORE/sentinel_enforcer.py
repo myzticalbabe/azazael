@@ -194,6 +194,42 @@ def _create_backup(filepath: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Verification-gate consultation (technique-runtime wiring)
+# ---------------------------------------------------------------------------
+
+#: Last verdict from `_consult_verification_gate`, surfaced by `get_status()` so
+#: the wiring is observable without altering any enforcement decision.
+_LAST_VERIFY: dict[str, Any] = {}
+
+
+def _consult_verification_gate(filepath: str, action: str) -> str:
+    """Ask the technique runtime to verify this transition. Never raises.
+
+    Returns a compact marker for the caller's message, or "" when the runtime
+    or the gate is unavailable -- so a missing wiring degrades to exactly the
+    output this module produced before the hook existed.
+
+    Only `subject` is passed: this sits on the hot path of every tool call, so
+    the call must stay cheap (no claim sets, no workflow graphs, no I/O).
+    """
+    global _LAST_VERIFY
+    subject = "edit:%s:%s" % (action, filepath)
+    try:
+        from CORE import technique_runtime as _tr  # noqa: PLC0415 (lazy: no cycle)
+        verdict = _tr.verify_boundary(subject) or {}
+        accepted = bool(verdict.get("accepted", True))
+        reasons = list(verdict.get("reasons") or [])
+        _LAST_VERIFY = {"subject": subject, "accepted": accepted,
+                        "n_reasons": len(reasons)}
+        return "verify:%s:%d" % ("accepted" if accepted else "flagged",
+                                 len(reasons))
+    except Exception as exc:            # never block an edit on the verifier
+        _LAST_VERIFY = {"subject": subject, "accepted": True,
+                        "error": type(exc).__name__}
+        return ""
+
+
+# ---------------------------------------------------------------------------
 # Core enforcement function
 # ---------------------------------------------------------------------------
 
@@ -251,6 +287,19 @@ def _enforce_impl(
     # Phase 0: Create backup before any write
     if action == "str_replace":
         _create_backup(filepath)
+
+    # Phase 0.5: consult the verification gate (technique-runtime wiring).
+    #
+    # `verification_gate.verify_before_accept` composes nine detectors and had
+    # exactly ONE caller before this hook -- an exercise script -- so a check
+    # the pipeline assumed was running had never been invoked on a real edit.
+    # Every enforced edit now passes through it.
+    #
+    # ADVISORY ON PURPOSE: the verdict is SURFACED, never enforced. This module
+    # is the gate on a live editing session, so the wiring must not be able to
+    # introduce a new denial path -- a verifier bug would otherwise block all
+    # work. Enforcement semantics here are unchanged by design.
+    _verify_marker = _consult_verification_gate(filepath, action)
 
     # Phase 1: AST Anti-Pattern Scan of FULL proposed content
     if _SCANNER_AVAILABLE:
@@ -317,7 +366,8 @@ def _enforce_impl(
             f"Error #214 pattern."
         )
 
-    return True, "AUTHORIZED"
+    return True, ("AUTHORIZED" if not _verify_marker
+                  else "AUTHORIZED " + _verify_marker)
 
 
 def enforce_write(filepath: str, content: str) -> tuple[bool, str]:
@@ -510,6 +560,7 @@ def get_status() -> dict[str, Any]:
             ),
             "sentinel_available": _SENTINEL_AVAILABLE,
             "scanner_available": _SCANNER_AVAILABLE,
+            "last_verify": dict(_LAST_VERIFY),
         }
 
 

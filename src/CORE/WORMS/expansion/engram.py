@@ -30,13 +30,33 @@ import threading
 import hashlib
 import math
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
     def register_worm(**kw):
         return lambda cls: cls
+
+#: Fail-open swallows recorded when the runtime recorder is unavailable. A read
+#: must never fail because its bookkeeping did, but the bookkeeping failure
+#: must not read as success either.
+_SWALLOWED: List[str] = []
+
+
+try:
+    from CORE.technique_runtime import note_failure
+except ImportError:                               # runtime absent: stay importable
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
+
+def _note_failure(where: str, exc: BaseException | None = None) -> None:
+    """Record a fail-open swallow. Never raises."""
+    try:
+        note_failure(where, exc)
+    except Exception as _e:
+        _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
 
 
 def _h(text: str) -> str:
@@ -353,7 +373,18 @@ class RecallRouterWorm:
     def __init__(self):
         self._hits: dict[str, int] = {"owner": 0, "semantic": 0, "fallback": 0}
         self._last_scores: list = []
+        # EP389: recall that found nothing. Counted separately from `_hits`
+        # so an abstention is distinguishable from a successful fallback.
+        self._abstentions = 0
         self._lock = threading.Lock()
+        # EP235: the READ path records the signal the consolidator consumes, so
+        # the recall -> write loop closes by USING the router rather than by a
+        # separate caller that has to remember to close it. Bounded: at most one
+        # store write per signal-category change, or every NOTE_EVERY reads.
+        self._reads = 0
+        self._reads_since_note = 0
+        self._last_signal: str | None = None
+        self._note_lock = threading.Lock()
 
     def route_recall(self, query: str, shard_map: Optional[dict] = None,
                      index: Optional[VectorShardWorm] = None,
@@ -363,8 +394,10 @@ class RecallRouterWorm:
         if owner:
             with self._lock:
                 self._hits["owner"] += 1
+            self._note_read()
             return {"success": True, "mem": query, "route": owner,
-                    "fallback": False, "mode": "owner_lookup"}
+                    "fallback": False, "mode": "owner_lookup",
+                "abstained": False, "found": True}
 
         store = index or shared_shards()
         res = store.search(query=query, top_k=top_k) if query else {"hits": []}
@@ -374,15 +407,117 @@ class RecallRouterWorm:
             with self._lock:
                 self._hits["semantic"] += 1
                 self._last_scores = [h["score"] for h in hits]
+            self._note_read()
             return {"success": True, "mem": query, "route": best["shard"],
-                    "fallback": False, "mode": "semantic",
+                    "fallback": False, "mode": "semantic", "abstained": False,
+                    "found": True,
                     "score": best["score"],
                     "hits": hits}
 
         with self._lock:
             self._hits["fallback"] += 1
+            self._abstentions += 1
+        self._note_read()
         return {"success": True, "mem": query, "route": "g_archive",
-                "fallback": True, "mode": "fallback"}
+                "fallback": True, "mode": "fallback",
+                "abstained": True, "found": False, "confidence": 0.0}
+
+    #: At most one store write per this many reads, even when the signal
+    #: category does not change. Routing is the hot path: an unbounded write per
+    #: query would flood the store and slow every recall down.
+    NOTE_EVERY = 25
+
+    def _note_read(self) -> None:
+        """Close the EP235 loop from the READ path (fail-open, bounded).
+
+        The router already counted what it recalled and how well it scored, and
+        nothing consumed those numbers, so the writer never learned what
+        consumers actually asked for. This makes the act of routing produce that
+        signal: the derived read pressure is persisted through the store the
+        consolidator already uses -- `DreamConsolidatorWorm._record_read_stats`,
+        so there is ONE writer path and not a second implementation of it.
+
+        Bounded by design. A write happens only when the signal CATEGORY
+        changes (served -> weak-relevance -> unmet-demand) or once every
+        `NOTE_EVERY` reads, whichever comes first -- so a burst of a thousand
+        identical misses is one recorded transition, not a thousand rows.
+
+        Deliberately does NOT call `recall_state()`: that re-acquires
+        `self._lock`, and this method is reachable from a path that just
+        released it, so going through it would risk self-deadlock on a
+        non-reentrant Lock. The snapshot is read from the fields directly, and
+        the store write is kept OUTSIDE `self._lock` so routing never waits on
+        SQLite.
+        """
+        try:
+            with self._lock:
+                total = sum(self._hits.values())
+                abstained = self._abstentions
+                scores = list(self._last_scores[:5])
+
+            rate = (abstained / total) if total else 0.0
+            nums = [float(s) for s in scores if isinstance(s, (int, float))]
+            mean_top = round(sum(nums) / len(nums), 4) if nums else None
+            if rate >= DreamConsolidatorWorm.UNMET_DEMAND_FLOOR:
+                signal = "unmet-demand"
+            elif mean_top is not None and mean_top < 0.5:
+                signal = "weak-relevance"
+            else:
+                signal = "served"
+
+            with self._lock:
+                self._reads += 1
+                self._reads_since_note += 1
+                changed = signal != self._last_signal
+                if not (changed or self._reads_since_note >= self.NOTE_EVERY):
+                    return
+                self._last_signal = signal
+                self._reads_since_note = 0
+                reads = self._reads
+
+            pressure = {"total_reads": total, "abstained": abstained,
+                        "abstention_rate": round(rate, 4),
+                        "mean_top_score": mean_top,
+                        "needs_writing": signal == "unmet-demand",
+                        "signal": signal, "reads": reads,
+                        "source": "router",
+                        "reason": "signal-change" if changed else "interval"}
+
+            # One writer path, held only around the store call so concurrent
+            # readers of the router are never serialized behind a write.
+            with self._note_lock:
+                DreamConsolidatorWorm()._record_read_stats(pressure)
+        except Exception as exc:
+            # A read must never fail because the bookkeeping did.
+            _note_failure("engram:read-stats", exc)
+            return
+
+    def recall_state(self) -> dict:
+        """Expose the router's recall state as data (EP144/EP389).
+
+        The read half of the memory loop: how consumers actually recalled, and
+        how often recall ABSTAINED. A high abstention rate is the store telling
+        the writer what it is missing -- which is exactly why this returns a
+        dict and why `DreamConsolidatorWorm.read_pressure` consumes it (EP235).
+
+        `abstained` is a NEW key, and `success` is left meaning what it has
+        always meant in this module ("the call completed") because `search`,
+        `add` and `stats` all use it that way -- flipping it to False on a miss
+        would conflate transport success with retrieval outcome and silently
+        change every existing caller. The honest signal is carried by the new
+        `abstained` / `found` keys instead.
+        """
+        with self._lock:
+            total = sum(self._hits.values())
+            return {**self._hits, "total": total,
+                    "abstained": self._abstentions,
+                    "abstention_rate": (round(self._abstentions / total, 4)
+                                        if total else 0.0),
+                    "last_scores": self._last_scores[:5],
+                    # EP235 observability: how many reads the router served and
+                    # the last category it wrote back to the consolidator.
+                    "reads": self._reads,
+                    "noted_signal": self._last_signal}
 
     def stats(self) -> dict:
         with self._lock:
@@ -461,6 +596,21 @@ class CoherenceValidatorWorm:
         return {"success": True, "method": "execute", "result": self.report()}
 
 
+def run_read_driven_consolidation(router=None, dream_items=None,
+                                  index=None) -> dict:
+    """No-argument-callable form of EP235's loop closure (runtime adapter).
+
+    Exists so a caller (or the technique-wiring runtime) can close the
+    recall -> write loop with one call and no setup. Fail-open: returns a dict
+    carrying the error rather than raising.
+    """
+    try:
+        return DreamConsolidatorWorm().consolidate_from_reads(
+            router=router, dream_items=dream_items, index=index)
+    except Exception as exc:
+        return {"success": False, "error": f"{type(exc).__name__}: {exc}"}
+
+
 @register_worm(category="engram", priority=5, cooldown_seconds=300.0,
     description="Nightly merge DreamingModule/Hypnagogic output into ModelVersioner + engram index")
 class DreamConsolidatorWorm:
@@ -473,6 +623,9 @@ class DreamConsolidatorWorm:
 
     VERSION = "2.0.0"
     SALIENCE_FLOOR = 0.5
+    #: Abstention rate at or above which recall is telling the writer that what
+    #: consumers ask for is not in the store (EP235).
+    UNMET_DEMAND_FLOOR = 0.25
 
     def __init__(self):
         self._merges = 0
@@ -503,6 +656,76 @@ class DreamConsolidatorWorm:
                     "kept": len(kept), "indexed": indexed,
                     "merges": self._merges, "total_indexed": self._indexed,
                     "at": self._last}
+
+    def read_pressure(self, router=None) -> dict:
+        """The read-side signal the writer was missing (EP235).
+
+        `RecallRouterWorm` already records what was recalled and how well it
+        scored, and nothing consumed it. This turns that record into the one
+        number a writer can act on: the ABSTENTION rate. Reads that found
+        nothing are unmet demand -- the store is missing what consumers ask
+        for, and that is a reason to consolidate toward the gap rather than
+        only replaying dreams.
+        """
+        try:
+            if router is None:
+                st = {}
+            elif hasattr(router, "recall_state"):
+                st = router.recall_state()
+            elif hasattr(router, "stats"):
+                st = router.stats()
+            else:
+                st = {}
+        except Exception:
+            st = {}
+        st = dict(st or {})
+        total = int(st.get("total", 0) or 0)
+        abstained = int(st.get("abstained", st.get("fallback", 0)) or 0)
+        scores = [float(s) for s in (st.get("last_scores") or [])
+                  if isinstance(s, (int, float))]
+        mean_top = round(sum(scores) / len(scores), 4) if scores else None
+        rate = round(abstained / total, 4) if total else 0.0
+        return {"total_reads": total, "abstained": abstained,
+                "abstention_rate": rate, "mean_top_score": mean_top,
+                "needs_writing": rate >= self.UNMET_DEMAND_FLOOR,
+                "signal": ("unmet-demand" if rate >= self.UNMET_DEMAND_FLOOR
+                           else ("weak-relevance" if (mean_top is not None
+                                                      and mean_top < 0.5)
+                                 else "served"))}
+
+    def consolidate_from_reads(self, router=None, dream_items=None,
+                               index=None) -> dict:
+        """Consolidate with the read signal folded in (EP235).
+
+        Runs the existing `consolidate` (unchanged, so dream-driven behaviour is
+        preserved) and attaches the read pressure to the verdict, then records
+        that pressure through the memory store this module already has. No new
+        store, no new dependency.
+
+        Degradation: when no embedding backend is reachable `consolidate`
+        simply indexes nothing -- and the read statistics are STILL recorded, so
+        the signal survives even when consolidation cannot run. That is the
+        difference between a loop that closes and one that silently drops the
+        only thing it learned.
+        """
+        pressure = self.read_pressure(router)
+        result = self.consolidate(list(dream_items or []), index=index)
+        result["read_pressure"] = pressure
+        result["priority"] = ("unmet-demand" if pressure["needs_writing"]
+                              else "normal")
+        self._record_read_stats(pressure)
+        return result
+
+    def _record_read_stats(self, pressure: dict) -> None:
+        """Persist the read signal via the existing store (fail-open)."""
+        try:
+            from CORE.local_memory import get_memory_store
+            get_memory_store().record_event(
+                source="engram", event_type="engram_read_pressure",
+                data=dict(pressure or {}), severity="info",
+                tags=["engram", "read-pressure", "ep235"])
+        except Exception as exc:                      # noqa: BLE001 — publish best-effort
+            _note_failure("engram:consolidation-publish", exc)
 
     def stats(self) -> dict:
         with self._lock:
