@@ -32,13 +32,9 @@ import math
 from datetime import datetime
 from typing import Any, List, Optional
 
-try:
-    from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("engram:L37", None)
-    def register_worm(**kw):
-        return lambda cls: cls
-
+#: Fail-open swallows recorded when the runtime recorder is unavailable. A read
+#: must never fail because its bookkeeping did, but the bookkeeping failure
+#: must not read as success either.
 #: Fail-open swallows recorded when the runtime recorder is unavailable. A read
 #: must never fail because its bookkeeping did, but the bookkeeping failure
 #: must not read as success either.
@@ -50,6 +46,14 @@ try:
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
+
+try:
+    from CORE.worm_registry import register_worm
+except ImportError:
+    note_failure("engram:L37", None)
+    def register_worm(**kw):
+        return lambda cls: cls
+
 
 
 def _note_failure(where: str, exc: BaseException | None = None) -> None:

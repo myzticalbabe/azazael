@@ -10,6 +10,16 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from collections import defaultdict
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
@@ -41,15 +51,6 @@ def is_free_threaded() -> bool:
 
 from CORE.WORMS.expansion.learning_features import DATA_SHAPES
 
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-_SWALLOWED: List[str] = []
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        _SWALLOWED.append("%s:no-recorder" % where)
 
 @register_worm(category="learning", priority=5, cooldown_seconds=90.0,
     description="Data pipeline worm — ETL from LocalMemoryStore with caching, batching, and validation")

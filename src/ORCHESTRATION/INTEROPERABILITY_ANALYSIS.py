@@ -541,15 +541,6 @@ print(f"  Clustering Coefficient:   {props['clustering_coefficient']:.4f}")
 print(f"  Graph Diameter:          {props['graph_diameter']}")
 print()
 
-    # Save report
-try:
-    from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("INTEROPERABILITY_ANALYSIS:L547", None)
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from CORE.paths import get_desktop_dir
-from typing import List
-
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 _SWALLOWED: List[str] = []
@@ -559,6 +550,16 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
+
+    # Save report
+try:
+    from CORE.paths import get_desktop_dir
+except ImportError:
+    note_failure("INTEROPERABILITY_ANALYSIS:L547", None)
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from CORE.paths import get_desktop_dir
+from typing import List
+
 output_path = str(get_desktop_dir() / "HORUS" / "results" / "interoperability_analysis.json")
 with open(output_path, "w") as f:
     json.dump(report, f, indent=2)

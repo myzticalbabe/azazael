@@ -178,11 +178,31 @@ def ensure_recorder(src: str) -> tuple[str, bool]:
 
     anchor = 0
     typing_idx = None
+    first_rec_call = None          # earliest module-level note_failure call
     for node in tree.body:
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             anchor = max(anchor, node.end_lineno or node.lineno)
             if isinstance(node, ast.ImportFrom) and node.module == "typing":
                 typing_idx = node
+        elif first_rec_call is None and not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            # A module-level statement that calls note_failure (directly or
+            # inside a try/if) fixes this file's ordering: the shim must land
+            # BEFORE it, not merely after the last import -- a handler ABOVE
+            # the shim would NameError at import time (vocab_migration.py
+            # shipped exactly that bug in the 2026-10-09 sweep). Calls INSIDE
+            # a module-level def/class body are safe: the shim, defined at
+            # import time, precedes any function call at runtime.
+            for sub in ast.walk(node):
+                if isinstance(sub, ast.Call):
+                    f = sub.func
+                    nm = (f.id if isinstance(f, ast.Name)
+                          else f.attr if isinstance(f, ast.Attribute) else "")
+                    if nm in ("note_failure", "_note_failure"):
+                        first_rec_call = sub.lineno
+                        break
+    if first_rec_call is not None and first_rec_call <= anchor:
+        # Put the shim immediately BEFORE the line of the earliest call.
+        anchor = first_rec_call - 1
     if anchor == 0:
         # No module-level import at all: the shim must come BEFORE every
         # call, so anchor it after the module docstring instead of bailng out
@@ -318,6 +338,14 @@ from typing import (
 _EXTRA_NAMES: list = []
 
 
+def pending_call():
+    # Call ABOVE its shim definition: the ordering fix must anchor before it.
+    try:
+        x = 1 / 0
+    except Exception:
+        note_failure("already-called-up-here", None)
+
+
 def i():
     try:
         x = 1 / 0
@@ -335,6 +363,22 @@ def self_test() -> int:
     # so build it from the part of the fixture that has no note_failure definition.
     paren_case_src = _FIXTURE[_FIXTURE.index("#: The recorder AND the multi-line"):] \
         .replace("\nfrom nowhere", "\n#from nowhere")
+    # Ordering case: a file whose note_failure call sits ABOVE the point where
+    # the last import ends must get its shim placed BEFORE the call.
+    order_case_src = '''import sys
+from typing import Dict
+
+try:
+    from CORE.audit_trail import EVENT_VOCAB
+except ImportError:
+    note_failure("order:L6", None)
+    EVENT_VOCAB = {}
+'''
+    fixed, added = ensure_recorder(order_case_src)
+    call_line = next(i for i, ln in enumerate(fixed.splitlines())
+                     if 'note_failure("order:L6"' in ln)
+    shim_line = next(i for i, ln in enumerate(fixed.splitlines())
+                     if "failure_ledger import note_failure" in ln)
     print("\nconverted %d sites; findings after: %s" % (n, after))
     # Count the INSERTED calls only: the fixture also contains the recorder shim's
     # `def note_failure(...)`, so a bare count of "note_failure(" is not the measure.
@@ -359,6 +403,8 @@ def self_test() -> int:
         # shim), so --ensure-recorder must NOT bolt on a second recorder there.
         ("no duplicate recorder in fixture",
          not ensure_recorder(src)[1]),  # the full fixture already carries the shim tag
+        ("shim lands BEFORE an earlier call (import-time ordering)",
+         shim_line < call_line),
     ]
     for name, ok in checks:
         print("   [%s] %s" % ("PASS" if ok else "FAIL", name))
