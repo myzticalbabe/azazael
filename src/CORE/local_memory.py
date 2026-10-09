@@ -43,7 +43,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -107,9 +107,9 @@ def track_regime() -> Dict[str, Any]:
             try:
                 reg[key] = round((base / name).stat().st_size / 1e6, 1)
             except OSError:
-                pass
+                _note_failure("local_memory:L109", None)
     except Exception:
-        pass
+        _note_failure("local_memory:L111", None)
     try:
         conn = sqlite3.connect(str(DB_PATH), timeout=5)
         try:
@@ -121,7 +121,7 @@ def track_regime() -> Dict[str, Any]:
         finally:
             conn.close()
     except Exception:
-        pass
+        _note_failure("local_memory:L123", None)
     return reg
 
 # -- Schema -----------------------------------------------------------------
@@ -370,7 +370,7 @@ class LocalMemoryStore:
                     target_dir=cfg.backup.target_dir,
                 )
         except Exception:
-            pass  # Config not available — defaults stay
+            _note_failure("local_memory:L372", None)  # Config not available — defaults stay
 
     # -- Query Performance Tracking ---------------------------------------
 
@@ -431,9 +431,9 @@ class LocalMemoryStore:
             if not row or str(row[0]).lower() != "wal":
                 conn.execute("PRAGMA journal_mode=WAL")
         except sqlite3.OperationalError:
+            _note_failure("local_memory:L433", None)
             # A writer holds the lock while the mode is being established. WAL is
             # already the applicable mode, so continuing is safe.
-            pass
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA wal_autocheckpoint=1000")
         return conn
@@ -644,7 +644,7 @@ class LocalMemoryStore:
                         try:
                             conn.rollback()
                         except Exception:
-                            pass
+                            _note_failure("local_memory:L646", None)
                         if attempt < 3:
                             time.sleep(float(attempt))
                             continue
@@ -663,14 +663,14 @@ class LocalMemoryStore:
                                     "event_type": event_type, "source": source,
                                 }) + "\n")
                         except Exception:
-                            pass
+                            _note_failure("local_memory:L665", None)
                         raise
                     finally:
                         if conn is not None:
                             try:
                                 conn.close()
                             except Exception:
-                                pass
+                                _note_failure("local_memory:L672", None)
 
         # -- Size monitoring: issue warning if DB exceeds threshold -----
         if not self._size_warning_issued:
@@ -685,7 +685,7 @@ class LocalMemoryStore:
                         f"Consider running purge_old() or export_json() to reduce size."
                     )
             except Exception:
-                pass
+                _note_failure("local_memory:L687", None)
 
         return mem_id
 
@@ -764,7 +764,7 @@ class LocalMemoryStore:
                     limit, self.MAX_QUERY_LIMIT, source, event_type,
                 )
             except Exception:
-                pass
+                _note_failure("local_memory:L766", None)
         params.extend([effective_limit, offset])
 
         with self._QueryTimer(self, "query_memories"):
@@ -793,7 +793,7 @@ class LocalMemoryStore:
                         try:
                             conn.close()
                         except Exception:
-                            pass
+                            _note_failure("local_memory:L795", None)
 
         results = []
         for r in rows:
@@ -803,7 +803,7 @@ class LocalMemoryStore:
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    _note_failure("local_memory:L805", None)
             results.append(d)
         return results
 
@@ -906,6 +906,7 @@ class LocalMemoryStore:
             try:
                 rows = conn.execute(sql, params).fetchall()
             except sqlite3.OperationalError:
+                _note_failure("local_memory:L908", None)
                 # FTS5 query syntax error — fall back to LIKE search
                 like_param = f"%{query}%"
                 if source:
@@ -931,7 +932,7 @@ class LocalMemoryStore:
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    _note_failure("local_memory:L933", None)
             results.append(d)
         return results
 
@@ -1014,6 +1015,7 @@ class LocalMemoryStore:
                 summary = json.dumps(d, ensure_ascii=False,
                                      default=str)[:max_chars_per_item]
             except Exception:
+                _note_failure("local_memory:L1016", None)
                 summary = "<unserializable>"
             lines.append(
                 f"[{ev.get('source')}:{ev.get('event_type')}] {summary} "
@@ -1120,6 +1122,7 @@ class LocalMemoryStore:
         try:
             actual_file_bytes = os.path.getsize(self.db_path)
         except OSError:
+            _note_failure("local_memory:L1122", None)
             actual_file_bytes = 0
         theoretical_bytes = integrity.get("page_count", 0) * integrity.get("page_size", 4096)
         if theoretical_bytes > 0 and actual_file_bytes > 0:
@@ -1158,6 +1161,7 @@ class LocalMemoryStore:
         try:
             current_mb = os.path.getsize(self.db_path) / (1024 * 1024)
         except OSError:
+            _note_failure("local_memory:L1160", None)
             current_mb = 0
         threshold_mb = self._max_size_mb
         if current_mb <= 0:
@@ -1406,7 +1410,7 @@ class LocalMemoryStore:
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    _note_failure("local_memory:L1408", None)
             memories.append(d)
 
         with open(out_path, "w", encoding="utf-8") as f:
@@ -1486,6 +1490,7 @@ class LocalMemoryStore:
                     conn.execute(f"VACUUM INTO '{target}'")
                     conn.commit()
                 except Exception:
+                    _note_failure("local_memory:L1488", None)
                     # Fallback: checkpoint WAL, then copy file
                     conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                     conn.commit()
@@ -1797,7 +1802,7 @@ class LocalMemoryStore:
             try:
                 self.vacuum()
             except Exception:
-                pass
+                _note_failure("local_memory:L1799", None)
 
     @property
     def auto_vacuum_status(self) -> Dict[str, Any]:
@@ -1869,7 +1874,7 @@ class LocalMemoryStore:
                 self._last_backup_path = self.backup(backup_path)
                 self._prune_backups(keep_count=self._backup_keep_count)
             except Exception:
-                pass
+                _note_failure("local_memory:L1871", None)
 
     def _prune_backups(self, keep_count: int = 7):
         """Remove old backups beyond the keep count."""
@@ -1885,7 +1890,7 @@ class LocalMemoryStore:
             for old_backup in backups[keep_count:]:
                 old_backup.unlink(missing_ok=True)
         except Exception:
-            pass
+            _note_failure("local_memory:L1887", None)
 
     @property
     def auto_backup_status(self) -> Dict[str, Any]:
@@ -1914,7 +1919,7 @@ class LocalMemoryStore:
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             conn.close()
         except Exception:
-            pass
+            _note_failure("local_memory:L1916", None)
 
     # -- Knowledge Graph: Pattern Registration & Similarity ---------------
 
@@ -2184,6 +2189,7 @@ class LocalMemoryStore:
                 vec1 = project(vec1, k)
                 vec2 = project(vec2, k)
             except Exception:
+                _note_failure("local_memory:L2186", None)
                 return 0.0
         if not vec1 or not vec2 or len(vec1) != len(vec2):
             return 0.0
@@ -2243,6 +2249,7 @@ def audit_result_set(results: List[Dict],
                            ensure_ascii=False, default=str
                            ).encode("utf-8")).hexdigest()
         except Exception:
+            _note_failure("local_memory:L2245", None)
             continue
         key = f"{row.get('source')}|{row.get('event_type')}|{payload_hash}"
         seen_payloads[key] = seen_payloads.get(key, 0) + 1

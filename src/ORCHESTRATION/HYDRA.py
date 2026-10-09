@@ -26,8 +26,18 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 import argparse
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class ProcessingStage(Enum):
@@ -244,6 +254,7 @@ class HYDRACluster:
                 result = self._collect_feedback(result)
 
         except Exception as e:
+            note_failure("HYDRA:L246", e)
             result.errors.append(str(e))
 
         result.duration = (datetime.now() - start).total_seconds()
@@ -376,7 +387,7 @@ class HYDRACluster:
                         popup.destroy()
                         return
             except queue.Empty:
-                pass
+                note_failure("HYDRA:L378", None)
             popup.after(100, _process_queue)
 
         results_container: list[StageResult] = []

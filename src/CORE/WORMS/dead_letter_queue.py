@@ -29,7 +29,17 @@ import time
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Data Types ------------------------------------------------------
 
@@ -112,14 +122,14 @@ class DeadLetterQueue:
                     dl = DeadLetter(**filtered)
                     loaded.append(dl)
                 except (TypeError, ValueError):
-                    pass  # Skip malformed entries
+                    note_failure("dead_letter_queue:L114", None) # Skip malformed entries
             with self._lock:
                 self._letters = loaded
                 self._total_enqueued = data.get("total_enqueued", len(loaded))
                 self._total_resolved = data.get("total_resolved", 0)
                 self._total_permanent = data.get("total_permanent", 0)
         except (json.JSONDecodeError, OSError):
-            pass  # Corrupt file — start fresh
+            note_failure("dead_letter_queue:L121", None) # Corrupt file — start fresh
 
     def _save(self):
         """Persist dead letters to disk atomically."""
@@ -138,7 +148,7 @@ class DeadLetterQueue:
             tmp.write_text(json.dumps(data, indent=2, default=str))
             tmp.replace(self._storage_path)
         except OSError:
-            pass
+            note_failure("dead_letter_queue:L140", None)
 
     # -- Core Operations --------------------------------------------
 
@@ -225,6 +235,7 @@ class DeadLetterQueue:
         try:
             result = execute_fn(letter.worm_name, letter.config)
         except Exception as e:
+            note_failure("dead_letter_queue:L227", e)
             result = {"success": False, "error": str(e)}
 
         with self._lock:
@@ -421,6 +432,7 @@ class DeadLetterQueue:
         try:
             window = float(lookback_seconds)
         except (TypeError, ValueError):
+            note_failure("dead_letter_queue:L423", None)
             window = 3600.0
         summary: dict[str, Any] = {
             "total_failed": 0,
@@ -439,6 +451,7 @@ class DeadLetterQueue:
                 epoch = stamp.timestamp()
                 age = (now - stamp).total_seconds()
             except (ValueError, TypeError):
+                note_failure("dead_letter_queue:L441", None)
                 epoch = 0.0
                 age = 0.0
             if age < 0 or age > window:

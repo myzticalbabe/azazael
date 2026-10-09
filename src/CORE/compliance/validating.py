@@ -9,13 +9,24 @@ Both fall back to stdlib dict-based validation if pydantic is unavailable.
 
 import threading
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Optional pydantic import
 try:
     from pydantic import BaseModel, Field, ValidationError
     HAS_PYDANTIC = True
 except ImportError:
+    note_failure("validating:L18", None)
     HAS_PYDANTIC = False
     BaseModel = object
     Field = None
@@ -82,6 +93,7 @@ class SchemaValidator:
                         errors.append(f"Field '{field}': custom validation failed for value {value!r}")
                         continue
                 except Exception as e:
+                    note_failure("validating:L84", e)
                     errors.append(f"Field '{field}': custom validator error: {e}")
                     continue
                 validated[field] = value
@@ -100,6 +112,7 @@ class SchemaValidator:
                         errors.append(f"Field '{field}': validation failed")
                         continue
                 except Exception as e:
+                    note_failure("validating:L102", e)
                     errors.append(f"Field '{field}': validator error: {e}")
                     continue
                 validated[field] = value
@@ -147,6 +160,7 @@ class SchemaValidator:
                 "validated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             }
         except ValidationError as e:
+            note_failure("validating:L149", e)
             result = {
                 "passed": False,
                 "errors": [str(err) for err in e.errors()],

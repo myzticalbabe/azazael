@@ -10,8 +10,18 @@ import time
 import threading
 import hashlib
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import Counter
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Fabric operational state (audit 2026-09-15, finding #7): votes, elected
 # leader + term and model-fork history used to die with the instance.
@@ -20,6 +30,7 @@ try:
         hydrate, publish, cap_list, cap_map,
     )
 except ImportError:  # pragma: no cover - defensive
+    note_failure("consensus:L22", None)
     def hydrate(instance, provider, attrs):
         return 0
 
@@ -35,6 +46,7 @@ except ImportError:  # pragma: no cover - defensive
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("consensus:L37", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -95,6 +107,7 @@ class QuorumVoterWorm:
             shared = _spine.cast_quarantine_vote(
                 finding_id, env, verdict, quorum=self._quorum)
         except Exception:
+            note_failure("consensus:L97", None)
             shared = None
         if shared and shared.get("success"):
             result.update({
@@ -125,7 +138,7 @@ class QuorumVoterWorm:
                         "tally": counts, "envs": sorted(ledger),
                         "source": "spine_ledger"}
         except Exception:
-            pass  # scanner:ignore
+            note_failure("consensus:L127", None) # scanner:ignore
         with self._lock:
             box = self._votes.get(finding_id, [])
             counts = dict(Counter(v["verdict"] for v in box))
@@ -137,6 +150,7 @@ class QuorumVoterWorm:
             from CORE import spine_registry as _spine
             open_findings = len(_spine.get_quarantine_votes())
         except Exception:
+            note_failure("consensus:L139", None)
             with self._lock:
                 open_findings = len(self._votes)
         return {"success": True, "method": "execute",
@@ -203,10 +217,12 @@ class LeaderElectorWorm:
         try:
             from CORE.fs_probe import bounded_read_text
         except Exception:  # pragma: no cover - probe helper optional
+            note_failure("consensus:L205", None)
             def bounded_read_text(p, timeout_s=5.0, label="fs-read"):  # type: ignore
                 try:
                     return open(p, encoding="utf-8").read()
                 except Exception:
+                    note_failure("consensus:L209", None)
                     return None  # scanner:ignore
         # Bounded read. The default `path` lives on G:, and against an
         # unreachable mount a bare `open()` blocks inside the syscall for
@@ -220,6 +236,10 @@ class LeaderElectorWorm:
             # Missing/unreachable placement file is an answer ("no placement"),
             # never an exception: callers (fabric cycle, tests on machines
             # without the mount) must get a dict, not a traceback.
+            # Missing/unreachable placement file is an answer ("no placement"),
+            # never an exception: callers (fabric cycle, tests on machines
+            # without the mount) must get a dict, not a traceback.
+            note_failure("consensus:L219", None)
             raw = None
         if raw is None:
             return {"success": False,
@@ -227,6 +247,7 @@ class LeaderElectorWorm:
         try:
             assign = _json.loads(raw)
         except Exception as exc:
+            note_failure("consensus:L229", exc)
             return {"success": False, "error": f"placement unreadable: {str(exc)[:800]}"}
         remapped = {}
         try:
@@ -234,6 +255,7 @@ class LeaderElectorWorm:
             bare_ok = BarePassthroughWorm().probe().get("via", "").startswith("ssh:") or \
                 BarePassthroughWorm().probe_local().get("is_bare_kernel", False)
         except Exception:
+            note_failure("consensus:L236", None)
             bare_ok = _os.environ.get("AZAZAEL_BARE_SSH", "") != ""
         for role, env in assign.items():
             if env == "bare" and not bare_ok:

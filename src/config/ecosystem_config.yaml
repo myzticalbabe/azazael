@@ -7,8 +7,8 @@ ECOSYSTEM:
   version: "7.1.0"
   root: "C:/Users/clint/azazael"
   src_dir: "C:/Users/clint/azazael/src"
-  python: "C:/Users/clint/AppData/Local/Programs/Python/Python314/python.exe"
-  python_free_threaded: "C:/Users/clint/AppData/Roaming/uv/python/cpython-3.14+freethreaded-windows-x86_64-none/python.exe"
+  python: "C:/Users/clint/AppData/Local/Programs/Python/Python315/python.exe"
+  python_free_threaded: "C:/Users/clint/AppData/Local/Programs/Python/Python315/python3.15t.exe"
   archive_drive: "G:/archived_files"
 
 PATHS:
@@ -40,9 +40,9 @@ PATHS:
 PAMS:
   url: "http://127.0.0.1:21434"
   port: 21434
-  db_conversations: "C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/site-packages/memory_data/conversations.db"
-  db_memories: "C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/site-packages/memory_data/ai_memories.db"
-  db_tool_calls: "C:/Users/clint/AppData/Local/Programs/Python/Python314/Lib/site-packages/memory_data/mcp_tool_calls.db"
+  db_conversations: "C:/Users/clint/.pams/memory_data/conversations.db"
+  db_memories: "C:/Users/clint/.pams/memory_data/ai_memories.db"
+  db_tool_calls: "C:/Users/clint/.pams/memory_data/mcp_tool_calls.db"
   wrapper_script: "C:/temp/start_pams.py"
   status: "running"
 

@@ -36,6 +36,17 @@ os.environ["AZAZAEL_MEMORY_DIR"] = _SCRATCH_DIR
 
 from CORE.local_memory import get_memory_store  # noqa: E402
 from CORE.WORMS.expansion.learning_rl import RLTrainLoop, _compute_reward  # noqa: E402
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 STORE = get_memory_store()
 
@@ -49,7 +60,7 @@ def setUpModule():
         try:
             os.remove(_SCRATCH + suffix)
         except OSError:
-            pass
+            note_failure("test_evolution_accuracy:L51", None)
     _lm._global_store = _lm.LocalMemoryStore(db_path=_SCRATCH)
     globals()["STORE"] = _lm._global_store
 
@@ -191,12 +202,12 @@ def tearDownModule():
     try:
         STORE.close() if hasattr(STORE, "close") else None
     except Exception:
-        pass
+        note_failure("test_evolution_accuracy:L193", None)
     try:
         import CORE.local_memory as _lm
         _lm._global_store = None
     except Exception:
-        pass
+        note_failure("test_evolution_accuracy:L198", None)
     # Do NOT rmtree the shared scratch dir here: another test module in the
     # suite may still be using it. OS temp cleans it up eventually.
 

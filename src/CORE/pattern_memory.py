@@ -18,6 +18,16 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 
 def _db_path() -> Path:
     env_dir = os.environ.get("AZAZAEL_MEMORY_DIR", "")
@@ -36,6 +46,7 @@ def _embed(text: str, timeout: int = 30) -> Optional[List[float]]:
         data = json.loads(urllib.request.urlopen(req, timeout=timeout).read())
         return data["embedding"]
     except Exception:
+        note_failure("pattern_memory:L38", None)
         return None
 
 
@@ -82,11 +93,13 @@ def query_patterns(text: str, top_k: int = 5,
         try:
             vec = json.loads(emb)
         except (json.JSONDecodeError, TypeError):
+            note_failure("pattern_memory:L84", None)
             continue
         score = 0.7 * _cosine(qv, vec) + 0.3 * float(conf or 0)
         try:
             meta_obj = json.loads(meta) if meta else {}
         except (json.JSONDecodeError, TypeError):
+            note_failure("pattern_memory:L89", None)
             meta_obj = {"raw": str(meta)[:200]}
         hits.append({"table": tbl, "id": rid, "pattern_type": ptype,
                      "confidence": conf, "score": round(score, 4),

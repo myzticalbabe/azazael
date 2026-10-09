@@ -18,6 +18,17 @@ import json
 import sqlite3
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import Optional  # removed — all names have native equivalents
 
 
@@ -95,6 +106,7 @@ def rollback_merge(undo_path: str) -> dict:
         path.write_text(json.dumps(log, indent=2), encoding="utf-8")
         return {"rolled_back": rolled, "source_id": source_id, "target_id": target_id}
     except Exception as e:
+        note_failure("rollback:L97", e)
         return {"error": str(e)}
     finally:
         conn.close()
@@ -117,5 +129,6 @@ def list_undo_logs(limit: int = 20) -> list:
                 "target": data.get("target_id", "?")[:20],
             })
         except Exception:
+            note_failure("rollback:L119", None)
             continue
     return results

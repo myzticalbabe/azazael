@@ -23,6 +23,17 @@ from datetime import datetime
 from dataclasses import dataclass
 # from typing import List, Optional  # removed — all names have native equivalents
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Ensure parent src/ is on sys.path so sibling modules are importable
 _SRC_DIR = Path(__file__).resolve().parent.parent
@@ -73,8 +84,10 @@ class DebugRunner:
                 message="OK" if result.returncode == 0 else f"Exit code {result.returncode}",
             )
         except subprocess.TimeoutExpired:
+            note_failure("debug_runner:L75", None)
             return TestResult(component, False, 30000, error="Timed out (>30s)")
         except Exception as e:
+            note_failure("debug_runner:L77", e)
             return TestResult(component, False, (time.time() - start) * 1000, error=str(e))
 
     def _run_module(self, component: str, module_path: str, func: str = "") -> TestResult:
@@ -95,6 +108,7 @@ except Exception as e:
 """
             return self._run_python(component, code)
         except Exception as e:
+            note_failure("debug_runner:L97", e)
             return TestResult(component, False, (time.time() - start) * 1000, error=str(e))
 
     # --- Component Tests ----------------------------------------------------
@@ -242,6 +256,7 @@ print(f"ffmpeg: {{'found' if shutil.which('ffmpeg') else 'not found'}}")
                 if checks['</body>'] == 0:
                     errors.append(f"{html_file.name}: missing </body>")
             except Exception as e:
+                note_failure("debug_runner:L244", e)
                 errors.append(f"{html_file.name}: {e}")
 
         duration = (time.time() - start) * 1000

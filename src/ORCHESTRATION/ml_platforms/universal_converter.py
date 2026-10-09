@@ -50,6 +50,17 @@ from enum import Enum
 from datetime import datetime
 import traceback
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 logger = logging.getLogger(__name__)
 
@@ -997,6 +1008,7 @@ class UniversalConverter:
                 errors.extend(details)
 
         except Exception as e:
+            note_failure("universal_converter:L999", e)
             tb = self.logger.log_step("CONVERSION", "FAILED", error=str(e))
             errors.append(str(e))
 

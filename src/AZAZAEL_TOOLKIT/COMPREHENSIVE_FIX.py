@@ -11,6 +11,17 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class ComprehensiveFix:
@@ -31,7 +42,7 @@ class ComprehensiveFix:
             with open(self.log_file, "a") as f:
                 f.write(line)
         except Exception:
-            pass
+            note_failure("COMPREHENSIVE_FIX:L33", None)
 
     def detect_platform(self):
         self.log("Detecting platform...", "INFO")
@@ -66,6 +77,7 @@ class ComprehensiveFix:
                         try:
                             __import__(module)
                         except ImportError:
+                            note_failure("COMPREHENSIVE_FIX:L68", None)
                             issues.append(f"Missing: {module}")
                 if issues:
                     errors.append(
@@ -75,6 +87,7 @@ class ComprehensiveFix:
                         }
                     )
             except Exception as e:
+                note_failure("COMPREHENSIVE_FIX:L77", e)
                 errors.append(
                     {"file": str(py_file.relative_to(self.azazael)), "error": str(e)}
                 )
@@ -109,6 +122,7 @@ class ComprehensiveFix:
                 if lnk.stat().st_size < 100:
                     self.log(f"  Suspicious: {lnk.name}", "WARN")
             except Exception as e:
+                note_failure("COMPREHENSIVE_FIX:L111", e)
                 shortcuts_fixed.append({"file": str(lnk), "error": str(e)})
         for py_script in self.desktop.glob("*.py"):
             shortcuts_fixed.append({"file": str(py_script), "status": "python_script"})

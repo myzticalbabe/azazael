@@ -8,6 +8,17 @@ import sys
 import subprocess
 import re
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 AZAAZEL_ROOT = Path(__file__).parent.parent.parent
 VENV_PYTHON = AZAAZEL_ROOT / ".venv" / "Scripts" / "python.exe"
@@ -41,7 +52,7 @@ def fix_bom_files():
                 print(f"      Fixed BOM: {py_file.relative_to(AZAAZEL_ROOT)}")
                 fixed += 1
         except Exception:
-            pass
+            note_failure("OMNI_WORM:L43", None)
     print(f"      Total BOM fixes: {fixed}")
     return fixed
 
@@ -76,7 +87,7 @@ def fix_syspath_imports():
                     print(f"      Fixed: {py_file.relative_to(AZAAZEL_ROOT)}")
                     fixed += 1
         except Exception:
-            pass
+            note_failure("OMNI_WORM:L78", None)
 
     print(f"      Total sys.path fixes: {fixed}")
     return fixed
@@ -122,7 +133,7 @@ def create_init_files():
                 print(f"      Created: {d.name}/__init__.py")
                 created += 1
             except Exception:
-                pass
+                note_failure("OMNI_WORM:L124", None)
 
     print(f"      Total created: {created}")
     return created

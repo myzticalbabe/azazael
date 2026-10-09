@@ -12,7 +12,17 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 DEFAULT_EXCLUDED_PARTS = {
@@ -83,6 +93,7 @@ class ProjectAtlas:
             try:
                 paths = root.rglob("*")
             except OSError as exc:
+                note_failure("project_atlas:L85", exc)
                 self.unavailable.append({"project": name, "root": str(root), "reason": str(exc)})
                 continue
             seen = 0
@@ -96,6 +107,7 @@ class ProjectAtlas:
                 try:
                     relative = path.relative_to(root)
                 except ValueError:
+                    note_failure("project_atlas:L98", None)
                     continue
                 if any(part in self.excluded_parts for part in relative.parts):
                     project.excluded_paths += 1
@@ -120,6 +132,7 @@ class ProjectAtlas:
             data = path.read_bytes()
             return AtlasFile(project, str(root), relative.as_posix(), suffix, len(data), hashlib.sha256(data).hexdigest(), classification, True, None, indicators)
         except (OSError, UnicodeError) as exc:
+            note_failure("project_atlas:L122", exc)
             return AtlasFile(project, str(root), relative.as_posix(), suffix, 0, None, classification, False, str(exc), indicators)
 
     def _classification(self, path: Path, relative: Path) -> str:
@@ -159,6 +172,7 @@ class ProjectAtlas:
             try:
                 tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             except (OSError, UnicodeError, SyntaxError):
+                note_failure("project_atlas:L161", None)
                 return
             for node in ast.walk(tree):
                 imported = node.names[0].name if isinstance(node, ast.Import) and node.names else node.module if isinstance(node, ast.ImportFrom) else None

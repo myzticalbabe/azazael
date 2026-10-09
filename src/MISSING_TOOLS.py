@@ -23,12 +23,23 @@ import threading
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Registry Import -----------------------------------------------------
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("MISSING_TOOLS:L31", None)
     def register_worm(**kw): return lambda cls: cls
 
 __all__ = [
@@ -90,6 +101,7 @@ class DependencyAuditor:
                 self._conflicts = conflicts
             return conflicts
         except Exception:
+            note_failure("MISSING_TOOLS:L92", None)
             return []
 
     def get_audit_report(self) -> dict[str, Any]:
@@ -145,7 +157,7 @@ class ImportGraphBuilder:
                         if node.module:
                             graph[module].add(node.module.split(".")[0])
             except SyntaxError:
-                pass
+                note_failure("MISSING_TOOLS:L147", None)
 
         with self._lock:
             self._graph = graph
@@ -233,7 +245,7 @@ class DeadCodeDetector:
                         if not node.name.startswith("_"):
                             defs[node.name] = rel
             except SyntaxError:
-                pass
+                note_failure("MISSING_TOOLS:L235", None)
 
         # Pass 2: count usages
         usage_count: dict[str, int] = defaultdict(int)
@@ -250,7 +262,7 @@ class DeadCodeDetector:
                     elif count > 1:
                         usage_count[name] += count - 1
             except Exception:
-                pass
+                note_failure("MISSING_TOOLS:L252", None)
 
         # Identify unused (defined but never referenced elsewhere)
         unused = []
@@ -289,6 +301,7 @@ class DocCoverageChecker:
         try:
             tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
         except SyntaxError:
+            note_failure("MISSING_TOOLS:L291", None)
             return {"file": str(path), "error": "Syntax error"}
 
         stats = {"functions": 0, "functions_documented": 0, "classes": 0,
@@ -369,6 +382,7 @@ class TypeAnnotationChecker:
         try:
             tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
         except SyntaxError:
+            note_failure("MISSING_TOOLS:L371", None)
             return {"error": "Syntax error"}
 
         total_params = 0
@@ -421,6 +435,7 @@ class CodeComplexityAnalyzer:
             content = path.read_text(encoding="utf-8", errors="replace")
             tree = ast.parse(content)
         except SyntaxError:
+            note_failure("MISSING_TOOLS:L423", None)
             return {"error": "Syntax error"}
 
         funcs = []
@@ -468,6 +483,7 @@ class PackageLicenseChecker:
             )
             packages = json.loads(r.stdout) if r.returncode == 0 else []
         except Exception:
+            note_failure("MISSING_TOOLS:L470", None)
             packages = []
 
         # Check each package for license metadata
@@ -481,7 +497,7 @@ class PackageLicenseChecker:
                     if line.startswith("License:"):
                         licenses[pkg["name"]] = line.split(":", 1)[1].strip()
             except Exception:
-                pass
+                note_failure("MISSING_TOOLS:L483", None)
 
         self._licenses = licenses
 
@@ -530,7 +546,7 @@ class SecurityAuditRunner:
                         "issue": issue.get("issue_text", ""),
                     })
         except Exception:
-            pass  # bandit not installed
+            note_failure("MISSING_TOOLS:L532", None) # bandit not installed
         self._findings["bandit"] = findings
         return findings
 
@@ -545,7 +561,7 @@ class SecurityAuditRunner:
                 if r.returncode != 0 and r.stdout.strip():
                     findings.extend(json.loads(r.stdout) if isinstance(json.loads(r.stdout), list) else [])
             except Exception:
-                pass
+                note_failure("MISSING_TOOLS:L547", None)
         return findings
 
     def run_full_audit(self, target_dir: str) -> dict[str, Any]:
@@ -581,6 +597,7 @@ class WormHealthDashboard:
         try:
             from CORE.worm_registry import get_all_categories, get_worms_by_category
         except ImportError:
+            note_failure("MISSING_TOOLS:L583", None)
             return {"error": "Registry not available"}
 
         cats = get_all_categories()

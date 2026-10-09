@@ -27,6 +27,17 @@ def value(item):
 
 # ── Live registry snapshot (2026-09-02: rebuild reflects source, not statics) ──
 import sys as _sys
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 BASE = os.path.dirname(os.path.abspath(__file__))
 _sys.path.insert(0, BASE)
 N_ARMS = 0
@@ -49,7 +60,7 @@ try:
         wc = int(ArmRegistry().get_arm("azazael").execute("discover_worms")
                  .get("data", {}).get("worm_count", wc))
     except Exception:
-        pass
+        note_failure("build_disclosure:L51", None)
 except Exception as _e:
     print(f"Registry probe failed ({_e}); architecture diagram will fall back to statics")
 ARCH_SECTION = chr(10).join(ARCH_LINES)

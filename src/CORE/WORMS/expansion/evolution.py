@@ -20,7 +20,7 @@ import time
 import random
 import threading
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, List
 from dataclasses import dataclass, field
 
 # -- Module-level imports for 3.14t thread safety (Lesson #29) --
@@ -28,6 +28,7 @@ try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
 except ImportError:
+    note_failure("evolution:L30", None)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
@@ -35,6 +36,7 @@ try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("evolution:L37", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -43,6 +45,7 @@ try:
     from CORE.WORMS.expansion.fencing import fence_for
     _FENCING_OK = True
 except ImportError:
+    note_failure("evolution:L45", None)
     _FENCING_OK = False
     def fence_for(name):  # type: ignore[misc]
         """Fallback fence that never rejects, for a partially-imported tree."""
@@ -56,6 +59,16 @@ except ImportError:
 
 
 import uuid as _uuid
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # ===========================================================================
@@ -373,6 +386,7 @@ class EvolutionEngine:
             try:
                 return (genome.id, fitness_fn(genome), None)
             except Exception as e:  # noqa: BLE001 — surfaced, not silent
+                note_failure("evolution:L375", e)
                 return (genome.id, 0.0, str(e)[:160])
 
         if workers > 1 and todo:
@@ -398,7 +412,7 @@ class EvolutionEngine:
                 try:
                     self._fitness_hash_cache[self.gene_hash(by_id[genome_id].genes)] = by_id[genome_id].fitness
                 except Exception:
-                    pass
+                    note_failure("evolution:L400", None)
         for genome in self._population:
             scores.append(genome.fitness)
 
@@ -565,6 +579,7 @@ class EvolutionEngine:
             try:
                 x1, x2 = float(v1), float(v2)
             except (TypeError, ValueError):
+                note_failure("evolution:L567", None)
                 child[key] = v1 if random.random() < 0.5 else v2
                 continue
             if random.random() > 0.5 or abs(x1 - x2) < 1e-14:
@@ -624,6 +639,7 @@ class EvolutionEngine:
             try:
                 x = float(genes.get(key, (lo + hi) / 2.0))
             except (TypeError, ValueError):
+                note_failure("evolution:L626", None)
                 continue
             x = max(lo, min(hi, x))
             d1 = (x - lo) / (hi - lo)
@@ -653,6 +669,7 @@ class EvolutionEngine:
             try:
                 x = float(genes.get(key, (lo + hi) / 2.0))
             except (TypeError, ValueError):
+                note_failure("evolution:L655", None)
                 continue
             genes[key] = max(lo, min(hi, random.gauss(x, sigma_frac * (hi - lo))))
         return genes
@@ -671,6 +688,7 @@ class EvolutionEngine:
             try:
                 v = float((row or {}).get("best_fitness"))
             except (TypeError, ValueError):
+                note_failure("evolution:L673", None)
                 continue
             if best is None or v > best:
                 best = v
@@ -694,6 +712,7 @@ class EvolutionEngine:
                      / (_math.gamma((1.0 + beta) / 2.0) * beta
                         * (2.0 ** ((beta - 1.0) / 2.0)))) ** (1.0 / beta)
         except (ValueError, ZeroDivisionError):
+            note_failure("evolution:L696", None)
             sigma = 1.0
         for key, bounds in gene_bounds.items():
             if random.random() >= self.mutation_rate:
@@ -707,6 +726,7 @@ class EvolutionEngine:
             try:
                 x = float(genes.get(key, (lo + hi) / 2.0))
             except (TypeError, ValueError):
+                note_failure("evolution:L709", None)
                 continue
             x = max(lo, min(hi, x))
             try:
@@ -714,6 +734,7 @@ class EvolutionEngine:
                 v = random.gauss(0.0, 1.0)
                 step = u / (abs(v) ** (1.0 / beta)) if v != 0 else 0.0
             except (ValueError, ZeroDivisionError):
+                note_failure("evolution:L716", None)
                 step = 0.0
             span = hi - lo
             x_new = max(lo, min(hi, x + step * 0.1 * span))
@@ -744,7 +765,7 @@ class EvolutionEngine:
             if result["decision"] == "blocked":
                 print(f"[EvolutionEngine] CurativePool blocked {phase}: {result['block_reasons']}")
         except ImportError:
-            pass
+            note_failure("evolution:L746", None)
 
     def _get_store(self):
         """Resolve memory store: injected -> global -> None.
@@ -770,6 +791,7 @@ class EvolutionEngine:
                 try:
                     return _get_memory_store_global()
                 except Exception as exc:      # transient lock / busy timeout
+                    note_failure("evolution:L772", exc)
                     last_exc = exc
                     if attempt < 2:
                         time.sleep(0.05 * (attempt + 1))
@@ -797,7 +819,7 @@ class EvolutionEngine:
                 tags=["evolution", f"gen_{self._generation}"],
             )
         except Exception:
-            pass
+            note_failure("evolution:L799", None)
 
     # -- Adaptive Mutation Rate --------------------------------------
 
@@ -825,6 +847,7 @@ class EvolutionEngine:
             try:
                 values = [float(g.genes.get(gene_name, 0.0)) for g in pop]
             except (TypeError, ValueError):
+                note_failure("evolution:L827", None)
                 continue
             mean_val = sum(values) / len(values)
             if mean_val == 0:
@@ -836,6 +859,7 @@ class EvolutionEngine:
             try:
                 gene_range = float(max_val) - float(min_val)
             except (TypeError, ValueError):
+                note_failure("evolution:L838", None)
                 continue
             if gene_range > 0:
                 diversity_scores.append(min(stddev / gene_range, 1.0))
@@ -942,6 +966,7 @@ class EvolutionEngine:
                 )
                 persisted = True
             except Exception as exc:
+                note_failure("evolution:L944", exc)
                 persist_error = "record_event failed: %s" % exc
 
         return {
@@ -994,6 +1019,7 @@ class EvolutionEngine:
                     try:
                         data = json.loads(data)
                     except (json.JSONDecodeError, TypeError):
+                        note_failure("evolution:L996", None)
                         continue
                 if not isinstance(data, dict) or "population" not in data:
                     continue
@@ -1048,6 +1074,7 @@ class EvolutionEngine:
 
             return True
         except Exception:
+            note_failure("evolution:L1050", None)
             return False
 
     def has_converged(self) -> bool:
@@ -1472,7 +1499,7 @@ class GeneticOptimizer:
             try:
                 store = _get_memory_store_global()
             except Exception:
-                pass
+                note_failure("evolution:L1474", None)
         if store is not None:
             store.record_event(
                 source="GeneticOptimizer",
@@ -1672,6 +1699,7 @@ class SepCMAES:
                 try:
                     return float(fitness_fn(g))
                 except Exception:
+                    note_failure("evolution:L1674", None)
                     return 0.0
 
             if workers > 1:
@@ -1733,6 +1761,7 @@ class DifferentialEvolution:
             try:
                 return float(fitness_fn(g))
             except Exception:
+                note_failure("evolution:L1735", None)
                 return 0.0
         for i, g in enumerate(self.pop):
             if self.fit[i] == float("-inf"):
@@ -1862,6 +1891,7 @@ class TPESurrogate:
             try:
                 v.append((float(genes.get(k, lo)) - lo) / rng)
             except (TypeError, ValueError):
+                note_failure("evolution:L1864", None)
                 v.append(0.0)
         return v
 

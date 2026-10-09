@@ -18,7 +18,7 @@ See: LESSONS_MASTER.md Lesson #52 (CODEX/CORE Standalone Tools)
 
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 # Ensure CODEX/CORE and src/ are importable
 _CODEX_CORE = Path(__file__).resolve().parent.parent.parent / "CODEX" / "CORE"
@@ -30,25 +30,39 @@ if str(_SRC) not in sys.path:
 
 from CORE.worm_registry import register_worm
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # Module-level conditional imports (3.14t safe - no function-body imports)
 try:
     from CAIN_ANALYZER import run_complete_analysis as _cain_analyze
 except ImportError:
+    note_failure("CODEX_TOOLS:L36", None)
     _cain_analyze = None
 
 try:
     from AUTO_DOWNLOADER import AutoDownloader as _AutoDownloader
 except ImportError:
+    note_failure("CODEX_TOOLS:L41", None)
     _AutoDownloader = None
 
 try:
     from emoji_maker import EmojiMaker as _EmojiMaker
 except ImportError:
+    note_failure("CODEX_TOOLS:L46", None)
     _EmojiMaker = None
 
 try:
     from enhanced_animations import ANIMATIONS as _ANIMATIONS, generate_css as _generate_css
 except ImportError:
+    note_failure("CODEX_TOOLS:L51", None)
     _ANIMATIONS = {}
     _generate_css = None
 
@@ -98,6 +112,7 @@ class CainAnalyzerWorm:
                 "data": result,
             }
         except Exception as e:
+            note_failure("CODEX_TOOLS:L100", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -157,6 +172,7 @@ class AutoDownloaderWorm:
                 "statistics": status["statistics"],
             }
         except Exception as e:
+            note_failure("CODEX_TOOLS:L159", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -212,6 +228,7 @@ class EmojiMakerWorm:
                 "data": library,
             }
         except Exception as e:
+            note_failure("CODEX_TOOLS:L214", e)
             return {
                 "success": False,
                 "error": str(e),
@@ -267,6 +284,7 @@ class EnhancedAnimationsWorm:
                 "css_sample_lines": len(self._generate_css().split('\n')) if self._generate_css else 0,
             }
         except Exception as e:
+            note_failure("CODEX_TOOLS:L269", e)
             return {
                 "success": False,
                 "error": str(e),

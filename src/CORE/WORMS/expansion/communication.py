@@ -9,14 +9,25 @@ import time
 import hashlib
 import threading
 import urllib.request
-from typing import Any, Callable
+from typing import Any, Callable, List
 from collections import defaultdict, deque
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("communication:L19", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -26,6 +37,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("communication:L28", None)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -35,6 +47,7 @@ except ImportError:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:
+            note_failure("communication:L37", None)
             return False
 
 
@@ -65,7 +78,7 @@ class MessageBroker:
             try:
                 h(msg)
             except Exception:
-                pass
+                note_failure("communication:L67", None)
 
     def replay(self, topic: str = "", limit: int = 100) -> list[dict]:
         with self._lock:
@@ -100,6 +113,7 @@ class RPCEndpoint:
             result = func(**params) if isinstance(params, dict) else func(*params)
             return {"jsonrpc": "2.0", "id": req_id, "result": result}
         except Exception as e:
+            note_failure("communication:L102", e)
             return {"jsonrpc": "2.0", "id": request.get("id"), "error": {"code": -32000, "message": str(e)}}
 
     def list_methods(self) -> list[str]:
@@ -137,6 +151,7 @@ class WebhookRelay:
                         hook["deliveries"] += 1
                     return {"success": True, "status": resp.status, "attempt": attempt + 1}
             except Exception as e:
+                note_failure("communication:L139", e)
                 if attempt == max_retries - 1:
                     with self._lock:
                         hook["failures"] += 1
@@ -214,7 +229,7 @@ class ProtocolNegotiator:
         try:
             protocols.append("msgpack")
         except ImportError:
-            pass
+            note_failure("communication:L216", None)
         return protocols
 
     def serialize(self, data: Any, protocol: str) -> bytes:

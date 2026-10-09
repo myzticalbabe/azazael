@@ -12,11 +12,22 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from collections import defaultdict
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("learning_rl:L19", None)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -27,6 +38,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("learning_rl:L29", None)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -36,6 +48,7 @@ def is_free_threaded() -> bool:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning_rl:L38", None)
             return False  # scanner:ignore
 
 
@@ -49,6 +62,7 @@ def _schema_state_key(vec, severity: str) -> str:
     try:
         parts = ["%.4f" % float(v) for v in (vec or [])]
     except (TypeError, ValueError):
+        note_failure("learning_rl:L51", None)
         parts = []
     digest = hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()[:16]
     return "schema:%s:%s" % (digest, severity)
@@ -67,6 +81,7 @@ def _annealed_epsilon(epsilon: float, decay: float, episode: int,
         dec = float(decay)
         ep = int(episode)
     except (TypeError, ValueError):
+        note_failure("learning_rl:L69", None)
         return max(0.0, float(epsilon or 0.0))
     if dec <= 0.0 or ep < 0:
         return max(0.0, eps)
@@ -94,7 +109,7 @@ def note_unmapped_severity(sev) -> None:
                   "table; those records score 0.0 for every action and the "
                   "objective arm is capped at zero. Add it." % key, flush=True)
         except Exception:
-            pass  # scanner:ignore
+            note_failure("learning_rl:L96", None) # scanner:ignore
 
 
 def unmapped_severities() -> Dict[str, int]:
@@ -218,6 +233,7 @@ class RLTrainLoop:
                         from CORE.WORMS.expansion.learning import DataPipelineWorm
                         self._pipeline = DataPipelineWorm()
                     except ImportError:
+                        note_failure("learning_rl:L220", None)
                         self._pipeline = False
         return self._pipeline if self._pipeline else None
     def _get_versioner(self):
@@ -229,6 +245,7 @@ class RLTrainLoop:
                         from CORE.WORMS.expansion.learning import ModelVersioner
                         self._versioner = ModelVersioner()
                     except ImportError:
+                        note_failure("learning_rl:L231", None)
                         self._versioner = False
         return self._versioner if self._versioner else None
     def register_to_versioner(self, model_name: Optional[str] = None,
@@ -283,6 +300,7 @@ class RLTrainLoop:
                 "metrics": _metrics,
             }
         except Exception as e:  # noqa: BLE001 — registration failure returns signed error
+            note_failure("learning_rl:L285", e)
             return {"error": str(e)}
 
     def _save_q_table_to_store(self, model_name: str, version: str) -> bool:
@@ -311,6 +329,7 @@ class RLTrainLoop:
             )
             return True
         except Exception:  # noqa: BLE001 — persistence best-effort
+            note_failure("learning_rl:L313", None)
             return False  # scanner:ignore
     def load_q_table_from_store(self, model_name: Optional[str] = None, version: Optional[str] = None) -> bool:
         """Load a persisted Q-table from LocalMemoryStore.
@@ -352,6 +371,7 @@ class RLTrainLoop:
                     try:
                         data = json.loads(data)
                     except Exception:  # noqa: BLE001 — skip malformed serialized payload
+                        note_failure("learning_rl:L354", None)
                         continue
                 if not isinstance(data, dict):
                     continue
@@ -376,6 +396,7 @@ class RLTrainLoop:
 
             return False
         except Exception:  # noqa: BLE001 — load best-effort
+            note_failure("learning_rl:L378", None)
             return False  # scanner:ignore
     def train_from_memory(self, source: Optional[str] = None, event_type: Optional[str] = None,
                           n_episodes: int = 100, max_steps: int = 50,
@@ -489,6 +510,7 @@ class RLTrainLoop:
                 _schema_extractor = SchemaAwareFeatureExtractor()
                 _schema_extractor.fit(records)
             except Exception:  # noqa: BLE001 — schema extraction best-effort
+                note_failure("learning_rl:L491", None)
                 _schema_extractor = None
 
         def _get_state_key(record: Dict) -> str:
@@ -675,7 +697,7 @@ class RLTrainLoop:
                         result["registered_model"] = reg_result.get("model_name")
                         result["registered_version"] = reg_result.get("version")
             except Exception:  # noqa: BLE001 — model registration best-effort
-                pass  # scanner:ignore
+                note_failure("learning_rl:L677", None) # scanner:ignore
 
         return result
     def hyperparameter_tune(self, source: Optional[str] = None, event_type: Optional[str] = None,
@@ -819,7 +841,7 @@ class RLTrainLoop:
                 )
                 registered_version = version
             except Exception:  # noqa: BLE001 — tune-run persistence best-effort
-                pass  # scanner:ignore
+                note_failure("learning_rl:L821", None) # scanner:ignore
 
         return {
             "version": self.VERSION,
@@ -895,6 +917,7 @@ class RLTrainLoop:
             try:
                 next_state, reward, done, *_ = getattr(env, "step", lambda a: (0, 0, True, {}))(action)
             except Exception:  # noqa: BLE001 — broken env stops episode
+                note_failure("learning_rl:L897", None)
                 break
             total_reward += reward
             state = next_state
@@ -941,7 +964,7 @@ class RLTrainLoop:
                     if callable(loader):
                         loader()
                 except Exception:
-                    pass  # scanner:ignore
+                    note_failure("learning_rl:L943", None) # scanner:ignore
                 table = getattr(self, "_q_table", None) or {}
                 row = table.get(key)
             if not row:
@@ -953,12 +976,13 @@ class RLTrainLoop:
             try:
                 action = int(action)
             except (TypeError, ValueError):
-                pass  # scanner:ignore
+                note_failure("learning_rl:L955", None) # scanner:ignore
             name = (names[action] if isinstance(action, int)
                     and 0 <= action < len(names) else "unknown")
             return {"action": action, "action_name": name, "known": True,
                     "state_key": key, "source": src}
         except Exception:
+            note_failure("learning_rl:L961", None)
             return {"action": -1, "action_name": "unknown",
                     "known": False, "state_key": key, "source": src}
 
@@ -988,6 +1012,7 @@ class RLTrainLoop:
                     try:
                         data = json.loads(raw_data)
                     except Exception:  # noqa: BLE001 — skip malformed serialized payload
+                        note_failure("learning_rl:L990", None)
                         continue
                 else:
                     data = raw_data
@@ -1015,4 +1040,5 @@ class RLTrainLoop:
                 } if scores else {},
             }
         except Exception as e:  # noqa: BLE001 — tuning failure returns signed error
+            note_failure("learning_rl:L1017", e)
             return {"error": str(e), "history": []}

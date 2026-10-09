@@ -17,11 +17,22 @@ import socket
 import threading
 import time
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("chaos:L24", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -57,10 +68,12 @@ class ChaosWorm:
                     socket.gethostbyname("nonexistent.invalid.")
                     ok = False  # resolved?! should never happen
                 except Exception:
+                    note_failure("chaos:L59", None)
                     ok = False  # operation failed, truthfully
             else:
                 return {"success": False, "error": f"unknown drill {kind}"}
         except Exception as e:
+            note_failure("chaos:L63", e)
             return {"success": False, "error": str(e)[:800]}
         ms = round((time.perf_counter() - t0) * 1000, 1)
         with self._lock:

@@ -24,12 +24,23 @@ Usage:
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("DISKZ:L32", None)
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
 
 
@@ -92,6 +103,7 @@ class DISKZ:
                     }
                 )
             except (PermissionError, OSError):
+                note_failure("DISKZ:L94", None)
                 partitions.append(
                     {
                         "device": part.device,
@@ -165,9 +177,9 @@ class DISKZ:
                             directories[str(item)] = round(total / (1024**2), 2)
                             scan_directory(item, depth + 1)
                         except (PermissionError, OSError):
-                            pass
+                            note_failure("DISKZ:L167", None)
             except PermissionError:
-                pass
+                note_failure("DISKZ:L169", None)
 
         scan_directory(base, 0)
 
@@ -208,8 +220,9 @@ class DISKZ:
                                     }
                                 )
                         except (OSError, PermissionError):
-                            pass
+                            note_failure("DISKZ:L210", None)
             except PermissionError:
+                note_failure("DISKZ:L212", None)
                 continue
 
         large_files.sort(key=lambda x: x["size_mb"], reverse=True)

@@ -39,9 +39,19 @@ Diagnoses and resolves installation issues.
 import subprocess
 import sys
 import importlib
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from enum import Enum
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class InstallationStatus(Enum):
@@ -60,14 +70,14 @@ try:
 
     HAS_TORCH = True
 except ImportError:
-    pass
+    note_failure("installation_debug:L62", None)
 
 try:
     import tensorflow as tf
 
     HAS_TF = True
 except ImportError:
-    pass
+    note_failure("installation_debug:L69", None)
 
 
 @dataclass
@@ -171,6 +181,7 @@ class InstallationDebugger:
             version = getattr(mod, "__version__", "unknown")
             return (InstallationStatus.OK, version)
         except ImportError as e:
+            note_failure("installation_debug:L173", e)
             return (InstallationStatus.IMPORT_ERROR, str(e)[:50])
 
     def check_all(self) -> dict[str, tuple[InstallationStatus, str]]:
@@ -220,6 +231,7 @@ class InstallationDebugger:
 
             return (InstallationStatus.OK, tensorboard.__version__)
         except ImportError:
+            note_failure("installation_debug:L222", None)
             return (InstallationStatus.MISSING, "TensorBoard not installed")
 
     def install_package(self, package_name: str, upgrade: bool = False) -> bool:
@@ -233,6 +245,7 @@ class InstallationDebugger:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             return result.returncode == 0
         except subprocess.TimeoutExpired:
+            note_failure("installation_debug:L235", None)
             return False
 
     def fix_tensorboard(self) -> bool:
@@ -317,9 +330,10 @@ class CompatibilityChecker:
                 try:
                     importlib.import_module(pkg2)
                 except ImportError:
+                    note_failure("installation_debug:L319", None)
                     detected.append((pkg1, pkg2, message))
             except ImportError:
-                pass
+                note_failure("installation_debug:L321", None)
         return detected
 
 

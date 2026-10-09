@@ -11,6 +11,17 @@ from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from CORE.paths import get_src_dir
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class AzazaelCLI:
@@ -133,6 +144,7 @@ class AzazaelCLI:
                     timeout=5,
                 )
             except Exception:
+                note_failure("azazael_cli:L135", None)
                 errors += 1
         if errors == 0:
             self.log(f"All {len(files)} files valid", "OK")

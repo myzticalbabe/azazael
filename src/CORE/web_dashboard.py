@@ -29,8 +29,18 @@ import sys
 import argparse
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Any
+from typing import Any, List
 from datetime import datetime
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 HTML_TEMPLATE = """<!DOCTYPE html>
@@ -1107,6 +1117,7 @@ def build_html_page(watch: bool = False, interval: int = 5) -> str:
         from CORE.dashboard import get_report
         report = get_report()
     except Exception:
+        note_failure("web_dashboard:L1109", None)
         report = {"timestamp": datetime.now().isoformat(), "error": "Failed to gather report"}
 
     timestamp = report.get("timestamp", datetime.now().isoformat())
@@ -1185,6 +1196,7 @@ class WebDashboardHandler(BaseHTTPRequestHandler):
             from CORE.health_server import get_health_json
             data = get_health_json().encode("utf-8")
         except Exception:
+            note_failure("web_dashboard:L1187", None)
             data = b'{"error": "Failed to gather health data"}'
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -1198,6 +1210,7 @@ class WebDashboardHandler(BaseHTTPRequestHandler):
             from CORE.health_server import get_prometheus_metrics
             data = get_prometheus_metrics().encode("utf-8")
         except Exception:
+            note_failure("web_dashboard:L1200", None)
             data = b"# ERROR: Failed to gather metrics"
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
@@ -1251,7 +1264,7 @@ class WebDashboardServer:
             try:
                 self.server.server_close()
             except OSError:
-                pass  # scanner:ignore
+                note_failure("web_dashboard:L1253", None) # scanner:ignore
 
     def start_background(self) -> threading.Thread:
         """Start the web dashboard in a background daemon thread."""
@@ -1275,6 +1288,7 @@ def export_html(path: str, since: (str | None) = None) -> str:
         from CORE.dashboard import get_report
         report = get_report(since=since)
     except Exception as e:
+        note_failure("web_dashboard:L1277", e)
         report = {"error": str(e)}
 
     cards_html = "".join([

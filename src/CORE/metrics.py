@@ -44,11 +44,22 @@ import threading
 import time
 from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
 except ImportError:
+    note_failure("metrics:L51", None)
     HTTPServer = None
     BaseHTTPRequestHandler = object
 
@@ -233,6 +244,7 @@ class MetricsRegistry:
             parts = [f'{k}="{v}"' for k, v in sorted(labels.items())]
             return "{" + ",".join(parts) + "}" if parts else ""
         except (json.JSONDecodeError, AttributeError):
+            note_failure("metrics:L235", None)
             return ""
 
 
@@ -289,6 +301,7 @@ class MetricsHandler(BaseHTTPRequestHandler):
             from CORE.direct_memory import DirectMemory
             DirectMemory.db_size()
         except Exception:
+            note_failure("metrics:L291", None)
             healthy = False
         status = 200 if healthy else 503
         body = json.dumps({
@@ -447,6 +460,7 @@ class HealthCheck:
         try:
             return fn()
         except Exception as e:
+            note_failure("metrics:L449", e)
             return _ComponentResult(name, "down", str(e))
 
     def report(self) -> dict:

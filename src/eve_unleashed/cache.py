@@ -13,9 +13,19 @@ import json
 import sys
 import threading
 import time
-from typing import Any
+from typing import Any, List
 
 import numpy as np
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def _hash_inputs(inputs: Any) -> str:
@@ -27,7 +37,7 @@ def _hash_inputs(inputs: Any) -> str:
             arr = np.array(inputs, dtype=np.float32)
             return hashlib.sha256(arr.tobytes()).hexdigest()[:16]
         except (ValueError, TypeError):
-            pass
+            note_failure("cache:L29", None)
     serialized = json.dumps(inputs, sort_keys=True, default=str).encode()
     return hashlib.sha256(serialized).hexdigest()[:16]
 
@@ -39,6 +49,7 @@ def _estimate_size(result: Any) -> int:
     try:
         return sys.getsizeof(result)
     except TypeError:
+        note_failure("cache:L41", None)
         return 1024  # conservative guess for complex objects
 
 

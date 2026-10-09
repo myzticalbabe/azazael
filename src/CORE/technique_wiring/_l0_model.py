@@ -38,6 +38,16 @@ from typing import Any, Callable, Dict, List
 
 from CORE.technique_runtime import register
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 
 # -- probe helpers --------------------------------------------------------------
 
@@ -54,6 +64,7 @@ def _resolves(*candidates: str) -> List[str]:
             if importlib.util.find_spec(c) is not None:
                 found.append(c)
         except Exception:                      # a broken/partial package is absent
+            note_failure("_l0_model:L56", None)
             continue
     return found
 
@@ -65,6 +76,7 @@ def _markers(obj: Any, markers: List[str]) -> Dict[str, bool]:
         try:
             out[m] = hasattr(obj, m)
         except Exception:
+            note_failure("_l0_model:L67", None)
             out[m] = False
     return out
 

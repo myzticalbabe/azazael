@@ -27,7 +27,7 @@ import statistics
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk, scrolledtext
@@ -37,6 +37,7 @@ try:
 
     SKLEARN_AVAILABLE = True
 except ImportError:
+    note_failure("SMARTDISK:L39", None)
     SKLEARN_AVAILABLE = False
 
 
@@ -84,10 +85,21 @@ class DiskAlert:
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("SMARTDISK:L86", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
 from CORE.paths import get_project_root
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _ROOT = get_project_root()
 _OUTPUT_DIR = _ROOT / "output" / "smartdisk"
@@ -212,8 +224,10 @@ class SMARTDISK:
             )
             return result.stdout + result.stderr
         except FileNotFoundError:
+            note_failure("SMARTDISK:L214", None)
             return "smartctl not found"
         except Exception as e:
+            note_failure("SMARTDISK:L216", e)
             return str(e)
 
     def _parse_smart_output(self, output: str) -> dict[str, Any]:
@@ -242,13 +256,13 @@ class SMARTDISK:
                     temp = line.split(":")[-1].split()[0].strip()
                     data["temperature"] = float(temp)
                 except Exception:
-                    pass
+                    note_failure("SMARTDISK:L244", None)
             elif "Power_On_Hours" in line:
                 try:
                     poh = line.split()[-1].strip()
                     data["power_on_hours"] = int(poh)
                 except Exception:
-                    pass
+                    note_failure("SMARTDISK:L250", None)
             elif line.startswith("ID#") and "ATTRIBUTE_NAME" in line:
                 data["attributes"] = self._parse_attributes(output)
                 break
@@ -298,7 +312,7 @@ class SMARTDISK:
                             }
                         )
                     except Exception:
-                        pass
+                        note_failure("SMARTDISK:L300", None)
 
         return attributes
 
@@ -565,6 +579,7 @@ class SMARTDISK:
                 with open(self.history_file) as f:
                     self.disk_history = json.load(f)
             except Exception:
+                note_failure("SMARTDISK:L567", None)
                 self.disk_history = []
 
     def _save_model(self):
@@ -575,7 +590,7 @@ class SMARTDISK:
             with open(self.model_file, "wb") as f:
                 pickle.dump(self.failure_model, f)
         except Exception:
-            pass
+            note_failure("SMARTDISK:L577", None)
 
     def _load_model(self):
         """Load persisted model."""
@@ -585,7 +600,7 @@ class SMARTDISK:
             with open(self.model_file, "rb") as f:
                 self.failure_model = pickle.load(f)
         except Exception:
-            pass
+            note_failure("SMARTDISK:L587", None)
 
     def get_status(self) -> dict[str, Any]:
         """Get disk status summary."""

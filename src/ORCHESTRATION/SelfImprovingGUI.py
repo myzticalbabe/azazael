@@ -22,6 +22,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from ADLP_FusionCore import CORE, TIER, log_entry, learn
 from ADLP_MLOrchestrator import ML_ORCH, predict, analyze, cluster
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 LOG_DIR = Path(os.environ.get("APPDATA", "~/.appdata")).expanduser() / "AssistantLogs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -397,7 +408,7 @@ class SelfImprovingGUI:
                     if random.random() < 0.3:
                         self._self_improve()
                 except Exception:
-                    pass
+                    note_failure("SelfImprovingGUI:L399", None)
 
         threading.Thread(target=improvement_loop, daemon=True).start()
 

@@ -18,9 +18,19 @@ import json
 import subprocess
 from pathlib import Path
 from collections import defaultdict
-from typing import Any
+from typing import Any, List
 
 from CORE.worm_registry import register_worm
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __version__ = "2.2.0"
 
@@ -158,7 +168,7 @@ class DEPENDZ:
                     if parsed and parsed[0] not in self._deps:
                         self._deps[parsed[0]] = parsed[1]
             except Exception:
-                pass
+                note_failure("DEPENDZ:L160", None)
 
     def _parse_pyproject(self) -> None:
         """Parse pyproject.toml for dependencies."""
@@ -184,7 +194,7 @@ class DEPENDZ:
                         if pkg not in self._deps:
                             self._deps[pkg] = ver
         except Exception:
-            pass
+            note_failure("DEPENDZ:L186", None)
 
     def _scan_imports(self) -> None:
         """Scan all .py files for import statements."""
@@ -203,7 +213,7 @@ class DEPENDZ:
                         if node.module:
                             self._imports_found.add(node.module.split(".")[0].lower())
             except (SyntaxError, UnicodeDecodeError):
-                pass
+                note_failure("DEPENDZ:L205", None)
 
     def _detect_unused(self) -> list[str]:
         """Find packages in requirements that are never imported."""
@@ -262,7 +272,7 @@ class DEPENDZ:
                     if part:
                         self._local_modules.add(part.lower())
             except (ValueError, IndexError):
-                pass
+                note_failure("DEPENDZ:L264", None)
             if py_file.name == "__init__.py":
                 parent = py_file.parent.name
                 if parent:
@@ -287,7 +297,7 @@ class DEPENDZ:
                     if parsed:
                         versions[parsed[0]].append((str(req_file.name), parsed[1]))
             except Exception:
-                pass
+                note_failure("DEPENDZ:L289", None)
 
         drift = []
         for pkg, ver_list in versions.items():
@@ -317,7 +327,7 @@ class DEPENDZ:
                        p["name"].lower() in self._deps
                 ]
         except (subprocess.TimeoutExpired, Exception):
-            pass
+            note_failure("DEPENDZ:L319", None)
         return []
 
     # -- Standard Worm Methods ----------------------------------------

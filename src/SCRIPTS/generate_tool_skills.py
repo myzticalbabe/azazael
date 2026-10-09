@@ -17,6 +17,17 @@ import sys
 from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 ROOT = Path(__file__).resolve().parents[2]
 SKILLS = ROOT / "skills"
@@ -54,7 +65,7 @@ def scan_path():
                 if f.suffix.lower() in (".exe", ".cmd", ".bat") and f.is_file():
                     out.setdefault(f.stem.lower(), str(p))
         except OSError:
-            pass
+            note_failure("generate_tool_skills:L56", None)
     return out
 
 
@@ -66,6 +77,7 @@ def scan_pip():
             bins = sorted({ep.name for ep in dist.entry_points
                            if getattr(ep, "group", "") == "console_scripts"})
         except Exception:
+            note_failure("generate_tool_skills:L68", None)
             continue
         if bins:
             rows[name] = bins
@@ -77,6 +89,7 @@ def scan_pm(cmd):
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         return [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
     except Exception:
+        note_failure("generate_tool_skills:L79", None)
         return []
 
 

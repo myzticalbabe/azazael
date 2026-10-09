@@ -6,6 +6,17 @@ All Systems: SHORTY, HYDRA, POINDEXTER, TARBABY, WORMZ, TWITLER, TERENCE, KLINK,
 """
 
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 COMPLETE_SYSTEMS = {
     "version": "1.0.0",
@@ -434,6 +445,7 @@ def save_complete_report():
         from CORE.paths import get_desktop_dir
         out_dir = get_desktop_dir() / "CODEX" / "comprehensive"
     except ImportError:
+        note_failure("COMPLETE_SYSTEMS_ANALYSIS:L436", None)
         out_dir = Path.home() / "Desktop" / "CODEX" / "comprehensive"
 
     out_dir.mkdir(parents=True, exist_ok=True)

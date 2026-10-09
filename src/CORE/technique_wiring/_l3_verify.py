@@ -23,9 +23,19 @@ repo, spends money, or calls a network model.
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, List
 
 from CORE.technique_runtime import register
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 LAYER = "L3"
 
@@ -44,6 +54,7 @@ def _safe(fn: Callable[[], Dict[str, Any]]) -> Callable[[], Dict[str, Any]]:
             out = fn()
             return out if isinstance(out, dict) else {"value": out}
         except Exception as exc:                       # noqa: BLE001 - reported
+            note_failure("_l3_verify:L46", exc)
             return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
     return _wrapped
 
@@ -109,6 +120,7 @@ def _claim(rule: str, modpath: str, symbol: str = "") -> Dict[str, Any]:
         mod = importlib.import_module(modpath)
         imported = True
     except Exception as exc:                           # noqa: BLE001
+        note_failure("_l3_verify:L111", exc)
         err = type(exc).__name__
 
     found: Any = False
@@ -509,6 +521,7 @@ def _ep169() -> Dict[str, Any]:
         found = [n for n in dir(vg)
                  if "threat" in n.lower() or "dimension" in n.lower()]
     except Exception:                                  # noqa: BLE001
+        note_failure("_l3_verify:L511", None)
         found = []
     base["threat_or_dimension_symbols"] = found
     base["note"] = ("no threat/dimension taxonomy on the gate — rule extracted"

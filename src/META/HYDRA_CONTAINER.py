@@ -33,11 +33,21 @@ import shutil
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -129,6 +139,7 @@ class HYDRA_CONTAINER:
             )
             return result.returncode == 0
         except (OSError, subprocess.TimeoutExpired):
+            note_failure("HYDRA_CONTAINER:L131", None)
             return False  # docker missing or unreachable
 
     def _run_docker(self, args: list[str], timeout: int = 300) -> tuple[bool, str, str]:
@@ -143,10 +154,13 @@ class HYDRA_CONTAINER:
             )
             return result.returncode == 0, result.stdout, result.stderr
         except subprocess.TimeoutExpired:
+            note_failure("HYDRA_CONTAINER:L145", None)
             return False, "", "Command timed out"
         except FileNotFoundError:
+            note_failure("HYDRA_CONTAINER:L147", None)
             return False, "", "Docker not found"
         except OSError as e:
+            note_failure("HYDRA_CONTAINER:L149", e)
             return False, "", str(e)
 
     def _generate_dockerfile(self, worm_name: str) -> str:
@@ -220,7 +234,7 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
                     else 0
                 )
             except (ValueError, IndexError):
-                pass
+                note_failure("HYDRA_CONTAINER:L222", None)
 
         execution = ContainerExecution(
             execution_id=execution_id,
@@ -506,6 +520,7 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
                 with open(state_file) as f:
                     self.state = json.load(f)
             except (OSError, ValueError):
+                note_failure("HYDRA_CONTAINER:L508", None)
                 self.state = {}  # unreadable or corrupt state file
 
     def get_status(self) -> dict[str, Any]:

@@ -13,6 +13,17 @@ import random
 import math
 import os
 import subprocess
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Configuration
 NUM_DROPS = 3000
@@ -254,7 +265,7 @@ if __name__ == "__main__":
             try:
                 os.remove(vf)
             except OSError:
-                pass
+                note_failure("matrix_animation:L256", None)
         print(f"Cleaned {len(victim)} PPM intermediates (KEEP_FRAMES=1 to retain).")
     else:
         print("Kept PPM intermediates (encode missing or KEEP_FRAMES=1).")

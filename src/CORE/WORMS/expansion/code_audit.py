@@ -26,10 +26,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("code_audit:L32", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -38,6 +49,7 @@ try:
     from CORE.local_memory import get_memory_store
     _STORE = True
 except ImportError:
+    note_failure("code_audit:L40", None)
     _STORE = False
     def get_memory_store(*a, **k):  # noqa: D103
         return None
@@ -88,6 +100,7 @@ class WeeklyCodeAuditWorm:
                     env={**os.environ, "PYTHONUTF8": "1"},
                 )
             except Exception:
+                note_failure("code_audit:L90", None)
                 continue
             for line in (proc.stdout or "").splitlines():
                 total += 1
@@ -98,6 +111,7 @@ class WeeklyCodeAuditWorm:
                         try:
                             name = line.rsplit("undefined name ", 1)[1].strip().strip("'\"")
                         except Exception:
+                            note_failure("code_audit:L100", None)
                             name = "?"
                         classes[name] = classes.get(name, 0) + 1
         return {"total_issues": total, "undefined_total": len(undefined),
@@ -136,7 +150,7 @@ class WeeklyCodeAuditWorm:
                 confidence=min(1.0, 0.5 + 0.05 * count),
             )
         except Exception:
-            pass
+            note_failure("code_audit:L138", None)
 
     # -- Execution ------------------------------------------------------
 
@@ -175,7 +189,7 @@ class WeeklyCodeAuditWorm:
                     tags=["audit", "training"],
                 )
             except Exception:
-                pass
+                note_failure("code_audit:L177", None)
         return result
 
     # -- Scheduler ------------------------------------------------------
@@ -185,7 +199,7 @@ class WeeklyCodeAuditWorm:
             try:
                 self.execute()
             except Exception:
-                pass
+                note_failure("code_audit:L187", None)
             self._stop.wait(self.config.interval_seconds)
 
     def start_scheduler(self) -> None:

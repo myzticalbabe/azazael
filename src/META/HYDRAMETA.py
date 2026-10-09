@@ -26,10 +26,20 @@ import time
 import random
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 import tkinter as tk
 from tkinter import ttk, scrolledtext
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -269,7 +279,7 @@ class PersistenceManager:
             if self.state_file.exists():
                 return json.loads(self.state_file.read_text())
         except Exception:
-            pass
+            note_failure("HYDRAMETA:L271", None)
         return {
             "version": "1.0.0",
             "last_run": None,
@@ -286,7 +296,7 @@ class PersistenceManager:
             if self.trials_file.exists():
                 return json.loads(self.trials_file.read_text())
         except Exception:
-            pass
+            note_failure("HYDRAMETA:L288", None)
         return []
 
     def save_state(self, state: dict):
@@ -420,6 +430,7 @@ class HYDRAMETA:
             else:
                 result = {"status": "skipped", "worm": worm_name}
         except Exception as e:
+            note_failure("HYDRAMETA:L422", e)
             success = False
             error = str(e)
             result = {"error": error}

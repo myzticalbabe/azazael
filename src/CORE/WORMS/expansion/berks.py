@@ -17,11 +17,12 @@ import threading
 import time
 import urllib.request
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("berks:L24", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -43,10 +44,12 @@ def _pams():
                     from CORE.PamsRecorder import PamsRecorder
                     _PamsRecorderCls = PamsRecorder
                 except ImportError:
+                    note_failure("berks:L45", None)
                     return None
     try:
         return _PamsRecorderCls()
     except Exception:
+        note_failure("berks:L49", None)
         return None
 
 
@@ -60,11 +63,22 @@ def _bus():
                     _MemoryBusCls = MemoryBus
                     _mem_bus = MemoryBus()
                 except ImportError:
+                    note_failure("berks:L62", None)
                     return None
     return _mem_bus
 
 
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -124,6 +138,7 @@ class BerksMonitorWorm:
             rec["dns_ip"] = socket.gethostbyname(host)
             rec["dns_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         except Exception as e:
+            note_failure("berks:L126", e)
             rec["dns_error"] = str(e)[:800]
         # TLS cert expiry
         try:
@@ -139,8 +154,10 @@ class BerksMonitorWorm:
                 exp_ts = calendar.timegm(_t.strptime(exp, "%b %d %H:%M:%S %Y %Z"))
                 rec["tls_days_left"] = round((exp_ts - time.time()) / 86400, 1)
             except Exception:
+                note_failure("berks:L141", None)
                 rec["tls_days_left"] = None
         except Exception as e:
+            note_failure("berks:L143", e)
             rec["tls_error"] = str(e)[:800]
         # HTTP: HEAD first (cheap); some hosts (e.g. berkscc.org) 405
         # HEAD but serve GET fine — fall back instead of crying DOWN.
@@ -152,6 +169,7 @@ class BerksMonitorWorm:
             rec["http_status"] = r.status
             rec["http_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         except Exception as e:
+            note_failure("berks:L154", e)
             if "405" in str(e):
                 try:
                     req = urllib.request.Request(
@@ -164,6 +182,7 @@ class BerksMonitorWorm:
                     rec["http_ms"] = round((time.perf_counter() - t0) * 1000, 1)
                     rec["http_via"] = "GET-fallback"
                 except Exception as e2:
+                    note_failure("berks:L166", e2)
                     rec["http_error"] = str(e2)[:150]
                     rec["http_status"] = 0
             else:
@@ -179,7 +198,7 @@ class BerksMonitorWorm:
             if p is not None and hasattr(p, "record"):
                 p.record(event_type, data)
         except Exception:
-            pass
+            note_failure("berks:L181", None)
 
     def _publish(self, results: list, alerts: list):
         """MemoryBus live pub/sub for inter-agent coordination."""
@@ -189,7 +208,7 @@ class BerksMonitorWorm:
                 b.publish("monitor.berks", {"results": results,
                                             "alerts": [a.__dict__ for a in alerts]})
         except Exception:
-            pass
+            note_failure("berks:L191", None)
 
     def _to_alerts(self, results: list) -> list:
         """Severity alerts from thresholds (mirrors DbAlert tiers)."""
@@ -263,7 +282,7 @@ class BerksMonitorWorm:
                 try:
                     self.check_health()
                 except Exception:
-                    pass
+                    note_failure("berks:L265", None)
         t = threading.Thread(target=loop, name="berks-monitor",
                              daemon=True)
         t.start()

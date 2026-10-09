@@ -9,6 +9,17 @@ Usage:
 
 import subprocess
 import sys
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 REQUIRED_PACKAGES = [
     # Deep Learning
@@ -76,6 +87,7 @@ def check_package(package):
         __import__(package.replace("-", "_"))
         return True, None
     except ImportError:
+        note_failure("auto_install:L78", None)
         return False, None
 
 
@@ -97,6 +109,7 @@ def install_package(package):
             )
             return False, error_msg
     except Exception as e:
+        note_failure("auto_install:L99", e)
         return False, str(e)
 
 

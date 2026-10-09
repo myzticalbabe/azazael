@@ -33,7 +33,7 @@ Usage:
 import os
 import time
 import threading
-from typing import Any
+from typing import Any, List
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FutureTimeout
 
 from CORE.inference.providers import (
@@ -43,6 +43,16 @@ from CORE.inference.providers import (
     _global_breaker,
 )
 from CORE.inference.parallel import ProviderResult
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class ThreadedInferenceEngine:
@@ -251,6 +261,7 @@ class ThreadedInferenceEngine:
             )
 
         except Exception as e:
+            note_failure("threaded:L253", e)
             elapsed = int((time.time() - start) * 1000)
             _global_breaker.record_failure(provider_id, str(e))
             return ProviderResult(
@@ -320,6 +331,7 @@ class ThreadedInferenceEngine:
                     with results_lock:
                         results_list.append(result)
                 except FutureTimeout:
+                    note_failure("threaded:L322", None)
                     with results_lock:
                         results_list.append(ProviderResult(
                             provider=target_id,
@@ -330,6 +342,7 @@ class ThreadedInferenceEngine:
                             error=f"Timeout after {effective_timeout}s",
                         ))
                 except Exception as e:
+                    note_failure("threaded:L332", e)
                     with results_lock:
                         results_list.append(ProviderResult(
                             provider=target_id,
@@ -626,6 +639,7 @@ class ThreadedInferenceEngine:
             try:
                 return future.result(timeout=timeout)
             except TimeoutError:
+                note_failure("threaded:L628", None)
                 return ProviderResult(
                     provider=provider_id,
                     model="",
@@ -635,6 +649,7 @@ class ThreadedInferenceEngine:
                     error=f"Timeout after {timeout}s",
                 )
             except Exception as e:
+                note_failure("threaded:L637", e)
                 return ProviderResult(
                     provider=provider_id,
                     model="",

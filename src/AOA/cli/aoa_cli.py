@@ -32,6 +32,8 @@ import argparse
 
 from pathlib import Path
 
+from typing import List
+
 # Wire Azazael sub-system
 _AZAZAEL_SRC = Path.home() / 'azazael' / 'src'
 if _AZAZAEL_SRC.exists():
@@ -40,6 +42,16 @@ if _AZAZAEL_SRC.exists():
 # Ensure AOA is importable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 
@@ -54,6 +66,8 @@ try:
     from core.router import CrossArmRouter
 
 except ImportError:
+
+    note_failure("aoa_cli:L56", None)
 
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -77,27 +91,27 @@ def cmd_init(args):
     try:
         import arms.azazael_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L79", None)
     try:
         import arms.codex_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L83", None)
     try:
         import arms.eve_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L87", None)
     try:
         import arms.libra_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L91", None)
     try:
         import arms.support_arms
     except Exception:
-        pass
+        note_failure("aoa_cli:L95", None)
     try:
         import arms.kali_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L99", None)
     registry = ArmRegistry()
 
     print("AOA — Armorie-of-Anubis v1.0.0")
@@ -128,27 +142,27 @@ def cmd_arms_list(args):
     try:
         import arms.azazael_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L130", None)
     try:
         import arms.codex_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L134", None)
     try:
         import arms.eve_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L138", None)
     try:
         import arms.libra_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L142", None)
     try:
         import arms.support_arms
     except Exception:
-        pass
+        note_failure("aoa_cli:L146", None)
     try:
         import arms.kali_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L150", None)
     registry = ArmRegistry()
 
     arms = registry.list_arms()
@@ -183,27 +197,27 @@ def cmd_arms_status(args):
     try:
         import arms.azazael_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L185", None)
     try:
         import arms.codex_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L189", None)
     try:
         import arms.eve_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L193", None)
     try:
         import arms.libra_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L197", None)
     try:
         import arms.support_arms
     except Exception:
-        pass
+        note_failure("aoa_cli:L201", None)
     try:
         import arms.kali_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L205", None)
     registry = ArmRegistry()
 
     report = registry.get_status_report()
@@ -224,27 +238,27 @@ def cmd_run(args):
     try:
         import arms.azazael_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L226", None)
     try:
         import arms.codex_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L230", None)
     try:
         import arms.eve_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L234", None)
     try:
         import arms.libra_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L238", None)
     try:
         import arms.support_arms
     except Exception:
-        pass
+        note_failure("aoa_cli:L242", None)
     try:
         import arms.kali_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L246", None)
     registry = ArmRegistry()
 
     registry.initialize_all()
@@ -343,27 +357,27 @@ def cmd_workflow_start(args):
     try:
         import arms.azazael_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L345", None)
     try:
         import arms.codex_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L349", None)
     try:
         import arms.eve_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L353", None)
     try:
         import arms.libra_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L357", None)
     try:
         import arms.support_arms
     except Exception:
-        pass
+        note_failure("aoa_cli:L361", None)
     try:
         import arms.kali_arm
     except Exception:
-        pass
+        note_failure("aoa_cli:L365", None)
     registry = ArmRegistry()
 
     registry.initialize_all()

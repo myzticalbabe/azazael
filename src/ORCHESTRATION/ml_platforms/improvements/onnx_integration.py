@@ -20,11 +20,21 @@ Usage:
     result = ort_session.run(output_names, input_dict)
 """
 
-from typing import Any
+from typing import Any, List
 import numpy as np
 
 import os
 import sys
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Both `onnx` and `onnxruntime` ship GIL-ABI wheels that fault at C level under a
 # free-threaded build (an access violation, not an ImportError), so no
@@ -33,6 +43,7 @@ import sys
 try:
     from CORE.native_guard import import_ok as _import_ok
 except Exception:  # pragma: no cover - CORE not on path
+    note_failure("onnx_integration:L35", None)
     def _import_ok(_name):
         return False
 
@@ -57,6 +68,7 @@ try:
 
     HAS_TORCH = True
 except ImportError:
+    note_failure("onnx_integration:L59", None)
     HAS_TORCH = False
 
 try:
@@ -64,6 +76,7 @@ try:
 
     HAS_TF = True
 except ImportError:
+    note_failure("onnx_integration:L66", None)
     HAS_TF = False
 
 # -- OpenVINO EP Detection (onnxruntime provider) ----------------------------
@@ -83,6 +96,7 @@ try:
     import openvino as ov_native
     _HAS_OV_NATIVE = True
 except ImportError:
+    note_failure("onnx_integration:L85", None)
     ov_native = None
 def _ensure_openvino_path():
     """Add OpenVINO DLL directories to PATH if available."""
@@ -121,7 +135,7 @@ def _ensure_openvino_path():
                 cookie = os.add_dll_directory(p)
                 _OV_DLL_COOKIES.append(cookie)
             except (OSError, AttributeError):
-                pass
+                note_failure("onnx_integration:L123", None)
 
 def _detect_openvino():
     """Detect if OpenVINO EP is available and enumerate devices (lazy)."""
@@ -140,6 +154,7 @@ def _detect_openvino():
         available = ort.get_available_providers()
         _HAS_OPENVINO = _OPENVINO_EP in available
     except Exception:
+        note_failure("onnx_integration:L142", None)
         _HAS_OPENVINO = False
         _OV_DEVICES = {}
         return
@@ -156,9 +171,10 @@ def _detect_openvino():
                 name = core.get_property(dev, "FULL_DEVICE_NAME")
                 _OV_DEVICES[dev] = name
             except Exception:
+                note_failure("onnx_integration:L158", None)
                 _OV_DEVICES[dev] = dev
     except Exception:
-        pass
+        note_failure("onnx_integration:L160", None)
 
 def _detect_ov_native():
     """Detect native OpenVINO API availability (lazy)."""
@@ -175,8 +191,10 @@ def _detect_ov_native():
                 name = _ov_core.get_property(dev, "FULL_DEVICE_NAME")
                 _OV_NATIVE_DEVICES[dev] = name
             except Exception:
+                note_failure("onnx_integration:L177", None)
                 _OV_NATIVE_DEVICES[dev] = dev
     except Exception:
+        note_failure("onnx_integration:L179", None)
         _HAS_OV_NATIVE = False
 
 

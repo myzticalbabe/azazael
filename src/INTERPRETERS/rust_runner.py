@@ -20,6 +20,17 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from enum import Enum
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # --- Configuration -----------------------------------------------------------
@@ -104,12 +115,14 @@ class RustRunner:
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
         except subprocess.TimeoutExpired:
+            note_failure("rust_runner:L106", None)
             return RustResult(
                 success=False,
                 stderr="Compilation timed out (>60s)",
                 errors=[{"type": "timeout", "message": "Compilation exceeded 60 seconds"}],
             )
         except Exception as e:
+            note_failure("rust_runner:L112", e)
             return RustResult(
                 success=False,
                 stderr=str(e),
@@ -153,6 +166,7 @@ class RustRunner:
                 binary_path=str(binary_path),
             )
         except subprocess.TimeoutExpired:
+            note_failure("rust_runner:L155", None)
             return RustResult(
                 success=False,
                 stderr="Execution timed out (>30s)",
@@ -214,6 +228,7 @@ class RustRunner:
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
         except Exception as e:
+            note_failure("rust_runner:L216", e)
             return RustResult(success=False, stderr=str(e))
 
     def cargo_build(self, project_dir: str, release: bool = False) -> RustResult:
@@ -240,8 +255,10 @@ class RustRunner:
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
         except subprocess.TimeoutExpired:
+            note_failure("rust_runner:L242", None)
             return RustResult(success=False, stderr="Cargo build timed out (>120s)")
         except Exception as e:
+            note_failure("rust_runner:L244", e)
             return RustResult(success=False, stderr=str(e))
 
     def cargo_test(self, project_dir: str) -> RustResult:
@@ -261,6 +278,7 @@ class RustRunner:
                 returncode=result.returncode,
             )
         except Exception as e:
+            note_failure("rust_runner:L263", e)
             return RustResult(success=False, stderr=str(e))
 
     def new_project(self, name: str, directory: str = None) -> RustResult:
@@ -281,6 +299,7 @@ class RustRunner:
                 binary_path=str(target / name),
             )
         except Exception as e:
+            note_failure("rust_runner:L283", e)
             return RustResult(success=False, stderr=str(e))
 
     def format_code(self, file_path: str) -> RustResult:
@@ -297,6 +316,7 @@ class RustRunner:
                 stdout="Formatted" if result.returncode == 0 else result.stderr,
             )
         except Exception as e:
+            note_failure("rust_runner:L299", e)
             return RustResult(success=False, stderr=str(e))
 
 

@@ -42,14 +42,40 @@ import zipfile
 import urllib.request
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
+
+def _note_failure(where: str, exc: BaseException | None = None) -> None:
+    """Record a fail-open swallow. Never raises -- a boundary hook must not break
+    the boundary it guards, so the recorder is itself wrapped.
+
+    Note for the coordinator: the shared brief's helper block defined only the
+    imported `note_failure`, while every per-site example calls `_note_failure`.
+    Without this wrapper each converted site would raise NameError inside its
+    except block, i.e. the swallow would become a crash. Verified present here.
+    """
+    try:
+        note_failure(where, exc)
+    except Exception as _e:
+        _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("REVERSE_TOOLS:L77", None)
     _REGISTRY = False
     def register_worm(category='', priority=0, cooldown_seconds=0.0, description='', tags=None):        return lambda cls: cls
 
@@ -61,6 +87,7 @@ try:
     from CORE.PamsRecorder import PamsRecorder
     _pams: Any = PamsRecorder()
 except ImportError:
+    note_failure("REVERSE_TOOLS:L88", None)
     _pams: Any = None
 IS_WINDOWS = sys.platform == "win32"
 IS_LINUX = sys.platform.startswith("linux")
@@ -138,7 +165,8 @@ class ReverseTools:
                     event_type=f"retools.{event_type}",
                     data=data, source="ReverseTools", severity=severity,
                 )
-            except Exception:  # noqa: BLE001 — best-effort boundary
+            except Exception as exc:  # noqa: BLE001 - was silent (PAMS event lost)
+                _note_failure("reverse_tools:L141", exc)
                 pass
 
     # ── Tool Status ───────────────────────────────────────────────────────────
@@ -192,7 +220,8 @@ class ReverseTools:
                                     if "application.version" in line:
                                         status.version = line.split("=")[-1].strip()
                                         break
-                        except Exception:  # noqa: BLE001 — best-effort boundary
+                        except Exception as exc:  # noqa: BLE001 - was silent
+                            _note_failure("reverse_tools:L195", exc)
                             pass
                     break
 
@@ -220,7 +249,8 @@ class ReverseTools:
                     first_line = proc.stdout.splitlines()[0] if proc.stdout else proc.stderr.splitlines()[0]
                     status.version = first_line.strip()
                     break
-            except (subprocess.TimeoutExpired, FileNotFoundError):
+            except (subprocess.TimeoutExpired, FileNotFoundError) as exc:  # noqa: BLE001 - probe
+                _note_failure("reverse_tools:L223", exc)
                 pass
 
         # Also check pip-installed r2pipe
@@ -232,7 +262,7 @@ class ReverseTools:
                 status.version = getattr(r2pipe, "__version__", "unknown")
                 status.notes = "r2pipe available (Python binding only)"
             except ImportError:
-                pass
+                note_failure("REVERSE_TOOLS:L262", None)
 
         self._record("check_radare2", {"installed": status.installed, "version": status.version})
         return status
@@ -269,7 +299,8 @@ class ReverseTools:
                 result["version"] = "r2pipe installed"
                 self._record("install_radare2", result)
                 return result
-        except Exception:  # noqa: BLE001 — best-effort boundary
+        except Exception as exc:  # noqa: BLE001 - was silent
+            _note_failure("reverse_tools:L272", exc)
             pass
 
         # Method 2: Platform package manager
@@ -285,7 +316,8 @@ class ReverseTools:
                     result["version"] = "latest (choco)"
                     self._record("install_radare2", result)
                     return result
-            except Exception:  # noqa: BLE001 — best-effort boundary
+            except Exception as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L288", exc)
                 pass
 
             # Try winget
@@ -300,7 +332,8 @@ class ReverseTools:
                     result["version"] = "latest (winget)"
                     self._record("install_radare2", result)
                     return result
-            except Exception:  # noqa: BLE001 — best-effort boundary
+            except Exception as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L303", exc)
                 pass
 
         elif IS_LINUX:
@@ -313,7 +346,8 @@ class ReverseTools:
                         result["version"] = "latest (system)"
                         self._record("install_radare2", result)
                         return result
-                except Exception:  # noqa: BLE001 — best-effort boundary
+                except Exception as exc:  # noqa: BLE001 - was silent
+                    _note_failure("reverse_tools:L316", exc)
                     pass
 
         # Method 3: pip install radare2-binary wheels
@@ -328,7 +362,8 @@ class ReverseTools:
                 result["version"] = "binary installed"
                 self._record("install_radare2", result)
                 return result
-        except Exception:  # noqa: BLE001 — best-effort boundary
+        except Exception as exc:  # noqa: BLE001 - was silent
+            _note_failure("reverse_tools:L331", exc)
             pass
 
         result["error"] = "Could not install radare2. Install manually: https://github.com/radareorg/radare2"
@@ -365,7 +400,8 @@ class ReverseTools:
                     if java_version >= 17:
                         java_ok = True
                         break
-            except Exception:  # noqa: BLE001 — best-effort boundary
+            except Exception as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L368", exc)
                 pass
 
         if not java_ok:
@@ -446,7 +482,8 @@ class ReverseTools:
                         "offset": f.get("offset", 0),
                         "size": f.get("size", 0),
                     })
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L449", exc)
                 pass
 
             # Imports
@@ -455,7 +492,8 @@ class ReverseTools:
                 imports = json.loads(imports_json)
                 for imp in imports:
                     analysis.imports.append(imp.get("name", ""))
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L458", exc)
                 pass
 
             # Exports
@@ -464,7 +502,8 @@ class ReverseTools:
                 exports = json.loads(exports_json)
                 for exp in exports:
                     analysis.exports.append(exp.get("name", ""))
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L467", exc)
                 pass
 
             # Strings
@@ -486,7 +525,8 @@ class ReverseTools:
                         "vaddr": sec.get("vaddr", 0),
                         "paddr": sec.get("paddr", 0),
                     })
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L489", exc)
                 pass
 
             # Entry points
@@ -495,13 +535,16 @@ class ReverseTools:
                 entries = json.loads(entry_json)
                 for e in entries:
                     analysis.entry_points.append(e.get("vaddr", 0))
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L498", exc)
                 pass
 
             r2.quit()
 
         except ImportError:
             # Fallback: try r2 command line directly
+            # Fallback: try r2 command line directly
+            note_failure("REVERSE_TOOLS:L542", None)
             analysis = self._radare2_cli(str(full_path), auto_analysis)
         except Exception as e:  # noqa: BLE001 — best-effort boundary
             self._record("radare2_error", {"path": str(full_path), "error": str(e)}, severity="error")
@@ -541,7 +584,8 @@ class ReverseTools:
                     info = json.loads(proc.stdout)
                     analysis.arch = info.get("bin", {}).get("arch", "")
                     analysis.bits = info.get("bin", {}).get("bits", 0)
-                except json.JSONDecodeError:
+                except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                    _note_failure("reverse_tools:L544", exc)
                     pass
 
                 # Get functions
@@ -557,13 +601,16 @@ class ReverseTools:
                             "offset": f.get("offset", 0),
                             "size": f.get("size", 0),
                         })
-                except json.JSONDecodeError:
+                except json.JSONDecodeError as exc:  # noqa: BLE001 - was silent
+                    _note_failure("reverse_tools:L560", exc)
                     pass
 
                 break  # Success
-            except FileNotFoundError:
+            except FileNotFoundError as exc:  # noqa: BLE001 - probe: variant absent
+                _note_failure("reverse_tools:L564", exc)
                 continue
-            except Exception:  # noqa: BLE001 — best-effort boundary
+            except Exception as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L566", exc)
                 break
 
         return analysis
@@ -626,7 +673,8 @@ class ReverseTools:
                             })
                     if len(instructions) >= max_ins:
                         break
-            except Exception:  # noqa: BLE001 — best-effort boundary
+            except Exception as exc:  # noqa: BLE001 - was silent
+                _note_failure("reverse_tools:L629", exc)
                 pass
 
         return instructions
@@ -694,12 +742,14 @@ class ReverseTools:
                 if "functions" in line.lower() and "found" in line.lower():
                     try:
                         result.functions_count = int(line.split()[0])
-                    except (ValueError, IndexError):
+                    except (ValueError, IndexError) as exc:  # noqa: BLE001 - was silent
+                        _note_failure("reverse_tools:L697", exc)
                         pass
                 if "data types" in line.lower():
                     try:
                         result.data_types_count = int(line.split()[0])
-                    except (ValueError, IndexError):
+                    except (ValueError, IndexError) as exc:  # noqa: BLE001 - was silent
+                        _note_failure("reverse_tools:L702", exc)
                         pass
 
             self._record("ghidra_headless", {
@@ -747,6 +797,7 @@ class ReverseTools:
                 "hashes": r2_result.hashes,
             }
         except Exception as e:  # noqa: BLE001 — best-effort boundary
+            _note_failure("reverse_tools:L749", e)
             report["r2"] = {"error": str(e)}
 
         # Ghidra analysis
@@ -758,6 +809,7 @@ class ReverseTools:
                 "output_dir": ghidra_result.output_dir,
             }
         except Exception as e:  # noqa: BLE001 — best-effort boundary
+            _note_failure("reverse_tools:L760", e)
             report["ghidra"] = {"error": str(e)}
 
         # Cross-reference

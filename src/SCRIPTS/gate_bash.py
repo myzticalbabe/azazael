@@ -37,7 +37,17 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ---------------------------------------------------------------------------
 # Path resolution
@@ -52,6 +62,7 @@ try:
     from CORE.compliance.pre_action_gate import get_pre_action_gate
     _PAG_AVAILABLE = True
 except ImportError as _pag_e:
+    note_failure("gate_bash:L54", _pag_e)
     _PAG_AVAILABLE = False
     _PAG_ERR = str(_pag_e)
     get_pre_action_gate = None
@@ -60,6 +71,7 @@ try:
     from CORE.compliance.orchestrator import ComplianceOrchestrator
     _ORCHESTRATOR_AVAILABLE = True
 except ImportError:
+    note_failure("gate_bash:L62", None)
     _ORCHESTRATOR_AVAILABLE = False
     ComplianceOrchestrator = None
 
@@ -67,6 +79,7 @@ try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
 except ImportError:
+    note_failure("gate_bash:L69", None)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
@@ -270,7 +283,7 @@ class GateBash:
                     "severity": verdict["severity"],
                 })
             except Exception:
-                pass
+                note_failure("gate_bash:L272", None)
 
         # RULE 0X + 0Y compliance check
         if self.orchestrator:
@@ -293,6 +306,7 @@ class GateBash:
                         f"GATE DENIED (RULE 0X/0Y): {result.summary}",
                     )
             except Exception as e:
+                note_failure("gate_bash:L295", e)
                 return (
                     False,
                     f"GATE DENIED (Orchestrator error): {e}",
@@ -320,6 +334,7 @@ class GateBash:
                 timeout=timeout,
             )
         except (FileNotFoundError, OSError):
+            note_failure("gate_bash:L322", None)
             return subprocess.run(
                 ["cmd.exe", "/c", command],
                 capture_output=True,
@@ -358,8 +373,10 @@ class GateBash:
                 print(f"[EXECUTE] FAILED (exit {result.returncode})")
                 return False, f"Command failed with exit {result.returncode}", result
         except subprocess.TimeoutExpired:
+            note_failure("gate_bash:L360", None)
             return False, f"Command timed out after {timeout}s", None
         except Exception as e:
+            note_failure("gate_bash:L362", e)
             return False, f"Command execution error: {e}", None
 
 

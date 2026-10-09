@@ -23,14 +23,25 @@ import time
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("HEALTHZ:L33", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -68,6 +79,7 @@ class HEALTHZ:
             import psutil as _psutil
             self.boot_time = _psutil.boot_time()
         except Exception:
+            note_failure("HEALTHZ:L70", None)
             self.boot_time = time.time()
         self.state = self._load_state()
 
@@ -77,7 +89,7 @@ class HEALTHZ:
             if Path(self.STATE_FILE).exists():
                 return json.loads(Path(self.STATE_FILE).read_text())
         except Exception:
-            pass
+            note_failure("HEALTHZ:L79", None)
         return {"checks": 0, "last_healthy": True, "history": []}
 
     def _save_state(self):
@@ -86,7 +98,7 @@ class HEALTHZ:
             Path(self.STATE_FILE).parent.mkdir(exist_ok=True)
             Path(self.STATE_FILE).write_text(json.dumps(self.state, indent=2))
         except Exception:
-            pass
+            note_failure("HEALTHZ:L88", None)
 
     def _check_cpu(self) -> str:
         """Check CPU health."""
@@ -127,6 +139,7 @@ class HEALTHZ:
                 return "WARNING"
             return "OK"
         except (ImportError, Exception):
+            note_failure("HEALTHZ:L129", None)
             return "UNKNOWN"
 
     def _check_processes(self) -> str:

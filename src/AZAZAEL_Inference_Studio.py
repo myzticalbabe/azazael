@@ -37,14 +37,25 @@ from pathlib import Path
 from datetime import datetime
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, List
 import functools
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ─── Python 3.14t Detection ───
 try:
     IS_FREE_THREADED = not sys._is_gil_enabled()
     GIL_STATUS = "FREE-THREADED ⚡"
 except Exception:
+    note_failure("AZAZAEL_Inference_Studio:L47", None)
     IS_FREE_THREADED = False
     GIL_STATUS = "GIL Locked 🔒"
 
@@ -198,7 +209,7 @@ class EmotionEngine:
             try:
                 cb(self._current_emoji)
             except Exception:
-                pass
+                note_failure("AZAZAEL_Inference_Studio:L200", None)
 
 # Global emotion engine
 emotion = EmotionEngine()
@@ -257,7 +268,7 @@ def detect_hardware() -> HardwareProfile:
         profile.ram_gb = ms.ullTotalPhys / (1024**3)
         profile.ram_free_gb = ms.ullAvailPhys / (1024**3)
     except Exception:
-        pass
+        note_failure("AZAZAEL_Inference_Studio:L259", None)
 
     # NVIDIA GPU detection
     try:
@@ -279,7 +290,7 @@ def detect_hardware() -> HardwareProfile:
                                   backends=["CUDA", "TensorRT"])
                     profile.gpus.append(gpu)
     except Exception:
-        pass
+        note_failure("AZAZAEL_Inference_Studio:L281", None)
 
     # AMD GPU via rocm-smi
     if not profile.gpus:
@@ -294,7 +305,7 @@ def detect_hardware() -> HardwareProfile:
                             backends=["ROCm", "Vulkan"]
                         ))
         except Exception:
-            pass
+            note_failure("AZAZAEL_Inference_Studio:L296", None)
 
     # Intel GPU via wmic (Windows)
     if not profile.gpus:
@@ -318,7 +329,7 @@ def detect_hardware() -> HardwareProfile:
                         backends=["OpenVINO", "oneAPI"]
                     ))
         except Exception:
-            pass
+            note_failure("AZAZAEL_Inference_Studio:L320", None)
 
     # Apple Silicon
     if profile.platform == "Darwin" and "arm" in profile.arch.lower():
@@ -392,6 +403,7 @@ def detect_frameworks() -> list[Framework]:
             fw.version = getattr(mod, "__version__", "?")
             fw.status = FWStatus.AVAILABLE
         except Exception:
+            note_failure("AZAZAEL_Inference_Studio:L394", None)
             fw.status = FWStatus.NOT_FOUND
     return FRAMEWORKS_DB
 
@@ -1128,6 +1140,7 @@ class InferenceStudio:
                         if count >= 20:
                             break
             except Exception:
+                note_failure("AZAZAEL_Inference_Studio:L1130", None)
                 continue
 
         # Also scan current directory and parent (with iteration limit)
@@ -1147,7 +1160,7 @@ class InferenceStudio:
                     if count >= 10:
                         break
         except Exception:
-            pass
+            note_failure("AZAZAEL_Inference_Studio:L1149", None)
 
         self._populate_artifacts()
 
@@ -1367,7 +1380,7 @@ class InferenceStudio:
                     self.root.after(0, functools.partial(
                         self.anim_emoji_lbl.configure, text=emotion.emoji))
                 except Exception:
-                    pass
+                    note_failure("AZAZAEL_Inference_Studio:L1369", None)
                 time.sleep(0.8)
         threading.Thread(target=morph_loop, daemon=True).start()
 
@@ -1650,7 +1663,7 @@ class Pulsator:
         try:
             self.widget.configure(fg=self._rgb2hex((r, g, b)))
         except Exception:
-            pass
+            note_failure("AZAZAEL_Inference_Studio:L1652", None)
         self.widget.after(ms, self._tick, ms)
 
 
@@ -1713,7 +1726,7 @@ def main():
             if os.path.exists(icon):
                 root.iconbitmap(icon)
         except Exception:
-            pass
+            note_failure("AZAZAEL_Inference_Studio:L1715", None)
         InferenceStudio(root)
         root.mainloop()
 

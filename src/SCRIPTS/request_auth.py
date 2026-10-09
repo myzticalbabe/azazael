@@ -40,12 +40,24 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Lazy imports for optional dependencies — loaded on first use
 try:
     from CORE.compliance.scanner import ASTAntiPatternScanner
     _SCANNER_AVAILABLE = True
 except ImportError:
+    note_failure("request_auth:L48", None)
     _SCANNER_AVAILABLE = False
     ASTAntiPatternScanner = None  # type: ignore
 
@@ -53,6 +65,7 @@ try:
     from CORE.compliance.broker import can_edit, gate_passed, gate_asserted
     _BROKER_AVAILABLE = True
 except ImportError:
+    note_failure("request_auth:L55", None)
     _BROKER_AVAILABLE = False
     can_edit = None  # type: ignore
     gate_passed = None  # type: ignore
@@ -109,6 +122,7 @@ def _native_import_ok(module: str) -> bool:
             capture_output=True, text=True, timeout=60)
         ok = proc.returncode == 0
     except Exception:
+        note_failure("request_auth:L111", None)
         ok = False
     _NATIVE_IMPORT_OK[module] = ok
     return ok
@@ -150,6 +164,7 @@ def _get_ed25519_key():
                   file=sys.stderr)
             _ED25519_AVAILABLE = False
     except ImportError:
+        note_failure("request_auth:L152", None)
         _ED25519_AVAILABLE = False
     return _ED25519_KEY
 
@@ -230,6 +245,7 @@ def is_token_valid(token_path: Path, filepath: str, max_age_seconds: int = 15) -
     try:
         data = json.loads(token_path.read_text())
     except (json.JSONDecodeError, OSError):
+        note_failure("request_auth:L232", None)
         return False
     
     # Check target matches
@@ -244,6 +260,7 @@ def is_token_valid(token_path: Path, filepath: str, max_age_seconds: int = 15) -
         if age > max_age_seconds:
             return False
     except (ValueError, TypeError):
+        note_failure("request_auth:L246", None)
         return False
     
     # Verify signature
@@ -303,6 +320,7 @@ def _check_state_machine() -> tuple[bool, str]:
         
         return True, f"State: {summary.get('state_machine_state', '?')}"
     except ImportError:
+        note_failure("request_auth:L305", None)
         return True, "State machine not loaded (non-blocking for auth)"
 
 

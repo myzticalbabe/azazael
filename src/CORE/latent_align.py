@@ -27,7 +27,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -51,6 +51,7 @@ def norm_calibrate(vec: List[float]) -> Dict[str, Any]:
     try:
         vals = [float(x) for x in (vec or [])]
     except (TypeError, ValueError):
+        note_failure("latent_align:L53", None)
         return {"calibrated": [], "norm": 0.0, "gaps": ["non-numeric-vector"]}
     norm = math.sqrt(sum(v * v for v in vals))
     if not vals:
@@ -82,6 +83,7 @@ def orthogonal_align(source: List[List[float]],
     try:
         S, T = _check(source), _check(target)
     except ValueError as e:
+        note_failure("latent_align:L84", e)
         return {"aligned": None, "rotation": None, "gaps": [str(e)]}
     if len(S[0]) != len(T[0]):
         return {"aligned": None, "rotation": None,
@@ -89,6 +91,7 @@ def orthogonal_align(source: List[List[float]],
     try:
         import torch  # noqa: PLC0415 (optional backend, gated)
     except ImportError:
+        note_failure("latent_align:L91", None)
         return {"aligned": None, "rotation": None,
                 "gaps": ["torch-unavailable"]}
     St = torch.tensor(S, dtype=torch.float64)

@@ -56,10 +56,20 @@ import os
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Sequence, List
 
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExportResult
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- DB path resolution -----------------------------------------------
 # Default to same DB as DirectMemory for cross-ledger queries.
@@ -332,7 +342,7 @@ def configure_otel_tracing(
     except Exception:
         # The provider is process-global and settable once; if one is already
         # installed we use whatever is active instead of failing the caller.
-        pass
+        note_failure("cd3_exporter:L332", None)
 
     return trace.get_tracer(__name__)
 

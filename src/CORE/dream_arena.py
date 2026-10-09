@@ -8,6 +8,17 @@ novel, and scheduled as the next generation's exams.
 """
 import hashlib
 import math
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def compile_world(dream: dict) -> dict:
@@ -39,6 +50,7 @@ def admit_worlds(arena, dreams: list[dict], genome=None) -> dict:
     try:
         from CORE.WORMS.expansion.arena import Environment
     except Exception:
+        note_failure("dream_arena:L41", None)
         return {"compiled": 0, "admitted": 0, "skipped": len(dreams),
                 "error": "arena-unavailable"}
     for d in dreams:
@@ -57,5 +69,6 @@ def admit_worlds(arena, dreams: list[dict], genome=None) -> dict:
             else:
                 skipped += 1
         except Exception:
+            note_failure("dream_arena:L59", None)
             skipped += 1
     return {"compiled": compiled, "admitted": admitted, "skipped": skipped}

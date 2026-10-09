@@ -29,6 +29,17 @@ CORE (which it must be -- it exists to quiet the chatter those imports emit).
 from __future__ import annotations
 
 import logging
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 #: Loggers that emit per-item chatter on import/discovery. They are silenced to
 #: WARNING (not CRITICAL) by name; WARNING and above on these loggers is still

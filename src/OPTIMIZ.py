@@ -22,12 +22,24 @@ import json
 from datetime import datetime
 # from typing import List  # removed — all names have native equivalents
 from dataclasses import dataclass, field
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("OPTIMIZ:L30", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls

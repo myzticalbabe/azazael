@@ -34,12 +34,23 @@ import time
 import threading
 import math
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import defaultdict
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("synapse:L42", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -74,7 +85,7 @@ class SynapseWeightWorm:
             from CORE import spine_registry as _spine
             self._spine = _spine
         except ImportError:
-            pass
+            note_failure("synapse:L76", None)
 
     def update(self, src: str, dst: str, reward: float,
                duration_ms: float = 0.0, next_value: float = 0.0) -> float:
@@ -103,6 +114,7 @@ class SynapseWeightWorm:
         try:
             td_error = float(reward) + self._gamma * float(next_value) - current
         except (TypeError, ValueError):
+            note_failure("synapse:L105", None)
             td_error = 0.0
         with self._lock:
             self._updates += 1
@@ -117,7 +129,7 @@ class SynapseWeightWorm:
                                            float(duration_ms),
                                            delta=self._lr * td_error)
             except Exception:
-                pass  # learning is best-effort; callers must not fail on it
+                note_failure("synapse:L119", None) # learning is best-effort; callers must not fail on it
         return self.weight(src, dst)
 
     def weight(self, src: str, dst: str) -> float:
@@ -193,7 +205,7 @@ class MoEDispatcherWorm:
             from CORE import spine_registry as _spine
             self._spine = _spine
         except ImportError:
-            pass
+            note_failure("synapse:L195", None)
 
     def available_experts(self) -> dict:
         """Which experts actually exist as importable classes (cached)."""
@@ -205,6 +217,7 @@ class MoEDispatcherWorm:
                     try:
                         ok = _iu.find_spec(mod) is not None
                     except Exception:
+                        note_failure("synapse:L207", None)
                         ok = False
                     self._availability[name] = ok
             return dict(self._availability)
@@ -227,7 +240,7 @@ class MoEDispatcherWorm:
                         0.05, scores[e] * (1.0 + self._spine.get_q_weight(
                             self.MOE_NATURE, e)))
             except Exception:
-                pass
+                note_failure("synapse:L229", None)
         if needs_vision:
             scores["NimInferenceWorm"] = scores.get("NimInferenceWorm", 1.0) + 1.0
         if prompt_len > 4000:
@@ -248,6 +261,7 @@ class MoEDispatcherWorm:
             mod = __import__(mod_name, fromlist=[cls_name])
             return getattr(mod, cls_name)()
         except Exception:
+            note_failure("synapse:L250", None)
             return None
 
     def top_expert(self, prompt_len: int = 100, needs_vision: bool = False):
@@ -275,6 +289,7 @@ class MoEDispatcherWorm:
                 answer, conf = run_fn(inst, task)
                 conf = 0.0 if conf is None else float(conf)
             except Exception as e:
+                note_failure("synapse:L277", e)
                 self.feedback(name, -1.0)
                 trail.append({"expert": name, "error": str(e)[:800]})
                 continue
@@ -312,6 +327,7 @@ class MoEDispatcherWorm:
         try:
             r = max(-1.0, min(1.0, float(reward)))
         except (TypeError, ValueError):
+            note_failure("synapse:L314", None)
             return
         with self._lock:
             self._scores[expert] = max(0.05,
@@ -321,7 +337,7 @@ class MoEDispatcherWorm:
                 self._spine.record_outcome(self.MOE_NATURE, expert, r > 0.0,
                                            0.0, reward=r)
             except Exception:
-                pass
+                note_failure("synapse:L323", None)
 
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute",
@@ -393,6 +409,7 @@ class SSMSequenceWorm:
                 try:
                     v = float(raw)
                 except (TypeError, ValueError):
+                    note_failure("synapse:L395", None)
                     continue
                 # 1. learning step on the previous step's reconstruction error
                 if self._pending is not None:
@@ -490,7 +507,7 @@ class AttentionRouterWorm:
             from CORE import spine_registry as _spine
             self._spine = _spine
         except ImportError:
-            pass
+            note_failure("synapse:L492", None)
 
     def attend(self, task_context: dict | None = None) -> dict[str, Any]:
         """Softmax over natures: Q-derived EMA + manual prior + context bias."""
@@ -504,7 +521,7 @@ class AttentionRouterWorm:
                                                * self._decay
                                                + val * (1.0 - self._decay))
                 except Exception:
-                    pass
+                    note_failure("synapse:L506", None)
             scores = {n: self._q_ema.get(n, 0.0) + self._prior.get(n, 0.0)
                       for n in set(self._q_ema) | set(self._prior)}
         if not scores:
@@ -536,6 +553,7 @@ class AttentionRouterWorm:
         try:
             s = max(0.0, min(1.0, float(strength)))
         except (TypeError, ValueError):
+            note_failure("synapse:L538", None)
             s = 1.0
         with self._lock:
             delta = (0.1 if success else -0.15) * s

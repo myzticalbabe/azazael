@@ -7,7 +7,17 @@ import hashlib
 import json
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 DEFAULT_EXCLUDED = {".git", "node_modules", "__pycache__", ".cache", ".mypy_cache", ".pytest_cache", ".venv", "venv", "build", "dist", "target", "site-packages"}
@@ -28,6 +38,7 @@ def _record(path: Path, root: Path, hash_limit: int) -> dict[str, Any]:
             result["hash_status"] = "skipped_large"
         return result
     except (OSError, UnicodeError) as exc:
+        note_failure("full_scan:L30", exc)
         return {"path": relative, "error": str(exc)}
 
 
@@ -50,6 +61,7 @@ def scan(root: Path | str, output_dir: Path | str, batch_size: int = 50000, batc
                 if path.is_file():
                     paths.append(relative.as_posix())
             except OSError:
+                note_failure("full_scan:L52", None)
                 continue
         paths.sort()
         index_path.write_text("\n".join(paths) + ("\n" if paths else ""), encoding="utf-8")

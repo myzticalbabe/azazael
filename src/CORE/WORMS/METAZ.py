@@ -16,9 +16,19 @@ Usage:
 import ast
 from pathlib import Path
 from collections import defaultdict, Counter
-from typing import Any
+from typing import Any, List
 
 from CORE.worm_registry import register_worm
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 __version__ = "2.0.0"
 
@@ -72,9 +82,9 @@ class METAZ:
                 imports_found += self._analyze_ast(tree, py_file)
 
             except (SyntaxError, UnicodeDecodeError):
-                pass
+                note_failure("METAZ:L74", None)
             except Exception:
-                pass
+                note_failure("METAZ:L76", None)
 
         # Compute coupling metrics
         coupling = self._compute_coupling()

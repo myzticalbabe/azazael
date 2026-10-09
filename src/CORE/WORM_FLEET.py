@@ -8,11 +8,21 @@ import sys
 import subprocess
 import json
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 from datetime import datetime
 
 from CORE.paths import get_project_root
 from CORE.worm_registry import BaseWormMixin
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 __all__ = ['WormFleet']
@@ -20,6 +30,7 @@ __all__ = ['WormFleet']
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("WORM_FLEET:L22", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -67,7 +78,7 @@ class WormFleet(BaseWormMixin):
                 if b"\xef\xbb\xbf" in content:
                     issues.append({"file": str(fp), "type": "UTF8_BOM"})
             except (OSError, PermissionError):
-                pass
+                note_failure("WORM_FLEET:L69", None)
         return issues
 
     def worm_syntax_guard(self, files: list[Path]) -> list[dict]:
@@ -78,11 +89,12 @@ class WormFleet(BaseWormMixin):
                     code = f.read()
                 compile(code, str(fp), "exec")
             except SyntaxError as e:
+                note_failure("WORM_FLEET:L80", e)
                 issues.append(
                     {"file": str(fp), "type": "SYNTAX", "line": e.lineno, "msg": e.msg}
                 )
             except Exception:
-                pass
+                note_failure("WORM_FLEET:L84", None)
         return issues
 
     def worm_import_watcher(self, files: list[Path]) -> list[dict]:
@@ -98,7 +110,7 @@ class WormFleet(BaseWormMixin):
                 if result.returncode != 0:
                     issues.append({"file": str(fp), "type": "IMPORT_ERROR"})
             except (subprocess.TimeoutExpired, Exception):
-                pass
+                note_failure("WORM_FLEET:L100", None)
         return issues
 
     def worm_string_escape_hunter(self, files: list[Path]) -> list[dict]:
@@ -121,7 +133,7 @@ class WormFleet(BaseWormMixin):
                                     }
                                 )
             except (OSError, PermissionError, UnicodeDecodeError):
-                pass
+                note_failure("WORM_FLEET:L123", None)
         return issues
 
     def run_worm(self, name: str, func, files: list[Path]) -> dict:

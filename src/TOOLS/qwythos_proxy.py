@@ -38,6 +38,17 @@ import sys
 import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 OLLAMA = "http://127.0.0.1:11434"
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 11435
@@ -64,6 +75,7 @@ def _coerce(value: str) -> object:
     try:
         return json.loads(text)
     except (json.JSONDecodeError, ValueError):
+        note_failure("qwythos_proxy:L66", None)
         return text
 
 
@@ -103,6 +115,7 @@ def _forward(path: str, body: bytes | None, method: str = "POST") -> tuple[int, 
         with urllib.request.urlopen(req, timeout=600) as resp:
             return resp.status, resp.read()
     except urllib.error.HTTPError as exc:
+        note_failure("qwythos_proxy:L105", exc)
         return exc.code, exc.read()
 
 
@@ -132,6 +145,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             req = json.loads(raw.decode("utf-8"))
         except (json.JSONDecodeError, ValueError):
+            note_failure("qwythos_proxy:L134", None)
             self._send(400, b'{"error":"invalid JSON body"}')
             return
         model = req.get("model", "")
@@ -145,6 +159,7 @@ class Handler(BaseHTTPRequestHandler):
                 if float(req.get("temperature", 1.0)) > 0.2:
                     req["temperature"] = 0.2
             except (TypeError, ValueError):
+                note_failure("qwythos_proxy:L147", None)
                 req["temperature"] = 0.2
             opts = req.get("options")
             if isinstance(opts, dict) and "temperature" in opts:
@@ -152,6 +167,7 @@ class Handler(BaseHTTPRequestHandler):
                     if float(opts["temperature"]) > 0.2:
                         opts["temperature"] = 0.2
                 except (TypeError, ValueError):
+                    note_failure("qwythos_proxy:L154", None)
                     opts["temperature"] = 0.2
         code, data = _forward(
             "/v1/chat/completions", json.dumps(req).encode("utf-8"), "POST"
@@ -162,6 +178,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             resp = json.loads(data.decode("utf-8"))
         except (json.JSONDecodeError, ValueError):
+            note_failure("qwythos_proxy:L164", None)
             self._send(code, data)
             return
         choices = resp.get("choices") or []

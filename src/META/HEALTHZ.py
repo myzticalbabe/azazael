@@ -23,8 +23,18 @@ import json
 import psutil
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -58,7 +68,7 @@ class HEALTHZ:
             if Path(self.STATE_FILE).exists():
                 return json.loads(Path(self.STATE_FILE).read_text())
         except Exception:
-            pass
+            note_failure("HEALTHZ:L60", None)
         return {"checks": 0, "last_healthy": True, "history": []}
 
     def _save_state(self):
@@ -67,7 +77,7 @@ class HEALTHZ:
             Path(self.STATE_FILE).parent.mkdir(exist_ok=True)
             Path(self.STATE_FILE).write_text(json.dumps(self.state, indent=2))
         except Exception:
-            pass
+            note_failure("HEALTHZ:L69", None)
 
     def _check_cpu(self) -> str:
         """Check CPU health."""
@@ -104,6 +114,7 @@ class HEALTHZ:
                 return "WARNING"
             return "OK"
         except Exception:
+            note_failure("HEALTHZ:L106", None)
             return "UNKNOWN"
 
     def _check_processes(self) -> str:

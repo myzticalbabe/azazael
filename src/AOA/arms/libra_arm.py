@@ -8,6 +8,16 @@ from typing import Dict, List
 from pathlib import Path
 from core.arm_registry import BaseArm, ArmCapability, register_arm
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # Static lookup tables for template-to-method routing
 _METHOD_MAP = {
     "pfa_petition": "generate_ifp",
@@ -166,6 +176,7 @@ class LibraArm(BaseArm):
                 return {"status":"ok","data":{"initialized":self._initialized,"libra_src":str(self._libra_src) if hasattr(self,"_libra_src") else None,"libra_src_exists":self._libra_src.exists() if hasattr(self,"_libra_src") else False}}
             return {"status":"error","error":"Unknown: "+capability}
         except Exception as e:
+            note_failure("libra_arm:L168", e)
             return {"status":"error","error":str(e)}
     def get_capabilities(self)->List[ArmCapability]:
         return [ArmCapability("list_templates","List all available templates",category="template"),ArmCapability("generate_document","Generate a document from a template",category="generation"),ArmCapability("get_filing_types","Get all filing types",category="filing"),ArmCapability("calculate_fees","Calculate filing fees",category="fees"),ArmCapability("calculate_deadline","Calculate court deadlines",category="deadline"),ArmCapability("get_status","Get Libra status",category="monitoring"),ArmCapability("check_berks_rules","Validate a filing against Berks County rules (BCR)",category="berks"),ArmCapability("calculate_berks_fees","Calculate Berks County filing fees",category="berks"),ArmCapability("generate_berks_ifp","Check IFP eligibility and generate IFP petition for Berks County",category="berks"),ArmCapability("prepare_berks_filing","Prepare a complete Berks County filing packet",category="berks"),ArmCapability("get_berks_calendar","Get Berks County court calendar/schedule",category="berks")]

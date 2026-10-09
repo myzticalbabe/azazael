@@ -5,6 +5,17 @@ Structural SAGE-mean features from existing NetworkX stats + SGAT-L0
 edge mask for INFERRED adjudication + PU link-pred scoring. No torch
 needed for features/mask; PyG head plugs in later.
 """
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def sage_features(stats: dict, type_onehot: dict, live: float = 0.0):
@@ -57,6 +68,7 @@ def try_pyg_train(num_nodes=32, in_dim=12):
         import torch
         from torch_geometric.nn import SAGEConv
     except Exception as e:
+        note_failure("graph_learn:L59", e)
         return {"skipped": True, "reason": f"no pyg ({e})"}
     import torch as _t
     c1, c2 = SAGEConv(in_dim, 16), SAGEConv(16, 8)

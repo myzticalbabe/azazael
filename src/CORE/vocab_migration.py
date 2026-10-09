@@ -27,8 +27,20 @@ from pathlib import Path
 try:
     from CORE.audit_trail import EVENT_VOCAB
 except ImportError:
+    note_failure("vocab_migration:L29", None)
     EVENT_VOCAB = {}
 from CORE.direct_memory import DB_PATH as _DB
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def _get_db_path():

@@ -23,6 +23,17 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import Optional  # removed — all names have native equivalents
 
 
@@ -37,6 +48,8 @@ def cmd_infer(args) -> int:
         inputs = json.loads(input_str)
     except json.JSONDecodeError:
         # Treat as plain string (for GGUF/transformers/VL text prompts)
+        # Treat as plain string (for GGUF/transformers/VL text prompts)
+        note_failure("cli:L38", None)
         inputs = input_str
 
     # Create engine and load model

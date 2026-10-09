@@ -12,8 +12,18 @@ Usage:
 
 import requests
 import json
-from typing import Generator
+from typing import Generator, List
 from dataclasses import dataclass
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -59,6 +69,7 @@ class LMStudioClient:
             data = response.json()
             return [ModelInfo(**m) for m in data.get("data", [])]
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L61", e)
             return [ModelInfo(id=f"Error: {e}")]
 
     def chat_complete(
@@ -101,6 +112,7 @@ class LMStudioClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L103", e)
             return {"error": str(e)}
 
     def complete(
@@ -143,6 +155,7 @@ class LMStudioClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L145", e)
             return {"error": str(e)}
 
     def stream_chat(
@@ -188,6 +201,7 @@ class LMStudioClient:
                             if content:
                                 yield content
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L190", e)
             yield f"Error: {e}"
 
     def embeddings(self, input_text: str, model: str = None) -> dict:
@@ -214,6 +228,7 @@ class LMStudioClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L216", e)
             return {"error": str(e)}
 
 
@@ -236,6 +251,7 @@ class OllamaClient:
             data = response.json()
             return [m["name"] for m in data.get("models", [])]
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L238", e)
             return [f"Error: {e}"]
 
     def generate(
@@ -274,6 +290,7 @@ class OllamaClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L276", e)
             return {"error": str(e)}
 
     def chat(
@@ -308,6 +325,7 @@ class OllamaClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
+            note_failure("lm_studio_client:L310", e)
             return {"error": str(e)}
 
 
@@ -329,7 +347,7 @@ def detect_local_llm() -> (str | None):
                 print(f"[OK] {name} detected at {url}")
                 return url
         except requests.exceptions.RequestException:
-            pass
+            note_failure("lm_studio_client:L331", None)
 
     print("[WARN] No local LLM provider detected")
     print("       Start LM Studio or Ollama and try again")

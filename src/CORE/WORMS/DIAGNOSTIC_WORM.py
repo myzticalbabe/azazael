@@ -14,7 +14,17 @@ import os
 import re
 import subprocess
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 AZAAZEL_ROOT = Path(__file__).parent
 VENV_PYTHON = Path(sys.executable)
@@ -23,6 +33,7 @@ VENV_PYTHON = Path(sys.executable)
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("DIAGNOSTIC_WORM:L25", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -59,7 +70,7 @@ class DiagnosticWorm:
                     results["bom_files"].append(str(py_file))
                     self.fix_bom(py_file)
             except Exception:
-                pass
+                note_failure("DIAGNOSTIC_WORM:L61", None)
 
         print(f"      Found: {len(results['bom_files'])} BOM files")
         for f in results["bom_files"][:5]:
@@ -111,6 +122,7 @@ class DiagnosticWorm:
                 file_path.write_bytes(content)
                 self.fixes_applied.append(f"BOM removed: {file_path.name}")
         except Exception as e:
+            note_failure("DIAGNOSTIC_WORM:L113", e)
             self.findings.append(f"BOM fix failed: {file_path} - {e}")
 
     def scan_bad_syspath(self) -> list[Path]:
@@ -123,7 +135,7 @@ class DiagnosticWorm:
                 if pattern in content:
                     bad_files.append(py_file)
             except Exception:
-                pass
+                note_failure("DIAGNOSTIC_WORM:L125", None)
 
         return bad_files
 
@@ -149,6 +161,7 @@ class DiagnosticWorm:
                 return True
             return False
         except Exception as e:
+            note_failure("DIAGNOSTIC_WORM:L151", e)
             self.findings.append(f"sys.path fix failed: {file_path} - {e}")
             return False
 
@@ -170,6 +183,7 @@ class DiagnosticWorm:
                 return True, None
             return False, Exception(result.stderr)
         except Exception as e:
+            note_failure("DIAGNOSTIC_WORM:L172", e)
             return False, e
 
     def check_circular_deps(self) -> list[str]:
@@ -197,6 +211,7 @@ class DiagnosticWorm:
             for cycle in cycles[:5]:
                 deps.append(" -> ".join(cycle))
         except Exception as e:
+            note_failure("DIAGNOSTIC_WORM:L199", e)
             deps.append(f"Could not analyze: {e}")
 
         return deps
@@ -291,4 +306,5 @@ if __name__ == "__main__":
             r = self.scan_all_modules()
             return {"status":"ok","worm":"DiagnosticWorm","method":"scan_all_modules","result":str(r)[:200]}
         except Exception as e:
+            note_failure("DIAGNOSTIC_WORM:L293", e)
             return {"status":"ok","worm":"DiagnosticWorm","method":"scan_all_modules","error":str(e)[:800]}

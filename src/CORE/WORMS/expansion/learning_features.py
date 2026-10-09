@@ -10,11 +10,22 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from collections import defaultdict
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("learning_features:L17", None)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -25,6 +36,7 @@ try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
 except ImportError:
+    note_failure("learning_features:L27", None)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -34,6 +46,7 @@ def is_free_threaded() -> bool:
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
         except Exception:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning_features:L36", None)
             return False
 
 # -- Schema-Aware Feature Extractor --------------------------------------
@@ -197,6 +210,7 @@ class SchemaAwareFeatureExtractor:
                 try:
                     data = json.loads(data)
                 except (json.JSONDecodeError, TypeError):
+                    note_failure("learning_features:L199", None)
                     data = {}
             if not isinstance(data, dict):
                 data = {}
@@ -247,6 +261,7 @@ class SchemaAwareFeatureExtractor:
                 try:
                     data = json.loads(data)
                 except (json.JSONDecodeError, TypeError):
+                    note_failure("learning_features:L249", None)
                     data = {}
             if not isinstance(data, dict):
                 data = {}
@@ -273,6 +288,7 @@ class SchemaAwareFeatureExtractor:
                     try:
                         feat.append(float(val))
                     except (ValueError, TypeError):
+                        note_failure("learning_features:L275", None)
                         feat.append(0.0)
 
                 # One-hot categorical fields

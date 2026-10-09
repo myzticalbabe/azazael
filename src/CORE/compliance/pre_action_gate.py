@@ -22,7 +22,17 @@ import sys
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import Dict, List, Optional, Tuple  # removed — all names have native equivalents
 
 # Ensure src/ is on sys.path for direct script execution (self-test)
@@ -35,6 +45,7 @@ try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
 except ImportError:
+    note_failure("pre_action_gate:L37", None)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
@@ -42,6 +53,7 @@ try:
     from CORE.compliance.telemetry import ComplianceTelemetry
     _TELEMETRY_AVAILABLE = True
 except ImportError:
+    note_failure("pre_action_gate:L44", None)
     _TELEMETRY_AVAILABLE = False
     ComplianceTelemetry = None
 
@@ -77,6 +89,7 @@ def _lazy_import_orchestrator():
         )
         _ORCHESTRATOR_AVAILABLE = True
     except ImportError:
+        note_failure("pre_action_gate:L79", None)
         _ORCHESTRATOR_AVAILABLE = False
     return _ORCHESTRATOR_AVAILABLE
 
@@ -102,6 +115,7 @@ def _load_telemetry_state() -> dict:
             "edit_count": int(data.get("edit_count", 0)),
         }
     except Exception:
+        note_failure("pre_action_gate:L104", None)
         return {"parallel_batch_count": 0, "sequential_spawn_count": 0, "edit_count": 0}
 
 
@@ -120,7 +134,7 @@ def _save_telemetry_state(gate: "PreActionGate") -> None:
         }
         _TELEMETRY_STATE_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
     except Exception:
-        pass  # Persistence is advisory — never block the gate
+        note_failure("pre_action_gate:L122", None) # Persistence is advisory — never block the gate
 
 
 def reset_telemetry_state() -> None:
@@ -128,7 +142,7 @@ def reset_telemetry_state() -> None:
     try:
         _TELEMETRY_STATE_PATH.unlink(missing_ok=True)
     except Exception:
-        pass
+        note_failure("pre_action_gate:L130", None)
     inst = _pre_action_gate_instance
     if inst is not None:
         with inst._lock:
@@ -197,7 +211,7 @@ class PreActionGate:
             try:
                 self.telemetry.emit(event_type, "pre_action_gate", status, details)
             except Exception:
-                pass
+                note_failure("pre_action_gate:L199", None)
 
     def _record(self, event_type: str, details: dict):
         """Record to DirectMemory for session audit trail."""
@@ -205,7 +219,7 @@ class PreActionGate:
             try:
                 self.memory.record_event(event_type, details)
             except Exception:
-                pass
+                note_failure("pre_action_gate:L207", None)
 
     # ------------------------------------------------------------------
     # Indentation helpers
@@ -495,7 +509,7 @@ class PreActionGate:
                 )
             return None
         except ImportError:
-            pass  # Fall back to inline implementation below
+            note_failure("pre_action_gate:L497", None) # Fall back to inline implementation below
 
         # â”€â”€ Fallback: inline duplicate detection (heuristic_recorder unavailable) â”€â”€
         for m in PreActionGate._DUPLICATE_METHOD_RE.finditer(content):
@@ -621,7 +635,7 @@ class PreActionGate:
                 continue
             return None
         except ImportError:
-            pass  # Fall back to inline implementation below
+            note_failure("pre_action_gate:L623", None) # Fall back to inline implementation below
 
         # â”€â”€ Fallback: inline compiled patterns â”€â”€
         jump_re = re.compile(
@@ -749,7 +763,7 @@ class PreActionGate:
                     )
             return None
         except ImportError:
-            pass  # Fall back to inline implementation below
+            note_failure("pre_action_gate:L751", None) # Fall back to inline implementation below
 
         # â”€â”€ Fallback: inline compiled pattern â”€â”€
         dang_re = re.compile(
@@ -890,6 +904,7 @@ class PreActionGate:
             })
             return True, ""
         except Exception as e:
+            note_failure("pre_action_gate:L892", e)
             return False, f"RULE 0X/0Y ERROR: {e}"
 
     def validate_str_replace(
@@ -1101,6 +1116,7 @@ class PreActionGate:
             try:
                 shutil.copy2(path, backup_path)
             except OSError:
+                note_failure("pre_action_gate:L1103", None)
                 return ""
 
             bp_str = str(backup_path)
@@ -1148,8 +1164,10 @@ class PreActionGate:
                 try:
                     py_compile.compile(str(path), doraise=True)
                 except py_compile.PyCompileError as e:
+                    note_failure("pre_action_gate:L1150", e)
                     errors.append(f"SyntaxError: {e}")
                 except Exception as e:
+                    note_failure("pre_action_gate:L1152", e)
                     errors.append(f"Compilation error: {e}")
 
                 # If syntax passed, run heuristic checks
@@ -1157,6 +1175,7 @@ class PreActionGate:
                     try:
                         content = path.read_text(encoding="utf-8")
                     except Exception:
+                        note_failure("pre_action_gate:L1159", None)
                         return False, "Cannot read file for post-edit check"
 
                     lines = content.split("\n")
@@ -1246,6 +1265,7 @@ class PreActionGate:
                         })
                         return False, f"POST-GATE REVERTED from backup: {error_msg}"
                     except Exception as revert_err:
+                        note_failure("pre_action_gate:L1248", revert_err)
                         return False, f"POST-GATE FAILED (revert ALSO failed: {revert_err}): {error_msg}"
                 return False, f"POST-GATE FAILED (no backup available): {error_msg}"
             self._edit_count += 1
@@ -1760,6 +1780,7 @@ def _self_test_impl() -> bool:
         from CORE.compliance.heuristic_recorder import HeuristicErrorRecorder
         _HER = HeuristicErrorRecorder()
     except ImportError:
+        note_failure("pre_action_gate:L1762", None)
         _HER = None
 
     if _HER is None:
@@ -1853,6 +1874,7 @@ def _self_test_impl() -> bool:
         from CORE.compliance.heuristic_recorder import HeuristicErrorRecorder
         _HER2 = HeuristicErrorRecorder()
     except ImportError:
+        note_failure("pre_action_gate:L1855", None)
         _HER2 = None
 
     if _HER2 is None:
@@ -1910,6 +1932,7 @@ def _self_test_impl() -> bool:
         from CORE.compliance.heuristic_recorder import HeuristicErrorRecorder
         _HER3 = HeuristicErrorRecorder()
     except ImportError:
+        note_failure("pre_action_gate:L1912", None)
         _HER3 = None
 
     if _HER3 is None:

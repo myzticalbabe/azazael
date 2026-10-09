@@ -20,6 +20,17 @@ from pathlib import Path
 # from typing import Dict, List, Optional, Tuple  # removed — all names have native equivalents
 from dataclasses import dataclass, field
 import argparse
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # --- Configuration -----------------------------------------------------------
@@ -120,12 +131,14 @@ class GoRunner:
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
         except subprocess.TimeoutExpired:
+            note_failure("go_runner:L122", None)
             return GoResult(
                 success=False,
                 stderr="Execution timed out (>60s)",
                 errors=[{"type": "timeout", "message": "Runtime exceeded 60 seconds"}],
             )
         except Exception as e:
+            note_failure("go_runner:L128", e)
             return GoResult(
                 success=False, stderr=str(e),
                 errors=[{"type": "exception", "message": str(e)}],
@@ -182,6 +195,7 @@ class GoRunner:
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
         except Exception as e:
+            note_failure("go_runner:L184", e)
             return GoResult(success=False, stderr=str(e))
 
     def _parse_errors(self, stderr: str) -> list[dict]:
@@ -226,6 +240,7 @@ class GoRunner:
                 returncode=result.returncode,
             )
         except Exception as e:
+            note_failure("go_runner:L228", e)
             return GoResult(success=False, stderr=str(e))
 
     def format_code(self, file_path: str) -> GoResult:
@@ -243,6 +258,7 @@ class GoRunner:
                 stdout="Formatted" if result.returncode == 0 else result.stderr,
             )
         except Exception as e:
+            note_failure("go_runner:L245", e)
             return GoResult(success=False, stderr=str(e))
 
     def vet(self, project_dir: str = ".") -> GoResult:
@@ -261,6 +277,7 @@ class GoRunner:
                 stderr=result.stderr,
             )
         except Exception as e:
+            note_failure("go_runner:L263", e)
             return GoResult(success=False, stderr=str(e))
 
     def mod_init(self, module_name: str, directory: str = None) -> GoResult:
@@ -283,6 +300,7 @@ class GoRunner:
                 binary_path=str(target / "go.mod"),
             )
         except Exception as e:
+            note_failure("go_runner:L285", e)
             return GoResult(success=False, stderr=str(e))
 
     def cross_compile(self, file_path: str, targets: list[tuple[str, str]] = None

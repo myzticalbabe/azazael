@@ -47,7 +47,7 @@ import os
 import time
 import threading
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, List
 from collections import Counter
 from concurrent.futures import as_completed
 
@@ -57,6 +57,16 @@ from CORE.inference.providers import (
     PROVIDER_REGISTRY,
     _global_breaker,
 )
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 try:
     from CORE.freethreading import FreeThreadPool, is_free_threaded
 except ImportError:
@@ -414,6 +424,7 @@ class ParallelInferenceEngine:
             )
 
         except Exception as e:
+            note_failure("parallel:L416", e)
             elapsed = int((time.time() - start) * 1000)
             return ProviderResult(
                 provider=provider_id,
@@ -485,6 +496,7 @@ class ParallelInferenceEngine:
                     with results_lock:
                         results_list.append(result)
                 except Exception as e:
+                    note_failure("parallel:L487", e)
                     with results_lock:
                         results_list.append(ProviderResult(
                             provider=target_id,
@@ -953,6 +965,7 @@ class ParallelInferenceEngine:
                     with results_lock:
                         results_list.append(result)
                 except Exception as e:
+                    note_failure("parallel:L955", e)
                     with results_lock:
                         results_list.append(ProviderResult(
                             provider=provider_id, model=model_name,
@@ -1042,6 +1055,7 @@ class ParallelInferenceEngine:
                     with results_lock:
                         results_list.append(result)
                 except Exception as e:
+                    note_failure("parallel:L1044", e)
                     with results_lock:
                         results_list.append(ProviderResult(
                             provider=pname, model=model_name,

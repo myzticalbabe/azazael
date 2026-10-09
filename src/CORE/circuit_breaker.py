@@ -34,7 +34,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -193,6 +193,7 @@ class CircuitBreaker:
                 previous = self._phase
                 self._phase = name
         except Exception:
+            note_failure("circuit_breaker:L195", None)
             previous = ""
         try:
             yield name
@@ -508,6 +509,7 @@ def replan_from_dead_letters(registry=None, limit: int = 50) -> dict:
         reg = registry if registry is not None else breaker_registry
         letters = list(reg.get_dead_letters() or [])[:max(1, int(limit))]
     except Exception as exc:
+        note_failure("circuit_breaker:L510", exc)
         out["gaps"].append(f"unreadable-dlq:{type(exc).__name__}")
         return out
 

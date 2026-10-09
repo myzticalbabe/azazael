@@ -26,7 +26,7 @@ import numpy as np
 import statistics
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk, scrolledtext
@@ -37,6 +37,7 @@ try:
 
     SKLEARN_AVAILABLE = True
 except ImportError:
+    note_failure("SYSTEMZ_ML:L39", None)
     SKLEARN_AVAILABLE = False
 
 
@@ -80,10 +81,21 @@ class ResourcePrediction:
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("SYSTEMZ_ML:L82", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
 from CORE.paths import get_project_root
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _ROOT = get_project_root()
 _OUTPUT_DIR = _ROOT / "output" / "systemz_ml"
@@ -438,6 +450,7 @@ class SYSTEMZ_ML:
                         for d in data
                     ]
             except Exception:
+                note_failure("SYSTEMZ_ML:L440", None)
                 self.history = []
 
     def _save_model(self):
@@ -468,7 +481,7 @@ class SYSTEMZ_ML:
                 self.scaler = model_data.get("scaler")
                 self.baseline = model_data.get("baseline", {})
             except Exception:
-                pass
+                note_failure("SYSTEMZ_ML:L470", None)
 
     def analyze_trends(self, hours: int = 24) -> dict[str, Any]:
         """Analyze historical trends."""

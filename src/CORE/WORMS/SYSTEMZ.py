@@ -22,14 +22,25 @@ VERSION = "1.0.0"
 
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("SYSTEMZ:L32", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -66,6 +77,7 @@ class SystemZ:
             import psutil
             self.boot_time = datetime.fromtimestamp(psutil.boot_time())
         except Exception:
+            note_failure("SYSTEMZ:L68", None)
             self.boot_time = datetime.now()
 
     def get_cpu(self, interval: float = 1.0) -> dict[str, Any]:
@@ -114,7 +126,7 @@ class SystemZ:
                 if info["cpu_percent"] is not None:
                     processes.append(info)
             except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
+                note_failure("SYSTEMZ:L116", None)
         processes.sort(key=lambda x: x.get("cpu_percent", 0), reverse=True)
         return processes[:limit]
 

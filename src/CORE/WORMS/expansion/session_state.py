@@ -20,7 +20,17 @@ import threading
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 __all__ = ["SessionStateManager"]
@@ -29,6 +39,7 @@ try:
     from CORE.worm_registry import register_worm, BaseWormMixin
     _REGISTRY_OK = True
 except ImportError:
+    note_failure("session_state:L31", None)
     _REGISTRY_OK = False
     class BaseWormMixin:  # type: ignore[no-redef]
         pass
@@ -51,6 +62,7 @@ def _get_store():
                     from CORE.local_memory import LocalMemoryStore
                     _store = LocalMemoryStore()
                 except ImportError:
+                    note_failure("session_state:L53", None)
                     _store = False
     return _store if _store else None
 
@@ -69,6 +81,7 @@ def _get_dm():
                     from CORE.direct_memory import DirectMemory
                     _dm = DirectMemory(session_id="session_state_manager")
                 except ImportError:
+                    note_failure("session_state:L71", None)
                     _dm = False
     return _dm if _dm else None
 
@@ -166,7 +179,7 @@ class SessionStateManager(BaseWormMixin):
                     tags=["session_state", "registration"],
                 )
             except Exception:
-                pass
+                note_failure("session_state:L168", None)
 
         return {
             "worm": worm_name,
@@ -310,6 +323,7 @@ class SessionStateManager(BaseWormMixin):
         try:
             state = reg["get_state"]()
         except Exception as e:
+            note_failure("session_state:L312", e)
             return {"worm": worm_name, "error": str(e)}
 
         state["_schema_version"] = state.get("_schema_version", reg.get("version", "1.0.0"))
@@ -367,7 +381,7 @@ class SessionStateManager(BaseWormMixin):
                     tags=["session_state", "snapshot"],
                 )
             except Exception:
-                pass
+                note_failure("session_state:L369", None)
 
         self._last_snapshot_id = snapshot_id
 
@@ -415,11 +429,13 @@ class SessionStateManager(BaseWormMixin):
             try:
                 state = self.migrate_state(worm_name, state, target_version)
             except Exception as e:
+                note_failure("session_state:L417", e)
                 return {"worm": worm_name, "error": f"Migration failed: {e}"}
 
         try:
             reg["set_state"](state)
         except Exception as e:
+            note_failure("session_state:L422", e)
             return {"worm": worm_name, "error": str(e)}
 
         self._restore_count += 1
@@ -462,7 +478,7 @@ class SessionStateManager(BaseWormMixin):
                     tags=["session_state", "restore"],
                 )
             except Exception:
-                pass
+                note_failure("session_state:L464", None)
 
         return {
             "worms_restored": len(results),
@@ -563,7 +579,7 @@ class SessionStateManager(BaseWormMixin):
         try:
             self.export_snapshots()
         except Exception:
-            pass
+            note_failure("session_state:L565", None)
 
         dm = _get_dm()
         if dm:
@@ -579,7 +595,7 @@ class SessionStateManager(BaseWormMixin):
                     tags=["session_state", "execute"],
                 )
             except Exception:
-                pass
+                note_failure("session_state:L581", None)
 
         result["execution_count"] = self._execution_count
         result["manager_version"] = self.VERSION

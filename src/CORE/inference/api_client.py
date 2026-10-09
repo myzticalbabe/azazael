@@ -18,7 +18,17 @@ Usage:
 
 import threading
 import time
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # --- Custom Exceptions ----------------------------------------------
@@ -82,7 +92,7 @@ def safe_error_message(err: str, max_len: int = 120) -> str:
     try:
         err = err.encode("ascii", errors="replace").decode("ascii")
     except Exception:
-        pass
+        note_failure("api_client:L84", None)
     return err[:max_len]
 
 
@@ -255,6 +265,7 @@ class APIClient:
             result = self._request_with_retry(call_fn)
             return result
         except InferenceError as e:
+            note_failure("api_client:L257", e)
             elapsed_ms = int((time.time() - start) * 1000)
             safe_msg = safe_error_message(str(e))
             return {
@@ -263,6 +274,7 @@ class APIClient:
                 "provider": self.provider_name,
             }
         except Exception as e:
+            note_failure("api_client:L265", e)
             elapsed_ms = int((time.time() - start) * 1000)
             safe_msg = safe_error_message(str(e))
             return {

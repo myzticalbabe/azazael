@@ -12,11 +12,22 @@ import hashlib
 import py_compile
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("immune:L19", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -75,6 +86,7 @@ class ImmuneSentinelWorm:
                     cls._EBPF_BASELINE = _json.load(open(p, encoding="utf-8"))
                     break
             except Exception:
+                note_failure("immune:L77", None)
                 continue
         else:
             cls._EBPF_BASELINE = {}
@@ -93,6 +105,7 @@ class ImmuneSentinelWorm:
                 from river.drift import ADWIN
                 cls._ADWIN[metric] = ADWIN()
             except ImportError:
+                note_failure("immune:L95", None)
                 cls._ADWIN[metric] = False
         return cls._ADWIN[metric] or None
 
@@ -111,7 +124,7 @@ class ImmuneSentinelWorm:
                 det.update(per_sec)
                 r["drift"] = bool(det.drift_detected)
             except Exception:
-                pass
+                note_failure("immune:L113", None)
         if base is None:
             return {**r, "src": "online-only", "comm": comm}
         mu = base["per_sec_mean"]
@@ -153,6 +166,7 @@ class QuarantineWorm:
             from CORE import spine_registry as _sr
             return _sr
         except Exception:
+            note_failure("immune:L155", None)
             return None
 
     def quarantine(self, item_id: str, reason: str) -> dict[str, Any]:
@@ -169,6 +183,7 @@ class QuarantineWorm:
                 count = spine.quarantine_count()
                 shared = True
             except Exception:
+                note_failure("immune:L171", None)
                 shared = False
         return {"success": True, "item": item_id,
                 "quarantined": count, "shared": shared}
@@ -186,6 +201,7 @@ class QuarantineWorm:
                 count = spine.quarantine_count()
                 shared = True
             except Exception:
+                note_failure("immune:L188", None)
                 shared = False
         return {"success": True, "item": item_id, "released": gone,
                 "quarantined": count, "shared": shared}
@@ -201,7 +217,7 @@ class QuarantineWorm:
             try:
                 return bool(spine.is_quarantined(item_id))
             except Exception:
-                pass
+                note_failure("immune:L203", None)
         with self._lock:
             return item_id in self._quarantined
 
@@ -212,7 +228,7 @@ class QuarantineWorm:
             try:
                 return dict(spine.get_quarantine_items())
             except Exception:
-                pass
+                note_failure("immune:L214", None)
         with self._lock:
             return {k: dict(v) for k, v in self._quarantined.items()}
 
@@ -241,6 +257,7 @@ class AttestationWorm:
         try:
             digest = hashlib.sha256(p.read_bytes()).hexdigest()[:16]
         except Exception as e:
+            note_failure("immune:L243", e)
             return {"success": False, "path": path, "reason": str(e)[:80]}
         compiles = None
         if p.suffix == '.py':
@@ -248,11 +265,13 @@ class AttestationWorm:
                 py_compile.compile(str(p), doraise=True)
                 compiles = True
             except Exception:
+                note_failure("immune:L250", None)
                 compiles = False
         try:
             from CORE.freethreading import is_free_threaded
             ft = is_free_threaded()
         except Exception:
+            note_failure("immune:L255", None)
             ft = False
         rec = {"path": str(p), "sha": digest, "compiles": compiles,
                "ft": ft, "at": datetime.now().isoformat(),
@@ -481,6 +500,7 @@ class AutoencoderAnomalyWorm:
                     or len(w_dec) != n or any(len(r) != h for r in w_dec)):
                 return False
         except (KeyError, TypeError, ValueError):
+            note_failure("immune:L483", None)
             return False
         with self._lock:
             self._W_enc = w_enc
@@ -504,6 +524,7 @@ class AutoencoderAnomalyWorm:
             return {"saved": True, "path": str(path),
                     "observations": self._observations}
         except Exception as exc:
+            note_failure("immune:L506", exc)
             return {"saved": False, "error": str(exc)[:120]}
 
     def load(self) -> dict[str, Any]:
@@ -515,6 +536,7 @@ class AutoencoderAnomalyWorm:
             import json
             model = json.loads(path.read_text(encoding="utf-8"))
         except Exception as exc:
+            note_failure("immune:L517", exc)
             return {"loaded": False, "error": str(exc)[:120]}
         if not self.import_model(model):
             return {"loaded": False, "reason": "incompatible_model"}

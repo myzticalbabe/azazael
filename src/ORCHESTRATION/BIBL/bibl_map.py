@@ -59,7 +59,17 @@ import sys
 import time
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Range files, matching the layout the Kali snapshot used.
 RANGES = (("A", "F", "A-F"), ("G", "L", "G-L"),
@@ -175,6 +185,7 @@ def _iter_files(root: Path, exts: set[str], max_bytes: int) -> Iterable[Path]:
             try:
                 size = p.stat().st_size
             except OSError:
+                note_failure("bibl_map:L177", None)
                 continue
             if 0 < size <= max_bytes:
                 yield p
@@ -208,6 +219,7 @@ def crawl_code(root: Path) -> tuple[dict[str, Node], dict[str, int]]:
             source = path.read_text(encoding="utf-8", errors="replace")
             tree = ast.parse(source)
         except (OSError, SyntaxError, ValueError, RecursionError):
+            note_failure("bibl_map:L210", None)
             stats["parse_errors"] += 1
             continue
         stats["files"] += 1
@@ -265,7 +277,7 @@ def _walk_symbols(nodes: dict[str, Node], stats: dict, rel: str,
                         try:
                             bases.append(_clean(ast.unparse(b), 80))
                         except (ValueError, TypeError):
-                            pass
+                            note_failure("bibl_map:L267", None)
                 nodes[key] = Node(
                     name=_clean(label, 120), raw_name=raw,
                     kind=kind, graph="code",
@@ -298,6 +310,7 @@ def _source_segment(source: str, node: ast.AST) -> str:
     try:
         seg = ast.get_source_segment(source, node)
     except (ValueError, TypeError):
+        note_failure("bibl_map:L300", None)
         seg = None
     return seg or ""
 
@@ -316,6 +329,7 @@ def crawl_docs(root: Path) -> tuple[dict[str, Node], dict[str, int]]:
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
+            note_failure("bibl_map:L318", None)
             continue
         stats["files"] += 1
         for lineno, line in enumerate(text.splitlines(), 1):

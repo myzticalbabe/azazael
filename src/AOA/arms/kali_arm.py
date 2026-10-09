@@ -18,6 +18,16 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from core.arm_registry import BaseArm, ArmCapability, register_arm
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # tool -> (family, short purpose). Family mirrors the azazael-bin-* skill category.
 # Verified `command -v` in kali-linux WSL on 2026-09-02 (41 tools); the few
 # pip/venv-only tools (osintgram, open-webui, llama-server, vllm, sglang) are listed
@@ -109,6 +119,7 @@ class KaliArm(BaseArm):
                 )
                 present[tool] = r.returncode == 0 and r.stdout.strip() != ""
             except Exception:
+                note_failure("kali_arm:L111", None)
                 present[tool] = False
         return present
 
@@ -150,6 +161,7 @@ class KaliArm(BaseArm):
             return self._run_tool(capability, args)
 
         except Exception as e:
+            note_failure("kali_arm:L152", e)
             return {"status": "error", "error": str(e)}
 
     def _version_probe(self, tool: str) -> dict:
@@ -166,6 +178,7 @@ class KaliArm(BaseArm):
                     return {"version": r.stdout.strip().splitlines()[0][:90]}
             return {"version": None}
         except Exception:
+            note_failure("kali_arm:L168", None)
             return {"version": None}
 
     def _run_tool(self, tool: str, args: list) -> dict:
@@ -188,6 +201,7 @@ class KaliArm(BaseArm):
                 "stderr": r.stderr[:500],
             }
         except Exception as e:
+            note_failure("kali_arm:L190", e)
             return {"status": "error", "tool": tool, "error": str(e)}
 
     def get_capabilities(self) -> List[ArmCapability]:

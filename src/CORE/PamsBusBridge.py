@@ -8,11 +8,21 @@ messages as memories in the Persistent AI Memory System (PAMS).
 import json
 from CORE.uuid7 import uuid7
 import threading
-from typing import Optional
+from typing import Optional, List
 
 from CORE.FreeThreadedAgent import FreeThreadedAgent
 from CORE.MemoryBus import MemoryBus, BusMessage
 import requests
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class PamsBusBridge(FreeThreadedAgent):
@@ -68,6 +78,7 @@ class PamsBusBridge(FreeThreadedAgent):
             sid = self._session_id
             self.tlog("info", f'Session {sid} registered with PAMS')
         except Exception as e:
+            note_failure("PamsBusBridge:L70", e)
             self.tlog("warning", f'Could not register session: {e}')
 
     # ------------------------------------------------------------------
@@ -108,6 +119,7 @@ class PamsBusBridge(FreeThreadedAgent):
                 topic = message.topic
                 self.tlog("warning", f"PAMS returned {status_code} for {topic}")
         except Exception as e:
+            note_failure("PamsBusBridge:L110", e)
             with self._stats_lock:
                 self._persist_stats["failed"] += 1
             topic = message.topic
@@ -131,7 +143,7 @@ class PamsBusBridge(FreeThreadedAgent):
             try:
                 self.memory_bus.unsubscribe(pattern, self._on_memory_message)
             except Exception:
-                pass
+                note_failure("PamsBusBridge:L133", None)
         stats = self._persist_stats
         self.tlog("info", f"PamsBusBridge stopped. Stats: {stats}")
 

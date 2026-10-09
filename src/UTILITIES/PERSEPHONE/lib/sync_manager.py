@@ -21,10 +21,20 @@ Usage:
 import subprocess
 import json
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 from dataclasses import dataclass, field
 from datetime import datetime
 import argparse
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -171,8 +181,10 @@ class SyncManager:
                         result_obj.stderr or f"Exit code: {result_obj.returncode}"
                     )
         except subprocess.CalledProcessError as e:
+            note_failure("sync_manager:L173", e)
             result.errors.append(str(e))
         except FileNotFoundError:
+            note_failure("sync_manager:L175", None)
             result.errors.append("rsync not found. Install via: sudo apt install rsync")
 
         result.duration = (datetime.now() - start_time).total_seconds()
@@ -204,6 +216,7 @@ class SyncManager:
                 result.success = result_obj.returncode in [0, 1]
                 result.files_synced = -1
             except Exception as e:
+                note_failure("sync_manager:L206", e)
                 result.errors.append(str(e))
         else:
             result.success = True
@@ -236,6 +249,7 @@ class SyncManager:
                 else:
                     result.errors.append(result_obj.stderr)
         except FileNotFoundError:
+            note_failure("sync_manager:L238", None)
             result.errors.append("ADB not found. Install Android SDK platform tools.")
 
         return result

@@ -19,9 +19,19 @@ import re
 import subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 
 from CORE.paths import get_src_dir
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 AZAAZEL_ROOT = get_src_dir()
 VENV_PYTHON = AZAAZEL_ROOT / ".venv" / "Scripts" / "python.exe"
@@ -49,6 +59,7 @@ class AzazaelNode:
                 if "sys.path.insert" in content and "C:\\Users" in content:  # scanner:ignore deliberate: detector for this anti-pattern
                     issues["syntax_errors"].append(str(py_file))
             except Exception:
+                note_failure("NODE:L51", None)
                 issues["syntax_errors"].append(str(py_file))
 
         return issues
@@ -62,6 +73,7 @@ class AzazaelNode:
             self.deficiencies_fixed.append(f"BOM removed: {file_path}")
             return True
         except Exception:
+            note_failure("NODE:L64", None)
             return False
 
     def fix_bad_syspath(self, file_path: str) -> bool:
@@ -88,6 +100,7 @@ class AzazaelNode:
                     return True
             return False
         except Exception:
+            note_failure("NODE:L90", None)
             return False
 
     def activate_ml(self) -> dict[str, Any]:
@@ -115,6 +128,7 @@ class AzazaelNode:
                 results[name] = ("OK", version)
                 self.ml_activated[name] = version
             except Exception as e:
+                note_failure("NODE:L117", e)
                 results[name] = ("FAILED", str(e))
                 self.ml_activated[name] = "ERROR"
 

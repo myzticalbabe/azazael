@@ -16,13 +16,24 @@ import math
 import time
 import random
 import threading
-from typing import Any, Callable
+from typing import Any, Callable, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Worm Registry Import ---------------------------------------------
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("learning_grpo:L25", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -92,6 +103,7 @@ class GRPOTrainer:
         try:
             from CORE.worm_registry import WORM_REGISTRY
         except ImportError:
+            note_failure("learning_grpo:L94", None)
             return []
 
         registry = WORM_REGISTRY
@@ -178,6 +190,7 @@ class GRPOTrainer:
                     reward = 0.0  # No execution history yet: neutral reward
                 rewards.append(reward)
         except Exception:
+            note_failure("learning_grpo:L180", None)
             rewards = [0.0] * len(group)
 
         return rewards
@@ -297,7 +310,7 @@ class GRPOTrainer:
                 severity="info", tags=["grpo", "policy", context_key],
             )
         except Exception:
-            pass
+            note_failure("learning_grpo:L299", None)
 
         # Auto-save full policy snapshot after every update
         self.save_policy()
@@ -327,6 +340,7 @@ class GRPOTrainer:
                 try:
                     conf = mc.get_confidence(w)
                 except Exception:
+                    note_failure("learning_grpo:L329", None)
                     conf = 0.5
                 return policy[w] * (0.5 + conf)
 
@@ -334,7 +348,7 @@ class GRPOTrainer:
             if ranked:
                 return ranked[0]
         except Exception:
-            pass
+            note_failure("learning_grpo:L336", None)
         return best
 
     def get_policy(self, context_key: str = None) -> dict[str, Any]:
@@ -395,6 +409,7 @@ class GRPOTrainer:
                 print("GRPO tombstone cleanup failed: %s" % str(e)[:160], flush=True)
             return True
         except Exception:
+            note_failure("learning_grpo:L397", None)
             return False
 
     def load_policy(self) -> bool:
@@ -427,6 +442,7 @@ class GRPOTrainer:
                         }
             return bool(self._policy)
         except Exception:
+            note_failure("learning_grpo:L429", None)
             return False
 
     def get_stats(self) -> dict[str, Any]:
@@ -515,6 +531,7 @@ class ABTestRunner:
             rows = store.query_memories(event_type="preference_recorded",
                                         limit=limit)
         except Exception:
+            note_failure("learning_grpo:L517", None)
             return 0
         import json as _json
         loaded = 0
@@ -528,6 +545,7 @@ class ABTestRunner:
                     try:
                         d = _json.loads(d)
                     except Exception:
+                        note_failure("learning_grpo:L530", None)
                         continue
                 if not isinstance(d, dict) or d.get("experiment") != experiment:
                     continue
@@ -614,7 +632,7 @@ class ABTestRunner:
                 severity="info", tags=["dpo", "preference", experiment],
             )
         except Exception:
-            pass
+            note_failure("learning_grpo:L616", None)
 
         return entry
 

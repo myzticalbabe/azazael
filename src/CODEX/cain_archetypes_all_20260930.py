@@ -10,6 +10,17 @@ something that actually happened on 2026-09-30 and is traceable to a file, a
 timestamp, or a correction the user made.
 """
 import os, re, html as H
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 AZ = r"C:\Users\clint\azazael"
 DOC = os.path.join(AZ, "dashboard", "CAIN_20260930.html")

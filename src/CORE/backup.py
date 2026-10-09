@@ -25,6 +25,17 @@ import shutil
 import hashlib
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def _get_backup_base() -> Path:
@@ -92,6 +103,7 @@ def list_backups() -> list:
                 "integrity_verified": data.get("integrity_verified", False),
             })
         except Exception:
+            note_failure("backup:L94", None)
             continue
     return backups
 
@@ -121,7 +133,7 @@ def incremental_backup(output_dir: str = None) -> dict:
             for f in last_data.get("files", []):
                 last_hashes[f["path"]] = f["hash"]
         except Exception:
-            pass
+            note_failure("backup:L123", None)
     
     # Collect files
     from CORE.direct_memory import DB_PATH
@@ -148,6 +160,7 @@ def incremental_backup(output_dir: str = None) -> dict:
             if rel not in last_hashes or last_hashes[rel] != h:
                 new_files.append((fp, rel, h))
         except Exception:
+            note_failure("backup:L150", None)
             new_files.append((fp, str(fp), "unknown"))
     
     if not new_files:
@@ -209,6 +222,7 @@ def verify_backup_integrity(manifest_path: str) -> dict:
     try:
         manifest = json.loads(mfp.read_text(encoding="utf-8"))
     except Exception as e:
+        note_failure("backup:L211", e)
         return {"error": f"Cannot parse manifest: {e}"}
 
     backup_dir = mfp.parent / mfp.stem.replace("backup_", "backup_")
@@ -237,6 +251,7 @@ def verify_backup_integrity(manifest_path: str) -> dict:
             else:
                 verified += 1
         except Exception:
+            note_failure("backup:L239", None)
             mismatched.append({"path": rel_path, "error": "Cannot read file"})
 
     return {
@@ -270,6 +285,7 @@ def restore_backup(manifest_path: str, target_dir: str = "", dry_run: bool = Fal
     try:
         manifest = json.loads(mfp.read_text(encoding="utf-8"))
     except Exception as e:
+        note_failure("backup:L272", e)
         return {"error": f"Cannot parse manifest: {e}"}
 
     ts = mfp.stem.replace("backup_", "")
@@ -305,6 +321,7 @@ def restore_backup(manifest_path: str, target_dir: str = "", dry_run: bool = Fal
                 restored += 1
                 total_bytes += entry.get("size", 0)
             except Exception as e:
+                note_failure("backup:L307", e)
                 errors.append(f"Failed to restore {fname}: {e}")
 
     return {

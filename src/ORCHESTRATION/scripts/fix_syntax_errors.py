@@ -10,6 +10,17 @@ from pathlib import Path
 # Add src/ to path for CORE imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from CORE.paths import get_project_root
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def find_syntax_errors(directory: str) -> list[dict]:
@@ -22,6 +33,7 @@ def find_syntax_errors(directory: str) -> list[dict]:
             try:
                 compile(content, str(py_file), "exec")
             except SyntaxError as e:
+                note_failure("fix_syntax_errors:L24", e)
                 errors.append(
                     {
                         "path": str(py_file),
@@ -31,6 +43,7 @@ def find_syntax_errors(directory: str) -> list[dict]:
                     }
                 )
         except (PermissionError, OSError):
+            note_failure("fix_syntax_errors:L33", None)
             continue
 
     return errors
@@ -82,6 +95,7 @@ def fix_syntax_errors(errors: list[dict]) -> dict:
                 )
 
         except Exception as e:
+            note_failure("fix_syntax_errors:L84", e)
             results["manual_required"] += 1
             results["details"].append(
                 {"path": path, "status": "ERROR", "error": str(e)}

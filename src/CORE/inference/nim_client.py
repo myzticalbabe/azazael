@@ -31,15 +31,26 @@ import json
 import threading
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, List
 
 # 3.14t port: openai SDK needs pydantic_core (no free-threaded build).
 try:
     from openai import OpenAI
 except ImportError:
+    note_failure("nim_client:L39", None)
     OpenAI = None
 
 from CORE.inference.providers import OpenAIProvider
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # --- Constants ------------------------------------------------------
 
@@ -137,7 +148,7 @@ class NimClient(OpenAIProvider):
                     file_config = json.load(fh)
                 api_key = file_config.get("api_key", "")
             except (json.JSONDecodeError, OSError):
-                pass
+                note_failure("nim_client:L139", None)
 
         return NimConfig(
             api_key=api_key,
@@ -157,6 +168,7 @@ class NimClient(OpenAIProvider):
                 }, fh, indent=2)
             return True
         except OSError:
+            note_failure("nim_client:L159", None)
             return False
 
     # -- Key validation (NIM-specific: nvapi- prefix) ---------------
@@ -224,6 +236,7 @@ class NimClient(OpenAIProvider):
             from openai import OpenAI  # noqa: F401
             results["import_ok"] = True
         except ImportError:
+            note_failure("nim_client:L226", None)
             results["issues"].append("openai package not installed")
             results["import_ok"] = False
 

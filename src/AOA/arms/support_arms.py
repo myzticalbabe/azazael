@@ -3,6 +3,16 @@ from pathlib import Path
 from typing import Dict, List
 from core.arm_registry import BaseArm, ArmCapability, register_arm
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 @register_arm(arm_id="pams",name="PAMS Memory System",version="1.0.0",description="Performance and Memory System - shared memory pool and audit trail",category="support",priority=8)
 class PamsArm(BaseArm):
     def initialize(self)->bool:
@@ -33,6 +43,7 @@ class PamsArm(BaseArm):
                 return {"status": "ok", "data": {"initialized": self._initialized, "total_events": self._dm.count() if hasattr(self, "_dm") else 0}}
             return {"status": "error", "error": "Unknown: " + capability}
         except Exception as e:
+            note_failure("support_arms:L35", e)
             return {"status": "error", "error": str(e)}
     def get_capabilities(self)->List[ArmCapability]:
         return [ArmCapability("record_event","Record an event to PAMS",category="memory"),ArmCapability("get_memories","Query memory store",category="memory"),ArmCapability("get_status","Get PAMS status",category="monitoring")]
@@ -75,6 +86,7 @@ class PerformanceMonitorArm(BaseArm):
                 return {"status": "ok", "data": {"initialized": self._initialized}}
             return {"status": "error", "error": "Unknown: " + capability}
         except Exception as e:
+            note_failure("support_arms:L77", e)
             return {"status": "error", "error": str(e)}
     def get_capabilities(self)->List[ArmCapability]:
         return [ArmCapability("get_metrics","Get system performance metrics",category="monitoring"),ArmCapability("get_status","Get monitor status",category="monitoring")]
@@ -128,8 +140,10 @@ class LlamaServerArm(BaseArm):
                 }
             return {"status": "error", "error": "Unknown: " + capability}
         except self._subprocess.TimeoutExpired:
+            note_failure("support_arms:L130", None)
             return {"status": "error", "error": "LlamaServer operation timed out"}
         except Exception as e:
+            note_failure("support_arms:L132", e)
             return {"status": "error", "error": str(e)}
     def get_capabilities(self)->List[ArmCapability]:
         return [

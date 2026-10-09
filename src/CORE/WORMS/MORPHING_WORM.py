@@ -13,6 +13,17 @@ from pathlib import Path
 from dataclasses import dataclass, field
 
 from CORE.paths import get_project_root
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -74,7 +85,7 @@ class MorphingWorm:
             if b"\xef\xbb\xbf" in content:
                 return {"type": "BOM", "severity": "HIGH", "fix": "remove_bom"}
         except (OSError, PermissionError):
-            pass
+            note_failure("MORPHING_WORM:L76", None)
         return None
 
     def detect_syntax(self, fp: Path) -> (dict | None):
@@ -83,6 +94,7 @@ class MorphingWorm:
                 code = f.read()
             compile(code, str(fp), "exec")
         except SyntaxError as e:
+            note_failure("MORPHING_WORM:L85", e)
             return {
                 "type": "SYNTAX",
                 "severity": "CRITICAL",
@@ -90,7 +102,7 @@ class MorphingWorm:
                 "msg": e.msg,
             }
         except Exception:
-            pass
+            note_failure("MORPHING_WORM:L92", None)
         return None
 
     def detect_imports(self, fp: Path) -> (dict | None):
@@ -104,7 +116,7 @@ class MorphingWorm:
             if result.returncode != 0:
                 return {"type": "IMPORT", "severity": "MEDIUM"}
         except (subprocess.TimeoutExpired, Exception):
-            pass
+            note_failure("MORPHING_WORM:L106", None)
         return None
 
     def detect_escape_sequences(self, fp: Path) -> (dict | None):
@@ -117,7 +129,7 @@ class MorphingWorm:
                     if '"""' not in line and "'''" not in line:
                         return {"type": "ESCAPE", "severity": "LOW", "line": i}
         except (OSError, PermissionError):
-            pass
+            note_failure("MORPHING_WORM:L119", None)
         return None
 
     def detect_malformed_patterns(self, fp: Path) -> list[dict]:
@@ -147,7 +159,7 @@ class MorphingWorm:
                             }
                         )
         except (OSError, UnicodeDecodeError):
-            pass
+            note_failure("MORPHING_WORM:L149", None)
         return issues
 
     def auto_fix_bom(self, fp: Path) -> bool:
@@ -159,6 +171,7 @@ class MorphingWorm:
                 f.write(content)
             return True
         except (OSError, PermissionError):
+            note_failure("MORPHING_WORM:L161", None)
             return False
 
     def auto_fix_syntax_known(self, fp: Path, error_type: str) -> bool:

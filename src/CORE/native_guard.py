@@ -34,7 +34,17 @@ import importlib.util
 import subprocess
 import sys
 import sysconfig
-from typing import Dict
+from typing import Dict, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 #: True when running a free-threaded (no-GIL) build. Cheap, no subprocess.
 GIL_DISABLED: bool = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
@@ -61,6 +71,7 @@ def has_module(name: str) -> bool:
     try:
         return importlib.util.find_spec(name) is not None
     except Exception:
+        note_failure("native_guard:L63", None)
         return False
 
 
@@ -86,6 +97,7 @@ def import_ok(name: str, timeout: float = 60.0) -> bool:
         )
         ok = proc.returncode == 0
     except Exception:
+        note_failure("native_guard:L88", None)
         ok = False
     _IMPORT_OK[name] = ok
     return ok

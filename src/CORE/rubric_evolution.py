@@ -27,7 +27,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -98,6 +98,7 @@ def gate_distillation(baseline_reward: float,
         base = float(baseline_reward)
         mem = float(memory_reward)
     except (TypeError, ValueError):
+        note_failure("rubric_evolution:L100", None)
         return {"distill": False, "gain": 0.0,
                 "gaps": ["non-numeric-rewards"]}
     return {"distill": mem > base, "gain": mem - base}

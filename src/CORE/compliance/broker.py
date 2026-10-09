@@ -46,6 +46,17 @@ from CORE.compliance.state_machine import (
     StateMachineError,
 )
 from CORE.compliance_auditor import get_eca
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Optional GateBash import for basher command interception
 try:
@@ -56,6 +67,7 @@ try:
     _GATE_BASH_AVAILABLE = True
     _GATE_BASH_ERR = ""
 except ImportError as _gb_e:
+    note_failure("broker:L58", _gb_e)
     _GATE_BASH_AVAILABLE = False
     _GATE_BASH_ERR = str(_gb_e)
     GateBash = None  # type: ignore
@@ -69,6 +81,7 @@ try:
     import wrapt
     HAS_WRAPT = True
 except ImportError:
+    note_failure("broker:L71", None)
     HAS_WRAPT = False
 
 
@@ -295,7 +308,7 @@ def reset_gate() -> None:
         try:
             _global_sm.reset()
         except StateMachineError:
-            pass
+            note_failure("broker:L297", None)
 
 
 # ---------------------------------------------------------------------------
@@ -411,6 +424,7 @@ def _build_worm_health() -> dict:
             result["message"] = f"Worm health: OK — {ok}/{total} worms passed ({pass_rate}%)"
 
     except (json.JSONDecodeError, OSError) as e:
+        note_failure("broker:L413", e)
         result["status"] = "unknown"
         result["healthy"] = True
         result["halt_reason"] = ""

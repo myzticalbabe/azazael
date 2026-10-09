@@ -4,6 +4,17 @@ Full visual experience with all systems
 """
 
 import tkinter as tk
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def create_immersive_popup():
@@ -321,6 +332,8 @@ def create_immersive_popup():
         web.pack(fill="both", expand=True)
     except ImportError:
         # Fallback to simple Tkinter display — always works
+        # Fallback to simple Tkinter display — always works
+        note_failure("POPUP_IMMERSIVE:L322", None)
         text = tk.Text(root, wrap="word", font=("Consolas", 9))
         text.pack(fill="both", expand=True, padx=10, pady=10)
         text.insert(

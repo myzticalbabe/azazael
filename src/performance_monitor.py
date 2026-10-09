@@ -34,7 +34,17 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Optional dependencies (graceful degradation) ────────────────────
 
@@ -42,6 +52,7 @@ try:
     import psutil
     HAS_PSUTIL = True
 except ImportError:
+    note_failure("performance_monitor:L44", None)
     psutil = None  # type: ignore
     HAS_PSUTIL = False
 
@@ -49,12 +60,14 @@ try:
     import sqlite3 as _sqlite
     HAS_SQLITE = True
 except ImportError:
+    note_failure("performance_monitor:L51", None)
     HAS_SQLITE = False
 
 try:
     import requests as _requests
     HAS_REQUESTS = True
 except ImportError:
+    note_failure("performance_monitor:L57", None)
     _requests = None  # type: ignore — keeps monkeypatch targets importable without requests
     HAS_REQUESTS = False
 
@@ -198,7 +211,7 @@ class PerformanceMonitor:
 
             snap.process_count = len(psutil.pids())
         except Exception:
-            pass  # Graceful degradation  # scanner:ignore
+            note_failure("performance_monitor:L200", None) # Graceful degradation  # scanner:ignore
 
         return snap
 
@@ -226,6 +239,7 @@ class PerformanceMonitor:
             try:
                 box["n"] = len(proc.open_files() or [])
             except Exception:           # noqa: BLE001 - best effort metric
+                note_failure("performance_monitor:L228", None)
                 box["n"] = 0
 
         worker = threading.Thread(target=_work, daemon=True)
@@ -256,9 +270,10 @@ class PerformanceMonitor:
                         continue
                     candidates.append((info["pid"] or 0, name))
                 except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    note_failure("performance_monitor:L258", None)
                     continue
         except Exception:
-            pass  # scanner:ignore
+            note_failure("performance_monitor:L260", None) # scanner:ignore
 
         # Pass 2: only the matched processes pay for the expensive attributes.
         snapshots = []
@@ -290,8 +305,10 @@ class PerformanceMonitor:
                     uptime_seconds=round(time.time() - (created or time.time()), 0),
                 ))
             except (psutil.NoSuchProcess, psutil.AccessDenied):
+                note_failure("performance_monitor:L292", None)
                 continue
             except Exception:
+                note_failure("performance_monitor:L294", None)
                 continue
 
         return sorted(snapshots, key=lambda s: s.memory_rss_mb, reverse=True)
@@ -327,6 +344,7 @@ class PerformanceMonitor:
                             "SELECT value FROM metadata WHERE key='schema_version'"
                         ).fetchone()
                     except Exception:
+                        note_failure("performance_monitor:L329", None)
                         schema_ver = None
 
                     snap = DBHealthSnapshot(
@@ -342,7 +360,7 @@ class PerformanceMonitor:
                 finally:
                     conn.close()
             except Exception:
-                pass  # scanner:ignore
+                note_failure("performance_monitor:L344", None) # scanner:ignore
 
         return snapshots
 
@@ -383,6 +401,7 @@ class PerformanceMonitor:
                 box["latency_ms"] = (time.perf_counter() - start) * 1000
                 box["resp"] = resp
             except Exception as exc:        # noqa: BLE001 - reported, not raised
+                note_failure("performance_monitor:L385", exc)
                 box["error"] = str(exc)[:200]
 
         worker = threading.Thread(target=_work, daemon=True)
@@ -404,7 +423,7 @@ class PerformanceMonitor:
             if isinstance(body, dict):
                 version = body.get("version", "")
         except Exception:
-            pass  # scanner:ignore
+            note_failure("performance_monitor:L406", None) # scanner:ignore
         return ServiceHealth(
             name=name, url=url, reachable=True,
             status_code=resp.status_code,

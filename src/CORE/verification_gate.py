@@ -48,7 +48,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -82,6 +82,7 @@ def margin_check(items: List[Dict[str, Any]],
         try:
             conf = float(it.get("confidence", 0.0))
         except (TypeError, ValueError):
+            note_failure("verification_gate:L84", None)
             conf = 0.0
         margin = conf - threshold
         if margin < min_margin:
@@ -229,6 +230,7 @@ def tdd_dual_track_check(tests_track: Optional[Dict[str, Any]],
         tv = int(tests_track.get("version", 0))
         cv = int(code_track.get("version", 0))
     except (TypeError, ValueError):
+        note_failure("verification_gate:L231", None)
         tv, cv = 0, 0
     first = (tv >= cv) if require_tests_first else True
     passing = bool(tests_track.get("passed", False))
@@ -569,6 +571,7 @@ def decompose_rubric(criterion: str,
     try:
         cap = int(max_subquestions)
     except (TypeError, ValueError):
+        note_failure("verification_gate:L571", None)
         cap = 0
     if cap and len(subquestions) > cap:
         dropped = len(subquestions) - cap
@@ -605,6 +608,7 @@ def record_epistemic(result: Dict[str, Any]) -> str:
     try:
         n = int(result.get("n_confirmed", len(result.get("confirmed", []) or [])))
     except (TypeError, ValueError):
+        note_failure("verification_gate:L607", None)
         n = 0
     accepted = bool(result.get("ok", False))
     gaps = list(result.get("gaps", []) or [])

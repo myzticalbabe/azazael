@@ -8,12 +8,24 @@ Performs comprehensive health verification of all ecosystem components.
 import sys
 from pathlib import Path
 from datetime import datetime
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import Dict, Tuple  # removed — all names have native equivalents
 
 # Dynamic path resolution
 try:
     from CORE.paths import get_desktop_dir
 except ImportError:
+    note_failure("ECOSYSTEM_HEALTH_CHECK:L16", None)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from CORE.paths import get_desktop_dir
 
@@ -41,8 +53,10 @@ class EcosystemHealthCheck:
                 compile(f.read(), filepath, "exec")
             return True, "OK"
         except SyntaxError as e:
+            note_failure("ECOSYSTEM_HEALTH_CHECK:L43", e)
             return False, f"Syntax error: {e}"
         except Exception as e:
+            note_failure("ECOSYSTEM_HEALTH_CHECK:L45", e)
             return False, f"Error: {e}"
 
     def check_file_exists(self, filepath: Path) -> tuple[bool, str]:
@@ -60,6 +74,7 @@ class EcosystemHealthCheck:
                 return True, "Imports present"
             return False, "No imports found"
         except Exception as e:
+            note_failure("ECOSYSTEM_HEALTH_CHECK:L62", e)
             return False, f"Error reading file: {e}"
 
     def run_health_check(self) -> dict:

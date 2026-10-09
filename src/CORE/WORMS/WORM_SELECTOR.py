@@ -16,13 +16,24 @@ import json
 import random
 import threading
 import zlib
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Worm Registry Import ─────────────────────────────────────────────
 try:
     from CORE.worm_registry import register_worm, WORM_REGISTRY, discover_worms
     _REGISTRY = True
 except ImportError:
+    note_failure("WORM_SELECTOR:L25", None)
     _REGISTRY = False
     WORM_REGISTRY = {}
     def discover_worms(): return 0
@@ -64,6 +75,7 @@ class WormSelectorWorm:
                 from CORE.WORMS.expansion.learning_grpo import GRPOTrainer
                 self._grpo = GRPOTrainer()
             except ImportError:
+                note_failure("WORM_SELECTOR:L66", None)
                 self._grpo = False
         return self._grpo if self._grpo else None
 
@@ -73,6 +85,7 @@ class WormSelectorWorm:
                 from CORE.WORMS.expansion.learning_grpo import ABTestRunner
                 self._ab_runner = ABTestRunner()
             except ImportError:
+                note_failure("WORM_SELECTOR:L75", None)
                 self._ab_runner = False
         return self._ab_runner if self._ab_runner else None
 
@@ -81,6 +94,7 @@ class WormSelectorWorm:
             from CORE.local_memory import get_memory_store
             return get_memory_store()
         except ImportError:
+            note_failure("WORM_SELECTOR:L83", None)
             return None
 
     def select_worm(self, task_context: dict) -> dict[str, Any]:
@@ -136,7 +150,7 @@ class WormSelectorWorm:
                             "pattern_id": best_pattern.get("id"),
                         }
             except Exception:
-                pass
+                note_failure("WORM_SELECTOR:L138", None)
 
         # Method 3: SpawnDiversityEngine fallback
         try:
@@ -154,7 +168,7 @@ class WormSelectorWorm:
                     "candidates": len(candidates),
                 }
         except Exception:
-            pass
+            note_failure("WORM_SELECTOR:L156", None)
 
         # Final fallback: any worm from the category
         if category:
@@ -214,6 +228,7 @@ class WormSelectorWorm:
                         try:
                             data = json.loads(data)
                         except Exception:
+                            note_failure("WORM_SELECTOR:L216", None)
                             continue
                     if isinstance(data, dict):
                         w = data.get("best_worm", "")
@@ -285,7 +300,7 @@ class WormSelectorWorm:
             try:
                 kg_stats = store.get_knowledge_graph_stats()
             except Exception:
-                pass
+                note_failure("WORM_SELECTOR:L287", None)
 
         return {
             "version": self.VERSION,

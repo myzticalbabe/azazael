@@ -23,8 +23,18 @@ import json
 import time
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import defaultdict
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # -- Sentinel for disabled persistence (safer than string "none") --
 _PERSISTENCE_DISABLED = object()
@@ -35,6 +45,7 @@ try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
 except ImportError:
+    note_failure("meta_cognition:L37", None)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
@@ -42,6 +53,7 @@ try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("meta_cognition:L44", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -108,6 +120,7 @@ def internalize(observation: dict[str, Any], *, worm: str = "global",
                 "strategy": engine.get_current_strategy(target),
                 "reason": rec.get("reason")}
     except Exception as exc:
+        note_failure("meta_cognition:L110", exc)
         return {"error": f"{type(exc).__name__}: {exc}", "adopted": False}
 
 
@@ -241,6 +254,7 @@ class MetaCognitionWorm:
             try:
                 return _get_memory_store_global()
             except Exception:
+                note_failure("meta_cognition:L243", None)
                 return None
         return None
 
@@ -258,7 +272,7 @@ class MetaCognitionWorm:
                 tags=["meta_cognition", obs["worm_type"], obs["outcome"]],
             )
         except Exception:
-            pass
+            note_failure("meta_cognition:L260", None)
 
     # -- ANALYZE Phase --------------------------------------------------
 
@@ -469,6 +483,7 @@ class MetaCognitionWorm:
         try:
             current_score = float(current_score) or 0.5
         except (TypeError, ValueError):
+            note_failure("meta_cognition:L471", None)
             current_score = 0.5
 
         # Score each available strategy from stored history (default 0.5)
@@ -480,6 +495,7 @@ class MetaCognitionWorm:
             try:
                 scores[alt] = float(stored) if stored is not None else 0.5
             except (TypeError, ValueError):
+                note_failure("meta_cognition:L482", None)
                 scores[alt] = 0.5
 
         should_adapt = False
@@ -575,7 +591,7 @@ class MetaCognitionWorm:
                 tags=["meta_cognition", "adaptation", adaptation.get("worm_type", "unknown")],
             )
         except Exception:
-            pass
+            note_failure("meta_cognition:L577", None)
 
     # -- VALIDATE Phase -------------------------------------------------
 
@@ -711,7 +727,7 @@ class MetaCognitionWorm:
                     tags=["meta_cognition", "report", "introspection"],
                 )
             except Exception:
-                pass
+                note_failure("meta_cognition:L713", None)
         # Auto-save state for session-to-session persistence
         if self._persistence_enabled:
             self.save_state()
@@ -751,7 +767,7 @@ class MetaCognitionWorm:
                     tags=["meta_cognition", "persistence", "save"],
                 )
             except Exception:
-                pass
+                note_failure("meta_cognition:L753", None)
 
         return state
 
@@ -784,6 +800,7 @@ class MetaCognitionWorm:
                     try:
                         data = json.loads(data)
                     except (json.JSONDecodeError, TypeError):
+                        note_failure("meta_cognition:L786", None)
                         continue
                 if not isinstance(data, dict) or "episode_count" not in data:
                     continue
@@ -805,6 +822,7 @@ class MetaCognitionWorm:
 
             return False
         except Exception:
+            note_failure("meta_cognition:L807", None)
             return False
 
     # -- Anomaly Detection --------------------------------------------
@@ -1076,4 +1094,4 @@ try:
                 return {"error": f"Unknown meta-cognition action: {action}"}
 
 except ImportError:
-    pass
+    note_failure("meta_cognition:L1078", None)

@@ -45,6 +45,17 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Ensure CORE package is importable when running sentinel_gate.py standalone
 # from any directory (fixes V-AUDIT-03: missing sys.path for ComplianceOrchestrator)
@@ -62,6 +73,7 @@ try:
     )
     _AUDIT_AVAILABLE = True
 except ImportError:
+    note_failure("sentinel_gate:L64", None)
     _AUDIT_AVAILABLE = False
     verify_entry_hash = None
     verify_signature = None
@@ -77,6 +89,7 @@ try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
 except ImportError:
+    note_failure("sentinel_gate:L79", None)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
@@ -88,6 +101,7 @@ try:
     from CORE.compliance.state_machine import ComplianceState, StateMachineError
     _COMPLIANCE_AVAILABLE = True
 except ImportError as _e:
+    note_failure("sentinel_gate:L90", _e)
     _COMPLIANCE_AVAILABLE = False
     _COMPLIANCE_IMPORT_ERROR = str(_e)
     ComplianceOrchestrator = None
@@ -101,6 +115,7 @@ try:
     from CORE.compliance.pre_action_gate import PreActionGate, get_pre_action_gate
     _PAG_AVAILABLE = True
 except ImportError as _pag_e:
+    note_failure("sentinel_gate:L103", _pag_e)
     _PAG_AVAILABLE = False
     _PAG_IMPORT_ERROR = str(_pag_e)
     PreActionGate = None
@@ -111,6 +126,7 @@ try:
     from CORE.sentinel_enforcer import lock_file, unlock_file
     _LOCKING_AVAILABLE = True
 except ImportError:
+    note_failure("sentinel_gate:L113", None)
     _LOCKING_AVAILABLE = False
     def lock_file(f): return False
     def unlock_file(f): return False
@@ -120,6 +136,7 @@ try:
     )
     _HER_AVAILABLE = True
 except ImportError as _her_e:
+    note_failure("sentinel_gate:L122", _her_e)
     _HER_AVAILABLE = False
     _HER_IMPORT_ERROR = str(_her_e)
     HeuristicErrorRecorder = None
@@ -344,6 +361,7 @@ def _verify_audit_citation(citation, audit_filepath, expected_type, agent_filter
     try:
         line_num = int(line_str)
     except ValueError:
+        note_failure("sentinel_gate:L346", None)
         return False
 
     if not Path(filepath).exists():
@@ -633,7 +651,7 @@ def validate_rule_0x(data, audit_filepath=None):
         try:
             co.state_machine.transition_to(ComplianceState.GATE_ASSERT)
         except StateMachineError:
-            pass
+            note_failure("sentinel_gate:L635", None)
 
         # v2: FAIL-CLOSED — state MUST be GATE_ASSERT
         current_state = co.state_machine.state.name if hasattr(co.state_machine.state, 'name') else "UNKNOWN"
@@ -669,7 +687,7 @@ def validate_rule_0x(data, audit_filepath=None):
         try:
             score = co.scorer.get_weighted_score()
         except Exception:
-            pass
+            note_failure("sentinel_gate:L671", None)
 
         if all_passed:
             return True, "[VERIFIABLE] RULE 0X: %d/%d checks passed (score: %.2f)" % (
@@ -680,6 +698,7 @@ def validate_rule_0x(data, audit_filepath=None):
                 ", ".join(failing), passed_count, total, score)
 
     except Exception as e:
+        note_failure("sentinel_gate:L682", e)
         return False, "RULE 0X ERROR: %s" % e
 
 
@@ -728,6 +747,7 @@ def validate_rule_0y(data, audit_filepath=None):
                 ", ".join(failing), passed_count, total)
 
     except Exception as e:
+        note_failure("sentinel_gate:L730", e)
         return False, "RULE 0Y ERROR: %s" % e
 
 
@@ -897,6 +917,7 @@ class SentinelValidator:
             dm = DirectMemory()
             events = dm.list_events(500)
         except Exception:
+            note_failure("sentinel_gate:L899", None)
             self.results.append({"key": "CROSS-REF", "passed": True,
                                 "message": "N/A - DirectMemory error"})
             return True
@@ -1092,9 +1113,9 @@ def main():
                 from SCRIPTS.generate_telemetry import main as telemetry_export
                 telemetry_export()
             except Exception:
-                pass  # Telemetry export is advisory
+                note_failure("sentinel_gate:L1094", None) # Telemetry export is advisory
         except Exception:
-            pass  # Telemetry is advisory, never block the gate
+            note_failure("sentinel_gate:L1096", None) # Telemetry is advisory, never block the gate
 
     # --expect mode: declare expected action for proof-of-omission (v3.1.0)
     if args.expect:

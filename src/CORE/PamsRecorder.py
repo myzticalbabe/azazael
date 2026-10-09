@@ -28,6 +28,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 _AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
 
 # Try requests for PAMS HTTP API
@@ -35,6 +45,7 @@ try:
     import requests
     HTTP_OK = True
 except ImportError:
+    note_failure("PamsRecorder:L37", None)
     HTTP_OK = False
 
 # Try sqlite3 for direct DB fallback
@@ -42,6 +53,7 @@ try:
     import sqlite3
     SQLITE_OK = True
 except ImportError:
+    note_failure("PamsRecorder:L44", None)
     SQLITE_OK = False
 
 # F05 fix (June 7 2026): Import LocalMemoryStore at module level to avoid
@@ -52,6 +64,7 @@ try:
     from CORE.local_memory import LocalMemoryStore
     LOCAL_MEMORY_OK = True
 except ImportError:
+    note_failure("PamsRecorder:L54", None)
     LOCAL_MEMORY_OK = False
     LocalMemoryStore = None  # type: ignore
 
@@ -122,7 +135,7 @@ class PamsRecorder:
                 with open(self.fallback_path, "r") as f:
                     return json.load(f)[-1000:]  # Keep last 1000
             except Exception:
-                pass
+                note_failure("PamsRecorder:L124", None)
         return []
     
     def _save_fallback(self):
@@ -131,7 +144,7 @@ class PamsRecorder:
             with open(self.fallback_path, "w") as f:
                 json.dump(self._fallback_buffer, f, indent=2, default=str)
         except Exception:
-            pass
+            note_failure("PamsRecorder:L133", None)
     
     def _migrate_fallback_to_local(self):
         """Migrate old JSON fallback buffer to local SQLite store."""
@@ -152,7 +165,7 @@ class PamsRecorder:
                     session_id=event.get("session_id", self.session_id),
                 )
             except Exception:
-                pass
+                note_failure("PamsRecorder:L154", None)
         self._save_fallback()
     
     def record_event(self, event_type: str, data: Optional[Dict[str, Any]] = None,
@@ -205,6 +218,8 @@ class PamsRecorder:
                         return True
                 except Exception:
                     # Cache unreachable state — retry after interval
+                    # Cache unreachable state — retry after interval
+                    note_failure("PamsRecorder:L206", None)
                     with type(self)._lock:
                         type(self)._pams_unreachable = True
         
@@ -223,7 +238,7 @@ class PamsRecorder:
                     self.event_count += 1
                 return True
             except Exception:
-                pass
+                note_failure("PamsRecorder:L225", None)
         
         # -- F10 FIX (June 7 2026): Removed fallback layer 3 (conversations.db)
         # and fixed layer 4 (JSON buffer with file locking).
@@ -275,7 +290,7 @@ class PamsRecorder:
                 # Flush any old fallback buffer into local store
                 self._migrate_fallback_to_local()
             except Exception:
-                pass
+                note_failure("PamsRecorder:L277", None)
 
     # -- Query/Recall API (new in v2.0) ------------------------------------
     
@@ -294,7 +309,7 @@ class PamsRecorder:
                     severity=severity, limit=limit, since=since,
                 )
             except Exception:
-                pass
+                note_failure("PamsRecorder:L296", None)
         # Fallback: search buffer
         results = []
         for evt in reversed(self._fallback_buffer):
@@ -322,7 +337,7 @@ class PamsRecorder:
                     query=query, source=source, limit=limit,
                 )
             except Exception:
-                pass
+                note_failure("PamsRecorder:L324", None)
         # Fallback: linear scan buffer
         q = query.lower()
         results = []
@@ -356,6 +371,7 @@ class PamsRecorder:
             try:
                 stats["local_store"] = self._local_store.get_stats()
             except Exception:
+                note_failure("PamsRecorder:L358", None)
                 stats["local_store"] = {"error": "unavailable"}
         return stats
 

@@ -7,6 +7,17 @@ traces (analysis + Yes/No) with a local-model hook and a heuristic
 fallback so it runs CPU-only today.
 """
 import math
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def sp_prm_scores(orm_score_fn, tokens: list[str]) -> list[float]:
@@ -20,6 +31,7 @@ def sp_prm_scores(orm_score_fn, tokens: list[str]) -> list[float]:
         try:
             p = max(1e-6, min(1 - 1e-6, float(orm_score_fn(" ".join(tokens[:i])))))
         except Exception:
+            note_failure("prm:L22", None)
             p = 0.5
         s = math.log(p / (1.0 - p))
         full.append(s - cum)
@@ -51,6 +63,7 @@ def r_prm_verify(steps: list[str], judge_fn=None) -> list[dict]:
         try:
             analysis, score = judge_fn(s)
         except Exception as e:
+            note_failure("prm:L53", e)
             analysis, score = f"judge-fail: {e}"[:800], 0.5
         out.append({"step": s[:200], "analysis": analysis,
                     "score": round(max(0.0, min(1.0, float(score))), 3)})

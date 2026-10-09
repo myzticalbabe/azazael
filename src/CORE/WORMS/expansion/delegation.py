@@ -36,7 +36,17 @@ from __future__ import annotations
 import threading
 import time
 import uuid
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 #: Upper bound for a parked wait. Must stay below the pool watchdog /
 #: ``as_completed`` timeouts that supervise worker threads, or the park
@@ -95,10 +105,12 @@ def _new_decision_id() -> str:
         from CORE.WORMS.expansion.spawn_credit import new_decision_id
         return str(new_decision_id())
     except Exception:
+        note_failure("delegation:L97", None)
         try:
             from CORE.uuid7 import uuid7
             return "d-local-%s" % uuid7().hex[:12]
         except Exception:
+            note_failure("delegation:L101", None)
             return "d-local-%s" % uuid.uuid4().hex[:12]
 
 
@@ -110,10 +122,11 @@ def _announce(topic: str, payload: Dict[str, Any], bus: Any = None) -> None:
                 from CORE.MemoryBus import MemoryBus
                 bus = MemoryBus()
             except Exception:
+                note_failure("delegation:L112", None)
                 return
         bus.publish(topic, payload, source="delegation")
     except Exception:
-        pass
+        note_failure("delegation:L115", None)
     try:
         from CORE.local_memory import get_memory_store
         store = get_memory_store()
@@ -127,7 +140,7 @@ def _announce(topic: str, payload: Dict[str, Any], bus: Any = None) -> None:
                       "answered": bool(payload.get("answered", False))},
                 severity="info", tags=["delegation", "ask-owner"])
     except Exception:
-        pass
+        note_failure("delegation:L129", None)
 
 
 def ask_owner(question: str, *,
@@ -199,9 +212,11 @@ def on_question(callback: Callable[[Any], None], *,
                 from CORE.MemoryBus import MemoryBus
                 bus = MemoryBus()
             except Exception:
+                note_failure("delegation:L201", None)
                 return None
         return int(bus.subscribe(pattern, callback))
     except Exception:
+        note_failure("delegation:L204", None)
         return None
 
 

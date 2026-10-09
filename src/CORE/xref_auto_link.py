@@ -11,6 +11,17 @@ import json
 from datetime import datetime
 from CORE.direct_memory import DirectMemory
 from CORE.audit_trail import AUDIT_DIR
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 def auto_link_at_creation(dm_session_id: str) -> bool:
     """Find a matching AJ session by timestamp proximity and link it."""
@@ -26,6 +37,7 @@ def auto_link_at_creation(dm_session_id: str) -> bool:
     try:
         dm_dt = datetime.fromisoformat(row[0])
     except (ValueError, TypeError):
+        note_failure("xref_auto_link:L28", None)
         return False
 
     # Find closest AJ session within 5 seconds
@@ -46,6 +58,7 @@ def auto_link_at_creation(dm_session_id: str) -> bool:
                                 mapping_type="auto", confidence=1.0,
                                 notes="auto-linked at creation")
         except Exception:
+            note_failure("xref_auto_link:L48", None)
             continue
     return False
 

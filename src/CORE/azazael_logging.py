@@ -35,8 +35,18 @@ import logging
 import threading
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # -- Python 3.14t LogRecord compatibility -----------------------------
@@ -75,9 +85,11 @@ try:
         # Python < 3.14: name is not protected
     except AttributeError:
         # Python >= 3.14: name is protected, apply patch
+        # Python >= 3.14: name is protected, apply patch
+        note_failure("azazael_logging:L76", None)
         logging.Logger._log = _safe_log
 except Exception:
-    pass
+    note_failure("azazael_logging:L79", None)
 
 
 @dataclass
@@ -114,6 +126,7 @@ class JsonFormatter(logging.Formatter):
                     "message": str(exc_info[1]) if exc_info[1] else "",
                 }
             except (TypeError, AttributeError):
+                note_failure("azazael_logging:L116", None)
                 entry["exception"] = {"type": "unknown", "message": str(exc_info)}
         return json.dumps(entry, default=str)
 
@@ -213,7 +226,7 @@ try:
         log_file=_cfg.observability.logging.file,
     )
 except Exception:
-    pass
+    note_failure("azazael_logging:L215", None)
 
 
 if __name__ == "__main__":

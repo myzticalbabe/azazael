@@ -25,7 +25,7 @@ import sys
 import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
 
 # ===========================================================================
 # PERMANENT ENFORCEMENT: Import sentinel_enforcer to activate sys.addaudithook
@@ -37,6 +37,7 @@ try:
     import CORE.sentinel_enforcer  # noqa: F401 - triggers sys.addaudithook
     _ENFORCER_LOADED = True
 except ImportError:
+    note_failure("orchestrator:L39", None)
     _ENFORCER_LOADED = False
 
 # Ensure CORE package is importable when running standalone
@@ -59,6 +60,16 @@ from CORE.compliance.governance import (
     DualLedgerValidator, RealtimeAuditPipeline,
     make_policy_judge, make_state_machine_judge,
 )
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 # ---------------------------------------------------------------------------
@@ -273,6 +284,8 @@ class ComplianceOrchestrator:
             return True, []
         except Exception as e:
             # Runtime error in hash verification — log but don't block edits
+            # Runtime error in hash verification — log but don't block edits
+            note_failure("orchestrator:L274", e)
             self.telemetry.emit_error(
                 "canonical_docs", "orchestrator",
                 {"error": str(e),
@@ -307,6 +320,7 @@ class ComplianceOrchestrator:
             self.telemetry.emit_pass("policy_gate", "policy",
                                      {"action": action, "role": role, "allowed": policy_result["allowed"]})
         except Exception as e:
+            note_failure("orchestrator:L309", e)
             results["policy_gate"] = {"allowed": False, "error": str(e)}
             self.telemetry.emit_error("policy_gate", "policy", {"error": str(e)})
 
@@ -353,6 +367,7 @@ class ComplianceOrchestrator:
             else:
                 self.telemetry.emit_fail("state_machine", "state_machine", state_context)
         except Exception as e:
+            note_failure("orchestrator:L355", e)
             results["state_machine"] = {"valid": False, "error": str(e)}
 
         # 0X-5: Structured Output Validation
@@ -463,6 +478,7 @@ class ComplianceOrchestrator:
                 self.telemetry.emit_fail("judge", "governance",
                                          {"action": action, "reason": "Insufficient consensus"})
         except Exception as e:
+            note_failure("orchestrator:L465", e)
             results["judge_consensus"] = {"approved": False, "error": str(e)}
 
         # 0Y-2: Confidence Gates
@@ -535,6 +551,7 @@ class ComplianceOrchestrator:
                 self.telemetry.emit_fail("dual_ledger", "governance",
                                          {"discrepancies": ledger_result["discrepancies"]})
         except Exception as e:
+            note_failure("orchestrator:L537", e)
             results["dual_ledger"] = {"consistent": False, "error": str(e)}
 
         # 0Y-5: Real-Time Audit Pipeline
@@ -549,6 +566,7 @@ class ComplianceOrchestrator:
                     self.telemetry.emit_fail("audit_pipeline", "governance",
                                              {"failed_layers": pipeline_result["failed_layers"]})
             except Exception as e:
+                note_failure("orchestrator:L551", e)
                 results["audit_pipeline"] = {"all_passed": False, "error": str(e)}
         else:
             results["audit_pipeline"] = {"all_passed": True, "note": "No audit filepath provided"}

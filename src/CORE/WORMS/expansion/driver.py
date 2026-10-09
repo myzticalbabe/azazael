@@ -18,11 +18,22 @@ import threading
 import time
 import urllib.request
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("driver:L25", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -93,6 +104,7 @@ class GemmaDriverWorm:
             self._log_call(prompt, text)
             return text
         except Exception:
+            note_failure("driver:L95", None)
             with self._lock:
                 self._fallbacks += 1
             return None
@@ -114,7 +126,7 @@ class GemmaDriverWorm:
                 return {"success": True, "src": "gemma-e2b", "fitness": fit,
                         "goal": goal}
             except Exception:
-                pass
+                note_failure("driver:L116", None)
         # fallback: aim at the weakest improvable component (fail_rate is a
         # raw input, not a maximand — never target it directly).
         comps = {k: v for k, v in fit.get("components", {}).items()
@@ -175,6 +187,7 @@ class GemmaDriverWorm:
                 return None, conf
             return txt.lower().startswith("y"), conf
         except Exception:
+            note_failure("driver:L177", None)
             with self._lock:
                 self._fallbacks += 1
             return None, 0.0
@@ -214,7 +227,7 @@ class GemmaDriverWorm:
                 json.loads(reply[start:reply.rfind("}") + 1])
                 parsed_ok = True
             except Exception:
-                pass
+                note_failure("driver:L216", None)
             rec = {"at": datetime.now(timezone.utc).isoformat(),
                    "prompt": prompt[:500], "reply": reply[:800],
                    "parsed_ok": parsed_ok, "empty": not bool(reply)}
@@ -222,7 +235,7 @@ class GemmaDriverWorm:
             with open(self.MISTAKE_LOG, "a", encoding="utf-8") as f:
                 f.write(json.dumps(rec) + "\n")
         except Exception:
-            pass
+            note_failure("driver:L224", None)
 
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute", "result": self.stats()}

@@ -8,9 +8,19 @@ import os
 import threading
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 from collections import deque
 import queue
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class LogLevel:
@@ -49,7 +59,7 @@ class DynamicLogger:
         try:
             self._start_background_writer()
         except Exception:
-            pass
+            note_failure("AzazaelDynamicLogger:L51", None)
 
     def _start_background_writer(self):
         self._writer_thread = threading.Thread(
@@ -65,9 +75,10 @@ class DynamicLogger:
                     break
                 self._write_to_file(msg_data)
             except queue.Empty:
+                note_failure("AzazaelDynamicLogger:L67", None)
                 continue
             except Exception:
-                pass
+                note_failure("AzazaelDynamicLogger:L69", None)
 
     def _write_to_file(self, msg_data: dict[str, Any]):
         try:
@@ -82,7 +93,7 @@ class DynamicLogger:
                 f.flush()
                 os.fsync(f.fileno())
         except Exception:
-            pass
+            note_failure("AzazaelDynamicLogger:L84", None)
 
     def set_level(self, level: str):
         self._level = level
@@ -165,6 +176,7 @@ class DynamicLogger:
                 msg = self._log_queue.get_nowait()
                 self._write_to_file(msg)
             except queue.Empty:
+                note_failure("AzazaelDynamicLogger:L167", None)
                 break
 
 

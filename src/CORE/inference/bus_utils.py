@@ -18,7 +18,17 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 if TYPE_CHECKING:
     from CORE.MemoryBus import MemoryBus
@@ -46,7 +56,7 @@ class InferenceBusPublisher:
                 self._bus = MemoryBus()
             self._bus.publish("inference.result", data, source=self._source)
         except Exception:
-            pass  # MemoryBus unavailable — non-fatal
+            note_failure("bus_utils:L48", None) # MemoryBus unavailable — non-fatal
 
     def __repr__(self) -> str:
         return (

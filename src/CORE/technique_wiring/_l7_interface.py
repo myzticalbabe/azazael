@@ -25,6 +25,16 @@ from typing import Any, Dict, List
 
 from CORE.technique_runtime import note_failure, register
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 LAYER = "L7"
 
 #: A minimal application contract shared by the interface adapters, so the
@@ -177,6 +187,9 @@ def _ep440_statebridge() -> Dict[str, Any]:
         except Exception as exc:
             # Backend faults belong to the module's own gap vocabulary; report
             # the class rather than letting it look like a wiring defect.
+            # Backend faults belong to the module's own gap vocabulary; report
+            # the class rather than letting it look like a wiring defect.
+            note_failure("_l7_interface:L177", exc)
             out["aligned"] = f"backend-error:{type(exc).__name__}"
     else:
         out["aligned"] = "torch-gated (backend not loaded; module names the gap)"
@@ -239,6 +252,7 @@ def _ep372_modality_agents() -> Dict[str, Any]:
         # must not be reported as a modality finding either way.
         tally = voter.tally("technique-runtime:no-such-finding")
     except Exception as exc:
+        note_failure("_l7_interface:L241", exc)
         tally = {"votes": None, "read_error": type(exc).__name__}
     return {"votes": tally.get("votes") if isinstance(tally, dict) else None,
             "modality_dimension": hasattr(voter, "_modalities"),

@@ -8,6 +8,17 @@ from pathlib import Path
 from datetime import datetime
 from collections import deque
 import queue
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 class LogLevel:
     DEBUG, INFO, WARN, ERROR, SUCCESS = "DEBUG", "INFO", "WARN", "ERROR", "SUCCESS"
@@ -38,7 +49,9 @@ class DynamicLogger:
                 msg = self._log_queue.get(timeout=0.1)
                 if msg is None: break
                 self._persist(msg)
-            except queue.Empty: continue
+            except queue.Empty:
+                note_failure("AzazaelDynamicLogger:L41", None)
+                continue
 
     def _persist(self, msg):
         try:
@@ -48,7 +61,8 @@ class DynamicLogger:
             with open(lp, 'a', encoding='utf-8') as f:
                 f.write(f"{msg['ts']} | {msg['lvl']:7} | {msg['msg']}\n")
                 f.flush(); os.fsync(f.fileno())
-        except Exception: pass
+        except Exception:
+            note_failure("AzazaelDynamicLogger:L51", None)
 
     def log(self, msg, lvl=LogLevel.INFO, tag=""):
         if self._quiet: return

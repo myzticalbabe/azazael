@@ -4,6 +4,17 @@
 Stdlib-first so CPU box stays testable; uses sklearn/hdbscan/optuna
 when present, else deterministic fallbacks.
 """
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def hdbscan_lite(vecs, min_size: int = 5):
@@ -19,7 +30,7 @@ def hdbscan_lite(vecs, min_size: int = 5):
         noise = sum(1 for l in labels if l == -1) / max(1, len(labels))
         return {"labels": labels, "noise_rate": noise, "backend": "hdbscan"}
     except Exception:
-        pass
+        note_failure("cluster_route:L21", None)
     try:
         from sklearn.cluster import HDBSCAN as _H
         cl = _H(min_cluster_size=min_size).fit(vecs)
@@ -27,7 +38,7 @@ def hdbscan_lite(vecs, min_size: int = 5):
         noise = sum(1 for l in labels if l == -1) / max(1, len(labels))
         return {"labels": labels, "noise_rate": noise, "backend": "sklearn"}
     except Exception:
-        pass
+        note_failure("cluster_route:L29", None)
     # fallback: greedy threshold (mean pairwise dist / 2)
     import math
     n = len(vecs)
@@ -77,7 +88,7 @@ def tpe_lite_suggest(trials, bounds: dict, n_candidates: int = 24):
         # deterministic for tests. (Full study lives in tune script.)
         pass
     except Exception:
-        pass
+        note_failure("cluster_route:L79", None)
     ranked = sorted(trials, key=lambda t: t[1], reverse=True)
     good = ranked[:max(1, len(ranked) // 4)]
     base = good[0][0]

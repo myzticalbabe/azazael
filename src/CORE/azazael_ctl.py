@@ -33,7 +33,17 @@ import json
 import time
 import shutil
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Lock file — prevent concurrent writes
 _LOCK_FILE = Path.home() / ".azazael" / "ctl.lock"
@@ -68,7 +78,7 @@ def _release_lock():
         if _LOCK_FILE.exists():
             _LOCK_FILE.unlink()
     except Exception:
-        pass
+        note_failure("azazael_ctl:L70", None)
 
 def _color(text: str, code: str) -> str:
     if not _COLORS:
@@ -175,6 +185,7 @@ def cmd_status_json():
             "aj": s.get("unique_aj_sessions", 0),
         }
     except Exception as e:
+        note_failure("azazael_ctl:L177", e)
         report["crossref"] = {"error": str(e)}
     try:
         from CORE.worm_registry import validate_registry_importable
@@ -187,6 +198,7 @@ def cmd_status_json():
             "validated_at": reg.get("validated_at"),
         }
     except Exception as e:
+        note_failure("azazael_ctl:L189", e)
         report["registry"] = {"valid": False, "error": str(e)}
     print(json.dumps(report, indent=2))
 
@@ -567,7 +579,7 @@ def main():
                 if idx + 1 < len(rest_args):
                     interval = int(rest_args[idx + 1])
             except (ValueError, IndexError):
-                pass
+                note_failure("azazael_ctl:L569", None)
             try:
                 while True:
                     print("\033[2J\033[H", end="")

@@ -33,15 +33,26 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from collections import defaultdict
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # ── Worm Registry ─────────────────────────────────────────────────────
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("ERRORZ:L44", None)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -50,6 +61,7 @@ try:
     from CORE.paths import get_error_targets, DESKTOP_TARGET_NAMES, LOCAL_TARGET_SUBDIRS
     _HAS_PATHS = True
 except ImportError:
+    note_failure("ERRORZ:L52", None)
     _HAS_PATHS = False
     # Standalone mirror of CORE/paths.py (kept in sync manually)
     DESKTOP_TARGET_NAMES = [
@@ -199,6 +211,7 @@ class ERRORZ:
 
             return "\n".join(snippet)
         except Exception:
+            note_failure("ERRORZ:L201", None)
             return ""
 
     def _check_syntax_errors(self, file_path: Path) -> list[ErrorEntry]:
@@ -261,6 +274,7 @@ class ERRORZ:
                     )
 
         except SyntaxError as e:
+            note_failure("ERRORZ:L263", e)
             errors.append(
                 ErrorEntry(
                     file=str(file_path),
@@ -274,7 +288,7 @@ class ERRORZ:
                 )
             )
         except Exception:
-            pass
+            note_failure("ERRORZ:L276", None)
 
         return errors
 
@@ -305,7 +319,7 @@ class ERRORZ:
                         )
 
         except Exception:
-            pass
+            note_failure("ERRORZ:L307", None)
 
         return errors
 
@@ -335,7 +349,7 @@ class ERRORZ:
                     )
 
         except Exception:
-            pass
+            note_failure("ERRORZ:L337", None)
 
         return errors
 
@@ -368,7 +382,7 @@ class ERRORZ:
                         )
 
         except Exception:
-            pass
+            note_failure("ERRORZ:L370", None)
 
         return errors
 
@@ -413,7 +427,7 @@ class ERRORZ:
                         )
 
         except Exception:
-            pass
+            note_failure("ERRORZ:L415", None)
 
         return errors
 

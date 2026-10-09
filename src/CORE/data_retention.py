@@ -46,6 +46,23 @@ import sqlite3
 import gzip
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
+from typing import List
+
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
+
+def _note_failure(where: str, exc: BaseException | None = None) -> None:
+    """Record a fail-open swallow so the degradation is visible."""
+    note_failure(where, exc)
 
 
 # Default thresholds
@@ -141,7 +158,8 @@ def _get_db_path() -> str:
 def _db_size_mb(db_path: str) -> float:
     try:
         return os.path.getsize(db_path) / 1e6 if os.path.exists(db_path) else 0.0
-    except OSError:
+    except OSError as exc:                        # noqa: BLE001 — unreadable = unknown
+        _note_failure("data_retention:db_size_unknown", exc)
         return 0.0
 
 
@@ -186,7 +204,8 @@ def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
     for _id, source, event_type, severity, ts, data in rows:
         try:
             day = str(ts)[:10]
-        except Exception:
+        except Exception as exc:                  # noqa: BLE001 — unusable row skipped
+            _note_failure("data_retention:distill_day", exc)
             continue
         key = (str(source), str(event_type), day)
         g = groups.setdefault(key, {"n": 0, "errors": 0, "first": ts,
@@ -199,8 +218,8 @@ def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
                 g["first"] = ts
             if ts > g["last"]:
                 g["last"] = ts
-        except Exception:
-            pass
+        except Exception as exc:                  # noqa: BLE001 — bounds stay as-is
+            _note_failure("data_retention:distill_bounds", exc)
         try:
             import json as _json
             payload = _json.loads(data) if isinstance(data, str) else {}
@@ -208,8 +227,8 @@ def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
             if isinstance(dur, (int, float)):
                 g["dur_sum"] += float(dur)
                 g["dur_n"] += 1
-        except Exception:
-            pass
+        except Exception as exc:                  # noqa: BLE001 — mean simply omitted
+            _note_failure("data_retention:distill_duration", exc)
     now = datetime.now(timezone.utc).isoformat()
     wrote = 0
     for (source, event_type, day), g in groups.items():
@@ -229,7 +248,8 @@ def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
                  "info", '["retention", "distilled"]', now),
             )
             wrote += 1
-        except Exception:
+        except Exception as exc:                  # noqa: BLE001 — one rollup never stops the pass
+            _note_failure("data_retention:distill_insert", exc)
             continue
     conn.commit()
     conn.close()
@@ -347,8 +367,8 @@ def enforce_global_quota(quota_mb: int | None = None,
         except Exception as e:
             try:
                 conn.close()
-            except Exception:
-                pass
+            except Exception as close_exc:        # noqa: BLE001 — already failing
+                _note_failure("data_retention:quota_close", close_exc)
             return {"enforced": False, "error": str(e)[:200],
                     "freed_est_mb": round(freed_est / 1e6, 2)}
         # Distill this batch's span before deleting (same rollup contract:
@@ -530,7 +550,8 @@ def archive_old_audit_files(max_age_days: int = AUDIT_ARCHIVE_DAYS) -> list:
                 # Remove original
                 fp.unlink()
                 archived.append((fp.name, gz_path.name))
-        except Exception:
+        except Exception as exc:                  # noqa: BLE001 — one file never stops the sweep
+            _note_failure("data_retention:audit_archive", exc)
             continue
     return archived
 
@@ -543,7 +564,8 @@ def vacuum_if_needed(db_path: str | None = None) -> dict:
     for target in targets:
         try:
             conn = sqlite3.connect(target, timeout=10)
-        except Exception:
+        except Exception as exc:                  # noqa: BLE001 — target skipped
+            _note_failure("data_retention:vacuum_connect", exc)
             continue
         try:
             freelist = conn.execute("PRAGMA freelist_count").fetchone()[0]
@@ -572,7 +594,8 @@ def wal_checkpoint(db_path: str | None = None) -> dict:
     for target in targets:
         try:
             conn = sqlite3.connect(target, timeout=30)
-        except Exception:
+        except Exception as exc:                  # noqa: BLE001 — target skipped
+            _note_failure("data_retention:checkpoint_connect", exc)
             continue
         try:
             wal = Path(target).with_suffix(".db-wal")
@@ -614,6 +637,7 @@ def newest_backup() -> dict:
                 "mb": round(latest.stat().st_size / 1e6, 1),
                 "age_h": round((_time.time() - latest.stat().st_mtime) / 3600.0, 1)}
     except Exception as e:
+        note_failure("data_retention:L639", e)
         return {"exists": False, "error": str(e)[:800]}
 
 
@@ -629,8 +653,8 @@ def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
             last = json.loads(state.read_text(encoding="utf-8"))
             if _time.time() - float(last.get("at", 0)) < max_age_days * 86400:
                 return {"status": "deferred", "last": last.get("at_str", "?")}
-    except Exception:
-        pass
+    except Exception as exc:                      # noqa: BLE001 — unreadable state runs the drill
+        _note_failure("data_retention:drill_state_read", exc)
     tmp = Path(_tempfile.mkdtemp(prefix="dbdrill_")) / "drill.db"
     try:
         with _gzip.open(gz, "rb") as f_in, open(tmp, "wb") as f_out:
@@ -656,6 +680,7 @@ def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
             else:
                 result["mirror_crc"] = "mirror missing"
         except Exception as e:
+            note_failure("data_retention:L681", e)
             result["mirror_crc"] = "CRC FAIL: %s" % str(e)[:800]
             result["status"] = "FAIL"
         state.write_text(json.dumps(
@@ -665,8 +690,8 @@ def _maybe_full_drill(gz: Path, max_age_days: int = 30) -> dict:
     finally:
         try:
             _shutil.rmtree(tmp.parent, ignore_errors=True)
-        except Exception:
-            pass
+        except Exception as exc:                  # noqa: BLE001 — temp dir left behind
+            _note_failure("data_retention:drill_cleanup", exc)
 
 
 def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
@@ -704,7 +729,8 @@ def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
             try:
                 old.unlink()
                 pruned.append(old.name)
-            except OSError:
+            except OSError as exc:                # noqa: BLE001 — stop pruning, keep the rest
+                _note_failure("data_retention:prune_local", exc)
                 break
         out = {"path": str(gz), "gz_bytes": gz.stat().st_size,
                "integrity": "ok", "pruned": pruned}
@@ -719,10 +745,12 @@ def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
                 _old = _mexisting.pop(0)
                 try:
                     _old.unlink()
-                except OSError:
+                except OSError as exc:            # noqa: BLE001 — stop mirror-pruning
+                    _note_failure("data_retention:prune_mirror", exc)
                     break
             out["mirror"] = str(_dest)
         except Exception as e:
+            note_failure("data_retention:L750", e)
             out["mirror"] = "skipped: %s" % str(e)[:800]
         # Restore drill (light): re-read the gz (CRC check) so a
         # bit-rotted archive is caught here, not at 3am during an
@@ -734,6 +762,7 @@ def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
                     _n += 1
             out["verified"] = True
         except Exception as e:
+            note_failure("data_retention:L761", e)
             out["verified"] = "CRC FAIL: %s" % str(e)[:800]
         # Full drill, monthly (2026-09-10): gunzip to temp + real
         # integrity_check proves the archive actually restores, not just
@@ -741,14 +770,15 @@ def _backup_one(src, stem: str, keep: int, stamp: str) -> dict:
         try:
             out["full_drill"] = _maybe_full_drill(gz)
         except Exception as e:
+            note_failure("data_retention:L768", e)
             out["full_drill"] = "drill error: %s" % str(e)[:800]
         return out
     except Exception as e:
         try:
             if raw.exists():
                 raw.unlink()
-        except OSError:
-            pass
+        except OSError as cleanup_exc:            # noqa: BLE001 — already returning the error
+            _note_failure("data_retention:backup_cleanup", cleanup_exc)
         return {"error": str(e)[:200]}
 
 
@@ -767,11 +797,13 @@ def backup_database(keep: int = 3) -> dict:
     try:
         out["memory_store"] = _backup_one(_get_db_path(), "memory_store", keep, stamp)
     except Exception as e:
+        note_failure("data_retention:L794", e)
         out["memory_store"] = {"error": str(e)[:200]}
     try:
         out["telemetry_store"] = _backup_one(
             str(_get_telemetry_db_path()), "telemetry_store", keep, stamp)
     except Exception as e:
+        note_failure("data_retention:L799", e)
         out["telemetry_store"] = {"error": str(e)[:200]}
     return out
 
@@ -812,6 +844,7 @@ def rotate_logs(max_mb: int = LOG_ROTATE_MB, keep: int = LOG_ROTATE_KEEP,
             logf.replace(logf.with_name(logf.name + ".1"))
             rotated.append(logf.name)
         except Exception as e:  # noqa: BLE001 — one bad log never blocks the rest
+            note_failure("data_retention:L839", e)
             skipped.append("%s (%s)" % (logf.name, str(e)[:80]))
     return {"rotated": rotated, "skipped": skipped, "log_dir": str(d)}
 
@@ -852,18 +885,22 @@ def _run_maintenance_impl(light: bool = False) -> dict:
     try:
         results["db_backup"] = backup_database()
     except Exception as e:
+        note_failure("data_retention:L879", e)
         results["db_backup"] = {"error": str(e)}
     try:
         results["distilled"] = distill_aged_memories()
     except Exception as e:
+        note_failure("data_retention:L883", e)
         results["distilled"] = {"error": str(e)}
     try:
         results["event_ttl"] = enforce_event_ttl()
     except Exception as e:
+        note_failure("data_retention:L887", e)
         results["event_ttl"] = {"error": str(e)}
     try:
         results["session_rotation"] = {"closed": rotate_old_sessions()}
     except Exception as e:
+        note_failure("data_retention:L891", e)
         results["session_rotation"] = {"error": str(e)}
     try:
         # Distill cap victims BEFORE the trim below deletes them: cap
@@ -871,14 +908,17 @@ def _run_maintenance_impl(light: bool = False) -> dict:
         # first bounded trim vaporizes history no rollup ever summarized.
         results["cap_distilled"] = distill_cap_victims()
     except Exception as e:
+        note_failure("data_retention:L898", e)
         results["cap_distilled"] = {"error": str(e)}
     try:
         results["type_caps"] = enforce_type_caps()
     except Exception as e:
+        note_failure("data_retention:L902", e)
         results["type_caps"] = {"error": str(e)}
     try:
         results["span_ttl"] = enforce_span_ttl()
     except Exception as e:
+        note_failure("data_retention:L906", e)
         results["span_ttl"] = {"error": str(e)}
     try:
         # Backstop AFTER the targeted passes: caps/TTL bound listed types
@@ -890,6 +930,7 @@ def _run_maintenance_impl(light: bool = False) -> dict:
         else:
             results["quota_backstop"] = enforce_global_quota()
     except Exception as e:
+        note_failure("data_retention:L917", e)
         results["quota_backstop"] = {"error": str(e)}
     try:
         # Memory-store retention (2026-09-27): the store's own size warning
@@ -904,14 +945,17 @@ def _run_maintenance_impl(light: bool = False) -> dict:
             results["memory_purge"] = {
                 "purged": get_memory_store().purge_old(days=90)}
     except Exception as e:
+        note_failure("data_retention:L931", e)
         results["memory_purge"] = {"error": str(e)}
     try:
         results["db_quota"] = check_db_size_quota()
     except Exception as e:
+        note_failure("data_retention:L935", e)
         results["db_quota"] = {"error": str(e)}
     try:
         results["audit_archive"] = {"archived": archive_old_audit_files()}
     except Exception as e:
+        note_failure("data_retention:L939", e)
         results["audit_archive"] = {"error": str(e)}
     try:
         if light:
@@ -919,14 +963,17 @@ def _run_maintenance_impl(light: bool = False) -> dict:
         else:
             results["vacuum"] = vacuum_if_needed()
     except Exception as e:
+        note_failure("data_retention:L946", e)
         results["vacuum"] = {"error": str(e)}
     try:
         results["wal_checkpoint"] = wal_checkpoint()
     except Exception as e:
+        note_failure("data_retention:L950", e)
         results["wal_checkpoint"] = {"error": str(e)}
     try:
         results["log_rotation"] = rotate_logs()
     except Exception as e:
+        note_failure("data_retention:L954", e)
         results["log_rotation"] = {"error": str(e)}
     try:
         # Error triage (2026-09-09): cluster the week's real errors for
@@ -942,6 +989,7 @@ def _run_maintenance_impl(light: bool = False) -> dict:
                 json.dump(tri, f, ensure_ascii=False, default=str)
             _tmp.replace(_td / "error_triage.json")
         except Exception as e:  # noqa: BLE001 — triage summary still reported
+            note_failure("data_retention:L969", e)
             tri["_persist_error"] = str(e)[:120]
         results["error_triage"] = {
             "errors_exact": tri.get("total_errors_exact", 0),
@@ -954,6 +1002,7 @@ def _run_maintenance_impl(light: bool = False) -> dict:
                     for c in tri.get("clusters", [])[:5]],
         }
     except Exception as e:
+        note_failure("data_retention:L981", e)
         results["error_triage"] = {"error": str(e)}
     return results
 

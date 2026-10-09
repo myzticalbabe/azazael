@@ -6,6 +6,17 @@ from A's view. Ratings persist to JSON. Stdlib-only.
 """
 import json
 import itertools
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 K_DEFAULT = 24.0
@@ -62,6 +73,7 @@ class League:
             try:
                 s = float(match_fn(a, b))
             except Exception:
+                note_failure("league:L64", None)
                 s = 0.5
             s = min(1.0, max(0.0, s))
             r = self.record(a, b, s)
@@ -128,4 +140,4 @@ class League:
             self.ratings.update({k: float(v) for k, v in d.get("ratings", {}).items()})
             self.games.update({k: int(v) for k, v in d.get("games", {}).items()})
         except Exception:
-            pass
+            note_failure("league:L130", None)

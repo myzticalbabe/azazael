@@ -9,11 +9,23 @@ from pathlib import Path
 # from typing import Dict, List, Optional  # removed — all names have native equivalents
 
 from CORE.paths import get_project_root
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("MORPHING_WORM_V2:L16", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -54,7 +66,7 @@ class MorphingWormV2:
                     "file": str(fp.relative_to(self.root)),
                 }
         except (OSError, PermissionError):
-            pass
+            note_failure("MORPHING_WORM_V2:L56", None)
         return None
 
     def check_syntax(self, fp: Path) -> (dict | None):
@@ -63,6 +75,7 @@ class MorphingWormV2:
                 code = f.read()
             compile(code, str(fp), "exec")
         except SyntaxError as e:
+            note_failure("MORPHING_WORM_V2:L65", e)
             return {
                 "type": "SYNTAX",
                 "severity": "CRITICAL",
@@ -70,6 +83,7 @@ class MorphingWormV2:
                 "msg": str(e),
             }
         except Exception:
+            note_failure("MORPHING_WORM_V2:L72", None)
             return {
                 "type": "READ_ERROR",
                 "severity": "LOW",
@@ -122,7 +136,7 @@ class MorphingWormV2:
                     )
 
         except Exception:
-            pass
+            note_failure("MORPHING_WORM_V2:L124", None)
         return issues
 
     def run_scan(self):

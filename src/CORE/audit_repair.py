@@ -31,6 +31,17 @@ from CORE.audit_trail import (
     unlock_audit_file, lock_audit_file, read_audit_lines,
     AUDIT_DIR,
 )
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 def _read_full_audit(fp: Path) -> list:
@@ -45,6 +56,7 @@ def _read_full_audit(fp: Path) -> list:
                 data = json.loads(line)
                 results.append((i, data, raw))
             except json.JSONDecodeError:
+                note_failure("audit_repair:L47", None)
                 results.append((i, None, raw))
     return results
 

@@ -27,6 +27,17 @@ import threading
 from pathlib import Path
 # from typing import Optional, Dict, List  # removed — all names have native equivalents
 from dataclasses import dataclass, field
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 VERSION = "1.0.0"
 
@@ -38,6 +49,7 @@ try:
     import yaml
     _HAS_YAML = True
 except ImportError:
+    note_failure("config:L40", None)
     _HAS_YAML = False
 
 
@@ -156,6 +168,8 @@ class CircuitBreakerConfig:
             )
         except ImportError:
             # Fallback — construct from raw defaults if CircuitConfig not importable
+            # Fallback — construct from raw defaults if CircuitConfig not importable
+            note_failure("config:L157", None)
             from dataclasses import dataclass
             @dataclass
             class _FallbackCircuitConfig:
@@ -434,7 +448,7 @@ def _find_config_file() -> (Path | None):
         # 2. 2 levels up from src/CORE/config.py = src/
         candidates.append(this_file.parent.parent / "azazael.yaml")
     except (OSError, RuntimeError):
-        pass
+        note_failure("config:L436", None)
 
     # 3. Current working directory
     candidates.append(Path.cwd() / "azazael.yaml")
@@ -451,6 +465,7 @@ def _find_config_file() -> (Path | None):
             if path.is_file():
                 return path
         except (OSError, RuntimeError):
+            note_failure("config:L453", None)
             continue
 
     return None
@@ -503,9 +518,11 @@ def get_config(reload: bool = False) -> AzazaelConfig:
                 new_config = AzazaelConfig.from_dict(data)
                 new_warnings = new_config.validate()
             except ImportError:
+                note_failure("config:L505", None)
                 new_config = AzazaelConfig()
                 new_warnings = ["PyYAML not installed — using default config. Install: pip install pyyaml"]
             except Exception as e:
+                note_failure("config:L508", e)
                 new_config = AzazaelConfig()
                 new_warnings = [f"Failed to load azazael.yaml: {e} — using defaults"]
         else:

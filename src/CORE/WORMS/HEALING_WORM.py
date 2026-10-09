@@ -7,6 +7,17 @@ Fixes import paths and activates all Azazael modules
 import sys
 import re
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 AZAAZEL_ROOT = Path(__file__).parent.parent.parent
 
@@ -140,6 +151,7 @@ def run_healing():
                     file_path.write_text(content, encoding="utf-8")
                     fixes.append(f"Fixed imports: {rel_path}")
             except Exception as e:
+                note_failure("HEALING_WORM:L142", e)
                 fixes.append(f"Error fixing {rel_path}: {e}")
 
     print(f"      Fixed {len([f for f in fixes if 'Fixed' in f])} modules")

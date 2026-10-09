@@ -14,6 +14,17 @@ import threading
 from pathlib import Path
 from datetime import datetime
 import traceback
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 class RealFrameworkTest:
@@ -57,7 +68,7 @@ class RealFrameworkTest:
                 with open("/proc/version") as f:
                     platform_info["proc_version"] = f.read().strip()
             except Exception:
-                pass
+                note_failure("REAL_FRAMEWORK_TEST:L59", None)
 
         # Check Windows
         platform_info["is_windows"] = os.name == "nt"
@@ -381,6 +392,7 @@ class RealFrameworkTest:
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
             )
         except (ImportError, AttributeError):
+            note_failure("REAL_FRAMEWORK_TEST:L383", None)
             sys_info["memory_rss"] = "N/A (Windows)"
 
         for key, val in sys_info.items():

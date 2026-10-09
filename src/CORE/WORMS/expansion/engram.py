@@ -35,6 +35,7 @@ from typing import Any, List, Optional
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("engram:L37", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -45,7 +46,7 @@ _SWALLOWED: List[str] = []
 
 
 try:
-    from CORE.technique_runtime import note_failure
+    from CORE.failure_ledger import note_failure
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
@@ -69,6 +70,7 @@ def _embed(text: str) -> list:
         from CORE.embedding_backend import embed_text
         return list(embed_text(text) or [])
     except Exception:
+        note_failure("engram:L71", None)
         return []
 
 
@@ -78,7 +80,7 @@ def _cosine(a: list, b: list) -> float:
         from CORE.embedding_backend import cosine as _be_cosine
         return float(_be_cosine(a, b))
     except Exception:
-        pass
+        note_failure("engram:L80", None)
     if not a or not b or len(a) != len(b):
         return 0.0
     dot = sum(x * y for x, y in zip(a, b))
@@ -162,6 +164,7 @@ class _VectorIndex:
                 import numpy as _n
                 self._np = _n
             except Exception:
+                note_failure("engram:L164", None)
                 self._np = False
         # faiss (preferred when present) -- but its wheel on this host is
         # GIL-ABI: importing it under a free-threaded build faults at C level
@@ -174,6 +177,7 @@ class _VectorIndex:
 
                 _ok = _import_ok("faiss")
             except Exception:
+                note_failure("engram:L176", None)
                 _ok = False
             if _ok:
                 try:
@@ -181,6 +185,7 @@ class _VectorIndex:
 
                     self._faiss = _f
                 except Exception:
+                    note_failure("engram:L183", None)
                     self._faiss = False
             else:
                 self._faiss = False
@@ -213,6 +218,7 @@ class _VectorIndex:
                     self._dirty = False
                     return
                 except Exception:
+                    note_failure("engram:L215", None)
                     self._backend = "numpy" if self._np else "stdlib"
             if self._backend == "numpy" and n:
                 try:
@@ -221,6 +227,7 @@ class _VectorIndex:
                     self._dirty = False
                     return
                 except Exception:
+                    note_failure("engram:L223", None)
                     self._backend = "stdlib"
             self._faiss_index = None
             self._matrix = None
@@ -608,6 +615,7 @@ def run_read_driven_consolidation(router=None, dream_items=None,
         return DreamConsolidatorWorm().consolidate_from_reads(
             router=router, dream_items=dream_items, index=index)
     except Exception as exc:
+        note_failure("engram:L610", exc)
         return {"success": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
@@ -647,6 +655,7 @@ class DreamConsolidatorWorm:
                 if store.add(mem_id, text=text).get("added"):
                     indexed += 1
             except Exception:
+                note_failure("engram:L649", None)
                 continue
         with self._lock:
             self._merges += 1
@@ -677,6 +686,7 @@ class DreamConsolidatorWorm:
             else:
                 st = {}
         except Exception:
+            note_failure("engram:L679", None)
             st = {}
         st = dict(st or {})
         total = int(st.get("total", 0) or 0)

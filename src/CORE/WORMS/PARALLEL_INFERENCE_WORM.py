@@ -21,7 +21,7 @@ Usage:
     max_result = worm.max_inference("Analyze this codebase")
 """
 
-from typing import Any
+from typing import Any, List
 import time
 import threading
 import subprocess
@@ -66,6 +66,16 @@ except ImportError:
                 raise RuntimeError("FreeThreadPool not entered")
             return self._executor.map(fn, *it, **kw)
 from concurrent.futures import as_completed
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @register_worm(
@@ -125,14 +135,14 @@ class ParallelInferenceWorm:
                 source="parallel_inference_worm",
             )
         except Exception:
-            pass  # Recording is best-effort
+            note_failure("PARALLEL_INFERENCE_WORM:L127", None) # Recording is best-effort
 
     def _publish(self, data: dict[str, Any]):
         """Publish to MemoryBus."""
         try:
             self._bus_pub.publish(data)
         except Exception:
-            pass
+            note_failure("PARALLEL_INFERENCE_WORM:L134", None)
 
     # ------------------------------------------------------------------
     # Single inference — unified entry point
@@ -307,7 +317,7 @@ class ParallelInferenceWorm:
                         if name:
                             ollama_models.append(name)
         except (FileNotFoundError, Exception):
-            pass
+            note_failure("PARALLEL_INFERENCE_WORM:L309", None)
 
         # Fallback: known models from scan
         if not ollama_models:
@@ -382,6 +392,7 @@ class ParallelInferenceWorm:
                     "finish_reason": r.get("finish_reason", ""),
                 }
             except Exception as e:
+                note_failure("PARALLEL_INFERENCE_WORM:L384", e)
                 return {
                     "provider": task["provider"],
                     "model": task["model"],
@@ -399,6 +410,7 @@ class ParallelInferenceWorm:
                     with results_lock:
                         results_list.append(r)
                 except Exception as e:
+                    note_failure("PARALLEL_INFERENCE_WORM:L401", e)
                     with results_lock:
                         results_list.append({
                             "provider": "unknown",
@@ -518,6 +530,7 @@ class ParallelInferenceWorm:
             api_models = [m["id"] for m in data.get("data", []) if "id" in m]
             server_running = True
         except Exception:
+            note_failure("PARALLEL_INFERENCE_WORM:L520", None)
             server_running = False
 
         self._record(
@@ -608,6 +621,7 @@ class ParallelInferenceWorm:
                     "finish_reason": choice.get("finish_reason", ""),
                 }
             except Exception as e:
+                note_failure("PARALLEL_INFERENCE_WORM:L610", e)
                 return {
                     "model": model_id,
                     "success": False,
@@ -625,6 +639,7 @@ class ParallelInferenceWorm:
                     with results_lock:
                         results_list.append(r)
                 except Exception as e:
+                    note_failure("PARALLEL_INFERENCE_WORM:L627", e)
                     with results_lock:
                         results_list.append({
                             "model": futures[future],

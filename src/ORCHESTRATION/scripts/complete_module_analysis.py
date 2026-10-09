@@ -12,12 +12,22 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass, field
 from collections import defaultdict
 from datetime import datetime
 import ast
 import time
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -136,6 +146,7 @@ class CompleteModuleFinder:
                             break
 
                     except (PermissionError, OSError):
+                        note_failure("complete_module_analysis:L138", None)
                         self.scan_stats["errors"] += 1
                         continue
 
@@ -215,9 +226,11 @@ class CompleteModuleAnalyzer:
             module.complexity_score = complexity / max(1, module.line_count / 50)
 
         except SyntaxError as e:
+            note_failure("complete_module_analysis:L217", e)
             module.errors.append(f"Syntax error at line {e.lineno}: {e.msg}")
             self.analyze_stats["syntax_errors"] += 1
         except Exception as e:
+            note_failure("complete_module_analysis:L220", e)
             module.errors.append(f"Analysis error: {str(e)[:800]}")
 
         return module
@@ -267,8 +280,10 @@ class ModuleTester:
             compile(Path(path).read_text(), path, "exec")
             result["passed"] = True
         except SyntaxError as e:
+            note_failure("complete_module_analysis:L269", e)
             result["error"] = f"Syntax: {e.msg}"
         except Exception as e:
+            note_failure("complete_module_analysis:L271", e)
             result["error"] = str(e)[:200]
         finally:
             result["duration_ms"] = (time.time() - start) * 1000
@@ -505,6 +520,7 @@ class PrerequisiteChecker:
                         try:
                             __import__(pkg)
                         except ImportError:
+                            note_failure("complete_module_analysis:L507", None)
                             self.missing_by_package[pkg].append(path)
                             package_usage[pkg] += 1
 

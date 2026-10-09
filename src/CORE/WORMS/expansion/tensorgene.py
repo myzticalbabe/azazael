@@ -40,6 +40,16 @@ import json
 import math
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 __all__ = [
     "TensorGene",
     "TensorGenome",
@@ -76,6 +86,7 @@ def row_payload(row: Any) -> Optional[dict]:
         try:
             data = json.loads(data)
         except Exception:
+            note_failure("tensorgene:L78", None)
             return None
     return data if isinstance(data, dict) else None
 
@@ -114,6 +125,7 @@ def boruta_relevance(history: Sequence[dict], fitness_key: str = "best_total",
             try:
                 fv = float(data.get(fitness_key))
             except (TypeError, ValueError):
+                note_failure("tensorgene:L116", None)
                 continue
             rows.append((genes, fv))
         if len(rows) < min_rows:
@@ -165,8 +177,10 @@ def boruta_relevance(history: Sequence[dict], fitness_key: str = "best_total",
                 "n_estimators": int(getattr(selector, "n_estimators_", 0) or 0),
                 "max_iter": int(max_iter)}
     except ImportError as exc:
+        note_failure("tensorgene:L167", exc)
         return {"ok": False, "reason": f"missing dependency: {exc}"}
     except Exception as exc:
+        note_failure("tensorgene:L169", exc)
         return {"ok": False, "reason": str(exc)[:160]}
 
 
@@ -226,6 +240,7 @@ def dedupe_observations(obs: Iterable[tuple]) -> List[tuple]:
         try:
             key = (tuple(round(float(v), 9) for v in vec), round(float(fit), 9))
         except (TypeError, ValueError):
+            note_failure("tensorgene:L228", None)
             continue
         if key in seen:
             continue
@@ -259,12 +274,14 @@ def correlate(history: Sequence[dict], gene: str,
         try:
             fv = float(data.get(fitness_key))
         except (TypeError, ValueError):
+            note_failure("tensorgene:L261", None)
             continue
         vec = []
         for k in sorted(genes):
             try:
                 vec.append(float(genes[k]))
             except (TypeError, ValueError):
+                note_failure("tensorgene:L267", None)
                 vec.append(0.0)
         # Dedupe on the full gene vector + fitness: identical rows are the same
         # measurement, and the frozen pool makes them common.
@@ -275,6 +292,7 @@ def correlate(history: Sequence[dict], gene: str,
         try:
             obs.append((float(genes[gene]), fv))
         except (TypeError, ValueError):
+            note_failure("tensorgene:L277", None)
             continue
 
     diag = {"rows_without_payload": no_payload, "rows_missing_gene": missing_gene}

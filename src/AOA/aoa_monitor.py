@@ -20,6 +20,17 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -88,11 +99,11 @@ def _enable_vt():
             _k.SetConsoleMode(_h, _m.value | 0x0004)
             return
     except Exception:
-        pass
+        note_failure("aoa_monitor:L90", None)
     try:
         os.system("")  # scanner:ignore deliberate: empty command enables ANSI escapes on Windows consoles
     except Exception:
-        pass
+        note_failure("aoa_monitor:L94", None)
 
 
 def _fit(s, width):
@@ -131,6 +142,7 @@ def _iso_to_epoch(iso):
     try:
         return datetime.fromisoformat(str(iso)).timestamp()
     except Exception:  # noqa: BLE001
+        note_failure("aoa_monitor:L133", None)
         return None
 
 
@@ -161,18 +173,19 @@ class AOAState:
             import logging as _lg
             _lg.disable(_lg.WARNING)
         except Exception:
-            pass
+            note_failure("aoa_monitor:L163", None)
         try:
             from loguru import logger as _lq
             _lq.remove()
             _lq.add(sys.stderr, level="WARNING")
         except Exception:
-            pass
+            note_failure("aoa_monitor:L169", None)
         from core.arm_registry import ArmRegistry
         self.registry = ArmRegistry()
         try:
             self.init_results = self.registry.initialize_all() or {}
         except Exception as e:  # noqa: BLE001 — wallboard must never crash
+            note_failure("aoa_monitor:L175", e)
             self.init_results = {"_error": str(e)[:120]}
         try:
             for a in self.registry.list_arms():
@@ -182,9 +195,9 @@ class AOAState:
                     try:
                         self.instances[aid] = self.registry.get_arm(aid)
                     except Exception:
-                        pass
+                        note_failure("aoa_monitor:L184", None)
         except Exception:
-            pass
+            note_failure("aoa_monitor:L186", None)
         # capability ids cached once (they never change at runtime)
         for aid, inst in self.instances.items():
             try:
@@ -198,7 +211,7 @@ class AOAState:
                                       getattr(c, "id", getattr(c, "name", "?")))))
                 self.cap_ids[aid] = ids
             except Exception:
-                pass
+                note_failure("aoa_monitor:L200", None)
         self.startup_elapsed = time.perf_counter() - t0
         self.probe(force=True)
 
@@ -217,7 +230,7 @@ class AOAState:
                     aid, st = f.result(timeout=5)
                     self.arm_status[aid] = st
                 except Exception:
-                    pass
+                    note_failure("aoa_monitor:L219", None)
         self.workflow = self._run_workflow()
         if self.workflow.get("ran") and "completed" in self.workflow:
             self.wf_history.append(bool(self.workflow.get("passed"))
@@ -232,7 +245,7 @@ class AOAState:
                 if isinstance(r, dict) and isinstance(r.get("data"), dict):
                     self.arm_status["kali"] = {"ok": True, "data": r["data"]}
         except Exception:
-            pass
+            note_failure("aoa_monitor:L234", None)
         # Elastic routing + provenance telemetry (added 2026-09-14). Ran last
         # and in its own guard so a routing probe can never cost the panel its
         # arm table.
@@ -269,6 +282,7 @@ class AOAState:
             from CORE import spine_registry as _spine
             spine = _spine
         except Exception:
+            note_failure("aoa_monitor:L271", None)
             spine = None
         try:
             from core.router import CrossArmRouter
@@ -313,9 +327,11 @@ class AOAState:
                     out["persisted"] = bool(_saved.get("saved"))
                     out["persist_error"] = _saved.get("error")
                 except Exception as _pe:  # noqa: BLE001
+                    note_failure("aoa_monitor:L315", _pe)
                     out["persisted"] = False
                     out["persist_error"] = str(_pe)[:120]
         except Exception as e:  # noqa: BLE001 -- wallboard must never crash
+            note_failure("aoa_monitor:L318", e)
             out["error"] = str(e)[:120]
             return out
 
@@ -324,6 +340,7 @@ class AOAState:
             out["inproc"] = sum(1 for k in spine.get_q_weights()
                                 if k.startswith("aoa_route:"))
         except Exception:
+            note_failure("aoa_monitor:L326", None)
             out["inproc"] = None
         # Durable view: the saved snapshot only.
         try:
@@ -332,6 +349,7 @@ class AOAState:
             out["learned"] = _raw.count("aoa_route:")
             out["state_age"] = time.time() - _state.stat().st_mtime
         except Exception:
+            note_failure("aoa_monitor:L334", None)
             out["learned"] = None
             out["state_age"] = None
         return out
@@ -342,6 +360,7 @@ class AOAState:
             st = inst.get_status() if hasattr(inst, "get_status") else {}
             return aid, {"ok": True, "data": st if isinstance(st, dict) else {}}
         except Exception as e:  # noqa: BLE001
+            note_failure("aoa_monitor:L344", e)
             return aid, {"ok": False, "error": str(e)[:800]}
 
     @staticmethod
@@ -379,6 +398,7 @@ class AOAState:
             out["steps"] = steps
             out["passed"] = ("BENCHMARK WORKFLOW PASSED" in txt)
         except Exception as e:  # noqa: BLE001
+            note_failure("aoa_monitor:L381", e)
             out["error"] = str(e)[:800]
         out["at"] = time.time()
         return out
@@ -405,12 +425,12 @@ class AOAState:
             f["routes"] = ms.get("cross_arm_routes") or {}
             f["arch"] = ms.get("architecture") or {}
         except Exception:
-            pass
+            note_failure("aoa_monitor:L407", None)
         try:
             f["bench"] = json.load(open(HERE / "benchmark_data.json", encoding="utf-8"))
             f["bench_age"] = os.path.getmtime(HERE / "benchmark_data.json")
         except Exception:
-            pass
+            note_failure("aoa_monitor:L412", None)
         f["sessions_dir"] = False
         try:
             sdir = Path.home() / ".aoa" / "sessions"
@@ -419,7 +439,7 @@ class AOAState:
             f["sessions_n"] = len(sfiles)
             f["sessions_age"] = os.path.getmtime(sfiles[-1]) if sfiles else None
         except Exception:
-            pass
+            note_failure("aoa_monitor:L421", None)
         return f
 
 
@@ -517,6 +537,7 @@ def render(st, now, width, height=40):
     try:
         arms = st.registry.list_arms()
     except Exception:
+        note_failure("aoa_monitor:L519", None)
         arms = []
     L.append(_fit(f"ARMS   {len(arms)} registered  init {sum(1 for v in st.init_results.values() if v is True)}/"
                   f"{len([k for k in st.init_results if not k.startswith('_')])} "
@@ -528,6 +549,7 @@ def render(st, now, width, height=40):
             ncaps = len(st.instances.get(aid).get_capabilities()) if aid in st.instances else \
                 a.get("caps", "?")
         except Exception:
+            note_failure("aoa_monitor:L530", None)
             ncaps = a.get("caps", "?")
         ok = st.init_results.get(aid)
         stt = st.arm_status.get(aid, {})
@@ -718,13 +740,13 @@ def main():
         import logging as _lg
         _lg.disable(_lg.WARNING)
     except Exception:
-        pass
+        note_failure("aoa_monitor:L720", None)
     try:
         from loguru import logger as _lq
         _lq.remove()
         _lq.add(sys.stderr, level="WARNING")
     except Exception:
-        pass
+        note_failure("aoa_monitor:L726", None)
 
     _enable_vt()
     import shutil

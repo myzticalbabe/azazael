@@ -22,11 +22,22 @@ measurement it did not take.
 import os
 import threading
 from datetime import datetime
-from typing import Any
+from typing import Any, List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("metabolic:L29", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -74,6 +85,7 @@ class PowerBudgetWorm:
         try:
             import psutil
         except Exception:
+            note_failure("metabolic:L76", None)
             return {"available": False, "reason": "psutil_unavailable"}
         try:
             pct = float(psutil.cpu_percent(interval=None))
@@ -81,6 +93,7 @@ class PowerBudgetWorm:
             try:
                 load1 = float(psutil.getloadavg()[0])
             except Exception:
+                note_failure("metabolic:L83", None)
                 load1 = 0.0
             with self._lock:
                 warm = bool(self._last_load.get("warm"))
@@ -88,6 +101,7 @@ class PowerBudgetWorm:
             return {"available": True, "cpu_percent": round(pct, 1),
                     "cores": cores, "load1": round(load1, 3), "warm": warm}
         except Exception as exc:
+            note_failure("metabolic:L90", exc)
             return {"available": False, "error": str(exc)[:80]}
 
     def estimate_watts(self, env: str, cpu_fraction: float | None = None) -> dict[str, Any]:
@@ -183,6 +197,7 @@ class ThermalThrottleWorm:
                     if cur:
                         return float(cur)
         except Exception:
+            note_failure("metabolic:L185", None)
             return None
         return None
 
@@ -193,6 +208,7 @@ class ThermalThrottleWorm:
                     raw = int(f.read().strip())
                     return raw / 1000.0 if raw > 1000 else float(raw)
             except Exception:
+                note_failure("metabolic:L195", None)
                 continue
         return self._temp_from_psutil()
 
@@ -201,6 +217,7 @@ class ThermalThrottleWorm:
             import psutil
             return float(psutil.cpu_percent(interval=None))
         except Exception:
+            note_failure("metabolic:L203", None)
             return None
 
     def recommend_threads(self, current: int = 16) -> dict[str, Any]:

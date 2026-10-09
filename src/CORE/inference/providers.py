@@ -58,7 +58,8 @@ from urllib.parse import urlparse
 # Inference cache for file-backed citations (RULE 0Q-A) — graceful degradation
 try:
     from CORE.inference.inference_cache import record_inference as _cache_record_inference
-except ImportError:
+except ImportError as exc:
+    note_failure("providers:optional-dep-missing", exc)
     _cache_record_inference = None
 
 # PAMS recording seam: puts inference turns into the same persistent store the
@@ -70,12 +71,23 @@ try:
         record_turn as _memory_record_turn,
         record_failure as _memory_record_failure,
     )
-except ImportError:
+except ImportError as exc:
+    note_failure("providers:optional-dep-missing", exc)
     _memory_record_turn = None
     _memory_record_failure = None
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Iterator
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # 3.14t port: the `openai` SDK depends on pydantic_core, which ships no
 # free-threaded build — a top-level import made this entire registry
@@ -83,7 +95,8 @@ from typing import Optional, List, Dict, Any, Iterator
 # everything except live OpenAI-SDK calls works everywhere.
 try:
     from openai import OpenAI
-except ImportError:
+except ImportError as exc:
+    note_failure("providers:optional-dep-missing", exc)
     OpenAI = None
 
 # --- Configuration --------------------------------------------------
@@ -816,7 +829,8 @@ class OpenAIProvider:
                     "model": self.config.model,
                 }, fh, indent=2)
             return True
-        except OSError:
+        except OSError as exc:                    # noqa: BLE001 - config save failed
+            note_failure("providers:config-save-failed", exc)
             return False
 
     def set_api_key(self, key: str) -> None:
@@ -995,7 +1009,8 @@ class OpenAIProvider:
                             "elapsed_ms": result.get("elapsed_ms", 0),
                         },
                     )
-            except Exception:  # noqa: BLE001 — graceful degradation, never crash chat()
+            except Exception as exc:  # noqa: BLE001 — graceful degradation, never crash chat()
+                note_failure("providers:cache-record", exc)
                 pass
 
             # Record the turn to PAMS persistent memory (same store the worms
@@ -1012,12 +1027,14 @@ class OpenAIProvider:
                         elapsed_ms=result.get("elapsed_ms", 0),
                         finish_reason=result.get("finish_reason"),
                     )
-                except Exception:  # noqa: BLE001 — memory must never break chat()
+                except Exception as exc:  # noqa: BLE001 — memory must never break chat()
+                    note_failure("providers:memory-record-turn", exc)
                     pass
 
             return result
 
         except Exception as e:  # noqa: BLE001 — provider call must degrade, never crash
+            note_failure("providers:chat-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
 
@@ -1032,7 +1049,8 @@ class OpenAIProvider:
                         error=str(e),
                         elapsed_ms=elapsed_ms,
                     )
-                except Exception:  # noqa: BLE001 — memory must never break chat()
+                except Exception as exc:  # noqa: BLE001 — memory must never break chat()
+                    note_failure("providers:memory-record-failure", exc)
                     pass
 
             return {
@@ -1077,6 +1095,7 @@ class OpenAIProvider:
                 self._total_requests += 1
 
         except Exception as e:  # noqa: BLE001 — stream must degrade, never crash
+            note_failure("providers:stream-degraded", e)
             self._last_error = str(e)
             yield f"\n[ERROR] {e}"
 
@@ -1120,7 +1139,8 @@ class OpenAIProvider:
         try:
             from openai import OpenAI  # noqa: F401
             results["import_ok"] = True
-        except ImportError:
+        except ImportError as exc:
+            note_failure("providers:self-test-import", exc)
             results["issues"].append("openai package not installed")
             results["import_ok"] = False
 
@@ -1367,6 +1387,7 @@ class NativeAPIProvider(ABC):
             return parsed
             
         except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
+            note_failure("providers:call-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {'error': str(e), 'elapsed_ms': elapsed_ms, 'provider': self.provider_name}
@@ -1417,13 +1438,15 @@ class NativeAPIProvider(ABC):
                             text = self._parse_stream_chunk(chunk)
                             if text:
                                 yield text
-                        except json.JSONDecodeError:
+                        except json.JSONDecodeError as exc:
+                            note_failure("providers:sse-chunk-skip", exc)
                             continue
             
             with self._lock:
                 self._total_requests += 1
                 
         except Exception as e:  # noqa: BLE001 — stream must degrade, never crash
+            note_failure("providers:stream-degraded", e)
             self._last_error = str(e)
             yield '\n[ERROR] ' + str(e)
     
@@ -1837,6 +1860,7 @@ class LlamaCppDirectProvider:
                     "elapsed_ms": elapsed_ms, "provider": self.provider_name,
                     "native_api": True, "backend": "llama-cpp-python"}
         except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
+            note_failure("providers:call-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms, "provider": self.provider_name}
@@ -1917,6 +1941,7 @@ class HuggingFaceDirectProvider:
                     "finish_reason": "stop", "elapsed_ms": elapsed_ms,
                     "provider": self.provider_name, "native_api": True, "backend": "transformers"}
         except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
+            note_failure("providers:call-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms, "provider": self.provider_name}
@@ -1996,7 +2021,8 @@ class OpenVINOProvider:
             if importlib.util.find_spec(module_name) is None:
                 cls._BACKEND_PROBE[module_name] = False
                 return False
-        except Exception:  # noqa: BLE001 — backend probe must never crash discovery
+        except Exception as exc:  # noqa: BLE001 — backend probe must never crash discovery
+            note_failure("providers:probe-unavailable", exc)
             cls._BACKEND_PROBE[module_name] = False
             return False
 
@@ -2024,10 +2050,12 @@ class OpenVINOProvider:
                 # Crashed (segfault, access violation, etc.)
                 cls._BACKEND_PROBE[module_name] = None
                 return None
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
+            note_failure("providers:probe-timeout", exc)
             cls._BACKEND_PROBE[module_name] = None
             return None
-        except Exception:  # noqa: BLE001 — child-process probe crashed; cache as unavailable
+        except Exception as exc:  # noqa: BLE001 — child-process probe crashed; cache as unavailable
+            note_failure("providers:probe-crashed", exc)
             cls._BACKEND_PROBE[module_name] = None
             return None
 
@@ -2037,7 +2065,8 @@ class OpenVINOProvider:
         try:
             import sysconfig
             return sysconfig.get_config_var("Py_GIL_DISABLED") == 1
-        except Exception:  # noqa: BLE001 — 314t detection is best-effort
+        except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("providers:314t-detect", exc)
             return False
 
     def __init__(self, provider: str = "openvino"):
@@ -2108,11 +2137,13 @@ class OpenVINOProvider:
             for d in devices:
                 try:
                     name = core.get_property(d, "FULL_DEVICE_NAME")
-                except Exception:  # noqa: BLE001 — per-device name probe best-effort
+                except Exception as exc:  # noqa: BLE001 — per-device name probe best-effort
+                    note_failure("providers:device-name", exc)
                     name = d
                 result.append({"id": d, "name": name})
             return result
-        except ImportError:
+        except ImportError as exc:
+            note_failure("providers:device-list", exc)
             return []
 
     def get_device_info(self) -> Dict[str, Any]:
@@ -2144,11 +2175,13 @@ class OpenVINOProvider:
                                  "OPTIMAL_NUMBER_OF_INFER_REQUESTS"]:
                         try:
                             dev_info[prop.lower()] = core.get_property(d, prop)
-                        except Exception:  # noqa: BLE001 — per-device prop probe best-effort
+                        except Exception as exc:  # noqa: BLE001 — per-device prop probe best-effort
+                            note_failure("providers:device-prop", exc)
                             pass
                     info["devices"].append(dev_info)
                 info["available"] = len(devices) > 0
-            except ImportError:
+            except ImportError as exc:
+                note_failure("providers:device-info", exc)
                 pass
 
         # Safe probe: openvino_genai
@@ -2222,8 +2255,10 @@ class OpenVINOProvider:
 
         except ImportError as e:
             # openvino_genai not available — fall through
+            note_failure("providers:genai-missing", e)
             pass
         except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
+            note_failure("providers:call-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {
@@ -2251,6 +2286,7 @@ class OpenVINOProvider:
             return result
 
         except ImportError as e:
+            note_failure("providers:genai-import-error", e)
             elapsed_ms = int((time.time() - start) * 1000)
             error_msg = (
                 "OpenVINO inference requires either:\n"
@@ -2263,6 +2299,7 @@ class OpenVINOProvider:
             return {"error": error_msg, "elapsed_ms": elapsed_ms,
                     "provider": self.provider_name, "device": device}
         except Exception as e:  # noqa: BLE001 — openvino_genai call degrades to signed error
+            note_failure("providers:call-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms,
@@ -2326,7 +2363,8 @@ class OpenVINOProvider:
                 pm = result.perf_metrics
                 if hasattr(pm, "get_throughput"):
                     tokens_info["throughput"] = pm.get_throughput()
-        except Exception:  # noqa: BLE001 — throughput metric best-effort
+        except Exception as exc:  # noqa: BLE001 — throughput metric best-effort
+            note_failure("providers:throughput-metric", exc)
             pass
 
         return {
@@ -2468,6 +2506,7 @@ class OpenVINOProvider:
                 self._total_requests += 1
 
         except Exception as e:  # noqa: BLE001 — stream must degrade, never crash
+            note_failure("providers:stream-degraded", e)
             self._last_error = str(e)
             yield f"\n[ERROR] {e}"
 
@@ -2505,9 +2544,11 @@ class OpenVINOProvider:
                 core = ov.Core()
                 results["device_list"] = core.available_devices
                 results["devices_found"] = len(results["device_list"])
-            except ImportError:
+            except ImportError as exc:
+                note_failure("providers:openvino-missing", exc)
                 results["issues"].append("openvino package not installed")
             except Exception as e:  # noqa: BLE001 — diagnose, don't fail the audit
+                note_failure("providers:openvino-init", e)
                 results["issues"].append(f"OpenVINO init error: {e}")
         elif ov_probe is None:
             results["issues"].append("openvino CRASHES on this Python version (3.14t segfault). Use PYTHON_GIL=1 or standard Python")
@@ -2696,6 +2737,7 @@ class OllamaNativeProvider:
                 "elapsed_ms": elapsed_ms, "provider": self.provider_name, "native_api": True,
             }
         except Exception as e:  # noqa: BLE001 — provider call degrades to signed error
+            note_failure("providers:call-degraded", e)
             elapsed_ms = int((time.time() - start) * 1000)
             self._last_error = str(e)
             return {"error": str(e), "elapsed_ms": elapsed_ms, "provider": self.provider_name}
@@ -2965,7 +3007,8 @@ def _read_config_key(provider_name: str) -> str:
                 key = data.get("api_key", "")
                 if key:
                     return key
-            except (json.JSONDecodeError, OSError):
+            except (json.JSONDecodeError, OSError) as exc:
+                note_failure("providers:config-read", exc)
                 pass
     return ""
 
@@ -3040,7 +3083,8 @@ def _tcp_alive(host: str, port: int, timeout: float = 0.35) -> bool:
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return True
-    except (OSError, ValueError):
+    except (OSError, ValueError) as exc:
+        note_failure("providers:tcp-probe", exc)
         return False
 
 
@@ -3049,7 +3093,8 @@ def _runtime_present(module_name: str) -> bool:
     import importlib.util
     try:
         return importlib.util.find_spec(module_name) is not None
-    except (ImportError, ValueError, AttributeError):
+    except (ImportError, ValueError, AttributeError) as exc:
+        note_failure("providers:runtime-probe", exc)
         return False
 
 
@@ -3169,7 +3214,8 @@ def get_best_provider(skip_unhealthy: bool = True) -> "OpenAIProvider":
             if skip_unhealthy and not breaker.is_healthy(name):
                 continue
             return provider
-        except ValueError:
+        except ValueError as exc:
+            note_failure("providers:provider-select", exc)
             continue
     # Fallback: return groq even without a key (will show helpful error)
     return get_provider("groq")

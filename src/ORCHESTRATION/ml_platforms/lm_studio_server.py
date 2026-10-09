@@ -55,6 +55,17 @@ sys.path.insert(0, os.path.dirname(__file__))
 from improvements.tensor_utils import to_tensor, from_tensor
 from improvements.vectorize_utils import vmap, jit, grad
 import numpy as np
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 app = Flask(__name__)
 
@@ -208,6 +219,7 @@ def execute_code():
             {"status": "success", "result": str(local_ns.get("result", "completed"))}
         )
     except Exception as e:
+        note_failure("lm_studio_server:L210", e)
         return jsonify(
             {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
         )

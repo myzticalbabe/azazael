@@ -10,6 +10,17 @@ import os
 import sys
 import json
 import unittest
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Set environment
 os.environ["AZAZAEL_ROOT"] = "C:/Users/clint/azazael"
@@ -327,25 +338,32 @@ class TestEcosystemIntegration(unittest.TestCase):
         modules = []
         try:
             modules.append("WORMZ")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L330", None)
         try:
             modules.append("CONCURRENCY")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L333", None)
         try:
             modules.append("MetaWormSpawner")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L336", None)
         try:
             modules.append("DebugZ")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L339", None)
         try:
             modules.append("InferenceBridge")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L342", None)
         try:
             modules.append("DistillZ")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L345", None)
         try:
             modules.append("FleetZ")
-        except Exception: pass
+        except Exception:
+            note_failure("test_ecosystem:L348", None)
         self.assertGreaterEqual(len(modules), 4, f"Only loaded: {modules}")
 
     def test_metaworm_inference_bridge_integration(self):

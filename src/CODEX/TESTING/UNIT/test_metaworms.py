@@ -11,6 +11,17 @@ Unit Tests for METAWORMS
 import pytest
 from pathlib import Path
 import sys
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 _src_meta = Path(__file__).resolve().parent.parent.parent.parent  # UNIT/ -> TESTING/ -> CODEX/ -> src/
 if str(_src_meta) not in sys.path:
@@ -65,6 +76,7 @@ class TestHYDRAMETA:
             assert optimizer.population_size == 50
             assert optimizer.generations == 100
         except ImportError:
+            note_failure("test_metaworms:L67", None)
             pytest.skip("HYDRAMETA not implemented")
 
     def test_hydrometa_has_optimize_method(self):
@@ -76,6 +88,7 @@ class TestHYDRAMETA:
             assert hasattr(optimizer, "optimize")
             assert callable(optimizer.optimize)
         except ImportError:
+            note_failure("test_metaworms:L78", None)
             pytest.skip("HYDRAMETA not implemented")
 
 

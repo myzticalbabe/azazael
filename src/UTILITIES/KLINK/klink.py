@@ -24,6 +24,17 @@ import argparse
 import subprocess
 from pathlib import Path
 from datetime import datetime
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Configuration
 Azazael_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
@@ -124,6 +135,7 @@ def run_python(script_path, args=None):
         ok = result.returncode == 0
         return ok, "Success" if ok else f"Exit {result.returncode}: {result.stderr[:200].strip()}"
     except Exception as e:
+        note_failure("klink:L126", e)
         return False, f"Error: {e}"
 
 
@@ -515,7 +527,7 @@ def cmd_pams():
         if "cmdline" in data:
             print(f"  Process:     {data.get('cmdline', 'N/A')}")
     except Exception:
-        pass
+        note_failure("klink:L517", None)
     
     # DB files (configurable via PAMS_DATA_DIR env var)
     db_dir = os.environ.get(

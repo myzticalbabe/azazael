@@ -31,11 +31,22 @@ Usage:
 import time
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- z3-solver availability detection --------------------------------
 try:
     import z3
     Z3_AVAILABLE = True
 except ImportError:
+    note_failure("cd2_verifier:L38", None)
     Z3_AVAILABLE = False
 
 
@@ -71,12 +82,13 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
     try:
         stats = {k: str(v) for k, v in solver.statistics()}
     except Exception:
-        pass
+        note_failure("cd2_verifier:L73", None)
 
     smt2 = ""
     try:
         smt2 = solver.to_smt2()
     except Exception as e:
+        note_failure("cd2_verifier:L79", e)
         smt2 = f"; smt2 dump failed: {e}"
 
     # Classify the Z3 check result
@@ -89,6 +101,7 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
         elif result == unsat:
             classification = "UNSAT"
     except ImportError:
+        note_failure("cd2_verifier:L91", None)
         result_str = str(result)
         if result_str == "sat":
             classification = "SAT"
@@ -128,6 +141,9 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
         except Exception as exc:
             # Record why rather than returning a plausible-looking empty
             # model. An absent key is honest; a wrong one is not.
+            # Record why rather than returning a plausible-looking empty
+            # model. An absent key is honest; a wrong one is not.
+            note_failure("cd2_verifier:L128", exc)
             output["model_values"] = {}
             output["model_values_error"] = "%s: %s" % (
                 type(exc).__name__, exc)
@@ -494,6 +510,7 @@ class SMTVerifier:
                 detail = PurePythonVerifier().verify(constraints)
                 result["violations"] = detail.get("violations", [])
             except Exception as exc:
+                note_failure("cd2_verifier:L496", exc)
                 result["violations"] = []
                 result["violations_error"] = "%s: %s" % (
                     type(exc).__name__, exc)

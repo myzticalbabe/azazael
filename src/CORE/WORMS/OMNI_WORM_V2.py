@@ -10,11 +10,23 @@ from pathlib import Path
 from datetime import datetime
 
 from CORE.paths import get_project_root
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("OMNI_WORM_V2:L17", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -93,10 +105,11 @@ class OMNIV2:
                 try:
                     compile(content.decode("utf-8", errors="replace"), str(fp), "exec")
                 except SyntaxError as e:
+                    note_failure("OMNI_WORM_V2:L95", e)
                     syntax_count += 1
                     self.errors.append({"file": str(fp), "type": "SYNTAX", "line": e.lineno, "msg": e.msg})
             except Exception:
-                pass
+                note_failure("OMNI_WORM_V2:L98", None)
         
         self.stats["files_scanned"] = scanned
         print(f"  BOM fixes: {bom_count}")

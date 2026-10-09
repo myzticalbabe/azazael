@@ -40,10 +40,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
 except ImportError:
+    note_failure("evolution_audit:L46", None)
     _REGISTRY = False
 
     def register_worm(**kw):  # noqa: D103
@@ -54,6 +65,7 @@ try:
     from CORE.local_memory import get_memory_store
     _STORE = True
 except ImportError:
+    note_failure("evolution_audit:L56", None)
     _STORE = False
 
     def get_memory_store(*a, **k):  # noqa: D103
@@ -132,9 +144,11 @@ class EvolutionIntegrityWorm:
                 env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"},
             )
         except subprocess.TimeoutExpired:
+            note_failure("evolution_audit:L134", None)
             return {"ran": False, "ok": False,
                     "reason": f"timed out after {self.config.max_duration_seconds}s"}
         except Exception as exc:  # noqa: BLE001 — the audit must never crash the caller
+            note_failure("evolution_audit:L137", exc)
             return {"ran": False, "ok": False, "reason": f"{type(exc).__name__}: {exc}"}
 
         out = (proc.stdout or "") + (proc.stderr or "")
@@ -148,7 +162,7 @@ class EvolutionIntegrityWorm:
                     passed_s, total_s = frag.split("/")
                     passed, total = int(passed_s), int(total_s)
                 except (IndexError, ValueError):
-                    pass
+                    note_failure("evolution_audit:L150", None)
         # Take failures from the inline `[FAIL] name - detail` lines, NOT the
         # `RESULT:`/`FAILED:` summary. The summary carries only the check NAME, so
         # a marker looking for detail text ("no artifacts yet") could never match
@@ -176,6 +190,7 @@ class EvolutionIntegrityWorm:
             from CORE.WORMS.expansion.scheduling import ScheduleConfig
             from CORE.WORMS.expansion.rl_gene_bounds import validate_genes
         except ImportError as exc:
+            note_failure("evolution_audit:L178", exc)
             return {"champion_present": None, "champion_applied": None,
                     "champion_in_use": None, "reason": f"import failed: {exc}"}
 
@@ -194,6 +209,7 @@ class EvolutionIntegrityWorm:
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
             except (OSError, ValueError) as exc:
+                note_failure("evolution_audit:L196", exc)
                 problems.append(f"{path.parent.name}/{path.name}: {type(exc).__name__}")
                 continue
             check = validate_genes(data.get("genes"))
@@ -304,7 +320,7 @@ class EvolutionIntegrityWorm:
                     tags=["audit", "evolution", "monitor"],
                 )
             except Exception:  # noqa: BLE001 — recording is best-effort
-                pass
+                note_failure("evolution_audit:L306", None)
 
         return result
 
@@ -315,7 +331,7 @@ class EvolutionIntegrityWorm:
             try:
                 self.execute()
             except Exception:  # noqa: BLE001 — a monitor must survive its own failures
-                pass
+                note_failure("evolution_audit:L317", None)
             self._stop.wait(self.config.interval_seconds)
 
     def start_scheduler(self) -> None:

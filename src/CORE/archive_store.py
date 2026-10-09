@@ -9,6 +9,16 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 HOT_DB = Path.home() / ".azazael" / "memory_store.db"
 ARCHIVE_DIR = Path("G:/AZAZAEL_SOURCE_OF_TRUTH/memory_archive")
 
@@ -42,6 +52,7 @@ def query_all(sql: str, params: tuple = (),
             finally:
                 conn.close()
         except Exception as e:
+            note_failure("archive_store:L44", e)
             out["archives"][month] = [{"error": str(e)[:120]}]
     return out
 
@@ -56,6 +67,7 @@ def archive_summary(archive_dir: (Path | None) = None) -> List[Dict[str, Any]]:
             "SELECT month, db_path, memories_moved, sessions_moved, moved_at "
             "FROM archive_manifest ORDER BY month").fetchall()
     except Exception:
+        note_failure("archive_store:L58", None)
         return []
     finally:
         conn.close()

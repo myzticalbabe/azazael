@@ -18,6 +18,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 from concurrent.futures import ThreadPoolExecutor
 import threading
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 LOG_DIR = Path(os.environ.get("APPDATA", "~/.appdata")).expanduser() / "SystemManager"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -152,6 +163,7 @@ class PythonCrawler(SystemCrawler):
             )
             return result.stdout, result.stderr, result.returncode
         except Exception as e:
+            note_failure("SystemManager:L154", e)
             return "", str(e), 1
 
 
@@ -543,7 +555,7 @@ class SystemManager:
                             count += 1
                             freed += size
                         except Exception:
-                            pass
+                            note_failure("SystemManager:L545", None)
                 cleaned["paths"].append(path)
                 cleaned["files_removed"] += count
                 cleaned["space_freed_mb"] += round(freed / (1024 * 1024), 2)

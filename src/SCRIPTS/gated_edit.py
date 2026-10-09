@@ -31,6 +31,17 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 # from typing import List  # removed — all names have native equivalents
 
 # ---------------------------------------------------------------------------
@@ -47,7 +58,7 @@ def _cleanup_temp_files(paths: list[str]):
         try:
             Path(p).unlink(missing_ok=True)
         except OSError:
-            pass
+            note_failure("gated_edit:L49", None)
 
 
 def run(filepath: str, old_b64: str, new_b64: str,
@@ -111,7 +122,7 @@ def run(filepath: str, old_b64: str, new_b64: str,
             signal.signal(sig, lambda s, f: (_cleanup_temp_files(temp_files),
                                               sys.exit(1)))
         except (ValueError, OSError):
-            pass  # Signal handlers not available in all environments
+            note_failure("gated_edit:L113", None) # Signal handlers not available in all environments
 
     # Build command for gate_str_replace.py
     cmd = [

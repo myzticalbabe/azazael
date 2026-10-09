@@ -43,7 +43,7 @@ import threading
 
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 from dataclasses import dataclass
 from collections import defaultdict
 
@@ -103,6 +103,7 @@ def register_agent(
         try:
             source_file = inspect.getfile(cls) if hasattr(inspect, 'getfile') else ""
         except (TypeError, OSError):
+            note_failure("agent_registry:L105", None)
             source_file = ""
 
         with _registry_lock:
@@ -271,6 +272,16 @@ def _guess_agent_priority(class_name: str, module_name: str) -> int:
 # to exist. Register a shim to prevent AttributeError on importlib loads.
 import sys as _sys
 import types as _types
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 if __name__ not in _sys.modules:
     _sys.modules[__name__] = _types.ModuleType(__name__)
 
@@ -381,6 +392,7 @@ class AgentHealthReporter:
                 last_seen=datetime.now().isoformat(),
             )
         except Exception as e:
+            note_failure("agent_registry:L383", e)
             return AgentHealth(
                 agent_id=agent.agent_id,
                 agent_name=getattr(agent.config, 'agent_name', 'unknown'),

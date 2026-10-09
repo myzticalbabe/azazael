@@ -57,6 +57,17 @@ import sys
 import argparse
 import json
 from pathlib import Path
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 # Auto-add ml_platforms to path (Azazael environment)
 BASE_DIR = Path(__file__).parent.parent
@@ -207,6 +218,7 @@ def cmd_status(args):
             mod = __import__(import_name)
             frameworks[name] = mod.__version__
         except ImportError:
+            note_failure("harness:L209", None)
             frameworks[name] = "not installed"
 
     status["frameworks"] = frameworks

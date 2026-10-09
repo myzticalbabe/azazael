@@ -30,12 +30,13 @@ try:
     import numpy as _np  # noqa: F401 (kept for SKU-level compat checks)
     _NUMPY_AVAILABLE = True
 except ImportError:
+    note_failure("WORMZ_ML:L32", None)
     _np = None
     _NUMPY_AVAILABLE = False
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 # NOTE (3.14t port): tkinter imports live in run_popup() — a top-level
 # import pointlessly hard-requires Tk on headless interpreters.
@@ -47,6 +48,7 @@ try:
 
     SKLEARN_AVAILABLE = True
 except ImportError:
+    note_failure("WORMZ_ML:L49", None)
     SKLEARN_AVAILABLE = False
 
 
@@ -108,6 +110,16 @@ class WORMZ_MLConfig:
 
 from CORE.paths import get_project_root
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 _ROOT = get_project_root()
 _OUTPUT_DIR = _ROOT / "output" / "wormz_ml"
 _SRC_DIR = _ROOT / "src"
@@ -132,6 +144,7 @@ WORMZ_MLConfig.BIBL_PATH = str(_SRC_DIR / "UTILITIES" / "BIBL")
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
+    note_failure("WORMZ_ML:L134", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -175,6 +188,7 @@ class WORMZ_ML:
         try:
             return list(self.vectorizer.fit_transform([content]).toarray()[0])
         except Exception:
+            note_failure("WORMZ_ML:L177", None)
             return [0.0] * 100
 
     def _calculate_pattern_score(self, term: str, category: str) -> float:
@@ -201,6 +215,7 @@ class WORMZ_ML:
             confidence = proba[category_idx]
             return category, confidence
         except Exception:
+            note_failure("WORMZ_ML:L203", None)
             return "utilities", 0.5
 
     def _prioritize_files(self, files: list[Path]) -> list[CrawlPrediction]:
@@ -218,7 +233,7 @@ class WORMZ_ML:
                     age_days = (time.time() - mtime) / 86400
                     recency_weight = max(0.3, 1.0 - (age_days / 30))
                 except Exception:
-                    pass
+                    note_failure("WORMZ_ML:L220", None)
 
                 size_weight = (
                     min(file_path.stat().st_size / 10000, 1.0)
@@ -249,6 +264,7 @@ class WORMZ_ML:
                     )
                 )
             except Exception:
+                note_failure("WORMZ_ML:L251", None)
                 predictions.append(
                     CrawlPrediction(
                         file_path=str(file_path),
@@ -441,7 +457,7 @@ class WORMZ_ML:
             self.cluster_model = model_data.get("cluster_model")
             self.classifier = model_data.get("classifier")
         except Exception:
-            pass
+            note_failure("WORMZ_ML:L443", None)
 
     def _save_patterns(self):
         """Persist learned patterns."""
@@ -456,6 +472,7 @@ class WORMZ_ML:
                 with open(self.patterns_path) as f:
                     self.learned_patterns = json.load(f)
             except Exception:
+                note_failure("WORMZ_ML:L458", None)
                 self.learned_patterns = {}
 
     def update_learned_patterns(self) -> dict[str, Any]:
@@ -480,7 +497,7 @@ class WORMZ_ML:
                         for e in data.get("entries", [])
                     )
             except Exception:
-                pass
+                note_failure("WORMZ_ML:L482", None)
 
         self._learn_patterns(all_entries)
 

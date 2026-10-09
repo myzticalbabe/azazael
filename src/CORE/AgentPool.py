@@ -29,6 +29,16 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional, Dict, List
 from concurrent.futures import ThreadPoolExecutor, Future, as_completed
 
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
+
 # -- Import CORE utilities ----------------------------------------------------
 _azazael_src = str(Path(__file__).resolve().parent.parent)
 if _azazael_src not in sys.path:
@@ -41,6 +51,7 @@ try:
     )
     HAS_FREETHREADING = True
 except ImportError:
+    note_failure("AgentPool:L43", None)
     HAS_FREETHREADING = False
     ThreadSafeDict = dict
     ThreadSafeList = list
@@ -67,6 +78,7 @@ try:
     from CORE.PamsRecorder import PamsRecorder, get_recorder
     HAS_PAMS = True
 except ImportError:
+    note_failure("AgentPool:L69", None)
     HAS_PAMS = False
     def PamsRecorder():
         return type('FakeRecorder', (), {
@@ -197,7 +209,7 @@ class AgentPool:
             try:
                 self._pams = get_recorder()
             except Exception:
-                pass
+                note_failure("AgentPool:L199", None)
 
         if self._pams:
             self._pams.record_event(
@@ -372,6 +384,7 @@ class AgentPool:
                     t.success = True
                     self._update_stats(completed=1)
                 except Exception as e:
+                    note_failure("AgentPool:L374", e)
                     t.error = str(e)
                     t.success = False
                     self._update_stats(failed=1)
@@ -394,6 +407,7 @@ class AgentPool:
             try:
                 fut.result(timeout=timeout)
             except Exception as e:
+                note_failure("AgentPool:L396", e)
                 idx = futures[fut]
                 errors.append({'index': idx, 'error': f"Future failed: {e}"})
 
@@ -454,7 +468,7 @@ class AgentPool:
                     try:
                         f.result()
                     except Exception:
-                        pass
+                        note_failure("AgentPool:L456", None)
             duration = time.perf_counter() - start
             throughput = iterations_per_level / duration if duration > 0 else 0
 
@@ -595,6 +609,7 @@ if __name__ == '__main__':
             try:
                 results.append(f.result())
             except Exception as e:
+                note_failure("AgentPool:L597", e)
                 results.append(f"ERROR: {e}")
         print(f"      Results: {results}")
         print(f"      (all 10 ran concurrently in persistent pool)")

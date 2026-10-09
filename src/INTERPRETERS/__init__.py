@@ -23,6 +23,17 @@ OpenMono Integration:
 import os
 # from typing import List  # removed — all names have native equivalents
 from dataclasses import dataclass
+from typing import List
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+_SWALLOWED: List[str] = []
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        _SWALLOWED.append("%s:no-recorder" % where)
 
 
 @dataclass
@@ -53,6 +64,7 @@ def run_python(code: str, args: list[str] = None) -> RunResult:
         success = True
         returncode = 0
     except Exception as e:
+        note_failure("__init__:L55", e)
         stderr_capture.write(f"{type(e).__name__}: {e}\n")
         success = False
         returncode = 1
@@ -126,6 +138,7 @@ def run_bash(command: str) -> RunResult:
             duration_ms=(time.time() - start) * 1000,
         )
     except Exception as e:
+        note_failure("__init__:L128", e)
         return RunResult(
             language="bash",
             success=False,
@@ -160,6 +173,7 @@ def run_javascript(code: str) -> RunResult:
             duration_ms=(time.time() - start) * 1000,
         )
     except Exception as e:
+        note_failure("__init__:L162", e)
         return RunResult(
             language="javascript",
             success=False,
@@ -170,7 +184,7 @@ def run_javascript(code: str) -> RunResult:
         try:
             os.unlink(temp_path)
         except OSError:
-            pass
+            note_failure("__init__:L172", None)
 
 
 # --- Unified Dispatcher -----------------------------------------------------
