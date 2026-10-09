@@ -29,13 +29,18 @@ _LOST_NOTES = [0]
 
 
 def note_failure(where: str, exc: Optional[BaseException] = None) -> None:
-    """Record a swallowed failure. Cheap, bounded, thread-safe, never raises."""
+    """Record a swallowed failure. Cheap, bounded, thread-safe, never raises.
+
+    NOTE (2026-10-09): the mechanical recorder-conversion pass inserted a
+    note_failure() call into THIS recorder's own except block, which recursed
+    infinitely whenever the write itself failed (proven by a broken-lock probe).
+    The recorder may never call itself; the lost-note counter is the only signal.
+    """
     try:
         key = "%s:%s" % (where, type(exc).__name__ if exc is not None else "unknown")
         with _FAILURE_LOCK:
             _FAILURE_NOTES[key] = _FAILURE_NOTES.get(key, 0) + 1
     except Exception:                             # never raise from the recorder
-        note_failure("failure_ledger:L37", None)
         _LOST_NOTES[0] += 1
 
 

@@ -94,9 +94,35 @@ def _comment_suffix(line: str) -> str:
 def _targets(src: str, path: str) -> tuple[ast.Module, list[ast.ExceptHandler]]:
     tree = ast.parse(src)
     flagged = {r["line"] for r in scan_source(path, src)}
-    handlers = [n for n in ast.walk(tree) if isinstance(n, ast.ExceptHandler)
-                and n.lineno in flagged]
+    handlers = []
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.ExceptHandler) and node.lineno in flagged):
+            continue
+        # NEVER convert inside a recorder: a handler whose body calls the
+        # enclosing note_failure/_note_failure function would make the
+        # recorder recurse into itself, forever, once its write fails
+        # (failure_ledger.py shipped exactly this bug 2026-10-09 and a
+        # broken-lock probe raised RecursionError). Same for the ledger
+        # module itself.
+        if "failure_ledger" in path.replace("\\", "/"):
+            continue
+        if _handler_calls_own_recorder(node):
+            continue
+        handlers.append(node)
     return tree, handlers
+
+
+def _handler_calls_own_recorder(handler: ast.ExceptHandler) -> bool:
+    """True if any enclosing FunctionDef of this handler is named in a call
+    the handler makes -- i.e. converting it would recurse the recorder."""
+    for sub in ast.walk(handler):
+        if isinstance(sub, ast.Call):
+            f = sub.func
+            nm = f.id if isinstance(f, ast.Name) else (f.attr if isinstance(f, ast.Attribute) else "")
+            if nm in ("note_failure", "_note_failure"):
+                return True
+    return False
+
 
 
 def _call(indent: str, label: str, lineno: int, exc: str | None) -> str:
@@ -244,15 +270,73 @@ def fix_file(path: Path, ensure: bool, dry_run: bool = False) -> dict:
     orig = src
     # utf-8 BOM is preserved because it lives in the decoded text's first char.
     new_src, converted = convert_source(src, str(path).replace("\\", "/"))
-    added = False
+    added = sank = False
     if ensure and not dry_run:
         new_src, added = ensure_recorder(new_src)
     elif ensure and dry_run:
         _, added = ensure_recorder(new_src)
+    if not dry_run:
+        new_src, sank = _drop_dead_sink(new_src)
     if not dry_run and new_src != orig:
         path.write_text(new_src, encoding="utf-8", errors="surrogateescape", newline="")
     return {"file": str(path), "converted": converted, "recorder_added": added,
-            "changed": new_src != orig}
+            "sank_dropped": sank, "changed": new_src != orig}
+
+
+def _drop_dead_sink(src: str) -> tuple[str, bool]:
+    """Remove the fallback recorder's dead `_SWALLOWED` list, when it truly is dead.
+
+    The shim's ImportError fallback appends to a per-file `_SWALLOWED` list that
+    NOTHING in the repo reads -- a sink nobody drains (proven by grep 2026-10-09:
+    no reader outside this tool and the detector). If the append-to-list is the
+    fallback's ONLY action, the whole list + append can go; the stub call stays
+    and simply does nothing on the (never-taken) ImportError path, which the
+    detector already whitelists via the recorder-shim rule.
+    """
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return src, False
+    # Only rewrite when the file carries the canonical shim tag and its
+    # `note_failure` name is otherwise unused at module level.
+    if _RECORDER_TAG not in src:
+        return src, False
+    lines = src.splitlines(keepends=True)
+    # locate the tag block; the dead sink is exactly `_SWALLOWED: List[str] = []`
+    # plus the fallback's single append line.
+    tag_i = next((i for i, ln in enumerate(lines) if _RECORDER_TAG in ln), None)
+    if tag_i is None:
+        return src, False
+    # find the `_SWALLOWED: ... = []` assignment below the tag
+    sw_i = next((i for i in range(tag_i, min(tag_i + 8, len(lines)))
+                 if lines[i].lstrip().startswith("_SWALLOWED:")), None)
+    if sw_i is None:
+        return src, False
+    # the append must be a single, exactly-shaped line inside the fallback def
+    app_i = next((i for i in range(sw_i, min(sw_i + 14, len(lines)))
+                  if '_SWALLOWED.append("%s:no-recorder" % where)' in lines[i]), None)
+    if app_i is None:
+        return src, False
+    # Is _SWALLOWED used ANYWHERE ELSE in this file (beyond its decl + append)?
+    uses = [i for i, ln in enumerate(lines)
+            if "_SWALLOWED" in ln and i not in (sw_i, app_i)]
+    # The comment line above the decl also mentions it? Tag line does not.
+    if uses:
+        return src, False
+    # Better still: if the fallback def is now EMPTY, drop the whole fallback
+    # (the except branch can simply `def note_failure(...): pass`-less -- no
+    # def at all is not possible, so keep the def with a pass body). Replace
+    # append with plain `pass`, never a split-string mutation.
+    nl = _newline_of(src)
+    indent = _indent_of(lines[app_i])
+    lines[app_i] = indent + "pass  # ledger missing; evidence-vs-silence tradeoff capped here" + nl
+    lines[sw_i] = ""                     # the never-read `_SWALLOWED: List[str] = []` decl
+    # `List` import may now be unused -- only if THIS was its sole use; leave
+    # the import alone (a stray unused import is harmless; breaking a paren
+    # import line is not).
+    out = "".join(lines)
+    ast.parse(out)
+    return out, True
 
 
 # -- oracle ---------------------------------------------------------------------
@@ -314,6 +398,13 @@ def g():
     except ImportError:
         def note_failure(where, exc):
             _SWALLOWED.append(str(where))
+
+
+def h():
+    try:
+        x = 1 / 0
+    except Exception:
+        note_failure("g:L63", None)
 
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

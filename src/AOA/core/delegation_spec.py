@@ -31,13 +31,12 @@ from typing import Any, Dict, List, Optional
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-_SWALLOWED: List[str] = []
 
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
-        _SWALLOWED.append("%s:no-recorder" % where)
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 #: Envelope key. Underscore-prefixed by the convention that caller payload
 #: keys are domain words; a collision with a real arm payload key would
