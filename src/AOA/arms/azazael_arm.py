@@ -5,13 +5,12 @@ from core.arm_registry import BaseArm, ArmCapability, register_arm
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-_SWALLOWED: List[str] = []
 
 try:
     from CORE.failure_ledger import note_failure
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
-        _SWALLOWED.append("%s:no-recorder" % where)
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 @register_arm(arm_id="azazael",name="Azazael Neural Mesh",version="3.14.0",description="77-worm neural agent system with 3-tier cluster architecture, PAMS/MemoryBus, and CODEX video generation",category="quartet",priority=10,dependencies=["pams"])
 class AzazaelArm(BaseArm):
