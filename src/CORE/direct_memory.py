@@ -25,9 +25,25 @@ Or use the module-level convenience:
     from CORE.direct_memory import record, end
     record("event_type", {"key": "value"})
     end({"summary": "ok"})
+
+Command line (read-only unless the flag says otherwise):
+    python direct_memory.py --stats           # counts, DB size, event-type mix
+    python direct_memory.py --context [N]     # the N most recent events
+    python direct_memory.py --integrity       # DM<->audit ledger cross-check
+    python direct_memory.py --search --event-type file_edit --since 2026-10-01
+    python direct_memory.py --banner          # one-line summary
+    python direct_memory.py --gc              # close sessions left open (WRITES)
+    python direct_memory.py --self-test       # recorder self-test, THROWAWAY db
+
+Add --json for machine-readable output, --db PATH to target another store.
+Read commands never construct DirectMemory(): __init__ starts a session.
 """
 
+import argparse
+import shutil
 import sqlite3
+import sys
+import tempfile
 import json
 import os
 import signal
@@ -41,6 +57,19 @@ import itertools
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Iterable, List, Optional
+
+#: Fail-open swallows, recorded LOCALLY on purpose: this module's documented
+#: contract is "stdlib-only, zero CORE imports, always works in <0.1s" (see the
+#: module docstring), so it must not depend on the shared runtime recorder. An
+#: unrecorded swallow is indistinguishable from success, so the tally exists
+#: anyway -- a reader can inspect it instead of guessing whether the handler ran.
+_SWALLOWED: List[str] = []
+
+
+def _note_failure(where: str, exc: BaseException | None = None) -> None:
+    """Record a fail-open swallow. Never raises; imports nothing (by design)."""
+    _SWALLOWED.append("%s:%s" % (
+        where, type(exc).__name__ if exc is not None else "unknown"))
 
 # Stdlib-only UUID7 generator (RFC 9562) — inlined to maintain zero-CORE-imports design.
 # Produces time-sortable UUIDs for event_uuid and correlation_id columns.
@@ -1946,6 +1975,42 @@ class DirectMemory:
             tags=["compliance"],
         )
 
+    def record_verified_negative(self, subject: str, claim: str,
+                                 evidence: str = "",
+                                 checked_by: str = "") -> int:
+        """Record a verified negative — proof that something did NOT occur.
+
+        P0 slice 1 (ATP negatives): mirrors sentinel_run; the raw payload is
+        stored for audit exactness while recall layers must reconstruct from
+        it, never inject verbatim (MemHarness rule).
+        """
+        return self.record(
+            "verified_negative",
+            {"subject": subject, "claim": claim, "evidence": evidence,
+             "checked_by": checked_by},
+            tags=["verification", "negative"],
+        )
+
+    def reconstruct_context(self, current_task: str,
+                            limit: int = 20) -> Dict[str, Any]:
+        """Audited reconstructive recall for the Codebuff path (P0 slices 2+3).
+
+        recall_recent -> shared MAFIA audit + MemHarness reconstruction from
+        CORE.local_memory (lazy import; that module never imports this one,
+        so no cycle). Raw payloads never enter the returned brief.
+        """
+        from CORE.local_memory import (  # noqa: PLC0415
+            audit_result_set, LocalMemoryStore)
+        events = self.recall_recent(limit=limit)
+        audit = audit_result_set(events, current_task)
+        self.record("retrieval_audit", audit,
+                    severity="warning" if audit["n_quarantined"] else "info",
+                    tags=["verification", "mafia-audit"])
+        kept = LocalMemoryStore.filter_quarantined(events, audit)
+        out = LocalMemoryStore.reconstruct_events(kept, current_task)
+        out["audit"] = audit
+        return out
+
     def scan_anti_pattern(self, filepath: str, method: str, checked: int,
                           issues: int = 0) -> int:
         """Record an anti-pattern scan of one file."""
@@ -2061,7 +2126,8 @@ def end(summary: Optional[Dict] = None):
 
 
 # -- Self-test ------------------------------------------------------
-if __name__ == "__main__":
+def _self_test_body() -> int:
+    """Run the recorder self-test. The caller supplies a THROWAWAY database."""
     print(f"DirectMemory v{__version__} — Self-test")
     print(f"  DB: {DB_PATH}")
 
@@ -2096,3 +2162,382 @@ if __name__ == "__main__":
         print(f"    [{r['id']}] {r['event_type']}")
 
     print("  DirectMemory self-test PASSED")
+    return 0
+
+
+# -- Command line ----------------------------------------------------
+# The documented query surface (MEMORIES.md, the azazael-audit-infrastructure
+# skill). Every read command below is built ONLY from the module's
+# @staticmethod helpers: DirectMemory.__init__ starts a session and records
+# `session_start`, so a read routed through an instance would WRITE. `--db`
+# rebinds the module globals those helpers resolve at call time.
+#
+# `python direct_memory.py` used to run the recorder self-test -- ten synthetic
+# events into the PRODUCTION store -- while the documented flags did nothing,
+# because they were never parsed. The self-test now needs an explicit
+# --self-test and gets a throwaway database; no flag is read-only by default
+# only because it happens to change nothing.
+
+
+def _apply_db_override(path: Optional[str]) -> int:
+    """Point the module's DB globals at `path`. 0 on success, else an exit code.
+
+    The target must already exist. sqlite3.connect() would otherwise materialise
+    an empty file, so a typo would read as "no data" instead of "wrong path" --
+    and a read command would have created a database as a side effect.
+    """
+    global DB_PATH, TELEMETRY_DB_PATH
+    if not path:
+        return 0
+    target = Path(path).expanduser()
+    if not target.exists():
+        print(f"error: database not found: {target}", file=sys.stderr)
+        return 2
+    DB_PATH = target
+    TELEMETRY_DB_PATH = target.with_name("telemetry_store.db")
+    return 0
+
+
+def _print_events(events: List[Dict[str, Any]]) -> None:
+    """One line per event: id, timestamp, type, severity, action."""
+    if not events:
+        print("(no matching events)")
+        return
+    for ev in events:
+        data = ev.get("data")
+        data = data if isinstance(data, dict) else {}
+        action = data.get("action") or data.get("summary") or ""
+        print(f"[{ev.get('id')}] {str(ev.get('timestamp') or '')[:19]} "
+              f"{ev.get('event_type')} ({ev.get('severity')}) {str(action)[:90]}")
+
+
+def _cmd_stats(as_json: bool) -> int:
+    """Counts, DB size, mapping totals, and the event-type breakdown.
+
+    `summary_stats()`'s totals replace the instance `count()`, which counts only
+    the calling session's rows and can only be reached by constructing a
+    DirectMemory -- i.e. by writing a session_start to answer a read.
+    """
+    stats = DirectMemory.summary_stats()
+    size = DirectMemory.db_size()
+    mappings = DirectMemory.get_mapping_summary()
+    if as_json:
+        print(json.dumps({"stats": stats, "size": size, "mappings": mappings},
+                         indent=2, default=str))
+        return 0
+    print(f"DB       : {size.get('path')}")
+    print(f"Size     : {size.get('db_mb')} MB (with WAL/SHM {size.get('total_mb')} MB)")
+    print(f"Events   : {stats.get('total_events')}")
+    print(f"Sessions : {stats.get('sessions')} ({stats.get('open_sessions')} open)")
+    print(f"Mappings : {mappings.get('total_mappings')}")
+    by_type = stats.get("by_type") or {}
+    if by_type:
+        print("By type  :")
+        for name, n in by_type.items():
+            print(f"  {int(n):>9}  {name}")
+    return 0
+
+
+def _cmd_context(limit: int, as_json: bool) -> int:
+    """The most recent events across every session, newest first.
+
+    Uses the static `filtered_query()` rather than the instance `recall_recent()`
+    for the write-avoidance reason in the section note above; the rows returned
+    are the same cross-session view, minus a session that answering would create.
+    """
+    events = DirectMemory.filtered_query(limit=limit)
+    if as_json:
+        print(json.dumps(events, indent=2, default=str))
+        return 0
+    print(f"Most recent {len(events)} event(s) across all sessions:")
+    _print_events(events)
+    return 0
+
+
+def _cmd_integrity(as_json: bool) -> int:
+    """Read-only ledger cross-check. Exit 1 when the ledgers are divergent.
+
+    Deliberately does NOT call cross_reference_ledgers(): that helper LINKS
+    unmatched sessions, so it writes rows and would make an integrity check a
+    mutation. get_unlinked_report() answers the same question without mutating
+    and get_mapping_summary() reports what is already linked; the linker stays a
+    separate, explicit call.
+    """
+    mappings = DirectMemory.get_mapping_summary()
+    unlinked = DirectMemory.get_unlinked_report()
+    legacy = DirectMemory.deprecation_warnings()
+    dm_gap = int(unlinked.get("unlinked_dm_count") or 0)
+    aj_gap = int(unlinked.get("unlinked_aj_count") or 0)
+    consistent = dm_gap == 0 and aj_gap == 0
+    if as_json:
+        print(json.dumps({"consistent": consistent,
+                          "mappings": mappings,
+                          "unlinked": {"dm": dm_gap, "aj": aj_gap},
+                          "legacy_event_types": legacy},
+                         indent=2, default=str))
+        return 0 if consistent else 1
+    print(f"Consistent   : {consistent}")
+    print(f"Mappings     : {mappings.get('total_mappings')} "
+          f"({mappings.get('unique_dm_sessions')} DM / "
+          f"{mappings.get('unique_aj_sessions')} audit)")
+    print(f"Unlinked     : {dm_gap} DM session(s), {aj_gap} audit file(s)")
+    if legacy:
+        print("Legacy types :")
+        for row in legacy:
+            print(f"  {row.get('count')}x {row.get('old')} (use {row.get('new')})")
+    if not consistent:
+        print("Reconcile with DirectMemory.cross_reference_ledgers() "
+              "(that call links the rows; this check does not).")
+    return 0 if consistent else 1
+
+
+def _cmd_gc(max_age_hours: int, as_json: bool) -> int:
+    """Close sessions left open. The one command that changes the store."""
+    closed = DirectMemory.close_stale_sessions(max_age_hours)
+    gc_closed = DirectMemory.session_gc(max_age_hours)
+    payload = {"closed_per_message_sessions": closed,
+               "closed_sessions": gc_closed,
+               "max_age_hours": max_age_hours}
+    if as_json:
+        print(json.dumps(payload, indent=2, default=str))
+    else:
+        print(f"Closed {closed} stale per-message session(s) and {gc_closed} "
+              f"session(s) open longer than {max_age_hours}h")
+    return 0
+
+
+def _cmd_search(args: argparse.Namespace, as_json: bool) -> int:
+    """Structured filter query over recorded events.
+
+    `filtered_query()` has NO free-text parameter: the only textual column with
+    a match is `tags`, filtered by LIKE against a quoted element. So this reports
+    the filters it actually applied instead of accepting a query string it would
+    silently ignore.
+    """
+    events = DirectMemory.filtered_query(
+        limit=args.limit,
+        session_id=args.session_id,
+        event_type=args.event_type,
+        severity=args.severity,
+        source=args.source,
+        tags=args.tag or None,
+        since=args.since,
+        until=args.until,
+    )
+    if as_json:
+        print(json.dumps(events, indent=2, default=str))
+        return 0
+    applied = {k: v for k, v in (
+        ("session_id", args.session_id), ("event_type", args.event_type),
+        ("severity", args.severity), ("source", args.source),
+        ("tags", args.tag), ("since", args.since), ("until", args.until),
+    ) if v}
+    print(f"{len(events)} event(s)" + (f" matching {applied}" if applied
+                                       else " (no filters; newest first)"))
+    _print_events(events)
+    return 0
+
+
+def _cmd_banner(as_json: bool) -> int:
+    """One-screen summary: volume, open sessions, size, busiest event types."""
+    stats = DirectMemory.summary_stats()
+    size = DirectMemory.db_size()
+    open_sessions = DirectMemory.get_open_sessions_count()
+    if as_json:
+        print(json.dumps({"events": stats.get("total_events"),
+                          "sessions": stats.get("sessions"),
+                          "open_sessions": open_sessions,
+                          "db_mb": size.get("db_mb"),
+                          "top_types": list(stats.get("by_type") or {})[:5]},
+                         indent=2, default=str))
+        return 0
+    top = list(stats.get("by_type") or {})[:3]
+    print(f"DirectMemory v{__version__} | {stats.get('total_events')} events | "
+          f"{stats.get('sessions')} sessions ({open_sessions} open) | "
+          f"{size.get('db_mb')} MB | top: {', '.join(top) or 'n/a'}")
+    return 0
+
+
+def _run_self_test() -> int:
+    """Run the recorder self-test against a THROWAWAY database.
+
+    Never the production store. The self-test writes ten synthetic events, and
+    pointing it at ~/.azazael/memory_store.db is what made the bare
+    `python direct_memory.py` invocation destructive while looking like a report.
+    DB_PATH is resolved at import, so the globals are swapped for the duration
+    and restored afterwards; the temp directory is removed either way, and the
+    instance's atexit handler cannot re-create it because the self-test ends its
+    session explicitly (see `_atexit_handler`'s `_ended` guard).
+    """
+    global DB_PATH, TELEMETRY_DB_PATH
+    tmp = Path(tempfile.mkdtemp(prefix="direct_memory_selftest_"))
+    saved = (DB_PATH, TELEMETRY_DB_PATH)
+    DB_PATH = tmp / "memory_store.db"
+    TELEMETRY_DB_PATH = tmp / "telemetry_store.db"
+    try:
+        return _self_test_body()
+    finally:
+        DB_PATH, TELEMETRY_DB_PATH = saved
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+# Residue of the old `python direct_memory.py` self-test. The self-test is now
+# temp-DB only (`_run_self_test`), so what it wrote into whichever store it was
+# pointed at is residue, not history: one `file_create` of `/fake/new_module.py`
+# and one `file_edit` of `/fake/module.py` per polluted session. Matching demands
+# BOTH the fixture action string AND a `/fake/` path inside `data`, so a real
+# file event cannot satisfy it.
+_TEST_FIXTURE_SQL = (
+    "(event_type = 'file_create' AND data LIKE ? AND data LIKE ?) "
+    "OR (event_type = 'file_edit' AND data LIKE ? AND data LIKE ?)"
+)
+_TEST_FIXTURE_ARGS = (
+    "%create: Test creation%", "%/fake/%",
+    "%edit: Fix bug%", "%/fake/%",
+)
+
+
+def _cmd_purge_test_fixtures(apply_change: bool, as_json: bool) -> int:
+    """List, and optionally delete, rows left by the old self-test.
+
+    Dry-run by default: `--apply` is required to delete, and `--db` selects the
+    store. The listing opens the file read-only and never constructs a
+    DirectMemory, so it writes nothing. The DELETE names `memories` only --
+    `memories_fts` is an external-content table kept current by the
+    `memories_ad` AFTER DELETE trigger (see local_memory.py's schema), so the two
+    counts stay in sync without a manual FTS delete; the post-purge line prints
+    both to make that visible.
+    """
+    if not DB_PATH.exists():
+        print(f"error: database not found: {DB_PATH}", file=sys.stderr)
+        return 2
+    mode = "rw" if apply_change else "ro"
+    conn = sqlite3.connect(f"file:{DB_PATH}?mode={mode}", uri=True)
+    try:
+        rows = conn.execute(
+            "SELECT id, session_id, event_type, timestamp FROM memories "
+            f"WHERE {_TEST_FIXTURE_SQL} ORDER BY timestamp",
+            _TEST_FIXTURE_ARGS,
+        ).fetchall()
+        if as_json:
+            print(json.dumps(
+                {"database": str(DB_PATH), "matched": len(rows),
+                 "applied": bool(apply_change),
+                 "rows": [dict(zip(("id", "session_id", "event_type",
+                                    "timestamp"), r)) for r in rows]},
+                indent=2, default=str))
+        else:
+            for r in rows:
+                print(f"[{r[0]}] {str(r[3])[:19]} {r[2]} session={r[1]}")
+            if apply_change:
+                print(f"Deleting {len(rows)} self-test fixture row(s) from {DB_PATH}")
+            else:
+                print(f"Would delete {len(rows)} self-test fixture row(s) in "
+                      f"{DB_PATH} (dry run; pass --apply to delete)")
+        if apply_change and rows:
+            conn.executemany("DELETE FROM memories WHERE id = ?",
+                             [(r[0],) for r in rows])
+            conn.commit()
+            if not as_json:
+                try:
+                    m, f = conn.execute(
+                        "SELECT (SELECT COUNT(*) FROM memories), "
+                        "(SELECT COUNT(*) FROM memories_fts)").fetchone()
+                    print(f"Post-purge: memories={m} memories_fts={f}")
+                except sqlite3.Error as exc:      # noqa: BLE001 — count print is informational
+                    _note_failure("direct_memory:purge-fts-count", exc)
+        return 0
+    finally:
+        conn.close()
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """The CLI parser. Exposed so callers can introspect the documented flags."""
+    parser = argparse.ArgumentParser(
+        prog="direct_memory.py",
+        description="DirectMemory query and maintenance CLI. Read-only unless "
+                    "--gc or --self-test or --purge-test-fixtures --apply is given.",
+        epilog="Examples: direct_memory.py --stats | direct_memory.py "
+               "--context 20 | direct_memory.py --search --event-type file_edit",
+    )
+    parser.add_argument("--stats", action="store_true",
+                        help="counts, DB size, and event-type breakdown")
+    parser.add_argument("--context", nargs="?", const=10, type=int, default=None,
+                        metavar="N",
+                        help="the N most recent events across all sessions (default 10)")
+    parser.add_argument("--integrity", action="store_true",
+                        help="read-only DM<->audit ledger cross-check; "
+                             "exit 1 if sessions are unlinked")
+    parser.add_argument("--gc", action="store_true",
+                        help="close sessions left open (WRITES)")
+    parser.add_argument("--search", action="store_true",
+                        help="structured event query (see the filter options)")
+    parser.add_argument("--banner", action="store_true",
+                        help="one-line summary")
+    parser.add_argument("--self-test", dest="self_test", action="store_true",
+                        help="run the recorder self-test on a THROWAWAY database")
+    parser.add_argument("--purge-test-fixtures", dest="purge_test_fixtures",
+                        action="store_true",
+                        help="list rows left by the old self-test; with --apply, delete them")
+    parser.add_argument("--apply", dest="apply", action="store_true",
+                        help="--purge-test-fixtures: actually delete (default is a dry run)")
+    parser.add_argument("--json", action="store_true",
+                        help="machine-readable output in every mode")
+    parser.add_argument("--db", metavar="PATH",
+                        help="target another database file (must already exist)")
+    parser.add_argument("--max-age-hours", type=int, default=1, metavar="H",
+                        help="--gc: close sessions open longer than H hours (default 1)")
+    parser.add_argument("--limit", type=int, default=20, metavar="N",
+                        help="--search: maximum rows to return (default 20)")
+    parser.add_argument("--session-id", metavar="ID", help="--search: exact session id")
+    parser.add_argument("--event-type", metavar="TYPE", help="--search: exact event_type")
+    parser.add_argument("--severity", metavar="LEVEL", help="--search: exact severity")
+    parser.add_argument("--source", metavar="SRC", help="--search: exact source")
+    parser.add_argument("--tag", action="append", metavar="TAG",
+                        help="--search: repeatable; matches one JSON tag element")
+    parser.add_argument("--since", metavar="ISO", help="--search: timestamp >= ISO")
+    parser.add_argument("--until", metavar="ISO", help="--search: timestamp <= ISO")
+    return parser
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    """Entry point. Returns the process exit code; never raises for user input."""
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        # --self-test deliberately ignores --db: it must never touch a real store.
+        return _run_self_test()
+
+    if not any((args.stats, args.context is not None, args.integrity,
+                args.gc, args.search, args.banner, args.purge_test_fixtures)):
+        # No command: print help and change nothing. This used to run the
+        # self-test, so `direct_memory.py --typo` wrote to the live store.
+        parser.print_help()
+        return 0
+
+    code = _apply_db_override(args.db)
+    if code:
+        return code
+
+    if args.stats:
+        return _cmd_stats(args.json)
+    if args.context is not None:
+        limit = args.context if args.context > 0 else 10
+        return _cmd_context(limit, args.json)
+    if args.integrity:
+        return _cmd_integrity(args.json)
+    if args.gc:
+        return _cmd_gc(args.max_age_hours, args.json)
+    if args.purge_test_fixtures:
+        return _cmd_purge_test_fixtures(args.apply, args.json)
+    if args.search:
+        return _cmd_search(args, args.json)
+    if args.banner:
+        return _cmd_banner(args.json)
+    parser.print_help()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
