@@ -265,15 +265,18 @@ class CircuitBreaker:
                     log.info(f"CircuitBreaker({self.name}): HALF_OPEN -> CLOSED")
             return result
         except Exception as e:
+            tripped = False
             with self._lock:
                 self.failure_count += 1
                 self.last_failure_time = time.time()
                 if (self.state == CircuitState.CLOSED and
                         self.failure_count >= self.config.failure_threshold):
                     self.state = CircuitState.OPEN
+                    tripped = True
                     log.warning(f"CircuitBreaker({self.name}): CLOSED -> OPEN ({self.failure_count} failures)")
                 elif self.state == CircuitState.HALF_OPEN:
                     self.state = CircuitState.OPEN
+                    tripped = True
                     log.warning(f"CircuitBreaker({self.name}): HALF_OPEN -> OPEN")
 
                 # Best-effort: only a declared phase, never a guess.
@@ -284,6 +287,18 @@ class CircuitBreaker:
                     error=str(e),
                     phase=failure_phase,
                 ))
+            # Verify-before-accept audit on the OPEN trip: the transition gets a
+            # verification citation, but the verdict NEVER gates control flow
+            # (fail-open house rule — the trip stands regardless). Outside the
+            # lock on purpose: verification is a memory write and must not
+            # serialise callers. Subject-only: no detectors are armed with
+            # fabricated inputs, so this is an audit row, not a judgment.
+            if tripped:
+                try:
+                    from CORE.technique_runtime import verify_boundary as _verify
+                    _verify(f"breaker:{self.name}:OPEN-trip")
+                except Exception as exc:
+                    _note_failure("circuit_breaker:trip-verify", exc)
             # EP113 + EP294: the failure is now recorded, which makes this the
             # one place a lesson can be written from certain knowledge. Called
             # OUTSIDE the breaker lock (a reflection is a memory write, and
