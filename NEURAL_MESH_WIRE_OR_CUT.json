@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-10-10T09:00:18.822312",
+ "generated_at": "2026-10-10T13:01:58.005038",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
-  "dispatched": 58,
-  "pending": 109
+  "dispatched": 59,
+  "pending": 108
  },
  "total": 170,
  "declared": {
@@ -132,7 +132,7 @@
   },
   "communication:ProtocolNegotiator.deserialize": {
    "evidence": [
-    "src/CORE/worm_registry.py:1156"
+    "src/CORE/worm_registry.py:1201"
    ],
    "line": 240,
    "module": "communication",
@@ -143,9 +143,9 @@
   },
   "communication:ProtocolNegotiator.negotiate": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:503",
-    "src/CORE/worm_governance.py:364",
-    "src/CORE/worm_registry.py:1125"
+    "src/CORE/WORMS/CLUSTERWORMS.py:537",
+    "src/CORE/worm_governance.py:373",
+    "src/CORE/worm_registry.py:1170"
    ],
    "line": 219,
    "module": "communication",
@@ -156,8 +156,8 @@
   },
   "communication:ProtocolNegotiator.register_peer": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:504",
-    "src/CORE/worm_registry.py:1127"
+    "src/CORE/WORMS/CLUSTERWORMS.py:538",
+    "src/CORE/worm_registry.py:1172"
    ],
    "line": 216,
    "module": "communication",
@@ -168,7 +168,7 @@
   },
   "communication:ProtocolNegotiator.serialize": {
    "evidence": [
-    "src/CORE/worm_registry.py:1156"
+    "src/CORE/worm_registry.py:1201"
    ],
    "line": 234,
    "module": "communication",
@@ -188,8 +188,8 @@
   },
   "communication:RPCEndpoint.register_method": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:504",
-    "src/CORE/worm_registry.py:1127"
+    "src/CORE/WORMS/CLUSTERWORMS.py:538",
+    "src/CORE/worm_registry.py:1172"
    ],
    "line": 99,
    "module": "communication",
@@ -200,9 +200,9 @@
   },
   "communication:WebhookRelay.deliver": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:502",
-    "src/CORE/worm_governance.py:364",
-    "src/CORE/worm_registry.py:1125"
+    "src/CORE/WORMS/CLUSTERWORMS.py:536",
+    "src/CORE/worm_governance.py:373",
+    "src/CORE/worm_registry.py:1170"
    ],
    "line": 138,
    "module": "communication",
@@ -213,7 +213,7 @@
   },
   "communication:WebhookRelay.register_webhook": {
    "evidence": [
-    "src/CORE/worm_registry.py:1152"
+    "src/CORE/worm_registry.py:1197"
    ],
    "line": 134,
    "module": "communication",
@@ -224,7 +224,7 @@
   },
   "config:ConfigLinter.lint_json": {
    "evidence": [
-    "src/CORE/WORMS/expansion/config.py:82"
+    "src/CORE/WORMS/expansion/config.py:96"
    ],
    "line": 64,
    "module": "config",
@@ -247,7 +247,7 @@
   },
   "config:DotfileSync.get_checksums": {
    "evidence": [
-    "src/CORE/worm_registry.py:1166"
+    "src/CORE/worm_registry.py:1211"
    ],
    "line": 143,
    "module": "config",
@@ -258,7 +258,7 @@
   },
   "config:EnvValidator.scan_env_files": {
    "evidence": [
-    "src/CORE/worm_registry.py:1136"
+    "src/CORE/worm_registry.py:1181"
    ],
    "line": 107,
    "module": "config",
@@ -269,7 +269,7 @@
   },
   "config:FeatureFlagCtrl.is_enabled": {
    "evidence": [
-    "src/CORE/worm_registry.py:1158"
+    "src/CORE/worm_registry.py:1203"
    ],
    "line": 191,
    "module": "config",
@@ -280,7 +280,7 @@
   },
   "config:FeatureFlagCtrl.set_flag": {
    "evidence": [
-    "src/CORE/worm_registry.py:1158"
+    "src/CORE/worm_registry.py:1203"
    ],
    "line": 187,
    "module": "config",
@@ -291,7 +291,7 @@
   },
   "config:SecretRotator.rotate_secret": {
    "evidence": [
-    "src/CORE/worm_registry.py:1145"
+    "src/CORE/worm_registry.py:1190"
    ],
    "line": 158,
    "module": "config",
@@ -340,7 +340,7 @@
   },
   "container:ImageAuditor.audit_image": {
    "evidence": [
-    "src/CORE/worm_registry.py:1140"
+    "src/CORE/worm_registry.py:1185"
    ],
    "line": 164,
    "module": "container",
@@ -351,8 +351,8 @@
   },
   "container:RegistryPoller.check_latest": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:505",
-    "src/CORE/worm_registry.py:1128"
+    "src/CORE/WORMS/CLUSTERWORMS.py:539",
+    "src/CORE/worm_registry.py:1173"
    ],
    "line": 197,
    "module": "container",
@@ -363,8 +363,8 @@
   },
   "container:ResourceQuotaWatch.check_usage": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:505",
-    "src/CORE/worm_registry.py:1128"
+    "src/CORE/WORMS/CLUSTERWORMS.py:539",
+    "src/CORE/worm_registry.py:1173"
    ],
    "line": 228,
    "module": "container",
@@ -435,8 +435,8 @@
   },
   "dendrite:ContextConcatWorm.merge": {
    "evidence": [
-    "src/CORE/WORMS/expansion/mesh.py:433",
-    "src/CORE/WORMS/expansion/mesh.py:436",
+    "src/CORE/WORMS/expansion/mesh.py:455",
+    "src/CORE/WORMS/expansion/mesh.py:458",
     "src/CORE/cli_completion.py:26"
    ],
    "line": 103,
@@ -472,7 +472,7 @@
   "dreaming:DreamingModule.get_dream_stats": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 984,
+   "line": 987,
    "module": "dreaming",
    "qualname": "DreamingModule.get_dream_stats",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -484,7 +484,7 @@
   "dreaming:HypnagogicSynthesizer.ingest_domains": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1039,
+   "line": 1042,
    "module": "dreaming",
    "qualname": "HypnagogicSynthesizer.ingest_domains",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -522,8 +522,11 @@
    "qualname": "DreamConsolidatorWorm.read_pressure",
    "line": 657,
    "seg": "def read_pressure(self, router=None) -> dict:\n        \"\"\"The read-side signal the writer was missing (EP235).\n\n        `RecallRouterWorm` already records what was recalled and how well it\n        scored, and nothing consumed it. This turns that record into the one\n        number a writer can act on: the ABSTENTION rate. Reads that found\n        nothing are unmet demand -- the store is missing what consumers ask\n        for, and that is a reason to consolidate toward the gap rather than\n        only replaying dreams.\n        \"\"\"\n        try:\n            if router is None:\n                st = {}\n            elif hasattr(router, \"recall_state\"):\n                st = router.recall_state()\n            elif hasattr(router, \"stats\"):\n                st = router.stats()\n            else:\n                st = {}\n        except Exception:\n            note_failure(\"engram:L679\", None)\n            st = {}\n        st = dict(st or {})\n        total = int(st.get(\"total\", 0) or 0)\n        abstained = int(st.get(\"abstained\", st.get(\"fallback\", 0)) or 0)\n        scores = [float(s) for s in (st.get(\"last_scores\") or [])\n                  if isinstance(s, (int, float))]\n        mean_top = round(sum(scores) / len(scores), 4) if scores else None\n        rate = round(abstained / total, 4) if total else 0.0\n        return {\"total_reads\": total, \"abstained\": abstained,\n                \"abstention_rate\": rate, \"mean_top_score\": mean_top,\n                \"needs_writing\": rate >= self.UNMET_DEMAND_FLOOR,\n                \"signal\": (\"unmet-demand\" if rate >= self.UNMET_DEMAND_FLOOR\n                           else (\"weak-relevance\" if (mean_top is not None\n                                                      and mean_top < 0.5)\n                                 else \"served\"))}",
-   "status": "pending",
-   "reason": "Kept pending P10: public read-signal API on a registered worm; dead wrappers removed 2026-10-10; needs a consolidation consumer."
+   "status": "dispatched",
+   "reason": "Kept pending P10: public read-signal API on a registered worm; dead wrappers removed 2026-10-10; needs a consolidation consumer.",
+   "evidence": [
+    "src/CORE/WORMS/expansion/engram.py:709"
+   ]
   },
   "error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery": {
    "decider": "test_is_the_wire",
@@ -579,7 +582,7 @@
   },
   "evidence:evidence_from_rows": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evidence.py:38"
+    "src/CORE/WORMS/expansion/evidence.py:47"
    ],
    "line": 257,
    "module": "evidence",
@@ -591,7 +594,7 @@
   "evolution:EvolutionEngine.get_generation_history": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1363,
+   "line": 1366,
    "module": "evolution",
    "qualname": "EvolutionEngine.get_generation_history",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -605,7 +608,7 @@
    "decider_evidence": [
     "tests/test_v2_engines.py:187"
    ],
-   "line": 1425,
+   "line": 1428,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_cma",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -621,7 +624,7 @@
    "decider_evidence": [
     "tests/test_v2_engines.py:194"
    ],
-   "line": 1438,
+   "line": 1441,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_de",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -635,7 +638,7 @@
   "evolution:GeneticOptimizer.optimize_multi": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1514,
+   "line": 1517,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_multi",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -646,9 +649,9 @@
   },
   "evolution:hypervolume_2d": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evolution.py:107"
+    "src/CORE/WORMS/expansion/evolution.py:123"
    ],
-   "line": 1940,
+   "line": 1943,
    "module": "evolution",
    "qualname": "hypervolume_2d",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it",
@@ -657,9 +660,9 @@
   },
   "evolution:moead_weights": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evolution.py:108"
+    "src/CORE/WORMS/expansion/evolution.py:124"
    ],
-   "line": 1952,
+   "line": 1955,
    "module": "evolution",
    "qualname": "moead_weights",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it",
@@ -668,9 +671,9 @@
   },
   "evolution:tchebycheff": {
    "evidence": [
-    "src/CORE/WORMS/expansion/evolution.py:109"
+    "src/CORE/WORMS/expansion/evolution.py:125"
    ],
-   "line": 1974,
+   "line": 1977,
    "module": "evolution",
    "qualname": "tchebycheff",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it",
@@ -703,7 +706,7 @@
   },
   "exmachina:collect_state": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:105"
+    "src/CORE/WORMS/expansion/exmachina.py:114"
    ],
    "line": 464,
    "module": "exmachina",
@@ -714,7 +717,7 @@
   },
   "exmachina:conformal_interval": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:63"
+    "src/CORE/WORMS/expansion/exmachina.py:72"
    ],
    "line": 371,
    "module": "exmachina",
@@ -725,7 +728,7 @@
   },
   "exmachina:matrix_inverse": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:89"
+    "src/CORE/WORMS/expansion/exmachina.py:98"
    ],
    "line": 1182,
    "module": "exmachina",
@@ -736,7 +739,7 @@
   },
   "exmachina:novelty_ncd": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:61"
+    "src/CORE/WORMS/expansion/exmachina.py:70"
    ],
    "line": 325,
    "module": "exmachina",
@@ -747,7 +750,7 @@
   },
   "exmachina:solve_linear": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina.py:88"
+    "src/CORE/WORMS/expansion/exmachina.py:97"
    ],
    "line": 1178,
    "module": "exmachina",
@@ -758,7 +761,7 @@
   },
   "exmachina_operators:operator_report": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina_operators.py:91"
+    "src/CORE/WORMS/expansion/exmachina_operators.py:101"
    ],
    "line": 1022,
    "module": "exmachina_operators",
@@ -769,7 +772,7 @@
   },
   "exmachina_operators:rank_candidates": {
    "evidence": [
-    "src/CORE/WORMS/expansion/exmachina_operators.py:89"
+    "src/CORE/WORMS/expansion/exmachina_operators.py:99"
    ],
    "line": 973,
    "module": "exmachina_operators",
@@ -804,7 +807,7 @@
   },
   "learning_features:FeatureEngineer.impute_missing": {
    "evidence": [
-    "src/CORE/worm_registry.py:1168"
+    "src/CORE/worm_registry.py:1213"
    ],
    "line": 459,
    "module": "learning_features",
@@ -815,7 +818,7 @@
   },
   "learning_features:FeatureEngineer.one_hot_encode": {
    "evidence": [
-    "src/CORE/worm_registry.py:1168"
+    "src/CORE/worm_registry.py:1213"
    ],
    "line": 449,
    "module": "learning_features",
@@ -1010,8 +1013,8 @@
   },
   "learning_rl:RLTrainLoop.train_episode": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:507",
-    "src/CORE/worm_registry.py:1131"
+    "src/CORE/WORMS/CLUSTERWORMS.py:541",
+    "src/CORE/worm_registry.py:1176"
    ],
    "line": 909,
    "module": "learning_rl",
@@ -1093,7 +1096,7 @@
   "mesh:MeshRouterWorm.invalidate_route": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 274,
+   "line": 278,
    "module": "mesh",
    "qualname": "MeshRouterWorm.invalidate_route",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1109,7 +1112,7 @@
     "tests/test_neural_advancement.py:220",
     "tests/test_neural_advancement.py:226"
    ],
-   "line": 938,
+   "line": 941,
    "module": "meta_cognition",
    "qualname": "MetaCognitionWorm.compute_cross_worm_correlation",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1125,14 +1128,18 @@
   "meta_cognition:internalize": {
    "module": "meta_cognition",
    "qualname": "internalize",
-   "line": 61,
+   "line": 64,
    "seg": "def internalize(observation: dict[str, Any], *, worm: str = \"global\",\n                persist: bool = False, store: Any = None) -> dict[str, Any]:\n    \"\"\"Run analyse -> recommend -> adapt over one observation (EP435).\n\n    EP435's fourth phase is Internalize (Explore -> Evaluate -> Reflect ->\n    Internalize). This engine already had Evaluate (`analyze_patterns`), Reflect\n    (`recommend_from_evidence`) and Adapt (`adapt_strategy`) -- and nothing ran\n    the three in sequence, so the technique existed as parts with no chain. This\n    is that chain, in one fail-open call.\n\n    The confidence gate is the engine's own `ADOPT_CONFIDENCE`: a recommendation\n    below it is REPORTED but not adopted, so a self-test invocation cannot churn\n    the active strategy on thin evidence.\n\n    Read-mostly by default: `persist=False` builds the engine with persistence\n    disabled, so running this from a self-test never writes a live store. A\n    caller that wants the adaptation remembered passes `persist=True` (or an\n    explicit `store`).\n\n    Args:\n        observation: {\"worm_type\", \"action\", \"outcome\" (required keys of the\n            observe contract), plus optional \"context\", \"duration_ms\",\n            \"error\".\n        worm: fallback worm_type when the observation omits one.\n        persist: allow the engine to read/write persistent state.\n        store: an explicit memory store (overrides `persist`).\n\n    Returns:\n        dict with the chain's verdict: error_rate, recommended, confidence,\n        adopted, strategy, reason. On failure: {\"error\", \"adopted\": False}.\n    \"\"\"\n    try:\n        engine = MetaCognitionWorm(\n            memory_store=(store if store is not None\n                          else (None if persist else _PERSISTENCE_DISABLED)))\n        obs = dict(observation or {})\n        target = str(obs.get(\"worm_type\") or worm)\n        engine.observe(\n            worm_type=target,\n            action=str(obs.get(\"action\", \"unknown\")),\n            outcome=str(obs.get(\"outcome\", \"success\")),\n            context=obs.get(\"context\") or {},\n            duration_ms=float(obs.get(\"duration_ms\", 0.0) or 0.0),\n            error=obs.get(\"error\"),\n        )\n        analysis = engine.analyze_patterns(worm_type=target)\n        rec = engine.recommend_from_evidence(target)\n        recommended = rec.get(\"recommended\")\n        confidence = float(rec.get(\"confidence\", 0.0) or 0.0)\n        adopted = False\n        if recommended and confidence >= engine.ADOPT_CONFIDENCE:\n            engine.adapt_strategy(worm_type=target, recommended=recommended,\n                                  confidence=confidence)\n            adopted = True\n        return {\"engine\": \"meta_cognition\", \"worm_type\": target,\n                \"error_rate\": analysis.get(\"error_rate\"),\n                \"recommended\": recommended, \"confidence\": confidence,\n                \"adopted\": adopted,\n                \"strategy\": engine.get_current_strategy(target),\n                \"reason\": rec.get(\"reason\")}\n    except Exception as exc:\n        note_failure(\"meta_cognition:L110\", exc)\n        return {\"error\": f\"{type(exc).__name__}: {exc}\", \"adopted\": False}",
    "status": "pending",
-   "reason": "Kept pending: EP435 analyse-recommend-adapt chain, read-mostly, fail-open; needs a production caller."
+   "reason": "Kept pending: EP435 analyse-recommend-adapt chain, read-mostly, fail-open; needs a production caller.",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dead_candidate",
+   "decider_evidence": []
   },
   "migration:CodeMigrator.detect_python2_patterns": {
    "evidence": [
-    "src/CORE/WORMS/expansion/migration.py:82"
+    "src/CORE/WORMS/expansion/migration.py:95"
    ],
    "line": 63,
    "module": "migration",
@@ -1155,8 +1162,8 @@
   },
   "migration:DepUpgrader.check_outdated": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:505",
-    "src/CORE/worm_registry.py:1128"
+    "src/CORE/WORMS/CLUSTERWORMS.py:539",
+    "src/CORE/worm_registry.py:1173"
    ],
    "line": 124,
    "module": "migration",
@@ -1167,7 +1174,7 @@
   },
   "migration:DepUpgrader.parse_requirements": {
    "evidence": [
-    "src/CORE/worm_registry.py:1167"
+    "src/CORE/worm_registry.py:1212"
    ],
    "line": 106,
    "module": "migration",
@@ -1178,7 +1185,7 @@
   },
   "migration:ImportPathFixWorm.add_mapping": {
    "evidence": [
-    "src/CORE/worm_registry.py:1165"
+    "src/CORE/worm_registry.py:1210"
    ],
    "line": 181,
    "module": "migration",
@@ -1189,7 +1196,7 @@
   },
   "migration:LegacyShimGen.generate_shim": {
    "evidence": [
-    "src/CORE/worm_registry.py:1146"
+    "src/CORE/worm_registry.py:1191"
    ],
    "line": 216,
    "module": "migration",
@@ -1212,7 +1219,7 @@
   },
   "migration:SchemaVersioner.detect_breaking_changes": {
    "evidence": [
-    "src/CORE/worm_registry.py:1142"
+    "src/CORE/worm_registry.py:1187"
    ],
    "line": 156,
    "module": "migration",
@@ -1223,8 +1230,8 @@
   },
   "migration:SchemaVersioner.register_schema": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:504",
-    "src/CORE/worm_registry.py:1127"
+    "src/CORE/WORMS/CLUSTERWORMS.py:538",
+    "src/CORE/worm_registry.py:1172"
    ],
    "line": 149,
    "module": "migration",
@@ -1349,7 +1356,7 @@
   },
   "profiling:GILContentionProbe.measure_contention": {
    "evidence": [
-    "src/CORE/worm_registry.py:1143"
+    "src/CORE/worm_registry.py:1188"
    ],
    "line": 179,
    "module": "profiling",
@@ -1360,7 +1367,7 @@
   },
   "profiling:IOBottleneckFinder.detect_bottleneck": {
    "evidence": [
-    "src/CORE/worm_registry.py:1141"
+    "src/CORE/worm_registry.py:1186"
    ],
    "line": 161,
    "module": "profiling",
@@ -1371,7 +1378,7 @@
   },
   "profiling:MemoryLeakDetector.compare_snapshots": {
    "evidence": [
-    "src/CORE/worm_registry.py:1150"
+    "src/CORE/worm_registry.py:1195"
    ],
    "line": 123,
    "module": "profiling",
@@ -1382,7 +1389,7 @@
   },
   "proteus_hooks:morph_dimension_summary": {
    "evidence": [
-    "src/CORE/WORMS/expansion/proteus_hooks.py:81"
+    "src/CORE/WORMS/expansion/proteus_hooks.py:90"
    ],
    "line": 770,
    "module": "proteus_hooks",
@@ -1405,7 +1412,7 @@
   },
   "proteus_hooks:morph_treatment_value": {
    "evidence": [
-    "src/CORE/WORMS/expansion/proteus_hooks.py:78"
+    "src/CORE/WORMS/expansion/proteus_hooks.py:87"
    ],
    "line": 613,
    "module": "proteus_hooks",
@@ -1508,7 +1515,7 @@
   },
   "security:FirewallAudit.find_overly_permissive": {
    "evidence": [
-    "src/CORE/worm_registry.py:1153"
+    "src/CORE/worm_registry.py:1198"
    ],
    "line": 210,
    "module": "security",
@@ -1519,7 +1526,7 @@
   },
   "security:PortAuditor.audit_exposure": {
    "evidence": [
-    "src/CORE/worm_registry.py:1140"
+    "src/CORE/worm_registry.py:1185"
    ],
    "line": 123,
    "module": "security",
@@ -1578,7 +1585,7 @@
   },
   "session_state:SessionStateManager.restore_all": {
    "evidence": [
-    "src/CORE/WORMS/expansion/session_state.py:459"
+    "src/CORE/WORMS/expansion/session_state.py:474"
    ],
    "line": 450,
    "module": "session_state",
@@ -1604,7 +1611,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 3831,
+   "line": 3859,
    "module": "spine",
    "qualname": "MorphogenesisWorm.retrieve_staged",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1621,7 +1628,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 2668,
+   "line": 2696,
    "module": "spine",
    "qualname": "SpineCycleWorm._nature_success_rate",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1635,7 +1642,7 @@
    "decider_evidence": [
     "src/CORE/WORMS/expansion/spine.py"
    ],
-   "line": 3994,
+   "line": 4022,
    "module": "spine",
    "qualname": "measure_skill_lift",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1729,7 +1736,7 @@
   },
   "spine_registry:get_policy_latest": {
    "evidence": [
-    "src/CORE/worm_registry.py:297"
+    "src/CORE/worm_registry.py:311"
    ],
    "line": 534,
    "module": "spine_registry",
@@ -1999,7 +2006,7 @@
   },
   "telemetry:AlertEscalator.check_threshold": {
    "evidence": [
-    "src/CORE/WORMS/expansion/telemetry.py:229"
+    "src/CORE/WORMS/expansion/telemetry.py:241"
    ],
    "line": 220,
    "module": "telemetry",
@@ -2034,7 +2041,7 @@
   },
   "telemetry:LogStreamer.read_new_lines": {
    "evidence": [
-    "src/CORE/worm_registry.py:1151"
+    "src/CORE/worm_registry.py:1196"
    ],
    "line": 150,
    "module": "telemetry",
@@ -2045,7 +2052,7 @@
   },
   "telemetry:LogStreamer.watch_file": {
    "evidence": [
-    "src/CORE/worm_registry.py:1151"
+    "src/CORE/worm_registry.py:1196"
    ],
    "line": 141,
    "module": "telemetry",
@@ -2056,7 +2063,7 @@
   },
   "telemetry:MetricAggregator.get_snapshot": {
    "evidence": [
-    "src/CORE/worm_registry.py:1134"
+    "src/CORE/worm_registry.py:1179"
    ],
    "line": 120,
    "module": "telemetry",
@@ -2067,7 +2074,7 @@
   },
   "telemetry:MetricAggregator.inc_counter": {
    "evidence": [
-    "src/CORE/worm_registry.py:1135"
+    "src/CORE/worm_registry.py:1180"
    ],
    "line": 106,
    "module": "telemetry",
@@ -2131,7 +2138,7 @@
   },
   "tensorgene:dedupe_observations": {
    "evidence": [
-    "src/CORE/WORMS/expansion/tensorgene.py:48"
+    "src/CORE/WORMS/expansion/tensorgene.py:57"
    ],
    "line": 225,
    "module": "tensorgene",
@@ -2177,8 +2184,8 @@
   },
   "visualization:ReportCompiler.add_section": {
    "evidence": [
-    "src/CORE/worm_registry.py:1164",
-    "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:886"
+    "src/CORE/worm_registry.py:1209",
+    "src/ORCHESTRATION/ml_platforms/improvements/qlearning_table.py:895"
    ],
    "line": 147,
    "module": "visualization",
@@ -2189,8 +2196,8 @@
   },
   "visualization:ReportCompiler.compile_html": {
    "evidence": [
-    "src/CORE/WORMS/CLUSTERWORMS.py:506",
-    "src/CORE/worm_registry.py:1129"
+    "src/CORE/WORMS/CLUSTERWORMS.py:540",
+    "src/CORE/worm_registry.py:1174"
    ],
    "line": 151,
    "module": "visualization",
@@ -2201,7 +2208,7 @@
   },
   "visualization:TimelineViz.add_span": {
    "evidence": [
-    "src/CORE/worm_registry.py:1165"
+    "src/CORE/worm_registry.py:1210"
    ],
    "line": 222,
    "module": "visualization",
@@ -2212,7 +2219,7 @@
   },
   "visualization:TimelineViz.to_timeline_html": {
    "evidence": [
-    "src/CORE/worm_registry.py:1148"
+    "src/CORE/worm_registry.py:1193"
    ],
    "line": 227,
    "module": "visualization",
@@ -2283,5 +2290,16 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   }
+ },
+ "triage_counts": {
+  "test_reached_only": 49,
+  "no_reference_anywhere": 59
+ },
+ "decider_counts": {
+  "protocol_or_override": 0,
+  "declared_in_data": 3,
+  "dynamic_call": 8,
+  "test_is_the_wire": 43,
+  "dead_candidate": 54
  }
 }

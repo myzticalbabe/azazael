@@ -1,35 +1,24 @@
 {
- "generated": "2026-09-22T05:42:23.439437+00:00",
- "files": 154083,
- "mb": 11891.9,
+ "generated": "2026-10-10T17:02:17.873693+00:00",
+ "files": 42394,
+ "mb": 2566.4,
  "top_level": [
   ".",
-  ".agent",
   ".agents",
   ".audit",
-  ".claude",
-  ".debug",
-  ".deps-jiter",
+  ".freebuff",
   ".githooks",
   ".github",
-  ".graphify-live",
-  ".graphify-live2",
-  ".graphify-live3",
+  ".hypothesis",
   ".inference_cache",
-  ".mypy_cache",
-  ".nox",
   ".pytest_cache",
-  ".ruff_cache",
-  ".venv-3.14t",
-  ".vscode",
   "ADRs",
   "algorithms",
   "archive",
   "archived",
   "archived_unified",
-  "backup",
+  "azazael",
   "config",
-  "coverage_inference_html",
   "dashboard",
   "data",
   "docker",
@@ -56,160 +45,118 @@
   "templates",
   "tests",
   "tools",
-  "var",
-  "workflows",
-  "workspace"
+  "workflows"
  ],
  "top_table": [
   [
-   "graphify-out",
-   77211,
-   3941.5
-  ],
-  [
    "archived",
-   27489,
-   2231.9
-  ],
-  [
-   "output",
-   25085,
-   2159.3
-  ],
-  [
-   "native",
-   4605,
-   519.1
-  ],
-  [
-   ".venv-3.14t",
-   3394,
-   103.8
+   25125,
+   1687.8
   ],
   [
    "src",
-   3152,
-   612.7
+   4315,
+   138.7
   ],
   [
    "scripts",
-   2692,
-   35.8
+   2978,
+   39.3
   ],
   [
-   ".nox",
-   1925,
-   60.8
+   "graphify-out",
+   2353,
+   420.6
   ],
   [
    ".agents",
-   1481,
-   9.8
+   1499,
+   10.0
   ],
   [
    "skills",
-   1227,
-   1.5
+   1245,
+   1.7
   ],
   [
-   "gateway",
-   832,
-   252.5
+   "tests",
+   851,
+   20.0
   ],
   [
-   "archive",
-   815,
-   880.3
+   "tools",
+   776,
+   9.1
   ],
   [
    "nuitka_build_backup",
    657,
-   13.3
+   13.7
+  ],
+  [
+   ".hypothesis",
+   559,
+   0.5
   ],
   [
    "archived_unified",
-   539,
-   159.7
-  ],
-  [
-   "tests",
-   537,
-   14.0
-  ],
-  [
-   ".mypy_cache",
-   288,
-   81.4
-  ],
-  [
-   "logs",
-   271,
-   15.7
-  ],
-  [
-   "packages",
-   261,
-   224.7
-  ],
-  [
-   ".inference_cache",
-   235,
-   0.6
-  ],
-  [
-   ".",
-   231,
-   27.8
-  ],
-  [
-   ".claude",
-   218,
-   8.1
+   501,
+   24.2
   ],
   [
    ".audit",
-   181,
-   0.4
+   252,
+   0.5
+  ],
+  [
+   "state",
+   229,
+   14.2
+  ],
+  [
+   ".",
+   220,
+   51.4
+  ],
+  [
+   "archive",
+   198,
+   7.6
   ],
   [
    "skills.win-backup",
-   133,
+   132,
    0.6
   ],
   [
    "docs",
-   92,
-   4.4
+   94,
+   4.5
   ],
   [
    "graphs",
    92,
-   4.8
+   4.9
   ],
   [
-   "state",
-   81,
-   12.6
+   ".inference_cache",
+   64,
+   0.0
   ],
   [
-   "tools",
-   77,
-   71.2
+   "packages",
+   61,
+   37.5
   ],
   [
-   "backup",
-   57,
-   347.9
+   "logs",
+   34,
+   0.9
   ],
   [
-   "reports",
-   36,
-   0.2
-  ],
-  [
-   "coverage_inference_html",
+   "output",
    20,
-   2.5
+   6.0
   ],
   [
    "templates",
@@ -217,24 +164,14 @@
    0.0
   ],
   [
-   "config",
-   15,
-   0.0
-  ],
-  [
-   "var",
-   14,
-   0.7
-  ],
-  [
-   ".deps-jiter",
-   12,
-   0.5
-  ],
-  [
-   "data",
-   11,
+   "reports",
+   18,
    0.1
+  ],
+  [
+   "config",
+   11,
+   0.0
   ],
   [
    "temp",
@@ -242,44 +179,39 @@
    0.0
   ],
   [
-   ".debug",
+   "__pycache__",
    10,
-   0.2
+   0.4
   ],
   [
-   ".ruff_cache",
+   "data",
    8,
    0.0
   ],
   [
-   ".graphify-live",
-   6,
-   50.0
-  ],
-  [
-   "dashboard",
-   6,
-   0.1
-  ],
-  [
    "skills_staging",
-   6,
+   7,
    0.1
   ],
   [
-   ".githooks",
+   "docker",
+   6,
+   0.0
+  ],
+  [
+   "research",
+   6,
+   0.2
+  ],
+  [
+   ".github",
    5,
    0.0
   ],
   [
    ".pytest_cache",
    5,
-   0.3
-  ],
-  [
-   "docker",
-   5,
-   0.0
+   0.4
   ],
   [
    "lib",
@@ -287,24 +219,14 @@
    0.7
   ],
   [
-   ".github",
-   4,
+   "native",
+   5,
    0.0
   ],
   [
-   "research",
+   "dashboard",
    4,
    0.1
-  ],
-  [
-   ".graphify-live2",
-   3,
-   15.3
-  ],
-  [
-   ".graphify-live3",
-   3,
-   15.3
   ],
   [
    "ADRs",
@@ -312,9 +234,14 @@
    0.0
   ],
   [
-   "gateway-go",
+   "azazael",
    3,
-   9.2
+   70.5
+  ],
+  [
+   "gateway",
+   3,
+   0.0
   ],
   [
    "workflows",
@@ -327,134 +254,69 @@
    0.0
   ],
   [
-   "__pycache__",
+   "gateway-go",
    2,
    0.0
   ],
   [
-   ".agent",
+   ".freebuff",
    1,
    0.0
   ],
   [
-   ".vscode",
+   ".githooks",
    1,
    0.0
-  ],
-  [
-   "workspace",
-   1,
-   0.1
   ]
  ],
  "large_files": [
   {
-   "path": "graphify-out\\graph.gexf",
-   "mb": 709.0
-  },
-  {
-   "path": "graphify-out\\graph.json",
-   "mb": 510.7
-  },
-  {
-   "path": "graphify-out\\graph.html",
-   "mb": 498.8
-  },
-  {
-   "path": "archive\\build_artifacts\\mp4_videos\\complete_remorse_cain.mp4",
-   "mb": 476.2
-  },
-  {
-   "path": "output\\graphify_cache\\azazael\\graph.json",
-   "mb": 273.1
-  },
-  {
    "path": "archived\\2026-05-31\\onnxruntime.tar.gz",
    "mb": 272.3
-  },
-  {
-   "path": "output\\graphify_runs\\azazael\\graphify-out\\graph.json",
-   "mb": 243.0
-  },
-  {
-   "path": "output\\bibl\\bibl_export.json",
-   "mb": 230.3
-  },
-  {
-   "path": "output\\bibl\\bibl_index.json",
-   "mb": 230.3
   },
   {
    "path": "archived\\2026-05-31\\onnxruntime-source\\onnxruntime.tar.gz",
    "mb": 228.8
   },
   {
-   "path": "output\\full_scans\\windows_users_clint.jsonl",
-   "mb": 199.8
+   "path": "AUTO_DOWNLOADER.log",
+   "mb": 45.4
   },
   {
-   "path": "output\\graphify_cache\\azazael\\graphify-out\\graph.json",
-   "mb": 173.7
+   "path": "graphify-out\\graph.json",
+   "mb": 43.9
   },
   {
-   "path": "graphify-out\\cache\\ast\\9b43d145f9db7933a3f62dcb09b677e47fd0faba817750dec0b308e4b54ad9d1.json",
-   "mb": 157.2
+   "path": "graphify-out\\2026-10-10\\graph.json",
+   "mb": 41.2
   },
   {
-   "path": "backup\\db\\memory_store.20260920.db.gz",
-   "mb": 132.1
+   "path": "graphify-out\\2026-10-09\\graph.json",
+   "mb": 40.7
   },
   {
-   "path": "archive\\build_artifacts\\mp4_videos\\Azazael_MATRIX_CASCADE.mp4",
-   "mb": 107.0
+   "path": "graphify-out\\graph.json.pre20261006.bak",
+   "mb": 39.0
   },
   {
-   "path": "archived_unified\\CODEX\\Azazael_MATRIX_CASCADE.mp4",
-   "mb": 107.0
+   "path": "graphify-out\\2026-10-03\\graph.json",
+   "mb": 39.0
   },
   {
-   "path": "src\\CODEX\\Azazael_MATRIX_CASCADE.mp4",
-   "mb": 107.0
+   "path": "graphify-out\\2026-10-06\\graph.json",
+   "mb": 38.5
   },
   {
-   "path": "output\\videos\\Azazael_MATRIX_CASCADE.mp4",
-   "mb": 106.3
+   "path": "graphify-out\\2026-10-08\\graph.json",
+   "mb": 38.5
   },
   {
-   "path": "backup\\db\\memory_store.20260913.db.gz",
-   "mb": 94.9
+   "path": "azazael\\output\\project_atlas\\project_atlas.html",
+   "mb": 36.1
   },
   {
-   "path": "backup\\db\\memory_store.20260915.db.gz",
-   "mb": 88.0
-  },
-  {
-   "path": "archive\\build_artifacts\\CODEX_Studio_Output\\CAIN_session_20260605.wmv",
-   "mb": 86.5
-  },
-  {
-   "path": "tools\\velociraptor.exe",
-   "mb": 67.2
-  },
-  {
-   "path": "archive\\build_artifacts\\backups\\F.md.bak",
-   "mb": 62.9
-  },
-  {
-   "path": "src\\ORCHESTRATION\\BIBL\\F.md",
-   "mb": 59.9
-  },
-  {
-   "path": "archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\transform\\matmul_add_fusion\\matmul_add_from_attention.onnx",
-   "mb": 42.5
-  },
-  {
-   "path": "archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\transform\\matmul_add_fusion\\matmul_add_from_attention.onnx",
-   "mb": 42.5
-  },
-  {
-   "path": ".nox\\lint\\Scripts\\ruff.exe",
-   "mb": 31.2
+   "path": "graphify-out\\graph.html",
+   "mb": 35.1
   },
   {
    "path": "archived\\2026-05-31\\onnxruntime-main\\winml\\test\\scenario\\models\\coreml_Resnet50_ImageNet-dq.onnx",
@@ -469,88 +331,26 @@
    "mb": 31.1
   },
   {
-   "path": "backup\\bibl_pre_wormz_expand_20260918_235108\\INDEX.md",
-   "mb": 30.1
+   "path": "src\\CORE\\compliance\\compliance_history.db",
+   "mb": 27.3
   },
   {
-   "path": "archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\bart_tiny.onnx",
-   "mb": 27.4
-  },
-  {
-   "path": "archived\\2026-05-31\\onnxruntime-source\\onnxruntime-1.18.0\\onnxruntime\\test\\testdata\\bart_tiny.onnx",
-   "mb": 27.4
-  },
-  {
-   "path": "archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\bart_tiny.onnx",
-   "mb": 27.4
-  },
-  {
-   "path": "archive\\build_artifacts\\mp4_videos\\consequences_ultimate_scrolling.mp4",
-   "mb": 25.7
-  },
-  {
-   "path": "archive\\build_artifacts\\mp4_videos\\Azazael_Reference_Video.mp4",
-   "mb": 25.5
-  },
-  {
-   "path": "archived_unified\\CODEX\\Azazael_Reference_Video.mp4",
-   "mb": 25.5
-  },
-  {
-   "path": "src\\CODEX\\Azazael_Reference_Video.mp4",
-   "mb": 25.5
-  },
-  {
-   "path": "src\\ORCHESTRATION\\BIBL\\INDEX.md",
-   "mb": 24.6
-  },
-  {
-   "path": "archived\\2026-05-31\\onnxruntime-main\\onnxruntime\\test\\testdata\\transform\\fusion\\gqa_fusion_different_head_sizes.onnx",
-   "mb": 22.0
-  },
-  {
-   "path": "archived\\2026-05-31\\onnxruntime_git\\onnxruntime\\test\\testdata\\transform\\fusion\\gqa_fusion_different_head_sizes.onnx",
-   "mb": 22.0
-  },
-  {
-   "path": ".venv-3.14t\\Lib\\site-packages\\08ae81f72d5a2b5fa9e0__mypyc.cp314t-win_amd64.pyd",
-   "mb": 21.4
-  },
-  {
-   "path": "native\\worm_manifest\\target\\debug\\deps\\libpyo3-ccf1be5c76727c24.rlib",
-   "mb": 20.7
-  },
-  {
-   "path": "AUTO_DOWNLOADER.log",
-   "mb": 20.3
+   "path": "azazael\\output\\project_atlas\\project_atlas.json",
+   "mb": 26.7
   }
  ],
- "duplicate_basenames": 35892,
+ "duplicate_basenames": 8627,
  "duplicates_src": [
   ".gitignore",
   ".gitkeep",
-  "005f2ec54b2f17e5bb8c0cb97025fcbc23398564f6f91c819deea58caf9a25c3.json",
-  "266908e4abdc1783488233d9dbb06dd0ac34a947b85676fc43bd85d59f1d5ca0.json",
-  "2717a5195690184028f5725ee9525dfbddc6f585d9ae7c335539208c6effd06c.json",
-  "2ea169771ef703c45fb5803ca992ee5106f5c3d74b812b8fb3e855b5987edc6d.json",
-  "40e2fc4670398910f9703cca012aabaf770665a58fa4acc315e20de1dba09d7c.json",
-  "41c4e6a2adb663ea4c8bb80f3fcf497b5b57a915e96fb2c0f7d8b20d1a1bc2d7.json",
-  "480f85fcced28c498b54fa4f81fa6d9ac3b6bc2897ea909d817ba3574f386fa9.json",
-  "48a74fc8ce4debb535f1d2e6bd6d752aaf792bcbed164446fd0e8529997ce14a.json",
-  "540a0a747a8173e3d576c3113c854e6849899396eab0f8424ff7d43c0d1b945c.json",
-  "7febd65714dd7be6b20c65b6748cc7bff5c7a03bb345099c18872d95fbff7530.json",
-  "84f7f2dac6f6f72fd32b58730077bc0131bdab926f53008b28ed130fa47ce213.json",
-  "8ee57d4458ee672f02b867e6beb0a183fc3e36271bd014bc79d975b5abda1b27.json",
   "ANALYSIS_REPORT_V2.html",
   "ANIMATION_PROTOCOLS.py",
   "ATTRIBUTE_MAP.txt",
   "AUTO_DOC_GENERATOR.py",
-  "AUTO_DOWNLOADER.log",
   "AzazaelDynamicLogger.py",
   "Azazael_DUAL_PANE.html",
   "Azazael_ENHANCEMENT_PLAN.md",
   "Azazael_ENHANCEMENT_PLAN.txt",
-  "CACHEDIR.TAG",
   "CAIN_ANALYZER.py",
   "CHANGELOG.md",
   "CHANGELOG.txt",
@@ -600,18 +400,11 @@
   "UVZ.py",
   "WORM_FLEET.py",
   "__init__.py",
-  "a19b3debc059af10a405311aa25fa0a47a38dd82492a3aee2f5b595f31ed2be6.json",
-  "a30d47eb3f9e202cc6b14ced9f27e1e9a22cd24f33d1b47be325c7b1e4b1dfca.json",
-  "af4ff54410507d876e78a7c38380911b8d6ae62c74c4f6d52f85ac8360d675e2.json",
   "azazael.bat",
   "azazael_cli.py",
-  "azazael_dynamic.log",
   "azazael_pygame.py",
   "azazael_toolkit.py",
-  "b084fcbbf22e8e0731d20e7c0038dae2b796cd68e4c07de5713da8be7481af06.json",
-  "b8b0161f03770fcaa457173f020d5b1205f68c6ccd7199d5d6afebae33093782.json",
   "backup.py",
-  "bdfee2152cbb7909a3822d26610f91b32249eb5e47f969d63326b84cc72436fb.json",
   "changez.json",
   "changez_enriched.json",
   "config.py",
@@ -621,7 +414,6 @@
   "consequences_neon.html",
   "consequences_report.html",
   "consequences_ultimate.html",
-  "d257ebcef871fa32df7c9e9b0a5f4d050ad88c95b1c190344fd40d33f7ba69cb.json",
   "deadz.json",
   "deadz_enriched.json",
   "dependz.json",
@@ -637,7 +429,6 @@
   "health_monitor.py",
   "healthz_state.json",
   "index.html",
-  "lastfailed",
   "launcher.py",
   "logz.json",
   "logz_enriched.json",
@@ -648,7 +439,6 @@
   "metaz_enriched.json",
   "metricz.json",
   "metricz_enriched.json",
-  "nodeids",
   "output_cain.html",
   "output_cosmic.html",
   "output_ethereal.html",
@@ -749,12 +539,11 @@
   "session_web.html",
   "summary.json",
   "telemetry.py",
-  "test.mp4",
   "test_results.json",
   "update_docs_paths.py",
   "validz.json",
   "validz_enriched.json",
   "web_dashboard.py"
  ],
- "pycache_files": 1802
+ "pycache_files": 3799
 }
