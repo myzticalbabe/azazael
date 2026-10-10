@@ -306,3 +306,128 @@ field-without-reader and value-without-source are decoration, not absorption:
 - EP255 → DEFERRED (no honest trigger: sync stats are not experience, drift is
   not outcome, zero `skill_executed` events exist; unlock = instrument one real
   skill-use site or live `commit_gate` traffic first).
+
+---
+
+## NO-TARGET re-verification (2026-10-10)
+
+Scope: the 23 rows the adoption census records as `verdict == "NO-TARGET"`
+(`state/adoption_census.json`: EP11, EP14, EP38, EP39, EP52, EP68, EP110, EP141,
+EP153, EP226, EP237, EP245, EP253, EP259, EP262, EP278, EP280, EP300, EP308,
+EP336, EP343, EP345, EP352). "NO-TARGET" means *the map named no target*, which
+the census then scores as hostless. This pass re-verified that meaning against
+the code instead of inheriting it, because the map's ABSENT verdicts are
+documented as unreliable (16+ rows flipped on recheck).
+
+Provenance key: **read** = I opened it in this pass; **search-0** = my own query
+returned zero matches (pattern named); **inherited** = taken from
+`ABSENT_TRIAGE_315T.md` or the map, not re-confirmed here.
+
+### Headline — the bucket is doing two different jobs
+
+- **14 are accept-gaps, and the reason is already declared in CODE, not just
+  prose.** `src/CORE/technique_wiring/_l0_model.py` registers a `_no_host(...)`
+  adapter per row carrying `would_need=` and a `candidates=[...]` list naming hosts
+  that were never built (`CORE.zero`, `CORE.deepspeed`, `CORE.reformer`,
+  `CORE.palm`, `CORE.flamingo`, `CORE.rlhf`, `CORE.paged_attention`, `CORE.vllm`,
+  `CORE.melt`, `CORE.looped_transformer`, `CORE.measure_theory`). Those candidate
+  strings *are* the "dangling adapters" ACTION_REGISTRY H-5 counts — so H-5 and
+  this bucket are the same object seen twice.
+- **5 are not hostless at all**: EP237, EP253, EP280, EP308, EP345 each have a
+  named host and a size in this document, or a substrate that demonstrably ships.
+  `NO-TARGET` is the wrong bucket for them; they are *host-unwired*.
+- **4 need a human decision** (EP259, EP262, EP300, EP336): no host exists, but the
+  subject is not obviously outside this repo either, so "accept-gap" would be a
+  choice rather than a finding.
+
+### Table (one row per EP)
+
+| EP | technique | census coverage | verdict | host, or why there is none | evidence |
+|---|---|---|---|---|---|
+| EP11 | ZeRO memory optimization | ABSENT *(inherited)* | ACCEPT-GAP | no training stack that large | **read (partial)** `_l0_model.py:240-241` — the `_no_host` `candidates=["CORE.deepspeed", "CORE.zero", "deepspeed"]` line; its `_EPnn = _no_host(` assignment sat just above the window I opened, so the EP→adapter binding is inferred from the candidates, not read |
+| EP14 | ELECTRA + Reformer efficiency | ABSENT *(inherited)* | ACCEPT-GAP | `would_need="a transformer pretraining loop (LSH attention, reversible layers)"` | **read** `_l0_model.py:243-247` |
+| EP38 | PaLM 540B scaling | ABSENT *(inherited)* | ACCEPT-GAP | `would_need="a 540B dense model; Azazael consumes such models as providers"` | **read** `_l0_model.py:249-253` |
+| EP39 | Flamingo few-shot VLM | ABSENT *(inherited)* | ACCEPT-GAP | `would_need="a frozen vision<->language bridge"` | **read** `_l0_model.py:255-260` |
+| EP52 | GPT-4 technical report | ABSENT *(inherited)* | ACCEPT-GAP (model half) | needs multimodal pretraining + RLHF + reward models; the adapter's *rule* line says the red-team/verifier stack already hosts the rule-reward analogue, so only the model half is a gap | **read** `_l0_model.py:262-267` |
+| EP68 | PagedAttention / vLLM | ABSENT *(inherited)* | ACCEPT-GAP | `would_need="an owned inference engine with a KV cache"` — this tree calls Ollama/providers | **read** `_l0_model.py:269-274` |
+| EP226 | MELT looped transformer | ABSENT *(inherited)* | ACCEPT-GAP | `would_need="a model whose blocks can be re-entered"`; the adapter notes test-time *reasoning* depth is owned by `latent_refine` instead | **read** `_l0_model.py:276-280` |
+| EP245 | Measure-theoretic bounds | ABSENT *(inherited)* | ACCEPT-GAP | adapter says it outright: `would_need="nothing; this is a bound, not an implementation"` | **read** `_l0_model.py:282-286` + **search-0** (`wasserstein\|lipschitz\|optimal_transport\|kantorovich`) |
+| EP110 | OneFlow single-agent baseline | ABSENT | ACCEPT-GAP | reproducibility-baseline row; census `target` is literally `—` | **search-0** (`oneflow\|airs_bench\|sera_\|soft_verified\|single_agent_base`) + census row |
+| EP141 | AIRS-Bench research agents | ABSENT | ACCEPT-GAP | benchmark-harness row; no harness is owned in-repo | **search-0** (same pattern); census `target` = "none in the corrected inventory" |
+| EP153 | SERA soft-verified repo agents | ABSENT | ACCEPT-GAP | same shape as EP141 | **search-0** (same pattern); census `target` = "none in the corrected inventory" |
+| EP237 | Map-before-act | ABSENT | **MIS-BUCKETED — host exists** | the map substrate ships: `src/CORE/codebase_graph.py`, `project_atlas.py`, `graph_artifacts.py`, `graph_drift.py`; only the *act-time* map stage is missing | **read** `technique_wiring/_l4_exec.py:368-389`, whose own note says the review's "0 matches for cognitive_map/map_before was **WRONG**: the map substrate ships here. Only the act-time stage is missing"; **glob** confirms all 4 files exist |
+| EP253 | MACA structure-guided coordination | PARTIAL | **MIS-BUCKETED — host exists** | `allocation.py :: ThompsonAllocator` feeding `dispatch_plan.py :: assign_roles` (size M) | **inherited** from part B above, which read both files |
+| EP259 | ESPO kill switch for reasoning | PARTIAL | NEEDS DECISION | no implementation found anywhere; a reasoning abort is a control primitive with no obvious owner (a candidate host exists but I did not open it) | **search-0** (`kill_switch\|early_exit\|reasoning_budget\|abort_reasoning\|stop_reasoning`) |
+| EP262 | SCALE self-improving web agent | PARTIAL | NEEDS DECISION (half-hosted) | a self-improvement loop exists — `ORCHESTRATION/SelfImprovingGUI.py :: _self_improve`, `_start_self_improvement_loop` — but the web half has no host: `CORE/web_search.py` says outright it is NOT a scraper | **read (search)** `self_improve\|web_agent\|browser_agent\|fetch_page\|scrape` → 13 matches, all inside those two modules |
+| EP278 | VATS error-path injection | ABSENT | ACCEPT-GAP (or needs-host) | no injector/sanitizer host; `expansion/security.py` is `VulnScanner`/`PortAuditor`/`CertMonitor` | **search-0** (`prompt_injection\|sanitize_untrusted\|untrusted_input\|inject_error`), independently confirming the map's note |
+| EP280 | Trajectory-refined distillation | PARTIAL | **MIS-BUCKETED — host exists** | its own `target` names `PSYCHE/distill.py` | **read** the census row (`target` = "`PSYCHE/distill.py`") |
+| EP300 | Tensors prevent multi-agent LLM collisions | ABSENT | NEEDS DECISION | the row's own gap prose names `CORE/dispatch_plan.py` conflict handling as "topological only"; collision/contention machinery exists elsewhere (audit-trail UUID suffix, work-stealing, worm-telemetry naming) but none of it is a multi-agent collision guard | **read (search)** `collision\|contention\|conflict_guard` → 38 matches, itemised above; none is this mechanism |
+| EP308 | SoftSkill mathematical muscle memory | PARTIAL | **MIS-BUCKETED — hosts exist** | `PSYCHE/distill.py :: test_theta_frozen, theta` + `CORE/escalation_sft.py` (part A's boundary note); H-5 additionally flags one missing symbol, `PSYCHE/distill.py:probe` | **read** part A boundary note above; `theta` confirmed present at `PSYCHE/identify.py:135` and `PSYCHE/evaluate.py:207`. **The `probe` symbol is NOT settled here** — see the tool caveat below: my scoped search returned 0 while the glob was mis-aimed, so I claim no absence |
+| EP336 | ACE adaptive context elasticizer | PARTIAL | NEEDS DECISION | no context-compression/elasticity module exists; every `elastic` hit is AOA *arm* routing, a different mechanism | **read (search)** `context_elastic\|elastic\|compress_context\|context_window\|trim_context` → `AOA/core/router.py`, `AOA/aoa_monitor.py` only |
+| EP343 | Agentic test-time training (aTTT) | ABSENT | ACCEPT-GAP | `reflexion.py` states its reinforcement is "**without weight updates**", so the nearest artefact disclaims the mechanism | **inherited** from `ABSENT_TRIAGE_315T.md` (nearest-artefact claim) + census. Candidate host I did **not** verify: `CORE/escalation_sft.py` (the LoRA path) — if test-time weight updates are ever wanted, that is the only place in-repo they could live |
+| EP345 | Retry from pivotal mistakes | PARTIAL | **MIS-BUCKETED — host exists** | `reflexion.py :: record_reflection/reflections_for` + `dispatch_plan.py :: record_backtrack` (size M) | **inherited** from part B, which itself flagged its `reflexion.py` line numbers as needing re-confirmation before filing |
+| EP352 | Hidden states predict agent failure | PARTIAL | ACCEPT-GAP | no inference-time activation probe; the nearest-named module is layer-wise *training* math | **inherited** from part C (`layerwise.py` symbol scan) |
+
+Counted: **ACCEPT-GAP 14**, **MIS-BUCKETED (has a host) 5**, **NEEDS DECISION 4** — summing to 23.
+
+### Two tool caveats that changed how I report negatives
+
+1. **A zero from a scoped search is not evidence here.** My query for
+   `def probe|def test_theta_frozen|theta` scoped to `src/PSYCHE/*.py` returned **0
+   matches**, yet `theta` demonstrably exists in that directory (`identify.py:135`,
+   `evaluate.py:207`). The glob was mis-aimed relative to the search root, so that
+   zero is an artifact. EP308's `probe` symbol is therefore reported as *unsettled*,
+   not as *absent*.
+2. **Hidden directories are invisible to file search.** Both `azazael/.agents/skills/*/`
+   and the exact path `azazael/.agents/skills/azazael-mypy/SKILL.md` returned 0 files,
+   while the same tool warned it had hit its 10,000-file scan limit and the search
+   spec excludes hidden files by design. `.agents` is a dot-directory, so those zeros
+   are artifacts too. The independent cross-check that the load path is populated and
+   agrees is the pre-commit hook's own Check 3: had it been empty, `missing_in_load`
+   would have been ~1,244 and the gate would have failed rather than printing "source
+   corpus and load path agree".
+
+### ACTION_REGISTRY M-3 — the 5 skill copies, verified
+
+Finding, in one line: **3 of the 5 copies are already covered or deliberately
+excluded by `tools/canon_drift_check.py`; only 1 is genuinely unverified, and it is
+outside this repo.**
+
+- **Compared and gated:** `skills/*.md` (SOURCE_DIR, the RULE 0R corpus) against
+  `.agents/skills/<name>/SKILL.md` (LOAD_DIR — what `skill()` reads), by
+  SHA-256 over newline-normalised text, with the frontmatter split out from the body
+  so a load-path copy that lost its YAML header is its own drift class (**read**
+  `canon_drift_check.py`: `source_map()`, `load_map()`, `classify()`, `_split_frontmatter`).
+  The hook ran it this session and printed "OK: source corpus and load path agree".
+- **Excluded on purpose, and printed rather than silently skipped:**
+  `skills.win-backup` and `skills_staging` (`ARCHIVE_DIRS`, **read**). The hook's own
+  output names them: "excluded archives: skills.win-backup, skills_staging". So
+  M-3's `skills.win-backup` item is answered — it is an archive by MIGRATION_LEDGER
+  decision, not a third live copy.
+- **Catalog:** count-consistent. `SKILLS_CATALOG.md`'s header says it was
+  "regenerated from canonical `skills/*.md` (1,244 skills…)" and its Inventory
+  Summary total is **1,244**; a glob of `skills/*.md` returns **1,244 files**
+  (**read** + **glob**). It is generated-not-hand-edited ("Table rows below are
+  generated, never hand-edited"), which is the property that matters — but it is not
+  content-diffed by any gate, so it can drift in *description* text without failing
+  anything.
+- **Genuinely unverified: the HOME load path** `~/.agents/skills`
+  (`C:/Users/clint/.agents/skills`). `canon_drift_check` reads exactly one load
+  directory, `ROOT / ".agents" / "skills"`; the home copy is outside the repo, is not
+  read by the tool, and — per caveat 2 above — is not reachable by my file tools
+  either. If the Freebuff client loads from a home-scoped `.agents/`, that copy can
+  differ from the gated one with nothing reporting it.
+
+Cheapest closure, if the owner wants M-3 fully shut: give `canon_drift_check` a
+repeatable `--load-dir` (or read a `CANON_EXTRA_LOAD_DIRS` env var) so an optional
+second root is diffed whenever it is mounted, and leave the archive exclusion as-is
+because it is already declared and printed.
+
+### One discrepancy worth recording
+
+The EP34 status note above says "1243/1243 `--check` green 2026-10-10" while the
+corpus globs to **1,244** files today and the catalog says 1,244. One skill (or file)
+was added after that note was written, or one file is counted by the tool and not by
+that note's tally. Small, but it is exactly the class of drift this document exists
+to catch, so it is recorded rather than smoothed over. No re-generation command was
+available to me to settle which.

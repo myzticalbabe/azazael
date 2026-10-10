@@ -430,7 +430,20 @@ def _record_calibration(question: str, predicted: float,
 
 def _cite(subject: str, accepted: bool, reasons: List[str],
           remediations: List[str]) -> str:
-    """Cite a runtime verdict on the hash-chained ledger (fails open)."""
+    """Cite a runtime verdict on the hash-chained ledger (fails open).
+
+    NOT write-only, despite ACTION_REGISTRY D-2 listing the `technique-wiring`
+    citations (this file's `status()` and `run_all()` at the two cited sites) as
+    emit-only. The citation lands on the hash-chained ledger and the ledger is
+    read by the compliance path: `audit_trail.verify_completeness` is called from
+    `compliance/sentinel_gate.py`, `cli_audit.py`, `compliance/governance.py`,
+    `audit_repair.py` and `scripts/close_audit_sessions.py`, and the sibling
+    `technique-link` join rows are read by `structured_action.authority_ledger`,
+    `training_intake`, `scripts/live_monitor.py` and `fleet_link_health()`.
+    Removing the emit would therefore subtract from the audit trail, so the D-2
+    verdict here is: keep the emit, and the reader chain is recorded in this
+    docstring rather than rediscovered on the next audit.
+    """
     try:
         from CORE import audit_trail as _at
         return _at.audit_verification_gate(subject, accepted,
@@ -467,11 +480,63 @@ def record_link(hook: str, subject: str, ok: bool,
     return kept
 
 
+def _read_pressure_summary(limit: int = 100) -> Dict[str, Any]:
+    """The READ side for the read-pressure rows the engram writer emits.
+
+    ACTION_REGISTRY D-2 recorded `engram_read_pressure` as write-only ("1 hit
+    repo-wide"). The premise was true: `DreamConsolidatorWorm._record_read_stats`
+    persisted rows with `source="engram-read-pressure"` and nothing queried them.
+    The fix is a consumer, not a deletion, because the persisted series is the
+    only durable record of unmet demand across process runs -- the derived dict
+    that `read_pressure()` returns dies with the run.
+
+    This reader is reached from production: `scripts/technique_heartbeat.py` calls
+    `fleet_link_health()`, which folds this summary in, and `scripts/live_monitor.py`
+    reads the same store by source. Nothing new calls it and no caller was invented.
+
+    `sustained_unmet` is deliberately not a single sample: the writer already emits
+    only when its own floor was crossed, so >=2 of the newest 3 unmet signals is the
+    honest bar for "the store is persistently missing what consumers ask for".
+
+    Fail-open: the empty summary on any error. It reports; it never gates.
+    """
+    out: Dict[str, Any] = {"n": 0, "latest_signal": None,
+                           "abstention_rate": None, "sustained_unmet": False}
+    try:
+        rows = get_memory_store().query_memories(
+            source="engram-read-pressure", limit=int(limit)) or []
+    except Exception as exc:
+        note_failure("technique-runtime:read-pressure-read", exc)
+        return out
+    if not isinstance(rows, list) or not rows:
+        return out
+    signals: List[str] = []
+    rates: List[float] = []
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        if data.get("signal"):
+            signals.append(str(data["signal"]))
+        rate = data.get("abstention_rate")
+        if isinstance(rate, (int, float)):
+            rates.append(float(rate))
+    out["n"] = len(rows)
+    out["latest_signal"] = signals[0] if signals else None
+    out["abstention_rate"] = round(sum(rates) / len(rates), 4) if rates else None
+    out["sustained_unmet"] = signals[:3].count("unmet-demand") >= 2
+    return out
+
+
 def fleet_link_health(limit: int = 100) -> Dict[str, Any]:
     """Fleet hook-health rate over recent technique-link rows (memory unity).
 
-    Pure read of the canonical store: mean ok-rate per hook plus totals.
-    Returns {"n", "ok_rate" (None when empty), "by_hook": {hook: rate}}.
+    Pure read of the canonical store: mean ok-rate per hook plus totals, and the
+    read-pressure summary folded in (ACTION_REGISTRY D-2) so the engram router's
+    persisted pressure rows have a reader on this production path.
+    Returns {"n", "ok_rate" (None when empty), "by_hook": {hook: rate},
+    "read_pressure": {"n", "latest_signal", "abstention_rate",
+    "sustained_unmet"}}.
     Fail-open: {} on any error. Powers monitors and, later, evolution
     fitness terms — it reports, it never gates.
     """
@@ -500,6 +565,9 @@ def fleet_link_health(limit: int = 100) -> Dict[str, Any]:
             cell["ok"] += 1
     out["n"] = len(rows)
     out["ok_rate"] = (trues / len(rows)) if rows else None
+    #: Second store signal, same call (ACTION_REGISTRY D-2): the read-pressure
+    #: rows the engram router writes now have a reader on this production path.
+    out["read_pressure"] = _read_pressure_summary(limit=limit)
     out["by_hook"] = {h: (c["ok"] / c["n"] if c["n"] else None)
                       for h, c in by_hook.items()}
     return out

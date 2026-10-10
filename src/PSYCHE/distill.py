@@ -7,7 +7,7 @@ Two jobs live here, and confusing them is the failure mode:
   1. DISTILL the person's behavior into a student WITHOUT moving theta.
      P3 states the failure precisely: trait drift during distillation
      collapses to the mean persona (everyone becomes average). So theta is
-     read-only input everywhere below; `test_theta_frozen` pins it by
+     read-only input everywhere below; the pin is the TEST `test_theta_frozen` (in `tests/test_psyche_distill.py`, not this module), which pins it by
      snapshotting inputs across every learning call.
   2. IDENTIFY C/H from action histories, closing the Phase-2 boundary.
      Conscientiousness and Honesty-Humility are choice traits: they show

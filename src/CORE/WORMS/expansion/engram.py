@@ -740,6 +740,14 @@ class DreamConsolidatorWorm:
 
         The ONE writer path `_note_read` targets: the router derives the
         signal, the consolidator persists it — no second implementation.
+
+        READ SIDE (paired 2026-10-10, ACTION_REGISTRY D-2): these rows are
+        consumed by `technique_runtime._read_pressure_summary` via
+        `fleet_link_health()`, whose production caller is
+        `scripts/technique_heartbeat.py` (and `scripts/live_monitor.py` reads the
+        same store by source). Before that the row was persisted and never read —
+        a signal nobody reads manufactures confidence, so the fix was a consumer
+        rather than deleting the write.
         Called at most once per signal-category change or NOTE_EVERY reads
         (bounded by the caller), writing a single attributable row to the
         canonical store. Fail-open: False on any error, never raises.

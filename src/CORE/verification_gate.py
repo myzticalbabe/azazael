@@ -291,6 +291,50 @@ def confidence_divergence_check(explorer: List[Dict[str, Any]],
             "n_validator_only": len(validator_only), "passed": passed}
 
 
+# -- EP383: the drift verdict must terminate, not just be recorded ------------
+#: Bound as the MODULE, not as `from CORE.circuit_breaker import supervise_drift`.
+#: This closes a cycle -- circuit_breaker imports `confidence_divergence_check`
+#: from this module at module level -- and binding the module OBJECT is what
+#: survives whichever side is imported first: the attribute is resolved at CALL
+#: time, so it is reachable even when circuit_breaker is still mid-import here.
+#: The block deliberately sits BELOW that function's definition, because when
+#: circuit_breaker is the entry point it must find the symbol already defined.
+#: An in-function import would work but is banned: the repo's anti-pattern
+#: ratchet counts `import_inside_function`.
+try:
+    from CORE import circuit_breaker as _circuit_breaker
+except ImportError as exc:                       # breaker absent: gate still works
+    _note_failure("verification_gate:circuit-breaker-missing", exc)
+    _circuit_breaker = None
+
+
+def _terminate_on_drift(subject: str, explorer: List[Dict[str, Any]],
+                        validator: List[Dict[str, Any]]) -> str:
+    """Trip the named breaker on a failed divergence check (EP383).
+
+    Why this exists: `confidence_divergence_check` detects the
+    confident-but-wrong case, but a detected drift terminated nothing -- the
+    finding was a verdict with no consequence. `CircuitBreaker.force_trip` is
+    the consequence, so the gate reaches it here.
+
+    Returns a reason string for the gate's own record, because a trip is
+    evidence the safety-drift signal reached a terminator and a missing breaker
+    is a NAMED gap rather than a silent pass. Never raises, and never trips on
+    uncertainty -- an unproven drift is not a drift.
+    """
+    hook = getattr(_circuit_breaker, "supervise_drift", None)
+    if hook is None:
+        return "drift-trip-skipped(no-circuit-breaker)"
+    try:
+        out = hook(subject, explorer, validator)
+    except Exception as exc:                      # noqa: BLE001 - supervision is best-effort
+        _note_failure("verification_gate:drift-trip", exc)
+        return "drift-trip-failed(%s)" % type(exc).__name__
+    if out.get("tripped"):
+        return "drift-tripped(%s)" % (out.get("reason") or "safety-drift")
+    return "drift-held(gaps=%s)" % (",".join(out.get("gaps") or []) or "none")
+
+
 # -- TDD-Agent: dual-track gate -------------------------------------------------
 def tdd_dual_track_check(tests_track: Optional[Dict[str, Any]],
                          code_track: Optional[Dict[str, Any]],
@@ -401,6 +445,8 @@ def verify_before_accept(subject: str,
             remediations.append(
                 "reconcile diverged nodes "
                 f"({', '.join(c['diverged_ids'])}): explorer vs validator gap")
+            # EP383: detection is not supervision -- make the drift terminate.
+            reasons.append(_terminate_on_drift(subject, exp, val))
 
     if tdd_tracks is not None:
         t = tdd_dual_track_check(tdd_tracks.get("tests"),
