@@ -40,6 +40,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import re
 import sys
@@ -98,6 +99,39 @@ def _is_prose_context(line: str) -> bool:
     return False
 
 
+def _noncode_lines(text: str) -> set:
+    """1-based line numbers that cannot hold a call site.
+
+    The line-oriented filters above only recognise prose that OPENS with a marker
+    (a comment, a triple-quote, a `>>>` example). Prose in the BODY of a docstring
+    has none, and two real rows were inflated by exactly that:
+      * `src/CORE/technique_runtime.py:11` is a docstring table row reading
+        `dispatch_plan.py       plan_dag/assign_roles  2 callers (both exercises)`
+        -- counted as a production call site for `plan_dag`;
+      * `src/CORE/WORMS/METACLUSTER.py:339` is the continuation line of a
+        parenthesised `from CORE.dispatch_plan import (...)` -- matched as a call.
+    Both are found by parsing instead of pattern-matching: every string literal's
+    line span and every import statement's line span is excluded. Files that do not
+    parse (the tree holds non-Python and py2-era sources) fall back to the regex
+    filters alone rather than crashing the census.
+    """
+    skip: set = set()
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError, MemoryError):
+        return skip
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            lo, hi = node.lineno, getattr(node, "end_lineno", node.lineno)
+            skip.update(range(lo, hi + 1))
+            continue
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            lo, hi = node.lineno, getattr(node, "end_lineno", node.lineno)
+            if hi > lo:                       # multi-line literals: docstrings, tables
+                skip.update(range(lo, hi + 1))
+    return skip
+
+
 def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
     """Parse a map `target` into [(host_path, [symbols]), ...].
 
@@ -128,7 +162,11 @@ def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
         for raw_sym in re.split(r"[,]", symbols):
             s = raw_sym.strip().strip("`*\"' ")
             s = re.split(r"\s+", s)[0] if s else ""
-            s = s.strip("`")
+            # Symbols are identifiers (optionally dotted). The map writes some as
+            # `cast_quarantine_vote`)` / `prefix_inject`)` -- a trailing backtick and
+            # bracket from the surrounding prose. Left on, those matched nothing and
+            # the row scored as if the symbol had no caller anywhere.
+            s = re.split(r"[^A-Za-z0-9_.]", s)[0]
             # drop parenthetical/prose fragments the map mixes into symbol lists
             if not s or s in {"~L956)", "-"} or s.startswith(("~", "(", ")")):
                 continue
@@ -151,19 +189,48 @@ def _is_call_occurrence(line: str, symbol: str, def_owner: bool) -> bool:
     return True
 
 
+#: Per-file cache: (text, non-code line numbers). Without it every (row, file,
+#: symbol) triple re-read AND re-parsed the same file -- 141 rows x ~1100 candidate
+#: files x ~1.5 symbols is >200k ast.parse calls, which took the census past a
+#: 10-minute timeout. The files do not change during a run, so one pass is enough.
+_FILE_CACHE: Dict[Path, Tuple[str, set]] = {}
+
+
+def _load(path: Path) -> Tuple[str, set]:
+    """Return (text, non-code lines) for `path`, parsed once per run."""
+    hit = _FILE_CACHE.get(path)
+    if hit is None:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            text = ""
+        hit = (text, _noncode_lines(text))
+        _FILE_CACHE[path] = hit
+    return hit
+
+
 def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[str]]:
     """Return (defined_here, prod_hits, exercise_hits) for `symbol` in `path`."""
     rel = path.relative_to(repo).as_posix()
     if not path.exists():
         return False, [], []
-    try:
-        text = path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return False, [], []
+    text, skip = _load(path)
     short = symbol.split(".")[-1] if symbol else ""
     defined_here = bool(short) and bool(
         re.search(r"\s*(def|class)\s+" + re.escape(short) + r"\b", text))
     if not short:
+        return defined_here, [], []
+
+    # A QUALIFIED symbol (`CascadeRouter.route`) may not be collapsed to its last
+    # component. Doing so made `route` match ordinary English prose -- the row for
+    # EP208 reported 540 "production call sites" that were sentences like
+    # "full_text route is the practical extraction path." and a docstring line
+    # `("routing", "expert router sends everything to one expert")`. A file that
+    # never names the owner class cannot contain an attribute call on it, so the
+    # owner's presence is a precondition for any hit whatsoever.
+    parts = symbol.split(".")
+    owner = parts[-2] if len(parts) >= 2 else ""
+    if owner and not re.search(r"\b" + re.escape(owner) + r"\b", text):
         return defined_here, [], []
 
     # Aliases: `from X import merge_sops as _MERGE_SOPS` means the real call site
@@ -186,6 +253,8 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
     prod: List[str] = []
     exer: List[str] = []
     for i, line in enumerate(text.splitlines(), 1):
+        if i in skip:
+            continue
         if not any(n in line for n in names):
             continue
         if not _is_call_occurrence(line, short, def_owner=defined_here) and not any(
@@ -315,24 +384,32 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
     for r in rows:
         ep = str(r.get("ep", "?"))
         segments = _parse_segments(str(r.get("target", "")))
+        # EVERY segment is measured. Reading only segments[0] silently dropped the
+        # second and third hosts of 24 rows -- e.g. EP208's `proto_route` and
+        # EP223's `tpe_lite_suggest` were never looked for, so a row could score
+        # EXERCISE-ONLY while one of its listed techniques sat in production.
         host_file, symbols = segments[0] if segments else ("", [])
         host = _resolve_host(repo, host_file) if host_file else None
         defined_here = False
         prod_hits: List[str] = []
         exer_hits: List[str] = []
         host_internal: List[str] = []
-        for sym in symbols:
-            if host is not None:
-                dh, ph, eh = _sniff(host, sym, repo)
-                defined_here = defined_here or dh
-                host_internal.extend(ph)   # the host's OWN mentions are not adoption
-                exer_hits.extend(eh)
-            for p in cands:
-                if host is not None and p == host:
-                    continue
-                _, ph, eh = _sniff(p, sym, repo)
-                prod_hits.extend(ph)
-                exer_hits.extend(eh)
+        measured: List[str] = []
+        for seg_file, seg_syms in segments:
+            seg_host = _resolve_host(repo, seg_file) if seg_file else None
+            for sym in seg_syms:
+                measured.append(sym)
+                if seg_host is not None:
+                    dh, ph, eh = _sniff(seg_host, sym, repo)
+                    defined_here = defined_here or dh
+                    host_internal.extend(ph)  # a host's OWN mentions are not adoption
+                    exer_hits.extend(eh)
+                for p in cands:
+                    if seg_host is not None and p == seg_host:
+                        continue
+                    _, ph, eh = _sniff(p, sym, repo)
+                    prod_hits.extend(ph)
+                    exer_hits.extend(eh)
 
         # ADOPTION requires a caller in a DIFFERENT production module: a technique
         # merely referenced inside its own host file is built, not adopted. This is
@@ -365,6 +442,7 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
             "coverage": r.get("coverage", ""),
             "target": str(r.get("target", "")), "host_file": host_file,
             "symbol": ", ".join(symbols), "symbols": symbols,
+            "hosts": [h for h, _ in segments], "measured_symbols": measured,
             "built": defined_here,
             "host_reachable": reachable,
             "production_call_sites": prod_hits, "exercise_call_sites": exer_hits,
@@ -443,6 +521,37 @@ def _self_test(repo: Path = REPO) -> int:
     else:
         print(f"negative control B OK: {len(ex)} row(s) score EXERCISE-ONLY "
               f"(e.g. {ex[0]['ep']} {ex[0]['symbol']} -> {ex[0]['n_production']} prod)")
+
+    # NEGATIVE-C / POSITIVE-C: a QUALIFIED symbol must not be matched on prose.
+    # Both fixtures are transcribed from the real files, not invented:
+    #   - `scripts/fetch_990_series.py` literally says "full_text route is the
+    #     practical extraction path." at lines 25/28/41 and never names
+    #     CascadeRouter. Before the owner gate those three sentences were counted
+    #     as production call sites (EP208 reported 540 hits of this kind).
+    #   - `src/CORE/technique_wiring/_l5_dispatch.py:197` really calls
+    #     `router.route("classify", ...)` after importing CascadeRouter, so the
+    #     gate must not silence a genuine attribute call.
+    prose_fixture = repo / "scripts" / "fetch_990_series.py"
+    real_fixture = repo / "src" / "CORE" / "technique_wiring" / "_l5_dispatch.py"
+    if prose_fixture.exists():
+        _, ph, eh = _sniff(prose_fixture, "CascadeRouter.route", repo)
+        if ph or eh:
+            failures.append(
+                "negative control C FAILED: prose-only scripts/fetch_990_series.py "
+                f"scored {len(ph)} production + {len(eh)} exercise hit(s) for "
+                f"CascadeRouter.route -> {(ph + eh)[:3]}")
+        else:
+            print("negative control C OK: English 'route' prose scores nothing for "
+                  "the qualified symbol CascadeRouter.route")
+    if real_fixture.exists():
+        _, ph, eh = _sniff(real_fixture, "CascadeRouter.route", repo)
+        if not (ph or eh):
+            failures.append(
+                "positive control C FAILED: _l5_dispatch.py:197 calls "
+                "router.route(...) after importing CascadeRouter but the qualified "
+                "symbol matched nothing (the owner gate is too strict)")
+        else:
+            print(f"positive control C OK: qualified symbol found -> {(ph + eh)[:2]}")
 
     # NEGATIVE-A also in whole-tree form: prose anywhere must stay uncounted.
     for loc in prod:

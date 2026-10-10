@@ -148,6 +148,38 @@ def rank_candidates_by_agreement(explorer: List[Dict[str, Any]],
             "mean_agreement": mean, "n_compared": len(scored)}
 
 
+def repair_tree(items: List[Dict[str, Any]],
+                threshold: float = 0.7) -> Dict[str, Any]:
+    """Bounded repair TREE with resync point (EP413, tree half).
+
+    margin_check returns fragile IDS; this builds the tree: one node per
+    fragile id ({id, margin, repair: re-verify}), one resync root (the
+    highest-confidence non-fragile id, or "root" when all are fragile).
+    Resync EXECUTION (re-running the chain from the root) stays deferred:
+    no chain-runner exists at this layer — the tree names where it runs.
+    """
+    fragile: List[str] = []
+    margins: Dict[str, float] = {}
+    best_id, best_conf = "root", -1.0
+    for it in items or []:
+        try:
+            conf = float(it.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            note_failure("verification_gate:L-tree", None)
+            conf = 0.0
+        cid = str(it.get("id", "?"))
+        margin = conf - threshold
+        margins[cid] = round(margin, 6)
+        if margin < 0:
+            fragile.append(cid)
+        elif conf > best_conf:
+            best_id, best_conf = cid, conf
+    nodes = [{"id": cid, "margin": margins[cid],
+               "repair": f"re-verify:{cid}"} for cid in fragile]
+    return {"nodes": nodes, "n_fragile": len(nodes),
+            "resync": best_id, "passed": not nodes}
+
+
 # -- AsymSpec: divergence gate ----------------------------------------------
 def divergence_gate(draft_claims: List[str], verified_claims: List[str],
                     max_divergence: float = 0.1) -> Dict[str, Any]:

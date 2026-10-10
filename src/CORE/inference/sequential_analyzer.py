@@ -38,6 +38,15 @@ from dataclasses import dataclass, field
 from .providers import get_provider
 from typing import List
 
+#: EP201/EP208 -- the confidence-gated cascade. Imported at module level, not
+#: inside the method that uses it: this module is imported by the inference
+#: package, and `CORE.cascade` depends only on `CORE.failure_ledger` (a leaf), so
+#: there is no cycle to break and nothing is gained by deferring it.
+try:
+    from CORE.cascade import CascadeRouter
+except ImportError:                               # never break the analyzer
+    CascadeRouter = None  # type: ignore[assignment]
+
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
@@ -516,6 +525,112 @@ class SequentialAnalyzer:
             self._log(f"NVIDIA model fetch error: {e}")
             return []
 
+    # -- EP201/EP208: confidence-gated cascade (cheap triage -> deep tier) --------
+
+    #: Calibrated by OOF ECE in CORE/cascade.py; the router's own default.
+    CASCADE_THRESHOLD = 0.65
+
+    def _chat(self, step: ChainStep, prompt: str,
+              max_tokens: (int | None) = None) -> ModelResponse:
+        """Run one chain step and wrap it. Never raises."""
+        t0 = time.time()
+        try:
+            provider = get_provider(step.provider)
+            if not provider.has_valid_key():
+                raise RuntimeError(f"provider {step.provider} has no valid API key")
+            response = provider.chat(
+                prompt=prompt,
+                system_prompt=step.system_prompt,
+                model=step.model,
+                max_tokens=max_tokens or step.max_tokens,
+                temperature=step.temperature,
+            )
+        except Exception as exc:  # noqa: BLE001 -- one bad step is not fatal
+            note_failure("sequential_analyzer:_chat", exc)
+            return ModelResponse(
+                provider=step.provider, model=step.model, content="",
+                elapsed_ms=int((time.time() - t0) * 1000), tokens_used=0,
+                success=False, error=str(exc)[:200])
+        elapsed = int((time.time() - t0) * 1000)
+        content = response.get("content", "")
+        error = response.get("error", "")
+        model_name = response.get("model", step.model)
+        tokens = response.get("usage", {}).get("total_tokens", 0)
+        success = bool(content and not error)
+        return ModelResponse(
+            provider=step.provider, model=model_name, content=content,
+            elapsed_ms=elapsed, tokens_used=tokens, success=success, error=error,
+            confidence=_estimate_confidence(content, error) if success else 0.0)
+
+    def _run_single_with_cascade(self, prompt: str, step: ChainStep, strategy: str,
+                                 max_tokens: (int | None) = None) -> AnalysisResult:
+        """One-step chain plus a confidence-gated escalation to the deep tier.
+
+        REACHABILITY: `run()` -- the production entry point documented in this
+        module's header and the one every caller uses -- delegates here whenever the
+        resolved chain has a single step, which is the documented `fast` strategy.
+
+        WHY THIS EXISTS: a single-step chain can never satisfy `check_convergence`
+        (it needs two responses), so the `fast` strategy accepted its cheap answer at
+        ANY confidence and the deep tier was reachable only by asking for `deep` up
+        front. `CascadeRouter` closes that: the triage answer is accepted at or above
+        `CASCADE_THRESHOLD`, and below it the deep-tier model is consulted and its
+        answer returned instead. Fail-open -- if the router or the escalation call
+        fails, the triage answer stands exactly as before.
+        """
+        result = AnalysisResult(prompt=prompt, strategy=strategy)
+        start_time = time.time()
+        triage = self._chat(step, prompt, max_tokens)
+        responses = [triage]
+        escalated = False
+        escalated_resp: (ModelResponse | None) = None
+
+        if triage.success:
+            # Lazy import: this analyzer stays importable without the router.
+            try:
+
+                router = CascadeRouter(threshold=self.CASCADE_THRESHOLD)
+
+                def _triage(_task: str) -> tuple:
+                    return triage.content, triage.confidence
+
+                def _big(_task: str) -> str:
+                    # The expensive tier: only ever reached below threshold.
+                    nonlocal escalated_resp
+                    escalated_resp = self._chat(DEEP_CHAIN[1], prompt, max_tokens)
+                    return escalated_resp.content
+
+                routed = router.route(prompt, _triage, _big)
+                escalated = bool(routed.get("escalated"))
+                self._log(f"  cascade: via={routed.get('via')} "
+                          f"confidence={float(routed.get('confidence') or 0.0):.2f} "
+                          f"threshold={self.CASCADE_THRESHOLD}")
+            except Exception as exc:  # noqa: BLE001 -- an optimisation, never fatal
+                note_failure("sequential_analyzer:cascade", exc)
+
+        if escalated and escalated_resp is not None and escalated_resp.success:
+            responses.append(escalated_resp)
+            result.synthesis = escalated_resp.content
+            result.confidence = escalated_resp.confidence
+        elif triage.success:
+            result.synthesis = triage.content
+            result.confidence = triage.confidence
+        else:
+            result.synthesis = "All models failed to produce a response."
+            result.confidence = 0.0
+
+        for r in responses:
+            result.responses[f"{r.provider}/{r.model}"] = r
+            result.models_used.append(f"{r.provider}/{r.model}")
+            result.total_tokens += r.tokens_used
+            if not r.success:
+                result.errors.append(f"{r.provider}/{r.model}: {r.error[:200]}")
+
+        result.total_elapsed_ms = int((time.time() - start_time) * 1000)
+        self._log(f"Analysis complete: {len(result.models_used)} models, "
+                  f"{result.total_elapsed_ms}ms total, escalated={escalated}")
+        return result
+
     def run(
         self,
         prompt: str,
@@ -556,6 +671,13 @@ class SequentialAnalyzer:
                 confidence=0.0,
                 errors=["Empty analysis chain - no providers with valid keys"],
             )
+
+        # A single-step chain (the documented `fast` strategy) has no second
+        # response for `check_convergence` to compare against, so its cheap answer
+        # used to be final at ANY confidence. Route it through the gated cascade:
+        # cheap first, deep tier only when the triage confidence is below threshold.
+        if len(chain) == 1:
+            return self._run_single_with_cascade(prompt, chain[0], strategy, max_tokens)
 
         result = AnalysisResult(prompt=prompt, strategy=strategy)
         start_time = time.time()
