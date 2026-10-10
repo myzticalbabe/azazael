@@ -41,7 +41,7 @@
 #   GRAPHIFY_MAX_GRAPH_BYTES (default 10GB)
 #   GRAPHIFY_MAX_WORKERS     (default 16)
 #   GRAPHIFY_ATLAS           (default ~/Desktop/Graphify_Codebase_Atlas_2026-08-27)
-#   GRAPHIFY_BIN             (default ~/.local/bin/graphify.exe)
+#   GRAPHIFY_BIN             (default scripts/graphify_bin.sh — capability-resolved)
 #   GRAPHIFY_VERIFY          (default ~/verify_graphs_cdp.py)
 set -euo pipefail
 
@@ -49,10 +49,16 @@ set -euo pipefail
 ATLAS="${GRAPHIFY_ATLAS:-$HOME/Desktop/Graphify_Codebase_Atlas_2026-08-27}"
 DESKTOP_ROOT="${GRAPHIFY_DESKTOP_ROOT:-$HOME/Desktop}"
 PROJECTS_DIR="${GRAPHIFY_PROJECTS_DIR:-$HOME/Desktop/Project Launchers}"
-GRAPHIFY="${GRAPHIFY_BIN:-$HOME/.local/bin/graphify.exe}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON="${PYTHON:-python}"
 PY="${PY_LAUNCHER:-/mnt/c/Users/clint/AppData/Local/Programs/Python/Python315/python.exe}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolved by capability through scripts/graphify_bin.sh, not by hard-coded
+# path: the old default (~/.local/bin/graphify.exe) is a uv trampoline that
+# stopped resolving on 2026-10-09 -- "uv trampoline failed to canonicalize
+# script path" -- which killed this refresh at repo 1 while a working graphify
+# 0.9.72 sat unused in Python314's site-packages. See ADR-019 and
+# tools/graphify_interpreter.py.
+GRAPHIFY="${GRAPHIFY_BIN:-$SCRIPT_DIR/graphify_bin.sh}"
 PATCH="$SCRIPT_DIR/graphify_node_limit_patch.py"
 COSMOS="$SCRIPT_DIR/cosmos_build_atlas.sh"
 VERIFY="${GRAPHIFY_VERIFY:-$(cygpath -m "$HOME/verify_graphs_cdp.py" 2>/dev/null || echo "$HOME/verify_graphs_cdp.py")}"
@@ -98,8 +104,12 @@ export GRAPHIFY_MAX_GRAPH_BYTES="${GRAPHIFY_MAX_GRAPH_BYTES:-10GB}"
 export GRAPHIFY_MAX_WORKERS="${GRAPHIFY_MAX_WORKERS:-16}"
 
 # repo name -> "update <source>" or "extract <source>" + atlas subfolder
+# NOTE (2026-10-10): azazael points at the production tree C:/Azazael/azazael
+# (git repo, MCP graph source). C:/Users/clint/azazael is a stale mirror that
+# previously received the refresh — same wrong-tree class as the old chain
+# task (see T-1/T-2 notes in TODO_315T_BUILD.md).
 REPOS_UPDATE=(
-  "azazael|C:/Users/clint/azazael"
+  "azazael|C:/Azazael/azazael"
 )
 REPOS_EXTRACT=(
   "vermillion_lightfury|C:/Users/clint/.kali_staging/vermillion_lightfury"
