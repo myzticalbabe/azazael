@@ -691,6 +691,29 @@ class DreamConsolidatorWorm:
                                                       and mean_top < 0.5)
                                  else "served"))}
 
+    def _record_read_stats(self, pressure: dict) -> bool:
+        """Persist derived read pressure from the router (EP235 read path).
+
+        The ONE writer path `_note_read` targets: the router derives the
+        signal, the consolidator persists it — no second implementation.
+        Called at most once per signal-category change or NOTE_EVERY reads
+        (bounded by the caller), writing a single attributable row to the
+        canonical store. Fail-open: False on any error, never raises.
+        """
+        try:
+            from CORE.local_memory import get_memory_store
+            pressure = dict(pressure or {})
+            signal = str(pressure.get("signal") or "served")
+            return bool(get_memory_store().record_event(
+                source="engram-read-pressure",
+                event_type="read_pressure",
+                data=pressure,
+                severity=("warning" if signal == "unmet-demand" else "info"),
+                tags=["engram", "read-pressure", signal]))
+        except Exception as exc:
+            note_failure("engram:record-read-stats", exc)
+            return False
+
     def stats(self) -> dict:
         with self._lock:
             return {"merges": self._merges, "last": self._last,
