@@ -59,8 +59,25 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 class PolicyEffect(str, Enum):
+    """Effect vocabulary. ALLOW/DENY are unchanged and stay fail-closed.
+
+    EP382 (ETAS effect-typed agent language): two members could not express a
+    conditional grant or a duty, which is the gap the row names. These
+    additions are additive -- ALLOW and DENY keep their exact meaning, and a
+    rule that declares no obligations grants exactly as it did before.
+    """
+
     ALLOW = "allow"
     DENY = "deny"
+    #: Granted only while every obligation the rule declares is met.
+    ALLOW_WITH_OBLIGATIONS = "allow_with_obligations"
+    #: Never a grant: the action is refused and the duty is named instead.
+    OBLIGATE = "obligate"
+
+
+#: Effects that grant an action. OBLIGATE is ABSENT on purpose: naming a duty
+#: refuses the action, it does not permit it.
+GRANTING_EFFECTS = (PolicyEffect.ALLOW, PolicyEffect.ALLOW_WITH_OBLIGATIONS)
 
 
 class PolicyRule:
@@ -84,8 +101,10 @@ class PolicyRule:
         role: str = "",
         conditions: (dict[str, Any] | None) = None,
         priority: int = 0,
+        obligations: (dict[str, Any] | None) = None,
     ):
         self.effect = PolicyEffect(effect.lower())
+        self.obligations = dict(obligations or {})
         self.action = action
         self.role = role
         self.conditions = conditions or {}
@@ -111,6 +130,17 @@ class PolicyRule:
 
         return True
 
+    def unmet_obligations(self, attributes: (dict[str, Any] | None) = None) -> list[str]:
+        """Obligations this rule declares that the request has not satisfied.
+
+        The caller discharges them by presenting evidence --
+        `attributes["obligations"]` as {name: met} -- so a conditional grant
+        is decided by what the request carries, never by the rule's own text.
+        """
+        attributes = attributes or {}
+        satisfied = dict(attributes.get("obligations") or {})
+        return [name for name in self.obligations if not satisfied.get(name)]
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "effect": self.effect.value,
@@ -118,6 +148,7 @@ class PolicyRule:
             "role": self.role,
             "conditions": self.conditions,
             "priority": self.priority,
+            "obligations": dict(self.obligations),
         }
 
     @classmethod
@@ -128,6 +159,7 @@ class PolicyRule:
             role=data.get("role", ""),
             conditions=data.get("conditions", {}),
             priority=data.get("priority", 0),
+            obligations=data.get("obligations", {}),
         )
 
     def __repr__(self) -> str:
@@ -150,6 +182,10 @@ class PolicyEngine:
         self._lock = threading.Lock()
         self._audit_log: list[dict[str, Any]] = []
         self._contracts: dict[str, dict[str, Any]] = {}
+        #: action -> authority the action requires (EP327/EP269)
+        self._authority_requirements: dict[str, str] = {}
+        #: task_id -> scoped authority it holds (EP269)
+        self._task_authority: dict[str, dict[str, Any]] = {}
         self._audit_lock = threading.Lock()
 
     def add_rule(self, rule: PolicyRule):
@@ -220,7 +256,8 @@ class PolicyEngine:
         }
 
 
-    def evaluate(self, action: str, role: str = "", attributes: (dict[str, Any] | None) = None) -> tuple[bool, str]:
+    def evaluate(self, action: str, role: str = "", attributes: (dict[str, Any] | None) = None,
+                 authority: (Any | None) = None) -> tuple[bool, str]:
         """Evaluate an action against all rules.
 
         Args:
@@ -243,15 +280,34 @@ class PolicyEngine:
             self._log_evaluation(action, role, attributes, False, reason)
             return False, reason
 
+        # Authority-exercised vs authority-granted (EP327). Opt-in: with no
+        # authority presented this returns None and the path below is exactly
+        # what it was before the row existed.
+        ceiling = self._authority_ceiling(authority, attributes, action)
+        if ceiling is not None and not ceiling["allowed"]:
+            reason = "DENIED (authority): " + str(ceiling["reason"])
+            self._log_evaluation(action, role, attributes, False, reason)
+            return False, reason
+
         with self._lock:
             for rule in self._rules:
                 if rule.matches(action, role, attributes):
-                    allowed = rule.effect == PolicyEffect.ALLOW
-                    reason = (
-                        f"Rule {rule.effect.value}: {rule}"
-                        if allowed
-                        else f"DENIED by rule: {rule}"
-                    )
+                    # Obligations are read for the CONDITIONAL effect only, so
+                    # a DENY rule's text can never enter the decision.
+                    unmet = (rule.unmet_obligations(attributes)
+                             if rule.effect == PolicyEffect.ALLOW_WITH_OBLIGATIONS
+                             else [])
+                    allowed = rule.effect in GRANTING_EFFECTS and not unmet
+                    if allowed:
+                        reason = f"Rule {rule.effect.value}: {rule}"
+                    elif rule.effect == PolicyEffect.OBLIGATE and rule.obligations:
+                        reason = (f"DENIED (obligate): {rule} -- duty: "
+                                  + ", ".join(rule.obligations))
+                    elif unmet:
+                        reason = (f"DENIED by rule: {rule} -- unmet "
+                                  f"obligation(s): " + ", ".join(unmet))
+                    else:
+                        reason = f"DENIED by rule: {rule}"
                     self._log_evaluation(action, role, attributes, allowed, reason)
                     return allowed, reason
 
@@ -260,9 +316,10 @@ class PolicyEngine:
         self._log_evaluation(action, role, attributes, False, reason)
         return False, reason
 
-    def evaluate_all(self, action: str, role: str = "", attributes: (dict[str, Any] | None) = None) -> dict[str, Any]:
+    def evaluate_all(self, action: str, role: str = "", attributes: (dict[str, Any] | None) = None,
+                     authority: (Any | None) = None) -> dict[str, Any]:
         """Full evaluation result with all metadata. Used by ComplianceOrchestrator."""
-        allowed, reason = self.evaluate(action, role, attributes)
+        allowed, reason = self.evaluate(action, role, attributes, authority)
         return {
             "allowed": allowed,
             "reason": reason,
@@ -353,6 +410,111 @@ class PolicyEngine:
                 "obligations": ob, "unmet": unmet,
                 "conflict": conflict,
                 "obligated": obligated}
+
+    def require_authority(self, action: str, authority: str) -> None:
+        """Declare the authority an action requires (EP327).
+
+        Registering a requirement is what lets a caller present only what it
+        HOLDS (`granted`) and still be checked: without a registered or
+        caller-supplied `requires`, no comparison is possible and the ceiling
+        stays silent rather than guessing one.
+        """
+        with self._lock:
+            self._authority_requirements[str(action)] = str(authority or "none")
+
+    def _authority_ceiling(self, authority: Any, attributes: dict[str, Any],
+                           action: str) -> dict[str, Any] | None:
+        """Authority-exercised vs authority-granted (EP327, expression half).
+
+        Returns None whenever the caller presents no authority at all, which
+        is what keeps every existing call site on exactly the path it had.
+        The comparison itself is `check_ceiling`, so a ceiling already
+        enforced there is not enforced a second time by different code.
+        """
+        granted = ""
+        requires = ""
+        if isinstance(authority, dict):
+            granted = str(authority.get("granted", "") or "")
+            requires = str(authority.get("requires", "") or "")
+        elif authority is not None:
+            granted = str(authority or "")
+        if not granted:
+            granted = str(attributes.get("granted_authority", "") or "")
+        if not requires:
+            requires = str(attributes.get("requires_authority", "") or "")
+        if not requires:
+            with self._lock:
+                requires = str(self._authority_requirements.get(action, "") or "")
+        if not granted or not requires:
+            return None
+        return self.check_ceiling(action, granted, requires)
+
+    def residual_obligations(self, action: str, role: str = "",
+                             attributes: (dict[str, Any] | None) = None) -> dict[str, Any]:
+        """Residual obligations of the deciding rule (EP382, expression half).
+
+        `evaluate` answers ALLOW/DENY and stops; this names what is still
+        owed after the decision, which is the shape a residual-obligation
+        monitor reads. Undischarged duties are reported, never enforced here.
+        """
+        attributes = attributes or {}
+        with self._lock:
+            deciding = next((r for r in self._rules
+                             if r.matches(action, role, attributes)), None)
+        if deciding is None:
+            return {"effect": None, "rule": None, "obligations": {},
+                    "unmet": [], "discharged": True}
+        unmet = deciding.unmet_obligations(attributes)
+        return {"effect": deciding.effect.value, "rule": repr(deciding),
+                "obligations": dict(deciding.obligations), "unmet": unmet,
+                "discharged": not unmet}
+
+    # -- EP269 (Agent libOS): a TASK holds a scoped authority ----------------
+
+    def bind_task_authority(self, task_id: Any, authority: str,
+                            delegation_depth: int = 0) -> dict[str, Any]:
+        """Bind a scoped authority to a task (EP269, libOS half).
+
+        The gap: authority existed as a ceiling predicate (`check_ceiling`)
+        and as delegation attenuation (`attenuate`), but a *task* could not
+        hold one -- there was no task-authority object to check against.
+        Binding applies the attenuation, so a delegated task never holds more
+        than the authority it was handed.
+        """
+        attenuated = self.attenuate(authority, max(0, int(delegation_depth)))
+        record = {"task_id": str(task_id), "authority": attenuated["delegated"],
+                  "origin": attenuated["from"], "depth": attenuated["depth"]}
+        with self._lock:
+            self._task_authority[str(task_id)] = record
+        return record
+
+    def task_authority(self, task_id: Any) -> dict[str, Any] | None:
+        with self._lock:
+            record = self._task_authority.get(str(task_id))
+        return dict(record) if record else None
+
+    def release_task_authority(self, task_id: Any) -> bool:
+        with self._lock:
+            return self._task_authority.pop(str(task_id), None) is not None
+
+    def task_authority_verdict(self, task_id: Any, action: str) -> dict[str, Any]:
+        """May this task exercise this action? The libOS enforcement point.
+
+        Fail-closed on both unknowns: an unbound task and an action with no
+        registered requirement are refused rather than waved through.
+        """
+        record = self.task_authority(task_id)
+        if record is None:
+            return {"allowed": False, "task_id": str(task_id),
+                    "reason": "no-authority-bound"}
+        with self._lock:
+            requires = str(self._authority_requirements.get(action, "") or "")
+        if not requires:
+            return {"allowed": False, "task_id": str(task_id),
+                    "reason": f"no-requirement-registered:{action}"}
+        verdict = self.check_ceiling(action, record["authority"], requires)
+        verdict["task_id"] = str(task_id)
+        return verdict
 
     def rule_count(self) -> int:
         with self._lock:

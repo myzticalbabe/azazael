@@ -189,7 +189,17 @@ class ColdArchivist:
                     zf.write(abs_path, rel_path)
         return {"archived_count": len(archived), "files": [a[0] for a in archived[:800]]}
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "ColdArchivist"}
+        # The archive index IS the run record: report what was archived rather
+        # than asserting OK. An empty index means nothing has been archived yet,
+        # which is not the same result as a successful archive pass.
+        index = self._archive_index
+        if not index:
+            return {"worm": "ColdArchivist", "status": "not_run",
+                    "archived_total": 0, "run_recorded": False}
+        return {"worm": "ColdArchivist", "status": "archived",
+                "archived_total": len(index), "run_recorded": True,
+                "last_archived_at": max(v.get("archived_at", 0.0)
+                                        for v in index.values())}
 
 
 

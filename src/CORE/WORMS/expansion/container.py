@@ -119,11 +119,18 @@ class ComposeValidator:
 
     def __init__(self):
         self._issues: list[dict] = []
+        #: Which file the last validation ran against, and its verdict. Both
+        #: stay None until validate() actually runs, so an empty issue list
+        #: cannot be read as a passing validation.
+        self._last_validated: str | None = None
+        self._last_valid: bool | None = None
 
     def validate(self, compose_path: str) -> dict[str, Any]:
         """Validate a docker-compose.yml file."""
         path = Path(compose_path)
         if not path.exists():
+            self._last_validated = str(path)
+            self._last_valid = False
             return {"valid": False, "issues": [{"msg": "File not found"}]}
         issues = []
         try:
@@ -145,9 +152,20 @@ class ComposeValidator:
             note_failure("container:L129", e)
             issues.append({"msg": str(e)})
         self._issues = issues
-        return {"valid": len(issues) == 0, "issues": issues}
+        self._last_validated = str(path)
+        self._last_valid = len(issues) == 0
+        return {"valid": self._last_valid, "issues": issues}
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "ComposeValidator"}
+        # A validation summary must name the run it summarises: an empty issue
+        # list and a never-run validator are not the same result.
+        if self._last_validated is None:
+            return {"worm": "ComposeValidator", "status": "not_run",
+                    "run_recorded": False, "issues": len(self._issues)}
+        return {"worm": "ComposeValidator",
+                "status": "valid" if self._last_valid else "invalid",
+                "run_recorded": True,
+                "last_validated": self._last_validated,
+                "issues": len(self._issues)}
 
 
 

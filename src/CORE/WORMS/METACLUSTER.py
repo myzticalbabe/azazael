@@ -260,6 +260,10 @@ class MetaCluster:
         self.categories: Dict[str, List[str]] = {}
         self.state: Optional[MetaClusterState] = None
         self._history: List[MetaClusterResult] = []
+        #: Worm subset per fissioned atom (EP374). Empty unless a caller passed
+        #: a `capability_split` hook; a plain category name is never a key, so a
+        #: later run without the hook cannot pick up a previous run's atoms.
+        self._atom_worms: Dict[str, List[str]] = {}
         self._lock = threading.RLock()
         self._hooks: Dict[str, List[Callable]] = {
             "pre_nature": [],
@@ -309,7 +313,10 @@ class MetaCluster:
     #: dependency scan); the caller's order is used unchanged instead.
     _PLAN_MAX_CATEGORIES = 64
 
-    def _plan_execution_order(self, order: List[str]) -> tuple:
+    def _plan_execution_order(self, order: List[str], *,
+                              granularity: Optional[Any] = None,
+                              capability_split: Optional[Callable] = None,
+                              plan_out: Optional[Dict[str, Any]] = None) -> tuple:
         """Derive category execution order and levels from a dispatch plan.
 
         `order` is the caller's requested order, already filtered to known,
@@ -328,9 +335,25 @@ class MetaCluster:
 
         Any failure returns the input order with an empty level map: planning
         must never be able to break orchestration.
+
+        Three optional hooks carry the caller's knowledge without this module
+        importing a sibling: `capability_split` (EP374) fans a category into one
+        atom per capability group, `granularity` (EP197) supplies the
+        within-level complexity order, and `plan_out` (EP186) receives the built
+        plan, assignment and rehearsal. With no hook supplied the plan is
+        exactly the one this method has always built.
         """
         names = [str(n) for n in (order or [])]
-        if len(names) < 2:
+        # Cleared before ANY return below: a run without the hook must not pick
+        # up a previous run's atoms (a plain category name is never a key).
+        self._atom_worms = {}
+        # The single-name exit applies only when there is no split to make. One
+        # category is EXACTLY the shape a capability split changes the count of
+        # (EP374: a lone category that is really two dispatch units), so testing
+        # the count first returns `plan-skipped:single` and skips the case the
+        # row exists for. With no hook this is the old early return unchanged,
+        # and still ahead of the dispatch_plan import.
+        if capability_split is None and len(names) < 2:
             return names, {}, "plan-skipped:single"
         if len(names) > self._PLAN_MAX_CATEGORIES:
             return names, {}, "plan-skipped:too-many"
@@ -345,9 +368,37 @@ class MetaCluster:
         try:
             idx = {n: i for i, n in enumerate(names)}
             worms = {n: set(self.categories.get(n) or []) for n in names}
+            # EP374 (TopoAgent): adaptive atomic fission. A category is ONE
+            # dispatch unit for the whole run, so two of its worm groups that
+            # share nothing still execute one after the other. The capability
+            # boundary is caller knowledge -- a sibling owns the module that
+            # would hold it -- so it arrives as a callable, and with none the
+            # plan below is the plan built before this branch existed.
+            if capability_split is not None:
+                atoms, atom_worms = self._split_into_atoms(
+                    names, worms, capability_split)
+                if atoms != names:
+                    names = atoms
+                    idx = {n: i for i, n in enumerate(names)}
+                    worms = {n: set(atom_worms.get(n) or ()) for n in names}
+                    self._atom_worms = atom_worms
+                # Post-split, not pre-split: a lone category that did NOT split
+                # (one group, or a hook that raised and left it intact) is still
+                # the single-category plan -- no plan built, empty level map,
+                # and no atoms registered.
+                if len(names) < 2:
+                    return names, {}, "plan-skipped:single"
+            # EP197: the caller's complexity policy is translated into the
+            # per-task "complexity" that `plan_dag` ALREADY accepts, so the
+            # within-tier order comes from the planner's own `ready_order`
+            # instead of a second ordering rule re-derived here. With no policy
+            # every weight is 0.0, which leaves `order`/`levels` and the sort
+            # below exactly as they were.
+            weights = self._granularity_weights(names, worms, granularity)
             tasks = [{"id": n,
                       "deps": [m for m in names
-                               if idx[m] < idx[n] and (worms[m] & worms[n])]}
+                               if idx[m] < idx[n] and (worms[m] & worms[n])],
+                      "complexity": weights.get(n, 0.0)}
                      for n in names]
             plan = plan_dag(tasks)
             # Rehearse-before-execute: dry-run the plan AND its assignment and
@@ -371,10 +422,28 @@ class MetaCluster:
                 # that produced nothing to say.
                 gaps = ";".join(
                     str(g) for g in (predicted or (plan.get("gaps") or [])))
+                self._publish_plan(plan_out, plan=plan, ordered=names,
+                                   levels={}, assignment=assignment,
+                                   rehearsal=rehearsal,
+                                   atoms=dict(self._atom_worms),
+                                   note="plan-fallback:invalid(%s)" % gaps[:120])
                 return names, {}, "plan-fallback:invalid(%s)" % gaps[:120]
             levels = plan.get("levels") or {}
-            ordered = sorted(plan.get("order") or names,
-                             key=lambda n: (levels.get(n, 0), idx.get(n, 0)))
+            # EP197: the level comes from the dependency DAG, and nodes inside a
+            # level are independent by construction -- so their relative order
+            # is a policy choice, not a correctness one. The policy rides the
+            # per-task `complexity` handed to `plan_dag` above, and the order
+            # read back is the planner's own `ready_order` (descending priority
+            # then complexity within a tier), so this host does not re-derive an
+            # ordering rule a sibling already owns. With no policy `rank` is
+            # empty and the key collapses to (level, requested index): the
+            # previous sort, exactly.
+            rank = ({n: i for i, n in enumerate(plan.get("ready_order") or [])}
+                    if weights else {})
+            ordered = sorted(
+                plan.get("order") or names,
+                key=lambda n: (levels.get(n, 0), rank.get(n, idx.get(n, 0)),
+                               idx.get(n, 0)))
             sharing = eliminate_common_subgraphs(
                 {n: sorted(worms[n]) for n in names})
             note = "planned:levels=%d,shared_segments=%d,dedup_savings=%d" % (
@@ -385,6 +454,11 @@ class MetaCluster:
                 # Shared worms are work this run can do once. Recorded, not
                 # silently acted on: the report must stay readable.
                 note += ",shared_worms=%d" % int(sharing.get("savings") or 0)
+            if self._atom_worms:
+                # A split plan has to SAY it split: an atom is a dispatch unit,
+                # and a reader counting categories would otherwise read the
+                # fan-out as a plan that changed nothing.
+                note += ",fissioned=%d atoms" % len(self._atom_worms)
             # The rehearsal's verdict rides the plan note that orchestration
             # already reports, so a held plan and the busiest pool are visible
             # without a second telemetry channel.
@@ -403,13 +477,101 @@ class MetaCluster:
                     "note": note, "order": ordered, "levels": levels})
             except Exception as exc:  # noqa: BLE001 — telemetry is best-effort
                 _note_failure("metacluster:plan-event", exc)
+            self._publish_plan(plan_out, plan=plan, ordered=ordered,
+                               levels=levels, assignment=assignment,
+                               rehearsal=rehearsal, atoms=dict(self._atom_worms),
+                               note=note)
             return ordered, levels, note
         except Exception as exc:  # noqa: BLE001 — never break orchestration
             note_failure("METACLUSTER:L369", exc)
             return names, {}, "plan-fallback:%s" % type(exc).__name__
 
+    def _split_into_atoms(self, names: List[str], worms: Dict[str, Set[str]],
+                          capability_split: Callable) -> tuple:
+        """Fan a category out into one atom per capability group (EP374).
+
+        `capability_split` is called as `(category, sorted_worms)` and returns a
+        mapping of group label -> the worms in that group. A category yielding
+        fewer than two NON-EMPTY groups is not split: a single group IS the
+        category, and renaming a node for no gain would only churn the plan.
+        Any failure leaves the caller's names untouched, because fission is an
+        optimisation and a category that cannot be grouped must still run.
+
+        Returns (atom_names, {atom: its worms}); an atom is named
+        `<category>#<label>` -- the same `#` convention `plan_dag` uses for its
+        capability-level fission, so a reader of the plan sees one shape. The
+        two are complements, not duplicates: `plan_dag(split_on_capability=True)`
+        splits a TASK that declares capability names, while this host's unit is a
+        category whose members are WORMS, so the boundary here groups worms.
+        """
+        atoms: List[str] = []
+        groups: Dict[str, List[str]] = {}
+        for n in names:
+            try:
+                split = capability_split(n, sorted(worms.get(n) or ()))
+            except Exception as exc:        # noqa: BLE001 — fission is optional
+                _note_failure("metacluster:capability-split", exc)
+                split = None
+            per: List[str] = []
+            if isinstance(split, dict) and len(split) > 1:
+                for label, members in split.items():
+                    if not members:
+                        continue
+                    atom = "%s#%s" % (n, str(label))
+                    per.append(atom)
+                    groups[atom] = [str(m) for m in members]
+            if len(per) < 2:
+                for atom in per:
+                    groups.pop(atom, None)
+                atoms.append(n)
+                continue
+            atoms.extend(per)
+        return atoms, groups
+
+    def _granularity_weights(self, names: List[str],
+                             worms: Dict[str, Set[str]],
+                             granularity: Any) -> Dict[str, float]:
+        """Per-node complexity weight for the within-level order (EP197).
+
+        `granularity` is either a callable `(name, sorted_worms) -> weight` or a
+        mapping of name -> weight. No policy means no weights, which is what
+        keeps the default order identical. A callable that raises for one node
+        is skipped FOR THAT NODE: a scheduling policy is advice, and advice must
+        never be able to fail a plan.
+        """
+        if granularity is None:
+            return {}
+        weights: Dict[str, float] = {}
+        for n in names:
+            try:
+                if callable(granularity):
+                    weights[n] = float(
+                        granularity(n, sorted(worms.get(n) or ())))
+                else:
+                    weights[n] = float(granularity.get(n, 0.0))
+            except Exception as exc:        # noqa: BLE001 — policy is advisory
+                _note_failure("metacluster:granularity-weight", exc)
+                continue
+        return weights
+
+    @staticmethod
+    def _publish_plan(plan_out: Optional[Dict[str, Any]],
+                      **fields: Any) -> None:
+        """Hand the built plan to a caller that passed an out-dict (EP186).
+
+        SGDe's half of that row is PLAN CONSTRUCTION, and until now the plan was
+        visible only as a formatted note string -- a caller wanting the artefacts
+        had to import the dispatch module itself. A dict passed in is that
+        exposure without this module importing a sibling.
+        """
+        if isinstance(plan_out, dict):
+            plan_out.update(fields)
+
     def orchestrate(self, natures: Optional[List[str]] = None,
-                    parallel: bool = False, max_natures: int = 0) -> MetaClusterResult:
+                    parallel: bool = False, max_natures: int = 0, *,
+                    granularity: Optional[Any] = None,
+                    capability_split: Optional[Callable] = None,
+                    plan_out: Optional[Dict[str, Any]] = None) -> MetaClusterResult:
         """
         Orchestrate a set of registry categories end-to-end (U3: `natures`
         takes category names; kept for caller compatibility).
@@ -418,6 +580,11 @@ class MetaCluster:
             natures: Specific categories to execute (None = auto-discover all)
             parallel: Execute categories in parallel where possible
             max_natures: Limit to top-N categories by priority weight
+            granularity: Optional complexity policy for the within-level order.
+            capability_split: Optional `(category, worms) -> {label: worms}`
+                that splits a category into atoms at its capability boundaries.
+            plan_out: Optional dict receiving the built plan, assignment and
+                rehearsal, for a caller that needs the plan itself.
         
         Returns:
             MetaClusterResult with full execution details and insights.
@@ -476,8 +643,16 @@ class MetaCluster:
         # is fail-open: on any failure `level_of` is empty and `execution_order`
         # is exactly what it was above, so the executor below is the same
         # sequential loop this method always ran.
-        execution_order, level_of, plan_note = self._plan_execution_order(
-            execution_order)
+        # The hooks are passed ONLY when a caller supplied one, so the default
+        # call keeps its single-positional-argument shape: an existing wrapper
+        # of this method (and the default plan) is untouched by the new rows.
+        if granularity is None and capability_split is None and plan_out is None:
+            execution_order, level_of, plan_note = self._plan_execution_order(
+                execution_order)
+        else:
+            execution_order, level_of, plan_note = self._plan_execution_order(
+                execution_order, granularity=granularity,
+                capability_split=capability_split, plan_out=plan_out)
 
         self.state.phase = "executing"
         self.state.active_natures = set(execution_order)
@@ -535,8 +710,14 @@ class MetaCluster:
             
             # Execute the category cluster with config-driven timeout
             try:
+                # A fissioned atom (EP374) carries its own worm subset -- the
+                # atom IS the unit -- so the cluster is built from the group,
+                # not from the whole category. Every name that was not split
+                # falls back to its category unchanged.
+                atom_worms = self._atom_worms.get(nature)
                 cluster = ClusterWORMZ.build_from_registry(
-                    sorted(self.categories.get(nature, [])))
+                    sorted(atom_worms if atom_worms is not None
+                           else (self.categories.get(nature) or [])))
                 cluster.set_parallel(parallel)
                 cluster.execute_all()
                 agg = cluster.aggregate_results()

@@ -15,6 +15,8 @@ Features:
 - get_session(session_id) -> all memories for a session
 - get_stats() -> memory store statistics
 - export_json(path) -> export all memories to JSON file
+- EP395/EP160: record_event(admit=..., agent_id=...) -> write-time admission + partition
+- EP206: object_graph(...) / traverse(start_id, ...) -> typed graph projection
 
 Usage:
     from CORE.local_memory import LocalMemoryStore
@@ -33,7 +35,7 @@ import hashlib
 import threading
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 from CORE.uuid7 import uuid7
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. An
@@ -329,6 +331,11 @@ class LocalMemoryStore:
             # needs a stage column — NULL/'full' = untouched, 'summary'/'pointer'
             # = decayed. Additive, non-destructive, same pattern as CD1.
             ("decay_level", "TEXT"),
+            # EP160 (AgentSys hierarchical memory isolation): the per-agent
+            # partition boundary. Nullable and additive -- NULL means SHARED,
+            # which is exactly what every pre-existing row already is, so the
+            # migration re-scopes nothing and default reads are unchanged.
+            ("agent_id", "TEXT"),
         ]
         for col_name, col_type in migrations:
             if col_name not in existing_cols:
@@ -347,6 +354,12 @@ class LocalMemoryStore:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_memories_trace_id "
             "ON memories(trace_id)"
+        )
+        # EP160: the partition column is read-filtered, so it needs an index or
+        # an isolated query scans the whole store.
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_memories_agent_id "
+            "ON memories(agent_id)"
         )
         # CD1 Phase 2 (June 11 2026): Backfill existing NULL rows with UUID7.
         # Batched in chunks of 1000 to avoid large transactions under 3.14t.
@@ -593,10 +606,55 @@ class LocalMemoryStore:
 
     # -- Recording ----------------------------------------------------------
 
+    def _admit_or_refuse(self, admit: Callable[[Dict[str, Any]], Any],
+                         candidate: Dict[str, Any]) -> bool:
+        """EP395 write-time admission. True = commit the row, False = refuse it.
+
+        Contract, stated because it decides whether a record lands: the gate
+        refuses only on an EXPLICIT denial -- `False`, or a dict whose
+        `admitted`/`allowed` is False. Everything else admits, including
+        `None`, so a gate that merely observes or logs can never start silently
+        dropping records. A gate that RAISES is recorded and the row is
+        admitted (fail-open), because a broken gate must not become a data-loss
+        path: admitting one row a gate would have rejected is recoverable, a
+        lost event is not.
+        """
+        try:
+            verdict = admit(candidate)
+        except Exception as exc:                  # noqa: BLE001 -- gate is caller-supplied
+            _note_failure("local_memory:admission-gate", exc)
+            return True
+        if isinstance(verdict, dict):
+            refused = bool(verdict.get("admitted") is False
+                           or verdict.get("allowed") is False)
+        else:
+            refused = verdict is False
+        if not refused:
+            return True
+        # The refusal is itself a record. An unrecorded veto is
+        # indistinguishable from a caller that never tried to write, which is
+        # the whole reason admission lives at the write path and not at
+        # retrieval. No `admit` is passed here, so this cannot recurse.
+        try:
+            self.record_event(
+                "local_memory", "admission_refused",
+                {"rejected_event_type": candidate.get("event_type"),
+                 "source": candidate.get("source"),
+                 "agent_id": candidate.get("agent_id"),
+                 "reason": (verdict.get("reason") if isinstance(verdict, dict)
+                            else "gate returned False")},
+                severity="warning", tags=["verification", "consistency-gate"],
+                agent_id=candidate.get("agent_id") or None)
+        except Exception as exc:                  # noqa: BLE001 -- refusal logging is best-effort
+            _note_failure("local_memory:admission-refusal-log", exc)
+        return False
+
     def record_event(self, source: str, event_type: str, data: Any = None,
                      severity: str = "info", tags: Optional[List[str]] = None,
                      session_id: Optional[str] = None,
-                     correlation_id: Optional[str] = None) -> int:
+                     correlation_id: Optional[str] = None,
+                     admit: Optional[Callable[[Dict[str, Any]], Any]] = None,
+                     agent_id: Optional[str] = None) -> int:
         """
         Record an event to memory.
 
@@ -608,9 +666,18 @@ class LocalMemoryStore:
             tags: Optional list of string tags for categorization.
             session_id: Optional session override.
             correlation_id: Optional CD1 cross-ledger correlation ID.
+            admit: EP395 (ConsistencyGate) write-time admission callable. It is
+                handed the candidate event dict and may veto the write by
+                returning `False` or a dict carrying `admitted=False` /
+                `allowed=False`. Anything else admits. Default None = no gate,
+                i.e. exactly the pre-existing behaviour. It runs BEFORE the row
+                is committed, because retrieval-time filtering is too late:
+                the inadmissible row is already the retrieval set's input.
+            agent_id: EP160 per-agent partition. None = SHARED, which is what
+                every row was before this parameter existed.
 
         Returns:
-            The memory ID (rowid).
+            The memory ID (rowid), or 0 when an admission gate refused the row.
 
         Raises:
             ValueError: If validation fails.
@@ -621,6 +688,25 @@ class LocalMemoryStore:
         data_str = json.dumps(data if data is not None else {}, ensure_ascii=False)
         tags_str = json.dumps(tags or [], ensure_ascii=False)
         ts = datetime.now(timezone.utc).isoformat()
+        # EP160: normalise the partition key once, so "" and "   " collapse to
+        # SHARED rather than becoming a third, empty-string partition.
+        if isinstance(agent_id, str):
+            agent_id = agent_id.strip() or None
+        else:
+            agent_id = None
+
+        # EP395: admission runs before the lock and before the INSERT, so a
+        # caller-supplied gate can never hold the store's writer lock (this is
+        # 3.14t free-threaded: the lock is shared with every live writer).
+        if admit is not None:
+            candidate = {
+                "source": source, "event_type": event_type, "data": data,
+                "severity": severity, "tags": list(tags or []),
+                "session_id": sid, "correlation_id": correlation_id or "",
+                "agent_id": agent_id,
+            }
+            if not self._admit_or_refuse(admit, candidate):
+                return 0
 
         with self._lock:
             with self._QueryTimer(self, "record_event"):
@@ -645,9 +731,9 @@ class LocalMemoryStore:
                         audit_val = hashlib.blake2b(canonical.encode(), digest_size=32).hexdigest()
                         cursor = conn.execute(
                             "INSERT INTO memories(session_id, source, event_type, data, severity, tags, timestamp, "
-                            "event_uuid, trace_id, correlation_id, audit_hash) "
-                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                            (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, trace_id_val, corr_id, audit_val)
+                            "event_uuid, trace_id, correlation_id, audit_hash, agent_id) "
+                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            (sid, source, event_type, data_str, severity, tags_str, ts, ev_uuid, trace_id_val, corr_id, audit_val, agent_id)
                         )
                         mem_id = cursor.lastrowid or 0
 
@@ -714,7 +800,8 @@ class LocalMemoryStore:
                        severity: Optional[str] = None, limit: int = 50,
                        offset: int = 0, since: Optional[str] = None,
                        session_id: Optional[str] = None, max_age_days: Optional[int] = None,
-                       exclude_sources: Optional[List[str]] = None) -> List[Dict]:
+                       exclude_sources: Optional[List[str]] = None,
+                       agent_id: Optional[str] = None) -> List[Dict]:
         """
         Query memories with optional filters.
 
@@ -731,6 +818,9 @@ class LocalMemoryStore:
                 keep training pools free of self-generated bookkeeping noise,
                 e.g. RLTrainLoop/ModelVersioner events recorded by the very
                 training runs being evaluated).
+            agent_id: EP160 partition filter. Unset = SHARED (every row, which
+                is what every existing caller read before the column existed);
+                set = only that agent's rows.
 
         Returns:
             List of memory dicts, newest first.
@@ -764,6 +854,11 @@ class LocalMemoryStore:
             conditions.append(
                 "source NOT IN (%s)" % ", ".join("?" * len(exclude_sources)))
             params.extend(exclude_sources)
+        if agent_id:
+            # EP160: the isolation boundary is a READ filter over the partition
+            # column -- one store, no second index to keep in sync.
+            conditions.append("agent_id = ?")
+            params.append(agent_id)
 
         where = " AND ".join(conditions) if conditions else "1=1"
         sql = f"SELECT * FROM memories WHERE {where} ORDER BY id DESC LIMIT ? OFFSET ?"
@@ -992,6 +1087,182 @@ class LocalMemoryStore:
         """Drop quarantined rows from a result set per an audit report."""
         bad = set(report.get("quarantined_ids", []))
         return [r for r in results if r.get("id") not in bad]
+
+    # -- EP206 ObjectGraph: typed document graph + traversal ----------------
+
+    #: Edge type -> the column already carrying that link. The graph is a
+    #: PROJECTION over columns the write path populates, never a second index:
+    #: a parallel structure would drift from the rows the moment a writer
+    #: bypassed it, and nothing here can be forgotten by a caller.
+    GRAPH_COLUMNS: Dict[str, str] = {
+        "correlation": "correlation_id",
+        "trace": "trace_id",
+        "session": "session_id",
+        "agent": "agent_id",
+    }
+
+    @classmethod
+    def _graph_key(cls, row: Dict[str, Any], edge_type: str) -> Optional[str]:
+        """The shared key a row offers for an edge type, or None when unset."""
+        column = cls.GRAPH_COLUMNS.get(edge_type)
+        if column is None:
+            return None
+        value = row.get(column)
+        return str(value) if value else None
+
+    def object_graph(self, limit: int = 200, source: Optional[str] = None,
+                     event_type: Optional[str] = None,
+                     edge_types: Optional[List[str]] = None) -> Dict[str, Any]:
+        """Typed document graph over the recorded rows (EP206 ObjectGraph).
+
+        Nodes are memory rows reduced to a summary (id, source, event_type,
+        severity, timestamp, agent_id) -- payloads stay in the ledger, the same
+        rule `reconstruct_events` follows. Edges are `correlation` (same
+        correlation_id), `trace`, `session`, and `agent` (the EP160 partition).
+
+        Caveat, stated because it bounds the result: this is ONE PAGE of rows
+        (clamped by MAX_QUERY_LIMIT), so the graph is only as connected as the
+        rows fetched. A group of one is not an edge.
+        """
+        wanted = [t for t in (edge_types or list(self.GRAPH_COLUMNS))
+                  if t in self.GRAPH_COLUMNS]
+        rows = self.query_memories(source=source, event_type=event_type,
+                                   limit=limit)
+        nodes = [{"id": r.get("id"), "source": r.get("source"),
+                  "event_type": r.get("event_type"),
+                  "severity": r.get("severity"),
+                  "timestamp": r.get("timestamp"),
+                  "agent_id": r.get("agent_id")} for r in rows]
+        edges: List[Dict[str, Any]] = []
+        for edge_type in wanted:
+            groups: Dict[str, List[int]] = {}
+            for row in rows:
+                key = self._graph_key(row, edge_type)
+                if key is None:
+                    continue
+                groups.setdefault(key, []).append(int(row.get("id") or 0))
+            for key, ids in groups.items():
+                ordered = sorted(ids)
+                # Consecutive pairs keep the edge count linear in the group
+                # size; a fully-connected expansion is quadratic on a large
+                # session and buys a traversal nothing.
+                for left, right in zip(ordered, ordered[1:]):
+                    edges.append({"type": edge_type, "key": key,
+                                  "from": left, "to": right})
+        return {"nodes": nodes, "edges": edges, "n_nodes": len(nodes),
+                "n_edges": len(edges), "edge_types": wanted}
+
+    def _fetch_row(self, memory_id: int) -> Optional[Dict[str, Any]]:
+        """One row by id, JSON fields parsed as the readers parse them."""
+        conn = self._get_conn()
+        try:
+            row = conn.execute("SELECT * FROM memories WHERE id = ?",
+                               (int(memory_id),)).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            return None
+        record = dict(row)
+        for field in ("data", "tags"):
+            if isinstance(record.get(field), str):
+                try:
+                    record[field] = json.loads(record[field])
+                except (json.JSONDecodeError, TypeError) as exc:
+                    _note_failure("local_memory:graph-json", exc)
+        return record
+
+    def _graph_peers(self, edge_type: str, key: str, node_id: int,
+                     limit: int = 200) -> List[int]:
+        """Ids ADJACENT to `node_id` on this edge type's column, tombstones excluded.
+
+        Adjacency is the same relation `object_graph` publishes: a sorted-key
+        group is linked as CONSECUTIVE pairs (`zip(ordered, ordered[1:])`), so a
+        member's neighbours are its immediate predecessor and successor in that
+        group -- NOT every other member. Returning the whole group walked a
+        clique the graph never reports, which is how a `depth=1` traversal
+        reached a node two hops away along the published path.
+
+        A node absent from the fetched group (e.g. the group page was truncated
+        by `limit`) has no observable adjacency here and yields []; that is
+        recorded rather than returned as a confident empty neighbourhood.
+        """
+        column = self.GRAPH_COLUMNS.get(edge_type)
+        if column is None:
+            return []
+        conn = self._get_conn()
+        try:
+            # ORDER BY id is not decorative: adjacency is defined over the
+            # sorted group, so an unordered page would make the edge set
+            # depend on SQLite's return order.
+            rows = conn.execute(
+                f"SELECT id FROM memories WHERE {column} = ? "
+                "AND severity != 'deleted' ORDER BY id LIMIT ?",
+                (key, min(int(limit), self.MAX_QUERY_LIMIT))).fetchall()
+        finally:
+            conn.close()
+        ids = [int(r["id"]) for r in rows]
+        try:
+            index = ids.index(int(node_id))
+        except ValueError:
+            _note_failure("local_memory:graph-adjacency", None)
+            return []
+        neighbours: List[int] = []
+        if index > 0:
+            neighbours.append(ids[index - 1])
+        if index + 1 < len(ids):
+            neighbours.append(ids[index + 1])
+        return neighbours
+
+    def traverse(self, start_id: int, edge_types: Optional[List[str]] = None,
+                 depth: int = 1, limit: int = 200) -> List[Dict[str, Any]]:
+        """Breadth-first traversal from one node over the typed edges (EP206).
+
+        Returns rows ordered by hop distance, each carrying the `_hop` and
+        `_edge` that reached it; `start_id` itself is not included. Both bounds
+        are enforced: `depth` because one session edge can span the store, and
+        `limit` because a large correlation group has an unbounded neighbourhood.
+
+        `depth` counts EDGES, so `depth=1` means the direct neighbours only, and
+        a hop is one step along the edge set `object_graph` publishes.
+        """
+        wanted = [t for t in (edge_types or list(self.GRAPH_COLUMNS))
+                  if t in self.GRAPH_COLUMNS]
+        cap = max(1, int(limit))
+        seen = {int(start_id)}
+        reached: List[Dict[str, Any]] = []
+        frontier = [int(start_id)]
+        hop = 0
+        while frontier and hop < max(0, int(depth)) and len(reached) < cap:
+            hop += 1
+            nxt: List[int] = []
+            for node_id in frontier:
+                row = self._fetch_row(node_id)
+                if row is None:
+                    continue
+                for edge_type in wanted:
+                    key = self._graph_key(row, edge_type)
+                    if key is None:
+                        continue
+                    for peer in self._graph_peers(edge_type, key, node_id,
+                                                  limit=cap):
+                        if peer in seen:
+                            continue
+                        seen.add(peer)
+                        peer_row = self._fetch_row(peer)
+                        if peer_row is None:
+                            continue
+                        peer_row["_hop"] = hop
+                        peer_row["_edge"] = edge_type
+                        reached.append(peer_row)
+                        nxt.append(peer)
+                        if len(reached) >= cap:
+                            break
+                    if len(reached) >= cap:
+                        break
+                if len(reached) >= cap:
+                    break
+            frontier = nxt
+        return reached
 
     # -- P0 MemHarness reconstructive recall (SOTA blueprint slice 3) --------
 

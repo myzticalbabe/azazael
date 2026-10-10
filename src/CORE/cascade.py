@@ -29,6 +29,12 @@ class CascadeRouter:
     ledger_path: every escalation appends {task, triage_answer, confidence,
     big_answer} JSONL — the future SFT corpus. Non-escalations are not
     logged (nothing to learn).
+
+    `route()` also accepts a per-CALL `threshold` override: the instance gate
+    stays the default, and an allocation policy can supply its own gate for one
+    call without mutating the router (EP223/EP253). `route_node()` applies the
+    same cheap-vs-expensive decision per plan NODE, which is what a DAG executor
+    needs for per-node offloading (EP186).
     """
 
     VERSION = "1.1.0"
@@ -54,12 +60,13 @@ class CascadeRouter:
         except Exception:
             note_failure("cascade:L37", None)
 
-    def route(self, task, triage_fn, big_fn) -> dict:
+    def route(self, task, triage_fn, big_fn, threshold=None) -> dict:
         ans, conf = triage_fn(task)
         self.n_triage += 1
         if conf is None:
             conf = 0.0
-        if float(conf) >= self.threshold:
+        gate = self.threshold if threshold is None else float(threshold)
+        if float(conf) >= gate:
             return {"answer": ans, "via": "triage", "confidence": float(conf),
                     "escalated": False}
         big = big_fn(task)
@@ -88,6 +95,31 @@ class CascadeRouter:
                 "answer": routed["answer"],
                 "confidence": routed["confidence"],
                 "escalated": routed["escalated"]}
+
+    def route_node(self, node, triage_fn, big_fn, threshold=None) -> dict:
+        """Per-NODE cheap-vs-expensive offload (EP186 SGDe compilation, EP223).
+
+        `dispatch_plan.plan_dag` groups independent branches into depth LEVELS,
+        and a fan-out executor wants the same cheap-vs-expensive decision taken
+        per node instead of once per task, so the expensive tier is spent only
+        on the nodes that need it. `node` is a plan node (a mapping carrying an
+        `id`, optionally a `task`); the decision itself is `route()`'s, so the
+        tuned threshold, the escalation ledger and the counters are SHARED with
+        the per-task path rather than being a second, drifting copy of it.
+
+        Returns `route()`'s dict with the node's id added under `"node"`.
+        """
+        if isinstance(node, dict):
+            node_id = node.get("id")
+            task = node.get("task", node_id)
+        else:
+            node_id = None
+            task = node
+        if task is None:
+            raise ValueError("route_node needs a node with an 'id' or 'task'")
+        routed = self.route(task, triage_fn, big_fn, threshold=threshold)
+        routed["node"] = node_id
+        return routed
 
     def stats(self) -> dict:
         tot = max(1, self.n_triage)

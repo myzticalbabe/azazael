@@ -36,13 +36,11 @@ except ImportError:
     note_failure("test_enhancements:L25", None)
     HYPOTHESIS_AVAILABLE = False
 
-try:
-    pass
-
-    FUZZING_AVAILABLE = True
-except ImportError:
-    note_failure("test_enhancements:L32", None)
-    FUZZING_AVAILABLE = False
+# REMOVED 2026-10-10 (no-op gate sweep): `try: pass / FUZZING_AVAILABLE = True`.
+# The import statement had been replaced by `pass`, so the flag was unconditionally
+# True and its `except ImportError` branch was unreachable -- a guard that could
+# never fail. It also had no reader: `TestFuzzing` below runs unconditionally and
+# its cases are hand-rolled, so no fuzzing library was ever required.
 
 
 class TestQTableProperties:

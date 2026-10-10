@@ -60,6 +60,25 @@ except ImportError:
     def register_worm(**kw):
         return lambda cls: cls
 
+#: EP191's acceptance half lives in the verification layer
+#: (`verification_gate.verify_before_accept`). Imported GUARDED, exactly like the
+#: cross-module deps above: when it is not importable the exchange still runs and
+#: reports that no gate was available, rather than claiming an acceptance that
+#: never happened. A circular import surfaces here as ImportError (a partially
+#: initialised module cannot supply the name), so the fallback covers that too.
+try:
+    from CORE.verification_gate import verify_before_accept as _verify_before_accept
+    _VERIFICATION_OK = True
+except ImportError:
+    note_failure("meta_cognition:verification-gate-import", None)
+    _VERIFICATION_OK = False
+    _verify_before_accept = None
+
+
+def _acceptance_gate():
+    """The verification layer's acceptance gate, or None when absent."""
+    return _verify_before_accept if _VERIFICATION_OK else None
+
 
 def internalize(observation: dict[str, Any], *, worm: str = "global",
                 persist: bool = False, store: Any = None) -> dict[str, Any]:
@@ -179,6 +198,7 @@ class MetaCognitionWorm:
         self._confidence_models: dict[str, dict[str, float]] = {}
         self._strategy_scores: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
         self._adaptations: list[dict] = []
+        self._dialectics: list[dict[str, Any]] = []
         self._current_strategies: dict[str, str] = {}
         self._episode_count = 0
 
@@ -637,6 +657,199 @@ class MetaCognitionWorm:
 
         return validation
 
+    # -- DIALECTIC Phase (EP191 ReTAS dialectical alignment) ------------
+
+    #: Same evidence bar `recommend_from_evidence` uses: below it a claim is
+    #: reported as UNEVIDENCED rather than judged on a thin sample.
+    DIALECTIC_MIN_EVIDENCE = 5
+
+    def dialectic(self, claim, *, worm_type: str = "global", support=None,
+                  evidence=None, persist: bool = True,
+                  acceptance_fn=None) -> dict[str, Any]:
+        """Put one claim through a thesis/antithesis/synthesis exchange (EP191).
+
+        ReTAS's mechanism is dialectical alignment: a candidate is not accepted
+        on its own assertion, it has to survive a rebuttal built from the
+        system's own evidence. This engine already HELD that evidence -- error
+        patterns and confidence models -- and never argued with it: `observe`
+        records, `analyze_patterns` summarises, `adapt_strategy` switches, and
+        nothing put a claim itself on trial. This is that missing exchange.
+
+        The two sides are built from real state, not invented prose:
+
+          * THESIS      -- the claim, whatever support its caller states, and
+                           the confidence the caller attaches to it.
+          * ANTITHESIS  -- the engine's OWN record for `worm_type`: observed
+                           success rate, error ratio, and every recurring error
+                           whose message matches the claim's subject. A record
+                           thinner than DIALECTIC_MIN_EVIDENCE yields the
+                           rebuttal "not enough evidence", which is a finding,
+                           not a pass.
+          * SYNTHESIS   -- a verdict from the stated blend below, so the
+                           arithmetic is inspectable instead of magic:
+                           ``claimed*0.35 + observed*0.45 + stability*0.20
+                           - rebuttal``, where `rebuttal` is the error ratio
+                           raised by matched recurring errors (capped at 0.5).
+
+        Verdict bands: >= 0.60 supported, >= 0.35 weakened, else unsupported;
+        an insufficient record gives "unevidenced"; and a rebuttal of 0.5 or
+        more caps the verdict at "weakened", because a subject that fails half
+        the time cannot be called supported by a confident claim.
+
+        Args:
+            claim: the candidate as a string, or a dict carrying
+                "claim"/"statement" plus optional "support", "confidence".
+            worm_type: whose recorded behaviour argues against the claim.
+            support: caller-stated support (overrides a dict claim's own).
+            evidence: optional extra context stored with the exchange.
+            persist: write the exchange to the store (default True; pass False
+                from a self-test so a dry run writes nothing).
+            acceptance_fn: optional ``callable(claim) -> dict``, e.g.
+                `verification_gate.verify_before_accept`. When omitted, the
+                guarded module-level import is used if it loaded.
+
+        Returns:
+            dict with thesis, antithesis, synthesis, verdict, confidence,
+            acceptance (None when no gate ran) and recorded.
+        """
+        claimed = 0.5
+        if isinstance(claim, dict):
+            text = str(claim.get("claim") or claim.get("statement") or "").strip()
+            if support is None:
+                support = claim.get("support")
+            try:
+                claimed = float(claim.get("confidence", 0.5) or 0.5)
+            except (TypeError, ValueError):
+                note_failure("meta_cognition:dialectic/claim-confidence", None)
+                claimed = 0.5
+        else:
+            text = str(claim or "").strip()
+
+        if not text:
+            return {"error": "empty claim", "verdict": "unsupported",
+                    "confidence": 0.0, "recorded": False}
+
+        try:
+            claimed = max(0.0, min(1.0, float(claimed)))
+        except (TypeError, ValueError):
+            note_failure("meta_cognition:dialectic/claim-clamp", None)
+            claimed = 0.5
+
+        # -- ANTITHESIS: the engine's own record for this subject.
+        with self._lock:
+            subject_obs = [o for o in self._observations
+                           if o.get("worm_type") == worm_type]
+            recurring = list(self._error_patterns.get(worm_type, []))
+
+        model = self._confidence_models.get(worm_type)
+        if model is None:
+            model = self._compute_confidence(worm_type, subject_obs)
+
+        n = int(model.get("n", 0) or 0)
+        observed = float(model.get("success_rate", 0.0) or 0.0)
+        stability = float(model.get("stability", 0.5) or 0.5)
+        error_ratio = float(model.get("error_ratio", 0.0) or 0.0)
+
+        needle = text.lower()
+        matched = [err for err in recurring
+                   if needle and needle in str(err.get("error", "")).lower()]
+        rebuttal = min(0.5, error_ratio + 0.1 * len(matched))
+
+        if n < self.DIALECTIC_MIN_EVIDENCE:
+            argument = (f"no evidence for {worm_type}: {n} observation(s), "
+                        f"below the {self.DIALECTIC_MIN_EVIDENCE} bar")
+        else:
+            argument = (f"{worm_type} succeeds {observed:.0%} of {n} "
+                        f"observation(s), error ratio {error_ratio:.2f}")
+            if matched:
+                argument += (f", {len(matched)} recurring error(s) match "
+                             f"the claim")
+
+        antithesis = {
+            "worm_type": worm_type,
+            "observations": n,
+            "success_rate": round(observed, 4),
+            "error_ratio": round(error_ratio, 4),
+            "matched_recurring_errors": len(matched),
+            "rebuttal_weight": round(rebuttal, 4),
+            "argument": argument,
+        }
+
+        # -- SYNTHESIS: the blend, then the bands.
+        score = claimed * 0.35 + observed * 0.45 + stability * 0.20 - rebuttal
+        score = max(0.0, min(1.0, score))
+        if n < self.DIALECTIC_MIN_EVIDENCE:
+            verdict = "unevidenced"
+        elif rebuttal >= 0.5:
+            verdict = "weakened" if score >= 0.35 else "unsupported"
+        elif score >= 0.60:
+            verdict = "supported"
+        elif score >= 0.35:
+            verdict = "weakened"
+        else:
+            verdict = "unsupported"
+
+        # -- The acceptance gate, when the verification layer is reachable.
+        gate = acceptance_fn if acceptance_fn is not None else _acceptance_gate()
+        acceptance = None
+        if gate is not None:
+            try:
+                result = gate(text)
+                acceptance = result if isinstance(result, dict) else {"result": result}
+            except Exception as exc:
+                note_failure("meta_cognition:dialectic/acceptance", exc)
+                acceptance = {"error": f"{type(exc).__name__}: {exc}"}
+
+        exchange = {
+            "claim": text,
+            "worm_type": worm_type,
+            "thesis": {"claim": text,
+                       "stated_support": str(support or ""),
+                       "claimed_confidence": round(claimed, 4)},
+            "antithesis": antithesis,
+            "synthesis": {"score": round(score, 4), "verdict": verdict,
+                          "blend": "claim 0.35 / observed 0.45 / stability "
+                                   "0.20 - rebuttal"},
+            "acceptance": acceptance,
+            "verdict": verdict,
+            "confidence": round(score, 4),
+            "evidence": evidence or {},
+            "timestamp": datetime.now().isoformat(),
+        }
+
+        with self._lock:
+            self._dialectics.append(exchange)
+            if len(self._dialectics) > 50:
+                self._dialectics = self._dialectics[-50:]
+
+        recorded = self._persist_dialectic(exchange) if persist else False
+        exchange["recorded"] = recorded
+        return exchange
+
+    def _persist_dialectic(self, exchange: dict) -> bool:
+        """Record one exchange. True only when the store accepted it."""
+        store = self._get_store()
+        if store is None:
+            return False
+        try:
+            store.record_event(
+                source="MetaCognitionWorm",
+                event_type="dialectic_exchange",
+                data=exchange,
+                severity="warning" if exchange.get("verdict") == "unsupported" else "info",
+                tags=["meta_cognition", "dialectic",
+                      exchange.get("worm_type", "unknown")],
+            )
+            return True
+        except Exception as exc:
+            note_failure("meta_cognition:dialectic/persist", exc)
+            return False
+
+    def recent_dialectics(self, limit: int = 5) -> list[dict[str, Any]]:
+        """The last few exchanges, so the channel has a reader (not write-only)."""
+        with self._lock:
+            return [dict(d) for d in self._dialectics[-limit:]]
+
     # -- Introspection Report -------------------------------------------
 
     def generate_introspection_report(self) -> dict[str, Any]:
@@ -649,6 +862,7 @@ class MetaCognitionWorm:
             total_obs = len(self._observations)
             total_errors = sum(len(v) for v in self._error_patterns.values())
             total_adaptations = len(self._adaptations)
+            total_dialectics = len(self._dialectics)
 
         # Compute global error rate
         error_rate = total_errors / max(total_obs, 1)
@@ -701,6 +915,7 @@ class MetaCognitionWorm:
                 "total_errors": total_errors,
                 "error_rate": round(error_rate, 4),
                 "total_adaptations": total_adaptations,
+                "total_dialectic_exchanges": total_dialectics,
                 "worm_types_tracked": len(self._error_patterns),
             },
             "top_error_worms": [
@@ -710,6 +925,13 @@ class MetaCognitionWorm:
             "strategy_scores": strategy_summary,
             "confidence_models": confidence_summary,
             "recent_adaptations": self._adaptations[-5:] if self._adaptations else [],
+            "recent_dialectics": [
+                {"claim": str(d.get("claim", ""))[:120],
+                 "worm_type": d.get("worm_type"),
+                 "verdict": d.get("verdict"),
+                 "confidence": d.get("confidence")}
+                for d in self._dialectics[-5:]
+            ],
             "recommendations": recommendations,
         }
 
@@ -752,6 +974,7 @@ class MetaCognitionWorm:
                 "confidence_models": dict(self._confidence_models),
                 "strategy_scores": {k: dict(v) for k, v in self._strategy_scores.items()},
                 "adaptations": self._adaptations[-50:],  # Keep last 50
+                "dialectics": self._dialectics[-50:],  # Keep last 50
                 "current_strategies": dict(self._current_strategies),
                 "saved_at": datetime.now().isoformat(),
                 "free_threaded": True,
@@ -818,6 +1041,7 @@ class MetaCognitionWorm:
                         {k: defaultdict(float, v) for k, v in data.get("strategy_scores", {}).items()},
                     )
                     self._adaptations = data.get("adaptations", [])
+                    self._dialectics = data.get("dialectics", [])
                     self._current_strategies = data.get("current_strategies", {}) or {}
 
                 return True
@@ -1090,6 +1314,8 @@ try:
                 return self._mc.adapt_strategy(**payload)
             elif action == "validate":
                 return self._mc.validate_adaptation(**payload)
+            elif action == "dialectic":
+                return self._mc.dialectic(**payload)
             elif action == "introspect":
                 return self._mc.generate_introspection_report()
             else:

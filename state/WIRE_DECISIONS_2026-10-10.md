@@ -66,3 +66,75 @@ All 44 cited test-reference sets verified Y on the exact cited line (one weak re
 - `src/` holds `*.pre_gate_backup` duplicates (`NeuralPipeline.py.pre_gate_backup`, `learning.py.pre_gate_backup`) that duplicate defs for `replay_failed`, `fallback_accuracy_report`, `extract_field`, `filter_by_*`, `get_memory_stats`, `load_to_memory`, `process_batches`, `schedule_dynamic_refresh`, `search_memory`, `tune_and_train`, `tune_history` — excluded from live-caller counts.
 - `route_recall` is the single worklist-stale claim: the worklist says test-only, but 2 live production callers exist (`_l1_memory.py:256` in `ep235`, `:368` in `ep389`). Accepted (already wired), not escalated.
 - Unresolved: none — all 44 rows resolved to a decision with cited evidence. No source/test/worklist file edited.
+
+---
+
+## Reach audit 2026-10-10 (post-SOTA-wave)
+
+Re-checked the decisions above against the code as it stands AFTER the 2026-10-10 SOTA
+absorption wave. Method: content search for each symbol named above, then reading the
+hits. No code file was edited. Anything not re-measured in this pass is marked
+`UNVERIFIED-BY-EXECUTION` — this pass had no terminal.
+
+**Counts: 44 decisions / 16 STILL UNWIRED (needs a production caller) / 28 SETTLED,
+of which 2 proven actually reachable / 0 new CUTs proposed / 2 doc claims INVALIDATED.**
+
+### 1. Decision = needs a production caller, still unwired (16)
+
+Every ESCALATE row. Each row's own evidence cell measured "none" for `src/` callers and
+nothing in the SOTA wave added one, so each is capability no live invocation reaches.
+Suggested call sites are the row's own; status is `UNVERIFIED-BY-EXECUTION` unless noted.
+
+| # | symbol | suggested caller (row's own) | caller now |
+|---|---|---|---|
+| 1 | `NeuralPipeline.replay_failed` | `neural_loop` recovery stage / operator DLQ replay | none |
+| 2 | `db_monitor.DatabaseMonitorWorm._policy_advice` | the monitor's own alert loop | none (not even an internal self-call) |
+| 3 | `db_monitor.DatabaseMonitorWorm.create_backup` | `ScheduledDbMonitorWorm` cycle | none |
+| 4 | `error_recovery.ErrorRecoveryOrchestrator.execute_with_recovery` | MetaCluster/ClusterWORMZ dispatch or a `neural_loop` stage wrap | none |
+| 5 | `error_recovery.ErrorRecoveryOrchestrator.reset_circuit` | health-monitor / operator reset path | none |
+| 6 | `evolution.GeneticOptimizer.optimize_cma` | `optimize()` backend dispatch | none |
+| 7 | `evolution.GeneticOptimizer.optimize_de` | same backend dispatch | none |
+| 8 | `learning_pipeline.DataPipelineWorm.schedule_dynamic_refresh` | scheduler daemon / `ScheduledTrainingWorm` cycle | none |
+| 9 | `learning_replay.PrioritizedReplayBuffer.add_from_memories` | `RLTrainLoop` training prep | none |
+| 10 | `learning_rl.RLTrainLoop.tune_and_train` | scheduled training path | none |
+| 11 | `meta_cognition.MetaCognitionWorm.compute_cross_worm_correlation` | the worm's periodic analysis / meta stage | none |
+| 12 | `morph.load_genome` | `EvolutionEngine` checkpoint restore | none |
+| 13 | `morph.save_genome` | `EvolutionEngine` checkpointing | none |
+| 14 | `spine_registry.purge_implausible_stamps` | clock-skew alert auto-remedy in `notifier.py` | none (remedy text only) |
+| 15 | `spine_registry.revert_policy` | `worm_governance` emergency rollback | none |
+| 16 | `tensorgene.boruta_relevance` | `DataPipelineWorm` feature selection / `RLTrainLoop` prep | none |
+
+### 2. CUT decisions
+
+This document proposes none (it is decisions-only, no code cut). The deletion half of
+the same class was executed separately — see the reach audit appended to
+`THEATER_REMOVAL_TASKS_2026-10-10.md`, where **3 of its 6 tracked deletions are back in
+the tree**. Read that section before trusting either document's "removed" claim.
+
+### 3. SETTLED — do not re-check these (28 + 1)
+
+- The 27 remaining ACCEPT-TEST-AS-WIRE rows are test-exercised contracts and diagnostics
+  that need no production caller by design. The decision stands and no work is
+  outstanding; re-opening them as a backlog is the measurement-artifact error this
+  project has already made twice.
+- `engram.RecallRouterWorm.route_recall` — the one ACCEPT row whose "only caller" claim
+  was stale. PROVEN reachable, not merely accepted: `technique_wiring/_l1_memory.py:256`
+  (`ep235`) and `:368` (`ep389`).
+- Bonus, same class, from the sibling registry: ACTION_REGISTRY D-2's write-only finding
+  for `engram_read_pressure` is now CLOSED, and by a reader, not a deletion —
+  `src/CORE/technique_runtime.py:483 _read_pressure_summary` consumes the payload and
+  `src/CORE/WORMS/expansion/engram.py:517` calls `_record_read_stats(pressure)`. The
+  premise-and-fix is recorded at `technique_runtime.py:486-491`.
+
+### 4. Invalidated evidence (2)
+
+1. **The worklist's def-line drift note is confirmed again, and it is not cosmetic.**
+   Every cited definition line in this document should be treated as stale before reuse.
+2. **`eliminate_common_subgraphs` is still published as a CONFIRMED DEFECT by an adapter,
+   and the symbol is in fact called in production.** `src/CORE/dispatch_plan.py:210`
+   defines it, `src/CORE/WORMS/METACLUSTER.py:447` calls it during live plan construction,
+   and `technique_wiring/_l5_dispatch.py:123` exercises it — yet
+   `technique_wiring/_l5_dispatch.py:14` and its `:538-541` defect-data block still assert
+   the confirmed defect. Any reader acting on that data is acting on a stale signal;
+   whoever owns `_l5_dispatch.py` should re-verify its defect claim against the reducer's
+   body before it gates anything.

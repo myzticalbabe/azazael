@@ -1,18 +1,6 @@
 # coding: utf-8
 """
 
-
-__all__ = [
-    "DB_PATH",
-    "OTEL_SPANS_SCHEMA",
-    "SQLiteSpanExporter",
-    "configure_otel_tracing",
-    "get_exporter",
-    "purge_old_spans",
-    "query_trace_by_id",
-    "query_unified_trace",
-]
-
 cd3_exporter.py -- CD3 SQLiteSpanExporter Module
 
 Cross-Domain: CD3 (Observability + Memory)
@@ -61,6 +49,21 @@ from typing import Any, Sequence, List
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.sdk.trace.export import SpanExportResult
 
+#: This list used to sit INSIDE the module docstring above, i.e. inside a string
+#: literal, so it was never assigned: `from CORE.cd3_exporter import *` exported
+#: every public name and __all__ itself did not exist.
+__all__ = [
+    "DB_PATH",
+    "TELEMETRY_DB_PATH",
+    "OTEL_SPANS_SCHEMA",
+    "SQLiteSpanExporter",
+    "configure_otel_tracing",
+    "get_exporter",
+    "purge_old_spans",
+    "query_trace_by_id",
+    "query_unified_trace",
+]
+
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
@@ -90,7 +93,11 @@ def _reload_paths() -> None:
     global _DB_DIR, DB_PATH, TELEMETRY_DB_PATH
     _DB_DIR = _get_db_dir()
     DB_PATH = _DB_DIR / "memory_store.db"
-    TELEMETRY_DB_PATH = _get_telemetry_db_dir()
+    # Name the FILE, exactly as the module-level init does. Assigning the bare
+    # directory here left TELEMETRY_DB_PATH pointing at a folder after a reload,
+    # so the next sqlite3.connect() targeted a directory. Every span read and
+    # write goes through this constant, so a reload silently broke telemetry.
+    TELEMETRY_DB_PATH = _get_telemetry_db_dir() / "telemetry_store.db"
 
 
 def _get_telemetry_db_dir() -> Path:
@@ -250,10 +257,23 @@ class SQLiteSpanExporter:
             conn.close()
 
     def shutdown(self):
-        """Shutdown the exporter. No-op for SQLite exporter."""
+        """Shutdown the exporter.
+
+        Intentionally inert, and REQUIRED: ``SpanExporter`` declares it and the
+        ``TracerProvider`` calls it on exit. There is nothing to release because
+        ``export()`` opens and closes its own connection per batch instead of
+        holding one open, which is also why there is no writer lock to drop.
+        """
 
     def force_flush(self, timeout_millis: int = 30000):
-        """Force flush any pending exports. No-op since we write synchronously."""
+        """Force flush any pending exports.
+
+        Intentionally inert, and REQUIRED by the ``SpanExporter`` interface:
+        ``export()`` commits before it returns, so no batch is ever pending and
+        a flush has nothing to do. Implemented as a real method rather than
+        omitted so the interface contract is visible here instead of looking
+        like an unfinished stub.
+        """
 
     def get_stats(self) -> dict[str, Any]:
         """Return export statistics.
@@ -349,14 +369,23 @@ def configure_otel_tracing(
 def query_trace_by_id(trace_id: str, db_path: (str | None) = None) -> list[dict[str, Any]]:
     """Reconstruct a trace from otel_spans by trace_id.
 
+    .. note::
+        The 2026-09-28 split moved spans to ``telemetry_store.db`` (their own
+        writer lock) and left ``memory_store.db`` holding the memories side of
+        JOINs. This function reads SPANS, so it defaults to the telemetry file
+        -- the same path ``SQLiteSpanExporter`` WRITES to, matching
+        ``query_unified_trace`` and ``purge_old_spans``. It previously defaulted
+        to ``DB_PATH`` (``memory_store.db``), so it could never return the spans
+        this module had just exported.
+
     Args:
         trace_id: 32-char hex trace ID.
-        db_path: Optional custom DB path. Defaults to same as DirectMemory.
+        db_path: Optional custom SPAN DB path (telemetry file).
 
     Returns:
         list of span dicts ordered by start_time ASC.
     """
-    path = db_path or str(DB_PATH)
+    path = db_path or str(TELEMETRY_DB_PATH)
     conn = sqlite3.connect(path, timeout=5)
     conn.row_factory = sqlite3.Row
     try:

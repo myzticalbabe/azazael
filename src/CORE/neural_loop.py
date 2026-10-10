@@ -186,6 +186,18 @@ class LoopContext:
     results: List[StageResult] = field(default_factory=list)
     notes: List[str] = field(default_factory=list)
     started: float = field(default_factory=time.time)
+    # -- EP266: the per-turn latent-vs-explicit mode selector ----------------
+    #: Consulted once per `route` stage with the order it is deciding about.
+    #: INJECTED rather than imported, for the same reason the stages are:
+    #: this engine imports only the stdlib at module level, so a hard import
+    #: would make the mode policy unswappable in tests without the substrate.
+    #: `None` (the default) keeps the loop's original behaviour exactly.
+    mode_decider: Optional[Callable[..., Any]] = None
+    #: The modes the decider returned, one per `route` stage, in turn order.
+    modes: List[Any] = field(default_factory=list)
+    #: How many `route` stages this context has run -- the decider's clock, so
+    #: a policy can decay over turns (the "adaptive" half of the row).
+    turns: int = 0
 
     # -- helpers the stages share -------------------------------------------
 
@@ -478,11 +490,37 @@ def _stage_route(ctx: LoopContext) -> StageResult:
             note_failure("neural_loop:L464", exc)
             order.extend(sorted(names))
     ctx.order = order
+    # EP266 (ALAR -- adaptive latent agentic reasoning). The loop decided WHAT
+    # to run (the order above) and never decided HOW: no per-turn
+    # latent-vs-explicit mode policy sat anywhere on this path. The latent
+    # carriers themselves live in their own modules; the missing piece is the
+    # SELECTOR, and the loop's decision point is here.
+    #
+    # A decider that raises must not fail the effector -- the order it was
+    # consulted about is already computed -- so the failure is RECORDED, not
+    # swallowed, and the stage still returns its order. With no decider
+    # injected the evidence dict is exactly the pre-EP266 one.
+    evidence: Dict[str, Any] = {"ordered": len(order), "head": order[:8]}
+    if ctx.mode_decider is not None:
+        try:
+            mode = ctx.mode_decider({
+                "order": list(order),
+                "natures": dict(natures),
+                "turn": ctx.turns,
+            })
+        except Exception as exc:
+            note_failure("neural_loop:L512", exc)
+            mode = None
+        if mode is not None:
+            ctx.modes.append(mode)
+            evidence["mode"] = mode
+            evidence["turn"] = ctx.turns
+    ctx.turns += 1
     # The head is reported because an order's TAIL changing is not observable
     # in a summary, and "the first organ changed" is the thing a reader checks.
     return StageResult(
         "route", True, changed=False,
-        evidence={"ordered": len(order), "head": order[:8]},
+        evidence=evidence,
     )
 
 

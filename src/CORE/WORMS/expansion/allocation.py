@@ -36,7 +36,8 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-__all__ = ["ThompsonAllocator", "PROTEUS_ARMS", "reward_for_outcome"]
+__all__ = ["ThompsonAllocator", "PROTEUS_ARMS", "reward_for_outcome",
+           "joint_action_space"]
 
 DEFAULT_FLOOR = 0.02
 
@@ -237,6 +238,71 @@ class ThompsonAllocator:
         """Arms whose posterior mean has collapsed to (near) zero."""
         return [a for a, v in self.weights().items() if v <= threshold]
 
+    # -- SOTA-row consumers (EP253 / EP187 / EP223, 2026-10-10) -------------
+    # ADDITIVE read-only views over the posteriors above. None of these mutate
+    # the allocator and none of them alter `weights`, `allocation`, `update`
+    # or `reward_for_outcome` -- they exist so a host that needs a prior can
+    # read one instead of re-deriving the arithmetic in a second place.
+
+    def participation_prior(self) -> Dict[str, float]:
+        """EP253: normalised, floor-respecting prior over the arms.
+
+        `dispatch_plan.py::assign_roles` takes a caller-supplied static
+        `role_pools` dict and learns nothing. This is the learned replacement:
+        an arm that has earned successes carries a larger share, and the floor
+        keeps a starved arm reachable so a regime change stays discoverable.
+        `allocation()` remains the integer-budget path; this one is continuous.
+        """
+        raw = self.weights()
+        floored = {a: max(raw[a], self.floor) for a in self.arms}
+        denom = sum(floored.values()) or 1.0
+        return {a: v / denom for a, v in floored.items()}
+
+    def contribution_weights(self) -> Dict[str, float]:
+        """EP187: relative contribution per arm, aware of evidence mass.
+
+        A contribution-weighted schedule needs more than the posterior mean:
+        an arm holding 40 pulls at a 0.6 mean has earned more of the budget
+        than one holding a single pull at the same mean. score = mean *
+        (1 + ln(1 + pulls)), normalised.
+        """
+        import math
+        raw = self.weights()
+        scored = {a: raw[a] * (1.0 + math.log1p(max(0, self._pulls.get(a, 0))))
+                  for a in self.arms}
+        denom = sum(scored.values()) or 1.0
+        return {a: v / denom for a, v in scored.items()}
+
+    def ingest_outcome(self, arm: str, outcome: str) -> "Tuple[bool, float]":
+        """EP253/EP187: reward-ingest path for callers that speak outcome names.
+
+        Routes the outcome through `reward_for_outcome` (so an unknown string
+        still fails closed) and records it via `update`. Returns the
+        (success, weight) actually applied, so a caller can log what the arm
+        was credited with instead of assuming it.
+        """
+        ok, w = reward_for_outcome(outcome)
+        self.update(arm, success=ok, weight=w)
+        return ok, w
+
+    def action_space(self) -> Dict[str, object]:
+        """EP223: describe the arm set as a discrete action space.
+
+        The row's finding is that `cluster_route.tpe_lite_suggest`,
+        `cascade.CascadeRouter.route` and this allocator each decide
+        separately; one policy needs one action set over their joint space.
+        This is this allocator's contribution to it. Read-only.
+        """
+        return {
+            "kind": "discrete",
+            "source": "allocation",
+            "actions": list(self.arms),
+            "n_actions": len(self.arms),
+            "priors": self.participation_prior(),
+            "floor": self.floor,
+            "explore": self.explore,
+        }
+
     # -- persistence -------------------------------------------------------
     def to_dict(self) -> dict:
         return {
@@ -283,6 +349,51 @@ class ThompsonAllocator:
             if least not in base and self._rng.random() < fg_lambda * 5:
                 return [least]
         return base
+
+
+def joint_action_space(*allocators, name: str = "joint") -> Dict[str, object]:
+    """EP223: compose several allocators into ONE discrete action space.
+
+    Each action is prefixed `"<name>:<arm>"` so it can be dispatched back to
+    the allocator that owns it (`owners` maps action -> the index of the
+    allocator passed in), which is what a single joint policy over
+    `cluster_route` / `cascade` / this module needs. Priors are renormalised
+    across the union so they stay a distribution. Read-only: `action_space()`
+    does not mutate.
+
+    Two allocators may name the same arm. That is not a collision to drop: the
+    first owner keeps the bare `"<name>:<arm>"` and a later owner's duplicate
+    is qualified `"<name>:<index>:<arm>"`, so every arm of every allocator
+    stays in the set and stays dispatchable through `owners`. Skipping the
+    duplicate would silently delete that arm's prior and any contribution
+    credited to it - a dropped arm is indistinguishable from one that never
+    earned anything, which is exactly the blindness this set exists to end.
+    """
+    actions: List[str] = []
+    priors: Dict[str, float] = {}
+    owners: Dict[str, int] = {}
+    for idx, alloc in enumerate(allocators):
+        space = alloc.action_space()
+        for arm in space["actions"]:
+            key = "%s:%s" % (name, arm)
+            if key in priors:
+                key = "%s:%d:%s" % (name, idx, arm)
+            suffix = 2
+            while key in priors:
+                key = "%s:%d:%s#%d" % (name, idx, arm, suffix)
+                suffix += 1
+            actions.append(key)
+            priors[key] = float(space["priors"].get(arm, 0.0))
+            owners[key] = idx
+    total = sum(priors.values()) or 1.0
+    return {
+        "kind": "discrete",
+        "source": name,
+        "actions": actions,
+        "n_actions": len(actions),
+        "priors": {k: v / total for k, v in priors.items()},
+        "owners": owners,
+    }
 
 
 class LinUCBAllocator:

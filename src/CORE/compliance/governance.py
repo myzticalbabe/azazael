@@ -14,7 +14,7 @@ import sqlite3
 import threading
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, List
 
@@ -253,6 +253,35 @@ def make_state_machine_judge(name: str = "state_machine"):
 # Confidence Gate (RULE 0Y-2)
 # ---------------------------------------------------------------------------
 
+def _weighted_stdev(values: list[float], weights: list[float]) -> float:
+    """Population stdev of the weighted scores; 0.0 below two samples.
+
+    The dispersion ACROSS sources, not the noise of one: it is what tells a
+    caller whether a pass cleared the threshold by more than the disagreement
+    between the things that voted for it.
+    """
+    total = sum(weights)
+    if len(values) < 2 or total <= 0:
+        return 0.0
+    mean = sum(v * w for v, w in zip(values, weights)) / total
+    variance = sum(w * (v - mean) ** 2 for v, w in zip(values, weights)) / total
+    return variance ** 0.5
+
+
+def _parse_iso(value: (str | None)) -> (datetime | None):
+    """Parse an ISO timestamp to an aware datetime; None if unparseable."""
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError) as exc:
+        note_failure("governance:_parse_iso", exc)
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
 class ConfidenceGate:
     """Confidence threshold scoring gate.
 
@@ -269,6 +298,11 @@ class ConfidenceGate:
     def __init__(self, threshold: float = 0.7):
         self._threshold = threshold
         self._scores: dict[str, float] = {}
+        #: Per-source weights. Default 1.0 keeps the aggregate identical to the
+        #: plain mean this gate has always returned.
+        self._weights: dict[str, float] = {}
+        #: SUPPLIED continuous scorers (EP349). Never called implicitly.
+        self._scorers: dict[str, Callable[[], float]] = {}
         self._lock = threading.Lock()
 
     @property
@@ -279,23 +313,48 @@ class ConfidenceGate:
     def threshold(self, value: float):
         self._threshold = max(0.0, min(1.0, value))
 
-    def add_score(self, source: str, score: float):
+    def add_score(self, source: str, score: float, weight: float = 1.0):
         """Add a confidence score from a source.
 
         Args:
             source: Source identifier (e.g., "policy", "reviewer", "ast_scanner")
             score: Confidence score 0.0-1.0
+            weight: Relative weight of this source (default 1.0 = plain mean)
         """
         with self._lock:
             self._scores[source] = max(0.0, min(1.0, score))
+            self._weights[source] = max(0.0, float(weight))
 
     def remove_score(self, source: str):
         with self._lock:
             self._scores.pop(source, None)
+            self._weights.pop(source, None)
 
     def clear_scores(self):
         with self._lock:
             self._scores.clear()
+            self._weights.clear()
+
+    def _stats(self) -> tuple[float, float, int, dict[str, float]]:
+        """Return (weighted mean, dispersion, source count, scores snapshot).
+
+        With every weight at its default the mean is arithmetically identical to
+        the plain average this gate returned before weights existed.
+        """
+        with self._lock:
+            scores = dict(self._scores)
+            weights = {k: self._weights.get(k, 1.0) for k in scores}
+        if not scores:
+            return 1.0, 0.0, 0, {}
+        values = list(scores.values())
+        weight_values = list(weights.values())
+        total = sum(weight_values)
+        if total <= 0:
+            return (sum(values) / len(values),
+                    _weighted_stdev(values, [1.0] * len(values)),
+                    len(values), scores)
+        mean = sum(v * w for v, w in zip(values, weight_values)) / total
+        return mean, _weighted_stdev(values, weight_values), len(values), scores
 
     def get_aggregate(self) -> float:
         """Get the aggregated confidence score (weighted average).
@@ -303,10 +362,94 @@ class ConfidenceGate:
         Returns:
             Float between 0.0 and 1.0
         """
+        return self._stats()[0]
+
+    # -- EP156 / EP349: graded confidence, from a SUPPLIED scorer ----------------
+
+    def add_scorer(self, source: str, scorer: Callable[[], float]):
+        """Register a SUPPLIED continuous scorer (EP349).
+
+        The scorer is a zero-argument callable returning 0.0-1.0, and it is only
+        ever called by `score_supplied()`. Nothing here decides *when* something
+        should be asked to grade an answer.
+        """
         with self._lock:
-            if not self._scores:
-                return 1.0  # No scores = no risk
-            return sum(self._scores.values()) / len(self._scores)
+            self._scorers[source] = scorer
+
+    def unregister_scorer(self, source: str):
+        with self._lock:
+            self._scorers.pop(source, None)
+
+    @property
+    def scorer_count(self) -> int:
+        with self._lock:
+            return len(self._scorers)
+
+    def score_supplied(self) -> list[str]:
+        """Run every supplied scorer and fold its value in as a source.
+
+        Returns the source ids that actually reported. A scorer that raises is
+        recorded and skipped -- it is never counted as a zero.
+        """
+        with self._lock:
+            scorers = dict(self._scorers)
+        reported: list[str] = []
+        for source, scorer in sorted(scorers.items()):
+            try:
+                value = scorer()
+            except Exception as exc:
+                note_failure("governance:scorer:%s" % source, exc)
+                continue
+            if isinstance(value, (int, float)):
+                self.add_score("scorer:%s" % source, float(value))
+                reported.append(source)
+        return reported
+
+    def quantify(self) -> dict[str, Any]:
+        """EP156/EP349: report HOW FAR the aggregate is from the boundary.
+
+        A pass/fail gate answers "did it clear the bar". An agent choosing what to
+        do next needs to know whether it cleared the bar by more than its own
+        noise, so this reports the signed margin against the threshold together
+        with the dispersion across sources: a pass whose margin sits inside the
+        standard error of its own inputs is UNCERTAIN, not ACCEPT.
+
+        The continuous scoring source is SUPPLIED via `add_scorer` -- this tree
+        consumes models as opaque providers, so there is no in-repo scorer to
+        hardcode and inventing one would fabricate the very statistic it audits.
+        """
+        aggregate, dispersion, count, sources = self._stats()
+        margin = aggregate - self._threshold
+        band = dispersion / (count ** 0.5) if count else 0.0
+        if not count:
+            # No evidence is not a pass, whatever evaluate() reports for callers
+            # that predate quantification.
+            verdict = "UNCERTAIN"
+        elif margin < 0:
+            verdict = "REJECT"
+        elif margin <= band:
+            verdict = "UNCERTAIN"
+        else:
+            verdict = "ACCEPT"
+        with self._lock:
+            scorer_ids = sorted(self._scorers)
+        return {
+            "aggregate_score": round(aggregate, 3),
+            "threshold": self._threshold,
+            "margin": round(margin, 3),
+            "dispersion": round(dispersion, 3),
+            "uncertainty_band": round(band, 3),
+            "source_count": count,
+            "sources": sources,
+            "scorers": scorer_ids,
+            "verdict": verdict,
+        }
+
+    def evaluate_with_uncertainty(self) -> dict[str, Any]:
+        """`evaluate()` plus the quantification block, for new call sites."""
+        result = self.evaluate()
+        result["quantified"] = self.quantify()
+        return result
 
     def evaluate(self) -> dict[str, Any]:
         """Evaluate whether the gate should pass.
@@ -686,6 +829,9 @@ class RealtimeAuditPipeline:
     def __init__(self, enable_hardened: bool = True):
         self._enable_hardened = enable_hardened
         self._results: list[dict] = []
+        #: EP382 residual obligations: duties that OUTLIVE the decision that
+        #: created them, keyed by obligation id.
+        self._obligations: dict[str, dict[str, Any]] = {}
         self._lock = threading.Lock()
 
     def process(self, audit_filepath: str) -> dict[str, Any]:
@@ -822,6 +968,84 @@ class RealtimeAuditPipeline:
             self._results.append(result)
 
         return result
+
+    # -- EP382: residual obligations -------------------------------------------
+
+    def register_obligation(self, obligation_id: str, subject: str,
+                            due_in_s: (float | None) = None,
+                            reason: str = "") -> dict[str, Any]:
+        """Register a duty that outlives the decision which created it.
+
+        EP382's finding is that a policy verdict of ALLOW/DENY cannot express an
+        obligation: the effect type has no way to say "allowed, AND something
+        must still happen afterwards". This is that second half, tracked by the
+        same pipeline that audits the session so it can be reported while it is
+        still open rather than reconstructed after the fact.
+        """
+        now = datetime.now(timezone.utc)
+        due_at = None
+        if due_in_s is not None:
+            due_at = (now + timedelta(seconds=float(due_in_s))).isoformat(timespec="seconds")
+        record: dict[str, Any] = {
+            "obligation_id": str(obligation_id),
+            "subject": str(subject),
+            "reason": reason,
+            "registered_at": now.isoformat(timespec="seconds"),
+            "due_at": due_at,
+            "resolved_at": None,
+            "evidence": "",
+        }
+        with self._lock:
+            self._obligations[record["obligation_id"]] = record
+        return dict(record)
+
+    def resolve_obligation(self, obligation_id: str, evidence: str = "") -> bool:
+        """Close an obligation. False if no such obligation is registered."""
+        with self._lock:
+            record = self._obligations.get(str(obligation_id))
+            if record is None:
+                return False
+            record["resolved_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            record["evidence"] = evidence
+            return True
+
+    def residual_obligations(self, now: (datetime | None) = None) -> dict[str, Any]:
+        """Open obligations split into pending vs OVERDUE, each with its age.
+
+        `now` is injectable so the overdue boundary is testable without sleeping.
+        """
+        current = now or datetime.now(timezone.utc)
+        with self._lock:
+            records = [dict(r) for r in self._obligations.values()]
+        pending: list[dict[str, Any]] = []
+        overdue: list[dict[str, Any]] = []
+        resolved = 0
+        for record in records:
+            if record.get("resolved_at"):
+                resolved += 1
+                continue
+            entry = dict(record)
+            registered = _parse_iso(record.get("registered_at"))
+            entry["age_s"] = (round((current - registered).total_seconds(), 3)
+                              if registered else None)
+            due = _parse_iso(record.get("due_at"))
+            entry["overdue"] = bool(due is not None and current > due)
+            (overdue if entry["overdue"] else pending).append(entry)
+        return {
+            "pending": pending,
+            "overdue": overdue,
+            "pending_count": len(pending),
+            "overdue_count": len(overdue),
+            "resolved_count": resolved,
+            "total": len(records),
+        }
+
+    def obligation_snapshot(self) -> dict[str, Any]:
+        """Counts only -- cheap enough to call on every middleware tick."""
+        with self._lock:
+            open_count = sum(1 for r in self._obligations.values()
+                             if not r.get("resolved_at"))
+            return {"open": open_count, "total": len(self._obligations)}
 
     def get_results(self, limit: int = 20) -> list[dict]:
         with self._lock:

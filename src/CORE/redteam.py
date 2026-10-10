@@ -62,6 +62,14 @@ class HackCritic:
         self.b -= self.lr * err
         self.n += 1
 
+    def score_dimensions(self, answers: dict[str, bool]) -> dict:
+        """Adversarial review of a surface, scored per design dimension.
+
+        Delegates to the module-level scorer so a caller that already holds a
+        trained critic has the checklist on the same object.
+        """
+        return score_dimensions(answers)
+
     def taxed_reward(self, reward: float, traj: dict) -> dict:
         """r' = r * (1 - hack_p). Never flips sign, only taxes."""
         p = self.hack_p(traj)
@@ -81,3 +89,81 @@ def progras_center(scores: list[float], outcomes: list[int]) -> list[float]:
     bad = [s for s, o in zip(scores, outcomes) if not o]
     mu = sum(bad) / len(bad) if bad else 0.0
     return [s - (mu if not o else 0.0) for s, o in zip(scores, outcomes)]
+
+
+# ---------------------------------------------------------------------------
+# EP169 — the adversarial design dimensions, as DATA
+# ---------------------------------------------------------------------------
+# The attack/defense survey this row descends from is a list of design
+# dimensions that decide whether an agent surface is abusable. Held as prose it
+# can only be narrated, which is how a review asserts coverage it never
+# measured. Held as data it can be SCORED per dimension, and an unanswered
+# dimension is reported as a gap instead of quietly counting as a pass.
+
+DESIGN_DIMENSIONS: tuple[dict[str, str], ...] = (
+    {
+        "key": "authority",
+        "question": "Does every action carry the authority that granted it?",
+        "failure": "an action can be exercised with no grant behind it",
+    },
+    {
+        "key": "input_trust",
+        "question": "Is untrusted text kept out of the instruction channel?",
+        "failure": "retrieved or tool-returned text can steer the next action",
+    },
+    {
+        "key": "action_scope",
+        "question": "Is each action bounded to the resource it was scoped to?",
+        "failure": "an action reaches beyond its declared target",
+    },
+    {
+        "key": "irreversibility",
+        "question": "Are irreversible actions separated from reversible ones?",
+        "failure": "a destructive step sits in the same path as a safe one",
+    },
+    {
+        "key": "observation_integrity",
+        "question": "Can the agent tell a real observation from a fabricated one?",
+        "failure": "a missing observation reads the same as a successful one",
+    },
+    {
+        "key": "exfiltration",
+        "question": "Can a compromise of the agent reach data it was not given?",
+        "failure": "one compromised step exposes the whole context",
+    },
+    {
+        "key": "self_persistence",
+        "question": "Can the agent extend its own lifetime or permissions?",
+        "failure": "a step can change the rules that bound the next step",
+    },
+)
+
+
+def score_dimensions(answers: dict[str, bool]) -> dict:
+    """Score an attack/defense review dimension by dimension.
+
+    `answers` maps a `DESIGN_DIMENSIONS` key to True (verified mitigated) or
+    False (verified exposed). An absent key is UNANSWERED and is returned as a
+    gap: absence of evidence is not a pass, and a review that reads CLEARED
+    only because nothing was tested is the failure this shape exists to
+    prevent.
+    """
+    passed, failed, unanswered = [], [], []
+    for dim in DESIGN_DIMENSIONS:
+        key = dim["key"]
+        if key not in answers:
+            unanswered.append(key)
+        elif answers[key]:
+            passed.append(key)
+        else:
+            failed.append(key)
+    return {
+        "dimensions": len(DESIGN_DIMENSIONS),
+        "passed": passed,
+        "failed": failed,
+        "unanswered": unanswered,
+        "exposed": bool(failed),
+        "complete": not unanswered,
+        "verdict": ("EXPOSED" if failed else
+                     "INCOMPLETE" if unanswered else "CLEARED"),
+    }

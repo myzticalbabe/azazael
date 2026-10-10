@@ -47,6 +47,16 @@ except ImportError:                               # never break the host
     _emit_canonical = None  # type: ignore
 
 
+def _softmax(scores: dict) -> dict[str, float]:
+    """Numerically-stable softmax; log() of it is the log-softmax (EP351)."""
+    if not scores:
+        return {}
+    shift = max(scores.values())
+    exps = {k: math.exp(v - shift) for k, v in scores.items()}
+    denom = sum(exps.values()) or 1.0
+    return {k: v / denom for k, v in exps.items()}
+
+
 # -- GRPO Trainer -----------------------------------------------------------
 
 
@@ -78,19 +88,30 @@ class GRPOTrainer:
 
     VERSION = "1.0.0"
 
-    def __init__(self, beta: float = 0.04, lr: float = 0.01, load_policy: bool = True):
+    def __init__(self, beta: float = 0.04, lr: float = 0.01, load_policy: bool = True,
+                 step_decay: float = 0.0, dense_reward_weight: float = 0.0):
         """
         Args:
             beta: KL penalty coefficient (higher = more conservative).
             lr: Policy learning rate.
             load_policy: If True, auto-load persisted policy from LocalMemoryStore
                           on init. set to False for testing with clean state.
+            step_decay: EP350 sampling schedule. In (0, 1] the group sampler
+                          leans toward the learned policy as updates
+                          accumulate (temperature = step_decay ** n_updates).
+                          0.0 (the default) leaves the sampler untouched.
+            dense_reward_weight: EP351. > 0 fuses the checkpoint-pair implicit
+                          reward into each group's rewards before the policy
+                          update. 0.0 (the default) leaves them untouched.
         """
         self._beta = beta
         self._lr = lr
         self._policy: dict[str, dict[str, float]] = {}  # context -> {worm: score}
         self._history: list[dict] = []
         self._anchors: list[dict] = []  # anchor snapshots (EP360, Oct-10)
+        self._replay: list[dict] = []   # EP350 offline replay buffer
+        self._step_decay = float(step_decay)                    # EP350
+        self._dense_reward_weight = float(dense_reward_weight)  # EP351
         self._lock = threading.Lock()
         # Auto-load persisted policy from LocalMemoryStore
         if load_policy:
@@ -131,6 +152,17 @@ class GRPOTrainer:
         # Shuffle both lists
         random.shuffle(preferred)
         random.shuffle(others)
+
+        # EP350 sampling schedule: as updates accumulate the sampler leans on
+        # the learned policy instead of pure chance. Disabled by default, so
+        # step_decay=0.0 => temperature 1.0 => this never reorders anything.
+        temperature = self.sampling_temperature()
+        if temperature < 1.0 and random.random() > temperature:
+            with self._lock:
+                ctx_pol = dict(self._policy.get(
+                    task_context.get("context_key", "default"), {}))
+            preferred.sort(key=lambda w: ctx_pol.get(w, 0.0), reverse=True)
+            others.sort(key=lambda w: ctx_pol.get(w, 0.0), reverse=True)
 
         # Fill group: preferred first, then others
         candidates = []
@@ -246,6 +278,11 @@ class GRPOTrainer:
             rewards: list of rewards (same order as group).
             context_key: Key for the policy context (e.g., task_type).
         """
+        # EP351: the dense checkpoint-pair implicit reward is fused at the one
+        # point rewards enter the policy update. Weight 0.0 (default) => no-op.
+        if self._dense_reward_weight > 0.0:
+            rewards = self.apply_dense_reward(group, rewards, context_key)
+
         advantages = self.compute_advantages(rewards)
 
         # DAPO: skip no-signal groups instead of no-op update. The group still
@@ -333,6 +370,126 @@ class GRPOTrainer:
 
         # Auto-save full policy snapshot after every update
         self.save_policy()
+
+    # -- EP350: offline replay protocol + step-decaying sampler -------------
+
+    def ingest_replay_trajectory(self, trajectory: dict, source: str = "") -> dict:
+        """Admit one recorded trajectory as a replayed prefix (EP350).
+
+        "Training without live environments" needs the recorded decision
+        prefix, not the environment: a trajectory is the sequence of
+        (context_key, worm, reward) triples a real run already produced. An
+        unusable trajectory reports accepted=False with its reason, so a
+        caller cannot mistake an empty ingest for a stored prefix.
+        """
+        steps = []
+        for raw in (trajectory or {}).get("steps", []) or []:
+            if not isinstance(raw, dict) or not raw.get("worm"):
+                continue
+            steps.append({"context_key": str(raw.get("context_key", "default")),
+                          "worm": str(raw["worm"]),
+                          "reward": float(raw.get("reward", 0.0))})
+        if not steps:
+            return {"accepted": False, "reason": "no usable steps",
+                    "n_buffered": len(self._replay)}
+        with self._lock:
+            self._replay.append({"source": str(source), "steps": steps,
+                                 "timestamp": time.time()})
+            self._replay = self._replay[-200:]
+            n = len(self._replay)
+        return {"accepted": True, "n_steps": len(steps), "n_buffered": n}
+
+    def replay_batch(self, limit: int = 8) -> list[dict]:
+        """Newest buffered replay prefixes (EP350)."""
+        with self._lock:
+            return list(self._replay[-max(int(limit), 1):])
+
+    def replay_offline_step(self, prefix: dict | None = None) -> dict:
+        """Update the policy from a replayed prefix - no environment runs.
+
+        Steps are grouped by context_key and each group goes through the
+        ordinary update_policy, so the offline path reuses the live one
+        rather than forking a second trainer whose gradient nothing compares.
+        """
+        if prefix is None:
+            buffered = self.replay_batch(1)
+            prefix = buffered[0] if buffered else None
+        if not prefix:
+            return {"updated": False, "reason": "no buffered prefix"}
+        by_ctx: dict[str, list[dict]] = {}
+        for step in prefix.get("steps", []) or []:
+            by_ctx.setdefault(step.get("context_key", "default"), []).append(step)
+        results = {}
+        for ctx, steps in by_ctx.items():
+            results[ctx] = self.update_policy(
+                [s["worm"] for s in steps],
+                [float(s.get("reward", 0.0)) for s in steps],
+                context_key=ctx)
+        return {"updated": True, "contexts": results,
+                "n_steps": sum(len(s) for s in by_ctx.values())}
+
+    def sampling_temperature(self) -> float:
+        """EP350 step-decaying exploration temperature.
+
+        1.0 when the schedule is disabled (the default), so generate_group is
+        unchanged; otherwise step_decay ** n_updates, i.e. exploration decays
+        as the policy accumulates evidence.
+        """
+        if self._step_decay <= 0.0:
+            return 1.0
+        with self._lock:
+            n = len(self._history)
+        return max(0.0, min(1.0, self._step_decay ** n))
+
+    # -- EP351: checkpoint-pair dense implicit reward ------------------------
+
+    def dense_implicit_reward(self, context_key: str = "default",
+                              anchor_label: str | None = None) -> dict[str, float]:
+        """Dense implicit reward over the student's own states (EP351).
+
+        Direct-OPD reads its dense signal off the GAP between two checkpoints
+        of the same model (post-RL vs pre-RL) instead of a fresh rollout. The
+        checkpoints here are policy snapshots: pre-RL is a named anchor (or
+        `_ref_policy`), post-RL is the live policy, and the log-ratio is taken
+        over the log-softmax of each worm's score - the same student-state
+        contrast the paper forms from its own log-probs.
+        """
+        with self._lock:
+            post = dict(self._policy.get(context_key, {}))
+            pre: dict = {}
+            if anchor_label is not None:
+                for anchor in reversed(self._anchors):
+                    if anchor.get("label") == anchor_label:
+                        pre = dict(anchor.get("policies", {}).get(context_key, {}))
+                        break
+            if not pre:
+                pre = dict(getattr(self, "_ref_policy", {}).get(context_key, {}))
+        if not post:
+            return {}
+        keys = sorted(set(post) | set(pre))
+        if not pre:
+            # No pre-RL checkpoint exists yet: a uniform prior is the honest
+            # reference and keeps the term computable on the very first update.
+            pre = {k: 0.0 for k in keys}
+        post_p = _softmax({k: float(post.get(k, 0.0)) for k in keys})
+        pre_p = _softmax({k: float(pre.get(k, 0.0)) for k in keys})
+        return {k: math.log(max(post_p[k], 1e-12))
+                   - math.log(max(pre_p[k], 1e-12)) for k in keys}
+
+    def apply_dense_reward(self, group: list[str], rewards: list[float],
+                           context_key: str = "default") -> list[float]:
+        """EP351 fusion: add the checkpoint-pair term to a group's rewards.
+
+        Opt-in via dense_reward_weight (default 0.0), so a trainer that did
+        not ask for it is handed back the rewards it passed in, unchanged.
+        """
+        if self._dense_reward_weight <= 0.0:
+            return list(rewards)
+        dense = self.dense_implicit_reward(context_key)
+        if not dense:
+            return list(rewards)
+        return [float(r) + self._dense_reward_weight * dense.get(w, 0.0)
+                for w, r in zip(group, rewards)]
 
     def snapshot_anchor(self, label: str = "") -> dict:
         """Freeze the current policy tables as a named anchor reference set.

@@ -45,45 +45,14 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
-try:
-    pass
-
-    SYSTEMZ_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ:L43", None)
-    SYSTEMZ_AVAILABLE = False
-
-try:
-    pass
-
-    PROCESSZ_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ:L50", None)
-    PROCESSZ_AVAILABLE = False
-
-try:
-    pass
-
-    DISKZ_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ:L57", None)
-    DISKZ_AVAILABLE = False
-
-try:
-    pass
-
-    CLOCKZ_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ:L64", None)
-    CLOCKZ_AVAILABLE = False
-
-try:
-    pass
-
-    NETWORXZ_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ:L71", None)
-    NETWORXZ_AVAILABLE = False
+# REMOVED 2026-10-10: five `try: pass / <NAME>_AVAILABLE = True / except ImportError`
+# blocks (SYSTEMZ, PROCESSZ, DISKZ, CLOCKZ, NETWORXZ). In each, the import
+# statement had been replaced by `pass`, so the flag was set True unconditionally
+# while the module it named was never imported -- a guard that cannot fail. All
+# five were write-only: measured repo-wide, the flags appeared in exactly the two
+# assignments and nowhere else (zero reads, zero importers). WORMZ crawls folders
+# into BIBL and uses none of those worms, so the honest fix was deletion, not
+# inventing a reader. Re-adding one requires an actual import and an actual read.
 
 
 @dataclass
@@ -168,7 +137,7 @@ class WORMZConfig:
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
-    note_failure("WORMZ:L156", None)
+    note_failure("WORMZ:register_worm-import", None)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -258,7 +227,7 @@ class WORMZ:
                             result.terms_found.append(entry)
 
         except Exception as e:
-            note_failure("WORMZ:L245", e)
+            note_failure("WORMZ:_parse_python", e)
             result.errors.append(str(e))
 
         result.duration_ms = (time.time() - start) * 1000
@@ -319,7 +288,7 @@ class WORMZ:
                     result.terms_found.append(entry)
 
         except Exception as e:
-            note_failure("WORMZ:L305", e)
+            note_failure("WORMZ:_parse_markdown", e)
             result.errors.append(str(e))
 
         result.duration_ms = (time.time() - start) * 1000
@@ -355,7 +324,7 @@ class WORMZ:
             extract_keys(data)
 
         except Exception as e:
-            note_failure("WORMZ:L340", e)
+            note_failure("WORMZ:_parse_json", e)
             result.errors.append(str(e))
 
         result.duration_ms = (time.time() - start) * 1000

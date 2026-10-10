@@ -162,6 +162,7 @@ _lock = threading.Lock()
 _enforcement_count = 0
 _denial_count = 0
 _rollback_count = 0
+_post_validate_failures = 0
 _session_started = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 # ---------------------------------------------------------------------------
@@ -406,6 +407,98 @@ def enforce_write(filepath: str, content: str) -> tuple[bool, str]:
 
 
 # ---------------------------------------------------------------------------
+# Post-edit guardrail (EP125 — the same path, AFTER the write)
+# ---------------------------------------------------------------------------
+# `enforce()` and `enforce_write()` reason about the content a caller HANDS
+# them. Neither looks at what reached the disk, so a truncated write, an
+# interleaved second writer, or a caller that serialized something other than
+# it validated all pass the gate and leave a file nobody authorized.
+#
+# EP125's point is that this module's edit vocabulary IS the choke point's API,
+# so the post-edit guardrail belongs on this path rather than beside it. The
+# sibling `SCRIPTS.sentinel_gate.post_validate_mode` runs a post-validate MODE
+# over a whole session; this is the per-write half.
+
+def post_validate(filepath: str, expected: str | None = None) -> tuple[bool, str]:
+    """Validate an edit AFTER it landed on disk. Never raises.
+
+    `expected` is the exact content that was authorized; when given, the
+    on-disk text must equal it. Returns (ok, message) so a caller can roll
+    back on False.
+    """
+    fp = Path(filepath)
+    if not fp.exists():
+        return _post_validate_failed(filepath, "file is absent after the write")
+    try:
+        landed = fp.read_text(encoding="utf-8")
+    except Exception as exc:
+        note_failure("sentinel_enforcer:post_validate/read", exc)
+        return _post_validate_failed(
+            filepath, "unreadable after the write (%s)" % type(exc).__name__)
+    if expected is not None and landed != expected:
+        return _post_validate_failed(
+            filepath,
+            "on-disk content differs from the authorized content "
+            "(%d chars on disk vs %d authorized)" % (len(landed), len(expected)))
+    if filepath.endswith(".py"):
+        # Parse and scan only Python: the other checks are meaningful for any
+        # text, but a .json or .md file that does not parse is not a defect.
+        try:
+            ast.parse(landed)
+        except SyntaxError as exc:
+            note_failure("sentinel_enforcer:post_validate/parse", exc)
+            return _post_validate_failed(
+                filepath, "landed content does not parse (line %s: %s)"
+                % (exc.lineno, exc.msg))
+        if _SCANNER_AVAILABLE:
+            result = ASTAntiPatternScanner().scan_source(filepath, landed)
+            if not result.passed:
+                cats = sorted({cat for _, cat, _ in result.findings})
+                return _post_validate_failed(
+                    filepath, "%d anti-pattern(s) landed (%s)"
+                    % (result.finding_count, ", ".join(cats)))
+    return True, "post-validate: on-disk content matches the authorized content"
+
+
+def _post_validate_failed(filepath: str, why: str) -> tuple[bool, str]:
+    """Count and report a post-edit violation from one place."""
+    global _post_validate_failures
+    with _lock:
+        _post_validate_failures += 1
+    return False, "post-validate: %s — %s" % (filepath, why)
+
+
+def write_guarded(
+    filepath: str,
+    content: str,
+    *,
+    rollback_on_violation: bool = True,
+) -> tuple[bool, str]:
+    """Pre-validate, write, post-validate — the whole choke point in one call.
+
+    Opt-in: `enforce()` and `enforce_write()` are unchanged and nothing calls
+    this yet, so importing this module keeps today's behaviour exactly. A
+    caller that wants the post-edit half routes its write here instead of
+    calling open() itself, which is the only way a guardrail can see the file
+    it guards.
+    """
+    ok, msg = enforce_write(filepath, content)
+    if not ok:
+        return False, msg
+    try:
+        with permit_here("write_guarded"):
+            Path(filepath).write_text(content, encoding="utf-8", newline="")
+    except Exception as exc:
+        note_failure("sentinel_enforcer:write_guarded/write", exc)
+        return False, "DENIED: write failed (%s)" % type(exc).__name__
+    ok, post = post_validate(filepath, expected=content)
+    if ok:
+        return True, "%s; %s" % (msg, post)
+    if rollback_on_violation:
+        return False, "%s; rolled_back=%s" % (post, rollback(filepath))
+    return False, post
+
+
 # Auto-rollback
 # ---------------------------------------------------------------------------
 
@@ -520,6 +613,7 @@ def get_status() -> dict[str, Any]:
             "enforcement_count": _enforcement_count,
             "denial_count": _denial_count,
             "rollback_count": _rollback_count,
+            "post_validate_failures": _post_validate_failures,
             "denial_rate": round(
                 _denial_count / max(_enforcement_count, 1), 4
             ),
