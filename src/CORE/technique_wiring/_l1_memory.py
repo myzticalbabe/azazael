@@ -99,34 +99,14 @@ def _write(ep: str, event_type: str, data: Dict[str, Any],
 def ep120() -> Dict[str, Any]:
     """Reflect-and-replay: cluster real errors, distill one lesson per cluster.
 
-    Verified existing halves: `_triage_signature` normalises an outcome,
-    `triage_real_errors` clusters by it, `get_error_trends` supplies the time
-    axis. Nothing joined them into a cycle that writes the lesson back.
+    The mechanism lives in its HOST now: `LocalMemoryStore.reflect_replay`
+    (moved here in the P1-3 host-remediation pass — the module owning the
+    clustering primitives composes them). This adapter is a thin registration
+    shim so the EP registry keeps naming a single production call site.
     """
     store = _store()
-    # triage_real_errors returns a CLUSTER SUMMARY DICT, not a row list, so the
-    # rows have to be read out of it: iterating the dict itself yields keys and
-    # silently clusters nothing (the bug this line replaces).
-    raw = store.triage_real_errors(days=7, limit=100)
-    trends = store.get_error_trends(days=30) or []
-    if isinstance(raw, dict):
-        rows = raw.get("clusters") or raw.get("groups") or []
-    else:
-        rows = raw or []
-    clusters: Dict[str, int] = {}
-    for e in (rows if isinstance(rows, list) else []):
-        if not isinstance(e, dict):
-            continue
-        sig = "%s::%s" % (e.get("source", "?"),
-                           e.get("event_type") or e.get("severity") or "?")
-        clusters[sig] = clusters.get(sig, 0) + int(e.get("count", 1) or 1)
-    top = sorted(clusters.items(), key=lambda kv: -kv[1])[:3]
-    lesson = {"clusters": len(clusters), "top": top,
-              "trend_points": len(trends)}
-    out = {"verified": True, "clusters": len(clusters),
-           "top_cluster": top[0][0] if top else None,
-           "lesson": lesson}
-    out.update(_write("EP120", "reflection_lesson", lesson,
+    out = store.reflect_replay(days=7, limit=100)
+    out.update(_write("EP120", "reflection_lesson", out.get("lesson", {}),
                       tags=["reflexion", "replay"]))
     return out
 
@@ -307,19 +287,13 @@ def ep221() -> Dict[str, Any]:
 # -- EP233 backward-chaining retrieval ---------------------------------------
 @_safe
 def ep233() -> Dict[str, Any]:
-    """Goal decomposition -> per-subgoal retrieve -> refetch.
+    """Goal decomposition -> per-subgoal retrieve -> merge.
 
-    Rides the real FTS5 `search_memories`; supplies the loop that decomposes a
-    goal into sub-queries and merges the hits by subgoal.
+    Mechanism lives in its HOST: `LocalMemoryStore.backward_chain_recall`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    goal = "technique runtime memory wiring"
-    subgoals = [w for w in goal.split() if len(w) > 3][:4]
-    hits: Dict[str, int] = {}
-    for sg in subgoals:
-        hits[sg] = len(store.search_memories(sg, limit=5) or [])
-    return {"verified": True, "subgoals": subgoals, "hits": hits,
-            "merged": sum(hits.values())}
+    return store.backward_chain_recall("technique runtime memory wiring")
 
 
 # -- EP235 SAGE: couple the reader back to the writer ------------------------
