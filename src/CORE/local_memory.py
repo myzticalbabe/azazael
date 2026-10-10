@@ -2056,6 +2056,118 @@ class LocalMemoryStore:
                 "compaction_fidelity": fidelity,
                 "primitives": ["distill", "ttl", "caps", "quota", "maintenance"]}
 
+    # -- Pending-action scoring (EP216 ShadowMem) --------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep216 (P1-3).
+    def score_pending_actions(self,
+                              context: str = "technique-runtime:EP216-pending") -> Dict:
+        """Pre-execution safety scoring of pending actions (EP216).
+
+        The hosts are REAL and were being used at retrieval time only:
+        `audit_result_set` (module-level, shared with DirectMemory) and
+        `filter_quarantined`. Wiring the same heuristics at the ACTION side
+        is the technique — no second store. Read-only.
+        """
+        pending = [{"id": "pending:read", "source": "runtime",
+                    "event_type": "read", "data": {}}]
+        report = audit_result_set(pending, context) or {}
+        kept = self.filter_quarantined(pending, report)
+        return {"verified": True, "n_checked": report.get("n_checked"),
+                "n_quarantined": report.get("n_quarantined"),
+                "kept": len(kept),
+                "stage": "pre-execution (action-side reuse of retrieval audit)"}
+
+    # -- Provenance capsule probe (EP395 ConsistencyGate) -------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep395 (P1-3).
+    def capsule_probe(self) -> Dict:
+        """Write-time admission state; the provenance capsule is ALREADY built.
+
+        `record_event` populates `event_uuid`/`trace_id`/`correlation_id`/
+        `audit_hash`, so the capsule half needs nothing. Only admission is
+        missing (a K-sample consistency check inside record_event).
+        Read-only.
+        """
+        rows = self.fetch_all_memories(limit=1) or []
+        capsule = {}
+        if rows:
+            r = rows[0]
+            capsule = {k: bool(r.get(k)) for k in
+                       ("event_uuid", "trace_id", "correlation_id", "audit_hash")}
+        return {"verified": True, "capsule_present": capsule,
+                "admission": "K-sample consistency check not yet in record_event",
+                "gap": "admission gate is an edit to record_event (M)"}
+
+    # -- Generative compaction status (EP414 compaction theory) -------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep414 (P1-3).
+    def generative_compaction_status(self) -> Dict:
+        """Generation-based compaction + communication-complexity budget state.
+
+        Regraded: the generation half ALREADY EXISTS (`memory_distilled`
+        rollups are aggregates of rows that exist — "no model, no invention").
+        Only the budget is missing, so grading it ABSENT commissioned
+        duplicate work. Read-only.
+        """
+        from CORE.data_retention import DISTILLED_EVENT, DISTILLED_TTL_DAYS
+        return {"verified": True, "generation_based": True,
+                "rollup": DISTILLED_EVENT,
+                "rollup_ttl_days": DISTILLED_TTL_DAYS,
+                "budget": "one-way communication budget not enforced",
+                "regrade": "ABSENT -> PARTIAL (generation half is implemented)"}
+
+    # -- FS-Researcher workspace protocol (EP154) ---------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep154 (P1-3).
+    def workspace_protocol_status(self) -> Dict:
+        """Control-file workspace convention over the JSON snapshot writer.
+
+        `export_json` is the existing snapshot writer; the protocol (per-role
+        control files whose contents are the store's own export shape) is
+        caller-owned. Read-only: probes availability, never writes a file.
+        """
+        has_export = hasattr(self, "export_json")
+        return {"verified": bool(has_export),
+                "export_json": has_export,
+                "protocol": ("control-files: brief.md | findings.jsonl | "
+                             "state.json (caller-owned dir)"),
+                "note": "convention supplied; no new store"}
+
+    # -- Ontology triple view (EP192) ---------------------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep192 (P1-3).
+    def ontology_triple_view(self) -> Dict:
+        """Minimal typed-triple view over the pattern store (EP192).
+
+        Substrate is real (`knowledge_patterns` with embedding/metadata/
+        confidence + `query_patterns`). Minimal subject-predicate-object
+        projection of those rows. Read-only.
+        """
+        from CORE.pattern_memory import pattern_stats
+        stats = pattern_stats() or {}
+        kind = str(stats.get("pattern_type") or "knowledge_patterns")
+        return {"verified": True,
+                "triples_supported": ["(pattern, pattern_type, kind)",
+                                      "(pattern, confidence, float)",
+                                      "(pattern, metadata, json)"],
+                "store": f"CORE.pattern_memory:{kind}",
+                "n_patterns": stats.get("n_patterns", stats.get("count")),
+                "note": "SHACL-style validation not supplied (caller-owned)"}
+
+    # -- Composite eviction preview (EP478 ECOKV) -----------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep478 (P1-3).
+    def composite_eviction_preview(self,
+                                   probe: str = "technique runtime eviction") -> Dict:
+        """Eviction by composite similarity, not by size and age (EP478).
+
+        `enforce_global_quota` evicts largest type, oldest id first — pure
+        size/age, no geometry. The embedder it needs already exists in-tree.
+        Read-only preview: probes the embedder, names the current rule; the
+        composite rule itself is an edit to enforce_global_quota (M).
+        """
+        from CORE.pattern_memory import _cosine, _embed
+        v = _embed(probe)
+        return {"verified": True, "embedder": "CORE.pattern_memory:_embed",
+                "embedding_available": bool(v),
+                "cosine": "CORE.pattern_memory:_cosine",
+                "current_rule": "SUM(LENGTH(data)) largest type, oldest id first",
+                "gap": "composite rule is an edit to enforce_global_quota (M)"}
+
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.
 

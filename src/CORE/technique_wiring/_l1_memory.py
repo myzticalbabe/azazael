@@ -134,9 +134,10 @@ def ep131() -> Dict[str, Any]:
 def ep144() -> Dict[str, Any]:
     """Streaming memory evolution invoking the real consolidator.
 
-    `DreamConsolidatorWorm.consolidate` is the evolve half (salience-gated,
-    embeds kept dreams, indexes them). The streaming/synthesize half is the
-    caller side, exercised here with an empty input so the loop is reached.
+    Mechanism lives in its HOST: `DreamConsolidatorWorm.consolidate`
+    (CORE.WORMS.expansion.engram — owning host verified via importlib;
+    P1-3 host-remediation, other-host shim: consolidation owns salience-gated
+    embeds/index, not the memory store). Registration shim only.
     """
     from CORE.WORMS.expansion.engram import DreamConsolidatorWorm
     worm = DreamConsolidatorWorm()
@@ -162,16 +163,10 @@ def ep146() -> Dict[str, Any]:
 def ep154() -> Dict[str, Any]:
     """Control-file workspace convention over the existing JSON snapshot writer.
 
-    ABSENT as a protocol in the review. Minimal real version: a directory of
-    per-role control files, whose contents are the store's own export shape.
+    Mechanism lives in its HOST: `LocalMemoryStore.workspace_protocol_status`
+    (P1-3 host-remediation). Registration shim only; never writes a file.
     """
-    store = _store()
-    has_export = hasattr(store, "export_json")
-    return {"verified": bool(has_export),
-            "export_json": has_export,
-            "protocol": ("control-files: brief.md | findings.jsonl | "
-                         "state.json (caller-owned dir)"),
-            "note": "convention supplied; no new store"}
+    return _store().workspace_protocol_status()
 
 
 # -- EP160 AgentSys: per-agent isolation + sanitize-restart -------------------
@@ -190,20 +185,10 @@ def ep160() -> Dict[str, Any]:
 def ep192() -> Dict[str, Any]:
     """Minimal typed-triple view over the existing pattern store.
 
-    The review found no triple layer; the substrate is real
-    (`knowledge_patterns` with embedding/metadata/confidence + `query_patterns`).
-    This is the minimal subject-predicate-object projection of those rows.
+    Mechanism lives in its HOST: `LocalMemoryStore.ontology_triple_view`
+    (P1-3 host-remediation). Registration shim only.
     """
-    from CORE.pattern_memory import pattern_stats
-    stats = pattern_stats() or {}
-    kind = str(stats.get("pattern_type") or "knowledge_patterns")
-    return {"verified": True,
-            "triples_supported": ["(pattern, pattern_type, kind)",
-                                  "(pattern, confidence, float)",
-                                  "(pattern, metadata, json)"],
-            "store": f"CORE.pattern_memory:{kind}",
-            "n_patterns": stats.get("n_patterns", stats.get("count")),
-            "note": "SHACL-style validation not supplied (caller-owned)"}
+    return _store().ontology_triple_view()
 
 
 # -- EP206 ObjectGraph: typed document-graph format ---------------------------
@@ -223,21 +208,11 @@ def ep206() -> Dict[str, Any]:
 def ep216() -> Dict[str, Any]:
     """Pre-execution safety scoring of pending actions, reusing the MAFIA audit.
 
-    The hosts are REAL and were being used at retrieval time only:
-    `audit_result_set` (module-level, shared with DirectMemory) and
-    `filter_quarantined`. Wiring the same heuristics at the ACTION side is the
-    technique — no second store.
+    Mechanism lives in its HOST: `LocalMemoryStore.score_pending_actions`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
-    from CORE.local_memory import audit_result_set, get_memory_store as _gms
-    pending = [{"id": "pending:read", "source": "runtime", "event_type": "read",
-                "data": {}}]
-    report = audit_result_set(pending, "technique-runtime:EP216-pending") or {}
-    store = _gms()
-    kept = store.filter_quarantined(pending, report)
-    return {"verified": True, "n_checked": report.get("n_checked"),
-            "n_quarantined": report.get("n_quarantined"),
-            "kept": len(kept),
-            "stage": "pre-execution (action-side reuse of retrieval audit)"}
+    store = _store()
+    return store.score_pending_actions()
 
 
 # -- EP221 ScrapMem: in-place resolution decay --------------------------------
@@ -269,9 +244,12 @@ def ep233() -> Dict[str, Any]:
 def ep235() -> Dict[str, Any]:
     """Read statistics fed back to the consolidator (the missing loop).
 
-    `RecallRouterWorm` records `_hits` and `_last_scores`; the writer
-    `DreamConsolidatorWorm.consolidate` exists. Nothing joined them. This joins
-    them, and (when writes are enabled) records one attributable feedback row.
+    Mechanism lives in its HOST: `RecallRouterWorm.route_recall` /
+    `RecallRouterWorm.stats` (CORE.WORMS.expansion.engram — owning host
+    verified via importlib; P1-3 host-remediation, other-host shim: the
+    reader->writer join owns to the router/consolidator, not the memory
+    store). Registration shim; the attributable feedback write stays here
+    behind ALLOW_WRITES.
     """
     from CORE.WORMS.expansion.engram import RecallRouterWorm
     router = RecallRouterWorm()
@@ -353,9 +331,10 @@ def ep336() -> Dict[str, Any]:
 def ep370() -> Dict[str, Any]:
     """Epistemic working set via the real composed gate detector.
 
-    `verification_gate.epistemic_state` is implemented and records through
-    `record_epistemic` — this is the L1 half of the same capability (which rows
-    of memory count as Confirmed vs Hypotheses vs Open).
+    Mechanism lives in its HOST: `verification_gate.epistemic_state`
+    (owning host verified via importlib; P1-3 host-remediation, other-host
+    shim: the three-bucket working set owns to the gate, not the memory
+    store). Registration shim only.
     """
     from CORE.verification_gate import epistemic_state
     state = epistemic_state(
@@ -379,18 +358,20 @@ def ep370() -> Dict[str, Any]:
 def ep389() -> Dict[str, Any]:
     """Stratified recall by query mode, with abstention on a miss.
 
-    REAL host, real modes (`owner_lookup`/`semantic`/`fallback`). The missing
-    halves: modes are transport-level not cognitive, the payload is not
-    stratified, and `fallback` returns success=True instead of abstaining.
+    Mechanism lives in its HOST: `RecallRouterWorm.route_recall`
+    (CORE.WORMS.expansion.engram — owning host verified via importlib;
+    P1-3 host-remediation, other-host shim: modes own to the router).
+    Registration shim only; `abstained` reflects the host (fallback now
+    abstains with success=True for transport).
     """
     from CORE.WORMS.expansion.engram import RecallRouterWorm
     route = RecallRouterWorm().route_recall("technique runtime") or {}
     mode = route.get("mode")
     return {"verified": True, "mode": mode,
-            "abstained": False,
+            "abstained": bool(route.get("abstained", False)),
             "stratified_payload": False,
-            "gap": ("fallback returns success=True without abstaining "
-                    "(engram.py route_recall fallback branch)")}
+            "gap": ("modes are transport-level not cognitive; payload is not "
+                    "stratified (engram.py route_recall mode branches)")}
 
 
 # -- EP391 PRO-LONG: programmatic memory (the reference implementation) ------
@@ -422,19 +403,11 @@ def ep394() -> Dict[str, Any]:
 def ep395() -> Dict[str, Any]:
     """Write-time K-sample admission; the provenance capsule is ALREADY built.
 
-    `record_event` populates `event_uuid`/`trace_id`/`correlation_id`/
-    `audit_hash`, so the capsule half needs nothing. Only admission is missing.
+    Mechanism lives in its HOST: `LocalMemoryStore.capsule_probe`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    rows = store.fetch_all_memories(limit=1) or []
-    capsule = {}
-    if rows:
-        r = rows[0]
-        capsule = {k: bool(r.get(k)) for k in
-                   ("event_uuid", "trace_id", "correlation_id", "audit_hash")}
-    return {"verified": True, "capsule_present": capsule,
-            "admission": "K-sample consistency check not yet in record_event",
-            "gap": "admission gate is an edit to record_event (M)"}
+    return store.capsule_probe()
 
 
 # -- EP414 compaction theory: generation over selection ----------------------
@@ -442,15 +415,11 @@ def ep395() -> Dict[str, Any]:
 def ep414() -> Dict[str, Any]:
     """Generation-based compaction + a communication-complexity budget.
 
-    Regraded: the generation half ALREADY EXISTS (`memory_distilled` rollups are
-    aggregates of rows that exist, "no model, no invention"). Only the budget is
-    missing, so grading it ABSENT commissioned duplicate work.
+    Mechanism lives in its HOST: `LocalMemoryStore.generative_compaction_status`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
-    from CORE.data_retention import DISTILLED_EVENT, DISTILLED_TTL_DAYS
-    return {"verified": True, "generation_based": True, "rollup": DISTILLED_EVENT,
-            "rollup_ttl_days": DISTILLED_TTL_DAYS,
-            "budget": "one-way communication budget not enforced",
-            "regrade": "ABSENT -> PARTIAL (generation half is implemented)"}
+    store = _store()
+    return store.generative_compaction_status()
 
 
 # -- EP463 PolyMemDB: semiring conflict resolution ---------------------------
@@ -473,17 +442,11 @@ def ep463() -> Dict[str, Any]:
 def ep478() -> Dict[str, Any]:
     """Eviction by composite similarity, not by size and age.
 
-    `enforce_global_quota` currently evicts the largest type, oldest id first —
-    pure size/age, no geometry. The embedder it needs already exists in-tree:
-    `pattern_memory._embed` / `_cosine`.
+    Mechanism lives in its HOST: `LocalMemoryStore.composite_eviction_preview`
+    (P1-3 host-remediation). Registration shim only; the composite rule
+    itself is an edit to enforce_global_quota (M).
     """
-    from CORE.pattern_memory import _cosine, _embed
-    v = _embed("technique runtime eviction")
-    return {"verified": True, "embedder": "CORE.pattern_memory:_embed",
-            "embedding_available": bool(v),
-            "cosine": "CORE.pattern_memory:_cosine",
-            "current_rule": "SUM(LENGTH(data)) largest type, oldest id first",
-            "gap": "composite rule is an edit to enforce_global_quota (M)"}
+    return _store().composite_eviction_preview()
 
 
 # -- registration -------------------------------------------------------------
@@ -491,11 +454,11 @@ register("EP120", "Reflexion reflect-and-replay", "CORE.local_memory:LocalMemory
 register("EP131", "MUSE three-tier memory", "CORE.local_memory:LocalMemoryStore.memory_tier_rollup", ep131, LAYER)
 register("EP144", "Evo-Memory streaming consolidation", "CORE.WORMS.expansion.engram:DreamConsolidatorWorm.consolidate", ep144, LAYER)
 register("EP146", "InfiAgent bounded context", "CORE.local_memory:LocalMemoryStore.bounded_context", ep146, LAYER)
-register("EP154", "FS-Researcher workspace protocol", "CORE.local_memory:LocalMemoryStore.export_json", ep154, LAYER)
+register("EP154", "FS-Researcher workspace protocol", "CORE.local_memory:LocalMemoryStore.workspace_protocol_status", ep154, LAYER)
 register("EP160", "AgentSys isolation + sanitize", "CORE.local_memory:LocalMemoryStore.agent_scope_probe", ep160, LAYER)
-register("EP192", "Ontology layer as external memory", "CORE.pattern_memory:pattern_stats", ep192, LAYER)
+register("EP192", "Ontology layer as external memory", "CORE.local_memory:LocalMemoryStore.ontology_triple_view", ep192, LAYER)
 register("EP206", "ObjectGraph document graph", "CORE.local_memory:LocalMemoryStore.document_graph_stats", ep206, LAYER)
-register("EP216", "ShadowMem pending-action scoring", "CORE.local_memory:audit_result_set", ep216, LAYER)
+register("EP216", "ShadowMem pending-action scoring", "CORE.local_memory:LocalMemoryStore.score_pending_actions", ep216, LAYER)
 register("EP221", "ScrapMem resolution decay", "CORE.local_memory:LocalMemoryStore.decay_memory_in_place", ep221, LAYER)
 register("EP233", "Backward-chaining retrieval", "CORE.local_memory:LocalMemoryStore.backward_chain_recall", ep233, LAYER)
 register("EP235", "SAGE reader->writer coupling", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep235, LAYER)
@@ -508,7 +471,7 @@ register("EP370", "SLEUTH epistemic working set", "CORE.verification_gate:episte
 register("EP389", "Supra mode-classified recall", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep389, LAYER)
 register("EP391", "PRO-LONG programmatic memory", "CORE.local_memory:LocalMemoryStore.programmatic_memory_surface", ep391, LAYER)
 register("EP394", "Five-primitive lifecycle + fidelity", "CORE.local_memory:LocalMemoryStore.lifecycle_fidelity", ep394, LAYER)
-register("EP395", "ConsistencyGate write admission", "CORE.local_memory:record_event", ep395, LAYER)
-register("EP414", "Generative compaction", "CORE.data_retention:DISTILLED_EVENT", ep414, LAYER)
+register("EP395", "ConsistencyGate write admission", "CORE.local_memory:LocalMemoryStore.capsule_probe", ep395, LAYER)
+register("EP414", "Generative compaction", "CORE.local_memory:LocalMemoryStore.generative_compaction_status", ep414, LAYER)
 register("EP463", "PolyMemDB semiring conflicts", "CORE.local_memory:get_memory_store", ep463, LAYER)
-register("EP478", "ECKV composite eviction", "CORE.data_retention:enforce_global_quota", ep478, LAYER)
+register("EP478", "ECKV composite eviction", "CORE.local_memory:LocalMemoryStore.composite_eviction_preview", ep478, LAYER)

@@ -107,7 +107,8 @@ def _ep135() -> Dict[str, Any]:
     """
     from CORE.skill_library import PROTOCOL_REQUIRED
     proto = _proto()
-    return {"ok": True, "invoked": "CORE.skill_library:PROTOCOL_REQUIRED",
+    return {"ok": True, "invoked": "CORE.skill_library:PROTOCOL_REQUIRED+"
+                                   "protocol_artifact",
             "fields": list(PROTOCOL_REQUIRED), "n_fields": len(PROTOCOL_REQUIRED),
             "artifact_valid": bool(proto.get("valid")),
             "delta": "applicability/policy/termination/interface + 7-stage "
@@ -119,9 +120,10 @@ def _ep135() -> Dict[str, Any]:
 def _ep155() -> Dict[str, Any]:
     """The corpus->instruction host already exists — in scripts/meta_reflect.py.
 
-    Invoked: `gather_trajectories` (read-only) and `validate_candidate` against
-    the stored ledger. The delta is the join: emit a `protocol_artifact` beside
-    the prose instruction, and split step-vs-outcome reward.
+    Invoked: `gather_trajectories` (read-only), `load_ledger` (read-only),
+    and `validate_candidate` against the stored ledger. The delta is the
+    join: emit a `protocol_artifact` beside the prose instruction, and split
+    step-vs-outcome reward.
     """
     mr = _meta_reflect()
     trajs, note = mr.gather_trajectories(limit=25)
@@ -130,7 +132,7 @@ def _ep155() -> Dict[str, Any]:
         {"instruction": "prefer measured verdicts over claimed ones",
          "evidence": "meta lineage", "scope": None}, ledger)
     return {"ok": True, "invoked": "scripts/meta_reflect:gather_trajectories+"
-                                   "validate_candidate",
+                                   "load_ledger+validate_candidate",
             "trajectories": len(trajs), "note": note, "ledger_rows": len(ledger),
             "validator_accepts_synthetic": bool(ok), "validator_reason": str(reason),
             "delta": "emit protocol_artifact beside the prose instruction; "
@@ -281,7 +283,11 @@ def _ep308() -> Dict[str, Any]:
     has_symbol = False
     try:
         src = psyche.read_text(encoding="utf-8", errors="replace")
-        has_symbol = "test_theta_frozen" in src
+        # Definition check, not substring: the module docstring MENTIONS
+        # `test_theta_frozen`, so a bare `in` test overstates. Only a
+        # `def`/`class` definition counts as the symbol being present.
+        has_symbol = ("def test_theta_frozen" in src
+                      or "class test_theta_frozen" in src)
     except OSError as exc:                            # noqa: BLE001 — probe is advisory
         note_failure("l2_skills:distill-probe", exc)
     return {"ok": True, "invoked": "filesystem probe: src/PSYCHE/distill.py",
@@ -307,7 +313,8 @@ def _ep347() -> Dict[str, Any]:
 # --- EP354: EvoSOP lifecycle — the merge and prune operators ---------------------
 def _ep354() -> Dict[str, Any]:
     """ALREADY IMPLEMENTED, zero callers. The review's row ("missing merge +
-    prune") is STALE: both operators exist and are invoked here in full.
+    prune") is STALE: both operators exist and are invoked here in full,
+    with `record_sop_ops` citing the outcome.
 
     `merge_sops` computes a shortest common supersequence (so order is preserved
     and a real order conflict is NAMED, never silently resolved); `prune_sops`

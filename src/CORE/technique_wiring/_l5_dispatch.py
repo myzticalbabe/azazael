@@ -496,13 +496,13 @@ _safe("EP209", "Workflow as schedulable unit",
 _safe("EP213", "Joint plan formation between peers",
       "CORE.WORMS.expansion.delegation:ask_owner", _ep213)
 _safe("EP214", "Statement-level def-use data-flow slice",
-      "(no host)", _ep214)
+      "no-host: no def-use/data-flow analysis", _ep214)
 _safe("EP215", "Agent discovery capability index + MaxSim",
       "CORE.agent_registry:AGENT_REGISTRY", _ep215)
 _safe("EP223", "Decomposition depth + worker + budget",
       "CORE.dispatch_plan:plan_dag", _ep223)
 _safe("EP227", "Continuous-plan generator",
-      "(no host)", _ep227)
+      "no-host: needs trained flow model", _ep227)
 _safe("EP232", "Consensus depth limit + Lead-Anchor",
       "CORE.WORMS.expansion.consensus:QuorumVoterWorm", _ep232)
 _safe("EP248", "Monte-Carlo latency cost model",
@@ -520,11 +520,11 @@ _safe("EP271", "Agentic Monte Carlo",
 _safe("EP298", "LLM-as-subroutine + depth-scoped context",
       "CORE.workflow:WorkflowStep", _ep298)
 _safe("EP300", "Joint-plan tensor conflict localizer",
-      "(no host)", _ep300)
+      "no-host: no joint-plan tensor", _ep300)
 _safe("EP374", "Atomic fission + per-atom isolation",
       "CORE.dispatch_plan:plan_dag", _ep374)
 _safe("EP399", "Controller registry + module namespaces",
-      "CORE.technique_wiring._l5_dispatch (controller registry)", _ep399)
+      "no-host: controller registry is local-only", _ep399)
 _safe("EP423", "Role pools + oversubscription",
       "CORE.inference_pool:_max_concurrent_for_model", _ep423)
 _safe("EP431", "(role, subtask) experts",
