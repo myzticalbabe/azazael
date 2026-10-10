@@ -11,6 +11,7 @@ Used by:
 - scheduling.py (GRPO for scheduled training pipeline)
 """
 
+import copy
 import json
 import math
 import time
@@ -89,6 +90,7 @@ class GRPOTrainer:
         self._lr = lr
         self._policy: dict[str, dict[str, float]] = {}  # context -> {worm: score}
         self._history: list[dict] = []
+        self._anchors: list[dict] = []  # anchor snapshots (EP360, Oct-10)
         self._lock = threading.Lock()
         # Auto-load persisted policy from LocalMemoryStore
         if load_policy:
@@ -331,6 +333,25 @@ class GRPOTrainer:
 
         # Auto-save full policy snapshot after every update
         self.save_policy()
+
+    def snapshot_anchor(self, label: str = "") -> dict:
+        """Freeze the current policy tables as a named anchor reference set.
+
+        Training-structure accommodation, EP360 anchor half (Oct-10): the
+        mixed-objective step the delta names stays deferred (no weight-space
+        host), but the anchor snapshots it would compare against now exist:
+        a deep copy of every context policy, timestamped and capped at 20.
+        Read-only w.r.t. training; never mutates the live policy.
+        """
+        with self._lock:
+            snap = {ctx: dict(pol) for ctx, pol in self._policy.items()}
+            self._anchors.append({"label": str(label or "anchor"),
+                                  "policies": snap,
+                                  "timestamp": time.time()})
+            self._anchors = self._anchors[-20:]
+            n = len(self._anchors)
+        return {"anchored": True, "label": str(label or "anchor"),
+                "n_contexts": len(snap), "n_anchors": n}
 
     def select_best(self, context_key: str = "default") -> (str | None):
         """Select the best worm for a given context based on learned policy.
@@ -764,3 +785,26 @@ class ABTestRunner:
 
     def get_summary(self):
         return {"status":"ok","worm":"ABTestRunner"}
+
+
+def order_by_difficulty(items: list, difficulty, reverse: bool = False) -> dict:
+    """Order training items by caller-supplied difficulty (EP355, input half).
+
+    items: [name] or [{"name", ...}]. difficulty: {name: float} or
+    callable(name) -> float. Returns the ordered names + scores. Train
+    GATING on the order (and any RL-trainer integration) stays deferred:
+    ordering without a gating consumer would be decoration.
+    """
+    def _score(it):
+        nm = it.get("name", "?") if isinstance(it, dict) else str(it)
+        try:
+            val = float(difficulty(nm) if callable(difficulty)
+                        else difficulty.get(nm, 0.5))
+        except (TypeError, ValueError, AttributeError):
+            val = 0.5
+        return val
+    ordered = sorted(list(items or []), key=_score, reverse=bool(reverse))
+    names = [(it.get("name", "?") if isinstance(it, dict) else str(it))
+             for it in ordered]
+    return {"ordered": names,
+            "difficulties": {n: _score(it) for n, it in zip(names, ordered)}}

@@ -10,7 +10,10 @@ code. Read by reading, on 2026-10-09:
     verification_gate.py   9 composed detectors   1 caller  (an exercise script)
     dispatch_plan.py       plan_dag/assign_roles  2 callers (both exercises)
     reflexion.py           complete buffer        0 production callers
-    skill_library.py       8 exported functions   0 importers
+    skill_library.py       16 exported functions  3 importers (wiring, canon check)
+    (Oct-10: 10 small hosts added — replicator/renderer/mask/miner/rules/
+    shapley/distiller/skill-md/experience/witness-scan; training intake reads
+    technique-link + reward-ledger + calibration rows via training_intake)
 
 So the techniques were *implemented* and then never invoked. A capability with no
 call site is indistinguishable from a missing capability, and it rots.

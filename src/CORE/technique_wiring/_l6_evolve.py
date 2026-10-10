@@ -330,12 +330,15 @@ def _ep318() -> Dict[str, Any]:
 
 
 def _ep294() -> Dict[str, Any]:
-    """Reflection calibration (EP294) — demonstrates the gap concretely.
+    """Reflection calibration (EP294) — outcome half CLOSED, utility half open.
 
-    The review's sharpest L6 finding: `record_reflection` stores no outcome and
-    `reflections_for` ranks by nothing. The adapter SHOWS both rather than
-    asserting them: the returned reflection keys (no outcome/utility) and the
-    write-side source (no outcome field).
+    Backlog sweep 2026-10-10: the review's finding is half-stale.
+    `record_reflection` now stores optional outcome/predicted/realised fields
+    (additive Sep-29 buffer work; exercised live by EP113, which writes and
+    recalls `realised`), and `reflections_for` promotes realised-carrying rows
+    above unchecked ones (a re-order, never a filter). The adapter SHOWS both
+    the live evidence and the remainder: retrieval ranks by realised-PRESENCE
+    plus recency, not by a utility score from predicted-vs-realised error.
     """
     mod, why = _import(("CORE.WORMS.expansion.reflexion",))
     if mod is None:
@@ -354,8 +357,10 @@ def _ep294() -> Dict[str, Any]:
             "returned_keys": keys or ["(no rows)"],
             "has_outcome_field": bool(keys and "outcome" in keys),
             "write_side_mentions_outcome": bool(src.get("matched")),
-            "ranking": "absent — substring match then break at limit",
-            "delta": "outcome field on write + utility-weighted retrieval"}
+            "ranking": ("presence-ranked (realised first, recency inside rank) "
+                        "— no error-magnitude weight"),
+            "delta": ("calibration-error-weighted retrieval "
+                      "(|predicted-realised| as utility); presence-ranking only")}
 
 
 def _ep388() -> Dict[str, Any]:

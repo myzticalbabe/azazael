@@ -235,3 +235,34 @@ class ModelVersioner:
             if v_str not in seen:
                 seen.add(v_str)
                 unique.append(v)
+
+
+def pareto_retain(candidates, metrics_key="metrics"):
+    """Pareto retention filter over version candidates (EP234, set half).
+
+    candidates: [{..., metrics: {obj: float}}], all objectives maximized.
+    Returns {"retained", "dominated"} (version strings). Wiring this into
+    register_model as the retention predicate (collapsing EP228/EP234/EP462)
+    stays deferred: admission policy needs coordinator approval.
+    """
+    vecs = {}
+    for c in candidates or []:
+        m = (c or {}).get(metrics_key, {}) or {}
+        try:
+            vecs[str(c.get("version", "?"))] = [float(v) for v in m.values()]
+        except (TypeError, ValueError):
+            continue
+    names = list(vecs)
+    retained: list = []
+    dominated: list = []
+    for a in names:
+        beaten = False
+        for b in names:
+            if a == b or len(vecs[b]) != len(vecs[a]) or not vecs[a]:
+                continue
+            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))
+                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):
+                beaten = True
+                break
+        (dominated if beaten else retained).append(a)
+    return {"retained": retained, "dominated": dominated}

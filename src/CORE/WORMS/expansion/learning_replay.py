@@ -67,6 +67,7 @@ class PrioritizedReplayBuffer:
 
         self._buffer: list[tuple] = []  # (state, action, reward, next_state, done)
         self._priorities: list[float] = []
+        self._episodes: list = []  # parallel episode tags (None = untagged)
         self._position = 0
         self._lock = threading.Lock()
 
@@ -76,8 +77,13 @@ class PrioritizedReplayBuffer:
         return len(self._buffer)
 
     def add(self, state: str, action: int, reward: float,
-            next_state: str, done: bool = False):
-        """Add an experience with maximum priority (will be sampled soon)."""
+            next_state: str, done: bool = False, episode: str | None = None):
+        """Add an experience with maximum priority (will be sampled soon).
+
+        episode: optional trajectory tag (Oct-10 training accommodation).
+        Untagged rows group under "untagged" in export_trajectories().
+        The stored 5-tuple is unchanged, so sample() callers are unaffected.
+        """
         max_priority = max(self._priorities) if self._priorities else 1.0
         experience = (state, action, reward, next_state, done)
 
@@ -85,9 +91,11 @@ class PrioritizedReplayBuffer:
             if len(self._buffer) < self._capacity:
                 self._buffer.append(experience)
                 self._priorities.append(max_priority)
+                self._episodes.append(episode)
             else:
                 self._buffer[self._position] = experience
                 self._priorities[self._position] = max_priority
+                self._episodes[self._position] = episode
             self._position = (self._position + 1) % self._capacity
 
     def sample(self, batch_size: int) -> tuple[list[tuple], list[int], list[float]]:
@@ -168,6 +176,25 @@ class PrioritizedReplayBuffer:
             for idx, td_error in zip(indices, td_errors):
                 if 0 <= idx < len(self._priorities):
                     self._priorities[idx] = abs(td_error) + 1e-6
+
+    def export_trajectories(self) -> dict:
+        """Export buffer rows grouped into trajectories by episode tag.
+
+        Training-structure accommodation (Oct-10): the trajectory miners
+        (skill_library.mine_action_sequences / distill_trajectory_to_protocol)
+        need episode-grouped action sequences, which the priority sampler
+        does not provide. Read-only; buffer order preserved per episode.
+        """
+        with self._lock:
+            groups: dict = {}
+            for exp, ep in zip(self._buffer, self._episodes + [None] * (len(self._buffer) - len(self._episodes))):
+                key = ep if ep is not None else "untagged"
+                state, action, reward, next_state, done = exp
+                groups.setdefault(key, []).append({
+                    "state": state, "action": action, "reward": reward,
+                    "next_state": next_state, "done": done})
+        return {"trajectories": groups, "n_episodes": len(groups),
+                "n_transitions": sum(len(v) for v in groups.values())}
 
     def add_from_memories(self, records: list[dict],
                           q_table: dict[str, dict[int, float]] = None) -> int:
