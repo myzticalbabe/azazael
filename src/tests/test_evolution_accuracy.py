@@ -80,9 +80,24 @@ class TestRewardModelAccuracy(unittest.TestCase):
             self.assertAlmostEqual(got, want, places=9,
                                    msg=f"{sev}/{act} reward off")
 
-    def test_unknown_severity_is_flat(self):
+    def test_critical_severity_is_mapped_not_flat(self):
+        # UPDATED 2026-10-10: "critical" was unmapped/flat when this test was
+        # written, but 2026-09-30 evidence (db_health_alert pool: 7/7 rows are
+        # `critical`) mapped it explicitly — reward {3:1.4, 2:0.7, 1:-0.5,
+        # 0:-1.4}. The old assertion (all four actions = 0.0) now asserted
+        # AGAINST the deliberate fix. Assert the real spread instead: argmax
+        # stays remediate(3), and the absolute scale exceeds `error`'s row.
+        self.assertEqual(_compute_reward({"severity": "critical"}, 3), 1.4)
+        self.assertEqual(_compute_reward({"severity": "critical"}, 2), 0.7)
+        self.assertEqual(_compute_reward({"severity": "critical"}, 1), -0.5)
+        self.assertEqual(_compute_reward({"severity": "critical"}, 0), -1.4)
+
+    def test_genuinely_unmapped_severity_is_flat(self):
+        # Unmapped severities still collapse to 0.0 with the neutral row
+        # (and are recorded via note_unmapped_severity — evidence, not silence).
         for act in range(4):
-            self.assertEqual(_compute_reward({"severity": "critical"}, act), 0.0)
+            self.assertEqual(
+                _compute_reward({"severity": "definitely_not_mapped_b拉斯"}, act), 0.0)
 
     def test_success_refinement_rules(self):
         self.assertAlmostEqual(
@@ -184,12 +199,21 @@ class TestPromotionPath(unittest.TestCase):
         cfg = scheduling.ScheduleConfig()
         # When no file exists in scratch, it must return False (not crash)
         self.assertIsInstance(cfg.apply_evolved_overrides(), bool)
-        self.assertEqual(write_path.parent.name, "config")
+        # UPDATED 2026-10-10: evolution_cycle.PROMOTE_JSON moved config/ →
+        # state/ on 2026-09-10 (audit EV-1/D-1: a git restore silently
+        # reverted production genes from the tracked config/ copy). The
+        # writer is now <root>/state/, and apply_evolved_overrides reads
+        # state/ first with config/ as legacy fallback. Assert agreement
+        # with the CURRENT contract, not the pre-move one.
+        self.assertEqual(write_path.parent.name, "state")
         self.assertEqual(write_path.name, "evolved_rl_params.json")
-        # The consumer resolves to <root>/config/..., same dir as writer
-        read_path = (Path(scheduling.__file__).resolve()
-                     .parent.parent.parent.parent.parent / "config" / "evolved_rl_params.json")
-        self.assertEqual(read_path, write_path,
+        # The consumer's primary read path resolves to <root>/state/...,
+        # the same dir the writer now uses (both derive from module roots,
+        # so this asserts they agree structurally).
+        primary_read = (Path(scheduling.__file__).resolve()
+                        .parent.parent.parent.parent.parent / "state"
+                        / "evolved_rl_params.json")
+        self.assertEqual(primary_read, write_path,
                          "apply_evolved_overrides reads a different path than evolution writes")
 
 

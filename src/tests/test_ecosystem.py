@@ -22,13 +22,19 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # Set environment
-os.environ["AZAZAEL_ROOT"] = "C:/Users/clint/azazael"
-_AZAZAEL_ROOT = os.environ["AZAZAEL_ROOT"]
+# FIXED 2026-10-10 (2nd pass): the file lives at <root>/src/tests/, so the
+# "repo root" the OLD path pointed at is this file's own src/ directory —
+# sys.path entries below want src/, src/CORE/WORMS (worm top-level names
+# like WORMZ/CONCURRENCY) and src/META (MetaWormSpawner etc.). ROOT is now
+# derived from __file__ so the suite always tests the checkout it lives
+# in, never the origin clone at C:/Users/clint/azazael.
+_AZAZAEL_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ["AZAZAEL_ROOT"] = _AZAZAEL_ROOT  # == <root>/src in this layout
 
 # Add paths
-sys.path.insert(0, os.path.join(_AZAZAEL_ROOT, "src"))
-sys.path.insert(0, os.path.join(_AZAZAEL_ROOT, "src", "CORE", "WORMS"))
-sys.path.insert(0, os.path.join(_AZAZAEL_ROOT, "src", "META"))
+sys.path.insert(0, _AZAZAEL_ROOT)                                  # == src/
+sys.path.insert(0, os.path.join(_AZAZAEL_ROOT, "CORE", "WORMS"))   # WORMZ, CONCURRENCY
+sys.path.insert(0, os.path.join(_AZAZAEL_ROOT, "META"))            # MetaWormSpawner, DistillZ…
 
 
 class TestWORMZ(unittest.TestCase):

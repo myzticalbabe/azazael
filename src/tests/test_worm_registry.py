@@ -111,15 +111,23 @@ class TestRegisterWormDecorator(unittest.TestCase):
     def test_multiple_registrations(self):
         """Multiple @register_worm calls should all be tracked."""
 
-        @register_worm(category="a", priority=1)
+        # FIXED 2026-10-10: this test predates registry input validation and
+        # used ad-hoc categories ("a"/"b"/"c") that _validate_registry_params
+        # now (correctly) refuses with ValueError. The registry is behaving
+        # per its security contract; the test now uses three real categories.
+        # Also reset_registry() first, matching this class's setUp semantics —
+        # count-based assertion must be hermetic to imports elsewhere.
+        reset_registry()
+
+        @register_worm(category="monitor", priority=1)
         class WormA:
             pass
 
-        @register_worm(category="b", priority=2)
+        @register_worm(category="diagnostic", priority=2)
         class WormB:
             pass
 
-        @register_worm(category="c", priority=3)
+        @register_worm(category="utility", priority=3)
         class WormC:
             pass
 

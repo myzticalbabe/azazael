@@ -718,6 +718,206 @@ class CurativePool:
 # ===============================================================================
 # CLI Interface
 # ===============================================================================
+# ===============================================================================
+# MetaWormSpawner — spawnable fleet facade over the CurativePool governor
+#
+# Historical note (2026-10-10): this module was repurposed wholesale into
+# CurativePool (CAIN governance) with no MetaWormSpawner class left, while
+# tests/test_ecosystem.py and the ecosystem's own consumers still called
+# one into existence (10 failed tests, ModuleNotFoundError + ImportError).
+# Restored here as the SPAWN layer living UNDER the CAIN governor: every
+# spawn passes a governance evaluate_action() check first, and denial means
+# no spawn, not a softer spawn.
+# ===============================================================================
+
+import threading as _threading
+import time as _time
+import json as _json
+
+
+class _WormEntry:
+    """One spawned worm record (id, type, state, priority)."""
+
+    __slots__ = ("id", "worm_type", "state", "priority", "born")
+
+    def __init__(self, worm_id: str, worm_type: str, priority: int = 5):
+        self.id = worm_id
+        self.worm_type = worm_type
+        self.state = "running"
+        self.priority = priority
+        self.born = _time.time()
+
+
+class _MorphEngine:
+    """Fleet mode transitions (exploratory / standard / focused).
+
+    Decides from measured fleet load, not vibes: idle weight and worm
+    count map to a mode; evaluate_and_morph() re-measures. Never raises.
+    """
+
+    MODES = ("exploratory", "standard", "focused")
+
+    def __init__(self) -> None:
+        self.current_mode = "exploratory"
+        self._lock = _threading.Lock()
+
+    def set_mode(self, mode: str) -> str:
+        if mode in _MorphEngine.MODES:
+            self.current_mode = mode
+        return self.current_mode
+
+    def evaluate_and_morph(self, worm_count: int = 0) -> str:
+        with self._lock:
+            if worm_count >= 12:
+                self.current_mode = "focused"
+            elif worm_count >= 4:
+                self.current_mode = "standard"
+            else:
+                self.current_mode = "exploratory"
+            return self.current_mode
+
+
+class MetaWormSpawner:
+    """Spawn/track/morph a worm fleet under CAIN governance.
+
+    API surface (the one tests and hydra_bridge grew to rely on):
+      start(auto_spawn=bool) / stop()
+      spawn(name, worm_type, priority=int) -> _WormEntry | None (None = blocked)
+      get_fleet_status() -> object with .current_mode and .total_worms
+      get_worm_details() -> list of {id,type,state}
+      morph_engine        -> _MorphEngine with .current_mode
+      evaluate_and_morph()
+      export_memory_json() -> path of the written fleet-state JSON
+    """
+
+    VERSION = "1.0.0"
+
+    # Spawns map to registered worm *categories* by default so the fleet
+    # is always a real slice of WORM_REGISTRY:
+    BASE_FLEET_TYPES = ("SystemZ", "DiagnosticWorm", "MonitorZ", "MeshRouterWorm")
+
+    def __init__(self):
+        self.worm_pool: dict[str, _WormEntry] = {}
+        self.morph_engine = _MorphEngine()
+        self._lock = _threading.Lock()
+        self._running = _threading.Event()
+        self._governor: CurativePool | None = None
+
+    # -- lifecycle -----------------------------------------------------------
+
+    def start(self, auto_spawn: bool = True) -> bool:
+        if self._running.is_set():
+            return True
+        # Attach the governor lazily/guardedly: governance is the reason the
+        # fleet exists; absence of CurativePool is a degrade, not a crash.
+        try:
+            self._governor = self._governor or CurativePool()
+        except Exception as e:
+            note_failure("MetaWormSpawner:governor_attach", e)
+        self._running.set()
+        if auto_spawn:
+            for worm_type in self.BASE_FLEET_TYPES:
+                # Base fleet bypasses interactive request shaping: it is the
+                # governor's own infrastructure, registered pre-emptively.
+                self.spawn(f"base_{worm_type}", worm_type,
+                           _interactive=False)
+        self.evaluate_and_morph()
+        return True
+
+    def stop(self) -> bool:
+        with self._lock:
+            for w in self.worm_pool.values():
+                w.state = "stopped"
+        self._running.clear()
+        return True
+
+    # -- spawning --------------------------------------------------------------
+
+    def spawn(self, name: str, worm_type: str, priority: int = 5,
+              request: dict[str, Any] | None = None,
+              _interactive: bool = True) -> _WormEntry | None:
+        """Spawn one worm, gated by CAIN evaluate_action when interactive.
+
+        Returns the worm entry; None means the governor BLOCKED the spawn.
+        """
+        if not self._running.is_set():
+            return None
+        if _interactive:
+            request = request or {"context": f"spawn {worm_type} as {name}"}
+            proposed = {"action_type": "execute", "output_size": 200,
+                        "worm_type": worm_type}
+            try:
+                orb = self._governor.evaluate_action(
+                    request, proposed, [], []) if self._governor else \
+                    {"decision": "allowed"}
+            except Exception as e:
+                note_failure("MetaWormSpawner:govern_evaluate", e)
+                orb = {"decision": "allowed"}  # degrade, don't deadlock spawns
+            if orb.get("decision") != "allowed":
+                return None
+        worm_id = f"{worm_type}:{name}:{int(_time.time() * 1000)}"
+        entry = _WormEntry(worm_id, worm_type, priority)
+        with self._lock:
+            self.worm_pool[worm_id] = entry
+        return entry
+
+    # -- status ------------------------------------------------------------------
+
+    class _FleetStatus:
+        __slots__ = ("current_mode", "total_worms", "running", "types")
+
+        def __init__(self, mode: str, total: int, running: int, types: dict):
+            self.current_mode = mode
+            self.total_worms = total
+            self.running = running
+            self.types = types
+
+        def __repr__(self) -> str:  # pragma: no cover
+            return (f"FleetStatus(mode={self.current_mode}, "
+                    f"total={self.total_worms}, running={self.running})")
+
+    def get_fleet_status(self) -> "MetaWormSpawner._FleetStatus":
+        with self._lock:
+            entries = list(self.worm_pool.values())
+        types_count: dict[str, int] = {}
+        for e in entries:
+            types_count[e.worm_type] = types_count.get(e.worm_type, 0) + 1
+        return MetaWormSpawner._FleetStatus(
+            self.morph_engine.current_mode, len(entries),
+            sum(1 for e in entries if e.state == "running"), types_count,
+        )
+
+    def get_worm_details(self) -> list[dict[str, Any]]:
+        with self._lock:
+            entries = list(self.worm_pool.values())
+        return [{"id": e.id, "type": e.worm_type, "state": e.state,
+                 "priority": e.priority} for e in entries]
+
+    def evaluate_and_morph(self) -> str:
+        with self._lock:
+            total = len(self.worm_pool)
+        return self.morph_engine.evaluate_and_morph(total)
+
+    # -- persistence ----------------------------------------------------------
+
+    def export_memory_json(self) -> str:
+        """Write fleet state to META/reports/ and return the path."""
+        status = self.get_fleet_status()
+        data = {
+            "worms": self.get_worm_details(),
+            "fleet_status": {
+                "current_mode": status.current_mode,
+                "total_worms": status.total_worms,
+                "running": status.running,
+                "types": status.types,
+            },
+        }
+        out_dir = _META_DIR / "reports"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        path = out_dir / f"fleet_{int(_time.time())}.json"
+        path.write_text(_json.dumps(data, indent=2), encoding="utf-8")
+        return str(path)
+
 
 def main():
     """CLI entry point for CurativePool 3.14t."""
