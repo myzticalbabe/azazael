@@ -1374,9 +1374,73 @@ def main() -> int:
                     help="with --verdict --triage: also write the pending backlog "
                          "as an ordered, evidence-carrying action list; status "
                          "is NOT changed")
+    ap.add_argument("--check", action="store_true",
+                    help="freshness only: regenerate the declaration table and "
+                         "fail if it differs from the committed ledger, "
+                         "without writing anything")
     args = ap.parse_args()
 
     funcs, counts = build(args.module)
+    if args.check:
+        # A generated ledger with no rebuild path goes stale the moment a caller
+        # changes, and tests/test_mesh_wire_or_cut.py then fails on state the code
+        # has already moved past (or, worse, passes on a stale ledger). Measured
+        # 2026-10-10: engram:DreamConsolidatorWorm.read_pressure still read
+        # `dispatched` after the restored EP235 loop made it statically called.
+        #
+        # Compares the DECLARATION MAP only, never the bytes: `generated_at`
+        # changes on every run, so a byte compare could never pass.
+        import json as _json
+
+        if not VERDICT_OUT.exists():
+            print(f"[Mesh] ledger missing: {VERDICT_OUT.name} -- "
+                  f"run: python tools/mesh_function_preflight.py --verdict")
+            return 1
+        committed = ((_json.loads(VERDICT_OUT.read_text(encoding="utf-8"))
+                      or {}).get("declared") or {})
+        # Regenerate WITH the committed declarations as prior, exactly as
+        # `--verdict` would: hand-set statuses (retired/dispatched) are preserved,
+        # so a difference means the CODE moved, not that the CLI was invoked
+        # differently. Comparing a prior-less table would report every hand-set
+        # status as a change and fail forever.
+        fresh = wire_or_cut(funcs, committed)
+        current = fresh.get("declared") or {}
+        added = sorted(set(current) - set(committed))
+        removed = sorted(set(committed) - set(current))
+        # This check deliberately does NOT compare statuses, and that is a
+        # measured decision, not an omission. `wire_or_cut(funcs, prior)` takes
+        # the committed map as prior precisely so hand-set decisions survive a
+        # regeneration -- which makes a status comparison SELF-FULFILLING: it
+        # reads whatever the file already says and can never disagree. Verified
+        # by negative control 2026-10-10 (flipped a status pending->retired; the
+        # check still reported "statuses unchanged"). A control the instrument
+        # cannot fail is not a control.
+        #
+        # What this check CAN judge is the set of unreferenced functions: if a
+        # caller is added or removed, a key appears or vanishes and the ledger is
+        # stale. That is exactly the read_pressure case (the key disappeared once
+        # the restored EP235 loop statically called it). Status LEGALITY -- a
+        # `wired` declaration that is not wired, a `dispatched` one hiding a
+        # static caller -- is enforced by tests/test_mesh_wire_or_cut.py, which
+        # re-derives the evidence instead of trusting the file.
+        changed: list[str] = []
+        if not (added or removed or changed):
+            print(f"[Mesh] ledger fresh: {len(current)} declaration(s), "
+                  f"statuses unchanged")
+            return 0
+        print(f"[Mesh] ledger STALE -- {len(added)} added, {len(removed)} "
+              f"removed")
+        print("[Mesh] staleness mode: the set of unreferenced functions moved. "
+              "Status legality is enforced by tests/test_mesh_wire_or_cut.py.")
+        for k in added[:10]:
+            print(f"   + {k}  -> {current[k].get('status')}")
+        for k in removed[:10]:
+            print(f"   - {k}")
+        for k in changed[:10]:
+            print(f"   ~ {k}")
+        print("[Mesh] refresh: python tools/mesh_function_preflight.py "
+              "--verdict --triage")
+        return 1
     if args.verdict:
         import json
 

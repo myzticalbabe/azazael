@@ -142,8 +142,15 @@ changing the code**. Any change that adds or removes a caller can invalidate it
 silently, and the test then reports a defect that is stale rather than real (or,
 worse, passes on a stale ledger). This is the same class as `PMB LESSONS #93`
 ("a measurement written inside a transition is a cache with no rebuild path").
-**Open item:** wire `mesh_function_preflight.py --verdict` into the commit path,
-or make the test regenerate before asserting.
+**RESOLVED.** `mesh_function_preflight.py --check` now regenerates the table (with the committed map as prior, so hand-set decisions survive) and fails when the SET of unreferenced functions moved. It is wired as **Check 5** of `.githooks/pre-commit`, so a caller change can no longer leave the ledger silently stale.
+
+> It deliberately does **not** compare statuses, and that is measured, not an omission: with the committed map as prior the comparison is self-fulfilling. Negative control 2026-10-10 flipped a status `pending`->`retired` and `--check` still reported "statuses unchanged" -- so that comparison was removed. Dropping a key *is* detected (exit 1, correct diagnosis). Status **legality** stays with `tests/test_mesh_wire_or_cut.py`, which re-derives evidence instead of trusting the file. A control the instrument cannot fail is not a control.
+
+## S10 — The commit gate itself is outside version control · CONFIRMED
+
+`core.hooksPath` points at `.githooks`, and **`.githooks` is gitignored** — so the pre-commit gate (focus, compliance scanner, canon drift, anti-pattern ratchet, mesh ledger freshness) exists only in this machine's working tree. A fresh clone has no gate, and any change to the gate is invisible in review. Found at 20:32 on 2026-10-10, when S9's own commit was refused with `The following paths are ignored by one of your .gitignore files: .githooks`.
+
+Force-added `.githooks/pre-commit` so the gate is reviewable and reproducible. **Worth an explicit decision:** if `.githooks` is ignored deliberately, the alternative is to move the checks into a tracked runner (e.g. `tools/preflight_all.py`) that the hook merely calls, so the gate is versioned even when the hook file is not.
 
 ## S8 — Multi-interpreter drift · CONFIRMED
 
