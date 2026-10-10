@@ -11,19 +11,18 @@ This module is that intake. All reads, fail-open, stdlib-only:
 
 - gather(): join the three unity streams into one intake summary —
   per-hook ok-rates, per-subject canonical rewards, calibration error stats.
-- evaluator_with_intake(): wrap a GRPO-style evaluator with link/reward
-  shaping. link_weight=0.0 (default) reproduces the base evaluator EXACTLY;
-  shaping is operator-gated, never silent.
+  Consumers: monitor/fitness level only.
 
-Deliberately NOT wired into compute_group_rewards' default path: changing
-live training rewards unilaterally would violate the honesty protocol.
-The orchestrator calls gather() for observability and snapshot_anchor()
-for EP360; shaping waits on coordinator approval.
+REJECTED (prior Phase-2 lesson, obs #382): per-worm GRPO reward shaping
+from global link terms — group normalization washes global terms, and
+per-worm mapping would be substring-guessing. No shaping wrapper ships
+in this module for that reason; shaping stays out until per-worm hook
+identity exists.
 """
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict, List
 
 from CORE.local_memory import get_memory_store
 
@@ -103,30 +102,3 @@ def gather(limit: int = 200) -> Dict[str, Any]:
                                              if errs else None)}
     return out
 
-
-def evaluator_with_intake(base: Callable[[str, Any], float] | None = None,
-                          link_weight: float = 0.0,
-                          hook: str = "") -> Callable[[str, Any], float]:
-    """Wrap an evaluator with unity-row shaping (operator-gated).
-
-    base: evaluator(worm_name, context) -> reward (None = neutral 0.0).
-    link_weight: blending weight for per-hook ok-rate. 0.0 (default) returns
-    the base reward UNCHANGED — shaping must be explicitly enabled.
-    hook: technique-link hook whose ok-rate shapes (e.g. a team or layer).
-    """
-    summary = gather() if link_weight else None
-
-    def _eval(worm: str, context: Any) -> float:
-        r = float(base(worm, context)) if base else 0.0
-        if not link_weight or summary is None:
-            return r
-        rate = (summary.get("by_hook") or {}).get(hook, None)
-        rw = summary.get("rewards", {}).get(worm, None)
-        shaped = r
-        if rate is not None:
-            shaped += float(link_weight) * (float(rate) - 0.5)
-        if rw is not None:
-            shaped += float(link_weight) * float(rw)
-        return shaped
-
-    return _eval
