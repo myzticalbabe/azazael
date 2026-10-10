@@ -93,6 +93,61 @@ def margin_check(items: List[Dict[str, Any]],
             "n_fragile": len(fragile), "passed": not fragile}
 
 
+def estimate_run_failure(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Trajectory-as-stochastic-process failure estimator (EP156, half).
+
+    p(fail) = 1 - prod(confidence): the independence-assumption estimator the
+    residual names as missing. Temporal correlation (failure probability that
+    evolves over the run) is NOT modelled — that half stays deferred.
+    """
+    p_ok = 1.0
+    n = 0
+    for it in items or []:
+        try:
+            conf = float(it.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            note_failure("verification_gate:L-est", None)
+            conf = 0.0
+        p_ok *= max(0.0, min(1.0, conf))
+        n += 1
+    return {"p_fail": round(1.0 - p_ok, 6), "p_success": round(p_ok, 6),
+            "n_steps": n,
+            "assumption": ("step-independence; temporal correlation "
+                           "NOT modelled")}
+
+
+def rank_candidates_by_agreement(explorer: List[Dict[str, Any]],
+                                 validator: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Candidate RANKING by validator agreement (EP349, ranking half).
+
+    Joins explorer/validator vectors on id, ranks by 1-|e-v| descending.
+    The continuous logit-expectation statistic stays deferred: no logits
+    exist on this box, only supplied confidences.
+    """
+    val = {}
+    for v in validator or []:
+        try:
+            val[str(v.get("id"))] = float(v.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            note_failure("verification_gate:L-rank", None)
+    scored = []
+    for e in explorer or []:
+        cid = str(e.get("id", "?"))
+        if cid not in val:
+            continue
+        try:
+            ec = float(e.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            note_failure("verification_gate:L-rank", None)
+            ec = 0.0
+        scored.append((cid, round(1.0 - abs(ec - val[cid]), 6)))
+    scored.sort(key=lambda kv: -kv[1])
+    mean = round(sum(s for _, s in scored) / len(scored), 6) if scored else 0.0
+    return {"ranking": [cid for cid, _ in scored],
+            "agreements": {cid: s for cid, s in scored},
+            "mean_agreement": mean, "n_compared": len(scored)}
+
+
 # -- AsymSpec: divergence gate ----------------------------------------------
 def divergence_gate(draft_claims: List[str], verified_claims: List[str],
                     max_divergence: float = 0.1) -> Dict[str, Any]:

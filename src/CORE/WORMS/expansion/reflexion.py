@@ -127,7 +127,22 @@ def reflections_for(question: str, *, store: Any = None,
                      "predicted": d.get("predicted"),
                      "realised": d.get("realised")})
 
-    # `rows` arrives newest-first, and Python's sort is stable, so ranking only
-    # on "has a realised outcome" preserves recency order inside each rank.
-    hits.sort(key=lambda h: 0 if h.get("realised") is not None else 1)
+    # Calibration-error weighting (EP294, Oct-10 build): realised rows come
+    # first, ordered by |predicted - realised| ascending (best-calibrated
+    # first) when both exist; realised-without-predicted next; unchecked rows
+    # last. The sort is stable and `rows` arrives newest-first, so recency
+    # order is preserved inside every rank.
+    def _calibration_key(h: dict) -> tuple:
+        realised = h.get("realised")
+        predicted = h.get("predicted")
+        if realised is None:
+            return (2, 0.0)
+        if predicted is None:
+            return (1, 0.0)
+        try:
+            return (0, abs(float(predicted) - float(realised)))
+        except (TypeError, ValueError):
+            return (1, 0.0)
+
+    hits.sort(key=_calibration_key)
     return hits[:max(1, int(limit))]

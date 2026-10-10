@@ -226,6 +226,7 @@ def depo_filter(
     *,
     low: float = 0.05,
     high: float = 0.95,
+    budget: int | None = None,
 ) -> list[str]:
     """DEPO difficulty-estimated online filtering (2026).
 
@@ -236,6 +237,10 @@ def depo_filter(
     estimate in [0, 1] (e.g. recent fail rate); this contract only applies
     the band, it does not estimate. Orthogonal to DAPO's dynamic sampling,
     which filters AFTER rollout; DEPO filters BEFORE, saving the rollout.
+
+    budget (EP412 precision/trajectory knob): optional explicit rollout cap.
+    When set, the frontier is truncated to the first `budget` names in input
+    order (deterministic). None (default) keeps the whole frontier.
     """
 
     if not 0.0 <= low < high <= 1.0:
@@ -247,7 +252,36 @@ def depo_filter(
             raise ValueError(f"difficulty for {name!r} must be finite")
         if low < value < high:
             kept.append(name)
+    if budget is not None:
+        kept = kept[:max(0, int(budget))]
     return kept
+
+
+def pareto_front(points: Mapping[str, Sequence[float]]) -> dict:
+    """Pareto-nondominated set over multi-objective points (EP234, set half).
+
+    points: {name: (obj1, obj2, ...)}, all maximized. A point is retained iff
+    no other point meets-or-beats it on every objective and beats it on one.
+    The retention PREDICATE that would collapse EP228/EP234/EP462 into one
+    edit stays deferred: no criteria-vector caller exists yet.
+    """
+    names = list(points.keys())
+    vecs = {n: [float(v) for v in points[n]] for n in names}
+    front: list[str] = []
+    dominated: list[str] = []
+    for a in names:
+        beaten = False
+        for b in names:
+            if a == b:
+                continue
+            if len(vecs[b]) != len(vecs[a]):
+                continue
+            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))
+                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):
+                beaten = True
+                break
+        (dominated if beaten else front).append(a)
+    return {"front": front, "dominated": dominated}
 
 
 def dppo_rescale(keep_prob: float) -> float:

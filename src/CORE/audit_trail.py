@@ -841,6 +841,39 @@ def _compute_merkle_root(hashes: list) -> str:
     return level[0].hex() if level else ""
 
 
+def read_citation(citation: str, repo_root: str = "") -> dict:
+    """Restore a cited ledger line (EP180, restore half).
+
+    citation: "relative/path.jsonl:<line>", 1-indexed (the format
+    record_sop_ops / commit_gate citations use). Returns {"found", "entry",
+    "path", "line"}. Parameterizing restore by SUBJECT (skill/prompt/config/
+    tool/budget) stays deferred: no subject-typed caller exists yet.
+    """
+    cite = str(citation or "")
+    path_s, _, line_s = cite.rpartition(":")
+    try:
+        lineno = int(line_s)
+    except (TypeError, ValueError):
+        return {"found": False, "entry": None, "path": path_s,
+                "reason": "bad-line-number"}
+    base = Path(str(repo_root)) if repo_root else Path.cwd()
+    fp = base / path_s
+    if not fp.exists() or lineno < 1:
+        return {"found": False, "entry": None, "path": path_s,
+                "reason": "no-such-file" if not fp.exists() else "bad-line"}
+    try:
+        with fp.open(encoding="utf-8", errors="replace") as fh:
+            for i, raw in enumerate(fh, 1):
+                if i == lineno:
+                    return {"found": True, "entry": json.loads(raw),
+                            "path": path_s, "line": lineno}
+    except Exception as exc:                          # noqa: BLE001 - probe
+        return {"found": False, "entry": None, "path": path_s,
+                "reason": type(exc).__name__}
+    return {"found": False, "entry": None, "path": path_s,
+            "reason": "line-past-end"}
+
+
 def get_merkle_root(filepath: str) -> str:
     """Compute the Merkle root for an audit trail file.
 
