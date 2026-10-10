@@ -257,6 +257,44 @@ class BusMessage:
         }
 
 
+class HiddenStateCarrier:
+    """Shared hidden-state carrier: many reasoners, one store (EP442).
+
+    The store exists (LocalMemoryStore / the bus itself); the carrier did
+    not. A carrier holds one named state vector per reasoner plus a shared
+    read view (mean). Pure in-memory, thread-safe, no I/O. Wiring reasoners
+    to query through it (rather than each holding private state) is the
+    consumer step — this is the carrier they query.
+    """
+
+    def __init__(self):
+        import threading as _th
+        self._states: dict = {}
+        self._lock = _th.Lock()
+
+    def put(self, reasoner: str, state: dict) -> bool:
+        """Store one reasoner's hidden state. Returns True if stored."""
+        if not str(reasoner or "").strip() or not isinstance(state, dict):
+            return False
+        with self._lock:
+            self._states[str(reasoner)] = dict(state)
+        return True
+
+    def shared_view(self) -> dict:
+        """Mean view over all held states (numeric fields only)."""
+        with self._lock:
+            states = list(self._states.values())
+        if not states:
+            return {"reasoners": 0, "mean": {}}
+        keys = {k for s in states for k, v in s.items()
+                if isinstance(v, (int, float))}
+        mean = {}
+        for k in sorted(keys):
+            vals = [s[k] for s in states if isinstance(s.get(k), (int, float))]
+            mean[k] = round(sum(vals) / len(vals), 6) if vals else 0.0
+        return {"reasoners": len(states), "mean": mean}
+
+
 class MemoryBus:
     """
     PAMS-backed publish/subscribe bus for inter-agent communication.

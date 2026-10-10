@@ -874,6 +874,62 @@ def read_citation(citation: str, repo_root: str = "") -> dict:
             "reason": "line-past-end"}
 
 
+def graph_capsule(state_delta: dict, prev_hash: str = "") -> dict:
+    """Bounded graph capsule: a state delta as a signable unit (EP446).
+
+    The chain is linear; a capsule binds {delta, prev_hash} under the same
+    canonical-JSON + Ed25519 seal the entries use, so a capsule is
+    verifiable off-chain via verify_signature. Riding the linear chain
+    (appending capsules as entries) stays deferred: no capsule consumer
+    exists yet — the unit is built and signed, not yet chained.
+    """
+    body = {"type": "graph_capsule",
+            "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+            "delta": dict(state_delta or {}),
+            "prev_hash": str(prev_hash or "")}
+    canonical = json.dumps(body, sort_keys=True,
+                           separators=(",", ":"), default=str)
+    body["signature"] = _sign_payload(canonical)
+    body["sealed"] = bool(body["signature"])
+    return body
+
+
+def claim_evidence_index(filepath: str) -> dict:
+    """Claim-level evidence index over a chain file (EP301, index half).
+
+    Groups entry hashes by the claim each entry supports (entry["claim"]
+    or entry["type"] when no claim field). A full evidence DAG (support
+    EDGES between claims) stays deferred: edges need claim-link fields no
+    producer writes yet — the index names what the DAG would join.
+    """
+    fp = Path(filepath) if filepath else None
+    if fp is None or not fp.exists():
+        return {"claims": {}, "n_claims": 0, "n_entries": 0}
+    index: dict = {}
+    n = 0
+    try:
+        with fp.open(encoding="utf-8", errors="replace") as fh:
+            for raw in fh:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    entry = json.loads(raw)
+                except Exception:
+                    continue
+                if not isinstance(entry, dict):
+                    continue
+                n += 1
+                claim = str(entry.get("claim", entry.get("type", "?")))
+                index.setdefault(claim, []).append(
+                    str(entry.get("hash", entry.get("citation", "?"))))
+    except Exception as exc:                          # noqa: BLE001 - probe
+        return {"claims": {}, "n_claims": 0, "n_entries": n,
+                "reason": type(exc).__name__}
+    return {"claims": {k: v[:50] for k, v in index.items()},
+            "n_claims": len(index), "n_entries": n}
+
+
 def get_merkle_root(filepath: str) -> str:
     """Compute the Merkle root for an audit trail file.
 

@@ -691,6 +691,31 @@ class DataPipelineWorm:
             },
         }
 
+    def ablate_sources(self, sources: list | None = None,
+                       exclude_variants: list | None = None) -> Dict[str, Any]:
+        """Ablation harness: measured composition over source variants (EP318).
+
+        Runs extract_from_memory once per exclude-set variant and reports
+        per-variant record counts. The DOWNSTREAM metric half (which variant
+        trains better) stays deferred: training comparison needs the
+        orchestrator loop, not the pipeline — the harness measures the
+        composition axis the metric would read.
+        """
+        variants = list(exclude_variants or [[]])
+        rows: Dict[str, Any] = {}
+        for ex in variants:
+            try:
+                recs = self.extract_from_memory(
+                    source=sources if isinstance(sources, str) else None,
+                    limit=200,
+                    exclude_sources=list(ex or []))
+                rows["excluded:" + ",".join(ex or ["none"])] = len(recs or [])
+            except Exception as exc:
+                rows["excluded:" + ",".join(ex or ["none"])] = (
+                    f"error:{type(exc).__name__}")
+        return {"variants": rows, "n_variants": len(rows),
+                "composition_axis": "exclude_sources parameterized"}
+
     def execute(self) -> Dict[str, Any]:
         """Standard worm execute() — runs pipeline with default params."""
         return self.run_pipeline(limit=100, max_age_days=7)

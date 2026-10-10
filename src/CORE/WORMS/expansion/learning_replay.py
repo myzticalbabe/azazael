@@ -196,6 +196,30 @@ class PrioritizedReplayBuffer:
         return {"trajectories": groups, "n_episodes": len(groups),
                 "n_transitions": sum(len(v) for v in groups.values())}
 
+    def contrast_pass_rates(self, min_episodes: int = 2) -> dict:
+        """Trajectory-contrastive refinement input (EP458, contrast half).
+
+        Pass@k estimate per episode = mean reward; reports the spread
+        (max-min) and the abstain recommendation when spread is wide.
+        Producing pass@k OUTCOMES needs an execution host (still deferred);
+        this contrasts whatever outcomes the buffer already holds.
+        """
+        trajs = self.export_trajectories()["trajectories"]
+        rates = {}
+        for ep, rows in trajs.items():
+            if not rows:
+                continue
+            try:
+                rates[ep] = sum(float(r.get("reward", 0.0)) for r in rows) / len(rows)
+            except (TypeError, ValueError):
+                continue
+        vals = list(rates.values())
+        spread = (max(vals) - min(vals)) if len(vals) >= int(min_episodes) else 0.0
+        return {"pass_rates": {k: round(v, 4) for k, v in rates.items()},
+                "spread": round(spread, 4),
+                "abstain": bool(spread > 0.5),
+                "n_episodes": len(rates)}
+
     def add_from_memories(self, records: list[dict],
                           q_table: dict[str, dict[int, float]] = None) -> int:
         """Bulk-add experiences from LocalMemoryStore records.

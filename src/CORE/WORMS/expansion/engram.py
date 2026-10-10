@@ -431,7 +431,24 @@ class RecallRouterWorm:
         self._note_read()
         return {"success": True, "mem": query, "route": "g_archive",
                 "fallback": True, "mode": "fallback",
-                "abstained": True, "found": False, "confidence": 0.0}
+                "abstained": True, "found": False, "confidence": 0.0,
+                "stratified_payload": self._stratify(query, None, 0.0)}
+
+    def _stratify(self, query: str, mem: Any, confidence: float) -> dict:
+        """Mode-stratified recall payload (EP389, stratification half).
+
+        Cognitive (not transport) modes: exact / semantic / fallback, each
+        with its own payload shape. Additive: existing route_recall keys
+        untouched; fallback branch now carries its stratified form.
+        """
+        q = str(query or "")
+        if mem is not None and confidence >= 0.5:
+            return {"mode": "semantic", "query": q,
+                    "payload": {"mem": mem, "confidence": round(confidence, 4)}}
+        if mem is not None:
+            return {"mode": "exact", "query": q, "payload": {"mem": mem}}
+        return {"mode": "fallback", "query": q,
+                "payload": {"abstained": True}}
 
     #: At most one store write per this many reads, even when the signal
     #: category does not change. Routing is the hot path: an unbounded write per

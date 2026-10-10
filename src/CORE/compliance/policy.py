@@ -215,6 +215,67 @@ class PolicyEngine:
         with self._lock:
             self._rules.clear()
 
+    def check_ceiling(self, action: str, granted: str, requires: str) -> dict:
+        """Authority-ceiling check (EP269, enforcement half).
+
+        granted: the authority the subject holds ("read-only", "read-write",
+        "admin"). requires: what the action needs ("read"/"write" alias
+        to read-only/read-write). A ceiling is ENFORCED: read-only
+        requiring write is DENIED. Pure predicate, no rule writes.
+        """
+        order = {"none": 0, "read-only": 1, "read-write": 2, "admin": 3}
+        aliases = {"read": "read-only", "write": "read-write"}
+        g = order.get(str(granted or "none").strip().lower(), 0)
+        req = aliases.get(str(requires or "").strip().lower(),
+                          str(requires or "none").strip().lower())
+        r = order.get(req, 0)
+        ok = g >= r
+        return {"allowed": ok, "granted": granted, "requires": requires,
+                "reason": ("ceiling-ok" if ok else
+                           f"ceiling-deny:{granted}-requires-{requires}")}
+
+    def attenuate(self, authority: str, depth: int) -> dict:
+        """Delegation attenuation (EP289, enforcement half).
+
+        Each delegation step drops one rung (admin->read-write->read-only->
+        none); depth 0 keeps the authority. A delegate at depth 3 from an
+        admin owner bottoms out at none — never the owner's full authority.
+        Pure predicate.
+        """
+        order = ["none", "read-only", "read-write", "admin"]
+        try:
+            idx = order.index(str(authority or "none").strip().lower())
+        except ValueError:
+            idx = 0
+        steps = max(0, int(depth))
+        return {"delegated": order[max(0, idx - steps)],
+                "from": authority, "depth": steps}
+
+    def obligate(self, action: str, role: str = "",
+                 obligations: (dict[str, Any] | None) = None) -> dict:
+        """Obligation verdict (EP305, expression half).
+
+        evaluate() answers ALLOW/DENY; this answers what MUST happen next:
+        obligations {name: met_bool}. Verdict "obligated" iff allowed AND
+        every obligation met; unmet names listed. Meta-policy conflicts
+        (two rules disagreeing) surface as "conflict" — expression only,
+        no resolution engine (that half stays deferred).
+        """
+        allowed, reason = self.evaluate(action, role, {})
+        ob = dict(obligations or {})
+        unmet = [k for k, v in ob.items() if not v]
+        with self._lock:
+            hits = [r for r in self._rules
+                    if r.matches(action, role, {})]
+        top = max((r.priority for r in hits), default=None)
+        effects = {r.effect.value for r in hits if r.priority == top}
+        conflict = len(effects) > 1
+        obligated = bool(allowed) and not unmet and not conflict
+        return {"allowed": allowed, "reason": reason,
+                "obligations": ob, "unmet": unmet,
+                "conflict": conflict,
+                "obligated": obligated}
+
     def rule_count(self) -> int:
         with self._lock:
             return len(self._rules)
