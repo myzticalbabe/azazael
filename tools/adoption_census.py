@@ -245,6 +245,34 @@ def production_callers(symbol: str, repo: Path = REPO,
     return sorted(set(prod)), sorted(set(exer))
 
 
+def _host_reachable(repo: Path, host_stem: str, cands: List[Path],
+                    host: (Path | None)) -> bool:
+    """Is the host module imported by production code other than itself?
+
+    Distinguishes HOST-COMPOSED from EXERCISE-ONLY. A technique consumed by
+    another function in its OWN host is genuinely in production when that host
+    is reached by production code -- e.g. `margin_check` is called by
+    `verify_before_accept`, which `technique_runtime.verify_boundary` reaches,
+    which `sentinel_enforcer.enforce` calls. Counting that as zero adoption
+    would be as wrong as counting an exercise adapter as adoption.
+    """
+    if not host_stem:
+        return False
+    for p in cands:
+        if host is not None and p == host:
+            continue
+        rel = p.relative_to(repo).as_posix()
+        if rel.startswith(EXERCISE_DIR):
+            continue
+        try:
+            for line in p.read_text(encoding="utf-8", errors="replace").splitlines():
+                if _IMPORT.match(line) and host_stem in line:
+                    return True
+        except OSError:
+            continue
+    return False
+
+
 def _extract_rows(data: Any) -> List[Dict[str, Any]]:
     """Pull the row dicts out of the map whatever shape it is wrapped in.
 
@@ -316,12 +344,17 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
         # allowed: otherwise a generic name (`observe`, `plan_dag`) matches
         # unrelated production code elsewhere and the row scores as adopted while
         # pointing at a host that has never heard of it.
+        host_stem = Path(host_file).stem if host_file else ""
+        reachable = bool(host_internal) and _host_reachable(
+            repo, host_stem, cands, host)
         if not symbols:
             verdict = "NO-TARGET"
         elif not defined_here:
             verdict = "TARGET-UNVERIFIED"
         elif prod_hits:
             verdict = "ADOPTED"
+        elif reachable:
+            verdict = "HOST-COMPOSED"
         elif exer_hits:
             verdict = "EXERCISE-ONLY"
         else:
@@ -333,6 +366,7 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
             "target": str(r.get("target", "")), "host_file": host_file,
             "symbol": ", ".join(symbols), "symbols": symbols,
             "built": defined_here,
+            "host_reachable": reachable,
             "production_call_sites": prod_hits, "exercise_call_sites": exer_hits,
             "host_internal_uses": host_internal,
             "n_production": len(prod_hits), "n_exercise": len(exer_hits),
@@ -345,9 +379,12 @@ def census(repo: Path = REPO) -> Dict[str, Any]:
     return {
         "repo": str(repo), "rows": len(out_rows), "tally": tally,
         "adoption_score": tally.get("ADOPTED", 0),
+        "in_production": tally.get("ADOPTED", 0) + tally.get("HOST-COMPOSED", 0),
         "built_count": sum(1 for r in out_rows if r["built"]),
-        "note": ("adoption_score counts ADOPTED rows only (a caller in a different "
-                 "production module); HOSTED-ONLY and EXERCISE-ONLY score zero by "
+        "note": ("adoption_score counts ADOPTED rows (caller in a DIFFERENT "
+                 "production module); in_production adds HOST-COMPOSED (consumed "
+                 "by production code in its own host, where that host is imported "
+                 "by production). EXERCISE-ONLY and HOSTED-ONLY score zero by "
                  "mandate (ACTION_REGISTRY H-2, TODO_315T_BUILD T-15)"),
         "results": out_rows,
     }
@@ -457,10 +494,11 @@ def main() -> int:
         print(f"wrote {dest}")
 
     print(f"adoption census — {rep['rows']} rows")
-    print(f"  adoption_score (ADOPTED only): {rep['adoption_score']}")
+    print(f"  adoption_score (ADOPTED only):   {rep['adoption_score']}")
+    print(f"  in_production (+ HOST-COMPOSED): {rep['in_production']}")
     print(f"  built (host module defines it):  {rep['built_count']}")
-    for k in ("ADOPTED", "HOSTED-ONLY", "EXERCISE-ONLY", "UNREFERENCED",
-              "TARGET-UNVERIFIED", "NO-TARGET"):
+    for k in ("ADOPTED", "HOST-COMPOSED", "HOSTED-ONLY", "EXERCISE-ONLY",
+              "UNREFERENCED", "TARGET-UNVERIFIED", "NO-TARGET"):
         if k in rep["tally"]:
             print(f"  {k:14s} {rep['tally'][k]}")
     print("\n  HOSTED-ONLY and EXERCISE-ONLY score ZERO adoption by mandate "

@@ -63,6 +63,11 @@ except Exception:                                          # pragma: no cover
     _engram = None
     _read_driven_consolidation = None
 
+try:                                                       # pragma: no cover
+    from CORE import verification_gate as _vg
+except Exception:                                          # pragma: no cover
+    _vg = None
+
 from CORE.local_memory import get_memory_store
 
 __all__ = [
@@ -306,6 +311,49 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
                 decision_id=str(decision_id or ""))
     return {"written": written, "question": _short(question),
             "predicted": predicted}
+
+
+def revise_until_confirmed(candidate: Any, subject: str, repair_fn: Callable,
+                           max_depth: int = 3,
+                           **gate_kwargs: Any) -> Dict[str, Any]:
+    """Bounded generate-critique-revise loop DRIVEN BY the acceptance gate (EP370).
+
+    `verification_gate.confirmed_revise` had no caller anywhere in the tree: the
+    gate could REJECT a candidate and nothing could act on the rejection, so a
+    refusal ended the attempt rather than starting a repair. This wires the two
+    ends together -- the critique IS the gate's own rejection reasons, the
+    revision is the caller's `repair_fn(candidate, critique)`, and the loop stops
+    the moment the gate accepts, which is what bounds the cost.
+
+    Fail-open like every other boundary here: an error returns the original
+    candidate with `confirmed=False` rather than raising into a caller's path.
+    """
+    if _vg is None or not callable(getattr(_vg, "confirmed_revise", None)):
+        return {"final": candidate, "depths_used": 0, "confirmed": False,
+                "stopped_early": False, "reason": "no-gate"}
+
+    def _critique(c: Any) -> Any:
+        verdict = verify_boundary(subject, **gate_kwargs)
+        if verdict.get("accepted"):
+            return None                      # CONFIRMED -> confirmed_revise stops
+        reasons = [str(r) for r in (verdict.get("reasons") or [])]
+        return "; ".join(reasons) or "rejected"
+
+    def _revise(c: Any, critique: str) -> Any:
+        return repair_fn(c, critique)
+
+    try:
+        out = _vg.confirmed_revise(candidate, _critique, _revise,
+                                   max_depth=max_depth)
+        out = dict(out or {})
+    except Exception as exc:
+        note_failure("technique_runtime:revise-until-confirmed", exc)
+        return {"final": candidate, "depths_used": 0, "confirmed": False,
+                "stopped_early": False, "reason": f"{type(exc).__name__}"}
+    record_link("technique_runtime.revise_until_confirmed", subject,
+                bool(out.get("confirmed")),
+                citation=str(out.get("reason", "")))
+    return out
 
 
 def recall_with_feedback(query: str, consolidate: bool = False,
