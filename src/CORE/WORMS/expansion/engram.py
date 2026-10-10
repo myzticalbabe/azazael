@@ -607,22 +607,6 @@ class CoherenceValidatorWorm:
         return {"success": True, "method": "execute", "result": self.report()}
 
 
-def run_read_driven_consolidation(router=None, dream_items=None,
-                                  index=None) -> dict:
-    """No-argument-callable form of EP235's loop closure (runtime adapter).
-
-    Exists so a caller (or the technique-wiring runtime) can close the
-    recall -> write loop with one call and no setup. Fail-open: returns a dict
-    carrying the error rather than raising.
-    """
-    try:
-        return DreamConsolidatorWorm().consolidate_from_reads(
-            router=router, dream_items=dream_items, index=index)
-    except Exception as exc:
-        note_failure("engram:L610", exc)
-        return {"success": False, "error": f"{type(exc).__name__}: {exc}"}
-
-
 @register_worm(category="engram", priority=5, cooldown_seconds=300.0,
     description="Nightly merge DreamingModule/Hypnagogic output into ModelVersioner + engram index")
 class DreamConsolidatorWorm:
@@ -706,40 +690,6 @@ class DreamConsolidatorWorm:
                            else ("weak-relevance" if (mean_top is not None
                                                       and mean_top < 0.5)
                                  else "served"))}
-
-    def consolidate_from_reads(self, router=None, dream_items=None,
-                               index=None) -> dict:
-        """Consolidate with the read signal folded in (EP235).
-
-        Runs the existing `consolidate` (unchanged, so dream-driven behaviour is
-        preserved) and attaches the read pressure to the verdict, then records
-        that pressure through the memory store this module already has. No new
-        store, no new dependency.
-
-        Degradation: when no embedding backend is reachable `consolidate`
-        simply indexes nothing -- and the read statistics are STILL recorded, so
-        the signal survives even when consolidation cannot run. That is the
-        difference between a loop that closes and one that silently drops the
-        only thing it learned.
-        """
-        pressure = self.read_pressure(router)
-        result = self.consolidate(list(dream_items or []), index=index)
-        result["read_pressure"] = pressure
-        result["priority"] = ("unmet-demand" if pressure["needs_writing"]
-                              else "normal")
-        self._record_read_stats(pressure)
-        return result
-
-    def _record_read_stats(self, pressure: dict) -> None:
-        """Persist the read signal via the existing store (fail-open)."""
-        try:
-            from CORE.local_memory import get_memory_store
-            get_memory_store().record_event(
-                source="engram", event_type="engram_read_pressure",
-                data=dict(pressure or {}), severity="info",
-                tags=["engram", "read-pressure", "ep235"])
-        except Exception as exc:                      # noqa: BLE001 — publish best-effort
-            _note_failure("engram:consolidation-publish", exc)
 
     def stats(self) -> dict:
         with self._lock:

@@ -30,7 +30,7 @@ gate sits on every transition.
 | new files in the technique family | 18 (8 sibling `CORE/*.py` + 10 `technique_wiring/` files: `__init__` + 9 slices) |
 | lines in that family | **6,322** |
 | commits ever touching `skill_library.py`, `verification_gate.py`, `structured_action.py`, `dispatch_plan.py`, `rubric_evolution.py`, `technique_runtime.py` | **0 each** — the whole programme is an uncommitted working-tree dump |
-| production call sites into the layer, from files *outside* it | **1** (`METACLUSTER` → `dispatch_plan.plan_dag`) before 2026-10-09; **5** after the boundary hooks added the same day |
+| production call sites into the layer, from files *outside* it | **1** (`METACLUSTER` → `dispatch_plan.plan_dag`) before 2026-10-09; **4** after the boundary hooks added the same day (corrected 2026-10-09→10: the 5th counted engram read-pressure, which is intra-module in `engram.py` with zero technique imports) |
 | technique count given a "call path" that way | **181** |
 | consumers that actually drove it | **6 exercise tools** (`tools/exercise_*.py`) |
 | `skill_library.py` / `structured_action.py` / `verification_gate.py` diff vs HEAD | 399+/399, 188+/188, 616+/616 — **100% insertions**: new files, not edits to anything |

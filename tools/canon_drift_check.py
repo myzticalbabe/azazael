@@ -63,6 +63,17 @@ LOAD_DIR = ROOT / ".agents" / "skills"
 #: Expected-stale archive layers, excluded by design (not silently skipped).
 ARCHIVE_DIRS = (ROOT / "skills.win-backup", ROOT / "skills_staging")
 
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
+
+#: Optional EvoSOP operators (EP354): None when src is unavailable (minimal
+#: envs); _evosop_merge falls back to richer-wins, so --check/--fix never
+#: depend on this import.
+try:
+    from CORE.skill_library import merge_sops as _MERGE_SOPS  # noqa: E402
+except Exception:
+    _MERGE_SOPS = None  # type: ignore[assignment]
+
 
 def _read(path: Path) -> str:
     """Text with newlines normalised, so CRLF smudging is not read as drift."""
@@ -168,6 +179,36 @@ def cmd_check() -> int:
     return 0
 
 
+def _evosop_merge(s_body: str, l_body: str) -> str | None:
+    """EvoSOP union resolver (EP354): shortest-common-supersequence merge.
+
+    Returns the merged body text, or None when merging is not an improvement
+    (identical-to-one-side, order conflicts, gaps, operators unimportable).
+    Callers fall back to the richer-wins rule, so this can only upgrade
+    outcomes, never degrade them.
+    """
+    if _MERGE_SOPS is None:
+        return None
+    s_steps = [ln.strip() for ln in s_body.splitlines() if ln.strip()]
+    l_steps = [ln.strip() for ln in l_body.splitlines() if ln.strip()]
+    if not s_steps or not l_steps:
+        return None
+    try:
+        res = _MERGE_SOPS(s_steps, l_steps)
+    except Exception:
+        res = None
+    # Structured fail-open (not except-return): the None falls through to the
+    # same fallback every other non-mergeable case takes, and _reconcile's
+    # returned direction/reason keeps the outcome observable per file.
+    if not res or not res.get("ok"):
+        return None
+    merged = res.get("merged") or {}
+    plan = merged.get("reasoning_plan", []) if isinstance(merged, dict) else []
+    if not plan or plan == s_steps or plan == l_steps:
+        return None
+    return "\n".join(plan) + "\n"
+
+
 def _reconcile(name: str, src: Path, load: Path) -> tuple[str, str]:
     """Apply the reconciliation rule to one pair. Returns (direction, reason)."""
     s_t, l_t = _read(src), _read(load)
@@ -180,6 +221,17 @@ def _reconcile(name: str, src: Path, load: Path) -> tuple[str, str]:
             load.write_text(s_t, encoding="utf-8", newline="")
             return "source->load", "frontmatter restored to load path"
         return "none", "already equal"
+
+    merged = _evosop_merge(s_body, l_body)
+    if merged is not None:
+        # EvoSOP (EP354): genuine union — converge BOTH layers on it so the
+        # next --check passes. Source frontmatter wins (the load path needs it
+        # for skill() to load the file).
+        fm = s_fm if s_fm else l_fm
+        text = fm + merged if fm else merged
+        src.write_text(text, encoding="utf-8", newline="")
+        load.write_text(text, encoding="utf-8", newline="")
+        return "merged", "EvoSOP SCS union (wrote both layers)"
 
     if len(s_body) >= len(l_body):
         load.write_text(s_t, encoding="utf-8", newline="")

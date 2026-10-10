@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""technique_runtime.py — the production call path for the harvested techniques.
+"""technique_runtime.py — exercise registry + fail-open boundary helpers for the harvested techniques.
 
 Why this exists
 ---------------
@@ -50,8 +50,7 @@ from typing import Any, Callable, Dict, List
 
 __all__ = [
     "register", "ADAPTERS", "load_slices", "run_all", "status",
-    "verify_boundary", "reflect_on_failure", "recall_with_feedback",
-    "discover_wirings",
+    "verify_boundary", "reflect_on_failure",
 ]
 
 #: EP code -> {"ep", "name", "where", "fn", "layer"}. Populated by `register`
@@ -144,12 +143,6 @@ def _ep_key(ep: str) -> tuple:
         return (1, 0)
 
 
-def discover_wirings() -> List[str]:
-    """The registered EP codes, sorted — the enumerable form of 'all of it'."""
-    load_slices()
-    return sorted(ADAPTERS, key=_ep_key)
-
-
 def status(record: bool = True) -> Dict[str, Any]:
     """The registry as data: what is wired, where, and on which layer."""
     load_slices()
@@ -227,11 +220,11 @@ def _short(v: Any, limit: int = 40) -> str:
     return s if len(s) <= limit else s[:limit - 1] + "\u2026"
 
 
-# -- direct helpers: the production call paths used by live boundaries ---------
+# -- direct helpers: fail-open boundary entry points ---------------------------
 #
-# These are the four entry points real code should call. Each is fail-open and
-# each records a ledger citation, so an integration is auditable at the boundary
-# rather than only in the runtime's own self-test.
+# These are the two entry points real code calls (verify_boundary,
+# reflect_on_failure). Each is fail-open and each records a ledger citation, so
+# an integration is auditable at the boundary rather than only in self-tests.
 
 def verify_boundary(subject: str, **kwargs: Any) -> Dict[str, Any]:
     """Verify a layer transition before accepting it (verify-before-accept).
@@ -305,29 +298,6 @@ def _record_calibration(question: str, predicted: float,
             severity="info", tags=["reflection", "calibration"])
     except Exception as exc:
         note_failure("reflection-calibration", exc)
-
-
-def recall_with_feedback(query: str, **kwargs: Any) -> Dict[str, Any]:
-    """Recall through the router and feed the read statistics back (EP235).
-
-    The loop the review found missing: `RecallRouterWorm` already records which
-    shards it hit and how well they scored (`_hits`, `_last_scores`); nothing
-    consumed them. Recording the read here is what lets consolidation learn from
-    what consumers actually needed.
-    """
-    try:
-        from CORE.WORMS.expansion import engram as _en
-        router_cls = getattr(_en, "RecallRouterWorm", None)
-        if router_cls is None:
-            return {"routed": False, "reason": "no-router"}
-        router = router_cls()
-        route = router.route_recall(str(query))
-        return {"routed": True, "route": (route or {}).get("route"),
-                "mode": (route or {}).get("mode"),
-                "hits": len(getattr(router, "_hits", []) or [])}
-    except Exception as exc:
-        note_failure("technique_runtime:L315", exc)
-        return {"routed": False, "reason": f"{type(exc).__name__}"}
 
 
 def _cite(subject: str, accepted: bool, reasons: List[str],

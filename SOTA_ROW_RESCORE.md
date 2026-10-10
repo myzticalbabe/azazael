@@ -273,3 +273,14 @@ taken from the map's own text). This is a reassignment only: no code was impleme
   point (`CascadeRouter.route`); it is the cheapest of the four to adopt for real.
 - EP388 should be *kept as a gap and marked accepted* rather than re-targeted again on the
   next pass — the blocker is architectural (no in-repo model internals), not editorial.
+
+## Status notes (2026-10-10, Tier-1 execution)
+
+- EP150 → ACCEPT-GAP (no mechanism to implement — it is a survey review row; the
+  specified closure "register the L2 row in tools/run_technique_exercises.py" is
+  unexecutable because that suite was archived as exercise-theater on 2026-10-10,
+  and coverage-by-exercise was the wrong closure regardless).
+- EP354 → IN PROGRESS: `merge_sops` wired as the divergence resolver in
+  `tools/canon_drift_check.py::_reconcile` (EvoSOP union with overwrite fallback);
+  `prune_sops` intentionally unwired (no evidence source exists — calling it with
+  empty evidence would prune everything).

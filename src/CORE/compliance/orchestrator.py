@@ -37,11 +37,11 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # ===========================================================================
-# PERMANENT ENFORCEMENT: Import sentinel_enforcer to activate sys.addaudithook
+# ADVISORY ARMING: importing sentinel_enforcer attaches its sys.addaudithook
+# tripwire (in-process open() observation only). Nothing here blocks, denies,
+# or raises on its own — enforcement happens only inside callers that route
+# through enforce() (corrected 2026-10-10; previously claimed all writes raise).
 # ===========================================================================
-# This import triggers the CPython-level file write interceptor on module load.
-# All unauthorized writes will raise PermissionError before any orchestration
-# code runs.
 try:
     import CORE.sentinel_enforcer  # noqa: F401 - triggers sys.addaudithook
     _ENFORCER_LOADED = True
