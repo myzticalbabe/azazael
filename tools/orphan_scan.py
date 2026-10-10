@@ -97,8 +97,8 @@ def _read(p: Path) -> str:
     return p.read_text(encoding="utf-8", errors="replace")
 
 
-def import_edges(texts: dict[Path, str],
-                 by_prefix: dict[str, list[str]]) -> dict[str, set[str]]:
+def import_edges(texts: dict[Path, str], by_prefix: dict[str, list[str]],
+                 mods: dict[str, Path]) -> dict[str, set[str]]:
     """Direct edges: importer ident -> set of imported idents.
 
     Matching is prefix-based on the module path so `from CORE.WORMS.expansion.
@@ -108,18 +108,44 @@ def import_edges(texts: dict[Path, str],
     """
     edges: dict[str, set[str]] = {}
     rx = re.compile(r"^\s*(?:from|import)\s+([A-Za-z_][\w.]*)", re.M)
+    # Relative form: `from ..a.b import c, d` / `from . import e`
+    rel_rx = re.compile(
+        r"^\s*from\s+(\.+)([\w.]*)\s+import\s+([^\n]*)", re.M)
     for path, text in texts.items():
-        ident = module_ident(path) if SRC in path.parents or path.parent == SRC \
-            else path.stem
+        ident = (module_ident(path) if SRC in path.parents or path.parent == SRC
+                 else path.stem)
         hit: set[str] = set()
         for m in rx.finditer(text):
             target = m.group(1)
-            for cand in by_prefix.get(target, ()):
-                hit.add(cand)
+            hit.update(by_prefix.get(target, ()))
             # `from CORE.WORMS.x import y` where y is itself a module
             for cand in by_prefix.get(target, ()):
                 if cand.endswith(target):
                     hit.add(cand)
+        if SRC in path.parents or path.parent == SRC:
+            pkg = ident.rsplit(".", 1)[0] if "." in ident else ""
+            if path.name != "__init__.py":
+                # A module level import resolves against its own package.
+                base_pkg = pkg
+            else:
+                base_pkg = ident
+            for m in rel_rx.finditer(text):
+                dots, rest, names = m.group(1), m.group(2), m.group(3)
+                # One dot = the current package; each extra dot climbs a level.
+                parts = [p for p in base_pkg.split(".") if p]
+                climb = len(dots) - 1
+                if climb:
+                    parts = parts[:-climb] if climb <= len(parts) else []
+                base = ".".join(parts + ([rest] if rest else []))
+                if base:
+                    hit.update(by_prefix.get(base, ()))
+                # `from . import engine` -- each named member may be a module
+                for nm in re.split(r"[,\s]+", names.split("#")[0]):
+                    nm = nm.strip().strip("()")
+                    if nm and base and f"{base}.{nm}" in mods:
+                        hit.add(f"{base}.{nm}")
+                    elif nm and not rest and nm in mods:
+                        hit.add(nm)
         edges[ident] = hit
     return edges
 
@@ -138,7 +164,7 @@ def main(argv: list[str] | None = None) -> int:
             by_prefix.setdefault(".".join(parts[:i]), []).append(ident)
 
     texts = candidate_texts()
-    edges = import_edges(texts, by_prefix)
+    edges = import_edges(texts, by_prefix, mods)
 
     # Reverse edges, then close from the entry points.
     reverse: dict[str, set[str]] = {}
