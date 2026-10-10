@@ -22,6 +22,13 @@ Method (deliberately crude and checkable, not clever):
      `src/CORE/__init__.py`. A module reachable only from a test or from
      `tools/` is NOT production-reachable.
 
+Relative imports ARE resolved (`from .x import y`, `from .. import z`) -- added
+2026-10-10 after a worker showed `PERSEPHONE.lib` was reported as an orphan
+while its own facades import it. Still invisible, DELIBERATELY: a bare-name
+import made after a `sys.path` insert cannot be distinguished from importing
+an unrelated same-named module, so it is left out rather than guessed at --
+`--dynamic` counts those files instead.
+
 This is a FLAW DETECTOR, not a verdict. Its output is a worklist to inspect --
 the classifier can be wrong for dynamically-imported modules (an `importlib`
 call or a registry string is invisible to it). Every row it prints is a
