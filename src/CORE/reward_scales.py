@@ -173,3 +173,59 @@ def scale_distributions(store: Any, limit: int = 5000) -> Dict[str, Any]:
         out[sid] = {"n": n, "mean": mean, "std": var ** 0.5,
                     "min": min(vals), "max": max(vals)}
     return out
+
+
+def calibration_snapshot(store: Any, limit: int = 5000) -> Dict[str, Any]:
+    """z-scores of the latest row per scale against measured baselines.
+
+    The first real CONSUMER of the co-tabulated ledger: for every scale
+    with a measured baseline (std > 0), map its latest ok=True numeric row
+    into z-space. Scales without baselines are reported refused, never
+    invented. Writes one summary row (source reward-ledger, event
+    reward-calibration, no value field so scale_distributions skips it).
+    Fail-open: never raises.
+    """
+    out: Dict[str, Any] = {"scales": {}, "refused": [], "kept": False}
+    try:
+        dists = scale_distributions(store, limit=limit)
+        rows = store.query_memories(source="reward-ledger",
+                                    limit=int(limit)) or []
+    except Exception as exc:
+        note_failure("reward-scales:calibration-read", exc)
+        return out
+    latest: Dict[str, Dict[str, Any]] = {}
+    for r in rows if isinstance(rows, list) else []:
+        if not isinstance(r, dict):
+            continue
+        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        if data.get("ok") is not True:
+            continue
+        v = data.get("value")
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            continue
+        sid = str(data.get("scale_id", "unknown"))
+        rid = r.get("id", 0)
+        try:
+            rid = int(rid)
+        except Exception:
+            rid = 0
+        if sid not in latest or rid > latest[sid].get("_id", -1):
+            latest[sid] = {"value": float(v), "_id": rid}
+    for sid, info in latest.items():
+        base = dists.get(sid) or {}
+        z = to_common_scale({"value": info["value"]}, base)
+        if z is None:
+            out["refused"].append(sid)
+        else:
+            out["scales"][sid] = {"z": z, "value": info["value"],
+                                  "n": base.get("n")}
+    try:
+        out["kept"] = bool(store.record_event(
+            "reward-ledger", "reward-calibration",
+            {"scales": {k: {"z": v["z"], "value": v["value"]}
+                        for k, v in out["scales"].items()},
+             "refused": list(out["refused"])},
+            severity="info", tags=["reward-ledger", "calibration"]))
+    except Exception as exc:
+        note_failure("reward-scales:calibration-write", exc)
+    return out

@@ -71,6 +71,14 @@ def main() -> int:
         except Exception as exc:
             _fail("technique-heartbeat:rainbow", exc)
             out["steps"]["rainbow"] = {"ok": False}
+        try:
+            from CORE.reward_scales import calibration_snapshot
+            from CORE.local_memory import get_memory_store
+            out["steps"]["calibration"] = calibration_snapshot(
+                get_memory_store())
+        except Exception as exc:
+            _fail("technique-heartbeat:calibration", exc)
+            out["steps"]["calibration"] = {"scales": {}, "refused": []}
         ok = run.get("errored", 1) == 0
         out["ok"] = bool(ok)
         try:
