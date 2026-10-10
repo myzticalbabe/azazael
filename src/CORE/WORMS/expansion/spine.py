@@ -23,6 +23,9 @@ Closes three architectural gaps found in the 2026-09-13 mesh audit:
 
 All three register under existing validated categories and follow the
 standard worm contract (VERSION attr, execute() -> dict, thread-safe).
+
+Self-mapping / feedback organs for the mesh fabric. No budgeted-probe host
+here (EP337 is no-host); there is no SpineWorm class in this module.
 """
 
 import os

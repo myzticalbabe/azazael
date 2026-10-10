@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Unit tests for ML.evolve - NSGA-II tuning of agent hyperparameters.
+Unit tests for ML.nsga_tuner - NSGA-II tuning of agent hyperparameters.
 Uses a mock agent harness: no models, no network.
 """
 
@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import numpy as np
 
-from ML.evolve import AgentGenome, decode, make_objectives, tune
+from ML.nsga_tuner import AgentGenome, decode, make_objectives, tune
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

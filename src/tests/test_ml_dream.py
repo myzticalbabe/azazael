@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Unit tests for ML.dream - offline trace consolidation.
+Unit tests for ML.trace_consolidator - offline trace consolidation.
 """
 
 import json
@@ -11,7 +11,7 @@ from pathlib import Path
 # Ensure azazael/src is on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ML.dream import consolidate, dream, render_markdown, summarize_snapshot
+from ML.trace_consolidator import consolidate, dream, render_markdown, summarize_snapshot
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

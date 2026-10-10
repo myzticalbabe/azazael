@@ -13,6 +13,9 @@ Extends HYDRAMETA's genetic algorithm with:
 - PAMS/LocalMemoryStore integration for evolution history
 
 Part of GOSP DoctoralThesisEngine — Tier 4: HYDRAMETA
+
+Population-based optimization mechanics; not the improvement policy
+(meta_evolution.py) or the hyperparameter tuner (ML.nsga_tuner).
 """
 
 import json

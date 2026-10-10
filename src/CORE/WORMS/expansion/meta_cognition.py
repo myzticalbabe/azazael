@@ -17,6 +17,9 @@ Features:
 - Self-correction loops with CurativePool integration
 
 Created: June 4, 2026 — Neural Advancement Realignment Session
+
+Reflection / error-learning / strategy engine; not ML.step_monitor (the
+step-stream stall watchdog).
 """
 
 import json

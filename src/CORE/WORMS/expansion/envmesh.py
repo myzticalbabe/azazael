@@ -5,6 +5,9 @@ Per-env adapters. Split WSL2 was conflated: now wsl2-ubuntu vs wsl2-kali distinc
 Bare metal is only reachable via passthrough (SSH/vsock/mount) from WSL2/Win.
 
 WinBridgeWorm, WslUbuntuWorm, WslKaliWorm, BarePassthroughWorm, GDriveLoomWorm, EnvBeaconV2Worm
+
+Per-env adapters for the mesh fabric (mesh.py); not inference serving
+(servemesh.py).
 """
 
 import os

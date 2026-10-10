@@ -15,6 +15,9 @@ collects zero tests is not evidence, and a mutation is retained only when the
 independent before/after objective improves and the evaluator does not regress.
 This module contains deterministic, side-effect-free policy and inventory code;
 the production CLI supplies adapters for files, models, and tests.
+
+Improvement policy and contracts; not the optimization mechanics
+(evolution.py).
 """
 from __future__ import annotations
 
