@@ -262,7 +262,7 @@ def _refresh_derived_maps(timeout: float = 900.0) -> None:
     never clear without a human), leaving only the graphify-out pair to the
     detached pass.
     """
-    script = "C:/Users/clint/azazael/tools/refresh_all.py"
+    script = os.path.join(_HERE, "refresh_all.py")
     try:
         r = subprocess.run([sys.executable, script], capture_output=True,
                            text=True, timeout=timeout)
@@ -285,7 +285,7 @@ def main() -> int:
     # the cycle below sees the whole fleet's experience, not just local.
     try:
         import subprocess as _sp0
-        _gr = _sp0.run([sys.executable, "C:/Users/clint/azazael/scripts/gossip_round.py"],
+        _gr = _sp0.run([sys.executable, os.path.join(_HERE, "gossip_round.py")],
                        capture_output=True, text=True, timeout=300)
         _gl = (_gr.stdout or "").strip().splitlines()
         log(f"gossip: {_gl[-1][:160] if _gl else 'no-output'}")
