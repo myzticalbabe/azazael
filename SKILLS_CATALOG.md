@@ -2,7 +2,7 @@
 # Complete Inventory of Codebuff Skills for the Azazael Project
 
 > Generated: May 29, 2026
-> Last Updated: 2026-09-29 — regenerated from canonical `skills/*.md` (1,234 skills: core + Kali + 3.14t package + binary-tool); 2026-10-02 U3 touch: `azazael-clusters` row only (no generator script exists; full regen deferred)
+> Last Updated: 2026-10-10 — regenerated from canonical `skills/*.md` (1,244 skills: core + Kali + 3.14t package + binary-tool)
 > Purpose: Single source of truth for all available Azazael skills
 > Source of truth: `skills/` (canonical flat .md) mirrored to `.agents/skills/<name>/SKILL.md`. Table rows below are generated, never hand-edited.
 
@@ -12,1263 +12,1273 @@
 
 | Metric | Count |
 |--------|-------|
-| Total canonical skills | 1,234 |
-| Core skills (non-package) | 146 |
+| Total canonical skills | 1,244 |
+| Core skills (non-package) | 156 |
 | Package skills (Kali 3.13 env, `azazael-pkg-*`) | 968 |
 | Package skills (Azazael 3.14t env, `azazael-pkg314t-*`) | 74 |
 | Binary-tool skills (`azazael-bin-*`) | 46 |
 
 ---
 
-## Skill Quick Reference — Core Skills (1-146)
+## Skill Quick Reference — Core Skills (1-156)
 | # | Skill | Category | Description |
 |---|-------|----------|-------------|
-| 1 | `azazael-curative` | Architecture | CurativePool 3.14t — CAIN psychological framework, free-threaded agent governance, 3-pool concurrent evalua... |
-| 2 | `azazael-packaging` | Deployment | Python packaging insight — Nuitka builds on Python 3.14t free-threading. Strategy for standalone .exe build... |
-| 3 | `azazael-standalone` | Deployment | AZAZAEL Standalone Suite — 39 independent .exe files for every AZAZAEL function, built with Nuitka. Zero-de... |
-| 4 | `azazael-standalone-audit` | Deployment | Desktop Standalone Suite audit — EXE inventory, BAT validation, build system health, naming conventions, er... |
-| 5 | `azazael-sync-kali` | Infrastructure | Kali WSL2 sync integration — cross-distro sync via E: drive bridge, run_wsl_kali(), batch copy patterns, ge... |
-| 6 | `azazael-python3.14-ml` | Neural | Python 3.14 free-threading ML compatibility — which packages work, which don't, and how to work within 3.14... |
-| 7 | `azazael-release-gate` | Process | --- |
-| 8 | `azazael-mypy-fix-patterns` | Quality | Common mypy fix patterns (mypy is a second opinion; the type-checking gate is basedpyright -- see tools/typ... |
-| 9 | `azazael-secure-push` | Security | --- |
-| 10 | `azazael-codex-studio` | Specialized | CODEX Studio standalone desktop app v3.1 — HTML to MP4/WMV video generation with Tkinter GUI, scene managem... |
-| 11 | `azazael-codex-video` | Specialized | CODEX video generation workflow — HTML templates, animation patterns, ffmpeg encoding, PIL frame rendering,... |
-| 12 | `azazael-eve-unleashed` | Specialized | Eve Unleashed standalone desktop app — local AI inferencing with Python REPL, system monitor, multi-backend... |
-| 13 | `azazael-autodiff-backprop` | algorithm | Reverse-mode automatic differentiation (back-propagation) using mygrad — gradients flowing backward through... |
-| 14 | `azazael-autodiff-forward` | algorithm | Forward-mode automatic differentiation using mygrad — derivatives via tangent values propagated forward alo... |
-| 15 | `azazael-autodiff-gradient` | algorithm | Gradient descent and variants (SGD, Momentum, Adam and more) implemented from first principles with mygrad. |
-| 16 | `azazael-autodiff-higher-order` | algorithm | Higher-order derivatives — Jacobians, Hessians and beyond — using mygrad automatic differentiation. |
-| 17 | `azazael-evolutionary-optimization` | algorithm | NSGA-II and genetic algorithms — EvolutionEngine Pareto-front optimization and per-worm parameter tuning. |
-| 18 | `azazael-6api-analysis` | analysis | All deep analyses must query all 6 inference APIs with distinct angles (Groq, OpenRouter, NVIDIA NIM and mo... |
-| 19 | `azazael-architecture` | architecture | Azazael project architecture — worm registry, cluster system, paths, module organization. Load when navigat... |
-| 20 | `azazael-architecture-review` | architecture | Systematic project architecture review methodology — 3-pass inventory, 12-dimension quality scoring, coupli... |
-| 21 | `azazael-auto-downloader-fix` | architecture | AUTO_DOWNLOADER.py main() restructuring fix with CODEX/CORE bug chain documentation |
-| 22 | `azazael-cloud-tab` | architecture | Extracted Cloud inference tab module for Inference Studio — reduces God Object anti-pattern |
-| 23 | `azazael-clusters` | architecture | Azazael cluster system — ClusterWORMZ v2.0.0 API, MetaCluster v2 flat dispatch, parallel execution, thread safety, Mermaid graphs. |
-| 24 | `azazael-compliance-deep-dive` | architecture | Deep diagnostic of ComplianceOrchestrator self_test — 0X: 8/8 pass, 0Y: 4/5 pass (dual_ledger by-design fai... |
-| 25 | `azazael-dlv-divergence` | architecture | DualLedgerValidator expected divergence pattern — why file_edit, file_create, and inference_spawn counts di... |
-| 26 | `azazael-dual-ledger` | architecture | DLV discrepancy catalog — all known by-design divergences between DirectMemory and .audit/ JSONL ledgers, b... |
-| 27 | `azazael-files` | architecture | Azazael file index — complete module map, what lives where, import resolution, key files by function, file ... |
-| 28 | `azazael-parallel` | architecture | Azazael 3.14t parallel execution — FreeThreadPool, work-stealing, batch collection, GIL-free optimization. ... |
-| 29 | `azazael-paths` | architecture | Azazael path resolution — centralized dynamic paths via CORE/paths.py, get_project_root, get_g_drive, cachi... |
-| 30 | `azazael-registry` | architecture | Azazael worm registry — @register_worm decorator, WORM_REGISTRY dict, discover_worms(), category management... |
-| 31 | `azazael-separation` | architecture | Azazael project separation — extraction playbooks, dependency analysis, sub-project inventory, standalone p... |
-| 32 | `azazael-state-machine` | architecture | ComplianceStateMachine reference — 7 states, legal transitions, is_in_sequence rules, and the startup wirin... |
-| 33 | `azazael-system-wiring` | architecture | System-level neural wiring map — how LocalMemoryStore, DataPipelineWorm, DirectMemory and neural subsystems... |
-| 34 | `azazael-worm-registry` | architecture | Full API reference for worm_registry.py — @register_worm, WORM_REGISTRY, discover_worms() with progress_cal... |
-| 35 | `azazael-worm-registry-fixes` | architecture | Worm registry module path fixes — how discover_worms() stores module names incorrectly, the 28 affected wor... |
-| 36 | `azazael-worms` | architecture | Azazael worm registry — all 226 worms across 35 categories, @register_worm decorator, how to add/register w... |
-| 37 | `azazael-worms-core` | architecture | Azazael core infrastructure worms — orchestration (10), utility (5), diagnostic (6). Load when working with... |
-| 38 | `azazael-worms-data` | architecture | Azazael data & insight worms — learning (19), ml (2), analysis (17), visualization (7), sync (2). Load when... |
-| 39 | `azazael-worms-devops` | architecture | Azazael DevOps worms — container (5), communication (6), migration (5). Load when working with Docker, IPC,... |
-| 40 | `azazael-worms-monitor` | architecture | Azazael observability worms — monitor (12), profiling (5), telemetry (6). Load when working with SystemZ, N... |
-| 41 | `azazael-worms-security` | architecture | Azazael security & integrity worms — security (24), config (5), backup (5). Load when working with VulnScan... |
-| 42 | `azazael-cain-pipeline` | codex | CAIN video rendering pipeline — Puppeteer browser capture (NOT PIL), session-specific HTML injection, optim... |
-| 43 | `azazael-cain-template` | codex | CAIN template optimization — dead code removal (web-arrows, duplicate sections), CSS animation audit, sessi... |
-| 44 | `azazael-codex` | codex | Azazael CODEX systems — video generation with PIL/ffmpeg, PAMS/MemoryBus memory systems, session audit trai... |
-| 45 | `azazael-neural-architecture` | codex | Neural architecture reference — RL pipelines (RLTrainLoop, SB3Agent, GRPOTrainer), Mixture of Experts patte... |
-| 46 | `azazael-neural-pipeline` | codex | NeuralPipeline v1.0.0 — unified end-to-end ML orchestrator. 6-step lifecycle (Extract → Featurize → Train →... |
-| 47 | `azazael-rendering-methods` | codex | **[OBSOLETE MATH]** CAIN video rendering method comparison — see `azazael/CAIN_DELIVERABLE_MATH_2026-06-05.... |
-| 48 | `azazael-training-pipeline` | codex | Training data pipeline — ETL (DataPipelineWorm), feature extraction (SchemaAwareFeatureExtractor), RL train... |
-| 49 | `azazael-conventions` | conventions | Azazael Python coding conventions — patterns, style rules, import style, error handling patterns, threading... |
-| 50 | `azazael-git` | conventions | Azazael git conventions — commit messages, branching strategy, pre-commit checks, CI-ready workflow. Load b... |
-| 51 | `azazael-mermaid` | conventions | Azazael Mermaid graph generation — diagram patterns (graph TD, sequenceDiagram), ASCII safety rules, graph ... |
-| 52 | `azazael-threading` | conventions | Azazael threading patterns — Python 3.14t free-threading design, threading.Lock, threading.Event, ThreadPoo... |
-| 53 | `azazael-platform-deploy` | deploy | Cross-platform AZAZAEL 3.14t deployment — Windows 11, WSL2 Ubuntu, bare metal, Kali Linux setup and sync. |
-| 54 | `azazael-devtools-audit` | devtools | Chrome DevTools Lighthouse — performance, accessibility, SEO, best practices auditing. Load when running co... |
-| 55 | `azazael-devtools-console` | devtools | Chrome DevTools Console panel — JavaScript error detection, console.log inspection, runtime evaluation. Loa... |
-| 56 | `azazael-devtools-coverage` | devtools | Chrome DevTools Coverage panel — unused CSS/JS detection, dead code elimination, payload optimization. Load... |
-| 57 | `azazael-devtools-elements` | devtools | Chrome DevTools Elements panel — DOM inspection, CSS validation, layout debugging, selector verification. L... |
-| 58 | `azazael-devtools-index` | devtools | Master index for all 7 Chrome DevTools skills. Loads the appropriate DevTools skill(s) based on trigger key... |
-| 59 | `azazael-devtools-network` | devtools | Chrome DevTools Network panel — resource loading, broken links, 404 detection, MIME type verification. Load... |
-| 60 | `azazael-devtools-performance` | devtools | Chrome DevTools Performance panel — frame rate, animation smoothness, layout thrashing, paint timing. Load ... |
-| 61 | `azazael-devtools-sources` | devtools | Chrome DevTools Sources panel — JavaScript debugging, breakpoints, snippet execution, source inspection. Lo... |
-| 62 | `azazael-api-client` | domain | Documents the APIClient base class — unified retry/backoff, structured InferenceError hierarchy, thread-saf... |
-| 63 | `azazael-compliance-infrastructure` | domain | RULE 0X + 0Y compliance infrastructure — ComplianceOrchestrator API, 13 components, sentinel_gate.py integr... |
-| 64 | `azazael-dead-letter-queue` | domain | Dead Letter Queue — persistent storage for failed worm executions, configurable retry with exponential back... |
-| 65 | `azazael-inference-analysis` | domain | Multi-API inference subsystem — providers, unified retry client, secrets handling, GUI inference tab. |
-| 66 | `azazael-inference-providers` | domain | 16+ free inference APIs behind a unified OpenAI-compatible provider pattern with worm-based dispatch. |
-| 67 | `azazael-worm-analysis` | domain | Worm analysis patterns — CLUSTERWORMS dynamic resolution, dead letter queue, work-stealing, circuit breaker... |
-| 68 | `azazael-wsl-canonical` | environment | WSL canonical environment reference — the Linux mirror at /root/azazael/ and its differences from Windows p... |
-| 69 | `azazael_314t_master` | environment | Master reference for Python 3.14t free-threading setup — paths, package status, compiler strategy, video ge... |
-| 70 | `azazael_314t_optimum` | environment | Optimum free-threaded agent configuration for Python 3.14t — inference backends, model selection, import st... |
-| 71 | `azazael_insights_2026-05-28` | environment | Discoveries from 3.14t migration — ABI incompatibility, g++ vs MSVC, ffmpeg workarounds, Go/Node safety, WS... |
-| 72 | `azazael-error-index` | fixes | Master index mapping error symptoms to dedicated fix skill files. Load this first when troubleshooting. |
-| 73 | `azazael-fix-data-recording` | fixes | Quick-reference fixes for database and session recording errors — SQLite WAL mode, PAMS fallback, and memor... |
-| 74 | `azazael-fix-file-operations` | fixes | Quick-reference fixes for file system and data safety errors — shutil data loss, robocopy timeouts, and cro... |
-| 75 | `azazael-fix-gitbash-paths` | fixes | Quick-reference fixes for Git Bash/MSYS2 environment errors — path translation, PowerShell escaping, and sh... |
-| 76 | `azazael-fix-protocol-compliance` | fixes | Quick-reference fixes for protocol and compliance errors — process violations, SOP enforcement, and rule ma... |
-| 77 | `azazael-fix-python-314t` | fixes | Quick-reference fixes for Python 3.14t free-threading errors — segfaults, wheel issues, Nuitka patches, and... |
-| 78 | `azazael-algorithmic-respawn` | governance | Mandate governing code modification algorithms — requires Gemini pre-analysis, per-file validation, and dyn... |
-| 79 | `azazael-deep-analysis` | guardrail | Mandates the DEEP API Analysis Standard — all analysis tasks use multiple free inference APIs with cross-re... |
-| 80 | `azazael-no-permission-language` | guardrail | No permission-seeking language for mandated actions — CRITICAL process violation per instance. |
-| 81 | `azazael-secrets-manager` | infrastructure | Unified secrets manager for all Azazael API keys — audit, .env management, provider registry, consolidation |
-| 82 | `azazael-sync-wsl` | infrastructure | WSL-aware sync_all.py — bidirectional sync (WSL→Windows, WSL→G:), get_env_status + verify_integrity from WS... |
-| 83 | `azazael-pams-memory` | memory | Persistent AI memory system — LocalMemoryStore (SQLite), PamsRecorder with local fallback, MemoryBus pub/su... |
-| 84 | `azazael-mesh-resilience-primitives` | neural-mesh | The four mesh resilience primitives built from the 2026-09-16 per-function |
-| 85 | `azazael-exe-build` | packaging | Nuitka .exe building procedures — Python 3.14t required, patched Nuitka, common gotchas, build.bat patterns... |
-| 86 | `azazael-work-stealing` | parallel | WorkStealingPool and WorkStealingQueue — dynamic load balancing across threads for Python 3.14t free-thread... |
-| 87 | `azazael-optimization-session` | performance | Lazy import optimization patterns — module splitting, PAMS HTTP cache, fast-path registry discovery. Patter... |
-| 88 | `azazael-deploy` | planning | Azazael deployment — Docker, CLI packaging, scheduled runs, G:/ archive, production readiness. Load for dep... |
-| 89 | `azazael-desktop-projects` | planning | Complete Desktop project inventory and operability audit — 14 projects, 3 operational, 5 partial, 6 deprecated |
-| 90 | `azazael-full-wiring` | planning | Complete AZAZAEL production wiring guide — all 17 areas, 70 tasks, priority ordering, and cross-project int... |
-| 91 | `azazael-production` | planning | Azazael production readiness — critical gaps (testing, error recovery, config), high-priority items (perfor... |
-| 92 | `azazael-agent-utilization` | process | Agent Utilization Mandate (RULE 0W) — minimum agent spawns per task type, 100% capacity framework, agent cl... |
-| 93 | `azazael-archive-restore` | process | >- |
-| 94 | `azazael-catalog-maintenance` | process | SKILLS_CATALOG.md format, numbering convention, Sections pattern, and maintenance procedures for adding new... |
-| 95 | `azazael-catalog-reconciliation` | process | SKILLS_CATALOG.md numbering reconciliation pattern — master table |
-| 96 | `azazael-comprehensive-testing` | process | End-to-end testing procedures for Azazael — compliance self-test, worm health check, mypy audit, import ver... |
-| 97 | `azazael-dedup` | process | Deduplication procedures — MD5 hash comparison, duplicate file detection, deprecation shim creation, cleanu... |
-| 98 | `azazael-error-prevention` | process | Anti-patterns, prevention checklists, and process guardrails to prevent repeating costly mistakes. Covers b... |
-| 99 | `azazael-inference-protocol` | process | Inference Protocol (RULE 0D/0Z-A) — 12-provider automatic failover chain, auto-fallback procedure when thin... |
-| 100 | `azazael-interpreters` | process | INTERPRETERS — Go and Rust language runners for executing non-Python code within the Azazael ecosystem. 3 .... |
-| 101 | `azazael-kali-graph-protocol` | process | Established protocol for graphing the full Kali Linux tree with graphify + cosmos into the Desktop atlas — ... |
-| 102 | `azazael-ml-platforms` | process | ML platform infrastructure — LM Studio integration, Q-learning, ONNX, Ray, harness, diagnostics, health mon... |
-| 103 | `azazael-model-compression` | process | Model compression techniques — quantization (GPTQ, AWQ, GGUF), knowledge distillation, and pruning. Integra... |
-| 104 | `azazael-shims` | process | Deprecation shim pattern — when to create shims, how to use FutureWarning, re-export patterns, testing proc... |
-| 105 | `azazael-sync-patterns` | process | Sync infrastructure — sync_all.py and sync_skills.py patterns. 5 environments, 178+ files, integrity checks... |
-| 106 | `azazael-todo-management` | process | TODO document management methodology — versioning strategy, cross-referencing, ADDITIVE/REINFORCES/DUPLICAT... |
-| 107 | `azazael-tool-dynamic-logger` | process | AzazaelDynamicLogger — leveled logging helper used by toolbelt modules. Use when adding logging to azazael ... |
-| 108 | `azazael-tool-environ-updater` | process | environ_updater — environment/PATH reconciliation for toolbelt scripts. Use when a tool runs standalone but... |
-| 109 | `azazael-tool-learning-monitor` | process | monitor_learning — learning-loop dashboard monitor (live window, LAN web page, rolling log). Use to watch e... |
-| 110 | `azazael-tool-lsp-diagnosis` | process | lsp_diagnosis — LSP/language-server diagnostics for editor tooling. Use when hover/completion breaks or a l... |
-| 111 | `azazael-tool-qwythos-proxy` | process | qwythos_proxy — local HTTP proxy tool in azazael/src/TOOLS. Use when traffic inspection, request intercepti... |
-| 112 | `azazael-tools` | process | TOOLS directory — debug_runner (multi-agent test runner), archive_system (file archiving), COMPREHENSIVE_FI... |
-| 113 | `azazael-utilities` | process | UTILITIES sub-systems catalog — KLINK, PERSEPHONE (environment/sync), POINDEXTER (indexing), TARBABY (file ... |
-| 114 | `azazael-gemini-injection` | protocol | Explicit rules for spawning thinker-with-files-gemini — injection points across task phases. |
-| 115 | `azazael-gemini-mandate` | protocol | Operational enforcement of Gemini spawning frequency for complex tasks. |
-| 116 | `azazael-gemini-protocol` | protocol | Mandatory 10-phase multi-tier protocol enforcement with Gemini synthesis points. |
-| 117 | `azazael-audit-infrastructure` | quality | VLP 15-layer audit trail system — .audit/ JSONL hash-chained sessions, DirectMemory dual-ledger cross-valid... |
-| 118 | `azazael-crossplat-fileops` | quality | Safe Windows file operations from Git Bash/bash environment — avoid path escaping, data loss, and timeout i... |
-| 119 | `azazael-error-resolution` | quality | Sequential error resolution decision tree for systematic troubleshooting. Load when encountering ANY error ... |
-| 120 | `azazael-mypy` | quality | mypy as a SECOND OPINION only (the gate is basedpyright, tools/type_check_gate.py) -- mypy static type chec... |
-| 121 | `azazael-powershell-escape` | quality | Safe PowerShell command patterns from basher/Git Bash — avoid cmdlet escaping, $variable mangling, and pars... |
-| 122 | `azazael-pyright` | quality | basedpyright (the type checker of record; gate at tools/type_check_gate.py) for the Azazael codebase — comp... |
-| 123 | `azazael-session-recording` | quality | Session recording — DEPRECATED: CodebuffTracker and SessionRecorder are hard-blocked. Use DirectMemory (COR... |
-| 124 | `azazael-compliance-orchestrator` | system | Automated Compliance Infrastructure (RULE 0X/0Y) — 13 compliance components, policy engine, formal verifier... |
-| 125 | `azazael-direct-memory` | system | DirectMemory — Canonical session recording system. Stdlib-only, <0.1s init, WAL mode, signal-safe, atexit-s... |
-| 126 | `azazael-hats` | system | Tool hat codification — White Hat / Red Hat (reserved) / Cerulean Hat (Blue). Hat follows authorization and... |
-| 127 | `azazael-mandates` | system | Complete Codification of ALL active mandates — 37 total (31 RULEs 0A-0Z-C + 1 mandatory enforcement mechani... |
-| 128 | `azazael-neural-integration` | system | Cross-system integration architecture — data flow, training-to-deployment pipeline, and coupling points bet... |
-| 129 | `azazael-orchestration` | system | ORCHESTRATION + HYDRA systems — ecosystem crawler, HORUS monitoring, HYDRA adaptive ML cluster, ML platform... |
-| 130 | `azazael-pre-action-gate` | system | PERMANENT PRE-ACTION GATE (RULE 0J/0S) — 13-question mandatory assertion block. MUST be printed before EVER... |
-| 131 | `azazael-sentinel-gate` | system | COMPLIANCE SENTINEL (RULE 0C/0S) — Mandatory PRE-ACTION AUTHORIZATION GATE. 25-item self-audit checklist. N... |
-| 132 | `azazael-sop` | system | Standard Operating Procedure — ALL canonical mandates (RULEs 0A-0Z, Rule 0, COMPLIANCE SENTINEL), error rec... |
-| 133 | `azazael-system-startup` | system | Auto-load startup instructions for coding session congruency. Mandatory file reading order, skill loading s... |
-| 134 | `azazael-toolkit` | system | AZAZAEL_TOOLKIT — core framework, QL analysis, environment manager, comprehensive fix tools. 7 .py files fo... |
-| 135 | `azazael-verifiable-truth` | system | Verifiable Truth Mandate (RULE 0T/0T-A/0T-B) — 15-layer VLP verification stack, audit trail format, Ed25519... |
-| 136 | `azazael-nsga2-testing` | testing | Unit tests for the NSGA-II evolutionary optimization engine (9 classes, 16 tests). |
-| 137 | `azazael-testing` | testing | Azazael testing conventions — syntax check, integration test, worm config trace, code review. Load when val... |
-| 138 | `azazael-autoflake` | tooling | Free-threaded autoflake wrapper for Python 3.14t — batch unused import detection, removal, and reporting. C... |
-| 139 | `azazael-chrome-url-download` | tools | Capture the active Chrome tab URL (UI Automation, no DevTools needed) or the clipboard URL, then download i... |
-| 140 | `azazael-stale-artifact-self-audit` | verification | Two defect classes that made this architecture report success while wrong — confidently-incomplete artifact... |
-| 141 | `azazael-eleven-followups` | workflow | RULE 0Z-B — Mandates exactly 11 followup suggestions at the end of EVERY assistant response. Permanent, nev... |
-| 142 | `azazael-environment` | workflow | Azazael environment setup — Python 3.10+/3.14t requirements, dependency installation, project path configur... |
-| 143 | `azazael-operating-protocols` | workflow | Operating protocols for Codebuff/AI agents working on Azazael — 11 followups mandate, max parallel agent ex... |
-| 144 | `azazael-parallel-execution` | workflow | RULE 0Z-F — Parallel Agent Execution Mandate. Maximum concurrency, batch all independent work into single s... |
-| 145 | `azazael-parallel-execution-quickref` | workflow | Quick-reference cheat sheet for RULE 0Z-F Parallel Agent Execution — anti-pattern table, agent spawn patter... |
-| 146 | `azazael-startup` | workflow | Reference catalog for Azazael sessions. 24-skill catalog, environment setup, project numbers. Delegates sta... |
+| 1 | `archify` | ? | Create polished, validated architecture, workflow, sequence, data-flow, and lifecycle/state diagrams as exp... |
+| 2 | `azazael-curative` | Architecture | CurativePool 3.14t — CAIN psychological framework, free-threaded agent governance, 3-pool concurrent evalua... |
+| 3 | `azazael-packaging` | Deployment | Python packaging insight — Nuitka builds on Python 3.14t free-threading. Strategy for standalone .exe build... |
+| 4 | `azazael-standalone` | Deployment | AZAZAEL Standalone Suite — PLANNED, NOT BUILT. Zero .exe files exist; the Nuitka build fails on a transform... |
+| 5 | `azazael-standalone-audit` | Deployment | Desktop Standalone Suite audit — EXE inventory, BAT validation, build system health, naming conventions, er... |
+| 6 | `azazael-sync-kali` | Infrastructure | Kali WSL2 sync integration — cross-distro sync via E: drive bridge, run_wsl_kali(), batch copy patterns, ge... |
+| 7 | `azazael-python3.14-ml` | Neural | Python 3.14 free-threading ML compatibility — which packages work, which don't, and how to work within 3.14... |
+| 8 | `azazael-release-gate` | Process | --- |
+| 9 | `azazael-mypy-fix-patterns` | Quality | Common mypy fix patterns (mypy is a second opinion; the type-checking gate is basedpyright -- see tools/typ... |
+| 10 | `azazael-mypy` | Quality / Type Checking | **Created:** June 14, 2026 |
+| 11 | `azazael-pyright` | Quality / Type Checking | **Created:** June 14, 2026 |
+| 12 | `azazael-secure-push` | Security | --- |
+| 13 | `azazael-codex-studio` | Specialized | CODEX Studio standalone desktop app v3.1 — HTML to MP4/WMV video generation with Tkinter GUI, scene managem... |
+| 14 | `azazael-codex-video` | Specialized | CODEX video generation workflow — HTML templates, animation patterns, ffmpeg encoding, PIL frame rendering,... |
+| 15 | `azazael-eve-unleashed` | Specialized | Eve Unleashed standalone desktop app — local AI inferencing with Python REPL, system monitor, multi-backend... |
+| 16 | `azazael-autodiff-backprop` | algorithm | Reverse-mode automatic differentiation (back-propagation) using mygrad — gradients flowing backward through... |
+| 17 | `azazael-autodiff-forward` | algorithm | Forward-mode automatic differentiation using mygrad — derivatives via tangent values propagated forward alo... |
+| 18 | `azazael-autodiff-gradient` | algorithm | Gradient descent and variants (SGD, Momentum, Adam and more) implemented from first principles with mygrad. |
+| 19 | `azazael-autodiff-higher-order` | algorithm | Higher-order derivatives — Jacobians, Hessians and beyond — using mygrad automatic differentiation. |
+| 20 | `azazael-evolutionary-optimization` | algorithm | NSGA-II and genetic algorithms — EvolutionEngine Pareto-front optimization and per-worm parameter tuning. |
+| 21 | `azazael-6api-analysis` | analysis | All deep analyses must query all 6 inference APIs with distinct angles (Groq, OpenRouter, NVIDIA NIM and mo... |
+| 22 | `azazael-architecture` | architecture | Azazael project architecture — worm registry, cluster system, paths, module organization. Load when navigat... |
+| 23 | `azazael-architecture-review` | architecture | Systematic project architecture review methodology — 3-pass inventory, 12-dimension quality scoring, coupli... |
+| 24 | `azazael-auto-downloader-fix` | architecture | AUTO_DOWNLOADER.py main() restructuring fix with CODEX/CORE bug chain documentation |
+| 25 | `azazael-cloud-tab` | architecture | Extracted Cloud inference tab module for Inference Studio — reduces God Object anti-pattern |
+| 26 | `azazael-clusters` | architecture | Azazael cluster system — ClusterWORMZ v2.0.0 API, MetaCluster v2 flat dispatch, parallel execution, thread ... |
+| 27 | `azazael-compliance-deep-dive` | architecture | Deep diagnostic of ComplianceOrchestrator self_test — 0X: 8/8 pass, 0Y: 4/5 pass (dual_ledger by-design fai... |
+| 28 | `azazael-dlv-divergence` | architecture | DualLedgerValidator expected divergence pattern — why file_edit, file_create, and inference_spawn counts di... |
+| 29 | `azazael-dual-ledger` | architecture | DLV discrepancy catalog — all known by-design divergences between DirectMemory and .audit/ JSONL ledgers, b... |
+| 30 | `azazael-files` | architecture | Azazael file index — complete module map, what lives where, import resolution, key files by function, file ... |
+| 31 | `azazael-inference` | architecture | Azazael multi-provider AI inference — 11 free LLM providers, OpenAI-compatible API, NimClient, InferenceBus... |
+| 32 | `azazael-inference-integration` | architecture | Azazael inference integration — 10-point strategy, P0-P2 implementations (MetaCluster LLM insights, adaptiv... |
+| 33 | `azazael-inference-worms` | architecture | Azazael inference worms — InferenceWorm (provider-agnostic) and NimInferenceWorm (multi-provider). Load whe... |
+| 34 | `azazael-parallel` | architecture | Azazael 3.14t parallel execution — FreeThreadPool, work-stealing, batch collection, GIL-free optimization. ... |
+| 35 | `azazael-paths` | architecture | Azazael path resolution — centralized dynamic paths via CORE/paths.py, get_project_root, get_g_drive, cachi... |
+| 36 | `azazael-registry` | architecture | Azazael worm registry — @register_worm decorator, WORM_REGISTRY dict, discover_worms(), category management... |
+| 37 | `azazael-separation` | architecture | Azazael project separation — extraction playbooks, dependency analysis, sub-project inventory, standalone p... |
+| 38 | `azazael-state-machine` | architecture | ComplianceStateMachine reference — 7 states, legal transitions, is_in_sequence rules, and the startup wirin... |
+| 39 | `azazael-system-wiring` | architecture | System-level neural wiring map — how LocalMemoryStore, DataPipelineWorm, DirectMemory and neural subsystems... |
+| 40 | `azazael-worm-registry` | architecture | Full API reference for worm_registry.py — @register_worm, WORM_REGISTRY, discover_worms() with progress_cal... |
+| 41 | `azazael-worm-registry-fixes` | architecture | Worm registry module path fixes — how discover_worms() stores module names incorrectly, the 28 affected wor... |
+| 42 | `azazael-worms` | architecture | Azazael worm registry — all 226 worms across 35 categories, @register_worm decorator, how to add/register w... |
+| 43 | `azazael-worms-core` | architecture | Azazael core infrastructure worms — orchestration (10), utility (5), diagnostic (6). Load when working with... |
+| 44 | `azazael-worms-data` | architecture | Azazael data & insight worms — learning (19), ml (2), analysis (17), visualization (7), sync (2). Load when... |
+| 45 | `azazael-worms-devops` | architecture | Azazael DevOps worms — container (5), communication (6), migration (5). Load when working with Docker, IPC,... |
+| 46 | `azazael-worms-monitor` | architecture | Azazael observability worms — monitor (12), profiling (5), telemetry (6). Load when working with SystemZ, N... |
+| 47 | `azazael-worms-security` | architecture | Azazael security & integrity worms — security (24), config (5), backup (5). Load when working with VulnScan... |
+| 48 | `azazael-cain-pipeline` | codex | CAIN video rendering pipeline — Puppeteer browser capture (NOT PIL), session-specific HTML injection, optim... |
+| 49 | `azazael-cain-template` | codex | CAIN template optimization — dead code removal (web-arrows, duplicate sections), CSS animation audit, sessi... |
+| 50 | `azazael-codex` | codex | Azazael CODEX systems — video generation with PIL/ffmpeg, PAMS/MemoryBus memory systems, session audit trai... |
+| 51 | `azazael-neural-architecture` | codex | Neural architecture reference — RL pipelines (RLTrainLoop, SB3Agent, GRPOTrainer), Mixture of Experts patte... |
+| 52 | `azazael-neural-pipeline` | codex | NeuralPipeline v1.0.0 — unified end-to-end ML orchestrator. 6-step lifecycle (Extract → Featurize → Train →... |
+| 53 | `azazael-rendering-methods` | codex | **[OBSOLETE MATH]** CAIN video rendering method comparison — see `azazael/CAIN_DELIVERABLE_MATH_2026-06-05.... |
+| 54 | `azazael-training-pipeline` | codex | Training data pipeline — ETL (DataPipelineWorm), feature extraction (SchemaAwareFeatureExtractor), RL train... |
+| 55 | `azazael-conventions` | conventions | Azazael Python coding conventions — patterns, style rules, import style, error handling patterns, threading... |
+| 56 | `azazael-git` | conventions | Azazael git conventions — commit messages, branching strategy, pre-commit checks, CI-ready workflow. Load b... |
+| 57 | `azazael-mermaid` | conventions | Azazael Mermaid graph generation — diagram patterns (graph TD, sequenceDiagram), ASCII safety rules, graph ... |
+| 58 | `azazael-threading` | conventions | Azazael threading patterns — Python 3.14t free-threading design, threading.Lock, threading.Event, ThreadPoo... |
+| 59 | `azazael-platform-deploy` | deploy | Cross-platform AZAZAEL 3.14t deployment — Windows 11, WSL2 Ubuntu, bare metal, Kali Linux setup and sync. |
+| 60 | `azazael-devtools-audit` | devtools | Chrome DevTools Lighthouse — performance, accessibility, SEO, best practices auditing. Load when running co... |
+| 61 | `azazael-devtools-console` | devtools | Chrome DevTools Console panel — JavaScript error detection, console.log inspection, runtime evaluation. Loa... |
+| 62 | `azazael-devtools-coverage` | devtools | Chrome DevTools Coverage panel — unused CSS/JS detection, dead code elimination, payload optimization. Load... |
+| 63 | `azazael-devtools-elements` | devtools | Chrome DevTools Elements panel — DOM inspection, CSS validation, layout debugging, selector verification. L... |
+| 64 | `azazael-devtools-index` | devtools | Master index for all 7 Chrome DevTools skills. Loads the appropriate DevTools skill(s) based on trigger key... |
+| 65 | `azazael-devtools-network` | devtools | Chrome DevTools Network panel — resource loading, broken links, 404 detection, MIME type verification. Load... |
+| 66 | `azazael-devtools-performance` | devtools | Chrome DevTools Performance panel — frame rate, animation smoothness, layout thrashing, paint timing. Load ... |
+| 67 | `azazael-devtools-sources` | devtools | Chrome DevTools Sources panel — JavaScript debugging, breakpoints, snippet execution, source inspection. Lo... |
+| 68 | `azazael-api-client` | domain | Documents the APIClient base class — unified retry/backoff, structured InferenceError hierarchy, thread-saf... |
+| 69 | `azazael-compliance-infrastructure` | domain | RULE 0X + 0Y compliance infrastructure — ComplianceOrchestrator API, 13 components, sentinel_gate.py integr... |
+| 70 | `azazael-dead-letter-queue` | domain | Dead Letter Queue — persistent storage for failed worm executions, configurable retry with exponential back... |
+| 71 | `azazael-inference-analysis` | domain | Multi-API inference subsystem — providers, unified retry client, secrets handling, GUI inference tab. |
+| 72 | `azazael-inference-providers` | domain | 16+ free inference APIs behind a unified OpenAI-compatible provider pattern with worm-based dispatch. |
+| 73 | `azazael-worm-analysis` | domain | Worm analysis patterns — CLUSTERWORMS dynamic resolution, dead letter queue, work-stealing, circuit breaker... |
+| 74 | `azazael-gil-sidecar` | environment | Azazael free-threaded vs GIL Python environment — why CPython 3.14t rejects cp314 wheels, how the same-vers... |
+| 75 | `azazael-wsl-canonical` | environment | WSL canonical environment reference — the Linux mirror at /root/azazael/ and its differences from Windows p... |
+| 76 | `azazael_314t_master` | environment | Master reference for Python 3.14t free-threading setup — paths, package status, compiler strategy, video ge... |
+| 77 | `azazael_314t_optimum` | environment | Optimum free-threaded agent configuration for Python 3.14t — inference backends, model selection, import st... |
+| 78 | `azazael_insights_2026-05-28` | environment | Discoveries from 3.14t migration — ABI incompatibility, g++ vs MSVC, ffmpeg workarounds, Go/Node safety, WS... |
+| 79 | `azazael-error-index` | fixes | Master index mapping error symptoms to dedicated fix skill files. Load this first when troubleshooting. |
+| 80 | `azazael-fix-data-recording` | fixes | Quick-reference fixes for database and session recording errors — SQLite WAL mode, PAMS fallback, and memor... |
+| 81 | `azazael-fix-file-operations` | fixes | Quick-reference fixes for file system and data safety errors — shutil data loss, robocopy timeouts, and cro... |
+| 82 | `azazael-fix-gitbash-paths` | fixes | Quick-reference fixes for Git Bash/MSYS2 environment errors — path translation, PowerShell escaping, and sh... |
+| 83 | `azazael-fix-protocol-compliance` | fixes | Quick-reference fixes for protocol and compliance errors — process violations, SOP enforcement, and rule ma... |
+| 84 | `azazael-fix-python-314t` | fixes | Quick-reference fixes for Python 3.14t free-threading errors — segfaults, wheel issues, Nuitka patches, and... |
+| 85 | `azazael-algorithmic-respawn` | governance | Mandate governing code modification algorithms — requires Gemini pre-analysis, per-file validation, and dyn... |
+| 86 | `azazael-deep-analysis` | guardrail | Mandates the DEEP API Analysis Standard — all analysis tasks use multiple free inference APIs with cross-re... |
+| 87 | `azazael-no-permission-language` | guardrail | No permission-seeking language for mandated actions — CRITICAL process violation per instance. |
+| 88 | `azazael-secrets-manager` | infrastructure | Unified secrets manager for all Azazael API keys — audit, .env management, provider registry, consolidation |
+| 89 | `azazael-sync-wsl` | infrastructure | WSL-aware sync_all.py — bidirectional sync (WSL→Windows, WSL→G:), get_env_status + verify_integrity from WS... |
+| 90 | `azazael-timesfm-314t` | investigation | TimesFM 3 second-opinion anomaly layer + Bai-Perron breakpoint dating on 3.14t free-threaded venv — 990-ser... |
+| 91 | `azazael-pams-memory` | memory | Persistent AI memory system — LocalMemoryStore (SQLite), PamsRecorder with local fallback, MemoryBus pub/su... |
+| 92 | `azazael-mesh-resilience-primitives` | neural-mesh | The four mesh resilience primitives built from the 2026-09-16 per-function |
+| 93 | `azazael-exe-build` | packaging | Nuitka .exe building procedures — Python 3.14t required, patched Nuitka, common gotchas, build.bat patterns... |
+| 94 | `azazael-work-stealing` | parallel | WorkStealingPool and WorkStealingQueue — dynamic load balancing across threads for Python 3.14t free-thread... |
+| 95 | `azazael-optimization-session` | performance | Lazy import optimization patterns — module splitting, PAMS HTTP cache, fast-path registry discovery. Patter... |
+| 96 | `azazael-deploy` | planning | Azazael deployment — Docker, CLI packaging, scheduled runs, G:/ archive, production readiness. Load for dep... |
+| 97 | `azazael-desktop-projects` | planning | Complete Desktop project inventory and operability audit — 14 projects, 3 operational, 5 partial, 6 deprecated |
+| 98 | `azazael-full-wiring` | planning | Complete AZAZAEL production wiring guide — all 17 areas, 70 tasks, priority ordering, and cross-project int... |
+| 99 | `azazael-production` | planning | Azazael production readiness — critical gaps (testing, error recovery, config), high-priority items (perfor... |
+| 100 | `azazael-agent-utilization` | process | Agent Utilization Mandate (RULE 0W) — minimum agent spawns per task type, 100% capacity framework, agent cl... |
+| 101 | `azazael-archive-restore` | process | >- |
+| 102 | `azazael-catalog-maintenance` | process | SKILLS_CATALOG.md format, numbering convention, Sections pattern, and maintenance procedures for adding new... |
+| 103 | `azazael-catalog-reconciliation` | process | SKILLS_CATALOG.md numbering reconciliation pattern — master table |
+| 104 | `azazael-comprehensive-testing` | process | End-to-end testing procedures for Azazael — compliance self-test, worm health check, mypy audit, import ver... |
+| 105 | `azazael-dedup` | process | Deduplication procedures — MD5 hash comparison, duplicate file detection, deprecation shim creation, cleanu... |
+| 106 | `azazael-error-prevention` | process | Anti-patterns, prevention checklists, and process guardrails to prevent repeating costly mistakes. Covers b... |
+| 107 | `azazael-improve` | process | Structured improvement pass grounded in session observations. Use after completing a task, before claiming ... |
+| 108 | `azazael-inference-protocol` | process | Inference Protocol (RULE 0D/0Z-A) — 12-provider automatic failover chain, auto-fallback procedure when thin... |
+| 109 | `azazael-interpreters` | process | INTERPRETERS — Go and Rust language runners for executing non-Python code within the Azazael ecosystem. 3 .... |
+| 110 | `azazael-kali-graph-protocol` | process | Established protocol for graphing the full Kali Linux tree with graphify + cosmos into the Desktop atlas — ... |
+| 111 | `azazael-meta-reflection` | process | Meta-reflection protocol - distill generalized instructions from past trials (success AND failure), validat... |
+| 112 | `azazael-ml-platforms` | process | ML platform infrastructure — LM Studio integration, Q-learning, ONNX, Ray, harness, diagnostics, health mon... |
+| 113 | `azazael-model-compression` | process | Model compression techniques — quantization (GPTQ, AWQ, GGUF), knowledge distillation, and pruning. Integra... |
+| 114 | `azazael-shims` | process | Deprecation shim pattern — when to create shims, how to use FutureWarning, re-export patterns, testing proc... |
+| 115 | `azazael-sync-patterns` | process | Sync infrastructure — sync_all.py and sync_skills.py patterns. 5 environments, 178+ files, integrity checks... |
+| 116 | `azazael-todo-management` | process | TODO document management methodology — versioning strategy, cross-referencing, ADDITIVE/REINFORCES/DUPLICAT... |
+| 117 | `azazael-tool-dynamic-logger` | process | AzazaelDynamicLogger — leveled logging helper used by toolbelt modules. Use when adding logging to azazael ... |
+| 118 | `azazael-tool-environ-updater` | process | environ_updater — environment/PATH reconciliation for toolbelt scripts. Use when a tool runs standalone but... |
+| 119 | `azazael-tool-learning-monitor` | process | monitor_learning — learning-loop dashboard monitor (live window, LAN web page, rolling log). Use to watch e... |
+| 120 | `azazael-tool-lsp-diagnosis` | process | lsp_diagnosis — LSP/language-server diagnostics for editor tooling. Use when hover/completion breaks or a l... |
+| 121 | `azazael-tool-qwythos-proxy` | process | qwythos_proxy — local HTTP proxy tool in azazael/src/TOOLS. Use when traffic inspection, request intercepti... |
+| 122 | `azazael-tools` | process | TOOLS directory — debug_runner (multi-agent test runner), archive_system (file archiving), COMPREHENSIVE_FI... |
+| 123 | `azazael-utilities` | process | UTILITIES sub-systems catalog — KLINK, PERSEPHONE (environment/sync), POINDEXTER (indexing), TARBABY (file ... |
+| 124 | `azazael-gemini-injection` | protocol | Explicit rules for spawning thinker-with-files-gemini — injection points across task phases. |
+| 125 | `azazael-gemini-mandate` | protocol | Operational enforcement of Gemini spawning frequency for complex tasks. |
+| 126 | `azazael-gemini-protocol` | protocol | Mandatory 10-phase multi-tier protocol enforcement with Gemini synthesis points. |
+| 127 | `azazael-audit-infrastructure` | quality | VLP 15-layer audit trail system — .audit/ JSONL hash-chained sessions, DirectMemory dual-ledger cross-valid... |
+| 128 | `azazael-crossplat-fileops` | quality | Safe Windows file operations from Git Bash/bash environment — avoid path escaping, data loss, and timeout i... |
+| 129 | `azazael-error-resolution` | quality | Sequential error resolution decision tree for systematic troubleshooting. Load when encountering ANY error ... |
+| 130 | `azazael-powershell-escape` | quality | Safe PowerShell command patterns from basher/Git Bash — avoid cmdlet escaping, $variable mangling, and pars... |
+| 131 | `azazael-session-recording` | quality | Session recording — DEPRECATED: CodebuffTracker and SessionRecorder are hard-blocked. Use DirectMemory (COR... |
+| 132 | `azazael-compliance-orchestrator` | system | Automated Compliance Infrastructure (RULE 0X/0Y) — 13 compliance components, policy engine, formal verifier... |
+| 133 | `azazael-direct-memory` | system | DirectMemory — Canonical session recording system. Stdlib-only, <0.1s init, WAL mode, signal-safe, atexit-s... |
+| 134 | `azazael-hats` | system | Tool hat codification — White Hat / Red Hat (reserved) / Cerulean Hat (Blue). Hat follows authorization and... |
+| 135 | `azazael-mandates` | system | Complete Codification of ALL active mandates — 37 total (31 RULEs 0A-0Z-C + 1 mandatory enforcement mechani... |
+| 136 | `azazael-neural-integration` | system | Cross-system integration architecture — data flow, training-to-deployment pipeline, and coupling points bet... |
+| 137 | `azazael-orchestration` | system | ORCHESTRATION + HYDRA systems — ecosystem crawler, HORUS monitoring, HYDRA adaptive ML cluster, ML platform... |
+| 138 | `azazael-pre-action-gate` | system | PERMANENT PRE-ACTION GATE (RULE 0J/0S) — 13-question mandatory assertion block. MUST be printed before EVER... |
+| 139 | `azazael-sentinel-gate` | system | COMPLIANCE SENTINEL (RULE 0C/0S) — Mandatory PRE-ACTION AUTHORIZATION GATE. 25-item self-audit checklist. N... |
+| 140 | `azazael-sop` | system | Standard Operating Procedure — ALL canonical mandates (RULEs 0A-0Z, Rule 0, COMPLIANCE SENTINEL), error rec... |
+| 141 | `azazael-system-startup` | system | Auto-load startup instructions for coding session congruency. Mandatory file reading order, skill loading s... |
+| 142 | `azazael-toolkit` | system | AZAZAEL_TOOLKIT — core framework, QL analysis, environment manager, comprehensive fix tools. 7 .py files fo... |
+| 143 | `azazael-verifiable-truth` | system | Verifiable Truth Mandate (RULE 0T/0T-A/0T-B) — 15-layer VLP verification stack, audit trail format, Ed25519... |
+| 144 | `azazael-nsga2-testing` | testing | Unit tests for the NSGA-II evolutionary optimization engine (9 classes, 16 tests). |
+| 145 | `azazael-testing` | testing | Azazael testing conventions — syntax check, integration test, worm config trace, code review. Load when val... |
+| 146 | `azazael-autoflake` | tooling | Free-threaded autoflake wrapper for Python 3.14t — batch unused import detection, removal, and reporting. C... |
+| 147 | `azazael-chrome-url-download` | tools | Capture the active Chrome tab URL (UI Automation, no DevTools needed) or the clipboard URL, then download i... |
+| 148 | `azazael-youtube-digest` | tools | Fetch YouTube transcripts and turn videos into structured digests (TL;DR, key theses, timestamped timeline,... |
+| 149 | `azazael-stale-artifact-self-audit` | verification | Two defect classes that made this architecture report success while wrong — confidently-incomplete artifact... |
+| 150 | `azazael-eleven-followups` | workflow | RULE 0Z-B — Mandates exactly 11 followup suggestions at the end of EVERY assistant response. Permanent, nev... |
+| 151 | `azazael-environment` | workflow | Azazael environment setup — Python 3.10+/3.14t requirements, dependency installation, project path configur... |
+| 152 | `azazael-operating-protocols` | workflow | Operating protocols for Codebuff/AI agents working on Azazael — 11 followups mandate, max parallel agent ex... |
+| 153 | `azazael-parallel-execution` | workflow | RULE 0Z-F — Parallel Agent Execution Mandate. Maximum concurrency, batch all independent work into single s... |
+| 154 | `azazael-parallel-execution-quickref` | workflow | Quick-reference cheat sheet for RULE 0Z-F Parallel Agent Execution — anti-pattern table, agent spawn patter... |
+| 155 | `azazael-production-reach` | workflow | Prove a capability executes in production runtime, not just imports or registers — the 5-rung reach ladder,... |
+| 156 | `azazael-startup` | workflow | Reference catalog for Azazael sessions. 24-skill catalog, environment setup, project numbers. Delegates sta... |
 
-## Skill Quick Reference — Kali Package Skills (147-1114)
+## Skill Quick Reference — Kali Package Skills (157-1124)
 | # | Skill | Category | Description |
 |---|-------|----------|-------------|
-| 147 | `azazael-pkg-aadict` | packages | Callable skill for Python package aadict 0.2.3 — An auto-attribute dict (and a couple of other useful dict ... |
-| 148 | `azazael-pkg-about-time` | packages | Callable skill for Python package about-time 4.2.1 — Easily measure timing and throughput of code blocks, w... |
-| 149 | `azazael-pkg-above` | packages | Callable skill for Python package above 2.8.1 — Network Security Sniffer |
-| 150 | `azazael-pkg-acstore` | packages | Callable skill for Python package acstore 20240407 — Attribute Container Storage (ACStore). |
-| 151 | `azazael-pkg-adblockparser` | packages | Callable skill for Python package adblockparser 0.7 — Parser for Adblock Plus rules |
-| 152 | `azazael-pkg-aesedb` | packages | Callable skill for Python package aesedb 0.1.4 — NTDS parser toolkit |
-| 153 | `azazael-pkg-aiocmd` | packages | Callable skill for Python package aiocmd 0.1.2 — Coroutine-based CLI generator using prompt_toolkit |
-| 154 | `azazael-pkg-aioconsole` | packages | Callable skill for Python package aioconsole 0.8.2 — Asynchronous console and interfaces for asyncio |
-| 155 | `azazael-pkg-aiodns` | packages | Callable skill for Python package aiodns 4.0.0 — Simple DNS resolver for asyncio |
-| 156 | `azazael-pkg-aiofiles` | packages | Callable skill for Python package aiofiles 25.1.0 — File support for asyncio. |
-| 157 | `azazael-pkg-aioftp` | packages | Callable skill for Python package aioftp 0.27.2 — ftp client/server for asyncio |
-| 158 | `azazael-pkg-aiohappyeyeballs` | packages | Callable skill for Python package aiohappyeyeballs 2.7.0 — Happy Eyeballs for asyncio |
-| 159 | `azazael-pkg-aiohttp` | packages | Callable skill for Python package aiohttp 3.13.5 — Async http client/server framework (asyncio) |
-| 160 | `azazael-pkg-aiohttp-apispec` | packages | Callable skill for Python package aiohttp-apispec 3.0.0b2 — Build and document REST APIs with aiohttp and a... |
-| 161 | `azazael-pkg-aiohttp-jinja2` | packages | Callable skill for Python package aiohttp-jinja2 1.6 — jinja2 template renderer for aiohttp.web (http serve... |
-| 162 | `azazael-pkg-aiohttp-security` | packages | Callable skill for Python package aiohttp-security 0.5.0 — security for aiohttp.web |
-| 163 | `azazael-pkg-aiohttp-session` | packages | Callable skill for Python package aiohttp-session 2.12.1 — sessions for aiohttp.web |
-| 164 | `azazael-pkg-aiohttp-socks` | packages | Callable skill for Python package aiohttp_socks 0.10.1 — Proxy connector for aiohttp |
-| 165 | `azazael-pkg-aiomultiprocess` | packages | Callable skill for Python package aiomultiprocess 0.9.0 — AsyncIO version of the standard multiprocessing m... |
-| 166 | `azazael-pkg-aioquic` | packages | Callable skill for Python package aioquic 1.2.0 — An implementation of QUIC and HTTP/3 |
-| 167 | `azazael-pkg-aiosignal` | packages | Callable skill for Python package aiosignal 1.4.0 — aiosignal: a list of registered asynchronous callbacks |
-| 168 | `azazael-pkg-aiosmb` | packages | Callable skill for Python package aiosmb 0.4.4 — Asynchronous SMB protocol implementation |
-| 169 | `azazael-pkg-aiosqlite` | packages | Callable skill for Python package aiosqlite 0.21.0 — asyncio bridge to the standard sqlite3 module |
-| 170 | `azazael-pkg-aiowinreg` | packages | Callable skill for Python package aiowinreg 0.0.7 — Windows registry file reader |
-| 171 | `azazael-pkg-ajpy` | packages | Callable skill for Python package ajpy 0.0.5 — AJP package crafting library |
-| 172 | `azazael-pkg-alabaster` | packages | Callable skill for Python package alabaster 1.0.0 — A light, configurable Sphinx theme |
-| 173 | `azazael-pkg-alive-progress` | packages | Callable skill for Python package alive-progress 3.2.0 — A new kind of Progress Bar, with real-time through... |
-| 174 | `azazael-pkg-altgraph` | packages | Callable skill for Python package altgraph 0.17.5 — Python graph (network) package |
-| 175 | `azazael-pkg-aniso8601` | packages | Callable skill for Python package aniso8601 10.0.1 — A library for parsing ISO 8601 strings. |
-| 176 | `azazael-pkg-annotated-doc` | packages | Callable skill for Python package annotated-doc 0.0.4 — Document parameters, class attributes, return types... |
-| 177 | `azazael-pkg-annotated-types` | packages | Callable skill for Python package annotated-types 0.7.0 — Reusable constraint types to use with typing.Anno... |
-| 178 | `azazael-pkg-antlr4-python3-runtime` | packages | Callable skill for Python package antlr4-python3-runtime 4.9.2 — ANTLR 4.9.2 runtime for Python 3.7 |
-| 179 | `azazael-pkg-anyio` | packages | Callable skill for Python package anyio 4.12.1 — High-level concurrency and networking framework on top of ... |
-| 180 | `azazael-pkg-apispec` | packages | Callable skill for Python package apispec 6.10.0 — A pluggable API specification generator. Currently suppo... |
-| 181 | `azazael-pkg-arc4` | packages | Callable skill for Python package arc4 0.4.0 — A small and insanely fast ARCFOUR (RC4) cipher implementatio... |
-| 182 | `azazael-pkg-argcomplete` | packages | Callable skill for Python package argcomplete 3.6.3 — Bash tab completion for argparse |
-| 183 | `azazael-pkg-argon2-cffi` | packages | Callable skill for Python package argon2-cffi 25.1.0 — Argon2 for Python |
-| 184 | `azazael-pkg-argon2-cffi-bindings` | packages | Callable skill for Python package argon2-cffi-bindings 25.1.0 — Low-level CFFI bindings for Argon2 |
-| 185 | `azazael-pkg-arjun` | packages | Callable skill for Python package arjun 2.2.7 — HTTP parameter discovery suite |
-| 186 | `azazael-pkg-arpy` | packages | Callable skill for Python package arpy 1.1.1 — Library for accessing "ar" files |
-| 187 | `azazael-pkg-arrow` | packages | Callable skill for Python package arrow 1.4.0 — Better dates & times for Python |
-| 188 | `azazael-pkg-artifacts` | packages | Callable skill for Python package artifacts 20230928 — ForensicArtifacts.com Artifact Repository. |
-| 189 | `azazael-pkg-asciitree` | packages | Callable skill for Python package asciitree 0.3.3 — Draws ASCII trees. |
-| 190 | `azazael-pkg-asgiref` | packages | Callable skill for Python package asgiref 3.11.1 — ASGI specs, helper code, and adapters |
-| 191 | `azazael-pkg-asn1crypto` | packages | Callable skill for Python package asn1crypto 1.5.1 — Fast ASN.1 parser and serializer with definitions for ... |
-| 192 | `azazael-pkg-asn1tools` | packages | Callable skill for Python package asn1tools 0.166.0 — ASN.1 parsing, encoding and decoding. |
-| 193 | `azazael-pkg-asset` | packages | Callable skill for Python package asset 0.6.13 — A package resource and symbol loading helper library. |
-| 194 | `azazael-pkg-astroid` | packages | Callable skill for Python package astroid 4.1.1 — An abstract syntax tree for Python with inference support. |
-| 195 | `azazael-pkg-asttokens` | packages | Callable skill for Python package asttokens 3.0.1 — Annotate AST trees with source code positions |
-| 196 | `azazael-pkg-asyauth` | packages | Callable skill for Python package asyauth 0.0.20 — Unified authentication library |
-| 197 | `azazael-pkg-async-timeout` | packages | Callable skill for Python package async-timeout 5.0.1 — Timeout context manager for asyncio programs |
-| 198 | `azazael-pkg-asyncssh` | packages | Callable skill for Python package asyncssh 2.23.0 — AsyncSSH: Asynchronous SSHv2 client and server library |
-| 199 | `azazael-pkg-asysocks` | packages | Callable skill for Python package asysocks 0.2.12 — No summary available. |
-| 200 | `azazael-pkg-atomic-operator` | packages | Callable skill for Python package atomic-operator 0.9.1 — A python package to execute security tests on rem... |
-| 201 | `azazael-pkg-atomic-operator-runner` | packages | Callable skill for Python package atomic-operator-runner 0.2.1 — atomic-operator-runner |
-| 202 | `azazael-pkg-attrs` | packages | Callable skill for Python package attrs 26.1.0 — Classes Without Boilerplate |
-| 203 | `azazael-pkg-autocommand` | packages | Callable skill for Python package autocommand 2.2.2 — A library to create a command-line program from a fun... |
-| 204 | `azazael-pkg-automat` | packages | Callable skill for Python package Automat 25.4.16 — Self-service finite-state machines for the programmer o... |
-| 205 | `azazael-pkg-awscli` | packages | Callable skill for Python package awscli 2.31.35 — Universal Command Line Environment for AWS. |
-| 206 | `azazael-pkg-awscrt` | packages | Callable skill for Python package awscrt 1.0.0.dev0 — A common runtime for AWS Python projects |
-| 207 | `azazael-pkg-babel` | packages | Callable skill for Python package babel 2.17.0 — Internationalization utilities |
-| 208 | `azazael-pkg-backoff` | packages | Callable skill for Python package backoff 2.2.1 — Function decoration for backoff and retry |
-| 209 | `azazael-pkg-backports-zstd` | packages | Callable skill for Python package backports.zstd 1.5.0 — Backport of compression.zstd |
-| 210 | `azazael-pkg-bcrypt` | packages | Callable skill for Python package bcrypt 5.0.0 — Modern password hashing for your software and your servers |
-| 211 | `azazael-pkg-beautifulsoup4` | packages | Callable skill for Python package beautifulsoup4 4.14.3 — Screen-scraping library |
-| 212 | `azazael-pkg-bidict` | packages | Callable skill for Python package bidict 0.23.1 — The bidirectional mapping library for Python. |
-| 213 | `azazael-pkg-binwalk` | packages | Callable skill for Python package binwalk 2.4.3 — Firmware analysis tool |
-| 214 | `azazael-pkg-bitstruct` | packages | Callable skill for Python package bitstruct 8.22.1 — This module performs conversions between Python values... |
-| 215 | `azazael-pkg-blinker` | packages | Callable skill for Python package blinker 1.9.0 — Fast, simple object-to-object and broadcast signaling |
-| 216 | `azazael-pkg-bloodhound` | packages | Callable skill for Python package bloodhound 1.9.0 — Python based ingestor for BloodHound |
-| 217 | `azazael-pkg-bloodhound-ce` | packages | Callable skill for Python package bloodhound-ce 1.9.1 — Python based ingestor for BloodHound Community Edition |
-| 218 | `azazael-pkg-blosc` | packages | Callable skill for Python package blosc 1.11.2 — Blosc data compressor |
-| 219 | `azazael-pkg-bluepy` | packages | Callable skill for Python package bluepy 1.3.0 — Python module for interfacing with BLE devices through Bluez |
-| 220 | `azazael-pkg-bopscrk` | packages | Callable skill for Python package bopscrk 2.4.7 — Generate smart and powerful wordlists |
-| 221 | `azazael-pkg-boto3` | packages | Callable skill for Python package boto3 1.40.72 — The AWS SDK for Python |
-| 222 | `azazael-pkg-botocore` | packages | Callable skill for Python package botocore 1.40.72 — Low-level, data-driven core of boto 3. |
-| 223 | `azazael-pkg-bottle` | packages | Callable skill for Python package bottle 0.13.2 — Fast and simple WSGI-framework for small web-applications. |
-| 224 | `azazael-pkg-bottleneck` | packages | Callable skill for Python package Bottleneck 1.4.2 — Fast NumPy array functions written in C |
-| 225 | `azazael-pkg-brotli` | packages | Callable skill for Python package Brotli 1.2.0 — Python bindings for the Brotli compression library |
-| 226 | `azazael-pkg-browser-cookie3` | packages | Callable skill for Python package browser-cookie3 0.20.1 — Loads cookies from your browser into a cookiejar... |
-| 227 | `azazael-pkg-cairocffi` | packages | Callable skill for Python package cairocffi 1.7.1 — cffi-based cairo bindings for Python |
-| 228 | `azazael-pkg-capstone` | packages | Callable skill for Python package capstone 5.0.7 — Capstone disassembly engine |
-| 229 | `azazael-pkg-censys` | packages | Callable skill for Python package censys 2.2.19 — An easy-to-use and lightweight API wrapper for Censys API... |
-| 230 | `azazael-pkg-cerberus` | packages | Callable skill for Python package Cerberus 1.3.7 — Lightweight, extensible schema and data validation tool ... |
-| 231 | `azazael-pkg-certi` | packages | Callable skill for Python package certi 0.1.0 — Tool to ask certificates to ADCS and discover templates |
-| 232 | `azazael-pkg-certifi` | packages | Callable skill for Python package certifi 2026.5.20 — Python package for providing Mozilla's CA Bundle. |
-| 233 | `azazael-pkg-certipy-ad` | packages | Callable skill for Python package certipy-ad 5.0.4 — Active Directory Certificate Services enumeration and ... |
-| 234 | `azazael-pkg-cffi` | packages | Callable skill for Python package cffi 2.0.0 — Foreign Function Interface for Python calling C code. |
-| 235 | `azazael-pkg-cfscrape` | packages | Callable skill for Python package cfscrape 1.9.5 — A simple Python module to bypass Cloudflare's anti-bot p... |
-| 236 | `azazael-pkg-chardet` | packages | Callable skill for Python package chardet 5.2.0 — Universal encoding detector for Python 3 |
-| 237 | `azazael-pkg-charset-normalizer` | packages | Callable skill for Python package charset-normalizer 3.4.7 — The Real First Universal Charset Detector. Ope... |
-| 238 | `azazael-pkg-cheroot` | packages | Callable skill for Python package cheroot 11.1.2+ds1 — Highly-optimized, pure-python HTTP server |
-| 239 | `azazael-pkg-cherrypy` | packages | Callable skill for Python package CherryPy 18.10.0 — Object-Oriented HTTP framework |
-| 240 | `azazael-pkg-cherrypy-cors` | packages | Callable skill for Python package cherrypy-cors 1.6 — CORS handling as a cherrypy tool. |
-| 241 | `azazael-pkg-chirp` | packages | Callable skill for Python package chirp 20251108 — A cross-platform cross-radio programming tool |
-| 242 | `azazael-pkg-click` | packages | Callable skill for Python package click 8.1.8 — Composable command line interface toolkit |
-| 243 | `azazael-pkg-click-default-group` | packages | Callable skill for Python package click-default-group 1.2.4 — click_default_group |
-| 244 | `azazael-pkg-cloudpickle` | packages | Callable skill for Python package cloudpickle 3.1.2 — Pickler class to extend the standard pickle.Pickler f... |
-| 245 | `azazael-pkg-cloudscraper` | packages | Callable skill for Python package cloudscraper 1.2.71 — A Python module to bypass Cloudflare's anti-bot page. |
-| 246 | `azazael-pkg-coercer` | packages | Callable skill for Python package coercer 2.4.3 — No summary available. |
-| 247 | `azazael-pkg-colorama` | packages | Callable skill for Python package colorama 0.4.6 — Cross-platform colored terminal text. |
-| 248 | `azazael-pkg-colorclass` | packages | Callable skill for Python package colorclass 2.2.2 — Colorful worry-free console applications for Linux, Ma... |
-| 249 | `azazael-pkg-colored-traceback` | packages | Callable skill for Python package colored-traceback 0.4.2 — Automatically color uncaught exception tracebacks |
-| 250 | `azazael-pkg-colorlog` | packages | Callable skill for Python package colorlog 6.10.1 — Add colours to the output of Python's logging module. |
-| 251 | `azazael-pkg-commandparse` | packages | Callable skill for Python package commandparse 1.1.2 — CLI application commands parser |
-| 252 | `azazael-pkg-commonmark` | packages | Callable skill for Python package commonmark 0.9.1 — Python parser for the CommonMark Markdown spec |
-| 253 | `azazael-pkg-condense-json` | packages | Callable skill for Python package condense-json 0.1.3 — Python function for condensing JSON using replaceme... |
-| 254 | `azazael-pkg-configargparse` | packages | Callable skill for Python package ConfigArgParse 1.7 — A drop-in replacement for argparse that allows optio... |
-| 255 | `azazael-pkg-constantly` | packages | Callable skill for Python package constantly 23.10.4 — Symbolic constants in Python |
-| 256 | `azazael-pkg-contourpy` | packages | Callable skill for Python package contourpy 1.3.3 — Python library for calculating contours of 2D quadrilat... |
-| 257 | `azazael-pkg-crackmapexec` | packages | Callable skill for Python package crackmapexec 5.4.0 — A swiss army knife for pentesting networks |
-| 258 | `azazael-pkg-crcelk` | packages | Callable skill for Python package crcelk 1.3 — CrcElk is an updated fork of the CrcMoose module for recent ... |
-| 259 | `azazael-pkg-crit` | packages | Callable skill for Python package crit 4.2 — CRiu Image Tool |
-| 260 | `azazael-pkg-croniter` | packages | Callable skill for Python package croniter 6.0.0 — croniter provides iteration for datetime object with cro... |
-| 261 | `azazael-pkg-crowbar` | packages | Callable skill for Python package crowbar 4.1 — No summary available. |
-| 262 | `azazael-pkg-cryptography` | packages | Callable skill for Python package cryptography 46.0.7 — cryptography is a package which provides cryptograp... |
-| 263 | `azazael-pkg-cssselect` | packages | Callable skill for Python package cssselect 1.4.0 — cssselect parses CSS3 Selectors and translates them to ... |
-| 264 | `azazael-pkg-cssselect2` | packages | Callable skill for Python package cssselect2 0.9.0 — CSS selectors for Python ElementTree |
-| 265 | `azazael-pkg-ctypescrypto` | packages | Callable skill for Python package ctypescrypto 0.5 — CTypes-based interface for some OpenSSL libcrypto feat... |
-| 266 | `azazael-pkg-cupshelpers` | packages | Callable skill for Python package cupshelpers 1.0 — Helper functions and classes for using CUPS |
-| 267 | `azazael-pkg-cx-oracle` | packages | Callable skill for Python package cx_Oracle 8.3.0 — Python interface to Oracle |
-| 268 | `azazael-pkg-cycler` | packages | Callable skill for Python package cycler 0.12.1 — Composable style cycles |
-| 269 | `azazael-pkg-dacite` | packages | Callable skill for Python package dacite 1.9.2 — Simple creation of data classes from dictionaries. |
-| 270 | `azazael-pkg-dask` | packages | Callable skill for Python package dask 2024.12.1+dfsg — Parallel PyData with Task Scheduling |
-| 271 | `azazael-pkg-dbus-python` | packages | Callable skill for Python package dbus-python 1.4.0 — Python bindings for libdbus |
-| 272 | `azazael-pkg-decorator` | packages | Callable skill for Python package decorator 5.2.1 — Decorators for Humans |
-| 273 | `azazael-pkg-defusedcsv` | packages | Callable skill for Python package defusedcsv 3.0.0 — Drop-in replacement for Python's CSV library that trie... |
-| 274 | `azazael-pkg-defusedxml` | packages | Callable skill for Python package defusedxml 0.7.1 — XML bomb protection for Python stdlib modules |
-| 275 | `azazael-pkg-deprecated` | packages | Callable skill for Python package Deprecated 1.3.1 — Python @deprecated decorator to deprecate old python c... |
-| 276 | `azazael-pkg-dfdatetime` | packages | Callable skill for Python package dfdatetime 20251018 — Digital Forensics date and time (dfDateTime). |
-| 277 | `azazael-pkg-dfvfs` | packages | Callable skill for Python package dfvfs 20251019 — Digital Forensics Virtual File System (dfVFS). |
-| 278 | `azazael-pkg-dfwinreg` | packages | Callable skill for Python package dfwinreg 20240316 — Digital Forensics Windows Registry (dfWinReg). |
-| 279 | `azazael-pkg-dhcpig` | packages | Callable skill for Python package dhcpig 0.0.0 — DHCP exhaustion script using scapy network library |
-| 280 | `azazael-pkg-dhcplib` | packages | Callable skill for Python package dhcplib 0.1.1 — Pure-Python, spec-compliant DHCP-packet-processing library |
-| 281 | `azazael-pkg-dicttoxml` | packages | Callable skill for Python package dicttoxml 1.7.16 — Converts a Python dictionary or other native data type... |
-| 282 | `azazael-pkg-dirsearch` | packages | Callable skill for Python package dirsearch 0.4.3 — Advanced web path scanner |
-| 283 | `azazael-pkg-diskcache` | packages | Callable skill for Python package diskcache 5.6.3 — Disk Cache -- Disk and file backed persistent cache. |
-| 284 | `azazael-pkg-dissect-cstruct` | packages | Callable skill for Python package dissect.cstruct 0.0.0 — A Dissect module implementing a parser for C-like... |
-| 285 | `azazael-pkg-distlib` | packages | Callable skill for Python package distlib 0.4.0 — Distribution utilities |
-| 286 | `azazael-pkg-distorm3` | packages | Callable skill for Python package distorm3 3.5.2 — The goal of diStorm3 is to decode x86/AMD64 binary strea... |
-| 287 | `azazael-pkg-distributed` | packages | Callable skill for Python package distributed 2024.12.1 — Distributed scheduler for Dask |
-| 288 | `azazael-pkg-distro` | packages | Callable skill for Python package distro 1.9.0 — Distro - an OS platform information API |
-| 289 | `azazael-pkg-django` | packages | Callable skill for Python package Django 4.2.30 — A high-level Python web framework that encourages rapid d... |
-| 290 | `azazael-pkg-dnsgen` | packages | Callable skill for Python package dnsgen 1.0.4 — Generates DNS possibilities from existing domain names. |
-| 291 | `azazael-pkg-dnslib` | packages | Callable skill for Python package dnslib 0.9.25 — Simple library to encode/decode DNS wire-format packets |
-| 292 | `azazael-pkg-dnspython` | packages | Callable skill for Python package dnspython 2.8.0 — DNS toolkit |
-| 293 | `azazael-pkg-dnstwist` | packages | Callable skill for Python package dnstwist 20250130 — Domain name permutation engine for detecting homograp... |
-| 294 | `azazael-pkg-docker` | packages | Callable skill for Python package docker 7.1.0 — A Python library for the Docker Engine API. |
-| 295 | `azazael-pkg-docopt` | packages | Callable skill for Python package docopt 0.6.2 — Pythonic argument parser, that will make you smile |
-| 296 | `azazael-pkg-docutils` | packages | Callable skill for Python package docutils 0.22.4 — Docutils -- Python Documentation Utilities |
-| 297 | `azazael-pkg-docxcompose` | packages | Callable skill for Python package docxcompose 2.2.0 — Compose .docx documents |
-| 298 | `azazael-pkg-docxtpl` | packages | Callable skill for Python package docxtpl 0.20.1 — Python docx template engine |
-| 299 | `azazael-pkg-donut-shellcode` | packages | Callable skill for Python package donut-shellcode 1.1 — Donut shellcode Python C extension |
-| 300 | `azazael-pkg-dploot` | packages | Callable skill for Python package dploot 3.1.2 — DPAPI looting remotely in Python |
-| 301 | `azazael-pkg-dronekit` | packages | Callable skill for Python package dronekit 2.9.2 — Developer Tools for Drones. |
-| 302 | `azazael-pkg-dropbox` | packages | Callable skill for Python package dropbox 12.0.2 — Official Dropbox API Client |
-| 303 | `azazael-pkg-dscan-4e656f` | packages | Callable skill for Python package dscan-4E656F 0.1.5 — ('Wrapper around nmap allow nmap scans to be distrib... |
-| 304 | `azazael-pkg-dsinternals` | packages | Callable skill for Python package dsinternals 1.2.4 — No summary available. |
-| 305 | `azazael-pkg-dsnap` | packages | Callable skill for Python package dsnap 1.0.1 — Utility for downloading EBS snapshots using the EBS Direct ... |
-| 306 | `azazael-pkg-dtfabric` | packages | Callable skill for Python package dtfabric 20251118 — Data type fabric (dtfabric) |
-| 307 | `azazael-pkg-duckpy` | packages | Callable skill for Python package duckpy 3.2.0 — A simple module for searching on DuckDuckGo |
-| 308 | `azazael-pkg-dunamai` | packages | Callable skill for Python package dunamai 1.25.0 — Dynamic version generation |
-| 309 | `azazael-pkg-easygui` | packages | Callable skill for Python package easygui 0.98.3 — EasyGUI is a module for very simple, very easy GUI progr... |
-| 310 | `azazael-pkg-elastic-transport` | packages | Callable skill for Python package elastic-transport 9.4.1 — Transport classes and utilities shared among Py... |
-| 311 | `azazael-pkg-elasticsearch` | packages | Callable skill for Python package elasticsearch 9.4.1 — Python client for Elasticsearch |
-| 312 | `azazael-pkg-email-validator` | packages | Callable skill for Python package email_validator 2.2.0 — A robust email address syntax and deliverability ... |
-| 313 | `azazael-pkg-enum4linux-ng` | packages | Callable skill for Python package enum4linux-ng 1.3.10 — A next generation version of enum4linux |
-| 314 | `azazael-pkg-envs` | packages | Callable skill for Python package envs 1.2.6 — Easy access of environment variables from Python with suppor... |
-| 315 | `azazael-pkg-et-xmlfile` | packages | Callable skill for Python package et_xmlfile 2.0.0 — An implementation of lxml.xmlfile for the standard lib... |
-| 316 | `azazael-pkg-evdev` | packages | Callable skill for Python package evdev 1.9.3 — Bindings to the Linux input handling subsystem |
-| 317 | `azazael-pkg-eventlet` | packages | Callable skill for Python package eventlet 0.40.4 — Highly concurrent networking library |
-| 318 | `azazael-pkg-evil-winrm-py` | packages | Callable skill for Python package evil-winrm-py 1.6.0 — Execute commands interactively on remote Windows ma... |
-| 319 | `azazael-pkg-executing` | packages | Callable skill for Python package executing 2.2.1 — Get the currently executing AST node of a frame, and ot... |
-| 320 | `azazael-pkg-exifread` | packages | Callable skill for Python package ExifRead 3.0.0 — Read Exif metadata from tiff and jpeg files. |
-| 321 | `azazael-pkg-extproxy` | packages | Callable skill for Python package ExtProxy 1.0.2 — ExtProxy extend urllib2's ProxyHandler to support extra ... |
-| 322 | `azazael-pkg-fake-useragent` | packages | Callable skill for Python package fake-useragent 2.2.0 — Up-to-date simple useragent faker with real world ... |
-| 323 | `azazael-pkg-faker` | packages | Callable skill for Python package Faker 39.0.0 — Faker is a Python package that generates fake data for you. |
-| 324 | `azazael-pkg-faraday-agent-dispatcher` | packages | Callable skill for Python package faraday-agent-dispatcher 3.2.1 — Faraday agent dispatcher to communicate ... |
-| 325 | `azazael-pkg-faraday-agent-parameters-types` | packages | Callable skill for Python package faraday_agent_parameters_types 1.9.1 — The faraday agents run code remote... |
-| 326 | `azazael-pkg-faraday-plugins` | packages | Callable skill for Python package faraday_plugins 1.27.2 — Faraday plugins package |
-| 327 | `azazael-pkg-fastapi` | packages | Callable skill for Python package fastapi 0.135.3 — FastAPI framework, high performance, easy to learn, fas... |
-| 328 | `azazael-pkg-fastjsonschema` | packages | Callable skill for Python package fastjsonschema 2.21.1 — Fastest Python implementation of JSON schema |
-| 329 | `azazael-pkg-feedparser` | packages | Callable skill for Python package feedparser 6.0.12 — Universal feed parser, handles RSS 0.9x, RSS 1.0, RSS... |
-| 330 | `azazael-pkg-fierce` | packages | Callable skill for Python package fierce 1.6.0 — A DNS reconnaissance tool for locating non-contiguous IP s... |
-| 331 | `azazael-pkg-filebytes` | packages | Callable skill for Python package filebytes 0.10.2 — Scripts to parse the following file formats - Executab... |
-| 332 | `azazael-pkg-filelock` | packages | Callable skill for Python package filelock 3.29.0 — A platform independent file lock. |
-| 333 | `azazael-pkg-fire` | packages | Callable skill for Python package fire 0.7.1 — A library for automatically generating command line interfaces. |
-| 334 | `azazael-pkg-flasgger` | packages | Callable skill for Python package flasgger 0.9.7.2.dev2 — Extract swagger specs from your flask project |
-| 335 | `azazael-pkg-flask` | packages | Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. |
-| 336 | `azazael-pkg-flask-jsglue` | packages | Callable skill for Python package Flask-JSGlue 0.3.1 — Flask-JSGlue helps hook up your Flask application ni... |
-| 337 | `azazael-pkg-flask-restful` | packages | Callable skill for Python package Flask-RESTful 0.3.10 — Simple framework for creating REST APIs |
-| 338 | `azazael-pkg-flask-socketio` | packages | Callable skill for Python package Flask-SocketIO 5.6.0 — Socket.IO integration for Flask applications |
-| 339 | `azazael-pkg-fleep` | packages | Callable skill for Python package fleep 1.0.1 — File format determination library |
-| 340 | `azazael-pkg-flor` | packages | Callable skill for Python package Flor 1.1.3 — Flor - An efficient Bloom filter implementation in Python |
-| 341 | `azazael-pkg-fonttools` | packages | Callable skill for Python package fonttools 4.62.1 — Tools to manipulate font files |
-| 342 | `azazael-pkg-fpdf2` | packages | Callable skill for Python package fpdf2 2.8.7 — Simple & fast PDF generation for Python |
-| 343 | `azazael-pkg-fqdn` | packages | Callable skill for Python package fqdn 1.5.1 — Validates fully-qualified domain names against RFC 1123, so ... |
-| 344 | `azazael-pkg-freetype-py` | packages | Callable skill for Python package freetype-py 2.5.1 — Freetype python bindings |
-| 345 | `azazael-pkg-freezegun` | packages | Callable skill for Python package freezegun 1.5.5 — Let your Python tests travel through time |
-| 346 | `azazael-pkg-frozenlist` | packages | Callable skill for Python package frozenlist 1.8.0 — A list-like structure which implements collections.abc... |
-| 347 | `azazael-pkg-fs` | packages | Callable skill for Python package fs 2.4.16 — Python's filesystem abstraction layer |
-| 348 | `azazael-pkg-fsspec` | packages | Callable skill for Python package fsspec 2025.12.0 — File-system specification |
-| 349 | `azazael-pkg-fuzzywuzzy` | packages | Callable skill for Python package fuzzywuzzy 0.18.0 — Fuzzy string matching in python |
-| 350 | `azazael-pkg-gattlib` | packages | Callable skill for Python package gattlib 0.20210616 — Library to access Bluetooth LE devices |
-| 351 | `azazael-pkg-gdal` | packages | Callable skill for Python package GDAL 3.13.1 — GDAL: Geospatial Data Abstraction Library |
-| 352 | `azazael-pkg-gensim` | packages | Callable skill for Python package gensim 4.3.3 — Python framework for fast Vector Space Modelling |
-| 353 | `azazael-pkg-geoip` | packages | Callable skill for Python package GeoIP 1.3.2 — MaxMind GeoIP Legacy Database - Python API |
-| 354 | `azazael-pkg-geoip2` | packages | Callable skill for Python package geoip2 2.9.0 — MaxMind GeoIP2 API |
-| 355 | `azazael-pkg-getsploit` | packages | Callable skill for Python package getsploit 2.0.2 — Command line search and download tool for Vulners Datab... |
-| 356 | `azazael-pkg-ghp-import` | packages | Callable skill for Python package ghp-import 2.1.0 — Copy your docs directly to the gh-pages branch. |
-| 357 | `azazael-pkg-gitdb` | packages | Callable skill for Python package gitdb 4.0.12 — Git Object Database |
-| 358 | `azazael-pkg-gitpython` | packages | Callable skill for Python package GitPython 3.1.50 — GitPython is a Python library used to interact with Gi... |
-| 359 | `azazael-pkg-gitxray` | packages | Callable skill for Python package gitxray 1.0.20 — A multifaceted security tool which leverages Public GitH... |
-| 360 | `azazael-pkg-globre` | packages | Callable skill for Python package globre 0.1.5 — A glob matching library, providing an interface similar to... |
-| 361 | `azazael-pkg-gmplot` | packages | Callable skill for Python package gmplot 1.4.1 — A matplotlib-like interface to plot data with Google Maps. |
-| 362 | `azazael-pkg-goofile` | packages | Callable skill for Python package goofile 1.6 — Update of https://code.google.com/archive/p/goofile/ for Py... |
-| 363 | `azazael-pkg-google` | packages | Callable skill for Python package google 2.0.3 — Python bindings to the Google search engine. |
-| 364 | `azazael-pkg-gps` | packages | Callable skill for Python package gps 3.27.5 — Python libraries for the gpsd service daemon |
-| 365 | `azazael-pkg-gps3` | packages | Callable skill for Python package gps3 0.33.0 — Python 2.7-3.5 clients for gpsd |
-| 366 | `azazael-pkg-grapheme` | packages | Callable skill for Python package grapheme 0.5.0 — Unicode grapheme helpers |
-| 367 | `azazael-pkg-greenbone-feed-sync` | packages | Callable skill for Python package greenbone-feed-sync 25.1.3.dev1 — A tool for downloading the Greenbone Co... |
-| 368 | `azazael-pkg-greenlet` | packages | Callable skill for Python package greenlet 3.3.2 — Lightweight in-process concurrent programming |
-| 369 | `azazael-pkg-grokevt` | packages | Callable skill for Python package grokevt 0.5 — No summary available. |
-| 370 | `azazael-pkg-gssapi` | packages | Callable skill for Python package gssapi 1.11.1 — Python GSSAPI Wrapper |
-| 371 | `azazael-pkg-gvm-tools` | packages | Callable skill for Python package gvm-tools 25.4.6 — Tools to control a GSM/GVM over GMP or OSP |
-| 372 | `azazael-pkg-h11` | packages | Callable skill for Python package h11 0.16.0 — A pure-Python, bring-your-own-I/O implementation of HTTP/1.1 |
-| 373 | `azazael-pkg-h2` | packages | Callable skill for Python package h2 4.3.0 — Pure-Python HTTP/2 protocol implementation |
-| 374 | `azazael-pkg-h8mail` | packages | Callable skill for Python package h8mail 2.5.6 — Email OSINT and password breach hunting. Use h8mail to fin... |
-| 375 | `azazael-pkg-hashid` | packages | Callable skill for Python package hashID 3.1.4 — Software to identify the different types of hashes |
-| 376 | `azazael-pkg-hekatomb` | packages | Callable skill for Python package hekatomb 1.5.2.3 — Python library to extract and decrypt all credentials ... |
-| 377 | `azazael-pkg-hostsman` | packages | Callable skill for Python package hostsman 1.1.5 — A tool to manage hosts file |
-| 378 | `azazael-pkg-hpack` | packages | Callable skill for Python package hpack 4.0.0 — Pure-Python HPACK header compression |
-| 379 | `azazael-pkg-html2text` | packages | Callable skill for Python package html2text 2025.4.15 — Turn HTML into equivalent Markdown-structured text. |
-| 380 | `azazael-pkg-html5lib-modern` | packages | Callable skill for Python package html5lib-modern 1.2 — HTML parser based on the WHATWG HTML specification |
-| 381 | `azazael-pkg-httpagentparser` | packages | Callable skill for Python package httpagentparser 1.9.1 — Extracts OS Browser etc information from http use... |
-| 382 | `azazael-pkg-httpcore` | packages | Callable skill for Python package httpcore 1.0.9 — A minimal low-level HTTP client. |
-| 383 | `azazael-pkg-httpie` | packages | Callable skill for Python package httpie 3.2.4 — HTTPie: modern, user-friendly command-line HTTP client for... |
-| 384 | `azazael-pkg-httplib2` | packages | Callable skill for Python package httplib2 0.31.2 — A comprehensive HTTP client library. |
-| 385 | `azazael-pkg-httpx` | packages | Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. |
-| 386 | `azazael-pkg-httpx-ntlm` | packages | Callable skill for Python package httpx_ntlm 1.4.0 — This package allows for HTTP NTLM authentication using... |
-| 387 | `azazael-pkg-httpx-sse` | packages | Callable skill for Python package httpx-sse 0.4.3 — Consume Server-Sent Event (SSE) messages with HTTPX. |
-| 388 | `azazael-pkg-hupper` | packages | Callable skill for Python package hupper 1.12 — Integrated process monitor for developing and reloading dae... |
-| 389 | `azazael-pkg-hypercorn` | packages | Callable skill for Python package Hypercorn 0.17.3 — A ASGI Server based on Hyper libraries and inspired by... |
-| 390 | `azazael-pkg-hyperframe` | packages | Callable skill for Python package hyperframe 6.1.0 — Pure-Python HTTP/2 framing |
-| 391 | `azazael-pkg-hyperlink` | packages | Callable skill for Python package hyperlink 21.0.0 — A featureful, immutable, and correct URL for Python. |
-| 392 | `azazael-pkg-idna` | packages | Callable skill for Python package idna 3.11 — Internationalized Domain Names in Applications (IDNA) |
-| 393 | `azazael-pkg-imagesize` | packages | Callable skill for Python package imagesize 2.0.0 — Get image size from headers (BMP/PNG/JPEG/JPEG2000/GIF/... |
-| 394 | `azazael-pkg-imapclient` | packages | Callable skill for Python package IMAPClient 3.1.0 — Easy-to-use, Pythonic and complete IMAP client library |
-| 395 | `azazael-pkg-impacket` | packages | Callable skill for Python package impacket 0.14.0.dev0 — Network protocols Constructors and Dissectors |
-| 396 | `azazael-pkg-incremental` | packages | Callable skill for Python package incremental 24.7.2 — A small library that versions your Python projects. |
-| 397 | `azazael-pkg-infinity` | packages | Callable skill for Python package infinity 1.5 — All-in-one infinity value for Python. Can be compared to a... |
-| 398 | `azazael-pkg-inflect` | packages | Callable skill for Python package inflect 7.5.0 — Correctly generate plurals, singular nouns, ordinals, ind... |
-| 399 | `azazael-pkg-iniconfig` | packages | Callable skill for Python package iniconfig 2.1.0 — brain-dead simple config-ini parsing |
-| 400 | `azazael-pkg-instaloader` | packages | Callable skill for Python package instaloader 4.15.1 — Download pictures (or videos) along with their capti... |
-| 401 | `azazael-pkg-intervaltree` | packages | Callable skill for Python package intervaltree 3.0.2 — Editable interval tree data structure for Python 2 a... |
-| 402 | `azazael-pkg-invoke` | packages | Callable skill for Python package invoke 2.2.1 — Pythonic task execution |
-| 403 | `azazael-pkg-ip2proxy` | packages | Callable skill for Python package IP2Proxy 3.4.0 — Python API for IP2Proxy database. It can be used to quer... |
-| 404 | `azazael-pkg-ipwhois` | packages | Callable skill for Python package ipwhois 1.3.0 — Retrieve and parse whois data for IPv4 and IPv6 addresses. |
-| 405 | `azazael-pkg-ipy` | packages | Callable skill for Python package IPy 1.1 — Class and tools for handling of IPv4 and IPv6 addresses and net... |
-| 406 | `azazael-pkg-ipython` | packages | Callable skill for Python package ipython 9.11.0 — IPython: Productive Interactive Computing |
-| 407 | `azazael-pkg-ipython-pygments-lexers` | packages | Callable skill for Python package ipython_pygments_lexers 1.1.1 — Defines a variety of Pygments lexers for ... |
-| 408 | `azazael-pkg-isc-dhcp-leases` | packages | Callable skill for Python package isc_dhcp_leases 0.10.0 — Small python module for reading /var/lib/dhcp/dh... |
-| 409 | `azazael-pkg-isoduration` | packages | Callable skill for Python package isoduration 20.11.0 — Operations with ISO 8601 durations |
-| 410 | `azazael-pkg-itsdangerous` | packages | Callable skill for Python package itsdangerous 2.2.0 — Safely pass data to untrusted environments and back. |
-| 411 | `azazael-pkg-ivre` | packages | Callable skill for Python package ivre 0.9.21+kali — Network recon framework |
-| 412 | `azazael-pkg-jaraco-collections` | packages | Callable skill for Python package jaraco.collections 5.1.0 — Collection objects similar to those in stdlib ... |
-| 413 | `azazael-pkg-jaraco-context` | packages | Callable skill for Python package jaraco.context 6.0.1 — Useful decorators and context managers |
-| 414 | `azazael-pkg-jaraco-functools` | packages | Callable skill for Python package jaraco.functools 4.1.0 — Functools like those found in stdlib |
-| 415 | `azazael-pkg-jaraco-text` | packages | Callable skill for Python package jaraco.text 4.0.0 — Module for text manipulation |
-| 416 | `azazael-pkg-jedi` | packages | Callable skill for Python package jedi 0.19.1 — An autocompletion tool for Python that can be used for text... |
-| 417 | `azazael-pkg-jeepney` | packages | Callable skill for Python package jeepney 0.9.0 — Low-level, pure Python DBus protocol wrapper. |
-| 418 | `azazael-pkg-jefferson` | packages | Callable skill for Python package jefferson 0.4.7 — JFFS2 filesystem extraction tool. |
-| 419 | `azazael-pkg-jinja2` | packages | Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine. |
-| 420 | `azazael-pkg-jmespath` | packages | Callable skill for Python package jmespath 1.0.1 — JSON Matching Expressions |
-| 421 | `azazael-pkg-joblib` | packages | Callable skill for Python package joblib 1.5.2 — Lightweight pipelining with Python functions |
-| 422 | `azazael-pkg-jq` | packages | Callable skill for Python package jq 1.11.0 — jq is a lightweight and flexible JSON processor. |
-| 423 | `azazael-pkg-jsmin` | packages | Callable skill for Python package jsmin 3.0.1 — JavaScript minifier. |
-| 424 | `azazael-pkg-json5` | packages | Callable skill for Python package json5 0.10.0 — A Python implementation of the JSON5 data format. |
-| 425 | `azazael-pkg-jsonpointer` | packages | Callable skill for Python package jsonpointer 2.4 — Identify specific nodes in a JSON document (RFC 6901) |
-| 426 | `azazael-pkg-jsonschema` | packages | Callable skill for Python package jsonschema 4.26.0 — An implementation of JSON Schema validation for Python |
-| 427 | `azazael-pkg-jsonschema-specifications` | packages | Callable skill for Python package jsonschema-specifications 2023.12.1 — The JSON Schema meta-schemas and vo... |
-| 428 | `azazael-pkg-jupyter-core` | packages | Callable skill for Python package jupyter_core 5.9.1 — Jupyter core package. A base package on which Jupyte... |
-| 429 | `azazael-pkg-kaitaistruct` | packages | Callable skill for Python package kaitaistruct 0.11 — Kaitai Struct declarative parser generator for binary... |
-| 430 | `azazael-pkg-kali-tweaks` | packages | Callable skill for Python package kali-tweaks 2025.4.0 — Kali Linux GUI tool to ease configuration |
-| 431 | `azazael-pkg-keystone-engine` | packages | Callable skill for Python package keystone-engine 0.9.2 — Keystone assembler engine |
-| 432 | `azazael-pkg-kiwisolver` | packages | Callable skill for Python package kiwisolver 1.5.0 — A fast implementation of the Cassowary constraint solver |
-| 433 | `azazael-pkg-krb5` | packages | Callable skill for Python package krb5 0.9.0 — Kerberos API bindings for Python |
-| 434 | `azazael-pkg-lark` | packages | Callable skill for Python package lark 1.3.1 — a modern parsing library |
-| 435 | `azazael-pkg-ldap3` | packages | Callable skill for Python package ldap3 2.9.1 — A strictly RFC 4510 conforming LDAP V3 pure Python client l... |
-| 436 | `azazael-pkg-ldap3-bleeding-edge` | packages | Callable skill for Python package ldap3-bleeding_edge 2.10.1.1337 — A strictly RFC 4510 conforming LDAP V3 ... |
-| 437 | `azazael-pkg-ldapdomaindump` | packages | Callable skill for Python package ldapdomaindump 0.9.4 — Active Directory information dumper via LDAP |
-| 438 | `azazael-pkg-ldeep` | packages | Callable skill for Python package ldeep 2.0.3 — In-depth ldap enumeration utility |
-| 439 | `azazael-pkg-legacy-cgi` | packages | Callable skill for Python package legacy-cgi 2.6.4 — Fork of the standard library cgi and cgitb modules rem... |
-| 440 | `azazael-pkg-legacycrypt` | packages | Callable skill for Python package legacycrypt 0.3 — Wrapper to the POSIX crypt library call and associated ... |
-| 441 | `azazael-pkg-levenshtein` | packages | Callable skill for Python package Levenshtein 0.27.1 — Python extension for computing string edit distances... |
-| 442 | `azazael-pkg-libarchive-c` | packages | Callable skill for Python package libarchive-c 5.1 — Python interface to libarchive |
-| 443 | `azazael-pkg-libpass` | packages | Callable skill for Python package libpass 1.9.3 — Fork of passlib, a comprehensive password hashing framewo... |
-| 444 | `azazael-pkg-libtaxii` | packages | Callable skill for Python package libtaxii 1.1.119 — TAXII 1.X Library. |
-| 445 | `azazael-pkg-libvmdk-python` | packages | Callable skill for Python package libvmdk-python 20240510 — Python bindings module for libvmdk |
-| 446 | `azazael-pkg-lief` | packages | Callable skill for Python package lief 0.16.1 — Library to instrument executable formats |
-| 447 | `azazael-pkg-limits` | packages | Callable skill for Python package limits 4.4.1 — Rate limiting utilities |
-| 448 | `azazael-pkg-linkify-it-py` | packages | Callable skill for Python package linkify-it-py 2.1.0 — Links recognition library with FULL unicode support. |
-| 449 | `azazael-pkg-livereload` | packages | Callable skill for Python package livereload 2.7.1 — Python LiveReload is an awesome tool for web developers |
-| 450 | `azazael-pkg-llm` | packages | Callable skill for Python package llm 0.30 — CLI utility and Python library for interacting with Large Lang... |
-| 451 | `azazael-pkg-llvmlite` | packages | Callable skill for Python package llvmlite 0.47.0 — lightweight wrapper around basic LLVM functionality |
-| 452 | `azazael-pkg-lml` | packages | Callable skill for Python package lml 0.1.0 — Load me later. A lazy plugin management system. |
-| 453 | `azazael-pkg-locket` | packages | Callable skill for Python package locket 1.0.0 — File-based locks for Python on Linux and Windows |
-| 454 | `azazael-pkg-loguru` | packages | Callable skill for Python package loguru 0.7.3 — Python logging made (stupidly) simple |
-| 455 | `azazael-pkg-logutils` | packages | Callable skill for Python package logutils 0.3.5 — Logging utilities |
-| 456 | `azazael-pkg-lsassy` | packages | Callable skill for Python package lsassy 3.1.11 — Tool to remotely extract credentials |
-| 457 | `azazael-pkg-lunr` | packages | Callable skill for Python package lunr 0.8.0 — A Python implementation of Lunr.js |
-| 458 | `azazael-pkg-lxml` | packages | Callable skill for Python package lxml 6.1.0 — Powerful and Pythonic XML processing library combining libxm... |
-| 459 | `azazael-pkg-lz4` | packages | Callable skill for Python package lz4 4.4.5+dfsg — LZ4 Bindings for Python |
-| 460 | `azazael-pkg-lzallright` | packages | Callable skill for Python package lzallright 0.1.0 — No summary available. |
-| 461 | `azazael-pkg-mako` | packages | Callable skill for Python package Mako 1.3.10.dev0 — A super-fast templating language that borrows the best... |
-| 462 | `azazael-pkg-manuf` | packages | Callable skill for Python package manuf 1.1.5 — Parser library for Wireshark's OUI database |
-| 463 | `azazael-pkg-markdown` | packages | Callable skill for Python package Markdown 3.10.2 — Python implementation of John Gruber's Markdown. |
-| 464 | `azazael-pkg-markdown-it-py` | packages | Callable skill for Python package markdown-it-py 4.2.0 — Python port of markdown-it. Markdown parsing, done... |
-| 465 | `azazael-pkg-markupsafe` | packages | Callable skill for Python package MarkupSafe 3.0.3 — Safely add untrusted strings to HTML/XML markup. |
-| 466 | `azazael-pkg-marshmallow` | packages | Callable skill for Python package marshmallow 3.26.1 — A lightweight library for converting complex datatyp... |
-| 467 | `azazael-pkg-maryam` | packages | Callable skill for Python package maryam 2.5.2.post2 — OWASP Maryam is a modular/optional open-source frame... |
-| 468 | `azazael-pkg-masky` | packages | Callable skill for Python package masky 0.2.1 — Python library with CLI allowing to remotely dump domain us... |
-| 469 | `azazael-pkg-matplotlib` | packages | Callable skill for Python package matplotlib 3.10.7+dfsg1 — Python plotting package |
-| 470 | `azazael-pkg-matplotlib-inline` | packages | Callable skill for Python package matplotlib-inline 0.2.1 — Inline Matplotlib backend for Jupyter |
-| 471 | `azazael-pkg-maxminddb` | packages | Callable skill for Python package maxminddb 3.0.0 — Reader for the MaxMind DB format |
-| 472 | `azazael-pkg-mcp` | packages | Callable skill for Python package mcp 1.22.0 — Model Context Protocol SDK |
-| 473 | `azazael-pkg-mdit-py-plugins` | packages | Callable skill for Python package mdit-py-plugins 0.6.1 — Collection of plugins for markdown-it-py |
-| 474 | `azazael-pkg-mdurl` | packages | Callable skill for Python package mdurl 0.1.2 — Markdown URL utilities |
-| 475 | `azazael-pkg-mechanize` | packages | Callable skill for Python package mechanize 0.4.10 — Stateful, programmatic web browsing |
-| 476 | `azazael-pkg-mercurial` | packages | Callable skill for Python package mercurial 7.2.2 — Fast scalable distributed SCM (revision control, versio... |
-| 477 | `azazael-pkg-mergedeep` | packages | Callable skill for Python package mergedeep 1.3.4 — A deep merge function for 🐍. |
-| 478 | `azazael-pkg-minidump` | packages | Callable skill for Python package minidump 0.0.21 — Python library to parse Windows minidump file format |
-| 479 | `azazael-pkg-minikerberos` | packages | Callable skill for Python package minikerberos 0.4.4 — Kerberos manipulation library in pure Python |
-| 480 | `azazael-pkg-mistune` | packages | Callable skill for Python package mistune 3.1.4 — A sane and fast Markdown parser with useful plugins and r... |
-| 481 | `azazael-pkg-mitm6` | packages | Callable skill for Python package mitm6 0.3.0 — Pwning IPv4 via IPv6 |
-| 482 | `azazael-pkg-mitmproxy` | packages | Callable skill for Python package mitmproxy 12.2.3 — An interactive, SSL/TLS-capable intercepting proxy for... |
-| 483 | `azazael-pkg-mkdocs` | packages | Callable skill for Python package mkdocs 1.6.1 — Project documentation with Markdown. |
-| 484 | `azazael-pkg-mkdocs-get-deps` | packages | Callable skill for Python package mkdocs-get-deps 0.2.0 — MkDocs extension that lists all dependencies acco... |
-| 485 | `azazael-pkg-mock` | packages | Callable skill for Python package mock 5.2.0 — Rolling backport of unittest.mock for all Pythons |
-| 486 | `azazael-pkg-monotonic` | packages | Callable skill for Python package monotonic 1.6 — An implementation of time.monotonic() for Python 2 & < 3.3 |
-| 487 | `azazael-pkg-more-itertools` | packages | Callable skill for Python package more-itertools 10.8.0 — More routines for operating on iterables, beyond ... |
-| 488 | `azazael-pkg-more-termcolor` | packages | Callable skill for Python package more-termcolor 1.1.3 — All colors, with support for nested colors, conven... |
-| 489 | `azazael-pkg-mpmath` | packages | Callable skill for Python package mpmath 1.4.1 — Python library for arbitrary-precision floating-point arit... |
-| 490 | `azazael-pkg-msgpack` | packages | Callable skill for Python package msgpack 1.1.2 — MessagePack serializer |
-| 491 | `azazael-pkg-msldap` | packages | Callable skill for Python package msldap 0.5.10 — Python library to play with MS LDAP |
-| 492 | `azazael-pkg-msoffcrypto-tool` | packages | Callable skill for Python package msoffcrypto-tool 6.0.0 — Python tool and library for decrypting and encry... |
-| 493 | `azazael-pkg-mssqlpwner` | packages | Callable skill for Python package mssqlpwner 1.3.2 — Seamlessly interact and pwn MSSQL servers |
-| 494 | `azazael-pkg-multidict` | packages | Callable skill for Python package multidict 6.4.3 — multidict implementation |
-| 495 | `azazael-pkg-mypy-boto3-ebs` | packages | Callable skill for Python package mypy-boto3-ebs 1.26.0.post1 — Type annotations for boto3.EBS 1.26.0 servi... |
-| 496 | `azazael-pkg-mypy-extensions` | packages | Callable skill for Python package mypy_extensions 1.1.0 — Type system extensions for programs checked with ... |
-| 497 | `azazael-pkg-mysqlclient` | packages | Callable skill for Python package mysqlclient 1.4.6 — Python interface to MySQL |
-| 498 | `azazael-pkg-myst-parser` | packages | Callable skill for Python package myst-parser 5.1.0 — An extended [CommonMark](https://spec.commonmark.org/... |
-| 499 | `azazael-pkg-name-that-hash` | packages | Callable skill for Python package name-that-hash 1.11.0 — The Modern Hash Identification System |
-| 500 | `azazael-pkg-nassl` | packages | Callable skill for Python package nassl 5.4.0 — Experimental OpenSSL wrapper for Python 3.10+ and SSLyze. |
-| 501 | `azazael-pkg-nbformat` | packages | Callable skill for Python package nbformat 5.10.4 — The Jupyter Notebook format |
-| 502 | `azazael-pkg-ndiff` | packages | Callable skill for Python package ndiff 7.99 — Nmap scan diff tool |
-| 503 | `azazael-pkg-neo4j` | packages | Callable skill for Python package neo4j 5.2.dev0 — Neo4j Bolt driver for Python |
-| 504 | `azazael-pkg-neobolt` | packages | Callable skill for Python package neobolt 1.7.17 — Neo4j Bolt connector for Python |
-| 505 | `azazael-pkg-neotime` | packages | Callable skill for Python package neotime 1.7.4 — Nanosecond resolution temporal types |
-| 506 | `azazael-pkg-netaddr` | packages | Callable skill for Python package netaddr 1.3.0 — A network address manipulation library for Python |
-| 507 | `azazael-pkg-netexec` | packages | Callable skill for Python package netexec 1.5.1 — The Network Execution tool |
-| 508 | `azazael-pkg-netifaces` | packages | Callable skill for Python package netifaces 0.11.0 — Portable network interface information. |
-| 509 | `azazael-pkg-netmiko` | packages | Callable skill for Python package netmiko 4.6.0 — Multi-vendor library to simplify legacy CLI connections t... |
-| 510 | `azazael-pkg-networkx` | packages | Callable skill for Python package networkx 3.4.2 — Python package for creating and manipulating graphs and ... |
-| 511 | `azazael-pkg-nltk` | packages | Callable skill for Python package nltk 3.9.3 — Natural Language Toolkit |
-| 512 | `azazael-pkg-notus-scanner` | packages | Callable skill for Python package notus-scanner 22.7.2 — A vulnerability scanner for creating results from ... |
-| 513 | `azazael-pkg-ntc-templates` | packages | Callable skill for Python package ntc_templates 3.5.0 — TextFSM Templates for Network Devices, and Python w... |
-| 514 | `azazael-pkg-ntlm-auth` | packages | Callable skill for Python package ntlm-auth 1.5.0 — Creates NTLM authentication structures |
-| 515 | `azazael-pkg-ntpsec` | packages | Callable skill for Python package ntpsec 1.2.4 — The NTP reference implementation, refactored |
-| 516 | `azazael-pkg-numba` | packages | Callable skill for Python package numba 0.65.1 — compiling Python code using LLVM |
-| 517 | `azazael-pkg-numexpr` | packages | Callable skill for Python package numexpr 2.14.1 — Fast numerical expression evaluator for NumPy |
-| 518 | `azazael-pkg-numpy` | packages | Callable skill for Python package numpy 2.3.5 — Fundamental package for array computing in Python |
-| 519 | `azazael-pkg-oauthlib` | packages | Callable skill for Python package oauthlib 3.3.1 — A generic, spec-compliant, thorough implementation of th... |
-| 520 | `azazael-pkg-odfpy` | packages | Callable skill for Python package odfpy 1.4.2 — Python API and tools to manipulate OpenDocument files |
-| 521 | `azazael-pkg-olefile` | packages | Callable skill for Python package olefile 0.47 — Python package to parse, read and write Microsoft OLE2 fil... |
-| 522 | `azazael-pkg-oletools` | packages | Callable skill for Python package oletools 0.60.2 — Python tools to analyze security characteristics of MS ... |
-| 523 | `azazael-pkg-openai` | packages | Callable skill for Python package openai 2.21.0 — The official Python library for the openai API |
-| 524 | `azazael-pkg-openpyxl` | packages | Callable skill for Python package openpyxl 3.1.5 — A Python library to read/write Excel 2010 xlsx/xlsm files |
-| 525 | `azazael-pkg-opentaxii` | packages | Callable skill for Python package opentaxii 0.9.3 — TAXII server implementation in Python from EclecticIQ |
-| 526 | `azazael-pkg-orjson` | packages | Callable skill for Python package orjson 3.11.7 — Fast, correct Python JSON library supporting dataclasses,... |
-| 527 | `azazael-pkg-oscrypto` | packages | Callable skill for Python package oscrypto 1.3.0 — TLS (SSL) sockets, key generation, encryption, decryptio... |
-| 528 | `azazael-pkg-ospd-openvas` | packages | Callable skill for Python package ospd-openvas 22.10.0 — ospd based scanner for openvas |
-| 529 | `azazael-pkg-osrframework` | packages | Callable skill for Python package osrframework 0.20.5 — OSRFramework - A set of AGPLv3+ OSINT tools develop... |
-| 530 | `azazael-pkg-outcome` | packages | Callable skill for Python package outcome 1.3.0.post0 — Capture the outcome of Python function calls. |
-| 531 | `azazael-pkg-packaging` | packages | Callable skill for Python package packaging 26.2 — Core utilities for Python packages |
-| 532 | `azazael-pkg-pacu` | packages | Callable skill for Python package pacu 1.6.0 — The AWS exploitation framework, designed for testing the sec... |
-| 533 | `azazael-pkg-paho-mqtt` | packages | Callable skill for Python package paho-mqtt 2.1.0 — MQTT version 5.0/3.1.1 client class |
-| 534 | `azazael-pkg-pandas` | packages | Callable skill for Python package pandas 2.3.3 — Powerful data structures for data analysis, time series, a... |
-| 535 | `azazael-pkg-paramiko` | packages | Callable skill for Python package paramiko 4.0.0 — SSH2 protocol library |
-| 536 | `azazael-pkg-paramspider` | packages | Callable skill for Python package paramspider 0.1.0 — Mining parameters from dark corners of Web Archives |
-| 537 | `azazael-pkg-parso` | packages | Callable skill for Python package parso 0.8.7 — A Python Parser |
-| 538 | `azazael-pkg-partd` | packages | Callable skill for Python package partd 1.4.2 — Appendable key-value storage |
-| 539 | `azazael-pkg-passwordmeter` | packages | Callable skill for Python package passwordmeter 0.1.8 — A password strength measuring library. |
-| 540 | `azazael-pkg-paste` | packages | Callable skill for Python package Paste 3.10.1 — Tools for using a Web Server Gateway Interface stack |
-| 541 | `azazael-pkg-pastedeploy` | packages | Callable skill for Python package PasteDeploy 3.1.0 — Load, configure, and compose WSGI applications and se... |
-| 542 | `azazael-pkg-pastescript` | packages | Callable skill for Python package PasteScript 3.7.0 — A pluggable command-line frontend, including commands... |
-| 543 | `azazael-pkg-patator` | packages | Callable skill for Python package patator 1.1.0 — Multi-purpose brute-forcer |
-| 544 | `azazael-pkg-pathspec` | packages | Callable skill for Python package pathspec 1.0.4 — Utility library for gitignore style pattern matching of ... |
-| 545 | `azazael-pkg-pbkdf2` | packages | Callable skill for Python package pbkdf2 1.3 — PKCS#5 v2.0 PBKDF2 Module |
-| 546 | `azazael-pkg-pcapy` | packages | Callable skill for Python package pcapy 0.11.5.dev0 — Python pcap extension |
-| 547 | `azazael-pkg-pcodedmp` | packages | Callable skill for Python package pcodedmp 1.2.6 — A VBA p-code disassembler |
-| 548 | `azazael-pkg-pefile` | packages | Callable skill for Python package pefile 2024.8.26 — Python PE parsing module |
-| 549 | `azazael-pkg-penelope-shell-handler` | packages | Callable skill for Python package penelope-shell-handler 0.20.0 — Post-exploitation shell handler for autho... |
-| 550 | `azazael-pkg-pexpect` | packages | Callable skill for Python package pexpect 4.9.0 — Pexpect allows easy control of interactive console applic... |
-| 551 | `azazael-pkg-phonenumbers` | packages | Callable skill for Python package phonenumbers 8.12.57 — Python version of Google's common library for pars... |
-| 552 | `azazael-pkg-phpserialize` | packages | Callable skill for Python package phpserialize 1.3 — a port of the serialize and unserialize functions of p... |
-| 553 | `azazael-pkg-pick` | packages | Callable skill for Python package pick 2.4.0 — Pick an option in the terminal with a simple GUI |
-| 554 | `azazael-pkg-pillow` | packages | Callable skill for Python package pillow 12.2.0 — Python Imaging Library (fork) |
-| 555 | `azazael-pkg-ping3` | packages | Callable skill for Python package ping3 4.0.4 — A pure python3 version of ICMP ping implementation using ra... |
-| 556 | `azazael-pkg-pip` | packages | Callable skill for Python package pip 26.1.1 — The PyPA recommended tool for installing Python packages. |
-| 557 | `azazael-pkg-pipx` | packages | Callable skill for Python package pipx 1.14.0 — Install and Run Python Applications in Isolated Environments |
-| 558 | `azazael-pkg-plaso` | packages | Callable skill for Python package plaso 20260119 — Plaso (log2timeline) - Super timeline all the things |
-| 559 | `azazael-pkg-plaster` | packages | Callable skill for Python package plaster 1.1.2 — A loader interface around multiple config file formats. |
-| 560 | `azazael-pkg-plaster-pastedeploy` | packages | Callable skill for Python package plaster_pastedeploy 0.5 — A loader implementing the PasteDeploy syntax to... |
-| 561 | `azazael-pkg-platformdirs` | packages | Callable skill for Python package platformdirs 4.10.0 — A small Python package for determining appropriate ... |
-| 562 | `azazael-pkg-playwright` | packages | Callable skill for Python package playwright 1.55.0+ds — A high-level API to automate web browsers |
-| 563 | `azazael-pkg-plotext` | packages | Callable skill for Python package plotext 5.2.8 — plotext plots directly on terminal |
-| 564 | `azazael-pkg-plotly` | packages | Callable skill for Python package plotly 5.20.0 — An open-source, interactive data visualization library fo... |
-| 565 | `azazael-pkg-pluggy` | packages | Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python |
-| 566 | `azazael-pkg-pluginbase` | packages | Callable skill for Python package pluginbase 1.0.1 — PluginBase is a module for Python that enables the dev... |
-| 567 | `azazael-pkg-plumbum` | packages | Callable skill for Python package plumbum 1.10.0 — Plumbum: shell combinators library |
-| 568 | `azazael-pkg-ply` | packages | Callable skill for Python package ply 3.11 — Python Lex & Yacc |
-| 569 | `azazael-pkg-pocsuite3` | packages | Callable skill for Python package pocsuite3 2.1.0 — Open-sourced remote vulnerability testing framework. |
-| 570 | `azazael-pkg-poetry-core` | packages | Callable skill for Python package poetry-core 2.3.1 — Poetry PEP 517 Build Backend |
-| 571 | `azazael-pkg-poetry-dynamic-versioning` | packages | Callable skill for Python package poetry-dynamic-versioning 1.9.1 — Plugin for Poetry to enable dynamic ver... |
-| 572 | `azazael-pkg-policyuniverse` | packages | Callable skill for Python package policyuniverse 1.5.1.20231109 — Parse and Process AWS IAM Policies, State... |
-| 573 | `azazael-pkg-pooch` | packages | Callable skill for Python package pooch 1.9.0 — A friend to fetch your data files |
-| 574 | `azazael-pkg-portend` | packages | Callable skill for Python package portend 3.2.0 — TCP port monitoring and discovery |
-| 575 | `azazael-pkg-prettytable` | packages | Callable skill for Python package prettytable 3.17.0 — A simple Python library for easily displaying tabula... |
-| 576 | `azazael-pkg-priority` | packages | Callable skill for Python package priority 2.0.0 — A pure-Python implementation of the HTTP/2 priority tree |
-| 577 | `azazael-pkg-prompt-toolkit` | packages | Callable skill for Python package prompt_toolkit 3.0.52 — Library for building powerful interactive command... |
-| 578 | `azazael-pkg-propcache` | packages | Callable skill for Python package propcache 0.5.2 — Accelerated property cache |
-| 579 | `azazael-pkg-protobuf` | packages | Callable skill for Python package protobuf 4.21.12 — Protocol Buffers |
-| 580 | `azazael-pkg-psutil` | packages | Callable skill for Python package psutil 7.1.0 — Cross-platform lib for process and system monitoring. |
-| 581 | `azazael-pkg-psycopg2` | packages | Callable skill for Python package psycopg2 2.9.12 — psycopg2 - Python-PostgreSQL Database Adapter |
-| 582 | `azazael-pkg-ptyprocess` | packages | Callable skill for Python package ptyprocess 0.7.0 — Run a subprocess in a pseudo terminal |
-| 583 | `azazael-pkg-publicsuffix2` | packages | Callable skill for Python package publicsuffix2 2.20191221 — Get a public suffix for a domain name using th... |
-| 584 | `azazael-pkg-publicsuffixlist` | packages | Callable skill for Python package publicsuffixlist 0.9.3 — publicsuffixlist implement |
-| 585 | `azazael-pkg-pure-eval` | packages | Callable skill for Python package pure_eval 0.2.3 — Safely evaluate AST nodes without side effects |
-| 586 | `azazael-pkg-puremagic` | packages | Callable skill for Python package puremagic 2.2.0 — Pure python implementation of magic file detection |
-| 587 | `azazael-pkg-pwncat` | packages | Callable skill for Python package pwncat 0.1.2 — Netcat on steroids with Firewall, IDS/IPS evasion, bind an... |
-| 588 | `azazael-pkg-pwntools` | packages | Callable skill for Python package pwntools 4.15.0 — Pwntools CTF framework and exploit development library. |
-| 589 | `azazael-pkg-py-cpuinfo` | packages | Callable skill for Python package py-cpuinfo 9.0.0 — Get CPU info with pure Python |
-| 590 | `azazael-pkg-pyasn1` | packages | Callable skill for Python package pyasn1 0.6.3 — Pure-Python implementation of ASN.1 types and DER/BER/CER ... |
-| 591 | `azazael-pkg-pyasn1-modules` | packages | Callable skill for Python package pyasn1_modules 0.4.1 — A collection of ASN.1-based protocols modules |
-| 592 | `azazael-pkg-pyasyncore` | packages | Callable skill for Python package pyasyncore 1.0.2 — Make asyncore available for Python 3.12 onwards |
-| 593 | `azazael-pkg-pybluez` | packages | Callable skill for Python package PyBluez 0.23 — Bluetooth Python extension module |
-| 594 | `azazael-pkg-pycairo` | packages | Callable skill for Python package pycairo 1.27.0 — Python interface for cairo |
-| 595 | `azazael-pkg-pycares` | packages | Callable skill for Python package pycares 5.0.1 — Python interface for c-ares |
-| 596 | `azazael-pkg-pycognito` | packages | Callable skill for Python package pycognito 2024.5.1 — Python class to integrate Boto3's Cognito client so ... |
-| 597 | `azazael-pkg-pycparser` | packages | Callable skill for Python package pycparser 3.0 — C parser in Python |
-| 598 | `azazael-pkg-pycriu` | packages | Callable skill for Python package pycriu 4.2 — Python bindings for CRIU |
-| 599 | `azazael-pkg-pycryptodomex` | packages | Callable skill for Python package pycryptodomex 3.20.0 — Cryptographic library for Python |
-| 600 | `azazael-pkg-pycups` | packages | Callable skill for Python package pycups 2.0.4 — Python bindings for libcups |
-| 601 | `azazael-pkg-pycurl` | packages | Callable skill for Python package pycurl 7.46.0 — PycURL -- A Python Interface To The cURL library |
-| 602 | `azazael-pkg-pydantic` | packages | Callable skill for Python package pydantic 2.13.4 — Data validation using Python type hints |
-| 603 | `azazael-pkg-pydantic-core` | packages | Callable skill for Python package pydantic_core 2.46.4 — Core functionality for Pydantic validation and ser... |
-| 604 | `azazael-pkg-pydantic-settings` | packages | Callable skill for Python package pydantic-settings 2.14.1 — Settings management using Pydantic |
-| 605 | `azazael-pkg-pydot` | packages | Callable skill for Python package pydot 4.0.1 — Python interface to Graphviz's Dot |
-| 606 | `azazael-pkg-pydotplus` | packages | Callable skill for Python package pydotplus 2.0.2 — Python interface to Graphviz's Dot language |
-| 607 | `azazael-pkg-pyee` | packages | Callable skill for Python package pyee 13.0.0 — A rough port of Node.js's EventEmitter to Python with a few... |
-| 608 | `azazael-pkg-pyelftools` | packages | Callable skill for Python package pyelftools 0.33 — Library for analyzing ELF files and DWARF debugging inf... |
-| 609 | `azazael-pkg-pyenchant` | packages | Callable skill for Python package pyenchant 3.3.0 — Python bindings for the Enchant spellchecking system |
-| 610 | `azazael-pkg-pyexcel` | packages | Callable skill for Python package pyexcel 0.7.0 — A wrapper library that provides one API to read, manipula... |
-| 611 | `azazael-pkg-pyexcel-io` | packages | Callable skill for Python package pyexcel-io 0.6.6 — A python library to read and write structured data in ... |
-| 612 | `azazael-pkg-pyexcel-ods` | packages | Callable skill for Python package pyexcel-ods 0.6.0 — A wrapper library to read, manipulate and write data ... |
-| 613 | `azazael-pkg-pyexcel-text` | packages | Callable skill for Python package pyexcel-text 0.2.7.1 — A plugin to pyexcel and provides the capability to... |
-| 614 | `azazael-pkg-pyexcel-xls` | packages | Callable skill for Python package pyexcel-xls 0.7.0 — A wrapper library to read, manipulate and write data ... |
-| 615 | `azazael-pkg-pyexcel-xlsx` | packages | Callable skill for Python package pyexcel-xlsx 0.6.0 — A wrapper library to read, manipulate and write data... |
-| 616 | `azazael-pkg-pyfatfs` | packages | Callable skill for Python package pyfatfs 1.1.0 — FAT12/FAT16/FAT32 implementation with VFAT support |
-| 617 | `azazael-pkg-pyfiglet` | packages | Callable skill for Python package pyfiglet 1.0.4 — Pure-python FIGlet implementation |
-| 618 | `azazael-pkg-pygccxml` | packages | Callable skill for Python package pygccxml 3.0.2 — Python package for easy C++ declarations navigation. |
-| 619 | `azazael-pkg-pygexf` | packages | Callable skill for Python package pygexf 0.2.2 — UNKNOWN |
-| 620 | `azazael-pkg-pygit2` | packages | Callable skill for Python package pygit2 1.19.2 — Python bindings for libgit2. |
-| 621 | `azazael-pkg-pygments` | packages | Callable skill for Python package Pygments 2.19.2 — Pygments is a syntax highlighting package written in Py... |
-| 622 | `azazael-pkg-pygobject` | packages | Callable skill for Python package PyGObject 3.56.2 — Python bindings for GObject Introspection |
-| 623 | `azazael-pkg-pygraphviz` | packages | Callable skill for Python package pygraphviz 1.14 — Python interface to Graphviz |
-| 624 | `azazael-pkg-pyhamcrest` | packages | Callable skill for Python package PyHamcrest 2.1.0 — Hamcrest framework for matcher objects |
-| 625 | `azazael-pkg-pyinotify` | packages | Callable skill for Python package pyinotify 0.9.6 — Linux filesystem events monitoring |
-| 626 | `azazael-pkg-pyinstaller` | packages | Callable skill for Python package pyinstaller 6.18.0 — PyInstaller bundles a Python application and all its... |
-| 627 | `azazael-pkg-pyinstaller-hooks-contrib` | packages | Callable skill for Python package pyinstaller-hooks-contrib 2026.4 — Community maintained hooks for PyInsta... |
-| 628 | `azazael-pkg-pyjwt` | packages | Callable skill for Python package PyJWT 2.12.1 — JSON Web Token implementation in Python |
-| 629 | `azazael-pkg-pykerberos` | packages | Callable skill for Python package pykerberos 1.1.14 — High-level interface to Kerberos |
-| 630 | `azazael-pkg-pylnk3` | packages | Callable skill for Python package pylnk3 0.4.3 — Windows LNK File Parser and Creator |
-| 631 | `azazael-pkg-pylsqpack` | packages | Callable skill for Python package pylsqpack 0.3.23 — Python wrapper for the ls-qpack QPACK library |
-| 632 | `azazael-pkg-pymavlink` | packages | Callable skill for Python package pymavlink 2.4.37 — Python MAVLink code |
-| 633 | `azazael-pkg-pymdown-extensions` | packages | Callable skill for Python package pymdown-extensions 10.19.1 — Extension pack for Python Markdown. |
-| 634 | `azazael-pkg-pymongo` | packages | Callable skill for Python package pymongo 4.16.0 — PyMongo - the Official MongoDB Python driver |
-| 635 | `azazael-pkg-pymssql` | packages | Callable skill for Python package pymssql 2.3.10 — DB-API interface to Microsoft SQL Server for Python. (ne... |
-| 636 | `azazael-pkg-pynacl` | packages | Callable skill for Python package PyNaCl 1.6.2 — Python binding to the Networking and Cryptography (NaCl) l... |
-| 637 | `azazael-pkg-pynfsclient` | packages | Callable skill for Python package pyNfsClient 0.1.5 — Pure python NFS client |
-| 638 | `azazael-pkg-pynput` | packages | Callable skill for Python package pynput 1.8.2 — Monitor and control user input devices |
-| 639 | `azazael-pkg-pyodbc` | packages | Callable skill for Python package pyodbc 5.3.0 — DB API module for ODBC |
-| 640 | `azazael-pkg-pyopengl` | packages | Callable skill for Python package PyOpenGL 3.1.10 — Standard OpenGL bindings for Python |
-| 641 | `azazael-pkg-pyopenssl` | packages | Callable skill for Python package pyOpenSSL 26.2.0 — Python wrapper module around the OpenSSL library |
-| 642 | `azazael-pkg-pyparsing` | packages | Callable skill for Python package pyparsing 3.3.2 — pyparsing - Classes and methods to define and execute p... |
-| 643 | `azazael-pkg-pypdf` | packages | Callable skill for Python package pypdf 6.9.2 — A pure-python PDF library capable of splitting, merging, cr... |
-| 644 | `azazael-pkg-pyperclip` | packages | Callable skill for Python package pyperclip 1.11.0 — A cross-platform clipboard module for Python. (Only ha... |
-| 645 | `azazael-pkg-pyperscan` | packages | Callable skill for Python package pyperscan 0.3.0 — No summary available. |
-| 646 | `azazael-pkg-pyppeteer` | packages | Callable skill for Python package pyppeteer 2.0.0 — Headless chrome/chromium automation library (unofficial... |
-| 647 | `azazael-pkg-pypsrp` | packages | Callable skill for Python package pypsrp 0.8.1 — PowerShell Remoting Protocol and WinRM for Python |
-| 648 | `azazael-pkg-pypykatz` | packages | Callable skill for Python package pypykatz 0.6.13 — Python implementation of Mimikatz |
-| 649 | `azazael-pkg-pyqt5` | packages | Callable skill for Python package PyQt5 5.15.11 — Python bindings for the Qt cross platform application too... |
-| 650 | `azazael-pkg-pyqt5-sip` | packages | Callable skill for Python package PyQt5_sip 12.18.0 — The sip module support for PyQt5 |
-| 651 | `azazael-pkg-pyqt6` | packages | Callable skill for Python package PyQt6 6.11.0 — Python bindings for the Qt cross platform application toolkit |
-| 652 | `azazael-pkg-pyqt6-sip` | packages | Callable skill for Python package PyQt6_sip 13.11.1 — The sip module support for PyQt6 |
-| 653 | `azazael-pkg-pyqtgraph` | packages | Callable skill for Python package pyqtgraph 0.14.0 — Scientific Graphics and GUI Library for Python |
-| 654 | `azazael-pkg-pyramid` | packages | Callable skill for Python package pyramid 2.0.2 — The Pyramid Web Framework, a Pylons project |
-| 655 | `azazael-pkg-pyregfi` | packages | Callable skill for Python package pyregfi 1.0.1.0 — No summary available. |
-| 656 | `azazael-pkg-pyric` | packages | Callable skill for Python package PyRIC 0.1.6.4 — Python Wireless Library |
-| 657 | `azazael-pkg-pyserial` | packages | Callable skill for Python package pyserial 3.5 — Python Serial Port Extension |
-| 658 | `azazael-pkg-pyshark` | packages | Callable skill for Python package pyshark 0.6 — Python wrapper for tshark, allowing python packet parsing u... |
-| 659 | `azazael-pkg-pyside6` | packages | Callable skill for Python package PySide6 6.10.3 — Python bindings for the Qt cross-platform application an... |
-| 660 | `azazael-pkg-pysigma` | packages | Callable skill for Python package pySigma 1.0.2 — Sigma rule processing and conversion tools |
-| 661 | `azazael-pkg-pysmb` | packages | Callable skill for Python package pysmb 1.1.19 — pysmb is an experimental SMB/CIFS library written in Pytho... |
-| 662 | `azazael-pkg-pysmbc` | packages | Callable skill for Python package pysmbc 1.0.25.1 — Python bindings for libsmbclient |
-| 663 | `azazael-pkg-pysnmp` | packages | Callable skill for Python package pysnmp 7.1.22 — A Python library for SNMP |
-| 664 | `azazael-pkg-pysocks` | packages | Callable skill for Python package PySocks 1.7.1 — A Python SOCKS client module. See https://github.com/Anor... |
-| 665 | `azazael-pkg-pyspnego` | packages | Callable skill for Python package pyspnego 0.10.2 — Windows Negotiate Authentication Client and Server |
-| 666 | `azazael-pkg-pytest` | packages | Callable skill for Python package pytest 9.0.3 — pytest: simple powerful testing with Python |
-| 667 | `azazael-pkg-python-apt` | packages | Callable skill for Python package python-apt 3.1.0 — Python bindings for APT |
-| 668 | `azazael-pkg-python-dateutil` | packages | Callable skill for Python package python-dateutil 2.9.0 — Extensions to the standard Python datetime module |
-| 669 | `azazael-pkg-python-discovery` | packages | Callable skill for Python package python-discovery 1.4.0 — Python interpreter discovery |
-| 670 | `azazael-pkg-python-docx` | packages | Callable skill for Python package python-docx 1.2.0 — Create, read, and update Microsoft Word .docx files. |
-| 671 | `azazael-pkg-python-dotenv` | packages | Callable skill for Python package python-dotenv 1.2.1 — Read key-value pairs from a .env file and set them ... |
-| 672 | `azazael-pkg-python-emailahoy3` | packages | Callable skill for Python package python-emailahoy3 0.1.3 — A Python3 email utility that verifies existence... |
-| 673 | `azazael-pkg-python-engineio` | packages | Callable skill for Python package python-engineio 4.13.0 — Engine.IO server and client for Python |
-| 674 | `azazael-pkg-python-gnupg` | packages | Callable skill for Python package python-gnupg 0.5.4 — A wrapper for the Gnu Privacy Guard (GPG or GnuPG) |
-| 675 | `azazael-pkg-python-gvm` | packages | Callable skill for Python package python-gvm 26.11.0 — Library to communicate with remote servers over GMP ... |
-| 676 | `azazael-pkg-python-ldap` | packages | Callable skill for Python package python-ldap 3.4.5 — Python modules for implementing LDAP clients |
-| 677 | `azazael-pkg-python-libnmap` | packages | Callable skill for Python package python-libnmap 0.7.3 — Python NMAP library enabling you to start async nm... |
-| 678 | `azazael-pkg-python-magic` | packages | Callable skill for Python package python-magic 0.4.28 — File type identification using libmagic |
-| 679 | `azazael-pkg-python-magic-ahupp` | packages | Callable skill for Python package python-magic-ahupp 0.4.13 — File type identification using libmagic |
-| 680 | `azazael-pkg-python-memcached` | packages | Callable skill for Python package python-memcached 1.60 — Pure python memcached client |
-| 681 | `azazael-pkg-python-multipart` | packages | Callable skill for Python package python-multipart 0.0.26 — A streaming multipart parser for Python |
-| 682 | `azazael-pkg-python-nmap` | packages | Callable skill for Python package python-nmap 0.7.1 — This is a python class to use nmap and access scan re... |
-| 683 | `azazael-pkg-python-owasp-zap-v2-4` | packages | Callable skill for Python package python-owasp-zap-v2.4 0.0.20 — OWASP ZAP 2.11 API client |
-| 684 | `azazael-pkg-python-pptx` | packages | Callable skill for Python package python-pptx 0.6.18 — Generate and manipulate Open XML PowerPoint (.pptx) ... |
-| 685 | `azazael-pkg-python-socketio` | packages | Callable skill for Python package python-socketio 5.16.0 — Socket.IO server and client for Python |
-| 686 | `azazael-pkg-python-socks` | packages | Callable skill for Python package python-socks 2.8.1 — Proxy (SOCKS4, SOCKS5, HTTP CONNECT) client for Python |
-| 687 | `azazael-pkg-python-ulid` | packages | Callable skill for Python package python-ulid 2.2.0 — Universally unique lexicographically sortable identifier |
-| 688 | `azazael-pkg-python-whois` | packages | Callable skill for Python package python-whois 0.9.3 — Whois querying and parsing of domain registration in... |
-| 689 | `azazael-pkg-python-xlib` | packages | Callable skill for Python package python-xlib 0.33 — Python X Library |
-| 690 | `azazael-pkg-pythonping` | packages | Callable skill for Python package pythonping 1.1.4 — A simple way to ping in Python |
-| 691 | `azazael-pkg-pytsk3` | packages | Callable skill for Python package pytsk3 20250801 — Python bindings for the SleuthKit |
-| 692 | `azazael-pkg-pytz` | packages | Callable skill for Python package pytz 2025.2 — World timezone definitions, modern and historical |
-| 693 | `azazael-pkg-pyusb` | packages | Callable skill for Python package pyusb 1.2.1.post2 — Python USB access module |
-| 694 | `azazael-pkg-pyuserinput` | packages | Callable skill for Python package PyUserInput 0.1.11 — A simple, cross-platform module for mouse and keyboa... |
-| 695 | `azazael-pkg-pyvirtualdisplay` | packages | Callable skill for Python package PyVirtualDisplay 3.0 — python wrapper for Xvfb, Xephyr and Xvnc |
-| 696 | `azazael-pkg-pywerview` | packages | Callable skill for Python package pywerview 0.3.3 — A Python port of PowerSploit's PowerView |
-| 697 | `azazael-pkg-pyxdg` | packages | Callable skill for Python package pyxdg 0.28 — PyXDG contains implementations of freedesktop.org standards ... |
-| 698 | `azazael-pkg-pyyaml` | packages | Callable skill for Python package PyYAML 6.0.3 — YAML parser and emitter for Python |
-| 699 | `azazael-pkg-pyyaml-env-tag` | packages | Callable skill for Python package pyyaml_env_tag 1.1 — A custom YAML tag for referencing environment variab... |
-| 700 | `azazael-pkg-pyzipper` | packages | Callable skill for Python package pyzipper 0.3.6 — AES encryption for zipfile. |
-| 701 | `azazael-pkg-pyzmq` | packages | Callable skill for Python package pyzmq 27.1.0 — Python bindings for 0MQ |
-| 702 | `azazael-pkg-qrcode` | packages | Callable skill for Python package qrcode 8.2 — QR Code image generator |
-| 703 | `azazael-pkg-qscintilla` | packages | Callable skill for Python package QScintilla 2.14.1 — Python bindings for the QScintilla programmers editor... |
-| 704 | `azazael-pkg-quart` | packages | Callable skill for Python package quart 0.20.0 — A Python ASGI web framework with the same API as Flask |
-| 705 | `azazael-pkg-rapidfuzz` | packages | Callable skill for Python package RapidFuzz 3.12.2 — rapid fuzzy string matching |
-| 706 | `azazael-pkg-rarfile` | packages | Callable skill for Python package rarfile 4.2 — RAR archive reader for Python |
-| 707 | `azazael-pkg-ratelimit` | packages | Callable skill for Python package ratelimit 2.2.1 — API rate limit decorator |
-| 708 | `azazael-pkg-raven` | packages | Callable skill for Python package raven 1.1.0 — A lightweight file upload service used for penetration test... |
-| 709 | `azazael-pkg-recommonmark` | packages | Callable skill for Python package recommonmark 0.7.1 — A docutils-compatibility bridge to CommonMark, enabl... |
-| 710 | `azazael-pkg-redis` | packages | Callable skill for Python package redis 6.4.0 — Python client for Redis database and key-value store |
-| 711 | `azazael-pkg-referencing` | packages | Callable skill for Python package referencing 0.37.0 — JSON Referencing + Python |
-| 712 | `azazael-pkg-regex` | packages | Callable skill for Python package regex 2025.9.18 — Alternative regular expression module, to replace re. |
-| 713 | `azazael-pkg-rel` | packages | Callable skill for Python package rel 0.4.9.19 — Registered Event Listener. Provides standard (pyevent) int... |
-| 714 | `azazael-pkg-reportlab` | packages | Callable skill for Python package reportlab 4.4.10 — The Reportlab Toolkit |
-| 715 | `azazael-pkg-repoze-lru` | packages | Callable skill for Python package repoze.lru 0.7 — A tiny LRU cache implementation and decorator |
-| 716 | `azazael-pkg-requests` | packages | Callable skill for Python package requests 2.32.5 — Python HTTP for Humans. |
-| 717 | `azazael-pkg-requests-file` | packages | Callable skill for Python package requests-file 3.0.1 — File transport adapter for Requests |
-| 718 | `azazael-pkg-requests-futures` | packages | Callable skill for Python package requests-futures 1.0.2 — Asynchronous Python HTTP for Humans. |
-| 719 | `azazael-pkg-requests-ntlm` | packages | Callable skill for Python package requests_ntlm 1.3.0 — This package allows for HTTP NTLM authentication us... |
-| 720 | `azazael-pkg-requests-toolbelt` | packages | Callable skill for Python package requests-toolbelt 1.0.0 — A utility belt for advanced users of python-req... |
-| 721 | `azazael-pkg-responses` | packages | Callable skill for Python package responses 0.26.1 — A utility library for mocking out the `requests` Pytho... |
-| 722 | `azazael-pkg-retrying` | packages | Callable skill for Python package retrying 1.4.2 — Retrying |
-| 723 | `azazael-pkg-rfc3339-validator` | packages | Callable skill for Python package rfc3339-validator 0.1.4 — A pure python RFC3339 validator |
-| 724 | `azazael-pkg-rfc3986-validator` | packages | Callable skill for Python package rfc3986-validator 0.1.1 — Pure python rfc3986 validator |
-| 725 | `azazael-pkg-rfc3987` | packages | Callable skill for Python package rfc3987 1.3.8 — Parsing and validation of URIs (RFC 3986) and IRIs (RFC 3... |
-| 726 | `azazael-pkg-rfcat` | packages | Callable skill for Python package rfcat 2.0.1 — the swiss army knife of subGHz |
-| 727 | `azazael-pkg-rich` | packages | Callable skill for Python package rich 15.0.0 — Render rich text, tables, progress bars, syntax highlightin... |
-| 728 | `azazael-pkg-rjsmin` | packages | Callable skill for Python package rjsmin 1.2.5 — Javascript Minifier |
-| 729 | `azazael-pkg-rlpycairo` | packages | Callable skill for Python package rlPyCairo 0.3.0 — Plugin backend renderer for reportlab.graphics.renderPM |
-| 730 | `azazael-pkg-roguehostapd` | packages | Callable skill for Python package roguehostapd 1.1.2 — Hostapd wrapper for hostapd |
-| 731 | `azazael-pkg-roman-numerals` | packages | Callable skill for Python package roman-numerals 4.1.0 — Manipulate well-formed Roman numerals |
-| 732 | `azazael-pkg-ropgadget` | packages | Callable skill for Python package ROPGadget 7.7 — This tool lets you search your gadgets on your binaries t... |
-| 733 | `azazael-pkg-ropper` | packages | Callable skill for Python package ropper 1.13.8 — Show information about files in different file formats an... |
-| 734 | `azazael-pkg-routersploit` | packages | Callable skill for Python package routersploit 3.4.7 — Exploitation Framework for Embedded Devices |
-| 735 | `azazael-pkg-routes` | packages | Callable skill for Python package Routes 2.5.1 — Routing Recognition and Generation Tools |
-| 736 | `azazael-pkg-rpds-py` | packages | Callable skill for Python package rpds-py 0.30.0 — Python bindings to Rust's persistent data structures (rpds) |
-| 737 | `azazael-pkg-rpyc` | packages | Callable skill for Python package rpyc 6.0.2 — Remote Python Call (RPyC) is a transparent and symmetric dis... |
-| 738 | `azazael-pkg-rq` | packages | Callable skill for Python package rq 2.9.1 — RQ is a simple, lightweight, library for creating background j... |
-| 739 | `azazael-pkg-ruamel-yaml` | packages | Callable skill for Python package ruamel.yaml 0.18.14 — ruamel.yaml is a YAML parser/emitter that supports ... |
-| 740 | `azazael-pkg-ruamel-yaml-clib` | packages | Callable skill for Python package ruamel.yaml.clib 0.2.15 — C version of reader, parser and emitter for rua... |
-| 741 | `azazael-pkg-s3transfer` | packages | Callable skill for Python package s3transfer 0.14.0 — An Amazon S3 Transfer Manager |
-| 742 | `azazael-pkg-sara` | packages | Callable skill for Python package sara 1.3 — RouterOS Security Inspector |
-| 743 | `azazael-pkg-scapy` | packages | Callable skill for Python package scapy 2.7.1 — Scapy: interactive packet manipulation tool |
-| 744 | `azazael-pkg-schema` | packages | Callable skill for Python package schema 0.7.7 — Simple data validation library |
-| 745 | `azazael-pkg-scikit-learn` | packages | Callable skill for Python package scikit-learn 1.8.0 — A set of python modules for machine learning and dat... |
-| 746 | `azazael-pkg-scipy` | packages | Callable skill for Python package scipy 1.16.3 — Fundamental algorithms for scientific computing in Python |
-| 747 | `azazael-pkg-scp` | packages | Callable skill for Python package scp 0.15.0 — scp module for paramiko |
-| 748 | `azazael-pkg-secure` | packages | Callable skill for Python package secure 1.0.1 — A lightweight package that adds security headers for Pytho... |
-| 749 | `azazael-pkg-selenium` | packages | Callable skill for Python package selenium 4.24.0 — Official Python bindings for Selenium WebDriver. |
-| 750 | `azazael-pkg-service-identity` | packages | Callable skill for Python package service-identity 24.2.0 — Service identity verification for pyOpenSSL & c... |
-| 751 | `azazael-pkg-setproctitle` | packages | Callable skill for Python package setproctitle 1.3.7 — A Python module to customize the process title |
-| 752 | `azazael-pkg-setuptools` | packages | Callable skill for Python package setuptools 78.1.1 — Easily download, build, install, upgrade, and uninsta... |
-| 753 | `azazael-pkg-sgmllib3k` | packages | Callable skill for Python package sgmllib3k 1.0.0 — Py3k port of sgmllib. |
-| 754 | `azazael-pkg-shell-gpt` | packages | Callable skill for Python package shell_gpt 1.5.1 — A command-line productivity tool powered by large langu... |
-| 755 | `azazael-pkg-shellfire` | packages | Callable skill for Python package shellfire 0.14 — shellfire is an exploitation shell focusing on exploitin... |
-| 756 | `azazael-pkg-shellingham` | packages | Callable skill for Python package shellingham 1.5.4 — Tool to Detect Surrounding Shell |
-| 757 | `azazael-pkg-sherlock-project` | packages | Callable skill for Python package sherlock-project 0 — Hunt down social media accounts by username across s... |
-| 758 | `azazael-pkg-shiboken6` | packages | Callable skill for Python package shiboken6 6.10.3 — Python / C++ bindings helper module |
-| 759 | `azazael-pkg-shiboken6-generator` | packages | Callable skill for Python package shiboken6-generator 6.10.3 — Python / C++ bindings generator |
-| 760 | `azazael-pkg-shodan` | packages | Callable skill for Python package shodan 1.31.0 — Python library and command-line utility for Shodan (https... |
-| 761 | `azazael-pkg-shtab` | packages | Callable skill for Python package shtab 1.8.0 — Automagic shell tab completion for Python CLI applications |
-| 762 | `azazael-pkg-sickle-pdk` | packages | Callable skill for Python package sickle-pdk 4.1.1 — Payload Development Kit |
-| 763 | `azazael-pkg-sigma-cli` | packages | Callable skill for Python package sigma-cli 3.0.2 — Sigma Command Line Interface (conversion, check etc.) b... |
-| 764 | `azazael-pkg-simple-websocket` | packages | Callable skill for Python package simple-websocket 1.1.0 — Simple WebSocket server and client for Python |
-| 765 | `azazael-pkg-simplejson` | packages | Callable skill for Python package simplejson 4.1.1 — Simple, fast, extensible JSON encoder/decoder for Python |
-| 766 | `azazael-pkg-sippts` | packages | Callable skill for Python package sippts 4.1.dev0 — SIPPTS is a set of tools for auditing VoIP systems base... |
-| 767 | `azazael-pkg-six` | packages | Callable skill for Python package six 1.17.0 — Python 2 and 3 compatibility utilities |
-| 768 | `azazael-pkg-skia-pathops` | packages | Callable skill for Python package skia-pathops 0.9.2 — Python access to operations on paths using the Skia ... |
-| 769 | `azazael-pkg-slowapi` | packages | Callable skill for Python package slowapi 0.1.9 — A rate limiting extension for Starlette and Fastapi |
-| 770 | `azazael-pkg-smart-open` | packages | Callable skill for Python package smart_open 7.5.1 — Utils for streaming large files (S3, HDFS, GCS, SFTP, ... |
-| 771 | `azazael-pkg-smbmap` | packages | Callable skill for Python package smbmap 1.10.7 — SMBMap is a handy SMB enumeration tool |
-| 772 | `azazael-pkg-smmap` | packages | Callable skill for Python package smmap 6.0.0 — A pure Python implementation of a sliding window memory map... |
-| 773 | `azazael-pkg-smoke-zephyr` | packages | Callable skill for Python package smoke-zephyr 2.0.1 — This project provides a collection of miscellaneous ... |
-| 774 | `azazael-pkg-sniffio` | packages | Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under |
-| 775 | `azazael-pkg-snowballstemmer` | packages | Callable skill for Python package snowballstemmer 3.1.1 — This package provides 36 stemmers for 34 language... |
-| 776 | `azazael-pkg-sortedcontainers` | packages | Callable skill for Python package sortedcontainers 2.4.0 — Sorted Containers -- Sorted List, Sorted Dict, S... |
-| 777 | `azazael-pkg-soupsieve` | packages | Callable skill for Python package soupsieve 2.8.4 — A modern CSS selector implementation for Beautiful Soup. |
-| 778 | `azazael-pkg-specan` | packages | Callable skill for Python package specan 1 — A tool for reading spectrum analyzer data from an Ubertooth de... |
-| 779 | `azazael-pkg-sphinx` | packages | Callable skill for Python package Sphinx 9.1.0 — Python documentation generator |
-| 780 | `azazael-pkg-sphinx-rtd-theme` | packages | Callable skill for Python package sphinx_rtd_theme 3.1.0 — Read the Docs theme for Sphinx |
-| 781 | `azazael-pkg-sphinxcontrib-jquery` | packages | Callable skill for Python package sphinxcontrib-jquery 4.1 — Extension to include jQuery on newer Sphinx re... |
-| 782 | `azazael-pkg-sploitscan` | packages | Callable skill for Python package sploitscan 0.14.3 — SploitScan is a cybersecurity utility designed to pro... |
-| 783 | `azazael-pkg-sprayhound` | packages | Callable skill for Python package sprayhound 0.0.4 — Password spraying with BloodHound integration |
-| 784 | `azazael-pkg-sqlalchemy` | packages | Callable skill for Python package SQLAlchemy 2.0.48 — Database Abstraction Library |
-| 785 | `azazael-pkg-sqlalchemy-utils` | packages | Callable skill for Python package SQLAlchemy-Utils 0.42.1 — Various utility functions for SQLAlchemy. |
-| 786 | `azazael-pkg-sqlite-fts4` | packages | Callable skill for Python package sqlite-fts4 1.0.3 — Python functions for working with SQLite FTS4 search |
-| 787 | `azazael-pkg-sqlite-migrate` | packages | Callable skill for Python package sqlite-migrate 0.1b0 — A simple database migration system for SQLite, bas... |
-| 788 | `azazael-pkg-sqlite-utils` | packages | Callable skill for Python package sqlite-utils 3.38 — CLI tool and Python library for manipulating SQLite d... |
-| 789 | `azazael-pkg-sqlmc` | packages | Callable skill for Python package sqlmc 1.1.0 — SQL Injection Massive Checker for a domain |
-| 790 | `azazael-pkg-sqlparse` | packages | Callable skill for Python package sqlparse 0.5.5 — A non-validating SQL parser. |
-| 791 | `azazael-pkg-ssdeep` | packages | Callable skill for Python package ssdeep 3.4.1 — Python wrapper for the ssdeep library |
-| 792 | `azazael-pkg-sse-starlette` | packages | Callable skill for Python package sse-starlette 3.4.1 — SSE plugin for Starlette |
-| 793 | `azazael-pkg-sshuttle` | packages | Callable skill for Python package sshuttle 1.3.2 — Transparent proxy server that works as a poor man's VPN.... |
-| 794 | `azazael-pkg-sslyze` | packages | Callable skill for Python package sslyze 6.3.1 — Fast and powerful SSL/TLS scanning library. |
-| 795 | `azazael-pkg-stack-data` | packages | Callable skill for Python package stack_data 0.6.3 — Extract data from python stack frames and tracebacks f... |
-| 796 | `azazael-pkg-starlette` | packages | Callable skill for Python package starlette 1.1.0 — The little ASGI library that shines. |
-| 797 | `azazael-pkg-stegcracker` | packages | Callable skill for Python package stegcracker 2.1.0 — Steganography brute-force utility to uncover hidden d... |
-| 798 | `azazael-pkg-stem` | packages | Callable skill for Python package stem 1.8.2 — Stem is a Python controller library that allows applications... |
-| 799 | `azazael-pkg-stix2` | packages | Callable skill for Python package stix2 3.0.1 — Produce and consume STIX 2 JSON content |
-| 800 | `azazael-pkg-stix2-patterns` | packages | Callable skill for Python package stix2-patterns 2.0.0 — Validate STIX 2 Patterns. |
-| 801 | `azazael-pkg-stone` | packages | Callable skill for Python package stone 3.3.9 — Stone is an interface description language (IDL) for APIs. |
-| 802 | `azazael-pkg-stringdist` | packages | Callable skill for Python package StringDist 1.0.9 — This package provides the stringdist module, which inc... |
-| 803 | `azazael-pkg-structlog` | packages | Callable skill for Python package structlog 25.5.0 — Structured Logging for Python |
-| 804 | `azazael-pkg-sublist3r` | packages | Callable skill for Python package Sublist3r 1.0 — Subdomains enumeration tool for penetration testers |
-| 805 | `azazael-pkg-suds-community` | packages | Callable skill for Python package suds-community 1.2.0 — Lightweight SOAP client (community fork) |
-| 806 | `azazael-pkg-svglib` | packages | Callable skill for Python package svglib 1.5.1 — A pure-Python library for reading and converting SVG |
-| 807 | `azazael-pkg-sympy` | packages | Callable skill for Python package sympy 1.14.0 — Computer algebra system (CAS) in Python |
-| 808 | `azazael-pkg-syslog-rfc5424-formatter` | packages | Callable skill for Python package syslog-rfc5424-formatter 1.2.3 — Logging formatter which produces well-fo... |
-| 809 | `azazael-pkg-tables` | packages | Callable skill for Python package tables 3.11.1 — Hierarchical datasets for Python |
-| 810 | `azazael-pkg-tabulate` | packages | Callable skill for Python package tabulate 0.9.0 — Pretty-print tabular data |
-| 811 | `azazael-pkg-tblib` | packages | Callable skill for Python package tblib 3.2.2 — Traceback serialization library. |
-| 812 | `azazael-pkg-telnetlib` | packages | Callable skill for Python package telnetlib 0.0.0 — No summary available. |
-| 813 | `azazael-pkg-tempita` | packages | Callable skill for Python package Tempita 0.6.0 — A very small text templating language |
-| 814 | `azazael-pkg-tempora` | packages | Callable skill for Python package tempora 5.7.0 — Objects and routines pertaining to date and time (tempora) |
-| 815 | `azazael-pkg-tenacity` | packages | Callable skill for Python package tenacity 9.1.4 — Retry code until it succeeds |
-| 816 | `azazael-pkg-termcolor` | packages | Callable skill for Python package termcolor 2.4.0 — ANSI color formatting for output in terminal |
-| 817 | `azazael-pkg-terminaltables3` | packages | Callable skill for Python package terminaltables3 4.0.0 — Generate simple tables in terminals from a nested... |
-| 818 | `azazael-pkg-termineter` | packages | Callable skill for Python package termineter 1.0.6 — Termineter is a Python framework which provides a plat... |
-| 819 | `azazael-pkg-textfsm` | packages | Callable skill for Python package textfsm 2.1.0 — Python module for parsing semi-structured text into pytho... |
-| 820 | `azazael-pkg-texttable` | packages | Callable skill for Python package texttable 1.7.0 — module to create simple ASCII tables |
-| 821 | `azazael-pkg-theharvester` | packages | Callable skill for Python package theHarvester 4.10.1 — theHarvester is a very simple, yet effective tool d... |
-| 822 | `azazael-pkg-threadpoolctl` | packages | Callable skill for Python package threadpoolctl 3.1.0 — threadpoolctl |
-| 823 | `azazael-pkg-thrift` | packages | Callable skill for Python package thrift 0.23.0 — Python bindings for the Apache Thrift RPC system |
-| 824 | `azazael-pkg-tinycss2` | packages | Callable skill for Python package tinycss2 1.5.1 — A tiny CSS parser |
-| 825 | `azazael-pkg-tinydb` | packages | Callable skill for Python package tinydb 4.8.2 — TinyDB is a tiny, document oriented database optimized for... |
-| 826 | `azazael-pkg-tld` | packages | Callable skill for Python package tld 0.13 — Extract the top-level domain (TLD) from the URL given. |
-| 827 | `azazael-pkg-tldextract` | packages | Callable skill for Python package tldextract 5.3.1 — Accurately separates a URL's subdomain, domain, and pu... |
-| 828 | `azazael-pkg-tls-parser` | packages | Callable skill for Python package tls-parser 1.2.2 — Small library to parse TLS records. |
-| 829 | `azazael-pkg-tlsh` | packages | Callable skill for Python package tlsh 4.5.0 — TLSH (C++ Python extension) |
-| 830 | `azazael-pkg-toml` | packages | Callable skill for Python package toml 0.10.2 — Python Library for Tom's Obvious, Minimal Language |
-| 831 | `azazael-pkg-tomlkit` | packages | Callable skill for Python package tomlkit 0.13.3 — Style preserving TOML library |
-| 832 | `azazael-pkg-toolz` | packages | Callable skill for Python package toolz 1.1.0.post1 — List processing tools and functional utilities |
-| 833 | `azazael-pkg-tornado` | packages | Callable skill for Python package tornado 6.5.5 — Tornado is a Python web framework and asynchronous networ... |
-| 834 | `azazael-pkg-tqdm` | packages | Callable skill for Python package tqdm 4.67.3 — Fast, Extensible Progress Meter |
-| 835 | `azazael-pkg-traitlets` | packages | Callable skill for Python package traitlets 5.14.3 — Traitlets Python configuration system |
-| 836 | `azazael-pkg-translationstring` | packages | Callable skill for Python package translationstring 1.4 — Utility library for i18n relied on by various Rep... |
-| 837 | `azazael-pkg-treelib` | packages | Callable skill for Python package treelib 1.8.0 — A Python implementation of tree structure. |
-| 838 | `azazael-pkg-trio` | packages | Callable skill for Python package trio 0.33.0 — A friendly Python library for async concurrency and I/O |
-| 839 | `azazael-pkg-trio-websocket` | packages | Callable skill for Python package trio-websocket 0.12.2 — WebSocket library for Trio |
-| 840 | `azazael-pkg-twisted` | packages | Callable skill for Python package Twisted 26.4.0 — An asynchronous networking framework written in Python |
-| 841 | `azazael-pkg-typeguard` | packages | Callable skill for Python package typeguard 4.4.4 — Run-time type checker for Python |
-| 842 | `azazael-pkg-typer` | packages | Callable skill for Python package typer 0.20.0 — Typer, build great CLIs. Easy to code. Based on Python typ... |
-| 843 | `azazael-pkg-types-aiofiles` | packages | Callable skill for Python package types-aiofiles 25.1 — Typing stubs for aiofiles |
-| 844 | `azazael-pkg-types-antlr4-python3-runtime` | packages | Callable skill for Python package types-antlr4-python3-runtime 4.13 — Typing stubs for antlr4-python3-runtime |
-| 845 | `azazael-pkg-types-assertpy` | packages | Callable skill for Python package types-assertpy 1.1 — Typing stubs for assertpy |
-| 846 | `azazael-pkg-types-atheris` | packages | Callable skill for Python package types-atheris 3.0 — Typing stubs for atheris |
-| 847 | `azazael-pkg-types-auth0-python` | packages | Callable skill for Python package types-auth0-python 4.10 — Typing stubs for auth0-python |
-| 848 | `azazael-pkg-types-authlib` | packages | Callable skill for Python package types-Authlib 1.6.6 — Typing stubs for Authlib |
-| 849 | `azazael-pkg-types-aws-xray-sdk` | packages | Callable skill for Python package types-aws-xray-sdk 2.15 — Typing stubs for aws-xray-sdk |
-| 850 | `azazael-pkg-types-binaryornot` | packages | Callable skill for Python package types-binaryornot 0.4 — Typing stubs for binaryornot |
-| 851 | `azazael-pkg-types-bleach` | packages | Callable skill for Python package types-bleach 6.3 — Typing stubs for bleach |
-| 852 | `azazael-pkg-types-boltons` | packages | Callable skill for Python package types-boltons 25.0 — Typing stubs for boltons |
-| 853 | `azazael-pkg-types-braintree` | packages | Callable skill for Python package types-braintree 4.42 — Typing stubs for braintree |
-| 854 | `azazael-pkg-types-cachetools` | packages | Callable skill for Python package types-cachetools 6.2 — Typing stubs for cachetools |
-| 855 | `azazael-pkg-types-capturer` | packages | Callable skill for Python package types-capturer 3.0 — Typing stubs for capturer |
-| 856 | `azazael-pkg-types-cffi` | packages | Callable skill for Python package types-cffi 1.17 — Typing stubs for cffi |
-| 857 | `azazael-pkg-types-channels` | packages | Callable skill for Python package types-channels 4.3 — Typing stubs for channels |
-| 858 | `azazael-pkg-types-chevron` | packages | Callable skill for Python package types-chevron 0.14 — Typing stubs for chevron |
-| 859 | `azazael-pkg-types-click-default-group` | packages | Callable skill for Python package types-click-default-group 1.2 — Typing stubs for click-default-group |
-| 860 | `azazael-pkg-types-click-log` | packages | Callable skill for Python package types-click-log 0.4 — Typing stubs for click-log |
-| 861 | `azazael-pkg-types-click-shell` | packages | Callable skill for Python package types-click-shell 2.1 — Typing stubs for click-shell |
-| 862 | `azazael-pkg-types-click-spinner` | packages | Callable skill for Python package types-click-spinner 0.1 — Typing stubs for click-spinner |
-| 863 | `azazael-pkg-types-click-web` | packages | Callable skill for Python package types-click-web 0.8 — Typing stubs for click-web |
-| 864 | `azazael-pkg-types-colorama` | packages | Callable skill for Python package types-colorama 0.4 — Typing stubs for colorama |
-| 865 | `azazael-pkg-types-colorful` | packages | Callable skill for Python package types-colorful 0.5 — Typing stubs for colorful |
-| 866 | `azazael-pkg-types-console-menu` | packages | Callable skill for Python package types-console-menu 0.8 — Typing stubs for console-menu |
-| 867 | `azazael-pkg-types-convertdate` | packages | Callable skill for Python package types-convertdate 2.4 — Typing stubs for convertdate |
-| 868 | `azazael-pkg-types-croniter` | packages | Callable skill for Python package types-croniter 6.0.0 — Typing stubs for croniter |
-| 869 | `azazael-pkg-types-dateparser` | packages | Callable skill for Python package types-dateparser 1.2.2 — Typing stubs for dateparser |
-| 870 | `azazael-pkg-types-decorator` | packages | Callable skill for Python package types-decorator 5.2 — Typing stubs for decorator |
-| 871 | `azazael-pkg-types-defusedxml` | packages | Callable skill for Python package types-defusedxml 0.7 — Typing stubs for defusedxml |
-| 872 | `azazael-pkg-types-deprecated` | packages | Callable skill for Python package types-Deprecated 1.3.1 — Typing stubs for Deprecated |
-| 873 | `azazael-pkg-types-dirhash` | packages | Callable skill for Python package types-dirhash 0.5 — Typing stubs for dirhash |
-| 874 | `azazael-pkg-types-django-filter` | packages | Callable skill for Python package types-django-filter 25.2 — Typing stubs for django-filter |
-| 875 | `azazael-pkg-types-django-import-export` | packages | Callable skill for Python package types-django-import-export 4.4 — Typing stubs for django-import-export |
-| 876 | `azazael-pkg-types-docker` | packages | Callable skill for Python package types-docker 7.1 — Typing stubs for docker |
-| 877 | `azazael-pkg-types-dockerfile-parse` | packages | Callable skill for Python package types-dockerfile-parse 2.0 — Typing stubs for dockerfile-parse |
-| 878 | `azazael-pkg-types-docutils` | packages | Callable skill for Python package types-docutils 0.22.3 — Typing stubs for docutils |
-| 879 | `azazael-pkg-types-editdistance` | packages | Callable skill for Python package types-editdistance 0.8 — Typing stubs for editdistance |
-| 880 | `azazael-pkg-types-entrypoints` | packages | Callable skill for Python package types-entrypoints 0.4 — Typing stubs for entrypoints |
-| 881 | `azazael-pkg-types-ephem` | packages | Callable skill for Python package types-ephem 4.2 — Typing stubs for ephem |
-| 882 | `azazael-pkg-types-et-xmlfile` | packages | Callable skill for Python package types-et_xmlfile 2.0 — Typing stubs for et_xmlfile |
-| 883 | `azazael-pkg-types-fanstatic` | packages | Callable skill for Python package types-fanstatic 1.6 — Typing stubs for fanstatic |
-| 884 | `azazael-pkg-types-first` | packages | Callable skill for Python package types-first 2.0 — Typing stubs for first |
-| 885 | `azazael-pkg-types-flake8` | packages | Callable skill for Python package types-flake8 7.3 — Typing stubs for flake8 |
-| 886 | `azazael-pkg-types-flake8-bugbear` | packages | Callable skill for Python package types-flake8-bugbear 25.11.29 — Typing stubs for flake8-bugbear |
-| 887 | `azazael-pkg-types-flake8-builtins` | packages | Callable skill for Python package types-flake8-builtins 3.1 — Typing stubs for flake8-builtins |
-| 888 | `azazael-pkg-types-flake8-docstrings` | packages | Callable skill for Python package types-flake8-docstrings 1.7 — Typing stubs for flake8-docstrings |
-| 889 | `azazael-pkg-types-flake8-rst-docstrings` | packages | Callable skill for Python package types-flake8-rst-docstrings 0.4 — Typing stubs for flake8-rst-docstrings |
-| 890 | `azazael-pkg-types-flake8-simplify` | packages | Callable skill for Python package types-flake8-simplify 0.30 — Typing stubs for flake8-simplify |
-| 891 | `azazael-pkg-types-flake8-typing-imports` | packages | Callable skill for Python package types-flake8-typing-imports 1.17 — Typing stubs for flake8-typing-imports |
-| 892 | `azazael-pkg-types-flask-cors` | packages | Callable skill for Python package types-Flask-Cors 6.0 — Typing stubs for Flask-Cors |
-| 893 | `azazael-pkg-types-flask-migrate` | packages | Callable skill for Python package types-Flask-Migrate 4.1 — Typing stubs for Flask-Migrate |
-| 894 | `azazael-pkg-types-flask-socketio` | packages | Callable skill for Python package types-Flask-SocketIO 5.6 — Typing stubs for Flask-SocketIO |
-| 895 | `azazael-pkg-types-fpdf2` | packages | Callable skill for Python package types-fpdf2 2.8.4 — Typing stubs for fpdf2 |
-| 896 | `azazael-pkg-types-gdb` | packages | Callable skill for Python package types-gdb 16.3 — Typing stubs for gdb |
-| 897 | `azazael-pkg-types-geopandas` | packages | Callable skill for Python package types-geopandas 1.1.2 — Typing stubs for geopandas |
-| 898 | `azazael-pkg-types-gevent` | packages | Callable skill for Python package types-gevent 25.9 — Typing stubs for gevent |
-| 899 | `azazael-pkg-types-google-cloud-ndb` | packages | Callable skill for Python package types-google-cloud-ndb 2.4 — Typing stubs for google-cloud-ndb |
-| 900 | `azazael-pkg-types-greenlet` | packages | Callable skill for Python package types-greenlet 3.3 — Typing stubs for greenlet |
-| 901 | `azazael-pkg-types-grpcio` | packages | Callable skill for Python package types-grpcio 1 — Typing stubs for grpcio |
-| 902 | `azazael-pkg-types-grpcio-channelz` | packages | Callable skill for Python package types-grpcio-channelz 1 — Typing stubs for grpcio-channelz |
-| 903 | `azazael-pkg-types-grpcio-health-checking` | packages | Callable skill for Python package types-grpcio-health-checking 1 — Typing stubs for grpcio-health-checking |
-| 904 | `azazael-pkg-types-grpcio-reflection` | packages | Callable skill for Python package types-grpcio-reflection 1 — Typing stubs for grpcio-reflection |
-| 905 | `azazael-pkg-types-grpcio-status` | packages | Callable skill for Python package types-grpcio-status 1 — Typing stubs for grpcio-status |
-| 906 | `azazael-pkg-types-gunicorn` | packages | Callable skill for Python package types-gunicorn 25.0 — Typing stubs for gunicorn |
-| 907 | `azazael-pkg-types-hdbcli` | packages | Callable skill for Python package types-hdbcli 2.25 — Typing stubs for hdbcli |
-| 908 | `azazael-pkg-types-hnswlib` | packages | Callable skill for Python package types-hnswlib 0.8 — Typing stubs for hnswlib |
-| 909 | `azazael-pkg-types-html5lib` | packages | Callable skill for Python package types-html5lib 1.1 — Typing stubs for html5lib |
-| 910 | `azazael-pkg-types-httplib2` | packages | Callable skill for Python package types-httplib2 0.31.2 — Typing stubs for httplib2 |
-| 911 | `azazael-pkg-types-hvac` | packages | Callable skill for Python package types-hvac 2.4 — Typing stubs for hvac |
-| 912 | `azazael-pkg-types-ibm-db` | packages | Callable skill for Python package types-ibm-db 3.2.6 — Typing stubs for ibm-db |
-| 913 | `azazael-pkg-types-icalendar` | packages | Callable skill for Python package types-icalendar 6.3.2 — Typing stubs for icalendar |
-| 914 | `azazael-pkg-types-inifile` | packages | Callable skill for Python package types-inifile 0.4 — Typing stubs for inifile |
-| 915 | `azazael-pkg-types-jack-client` | packages | Callable skill for Python package types-JACK-Client 0.5 — Typing stubs for JACK-Client |
-| 916 | `azazael-pkg-types-jetson-gpio` | packages | Callable skill for Python package types-Jetson.GPIO 2.1.12 — Typing stubs for Jetson.GPIO |
-| 917 | `azazael-pkg-types-jmespath` | packages | Callable skill for Python package types-jmespath 1.1 — Typing stubs for jmespath |
-| 918 | `azazael-pkg-types-jsonnet` | packages | Callable skill for Python package types-jsonnet 0.21 — Typing stubs for jsonnet |
-| 919 | `azazael-pkg-types-jsonschema` | packages | Callable skill for Python package types-jsonschema 4.26.0 — Typing stubs for jsonschema |
-| 920 | `azazael-pkg-types-jwcrypto` | packages | Callable skill for Python package types-jwcrypto 1.5 — Typing stubs for jwcrypto |
-| 921 | `azazael-pkg-types-keyboard` | packages | Callable skill for Python package types-keyboard 0.13 — Typing stubs for keyboard |
-| 922 | `azazael-pkg-types-ldap3` | packages | Callable skill for Python package types-ldap3 2.9 — Typing stubs for ldap3 |
-| 923 | `azazael-pkg-types-libsass` | packages | Callable skill for Python package types-libsass 0.23 — Typing stubs for libsass |
-| 924 | `azazael-pkg-types-lunardate` | packages | Callable skill for Python package types-lunardate 0.2 — Typing stubs for lunardate |
-| 925 | `azazael-pkg-types-lupa` | packages | Callable skill for Python package types-lupa 2.6 — Typing stubs for lupa |
-| 926 | `azazael-pkg-types-lzstring` | packages | Callable skill for Python package types-lzstring 1.0 — Typing stubs for lzstring |
-| 927 | `azazael-pkg-types-m3u8` | packages | Callable skill for Python package types-m3u8 6.0 — Typing stubs for m3u8 |
-| 928 | `azazael-pkg-types-markdown` | packages | Callable skill for Python package types-Markdown 3.10 — Typing stubs for Markdown |
-| 929 | `azazael-pkg-types-mock` | packages | Callable skill for Python package types-mock 5.2 — Typing stubs for mock |
-| 930 | `azazael-pkg-types-mypy-extensions` | packages | Callable skill for Python package types-mypy-extensions 1.1 — Typing stubs for mypy-extensions |
-| 931 | `azazael-pkg-types-mysqlclient` | packages | Callable skill for Python package types-mysqlclient 2.2 — Typing stubs for mysqlclient |
-| 932 | `azazael-pkg-types-nanoid` | packages | Callable skill for Python package types-nanoid 2.0.0 — Typing stubs for nanoid |
-| 933 | `azazael-pkg-types-nanoleafapi` | packages | Callable skill for Python package types-nanoleafapi 2.1 — Typing stubs for nanoleafapi |
-| 934 | `azazael-pkg-types-netaddr` | packages | Callable skill for Python package types-netaddr 1.3 — Typing stubs for netaddr |
-| 935 | `azazael-pkg-types-netifaces` | packages | Callable skill for Python package types-netifaces 0.11 — Typing stubs for netifaces |
-| 936 | `azazael-pkg-types-networkx` | packages | Callable skill for Python package types-networkx 3.6.1 — Typing stubs for networkx |
-| 937 | `azazael-pkg-types-oauthlib` | packages | Callable skill for Python package types-oauthlib 3.3 — Typing stubs for oauthlib |
-| 938 | `azazael-pkg-types-objgraph` | packages | Callable skill for Python package types-objgraph 3.6 — Typing stubs for objgraph |
-| 939 | `azazael-pkg-types-olefile` | packages | Callable skill for Python package types-olefile 0.47 — Typing stubs for olefile |
-| 940 | `azazael-pkg-types-openpyxl` | packages | Callable skill for Python package types-openpyxl 3.1.5 — Typing stubs for openpyxl |
-| 941 | `azazael-pkg-types-opentracing` | packages | Callable skill for Python package types-opentracing 2.4 — Typing stubs for opentracing |
-| 942 | `azazael-pkg-types-paramiko` | packages | Callable skill for Python package types-paramiko 4.0 — Typing stubs for paramiko |
-| 943 | `azazael-pkg-types-parsimonious` | packages | Callable skill for Python package types-parsimonious 0.11 — Typing stubs for parsimonious |
-| 944 | `azazael-pkg-types-passlib` | packages | Callable skill for Python package types-passlib 1.7 — Typing stubs for passlib |
-| 945 | `azazael-pkg-types-passpy` | packages | Callable skill for Python package types-passpy 1.0 — Typing stubs for passpy |
-| 946 | `azazael-pkg-types-peewee` | packages | Callable skill for Python package types-peewee 3.19.0 — Typing stubs for peewee |
-| 947 | `azazael-pkg-types-pep8-naming` | packages | Callable skill for Python package types-pep8-naming 0.15 — Typing stubs for pep8-naming |
-| 948 | `azazael-pkg-types-pexpect` | packages | Callable skill for Python package types-pexpect 4.9 — Typing stubs for pexpect |
-| 949 | `azazael-pkg-types-pika-ts` | packages | Callable skill for Python package types-pika-ts 1.3 — Typing stubs for pika |
-| 950 | `azazael-pkg-types-polib` | packages | Callable skill for Python package types-polib 1.2 — Typing stubs for polib |
-| 951 | `azazael-pkg-types-pony` | packages | Callable skill for Python package types-pony 0.7 — Typing stubs for pony |
-| 952 | `azazael-pkg-types-portpicker` | packages | Callable skill for Python package types-portpicker 1.6 — Typing stubs for portpicker |
-| 953 | `azazael-pkg-types-protobuf` | packages | Callable skill for Python package types-protobuf 6.32.1 — Typing stubs for protobuf |
-| 954 | `azazael-pkg-types-psutil` | packages | Callable skill for Python package types-psutil 7.2.2 — Typing stubs for psutil |
-| 955 | `azazael-pkg-types-psycopg2` | packages | Callable skill for Python package types-psycopg2 2.9.11 — Typing stubs for psycopg2 |
-| 956 | `azazael-pkg-types-punq` | packages | Callable skill for Python package types-punq 0.7 — Typing stubs for punq |
-| 957 | `azazael-pkg-types-pyasn1` | packages | Callable skill for Python package types-pyasn1 0.6 — Typing stubs for pyasn1 |
-| 958 | `azazael-pkg-types-pyaudio` | packages | Callable skill for Python package types-pyaudio 0.2 — Typing stubs for pyaudio |
-| 959 | `azazael-pkg-types-pyautogui` | packages | Callable skill for Python package types-PyAutoGUI 0.9 — Typing stubs for PyAutoGUI |
-| 960 | `azazael-pkg-types-pycocotools` | packages | Callable skill for Python package types-pycocotools 2.0 — Typing stubs for pycocotools |
-| 961 | `azazael-pkg-types-pycurl` | packages | Callable skill for Python package types-pycurl 7.45.7 — Typing stubs for pycurl |
-| 962 | `azazael-pkg-types-pyfarmhash` | packages | Callable skill for Python package types-pyfarmhash 0.4 — Typing stubs for pyfarmhash |
-| 963 | `azazael-pkg-types-pyflakes` | packages | Callable skill for Python package types-pyflakes 3.4 — Typing stubs for pyflakes |
-| 964 | `azazael-pkg-types-pygments` | packages | Callable skill for Python package types-Pygments 2.19 — Typing stubs for Pygments |
-| 965 | `azazael-pkg-types-pyinstaller` | packages | Callable skill for Python package types-pyinstaller 6.18 — Typing stubs for pyinstaller |
-| 966 | `azazael-pkg-types-pyjks` | packages | Callable skill for Python package types-pyjks 20.0 — Typing stubs for pyjks |
-| 967 | `azazael-pkg-types-pyluach` | packages | Callable skill for Python package types-pyluach 2.3 — Typing stubs for pyluach |
-| 968 | `azazael-pkg-types-pymeeus` | packages | Callable skill for Python package types-PyMeeus 0.5 — Typing stubs for PyMeeus |
-| 969 | `azazael-pkg-types-pymysql` | packages | Callable skill for Python package types-PyMySQL 1.1 — Typing stubs for PyMySQL |
-| 970 | `azazael-pkg-types-pynput` | packages | Callable skill for Python package types-pynput 1.8.1 — Typing stubs for pynput |
-| 971 | `azazael-pkg-types-pyperclip` | packages | Callable skill for Python package types-pyperclip 1.9 — Typing stubs for pyperclip |
-| 972 | `azazael-pkg-types-pyrfc3339` | packages | Callable skill for Python package types-pyRFC3339 2.0.1 — Typing stubs for pyRFC3339 |
-| 973 | `azazael-pkg-types-pyscreeze` | packages | Callable skill for Python package types-PyScreeze 1.0.1 — Typing stubs for PyScreeze |
-| 974 | `azazael-pkg-types-pyserial` | packages | Callable skill for Python package types-pyserial 3.5 — Typing stubs for pyserial |
-| 975 | `azazael-pkg-types-pysftp` | packages | Callable skill for Python package types-pysftp 0.2 — Typing stubs for pysftp |
-| 976 | `azazael-pkg-types-pysocks` | packages | Callable skill for Python package types-PySocks 1.7.1 — Typing stubs for PySocks |
-| 977 | `azazael-pkg-types-pytest-lazy-fixture` | packages | Callable skill for Python package types-pytest-lazy-fixture 0.6 — Typing stubs for pytest-lazy-fixture |
-| 978 | `azazael-pkg-types-python-crontab` | packages | Callable skill for Python package types-python-crontab 3.3 — Typing stubs for python-crontab |
-| 979 | `azazael-pkg-types-python-dateutil` | packages | Callable skill for Python package types-python-dateutil 2.9 — Typing stubs for python-dateutil |
-| 980 | `azazael-pkg-types-python-http-client` | packages | Callable skill for Python package types-python-http-client 3.3.7 — Typing stubs for python-http-client |
-| 981 | `azazael-pkg-types-python-jenkins` | packages | Callable skill for Python package types-python-jenkins 1.8.3 — Typing stubs for python-jenkins |
-| 982 | `azazael-pkg-types-python-jose` | packages | Callable skill for Python package types-python-jose 3.5 — Typing stubs for python-jose |
-| 983 | `azazael-pkg-types-python-nmap` | packages | Callable skill for Python package types-python-nmap 0.7 — Typing stubs for python-nmap |
-| 984 | `azazael-pkg-types-python-xlib` | packages | Callable skill for Python package types-python-xlib 0.33 — Typing stubs for python-xlib |
-| 985 | `azazael-pkg-types-pytz` | packages | Callable skill for Python package types-pytz 2025.2 — Typing stubs for pytz |
-| 986 | `azazael-pkg-types-pywin32` | packages | Callable skill for Python package types-pywin32 311 — Typing stubs for pywin32 |
-| 987 | `azazael-pkg-types-pyxdg` | packages | Callable skill for Python package types-pyxdg 0.28 — Typing stubs for pyxdg |
-| 988 | `azazael-pkg-types-pyyaml` | packages | Callable skill for Python package types-PyYAML 6.0 — Typing stubs for PyYAML |
-| 989 | `azazael-pkg-types-qrbill` | packages | Callable skill for Python package types-qrbill 1.2 — Typing stubs for qrbill |
-| 990 | `azazael-pkg-types-qrcode` | packages | Callable skill for Python package types-qrcode 8.2 — Typing stubs for qrcode |
-| 991 | `azazael-pkg-types-ratelimit` | packages | Callable skill for Python package types-ratelimit 2.2 — Typing stubs for ratelimit |
-| 992 | `azazael-pkg-types-regex` | packages | Callable skill for Python package types-regex 2026.1.15 — Typing stubs for regex |
-| 993 | `azazael-pkg-types-reportlab` | packages | Callable skill for Python package types-reportlab 4.4.9 — Typing stubs for reportlab |
-| 994 | `azazael-pkg-types-requests` | packages | Callable skill for Python package types-requests 2.32.4 — Typing stubs for requests |
-| 995 | `azazael-pkg-types-requests-oauthlib` | packages | Callable skill for Python package types-requests-oauthlib 2.0 — Typing stubs for requests-oauthlib |
-| 996 | `azazael-pkg-types-retry` | packages | Callable skill for Python package types-retry 0.9 — Typing stubs for retry |
-| 997 | `azazael-pkg-types-rfc3339-validator` | packages | Callable skill for Python package types-rfc3339-validator 0.1 — Typing stubs for rfc3339-validator |
-| 998 | `azazael-pkg-types-rpi-gpio` | packages | Callable skill for Python package types-RPi.GPIO 0.7 — Typing stubs for RPi.GPIO |
-| 999 | `azazael-pkg-types-s2clientprotocol` | packages | Callable skill for Python package types-s2clientprotocol 5 — Typing stubs for s2clientprotocol |
-| 1000 | `azazael-pkg-types-seaborn` | packages | Callable skill for Python package types-seaborn 0.13.2 — Typing stubs for seaborn |
-| 1001 | `azazael-pkg-types-send2trash` | packages | Callable skill for Python package types-Send2Trash 2.1 — Typing stubs for Send2Trash |
-| 1002 | `azazael-pkg-types-setuptools` | packages | Callable skill for Python package types-setuptools 80.10 — Typing stubs for setuptools |
-| 1003 | `azazael-pkg-types-shapely` | packages | Callable skill for Python package types-shapely 2.1 — Typing stubs for shapely |
-| 1004 | `azazael-pkg-types-simple-websocket` | packages | Callable skill for Python package types-simple-websocket 1.1 — Typing stubs for simple-websocket |
-| 1005 | `azazael-pkg-types-simplejson` | packages | Callable skill for Python package types-simplejson 3.20 — Typing stubs for simplejson |
-| 1006 | `azazael-pkg-types-singledispatch` | packages | Callable skill for Python package types-singledispatch 4.1 — Typing stubs for singledispatch |
-| 1007 | `azazael-pkg-types-six` | packages | Callable skill for Python package types-six 1.17 — Typing stubs for six |
-| 1008 | `azazael-pkg-types-slumber` | packages | Callable skill for Python package types-slumber 0.7 — Typing stubs for slumber |
-| 1009 | `azazael-pkg-types-str2bool` | packages | Callable skill for Python package types-str2bool 1.1 — Typing stubs for str2bool |
-| 1010 | `azazael-pkg-types-tabulate` | packages | Callable skill for Python package types-tabulate 0.9 — Typing stubs for tabulate |
-| 1011 | `azazael-pkg-types-tensorflow` | packages | Callable skill for Python package types-tensorflow 2.18.0 — Typing stubs for tensorflow |
-| 1012 | `azazael-pkg-types-tgcrypto` | packages | Callable skill for Python package types-TgCrypto 1.2 — Typing stubs for TgCrypto |
-| 1013 | `azazael-pkg-types-toml` | packages | Callable skill for Python package types-toml 0.10 — Typing stubs for toml |
-| 1014 | `azazael-pkg-types-toposort` | packages | Callable skill for Python package types-toposort 1.10 — Typing stubs for toposort |
-| 1015 | `azazael-pkg-types-tqdm` | packages | Callable skill for Python package types-tqdm 4.67.3 — Typing stubs for tqdm |
-| 1016 | `azazael-pkg-types-translationstring` | packages | Callable skill for Python package types-translationstring 1.4 — Typing stubs for translationstring |
-| 1017 | `azazael-pkg-types-ttkthemes` | packages | Callable skill for Python package types-ttkthemes 3.3 — Typing stubs for ttkthemes |
-| 1018 | `azazael-pkg-types-tzdata` | packages | Callable skill for Python package types-tzdata 2025 — Typing stubs for tzdata |
-| 1019 | `azazael-pkg-types-ujson` | packages | Callable skill for Python package types-ujson 5.10 — Typing stubs for ujson |
-| 1020 | `azazael-pkg-types-unidiff` | packages | Callable skill for Python package types-unidiff 0.7 — Typing stubs for unidiff |
-| 1021 | `azazael-pkg-types-untangle` | packages | Callable skill for Python package types-untangle 1.2 — Typing stubs for untangle |
-| 1022 | `azazael-pkg-types-usersettings` | packages | Callable skill for Python package types-usersettings 1.1 — Typing stubs for usersettings |
-| 1023 | `azazael-pkg-types-uwsgi` | packages | Callable skill for Python package types-uWSGI 2.0 — Typing stubs for uWSGI |
-| 1024 | `azazael-pkg-types-vobject` | packages | Callable skill for Python package types-vobject 0.9.9 — Typing stubs for vobject |
-| 1025 | `azazael-pkg-types-waitress` | packages | Callable skill for Python package types-waitress 3.0.1 — Typing stubs for waitress |
-| 1026 | `azazael-pkg-types-watchpoints` | packages | Callable skill for Python package types-watchpoints 0.2.5 — Typing stubs for watchpoints |
-| 1027 | `azazael-pkg-types-webencodings` | packages | Callable skill for Python package types-webencodings 0.5 — Typing stubs for webencodings |
-| 1028 | `azazael-pkg-types-webob` | packages | Callable skill for Python package types-WebOb 1.8 — Typing stubs for WebOb |
-| 1029 | `azazael-pkg-types-whatthepatch` | packages | Callable skill for Python package types-whatthepatch 1.0 — Typing stubs for whatthepatch |
-| 1030 | `azazael-pkg-types-workalendar` | packages | Callable skill for Python package types-workalendar 17.0 — Typing stubs for workalendar |
-| 1031 | `azazael-pkg-types-wtforms` | packages | Callable skill for Python package types-WTForms 3.2.1 — Typing stubs for WTForms |
-| 1032 | `azazael-pkg-types-wurlitzer` | packages | Callable skill for Python package types-wurlitzer 3.1 — Typing stubs for wurlitzer |
-| 1033 | `azazael-pkg-types-www-authenticate` | packages | Callable skill for Python package types-www-authenticate 0.9 — Typing stubs for www-authenticate |
-| 1034 | `azazael-pkg-types-xdgenvpy` | packages | Callable skill for Python package types-xdgenvpy 3.0 — Typing stubs for xdgenvpy |
-| 1035 | `azazael-pkg-types-xlrd` | packages | Callable skill for Python package types-xlrd 2.0 — Typing stubs for xlrd |
-| 1036 | `azazael-pkg-types-xmldiff` | packages | Callable skill for Python package types-xmldiff 2.7 — Typing stubs for xmldiff |
-| 1037 | `azazael-pkg-types-xmltodict` | packages | Callable skill for Python package types-xmltodict 1.0.1 — Typing stubs for xmltodict |
-| 1038 | `azazael-pkg-types-yt-dlp` | packages | Callable skill for Python package types-yt-dlp 2026.1.31 — Typing stubs for yt-dlp |
-| 1039 | `azazael-pkg-types-zstd` | packages | Callable skill for Python package types-zstd 1.5.7.3 — Typing stubs for zstd |
-| 1040 | `azazael-pkg-types-zxcvbn` | packages | Callable skill for Python package types-zxcvbn 4.5 — Typing stubs for zxcvbn |
-| 1041 | `azazael-pkg-typing-extensions` | packages | Callable skill for Python package typing_extensions 4.15.0 — Backported and Experimental Type Hints for Pyt... |
-| 1042 | `azazael-pkg-typing-inspection` | packages | Callable skill for Python package typing-inspection 0.4.2 — Runtime typing introspection tools |
-| 1043 | `azazael-pkg-ubi-reader` | packages | Callable skill for Python package ubi-reader 0.8.5 — Extract files from UBI and UBIFS images. |
-| 1044 | `azazael-pkg-uc-micro-py` | packages | Callable skill for Python package uc-micro-py 2.0.0 — Micro subset of unicode data files for linkify-it-py ... |
-| 1045 | `azazael-pkg-ufolib2` | packages | Callable skill for Python package ufoLib2 0.18.1 — ufoLib2 is a UFO font processing library. |
-| 1046 | `azazael-pkg-uharfbuzz` | packages | Callable skill for Python package uharfbuzz 0.53.3 — Streamlined Cython bindings for the harfbuzz shaping e... |
-| 1047 | `azazael-pkg-ujson` | packages | Callable skill for Python package ujson 5.11.0 — Ultra fast JSON encoder and decoder for Python |
-| 1048 | `azazael-pkg-unblob` | packages | Callable skill for Python package unblob 26.3.30 — Extract files from any kind of container formats |
-| 1049 | `azazael-pkg-unicodedata2` | packages | Callable skill for Python package unicodedata2 17.0.1 — Unicodedata backport updated to the latest Unicode ... |
-| 1050 | `azazael-pkg-unicorn` | packages | Callable skill for Python package unicorn 0.0.0 — Unicorn CPU emulator engine |
-| 1051 | `azazael-pkg-unicrypto` | packages | Callable skill for Python package unicrypto 0.0.12 — Unified interface for cryptographic libraries |
-| 1052 | `azazael-pkg-uritemplate` | packages | Callable skill for Python package uritemplate 4.2.0 — Implementation of RFC 6570 URI Templates |
-| 1053 | `azazael-pkg-urllib3` | packages | Callable skill for Python package urllib3 2.6.3 — HTTP library with thread-safe connection pooling, file po... |
-| 1054 | `azazael-pkg-uro` | packages | Callable skill for Python package uro 1.0.2 — A python tool to declutter url lists for crawling/pentesting |
-| 1055 | `azazael-pkg-urwid` | packages | Callable skill for Python package urwid 3.0.4 — A full-featured console (xterm et al.) user interface library |
-| 1056 | `azazael-pkg-userpath` | packages | Callable skill for Python package userpath 1.9.2 — Cross-platform tool for adding locations to the user PATH |
-| 1057 | `azazael-pkg-uvicorn` | packages | Callable skill for Python package uvicorn 0.38.0 — The lightning-fast ASGI server. |
-| 1058 | `azazael-pkg-uvloop` | packages | Callable skill for Python package uvloop 0.22.1 — Fast implementation of asyncio event loop on top of libuv |
-| 1059 | `azazael-pkg-vadersentiment` | packages | Callable skill for Python package vaderSentiment 3.3.2 — VADER Sentiment Analysis. VADER (Valence Aware Dic... |
-| 1060 | `azazael-pkg-validators` | packages | Callable skill for Python package validators 0.20.0 — Python Data Validation for Humans™. |
-| 1061 | `azazael-pkg-venusian` | packages | Callable skill for Python package venusian 3.1.1 — A library for deferring decorator actions |
-| 1062 | `azazael-pkg-vinetto` | packages | Callable skill for Python package vinetto 0.9.15 — Vinetto: The Thumbnail File Parser |
-| 1063 | `azazael-pkg-virtualenv` | packages | Callable skill for Python package virtualenv 21.4.1 — Virtual Python Environment builder |
-| 1064 | `azazael-pkg-volatility3` | packages | Callable skill for Python package volatility3 2.28.0 — Memory forensics framework |
-| 1065 | `azazael-pkg-wafw00f` | packages | Callable skill for Python package wafw00f 2.4.2 — The Web Application Firewall Fingerprinting Toolkit |
-| 1066 | `azazael-pkg-wapiti-swagger` | packages | Callable skill for Python package wapiti-swagger 0.1.9 — A library for parsing and generating request bodie... |
-| 1067 | `azazael-pkg-wapiti3` | packages | Callable skill for Python package wapiti3 3.2.10 — A web application vulnerability scanner |
-| 1068 | `azazael-pkg-watchdog` | packages | Callable skill for Python package watchdog 6.0.0 — Filesystem events monitoring |
-| 1069 | `azazael-pkg-waybackpy` | packages | Callable skill for Python package waybackpy 3.0.6 — Python package that interfaces with the Internet Archiv... |
-| 1070 | `azazael-pkg-wcwidth` | packages | Callable skill for Python package wcwidth 0.2.14 — Measures the displayed width of unicode strings in a ter... |
-| 1071 | `azazael-pkg-webargs` | packages | Callable skill for Python package webargs 8.7.1 — Declarative parsing and validation of HTTP request object... |
-| 1072 | `azazael-pkg-webcolors` | packages | Callable skill for Python package webcolors 25.10.0 — A library for working with the color formats defined ... |
-| 1073 | `azazael-pkg-webdriver-manager` | packages | Callable skill for Python package webdriver-manager 4.1.0 — Add your description here |
-| 1074 | `azazael-pkg-webencodings` | packages | Callable skill for Python package webencodings 0.5.1 — Character encoding aliases for legacy web content |
-| 1075 | `azazael-pkg-webob` | packages | Callable skill for Python package WebOb 1.8.9 — WSGI request and response object |
-| 1076 | `azazael-pkg-websocket-client` | packages | Callable skill for Python package websocket-client 1.9.0 — WebSocket client for Python with low level API o... |
-| 1077 | `azazael-pkg-websockets` | packages | Callable skill for Python package websockets 16.0 — An implementation of the WebSocket Protocol (RFC 6455 &... |
-| 1078 | `azazael-pkg-websploit` | packages | Callable skill for Python package websploit 4.0.4 — Websploit is a high level MITM framework |
-| 1079 | `azazael-pkg-werkzeug` | packages | Callable skill for Python package Werkzeug 3.1.8 — The comprehensive WSGI web application library. |
-| 1080 | `azazael-pkg-wfuzz` | packages | Callable skill for Python package wfuzz 3.1.0 — Wfuzz - The web fuzzer |
-| 1081 | `azazael-pkg-wget` | packages | Callable skill for Python package wget 3.2 — pure python download utility |
-| 1082 | `azazael-pkg-wheel` | packages | Callable skill for Python package wheel 0.47.0 — Command line tool for manipulating wheel files |
-| 1083 | `azazael-pkg-wifiphisher` | packages | Callable skill for Python package wifiphisher 1.4 — Automated phishing attacks against Wi-Fi networks |
-| 1084 | `azazael-pkg-wifipumpkin3` | packages | Callable skill for Python package wifipumpkin3 1.1.7 — Powerful framework for rogue access point attack. |
-| 1085 | `azazael-pkg-wifite` | packages | Callable skill for Python package wifite 2.8.1 — Wireless Network Auditor for Linux & Android |
-| 1086 | `azazael-pkg-wig-ng` | packages | Callable skill for Python package wig-ng 0.1 — WIG-ng is a free and open source utility for WiFi device fin... |
-| 1087 | `azazael-pkg-winacl` | packages | Callable skill for Python package winacl 0.1.9 — ACL/ACE/Security Descriptor manipulation library in pure P... |
-| 1088 | `azazael-pkg-witnessme` | packages | Callable skill for Python package witnessme 1.5.0 — Web Inventory tool that uses Pyppeteer (headless Chrome... |
-| 1089 | `azazael-pkg-wordcloud` | packages | Callable skill for Python package wordcloud 1.9.4+dfsg — A little word cloud generator |
-| 1090 | `azazael-pkg-wordlistraider` | packages | Callable skill for Python package wordlistraider 1.0 — Returns a selection of words that matches the passed... |
-| 1091 | `azazael-pkg-wrapt` | packages | Callable skill for Python package wrapt 2.1.1 — Module for decorators, wrappers and monkey patching. |
-| 1092 | `azazael-pkg-wsgidav` | packages | Callable skill for Python package WsgiDAV 4.3.3 — Generic and extendable WebDAV server based on WSGI |
-| 1093 | `azazael-pkg-wsproto` | packages | Callable skill for Python package wsproto 1.3.2 — Pure-Python WebSocket protocol implementation |
-| 1094 | `azazael-pkg-wxpython` | packages | Callable skill for Python package wxPython 4.2.4 — Cross platform GUI toolkit for Python, "Phoenix" version |
-| 1095 | `azazael-pkg-xattr` | packages | Callable skill for Python package xattr 1.3.0 — Python wrapper for extended filesystem attributes |
-| 1096 | `azazael-pkg-xcffib` | packages | Callable skill for Python package xcffib 1.5.0 — A drop in replacement for xpyb, an XCB python binding |
-| 1097 | `azazael-pkg-xdg` | packages | Callable skill for Python package xdg 5 — wrapper for PyXDG to provide the API of xdg |
-| 1098 | `azazael-pkg-xlrd` | packages | Callable skill for Python package xlrd 2.0.2 — Library for developers to extract data from Microsoft Excel ... |
-| 1099 | `azazael-pkg-xlsxwriter` | packages | Callable skill for Python package XlsxWriter 3.1.9 — A Python module for creating Excel XLSX files. |
-| 1100 | `azazael-pkg-xlwt` | packages | Callable skill for Python package xlwt 1.3.0 — Library to create spreadsheet files compatible with MS Excel... |
-| 1101 | `azazael-pkg-xmltodict` | packages | Callable skill for Python package xmltodict 0.13.0 — Makes working with XML feel like you are working with ... |
-| 1102 | `azazael-pkg-xsrfprobe` | packages | Callable skill for Python package xsrfprobe 2.3.0 — The Prime Cross Site Request Forgery (CSRF) Audit & Exp... |
-| 1103 | `azazael-pkg-yara-python` | packages | Callable skill for Python package yara-python 4.5.4 — Python interface for YARA |
-| 1104 | `azazael-pkg-yarl` | packages | Callable skill for Python package yarl 1.23.0 — Yet another URL library |
-| 1105 | `azazael-pkg-yattag` | packages | Callable skill for Python package yattag 1.16.1 — Generate HTML or XML in a pythonic way. Pure python alter... |
-| 1106 | `azazael-pkg-zc-lockfile` | packages | Callable skill for Python package zc.lockfile 4.0 — Basic inter-process locks |
-| 1107 | `azazael-pkg-zict` | packages | Callable skill for Python package zict 3.0.0 — Mutable mapping tools |
-| 1108 | `azazael-pkg-zim` | packages | Callable skill for Python package zim 0.76.3 — Zim desktop wiki |
-| 1109 | `azazael-pkg-zipp` | packages | Callable skill for Python package zipp 3.23.0 — Backport of pathlib-compatible object wrapper for zip files |
-| 1110 | `azazael-pkg-zope-deprecation` | packages | Callable skill for Python package zope.deprecation 6.0 — Zope Deprecation Infrastructure |
-| 1111 | `azazael-pkg-zope-interface` | packages | Callable skill for Python package zope.interface 8.5 — Interfaces for Python |
-| 1112 | `azazael-pkg-zopfli` | packages | Callable skill for Python package zopfli 0.4.2 — Zopfli module for python |
-| 1113 | `azazael-pkg-zstandard` | packages | Callable skill for Python package zstandard 0.25.0 — Zstandard bindings for Python |
-| 1114 | `azazael-pkg-zstd` | packages | Callable skill for Python package zstd 1.5.7.3 — ZSTD Bindings for Python |
+| 157 | `azazael-pkg-aadict` | packages | Callable skill for Python package aadict 0.2.3 — An auto-attribute dict (and a couple of other useful dict ... |
+| 158 | `azazael-pkg-about-time` | packages | Callable skill for Python package about-time 4.2.1 — Easily measure timing and throughput of code blocks, w... |
+| 159 | `azazael-pkg-above` | packages | Callable skill for Python package above 2.8.1 — Network Security Sniffer |
+| 160 | `azazael-pkg-acstore` | packages | Callable skill for Python package acstore 20240407 — Attribute Container Storage (ACStore). |
+| 161 | `azazael-pkg-adblockparser` | packages | Callable skill for Python package adblockparser 0.7 — Parser for Adblock Plus rules |
+| 162 | `azazael-pkg-aesedb` | packages | Callable skill for Python package aesedb 0.1.4 — NTDS parser toolkit |
+| 163 | `azazael-pkg-aiocmd` | packages | Callable skill for Python package aiocmd 0.1.2 — Coroutine-based CLI generator using prompt_toolkit |
+| 164 | `azazael-pkg-aioconsole` | packages | Callable skill for Python package aioconsole 0.8.2 — Asynchronous console and interfaces for asyncio |
+| 165 | `azazael-pkg-aiodns` | packages | Callable skill for Python package aiodns 4.0.0 — Simple DNS resolver for asyncio |
+| 166 | `azazael-pkg-aiofiles` | packages | Callable skill for Python package aiofiles 25.1.0 — File support for asyncio. |
+| 167 | `azazael-pkg-aioftp` | packages | Callable skill for Python package aioftp 0.27.2 — ftp client/server for asyncio |
+| 168 | `azazael-pkg-aiohappyeyeballs` | packages | Callable skill for Python package aiohappyeyeballs 2.7.0 — Happy Eyeballs for asyncio |
+| 169 | `azazael-pkg-aiohttp` | packages | Callable skill for Python package aiohttp 3.13.5 — Async http client/server framework (asyncio) |
+| 170 | `azazael-pkg-aiohttp-apispec` | packages | Callable skill for Python package aiohttp-apispec 3.0.0b2 — Build and document REST APIs with aiohttp and a... |
+| 171 | `azazael-pkg-aiohttp-jinja2` | packages | Callable skill for Python package aiohttp-jinja2 1.6 — jinja2 template renderer for aiohttp.web (http serve... |
+| 172 | `azazael-pkg-aiohttp-security` | packages | Callable skill for Python package aiohttp-security 0.5.0 — security for aiohttp.web |
+| 173 | `azazael-pkg-aiohttp-session` | packages | Callable skill for Python package aiohttp-session 2.12.1 — sessions for aiohttp.web |
+| 174 | `azazael-pkg-aiohttp-socks` | packages | Callable skill for Python package aiohttp_socks 0.10.1 — Proxy connector for aiohttp |
+| 175 | `azazael-pkg-aiomultiprocess` | packages | Callable skill for Python package aiomultiprocess 0.9.0 — AsyncIO version of the standard multiprocessing m... |
+| 176 | `azazael-pkg-aioquic` | packages | Callable skill for Python package aioquic 1.2.0 — An implementation of QUIC and HTTP/3 |
+| 177 | `azazael-pkg-aiosignal` | packages | Callable skill for Python package aiosignal 1.4.0 — aiosignal: a list of registered asynchronous callbacks |
+| 178 | `azazael-pkg-aiosmb` | packages | Callable skill for Python package aiosmb 0.4.4 — Asynchronous SMB protocol implementation |
+| 179 | `azazael-pkg-aiosqlite` | packages | Callable skill for Python package aiosqlite 0.21.0 — asyncio bridge to the standard sqlite3 module |
+| 180 | `azazael-pkg-aiowinreg` | packages | Callable skill for Python package aiowinreg 0.0.7 — Windows registry file reader |
+| 181 | `azazael-pkg-ajpy` | packages | Callable skill for Python package ajpy 0.0.5 — AJP package crafting library |
+| 182 | `azazael-pkg-alabaster` | packages | Callable skill for Python package alabaster 1.0.0 — A light, configurable Sphinx theme |
+| 183 | `azazael-pkg-alive-progress` | packages | Callable skill for Python package alive-progress 3.2.0 — A new kind of Progress Bar, with real-time through... |
+| 184 | `azazael-pkg-altgraph` | packages | Callable skill for Python package altgraph 0.17.5 — Python graph (network) package |
+| 185 | `azazael-pkg-aniso8601` | packages | Callable skill for Python package aniso8601 10.0.1 — A library for parsing ISO 8601 strings. |
+| 186 | `azazael-pkg-annotated-doc` | packages | Callable skill for Python package annotated-doc 0.0.4 — Document parameters, class attributes, return types... |
+| 187 | `azazael-pkg-annotated-types` | packages | Callable skill for Python package annotated-types 0.7.0 — Reusable constraint types to use with typing.Anno... |
+| 188 | `azazael-pkg-antlr4-python3-runtime` | packages | Callable skill for Python package antlr4-python3-runtime 4.9.2 — ANTLR 4.9.2 runtime for Python 3.7 |
+| 189 | `azazael-pkg-anyio` | packages | Callable skill for Python package anyio 4.12.1 — High-level concurrency and networking framework on top of ... |
+| 190 | `azazael-pkg-apispec` | packages | Callable skill for Python package apispec 6.10.0 — A pluggable API specification generator. Currently suppo... |
+| 191 | `azazael-pkg-arc4` | packages | Callable skill for Python package arc4 0.4.0 — A small and insanely fast ARCFOUR (RC4) cipher implementatio... |
+| 192 | `azazael-pkg-argcomplete` | packages | Callable skill for Python package argcomplete 3.6.3 — Bash tab completion for argparse |
+| 193 | `azazael-pkg-argon2-cffi` | packages | Callable skill for Python package argon2-cffi 25.1.0 — Argon2 for Python |
+| 194 | `azazael-pkg-argon2-cffi-bindings` | packages | Callable skill for Python package argon2-cffi-bindings 25.1.0 — Low-level CFFI bindings for Argon2 |
+| 195 | `azazael-pkg-arjun` | packages | Callable skill for Python package arjun 2.2.7 — HTTP parameter discovery suite |
+| 196 | `azazael-pkg-arpy` | packages | Callable skill for Python package arpy 1.1.1 — Library for accessing "ar" files |
+| 197 | `azazael-pkg-arrow` | packages | Callable skill for Python package arrow 1.4.0 — Better dates & times for Python |
+| 198 | `azazael-pkg-artifacts` | packages | Callable skill for Python package artifacts 20230928 — ForensicArtifacts.com Artifact Repository. |
+| 199 | `azazael-pkg-asciitree` | packages | Callable skill for Python package asciitree 0.3.3 — Draws ASCII trees. |
+| 200 | `azazael-pkg-asgiref` | packages | Callable skill for Python package asgiref 3.11.1 — ASGI specs, helper code, and adapters |
+| 201 | `azazael-pkg-asn1crypto` | packages | Callable skill for Python package asn1crypto 1.5.1 — Fast ASN.1 parser and serializer with definitions for ... |
+| 202 | `azazael-pkg-asn1tools` | packages | Callable skill for Python package asn1tools 0.166.0 — ASN.1 parsing, encoding and decoding. |
+| 203 | `azazael-pkg-asset` | packages | Callable skill for Python package asset 0.6.13 — A package resource and symbol loading helper library. |
+| 204 | `azazael-pkg-astroid` | packages | Callable skill for Python package astroid 4.1.1 — An abstract syntax tree for Python with inference support. |
+| 205 | `azazael-pkg-asttokens` | packages | Callable skill for Python package asttokens 3.0.1 — Annotate AST trees with source code positions |
+| 206 | `azazael-pkg-asyauth` | packages | Callable skill for Python package asyauth 0.0.20 — Unified authentication library |
+| 207 | `azazael-pkg-async-timeout` | packages | Callable skill for Python package async-timeout 5.0.1 — Timeout context manager for asyncio programs |
+| 208 | `azazael-pkg-asyncssh` | packages | Callable skill for Python package asyncssh 2.23.0 — AsyncSSH: Asynchronous SSHv2 client and server library |
+| 209 | `azazael-pkg-asysocks` | packages | Callable skill for Python package asysocks 0.2.12 — No summary available. |
+| 210 | `azazael-pkg-atomic-operator` | packages | Callable skill for Python package atomic-operator 0.9.1 — A python package to execute security tests on rem... |
+| 211 | `azazael-pkg-atomic-operator-runner` | packages | Callable skill for Python package atomic-operator-runner 0.2.1 — atomic-operator-runner |
+| 212 | `azazael-pkg-attrs` | packages | Callable skill for Python package attrs 26.1.0 — Classes Without Boilerplate |
+| 213 | `azazael-pkg-autocommand` | packages | Callable skill for Python package autocommand 2.2.2 — A library to create a command-line program from a fun... |
+| 214 | `azazael-pkg-automat` | packages | Callable skill for Python package Automat 25.4.16 — Self-service finite-state machines for the programmer o... |
+| 215 | `azazael-pkg-awscli` | packages | Callable skill for Python package awscli 2.31.35 — Universal Command Line Environment for AWS. |
+| 216 | `azazael-pkg-awscrt` | packages | Callable skill for Python package awscrt 1.0.0.dev0 — A common runtime for AWS Python projects |
+| 217 | `azazael-pkg-babel` | packages | Callable skill for Python package babel 2.17.0 — Internationalization utilities |
+| 218 | `azazael-pkg-backoff` | packages | Callable skill for Python package backoff 2.2.1 — Function decoration for backoff and retry |
+| 219 | `azazael-pkg-backports-zstd` | packages | Callable skill for Python package backports.zstd 1.5.0 — Backport of compression.zstd |
+| 220 | `azazael-pkg-bcrypt` | packages | Callable skill for Python package bcrypt 5.0.0 — Modern password hashing for your software and your servers |
+| 221 | `azazael-pkg-beautifulsoup4` | packages | Callable skill for Python package beautifulsoup4 4.14.3 — Screen-scraping library |
+| 222 | `azazael-pkg-bidict` | packages | Callable skill for Python package bidict 0.23.1 — The bidirectional mapping library for Python. |
+| 223 | `azazael-pkg-binwalk` | packages | Callable skill for Python package binwalk 2.4.3 — Firmware analysis tool |
+| 224 | `azazael-pkg-bitstruct` | packages | Callable skill for Python package bitstruct 8.22.1 — This module performs conversions between Python values... |
+| 225 | `azazael-pkg-blinker` | packages | Callable skill for Python package blinker 1.9.0 — Fast, simple object-to-object and broadcast signaling |
+| 226 | `azazael-pkg-bloodhound` | packages | Callable skill for Python package bloodhound 1.9.0 — Python based ingestor for BloodHound |
+| 227 | `azazael-pkg-bloodhound-ce` | packages | Callable skill for Python package bloodhound-ce 1.9.1 — Python based ingestor for BloodHound Community Edition |
+| 228 | `azazael-pkg-blosc` | packages | Callable skill for Python package blosc 1.11.2 — Blosc data compressor |
+| 229 | `azazael-pkg-bluepy` | packages | Callable skill for Python package bluepy 1.3.0 — Python module for interfacing with BLE devices through Bluez |
+| 230 | `azazael-pkg-bopscrk` | packages | Callable skill for Python package bopscrk 2.4.7 — Generate smart and powerful wordlists |
+| 231 | `azazael-pkg-boto3` | packages | Callable skill for Python package boto3 1.40.72 — The AWS SDK for Python |
+| 232 | `azazael-pkg-botocore` | packages | Callable skill for Python package botocore 1.40.72 — Low-level, data-driven core of boto 3. |
+| 233 | `azazael-pkg-bottle` | packages | Callable skill for Python package bottle 0.13.2 — Fast and simple WSGI-framework for small web-applications. |
+| 234 | `azazael-pkg-bottleneck` | packages | Callable skill for Python package Bottleneck 1.4.2 — Fast NumPy array functions written in C |
+| 235 | `azazael-pkg-brotli` | packages | Callable skill for Python package Brotli 1.2.0 — Python bindings for the Brotli compression library |
+| 236 | `azazael-pkg-browser-cookie3` | packages | Callable skill for Python package browser-cookie3 0.20.1 — Loads cookies from your browser into a cookiejar... |
+| 237 | `azazael-pkg-cairocffi` | packages | Callable skill for Python package cairocffi 1.7.1 — cffi-based cairo bindings for Python |
+| 238 | `azazael-pkg-capstone` | packages | Callable skill for Python package capstone 5.0.7 — Capstone disassembly engine |
+| 239 | `azazael-pkg-censys` | packages | Callable skill for Python package censys 2.2.19 — An easy-to-use and lightweight API wrapper for Censys API... |
+| 240 | `azazael-pkg-cerberus` | packages | Callable skill for Python package Cerberus 1.3.7 — Lightweight, extensible schema and data validation tool ... |
+| 241 | `azazael-pkg-certi` | packages | Callable skill for Python package certi 0.1.0 — Tool to ask certificates to ADCS and discover templates |
+| 242 | `azazael-pkg-certifi` | packages | Callable skill for Python package certifi 2026.5.20 — Python package for providing Mozilla's CA Bundle. |
+| 243 | `azazael-pkg-certipy-ad` | packages | Callable skill for Python package certipy-ad 5.0.4 — Active Directory Certificate Services enumeration and ... |
+| 244 | `azazael-pkg-cffi` | packages | Callable skill for Python package cffi 2.0.0 — Foreign Function Interface for Python calling C code. |
+| 245 | `azazael-pkg-cfscrape` | packages | Callable skill for Python package cfscrape 1.9.5 — A simple Python module to bypass Cloudflare's anti-bot p... |
+| 246 | `azazael-pkg-chardet` | packages | Callable skill for Python package chardet 5.2.0 — Universal encoding detector for Python 3 |
+| 247 | `azazael-pkg-charset-normalizer` | packages | Callable skill for Python package charset-normalizer 3.4.7 — The Real First Universal Charset Detector. Ope... |
+| 248 | `azazael-pkg-cheroot` | packages | Callable skill for Python package cheroot 11.1.2+ds1 — Highly-optimized, pure-python HTTP server |
+| 249 | `azazael-pkg-cherrypy` | packages | Callable skill for Python package CherryPy 18.10.0 — Object-Oriented HTTP framework |
+| 250 | `azazael-pkg-cherrypy-cors` | packages | Callable skill for Python package cherrypy-cors 1.6 — CORS handling as a cherrypy tool. |
+| 251 | `azazael-pkg-chirp` | packages | Callable skill for Python package chirp 20251108 — A cross-platform cross-radio programming tool |
+| 252 | `azazael-pkg-click` | packages | Callable skill for Python package click 8.1.8 — Composable command line interface toolkit |
+| 253 | `azazael-pkg-click-default-group` | packages | Callable skill for Python package click-default-group 1.2.4 — click_default_group |
+| 254 | `azazael-pkg-cloudpickle` | packages | Callable skill for Python package cloudpickle 3.1.2 — Pickler class to extend the standard pickle.Pickler f... |
+| 255 | `azazael-pkg-cloudscraper` | packages | Callable skill for Python package cloudscraper 1.2.71 — A Python module to bypass Cloudflare's anti-bot page. |
+| 256 | `azazael-pkg-coercer` | packages | Callable skill for Python package coercer 2.4.3 — No summary available. |
+| 257 | `azazael-pkg-colorama` | packages | Callable skill for Python package colorama 0.4.6 — Cross-platform colored terminal text. |
+| 258 | `azazael-pkg-colorclass` | packages | Callable skill for Python package colorclass 2.2.2 — Colorful worry-free console applications for Linux, Ma... |
+| 259 | `azazael-pkg-colored-traceback` | packages | Callable skill for Python package colored-traceback 0.4.2 — Automatically color uncaught exception tracebacks |
+| 260 | `azazael-pkg-colorlog` | packages | Callable skill for Python package colorlog 6.10.1 — Add colours to the output of Python's logging module. |
+| 261 | `azazael-pkg-commandparse` | packages | Callable skill for Python package commandparse 1.1.2 — CLI application commands parser |
+| 262 | `azazael-pkg-commonmark` | packages | Callable skill for Python package commonmark 0.9.1 — Python parser for the CommonMark Markdown spec |
+| 263 | `azazael-pkg-condense-json` | packages | Callable skill for Python package condense-json 0.1.3 — Python function for condensing JSON using replaceme... |
+| 264 | `azazael-pkg-configargparse` | packages | Callable skill for Python package ConfigArgParse 1.7 — A drop-in replacement for argparse that allows optio... |
+| 265 | `azazael-pkg-constantly` | packages | Callable skill for Python package constantly 23.10.4 — Symbolic constants in Python |
+| 266 | `azazael-pkg-contourpy` | packages | Callable skill for Python package contourpy 1.3.3 — Python library for calculating contours of 2D quadrilat... |
+| 267 | `azazael-pkg-crackmapexec` | packages | Callable skill for Python package crackmapexec 5.4.0 — A swiss army knife for pentesting networks |
+| 268 | `azazael-pkg-crcelk` | packages | Callable skill for Python package crcelk 1.3 — CrcElk is an updated fork of the CrcMoose module for recent ... |
+| 269 | `azazael-pkg-crit` | packages | Callable skill for Python package crit 4.2 — CRiu Image Tool |
+| 270 | `azazael-pkg-croniter` | packages | Callable skill for Python package croniter 6.0.0 — croniter provides iteration for datetime object with cro... |
+| 271 | `azazael-pkg-crowbar` | packages | Callable skill for Python package crowbar 4.1 — No summary available. |
+| 272 | `azazael-pkg-cryptography` | packages | Callable skill for Python package cryptography 46.0.7 — cryptography is a package which provides cryptograp... |
+| 273 | `azazael-pkg-cssselect` | packages | Callable skill for Python package cssselect 1.4.0 — cssselect parses CSS3 Selectors and translates them to ... |
+| 274 | `azazael-pkg-cssselect2` | packages | Callable skill for Python package cssselect2 0.9.0 — CSS selectors for Python ElementTree |
+| 275 | `azazael-pkg-ctypescrypto` | packages | Callable skill for Python package ctypescrypto 0.5 — CTypes-based interface for some OpenSSL libcrypto feat... |
+| 276 | `azazael-pkg-cupshelpers` | packages | Callable skill for Python package cupshelpers 1.0 — Helper functions and classes for using CUPS |
+| 277 | `azazael-pkg-cx-oracle` | packages | Callable skill for Python package cx_Oracle 8.3.0 — Python interface to Oracle |
+| 278 | `azazael-pkg-cycler` | packages | Callable skill for Python package cycler 0.12.1 — Composable style cycles |
+| 279 | `azazael-pkg-dacite` | packages | Callable skill for Python package dacite 1.9.2 — Simple creation of data classes from dictionaries. |
+| 280 | `azazael-pkg-dask` | packages | Callable skill for Python package dask 2024.12.1+dfsg — Parallel PyData with Task Scheduling |
+| 281 | `azazael-pkg-dbus-python` | packages | Callable skill for Python package dbus-python 1.4.0 — Python bindings for libdbus |
+| 282 | `azazael-pkg-decorator` | packages | Callable skill for Python package decorator 5.2.1 — Decorators for Humans |
+| 283 | `azazael-pkg-defusedcsv` | packages | Callable skill for Python package defusedcsv 3.0.0 — Drop-in replacement for Python's CSV library that trie... |
+| 284 | `azazael-pkg-defusedxml` | packages | Callable skill for Python package defusedxml 0.7.1 — XML bomb protection for Python stdlib modules |
+| 285 | `azazael-pkg-deprecated` | packages | Callable skill for Python package Deprecated 1.3.1 — Python @deprecated decorator to deprecate old python c... |
+| 286 | `azazael-pkg-dfdatetime` | packages | Callable skill for Python package dfdatetime 20251018 — Digital Forensics date and time (dfDateTime). |
+| 287 | `azazael-pkg-dfvfs` | packages | Callable skill for Python package dfvfs 20251019 — Digital Forensics Virtual File System (dfVFS). |
+| 288 | `azazael-pkg-dfwinreg` | packages | Callable skill for Python package dfwinreg 20240316 — Digital Forensics Windows Registry (dfWinReg). |
+| 289 | `azazael-pkg-dhcpig` | packages | Callable skill for Python package dhcpig 0.0.0 — DHCP exhaustion script using scapy network library |
+| 290 | `azazael-pkg-dhcplib` | packages | Callable skill for Python package dhcplib 0.1.1 — Pure-Python, spec-compliant DHCP-packet-processing library |
+| 291 | `azazael-pkg-dicttoxml` | packages | Callable skill for Python package dicttoxml 1.7.16 — Converts a Python dictionary or other native data type... |
+| 292 | `azazael-pkg-dirsearch` | packages | Callable skill for Python package dirsearch 0.4.3 — Advanced web path scanner |
+| 293 | `azazael-pkg-diskcache` | packages | Callable skill for Python package diskcache 5.6.3 — Disk Cache -- Disk and file backed persistent cache. |
+| 294 | `azazael-pkg-dissect-cstruct` | packages | Callable skill for Python package dissect.cstruct 0.0.0 — A Dissect module implementing a parser for C-like... |
+| 295 | `azazael-pkg-distlib` | packages | Callable skill for Python package distlib 0.4.0 — Distribution utilities |
+| 296 | `azazael-pkg-distorm3` | packages | Callable skill for Python package distorm3 3.5.2 — The goal of diStorm3 is to decode x86/AMD64 binary strea... |
+| 297 | `azazael-pkg-distributed` | packages | Callable skill for Python package distributed 2024.12.1 — Distributed scheduler for Dask |
+| 298 | `azazael-pkg-distro` | packages | Callable skill for Python package distro 1.9.0 — Distro - an OS platform information API |
+| 299 | `azazael-pkg-django` | packages | Callable skill for Python package Django 4.2.30 — A high-level Python web framework that encourages rapid d... |
+| 300 | `azazael-pkg-dnsgen` | packages | Callable skill for Python package dnsgen 1.0.4 — Generates DNS possibilities from existing domain names. |
+| 301 | `azazael-pkg-dnslib` | packages | Callable skill for Python package dnslib 0.9.25 — Simple library to encode/decode DNS wire-format packets |
+| 302 | `azazael-pkg-dnspython` | packages | Callable skill for Python package dnspython 2.8.0 — DNS toolkit |
+| 303 | `azazael-pkg-dnstwist` | packages | Callable skill for Python package dnstwist 20250130 — Domain name permutation engine for detecting homograp... |
+| 304 | `azazael-pkg-docker` | packages | Callable skill for Python package docker 7.1.0 — A Python library for the Docker Engine API. |
+| 305 | `azazael-pkg-docopt` | packages | Callable skill for Python package docopt 0.6.2 — Pythonic argument parser, that will make you smile |
+| 306 | `azazael-pkg-docutils` | packages | Callable skill for Python package docutils 0.22.4 — Docutils -- Python Documentation Utilities |
+| 307 | `azazael-pkg-docxcompose` | packages | Callable skill for Python package docxcompose 2.2.0 — Compose .docx documents |
+| 308 | `azazael-pkg-docxtpl` | packages | Callable skill for Python package docxtpl 0.20.1 — Python docx template engine |
+| 309 | `azazael-pkg-donut-shellcode` | packages | Callable skill for Python package donut-shellcode 1.1 — Donut shellcode Python C extension |
+| 310 | `azazael-pkg-dploot` | packages | Callable skill for Python package dploot 3.1.2 — DPAPI looting remotely in Python |
+| 311 | `azazael-pkg-dronekit` | packages | Callable skill for Python package dronekit 2.9.2 — Developer Tools for Drones. |
+| 312 | `azazael-pkg-dropbox` | packages | Callable skill for Python package dropbox 12.0.2 — Official Dropbox API Client |
+| 313 | `azazael-pkg-dscan-4e656f` | packages | Callable skill for Python package dscan-4E656F 0.1.5 — ('Wrapper around nmap allow nmap scans to be distrib... |
+| 314 | `azazael-pkg-dsinternals` | packages | Callable skill for Python package dsinternals 1.2.4 — No summary available. |
+| 315 | `azazael-pkg-dsnap` | packages | Callable skill for Python package dsnap 1.0.1 — Utility for downloading EBS snapshots using the EBS Direct ... |
+| 316 | `azazael-pkg-dtfabric` | packages | Callable skill for Python package dtfabric 20251118 — Data type fabric (dtfabric) |
+| 317 | `azazael-pkg-duckpy` | packages | Callable skill for Python package duckpy 3.2.0 — A simple module for searching on DuckDuckGo |
+| 318 | `azazael-pkg-dunamai` | packages | Callable skill for Python package dunamai 1.25.0 — Dynamic version generation |
+| 319 | `azazael-pkg-easygui` | packages | Callable skill for Python package easygui 0.98.3 — EasyGUI is a module for very simple, very easy GUI progr... |
+| 320 | `azazael-pkg-elastic-transport` | packages | Callable skill for Python package elastic-transport 9.4.1 — Transport classes and utilities shared among Py... |
+| 321 | `azazael-pkg-elasticsearch` | packages | Callable skill for Python package elasticsearch 9.4.1 — Python client for Elasticsearch |
+| 322 | `azazael-pkg-email-validator` | packages | Callable skill for Python package email_validator 2.2.0 — A robust email address syntax and deliverability ... |
+| 323 | `azazael-pkg-enum4linux-ng` | packages | Callable skill for Python package enum4linux-ng 1.3.10 — A next generation version of enum4linux |
+| 324 | `azazael-pkg-envs` | packages | Callable skill for Python package envs 1.2.6 — Easy access of environment variables from Python with suppor... |
+| 325 | `azazael-pkg-et-xmlfile` | packages | Callable skill for Python package et_xmlfile 2.0.0 — An implementation of lxml.xmlfile for the standard lib... |
+| 326 | `azazael-pkg-evdev` | packages | Callable skill for Python package evdev 1.9.3 — Bindings to the Linux input handling subsystem |
+| 327 | `azazael-pkg-eventlet` | packages | Callable skill for Python package eventlet 0.40.4 — Highly concurrent networking library |
+| 328 | `azazael-pkg-evil-winrm-py` | packages | Callable skill for Python package evil-winrm-py 1.6.0 — Execute commands interactively on remote Windows ma... |
+| 329 | `azazael-pkg-executing` | packages | Callable skill for Python package executing 2.2.1 — Get the currently executing AST node of a frame, and ot... |
+| 330 | `azazael-pkg-exifread` | packages | Callable skill for Python package ExifRead 3.0.0 — Read Exif metadata from tiff and jpeg files. |
+| 331 | `azazael-pkg-extproxy` | packages | Callable skill for Python package ExtProxy 1.0.2 — ExtProxy extend urllib2's ProxyHandler to support extra ... |
+| 332 | `azazael-pkg-fake-useragent` | packages | Callable skill for Python package fake-useragent 2.2.0 — Up-to-date simple useragent faker with real world ... |
+| 333 | `azazael-pkg-faker` | packages | Callable skill for Python package Faker 39.0.0 — Faker is a Python package that generates fake data for you. |
+| 334 | `azazael-pkg-faraday-agent-dispatcher` | packages | Callable skill for Python package faraday-agent-dispatcher 3.2.1 — Faraday agent dispatcher to communicate ... |
+| 335 | `azazael-pkg-faraday-agent-parameters-types` | packages | Callable skill for Python package faraday_agent_parameters_types 1.9.1 — The faraday agents run code remote... |
+| 336 | `azazael-pkg-faraday-plugins` | packages | Callable skill for Python package faraday_plugins 1.27.2 — Faraday plugins package |
+| 337 | `azazael-pkg-fastapi` | packages | Callable skill for Python package fastapi 0.135.3 — FastAPI framework, high performance, easy to learn, fas... |
+| 338 | `azazael-pkg-fastjsonschema` | packages | Callable skill for Python package fastjsonschema 2.21.1 — Fastest Python implementation of JSON schema |
+| 339 | `azazael-pkg-feedparser` | packages | Callable skill for Python package feedparser 6.0.12 — Universal feed parser, handles RSS 0.9x, RSS 1.0, RSS... |
+| 340 | `azazael-pkg-fierce` | packages | Callable skill for Python package fierce 1.6.0 — A DNS reconnaissance tool for locating non-contiguous IP s... |
+| 341 | `azazael-pkg-filebytes` | packages | Callable skill for Python package filebytes 0.10.2 — Scripts to parse the following file formats - Executab... |
+| 342 | `azazael-pkg-filelock` | packages | Callable skill for Python package filelock 3.29.0 — A platform independent file lock. |
+| 343 | `azazael-pkg-fire` | packages | Callable skill for Python package fire 0.7.1 — A library for automatically generating command line interfaces. |
+| 344 | `azazael-pkg-flasgger` | packages | Callable skill for Python package flasgger 0.9.7.2.dev2 — Extract swagger specs from your flask project |
+| 345 | `azazael-pkg-flask` | packages | Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. |
+| 346 | `azazael-pkg-flask-jsglue` | packages | Callable skill for Python package Flask-JSGlue 0.3.1 — Flask-JSGlue helps hook up your Flask application ni... |
+| 347 | `azazael-pkg-flask-restful` | packages | Callable skill for Python package Flask-RESTful 0.3.10 — Simple framework for creating REST APIs |
+| 348 | `azazael-pkg-flask-socketio` | packages | Callable skill for Python package Flask-SocketIO 5.6.0 — Socket.IO integration for Flask applications |
+| 349 | `azazael-pkg-fleep` | packages | Callable skill for Python package fleep 1.0.1 — File format determination library |
+| 350 | `azazael-pkg-flor` | packages | Callable skill for Python package Flor 1.1.3 — Flor - An efficient Bloom filter implementation in Python |
+| 351 | `azazael-pkg-fonttools` | packages | Callable skill for Python package fonttools 4.62.1 — Tools to manipulate font files |
+| 352 | `azazael-pkg-fpdf2` | packages | Callable skill for Python package fpdf2 2.8.7 — Simple & fast PDF generation for Python |
+| 353 | `azazael-pkg-fqdn` | packages | Callable skill for Python package fqdn 1.5.1 — Validates fully-qualified domain names against RFC 1123, so ... |
+| 354 | `azazael-pkg-freetype-py` | packages | Callable skill for Python package freetype-py 2.5.1 — Freetype python bindings |
+| 355 | `azazael-pkg-freezegun` | packages | Callable skill for Python package freezegun 1.5.5 — Let your Python tests travel through time |
+| 356 | `azazael-pkg-frozenlist` | packages | Callable skill for Python package frozenlist 1.8.0 — A list-like structure which implements collections.abc... |
+| 357 | `azazael-pkg-fs` | packages | Callable skill for Python package fs 2.4.16 — Python's filesystem abstraction layer |
+| 358 | `azazael-pkg-fsspec` | packages | Callable skill for Python package fsspec 2025.12.0 — File-system specification |
+| 359 | `azazael-pkg-fuzzywuzzy` | packages | Callable skill for Python package fuzzywuzzy 0.18.0 — Fuzzy string matching in python |
+| 360 | `azazael-pkg-gattlib` | packages | Callable skill for Python package gattlib 0.20210616 — Library to access Bluetooth LE devices |
+| 361 | `azazael-pkg-gdal` | packages | Callable skill for Python package GDAL 3.13.1 — GDAL: Geospatial Data Abstraction Library |
+| 362 | `azazael-pkg-gensim` | packages | Callable skill for Python package gensim 4.3.3 — Python framework for fast Vector Space Modelling |
+| 363 | `azazael-pkg-geoip` | packages | Callable skill for Python package GeoIP 1.3.2 — MaxMind GeoIP Legacy Database - Python API |
+| 364 | `azazael-pkg-geoip2` | packages | Callable skill for Python package geoip2 2.9.0 — MaxMind GeoIP2 API |
+| 365 | `azazael-pkg-getsploit` | packages | Callable skill for Python package getsploit 2.0.2 — Command line search and download tool for Vulners Datab... |
+| 366 | `azazael-pkg-ghp-import` | packages | Callable skill for Python package ghp-import 2.1.0 — Copy your docs directly to the gh-pages branch. |
+| 367 | `azazael-pkg-gitdb` | packages | Callable skill for Python package gitdb 4.0.12 — Git Object Database |
+| 368 | `azazael-pkg-gitpython` | packages | Callable skill for Python package GitPython 3.1.50 — GitPython is a Python library used to interact with Gi... |
+| 369 | `azazael-pkg-gitxray` | packages | Callable skill for Python package gitxray 1.0.20 — A multifaceted security tool which leverages Public GitH... |
+| 370 | `azazael-pkg-globre` | packages | Callable skill for Python package globre 0.1.5 — A glob matching library, providing an interface similar to... |
+| 371 | `azazael-pkg-gmplot` | packages | Callable skill for Python package gmplot 1.4.1 — A matplotlib-like interface to plot data with Google Maps. |
+| 372 | `azazael-pkg-goofile` | packages | Callable skill for Python package goofile 1.6 — Update of https://code.google.com/archive/p/goofile/ for Py... |
+| 373 | `azazael-pkg-google` | packages | Callable skill for Python package google 2.0.3 — Python bindings to the Google search engine. |
+| 374 | `azazael-pkg-gps` | packages | Callable skill for Python package gps 3.27.5 — Python libraries for the gpsd service daemon |
+| 375 | `azazael-pkg-gps3` | packages | Callable skill for Python package gps3 0.33.0 — Python 2.7-3.5 clients for gpsd |
+| 376 | `azazael-pkg-grapheme` | packages | Callable skill for Python package grapheme 0.5.0 — Unicode grapheme helpers |
+| 377 | `azazael-pkg-greenbone-feed-sync` | packages | Callable skill for Python package greenbone-feed-sync 25.1.3.dev1 — A tool for downloading the Greenbone Co... |
+| 378 | `azazael-pkg-greenlet` | packages | Callable skill for Python package greenlet 3.3.2 — Lightweight in-process concurrent programming |
+| 379 | `azazael-pkg-grokevt` | packages | Callable skill for Python package grokevt 0.5 — No summary available. |
+| 380 | `azazael-pkg-gssapi` | packages | Callable skill for Python package gssapi 1.11.1 — Python GSSAPI Wrapper |
+| 381 | `azazael-pkg-gvm-tools` | packages | Callable skill for Python package gvm-tools 25.4.6 — Tools to control a GSM/GVM over GMP or OSP |
+| 382 | `azazael-pkg-h11` | packages | Callable skill for Python package h11 0.16.0 — A pure-Python, bring-your-own-I/O implementation of HTTP/1.1 |
+| 383 | `azazael-pkg-h2` | packages | Callable skill for Python package h2 4.3.0 — Pure-Python HTTP/2 protocol implementation |
+| 384 | `azazael-pkg-h8mail` | packages | Callable skill for Python package h8mail 2.5.6 — Email OSINT and password breach hunting. Use h8mail to fin... |
+| 385 | `azazael-pkg-hashid` | packages | Callable skill for Python package hashID 3.1.4 — Software to identify the different types of hashes |
+| 386 | `azazael-pkg-hekatomb` | packages | Callable skill for Python package hekatomb 1.5.2.3 — Python library to extract and decrypt all credentials ... |
+| 387 | `azazael-pkg-hostsman` | packages | Callable skill for Python package hostsman 1.1.5 — A tool to manage hosts file |
+| 388 | `azazael-pkg-hpack` | packages | Callable skill for Python package hpack 4.0.0 — Pure-Python HPACK header compression |
+| 389 | `azazael-pkg-html2text` | packages | Callable skill for Python package html2text 2025.4.15 — Turn HTML into equivalent Markdown-structured text. |
+| 390 | `azazael-pkg-html5lib-modern` | packages | Callable skill for Python package html5lib-modern 1.2 — HTML parser based on the WHATWG HTML specification |
+| 391 | `azazael-pkg-httpagentparser` | packages | Callable skill for Python package httpagentparser 1.9.1 — Extracts OS Browser etc information from http use... |
+| 392 | `azazael-pkg-httpcore` | packages | Callable skill for Python package httpcore 1.0.9 — A minimal low-level HTTP client. |
+| 393 | `azazael-pkg-httpie` | packages | Callable skill for Python package httpie 3.2.4 — HTTPie: modern, user-friendly command-line HTTP client for... |
+| 394 | `azazael-pkg-httplib2` | packages | Callable skill for Python package httplib2 0.31.2 — A comprehensive HTTP client library. |
+| 395 | `azazael-pkg-httpx` | packages | Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. |
+| 396 | `azazael-pkg-httpx-ntlm` | packages | Callable skill for Python package httpx_ntlm 1.4.0 — This package allows for HTTP NTLM authentication using... |
+| 397 | `azazael-pkg-httpx-sse` | packages | Callable skill for Python package httpx-sse 0.4.3 — Consume Server-Sent Event (SSE) messages with HTTPX. |
+| 398 | `azazael-pkg-hupper` | packages | Callable skill for Python package hupper 1.12 — Integrated process monitor for developing and reloading dae... |
+| 399 | `azazael-pkg-hypercorn` | packages | Callable skill for Python package Hypercorn 0.17.3 — A ASGI Server based on Hyper libraries and inspired by... |
+| 400 | `azazael-pkg-hyperframe` | packages | Callable skill for Python package hyperframe 6.1.0 — Pure-Python HTTP/2 framing |
+| 401 | `azazael-pkg-hyperlink` | packages | Callable skill for Python package hyperlink 21.0.0 — A featureful, immutable, and correct URL for Python. |
+| 402 | `azazael-pkg-idna` | packages | Callable skill for Python package idna 3.11 — Internationalized Domain Names in Applications (IDNA) |
+| 403 | `azazael-pkg-imagesize` | packages | Callable skill for Python package imagesize 2.0.0 — Get image size from headers (BMP/PNG/JPEG/JPEG2000/GIF/... |
+| 404 | `azazael-pkg-imapclient` | packages | Callable skill for Python package IMAPClient 3.1.0 — Easy-to-use, Pythonic and complete IMAP client library |
+| 405 | `azazael-pkg-impacket` | packages | Callable skill for Python package impacket 0.14.0.dev0 — Network protocols Constructors and Dissectors |
+| 406 | `azazael-pkg-incremental` | packages | Callable skill for Python package incremental 24.7.2 — A small library that versions your Python projects. |
+| 407 | `azazael-pkg-infinity` | packages | Callable skill for Python package infinity 1.5 — All-in-one infinity value for Python. Can be compared to a... |
+| 408 | `azazael-pkg-inflect` | packages | Callable skill for Python package inflect 7.5.0 — Correctly generate plurals, singular nouns, ordinals, ind... |
+| 409 | `azazael-pkg-iniconfig` | packages | Callable skill for Python package iniconfig 2.1.0 — brain-dead simple config-ini parsing |
+| 410 | `azazael-pkg-instaloader` | packages | Callable skill for Python package instaloader 4.15.1 — Download pictures (or videos) along with their capti... |
+| 411 | `azazael-pkg-intervaltree` | packages | Callable skill for Python package intervaltree 3.0.2 — Editable interval tree data structure for Python 2 a... |
+| 412 | `azazael-pkg-invoke` | packages | Callable skill for Python package invoke 2.2.1 — Pythonic task execution |
+| 413 | `azazael-pkg-ip2proxy` | packages | Callable skill for Python package IP2Proxy 3.4.0 — Python API for IP2Proxy database. It can be used to quer... |
+| 414 | `azazael-pkg-ipwhois` | packages | Callable skill for Python package ipwhois 1.3.0 — Retrieve and parse whois data for IPv4 and IPv6 addresses. |
+| 415 | `azazael-pkg-ipy` | packages | Callable skill for Python package IPy 1.1 — Class and tools for handling of IPv4 and IPv6 addresses and net... |
+| 416 | `azazael-pkg-ipython` | packages | Callable skill for Python package ipython 9.11.0 — IPython: Productive Interactive Computing |
+| 417 | `azazael-pkg-ipython-pygments-lexers` | packages | Callable skill for Python package ipython_pygments_lexers 1.1.1 — Defines a variety of Pygments lexers for ... |
+| 418 | `azazael-pkg-isc-dhcp-leases` | packages | Callable skill for Python package isc_dhcp_leases 0.10.0 — Small python module for reading /var/lib/dhcp/dh... |
+| 419 | `azazael-pkg-isoduration` | packages | Callable skill for Python package isoduration 20.11.0 — Operations with ISO 8601 durations |
+| 420 | `azazael-pkg-itsdangerous` | packages | Callable skill for Python package itsdangerous 2.2.0 — Safely pass data to untrusted environments and back. |
+| 421 | `azazael-pkg-ivre` | packages | Callable skill for Python package ivre 0.9.21+kali — Network recon framework |
+| 422 | `azazael-pkg-jaraco-collections` | packages | Callable skill for Python package jaraco.collections 5.1.0 — Collection objects similar to those in stdlib ... |
+| 423 | `azazael-pkg-jaraco-context` | packages | Callable skill for Python package jaraco.context 6.0.1 — Useful decorators and context managers |
+| 424 | `azazael-pkg-jaraco-functools` | packages | Callable skill for Python package jaraco.functools 4.1.0 — Functools like those found in stdlib |
+| 425 | `azazael-pkg-jaraco-text` | packages | Callable skill for Python package jaraco.text 4.0.0 — Module for text manipulation |
+| 426 | `azazael-pkg-jedi` | packages | Callable skill for Python package jedi 0.19.1 — An autocompletion tool for Python that can be used for text... |
+| 427 | `azazael-pkg-jeepney` | packages | Callable skill for Python package jeepney 0.9.0 — Low-level, pure Python DBus protocol wrapper. |
+| 428 | `azazael-pkg-jefferson` | packages | Callable skill for Python package jefferson 0.4.7 — JFFS2 filesystem extraction tool. |
+| 429 | `azazael-pkg-jinja2` | packages | Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine. |
+| 430 | `azazael-pkg-jmespath` | packages | Callable skill for Python package jmespath 1.0.1 — JSON Matching Expressions |
+| 431 | `azazael-pkg-joblib` | packages | Callable skill for Python package joblib 1.5.2 — Lightweight pipelining with Python functions |
+| 432 | `azazael-pkg-jq` | packages | Callable skill for Python package jq 1.11.0 — jq is a lightweight and flexible JSON processor. |
+| 433 | `azazael-pkg-jsmin` | packages | Callable skill for Python package jsmin 3.0.1 — JavaScript minifier. |
+| 434 | `azazael-pkg-json5` | packages | Callable skill for Python package json5 0.10.0 — A Python implementation of the JSON5 data format. |
+| 435 | `azazael-pkg-jsonpointer` | packages | Callable skill for Python package jsonpointer 2.4 — Identify specific nodes in a JSON document (RFC 6901) |
+| 436 | `azazael-pkg-jsonschema` | packages | Callable skill for Python package jsonschema 4.26.0 — An implementation of JSON Schema validation for Python |
+| 437 | `azazael-pkg-jsonschema-specifications` | packages | Callable skill for Python package jsonschema-specifications 2023.12.1 — The JSON Schema meta-schemas and vo... |
+| 438 | `azazael-pkg-jupyter-core` | packages | Callable skill for Python package jupyter_core 5.9.1 — Jupyter core package. A base package on which Jupyte... |
+| 439 | `azazael-pkg-kaitaistruct` | packages | Callable skill for Python package kaitaistruct 0.11 — Kaitai Struct declarative parser generator for binary... |
+| 440 | `azazael-pkg-kali-tweaks` | packages | Callable skill for Python package kali-tweaks 2025.4.0 — Kali Linux GUI tool to ease configuration |
+| 441 | `azazael-pkg-keystone-engine` | packages | Callable skill for Python package keystone-engine 0.9.2 — Keystone assembler engine |
+| 442 | `azazael-pkg-kiwisolver` | packages | Callable skill for Python package kiwisolver 1.5.0 — A fast implementation of the Cassowary constraint solver |
+| 443 | `azazael-pkg-krb5` | packages | Callable skill for Python package krb5 0.9.0 — Kerberos API bindings for Python |
+| 444 | `azazael-pkg-lark` | packages | Callable skill for Python package lark 1.3.1 — a modern parsing library |
+| 445 | `azazael-pkg-ldap3` | packages | Callable skill for Python package ldap3 2.9.1 — A strictly RFC 4510 conforming LDAP V3 pure Python client l... |
+| 446 | `azazael-pkg-ldap3-bleeding-edge` | packages | Callable skill for Python package ldap3-bleeding_edge 2.10.1.1337 — A strictly RFC 4510 conforming LDAP V3 ... |
+| 447 | `azazael-pkg-ldapdomaindump` | packages | Callable skill for Python package ldapdomaindump 0.9.4 — Active Directory information dumper via LDAP |
+| 448 | `azazael-pkg-ldeep` | packages | Callable skill for Python package ldeep 2.0.3 — In-depth ldap enumeration utility |
+| 449 | `azazael-pkg-legacy-cgi` | packages | Callable skill for Python package legacy-cgi 2.6.4 — Fork of the standard library cgi and cgitb modules rem... |
+| 450 | `azazael-pkg-legacycrypt` | packages | Callable skill for Python package legacycrypt 0.3 — Wrapper to the POSIX crypt library call and associated ... |
+| 451 | `azazael-pkg-levenshtein` | packages | Callable skill for Python package Levenshtein 0.27.1 — Python extension for computing string edit distances... |
+| 452 | `azazael-pkg-libarchive-c` | packages | Callable skill for Python package libarchive-c 5.1 — Python interface to libarchive |
+| 453 | `azazael-pkg-libpass` | packages | Callable skill for Python package libpass 1.9.3 — Fork of passlib, a comprehensive password hashing framewo... |
+| 454 | `azazael-pkg-libtaxii` | packages | Callable skill for Python package libtaxii 1.1.119 — TAXII 1.X Library. |
+| 455 | `azazael-pkg-libvmdk-python` | packages | Callable skill for Python package libvmdk-python 20240510 — Python bindings module for libvmdk |
+| 456 | `azazael-pkg-lief` | packages | Callable skill for Python package lief 0.16.1 — Library to instrument executable formats |
+| 457 | `azazael-pkg-limits` | packages | Callable skill for Python package limits 4.4.1 — Rate limiting utilities |
+| 458 | `azazael-pkg-linkify-it-py` | packages | Callable skill for Python package linkify-it-py 2.1.0 — Links recognition library with FULL unicode support. |
+| 459 | `azazael-pkg-livereload` | packages | Callable skill for Python package livereload 2.7.1 — Python LiveReload is an awesome tool for web developers |
+| 460 | `azazael-pkg-llm` | packages | Callable skill for Python package llm 0.30 — CLI utility and Python library for interacting with Large Lang... |
+| 461 | `azazael-pkg-llvmlite` | packages | Callable skill for Python package llvmlite 0.47.0 — lightweight wrapper around basic LLVM functionality |
+| 462 | `azazael-pkg-lml` | packages | Callable skill for Python package lml 0.1.0 — Load me later. A lazy plugin management system. |
+| 463 | `azazael-pkg-locket` | packages | Callable skill for Python package locket 1.0.0 — File-based locks for Python on Linux and Windows |
+| 464 | `azazael-pkg-loguru` | packages | Callable skill for Python package loguru 0.7.3 — Python logging made (stupidly) simple |
+| 465 | `azazael-pkg-logutils` | packages | Callable skill for Python package logutils 0.3.5 — Logging utilities |
+| 466 | `azazael-pkg-lsassy` | packages | Callable skill for Python package lsassy 3.1.11 — Tool to remotely extract credentials |
+| 467 | `azazael-pkg-lunr` | packages | Callable skill for Python package lunr 0.8.0 — A Python implementation of Lunr.js |
+| 468 | `azazael-pkg-lxml` | packages | Callable skill for Python package lxml 6.1.0 — Powerful and Pythonic XML processing library combining libxm... |
+| 469 | `azazael-pkg-lz4` | packages | Callable skill for Python package lz4 4.4.5+dfsg — LZ4 Bindings for Python |
+| 470 | `azazael-pkg-lzallright` | packages | Callable skill for Python package lzallright 0.1.0 — No summary available. |
+| 471 | `azazael-pkg-mako` | packages | Callable skill for Python package Mako 1.3.10.dev0 — A super-fast templating language that borrows the best... |
+| 472 | `azazael-pkg-manuf` | packages | Callable skill for Python package manuf 1.1.5 — Parser library for Wireshark's OUI database |
+| 473 | `azazael-pkg-markdown` | packages | Callable skill for Python package Markdown 3.10.2 — Python implementation of John Gruber's Markdown. |
+| 474 | `azazael-pkg-markdown-it-py` | packages | Callable skill for Python package markdown-it-py 4.2.0 — Python port of markdown-it. Markdown parsing, done... |
+| 475 | `azazael-pkg-markupsafe` | packages | Callable skill for Python package MarkupSafe 3.0.3 — Safely add untrusted strings to HTML/XML markup. |
+| 476 | `azazael-pkg-marshmallow` | packages | Callable skill for Python package marshmallow 3.26.1 — A lightweight library for converting complex datatyp... |
+| 477 | `azazael-pkg-maryam` | packages | Callable skill for Python package maryam 2.5.2.post2 — OWASP Maryam is a modular/optional open-source frame... |
+| 478 | `azazael-pkg-masky` | packages | Callable skill for Python package masky 0.2.1 — Python library with CLI allowing to remotely dump domain us... |
+| 479 | `azazael-pkg-matplotlib` | packages | Callable skill for Python package matplotlib 3.10.7+dfsg1 — Python plotting package |
+| 480 | `azazael-pkg-matplotlib-inline` | packages | Callable skill for Python package matplotlib-inline 0.2.1 — Inline Matplotlib backend for Jupyter |
+| 481 | `azazael-pkg-maxminddb` | packages | Callable skill for Python package maxminddb 3.0.0 — Reader for the MaxMind DB format |
+| 482 | `azazael-pkg-mcp` | packages | Callable skill for Python package mcp 1.22.0 — Model Context Protocol SDK |
+| 483 | `azazael-pkg-mdit-py-plugins` | packages | Callable skill for Python package mdit-py-plugins 0.6.1 — Collection of plugins for markdown-it-py |
+| 484 | `azazael-pkg-mdurl` | packages | Callable skill for Python package mdurl 0.1.2 — Markdown URL utilities |
+| 485 | `azazael-pkg-mechanize` | packages | Callable skill for Python package mechanize 0.4.10 — Stateful, programmatic web browsing |
+| 486 | `azazael-pkg-mercurial` | packages | Callable skill for Python package mercurial 7.2.2 — Fast scalable distributed SCM (revision control, versio... |
+| 487 | `azazael-pkg-mergedeep` | packages | Callable skill for Python package mergedeep 1.3.4 — A deep merge function for 🐍. |
+| 488 | `azazael-pkg-minidump` | packages | Callable skill for Python package minidump 0.0.21 — Python library to parse Windows minidump file format |
+| 489 | `azazael-pkg-minikerberos` | packages | Callable skill for Python package minikerberos 0.4.4 — Kerberos manipulation library in pure Python |
+| 490 | `azazael-pkg-mistune` | packages | Callable skill for Python package mistune 3.1.4 — A sane and fast Markdown parser with useful plugins and r... |
+| 491 | `azazael-pkg-mitm6` | packages | Callable skill for Python package mitm6 0.3.0 — Pwning IPv4 via IPv6 |
+| 492 | `azazael-pkg-mitmproxy` | packages | Callable skill for Python package mitmproxy 12.2.3 — An interactive, SSL/TLS-capable intercepting proxy for... |
+| 493 | `azazael-pkg-mkdocs` | packages | Callable skill for Python package mkdocs 1.6.1 — Project documentation with Markdown. |
+| 494 | `azazael-pkg-mkdocs-get-deps` | packages | Callable skill for Python package mkdocs-get-deps 0.2.0 — MkDocs extension that lists all dependencies acco... |
+| 495 | `azazael-pkg-mock` | packages | Callable skill for Python package mock 5.2.0 — Rolling backport of unittest.mock for all Pythons |
+| 496 | `azazael-pkg-monotonic` | packages | Callable skill for Python package monotonic 1.6 — An implementation of time.monotonic() for Python 2 & < 3.3 |
+| 497 | `azazael-pkg-more-itertools` | packages | Callable skill for Python package more-itertools 10.8.0 — More routines for operating on iterables, beyond ... |
+| 498 | `azazael-pkg-more-termcolor` | packages | Callable skill for Python package more-termcolor 1.1.3 — All colors, with support for nested colors, conven... |
+| 499 | `azazael-pkg-mpmath` | packages | Callable skill for Python package mpmath 1.4.1 — Python library for arbitrary-precision floating-point arit... |
+| 500 | `azazael-pkg-msgpack` | packages | Callable skill for Python package msgpack 1.1.2 — MessagePack serializer |
+| 501 | `azazael-pkg-msldap` | packages | Callable skill for Python package msldap 0.5.10 — Python library to play with MS LDAP |
+| 502 | `azazael-pkg-msoffcrypto-tool` | packages | Callable skill for Python package msoffcrypto-tool 6.0.0 — Python tool and library for decrypting and encry... |
+| 503 | `azazael-pkg-mssqlpwner` | packages | Callable skill for Python package mssqlpwner 1.3.2 — Seamlessly interact and pwn MSSQL servers |
+| 504 | `azazael-pkg-multidict` | packages | Callable skill for Python package multidict 6.4.3 — multidict implementation |
+| 505 | `azazael-pkg-mypy-boto3-ebs` | packages | Callable skill for Python package mypy-boto3-ebs 1.26.0.post1 — Type annotations for boto3.EBS 1.26.0 servi... |
+| 506 | `azazael-pkg-mypy-extensions` | packages | Callable skill for Python package mypy_extensions 1.1.0 — Type system extensions for programs checked with ... |
+| 507 | `azazael-pkg-mysqlclient` | packages | Callable skill for Python package mysqlclient 1.4.6 — Python interface to MySQL |
+| 508 | `azazael-pkg-myst-parser` | packages | Callable skill for Python package myst-parser 5.1.0 — An extended [CommonMark](https://spec.commonmark.org/... |
+| 509 | `azazael-pkg-name-that-hash` | packages | Callable skill for Python package name-that-hash 1.11.0 — The Modern Hash Identification System |
+| 510 | `azazael-pkg-nassl` | packages | Callable skill for Python package nassl 5.4.0 — Experimental OpenSSL wrapper for Python 3.10+ and SSLyze. |
+| 511 | `azazael-pkg-nbformat` | packages | Callable skill for Python package nbformat 5.10.4 — The Jupyter Notebook format |
+| 512 | `azazael-pkg-ndiff` | packages | Callable skill for Python package ndiff 7.99 — Nmap scan diff tool |
+| 513 | `azazael-pkg-neo4j` | packages | Callable skill for Python package neo4j 5.2.dev0 — Neo4j Bolt driver for Python |
+| 514 | `azazael-pkg-neobolt` | packages | Callable skill for Python package neobolt 1.7.17 — Neo4j Bolt connector for Python |
+| 515 | `azazael-pkg-neotime` | packages | Callable skill for Python package neotime 1.7.4 — Nanosecond resolution temporal types |
+| 516 | `azazael-pkg-netaddr` | packages | Callable skill for Python package netaddr 1.3.0 — A network address manipulation library for Python |
+| 517 | `azazael-pkg-netexec` | packages | Callable skill for Python package netexec 1.5.1 — The Network Execution tool |
+| 518 | `azazael-pkg-netifaces` | packages | Callable skill for Python package netifaces 0.11.0 — Portable network interface information. |
+| 519 | `azazael-pkg-netmiko` | packages | Callable skill for Python package netmiko 4.6.0 — Multi-vendor library to simplify legacy CLI connections t... |
+| 520 | `azazael-pkg-networkx` | packages | Callable skill for Python package networkx 3.4.2 — Python package for creating and manipulating graphs and ... |
+| 521 | `azazael-pkg-nltk` | packages | Callable skill for Python package nltk 3.9.3 — Natural Language Toolkit |
+| 522 | `azazael-pkg-notus-scanner` | packages | Callable skill for Python package notus-scanner 22.7.2 — A vulnerability scanner for creating results from ... |
+| 523 | `azazael-pkg-ntc-templates` | packages | Callable skill for Python package ntc_templates 3.5.0 — TextFSM Templates for Network Devices, and Python w... |
+| 524 | `azazael-pkg-ntlm-auth` | packages | Callable skill for Python package ntlm-auth 1.5.0 — Creates NTLM authentication structures |
+| 525 | `azazael-pkg-ntpsec` | packages | Callable skill for Python package ntpsec 1.2.4 — The NTP reference implementation, refactored |
+| 526 | `azazael-pkg-numba` | packages | Callable skill for Python package numba 0.65.1 — compiling Python code using LLVM |
+| 527 | `azazael-pkg-numexpr` | packages | Callable skill for Python package numexpr 2.14.1 — Fast numerical expression evaluator for NumPy |
+| 528 | `azazael-pkg-numpy` | packages | Callable skill for Python package numpy 2.3.5 — Fundamental package for array computing in Python |
+| 529 | `azazael-pkg-oauthlib` | packages | Callable skill for Python package oauthlib 3.3.1 — A generic, spec-compliant, thorough implementation of th... |
+| 530 | `azazael-pkg-odfpy` | packages | Callable skill for Python package odfpy 1.4.2 — Python API and tools to manipulate OpenDocument files |
+| 531 | `azazael-pkg-olefile` | packages | Callable skill for Python package olefile 0.47 — Python package to parse, read and write Microsoft OLE2 fil... |
+| 532 | `azazael-pkg-oletools` | packages | Callable skill for Python package oletools 0.60.2 — Python tools to analyze security characteristics of MS ... |
+| 533 | `azazael-pkg-openai` | packages | Callable skill for Python package openai 2.21.0 — The official Python library for the openai API |
+| 534 | `azazael-pkg-openpyxl` | packages | Callable skill for Python package openpyxl 3.1.5 — A Python library to read/write Excel 2010 xlsx/xlsm files |
+| 535 | `azazael-pkg-opentaxii` | packages | Callable skill for Python package opentaxii 0.9.3 — TAXII server implementation in Python from EclecticIQ |
+| 536 | `azazael-pkg-orjson` | packages | Callable skill for Python package orjson 3.11.7 — Fast, correct Python JSON library supporting dataclasses,... |
+| 537 | `azazael-pkg-oscrypto` | packages | Callable skill for Python package oscrypto 1.3.0 — TLS (SSL) sockets, key generation, encryption, decryptio... |
+| 538 | `azazael-pkg-ospd-openvas` | packages | Callable skill for Python package ospd-openvas 22.10.0 — ospd based scanner for openvas |
+| 539 | `azazael-pkg-osrframework` | packages | Callable skill for Python package osrframework 0.20.5 — OSRFramework - A set of AGPLv3+ OSINT tools develop... |
+| 540 | `azazael-pkg-outcome` | packages | Callable skill for Python package outcome 1.3.0.post0 — Capture the outcome of Python function calls. |
+| 541 | `azazael-pkg-packaging` | packages | Callable skill for Python package packaging 26.2 — Core utilities for Python packages |
+| 542 | `azazael-pkg-pacu` | packages | Callable skill for Python package pacu 1.6.0 — The AWS exploitation framework, designed for testing the sec... |
+| 543 | `azazael-pkg-paho-mqtt` | packages | Callable skill for Python package paho-mqtt 2.1.0 — MQTT version 5.0/3.1.1 client class |
+| 544 | `azazael-pkg-pandas` | packages | Callable skill for Python package pandas 2.3.3 — Powerful data structures for data analysis, time series, a... |
+| 545 | `azazael-pkg-paramiko` | packages | Callable skill for Python package paramiko 4.0.0 — SSH2 protocol library |
+| 546 | `azazael-pkg-paramspider` | packages | Callable skill for Python package paramspider 0.1.0 — Mining parameters from dark corners of Web Archives |
+| 547 | `azazael-pkg-parso` | packages | Callable skill for Python package parso 0.8.7 — A Python Parser |
+| 548 | `azazael-pkg-partd` | packages | Callable skill for Python package partd 1.4.2 — Appendable key-value storage |
+| 549 | `azazael-pkg-passwordmeter` | packages | Callable skill for Python package passwordmeter 0.1.8 — A password strength measuring library. |
+| 550 | `azazael-pkg-paste` | packages | Callable skill for Python package Paste 3.10.1 — Tools for using a Web Server Gateway Interface stack |
+| 551 | `azazael-pkg-pastedeploy` | packages | Callable skill for Python package PasteDeploy 3.1.0 — Load, configure, and compose WSGI applications and se... |
+| 552 | `azazael-pkg-pastescript` | packages | Callable skill for Python package PasteScript 3.7.0 — A pluggable command-line frontend, including commands... |
+| 553 | `azazael-pkg-patator` | packages | Callable skill for Python package patator 1.1.0 — Multi-purpose brute-forcer |
+| 554 | `azazael-pkg-pathspec` | packages | Callable skill for Python package pathspec 1.0.4 — Utility library for gitignore style pattern matching of ... |
+| 555 | `azazael-pkg-pbkdf2` | packages | Callable skill for Python package pbkdf2 1.3 — PKCS#5 v2.0 PBKDF2 Module |
+| 556 | `azazael-pkg-pcapy` | packages | Callable skill for Python package pcapy 0.11.5.dev0 — Python pcap extension |
+| 557 | `azazael-pkg-pcodedmp` | packages | Callable skill for Python package pcodedmp 1.2.6 — A VBA p-code disassembler |
+| 558 | `azazael-pkg-pefile` | packages | Callable skill for Python package pefile 2024.8.26 — Python PE parsing module |
+| 559 | `azazael-pkg-penelope-shell-handler` | packages | Callable skill for Python package penelope-shell-handler 0.20.0 — Post-exploitation shell handler for autho... |
+| 560 | `azazael-pkg-pexpect` | packages | Callable skill for Python package pexpect 4.9.0 — Pexpect allows easy control of interactive console applic... |
+| 561 | `azazael-pkg-phonenumbers` | packages | Callable skill for Python package phonenumbers 8.12.57 — Python version of Google's common library for pars... |
+| 562 | `azazael-pkg-phpserialize` | packages | Callable skill for Python package phpserialize 1.3 — a port of the serialize and unserialize functions of p... |
+| 563 | `azazael-pkg-pick` | packages | Callable skill for Python package pick 2.4.0 — Pick an option in the terminal with a simple GUI |
+| 564 | `azazael-pkg-pillow` | packages | Callable skill for Python package pillow 12.2.0 — Python Imaging Library (fork) |
+| 565 | `azazael-pkg-ping3` | packages | Callable skill for Python package ping3 4.0.4 — A pure python3 version of ICMP ping implementation using ra... |
+| 566 | `azazael-pkg-pip` | packages | Callable skill for Python package pip 26.1.1 — The PyPA recommended tool for installing Python packages. |
+| 567 | `azazael-pkg-pipx` | packages | Callable skill for Python package pipx 1.14.0 — Install and Run Python Applications in Isolated Environments |
+| 568 | `azazael-pkg-plaso` | packages | Callable skill for Python package plaso 20260119 — Plaso (log2timeline) - Super timeline all the things |
+| 569 | `azazael-pkg-plaster` | packages | Callable skill for Python package plaster 1.1.2 — A loader interface around multiple config file formats. |
+| 570 | `azazael-pkg-plaster-pastedeploy` | packages | Callable skill for Python package plaster_pastedeploy 0.5 — A loader implementing the PasteDeploy syntax to... |
+| 571 | `azazael-pkg-platformdirs` | packages | Callable skill for Python package platformdirs 4.10.0 — A small Python package for determining appropriate ... |
+| 572 | `azazael-pkg-playwright` | packages | Callable skill for Python package playwright 1.55.0+ds — A high-level API to automate web browsers |
+| 573 | `azazael-pkg-plotext` | packages | Callable skill for Python package plotext 5.2.8 — plotext plots directly on terminal |
+| 574 | `azazael-pkg-plotly` | packages | Callable skill for Python package plotly 5.20.0 — An open-source, interactive data visualization library fo... |
+| 575 | `azazael-pkg-pluggy` | packages | Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python |
+| 576 | `azazael-pkg-pluginbase` | packages | Callable skill for Python package pluginbase 1.0.1 — PluginBase is a module for Python that enables the dev... |
+| 577 | `azazael-pkg-plumbum` | packages | Callable skill for Python package plumbum 1.10.0 — Plumbum: shell combinators library |
+| 578 | `azazael-pkg-ply` | packages | Callable skill for Python package ply 3.11 — Python Lex & Yacc |
+| 579 | `azazael-pkg-pocsuite3` | packages | Callable skill for Python package pocsuite3 2.1.0 — Open-sourced remote vulnerability testing framework. |
+| 580 | `azazael-pkg-poetry-core` | packages | Callable skill for Python package poetry-core 2.3.1 — Poetry PEP 517 Build Backend |
+| 581 | `azazael-pkg-poetry-dynamic-versioning` | packages | Callable skill for Python package poetry-dynamic-versioning 1.9.1 — Plugin for Poetry to enable dynamic ver... |
+| 582 | `azazael-pkg-policyuniverse` | packages | Callable skill for Python package policyuniverse 1.5.1.20231109 — Parse and Process AWS IAM Policies, State... |
+| 583 | `azazael-pkg-pooch` | packages | Callable skill for Python package pooch 1.9.0 — A friend to fetch your data files |
+| 584 | `azazael-pkg-portend` | packages | Callable skill for Python package portend 3.2.0 — TCP port monitoring and discovery |
+| 585 | `azazael-pkg-prettytable` | packages | Callable skill for Python package prettytable 3.17.0 — A simple Python library for easily displaying tabula... |
+| 586 | `azazael-pkg-priority` | packages | Callable skill for Python package priority 2.0.0 — A pure-Python implementation of the HTTP/2 priority tree |
+| 587 | `azazael-pkg-prompt-toolkit` | packages | Callable skill for Python package prompt_toolkit 3.0.52 — Library for building powerful interactive command... |
+| 588 | `azazael-pkg-propcache` | packages | Callable skill for Python package propcache 0.5.2 — Accelerated property cache |
+| 589 | `azazael-pkg-protobuf` | packages | Callable skill for Python package protobuf 4.21.12 — Protocol Buffers |
+| 590 | `azazael-pkg-psutil` | packages | Callable skill for Python package psutil 7.1.0 — Cross-platform lib for process and system monitoring. |
+| 591 | `azazael-pkg-psycopg2` | packages | Callable skill for Python package psycopg2 2.9.12 — psycopg2 - Python-PostgreSQL Database Adapter |
+| 592 | `azazael-pkg-ptyprocess` | packages | Callable skill for Python package ptyprocess 0.7.0 — Run a subprocess in a pseudo terminal |
+| 593 | `azazael-pkg-publicsuffix2` | packages | Callable skill for Python package publicsuffix2 2.20191221 — Get a public suffix for a domain name using th... |
+| 594 | `azazael-pkg-publicsuffixlist` | packages | Callable skill for Python package publicsuffixlist 0.9.3 — publicsuffixlist implement |
+| 595 | `azazael-pkg-pure-eval` | packages | Callable skill for Python package pure_eval 0.2.3 — Safely evaluate AST nodes without side effects |
+| 596 | `azazael-pkg-puremagic` | packages | Callable skill for Python package puremagic 2.2.0 — Pure python implementation of magic file detection |
+| 597 | `azazael-pkg-pwncat` | packages | Callable skill for Python package pwncat 0.1.2 — Netcat on steroids with Firewall, IDS/IPS evasion, bind an... |
+| 598 | `azazael-pkg-pwntools` | packages | Callable skill for Python package pwntools 4.15.0 — Pwntools CTF framework and exploit development library. |
+| 599 | `azazael-pkg-py-cpuinfo` | packages | Callable skill for Python package py-cpuinfo 9.0.0 — Get CPU info with pure Python |
+| 600 | `azazael-pkg-pyasn1` | packages | Callable skill for Python package pyasn1 0.6.3 — Pure-Python implementation of ASN.1 types and DER/BER/CER ... |
+| 601 | `azazael-pkg-pyasn1-modules` | packages | Callable skill for Python package pyasn1_modules 0.4.1 — A collection of ASN.1-based protocols modules |
+| 602 | `azazael-pkg-pyasyncore` | packages | Callable skill for Python package pyasyncore 1.0.2 — Make asyncore available for Python 3.12 onwards |
+| 603 | `azazael-pkg-pybluez` | packages | Callable skill for Python package PyBluez 0.23 — Bluetooth Python extension module |
+| 604 | `azazael-pkg-pycairo` | packages | Callable skill for Python package pycairo 1.27.0 — Python interface for cairo |
+| 605 | `azazael-pkg-pycares` | packages | Callable skill for Python package pycares 5.0.1 — Python interface for c-ares |
+| 606 | `azazael-pkg-pycognito` | packages | Callable skill for Python package pycognito 2024.5.1 — Python class to integrate Boto3's Cognito client so ... |
+| 607 | `azazael-pkg-pycparser` | packages | Callable skill for Python package pycparser 3.0 — C parser in Python |
+| 608 | `azazael-pkg-pycriu` | packages | Callable skill for Python package pycriu 4.2 — Python bindings for CRIU |
+| 609 | `azazael-pkg-pycryptodomex` | packages | Callable skill for Python package pycryptodomex 3.20.0 — Cryptographic library for Python |
+| 610 | `azazael-pkg-pycups` | packages | Callable skill for Python package pycups 2.0.4 — Python bindings for libcups |
+| 611 | `azazael-pkg-pycurl` | packages | Callable skill for Python package pycurl 7.46.0 — PycURL -- A Python Interface To The cURL library |
+| 612 | `azazael-pkg-pydantic` | packages | Callable skill for Python package pydantic 2.13.4 — Data validation using Python type hints |
+| 613 | `azazael-pkg-pydantic-core` | packages | Callable skill for Python package pydantic_core 2.46.4 — Core functionality for Pydantic validation and ser... |
+| 614 | `azazael-pkg-pydantic-settings` | packages | Callable skill for Python package pydantic-settings 2.14.1 — Settings management using Pydantic |
+| 615 | `azazael-pkg-pydot` | packages | Callable skill for Python package pydot 4.0.1 — Python interface to Graphviz's Dot |
+| 616 | `azazael-pkg-pydotplus` | packages | Callable skill for Python package pydotplus 2.0.2 — Python interface to Graphviz's Dot language |
+| 617 | `azazael-pkg-pyee` | packages | Callable skill for Python package pyee 13.0.0 — A rough port of Node.js's EventEmitter to Python with a few... |
+| 618 | `azazael-pkg-pyelftools` | packages | Callable skill for Python package pyelftools 0.33 — Library for analyzing ELF files and DWARF debugging inf... |
+| 619 | `azazael-pkg-pyenchant` | packages | Callable skill for Python package pyenchant 3.3.0 — Python bindings for the Enchant spellchecking system |
+| 620 | `azazael-pkg-pyexcel` | packages | Callable skill for Python package pyexcel 0.7.0 — A wrapper library that provides one API to read, manipula... |
+| 621 | `azazael-pkg-pyexcel-io` | packages | Callable skill for Python package pyexcel-io 0.6.6 — A python library to read and write structured data in ... |
+| 622 | `azazael-pkg-pyexcel-ods` | packages | Callable skill for Python package pyexcel-ods 0.6.0 — A wrapper library to read, manipulate and write data ... |
+| 623 | `azazael-pkg-pyexcel-text` | packages | Callable skill for Python package pyexcel-text 0.2.7.1 — A plugin to pyexcel and provides the capability to... |
+| 624 | `azazael-pkg-pyexcel-xls` | packages | Callable skill for Python package pyexcel-xls 0.7.0 — A wrapper library to read, manipulate and write data ... |
+| 625 | `azazael-pkg-pyexcel-xlsx` | packages | Callable skill for Python package pyexcel-xlsx 0.6.0 — A wrapper library to read, manipulate and write data... |
+| 626 | `azazael-pkg-pyfatfs` | packages | Callable skill for Python package pyfatfs 1.1.0 — FAT12/FAT16/FAT32 implementation with VFAT support |
+| 627 | `azazael-pkg-pyfiglet` | packages | Callable skill for Python package pyfiglet 1.0.4 — Pure-python FIGlet implementation |
+| 628 | `azazael-pkg-pygccxml` | packages | Callable skill for Python package pygccxml 3.0.2 — Python package for easy C++ declarations navigation. |
+| 629 | `azazael-pkg-pygexf` | packages | Callable skill for Python package pygexf 0.2.2 — UNKNOWN |
+| 630 | `azazael-pkg-pygit2` | packages | Callable skill for Python package pygit2 1.19.2 — Python bindings for libgit2. |
+| 631 | `azazael-pkg-pygments` | packages | Callable skill for Python package Pygments 2.19.2 — Pygments is a syntax highlighting package written in Py... |
+| 632 | `azazael-pkg-pygobject` | packages | Callable skill for Python package PyGObject 3.56.2 — Python bindings for GObject Introspection |
+| 633 | `azazael-pkg-pygraphviz` | packages | Callable skill for Python package pygraphviz 1.14 — Python interface to Graphviz |
+| 634 | `azazael-pkg-pyhamcrest` | packages | Callable skill for Python package PyHamcrest 2.1.0 — Hamcrest framework for matcher objects |
+| 635 | `azazael-pkg-pyinotify` | packages | Callable skill for Python package pyinotify 0.9.6 — Linux filesystem events monitoring |
+| 636 | `azazael-pkg-pyinstaller` | packages | Callable skill for Python package pyinstaller 6.18.0 — PyInstaller bundles a Python application and all its... |
+| 637 | `azazael-pkg-pyinstaller-hooks-contrib` | packages | Callable skill for Python package pyinstaller-hooks-contrib 2026.4 — Community maintained hooks for PyInsta... |
+| 638 | `azazael-pkg-pyjwt` | packages | Callable skill for Python package PyJWT 2.12.1 — JSON Web Token implementation in Python |
+| 639 | `azazael-pkg-pykerberos` | packages | Callable skill for Python package pykerberos 1.1.14 — High-level interface to Kerberos |
+| 640 | `azazael-pkg-pylnk3` | packages | Callable skill for Python package pylnk3 0.4.3 — Windows LNK File Parser and Creator |
+| 641 | `azazael-pkg-pylsqpack` | packages | Callable skill for Python package pylsqpack 0.3.23 — Python wrapper for the ls-qpack QPACK library |
+| 642 | `azazael-pkg-pymavlink` | packages | Callable skill for Python package pymavlink 2.4.37 — Python MAVLink code |
+| 643 | `azazael-pkg-pymdown-extensions` | packages | Callable skill for Python package pymdown-extensions 10.19.1 — Extension pack for Python Markdown. |
+| 644 | `azazael-pkg-pymongo` | packages | Callable skill for Python package pymongo 4.16.0 — PyMongo - the Official MongoDB Python driver |
+| 645 | `azazael-pkg-pymssql` | packages | Callable skill for Python package pymssql 2.3.10 — DB-API interface to Microsoft SQL Server for Python. (ne... |
+| 646 | `azazael-pkg-pynacl` | packages | Callable skill for Python package PyNaCl 1.6.2 — Python binding to the Networking and Cryptography (NaCl) l... |
+| 647 | `azazael-pkg-pynfsclient` | packages | Callable skill for Python package pyNfsClient 0.1.5 — Pure python NFS client |
+| 648 | `azazael-pkg-pynput` | packages | Callable skill for Python package pynput 1.8.2 — Monitor and control user input devices |
+| 649 | `azazael-pkg-pyodbc` | packages | Callable skill for Python package pyodbc 5.3.0 — DB API module for ODBC |
+| 650 | `azazael-pkg-pyopengl` | packages | Callable skill for Python package PyOpenGL 3.1.10 — Standard OpenGL bindings for Python |
+| 651 | `azazael-pkg-pyopenssl` | packages | Callable skill for Python package pyOpenSSL 26.2.0 — Python wrapper module around the OpenSSL library |
+| 652 | `azazael-pkg-pyparsing` | packages | Callable skill for Python package pyparsing 3.3.2 — pyparsing - Classes and methods to define and execute p... |
+| 653 | `azazael-pkg-pypdf` | packages | Callable skill for Python package pypdf 6.9.2 — A pure-python PDF library capable of splitting, merging, cr... |
+| 654 | `azazael-pkg-pyperclip` | packages | Callable skill for Python package pyperclip 1.11.0 — A cross-platform clipboard module for Python. (Only ha... |
+| 655 | `azazael-pkg-pyperscan` | packages | Callable skill for Python package pyperscan 0.3.0 — No summary available. |
+| 656 | `azazael-pkg-pyppeteer` | packages | Callable skill for Python package pyppeteer 2.0.0 — Headless chrome/chromium automation library (unofficial... |
+| 657 | `azazael-pkg-pypsrp` | packages | Callable skill for Python package pypsrp 0.8.1 — PowerShell Remoting Protocol and WinRM for Python |
+| 658 | `azazael-pkg-pypykatz` | packages | Callable skill for Python package pypykatz 0.6.13 — Python implementation of Mimikatz |
+| 659 | `azazael-pkg-pyqt5` | packages | Callable skill for Python package PyQt5 5.15.11 — Python bindings for the Qt cross platform application too... |
+| 660 | `azazael-pkg-pyqt5-sip` | packages | Callable skill for Python package PyQt5_sip 12.18.0 — The sip module support for PyQt5 |
+| 661 | `azazael-pkg-pyqt6` | packages | Callable skill for Python package PyQt6 6.11.0 — Python bindings for the Qt cross platform application toolkit |
+| 662 | `azazael-pkg-pyqt6-sip` | packages | Callable skill for Python package PyQt6_sip 13.11.1 — The sip module support for PyQt6 |
+| 663 | `azazael-pkg-pyqtgraph` | packages | Callable skill for Python package pyqtgraph 0.14.0 — Scientific Graphics and GUI Library for Python |
+| 664 | `azazael-pkg-pyramid` | packages | Callable skill for Python package pyramid 2.0.2 — The Pyramid Web Framework, a Pylons project |
+| 665 | `azazael-pkg-pyregfi` | packages | Callable skill for Python package pyregfi 1.0.1.0 — No summary available. |
+| 666 | `azazael-pkg-pyric` | packages | Callable skill for Python package PyRIC 0.1.6.4 — Python Wireless Library |
+| 667 | `azazael-pkg-pyserial` | packages | Callable skill for Python package pyserial 3.5 — Python Serial Port Extension |
+| 668 | `azazael-pkg-pyshark` | packages | Callable skill for Python package pyshark 0.6 — Python wrapper for tshark, allowing python packet parsing u... |
+| 669 | `azazael-pkg-pyside6` | packages | Callable skill for Python package PySide6 6.10.3 — Python bindings for the Qt cross-platform application an... |
+| 670 | `azazael-pkg-pysigma` | packages | Callable skill for Python package pySigma 1.0.2 — Sigma rule processing and conversion tools |
+| 671 | `azazael-pkg-pysmb` | packages | Callable skill for Python package pysmb 1.1.19 — pysmb is an experimental SMB/CIFS library written in Pytho... |
+| 672 | `azazael-pkg-pysmbc` | packages | Callable skill for Python package pysmbc 1.0.25.1 — Python bindings for libsmbclient |
+| 673 | `azazael-pkg-pysnmp` | packages | Callable skill for Python package pysnmp 7.1.22 — A Python library for SNMP |
+| 674 | `azazael-pkg-pysocks` | packages | Callable skill for Python package PySocks 1.7.1 — A Python SOCKS client module. See https://github.com/Anor... |
+| 675 | `azazael-pkg-pyspnego` | packages | Callable skill for Python package pyspnego 0.10.2 — Windows Negotiate Authentication Client and Server |
+| 676 | `azazael-pkg-pytest` | packages | Callable skill for Python package pytest 9.0.3 — pytest: simple powerful testing with Python |
+| 677 | `azazael-pkg-python-apt` | packages | Callable skill for Python package python-apt 3.1.0 — Python bindings for APT |
+| 678 | `azazael-pkg-python-dateutil` | packages | Callable skill for Python package python-dateutil 2.9.0 — Extensions to the standard Python datetime module |
+| 679 | `azazael-pkg-python-discovery` | packages | Callable skill for Python package python-discovery 1.4.0 — Python interpreter discovery |
+| 680 | `azazael-pkg-python-docx` | packages | Callable skill for Python package python-docx 1.2.0 — Create, read, and update Microsoft Word .docx files. |
+| 681 | `azazael-pkg-python-dotenv` | packages | Callable skill for Python package python-dotenv 1.2.1 — Read key-value pairs from a .env file and set them ... |
+| 682 | `azazael-pkg-python-emailahoy3` | packages | Callable skill for Python package python-emailahoy3 0.1.3 — A Python3 email utility that verifies existence... |
+| 683 | `azazael-pkg-python-engineio` | packages | Callable skill for Python package python-engineio 4.13.0 — Engine.IO server and client for Python |
+| 684 | `azazael-pkg-python-gnupg` | packages | Callable skill for Python package python-gnupg 0.5.4 — A wrapper for the Gnu Privacy Guard (GPG or GnuPG) |
+| 685 | `azazael-pkg-python-gvm` | packages | Callable skill for Python package python-gvm 26.11.0 — Library to communicate with remote servers over GMP ... |
+| 686 | `azazael-pkg-python-ldap` | packages | Callable skill for Python package python-ldap 3.4.5 — Python modules for implementing LDAP clients |
+| 687 | `azazael-pkg-python-libnmap` | packages | Callable skill for Python package python-libnmap 0.7.3 — Python NMAP library enabling you to start async nm... |
+| 688 | `azazael-pkg-python-magic` | packages | Callable skill for Python package python-magic 0.4.28 — File type identification using libmagic |
+| 689 | `azazael-pkg-python-magic-ahupp` | packages | Callable skill for Python package python-magic-ahupp 0.4.13 — File type identification using libmagic |
+| 690 | `azazael-pkg-python-memcached` | packages | Callable skill for Python package python-memcached 1.60 — Pure python memcached client |
+| 691 | `azazael-pkg-python-multipart` | packages | Callable skill for Python package python-multipart 0.0.26 — A streaming multipart parser for Python |
+| 692 | `azazael-pkg-python-nmap` | packages | Callable skill for Python package python-nmap 0.7.1 — This is a python class to use nmap and access scan re... |
+| 693 | `azazael-pkg-python-owasp-zap-v2-4` | packages | Callable skill for Python package python-owasp-zap-v2.4 0.0.20 — OWASP ZAP 2.11 API client |
+| 694 | `azazael-pkg-python-pptx` | packages | Callable skill for Python package python-pptx 0.6.18 — Generate and manipulate Open XML PowerPoint (.pptx) ... |
+| 695 | `azazael-pkg-python-socketio` | packages | Callable skill for Python package python-socketio 5.16.0 — Socket.IO server and client for Python |
+| 696 | `azazael-pkg-python-socks` | packages | Callable skill for Python package python-socks 2.8.1 — Proxy (SOCKS4, SOCKS5, HTTP CONNECT) client for Python |
+| 697 | `azazael-pkg-python-ulid` | packages | Callable skill for Python package python-ulid 2.2.0 — Universally unique lexicographically sortable identifier |
+| 698 | `azazael-pkg-python-whois` | packages | Callable skill for Python package python-whois 0.9.3 — Whois querying and parsing of domain registration in... |
+| 699 | `azazael-pkg-python-xlib` | packages | Callable skill for Python package python-xlib 0.33 — Python X Library |
+| 700 | `azazael-pkg-pythonping` | packages | Callable skill for Python package pythonping 1.1.4 — A simple way to ping in Python |
+| 701 | `azazael-pkg-pytsk3` | packages | Callable skill for Python package pytsk3 20250801 — Python bindings for the SleuthKit |
+| 702 | `azazael-pkg-pytz` | packages | Callable skill for Python package pytz 2025.2 — World timezone definitions, modern and historical |
+| 703 | `azazael-pkg-pyusb` | packages | Callable skill for Python package pyusb 1.2.1.post2 — Python USB access module |
+| 704 | `azazael-pkg-pyuserinput` | packages | Callable skill for Python package PyUserInput 0.1.11 — A simple, cross-platform module for mouse and keyboa... |
+| 705 | `azazael-pkg-pyvirtualdisplay` | packages | Callable skill for Python package PyVirtualDisplay 3.0 — python wrapper for Xvfb, Xephyr and Xvnc |
+| 706 | `azazael-pkg-pywerview` | packages | Callable skill for Python package pywerview 0.3.3 — A Python port of PowerSploit's PowerView |
+| 707 | `azazael-pkg-pyxdg` | packages | Callable skill for Python package pyxdg 0.28 — PyXDG contains implementations of freedesktop.org standards ... |
+| 708 | `azazael-pkg-pyyaml` | packages | Callable skill for Python package PyYAML 6.0.3 — YAML parser and emitter for Python |
+| 709 | `azazael-pkg-pyyaml-env-tag` | packages | Callable skill for Python package pyyaml_env_tag 1.1 — A custom YAML tag for referencing environment variab... |
+| 710 | `azazael-pkg-pyzipper` | packages | Callable skill for Python package pyzipper 0.3.6 — AES encryption for zipfile. |
+| 711 | `azazael-pkg-pyzmq` | packages | Callable skill for Python package pyzmq 27.1.0 — Python bindings for 0MQ |
+| 712 | `azazael-pkg-qrcode` | packages | Callable skill for Python package qrcode 8.2 — QR Code image generator |
+| 713 | `azazael-pkg-qscintilla` | packages | Callable skill for Python package QScintilla 2.14.1 — Python bindings for the QScintilla programmers editor... |
+| 714 | `azazael-pkg-quart` | packages | Callable skill for Python package quart 0.20.0 — A Python ASGI web framework with the same API as Flask |
+| 715 | `azazael-pkg-rapidfuzz` | packages | Callable skill for Python package RapidFuzz 3.12.2 — rapid fuzzy string matching |
+| 716 | `azazael-pkg-rarfile` | packages | Callable skill for Python package rarfile 4.2 — RAR archive reader for Python |
+| 717 | `azazael-pkg-ratelimit` | packages | Callable skill for Python package ratelimit 2.2.1 — API rate limit decorator |
+| 718 | `azazael-pkg-raven` | packages | Callable skill for Python package raven 1.1.0 — A lightweight file upload service used for penetration test... |
+| 719 | `azazael-pkg-recommonmark` | packages | Callable skill for Python package recommonmark 0.7.1 — A docutils-compatibility bridge to CommonMark, enabl... |
+| 720 | `azazael-pkg-redis` | packages | Callable skill for Python package redis 6.4.0 — Python client for Redis database and key-value store |
+| 721 | `azazael-pkg-referencing` | packages | Callable skill for Python package referencing 0.37.0 — JSON Referencing + Python |
+| 722 | `azazael-pkg-regex` | packages | Callable skill for Python package regex 2025.9.18 — Alternative regular expression module, to replace re. |
+| 723 | `azazael-pkg-rel` | packages | Callable skill for Python package rel 0.4.9.19 — Registered Event Listener. Provides standard (pyevent) int... |
+| 724 | `azazael-pkg-reportlab` | packages | Callable skill for Python package reportlab 4.4.10 — The Reportlab Toolkit |
+| 725 | `azazael-pkg-repoze-lru` | packages | Callable skill for Python package repoze.lru 0.7 — A tiny LRU cache implementation and decorator |
+| 726 | `azazael-pkg-requests` | packages | Callable skill for Python package requests 2.32.5 — Python HTTP for Humans. |
+| 727 | `azazael-pkg-requests-file` | packages | Callable skill for Python package requests-file 3.0.1 — File transport adapter for Requests |
+| 728 | `azazael-pkg-requests-futures` | packages | Callable skill for Python package requests-futures 1.0.2 — Asynchronous Python HTTP for Humans. |
+| 729 | `azazael-pkg-requests-ntlm` | packages | Callable skill for Python package requests_ntlm 1.3.0 — This package allows for HTTP NTLM authentication us... |
+| 730 | `azazael-pkg-requests-toolbelt` | packages | Callable skill for Python package requests-toolbelt 1.0.0 — A utility belt for advanced users of python-req... |
+| 731 | `azazael-pkg-responses` | packages | Callable skill for Python package responses 0.26.1 — A utility library for mocking out the `requests` Pytho... |
+| 732 | `azazael-pkg-retrying` | packages | Callable skill for Python package retrying 1.4.2 — Retrying |
+| 733 | `azazael-pkg-rfc3339-validator` | packages | Callable skill for Python package rfc3339-validator 0.1.4 — A pure python RFC3339 validator |
+| 734 | `azazael-pkg-rfc3986-validator` | packages | Callable skill for Python package rfc3986-validator 0.1.1 — Pure python rfc3986 validator |
+| 735 | `azazael-pkg-rfc3987` | packages | Callable skill for Python package rfc3987 1.3.8 — Parsing and validation of URIs (RFC 3986) and IRIs (RFC 3... |
+| 736 | `azazael-pkg-rfcat` | packages | Callable skill for Python package rfcat 2.0.1 — the swiss army knife of subGHz |
+| 737 | `azazael-pkg-rich` | packages | Callable skill for Python package rich 15.0.0 — Render rich text, tables, progress bars, syntax highlightin... |
+| 738 | `azazael-pkg-rjsmin` | packages | Callable skill for Python package rjsmin 1.2.5 — Javascript Minifier |
+| 739 | `azazael-pkg-rlpycairo` | packages | Callable skill for Python package rlPyCairo 0.3.0 — Plugin backend renderer for reportlab.graphics.renderPM |
+| 740 | `azazael-pkg-roguehostapd` | packages | Callable skill for Python package roguehostapd 1.1.2 — Hostapd wrapper for hostapd |
+| 741 | `azazael-pkg-roman-numerals` | packages | Callable skill for Python package roman-numerals 4.1.0 — Manipulate well-formed Roman numerals |
+| 742 | `azazael-pkg-ropgadget` | packages | Callable skill for Python package ROPGadget 7.7 — This tool lets you search your gadgets on your binaries t... |
+| 743 | `azazael-pkg-ropper` | packages | Callable skill for Python package ropper 1.13.8 — Show information about files in different file formats an... |
+| 744 | `azazael-pkg-routersploit` | packages | Callable skill for Python package routersploit 3.4.7 — Exploitation Framework for Embedded Devices |
+| 745 | `azazael-pkg-routes` | packages | Callable skill for Python package Routes 2.5.1 — Routing Recognition and Generation Tools |
+| 746 | `azazael-pkg-rpds-py` | packages | Callable skill for Python package rpds-py 0.30.0 — Python bindings to Rust's persistent data structures (rpds) |
+| 747 | `azazael-pkg-rpyc` | packages | Callable skill for Python package rpyc 6.0.2 — Remote Python Call (RPyC) is a transparent and symmetric dis... |
+| 748 | `azazael-pkg-rq` | packages | Callable skill for Python package rq 2.9.1 — RQ is a simple, lightweight, library for creating background j... |
+| 749 | `azazael-pkg-ruamel-yaml` | packages | Callable skill for Python package ruamel.yaml 0.18.14 — ruamel.yaml is a YAML parser/emitter that supports ... |
+| 750 | `azazael-pkg-ruamel-yaml-clib` | packages | Callable skill for Python package ruamel.yaml.clib 0.2.15 — C version of reader, parser and emitter for rua... |
+| 751 | `azazael-pkg-s3transfer` | packages | Callable skill for Python package s3transfer 0.14.0 — An Amazon S3 Transfer Manager |
+| 752 | `azazael-pkg-sara` | packages | Callable skill for Python package sara 1.3 — RouterOS Security Inspector |
+| 753 | `azazael-pkg-scapy` | packages | Callable skill for Python package scapy 2.7.1 — Scapy: interactive packet manipulation tool |
+| 754 | `azazael-pkg-schema` | packages | Callable skill for Python package schema 0.7.7 — Simple data validation library |
+| 755 | `azazael-pkg-scikit-learn` | packages | Callable skill for Python package scikit-learn 1.8.0 — A set of python modules for machine learning and dat... |
+| 756 | `azazael-pkg-scipy` | packages | Callable skill for Python package scipy 1.16.3 — Fundamental algorithms for scientific computing in Python |
+| 757 | `azazael-pkg-scp` | packages | Callable skill for Python package scp 0.15.0 — scp module for paramiko |
+| 758 | `azazael-pkg-secure` | packages | Callable skill for Python package secure 1.0.1 — A lightweight package that adds security headers for Pytho... |
+| 759 | `azazael-pkg-selenium` | packages | Callable skill for Python package selenium 4.24.0 — Official Python bindings for Selenium WebDriver. |
+| 760 | `azazael-pkg-service-identity` | packages | Callable skill for Python package service-identity 24.2.0 — Service identity verification for pyOpenSSL & c... |
+| 761 | `azazael-pkg-setproctitle` | packages | Callable skill for Python package setproctitle 1.3.7 — A Python module to customize the process title |
+| 762 | `azazael-pkg-setuptools` | packages | Callable skill for Python package setuptools 78.1.1 — Easily download, build, install, upgrade, and uninsta... |
+| 763 | `azazael-pkg-sgmllib3k` | packages | Callable skill for Python package sgmllib3k 1.0.0 — Py3k port of sgmllib. |
+| 764 | `azazael-pkg-shell-gpt` | packages | Callable skill for Python package shell_gpt 1.5.1 — A command-line productivity tool powered by large langu... |
+| 765 | `azazael-pkg-shellfire` | packages | Callable skill for Python package shellfire 0.14 — shellfire is an exploitation shell focusing on exploitin... |
+| 766 | `azazael-pkg-shellingham` | packages | Callable skill for Python package shellingham 1.5.4 — Tool to Detect Surrounding Shell |
+| 767 | `azazael-pkg-sherlock-project` | packages | Callable skill for Python package sherlock-project 0 — Hunt down social media accounts by username across s... |
+| 768 | `azazael-pkg-shiboken6` | packages | Callable skill for Python package shiboken6 6.10.3 — Python / C++ bindings helper module |
+| 769 | `azazael-pkg-shiboken6-generator` | packages | Callable skill for Python package shiboken6-generator 6.10.3 — Python / C++ bindings generator |
+| 770 | `azazael-pkg-shodan` | packages | Callable skill for Python package shodan 1.31.0 — Python library and command-line utility for Shodan (https... |
+| 771 | `azazael-pkg-shtab` | packages | Callable skill for Python package shtab 1.8.0 — Automagic shell tab completion for Python CLI applications |
+| 772 | `azazael-pkg-sickle-pdk` | packages | Callable skill for Python package sickle-pdk 4.1.1 — Payload Development Kit |
+| 773 | `azazael-pkg-sigma-cli` | packages | Callable skill for Python package sigma-cli 3.0.2 — Sigma Command Line Interface (conversion, check etc.) b... |
+| 774 | `azazael-pkg-simple-websocket` | packages | Callable skill for Python package simple-websocket 1.1.0 — Simple WebSocket server and client for Python |
+| 775 | `azazael-pkg-simplejson` | packages | Callable skill for Python package simplejson 4.1.1 — Simple, fast, extensible JSON encoder/decoder for Python |
+| 776 | `azazael-pkg-sippts` | packages | Callable skill for Python package sippts 4.1.dev0 — SIPPTS is a set of tools for auditing VoIP systems base... |
+| 777 | `azazael-pkg-six` | packages | Callable skill for Python package six 1.17.0 — Python 2 and 3 compatibility utilities |
+| 778 | `azazael-pkg-skia-pathops` | packages | Callable skill for Python package skia-pathops 0.9.2 — Python access to operations on paths using the Skia ... |
+| 779 | `azazael-pkg-slowapi` | packages | Callable skill for Python package slowapi 0.1.9 — A rate limiting extension for Starlette and Fastapi |
+| 780 | `azazael-pkg-smart-open` | packages | Callable skill for Python package smart_open 7.5.1 — Utils for streaming large files (S3, HDFS, GCS, SFTP, ... |
+| 781 | `azazael-pkg-smbmap` | packages | Callable skill for Python package smbmap 1.10.7 — SMBMap is a handy SMB enumeration tool |
+| 782 | `azazael-pkg-smmap` | packages | Callable skill for Python package smmap 6.0.0 — A pure Python implementation of a sliding window memory map... |
+| 783 | `azazael-pkg-smoke-zephyr` | packages | Callable skill for Python package smoke-zephyr 2.0.1 — This project provides a collection of miscellaneous ... |
+| 784 | `azazael-pkg-sniffio` | packages | Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under |
+| 785 | `azazael-pkg-snowballstemmer` | packages | Callable skill for Python package snowballstemmer 3.1.1 — This package provides 36 stemmers for 34 language... |
+| 786 | `azazael-pkg-sortedcontainers` | packages | Callable skill for Python package sortedcontainers 2.4.0 — Sorted Containers -- Sorted List, Sorted Dict, S... |
+| 787 | `azazael-pkg-soupsieve` | packages | Callable skill for Python package soupsieve 2.8.4 — A modern CSS selector implementation for Beautiful Soup. |
+| 788 | `azazael-pkg-specan` | packages | Callable skill for Python package specan 1 — A tool for reading spectrum analyzer data from an Ubertooth de... |
+| 789 | `azazael-pkg-sphinx` | packages | Callable skill for Python package Sphinx 9.1.0 — Python documentation generator |
+| 790 | `azazael-pkg-sphinx-rtd-theme` | packages | Callable skill for Python package sphinx_rtd_theme 3.1.0 — Read the Docs theme for Sphinx |
+| 791 | `azazael-pkg-sphinxcontrib-jquery` | packages | Callable skill for Python package sphinxcontrib-jquery 4.1 — Extension to include jQuery on newer Sphinx re... |
+| 792 | `azazael-pkg-sploitscan` | packages | Callable skill for Python package sploitscan 0.14.3 — SploitScan is a cybersecurity utility designed to pro... |
+| 793 | `azazael-pkg-sprayhound` | packages | Callable skill for Python package sprayhound 0.0.4 — Password spraying with BloodHound integration |
+| 794 | `azazael-pkg-sqlalchemy` | packages | Callable skill for Python package SQLAlchemy 2.0.48 — Database Abstraction Library |
+| 795 | `azazael-pkg-sqlalchemy-utils` | packages | Callable skill for Python package SQLAlchemy-Utils 0.42.1 — Various utility functions for SQLAlchemy. |
+| 796 | `azazael-pkg-sqlite-fts4` | packages | Callable skill for Python package sqlite-fts4 1.0.3 — Python functions for working with SQLite FTS4 search |
+| 797 | `azazael-pkg-sqlite-migrate` | packages | Callable skill for Python package sqlite-migrate 0.1b0 — A simple database migration system for SQLite, bas... |
+| 798 | `azazael-pkg-sqlite-utils` | packages | Callable skill for Python package sqlite-utils 3.38 — CLI tool and Python library for manipulating SQLite d... |
+| 799 | `azazael-pkg-sqlmc` | packages | Callable skill for Python package sqlmc 1.1.0 — SQL Injection Massive Checker for a domain |
+| 800 | `azazael-pkg-sqlparse` | packages | Callable skill for Python package sqlparse 0.5.5 — A non-validating SQL parser. |
+| 801 | `azazael-pkg-ssdeep` | packages | Callable skill for Python package ssdeep 3.4.1 — Python wrapper for the ssdeep library |
+| 802 | `azazael-pkg-sse-starlette` | packages | Callable skill for Python package sse-starlette 3.4.1 — SSE plugin for Starlette |
+| 803 | `azazael-pkg-sshuttle` | packages | Callable skill for Python package sshuttle 1.3.2 — Transparent proxy server that works as a poor man's VPN.... |
+| 804 | `azazael-pkg-sslyze` | packages | Callable skill for Python package sslyze 6.3.1 — Fast and powerful SSL/TLS scanning library. |
+| 805 | `azazael-pkg-stack-data` | packages | Callable skill for Python package stack_data 0.6.3 — Extract data from python stack frames and tracebacks f... |
+| 806 | `azazael-pkg-starlette` | packages | Callable skill for Python package starlette 1.1.0 — The little ASGI library that shines. |
+| 807 | `azazael-pkg-stegcracker` | packages | Callable skill for Python package stegcracker 2.1.0 — Steganography brute-force utility to uncover hidden d... |
+| 808 | `azazael-pkg-stem` | packages | Callable skill for Python package stem 1.8.2 — Stem is a Python controller library that allows applications... |
+| 809 | `azazael-pkg-stix2` | packages | Callable skill for Python package stix2 3.0.1 — Produce and consume STIX 2 JSON content |
+| 810 | `azazael-pkg-stix2-patterns` | packages | Callable skill for Python package stix2-patterns 2.0.0 — Validate STIX 2 Patterns. |
+| 811 | `azazael-pkg-stone` | packages | Callable skill for Python package stone 3.3.9 — Stone is an interface description language (IDL) for APIs. |
+| 812 | `azazael-pkg-stringdist` | packages | Callable skill for Python package StringDist 1.0.9 — This package provides the stringdist module, which inc... |
+| 813 | `azazael-pkg-structlog` | packages | Callable skill for Python package structlog 25.5.0 — Structured Logging for Python |
+| 814 | `azazael-pkg-sublist3r` | packages | Callable skill for Python package Sublist3r 1.0 — Subdomains enumeration tool for penetration testers |
+| 815 | `azazael-pkg-suds-community` | packages | Callable skill for Python package suds-community 1.2.0 — Lightweight SOAP client (community fork) |
+| 816 | `azazael-pkg-svglib` | packages | Callable skill for Python package svglib 1.5.1 — A pure-Python library for reading and converting SVG |
+| 817 | `azazael-pkg-sympy` | packages | Callable skill for Python package sympy 1.14.0 — Computer algebra system (CAS) in Python |
+| 818 | `azazael-pkg-syslog-rfc5424-formatter` | packages | Callable skill for Python package syslog-rfc5424-formatter 1.2.3 — Logging formatter which produces well-fo... |
+| 819 | `azazael-pkg-tables` | packages | Callable skill for Python package tables 3.11.1 — Hierarchical datasets for Python |
+| 820 | `azazael-pkg-tabulate` | packages | Callable skill for Python package tabulate 0.9.0 — Pretty-print tabular data |
+| 821 | `azazael-pkg-tblib` | packages | Callable skill for Python package tblib 3.2.2 — Traceback serialization library. |
+| 822 | `azazael-pkg-telnetlib` | packages | Callable skill for Python package telnetlib 0.0.0 — No summary available. |
+| 823 | `azazael-pkg-tempita` | packages | Callable skill for Python package Tempita 0.6.0 — A very small text templating language |
+| 824 | `azazael-pkg-tempora` | packages | Callable skill for Python package tempora 5.7.0 — Objects and routines pertaining to date and time (tempora) |
+| 825 | `azazael-pkg-tenacity` | packages | Callable skill for Python package tenacity 9.1.4 — Retry code until it succeeds |
+| 826 | `azazael-pkg-termcolor` | packages | Callable skill for Python package termcolor 2.4.0 — ANSI color formatting for output in terminal |
+| 827 | `azazael-pkg-terminaltables3` | packages | Callable skill for Python package terminaltables3 4.0.0 — Generate simple tables in terminals from a nested... |
+| 828 | `azazael-pkg-termineter` | packages | Callable skill for Python package termineter 1.0.6 — Termineter is a Python framework which provides a plat... |
+| 829 | `azazael-pkg-textfsm` | packages | Callable skill for Python package textfsm 2.1.0 — Python module for parsing semi-structured text into pytho... |
+| 830 | `azazael-pkg-texttable` | packages | Callable skill for Python package texttable 1.7.0 — module to create simple ASCII tables |
+| 831 | `azazael-pkg-theharvester` | packages | Callable skill for Python package theHarvester 4.10.1 — theHarvester is a very simple, yet effective tool d... |
+| 832 | `azazael-pkg-threadpoolctl` | packages | Callable skill for Python package threadpoolctl 3.1.0 — threadpoolctl |
+| 833 | `azazael-pkg-thrift` | packages | Callable skill for Python package thrift 0.23.0 — Python bindings for the Apache Thrift RPC system |
+| 834 | `azazael-pkg-tinycss2` | packages | Callable skill for Python package tinycss2 1.5.1 — A tiny CSS parser |
+| 835 | `azazael-pkg-tinydb` | packages | Callable skill for Python package tinydb 4.8.2 — TinyDB is a tiny, document oriented database optimized for... |
+| 836 | `azazael-pkg-tld` | packages | Callable skill for Python package tld 0.13 — Extract the top-level domain (TLD) from the URL given. |
+| 837 | `azazael-pkg-tldextract` | packages | Callable skill for Python package tldextract 5.3.1 — Accurately separates a URL's subdomain, domain, and pu... |
+| 838 | `azazael-pkg-tls-parser` | packages | Callable skill for Python package tls-parser 1.2.2 — Small library to parse TLS records. |
+| 839 | `azazael-pkg-tlsh` | packages | Callable skill for Python package tlsh 4.5.0 — TLSH (C++ Python extension) |
+| 840 | `azazael-pkg-toml` | packages | Callable skill for Python package toml 0.10.2 — Python Library for Tom's Obvious, Minimal Language |
+| 841 | `azazael-pkg-tomlkit` | packages | Callable skill for Python package tomlkit 0.13.3 — Style preserving TOML library |
+| 842 | `azazael-pkg-toolz` | packages | Callable skill for Python package toolz 1.1.0.post1 — List processing tools and functional utilities |
+| 843 | `azazael-pkg-tornado` | packages | Callable skill for Python package tornado 6.5.5 — Tornado is a Python web framework and asynchronous networ... |
+| 844 | `azazael-pkg-tqdm` | packages | Callable skill for Python package tqdm 4.67.3 — Fast, Extensible Progress Meter |
+| 845 | `azazael-pkg-traitlets` | packages | Callable skill for Python package traitlets 5.14.3 — Traitlets Python configuration system |
+| 846 | `azazael-pkg-translationstring` | packages | Callable skill for Python package translationstring 1.4 — Utility library for i18n relied on by various Rep... |
+| 847 | `azazael-pkg-treelib` | packages | Callable skill for Python package treelib 1.8.0 — A Python implementation of tree structure. |
+| 848 | `azazael-pkg-trio` | packages | Callable skill for Python package trio 0.33.0 — A friendly Python library for async concurrency and I/O |
+| 849 | `azazael-pkg-trio-websocket` | packages | Callable skill for Python package trio-websocket 0.12.2 — WebSocket library for Trio |
+| 850 | `azazael-pkg-twisted` | packages | Callable skill for Python package Twisted 26.4.0 — An asynchronous networking framework written in Python |
+| 851 | `azazael-pkg-typeguard` | packages | Callable skill for Python package typeguard 4.4.4 — Run-time type checker for Python |
+| 852 | `azazael-pkg-typer` | packages | Callable skill for Python package typer 0.20.0 — Typer, build great CLIs. Easy to code. Based on Python typ... |
+| 853 | `azazael-pkg-types-aiofiles` | packages | Callable skill for Python package types-aiofiles 25.1 — Typing stubs for aiofiles |
+| 854 | `azazael-pkg-types-antlr4-python3-runtime` | packages | Callable skill for Python package types-antlr4-python3-runtime 4.13 — Typing stubs for antlr4-python3-runtime |
+| 855 | `azazael-pkg-types-assertpy` | packages | Callable skill for Python package types-assertpy 1.1 — Typing stubs for assertpy |
+| 856 | `azazael-pkg-types-atheris` | packages | Callable skill for Python package types-atheris 3.0 — Typing stubs for atheris |
+| 857 | `azazael-pkg-types-auth0-python` | packages | Callable skill for Python package types-auth0-python 4.10 — Typing stubs for auth0-python |
+| 858 | `azazael-pkg-types-authlib` | packages | Callable skill for Python package types-Authlib 1.6.6 — Typing stubs for Authlib |
+| 859 | `azazael-pkg-types-aws-xray-sdk` | packages | Callable skill for Python package types-aws-xray-sdk 2.15 — Typing stubs for aws-xray-sdk |
+| 860 | `azazael-pkg-types-binaryornot` | packages | Callable skill for Python package types-binaryornot 0.4 — Typing stubs for binaryornot |
+| 861 | `azazael-pkg-types-bleach` | packages | Callable skill for Python package types-bleach 6.3 — Typing stubs for bleach |
+| 862 | `azazael-pkg-types-boltons` | packages | Callable skill for Python package types-boltons 25.0 — Typing stubs for boltons |
+| 863 | `azazael-pkg-types-braintree` | packages | Callable skill for Python package types-braintree 4.42 — Typing stubs for braintree |
+| 864 | `azazael-pkg-types-cachetools` | packages | Callable skill for Python package types-cachetools 6.2 — Typing stubs for cachetools |
+| 865 | `azazael-pkg-types-capturer` | packages | Callable skill for Python package types-capturer 3.0 — Typing stubs for capturer |
+| 866 | `azazael-pkg-types-cffi` | packages | Callable skill for Python package types-cffi 1.17 — Typing stubs for cffi |
+| 867 | `azazael-pkg-types-channels` | packages | Callable skill for Python package types-channels 4.3 — Typing stubs for channels |
+| 868 | `azazael-pkg-types-chevron` | packages | Callable skill for Python package types-chevron 0.14 — Typing stubs for chevron |
+| 869 | `azazael-pkg-types-click-default-group` | packages | Callable skill for Python package types-click-default-group 1.2 — Typing stubs for click-default-group |
+| 870 | `azazael-pkg-types-click-log` | packages | Callable skill for Python package types-click-log 0.4 — Typing stubs for click-log |
+| 871 | `azazael-pkg-types-click-shell` | packages | Callable skill for Python package types-click-shell 2.1 — Typing stubs for click-shell |
+| 872 | `azazael-pkg-types-click-spinner` | packages | Callable skill for Python package types-click-spinner 0.1 — Typing stubs for click-spinner |
+| 873 | `azazael-pkg-types-click-web` | packages | Callable skill for Python package types-click-web 0.8 — Typing stubs for click-web |
+| 874 | `azazael-pkg-types-colorama` | packages | Callable skill for Python package types-colorama 0.4 — Typing stubs for colorama |
+| 875 | `azazael-pkg-types-colorful` | packages | Callable skill for Python package types-colorful 0.5 — Typing stubs for colorful |
+| 876 | `azazael-pkg-types-console-menu` | packages | Callable skill for Python package types-console-menu 0.8 — Typing stubs for console-menu |
+| 877 | `azazael-pkg-types-convertdate` | packages | Callable skill for Python package types-convertdate 2.4 — Typing stubs for convertdate |
+| 878 | `azazael-pkg-types-croniter` | packages | Callable skill for Python package types-croniter 6.0.0 — Typing stubs for croniter |
+| 879 | `azazael-pkg-types-dateparser` | packages | Callable skill for Python package types-dateparser 1.2.2 — Typing stubs for dateparser |
+| 880 | `azazael-pkg-types-decorator` | packages | Callable skill for Python package types-decorator 5.2 — Typing stubs for decorator |
+| 881 | `azazael-pkg-types-defusedxml` | packages | Callable skill for Python package types-defusedxml 0.7 — Typing stubs for defusedxml |
+| 882 | `azazael-pkg-types-deprecated` | packages | Callable skill for Python package types-Deprecated 1.3.1 — Typing stubs for Deprecated |
+| 883 | `azazael-pkg-types-dirhash` | packages | Callable skill for Python package types-dirhash 0.5 — Typing stubs for dirhash |
+| 884 | `azazael-pkg-types-django-filter` | packages | Callable skill for Python package types-django-filter 25.2 — Typing stubs for django-filter |
+| 885 | `azazael-pkg-types-django-import-export` | packages | Callable skill for Python package types-django-import-export 4.4 — Typing stubs for django-import-export |
+| 886 | `azazael-pkg-types-docker` | packages | Callable skill for Python package types-docker 7.1 — Typing stubs for docker |
+| 887 | `azazael-pkg-types-dockerfile-parse` | packages | Callable skill for Python package types-dockerfile-parse 2.0 — Typing stubs for dockerfile-parse |
+| 888 | `azazael-pkg-types-docutils` | packages | Callable skill for Python package types-docutils 0.22.3 — Typing stubs for docutils |
+| 889 | `azazael-pkg-types-editdistance` | packages | Callable skill for Python package types-editdistance 0.8 — Typing stubs for editdistance |
+| 890 | `azazael-pkg-types-entrypoints` | packages | Callable skill for Python package types-entrypoints 0.4 — Typing stubs for entrypoints |
+| 891 | `azazael-pkg-types-ephem` | packages | Callable skill for Python package types-ephem 4.2 — Typing stubs for ephem |
+| 892 | `azazael-pkg-types-et-xmlfile` | packages | Callable skill for Python package types-et_xmlfile 2.0 — Typing stubs for et_xmlfile |
+| 893 | `azazael-pkg-types-fanstatic` | packages | Callable skill for Python package types-fanstatic 1.6 — Typing stubs for fanstatic |
+| 894 | `azazael-pkg-types-first` | packages | Callable skill for Python package types-first 2.0 — Typing stubs for first |
+| 895 | `azazael-pkg-types-flake8` | packages | Callable skill for Python package types-flake8 7.3 — Typing stubs for flake8 |
+| 896 | `azazael-pkg-types-flake8-bugbear` | packages | Callable skill for Python package types-flake8-bugbear 25.11.29 — Typing stubs for flake8-bugbear |
+| 897 | `azazael-pkg-types-flake8-builtins` | packages | Callable skill for Python package types-flake8-builtins 3.1 — Typing stubs for flake8-builtins |
+| 898 | `azazael-pkg-types-flake8-docstrings` | packages | Callable skill for Python package types-flake8-docstrings 1.7 — Typing stubs for flake8-docstrings |
+| 899 | `azazael-pkg-types-flake8-rst-docstrings` | packages | Callable skill for Python package types-flake8-rst-docstrings 0.4 — Typing stubs for flake8-rst-docstrings |
+| 900 | `azazael-pkg-types-flake8-simplify` | packages | Callable skill for Python package types-flake8-simplify 0.30 — Typing stubs for flake8-simplify |
+| 901 | `azazael-pkg-types-flake8-typing-imports` | packages | Callable skill for Python package types-flake8-typing-imports 1.17 — Typing stubs for flake8-typing-imports |
+| 902 | `azazael-pkg-types-flask-cors` | packages | Callable skill for Python package types-Flask-Cors 6.0 — Typing stubs for Flask-Cors |
+| 903 | `azazael-pkg-types-flask-migrate` | packages | Callable skill for Python package types-Flask-Migrate 4.1 — Typing stubs for Flask-Migrate |
+| 904 | `azazael-pkg-types-flask-socketio` | packages | Callable skill for Python package types-Flask-SocketIO 5.6 — Typing stubs for Flask-SocketIO |
+| 905 | `azazael-pkg-types-fpdf2` | packages | Callable skill for Python package types-fpdf2 2.8.4 — Typing stubs for fpdf2 |
+| 906 | `azazael-pkg-types-gdb` | packages | Callable skill for Python package types-gdb 16.3 — Typing stubs for gdb |
+| 907 | `azazael-pkg-types-geopandas` | packages | Callable skill for Python package types-geopandas 1.1.2 — Typing stubs for geopandas |
+| 908 | `azazael-pkg-types-gevent` | packages | Callable skill for Python package types-gevent 25.9 — Typing stubs for gevent |
+| 909 | `azazael-pkg-types-google-cloud-ndb` | packages | Callable skill for Python package types-google-cloud-ndb 2.4 — Typing stubs for google-cloud-ndb |
+| 910 | `azazael-pkg-types-greenlet` | packages | Callable skill for Python package types-greenlet 3.3 — Typing stubs for greenlet |
+| 911 | `azazael-pkg-types-grpcio` | packages | Callable skill for Python package types-grpcio 1 — Typing stubs for grpcio |
+| 912 | `azazael-pkg-types-grpcio-channelz` | packages | Callable skill for Python package types-grpcio-channelz 1 — Typing stubs for grpcio-channelz |
+| 913 | `azazael-pkg-types-grpcio-health-checking` | packages | Callable skill for Python package types-grpcio-health-checking 1 — Typing stubs for grpcio-health-checking |
+| 914 | `azazael-pkg-types-grpcio-reflection` | packages | Callable skill for Python package types-grpcio-reflection 1 — Typing stubs for grpcio-reflection |
+| 915 | `azazael-pkg-types-grpcio-status` | packages | Callable skill for Python package types-grpcio-status 1 — Typing stubs for grpcio-status |
+| 916 | `azazael-pkg-types-gunicorn` | packages | Callable skill for Python package types-gunicorn 25.0 — Typing stubs for gunicorn |
+| 917 | `azazael-pkg-types-hdbcli` | packages | Callable skill for Python package types-hdbcli 2.25 — Typing stubs for hdbcli |
+| 918 | `azazael-pkg-types-hnswlib` | packages | Callable skill for Python package types-hnswlib 0.8 — Typing stubs for hnswlib |
+| 919 | `azazael-pkg-types-html5lib` | packages | Callable skill for Python package types-html5lib 1.1 — Typing stubs for html5lib |
+| 920 | `azazael-pkg-types-httplib2` | packages | Callable skill for Python package types-httplib2 0.31.2 — Typing stubs for httplib2 |
+| 921 | `azazael-pkg-types-hvac` | packages | Callable skill for Python package types-hvac 2.4 — Typing stubs for hvac |
+| 922 | `azazael-pkg-types-ibm-db` | packages | Callable skill for Python package types-ibm-db 3.2.6 — Typing stubs for ibm-db |
+| 923 | `azazael-pkg-types-icalendar` | packages | Callable skill for Python package types-icalendar 6.3.2 — Typing stubs for icalendar |
+| 924 | `azazael-pkg-types-inifile` | packages | Callable skill for Python package types-inifile 0.4 — Typing stubs for inifile |
+| 925 | `azazael-pkg-types-jack-client` | packages | Callable skill for Python package types-JACK-Client 0.5 — Typing stubs for JACK-Client |
+| 926 | `azazael-pkg-types-jetson-gpio` | packages | Callable skill for Python package types-Jetson.GPIO 2.1.12 — Typing stubs for Jetson.GPIO |
+| 927 | `azazael-pkg-types-jmespath` | packages | Callable skill for Python package types-jmespath 1.1 — Typing stubs for jmespath |
+| 928 | `azazael-pkg-types-jsonnet` | packages | Callable skill for Python package types-jsonnet 0.21 — Typing stubs for jsonnet |
+| 929 | `azazael-pkg-types-jsonschema` | packages | Callable skill for Python package types-jsonschema 4.26.0 — Typing stubs for jsonschema |
+| 930 | `azazael-pkg-types-jwcrypto` | packages | Callable skill for Python package types-jwcrypto 1.5 — Typing stubs for jwcrypto |
+| 931 | `azazael-pkg-types-keyboard` | packages | Callable skill for Python package types-keyboard 0.13 — Typing stubs for keyboard |
+| 932 | `azazael-pkg-types-ldap3` | packages | Callable skill for Python package types-ldap3 2.9 — Typing stubs for ldap3 |
+| 933 | `azazael-pkg-types-libsass` | packages | Callable skill for Python package types-libsass 0.23 — Typing stubs for libsass |
+| 934 | `azazael-pkg-types-lunardate` | packages | Callable skill for Python package types-lunardate 0.2 — Typing stubs for lunardate |
+| 935 | `azazael-pkg-types-lupa` | packages | Callable skill for Python package types-lupa 2.6 — Typing stubs for lupa |
+| 936 | `azazael-pkg-types-lzstring` | packages | Callable skill for Python package types-lzstring 1.0 — Typing stubs for lzstring |
+| 937 | `azazael-pkg-types-m3u8` | packages | Callable skill for Python package types-m3u8 6.0 — Typing stubs for m3u8 |
+| 938 | `azazael-pkg-types-markdown` | packages | Callable skill for Python package types-Markdown 3.10 — Typing stubs for Markdown |
+| 939 | `azazael-pkg-types-mock` | packages | Callable skill for Python package types-mock 5.2 — Typing stubs for mock |
+| 940 | `azazael-pkg-types-mypy-extensions` | packages | Callable skill for Python package types-mypy-extensions 1.1 — Typing stubs for mypy-extensions |
+| 941 | `azazael-pkg-types-mysqlclient` | packages | Callable skill for Python package types-mysqlclient 2.2 — Typing stubs for mysqlclient |
+| 942 | `azazael-pkg-types-nanoid` | packages | Callable skill for Python package types-nanoid 2.0.0 — Typing stubs for nanoid |
+| 943 | `azazael-pkg-types-nanoleafapi` | packages | Callable skill for Python package types-nanoleafapi 2.1 — Typing stubs for nanoleafapi |
+| 944 | `azazael-pkg-types-netaddr` | packages | Callable skill for Python package types-netaddr 1.3 — Typing stubs for netaddr |
+| 945 | `azazael-pkg-types-netifaces` | packages | Callable skill for Python package types-netifaces 0.11 — Typing stubs for netifaces |
+| 946 | `azazael-pkg-types-networkx` | packages | Callable skill for Python package types-networkx 3.6.1 — Typing stubs for networkx |
+| 947 | `azazael-pkg-types-oauthlib` | packages | Callable skill for Python package types-oauthlib 3.3 — Typing stubs for oauthlib |
+| 948 | `azazael-pkg-types-objgraph` | packages | Callable skill for Python package types-objgraph 3.6 — Typing stubs for objgraph |
+| 949 | `azazael-pkg-types-olefile` | packages | Callable skill for Python package types-olefile 0.47 — Typing stubs for olefile |
+| 950 | `azazael-pkg-types-openpyxl` | packages | Callable skill for Python package types-openpyxl 3.1.5 — Typing stubs for openpyxl |
+| 951 | `azazael-pkg-types-opentracing` | packages | Callable skill for Python package types-opentracing 2.4 — Typing stubs for opentracing |
+| 952 | `azazael-pkg-types-paramiko` | packages | Callable skill for Python package types-paramiko 4.0 — Typing stubs for paramiko |
+| 953 | `azazael-pkg-types-parsimonious` | packages | Callable skill for Python package types-parsimonious 0.11 — Typing stubs for parsimonious |
+| 954 | `azazael-pkg-types-passlib` | packages | Callable skill for Python package types-passlib 1.7 — Typing stubs for passlib |
+| 955 | `azazael-pkg-types-passpy` | packages | Callable skill for Python package types-passpy 1.0 — Typing stubs for passpy |
+| 956 | `azazael-pkg-types-peewee` | packages | Callable skill for Python package types-peewee 3.19.0 — Typing stubs for peewee |
+| 957 | `azazael-pkg-types-pep8-naming` | packages | Callable skill for Python package types-pep8-naming 0.15 — Typing stubs for pep8-naming |
+| 958 | `azazael-pkg-types-pexpect` | packages | Callable skill for Python package types-pexpect 4.9 — Typing stubs for pexpect |
+| 959 | `azazael-pkg-types-pika-ts` | packages | Callable skill for Python package types-pika-ts 1.3 — Typing stubs for pika |
+| 960 | `azazael-pkg-types-polib` | packages | Callable skill for Python package types-polib 1.2 — Typing stubs for polib |
+| 961 | `azazael-pkg-types-pony` | packages | Callable skill for Python package types-pony 0.7 — Typing stubs for pony |
+| 962 | `azazael-pkg-types-portpicker` | packages | Callable skill for Python package types-portpicker 1.6 — Typing stubs for portpicker |
+| 963 | `azazael-pkg-types-protobuf` | packages | Callable skill for Python package types-protobuf 6.32.1 — Typing stubs for protobuf |
+| 964 | `azazael-pkg-types-psutil` | packages | Callable skill for Python package types-psutil 7.2.2 — Typing stubs for psutil |
+| 965 | `azazael-pkg-types-psycopg2` | packages | Callable skill for Python package types-psycopg2 2.9.11 — Typing stubs for psycopg2 |
+| 966 | `azazael-pkg-types-punq` | packages | Callable skill for Python package types-punq 0.7 — Typing stubs for punq |
+| 967 | `azazael-pkg-types-pyasn1` | packages | Callable skill for Python package types-pyasn1 0.6 — Typing stubs for pyasn1 |
+| 968 | `azazael-pkg-types-pyaudio` | packages | Callable skill for Python package types-pyaudio 0.2 — Typing stubs for pyaudio |
+| 969 | `azazael-pkg-types-pyautogui` | packages | Callable skill for Python package types-PyAutoGUI 0.9 — Typing stubs for PyAutoGUI |
+| 970 | `azazael-pkg-types-pycocotools` | packages | Callable skill for Python package types-pycocotools 2.0 — Typing stubs for pycocotools |
+| 971 | `azazael-pkg-types-pycurl` | packages | Callable skill for Python package types-pycurl 7.45.7 — Typing stubs for pycurl |
+| 972 | `azazael-pkg-types-pyfarmhash` | packages | Callable skill for Python package types-pyfarmhash 0.4 — Typing stubs for pyfarmhash |
+| 973 | `azazael-pkg-types-pyflakes` | packages | Callable skill for Python package types-pyflakes 3.4 — Typing stubs for pyflakes |
+| 974 | `azazael-pkg-types-pygments` | packages | Callable skill for Python package types-Pygments 2.19 — Typing stubs for Pygments |
+| 975 | `azazael-pkg-types-pyinstaller` | packages | Callable skill for Python package types-pyinstaller 6.18 — Typing stubs for pyinstaller |
+| 976 | `azazael-pkg-types-pyjks` | packages | Callable skill for Python package types-pyjks 20.0 — Typing stubs for pyjks |
+| 977 | `azazael-pkg-types-pyluach` | packages | Callable skill for Python package types-pyluach 2.3 — Typing stubs for pyluach |
+| 978 | `azazael-pkg-types-pymeeus` | packages | Callable skill for Python package types-PyMeeus 0.5 — Typing stubs for PyMeeus |
+| 979 | `azazael-pkg-types-pymysql` | packages | Callable skill for Python package types-PyMySQL 1.1 — Typing stubs for PyMySQL |
+| 980 | `azazael-pkg-types-pynput` | packages | Callable skill for Python package types-pynput 1.8.1 — Typing stubs for pynput |
+| 981 | `azazael-pkg-types-pyperclip` | packages | Callable skill for Python package types-pyperclip 1.9 — Typing stubs for pyperclip |
+| 982 | `azazael-pkg-types-pyrfc3339` | packages | Callable skill for Python package types-pyRFC3339 2.0.1 — Typing stubs for pyRFC3339 |
+| 983 | `azazael-pkg-types-pyscreeze` | packages | Callable skill for Python package types-PyScreeze 1.0.1 — Typing stubs for PyScreeze |
+| 984 | `azazael-pkg-types-pyserial` | packages | Callable skill for Python package types-pyserial 3.5 — Typing stubs for pyserial |
+| 985 | `azazael-pkg-types-pysftp` | packages | Callable skill for Python package types-pysftp 0.2 — Typing stubs for pysftp |
+| 986 | `azazael-pkg-types-pysocks` | packages | Callable skill for Python package types-PySocks 1.7.1 — Typing stubs for PySocks |
+| 987 | `azazael-pkg-types-pytest-lazy-fixture` | packages | Callable skill for Python package types-pytest-lazy-fixture 0.6 — Typing stubs for pytest-lazy-fixture |
+| 988 | `azazael-pkg-types-python-crontab` | packages | Callable skill for Python package types-python-crontab 3.3 — Typing stubs for python-crontab |
+| 989 | `azazael-pkg-types-python-dateutil` | packages | Callable skill for Python package types-python-dateutil 2.9 — Typing stubs for python-dateutil |
+| 990 | `azazael-pkg-types-python-http-client` | packages | Callable skill for Python package types-python-http-client 3.3.7 — Typing stubs for python-http-client |
+| 991 | `azazael-pkg-types-python-jenkins` | packages | Callable skill for Python package types-python-jenkins 1.8.3 — Typing stubs for python-jenkins |
+| 992 | `azazael-pkg-types-python-jose` | packages | Callable skill for Python package types-python-jose 3.5 — Typing stubs for python-jose |
+| 993 | `azazael-pkg-types-python-nmap` | packages | Callable skill for Python package types-python-nmap 0.7 — Typing stubs for python-nmap |
+| 994 | `azazael-pkg-types-python-xlib` | packages | Callable skill for Python package types-python-xlib 0.33 — Typing stubs for python-xlib |
+| 995 | `azazael-pkg-types-pytz` | packages | Callable skill for Python package types-pytz 2025.2 — Typing stubs for pytz |
+| 996 | `azazael-pkg-types-pywin32` | packages | Callable skill for Python package types-pywin32 311 — Typing stubs for pywin32 |
+| 997 | `azazael-pkg-types-pyxdg` | packages | Callable skill for Python package types-pyxdg 0.28 — Typing stubs for pyxdg |
+| 998 | `azazael-pkg-types-pyyaml` | packages | Callable skill for Python package types-PyYAML 6.0 — Typing stubs for PyYAML |
+| 999 | `azazael-pkg-types-qrbill` | packages | Callable skill for Python package types-qrbill 1.2 — Typing stubs for qrbill |
+| 1000 | `azazael-pkg-types-qrcode` | packages | Callable skill for Python package types-qrcode 8.2 — Typing stubs for qrcode |
+| 1001 | `azazael-pkg-types-ratelimit` | packages | Callable skill for Python package types-ratelimit 2.2 — Typing stubs for ratelimit |
+| 1002 | `azazael-pkg-types-regex` | packages | Callable skill for Python package types-regex 2026.1.15 — Typing stubs for regex |
+| 1003 | `azazael-pkg-types-reportlab` | packages | Callable skill for Python package types-reportlab 4.4.9 — Typing stubs for reportlab |
+| 1004 | `azazael-pkg-types-requests` | packages | Callable skill for Python package types-requests 2.32.4 — Typing stubs for requests |
+| 1005 | `azazael-pkg-types-requests-oauthlib` | packages | Callable skill for Python package types-requests-oauthlib 2.0 — Typing stubs for requests-oauthlib |
+| 1006 | `azazael-pkg-types-retry` | packages | Callable skill for Python package types-retry 0.9 — Typing stubs for retry |
+| 1007 | `azazael-pkg-types-rfc3339-validator` | packages | Callable skill for Python package types-rfc3339-validator 0.1 — Typing stubs for rfc3339-validator |
+| 1008 | `azazael-pkg-types-rpi-gpio` | packages | Callable skill for Python package types-RPi.GPIO 0.7 — Typing stubs for RPi.GPIO |
+| 1009 | `azazael-pkg-types-s2clientprotocol` | packages | Callable skill for Python package types-s2clientprotocol 5 — Typing stubs for s2clientprotocol |
+| 1010 | `azazael-pkg-types-seaborn` | packages | Callable skill for Python package types-seaborn 0.13.2 — Typing stubs for seaborn |
+| 1011 | `azazael-pkg-types-send2trash` | packages | Callable skill for Python package types-Send2Trash 2.1 — Typing stubs for Send2Trash |
+| 1012 | `azazael-pkg-types-setuptools` | packages | Callable skill for Python package types-setuptools 80.10 — Typing stubs for setuptools |
+| 1013 | `azazael-pkg-types-shapely` | packages | Callable skill for Python package types-shapely 2.1 — Typing stubs for shapely |
+| 1014 | `azazael-pkg-types-simple-websocket` | packages | Callable skill for Python package types-simple-websocket 1.1 — Typing stubs for simple-websocket |
+| 1015 | `azazael-pkg-types-simplejson` | packages | Callable skill for Python package types-simplejson 3.20 — Typing stubs for simplejson |
+| 1016 | `azazael-pkg-types-singledispatch` | packages | Callable skill for Python package types-singledispatch 4.1 — Typing stubs for singledispatch |
+| 1017 | `azazael-pkg-types-six` | packages | Callable skill for Python package types-six 1.17 — Typing stubs for six |
+| 1018 | `azazael-pkg-types-slumber` | packages | Callable skill for Python package types-slumber 0.7 — Typing stubs for slumber |
+| 1019 | `azazael-pkg-types-str2bool` | packages | Callable skill for Python package types-str2bool 1.1 — Typing stubs for str2bool |
+| 1020 | `azazael-pkg-types-tabulate` | packages | Callable skill for Python package types-tabulate 0.9 — Typing stubs for tabulate |
+| 1021 | `azazael-pkg-types-tensorflow` | packages | Callable skill for Python package types-tensorflow 2.18.0 — Typing stubs for tensorflow |
+| 1022 | `azazael-pkg-types-tgcrypto` | packages | Callable skill for Python package types-TgCrypto 1.2 — Typing stubs for TgCrypto |
+| 1023 | `azazael-pkg-types-toml` | packages | Callable skill for Python package types-toml 0.10 — Typing stubs for toml |
+| 1024 | `azazael-pkg-types-toposort` | packages | Callable skill for Python package types-toposort 1.10 — Typing stubs for toposort |
+| 1025 | `azazael-pkg-types-tqdm` | packages | Callable skill for Python package types-tqdm 4.67.3 — Typing stubs for tqdm |
+| 1026 | `azazael-pkg-types-translationstring` | packages | Callable skill for Python package types-translationstring 1.4 — Typing stubs for translationstring |
+| 1027 | `azazael-pkg-types-ttkthemes` | packages | Callable skill for Python package types-ttkthemes 3.3 — Typing stubs for ttkthemes |
+| 1028 | `azazael-pkg-types-tzdata` | packages | Callable skill for Python package types-tzdata 2025 — Typing stubs for tzdata |
+| 1029 | `azazael-pkg-types-ujson` | packages | Callable skill for Python package types-ujson 5.10 — Typing stubs for ujson |
+| 1030 | `azazael-pkg-types-unidiff` | packages | Callable skill for Python package types-unidiff 0.7 — Typing stubs for unidiff |
+| 1031 | `azazael-pkg-types-untangle` | packages | Callable skill for Python package types-untangle 1.2 — Typing stubs for untangle |
+| 1032 | `azazael-pkg-types-usersettings` | packages | Callable skill for Python package types-usersettings 1.1 — Typing stubs for usersettings |
+| 1033 | `azazael-pkg-types-uwsgi` | packages | Callable skill for Python package types-uWSGI 2.0 — Typing stubs for uWSGI |
+| 1034 | `azazael-pkg-types-vobject` | packages | Callable skill for Python package types-vobject 0.9.9 — Typing stubs for vobject |
+| 1035 | `azazael-pkg-types-waitress` | packages | Callable skill for Python package types-waitress 3.0.1 — Typing stubs for waitress |
+| 1036 | `azazael-pkg-types-watchpoints` | packages | Callable skill for Python package types-watchpoints 0.2.5 — Typing stubs for watchpoints |
+| 1037 | `azazael-pkg-types-webencodings` | packages | Callable skill for Python package types-webencodings 0.5 — Typing stubs for webencodings |
+| 1038 | `azazael-pkg-types-webob` | packages | Callable skill for Python package types-WebOb 1.8 — Typing stubs for WebOb |
+| 1039 | `azazael-pkg-types-whatthepatch` | packages | Callable skill for Python package types-whatthepatch 1.0 — Typing stubs for whatthepatch |
+| 1040 | `azazael-pkg-types-workalendar` | packages | Callable skill for Python package types-workalendar 17.0 — Typing stubs for workalendar |
+| 1041 | `azazael-pkg-types-wtforms` | packages | Callable skill for Python package types-WTForms 3.2.1 — Typing stubs for WTForms |
+| 1042 | `azazael-pkg-types-wurlitzer` | packages | Callable skill for Python package types-wurlitzer 3.1 — Typing stubs for wurlitzer |
+| 1043 | `azazael-pkg-types-www-authenticate` | packages | Callable skill for Python package types-www-authenticate 0.9 — Typing stubs for www-authenticate |
+| 1044 | `azazael-pkg-types-xdgenvpy` | packages | Callable skill for Python package types-xdgenvpy 3.0 — Typing stubs for xdgenvpy |
+| 1045 | `azazael-pkg-types-xlrd` | packages | Callable skill for Python package types-xlrd 2.0 — Typing stubs for xlrd |
+| 1046 | `azazael-pkg-types-xmldiff` | packages | Callable skill for Python package types-xmldiff 2.7 — Typing stubs for xmldiff |
+| 1047 | `azazael-pkg-types-xmltodict` | packages | Callable skill for Python package types-xmltodict 1.0.1 — Typing stubs for xmltodict |
+| 1048 | `azazael-pkg-types-yt-dlp` | packages | Callable skill for Python package types-yt-dlp 2026.1.31 — Typing stubs for yt-dlp |
+| 1049 | `azazael-pkg-types-zstd` | packages | Callable skill for Python package types-zstd 1.5.7.3 — Typing stubs for zstd |
+| 1050 | `azazael-pkg-types-zxcvbn` | packages | Callable skill for Python package types-zxcvbn 4.5 — Typing stubs for zxcvbn |
+| 1051 | `azazael-pkg-typing-extensions` | packages | Callable skill for Python package typing_extensions 4.15.0 — Backported and Experimental Type Hints for Pyt... |
+| 1052 | `azazael-pkg-typing-inspection` | packages | Callable skill for Python package typing-inspection 0.4.2 — Runtime typing introspection tools |
+| 1053 | `azazael-pkg-ubi-reader` | packages | Callable skill for Python package ubi-reader 0.8.5 — Extract files from UBI and UBIFS images. |
+| 1054 | `azazael-pkg-uc-micro-py` | packages | Callable skill for Python package uc-micro-py 2.0.0 — Micro subset of unicode data files for linkify-it-py ... |
+| 1055 | `azazael-pkg-ufolib2` | packages | Callable skill for Python package ufoLib2 0.18.1 — ufoLib2 is a UFO font processing library. |
+| 1056 | `azazael-pkg-uharfbuzz` | packages | Callable skill for Python package uharfbuzz 0.53.3 — Streamlined Cython bindings for the harfbuzz shaping e... |
+| 1057 | `azazael-pkg-ujson` | packages | Callable skill for Python package ujson 5.11.0 — Ultra fast JSON encoder and decoder for Python |
+| 1058 | `azazael-pkg-unblob` | packages | Callable skill for Python package unblob 26.3.30 — Extract files from any kind of container formats |
+| 1059 | `azazael-pkg-unicodedata2` | packages | Callable skill for Python package unicodedata2 17.0.1 — Unicodedata backport updated to the latest Unicode ... |
+| 1060 | `azazael-pkg-unicorn` | packages | Callable skill for Python package unicorn 0.0.0 — Unicorn CPU emulator engine |
+| 1061 | `azazael-pkg-unicrypto` | packages | Callable skill for Python package unicrypto 0.0.12 — Unified interface for cryptographic libraries |
+| 1062 | `azazael-pkg-uritemplate` | packages | Callable skill for Python package uritemplate 4.2.0 — Implementation of RFC 6570 URI Templates |
+| 1063 | `azazael-pkg-urllib3` | packages | Callable skill for Python package urllib3 2.6.3 — HTTP library with thread-safe connection pooling, file po... |
+| 1064 | `azazael-pkg-uro` | packages | Callable skill for Python package uro 1.0.2 — A python tool to declutter url lists for crawling/pentesting |
+| 1065 | `azazael-pkg-urwid` | packages | Callable skill for Python package urwid 3.0.4 — A full-featured console (xterm et al.) user interface library |
+| 1066 | `azazael-pkg-userpath` | packages | Callable skill for Python package userpath 1.9.2 — Cross-platform tool for adding locations to the user PATH |
+| 1067 | `azazael-pkg-uvicorn` | packages | Callable skill for Python package uvicorn 0.38.0 — The lightning-fast ASGI server. |
+| 1068 | `azazael-pkg-uvloop` | packages | Callable skill for Python package uvloop 0.22.1 — Fast implementation of asyncio event loop on top of libuv |
+| 1069 | `azazael-pkg-vadersentiment` | packages | Callable skill for Python package vaderSentiment 3.3.2 — VADER Sentiment Analysis. VADER (Valence Aware Dic... |
+| 1070 | `azazael-pkg-validators` | packages | Callable skill for Python package validators 0.20.0 — Python Data Validation for Humans™. |
+| 1071 | `azazael-pkg-venusian` | packages | Callable skill for Python package venusian 3.1.1 — A library for deferring decorator actions |
+| 1072 | `azazael-pkg-vinetto` | packages | Callable skill for Python package vinetto 0.9.15 — Vinetto: The Thumbnail File Parser |
+| 1073 | `azazael-pkg-virtualenv` | packages | Callable skill for Python package virtualenv 21.4.1 — Virtual Python Environment builder |
+| 1074 | `azazael-pkg-volatility3` | packages | Callable skill for Python package volatility3 2.28.0 — Memory forensics framework |
+| 1075 | `azazael-pkg-wafw00f` | packages | Callable skill for Python package wafw00f 2.4.2 — The Web Application Firewall Fingerprinting Toolkit |
+| 1076 | `azazael-pkg-wapiti-swagger` | packages | Callable skill for Python package wapiti-swagger 0.1.9 — A library for parsing and generating request bodie... |
+| 1077 | `azazael-pkg-wapiti3` | packages | Callable skill for Python package wapiti3 3.2.10 — A web application vulnerability scanner |
+| 1078 | `azazael-pkg-watchdog` | packages | Callable skill for Python package watchdog 6.0.0 — Filesystem events monitoring |
+| 1079 | `azazael-pkg-waybackpy` | packages | Callable skill for Python package waybackpy 3.0.6 — Python package that interfaces with the Internet Archiv... |
+| 1080 | `azazael-pkg-wcwidth` | packages | Callable skill for Python package wcwidth 0.2.14 — Measures the displayed width of unicode strings in a ter... |
+| 1081 | `azazael-pkg-webargs` | packages | Callable skill for Python package webargs 8.7.1 — Declarative parsing and validation of HTTP request object... |
+| 1082 | `azazael-pkg-webcolors` | packages | Callable skill for Python package webcolors 25.10.0 — A library for working with the color formats defined ... |
+| 1083 | `azazael-pkg-webdriver-manager` | packages | Callable skill for Python package webdriver-manager 4.1.0 — Add your description here |
+| 1084 | `azazael-pkg-webencodings` | packages | Callable skill for Python package webencodings 0.5.1 — Character encoding aliases for legacy web content |
+| 1085 | `azazael-pkg-webob` | packages | Callable skill for Python package WebOb 1.8.9 — WSGI request and response object |
+| 1086 | `azazael-pkg-websocket-client` | packages | Callable skill for Python package websocket-client 1.9.0 — WebSocket client for Python with low level API o... |
+| 1087 | `azazael-pkg-websockets` | packages | Callable skill for Python package websockets 16.0 — An implementation of the WebSocket Protocol (RFC 6455 &... |
+| 1088 | `azazael-pkg-websploit` | packages | Callable skill for Python package websploit 4.0.4 — Websploit is a high level MITM framework |
+| 1089 | `azazael-pkg-werkzeug` | packages | Callable skill for Python package Werkzeug 3.1.8 — The comprehensive WSGI web application library. |
+| 1090 | `azazael-pkg-wfuzz` | packages | Callable skill for Python package wfuzz 3.1.0 — Wfuzz - The web fuzzer |
+| 1091 | `azazael-pkg-wget` | packages | Callable skill for Python package wget 3.2 — pure python download utility |
+| 1092 | `azazael-pkg-wheel` | packages | Callable skill for Python package wheel 0.47.0 — Command line tool for manipulating wheel files |
+| 1093 | `azazael-pkg-wifiphisher` | packages | Callable skill for Python package wifiphisher 1.4 — Automated phishing attacks against Wi-Fi networks |
+| 1094 | `azazael-pkg-wifipumpkin3` | packages | Callable skill for Python package wifipumpkin3 1.1.7 — Powerful framework for rogue access point attack. |
+| 1095 | `azazael-pkg-wifite` | packages | Callable skill for Python package wifite 2.8.1 — Wireless Network Auditor for Linux & Android |
+| 1096 | `azazael-pkg-wig-ng` | packages | Callable skill for Python package wig-ng 0.1 — WIG-ng is a free and open source utility for WiFi device fin... |
+| 1097 | `azazael-pkg-winacl` | packages | Callable skill for Python package winacl 0.1.9 — ACL/ACE/Security Descriptor manipulation library in pure P... |
+| 1098 | `azazael-pkg-witnessme` | packages | Callable skill for Python package witnessme 1.5.0 — Web Inventory tool that uses Pyppeteer (headless Chrome... |
+| 1099 | `azazael-pkg-wordcloud` | packages | Callable skill for Python package wordcloud 1.9.4+dfsg — A little word cloud generator |
+| 1100 | `azazael-pkg-wordlistraider` | packages | Callable skill for Python package wordlistraider 1.0 — Returns a selection of words that matches the passed... |
+| 1101 | `azazael-pkg-wrapt` | packages | Callable skill for Python package wrapt 2.1.1 — Module for decorators, wrappers and monkey patching. |
+| 1102 | `azazael-pkg-wsgidav` | packages | Callable skill for Python package WsgiDAV 4.3.3 — Generic and extendable WebDAV server based on WSGI |
+| 1103 | `azazael-pkg-wsproto` | packages | Callable skill for Python package wsproto 1.3.2 — Pure-Python WebSocket protocol implementation |
+| 1104 | `azazael-pkg-wxpython` | packages | Callable skill for Python package wxPython 4.2.4 — Cross platform GUI toolkit for Python, "Phoenix" version |
+| 1105 | `azazael-pkg-xattr` | packages | Callable skill for Python package xattr 1.3.0 — Python wrapper for extended filesystem attributes |
+| 1106 | `azazael-pkg-xcffib` | packages | Callable skill for Python package xcffib 1.5.0 — A drop in replacement for xpyb, an XCB python binding |
+| 1107 | `azazael-pkg-xdg` | packages | Callable skill for Python package xdg 5 — wrapper for PyXDG to provide the API of xdg |
+| 1108 | `azazael-pkg-xlrd` | packages | Callable skill for Python package xlrd 2.0.2 — Library for developers to extract data from Microsoft Excel ... |
+| 1109 | `azazael-pkg-xlsxwriter` | packages | Callable skill for Python package XlsxWriter 3.1.9 — A Python module for creating Excel XLSX files. |
+| 1110 | `azazael-pkg-xlwt` | packages | Callable skill for Python package xlwt 1.3.0 — Library to create spreadsheet files compatible with MS Excel... |
+| 1111 | `azazael-pkg-xmltodict` | packages | Callable skill for Python package xmltodict 0.13.0 — Makes working with XML feel like you are working with ... |
+| 1112 | `azazael-pkg-xsrfprobe` | packages | Callable skill for Python package xsrfprobe 2.3.0 — The Prime Cross Site Request Forgery (CSRF) Audit & Exp... |
+| 1113 | `azazael-pkg-yara-python` | packages | Callable skill for Python package yara-python 4.5.4 — Python interface for YARA |
+| 1114 | `azazael-pkg-yarl` | packages | Callable skill for Python package yarl 1.23.0 — Yet another URL library |
+| 1115 | `azazael-pkg-yattag` | packages | Callable skill for Python package yattag 1.16.1 — Generate HTML or XML in a pythonic way. Pure python alter... |
+| 1116 | `azazael-pkg-zc-lockfile` | packages | Callable skill for Python package zc.lockfile 4.0 — Basic inter-process locks |
+| 1117 | `azazael-pkg-zict` | packages | Callable skill for Python package zict 3.0.0 — Mutable mapping tools |
+| 1118 | `azazael-pkg-zim` | packages | Callable skill for Python package zim 0.76.3 — Zim desktop wiki |
+| 1119 | `azazael-pkg-zipp` | packages | Callable skill for Python package zipp 3.23.0 — Backport of pathlib-compatible object wrapper for zip files |
+| 1120 | `azazael-pkg-zope-deprecation` | packages | Callable skill for Python package zope.deprecation 6.0 — Zope Deprecation Infrastructure |
+| 1121 | `azazael-pkg-zope-interface` | packages | Callable skill for Python package zope.interface 8.5 — Interfaces for Python |
+| 1122 | `azazael-pkg-zopfli` | packages | Callable skill for Python package zopfli 0.4.2 — Zopfli module for python |
+| 1123 | `azazael-pkg-zstandard` | packages | Callable skill for Python package zstandard 0.25.0 — Zstandard bindings for Python |
+| 1124 | `azazael-pkg-zstd` | packages | Callable skill for Python package zstd 1.5.7.3 — ZSTD Bindings for Python |
 
-## Skill Quick Reference — 3.14t Package Skills (1115-1188)
+## Skill Quick Reference — 3.14t Package Skills (1125-1198)
 | # | Skill | Category | Description |
 |---|-------|----------|-------------|
-| 1115 | `azazael-pkg314t-anyio` | packages | Callable skill for Python package anyio 4.14.2 — High-level concurrency and networking framework on top of ... |
-| 1116 | `azazael-pkg314t-ast-serialize` | packages | Callable skill for Python package ast_serialize 0.5.0 — Python bindings for mypy AST serialization |
-| 1117 | `azazael-pkg314t-attrs` | packages | Callable skill for Python package attrs 26.1.0 — Classes Without Boilerplate |
-| 1118 | `azazael-pkg314t-autoflake` | packages | Callable skill for Python package autoflake 2.3.3 — Removes unused imports and unused variables |
-| 1119 | `azazael-pkg314t-azazael-core` | packages | Callable skill for Python package azazael-core 3.1.0 — AZAZAEL Core — Path resolution, worm registry, free-... |
-| 1120 | `azazael-pkg314t-beautifulsoup4` | packages | Callable skill for Python package beautifulsoup4 4.15.0 — Screen-scraping library |
-| 1121 | `azazael-pkg314t-blinker` | packages | Callable skill for Python package blinker 1.9.0 — Fast, simple object-to-object and broadcast signaling |
-| 1122 | `azazael-pkg314t-bs4` | packages | Callable skill for Python package bs4 0.0.2 — Dummy package for Beautiful Soup (beautifulsoup4) |
-| 1123 | `azazael-pkg314t-certifi` | packages | Callable skill for Python package certifi 2026.7.22 — Python package for providing Mozilla's CA Bundle. |
-| 1124 | `azazael-pkg314t-charset-normalizer` | packages | Callable skill for Python package charset-normalizer 3.5.0 — The Real First Universal Charset Detector. Ope... |
-| 1125 | `azazael-pkg314t-click` | packages | Callable skill for Python package click 8.4.2 — Composable command line interface toolkit |
-| 1126 | `azazael-pkg314t-colorama` | packages | Callable skill for Python package colorama 0.4.6 — Cross-platform colored terminal text. |
-| 1127 | `azazael-pkg314t-dnspython` | packages | Callable skill for Python package dnspython 2.8.0 — DNS toolkit |
-| 1128 | `azazael-pkg314t-flask` | packages | Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. |
-| 1129 | `azazael-pkg314t-gevent` | packages | Callable skill for Python package gevent 26.8.0 — Coroutine-based network library |
-| 1130 | `azazael-pkg314t-greenlet` | packages | Callable skill for Python package greenlet 3.5.5 — Lightweight in-process concurrent programming |
-| 1131 | `azazael-pkg314t-h11` | packages | Callable skill for Python package h11 0.16.0 — A pure-Python, bring-your-own-I/O implementation of HTTP/1.1 |
-| 1132 | `azazael-pkg314t-holehe` | packages | Callable skill for Python package holehe 1.61 — holehe allows you to check if the mail is used on different... |
-| 1133 | `azazael-pkg314t-httpcore` | packages | Callable skill for Python package httpcore 1.0.9 — A minimal low-level HTTP client. |
-| 1134 | `azazael-pkg314t-httpx` | packages | Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. |
-| 1135 | `azazael-pkg314t-hypothesis` | packages | Callable skill for Python package hypothesis 6.155.6 — The property-based testing library for Python |
-| 1136 | `azazael-pkg314t-idna` | packages | Callable skill for Python package idna 3.18 — Internationalized Domain Names in Applications (IDNA) |
-| 1137 | `azazael-pkg314t-iniconfig` | packages | Callable skill for Python package iniconfig 2.3.0 — brain-dead simple config-ini parsing |
-| 1138 | `azazael-pkg314t-itsdangerous` | packages | Callable skill for Python package itsdangerous 2.2.0 — Safely pass data to untrusted environments and back. |
-| 1139 | `azazael-pkg314t-jinja2` | packages | Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine. |
-| 1140 | `azazael-pkg314t-joblib` | packages | Callable skill for Python package joblib 1.5.3 — Lightweight pipelining with Python functions |
-| 1141 | `azazael-pkg314t-librt` | packages | Callable skill for Python package librt 0.11.0 — Mypyc runtime library |
-| 1142 | `azazael-pkg314t-markupsafe` | packages | Callable skill for Python package MarkupSafe 3.0.3 — Safely add untrusted strings to HTML/XML markup. |
-| 1143 | `azazael-pkg314t-mypy` | packages | Callable skill for Python package mypy 2.1.0 — Optional static typing for Python |
-| 1144 | `azazael-pkg314t-mypy-extensions` | packages | Callable skill for Python package mypy_extensions 1.1.0 — Type system extensions for programs checked with ... |
-| 1145 | `azazael-pkg314t-narwhals` | packages | Callable skill for Python package narwhals 2.24.0 — Extremely lightweight compatibility layer between dataf... |
-| 1146 | `azazael-pkg314t-nuitka` | packages | Callable skill for Python package Nuitka 4.1.2 — Python compiler with full language support and CPython com... |
-| 1147 | `azazael-pkg314t-numpy` | packages | Callable skill for Python package numpy 2.4.6 — Fundamental package for array computing in Python |
-| 1148 | `azazael-pkg314t-outcome` | packages | Callable skill for Python package outcome 1.3.0.post0 — Capture the outcome of Python function calls. |
-| 1149 | `azazael-pkg314t-packaging` | packages | Callable skill for Python package packaging 26.2 — Core utilities for Python packages |
-| 1150 | `azazael-pkg314t-patchelf` | packages | Callable skill for Python package patchelf 0.17.2.4 — A small utility to modify the dynamic linker and RPAT... |
-| 1151 | `azazael-pkg314t-patchelf-wrapper` | packages | Callable skill for Python package patchelf-wrapper 1.2.0 — A wrapper for patchelf |
-| 1152 | `azazael-pkg314t-pathspec` | packages | Callable skill for Python package pathspec 1.1.1 — Utility library for gitignore style pattern matching of ... |
-| 1153 | `azazael-pkg314t-phonenumbers` | packages | Callable skill for Python package phonenumbers 9.0.36 — Python version of Google's common library for parsi... |
-| 1154 | `azazael-pkg314t-pip` | packages | Callable skill for Python package pip 26.1.2 — The PyPA recommended tool for installing Python packages. |
-| 1155 | `azazael-pkg314t-pluggy` | packages | Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python |
-| 1156 | `azazael-pkg314t-progress` | packages | Callable skill for Python package progress 1.6.1 — Easy to use progress bars |
-| 1157 | `azazael-pkg314t-psutil` | packages | Callable skill for Python package psutil 7.2.2 — Cross-platform lib for process and system monitoring. |
-| 1158 | `azazael-pkg314t-pyflakes` | packages | Callable skill for Python package pyflakes 3.4.0 — passive checker of Python programs |
-| 1159 | `azazael-pkg314t-pygments` | packages | Callable skill for Python package Pygments 2.20.0 — Pygments is a syntax highlighting package written in Py... |
-| 1160 | `azazael-pkg314t-pysocks` | packages | Callable skill for Python package PySocks 1.7.1 — A Python SOCKS client module. See https://github.com/Anor... |
-| 1161 | `azazael-pkg314t-pytest` | packages | Callable skill for Python package pytest 9.1.0 — pytest: simple powerful testing with Python |
-| 1162 | `azazael-pkg314t-python-dotenv` | packages | Callable skill for Python package python-dotenv 1.2.2 — Read key-value pairs from a .env file and set them ... |
-| 1163 | `azazael-pkg314t-pytz` | packages | Callable skill for Python package pytz 2026.3.post1 — World timezone definitions, modern and historical |
-| 1164 | `azazael-pkg314t-pyyaml` | packages | Callable skill for Python package PyYAML 6.0.3 — YAML parser and emitter for Python |
-| 1165 | `azazael-pkg314t-requests` | packages | Callable skill for Python package requests 2.34.2 — Python HTTP for Humans. |
-| 1166 | `azazael-pkg314t-scikit-learn` | packages | Callable skill for Python package scikit-learn 1.9.0 — A set of python modules for machine learning and dat... |
-| 1167 | `azazael-pkg314t-scipy` | packages | Callable skill for Python package scipy 1.18.0 — Fundamental algorithms for scientific computing in Python |
-| 1168 | `azazael-pkg314t-six` | packages | Callable skill for Python package six 1.17.0 — Python 2 and 3 compatibility utilities |
-| 1169 | `azazael-pkg314t-sniffio` | packages | Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under |
-| 1170 | `azazael-pkg314t-socksio` | packages | Callable skill for Python package socksio 1.0.0 — Sans-I/O implementation of SOCKS4, SOCKS4A, and SOCKS5. |
-| 1171 | `azazael-pkg314t-sortedcontainers` | packages | Callable skill for Python package sortedcontainers 2.4.0 — Sorted Containers -- Sorted List, Sorted Dict, S... |
-| 1172 | `azazael-pkg314t-soupsieve` | packages | Callable skill for Python package soupsieve 2.9.2 — A modern CSS selector implementation for Beautiful Soup. |
-| 1173 | `azazael-pkg314t-tabulate` | packages | Callable skill for Python package tabulate 0.10.0 — Pretty-print tabular data |
-| 1174 | `azazael-pkg314t-termcolor` | packages | Callable skill for Python package termcolor 3.3.0 — ANSI color formatting for output in terminal |
-| 1175 | `azazael-pkg314t-threadpoolctl` | packages | Callable skill for Python package threadpoolctl 3.6.0 — threadpoolctl |
-| 1176 | `azazael-pkg314t-toml` | packages | Callable skill for Python package toml 0.10.2 — Python Library for Tom's Obvious, Minimal Language |
-| 1177 | `azazael-pkg314t-torbot` | packages | Callable skill for Python package torbot 4.3.0 — TorBot is an OSINT tool for the dark web. |
-| 1178 | `azazael-pkg314t-tqdm` | packages | Callable skill for Python package tqdm 4.70.0 — Fast, Extensible Progress Meter |
-| 1179 | `azazael-pkg314t-treelib` | packages | Callable skill for Python package treelib 1.8.0 — A Python implementation of tree structure. |
-| 1180 | `azazael-pkg314t-trio` | packages | Callable skill for Python package trio 0.34.0 — A friendly Python library for async concurrency and I/O |
-| 1181 | `azazael-pkg314t-typing-extensions` | packages | Callable skill for Python package typing_extensions 4.15.0 — Backported and Experimental Type Hints for Pyt... |
-| 1182 | `azazael-pkg314t-unipath` | packages | Callable skill for Python package Unipath 1.1 — Object-oriented alternative to os/os.path/shutil |
-| 1183 | `azazael-pkg314t-urllib3` | packages | Callable skill for Python package urllib3 2.7.0 — HTTP library with thread-safe connection pooling, file po... |
-| 1184 | `azazael-pkg314t-validators` | packages | Callable skill for Python package validators 0.35.0 — Python Data Validation for Humans™ |
-| 1185 | `azazael-pkg314t-werkzeug` | packages | Callable skill for Python package Werkzeug 3.1.8 — The comprehensive WSGI web application library. |
-| 1186 | `azazael-pkg314t-yt-dlp` | packages | Callable skill for Python package yt-dlp 2026.7.4 — A feature-rich command-line audio/video downloader |
-| 1187 | `azazael-pkg314t-zope-event` | packages | Callable skill for Python package zope.event 6.2 — Very basic event publishing system |
-| 1188 | `azazael-pkg314t-zope-interface` | packages | Callable skill for Python package zope.interface 8.5 — Interfaces for Python |
+| 1125 | `azazael-pkg314t-anyio` | packages | Callable skill for Python package anyio 4.14.2 — High-level concurrency and networking framework on top of ... |
+| 1126 | `azazael-pkg314t-ast-serialize` | packages | Callable skill for Python package ast_serialize 0.5.0 — Python bindings for mypy AST serialization |
+| 1127 | `azazael-pkg314t-attrs` | packages | Callable skill for Python package attrs 26.1.0 — Classes Without Boilerplate |
+| 1128 | `azazael-pkg314t-autoflake` | packages | Callable skill for Python package autoflake 2.3.3 — Removes unused imports and unused variables |
+| 1129 | `azazael-pkg314t-azazael-core` | packages | Callable skill for Python package azazael-core 3.1.0 — AZAZAEL Core — Path resolution, worm registry, free-... |
+| 1130 | `azazael-pkg314t-beautifulsoup4` | packages | Callable skill for Python package beautifulsoup4 4.15.0 — Screen-scraping library |
+| 1131 | `azazael-pkg314t-blinker` | packages | Callable skill for Python package blinker 1.9.0 — Fast, simple object-to-object and broadcast signaling |
+| 1132 | `azazael-pkg314t-bs4` | packages | Callable skill for Python package bs4 0.0.2 — Dummy package for Beautiful Soup (beautifulsoup4) |
+| 1133 | `azazael-pkg314t-certifi` | packages | Callable skill for Python package certifi 2026.7.22 — Python package for providing Mozilla's CA Bundle. |
+| 1134 | `azazael-pkg314t-charset-normalizer` | packages | Callable skill for Python package charset-normalizer 3.5.0 — The Real First Universal Charset Detector. Ope... |
+| 1135 | `azazael-pkg314t-click` | packages | Callable skill for Python package click 8.4.2 — Composable command line interface toolkit |
+| 1136 | `azazael-pkg314t-colorama` | packages | Callable skill for Python package colorama 0.4.6 — Cross-platform colored terminal text. |
+| 1137 | `azazael-pkg314t-dnspython` | packages | Callable skill for Python package dnspython 2.8.0 — DNS toolkit |
+| 1138 | `azazael-pkg314t-flask` | packages | Callable skill for Python package Flask 3.1.3 — A simple framework for building complex web applications. |
+| 1139 | `azazael-pkg314t-gevent` | packages | Callable skill for Python package gevent 26.8.0 — Coroutine-based network library |
+| 1140 | `azazael-pkg314t-greenlet` | packages | Callable skill for Python package greenlet 3.5.5 — Lightweight in-process concurrent programming |
+| 1141 | `azazael-pkg314t-h11` | packages | Callable skill for Python package h11 0.16.0 — A pure-Python, bring-your-own-I/O implementation of HTTP/1.1 |
+| 1142 | `azazael-pkg314t-holehe` | packages | Callable skill for Python package holehe 1.61 — holehe allows you to check if the mail is used on different... |
+| 1143 | `azazael-pkg314t-httpcore` | packages | Callable skill for Python package httpcore 1.0.9 — A minimal low-level HTTP client. |
+| 1144 | `azazael-pkg314t-httpx` | packages | Callable skill for Python package httpx 0.28.1 — The next generation HTTP client. |
+| 1145 | `azazael-pkg314t-hypothesis` | packages | Callable skill for Python package hypothesis 6.155.6 — The property-based testing library for Python |
+| 1146 | `azazael-pkg314t-idna` | packages | Callable skill for Python package idna 3.18 — Internationalized Domain Names in Applications (IDNA) |
+| 1147 | `azazael-pkg314t-iniconfig` | packages | Callable skill for Python package iniconfig 2.3.0 — brain-dead simple config-ini parsing |
+| 1148 | `azazael-pkg314t-itsdangerous` | packages | Callable skill for Python package itsdangerous 2.2.0 — Safely pass data to untrusted environments and back. |
+| 1149 | `azazael-pkg314t-jinja2` | packages | Callable skill for Python package Jinja2 3.1.6 — A very fast and expressive template engine. |
+| 1150 | `azazael-pkg314t-joblib` | packages | Callable skill for Python package joblib 1.5.3 — Lightweight pipelining with Python functions |
+| 1151 | `azazael-pkg314t-librt` | packages | Callable skill for Python package librt 0.11.0 — Mypyc runtime library |
+| 1152 | `azazael-pkg314t-markupsafe` | packages | Callable skill for Python package MarkupSafe 3.0.3 — Safely add untrusted strings to HTML/XML markup. |
+| 1153 | `azazael-pkg314t-mypy` | packages | Callable skill for Python package mypy 2.1.0 — Optional static typing for Python |
+| 1154 | `azazael-pkg314t-mypy-extensions` | packages | Callable skill for Python package mypy_extensions 1.1.0 — Type system extensions for programs checked with ... |
+| 1155 | `azazael-pkg314t-narwhals` | packages | Callable skill for Python package narwhals 2.24.0 — Extremely lightweight compatibility layer between dataf... |
+| 1156 | `azazael-pkg314t-nuitka` | packages | Callable skill for Python package Nuitka 4.1.2 — Python compiler with full language support and CPython com... |
+| 1157 | `azazael-pkg314t-numpy` | packages | Callable skill for Python package numpy 2.4.6 — Fundamental package for array computing in Python |
+| 1158 | `azazael-pkg314t-outcome` | packages | Callable skill for Python package outcome 1.3.0.post0 — Capture the outcome of Python function calls. |
+| 1159 | `azazael-pkg314t-packaging` | packages | Callable skill for Python package packaging 26.2 — Core utilities for Python packages |
+| 1160 | `azazael-pkg314t-patchelf` | packages | Callable skill for Python package patchelf 0.17.2.4 — A small utility to modify the dynamic linker and RPAT... |
+| 1161 | `azazael-pkg314t-patchelf-wrapper` | packages | Callable skill for Python package patchelf-wrapper 1.2.0 — A wrapper for patchelf |
+| 1162 | `azazael-pkg314t-pathspec` | packages | Callable skill for Python package pathspec 1.1.1 — Utility library for gitignore style pattern matching of ... |
+| 1163 | `azazael-pkg314t-phonenumbers` | packages | Callable skill for Python package phonenumbers 9.0.36 — Python version of Google's common library for parsi... |
+| 1164 | `azazael-pkg314t-pip` | packages | Callable skill for Python package pip 26.1.2 — The PyPA recommended tool for installing Python packages. |
+| 1165 | `azazael-pkg314t-pluggy` | packages | Callable skill for Python package pluggy 1.6.0 — plugin and hook calling mechanisms for python |
+| 1166 | `azazael-pkg314t-progress` | packages | Callable skill for Python package progress 1.6.1 — Easy to use progress bars |
+| 1167 | `azazael-pkg314t-psutil` | packages | Callable skill for Python package psutil 7.2.2 — Cross-platform lib for process and system monitoring. |
+| 1168 | `azazael-pkg314t-pyflakes` | packages | Callable skill for Python package pyflakes 3.4.0 — passive checker of Python programs |
+| 1169 | `azazael-pkg314t-pygments` | packages | Callable skill for Python package Pygments 2.20.0 — Pygments is a syntax highlighting package written in Py... |
+| 1170 | `azazael-pkg314t-pysocks` | packages | Callable skill for Python package PySocks 1.7.1 — A Python SOCKS client module. See https://github.com/Anor... |
+| 1171 | `azazael-pkg314t-pytest` | packages | Callable skill for Python package pytest 9.1.0 — pytest: simple powerful testing with Python |
+| 1172 | `azazael-pkg314t-python-dotenv` | packages | Callable skill for Python package python-dotenv 1.2.2 — Read key-value pairs from a .env file and set them ... |
+| 1173 | `azazael-pkg314t-pytz` | packages | Callable skill for Python package pytz 2026.3.post1 — World timezone definitions, modern and historical |
+| 1174 | `azazael-pkg314t-pyyaml` | packages | Callable skill for Python package PyYAML 6.0.3 — YAML parser and emitter for Python |
+| 1175 | `azazael-pkg314t-requests` | packages | Callable skill for Python package requests 2.34.2 — Python HTTP for Humans. |
+| 1176 | `azazael-pkg314t-scikit-learn` | packages | Callable skill for Python package scikit-learn 1.9.0 — A set of python modules for machine learning and dat... |
+| 1177 | `azazael-pkg314t-scipy` | packages | Callable skill for Python package scipy 1.18.0 — Fundamental algorithms for scientific computing in Python |
+| 1178 | `azazael-pkg314t-six` | packages | Callable skill for Python package six 1.17.0 — Python 2 and 3 compatibility utilities |
+| 1179 | `azazael-pkg314t-sniffio` | packages | Callable skill for Python package sniffio 1.3.1 — Sniff out which async library your code is running under |
+| 1180 | `azazael-pkg314t-socksio` | packages | Callable skill for Python package socksio 1.0.0 — Sans-I/O implementation of SOCKS4, SOCKS4A, and SOCKS5. |
+| 1181 | `azazael-pkg314t-sortedcontainers` | packages | Callable skill for Python package sortedcontainers 2.4.0 — Sorted Containers -- Sorted List, Sorted Dict, S... |
+| 1182 | `azazael-pkg314t-soupsieve` | packages | Callable skill for Python package soupsieve 2.9.2 — A modern CSS selector implementation for Beautiful Soup. |
+| 1183 | `azazael-pkg314t-tabulate` | packages | Callable skill for Python package tabulate 0.10.0 — Pretty-print tabular data |
+| 1184 | `azazael-pkg314t-termcolor` | packages | Callable skill for Python package termcolor 3.3.0 — ANSI color formatting for output in terminal |
+| 1185 | `azazael-pkg314t-threadpoolctl` | packages | Callable skill for Python package threadpoolctl 3.6.0 — threadpoolctl |
+| 1186 | `azazael-pkg314t-toml` | packages | Callable skill for Python package toml 0.10.2 — Python Library for Tom's Obvious, Minimal Language |
+| 1187 | `azazael-pkg314t-torbot` | packages | Callable skill for Python package torbot 4.3.0 — TorBot is an OSINT tool for the dark web. |
+| 1188 | `azazael-pkg314t-tqdm` | packages | Callable skill for Python package tqdm 4.70.0 — Fast, Extensible Progress Meter |
+| 1189 | `azazael-pkg314t-treelib` | packages | Callable skill for Python package treelib 1.8.0 — A Python implementation of tree structure. |
+| 1190 | `azazael-pkg314t-trio` | packages | Callable skill for Python package trio 0.34.0 — A friendly Python library for async concurrency and I/O |
+| 1191 | `azazael-pkg314t-typing-extensions` | packages | Callable skill for Python package typing_extensions 4.15.0 — Backported and Experimental Type Hints for Pyt... |
+| 1192 | `azazael-pkg314t-unipath` | packages | Callable skill for Python package Unipath 1.1 — Object-oriented alternative to os/os.path/shutil |
+| 1193 | `azazael-pkg314t-urllib3` | packages | Callable skill for Python package urllib3 2.7.0 — HTTP library with thread-safe connection pooling, file po... |
+| 1194 | `azazael-pkg314t-validators` | packages | Callable skill for Python package validators 0.35.0 — Python Data Validation for Humans™ |
+| 1195 | `azazael-pkg314t-werkzeug` | packages | Callable skill for Python package Werkzeug 3.1.8 — The comprehensive WSGI web application library. |
+| 1196 | `azazael-pkg314t-yt-dlp` | packages | Callable skill for Python package yt-dlp 2026.7.4 — A feature-rich command-line audio/video downloader |
+| 1197 | `azazael-pkg314t-zope-event` | packages | Callable skill for Python package zope.event 6.2 — Very basic event publishing system |
+| 1198 | `azazael-pkg314t-zope-interface` | packages | Callable skill for Python package zope.interface 8.5 — Interfaces for Python |
 
-## Skill Quick Reference — Binary Tool Skills (1189-1234)
+## Skill Quick Reference — Binary Tool Skills (1199-1244)
 | # | Skill | Category | Description |
 |---|-------|----------|-------------|
-| 1189 | `azazael-bin-amass` | recon | Callable skill for amass — OWASP attack-surface enumeration and mapping |
-| 1190 | `azazael-bin-bettercap` | intercept | Callable skill for bettercap — Swiss-army knife for MITM attacks, network recon, and monitoring |
-| 1191 | `azazael-bin-dirb` | web | Callable skill for dirb — Web content scanner / directory brute-forcer |
-| 1192 | `azazael-bin-dnsx` | recon | Callable skill for dnsx — Fast and multi-purpose DNS toolkit (ProjectDiscovery) |
-| 1193 | `azazael-bin-exiftool` | osint | Callable skill for exiftool — Read/write/edit EXIF metadata in image/audio/video files (Phil Harvey) |
-| 1194 | `azazael-bin-feroxbuster` | web | Callable skill for feroxbuster — Fast, simple content discovery tool |
-| 1195 | `azazael-bin-ffmpeg` | media | Callable skill for ffmpeg — Universal audio/video transcoding and processing (FFmpeg) |
-| 1196 | `azazael-bin-ffuf` | web | Callable skill for ffuf — Fast web fuzzer written in Go |
-| 1197 | `azazael-bin-foremost` | forensics | Callable skill for foremost — File carving / data recovery from disk images (foremost) |
-| 1198 | `azazael-bin-ghunt` | osint | Callable skill for ghunt — Google account OSINT (requires cookies) |
-| 1199 | `azazael-bin-gitleaks` | security | Callable skill for gitleaks — Scan git repos for secrets and credentials |
-| 1200 | `azazael-bin-gobuster` | web | Callable skill for gobuster — Directory/file and DNS subdomain brute-forcer |
-| 1201 | `azazael-bin-hashcat` | cracking | Callable skill for hashcat — Advanced password recovery / GPU hash cracking |
-| 1202 | `azazael-bin-httpx` | recon | Callable skill for httpx — Fast HTTP probe tool (ProjectDiscovery Go) — discover working HTTP hosts. NOTE: ... |
-| 1203 | `azazael-bin-hydra` | cracking | Callable skill for hydra — Online password cracking (network services brute-force) |
-| 1204 | `azazael-bin-john` | cracking | Callable skill for john — John the Ripper — offline password cracker |
-| 1205 | `azazael-bin-joomscan` | web | Callable skill for joomscan — Joomla CMS vulnerability scanner (OWASP) |
-| 1206 | `azazael-bin-llama-cpp` | ai | Callable skill for llama-cpp — LLM inference engine for GGUF models (llama.cpp) |
-| 1207 | `azazael-bin-maigret` | osint | Callable skill for maigret — Username OSINT across 3,000+ sites |
-| 1208 | `azazael-bin-masscan` | recon | Callable skill for masscan — Internet-scale port scanner (scans entire internet in <5 min) |
-| 1209 | `azazael-bin-mitmproxy` | intercept | Callable skill for mitmproxy — Interactive HTTPS man-in-the-middle proxy |
-| 1210 | `azazael-bin-naabu` | recon | Callable skill for naabu — Fast port scanner (ProjectDiscovery) |
-| 1211 | `azazael-bin-nikto` | web | Callable skill for nikto — Web server scanner for misconfigurations and known vulnerabilities |
-| 1212 | `azazael-bin-nmap` | recon | Callable skill for nmap — Network discovery and security scanning |
-| 1213 | `azazael-bin-nuclei` | recon | Callable skill for nuclei — Fast vulnerability scanner based on YAML templates (ProjectDiscovery) |
-| 1214 | `azazael-bin-ollama` | ai | Callable skill for ollama — Run open-source LLMs locally with one command (170K+ stars) |
-| 1215 | `azazael-bin-open-webui` | ai | Callable skill for open-webui — Self-hosted AI chat web UI (works with Ollama/OpenAI) |
-| 1216 | `azazael-bin-osintgram` | osint | Callable skill for osintgram — Instagram OSINT via public API |
-| 1217 | `azazael-bin-phoneinfoga` | osint | Callable skill for phoneinfoga — Phone number OSINT and footprinting |
-| 1218 | `azazael-bin-responder` | intercept | Callable skill for responder — LLMNR/NBT-NS/mDNS responder for credential capture |
-| 1219 | `azazael-bin-rustscan` | recon | Callable skill for rustscan — Ultra-fast port scanner written in Rust (feeds nmap) |
-| 1220 | `azazael-bin-seclists` | data | Callable skill for seclists — SecLists — massive collection of wordlists for security testing (Daniel Miess... |
-| 1221 | `azazael-bin-sglang` | ai | Callable skill for sglang — Fast serving framework for LLMs and VLMs |
-| 1222 | `azazael-bin-sherlock` | osint | Callable skill for sherlock — Hunt down social media accounts by username |
-| 1223 | `azazael-bin-snort` | ids | Callable skill for snort — Open-source network intrusion detection/prevention system (Cisco) |
-| 1224 | `azazael-bin-social-analyzer` | osint | Callable skill for social-analyzer — Social media analysis and API-free lookup |
-| 1225 | `azazael-bin-spiderfoot` | osint | Callable skill for spiderfoot — Automated OSINT correlation across 200+ sources |
-| 1226 | `azazael-bin-sqlmap` | web | Callable skill for sqlmap — Automatic SQL injection and database takeover tool |
-| 1227 | `azazael-bin-subfinder` | recon | Callable skill for subfinder — Passive subdomain discovery (ProjectDiscovery) |
-| 1228 | `azazael-bin-syft` | security | Callable skill for syft — Generate SBOM (Software Bill of Materials) from container images/filesystems (Anc... |
-| 1229 | `azazael-bin-theHarvester` | osint | Callable skill for theHarvester — Email, subdomain and hostname enumeration |
-| 1230 | `azazael-bin-trivy` | security | Callable skill for trivy — Comprehensive vulnerability scanner for containers, filesystems, git repos (Aqua... |
-| 1231 | `azazael-bin-trufflehog` | security | Callable skill for trufflehog — Find leaked credentials across repos/files/APIs |
-| 1232 | `azazael-bin-tshark` | network | Callable skill for tshark — CLI packet analyzer (Wireshark terminal edition) |
-| 1233 | `azazael-bin-vllm` | ai | Callable skill for vllm — High-throughput LLM serving engine (PagedAttention) |
-| 1234 | `azazael-bin-wpscan` | web | Callable skill for wpscan — WordPress vulnerability scanner |
+| 1199 | `azazael-bin-amass` | recon | Callable skill for amass — OWASP attack-surface enumeration and mapping |
+| 1200 | `azazael-bin-bettercap` | intercept | Callable skill for bettercap — Swiss-army knife for MITM attacks, network recon, and monitoring |
+| 1201 | `azazael-bin-dirb` | web | Callable skill for dirb — Web content scanner / directory brute-forcer |
+| 1202 | `azazael-bin-dnsx` | recon | Callable skill for dnsx — Fast and multi-purpose DNS toolkit (ProjectDiscovery) |
+| 1203 | `azazael-bin-exiftool` | osint | Callable skill for exiftool — Read/write/edit EXIF metadata in image/audio/video files (Phil Harvey) |
+| 1204 | `azazael-bin-feroxbuster` | web | Callable skill for feroxbuster — Fast, simple content discovery tool |
+| 1205 | `azazael-bin-ffmpeg` | media | Callable skill for ffmpeg — Universal audio/video transcoding and processing (FFmpeg) |
+| 1206 | `azazael-bin-ffuf` | web | Callable skill for ffuf — Fast web fuzzer written in Go |
+| 1207 | `azazael-bin-foremost` | forensics | Callable skill for foremost — File carving / data recovery from disk images (foremost) |
+| 1208 | `azazael-bin-ghunt` | osint | Callable skill for ghunt — Google account OSINT (requires cookies) |
+| 1209 | `azazael-bin-gitleaks` | security | Callable skill for gitleaks — Scan git repos for secrets and credentials |
+| 1210 | `azazael-bin-gobuster` | web | Callable skill for gobuster — Directory/file and DNS subdomain brute-forcer |
+| 1211 | `azazael-bin-hashcat` | cracking | Callable skill for hashcat — Advanced password recovery / GPU hash cracking |
+| 1212 | `azazael-bin-httpx` | recon | Callable skill for httpx — Fast HTTP probe tool (ProjectDiscovery Go) — discover working HTTP hosts. NOTE: ... |
+| 1213 | `azazael-bin-hydra` | cracking | Callable skill for hydra — Online password cracking (network services brute-force) |
+| 1214 | `azazael-bin-john` | cracking | Callable skill for john — John the Ripper — offline password cracker |
+| 1215 | `azazael-bin-joomscan` | web | Callable skill for joomscan — Joomla CMS vulnerability scanner (OWASP) |
+| 1216 | `azazael-bin-llama-cpp` | ai | Callable skill for llama-cpp — LLM inference engine for GGUF models (llama.cpp) |
+| 1217 | `azazael-bin-maigret` | osint | Callable skill for maigret — Username OSINT across 3,000+ sites |
+| 1218 | `azazael-bin-masscan` | recon | Callable skill for masscan — Internet-scale port scanner (scans entire internet in <5 min) |
+| 1219 | `azazael-bin-mitmproxy` | intercept | Callable skill for mitmproxy — Interactive HTTPS man-in-the-middle proxy |
+| 1220 | `azazael-bin-naabu` | recon | Callable skill for naabu — Fast port scanner (ProjectDiscovery) |
+| 1221 | `azazael-bin-nikto` | web | Callable skill for nikto — Web server scanner for misconfigurations and known vulnerabilities |
+| 1222 | `azazael-bin-nmap` | recon | Callable skill for nmap — Network discovery and security scanning |
+| 1223 | `azazael-bin-nuclei` | recon | Callable skill for nuclei — Fast vulnerability scanner based on YAML templates (ProjectDiscovery) |
+| 1224 | `azazael-bin-ollama` | ai | Callable skill for ollama — Run open-source LLMs locally with one command (170K+ stars) |
+| 1225 | `azazael-bin-open-webui` | ai | Callable skill for open-webui — Self-hosted AI chat web UI (works with Ollama/OpenAI) |
+| 1226 | `azazael-bin-osintgram` | osint | Callable skill for osintgram — Instagram OSINT via public API |
+| 1227 | `azazael-bin-phoneinfoga` | osint | Callable skill for phoneinfoga — Phone number OSINT and footprinting |
+| 1228 | `azazael-bin-responder` | intercept | Callable skill for responder — LLMNR/NBT-NS/mDNS responder for credential capture |
+| 1229 | `azazael-bin-rustscan` | recon | Callable skill for rustscan — Ultra-fast port scanner written in Rust (feeds nmap) |
+| 1230 | `azazael-bin-seclists` | data | Callable skill for seclists — SecLists — massive collection of wordlists for security testing (Daniel Miess... |
+| 1231 | `azazael-bin-sglang` | ai | Callable skill for sglang — Fast serving framework for LLMs and VLMs |
+| 1232 | `azazael-bin-sherlock` | osint | Callable skill for sherlock — Hunt down social media accounts by username |
+| 1233 | `azazael-bin-snort` | ids | Callable skill for snort — Open-source network intrusion detection/prevention system (Cisco) |
+| 1234 | `azazael-bin-social-analyzer` | osint | Callable skill for social-analyzer — Social media analysis and API-free lookup |
+| 1235 | `azazael-bin-spiderfoot` | osint | Callable skill for spiderfoot — Automated OSINT correlation across 200+ sources |
+| 1236 | `azazael-bin-sqlmap` | web | Callable skill for sqlmap — Automatic SQL injection and database takeover tool |
+| 1237 | `azazael-bin-subfinder` | recon | Callable skill for subfinder — Passive subdomain discovery (ProjectDiscovery) |
+| 1238 | `azazael-bin-syft` | security | Callable skill for syft — Generate SBOM (Software Bill of Materials) from container images/filesystems (Anc... |
+| 1239 | `azazael-bin-theHarvester` | osint | Callable skill for theHarvester — Email, subdomain and hostname enumeration |
+| 1240 | `azazael-bin-trivy` | security | Callable skill for trivy — Comprehensive vulnerability scanner for containers, filesystems, git repos (Aqua... |
+| 1241 | `azazael-bin-trufflehog` | security | Callable skill for trufflehog — Find leaked credentials across repos/files/APIs |
+| 1242 | `azazael-bin-tshark` | network | Callable skill for tshark — CLI packet analyzer (Wireshark terminal edition) |
+| 1243 | `azazael-bin-vllm` | ai | Callable skill for vllm — High-throughput LLM serving engine (PagedAttention) |
+| 1244 | `azazael-bin-wpscan` | web | Callable skill for wpscan — WordPress vulnerability scanner |
 
 ---
 
@@ -1471,7 +1481,6 @@ Based on the May 29, 2026 session findings, these skills should be created:
 | `azazael-separation` | Monolith separation plan — 6 layers, 27 programs, migration steps | High |
 
 ---
-
 ## New Skill — Created September 30, 2026
 
 | Skill | Path | Purpose | Priority |
@@ -1514,7 +1523,6 @@ regeneration must add its row and bump the total **in the same edit** - a row ad
 without the count bump is exactly how the cascade starts.
 
 ---
-
 ## Correction addendum — 2026-09-29 (table regenerated, counts now exact)
 
 `skills_staging/regenerate_catalog.py` was ported to Windows paths (was hardcoded
