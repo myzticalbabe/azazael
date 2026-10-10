@@ -615,6 +615,22 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
             "local-model": "Whatever the local llama-server has loaded",
         },
     },
+    "accelerator_sidecar": {
+        "name": "Accelerator sidecar (local, :18180)",
+        "description": "tools/accelerator_sidecar.py — binds the best available accelerator in failover order (llama.cpp Vulkan on the Intel Arc 140T -> CPU -> adopted live server) and proxies OpenAI-compatible calls; /health reports the ACTUALLY BOUND device. Start with: python tools/accelerator_sidecar.py --port 18180. Override host/port with ACCEL_SIDECAR_BASE_URL.",
+        "base_url": "http://localhost:18180/v1",
+        "base_url_env": "ACCEL_SIDECAR_BASE_URL",
+        "default_model": "local-model",
+        "rate_limit_rpm": 9999,
+        "key_prefix": "",
+        "env_var": "ACCEL_SIDECAR_API_KEY",
+        "signup_url": "https://github.com/ggml-org/llama.cpp",
+        "requires_auth": False,
+        "local": True,
+        "free_models": {
+            "local-model": "Whatever model the sidecar's bound backend has loaded (Qwen2.5-1.5B default)",
+        },
+    },
     "llama_mythos": {
         "name": "Qwythos-9B (local, llama-server :8081)",
         "description": "Qwythos-9B + MTP speculative decoding on llama-server. Port 8081. Measured 16.35 t/s vs 8.30 t/s plain CPU (draft acceptance 0.9275). Start with START_LOCAL_MODEL.bat mythos. Requires --reasoning off server-side.",
@@ -3059,7 +3075,7 @@ def list_providers() -> List[Dict[str, Any]]:
 # existing cloud ordering is untouched.
 _LOCAL_PROVIDER_NAMES = (
     "llamaserver", "llama_mythos", "llama_mythos_v2", "llama_qwopus",
-    "llama_ornith", "lmstudio",
+    "llama_ornith", "lmstudio", "accelerator_sidecar",
 )
 
 # Runtime module each in-process provider needs. A name absent from this map is
