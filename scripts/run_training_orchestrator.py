@@ -262,6 +262,15 @@ def run_grpo_cycle() -> dict:
     group = trainer.generate_group(ctx, group_size=8)
     rewards = trainer.compute_group_rewards(group, ctx)
     trainer.update_policy(group, rewards, context_key="scheduled")
+    # Training-structure accommodation (Oct-10): freeze an anchor snapshot
+    # for EP360 and gather the unity-row intake for observability. Reward
+    # shaping stays OFF (link_weight=0) pending coordinator approval.
+    anchor = trainer.snapshot_anchor("orchestrated")
+    try:
+        from CORE.training_intake import gather as _gather_intake
+        intake = _gather_intake()
+    except Exception:
+        intake = {"store_error": "intake-unavailable"}
 
     mean_r = sum(rewards) / len(rewards) if rewards else 0.0
     std_r = (sum((r - mean_r) ** 2 for r in rewards) / len(rewards)) ** 0.5 if rewards else 0.0
@@ -281,6 +290,11 @@ def run_grpo_cycle() -> dict:
         "best_worm": best_worm,
         "best_reward": round(max(rewards), 4) if rewards else None,
         "duration_ms": duration_ms,
+        "anchor_snapshots": anchor.get("n_anchors"),
+        "intake_links": intake.get("n_link"),
+        "intake_link_ok": intake.get("link_ok_rate"),
+        "intake_rewards": intake.get("n_rewards"),
+        "intake_cal_scored": (intake.get("calibration") or {}).get("n_scored"),
     }
     store = get_memory_store()
     store.record_event(
