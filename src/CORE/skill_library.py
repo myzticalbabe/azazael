@@ -649,3 +649,35 @@ def scan_witness_canonical(artifact: Any) -> Dict[str, Any]:
                 "missing": missing or ["unserializable"]}
     return {"deterministic": stable and not missing, "canonical_sha": sha,
             "missing": missing}
+
+
+def route_hierarchy(skills: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Hierarchical routing tree over procedural families (EP364).
+
+    family_index is flat (depth 1, no manifests). This nests it: families
+    become branch nodes; skills with a "domain" field become leaves under
+    family/domain; the rest sit directly under the family. Leaf manifests
+    stay LAZY (names only, no loaded payloads) per the delta. LIFO context
+    ordering (most-recent-registered first) is reported as leaf order.
+    """
+    families = family_index(skills)
+    tree: Dict[str, Any] = {}
+    for fam, names in (families.get("families") or {}).items():
+        node: Dict[str, Any] = {"leaves": [], "domains": {}}
+        for nm in names:
+            dom = ""
+            for s in skills or []:
+                if str(s.get("name", "?")) == nm:
+                    dom = str(s.get("domain", "")).strip()
+                    break
+            if dom:
+                node["domains"].setdefault(dom, []).append(nm)
+            else:
+                node["leaves"].append(nm)
+        node["leaves"] = list(reversed(node["leaves"]))
+        tree[fam] = node
+    depth = 1 + (1 if any(n.get("domains") for n in tree.values()) else 0)
+    return {"tree": tree, "depth": depth,
+            "families": sorted(tree),
+            "lazy_manifests": True,
+            "unassigned": list(families.get("unassigned") or [])}

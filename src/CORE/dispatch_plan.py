@@ -301,6 +301,7 @@ def record_backtrack(branch: str, corrective_lesson: str) -> str:
     """
     branch = str(branch or "?").strip()
     lesson = str(corrective_lesson or "").strip() or "no lesson recorded"
+    _remember_prefix(branch, lesson)
     citation = ""
     try:
         from CORE import audit_trail as _at  # noqa: PLC0415 (lazy: no cycle)
@@ -310,3 +311,31 @@ def record_backtrack(branch: str, corrective_lesson: str) -> str:
     except Exception as exc:                      # noqa: BLE001 — ledger best-effort
         _note_failure("dispatch_plan:subgraph-ledger", exc)
     return citation
+
+
+#: Pivotal-turn prefix memory (EP345): branch -> lesson, capped at 50.
+#: record_backtrack prunes AND remembers; reuse_prefix reads back.
+_PREFIX_MEMORY: dict = {}
+
+
+def _remember_prefix(branch: str, lesson: str) -> None:
+    """Keep the pruned prefix's lesson for reuse. Bounded, in-memory."""
+    _PREFIX_MEMORY[str(branch)] = str(lesson)
+    while len(_PREFIX_MEMORY) > 50:
+        _PREFIX_MEMORY.pop(next(iter(_PREFIX_MEMORY)))
+
+
+def reuse_prefix(branch: str) -> dict:
+    """Prefix reuse + suffix isolation (EP345, reuse half).
+
+    Returns the remembered lesson for a branch ("" if none) plus the
+    isolation rule: suffixes after a pivotal turn are quarantined from the
+    reused prefix — the caller must not blend them. The caller-side
+    enforcement (actually splitting a live plan at the pivotal turn) stays
+    deferred: no live plan object exists at this layer.
+    """
+    lesson = _PREFIX_MEMORY.get(str(branch or ""), "")
+    return {"branch": str(branch or "?"), "lesson": lesson,
+            "reusable": bool(lesson),
+            "isolation": ("suffix-after-pivotal-turn is quarantined; "
+                          "do not blend into the reused prefix")}
