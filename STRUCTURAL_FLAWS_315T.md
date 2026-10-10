@@ -214,7 +214,37 @@ Force-added `.githooks/pre-commit` so the gate is reviewable and reproducible. *
 
 ## S13 — Duplicate modules inflate every census · CONFIRMED
 
-`AzazaelDynamicLogger` exists three times (`UTILITIES/`, `TOOLS/`, `src/`) with the two non-root copies unreachable; `src/AOA/refresh_aoa_data.py` and `refresh_oa_data.py` are 414 lines each; `AUTO_DOC_GENERATOR`, `emoji_maker` and `enhanced_animations` exist at root AND under `CODEX/CORE/`. Any count over files over-counts capability, and a fix applied to one copy silently misses the others. (Found independently by workers 1 and 3.)
+`AzazaelDynamicLogger` exists three times (`UTILITIES/`, `TOOLS/`, `src/`) with the two non-root copies unreachable; `src/AOA/refresh_aoa_data.py` and `refresh_oa_data.py` are 414 lines each;`AUTO_DOC_GENERATOR`, `emoji_maker` and `enhanced_animations` exist at root AND under
+`CODEX/CORE/`. Any count over files over-counts capability, and a fix applied to one
+copy silently misses the others. (Found independently by workers 1 and 3.)
+
+## S14 — `suite_baseline.py` answers "green" from a journal it never invalidates · CONFIRMED 2026-10-10
+
+The resumable baseline journals one record per batch and skips any batch already
+recorded green. There is **no staleness trigger**: no tree hash, no mtime check, no
+`git rev` comparison, and no `--force`/`--redo` flag (`tools/suite_baseline.py:112-116`).
+So a run *after* code changes reports `14 already ok` in ~0s and prints
+`batches FAILED: 0` — having executed **nothing**.
+
+This is flaw **S9's exact shape** (a generated artefact is a cache with no rebuild
+path), on the artefact that answers the most load-bearing question in the project. The
+measured demonstration: this session's own commits produced `14 already ok`, a result
+that says nothing about them. A true full-suite answer requires deleting or moving
+`state/suite_baseline.jsonl` first; only then does the 918 s run mean anything.
+**Not fixed — recorded.** A `--force` flag plus a tree-hash stamp on each record is the
+obvious repair.
+
+## S15 — an order-dependent failure hides in the existing suite · CONFIRMED 2026-10-10
+
+`tests/test_cross_domain_integration.py::test_cd5_docker_benchmark` **fails** when that
+file runs after other files in one process, and **passes alone** (2.6 s). The control
+that makes this a pre-existing defect and not this session's work: the same 11-file
+invocation with **all four of this session's new test files excluded** still fails
+(`1 failed, 161 passed`) — reverting today's commits would not clear it.
+
+So "the suite is green" is **ordering-dependent** for at least one test, which is what
+makes S14 dangerous: the journal's batch boundaries decide whether this shows up, and
+a skipped batch can never re-expose it.
 
 ## What to do next (ordered)
 
@@ -224,7 +254,7 @@ Force-added `.githooks/pre-commit` so the gate is reviewable and reproducible. *
 4. ~~**Move the evidence into version control** (S6).~~ **DONE 2026-10-10 (`183ef1ec`)** for the three artefacts; the map and the batch06 re-check docs are outside the checkout entirely (S5), so they remain unreproducible.
 5. ~~**Build the three BUILD-IN-HOST ABSENT rows** — EP183 (LogicLoc), EP206 (ObjectGraph), EP252 (Drop-Stable-Rampup).~~ **DONE 2026-10-10 (`ac9dc46a`)**, each inside its named host with both directions asserted. **The residual limit is measured, not waved away:** each new function is reached from *inside* its host, so the census credits the row on the **host symbol**, not on the new function. A caller in a different production module does not exist, and manufacturing one to move the counter is the failure this list forbids. EP206's build also exposed a stale flag — `document_graph_stats` reported `typed_nodes: false` beside a built typed layer, i.e. a **missing measurement read as a fact**.
 6. **Decide S10's open question** — whether `.githooks` stays gitignored. If it does, the checks belong in a tracked `tools/preflight_all.py` that the hook merely calls.
-7. **Then re-check the suite** (`python tools/suite_baseline.py`; it resumes, so it only re-runs batches that are not green).
+7. ~~**Then re-check the suite** (`python tools/suite_baseline.py`).~~ **Attempted 2026-10-10 — NOT AN ANSWER.** The run reported `14 already ok / FAILED 0` in seconds by resuming a journal that predates today's commits (see **S14**). The targeted evidence that does cover the changes: **180 passed** across the 15 test files touching the changed modules, with one order-dependent failure that is pre-existing (**S15**), plus 105 and 28 passed on the per-integration sets. A real full-suite answer must first invalidate the journal.
 
 **Closed this session, do not redo:** S7 (suite baseline — 14/14 batches green, 264 files, 918 s) and S9 (`--check` + pre-commit Check 5, negative-controlled both ways).
 
