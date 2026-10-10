@@ -1954,6 +1954,312 @@ class DirectMemory:
         out.sort(key=lambda w: w["count"], reverse=True)
         return out
 
+    # -- Deep data analytics (CHANGELOG v1.0.0 "8 new static methods") ----
+    # The CHANGELOG names these as shipped; they were not. Implemented here
+    # against the REAL schema (memories + sessions, JSON tags column, no FTS5
+    # in this store — full-text lives in LocalMemoryStore, a different file).
+    # Every method is read-only and never raises: analytics must not take down
+    # the recorder that feeds them.
+
+    @staticmethod
+    def explain_query(sql: str, params: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
+        """EXPLAIN QUERY PLAN rows for an arbitrary SELECT against the store.
+
+        wrappers the raw plan in a dict per step (id/parent/detail) so callers
+        can render it. Read-only guard: the statement must start with SELECT
+        or WITH; anything else returns an error dict rather than executing.
+        """
+        stripped = (sql or "").lstrip().lower()
+        if not (stripped.startswith("select") or stripped.startswith("with")):
+            return [{"error": "explain_query only accepts SELECT/WITH statements"}]
+        conn = _connect()
+        try:
+            rows = conn.execute(
+                "EXPLAIN QUERY PLAN " + sql, tuple(params or [])).fetchall()
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:explain_query", e)
+            return [{"error": str(e)}]
+        finally:
+            conn.close()
+        return [{"id": r[0], "parent": r[1], "detail": r[3]} for r in rows]
+
+    @staticmethod
+    def schema_diff() -> Dict[str, Any]:
+        """Compare the live schema against what _ensure_schema() declares.
+
+        Reports tables/columns present vs expected on both sides. Drift here
+        is exactly how a migration gets silently half-applied.
+        """
+        conn = _connect()
+        try:
+            live: Dict[str, set] = {}
+            for (tname,) in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' "
+                    "AND name NOT LIKE 'sqlite_%'").fetchall():
+                live[tname] = {c[1] for c in conn.execute(
+                    "PRAGMA table_info(%s)" % tname)}
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:schema_diff", e)
+            return {"error": str(e)}
+        finally:
+            conn.close()
+        # Producer of truth = _ensure_schema/_migrate_schema. Core columns are
+        # the MINIMUM a reader may assume; the live DB legitimately carries
+        # MORE (created_at, audit_hash, FTS shadow tables, agent_patterns…).
+        # Only MISSING columns are drift; extras are recorded, not failed.
+        _core = {
+            "memories": {"id", "session_id", "source", "event_type", "data",
+                         "severity", "tags", "timestamp", "event_uuid"},
+            "sessions": {"session_id", "started_at", "ended_at"},
+            "memories_fts": {"event_type", "data", "tags"},
+            "session_mappings": {"id", "dm_session_id", "audit_filepath",
+                                 "correlation_id"},
+        }
+        out: Dict[str, Any] = {"live_tables": sorted(live), "tables": {}}
+        total_drift = 0
+        for table, want in _core.items():
+            got = live.get(table, set())
+            missing = sorted(want - got)
+            extra = sorted(got - want)
+            out["tables"][table] = {"missing": missing, "extra": extra,
+                                    "present": table in live}
+            total_drift += len(missing)
+        out["in_sync"] = total_drift == 0 and set(_core) <= set(live)
+        return out
+
+    @staticmethod
+    def event_correlation(window_seconds: int = 60,
+                          limit: int = 20) -> List[Dict[str, Any]]:
+        """Event-type pairs that co-occur within `window_seconds`.
+
+        Self-join on session + bounded time delta; only pairs where type_a
+        < type_b alphabetically are kept so (a,b) and (b,a) collapse to one.
+        """
+        conn = _connect()
+        try:
+            rows = conn.execute(
+                "SELECT a.event_type AS a, b.event_type AS b, COUNT(*) AS n "
+                "FROM memories a JOIN memories b "
+                "ON a.session_id = b.session_id AND a.id < b.id "
+                "WHERE julianday(b.timestamp) - julianday(a.timestamp) <= ?/86400.0 "
+                "AND a.event_type < b.event_type "
+                "GROUP BY a.event_type, b.event_type "
+                "ORDER BY n DESC LIMIT ?",
+                (int(window_seconds), int(limit))).fetchall()
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:event_correlation", e)
+            return []
+        finally:
+            conn.close()
+        return [{"type_a": r[0], "type_b": r[1], "count": int(r[2] or 0)}
+                for r in rows]
+
+    @staticmethod
+    def session_clustering(min_similarity: float = 0.5,
+                           limit: int = 50) -> List[Dict[str, Any]]:
+        """Group recent sessions by Jaccard similarity of their event-type sets.
+
+        Greedy clustering: pick an unclustered seed, absorb sessions whose
+        event-type-set Jaccard vs the seed >= min_similarity, repeat. O(n²)
+        over recent sessions only, bounded by `limit`, so this stays cheap.
+        """
+        conn = _connect()
+        try:
+            rows = conn.execute(
+                "SELECT session_id, GROUP_CONCAT(DISTINCT event_type) "
+                "FROM memories GROUP BY session_id ORDER BY session_id DESC "
+                "LIMIT ?", (int(limit),)).fetchall()
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:session_clustering", e)
+            return []
+        finally:
+            conn.close()
+        sets = [(r[0], set((r[1] or "").split(","))) for r in rows if r[0]]
+
+        def jac(a: set, b: set) -> float:
+            if not a and not b:
+                return 1.0
+            if not a or not b:
+                return 0.0
+            return len(a & b) / len(a | b)
+
+        clusters: List[Dict[str, Any]] = []
+        unassigned = list(sets)
+        while unassigned:
+            seed_id, seed_set = unassigned.pop(0)
+            members = [seed_id]
+            keep = []
+            for sid, s in unassigned:
+                if jac(seed_set, s) >= min_similarity:
+                    members.append(sid)
+                else:
+                    keep.append((sid, s))
+            unassigned = keep
+            clusters.append({"seed": seed_id, "size": len(members),
+                             "members": members})
+        return clusters
+
+    @staticmethod
+    def anomaly_detection(days: int = 7) -> List[Dict[str, Any]]:
+        """Sessions whose shape deviates >3σ from the recent mean.
+
+        Compares each session's event count against the mean+stddev over the
+        last `days` worth of sessions. Small-sample safe: <5 sessions returns
+        an explicit not_enough_data rather than a fabricated z-score.
+        """
+        conn = _connect()
+        try:
+            rows = conn.execute(
+                "SELECT s.session_id, COUNT(m.id) AS n "
+                "FROM sessions s LEFT JOIN memories m ON m.session_id = s.session_id "
+                "WHERE s.started_at >= datetime('now', ?) "
+                "GROUP BY s.session_id", (f"-{int(days)} days",)).fetchall()
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:anomaly_detection", e)
+            return []
+        finally:
+            conn.close()
+        if len(rows) < 5:
+            return [{"status": "not_enough_data", "sessions": len(rows),
+                     "minimum": 5}]
+        counts = [int(r[1] or 0) for r in rows]
+        mean = sum(counts) / len(counts)
+        var = sum((c - mean) ** 2 for c in counts) / len(counts)
+        std = var ** 0.5
+        out = []
+        for (sid, n) in rows:
+            c = int(n or 0)
+            if std == 0:
+                continue
+            z = (c - mean) / std
+            if abs(z) > 3.0:
+                out.append({"session_id": sid, "events": c,
+                            "mean": round(mean, 2), "z": round(z, 2),
+                            "kind": "high_volume" if z > 0 else "low_volume"})
+        return out
+
+    @staticmethod
+    def trend_analysis(days: int = 30) -> Dict[str, Any]:
+        """Event-rate trends: recent-window vs previous-window, per type.
+
+        Splits the last `days` into two equal halves and reports per-type
+        deltas, plus an overall daily-rate comparison. Answers "is telemetry
+        rising or dying" — a dying recorder looks like success otherwise.
+        """
+        half = max(1, int(days) // 2)
+        conn = _connect()
+        try:
+            recent = dict(conn.execute(
+                "SELECT event_type, COUNT(*) FROM memories "
+                "WHERE timestamp >= datetime('now', ?) GROUP BY event_type",
+                (f"-{half} days",)).fetchall())
+            prior = dict(conn.execute(
+                "SELECT event_type, COUNT(*) FROM memories "
+                "WHERE timestamp < datetime('now', ?) "
+                "AND timestamp >= datetime('now', ?) GROUP BY event_type",
+                (f"-{half} days", f"-{int(days)} days")).fetchall())
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:trend_analysis", e)
+            return {"error": str(e)}
+        finally:
+            conn.close()
+        types = sorted(set(recent) | set(prior))
+        per_type = {}
+        for t in types:
+            r, p = recent.get(t, 0), prior.get(t, 0)
+            per_type[t] = {"recent_half": r, "prior_half": p,
+                           "delta": r - p,
+                           "direction": ("up" if r > p else
+                                         "down" if r < p else "flat")}
+        overall_recent = sum(recent.values())
+        overall_prior = sum(prior.values())
+        return {
+            "window_days": int(days),
+            "per_type": per_type,
+            "overall": {"recent_half": overall_recent,
+                        "prior_half": overall_prior,
+                        "daily_rate_recent": round(overall_recent / half, 2),
+                        "daily_rate_prior": round(overall_prior / half, 2),
+                        "direction": ("up" if overall_recent > overall_prior
+                                      else "down" if overall_recent < overall_prior
+                                      else "flat")},
+        }
+
+    @staticmethod
+    def session_search(query: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Full-text search across event data + tags via the store's FTS5 index.
+
+        FTS5 IS present here (memories_fts shadows memories) — the CHANGELOG
+        was right; an earlier implementation comment of this method wrongly
+        disclaimed it. Quotes the query so FTS operators in user input are
+        literals, and falls back to a LIKE scan if the index is missing.
+        """
+        if not query:
+            return []
+        conn = _connect()
+        try:
+            conn.row_factory = sqlite3.Row
+            fts_row = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' "
+                "AND name='memories_fts'").fetchone()
+            if fts_row:
+                # Quote each whitespace token so user punctuation stays literal.
+                safe = " ".join('"%s"' % tok.replace('"', '""')
+                                for tok in query.split())
+                rows = conn.execute(
+                    "SELECT m.id, m.session_id, m.event_type, m.severity, "
+                    "m.timestamp, m.data FROM memories_fts f "
+                    "JOIN memories m ON m.rowid = f.rowid "
+                    "WHERE memories_fts MATCH ? ORDER BY m.id DESC LIMIT ?",
+                    (safe, int(limit))).fetchall()
+            else:
+                escaped = (query.replace("\\", "\\\\")
+                           .replace("%", "\\%").replace("_", "\\_"))
+                like = f"%{escaped}%"
+                rows = conn.execute(
+                    "SELECT id, session_id, event_type, severity, timestamp, data "
+                    "FROM memories WHERE data LIKE ? ESCAPE '\\\\' "
+                    "ORDER BY id DESC LIMIT ?",
+                    (like, int(limit))).fetchall()
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:session_search", e)
+            return []
+        finally:
+            conn.close()
+        return DirectMemory._decode_rows(rows)
+
+    @staticmethod
+    def data_quality_report() -> Dict[str, Any]:
+        """Null-orphan/deprecation/shape census over the live store.
+
+        Checks: events with unknown event_type vocabulary (advisory), NULL
+        severity, sessions with zero events (orphans), deprecated types
+        (via deprecation_warnings). Shapes, not judgments — the caller decides.
+        """
+        conn = _connect()
+        checks: Dict[str, Any] = {}
+        try:
+            checks["null_severity"] = conn.execute(
+                "SELECT COUNT(*) FROM memories WHERE severity IS NULL").fetchone()[0]
+            checks["null_session_id"] = conn.execute(
+                "SELECT COUNT(*) FROM memories WHERE session_id IS NULL").fetchone()[0]
+            checks["orphan_sessions"] = conn.execute(
+                "SELECT COUNT(*) FROM sessions s "
+                "WHERE NOT EXISTS (SELECT 1 FROM memories m "
+                "WHERE m.session_id = s.session_id)").fetchone()[0]
+            checks["unknown_types"] = conn.execute(
+                "SELECT COUNT(DISTINCT event_type) FROM memories "
+                "WHERE event_type NOT IN (" + ",".join("?" * len(EVENT_TYPES)) + ")",
+                tuple(EVENT_TYPES)).fetchone()[0]
+        except sqlite3.Error as e:
+            _note_failure("direct_memory:data_quality_report", e)
+            return {"error": str(e)}
+        finally:
+            conn.close()
+        return {"checks": checks,
+                "deprecated": DirectMemory.deprecation_warnings(),
+                "schema": DirectMemory.schema_diff()}
+
     # -- TTL cache (static) ---------------------------------------------
     # `tests/test_property_based.py::test_cache_invalidation` names these; the
     # cache itself lives at module level so that a fresh DirectMemory instance does
