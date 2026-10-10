@@ -36,7 +36,13 @@ Usage:
                          {"WormX": [".audit/session_X.jsonl:12"]})
 """
 
+import hashlib
+import json
+from collections import Counter
+from itertools import permutations
 from typing import Any, Dict, List, Optional
+
+from CORE.local_memory import get_memory_store
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. An
 #: unrecorded swallow is indistinguishable from success, so every handler in
@@ -135,6 +141,10 @@ def commit_gate(skill: Dict[str, Any],
             "'n/a: single-domain skill'")
     else:
         reasons.append("masking-ok")
+    version = ev.get("version", None)
+    version_consumed = version is not None and str(version).strip() != ""
+    reasons.append(f"version-seen({version})" if version_consumed
+                   else "version-unread")
 
     citation = ""
     if record:
@@ -145,7 +155,8 @@ def commit_gate(skill: Dict[str, Any],
         except Exception as exc:                      # noqa: BLE001 - ledger best-effort
             _note_failure("skill_library:commit-gate-cite", exc)
     return {"accepted": accepted, "reasons": reasons,
-            "remediations": remediations, "citation": citation}
+            "remediations": remediations, "citation": citation,
+            "version_consumed": version_consumed}
 
 
 # -- CASS: family-level audit input ----------------------------------------------
@@ -409,3 +420,232 @@ def record_sop_ops(result: Dict[str, Any]) -> str:
     except Exception as exc:                          # noqa: BLE001 - ledger best-effort
         _note_failure("skill_library:sop-cite", exc)
     return citation
+
+
+# -- Backlog builds (Oct-10 churn): small pure hosts --------------------------
+# Each function below closes one named delta. All stdlib-only, no I/O except
+# where stated. Anything needing a consumer, a model, or training stays
+# deferred in the adapter text.
+
+
+def replicator_step(family_sizes: Dict[str, int],
+                    fitness: Dict[str, float],
+                    dt: float = 0.1) -> Dict[str, Any]:
+    """SkillSmith replicator update (EP265, input-side half).
+
+    shares x_i -> x_i * (1 + dt * (f_i - mean_f)), renormalized (negatives
+    clipped to 0). Missing fitness defaults to 0.0. Version-scoped nogoods
+    (the second half of the delta) remain deferred: no nogood store exists.
+    """
+    total = sum(max(0, int(n)) for n in family_sizes.values()) or 1
+    shares = {f: max(0, int(n)) / total for f, n in family_sizes.items()}
+    fits = {f: float(fitness.get(f, 0.0)) for f in shares}
+    mean_f = sum(shares[f] * fits[f] for f in shares)
+    grown = {f: max(0.0, shares[f] * (1.0 + dt * (fits[f] - mean_f)))
+             for f in shares}
+    norm = sum(grown.values()) or 1.0
+    nxt = {f: round(v / norm, 6) for f, v in grown.items()}
+    return {"shares": {f: round(v, 6) for f, v in shares.items()},
+            "next_shares": nxt, "mean_fitness": round(mean_f, 6)}
+
+
+def render_plan_to_prompt(proto: Any,
+                          exemplars: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Render a stored reasoning plan back into a model prompt (EP34).
+
+    The stored `reasoning_plan` IS the step chain; this is the thin renderer
+    the delta names, plus a few-shot exemplar block. Pure text, no model call.
+    """
+    steps = _steps_of(proto)
+    facts = _facts_of(proto)
+    lines = [f"Step {i + 1}: {s}" for i, s in enumerate(steps)]
+    if facts:
+        lines.append("Grounding:")
+        lines += [f"- {g}" for g in facts]
+    ex = [str(e) for e in (exemplars or []) if str(e).strip()]
+    if ex:
+        lines.append("Examples:")
+        lines += [f"Example {i + 1}: {e}" for i, e in enumerate(ex)]
+    return {"prompt": "\n".join(lines), "n_steps": len(steps),
+            "n_facts": len(facts), "n_exemplars": len(ex)}
+
+
+def check_transfer_mask(skill_family: str, masking: str,
+                        target_domains: List[str]) -> Dict[str, Any]:
+    """ENFORCED mask check (EP302): masking text must cover every target.
+
+    commit_gate accepts masking as caller-owned prose (the gap). This is the
+    enforcement half: each target domain must be named in the masking note,
+    unless the note declares single-domain scope and there is at most one
+    target. The layout-sketch index half of the delta stays deferred.
+    """
+    fam = str(skill_family or "").strip()
+    note = str(masking or "")
+    domains = [str(d) for d in (target_domains or []) if str(d).strip()]
+    low = note.lower()
+    single = ("n/a" in low or "single-domain" in low) and len(domains) <= 1
+    covered = [d for d in domains if d.lower() in low]
+    uncovered = [d for d in domains if d.lower() not in low]
+    enforced = single or (bool(domains) and not uncovered)
+    return {"family": fam, "enforced": enforced, "covered": covered,
+            "uncovered": uncovered, "single_domain_claim": single}
+
+
+def mine_action_sequences(trajectories: List[Any],
+                          min_support: int = 2) -> Dict[str, Any]:
+    """Mine repeated adjacent action pairs -> typed-pseudo-tool input (EP270).
+
+    trajectories: [{“actions”: [...]}] or bare action lists. Counts ordered
+    bigrams with support >= min_support. Typing the artifact (`types` field)
+    stays deferred: no type-schema consumer exists.
+    """
+    seqs: List[List[str]] = []
+    for t in trajectories or []:
+        acts = t.get("actions", []) if isinstance(t, dict) else t
+        acts = [str(a) for a in (acts or [])]
+        seqs.append(acts)
+    counts: Counter = Counter()
+    for acts in seqs:
+        for a, b in zip(acts, acts[1:]):
+            counts[(a, b)] += 1
+    motifs = [{"sequence": [a, b], "support": c}
+              for (a, b), c in sorted(counts.items(), key=lambda kv: -kv[1])
+              if c >= int(min_support)]
+    return {"motifs": motifs, "n_trajectories": len(seqs)}
+
+
+def compile_leaf_rules(decisions: List[Dict[str, Any]],
+                       min_support: int = 2) -> Dict[str, Any]:
+    """Compile frequent leaf decisions -> auditable rules (EP447, miner half).
+
+    Groups by state, takes the majority action with support >= min_support.
+    Low-support states land in `abstain_states`. Wiring the abstain fallback
+    into a consumer stays deferred: no leaf-decision call site exists yet.
+    """
+    by_state: Dict[str, Counter] = {}
+    for d in decisions or []:
+        if not isinstance(d, dict):
+            continue
+        by_state.setdefault(str(d.get("state", "?")), Counter())[str(d.get("action", "?"))] += 1
+    rules: List[Dict[str, Any]] = []
+    abstain: List[str] = []
+    for state, counter in by_state.items():
+        action, support = counter.most_common(1)[0]
+        total = sum(counter.values())
+        if support >= int(min_support):
+            rules.append({"when": state, "do": action, "support": support,
+                          "confidence": round(support / max(total, 1), 4)})
+        else:
+            abstain.append(state)
+    return {"rules": rules, "abstain_states": sorted(abstain)}
+
+
+def shapley_marginal(members: List[str],
+                     value: Any) -> Dict[str, Any]:
+    """Shapley marginal-contribution audit over a coalition (EP455).
+
+    Exact permutation Shapley (factorial cost — members capped at 8).
+    value: callable frozenset -> float. Post-transfer masking-flag half stays
+    deferred: no transfer pipeline exists to hang the flag on.
+    """
+    ms = [str(m) for m in (members or [])]
+    if len(ms) > 8:
+        raise ValueError("exact Shapley capped at 8 members")
+    phis = {m: 0.0 for m in ms}
+    perms = list(permutations(ms)) or [()]
+    for perm in perms:
+        seen: set = set()
+        prev = float(value(frozenset()))
+        for m in perm:
+            seen.add(m)
+            cur = float(value(frozenset(seen)))
+            phis[m] += cur - prev
+            prev = cur
+    n = len(perms)
+    return {"shapley": {m: round(v / n, 6) for m, v in phis.items()},
+            "n_permutations": n,
+            "grand_value": round(float(value(frozenset(ms))), 6)}
+
+
+def distill_trajectory_to_protocol(traj: Dict[str, Any],
+                                  task_type: str) -> Dict[str, Any]:
+    """Trajectory -> protocol distiller, the EP155/EP401 shared wire.
+
+    Steps come from traj[“actions”]; grounding from outcome + evidence. The
+    MGPO reward split is reported, not optimized: per-step rewards pass
+    through, the outcome reward is the scalar the loop would step from.
+    """
+    traj = traj or {}
+    actions = [str(a) for a in (traj.get("actions") or [])]
+    step_rewards = [float(r) for r in (traj.get("step_rewards") or [])]
+    outcome = traj.get("outcome", "")
+    evidence = [str(e) for e in (traj.get("evidence") or [])]
+    grounding = ([f"outcome: {outcome}"] if outcome else []) + evidence
+    proto = protocol_artifact(str(task_type or "distilled"), actions,
+                              grounding or ["trajectory-distilled: no grounding"])
+    return {"protocol": proto, "step_rewards": step_rewards,
+            "outcome_reward": traj.get("outcome_reward", None),
+            "n_steps": len(actions)}
+
+
+def emit_skill_md(proto: Any, description: str) -> Dict[str, Any]:
+    """Emit a SKILL.md payload from a protocol artifact (EP427).
+
+    Frontmatter `description` is the only field this client pushes (AGENTS.md);
+    the body carries the plan + grounding so a renderer can use the rest.
+    """
+    desc = str(description or "").strip() or "skill distilled from trajectories"
+    task = str((proto or {}).get("task_type", "skill")) if isinstance(proto, dict) else "skill"
+    steps = _steps_of(proto)
+    facts = _facts_of(proto)
+    body = ["---", f'description: "{desc}"', "---", f"# {task}",
+            "## Reasoning plan"]
+    body += [f"{i + 1}. {s}" for i, s in enumerate(steps)]
+    body += ["## Grounding facts"] + [f"- {g}" for g in facts]
+    return {"markdown": "\n".join(body) + "\n", "description": desc}
+
+
+def record_experience(name: str, outcome: Any, citation: str,
+                      store: Any = None) -> Dict[str, Any]:
+    """Record one skill-experience row (EP255, recording half).
+
+    The caller supplies a TYPED outcome (not sync stats, not drift — per the
+    M-row lesson). refine_prompt() over the store stays deferred: no prompt
+    synthesizer consumes these rows yet. Fails open (recorded=False).
+    """
+    try:
+        if store is None:
+            store = get_memory_store()
+        cite = store.record_event(
+            source="skill_library", event_type="skill_experience",
+            data={"name": str(name), "outcome": outcome,
+                  "citation": str(citation)},
+            severity="info", tags=["skill", "experience"])
+        return {"recorded": True, "citation": bool(cite)}
+    except Exception as exc:                          # noqa: BLE001 - fail-open
+        _note_failure("skill_library:record-experience", exc)
+        return {"recorded": False, "citation": False}
+
+
+def scan_witness_canonical(artifact: Any) -> Dict[str, Any]:
+    """Witness-determinism scan (EP347, check half): canonical round-trip.
+
+    An artifact is deterministic iff canonical JSON (sorted keys, compact
+    separators) parses back to an equal object. Reports stability + sha, not
+    a verdict: the calibrated-deopt guard flag needs a consumer (deferred).
+    """
+    required = ("task_type", "reasoning_plan")
+    missing = [k for k in required
+               if not (isinstance(artifact, dict) and artifact.get(k))]
+    try:
+        canonical = json.dumps(artifact, sort_keys=True,
+                                separators=(",", ":"), default=str)
+        stable = json.loads(canonical) == json.loads(
+            json.dumps(artifact, default=str))
+        sha = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+    except Exception as exc:                          # noqa: BLE001 - probe
+        _note_failure("skill_library:witness-scan", exc)
+        return {"deterministic": False, "canonical_sha": "",
+                "missing": missing or ["unserializable"]}
+    return {"deterministic": stable and not missing, "canonical_sha": sha,
+            "missing": missing}
