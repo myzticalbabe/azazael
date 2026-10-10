@@ -54,15 +54,36 @@ def main() -> int:
         from CORE.technique_wiring import _l1_memory as l1
 
         out["steps"]["slices"] = load_slices()
+        # E1 production caller for ErrorRecoveryOrchestrator: the heartbeat's
+        # own run_all runs under retry/backoff/circuit. Circuits are
+        # per-process (one-shot hourly run), so cross-run memory is absent by
+        # construction — retries still engage transient faults (store locks).
+        # A failed pass may deposit duplicate lesson rows (bounded: 2 attempts).
+        from CORE.WORMS.expansion.error_recovery import (
+            ErrorRecoveryOrchestrator as _Ero)
+        _ero = _Ero(max_retries=2, base_backoff_ms=1000.0)
+
+        def _checked_run_all():
+            _r = run_all(record=True)
+            if _r.get("errored", 0):
+                raise RuntimeError("run_all errored=%s" % _r.get("errored"))
+            return _r
+
         # Step 3 policy: heartbeat-only opt-in, restored immediately after.
         prev = l1.enable_writes(True)
         try:
-            run = run_all(record=True)
+            _rec = _ero.execute_with_recovery(
+                "technique-heartbeat", None, execute_fn=_checked_run_all)
         finally:
             l1.enable_writes(prev)
+        run = _rec.get("result") or {}
         out["steps"]["run_all"] = {
             "n": run.get("n"), "engaged": run.get("engaged"),
             "errored": run.get("errored"),
+        }
+        out["steps"]["recovery"] = {
+            "outcome": _rec.get("outcome"),
+            "strategy": (_rec.get("recovery") or {}).get("strategy"),
         }
         out["steps"]["health"] = fleet_link_health(limit=1000)
         try:
@@ -79,6 +100,45 @@ def main() -> int:
         except Exception as exc:
             _fail("technique-heartbeat:calibration", exc)
             out["steps"]["calibration"] = {"scales": {}, "refused": []}
+        # E2 production caller for NeuralPipeline.replay_failed: the shared
+        # file-backed DLQ (populated by pipeline training failures) is
+        # replayed through single-worm clusters. Bounded: max 1 thread, and
+        # a backlog over 10 is reported for the operator instead of
+        # retried blind (a flood is systemic, not transient).
+        try:
+            from CORE.NeuralPipeline import NeuralPipeline
+            from CORE.WORMS.CLUSTERWORMS import ClusterWORMZ
+
+            def _replay_executor(worm_name, config):
+                try:
+                    cluster = ClusterWORMZ.build_from_registry([worm_name])
+                    cluster.execute_all(worm_names=[worm_name])
+                    agg = cluster.aggregate_results()
+                    wr = (agg.worm_results or {}).get(worm_name, {})
+                    good = (bool(wr) and wr.get("error") is None
+                            and wr.get("success", True) is not False)
+                    return {"success": good, "result": wr}
+                except Exception as exc:
+                    return {"success": False,
+                            "error": "%s: %s" % (type(exc).__name__, exc)}
+
+            _pipe = NeuralPipeline(max_workers=2, llm_augmentation=False)
+            _dlq = _pipe.dlq
+            _pending = (_dlq.get_pending()
+                        if hasattr(_dlq, "get_pending") else [])
+            if len(_pending) > 10:
+                out["steps"]["replay"] = {
+                    "replayed": 0, "pending": len(_pending),
+                    "deferred": "backlog-overflow (operator scope)"}
+            else:
+                _rep = _pipe.replay_failed(_replay_executor, max_concurrent=1)
+                out["steps"]["replay"] = {
+                    "replayed": _rep.get("replayed"),
+                    "pending": len(_pending),
+                    "results": _rep.get("results", [])[:10]}
+        except Exception as exc:
+            _fail("technique-heartbeat:replay", exc)
+            out["steps"]["replay"] = {"replayed": 0, "pending": None}
         ok = run.get("errored", 1) == 0
         out["ok"] = bool(ok)
         try:

@@ -3141,10 +3141,14 @@ def spine_reset() -> None:
 def purge_implausible_stamps(dry_run: bool = True) -> Dict[str, Any]:
     """Repair ordering stamps that sit beyond the clock's drift window.
 
-    Opt-in, never automatic. Refusal (see `_stamp_adoptable`) makes a poisoned
-    stamp harmless — it cannot win a merge and cannot propagate — but it stays
-    in the store, and therefore in every gossip payload, forever. A real store
-    was found carrying 98 year-2999 stamps
+    Opt-in, never automatic — except the env-gated auto-remedy in
+    notifier.check_clock_and_alert (AZAZAEL_CLOCK_AUTO_PURGE_REFUSED,
+    default 25 refused stamps, 0 disables), which exists because refused
+    stamps already lose ordering and only ride gossip forever. Refusal (see
+    `_stamp_adoptable`) makes a poisoned stamp harmless — it cannot win a
+    merge and cannot propagate — but it stays in the store, and therefore
+    in every gossip payload, forever. A real store was found carrying 98
+    year-2999 stamps
     (``032472162000000-04631-windows``) written before the drift bound existed.
 
     Each implausible ``hlc`` sidecar is REPLACED with a stamp derived from the
