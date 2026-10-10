@@ -51,6 +51,18 @@ import threading
 import time
 from typing import Any, Callable, Dict, List
 
+#: The worms tree, imported at module level (fail-open) so the restored read
+#: path has a caller. Guarded rather than lazy: a function-level import counts
+#: against the anti-pattern ratchet, and this dependency is optional at import
+#: time only in minimal environments.
+try:                                                       # pragma: no cover
+    from CORE.WORMS.expansion import engram as _engram
+    from CORE.WORMS.expansion.engram import (  # noqa: F401
+        run_read_driven_consolidation as _read_driven_consolidation)
+except Exception:                                          # pragma: no cover
+    _engram = None
+    _read_driven_consolidation = None
+
 from CORE.local_memory import get_memory_store
 
 __all__ = [
@@ -294,6 +306,52 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
                 decision_id=str(decision_id or ""))
     return {"written": written, "question": _short(question),
             "predicted": predicted}
+
+
+def recall_with_feedback(query: str, consolidate: bool = False,
+                         **kwargs: Any) -> Dict[str, Any]:
+    """Recall through the router and feed the read statistics back (EP235).
+
+    RESTORED. The theater removal deleted this function because it had "zero
+    `src/` callers" -- true only because nothing had wired it yet, and it was the
+    consumer that made the router's read statistics mean anything. Removing the
+    only consumer of a signal while the producer keeps emitting it is what left
+    the read path looking like it worked while nothing learned from it.
+
+    `consolidate=True` also closes the loop: the derived read pressure is handed
+    to `engram.run_read_driven_consolidation`, so a recall can act on what the
+    previous reads reported missing. Default off so a caller that only wants the
+    route never pays for a consolidation pass.
+    """
+    if _engram is None:
+        return {"routed": False, "reason": "no-engram"}
+    try:
+        router_cls = getattr(_engram, "RecallRouterWorm", None)
+        if router_cls is None:
+            return {"routed": False, "reason": "no-router"}
+        router = router_cls()
+        route = router.route_recall(str(query))
+        state = {}
+        try:
+            state = router.recall_state() or {}
+        except Exception:
+            state = {}
+        out: Dict[str, Any] = {
+            "routed": True,
+            "route": (route or {}).get("route"),
+            "mode": (route or {}).get("mode"),
+            "total_reads": state.get("total"),
+            "abstained": state.get("abstained"),
+        }
+        if consolidate and _read_driven_consolidation is not None:
+            closed = _read_driven_consolidation(router=router)
+            out["consolidated"] = bool(closed.get("read_driven"))
+            out["needs_writing"] = bool(
+                (closed.get("read_pressure") or {}).get("needs_writing"))
+        return out
+    except Exception as exc:
+        note_failure("technique_runtime:recall-with-feedback", exc)
+        return {"routed": False, "reason": f"{type(exc).__name__}"}
 
 
 def _record_calibration(question: str, predicted: float,
