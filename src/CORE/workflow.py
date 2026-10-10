@@ -64,6 +64,17 @@ except ImportError:
     _react_drive_impl = None
     _record_reasoning_trace = None
 
+#: EP44 (completion): `drive_for_workflow_step()` is the host entry the sibling
+#: module documents for an engine STEP -- it returns the plan `mutations` the graph
+#: must apply, which plain `drive()` does not carry. Imported in its own guard so a
+#: sibling without it degrades to the drive()+cite pair below instead of losing the
+#: driver entirely.
+try:
+    from CORE.structured_action import drive_for_workflow_step as _react_step_drive
+except ImportError:
+    note_failure("workflow:react-step-entry-import", None)
+    _react_step_drive = None
+
 # -- Lazy Config (thread-safe) ------------------------------------
 _cfg = None
 _cfg_lock = threading.Lock()
@@ -140,6 +151,8 @@ class WorkflowResult:
     errors: list[str] = field(default_factory=list)
     outputs: dict[str, Any] = field(default_factory=dict)
     success: bool = True
+    plan_order: dict[str, list[str]] = field(default_factory=dict)
+    plan_mutations: list[dict[str, Any]] = field(default_factory=list)
 
 
 # =======================================================================
@@ -804,10 +817,11 @@ class WorkflowEngine:
         step, which is the technique EP44 is about (a controller that only
         reports gaps is the thing it replaces).
         """
-        if _react_drive_impl is None:
-            raise ValueError("react_drive unavailable: CORE.structured_action "
-                             "could not be imported")
-
+        max_steps = int(params.get("max_steps", 12))
+        # All five are needed by BOTH entry points below, so they are bound BEFORE
+        # the branch. They used to sit after it, which made the `_react_step_drive`
+        # path raise UnboundLocalError on `app` the moment the sibling's host entry
+        # became importable -- and left the no-cognition guard unreachable there.
         app = str(params.get("app", "workflow"))
         plan = list(params.get("plan", []) or [])
         contract = dict(params.get("contract", {}) or {})
@@ -818,9 +832,23 @@ class WorkflowEngine:
                 "react_drive requires a callable 'thought_fn' in step params "
                 "(a step with no cognition would terminate at once and read as done)")
 
+        if _react_step_drive is not None:
+            # EP44: the sibling module's own host entry, which also returns the
+            # `mutations` this engine must apply to its graph. `cite` stays a step
+            # parameter so a caller can keep the run off the hash-chained ledger.
+            result = _react_step_drive(
+                app, plan, contract, required_keys, thought_fn,
+                max_steps=max_steps, cite=bool(params.get("cite", True)))
+            result.setdefault("mutations", [])
+            return result
+
+        if _react_drive_impl is None:
+            raise ValueError("react_drive unavailable: CORE.structured_action "
+                             "could not be imported")
+
         result = _react_drive_impl(
             app, plan, contract, required_keys, thought_fn,
-            max_steps=int(params.get("max_steps", 12)),
+            max_steps=max_steps,
         )
         if _record_reasoning_trace is not None:
             try:
@@ -831,11 +859,16 @@ class WorkflowEngine:
 
     # -- Workflow Execution ------------------------------------------
 
-    def execute(self, workflow: Workflow) -> WorkflowResult:
+    def execute(self, workflow: Workflow, scheduler: Any = None,
+                cost_fn: Any = None) -> WorkflowResult:
         """Execute a workflow end-to-end with dependency resolution and conditional routing.
 
         Args:
             workflow: The workflow to execute
+            scheduler: optional `(layer, run_step, step_map, errors) -> None` that
+                owns each layer's fan-out (EP209); None keeps the local pool.
+            cost_fn: optional `(step) -> float` latency/cost estimate used to order
+                a ready layer cheapest-first (EP248); None keeps graph order.
 
         Returns:
             WorkflowResult with step-by-step results
@@ -883,7 +916,19 @@ class WorkflowEngine:
         errors: list[str] = []
         outputs: dict[str, Any] = {}
 
+        pending_mutations: list[dict[str, Any]] = []
+        mutations_lock = threading.Lock()
+        applied: list[dict[str, Any]] = []
+        plan_order: dict[str, list[str]] = {}
+
         for layer in layers:
+            # EP248: a caller-supplied cost estimator orders a ready layer
+            # cheapest-first. With no estimator the layer keeps the graph's order
+            # exactly -- and none is invented here, because the latency model this
+            # row asks for does not exist in this tree yet.
+            if cost_fn is not None:
+                layer = self._cost_ordered(layer, step_map, cost_fn)
+            plan_order[str(len(plan_order) + 1)] = list(layer)
             # Execute steps in this layer in parallel using ThreadPoolExecutor
             results_lock = threading.Lock()
 
@@ -914,6 +959,10 @@ class WorkflowEngine:
                         }
                         success_count += 1
                         outputs[step_id] = result
+                        if isinstance(result, dict):
+                            for mut in result.get("mutations") or []:
+                                if isinstance(mut, dict):
+                                    pending_mutations.append(mut)
                 except Exception as e:
                     note_failure("workflow:L851", e)
                     with results_lock:
@@ -925,8 +974,15 @@ class WorkflowEngine:
                         failure_count += 1
                         errors.append(f"Step '{step_id}' failed: {e}")
 
-            with ThreadPoolExecutor(max_workers=min(len(layer), 8)) as executor:
-                fut_map = {executor.submit(_run_step, sid): sid for sid in layer}
+            # EP209: a supplied scheduler schedules this layer as ONE unit; the
+            # local pool still opens (and runs nothing) so the timeout path below
+            # stays exactly as it is for the default case.
+            _delegated = scheduler is not None
+            if _delegated:
+                scheduler(layer, _run_step, step_map, errors)
+            with ThreadPoolExecutor(max_workers=1 if _delegated else min(len(layer), 8)) as executor:
+                fut_map = {executor.submit(_run_step, sid): sid
+                           for sid in ([] if _delegated else layer)}
                 try:
                     for fut in as_completed(fut_map, timeout=300):
                         # _run_step handles its own exceptions and updates shared state via lock
@@ -937,6 +993,12 @@ class WorkflowEngine:
                         if not fut.done():
                             fut.cancel()
                             errors.append(f"Step '{sid}' timed out after 300s")
+
+            # EP44: repairs induced by this layer's react_drive steps become real
+            # steps for the NEXT iteration of this loop (appended to `layers`), so
+            # a plan repair executes instead of being reported and dropped.
+            applied.extend(self._apply_mutations(
+                pending_mutations, mutations_lock, step_map, layers))
 
         duration_ms = (time.perf_counter() - start) * 1000
 
@@ -952,6 +1014,8 @@ class WorkflowEngine:
             skipped_count=skipped_count,
             errors=errors,
             outputs=outputs,
+            plan_order=plan_order,
+            plan_mutations=applied,
             success=failure_count == 0,
         )
 
@@ -983,6 +1047,81 @@ class WorkflowEngine:
                 self._history = self._history[-50:]
 
         return result
+
+    # -- EP209 / EP248 / EP44 host seams -----------------------------
+
+    def submit_workflow(self, workflow: Workflow, executor: Any):
+        """Schedule the WHOLE workflow as one unit on a caller-supplied executor.
+
+        The schedulable unit is the workflow -- it carries its own dependency
+        resolution and its own failure boundary -- rather than a bare task. This
+        hands that unit to anything exposing `.submit(fn)` (`WorkStealingPool`,
+        `AgentPool`, a `ThreadPoolExecutor`) and returns that executor's Future
+        verbatim, so the caller keeps its own cancellation and result handling.
+        """
+        if executor is None or not hasattr(executor, "submit"):
+            raise ValueError(
+                "submit_workflow requires an executor exposing .submit(fn)")
+        return executor.submit(self.execute, workflow)
+
+    def _cost_ordered(self, layer: list[str], step_map: dict[str, WorkflowStep],
+                      cost_fn: Any) -> list[str]:
+        """Order one ready layer cheapest-first from a CALLER-supplied estimator.
+
+        The Monte-Carlo latency model this row asks for does not exist in this
+        tree, so the engine accepts an estimator instead of inventing one: a
+        caller passes `cost_fn(step) -> float` and the layer is ordered by it. A
+        step whose cost cannot be computed is NOT guessed at -- it keeps its graph
+        position among the unmeasured, which is why the sort key is a triple.
+        """
+        positions = {sid: idx for idx, sid in enumerate(layer)}
+
+        def _key(sid: str):
+            try:
+                return (0, float(cost_fn(step_map[sid])), positions[sid])
+            except Exception as exc:
+                note_failure("workflow:cost-fn", exc)
+                return (1, 0.0, positions[sid])
+
+        return sorted(layer, key=_key)
+
+    def _apply_mutations(self, pending: list, lock: Any,
+                         step_map: dict[str, WorkflowStep],
+                         layers: list[list[str]]) -> list:
+        """Materialise react_drive plan repairs into the graph as steps that RUN.
+
+        `structured_action` states the hand-off contract in its own docstring: the
+        engine applies the returned `mutations`. Applying them means an inserted
+        node becomes a real step in the next layer rather than a field nobody
+        reads -- and an id that already exists is SKIPPED, never overwritten,
+        because a repair must not silently replace a declared step.
+        """
+        with lock:
+            incoming = list(pending)
+            pending.clear()
+
+        applied: list = []
+        new_ids: list[str] = []
+        for mut in incoming:
+            if not isinstance(mut, dict):
+                note_failure("workflow:plan-mutation-not-a-dict", None)
+                continue
+            step_id = str(mut.get("step") or "").strip()
+            if not step_id or step_id in step_map:
+                note_failure("workflow:plan-mutation-skipped", None)
+                continue
+            step_map[step_id] = WorkflowStep(
+                id=step_id,
+                action="log",
+                params={"message": "react-plan-repair: %s (because %s)" % (
+                    mut.get("insert", "?"), mut.get("because") or "unspecified")},
+            )
+            new_ids.append(step_id)
+            applied.append(mut)
+
+        if new_ids:
+            layers.append(new_ids)
+        return applied
 
     # -- Status ------------------------------------------------------
 

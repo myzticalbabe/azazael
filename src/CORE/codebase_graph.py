@@ -10,6 +10,7 @@ import json
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, List
 
@@ -41,6 +42,42 @@ class GraphEdge:
     source: str
     target: str
     kind: str = "imports"
+
+
+@dataclass
+class MapConsultation:
+    """Act-time answer to "what does the map already know about this target?".
+
+    EP237 (map-before-act) needs the *act-time* stage, not more map substrate:
+    the graph, the atlas and the drift check already ship. A consultation is the
+    thing an execution layer (L4) reads before it acts -- what the target imports,
+    what imports the target, and whether it sits in a cycle -- plus whatever the
+    map could not answer, stated as a note rather than left as a silent miss.
+    """
+
+    target: str
+    found: bool
+    node_id: str = ""
+    path: str = ""
+    dependencies: list[str] = field(default_factory=list)
+    dependents: list[str] = field(default_factory=list)
+    cycle: list[str] = field(default_factory=list)
+    consulted_at: str = ""
+    notes: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """JSON-serialisable form, so a caller can record the consultation."""
+        return {
+            "target": self.target,
+            "found": self.found,
+            "node_id": self.node_id,
+            "path": self.path,
+            "dependencies": list(self.dependencies),
+            "dependents": list(self.dependents),
+            "cycle": list(self.cycle),
+            "consulted_at": self.consulted_at,
+            "notes": list(self.notes),
+        }
 
 
 class CodebaseGraph:
@@ -156,6 +193,78 @@ class CodebaseGraph:
         for node in nodes:
             self.nodes[node.node_id] = node
         self.edges.update(edges)
+
+    def resolve(self, target: str) -> GraphNode | None:
+        """Find the node a caller means by a path, a module id, or a stem.
+
+        Returns ``None`` rather than a best guess when the name is ambiguous:
+        acting on the wrong node is worse than reporting that the map cannot
+        decide.
+        """
+        if not target:
+            return None
+        normalised = target.replace("\\", "/").strip()
+        if normalised.endswith(".py"):
+            # Case-insensitive, because a caller's path may carry a differently
+            # cased drive letter than ``root.as_posix()`` reports; only the tail
+            # below the root is compared, so the case of the root prefix is noise.
+            prefixes = (self.root.as_posix() + "/", str(self.root).replace("\\", "/") + "/")
+            for prefix in prefixes:
+                if normalised.lower().startswith(prefix.lower()):
+                    normalised = normalised[len(prefix):]
+                    break
+            for node in self.nodes.values():
+                if node.kind == "module" and node.path == normalised:
+                    return node
+        exact = self.nodes.get(normalised)
+        if exact is not None:
+            return exact
+        suffix = "." + normalised
+        matches = [node for node_id, node in sorted(self.nodes.items())
+                   if node_id.endswith(suffix)
+                   or (node.kind == "module" and node.label == normalised)]
+        return matches[0] if len(matches) == 1 else None
+
+    def _near_matches(self, target: str, limit: int = 5) -> list[str]:
+        """Node ids whose text contains the target's stem, for a miss's note."""
+        stem = Path(target.replace("\\", "/")).stem.lower()
+        if not stem:
+            return []
+        return sorted(node_id for node_id in self.nodes if stem in node_id.lower())[:limit]
+
+    def consult(self, target: str, consulted_at: str | None = None) -> MapConsultation:
+        """Answer what the map knows about ``target``; never raises on a miss."""
+        stamp = consulted_at or datetime.now(timezone.utc).isoformat()
+        node = self.resolve(target)
+        if node is None:
+            notes = ["target not present in the map"]
+            near = self._near_matches(target)
+            if near:
+                notes.append("closest node ids: " + ", ".join(near))
+            elif self.parse_errors:
+                notes.append("map carries %d unparsed file(s); the target may be one"
+                             % len(self.parse_errors))
+            return MapConsultation(target=target, found=False, consulted_at=stamp, notes=notes)
+        import_edges = [edge for edge in self.edges if edge.kind == "imports"]
+        dependencies = sorted({edge.target for edge in import_edges if edge.source == node.node_id})
+        dependents = sorted({edge.source for edge in import_edges if edge.target == node.node_id})
+        cycles = [cycle for cycle in self.cycles() if node.node_id in cycle]
+        notes: list[str] = []
+        if cycles:
+            notes.append("target sits in an import cycle of %d node(s)" % len(cycles[0]))
+        if node.kind == "module" and not dependencies:
+            notes.append("map shows no outgoing import edges")
+        return MapConsultation(
+            target=target,
+            found=True,
+            node_id=node.node_id,
+            path=node.path,
+            dependencies=dependencies,
+            dependents=dependents,
+            cycle=sorted(cycles[0]) if cycles else [],
+            consulted_at=stamp,
+            notes=notes,
+        )
 
     def cycles(self) -> list[list[str]]:
         """Return strongly connected components containing import cycles."""

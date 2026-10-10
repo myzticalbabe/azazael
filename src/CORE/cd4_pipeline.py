@@ -1,26 +1,5 @@
 # coding: utf-8
 """
-
-
-__all__ = [
-    "DEFAULT_BUILD_SCRIPT",
-    "DEFAULT_PATCH_SCRIPT",
-    "DEFAULT_SRC_DIR",
-    "DEFAULT_TESTS_DIR",
-    "NUITKA_AVAILABLE",
-    "NUITKA_VERSION",
-    "NuitkaBuildPipeline",
-    "STAGE_COMPILATION",
-    "STAGE_INTERPRETED",
-    "STAGE_VALIDATION",
-    "get_nuitka_incompatible_items",
-    "get_pipeline",
-    "load_build_manifest",
-    "register_nuitka_marker",
-    "run_pipeline",
-    "validate_build_manifest",
-]
-
 cd4_pipeline.py -- CD4 Multi-Stage CI Pipeline Module
 
 Cross-Domain: CD4 (Nuitka + Testing)
@@ -51,6 +30,28 @@ Usage:
     # See register_nuitka_marker() for the pytest_configure hook.
 """
 
+#: Declared here, OUTSIDE the docstring: `__all__` written inside a module
+#: docstring is inert text -- it is never assigned, so `from ... import *`
+#: silently fell back to every public name.
+__all__ = [
+    "DEFAULT_BUILD_SCRIPT",
+    "DEFAULT_PATCH_SCRIPT",
+    "DEFAULT_SRC_DIR",
+    "DEFAULT_TESTS_DIR",
+    "NUITKA_AVAILABLE",
+    "NUITKA_VERSION",
+    "NuitkaBuildPipeline",
+    "STAGE_COMPILATION",
+    "STAGE_INTERPRETED",
+    "STAGE_VALIDATION",
+    "get_nuitka_incompatible_items",
+    "get_pipeline",
+    "load_build_manifest",
+    "register_nuitka_marker",
+    "run_pipeline",
+    "validate_build_manifest",
+]
+
 import os
 import sys
 import time
@@ -67,19 +68,60 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-# -- Nuitka availability detection -----------------------------------
-NUITKA_AVAILABLE = False
-NUITKA_VERSION = ""
-try:
-    result = subprocess.run(
-        [sys.executable, "-m", "nuitka", "--version"],
-        capture_output=True, text=True, timeout=10
+# -- Nuitka availability detection (LAZY) -----------------------------
+# These two names are deliberately NOT assigned at module level: probing Nuitka
+# means spawning `python -m nuitka --version`, which costs seconds, and doing it
+# on import made every importer pay it -- including tests/conftest.py's marker
+# registration, i.e. every pytest startup. `__getattr__` below keeps both names
+# importable while deferring the probe to first ACCESS, cached for the process.
+_NUITKA_PROBE: (dict[str, Any] | None) = None
+_NUITKA_PROBE_TIMEOUT = 10
+
+
+def _detect_nuitka(timeout: int = _NUITKA_PROBE_TIMEOUT) -> dict[str, Any]:
+    """Probe Nuitka once, on demand, and cache the verdict for the process.
+
+    Returns:
+        {"available": bool, "version": str, "probed": bool}. `probed` is False
+        only when the probe itself could not run, which is a different claim
+        from "Nuitka is not installed" -- see NUITKA_AVAILABLE.
+    """
+    global _NUITKA_PROBE
+    if _NUITKA_PROBE is not None:
+        return _NUITKA_PROBE
+    available = False
+    version = ""
+    probed = False
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "nuitka", "--version"],
+            capture_output=True, text=True, timeout=timeout,
+        )
+        probed = True
+        if result.returncode == 0:
+            available = True
+            version = result.stdout.strip()
+    except Exception as exc:
+        # A probe that could not run is recorded, not silently folded into
+        # "Nuitka is missing" -- `probed` keeps the two apart.
+        note_failure("cd4_pipeline:_detect_nuitka", exc)
+    _NUITKA_PROBE = {"available": available, "version": version,
+                     "probed": probed}
+    return _NUITKA_PROBE
+
+
+def __getattr__(name: str) -> Any:
+    """PEP 562: keep NUITKA_AVAILABLE / NUITKA_VERSION importable, but lazy.
+
+    A `from CORE.cd4_pipeline import NUITKA_AVAILABLE` still resolves; it just
+    resolves by probing now rather than at import time.
+    """
+    if name in ("NUITKA_AVAILABLE", "NUITKA_VERSION"):
+        info = _detect_nuitka()
+        return info["available"] if name == "NUITKA_AVAILABLE" else info["version"]
+    raise AttributeError(
+        "module %r has no attribute %r" % (__name__, name)
     )
-    if result.returncode == 0:
-        NUITKA_AVAILABLE = True
-        NUITKA_VERSION = result.stdout.strip()
-except Exception:
-    note_failure("cd4_pipeline:L72", None)
 
 
 # ====================================================================
@@ -231,8 +273,10 @@ class NuitkaBuildPipeline:
     Attributes:
         project_root  - Project root directory
         dry_run       - If True, simulate all stages without Nuitka
-        nuitka_available - Whether Nuitka is installed
-        nuitka_version  - Nuitka version string (if available)
+        nuitka_available - Whether Nuitka is installed. Lazy property: the
+                           probe runs on first READ, never at import or at
+                           construction.
+        nuitka_version  - Nuitka version string (if available), lazy as above
         stages        - Results of each stage after run_all_stages()
     """
 
@@ -243,6 +287,7 @@ class NuitkaBuildPipeline:
         src_dir: str = DEFAULT_SRC_DIR,
         tests_dir: str = DEFAULT_TESTS_DIR,
         build_target: (str | None) = None,
+        nuitka_info: (dict[str, Any] | None) = None,
     ):
         """Initialize the CI pipeline.
 
@@ -253,6 +298,10 @@ class NuitkaBuildPipeline:
             tests_dir: Test directory relative to project root.
             build_target: Specific build target name. If None, runs
                           manifest validation instead of full build.
+            nuitka_info: Optional pre-computed {"available", "version"} dict.
+                          When supplied, no Nuitka probe is ever attempted,
+                          which is what keeps tests and dry runs fast and
+                          deterministic.
         """
         self.project_root = os.path.abspath(
             project_root or _find_project_root()
@@ -262,12 +311,54 @@ class NuitkaBuildPipeline:
         self.tests_dir = os.path.join(self.project_root, tests_dir)
         self.build_target = build_target
 
-        self.nuitka_available = NUITKA_AVAILABLE
-        self.nuitka_version = NUITKA_VERSION
+        # Nuitka availability is resolved on first READ (the properties below),
+        # not here: constructing a pipeline -- a dry run, or a test that only
+        # wants the manifest -- must not pay the probe. `nuitka_info` supplies
+        # a verdict outright; None means "probe when actually asked".
+        self._nuitka_info: (dict[str, Any] | None) = (
+            dict(nuitka_info) if nuitka_info is not None else None
+        )
         self.stages: dict[str, Any] = {}
 
         # Runtime tracking
         self._start_time = 0.0
+
+    # -- Nuitka availability (lazy) --------------------------------------
+
+    def _nuitka_status(self) -> dict[str, Any]:
+        """Availability dict, probed once on first read and then cached."""
+        if self._nuitka_info is None:
+            self._nuitka_info = _detect_nuitka()
+        return self._nuitka_info
+
+    def _nuitka_override(self) -> dict[str, Any]:
+        """The status dict for an explicit SET, without triggering a probe.
+
+        An assignment is the caller stating the verdict; probing here would
+        both waste the call and let the probe overwrite what was just set.
+        """
+        if self._nuitka_info is None:
+            self._nuitka_info = {"available": False, "version": "",
+                                 "probed": False}
+        return self._nuitka_info
+
+    @property
+    def nuitka_available(self) -> bool:
+        """Whether Nuitka is installed (triggers the probe on first read)."""
+        return bool(self._nuitka_status()["available"])
+
+    @nuitka_available.setter
+    def nuitka_available(self, value: bool) -> None:
+        self._nuitka_override()["available"] = bool(value)
+
+    @property
+    def nuitka_version(self) -> str:
+        """Nuitka version string, or "" when unavailable (lazy, as above)."""
+        return str(self._nuitka_status()["version"])
+
+    @nuitka_version.setter
+    def nuitka_version(self, value: str) -> None:
+        self._nuitka_override()["version"] = str(value)
 
     def _stage_result(
         self,
@@ -496,24 +587,51 @@ class NuitkaBuildPipeline:
             Stage result dict with:
                 passed    - True if compiled tests pass (or dry-run)
                 skip_count - Number of nuitka_incompatible tests skipped
+
+        A LIVE run with no compiled artifacts returns passed=False and
+        details["stage_3_verdict"] == "NOT_RUN_NO_ARTIFACTS": a stage that
+        cannot run must not be foldable into a passing pipeline.
         """
         self._start_time = time.time()
         dist_dir = compiled_dir or os.path.join(
             self.project_root, "azazael.dist"
         )
+        dist_exists = os.path.isdir(dist_dir)
 
-        if self.dry_run or not os.path.isdir(dist_dir):
+        if self.dry_run:
             return self._stage_result(
                 STAGE_VALIDATION, True,
                 f"[DRY-RUN] Stage 3 simulated. "
-                f"Compiled dir: {dist_dir if os.path.isdir(dist_dir) else 'N/A'}",
+                f"Compiled dir: {dist_dir if dist_exists else 'N/A'}",
                 {
                     "compiled_dir": dist_dir,
-                    "compiled_dir_exists": os.path.isdir(dist_dir),
+                    "compiled_dir_exists": dist_exists,
                     "dry_run": True,
                     "note": (
                         "In real mode, runs pytest against compiled "
                         "artifacts with nuitka_incompatible tests skipped"
+                    ),
+                },
+            )
+
+        # LIVE mode with nothing compiled. This used to fall into the branch
+        # above and return passed=True with a "[DRY-RUN] Stage 3 simulated"
+        # summary, which run_all_stages folded into all_passed -- so a live
+        # pipeline could report ALL PASSED having validated no artifact at all.
+        # An unrunnable stage is a failure, and it names what was missing.
+        if not dist_exists:
+            return self._stage_result(
+                STAGE_VALIDATION, False,
+                f"Stage 3 cannot run: no compiled artifacts at {dist_dir}",
+                {
+                    "compiled_dir": dist_dir,
+                    "compiled_dir_exists": False,
+                    "dry_run": False,
+                    "stage_3_verdict": "NOT_RUN_NO_ARTIFACTS",
+                    "note": (
+                        "Nothing was validated. Run Stage 2 (or pass "
+                        "compiled_dir) before treating this pipeline as "
+                        "passing."
                     ),
                 },
             )

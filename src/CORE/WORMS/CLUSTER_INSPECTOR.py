@@ -503,12 +503,24 @@ class ClusterInspector:
                 json.dump(report, f, indent=2)
             print(f"Report saved: {report_file}")
 
+            self._last_report = report
             return report
         except Exception as e:
             note_failure("CLUSTER_INSPECTOR:L492", e)
-            return {"status": "error", "error": str(e)[:200], "root": str(self.root)}
+            self._last_report = {"status": "error", "error": str(e)[:200],
+                                 "root": str(self.root)}
+            return self._last_report
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "ClusterInspector"}
+        # Summarise the inspection that actually ran. `run()` records it; with
+        # no record there is nothing to report but the absence of one.
+        report = getattr(self, "_last_report", None)
+        if report is None:
+            return {"worm": "ClusterInspector", "status": "not_run",
+                    "run_recorded": False}
+        status = report.get("status", "unknown") if isinstance(report, dict) else "unknown"
+        return {"worm": "ClusterInspector", "status": status,
+                "run_recorded": True,
+                "report_file": str(self.root / "CLUSTER_INSPECTION_REPORT.json")}
 
 
 

@@ -170,7 +170,22 @@ class CertMonitor:
         """Get certificates expiring within N days."""
         return [c for c in self._certs.values() if 0 < c.get("expires_in_days", -1) <= days]
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "CertMonitor"}
+        # Report the certificates actually checked: "OK" over an empty store
+        # describes a monitor that never ran as a healthy one.
+        with self._lock:
+            certs = dict(self._certs)
+        if not certs:
+            return {"worm": "CertMonitor", "status": "not_run",
+                    "checked": 0, "run_recorded": False}
+        invalid = sorted(k for k, c in certs.items()
+                         if not c.get("valid", False))
+        expiring = sorted(k for k, c in certs.items()
+                          if 0 < c.get("expires_in_days", -1) <= 30)
+        return {"worm": "CertMonitor",
+                "status": "invalid" if invalid else "checked",
+                "checked": len(certs), "run_recorded": True,
+                "invalid": invalid[:10],
+                "expiring_within_30d": len(expiring)}
 
 
 

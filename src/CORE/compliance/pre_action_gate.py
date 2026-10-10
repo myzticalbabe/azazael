@@ -12,6 +12,7 @@ CORE.compliance.orchestrator.
 """
 
 import ast
+import fnmatch
 import inspect
 import json
 import os
@@ -161,6 +162,19 @@ def reset_telemetry_state() -> None:
             inst._edit_count = 0
 
 
+def _capability_match(pattern: str, action: str, filepath: str) -> bool:
+    """Match an "action:path" grant pattern; a bare action grants any path.
+
+    Backslashes are normalised to "/" (via chr(92)) so one authority table
+    is portable between the Windows host and the WSL mirror.
+    """
+    pat_action, sep, pat_path = pattern.partition(":")
+    if not sep:
+        return fnmatch.fnmatch(action, pat_action)
+    return (fnmatch.fnmatch(action, pat_action)
+            and fnmatch.fnmatch(filepath.replace(chr(92), "/"), pat_path))
+
+
 class PreActionGate:
     """Gatekeeper for file mutations to prevent catastrophic indentation loss.
 
@@ -187,6 +201,14 @@ class PreActionGate:
         self._edit_count = _state["edit_count"]
         self._parallel_batch_count = _state["parallel_batch_count"]
         self._sequential_spawn_count = _state["sequential_spawn_count"]
+        # EP269 (Agent libOS): the rule engine was called with a hardcoded
+        # role="developer" literal -- a fixed subject that could not be denied
+        # anything, because no task-authority concept existed anywhere. These
+        # fields are that concept's host. Empty grants is the FAIL-OPEN state:
+        # install nothing and the gate behaves exactly as it did before.
+        self.subject = "developer"
+        self.task: str | None = None
+        self._capability_grants: dict[str, List[str]] = {}
 
     # ------------------------------------------------------------------
     # Call-stack validation (v2 — Jun 17, 2026)
@@ -870,6 +892,87 @@ class PreActionGate:
             out["subquestions"] = fallback
         return out
 
+    def install_capabilities(self, grants: dict, subject: str | None = None,
+                             task: str | None = None) -> dict[str, Any]:
+        """Install the EP269 task-authority table (subject -> action:path).
+
+        The libOS row's missing symbol was a task-authority concept: the gate
+        could already deny, but every subject held every action and the subject
+        itself was a hardcoded role=developer literal. This is the grant side
+        of that concept, installed at the choke point every edit already
+        passes through.
+
+        Installing a table is the ONLY way to deny on capability; with none
+        installed `authorize` allows everything, so the default gate is
+        unchanged. A malformed entry installs NOTHING -- a half-applied
+        authority table is worse than none -- and names the gap instead.
+
+        Returns {"ok", "subjects", "grants", "gaps"}.
+        """
+        gaps: List[str] = []
+        clean: dict[str, List[str]] = {}
+        if subject is not None:
+            self.subject = str(subject)
+        if task is not None:
+            self.task = str(task)
+        for subj, patterns in (grants or {}).items():
+            key = str(subj).strip()
+            if not key:
+                gaps.append("empty-subject")
+                continue
+            if isinstance(patterns, str):
+                patterns = [patterns]
+            if not isinstance(patterns, (list, tuple)):
+                gaps.append("not-a-list:" + key)
+                continue
+            pats = [str(p).strip() for p in patterns if str(p).strip()]
+            if not pats:
+                gaps.append("no-patterns:" + key)
+                continue
+            clean[key] = pats
+        if gaps:
+            return {"ok": False,
+                    "subjects": sorted(self._capability_grants),
+                    "grants": sum(len(v) for v in
+                                  self._capability_grants.values()),
+                    "gaps": gaps}
+        with self._lock:
+            self._capability_grants = clean
+        return {"ok": True, "subjects": sorted(clean),
+                "grants": sum(len(v) for v in clean.values()), "gaps": []}
+
+    def authorize(self, subject: str | None = None, action: str | None = None,
+                  filepath: str | None = None) -> tuple[bool, str]:
+        """EP269: does `subject` hold a grant for `action` on `filepath`?
+
+        Fail-open by construction: with no table installed, or on any error,
+        the answer is True -- exactly the pre-EP269 behaviour. A deny needs a
+        table AND a subject whose patterns all miss, so installing nothing can
+        never reject an edit.
+
+        A pattern is "action:path" (fnmatch wildcards in either half) or a bare
+        "*"; a pattern with no colon grants that action on any path.
+        """
+        subj = str(self.subject if subject is None else subject)
+        act = str(action or "")
+        path = str(filepath or "")
+        try:
+            grants = self._capability_grants
+            if not grants:
+                return True, ""
+            patterns = grants.get(subj)
+            if patterns is None:
+                return False, "subject %r holds no task authority" % subj
+            for pattern in patterns:
+                if pattern.strip() == "*" or _capability_match(
+                        pattern.strip(), act, path):
+                    return True, ""
+            return False, ("subject %r holds no grant for %s on %s"
+                           % (subj, act or "any action", path or "any path"))
+        except Exception as exc:   # noqa: BLE001 - an authority check fails OPEN
+            note_failure("pre_action_gate:authorize", exc)
+            return True, ""
+
     def _check_rule_0x_0y(self, action: str, filepath: str,
                            source_code: (str | None) = None) -> tuple[bool, str]:
         """Run mandatory RULE 0X + 0Y compliance check before any edit.
@@ -897,6 +1000,19 @@ class PreActionGate:
         Returns:
             (True, "") if passed, (False, reason) if denied
         """
+        # EP269 (Agent libOS): authority is checked at the choke point, before
+        # the machinery -- an unheld capability is a deny, not a warning. With
+        # no table installed `authorize` returns True, so this is a no-op and
+        # every pre-existing failure reason below is still reached unchanged.
+        cap_ok, cap_reason = self.authorize(action=action, filepath=filepath)
+        if not cap_ok:
+            self._emit("capability_check", "denied", {
+                "action": action, "filepath": filepath,
+                "subject": self.subject, "task": self.task,
+                "reason": cap_reason,
+            })
+            return False, "RULE 0X/0Y DENIED (capability): " + cap_reason
+
         # Lazy-init orchestrator on first call (avoids module-load import bug)
         if self.orchestrator is None:
             if _lazy_import_orchestrator():
@@ -924,7 +1040,7 @@ class PreActionGate:
 
             result = self.orchestrator.check_all(
                 action=action,
-                role="developer",
+                role=self.subject,
                 context=context,
             )
 

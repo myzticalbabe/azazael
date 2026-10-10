@@ -49,20 +49,56 @@ def _note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
 
 
+def _as_float(value: Any) -> float:
+    """A task's numeric field as float. Unusable input is 0.0, never a raise."""
+    if isinstance(value, bool):
+        return float(value)          # bool is an int subclass; keep it explicit
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(str(value).strip())
+    except (TypeError, ValueError) as exc:
+        _note_failure("dispatch_plan:task-magnitude", exc)
+        return 0.0
+
+
 # -- Helium: DAG plan modeling ------------------------------------------------
-def plan_dag(tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+def plan_dag(tasks: List[Dict[str, Any]], *,
+             split_on_capability: bool = False,
+             tool_boundaries: Dict[str, str] | None = None) -> Dict[str, Any]:
     """Model a dispatch as a DAG and topologically order it (Helium steal).
 
-    tasks: [{"id" (required, non-empty), "deps" (optional list of ids)}].
+    tasks: [{"id" (required, non-empty), "deps" (optional list of ids),
+             "complexity" (optional number), "priority" (optional number),
+             "capabilities" (optional list of tool/capability names)}].
 
     Returns {"order", "levels" ({id: depth}), "valid", "gaps"} — valid iff
     every dep names a known task and the graph is acyclic. Gaps name what's
     wrong (repair targets): "task missing id", "duplicate-task:<id>",
     "unknown-dep:<task>:<dep>", "cycle-detected(...)".
+
+    Two SOTA-row additions, each inert unless asked for:
+
+    * "complexity" / "priority" ({id: number}, 0.0 when undeclared) and
+      "ready_order": within each `levels` tier, tasks ordered by descending
+      priority then descending complexity, ties broken by `order`. `order`
+      itself is NEVER reordered by them, so every existing caller keeps its
+      one behaviour while a learner/router host (EP130, EP197) reads the
+      signal instead of re-deriving granularity from `levels` alone.
+    * split_on_capability=True splits any task whose `capabilities` span more
+      than one tool boundary into one sub-task per boundary
+      ("<id>#<boundary>", each inheriting the original deps) plus a join under
+      the original id that depends on all of them; the split is reported in
+      "fissions". That is EP374's atomic fission: a node crossing a tool
+      boundary is two nodes, not one. tool_boundaries maps capability ->
+      boundary name; an unmapped capability is its own boundary.
     """
     gaps: List[str] = []
     ids: List[str] = []
     deps_of: Dict[str, List[str]] = {}
+    complexity: Dict[str, float] = {}
+    priority: Dict[str, float] = {}
+    capabilities: Dict[str, List[str]] = {}
     for t in tasks or []:
         tid = str((t or {}).get("id", "")).strip()
         if not tid:
@@ -74,10 +110,46 @@ def plan_dag(tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
         ids.append(tid)
         raw = (t or {}).get("deps", []) or []
         deps_of[tid] = [str(d).strip() for d in raw if str(d).strip()]
+        complexity[tid] = _as_float((t or {}).get("complexity"))
+        priority[tid] = _as_float((t or {}).get("priority"))
+        caps = (t or {}).get("capabilities", []) or []
+        capabilities[tid] = [str(c).strip() for c in caps if str(c).strip()]
     for tid in ids:
         for dep in deps_of[tid]:
             if dep not in deps_of:
                 gaps.append(f"unknown-dep:{tid}:{dep}")
+
+    # -- EP374: fission a task that crosses a tool boundary (opt-in) --------
+    # A task declaring capabilities in more than one boundary becomes one
+    # sub-task per boundary plus a join under its own id, so the join keeps
+    # the original dependency position and every existing reader of `order`
+    # still sees the id it knows.
+    fissions: List[Dict[str, Any]] = []
+    if split_on_capability:
+        boundaries = dict(tool_boundaries or {})
+        for tid in list(ids):
+            groups: List[str] = []
+            for cap in capabilities.get(tid) or []:
+                bound = str(boundaries.get(cap, cap))
+                if bound not in groups:
+                    groups.append(bound)
+            if len(groups) < 2:
+                continue                    # one boundary: nothing to split
+            inherited = list(deps_of.get(tid) or [])
+            subs = [f"{tid}#{bound}" for bound in groups]
+            for sub, bound in zip(subs, groups):
+                deps_of[sub] = list(inherited)
+                complexity[sub] = complexity.get(tid, 0.0)
+                priority[sub] = priority.get(tid, 0.0)
+                capabilities[sub] = [
+                    cap for cap in capabilities.get(tid) or []
+                    if str(boundaries.get(cap, cap)) == bound]
+            deps_of[tid] = list(subs)       # the original id becomes the join
+            complexity[tid] = 0.0
+            at = ids.index(tid)
+            ids[at + 1:at + 1] = subs
+            fissions.append({"task": tid, "boundaries": groups,
+                             "subtasks": subs, "join": tid})
 
     # Kahn's algorithm over known edges only.
     indegree = {tid: 0 for tid in ids}
@@ -103,8 +175,24 @@ def plan_dag(tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
         gaps.append(f"cycle-detected({','.join(stuck)})")
     for tid in ids:
         levels.setdefault(tid, 0)
+
+    # -- EP130/EP197: a within-tier readiness signal the hosts can act on ---
+    position = {tid: i for i, tid in enumerate(order)}
+    tiers: Dict[int, List[str]] = {}
+    for tid in order:
+        tiers.setdefault(levels.get(tid, 0), []).append(tid)
+    ready_order: List[str] = []
+    for depth in sorted(tiers):
+        ready_order.extend(sorted(
+            tiers[depth],
+            key=lambda t: (-priority.get(t, 0.0), -complexity.get(t, 0.0),
+                           position.get(t, 0))))
     return {"order": order, "levels": levels,
-            "valid": not gaps, "gaps": gaps}
+            "valid": not gaps, "gaps": gaps,
+            "complexity": {t: complexity.get(t, 0.0) for t in order},
+            "priority": {t: priority.get(t, 0.0) for t in order},
+            "ready_order": ready_order,
+            "fissions": fissions}
 
 
 # -- Common-subgraph elimination ----------------------------------------------
@@ -228,23 +316,45 @@ def record_dispatch_plan(name: str, result: Dict[str, Any]) -> str:
 # -- Agora: role pools + affinity scheduling (P2b slice 2) ----------------------
 def assign_roles(order: List[str],
                  task_roles: Dict[str, str],
-                 role_pools: Dict[str, str]) -> Dict[str, Any]:
+                 role_pools: Dict[str, Any],
+                 participation: Dict[str, float] | None = None) -> Dict[str, Any]:
     """Pool dispatch tasks by role with affinity scheduling (Agora steal).
 
     order: task ids in execution order (a plan_dag "order").
     task_roles: {task: role} (inference vs orchestration vs tools, ...).
-    role_pools: {role: pool} (cores pooled by role).
+    role_pools: {role: pool} (cores pooled by role). A role may instead map to
+    a LIST of candidate pools; a single string keeps behaving exactly as
+    before, and a list with no `participation` prior picks its first entry.
+    participation: optional learned-participation prior {pool: weight}, e.g.
+    summed Thompson posteriors. When supplied it selects among a role's
+    candidate pools (highest weight; ties by declared order) instead of
+    always taking the first — EP253's learned participation replacing the
+    static map. Pools absent from the prior weigh 0.0.
 
-    Returns {"assignment" ({task: {"role", "pool"}}), "pools"
-    ({pool: [tasks in order]}), "locality_hits" (adjacent same-pool pairs —
-    affinity preserved, no pool switch), "valid", "gaps"}. Gaps:
-    "unassigned-task:<t>" (no role), "role-for-unknown-task:<t>" (role for
-    a task outside the order), "no-pool-for-role:<role>".
+    Returns {"assignment" ({task: {"role", "pool"}}, plus "prior" per task
+    iff a prior was supplied), "pools" ({pool: [tasks in order]}),
+    "locality_hits" (adjacent same-pool pairs — affinity preserved, no pool
+    switch), "pool_weights" ({pool: weight} for pools actually used),
+    "prior_used" (True iff the prior changed at least one choice), "valid",
+    "gaps"}. Gaps: "unassigned-task:<t>" (no role),
+    "role-for-unknown-task:<t>" (role for a task outside the order),
+    "no-pool-for-role:<role>".
     """
     order = [str(t) for t in (order or [])]
     in_order = set(order)
     task_roles = {str(k): str(v).strip() for k, v in (task_roles or {}).items()}
-    role_pools = {str(k): str(v).strip() for k, v in (role_pools or {}).items()}
+    candidates: Dict[str, List[str]] = {}
+    for key, value in (role_pools or {}).items():
+        role = str(key).strip()
+        if isinstance(value, (list, tuple, set)):
+            pools = [str(p).strip() for p in value if str(p).strip()]
+        else:
+            single = str(value).strip()
+            pools = [single] if single else []
+        candidates[role] = pools
+    prior = {str(k).strip(): _as_float(v)
+             for k, v in (participation or {}).items()}
+    prior_used = False
     gaps: List[str] = []
     assignment: Dict[str, Dict[str, Any]] = {}
     for t in task_roles:
@@ -256,10 +366,20 @@ def assign_roles(order: List[str],
             gaps.append(f"unassigned-task:{t}")
             assignment[t] = {"role": "", "pool": ""}
             continue
-        pool = role_pools.get(role, "")
-        if not pool:
+        available = candidates.get(role) or []
+        if not available:
             gaps.append(f"no-pool-for-role:{role}")
-        assignment[t] = {"role": role, "pool": pool}
+            assignment[t] = {"role": role, "pool": ""}
+            continue
+        if prior:
+            chosen = max(range(len(available)),
+                         key=lambda i: (prior.get(available[i], 0.0), -i))
+            pool = available[chosen]
+            prior_used = prior_used or chosen != 0
+            assignment[t] = {"role": role, "pool": pool,
+                             "prior": prior.get(pool, 0.0)}
+            continue
+        assignment[t] = {"role": role, "pool": available[0]}
     pools: Dict[str, List[str]] = {}
     for t in order:
         pool = assignment[t]["pool"] or "unpooled"
@@ -267,8 +387,10 @@ def assign_roles(order: List[str],
     pools_seq = [assignment[t]["pool"] for t in order]
     locality_hits = sum(1 for a, b in zip(pools_seq, pools_seq[1:])
                         if a and a == b)
+    pool_weights = {pool: prior.get(pool, 0.0) for pool in pools} if prior else {}
     return {"assignment": assignment, "pools": pools,
             "locality_hits": locality_hits,
+            "pool_weights": pool_weights, "prior_used": prior_used,
             "valid": not gaps, "gaps": gaps}
 
 

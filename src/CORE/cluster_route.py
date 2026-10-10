@@ -3,6 +3,13 @@
 
 Stdlib-first so CPU box stays testable; uses sklearn/hdbscan/optuna
 when present, else deterministic fallbacks.
+
+EP223 (2026-10-10): the rescore found that this module, `cascade.py` and
+`allocation.ThompsonAllocator` each decide SEPARATELY, so the host edit is one
+policy over their joint action space. This file now exposes its action space as
+data (`action_space`) and accepts an externally-supplied suggestion source, so
+that joint policy can drive it. The policy itself is not here -- it spans the
+other two files.
 """
 from typing import List
 
@@ -71,14 +78,64 @@ def proto_route(query, protos: dict):
     return min(protos, key=lambda w: d(query, protos[w]))
 
 
-def tpe_lite_suggest(trials, bounds: dict, n_candidates: int = 24):
+def _clamp(values: dict, bounds: dict) -> dict:
+    """Clamp `values` into `bounds`, filling a missing key with its midpoint.
+
+    Holds the local path's return contract (one entry per bound) even when an
+    external policy supplies only the keys it has an opinion about, and refuses
+    a non-numeric value by recording it rather than letting it propagate.
+    """
+    out = {}
+    for k, (lo, hi) in bounds.items():
+        raw = values.get(k, (lo + hi) / 2.0)
+        try:
+            out[k] = min(hi, max(lo, float(raw)))
+        except (TypeError, ValueError) as exc:
+            note_failure("cluster_route:_clamp/%s" % k, exc)
+            out[k] = (lo + hi) / 2.0
+    return out
+
+
+def action_space(bounds: dict, n_candidates: int = 24) -> dict:
+    """Describe this router's action space as data (EP223).
+
+    A single policy over the joint action space of `cluster_route`, `cascade`
+    and `allocation` has to know what each router can choose and what it hands
+    back. This is that description -- data, not a new module.
+    """
+    return {
+        "router": "cluster_route.tpe_lite_suggest",
+        "strategy": "tpe_lite",
+        "returns": "params",
+        "n_candidates": int(n_candidates),
+        "selection": "sample-around-top-quartile",
+        "params": {k: {"lo": float(lo), "hi": float(hi)}
+                   for k, (lo, hi) in bounds.items()},
+    }
+
+
+def tpe_lite_suggest(trials, bounds: dict, n_candidates: int = 24, suggest=None):
     """Multivariate-lite TPE: split top-25% good, sample around best.
 
     trials: [(params_dict, score)]. bounds: {k: (lo, hi)}.
     Returns suggested params dict. Optuna used when present (caller opt-in).
+
+    `suggest` (EP223) lets an external joint policy drive this router. It is
+    called as ``suggest(list(bounds), dict(bounds), n_candidates)`` and its dict
+    is clamped into `bounds`. Absent, or unusable, the local sampler runs
+    exactly as before -- the default path is unchanged.
     """
     import random
     rng = random.Random(0)
+    if suggest is not None:
+        try:
+            external = suggest(list(bounds.keys()), dict(bounds), int(n_candidates))
+        except Exception as exc:
+            note_failure("cluster_route:tpe_lite_suggest/external-raised", exc)
+        else:
+            if isinstance(external, dict) and external:
+                return _clamp(external, bounds)
+            note_failure("cluster_route:tpe_lite_suggest/external-unusable", None)
     if not trials:
         return {k: rng.uniform(*v) for k, v in bounds.items()}
     try:

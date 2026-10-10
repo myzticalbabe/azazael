@@ -22,6 +22,13 @@ induces and updates the plan" was missing -- the reasoning-trace controller.
 `drive()` is that controller. It is LLM-free: the caller supplies cognition
 through `thought_fn` and this module supplies the loop, the validation, and the
 plan repair.
+
+The plan that gets repaired is held by `workflow.py :: WorkflowEngine` /
+`DependencyGraph`, which owns the node set and the execution order — so the EP44
+host edit is a CALL PATH, not more reasoning: the engine calls
+`drive_for_workflow_step()` and applies the returned `mutations` to its graph.
+This module never imports the engine (the host imports us); inverting that edge
+would trade one call for a cycle.
 """
 
 from typing import Any, Dict, List
@@ -237,3 +244,57 @@ def record_reasoning_trace(app: str, result: Dict[str, Any]) -> str:
     except Exception as exc:                          # noqa: BLE001 - ledger best-effort
         _note_failure("structured_action:reasoning-cite", exc)
     return citation
+
+
+# -- EP44 host hand-off: the engine applies these, we never import the engine -------
+def plan_mutations(result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Turn a `drive()` result's plan updates into engine-appliable insertions (EP44).
+
+    `drive()` induces and repairs the plan; the graph that HOLDS the plan lives
+    in `workflow.py :: WorkflowEngine` / `DependencyGraph`. This is the whole
+    hand-off surface: one entry per recorded update, in the order they
+    happened, each naming the step to insert and the gap that justifies it.
+
+    Returns [{"after": int, "insert": str, "because": str, "step": str}] where
+    `after` is the 0-based ReAct step index the insertion happened at and `step`
+    is a node name the engine can use. A clean run legitimately yields [].
+
+    A malformed update is RECORDED and skipped, never raised: the caller is an
+    executor that must not die on one bad row.
+    """
+    out: List[Dict[str, Any]] = []
+    for idx, upd in enumerate((result or {}).get("updates") or []):
+        if not isinstance(upd, dict):
+            _note_failure("structured_action:plan-mutation-not-a-dict", None)
+            continue
+        insert = str(upd.get("inserted", "") or "").strip()
+        if not insert:
+            _note_failure("structured_action:plan-mutation-without-insert", None)
+            continue
+        try:
+            at = int(upd.get("at", -1))
+        except (TypeError, ValueError) as exc:
+            _note_failure("structured_action:plan-mutation-noninteger-at", exc)
+            at = -1
+        out.append({"after": at, "insert": insert,
+                    "because": str(upd.get("because", "") or ""),
+                    "step": f"react-{idx}:{insert}"})
+    return out
+
+
+def drive_for_workflow_step(app: str, plan: List[str], contract: Dict[str, Any],
+                            required_keys: List[str], thought_fn: Any,
+                            max_steps: int = 12,
+                            cite: bool = True) -> Dict[str, Any]:
+    """`drive()` plus the two things an engine STEP needs (EP44 host entry).
+
+    Same contract as `drive()`. Adds `mutations` (what the graph applies) and,
+    when `cite` is true, `citation` (the hash-chained trace verdict), so an
+    executing step records its reasoning without importing the audit module
+    itself. Returns drive()'s dict plus {"mutations": [...], "citation": str}.
+    """
+    result = dict(drive(app, plan, contract, required_keys, thought_fn,
+                        max_steps))
+    result["mutations"] = plan_mutations(result)
+    result["citation"] = record_reasoning_trace(app, result) if cite else ""
+    return result

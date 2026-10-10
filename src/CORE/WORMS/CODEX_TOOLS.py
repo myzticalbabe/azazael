@@ -118,7 +118,15 @@ class CainAnalyzerWorm:
                 "worm": "CainAnalyzerWorm",
             }
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "CainAnalyzerWorm"}
+        # Truthful readiness, not an assumed outcome: this worm keeps no run
+        # record, so it cannot report one. A hardcoded "OK" here made a worm
+        # that had never executed indistinguishable from a successful one.
+        return {
+            "worm": "CainAnalyzerWorm",
+            "status": "ready" if self._analyzer_ok else "unavailable",
+            "module_importable": self._analyzer_ok,
+            "run_recorded": False,
+        }
 
 
 
@@ -178,7 +186,15 @@ class AutoDownloaderWorm:
                 "worm": "AutoDownloaderWorm",
             }
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "AutoDownloaderWorm"}
+        # Same correction as CainAnalyzerWorm: report the readiness this worm
+        # actually holds (its backing module's importability) instead of
+        # asserting success for a run that may never have happened.
+        return {
+            "worm": "AutoDownloaderWorm",
+            "status": "ready" if self._downloader_ok else "unavailable",
+            "module_importable": self._downloader_ok,
+            "run_recorded": False,
+        }
 
 
 

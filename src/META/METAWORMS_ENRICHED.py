@@ -57,30 +57,14 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
-try:
-    pass
-
-    OPTIMIZ_AVAILABLE = True
-except ImportError:
-    note_failure("METAWORMS_ENRICHED:L55", None)
-    OPTIMIZ_AVAILABLE = False
-
-try:
-    pass
-
-    HEALTHZ_AVAILABLE = True
-except ImportError:
-    note_failure("METAWORMS_ENRICHED:L62", None)
-    HEALTHZ_AVAILABLE = False
-
-
-try:
-    pass
-
-    TRIMZ_AVAILABLE = True
-except ImportError:
-    note_failure("METAWORMS_ENRICHED:L70", None)
-    TRIMZ_AVAILABLE = False
+#: REMOVED 2026-10-10 (no-op gate sweep): three `try: pass / <NAME>_AVAILABLE = True`
+#: blocks for OPTIMIZ / HEALTHZ / TRIMZ. The import statement in each had been
+#: replaced by `pass`, so every flag was unconditionally True and its
+#: `except ImportError` branch was unreachable -- a guard that could never fail.
+#: The flags had no reader anywhere in the tree (measured: every occurrence was an
+#: assignment), and this module never referenced the three modules. They are alive
+#: and are imported BY NAME in HYDRAMETA.py, so nothing here was load-bearing.
+#: Restore a real `import OPTIMIZ` only if this module starts using one.
 
 
 # ANSI Color codes for rich output

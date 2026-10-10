@@ -1,19 +1,19 @@
 {
- "generated_at": "2026-10-10T16:15:32.283023",
+ "generated_at": "2026-10-10T19:45:06.767472",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
-  "dispatched": 58,
-  "pending": 108
+  "dispatched": 61,
+  "pending": 110
  },
- "total": 169,
+ "total": 174,
  "declared": {
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 277,
+   "line": 343,
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -21,6 +21,25 @@
    "status": "pending",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
+  },
+  "allocation:ThompsonAllocator.ingest_outcome": {
+   "module": "allocation",
+   "qualname": "ThompsonAllocator.ingest_outcome",
+   "line": 276,
+   "seg": "def ingest_outcome(self, arm: str, outcome: str) -> \"Tuple[bool, float]\":\n        \"\"\"EP253/EP187: reward-ingest path for callers that speak outcome names.\n\n        Routes the outcome through `reward_for_outcome` (so an unknown string\n        still fails closed) and records it via `update`. Returns the\n        (success, weight) actually applied, so a caller can log what the arm\n        was credited with instead of assuming it.\n        \"\"\"\n        ok, w = reward_for_outcome(outcome)\n        self.update(arm, success=ok, weight=w)\n        return ok, w",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+  },
+  "allocation:joint_action_space": {
+   "module": "allocation",
+   "qualname": "joint_action_space",
+   "line": 354,
+   "seg": "def joint_action_space(*allocators, name: str = \"joint\") -> Dict[str, object]:\n    \"\"\"EP223: compose several allocators into ONE discrete action space.\n\n    Each action is prefixed `\"<name>:<arm>\"` so it can be dispatched back to\n    the allocator that owns it (`owners` maps action -> the index of the\n    allocator passed in), which is what a single joint policy over\n    `cluster_route` / `cascade` / this module needs. Priors are renormalised\n    across the union so they stay a distribution. Read-only: `action_space()`\n    does not mutate.\n\n    Two allocators may name the same arm. That is not a collision to drop: the\n    first owner keeps the bare `\"<name>:<arm>\"` and a later owner's duplicate\n    is qualified `\"<name>:<index>:<arm>\"`, so every arm of every allocator\n    stays in the set and stays dispatchable through `owners`. Skipping the\n    duplicate would silently delete that arm's prior and any contribution\n    credited to it - a dropped arm is indistinguishable from one that never\n    earned anything, which is exactly the blindness this set exists to end.\n    \"\"\"\n    actions: List[str] = []\n    priors: Dict[str, float] = {}\n    owners: Dict[str, int] = {}\n    for idx, alloc in enumerate(allocators):\n        space = alloc.action_space()\n        for arm in space[\"actions\"]:\n            key = \"%s:%s\" % (name, arm)\n            if key in priors:\n                key = \"%s:%d:%s\" % (name, idx, arm)\n            suffix = 2\n            while key in priors:\n                key = \"%s:%d:%s#%d\" % (name, idx, arm, suffix)\n                suffix += 1\n            actions.append(key)\n            priors[key] = float(space[\"priors\"].get(arm, 0.0))\n            owners[key] = idx\n    total = sum(priors.values()) or 1.0\n    return {\n        \"kind\": \"discrete\",\n        \"source\": name,\n        \"actions\": actions,\n        \"n_actions\": len(actions),\n        \"priors\": {k: v / total for k, v in priors.items()},\n        \"owners\": owners,\n    }",
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/allocation.py:40), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/allocation.py:40"
+   ]
   },
   "axon:LatencyCompensatorWorm.compensate": {
    "decider": "dead_candidate",
@@ -61,7 +80,7 @@
   "backup:CheckpointWorm.restore_checkpoint": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 215,
+   "line": 225,
    "module": "backup",
    "qualname": "CheckpointWorm.restore_checkpoint",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -294,18 +313,6 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
-  "consolidation:SharpWaveReplayWorm.replay_batch": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
-   "line": 54,
-   "module": "consolidation",
-   "qualname": "SharpWaveReplayWorm.replay_batch",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def replay_batch(self, n: int = 8) -> dict[str, Any]:\n        with self._lock:\n            batch = self._queue[:n]\n            self._queue = self._queue[n:]\n            self._replayed += len(batch)\n            return {\"success\": True, \"batch\": [b[\"mem\"] for b in batch],\n                    \"replayed\": self._replayed, \"remaining\": len(self._queue)}",
-   "status": "pending",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": []
-  },
   "consolidation:SleepConsolidatorWorm.sleep_cycle": {
    "decider": "dead_candidate",
    "decider_evidence": [],
@@ -322,7 +329,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1185"
    ],
-   "line": 164,
+   "line": 182,
    "module": "container",
    "qualname": "ImageAuditor.audit_image",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1127), so a static caller cannot exist; wire it explicitly or delete it",
@@ -334,7 +341,7 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:539",
     "src/CORE/worm_registry.py:1173"
    ],
-   "line": 197,
+   "line": 215,
    "module": "container",
    "qualname": "RegistryPoller.check_latest",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
@@ -346,7 +353,7 @@
     "src/CORE/WORMS/CLUSTERWORMS.py:539",
     "src/CORE/worm_registry.py:1173"
    ],
-   "line": 228,
+   "line": 246,
    "module": "container",
    "qualname": "ResourceQuotaWatch.check_usage",
    "reason": "only production reference is a string literal (src/CORE/WORMS/CLUSTERWORMS.py:389, src/CORE/worm_registry.py:1115), so a static caller cannot exist; wire it explicitly or delete it",
@@ -356,7 +363,7 @@
   "container:ResourceQuotaWatch.set_quota": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 224,
+   "line": 242,
    "module": "container",
    "qualname": "ResourceQuotaWatch.set_quota",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -500,10 +507,13 @@
   "engram:run_read_driven_consolidation": {
    "module": "engram",
    "qualname": "run_read_driven_consolidation",
-   "line": 770,
+   "line": 778,
    "seg": "def run_read_driven_consolidation(router=None, dream_items=None,\n                                  index=None) -> dict:\n    \"\"\"No-argument-callable form of EP235's loop closure (restored).\n\n    Exists so a caller (or a boundary) can close the recall -> write loop with\n    one call and no setup. Fail-open: returns a dict carrying the error rather\n    than raising, so a read path is never broken by bookkeeping.\n    \"\"\"\n    try:\n        return DreamConsolidatorWorm().consolidate_from_reads(\n            router=router, dream_items=dream_items, index=index)\n    except Exception as exc:\n        note_failure(\"engram:read-driven-consolidation\", exc)\n        return {\"success\": False, \"error\": f\"{type(exc).__name__}: {exc}\"}",
-   "status": "pending",
-   "reason": ""
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/technique_runtime.py:403), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/technique_runtime.py:403"
+   ]
   },
   "error_recovery:ErrorRecoveryOrchestrator.reset_circuit": {
    "decider": "test_is_the_wire",
@@ -802,13 +812,29 @@
     "tests/test_learning_worms.py:611"
    ]
   },
+  "learning_grpo:GRPOTrainer.ingest_replay_trajectory": {
+   "module": "learning_grpo",
+   "qualname": "GRPOTrainer.ingest_replay_trajectory",
+   "line": 376,
+   "seg": "def ingest_replay_trajectory(self, trajectory: dict, source: str = \"\") -> dict:\n        \"\"\"Admit one recorded trajectory as a replayed prefix (EP350).\n\n        \"Training without live environments\" needs the recorded decision\n        prefix, not the environment: a trajectory is the sequence of\n        (context_key, worm, reward) triples a real run already produced. An\n        unusable trajectory reports accepted=False with its reason, so a\n        caller cannot mistake an empty ingest for a stored prefix.\n        \"\"\"\n        steps = []\n        for raw in (trajectory or {}).get(\"steps\", []) or []:\n            if not isinstance(raw, dict) or not raw.get(\"worm\"):\n                continue\n            steps.append({\"context_key\": str(raw.get(\"context_key\", \"default\")),\n                          \"worm\": str(raw[\"worm\"]),\n                          \"reward\": float(raw.get(\"reward\", 0.0))})\n        if not steps:\n            return {\"accepted\": False, \"reason\": \"no usable steps\",\n                    \"n_buffered\": len(self._replay)}\n        with self._lock:\n            self._replay.append({\"source\": str(source), \"steps\": steps,\n                                 \"timestamp\": time.time()})\n            self._replay = self._replay[-200:]\n            n = len(self._replay)\n        return {\"accepted\": True, \"n_steps\": len(steps), \"n_buffered\": n}",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+  },
+  "learning_grpo:GRPOTrainer.replay_offline_step": {
+   "module": "learning_grpo",
+   "qualname": "GRPOTrainer.replay_offline_step",
+   "line": 407,
+   "seg": "def replay_offline_step(self, prefix: dict | None = None) -> dict:\n        \"\"\"Update the policy from a replayed prefix - no environment runs.\n\n        Steps are grouped by context_key and each group goes through the\n        ordinary update_policy, so the offline path reuses the live one\n        rather than forking a second trainer whose gradient nothing compares.\n        \"\"\"\n        if prefix is None:\n            buffered = self.replay_batch(1)\n            prefix = buffered[0] if buffered else None\n        if not prefix:\n            return {\"updated\": False, \"reason\": \"no buffered prefix\"}\n        by_ctx: dict[str, list[dict]] = {}\n        for step in prefix.get(\"steps\", []) or []:\n            by_ctx.setdefault(step.get(\"context_key\", \"default\"), []).append(step)\n        results = {}\n        for ctx, steps in by_ctx.items():\n            results[ctx] = self.update_policy(\n                [s[\"worm\"] for s in steps],\n                [float(s.get(\"reward\", 0.0)) for s in steps],\n                context_key=ctx)\n        return {\"updated\": True, \"contexts\": results,\n                \"n_steps\": sum(len(s) for s in by_ctx.values())}",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+  },
   "learning_pipeline:DataPipelineWorm.ablate_sources": {
    "module": "learning_pipeline",
    "qualname": "DataPipelineWorm.ablate_sources",
    "line": 694,
-   "seg": "def ablate_sources(self, sources: list | None = None,\n                       exclude_variants: list | None = None) -> Dict[str, Any]:\n        \"\"\"Ablation harness: measured composition over source variants (EP318).\n\n        Runs extract_from_memory once per exclude-set variant and reports\n        per-variant record counts. The DOWNSTREAM metric half (which variant\n        trains better) stays deferred: training comparison needs the\n        orchestrator loop, not the pipeline \u2014 the harness measures the\n        composition axis the metric would read.\n        \"\"\"\n        variants = list(exclude_variants or [[]])\n        rows: Dict[str, Any] = {}\n        for ex in variants:\n            try:\n                recs = self.extract_from_memory(\n                    source=sources if isinstance(sources, str) else None,\n                    limit=200,\n                    exclude_sources=list(ex or []))\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = len(recs or [])\n            except Exception as exc:\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = (\n                    f\"error:{type(exc).__name__}\")\n        return {\"variants\": rows, \"n_variants\": len(rows),\n                \"composition_axis\": \"exclude_sources parameterized\"}",
+   "seg": "def ablate_sources(self, sources: list | None = None,\n                       exclude_variants: list | None = None) -> Dict[str, Any]:\n        \"\"\"Ablation harness: measured composition over source variants (EP318).\n\n        Runs extract_from_memory once per exclude-set variant and reports\n        per-variant record counts. The DOWNSTREAM metric half (which variant\n        trains better) stays deferred: training comparison needs the\n        orchestrator loop, not the pipeline \u2014 the harness measures the\n        composition axis the metric would read.\n        \"\"\"\n        variants = list(exclude_variants or [[]])\n        rows: Dict[str, Any] = {}\n        for ex in variants:\n            try:\n                recs = self.extract_from_memory(\n                    source=sources if isinstance(sources, str) else None,\n                    limit=200,\n                    exclude_sources=list(ex or []))\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = len(recs or [])\n            except Exception as exc:\n                note_failure(\"expansion/learning_pipeline:713\", exc)\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = (\n                    f\"error:{type(exc).__name__}\")\n        return {\"variants\": rows, \"n_variants\": len(rows),\n                \"composition_axis\": \"exclude_sources parameterized\"}",
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
    "decider": "test_is_the_wire",
@@ -964,7 +990,7 @@
     "tests/test_learning_evolution.py:97",
     "tests/test_learning_evolution.py:108"
    ],
-   "line": 223,
+   "line": 224,
    "module": "learning_replay",
    "qualname": "PrioritizedReplayBuffer.add_from_memories",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1028,9 +1054,9 @@
    "module": "learning_versioner",
    "qualname": "pareto_retain",
    "line": 240,
-   "seg": "def pareto_retain(candidates, metrics_key=\"metrics\"):\n    \"\"\"Pareto retention filter over version candidates (EP234, set half).\n\n    candidates: [{..., metrics: {obj: float}}], all objectives maximized.\n    Returns {\"retained\", \"dominated\"} (version strings). Wiring this into\n    register_model as the retention predicate (collapsing EP228/EP234/EP462)\n    stays deferred: admission policy needs coordinator approval.\n    \"\"\"\n    vecs = {}\n    for c in candidates or []:\n        m = (c or {}).get(metrics_key, {}) or {}\n        try:\n            vecs[str(c.get(\"version\", \"?\"))] = [float(v) for v in m.values()]\n        except (TypeError, ValueError):\n            continue\n    names = list(vecs)\n    retained: list = []\n    dominated: list = []\n    for a in names:\n        beaten = False\n        for b in names:\n            if a == b or len(vecs[b]) != len(vecs[a]) or not vecs[a]:\n                continue\n            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))\n                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):\n                beaten = True\n                break\n        (dominated if beaten else retained).append(a)\n    return {\"retained\": retained, \"dominated\": dominated}",
+   "seg": "def pareto_retain(candidates, metrics_key=\"metrics\"):\n    \"\"\"Pareto retention filter over version candidates (EP234, set half).\n\n    candidates: [{..., metrics: {obj: float}}], all objectives maximized.\n    Returns {\"retained\", \"dominated\"} (version strings). Wiring this into\n    register_model as the retention predicate (collapsing EP228/EP234/EP462)\n    stays deferred: admission policy needs coordinator approval.\n    \"\"\"\n    vecs = {}\n    for c in candidates or []:\n        m = (c or {}).get(metrics_key, {}) or {}\n        try:\n            vecs[str(c.get(\"version\", \"?\"))] = [float(v) for v in m.values()]\n        except (TypeError, ValueError) as exc:\n            note_failure(\"expansion/learning_versioner:253\", exc)\n            continue\n    names = list(vecs)\n    retained: list = []\n    dominated: list = []\n    for a in names:\n        beaten = False\n        for b in names:\n            if a == b or len(vecs[b]) != len(vecs[a]) or not vecs[a]:\n                continue\n            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))\n                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):\n                beaten = True\n                break\n        (dominated if beaten else retained).append(a)\n    return {\"retained\": retained, \"dominated\": dominated}",
    "status": "pending",
-   "reason": ""
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
   },
   "loom:NoveltyDrive.novelty_weight": {
    "decider": "test_is_the_wire",
@@ -1085,7 +1111,7 @@
     "tests/test_neural_advancement.py:220",
     "tests/test_neural_advancement.py:226"
    ],
-   "line": 941,
+   "line": 1165,
    "module": "meta_cognition",
    "qualname": "MetaCognitionWorm.compute_cross_worm_correlation",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1098,10 +1124,21 @@
     "tests/test_neural_advancement.py:226"
    ]
   },
+  "meta_cognition:MetaCognitionWorm.recent_dialectics": {
+   "module": "meta_cognition",
+   "qualname": "MetaCognitionWorm.recent_dialectics",
+   "line": 848,
+   "seg": "def recent_dialectics(self, limit: int = 5) -> list[dict[str, Any]]:\n        \"\"\"The last few exchanges, so the channel has a reader (not write-only).\"\"\"\n        with self._lock:\n            return [dict(d) for d in self._dialectics[-limit:]]",
+   "status": "dispatched",
+   "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/meta_cognition.py:928), so a static caller cannot exist; wire it explicitly or delete it",
+   "evidence": [
+    "src/CORE/WORMS/expansion/meta_cognition.py:928"
+   ]
+  },
   "meta_cognition:internalize": {
    "module": "meta_cognition",
    "qualname": "internalize",
-   "line": 64,
+   "line": 83,
    "seg": "def internalize(observation: dict[str, Any], *, worm: str = \"global\",\n                persist: bool = False, store: Any = None) -> dict[str, Any]:\n    \"\"\"Run analyse -> recommend -> adapt over one observation (EP435).\n\n    EP435's fourth phase is Internalize (Explore -> Evaluate -> Reflect ->\n    Internalize). This engine already had Evaluate (`analyze_patterns`), Reflect\n    (`recommend_from_evidence`) and Adapt (`adapt_strategy`) -- and nothing ran\n    the three in sequence, so the technique existed as parts with no chain. This\n    is that chain, in one fail-open call.\n\n    The confidence gate is the engine's own `ADOPT_CONFIDENCE`: a recommendation\n    below it is REPORTED but not adopted, so a self-test invocation cannot churn\n    the active strategy on thin evidence.\n\n    Read-mostly by default: `persist=False` builds the engine with persistence\n    disabled, so running this from a self-test never writes a live store. A\n    caller that wants the adaptation remembered passes `persist=True` (or an\n    explicit `store`).\n\n    Args:\n        observation: {\"worm_type\", \"action\", \"outcome\" (required keys of the\n            observe contract), plus optional \"context\", \"duration_ms\",\n            \"error\".\n        worm: fallback worm_type when the observation omits one.\n        persist: allow the engine to read/write persistent state.\n        store: an explicit memory store (overrides `persist`).\n\n    Returns:\n        dict with the chain's verdict: error_rate, recommended, confidence,\n        adopted, strategy, reason. On failure: {\"error\", \"adopted\": False}.\n    \"\"\"\n    try:\n        engine = MetaCognitionWorm(\n            memory_store=(store if store is not None\n                          else (None if persist else _PERSISTENCE_DISABLED)))\n        obs = dict(observation or {})\n        target = str(obs.get(\"worm_type\") or worm)\n        engine.observe(\n            worm_type=target,\n            action=str(obs.get(\"action\", \"unknown\")),\n            outcome=str(obs.get(\"outcome\", \"success\")),\n            context=obs.get(\"context\") or {},\n            duration_ms=float(obs.get(\"duration_ms\", 0.0) or 0.0),\n            error=obs.get(\"error\"),\n        )\n        analysis = engine.analyze_patterns(worm_type=target)\n        rec = engine.recommend_from_evidence(target)\n        recommended = rec.get(\"recommended\")\n        confidence = float(rec.get(\"confidence\", 0.0) or 0.0)\n        adopted = False\n        if recommended and confidence >= engine.ADOPT_CONFIDENCE:\n            engine.adapt_strategy(worm_type=target, recommended=recommended,\n                                  confidence=confidence)\n            adopted = True\n        return {\"engine\": \"meta_cognition\", \"worm_type\": target,\n                \"error_rate\": analysis.get(\"error_rate\"),\n                \"recommended\": recommended, \"confidence\": confidence,\n                \"adopted\": adopted,\n                \"strategy\": engine.get_current_strategy(target),\n                \"reason\": rec.get(\"reason\")}\n    except Exception as exc:\n        note_failure(\"meta_cognition:L110\", exc)\n        return {\"error\": f\"{type(exc).__name__}: {exc}\", \"adopted\": False}",
    "status": "pending",
    "reason": "Kept pending: EP435 analyse-recommend-adapt chain, read-mostly, fail-open; needs a production caller.",
@@ -1294,7 +1331,7 @@
   "profiling:CPUFlameProfiler.to_flamegraph_data": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 226,
+   "line": 236,
    "module": "profiling",
    "qualname": "CPUFlameProfiler.to_flamegraph_data",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1331,7 +1368,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1188"
    ],
-   "line": 179,
+   "line": 189,
    "module": "profiling",
    "qualname": "GILContentionProbe.measure_contention",
    "reason": "only production reference is a string literal (src/CORE/WORMS/NATURE_CLUSTERS.py:994, src/CORE/worm_registry.py:1130), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1342,7 +1379,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1186"
    ],
-   "line": 161,
+   "line": 171,
    "module": "profiling",
    "qualname": "IOBottleneckFinder.detect_bottleneck",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1128), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1353,7 +1390,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1195"
    ],
-   "line": 123,
+   "line": 133,
    "module": "profiling",
    "qualname": "MemoryLeakDetector.compare_snapshots",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1137), so a static caller cannot exist; wire it explicitly or delete it",
@@ -1435,7 +1472,7 @@
    "decider_evidence": [
     "tests/test_scheduling.py:205"
    ],
-   "line": 216,
+   "line": 459,
    "module": "scheduling",
    "qualname": "ScheduledTrainingWorm._get_ab",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1446,12 +1483,20 @@
     "tests/test_scheduling.py:205"
    ]
   },
+  "scheduling:ScheduledTrainingWorm.record_contribution": {
+   "module": "scheduling",
+   "qualname": "ScheduledTrainingWorm.record_contribution",
+   "line": 534,
+   "seg": "def record_contribution(self, arm: str, outcome: str,\n                            weight: (float | None) = None) -> Dict[str, Any]:\n        \"\"\"EP187 \u2014 feed one cycle outcome back into the allocation policy.\n\n        `allocation.py` owns the mechanism and is consumed, not reimplemented:\n        `reward_for_outcome` maps the outcome onto (success, weight) and\n        `ThompsonAllocator` keeps the Beta posteriors. This republishes the\n        resulting posterior means as `config.contribution_weights` \u2014 the field\n        `next_interval_hours` reads \u2014 so the value has a source and the field has\n        a reader. On any failure the weights are returned unchanged: a telemetry\n        hiccup must not silently re-time the schedule.\n        \"\"\"\n        current = dict(getattr(self.config, \"contribution_weights\", None) or {})\n        alloc = self._get_allocator(seed=str(arm))\n        if alloc is None:\n            return current\n        try:\n            from CORE.WORMS.expansion.allocation import reward_for_outcome\n            ok, w = reward_for_outcome(outcome)\n            if weight is not None:\n                w = float(weight)\n            alloc.update(str(arm), success=ok, weight=w)\n            self.config.contribution_weights = {\n                str(a): float(v) for a, v in alloc.weights().items()}\n            return dict(self.config.contribution_weights)\n        except Exception as e:\n            note_failure(\"scheduling:record-contribution\", e)\n            return current",
+   "status": "pending",
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+  },
   "scheduling:TrainingOrchestrator.get_run_history": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
     "tests/test_training_orchestrator.py:95"
    ],
-   "line": 1140,
+   "line": 1520,
    "module": "scheduling",
    "qualname": "TrainingOrchestrator.get_run_history",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1490,7 +1535,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1198"
    ],
-   "line": 210,
+   "line": 225,
    "module": "security",
    "qualname": "FirewallAudit.find_overly_permissive",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1140), so a static caller cannot exist; wire it explicitly or delete it",

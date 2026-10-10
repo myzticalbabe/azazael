@@ -29,6 +29,7 @@ Version: 1.0.0
 """
 
 import os
+import shutil
 import subprocess
 import time
 import logging
@@ -47,13 +48,18 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-try:
-    pass
-
-    ADB_AVAILABLE = True
-except ImportError:
-    note_failure("azazael_wsa:L45", None)
-    ADB_AVAILABLE = False
+#: True when the `adb` BINARY this client shells out to can be located. Replaced
+#: `try: pass / ADB_AVAILABLE = True` (2026-10-10 no-op gate sweep): the import
+#: statement had been replaced by `pass`, so the flag was permanently True and the
+#: `if not ADB_AVAILABLE` guard in WSAClient.__init__ could never fire. The
+#: dependency is the executable (see _find_adb / _run_adb_command), NOT the
+#: `adb_shell` package the old warning named. Covers PATH plus the two Android
+#: roots _find_adb consults first.
+ADB_AVAILABLE = shutil.which("adb") is not None or any(
+    (Path(os.environ[root]) / sub / "adb").exists()
+    for root in ("ANDROID_HOME", "ANDROID_SDK_ROOT") if os.environ.get(root)
+    for sub in ("", "platform-tools")
+)
 
 try:
     import psutil
@@ -139,7 +145,8 @@ class WSAClient:
 
         if not ADB_AVAILABLE:
             logger.warning(
-                "ADB shell not installed. Install with: pip install adb-shell"
+                "adb executable not found on PATH or under ANDROID_HOME/"
+                "ANDROID_SDK_ROOT - install the Android platform-tools package"
             )
 
         if not PSUTIL_AVAILABLE:

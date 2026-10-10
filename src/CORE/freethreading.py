@@ -525,6 +525,12 @@ class WorkStealingPool:
             futures = [pool.submit(task_fn, arg) for arg in args]
             # Collect results
             results = pool.results()
+
+    A plan's independent branches are ONE unit, submitted and aggregated together:
+        with WorkStealingPool(num_workers=8) as pool:
+            gid = pool.submit_group([(task_fn, (branch,), {}) for branch in levels])
+            pool.wait_group(gid)
+            aggregate = pool.group_results(gid)   # ordered by branch index
     """
 
     num_workers: int = 0
@@ -545,6 +551,15 @@ class WorkStealingPool:
     _steals_failed: int = field(default=0, init=False, repr=False)
     _steal_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
 
+    # Grouped units of work (EP130 / EP209 / EP248). A group is a set of
+    # independent branches submitted as ONE schedulable unit: the plan's depth
+    # levels, which the pool previously could not express -- a caller had to
+    # flatten them into unrelated submits and re-associate them by hand.
+    _groups: Dict[str, List[int]] = field(default_factory=dict, init=False, repr=False)
+    _group_done: Dict[str, int] = field(default_factory=dict, init=False, repr=False)
+    _group_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
+    _group_seq: int = field(default=0, init=False, repr=False)
+
     def __post_init__(self):
         if self.num_workers <= 0:
             self.num_workers = os.cpu_count() or 8
@@ -559,6 +574,9 @@ class WorkStealingPool:
         self._total_completed = 0
         self._steals_succeeded = 0
         self._steals_failed = 0
+        self._groups = {}
+        self._group_done = {}
+        self._group_seq = 0
 
         for i in range(self.num_workers):
             t = threading.Thread(
@@ -582,7 +600,8 @@ class WorkStealingPool:
 
     # -- Submit --------------------------------------------------
 
-    def submit(self, fn: Callable, *args, **kwargs) -> int:
+    def submit(self, fn: Callable, *args, _group_id: Optional[str] = None,
+               _branch: Optional[int] = None, **kwargs) -> int:
         """Submit a task to the pool.
 
         Tasks are distributed round-robin across worker queues.
@@ -599,12 +618,113 @@ class WorkStealingPool:
             "fn": fn,
             "args": args,
             "kwargs": kwargs,
+            "group_id": _group_id,
+            "branch": _branch,
         })
         return task_id
 
     def submit_all(self, tasks: List[Tuple[Callable, tuple, dict]]) -> List[int]:
         """Submit multiple tasks at once. Returns list of task IDs."""
         return [self.submit(fn, *args, **kwargs) for fn, args, kwargs in tasks]
+
+    # -- Grouped units of work (EP130 / EP209 / EP248) --------------
+
+    def _next_group_id(self) -> str:
+        """Sequence group ids under the group lock. Call BEFORE taking it."""
+        with self._group_lock:
+            self._group_seq += 1
+            return f"grp-{self._group_seq}"
+
+    def submit_group(self, items: List[Tuple[Callable, tuple, dict]], *,
+                     group_id: Optional[str] = None) -> str:
+        """Submit ONE schedulable unit: a group of independent branches.
+
+        A plan's independent branches -- the per-node depth levels `plan_dag`
+        returns -- are one unit of work, so they are submitted together and
+        aggregated together rather than as unrelated tasks. Grouping TAGS the
+        tasks: round-robin distribution, work-stealing and execution are
+        untouched, and an ungrouped `submit()` behaves exactly as before.
+
+        `items` is the same `[(fn, args, kwargs), ...]` shape `submit_all`
+        accepts. Returns the group id. A group with no members is created and
+        is immediately complete: a plan may legitimately have zero independent
+        branches, so an empty unit is REPORTED (total=0) rather than raised on,
+        and it is never confused with an unknown group id.
+        """
+        gid = group_id if group_id is not None else self._next_group_id()
+        with self._group_lock:
+            if gid in self._groups:
+                raise ValueError(
+                    f"group_id {gid!r} already exists in this pool; submitting a "
+                    f"second unit under one id would silently merge the two")
+            self._groups[gid] = []
+            self._group_done[gid] = 0
+
+        for branch, (fn, args, kwargs) in enumerate(items):
+            task_id = self.submit(fn, *args, _group_id=gid, _branch=branch,
+                                  **(kwargs or {}))
+            with self._group_lock:
+                self._groups[gid].append(task_id)
+        return gid
+
+    def wait_group(self, group_id: str, timeout: Optional[float] = None) -> bool:
+        """Block until every branch of `group_id` completed. True if it did."""
+        with self._group_lock:
+            if group_id not in self._groups:
+                raise KeyError(f"unknown group_id {group_id!r}")
+            total = len(self._groups[group_id])
+        deadline = time.time() + timeout if timeout else float('inf')
+        while time.time() < deadline:
+            with self._group_lock:
+                done = self._group_done.get(group_id, 0)
+            if done >= total:
+                return True
+            time.sleep(0.01)
+        return False
+
+    def group_results(self, group_id: str) -> Dict[str, Any]:
+        """Aggregate one group's branches, ordered by branch index.
+
+        Completion order is not plan order, so members are sorted by their
+        declared `branch` before aggregation: a caller fanning out a plan's
+        levels gets the levels back in the plan's order. A branch that raised
+        is reported in `errors` with its error text and does not cancel its
+        siblings, so a partial unit is visible rather than silently short.
+        """
+        with self._group_lock:
+            if group_id not in self._groups:
+                raise KeyError(f"unknown group_id {group_id!r}")
+            members = list(self._groups[group_id])
+            done = self._group_done.get(group_id, 0)
+
+        member_ids = set(members)
+        with self._results_lock:
+            rows = [r for r in self._results if r.get("task_id") in member_ids]
+
+        # -1 for a member with no branch index keeps the sort total.
+        rows.sort(key=lambda r: -1 if r.get("branch") is None else r.get("branch"))
+
+        errors = [
+            {"branch": r.get("branch"), "task_id": r.get("task_id"),
+             "error": r.get("error")}
+            for r in rows if not r.get("success")
+        ]
+        return {
+            "group_id": group_id,
+            "total": len(members),
+            "completed": done,
+            "pending": len(members) - done,
+            "complete": done >= len(members),
+            "succeeded": sum(1 for r in rows if r.get("success")),
+            "failed": len(errors),
+            "results": [
+                {"branch": r.get("branch"), "task_id": r.get("task_id"),
+                 "success": r.get("success"), "result": r.get("result"),
+                 "error": r.get("error"), "elapsed_ms": r.get("elapsed_ms")}
+                for r in rows
+            ],
+            "errors": errors,
+        }
 
     # -- Results -------------------------------------------------
 
@@ -650,6 +770,7 @@ class WorkStealingPool:
             "steal_success_rate": (steals_ok / max(steals_ok + steals_fail, 1)) * 100,
             "queue_sizes": queue_sizes,
             "load_imbalance": max(queue_sizes) - min(queue_sizes) if queue_sizes else 0,
+            "groups": len(self._groups),
             "running": self._running,
         }
 
@@ -703,6 +824,8 @@ class WorkStealingPool:
         fn = task["fn"]
         args = task.get("args", ())
         kwargs = task.get("kwargs", {})
+        group_id = task.get("group_id")
+        branch = task.get("branch")
         start = time.perf_counter()
 
         try:
@@ -724,10 +847,18 @@ class WorkStealingPool:
                 "result": result,
                 "error": error,
                 "elapsed_ms": elapsed,
+                "group_id": group_id,
+                "branch": branch,
             })
 
         with self._counter_lock:
             self._total_completed += 1
+
+        if group_id is not None:
+            # Bumped under its own lock so a grouped unit's progress is readable
+            # while the rest of the pool keeps its existing contention profile.
+            with self._group_lock:
+                self._group_done[group_id] = self._group_done.get(group_id, 0) + 1
 
     def __repr__(self) -> str:
         s = self.stats

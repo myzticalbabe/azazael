@@ -73,6 +73,12 @@ class ScheduleConfig:
     source_filter: (str | None) = None  # None = all sources
     record_to_memory: bool = True        # Persist results
     exclude_sources: (list[str] | None) = None  # Skip self-generated bookkeeping sources
+    # EP187 contribution-weighted scheduling: arm name -> contribution score.
+    # None (the default) keeps the flat `interval_hours` above; supplying weights
+    # is what puts the allocation policy, not the constant, in charge of *when*
+    # to train. `contribution_arm` names the arm this schedule follows.
+    contribution_weights: (dict[str, float] | None) = None
+    contribution_arm: (str | None) = None
 
     def apply_evolved_overrides(self) -> bool:
         """Load champion genes promoted by evolution_cycle.py, if present.
@@ -280,6 +286,108 @@ def rampup_data_limit(reward_history: List[Any],
                    observed, changes, [])
 
 
+# -- EP187 (Hive): contribution-weighted scheduling ---------------------------
+# `ScheduleConfig.interval_hours` decides *when* to train as one constant, so an
+# arm that keeps producing promoted or holdout-passed outcomes is trained exactly
+# as often as one that never contributes. EP187's host edit — the one the rescore
+# named for `ScheduleConfig.interval_hours` / `ScheduledTrainingWorm` — lets the
+# observed contribution set the interval, with a floor so a starved arm stays
+# reachable: a regime change has to be *discoverable*, which is the argument
+# `WORMS/expansion/allocation.py` already makes for its operator budget. That
+# module owns the mechanism and is consumed here, never reimplemented.
+#
+# Bounds are module constants so the policy is arguable in one place.
+CONTRIBUTION_MIN_INTERVAL_HOURS = 1.0
+CONTRIBUTION_MAX_INTERVAL_HOURS = 168.0    # one week: even the slowest arm runs
+CONTRIBUTION_FLOOR = 0.02                  # the same floor `allocation.py` uses
+
+#: EP187's other half — the Hive logits cache — is an established ACCEPT-GAP, not a
+#: deferred task: Azazael owns no inference engine (providers are called over HTTP
+#: and the API never exposes logits), so there is nothing in-repo to host a
+#: logit/KV cache. Recorded here so a later pass does not re-open it as work.
+
+
+def contribution_weighted_interval(
+        base_interval_hours: float,
+        contributions: Dict[str, Any],
+        *,
+        floor: float = CONTRIBUTION_FLOOR,
+        min_interval_hours: float = CONTRIBUTION_MIN_INTERVAL_HOURS,
+        max_interval_hours: float = CONTRIBUTION_MAX_INTERVAL_HOURS,
+) -> Dict[str, Any]:
+    """EP187 — per-arm interval from observed contribution shares.
+
+    `contributions` maps an arm name to a non-negative contribution score (0 =
+    has never contributed). The interval is inverse to a floored share, so an arm
+    at parity with its peers keeps the base interval:
+
+        share_a    = floored_a / sum(floored)   (floor applied, then renormalised)
+        interval_a = base * (1/n) / share_a     (parity => base)
+
+    Every result is clamped to [min_interval_hours, max_interval_hours]. Returns
+    {"base", "intervals", "shares", "arms", "clamped", "gaps"}. A score that is
+    not a number is skipped and reported in `gaps` rather than poisoning every
+    share; no contributions at all is parity, not a division by zero. Unusable
+    bounds fall back to this module's constants, recording the swallow first — a
+    schedule is not worth a crash.
+    """
+    try:
+        base = float(base_interval_hours)
+    except (TypeError, ValueError):
+        note_failure("scheduling:contribution-base", None)
+        return {"base": 0.0, "intervals": {}, "shares": {}, "arms": 0,
+                "clamped": [], "gaps": ["non-numeric-base-interval"]}
+
+    try:
+        lo = max(0.0, float(min_interval_hours))
+        hi = max(lo, float(max_interval_hours))
+        fl = min(1.0, max(0.0, float(floor)))
+    except (TypeError, ValueError):
+        note_failure("scheduling:contribution-bounds", None)
+        lo = CONTRIBUTION_MIN_INTERVAL_HOURS
+        hi = CONTRIBUTION_MAX_INTERVAL_HOURS
+        fl = CONTRIBUTION_FLOOR
+
+    scores: Dict[str, float] = {}
+    gaps: List[str] = []
+    for arm, value in dict(contributions or {}).items():
+        try:
+            scores[str(arm)] = max(0.0, float(value))
+        except (TypeError, ValueError):
+            # A non-numeric score is not an observation. Skipping it is honest;
+            # passing it on would poison every share in the split.
+            gaps.append("non-numeric-contribution:%s" % arm)
+
+    if not scores:
+        return {"base": base, "intervals": {}, "shares": {}, "arms": 0,
+                "clamped": [], "gaps": gaps or ["no-contributions"]}
+
+    n = len(scores)
+    total = sum(scores.values())
+    if total <= 0.0:
+        # Nothing has contributed yet: parity. Dividing by a zero total would
+        # raise, and pretending one arm was ahead would be a fabricated input.
+        shares = {a: 1.0 / n for a in scores}
+    else:
+        raw = {a: s / total for a, s in scores.items()}
+        floored = {a: max(v, fl) for a, v in raw.items()}
+        fdenom = sum(floored.values()) or 1.0
+        shares = {a: v / fdenom for a, v in floored.items()}
+
+    even = 1.0 / n
+    intervals: Dict[str, float] = {}
+    clamped: List[str] = []
+    for arm, share in shares.items():
+        raw_interval = base * (even / share) if share > 0.0 else hi
+        bounded = min(hi, max(lo, raw_interval))
+        if abs(bounded - raw_interval) > 1e-9:
+            clamped.append(arm)
+        intervals[arm] = round(bounded, 4)
+
+    return {"base": base, "intervals": intervals, "shares": shares, "arms": n,
+            "clamped": clamped, "gaps": gaps}
+
+
 class ScheduledTrainingWorm:
     """Runs the full ML training pipeline on a configurable schedule.
 
@@ -310,6 +418,9 @@ class ScheduledTrainingWorm:
         self._scheduler_thread: (threading.Thread | None) = None
         self._stop_event = threading.Event()
         self._last_model_version = "0.0.0"
+        # EP187: built on first contribution feedback, never at construction, so
+        # the flat schedule does not depend on the allocation module importing.
+        self._allocator: (Any | None) = None
 
     # -- Lazy Component Loaders --------------------------------------
 
@@ -368,6 +479,86 @@ class ScheduledTrainingWorm:
         except ImportError:
             note_failure("scheduling:L215", None)
             return None
+
+    # -- EP187 contribution-weighted scheduling ----------------------
+
+    def _get_allocator(self, seed: (str | None) = None):
+        """Lazy `ThompsonAllocator` over the configured arms (EP187).
+
+        The arms come from the configured weights when they exist; otherwise from
+        `seed`, the arm being recorded. Seeding with the real arm name avoids
+        inventing a placeholder arm whose posterior would then pollute the split.
+        """
+        alloc = getattr(self, "_allocator", None)
+        if alloc is not None:
+            return alloc
+        try:
+            from CORE.WORMS.expansion.allocation import ThompsonAllocator
+        except ImportError as exc:
+            note_failure("scheduling:allocator-import", exc)
+            return None
+        configured = list((getattr(self.config, "contribution_weights", None) or {}).keys())
+        if configured:
+            arms = [str(a) for a in configured]
+        elif seed:
+            arms = [str(seed)]
+        else:
+            arms = ["default"]
+        self._allocator = ThompsonAllocator(arms)
+        return self._allocator
+
+    def next_interval_hours(self, arm: (str | None) = None) -> float:
+        """EP187 — hours to wait before the next run.
+
+        Without contribution weights this returns `config.interval_hours`, the
+        number the scheduler used before this change — the flat schedule is the
+        default, not a fallback, so no existing caller is re-timed by accident.
+        With weights it returns the contribution-weighted interval for `arm` (or
+        for the strongest arm when none is named), floored so a starved arm is
+        still scheduled and a regime change stays discoverable.
+        """
+        weights = getattr(self.config, "contribution_weights", None)
+        if not weights:
+            return float(self.config.interval_hours)
+        plan = contribution_weighted_interval(float(self.config.interval_hours), weights)
+        intervals = plan.get("intervals") or {}
+        if not intervals:
+            return float(self.config.interval_hours)
+        target = arm if arm is not None else getattr(self.config, "contribution_arm", None)
+        if target is not None and str(target) in intervals:
+            return float(intervals[str(target)])
+        shares = plan.get("shares") or {}
+        best = max(intervals.items(), key=lambda kv: shares.get(kv[0], 0.0))
+        return float(best[1])
+
+    def record_contribution(self, arm: str, outcome: str,
+                            weight: (float | None) = None) -> Dict[str, Any]:
+        """EP187 — feed one cycle outcome back into the allocation policy.
+
+        `allocation.py` owns the mechanism and is consumed, not reimplemented:
+        `reward_for_outcome` maps the outcome onto (success, weight) and
+        `ThompsonAllocator` keeps the Beta posteriors. This republishes the
+        resulting posterior means as `config.contribution_weights` — the field
+        `next_interval_hours` reads — so the value has a source and the field has
+        a reader. On any failure the weights are returned unchanged: a telemetry
+        hiccup must not silently re-time the schedule.
+        """
+        current = dict(getattr(self.config, "contribution_weights", None) or {})
+        alloc = self._get_allocator(seed=str(arm))
+        if alloc is None:
+            return current
+        try:
+            from CORE.WORMS.expansion.allocation import reward_for_outcome
+            ok, w = reward_for_outcome(outcome)
+            if weight is not None:
+                w = float(weight)
+            alloc.update(str(arm), success=ok, weight=w)
+            self.config.contribution_weights = {
+                str(a): float(v) for a, v in alloc.weights().items()}
+            return dict(self.config.contribution_weights)
+        except Exception as e:
+            note_failure("scheduling:record-contribution", e)
+            return current
 
     # -- Main Execution ----------------------------------------------
 
@@ -723,8 +914,11 @@ class ScheduledTrainingWorm:
                         "avg_reward": round(run.avg_reward, 2),
                         "duration_ms": round(run.duration_ms, 2),
                     })
-                # Sleep for interval (check stop event periodically)
-                deadline = time.time() + self.config.interval_hours * 3600
+                # Sleep for interval (check stop event periodically).
+                # EP187: the wait follows observed contribution when weights are
+                # supplied, and is numerically identical to the flat interval
+                # when they are not (next_interval_hours returns interval_hours).
+                deadline = time.time() + self.next_interval_hours() * 3600
                 while time.time() < deadline:
                     if self._stop_event.wait(timeout=5):
                         return

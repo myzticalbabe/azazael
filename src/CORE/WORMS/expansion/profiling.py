@@ -91,7 +91,17 @@ class CodeProfiler:
                     note_failure("profiling:L78", None)
         return hotspots[:10]
     def get_summary(self):
-        return {"success": True, "status": "OK", "worm": "CodeProfiler"}
+        # Report the profiles actually collected. With an empty store there is
+        # no result to summarise, which is not the same as a passing one.
+        with self._lock:
+            collected = len(self._profiles)
+            names = sorted(self._profiles)[:10]
+        if collected == 0:
+            return {"worm": "CodeProfiler", "status": "not_run",
+                    "profiled_functions": 0, "run_recorded": False}
+        return {"worm": "CodeProfiler", "status": "profiled",
+                "profiled_functions": collected, "functions": names,
+                "run_recorded": True}
 
 
 
