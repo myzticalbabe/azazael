@@ -160,18 +160,10 @@ def ep144() -> Dict[str, Any]:
 def ep146() -> Dict[str, Any]:
     """Bounded-context reconstruction over a real paged read.
 
-    `recall_recent` is a one-line wrapper over `query_memories`, which clamps at
-    MAX_QUERY_LIMIT; `fetch_all_memories` is the unbounded paged reader. The
-    window is built from the latter so an old row is not silently dropped.
+    Mechanism lives in its HOST: `LocalMemoryStore.bounded_context`
+    (P1-3 host-remediation). Registration shim only.
     """
-    store = _store()
-    rows = store.fetch_all_memories(limit=50) or []
-    brief = store.reconstruct_events(rows, current_task="technique runtime L1",
-                                     max_items=5)
-    return {"verified": True, "window": len(rows),
-            "count_total": store.count_memories(),
-            "items": len(brief.get("items", []) or []),
-            "suppressed": len(brief.get("verified_absent", []) or [])}
+    return _store().bounded_context(current_task="technique runtime L1")
 
 
 # -- EP154 FS-Researcher: file-workspace protocol -----------------------------
@@ -196,17 +188,10 @@ def ep154() -> Dict[str, Any]:
 def ep160() -> Dict[str, Any]:
     """Isolation boundary by session + the existing non-destructive sanitize.
 
-    The sanitize half is REAL: `tombstone()` marks `severity='deleted'` and wipes
-    the payload without destroying the row. The isolation half is scoping by
-    `source`/`session_id`, which `record_event`/`query_memories` already accept.
+    Mechanism lives in its HOST: `LocalMemoryStore.agent_scope_probe`
+    (P1-3 host-remediation). Registration shim only.
     """
-    store = _store()
-    sanitize_available = hasattr(store, "tombstone")
-    scoped = store.query_memories(source="technique_wiring:EP160", limit=5) or []
-    return {"verified": bool(sanitize_available),
-            "sanitize": "CORE.local_memory:tombstone (reversible, wipes data)",
-            "isolation": "source/session_id scoping (existing params)",
-            "scoped_rows": len(scoped)}
+    return _store().agent_scope_probe()
 
 
 # -- EP192 ontology layer as external memory ----------------------------------

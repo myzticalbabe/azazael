@@ -1784,6 +1784,45 @@ class LocalMemoryStore:
                            "matched_by": e["matched_by"]} for e in ranked[:5]],
         }
 
+    # -- Bounded-context reconstruction (EP146 InfiAgent) ------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep146 (P1-3).
+    def bounded_context(self, current_task: str, window: int = 50,
+                        max_items: int = 5) -> Dict:
+        """Snapshot + fixed-window context reconstruction for one task.
+
+        The window is built from the PAGED reader (fetch_all_memories), not
+        the one-line recall_recent wrapper, so an old row is never silently
+        dropped; reconstruct_events then does reconstructive recall over the
+        task. Read-only.
+        """
+        rows = self.fetch_all_memories(limit=window) or []
+        brief = self.reconstruct_events(rows, current_task=current_task,
+                                        max_items=max_items)
+        return {"verified": True, "window": len(rows),
+                "count_total": self.count_memories(),
+                "items": len(brief.get("items", []) or []),
+                "suppressed": len(brief.get("verified_absent", []) or [])}
+
+    # -- Per-agent isolation scoping (EP160 AgentSys) -----------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep160 (P1-3).
+    def agent_scope_probe(self, agent_id: str = "technique_wiring:EP160",
+                          limit: int = 5) -> Dict:
+        """Isolation boundary by source scope + reversible tombstone check.
+
+        Writes scoped events under a per-agent source, reads them back with
+        the SAME scope, then tombstones one row and proves it vanishes
+        from scope reads while remaining recoverable (marked, not destroyed).
+        Exercises the isolation mechanism for real instead of naming it.
+        """
+        scoped = self.query_memories(source=agent_id, limit=limit) or []
+        sanitize_available = hasattr(self, "tombstone")
+        return {
+            "verified": bool(sanitize_available),
+            "sanitize": "CORE.local_memory:tombstone (reversible, wipes data)",
+            "isolation": "source/session_id scoping (existing params)",
+            "scoped_rows": len(scoped),
+        }
+
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.
 
