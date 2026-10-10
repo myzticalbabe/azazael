@@ -92,6 +92,50 @@ def semantic_action(action: Dict[str, Any],
             "executable": not gaps, "gaps": gaps}
 
 
+# -- Authority ledger + effect rows (EP327/EP382) ------------------------------------
+def authority_ledger() -> Dict[str, Dict[str, float]]:
+    """GRANTED vs EXERCISED accounting (EP327, ledger half).
+
+    Reads technique-link rows: subjects that appear as granted authorities
+    vs actions actually exercised. exercised>granted is the privilege gap.
+    Read-only; empty store yields empty halves, never a fabrication.
+    """
+    granted: Dict[str, float] = {}
+    exercised: Dict[str, float] = {}
+    try:
+        from CORE.local_memory import get_memory_store  # noqa: PLC0415
+        rows = get_memory_store().query_memories(source="technique-link",
+                                                 limit=200) or []
+    except Exception as exc:                          # noqa: BLE001 - fail-open
+        _note_failure("structured_action:authority-read", exc)
+        rows = []
+    for r in rows:
+        d = (r or {}).get("data") or {}
+        subj = str(d.get("subject", "?"))
+        exercised[subj] = exercised.get(subj, 0.0) + 1.0
+        for t in (d.get("granted_to") or []):
+            granted[str(t)] = granted.get(str(t), 0.0) + 1.0
+    gap = {s: exercised.get(s, 0.0) - granted.get(s, 0.0) for s in exercised}
+    return {"granted": granted, "exercised": exercised, "gap": gap}
+
+
+def effect_row(action: Dict[str, Any]) -> Dict[str, Any]:
+    """Declared EFFECT ROW per action (EP382, declaration half).
+
+    Every validated action declares its effect: reads/writes + scope.
+    Obligation MONITORING over the rows (watching effects land) stays
+    deferred: declaration without a watcher is honest intake, not control.
+    """
+    action = action or {}
+    verb = str(action.get("verb", "")).strip()
+    target = str(action.get("target", "")).strip()
+    writes = verb in ("write", "push", "delete", "edit", "create")
+    return {"verb": verb, "target": target,
+            "effect": "write" if writes else "read",
+            "scope": target.split("/")[0] if "/" in target else target,
+            "typed_trace": [f"{verb}:{target}"]}
+
+
 # -- Ledger citation ----------------------------------------------------------------------
 def record_asil(app: str, result: Dict[str, Any]) -> str:
     """Cite an interface verdict on the hash-chained ledger (fails open)."""

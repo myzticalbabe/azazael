@@ -2742,6 +2742,46 @@ def get_memory_store(db_path: Optional[str] = None) -> LocalMemoryStore:
     return _global_store
 
 
+# -- EP463 semiring conflict resolution (pure function, no store needed) -----
+def resolve_conflicts(facts: List[Dict],
+                      precedence: (List[str] | None) = None) -> Dict[str, Any]:
+    """Semiring conflict resolution over overlapping facts (EP463).
+
+    facts: [{"id", "source", "value", "recency"}]. Declared precedence
+    beats recency (the technique's rule, not last-write-wins). Default
+    precedence: local_memory > engram > pattern_memory. Returns {resolved
+    {id: winning fact}, conflicts} — every conflict NAMED with winner +
+    reason. Pure, tested. Lives here (not the replay buffer) because the
+    conflict domain is overlapping MEMORY stores.
+    """
+    order = list(precedence or ["local_memory", "engram", "pattern_memory"])
+    rank = {s: i for i, s in enumerate(order)}
+    by_id: Dict[str, List[Dict]] = {}
+    for f in facts or []:
+        if isinstance(f, dict) and f.get("id") is not None:
+            by_id.setdefault(str(f["id"]), []).append(f)
+    resolved: Dict[str, Any] = {}
+    conflicts: List[Dict[str, Any]] = []
+    for fid, group in by_id.items():
+        if len(group) == 1:
+            resolved[fid] = group[0]
+            continue
+        def _key(f: Dict) -> Any:
+            try:
+                rec = float(f.get("recency", 0.0) or 0.0)
+            except (TypeError, ValueError):
+                rec = 0.0
+            return (rank.get(str(f.get("source", "")), 999), -rec)
+        best = min(group, key=_key)
+        resolved[fid] = best
+        conflicts.append({
+            "id": fid, "winner": best.get("source"),
+            "reason": "declared-precedence-over-recency",
+            "losers": [g.get("source") for g in group if g is not best]})
+    return {"resolved": resolved, "conflicts": conflicts,
+            "n_conflicts": len(conflicts)}
+
+
 # -- P0 shared MAFIA heuristics (pure function, no store needed) --------------
 def audit_result_set(results: List[Dict],
                      query_context: str = "") -> Dict[str, Any]:
