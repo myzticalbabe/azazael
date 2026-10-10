@@ -346,3 +346,41 @@ def record_link(hook: str, subject: str, ok: bool,
     except Exception as exc:
         note_failure("technique-runtime:record-link", exc)
     return kept
+
+
+def fleet_link_health(limit: int = 100) -> Dict[str, Any]:
+    """Fleet hook-health rate over recent technique-link rows (memory unity).
+
+    Pure read of the canonical store: mean ok-rate per hook plus totals.
+    Returns {"n", "ok_rate" (None when empty), "by_hook": {hook: rate}}.
+    Fail-open: {} on any error. Powers monitors and, later, evolution
+    fitness terms — it reports, it never gates.
+    """
+    out: Dict[str, Any] = {"n": 0, "ok_rate": None, "by_hook": {}}
+    rows: List[Dict[str, Any]] = []
+    try:
+        rows = get_memory_store().query_memories(
+            source="technique-link", limit=int(limit)) or []
+    except Exception as exc:
+        # Fail-open: anything below degrades to the empty result above, and
+        # the miss itself is recorded instead of vanishing.
+        note_failure("technique-runtime:link-health-read", exc)
+    if not isinstance(rows, list):
+        rows = []
+    trues = sum(
+        1 for r in rows
+        if isinstance(r.get("data"), dict) and r["data"].get("ok") is True)
+    by_hook: Dict[str, Dict[str, int]] = {}
+    for r in rows:
+        data = r.get("data") if isinstance(r.get("data"), dict) else {}
+        hook = str((r.get("event_type") or "").replace("hook:", "")
+                   or data.get("hook", "unknown"))
+        cell = by_hook.setdefault(hook, {"n": 0, "ok": 0})
+        cell["n"] += 1
+        if data.get("ok") is True:
+            cell["ok"] += 1
+    out["n"] = len(rows)
+    out["ok_rate"] = (trues / len(rows)) if rows else None
+    out["by_hook"] = {h: (c["ok"] / c["n"] if c["n"] else None)
+                      for h, c in by_hook.items()}
+    return out

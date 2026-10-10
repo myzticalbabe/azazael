@@ -1246,6 +1246,23 @@ def collect(con):
     except Exception:
         pass
 
+    # technique-link adoption (memory unity, Phase 1): hook invocation counts
+    # straight from the canonical store. Empty when hooks never fire (an idle
+    # loop reads as empty, never as healthy).
+    data["links"] = None
+    try:
+        _rows = con.execute(
+            "SELECT event_type, COUNT(*), "
+            "SUM(CASE WHEN json_extract(data, '$.ok') = 1 THEN 1 ELSE 0 END), "
+            "MAX(timestamp) FROM memories "
+            "WHERE source='technique-link' GROUP BY event_type").fetchall()
+        data["links"] = {
+            "by_hook": {r[0]: {"n": r[1], "ok": r[2] or 0} for r in _rows},
+            "latest": max((r[3] for r in _rows), default=None),
+        }
+    except Exception as exc:
+        print("links block failed: %s" % type(exc).__name__, file=sys.stderr)
+
     # mesh fabric: the fleet cycle is the architecture the rest of the
     # system now runs on, yet this board had no mesh row at all, so a dead
     # mesh read as a healthy board. Folded into `freshness` so staleness
@@ -2371,11 +2388,18 @@ def append_log(data, now):
             f.write(f"  strategy {s['value']}  steer24h {data['steer_24h']}  "
                     f"activity {data['activity']}\n")
             tr = data.get("training", {})
+            scored = {}
             if tr.get("counts"):
                 scored = {a: r["eval_mean_reward"] for a in TRAIN_ALGOS
-                          for r in (tr.get(a) or [])[:1] if r.get("eval_mean_reward") is not None}
+                           for r in (tr.get(a) or [])[:1] if r.get("eval_mean_reward") is not None}
             f.write("  train " + ", ".join(f"{a}={v:.1f}" for a, v in sorted(scored.items()))
                     + f"  next={tr.get('next_rotation')}\n")
+            lk = data.get("links") or {}
+            if lk.get("by_hook"):
+                f.write("  links " + ", ".join(
+                    f"{h.split(':')[-1]}={v['ok']}/{v['n']}"
+                    for h, v in sorted(lk["by_hook"].items()))
+                    + f"  latest_age={age_min(lk.get('latest'))}min\n")
             for tag, msg in explain(data):
                 f.write(f"  {tag:<6} {msg}\n")
             f.write(f"  >> {bottom_line(data)}\n")
