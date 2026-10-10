@@ -35,7 +35,16 @@ import importlib.util
 from pathlib import Path
 from typing import Any, Dict, List
 
+from CORE.audit_trail import read_citation
+from CORE.skill_library import (
+    PROTOCOL_REQUIRED, check_transfer_mask, commit_gate,
+    compile_leaf_rules, distill_trajectory_to_protocol, emit_skill_md,
+    family_index, mine_action_sequences, protocol_artifact,
+    record_experience, render_plan_to_prompt, replicator_step,
+    route_hierarchy, scan_witness_canonical, shapley_marginal,
+)
 from CORE.technique_runtime import note_failure, register
+from CORE.WORMS.expansion.learning_replay import PrioritizedReplayBuffer
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -57,7 +66,6 @@ _GROUNDING = ["worm_registry holds 200+ registered worms",
 
 
 def _proto(plan: List[str] | None = None) -> Dict[str, Any]:
-    from CORE.skill_library import protocol_artifact
     return protocol_artifact("worm-edit", plan or _PLAN, _GROUNDING)
 
 
@@ -93,9 +101,14 @@ def _ep34() -> Dict[str, Any]:
     """
     proto = _proto()
     steps = list(proto.get("reasoning_plan") or [])
-    return {"ok": True, "invoked": "CORE.skill_library:protocol_artifact",
+    rendered = render_plan_to_prompt(proto)
+    return {"ok": True, "invoked": "CORE.skill_library:protocol_artifact+"
+                                   "render_plan_to_prompt",
             "steps": len(steps), "plan_valid": bool(proto.get("valid")),
-            "delta": "render_plan_to_prompt(proto, exemplars) + few-shot block"}
+            "rendered_steps": rendered["n_steps"],
+            "prompt_chars": len(rendered["prompt"]),
+            "delta": "renderer live; exemplar sourcing + prompt consumer "
+                     "deferred"}
 
 
 # --- EP135: SoK agentic skills ---------------------------------------------------
@@ -105,7 +118,6 @@ def _ep135() -> Dict[str, Any]:
     Invoked: `protocol_artifact` + `PROTOCOL_REQUIRED`, which show exactly the
     three fields the schema has to grow from.
     """
-    from CORE.skill_library import PROTOCOL_REQUIRED
     proto = _proto()
     return {"ok": True, "invoked": "CORE.skill_library:PROTOCOL_REQUIRED+"
                                    "protocol_artifact",
@@ -131,12 +143,19 @@ def _ep155() -> Dict[str, Any]:
     ok, reason, _record = mr.validate_candidate(
         {"instruction": "prefer measured verdicts over claimed ones",
          "evidence": "meta lineage", "scope": None}, ledger)
+    from CORE.skill_library import distill_trajectory_to_protocol
+    distilled = distill_trajectory_to_protocol(
+        {"actions": _PLAN, "outcome": "plan rendered",
+         "evidence": _GROUNDING}, "worm-edit")
     return {"ok": True, "invoked": "scripts/meta_reflect:gather_trajectories+"
-                                   "load_ledger+validate_candidate",
+                                   "load_ledger+validate_candidate+"
+                                   "distill_trajectory_to_protocol",
             "trajectories": len(trajs), "note": note, "ledger_rows": len(ledger),
             "validator_accepts_synthetic": bool(ok), "validator_reason": str(reason),
-            "delta": "emit protocol_artifact beside the prose instruction; "
-                     "split step reward from outcome reward (MGPO)"}
+            "distilled_steps": distilled["n_steps"],
+            "distilled_valid": bool(distilled["protocol"].get("valid")),
+            "delta": "protocol join live (shared EP401 wire); MGPO split "
+                     "reported-not-optimized"}
 
 
 # --- EP162: agent skill governance / four-gate trust path ------------------------
@@ -162,12 +181,14 @@ def _ep180() -> Dict[str, Any]:
 
     Invoked: `commit_gate` (the cycle's admission half).
     """
-    from CORE.skill_library import commit_gate
     verdict = commit_gate({"name": "WormEdit", "family": "dispatch"}, _evidence())
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate",
+    root = Path(__file__).resolve().parents[3]
+    restored = read_citation(verdict.get("citation", ""), str(root))
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate+"
+                                   "CORE.audit_trail:read_citation",
             "accepted": bool(verdict.get("accepted")),
-            "delta": "parameterize subject (skill/prompt/config/tool/budget); "
-                     "restore(citation) needs the audit_trail READ side"}
+            "restored": bool(restored.get("found")),
+            "delta": "restore helper live; subject-parameterization deferred"}
 
 
 # --- EP250: compiled subterranean agents (procedures -> weights) -----------------
@@ -194,13 +215,17 @@ def _ep255() -> Dict[str, Any]:
 
     Exercised: the gate whose verdict shape a refine loop would ride.
     """
-    from CORE.skill_library import commit_gate
     verdict = commit_gate({"name": "WormEdit", "family": "dispatch"},
                           _evidence(), record=False)
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate(record=False)",
+    rec = record_experience("technique-wiring:self-test",
+                            {"reasons": list(verdict.get("reasons") or [])},
+                            "")
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate(record=False)+"
+                                   "record_experience",
             "reasons": list(verdict.get("reasons") or []),
-            "delta": "record_experience(name, outcome, citation) + "
-                     "refine_prompt() over the local_memory store"}
+            "experience_recorded": bool(rec.get("recorded")),
+            "delta": "recording live (uncited self-test row, typed outcome); "
+                     "refine_prompt() deferred"}
 
 
 # --- EP265: SkillSmith co-evolution (replicator dynamics) ------------------------
@@ -216,11 +241,13 @@ def _ep265() -> Dict[str, Any]:
                        {"name": "C", "family": "audit"}])
     sizes = {f: len(v) for f, v in (fx.get("families") or {}).items()}
     total = sum(sizes.values()) or 1
-    return {"ok": True, "invoked": "CORE.skill_library:family_index",
+    rep = replicator_step(sizes, {"dispatch": 1.0, "audit": 0.5})
+    return {"ok": True, "invoked": "CORE.skill_library:family_index+"
+                                   "replicator_step",
             "family_sizes": sizes,
             "shares": {f: round(n / total, 3) for f, n in sizes.items()},
-            "delta": "replicator_step(families, fitness, dt) + "
-                     "version-scoped nogoods"}
+            "next_shares": rep["next_shares"],
+            "delta": "replicator step live; version-scoped nogoods deferred"}
 
 
 # --- EP270: reasoning-primitive induction (trace -> pseudo-tool) -----------------
@@ -232,10 +259,12 @@ def _ep270() -> Dict[str, Any]:
     mr = _meta_reflect()
     trajs, note = mr.gather_trajectories(limit=15)
     kinds = sorted({str(t.get("kind")) for t in trajs})
-    return {"ok": True, "invoked": "scripts/meta_reflect:gather_trajectories",
+    mined = mine_action_sequences([{"actions": kinds}])
+    return {"ok": True, "invoked": "scripts/meta_reflect:gather_trajectories+"
+                                   "mine_action_sequences",
             "trajectories": len(trajs), "kinds": kinds, "note": note,
-            "delta": "mine repeated action sequences -> typed pseudo-tool "
-                     "artifact + `types` field"}
+            "motifs": mined["motifs"][:3],
+            "delta": "miner live; `types` field deferred (no schema consumer)"}
 
 
 # --- EP275: Socratic-SWE trace-derived skills ------------------------------------
@@ -265,11 +294,14 @@ def _ep302() -> Dict[str, Any]:
                           {"proof": ".audit/x.jsonl:1",
                            "transfer_masking": "n/a: single-domain skill"})
     fx = family_index([{"name": "WormEdit", "family": "dispatch"}])
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate(+family_index)",
+    mask = check_transfer_mask("dispatch", "n/a: single-domain skill",
+                               ["dispatch"])
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate(+family_index)+"
+                                   "check_transfer_mask",
             "masking_accepted_as_prose": bool(verdict.get("accepted")),
             "n_families": fx.get("n_families"),
-            "delta": "layout-sketch index + an ENFORCED mask check "
-                     "(masking is currently caller-owned text)"}
+            "mask_enforced": bool(mask.get("enforced")),
+            "delta": "mask enforcement live; layout-sketch index deferred"}
 
 
 # --- EP308: SoftSkill / virtual-token skills ------------------------------------
@@ -303,11 +335,14 @@ def _ep347() -> Dict[str, Any]:
 
     Invoked: `commit_gate` — the shape a scan verdict would be reported in.
     """
-    from CORE.skill_library import commit_gate
     verdict = commit_gate({"name": "WormEdit", "family": "dispatch"}, _evidence())
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate",
+    scan = scan_witness_canonical(_proto())
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate+"
+                                   "scan_witness_canonical",
             "reasons": list(verdict.get("reasons") or []),
-            "delta": "witness-determinism scan + calibrated-deopt guard flag"}
+            "witness_stable": bool(scan.get("deterministic")),
+            "delta": "scan live; calibrated-deopt guard flag deferred "
+                     "(no consumer)"}
 
 
 # --- EP354: EvoSOP lifecycle — the merge and prune operators ---------------------
@@ -342,13 +377,13 @@ def _ep363() -> Dict[str, Any]:
 
     Invoked: `commit_gate` with a version, showing it is carried but unused.
     """
-    from CORE.skill_library import commit_gate
     verdict = commit_gate({"name": "WormEdit", "family": "dispatch"}, _evidence())
     return {"ok": True, "invoked": "CORE.skill_library:commit_gate",
             "accepted": bool(verdict.get("accepted")),
-            "version_field_accepted": True, "version_field_consumed": False,
-            "delta": "read evidence['version']; versioned agent packs; "
-                     "extend promotion beyond skills"}
+            "version_field_accepted": True,
+            "version_field_consumed": bool(verdict.get("version_consumed")),
+            "delta": "version now consumed; versioned packs + promotion "
+                     "beyond skills deferred"}
 
 
 # --- EP364: capability trees -----------------------------------------------------
@@ -357,13 +392,15 @@ def _ep364() -> Dict[str, Any]:
 
     Invoked: `family_index` (the flat structure to nest).
     """
-    from CORE.skill_library import family_index
-    fx = family_index([{"name": "WormEdit", "family": "dispatch"},
-                       {"name": "LedgerAudit", "family": "audit"}])
-    return {"ok": True, "invoked": "CORE.skill_library:family_index",
-            "flat_families": sorted((fx.get("families") or {})),
-            "depth": 1,
-            "delta": "hierarchical routing tree + LIFO context + lazy manifests"}
+    routed = route_hierarchy([{"name": "WormEdit", "family": "dispatch",
+                               "domain": "edit"},
+                              {"name": "LedgerAudit", "family": "audit"}])
+    return {"ok": True, "invoked": "CORE.skill_library:route_hierarchy",
+            "flat_families": sorted(routed["families"]),
+            "depth": routed["depth"],
+            "lazy_manifests": routed["lazy_manifests"],
+            "delta": "tree live; LIFO is leaf order — deeper nesting needs "
+                     "sub-domain producers"}
 
 
 # --- EP387: knowledge-centric self-improvement (cross-task distillation) ---------
@@ -394,12 +431,19 @@ def _ep401() -> Dict[str, Any]:
     EP155).
     """
     proto = _proto()
-    return {"ok": True, "invoked": "CORE.skill_library:protocol_artifact",
+    distilled = distill_trajectory_to_protocol(
+        {"actions": _PLAN, "outcome": "plan rendered",
+         "evidence": _GROUNDING}, "worm-edit")
+    return {"ok": True, "invoked": "CORE.skill_library:protocol_artifact+"
+                                   "distill_trajectory_to_protocol",
             "task_type": proto.get("task_type"),
             "steps": len(proto.get("reasoning_plan") or []),
             "facts": len(proto.get("grounding_facts") or []),
             "valid": bool(proto.get("valid")), "gaps": list(proto.get("gaps") or []),
-            "delta": "trajectory->protocol distiller (same wire as EP155)"}
+            "distilled_steps": distilled["n_steps"],
+            "distilled_valid": bool(distilled["protocol"].get("valid")),
+            "delta": "distiller live (shared EP155 wire); MGPO split "
+                     "reported-not-optimized"}
 
 
 # --- EP427: Reason Wide, Not Deep (corpus -> cheap-model SKILL.md) ---------------
@@ -413,12 +457,14 @@ def _ep427() -> Dict[str, Any]:
     mr = _meta_reflect()
     trajs, note = mr.gather_trajectories(limit=15)
     proto = _proto()
+    md = emit_skill_md(proto, "worm-edit skill distilled from trajectories")
     return {"ok": True, "invoked": "scripts/meta_reflect:gather_trajectories "
-                                   "+ CORE.skill_library:protocol_artifact",
+                                   "+ CORE.skill_library:protocol_artifact+"
+                                   "emit_skill_md",
             "corpus_rows": len(trajs), "note": note,
             "payload_valid": bool(proto.get("valid")),
-            "delta": "emit SKILL.md (frontmatter `description` is the only field "
-                     "this client pushes, per AGENTS.md)"}
+            "skill_md_chars": len(md["markdown"]),
+            "delta": ""}
 
 
 # --- EP447: HaReCAP compiled leaf reflexes --------------------------------------
@@ -428,13 +474,17 @@ def _ep447() -> Dict[str, Any]:
     Exercised: `commit_gate`'s remediation pattern, the shape such rules would
     be admitted and repaired through.
     """
-    from CORE.skill_library import commit_gate
     verdict = commit_gate({"name": "", "family": ""}, {})
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate(reject path)",
+    compiled = compile_leaf_rules(
+        [{"state": "deny-empty", "action": "remediate"}] * 3
+        + [{"state": "deny-empty", "action": "escalate"}])
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate(reject path)+"
+                                   "compile_leaf_rules",
             "rejected": not bool(verdict.get("accepted")),
             "remediations": len(verdict.get("remediations") or []),
-            "delta": "compile frequent leaf decisions -> auditable abstainable "
-                     "rules + abstain fallback"}
+            "compiled_rules": len(compiled["rules"]),
+            "delta": "miner live; abstain-fallback consumer deferred "
+                     "(no leaf-decision call site)"}
 
 
 # --- EP455: CASS coalition reliability (Shapley marginal audit) -----------------
@@ -449,10 +499,13 @@ def _ep455() -> Dict[str, Any]:
                        {"name": "B", "family": "dispatch"},
                        {"name": "C", "family": "audit"}])
     sizes = {f: len(v) for f, v in (fx.get("families") or {}).items()}
-    return {"ok": True, "invoked": "CORE.skill_library:family_index",
+    shap = shapley_marginal(["A", "B"], lambda s: float(len(s)))
+    return {"ok": True, "invoked": "CORE.skill_library:family_index+"
+                                   "shapley_marginal",
             "coalition_sizes": sizes,
-            "delta": "Shapley marginal-contribution audit + post-transfer "
-                     "masking flag (bank gains can hide a regressing sibling)"}
+            "shapley": shap["shapley"],
+            "delta": "audit live; post-transfer masking flag deferred "
+                     "(no transfer pipeline)"}
 
 
 # --- EP458: TRACE consistency (Pass@3 vs Pass^k) --------------------------------
@@ -460,12 +513,18 @@ def _ep458() -> Dict[str, Any]:
     """`skill_library` never executes a skill (its own docstring says so), so no
     pass@k exists here. Exercised: the commit path that would consume outcomes.
     """
-    from CORE.skill_library import commit_gate
     verdict = commit_gate({"name": "WormEdit", "family": "dispatch"}, _evidence())
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate",
+    buf = PrioritizedReplayBuffer(capacity=10)
+    buf.add("s1", 0, 1.0, "s2", episode="ep-good")
+    buf.add("s1", 0, 0.0, "s2", episode="ep-bad")
+    contrast = buf.contrast_pass_rates()
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate+"
+                                   "contrast_pass_rates",
             "accepted": bool(verdict.get("accepted")),
-            "delta": "trajectory-contrastive refinement to close Pass@3 vs "
-                     "Pass^k; abstain on limit",
+            "spread": contrast["spread"],
+            "abstain": contrast["abstain"],
+            "delta": "contrast live over held outcomes; pass@k OUTCOME "
+                     "production still needs an execution host",
             "blocked": "needs an execution host to produce pass@k outcomes"}
 
 
