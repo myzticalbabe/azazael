@@ -38,6 +38,14 @@ except ImportError:
         return lambda cls: cls
 
 
+# -- Reward-scale co-tabulation (memory unity): decomposed shadow terms -----
+try:
+    from CORE.reward_scales import emit_canonical as _emit_canonical
+except ImportError:                               # never break the host
+    note_failure("learning_grpo:reward-scales", None)
+    _emit_canonical = None  # type: ignore
+
+
 # -- GRPO Trainer -----------------------------------------------------------
 
 
@@ -184,6 +192,16 @@ class GRPOTrainer:
                         if isinstance(data, dict):
                             avg_duration += data.get("duration_ms", 0)
                     avg_duration /= max(len(records), 1)
+                    if _emit_canonical is not None:
+                        try:
+                            _emit_canonical(store, success_rate, "rate_01",
+                                            "grpo:success_rate",
+                                            worm=worm_name)
+                            _emit_canonical(store, avg_duration, "millis",
+                                            "grpo:avg_duration_ms",
+                                            worm=worm_name)
+                        except Exception as exc:
+                            note_failure("learning_grpo:reward-shadow", exc)
                     reward = success_rate - avg_duration / 10000.0
                 else:
                     reward = 0.0  # No execution history yet: neutral reward
