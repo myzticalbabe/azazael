@@ -38,6 +38,22 @@ except ImportError:
     HAS_WRAPT = False
 
 
+#: ASIL semantic-interface validation (EP168/EP269/EP327/EP382).
+#: `structured_action` shipped with no production caller, so these rows were
+#: EXERCISE-ONLY. Optional: when it is missing the gate behaves EXACTLY as
+#: before and records the swallow -- an unrecorded fallback would silently
+#: change a security decision.
+#: Imported by SYMBOL, not as a module attribute: a reachability census reads
+#: call sites, and `module.symbol(...)` is invisible to it -- the same blindness
+#: that made an aliased import look dead in technique_runtime. The direct form
+#: is also how the module is meant to be used.
+try:
+    from CORE.structured_action import effect_row, observe, semantic_action
+except ImportError:
+    note_failure("policy:structured_action-import", None)
+    effect_row = observe = semantic_action = None  # type: ignore[assignment]
+
+
 # ---------------------------------------------------------------------------
 # Policy Rule
 # ---------------------------------------------------------------------------
@@ -133,6 +149,7 @@ class PolicyEngine:
         self._rules: list[PolicyRule] = []
         self._lock = threading.Lock()
         self._audit_log: list[dict[str, Any]] = []
+        self._contracts: dict[str, dict[str, Any]] = {}
         self._audit_lock = threading.Lock()
 
     def add_rule(self, rule: PolicyRule):
@@ -154,6 +171,55 @@ class PolicyEngine:
             self._rules = [r for r in self._rules if not (r.action == action and r.role == role)]
             return before - len(self._rules)
 
+    def register_interface(self, app: str, contract: dict[str, Any],
+                           required_keys: list[str] | None = None) -> None:
+        """Record an application's semantic interface contract (ASIL).
+
+        contract: {"verbs": [...], "targets": [...]} -- the deepest feasible
+        access path. required_keys: the state keys a complete observation needs.
+        Without a registered contract the engine is unchanged for that app.
+        """
+        with self._lock:
+            self._contracts[str(app or "?").strip()] = {
+                "contract": dict(contract or {}),
+                "required_keys": [str(k) for k in (required_keys or [])],
+            }
+
+    def _interface_verdict(self, attributes: dict[str, Any]) -> dict[str, Any] | None:
+        """Validate a structured action against its contract (ASIL).
+
+        Returns None unless the caller presents a structured action for a
+        REGISTERED app, which is what keeps every existing caller unaffected.
+        An unexecutable action names its repair instead of failing at click
+        time, and every validated action declares its effect row (EP382).
+        """
+        if semantic_action is None:
+            return None
+        attributes = attributes or {}
+        app = str(attributes.get("app", "") or "").strip()
+        if not app or app not in self._contracts:
+            return None
+        spec = self._contracts[app]
+        action = {"verb": attributes.get("verb", ""),
+                  "target": attributes.get("target", ""),
+                  "args": attributes.get("args", {}) or {}}
+        verdict = semantic_action(action, spec["contract"])
+        state = attributes.get("state")
+        obs = (observe(app, state, spec["required_keys"])
+               if isinstance(state, dict) else None)
+        gaps = list(verdict.get("gaps", []))
+        gaps += list((obs or {}).get("gaps", []))
+        return {
+            "app": app,
+            "executable": bool(verdict.get("executable"))
+            and (obs is None or bool(obs.get("complete"))),
+            "gaps": gaps,
+            "action": verdict,
+            "effect": effect_row(action),
+            "remediations": [f"repair interface gap: {g}" for g in gaps],
+        }
+
+
     def evaluate(self, action: str, role: str = "", attributes: (dict[str, Any] | None) = None) -> tuple[bool, str]:
         """Evaluate an action against all rules.
 
@@ -166,6 +232,16 @@ class PolicyEngine:
             (allowed: bool, reason: str)
         """
         attributes = attributes or {}
+
+        # ASIL interface gate (EP168/EP269): a structured action the declared
+        # contract cannot express, or one whose observation is state-incomplete,
+        # is NOT granted. Validating here turns a click-time mystery into a named
+        # repair. Bare (non-structured) calls take the path below unchanged.
+        iface = self._interface_verdict(attributes)
+        if iface is not None and not iface["executable"]:
+            reason = "DENIED (interface): " + ", ".join(iface["gaps"])
+            self._log_evaluation(action, role, attributes, False, reason)
+            return False, reason
 
         with self._lock:
             for rule in self._rules:
@@ -193,6 +269,7 @@ class PolicyEngine:
             "action": action,
             "role": role,
             "policy_version": "1.0.0",
+            "interface": self._interface_verdict(attributes or {}),
         }
 
     def _log_evaluation(self, action: str, role: str, attributes: dict, allowed: bool, reason: str):

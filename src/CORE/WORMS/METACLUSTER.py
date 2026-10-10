@@ -336,7 +336,8 @@ class MetaCluster:
             return names, {}, "plan-skipped:too-many"
         try:
             from CORE.dispatch_plan import (
-                eliminate_common_subgraphs, plan_dag, record_dispatch_plan,
+                assign_roles, eliminate_common_subgraphs, plan_dag,
+                record_dispatch_plan, rehearse_dispatch,
             )
         except Exception as exc:  # noqa: BLE001 — planning is optional
             note_failure("METACLUSTER:L333", exc)
@@ -349,8 +350,27 @@ class MetaCluster:
                                if idx[m] < idx[n] and (worms[m] & worms[n])]}
                      for n in names]
             plan = plan_dag(tasks)
+            # Rehearse-before-execute: dry-run the plan AND its assignment and
+            # predict failures before anything is dispatched. Roles/pools come
+            # from data that exists -- U3/D1 deleted the nature taxonomy, so
+            # there is no per-category role left to read; every category in
+            # this run honestly belongs to the one pool this method orchestrates.
+            # Inventing a role per category would be fabricated input, and the
+            # single real pool still yields the rehearsal's oversubscription
+            # signal (pool_load = categories this run will execute in that pool).
+            assignment = assign_roles(
+                plan.get("order") or names,
+                {n: "category" for n in names},
+                {"category": "metacluster"})
+            rehearsal = rehearse_dispatch(plan, assignment)
+            predicted = list(rehearsal.get("predicted_failures") or [])
             if not plan.get("valid"):
-                gaps = ";".join(str(g) for g in (plan.get("gaps") or []))
+                # The rehearsal's predicted failures (plan-gap:*/assign-gap:*)
+                # EXPLAIN the unusable plan, so they are what the fallback note
+                # reports; the raw gap list is only the fallback for a rehearsal
+                # that produced nothing to say.
+                gaps = ";".join(
+                    str(g) for g in (predicted or (plan.get("gaps") or [])))
                 return names, {}, "plan-fallback:invalid(%s)" % gaps[:120]
             levels = plan.get("levels") or {}
             ordered = sorted(plan.get("order") or names,
@@ -365,6 +385,15 @@ class MetaCluster:
                 # Shared worms are work this run can do once. Recorded, not
                 # silently acted on: the report must stay readable.
                 note += ",shared_worms=%d" % int(sharing.get("savings") or 0)
+            # The rehearsal's verdict rides the plan note that orchestration
+            # already reports, so a held plan and the busiest pool are visible
+            # without a second telemetry channel.
+            note += ",rehearsed=%s,predicted_failures=%d" % (
+                "go" if rehearsal.get("go") else "hold", len(predicted))
+            pool_load = rehearsal.get("pool_load") or {}
+            if pool_load:
+                busiest = max(pool_load, key=lambda p: pool_load[p])
+                note += ",busiest_pool=%s(%d)" % (busiest, int(pool_load[busiest]))
             try:
                 record_dispatch_plan("metacluster", plan)
             except Exception as exc:  # noqa: BLE001 — ledger is best-effort
