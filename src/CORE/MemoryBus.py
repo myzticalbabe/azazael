@@ -797,10 +797,14 @@ class MemoryBus:
 
         2026-09-28: the old target (POST /memories) never existed on the
         server (404 always) so every publish silently fell back to the local
-        queue. The server ingests via POST /api/memories/promote, which
+        queue. The         server ingests via POST /api/memories/promote, which
         stores {content, tags, ...} to long-term memory and returns
         {status, memory_id, ...}. The bus envelope is embedded in content
         (as before) plus topic tags, so nothing downstream changes shape.
+
+        Memory unity: this is the curated-promotion FEEDER into PAMS
+        long-term memory. Hot event telemetry belongs to LocalMemoryStore
+        (the canonical store trainers and recall read); see PamsRecorder.
         """
         body = {
             "content": _truncate_post(json.dumps({

@@ -48,9 +48,11 @@ import threading
 import time
 from typing import Any, Callable, Dict, List
 
+from CORE.local_memory import get_memory_store
+
 __all__ = [
     "register", "ADAPTERS", "load_slices", "run_all", "status",
-    "verify_boundary", "reflect_on_failure",
+    "verify_boundary", "reflect_on_failure", "record_link",
 ]
 
 #: EP code -> {"ep", "name", "where", "fn", "layer"}. Populated by `register`
@@ -240,15 +242,16 @@ def verify_boundary(subject: str, **kwargs: Any) -> Dict[str, Any]:
         from CORE import verification_gate as vg
         sig = getattr(vg, "verify_before_accept", None)
         if sig is None:
-            return {"accepted": True, "reasons": ["no-gate"],
-                    "remediations": [], "citation": ""}
-        import inspect
-        params = inspect.signature(sig).parameters
-        accepted = {k: v for k, v in kwargs.items() if k in params}
-        verdict = sig(subject=str(subject), **accepted)
-        return verdict if isinstance(verdict, dict) else {
-            "accepted": bool(verdict), "reasons": [], "remediations": [],
-            "citation": ""}
+            out = {"accepted": True, "reasons": ["no-gate"],
+                   "remediations": [], "citation": ""}
+        else:
+            import inspect
+            params = inspect.signature(sig).parameters
+            accepted = {k: v for k, v in kwargs.items() if k in params}
+            verdict = sig(subject=str(subject), **accepted)
+            out = verdict if isinstance(verdict, dict) else {
+                "accepted": bool(verdict), "reasons": [], "remediations": [],
+                "citation": ""}
     except Exception as exc:
         # A verifier that fails must not block the boundary it guards: report
         # the failure and let the caller proceed (fail-open is the house rule
@@ -256,8 +259,12 @@ def verify_boundary(subject: str, **kwargs: Any) -> Dict[str, Any]:
         # silently erroring is visible in failure_notes() rather than looking
         # exactly like a gate that passed.
         note_failure("verify-boundary", exc)
-        return {"accepted": True, "reasons": [f"gate-error:{type(exc).__name__}"],
-                "remediations": [], "citation": ""}
+        out = {"accepted": True, "reasons": [f"gate-error:{type(exc).__name__}"],
+               "remediations": [], "citation": ""}
+    record_link("technique_runtime.verify_boundary", subject,
+                bool(out.get("accepted", True)),
+                citation=str(out.get("citation", "")))
+    return out
 
 
 def reflect_on_failure(question: str, what_failed: str, what_next: str,
@@ -280,6 +287,8 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
     except Exception:
         note_failure("technique_runtime:L275", None)
         written = False
+    record_link("technique_runtime.reflect_on_failure", question, written,
+                decision_id=str(decision_id or ""))
     return {"written": written, "question": _short(question),
             "predicted": predicted}
 
@@ -312,3 +321,28 @@ def _cite(subject: str, accepted: bool, reasons: List[str],
         # `failure_notes()` must be able to say so.
         note_failure("audit-cite", exc)
         return ""
+
+
+def record_link(hook: str, subject: str, ok: bool,
+                citation: str = "", decision_id: str = "") -> bool:
+    """Write one join row for a live hook invocation (memory unity, Phase 1).
+
+    Every production hook call leaves a row in the canonical store
+    (LocalMemoryStore) keyed by hook+subject, so ledger citations, memory
+    recall, and future training intake can JOIN on it instead of living in
+    separate systems. source="technique-link".
+    Fail-open: never raises; False only if the store is unwritable.
+    """
+    kept = False
+    try:
+        kept = bool(get_memory_store().record_event(
+            "technique-link",
+            "hook:%s" % hook,
+            {"subject": str(subject), "ok": bool(ok),
+             "citation": str(citation or ""),
+             "decision_id": str(decision_id or "")},
+            severity="info" if ok else "warning",
+            tags=["technique-link", str(hook)]))
+    except Exception as exc:
+        note_failure("technique-runtime:record-link", exc)
+    return kept
