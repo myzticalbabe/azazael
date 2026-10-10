@@ -284,3 +284,25 @@ taken from the map's own text). This is a reassignment only: no code was impleme
   `tools/canon_drift_check.py::_reconcile` (EvoSOP union with overwrite fallback);
   `prune_sops` intentionally unwired (no evidence source exists — calling it with
   empty evidence would prune everything).
+
+## Status notes (2026-10-10, Tier-1 M-row verification)
+
+Verified each M-row's host, values source, and consumer before building —
+field-without-reader and value-without-source are decoration, not absorption:
+- EP302 → DEFERRED (no structural-grouping consumer: `family_index` has zero
+  production importers, so a persisted layout key would sit unread; layout
+  sketches are computable from headings when a consumer lands).
+- EP265 → DEFERRED twice over: the "existing loading-order surface" is absent
+  (no Loading Order section in the catalog since the Sep-29 regen; only
+  MEMORIES.md prose attests it), and version-scoped nogoods have no admission
+  point in-repo (the client reads the load dir directly). `stale_in_load`
+  already gates via `--check`; fixed the generator docstring's preserve claim.
+- EP135 → DEFERRED (per-skill lifecycle stages are not mechanically derivable;
+  schema-without-data is speculation; blocker = per-skill stage analysis).
+- EP34 → SATISFIED, no code needed (`canon_drift_check.classify` keeps both
+  live copies identical; 1243/1243 `--check` green 2026-10-10; 13 canon tests
+  pass; the render-plan-into-prompt half has no host by design — the client
+  reads SKILL.md directly).
+- EP255 → DEFERRED (no honest trigger: sync stats are not experience, drift is
+  not outcome, zero `skill_executed` events exist; unlock = instrument one real
+  skill-use site or live `commit_gate` traffic first).
