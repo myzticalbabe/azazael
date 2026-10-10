@@ -116,6 +116,7 @@ class DebugZ:
             ))
         except Exception as exc:
             # Absent store is DEGRADED, not broken: the fleet runs without it.
+            note_failure("debugz:local_memory", exc)
             statuses.append(ComponentStatus(
                 "local_memory", False, "", error=f"unavailable: {exc!r}"))
 

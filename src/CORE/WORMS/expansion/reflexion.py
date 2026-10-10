@@ -141,7 +141,8 @@ def reflections_for(question: str, *, store: Any = None,
             return (1, 0.0)
         try:
             return (0, abs(float(predicted) - float(realised)))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("expansion/reflexion:144", exc)
             return (1, 0.0)
 
     hits.sort(key=_calibration_key)

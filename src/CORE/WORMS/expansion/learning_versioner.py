@@ -250,7 +250,8 @@ def pareto_retain(candidates, metrics_key="metrics"):
         m = (c or {}).get(metrics_key, {}) or {}
         try:
             vecs[str(c.get("version", "?"))] = [float(v) for v in m.values()]
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("expansion/learning_versioner:253", exc)
             continue
     names = list(vecs)
     retained: list = []

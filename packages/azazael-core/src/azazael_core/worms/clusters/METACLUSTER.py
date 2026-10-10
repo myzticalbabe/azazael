@@ -184,8 +184,8 @@ except ImportError:
 
 # ── PAMS Memory Recording ──────────────────────────────────────────
 try:
-    from CORE.PamsRecorder import PamsRecorder
-    _pams = PamsRecorder()
+    from CORE.PamsRecorder import get_recorder
+    _pams = get_recorder()
     _PAMS_OK = True
 except ImportError:
     _PAMS_OK = False

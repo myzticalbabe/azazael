@@ -853,7 +853,8 @@ def read_citation(citation: str, repo_root: str = "") -> dict:
     path_s, _, line_s = cite.rpartition(":")
     try:
         lineno = int(line_s)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError) as exc:
+        note_failure("audit_trail:856", exc)
         return {"found": False, "entry": None, "path": path_s,
                 "reason": "bad-line-number"}
     base = Path(str(repo_root)) if repo_root else Path.cwd()
@@ -868,6 +869,7 @@ def read_citation(citation: str, repo_root: str = "") -> dict:
                     return {"found": True, "entry": json.loads(raw),
                             "path": path_s, "line": lineno}
     except Exception as exc:                          # noqa: BLE001 - probe
+        note_failure("audit_trail:870", exc)
         return {"found": False, "entry": None, "path": path_s,
                 "reason": type(exc).__name__}
     return {"found": False, "entry": None, "path": path_s,
@@ -915,7 +917,8 @@ def claim_evidence_index(filepath: str) -> dict:
                     continue
                 try:
                     entry = json.loads(raw)
-                except Exception:
+                except Exception as exc:
+                    note_failure("audit_trail:918", exc)
                     continue
                 if not isinstance(entry, dict):
                     continue
@@ -924,6 +927,7 @@ def claim_evidence_index(filepath: str) -> dict:
                 index.setdefault(claim, []).append(
                     str(entry.get("hash", entry.get("citation", "?"))))
     except Exception as exc:                          # noqa: BLE001 - probe
+        note_failure("audit_trail:926", exc)
         return {"claims": {}, "n_claims": 0, "n_entries": n,
                 "reason": type(exc).__name__}
     return {"claims": {k: v[:50] for k, v in index.items()},

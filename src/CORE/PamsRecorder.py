@@ -91,9 +91,9 @@ class PamsRecorder:
     # which is only true for a new object. Four tests to one, and the code ships a
     # dedicated accessor for the singleton, so the accessor is the contract and
     # `tests/test_pams_recorder.py::test_same_instance` was corrected to test it.
-    # The real remaining question is whether the twelve production call sites that
-    # do `_pams = PamsRecorder()` at import should use `get_recorder()` instead;
-    # that is a behaviour change and is deliberately not made here.
+    # The production call sites that
+    # do `_pams = PamsRecorder()` at import now use `get_recorder()` (S-8 pass);
+    # the migration is behaviour-preserving: same module, one shared instance.
 
     def __init__(self):
         self.session_id = uuid7().hex[:8]

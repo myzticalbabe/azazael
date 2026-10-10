@@ -211,7 +211,8 @@ class PrioritizedReplayBuffer:
                 continue
             try:
                 rates[ep] = sum(float(r.get("reward", 0.0)) for r in rows) / len(rows)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                note_failure("expansion/learning_replay:214", exc)
                 continue
         vals = list(rates.values())
         spread = (max(vals) - min(vals)) if len(vals) >= int(min_episodes) else 0.0

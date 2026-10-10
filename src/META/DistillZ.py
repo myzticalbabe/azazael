@@ -107,7 +107,8 @@ class DistillZ:
                     mem = int(g.get("total_memories") or 0)
                     ses = int(g.get("total_sessions") or 0)
                     act = int(g.get("active_sessions") or 0)
-                except Exception:
+                except Exception as exc:
+                    note_failure("distillz:pams-stats", exc)
                     mem = ses = act = 0
                 report.insights.append(Insight(
                     source="PAMS",

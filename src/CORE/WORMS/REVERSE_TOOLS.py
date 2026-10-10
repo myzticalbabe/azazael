@@ -84,8 +84,8 @@ try:
     _ft_path = str(Path(__file__).resolve().parent.parent.parent)
     if _ft_path not in sys.path:
         sys.path.insert(0, _ft_path)
-    from CORE.PamsRecorder import PamsRecorder
-    _pams: Any = PamsRecorder()
+    from CORE.PamsRecorder import get_recorder
+    _pams: Any = get_recorder()
 except ImportError:
     note_failure("REVERSE_TOOLS:L88", None)
     _pams: Any = None

@@ -71,8 +71,8 @@ try:
     _ft_path = str(Path(__file__).resolve().parent.parent.parent)
     if _ft_path not in sys.path:
         sys.path.insert(0, _ft_path)
-    from CORE.PamsRecorder import PamsRecorder
-    _pams: Any = PamsRecorder()
+    from CORE.PamsRecorder import get_recorder
+    _pams: Any = get_recorder()
 except ImportError as exc:
     _note_failure("pams_import:L57", exc)
     _pams: Any = None

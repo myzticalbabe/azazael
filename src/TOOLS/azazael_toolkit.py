@@ -16,8 +16,10 @@ _own_dir = str(Path(__file__).resolve().parent)
 if _own_dir in sys.path:
     sys.path.remove(_own_dir)
 
-# Add the canonical parent directory
-_canonical_dir = str(Path(__file__).resolve().parent.parent / "AZAZAEL_TOOLKIT")
+# Add the canonical PACKAGE PARENT (src/), so `AZAZAEL_TOOLKIT.<mod>` is importable.
+# Putting AZAZAEL_TOOLKIT itself on sys.path is what let the bare self-name import
+# resolve back to this shim.
+_canonical_dir = str(Path(__file__).resolve().parent.parent)
 if _canonical_dir not in sys.path:
     sys.path.insert(0, _canonical_dir)
 
@@ -28,7 +30,9 @@ warnings.warn(
     stacklevel=2,
 )
 
-from azazael_toolkit import main
+# Package-qualified: a bare `from azazael_toolkit import main` re-enters this shim
+# (same name, already in sys.modules) before `main` exists -> circular import.
+from AZAZAEL_TOOLKIT.azazael_toolkit import main
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

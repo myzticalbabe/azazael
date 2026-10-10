@@ -711,6 +711,7 @@ class DataPipelineWorm:
                     exclude_sources=list(ex or []))
                 rows["excluded:" + ",".join(ex or ["none"])] = len(recs or [])
             except Exception as exc:
+                note_failure("expansion/learning_pipeline:713", exc)
                 rows["excluded:" + ",".join(ex or ["none"])] = (
                     f"error:{type(exc).__name__}")
         return {"variants": rows, "n_variants": len(rows),

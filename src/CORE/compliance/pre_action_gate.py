@@ -56,6 +56,17 @@ except ImportError:
     _TELEMETRY_AVAILABLE = False
     ComplianceTelemetry = None
 
+#: EP152 (DeepVerifier) -- the 0X/0Y verdict is holistic: it names the failing
+#: COMPONENT ("0X:policy_gate"), never the failing part of the requirement.
+#: `decompose_rubric` (already written in verification_gate) turns a criterion
+#: into atomic, checkable sub-questions carrying a failure class each.
+#: Module-level (an in-function import is a ratchet failure) and fail-open.
+try:
+    from CORE.verification_gate import decompose_rubric as _decompose_rubric
+except ImportError:                               # gate absent: deny stays holistic
+    note_failure("pre_action_gate:verification-gate-import", None)
+    _decompose_rubric = None
+
 # Orchestrator import is LAZY (deferred to _check_rule_0x_0y) to avoid
 # a Python import-ordering bug: when orchestrator is already in sys.modules
 # (loaded by sentinel_gate.py first), pre_action_gate's module-level
@@ -814,6 +825,51 @@ class PreActionGate:
         "dual_ledger", "audit_pipeline",
     }
 
+    def _decompose_denial(self, failing: List[str]) -> dict:
+        """Decompose a blocking denial into targeted sub-questions (EP152).
+
+        The DeepVerifier asymmetry: the gate can already deny, but a holistic
+        deny cannot say WHICH part failed, so the remediation is a component
+        list rather than repair targets. This splits the failing criteria with
+        `verification_gate.decompose_rubric` and assigns each sub-question a
+        failure class (omission / unsupported-claim / inconsistency /
+        incompleteness).
+
+        Fail-open: without the gate module, or if it raises, each criterion
+        becomes one plain question and the reason is named in `gaps`. The deny
+        itself is unaffected either way — only the detail degrades.
+
+        Returns {"subquestions", "by_subquestion", "classes", "ok", "gaps"}.
+        """
+        out: dict = {"subquestions": [], "by_subquestion": {}, "classes": [],
+                     "ok": False, "gaps": []}
+        criteria = [str(f).strip() for f in (failing or []) if str(f).strip()]
+        if not criteria:
+            out["gaps"].append("no-failing-criteria")
+            return out
+        fallback = [f"does {c} pass?" for c in criteria]
+        if _decompose_rubric is None:
+            out["subquestions"] = fallback
+            out["gaps"].append("verification-gate-unavailable")
+            return out
+        try:
+            rubric = _decompose_rubric(", ".join(criteria))
+        except Exception as exc:              # noqa: BLE001 — the deny stands regardless
+            note_failure("pre_action_gate:denial-decompose", exc)
+            out["subquestions"] = fallback
+            out["gaps"].append(f"decompose-failed:{type(exc).__name__}")
+            return out
+        taxonomy = rubric.get("taxonomy") or {}
+        out["subquestions"] = [str(q) for q in (rubric.get("subquestions") or [])]
+        out["by_subquestion"] = dict(taxonomy.get("by_subquestion") or {})
+        out["classes"] = [str(c.get("class"))
+                          for c in (taxonomy.get("classes") or [])]
+        out["ok"] = bool(rubric.get("ok"))
+        out["gaps"].extend(str(g) for g in (rubric.get("gaps") or []))
+        if not out["subquestions"]:
+            out["subquestions"] = fallback
+        return out
+
     def _check_rule_0x_0y(self, action: str, filepath: str,
                            source_code: (str | None) = None) -> tuple[bool, str]:
         """Run mandatory RULE 0X + 0Y compliance check before any edit.
@@ -890,9 +946,24 @@ class PreActionGate:
                     failing_blocking.append(f"0Y:{comp}")
 
             if failing_blocking:
+                # EP152: a holistic deny cannot say WHICH part of the rule
+                # failed. Decompose the failing criteria into targeted,
+                # checkable sub-questions (a failure class each) so the caller
+                # receives repair targets, not a bare component list.
+                decomposed = self._decompose_denial(failing_blocking)
+                targeted = "; ".join(
+                    "%s [%s]" % (q, decomposed["by_subquestion"].get(i, "unclassified"))
+                    for i, q in enumerate(decomposed["subquestions"]))
+                self._emit("compliance_check", "denied", {
+                    "action": action,
+                    "filepath": filepath,
+                    "blocking": list(failing_blocking),
+                    "subquestions": decomposed["subquestions"],
+                })
                 return False, (
                     f"RULE 0X/0Y DENIED (blocking): "
                     f"{', '.join(failing_blocking)}"
+                    + (f" — targeted checks: {targeted}" if targeted else "")
                 )
 
             # Non-blocking warnings are logged but don't deny

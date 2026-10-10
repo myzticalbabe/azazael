@@ -50,8 +50,8 @@ except ImportError:                               # never break the host
 
 # PAMS recording
 try:
-    from CORE.PamsRecorder import PamsRecorder
-    PAMS_REC = PamsRecorder()
+    from CORE.PamsRecorder import get_recorder
+    PAMS_REC = get_recorder()
 except ImportError:
     note_failure("hydra_bridge:L46", None)
     PAMS_REC = None

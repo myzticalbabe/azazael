@@ -880,7 +880,7 @@ class TERENCE:
         an object that had just been constructed - not the scan that had just
         found 8,019 findings. Status must describe the last run.
         """
-        with contextlib.suppress(OSError):
+        try:
             p = self._state_path()
             p.parent.mkdir(parents=True, exist_ok=True)
             payload = {
@@ -899,6 +899,8 @@ class TERENCE:
                 "when": datetime.now().isoformat(timespec="seconds"),
             }
             p.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except OSError as exc:
+            note_failure("terence:883", exc)
 
     def status(self) -> dict:
         """Show the LAST RUN's status.
@@ -918,10 +920,12 @@ class TERENCE:
                 "source": "this-instance",
             }
         data = None
-        with contextlib.suppress(OSError, ValueError):
+        try:
             p = self._state_path()
             if p.exists():
                 data = json.loads(p.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            note_failure("terence:921", exc)
         if data is not None:
             data["source"] = "last-run"
             return data
