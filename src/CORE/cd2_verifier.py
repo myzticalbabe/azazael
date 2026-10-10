@@ -10,6 +10,8 @@ Provides:
     inter-agent transfer and audit trail storage
   - SMTVerifier class — Worker-Verifier-Judge pipeline with pure-Python
     fallback when z3-solver is not installed
+  - localize_violation() / localize_violations() — LogicLoc (EP183): turn a flat
+    violation string into the SMALLEST implicated region plus a repair hint
   - Audit trail integration via DirectMemory (z3_verification event type)
 
 Usage:
@@ -28,6 +30,7 @@ Usage:
         serialized = serialize_solver_result(solver, "my_model")
 """
 
+import re
 import time
 from typing import Any, Dict, List, Optional
 
@@ -148,6 +151,158 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
                 type(exc).__name__, exc)
 
     return output
+
+
+# ====================================================================
+# LogicLoc (EP183) — neurosymbolic localization of the failing region
+# ====================================================================
+# A verification already knows WHICH check failed, and reports it as a flat
+# string. Repair work needs the SMALLEST implicated region instead: the field,
+# the kind of check that failed, the declared constraint it contradicted, and a
+# repair the caller can act on. LogicLoc maps the flat violation back onto that
+# region, so a caller repairs one field instead of re-reading the whole set.
+#
+# The formats below are the ones `PurePythonVerifier.verify` actually emits --
+# they are transcribed from that method, not invented, so a change to its
+# wording fails these regexes loudly (located=False) rather than silently
+# localizing the wrong region.
+
+#: Narrowest-first. A value-specific check implicates one field's value against
+#: one declared constraint; "field absent" implicates the entire field.
+_KIND_RANK = {"bounds": 0, "logical": 0, "type": 1, "required-field": 2,
+              "unknown": 3}
+
+_RE_REQUIRED = re.compile(r"Required field '([^']*)' \(([^)]*)\) missing")
+_RE_TYPE = re.compile(r"Field '([^']*)' type mismatch: expected ([^,]*), got (.*)$")
+_RE_BOUNDS = re.compile(
+    r"Field '([^']*)' = (.*) out of bounds \[([^,]*), ([^\]]*)\]")
+_RE_LOGICAL = re.compile(r"Field '([^']*)' = (.*), expected ([<>=!]+) (.*)$")
+_RE_ANY_FIELD = re.compile(r"'([^']*)'")
+
+
+def _declared_constraint(constraints: Dict[str, Any], region: str,
+                         kind: str) -> Any:
+    """The declared constraint governing `region`, when the set is available.
+
+    Returns None when the caller did not supply the constraint set, or when it
+    contains nothing for this region -- an absent declaration is reported as
+    absent, never substituted with a plausible-looking one.
+    """
+    if not region or not constraints:
+        return None
+    if kind in ("required-field", "type"):
+        return (constraints.get("required_fields") or {}).get(region)
+    if kind == "bounds":
+        return (constraints.get("numeric_bounds") or {}).get(region)
+    if kind == "logical":
+        for expr in (constraints.get("logical_exprs") or []):
+            if isinstance(expr, dict) and str(expr.get("field", "")) == region:
+                return expr
+        return None
+    return None
+
+
+def _repair_hint(kind: str, region: str, declared: Any) -> str:
+    """A repair the caller can act on, naming the region it belongs to."""
+    if not region:
+        return "unlocated: the violation names no field; re-read the constraint set"
+    if kind == "required-field":
+        return "supply field '%s' (declared type %s)" % (region, declared)
+    if kind == "type":
+        return "coerce field '%s' to its declared type %s" % (region, declared)
+    if kind == "bounds":
+        return ("bring field '%s' inside its declared bounds %s"
+                % (region, declared if declared is not None else "?"))
+    if kind == "logical":
+        return ("adjust field '%s' to satisfy its declared expression %s"
+                % (region, declared if declared is not None else "?"))
+    return ("region '%s' is implicated but no declared constraint was found for it"
+            % region)
+
+
+def localize_violation(violation: str,
+                       constraints: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """LogicLoc (EP183): map ONE violation to the smallest region it implicates.
+
+    Args:
+        violation: one entry of a result's `violations` list, in the format
+                   `PurePythonVerifier.verify` emits.
+        constraints: the verified constraint set, when the caller still holds
+                   it, so the DECLARED constraint can be reported alongside
+                   what was observed.
+
+    Returns:
+        {"region", "kind", "declared", "observed", "expected", "repair",
+        "located", "violation"}. `located` is False when the string is not in a
+        recognised format -- reported rather than guessed at.
+    """
+    text = str(violation or "")
+    region = ""
+    kind = "unknown"
+    observed: Any = None
+    expected: Any = None
+
+    match = _RE_REQUIRED.search(text)
+    if match:
+        region, kind = match.group(1), "required-field"
+        expected = match.group(2)
+    else:
+        match = _RE_TYPE.search(text)
+        if match:
+            region, kind = match.group(1), "type"
+            expected, observed = match.group(2).strip(), match.group(3).strip()
+        else:
+            match = _RE_BOUNDS.search(text)
+            if match:
+                region, kind = match.group(1), "bounds"
+                # The declared bounds carry the producer's own spacing
+                # ("[0, 150]" -> "0", " 150"); stripped so a consumer does not
+                # have to know that.
+                observed = match.group(2).strip()
+                expected = (match.group(3).strip(), match.group(4).strip())
+            else:
+                match = _RE_LOGICAL.search(text)
+                if match:
+                    region, kind = match.group(1), "logical"
+                    observed = match.group(2).strip()
+                    expected = (match.group(3).strip(), match.group(4).strip())
+                else:
+                    # Last resort: the field is still the smallest region named.
+                    match = _RE_ANY_FIELD.search(text)
+                    if match:
+                        region = match.group(1)
+
+    declared = _declared_constraint(constraints or {}, region, kind)
+    return {
+        "region": region,
+        "kind": kind,
+        "declared": declared,
+        "observed": observed,
+        "expected": expected,
+        "repair": _repair_hint(kind, region, declared),
+        "located": bool(region),
+        "violation": text,
+    }
+
+
+def localize_violations(constraints: Dict[str, Any],
+                        violations: List[str]) -> Dict[str, Any]:
+    """Localize every violation and rank them narrowest-region-first.
+
+    `smallest` is the single region a caller should repair first: value checks
+    (bounds, logical) ahead of shape checks (type, presence). Python's sort is
+    stable, so equal ranks keep the order the verifier reported.
+    """
+    regions = [localize_violation(v, constraints) for v in (violations or [])]
+    ranked = sorted(regions,
+                    key=lambda r: _KIND_RANK.get(str(r.get("kind")), 3))
+    unlocated = [r["violation"] for r in regions if not r.get("located")]
+    return {
+        "regions": ranked,
+        "smallest": ranked[0] if ranked else None,
+        "n": len(ranked),
+        "unlocated": unlocated,
+    }
 
 
 # ====================================================================
@@ -370,17 +525,25 @@ class SMTVerifier:
 
         return result
 
-    def judge_result(self, result: Dict[str, Any]) -> Dict[str, str]:
+    def judge_result(self, result: Dict[str, Any],
+                     constraints: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """JUDGE step: evaluate a verification result and produce verdict.
 
         Args:
             result: The output of verify_constraints().
+            constraints: The set that produced `result`, when the caller still
+                         holds it. Optional: it only enriches the localization
+                         with the DECLARED constraint for the implicated region;
+                         without it that field is reported absent, not guessed.
 
         Returns:
             dict with:
-                verdict     - "ACCEPT" or "REJECT"
-                confidence  - "high", "medium", or "low"
-                rationale   - Explanation string
+                verdict      - "ACCEPT" or "REJECT"
+                confidence   - "high", "medium", or "low"
+                rationale    - Explanation string; a REJECT names the smallest
+                               implicated region and its repair (EP183 LogicLoc)
+                localization - {"regions", "smallest", "n", "unlocated"} on a
+                               REJECT; absent on ACCEPT
         """
         if result["result"] == "SAT":
             return {
@@ -394,14 +557,36 @@ class SMTVerifier:
             }
         elif result["result"] == "UNSAT":
             violations = result.get("violations", [])
+            model = result.get("model", "unknown")
+            # EP183 LogicLoc. The JUDGE step is where a rejection becomes a
+            # finding, so this is where the flat violation list becomes the
+            # smallest implicated region -- the caller can then repair one field
+            # rather than re-read the whole constraint set. Guarded because a
+            # localizer failure must not turn a REJECT into an exception.
+            localization: Dict[str, Any] = {"regions": [], "smallest": None,
+                                            "n": 0, "unlocated": []}
+            try:
+                localization = localize_violations(constraints or {}, violations)
+            except Exception as exc:  # noqa: BLE001 -- never break the verdict
+                note_failure("cd2_verifier:localize", exc)
+                localization["localize_error"] = "%s: %s" % (
+                    type(exc).__name__, exc)
+            smallest = localization.get("smallest") or {}
+            region = str(smallest.get("region") or "")
+            rationale = (
+                f"Constraint violations found for model '{model}': "
+                f"{'; '.join(violations[:3])}")
+            if region:
+                rationale = (
+                    f"Smallest implicated region for model '{model}': "
+                    f"field '{region}' ({smallest.get('kind')}) -- "
+                    f"{smallest.get('repair')}. "
+                    f"Violations: {'; '.join(violations[:3])}")
             return {
                 "verdict": "REJECT",
                 "confidence": "high",
-                "rationale": (
-                    f"Constraint violations found for model "
-                    f"'{result.get('model', 'unknown')}': "
-                    f"{'; '.join(violations[:3])}"
-                ),
+                "rationale": rationale,
+                "localization": localization,
             }
         else:
             return {
@@ -426,7 +611,9 @@ class SMTVerifier:
         """
         t0 = time.perf_counter()
         verification = self.verify_constraints(constraints, model_name)
-        judge = self.judge_result(verification)
+        # The constraints are in hand here, which is what lets the JUDGE step
+        # report the DECLARED constraint for the implicated region (EP183).
+        judge = self.judge_result(verification, constraints)
         dt = round((time.perf_counter() - t0) * 1000, 1)
 
         return {
@@ -620,9 +807,19 @@ if __name__ == "__main__":
     }
     result = v.verify_constraints(unsat_constraints)
     assert result["result"] == "UNSAT", f"Expected UNSAT, got {result['result']}"
-    judge = v.judge_result(result)
+    judge = v.judge_result(result, unsat_constraints)
     assert judge["verdict"] == "REJECT", f"Expected REJECT, got {judge['verdict']}"
     print(f"  [PASS] UNSAT test -> {judge['verdict']} (violations: {len(result['violations'])})")
+
+    # Test 2b: LogicLoc (EP183) localizes the rejection to its smallest region.
+    # The fixture violates a bound AND omits a field, so the ranking is the
+    # discriminating part: the value-level check must be named first.
+    located = judge["localization"]["smallest"]
+    assert located["region"] == "age", f"Expected region 'age', got {located}"
+    assert located["kind"] == "bounds", f"Expected bounds, got {located}"
+    assert located["declared"] == (0, 150), f"Expected declared bounds, got {located}"
+    print(f"  [PASS] LogicLoc -> region '{located['region']}' "
+          f"({located['kind']}): {located['repair']}")
 
     # Test 3: Worker-Verifier-Judge pipeline
     wvj_result = v.worker_verifier_judge(sat_constraints, "wvj_test")

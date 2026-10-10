@@ -7,11 +7,12 @@ Records training results to LocalMemoryStore for observability.
 Supports daily, hourly, or interval-based scheduling with configurable max duration.
 """
 
+import json
 import time
 import random
 import threading
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
 # -- Failure ledger ---------------------------------------------------
@@ -146,6 +147,137 @@ class TrainingRun:
     skipped: bool = False
     skip_reason: (str | None) = None
     synthetic: bool = False
+
+
+# -- EP252 Drop-Stable-Rampup: schedule the training SET, not just the clock -----
+# `ScheduledTrainingWorm` decided *when* to train; the size of the training set
+# was a constant (`ScheduleConfig.data_limit`). Drop-Stable-Rampup schedules the
+# size from what the runs actually did: grow it while the reward series holds
+# (loss stable), back it off when a run destabilises (loss spike). Bounds are
+# module constants so the policy is arguable in one place.
+RAMPUP_MIN_LIMIT = 25         # below this the run has too little data to learn from
+RAMPUP_MAX_LIMIT = 800        # extraction ceiling this pipeline is known to carry
+RAMPUP_WINDOW = 3             # runs compared (needs >= 2 to have any change at all)
+RAMPUP_STABILITY_TOLERANCE = 0.05   # |relative change| within this = still stable
+RAMPUP_DROP_TOLERANCE = 0.10        # a last-step decline past this = destabilised
+RAMPUP_GROWTH_FACTOR = 1.5
+RAMPUP_BACKOFF_FACTOR = 0.5
+
+
+def _relative_change(previous: Any, current: Any) -> float:
+    """Relative change between two rewards; 0.0 when `previous` is 0.
+
+    Dividing by a zero baseline raises ZeroDivisionError, and a zero *is* a real
+    observation (a scheduled run that learned nothing) -- so it must not crash the
+    scheduler. A zero baseline carries no relative information, so it reports no
+    change rather than an infinite one.
+    """
+    if previous == 0:
+        return 0.0
+    return (current - previous) / abs(previous)
+
+
+def rampup_data_limit(reward_history: List[Any],
+                      base_limit: int,
+                      *,
+                      min_limit: int = RAMPUP_MIN_LIMIT,
+                      max_limit: int = RAMPUP_MAX_LIMIT,
+                      window: int = RAMPUP_WINDOW,
+                      stability_tolerance: float = RAMPUP_STABILITY_TOLERANCE,
+                      drop_tolerance: float = RAMPUP_DROP_TOLERANCE,
+                      growth_factor: float = RAMPUP_GROWTH_FACTOR,
+                      backoff_factor: float = RAMPUP_BACKOFF_FACTOR) -> Dict[str, Any]:
+    """EP252 -- next run's training-set size, from reward stability.
+
+    `reward_history` is oldest-first observed mean rewards (the `avg_reward` of
+    prior `training_run_complete` rows). The rule, in order:
+
+      * fewer than two observations -> HOLD. One point has no change in it, and
+        a ramp taken from nothing is a fabricated input, not a schedule.
+      * the LAST step declined past `drop_tolerance` -> DROP (back off).
+      * every step within `stability_tolerance` -> RAMP (grow).
+      * otherwise -> HOLD (noisy, but not destabilised: neither signal is
+        strong enough to spend on).
+
+    Returns {"limit", "action" ("ramp"|"drop"|"hold"), "stable",
+    "destabilised", "reason", "observed", "changes", "window", "gaps"}. Both
+    moves are clamped to [min_limit, max_limit]. Fails open to a HOLD at
+    `base_limit` on any unusable input, recording the swallow first.
+    """
+    def _result(limit: int, action: str, stable: bool, destabilised: bool,
+                reason: str, observed: List[float], changes: List[float],
+                gaps: List[str]) -> Dict[str, Any]:
+        return {"limit": int(limit), "action": action, "stable": bool(stable),
+                "destabilised": bool(destabilised), "reason": reason,
+                "observed": list(observed), "changes": list(changes),
+                "window": len(observed), "gaps": list(gaps)}
+
+    try:
+        base = int(base_limit)
+    except (TypeError, ValueError):
+        note_failure("scheduling:rampup-base", None)
+        return _result(0, "hold", False, False, "non-numeric-base-limit", [], [],
+                       ["non-numeric-base-limit"])
+
+    try:
+        horizon = max(2, int(window))
+    except (TypeError, ValueError):
+        note_failure("scheduling:rampup-window", None)
+        return _result(base, "hold", False, False, "non-numeric-window", [], [],
+                       ["non-numeric-window"])
+
+    # The tunables are caller-supplied too, so a bad one must degrade to the
+    # module's own policy rather than raise deep inside the arithmetic below.
+    try:
+        lo = max(0, int(min_limit))
+        hi = max(lo, int(max_limit))
+        grow = float(growth_factor)
+        back = float(backoff_factor)
+        tol_stable = abs(float(stability_tolerance))
+        tol_drop = abs(float(drop_tolerance))
+    except (TypeError, ValueError):
+        note_failure("scheduling:rampup-tunables", None)
+        lo, hi = RAMPUP_MIN_LIMIT, RAMPUP_MAX_LIMIT
+        grow, back = RAMPUP_GROWTH_FACTOR, RAMPUP_BACKOFF_FACTOR
+        tol_stable, tol_drop = RAMPUP_STABILITY_TOLERANCE, RAMPUP_DROP_TOLERANCE
+
+    observed: List[float] = []
+    for value in list(reward_history or [])[-horizon:]:
+        try:
+            observed.append(float(value))
+        except (TypeError, ValueError):
+            note_failure("scheduling:rampup-history", None)
+            return _result(base, "hold", False, False, "non-numeric-reward", [], [],
+                           ["non-numeric-reward"])
+
+    if len(observed) < 2:
+        return _result(base, "hold", False, False, "insufficient-history",
+                       observed, [], ["insufficient-history"])
+
+    changes = [_relative_change(prev, cur)
+               for prev, cur in zip(observed, observed[1:])]
+    last = changes[-1]
+
+    if last < -tol_drop:
+        limit = max(lo, int(base * back))
+        return _result(limit, "drop", False, True,
+                       "destabilised: last reward moved %.1f%% (drop tolerance %.1f%%)"
+                       % (last * 100.0, -tol_drop * 100.0),
+                       observed, changes, [])
+
+    if all(abs(c) <= tol_stable for c in changes):
+        limit = min(hi, max(lo, int(base * grow)))
+        return _result(limit, "ramp", True, False,
+                       "stable: every step within %.1f%% over %d run(s)"
+                       % (tol_stable * 100.0, len(observed)),
+                       observed, changes, [])
+
+    worst = max(changes)
+    return _result(base, "hold", False, False,
+                   "noisy: largest move %.1f%% is outside %.1f%% but the last "
+                   "step %.1f%% is inside the drop tolerance"
+                   % (abs(worst) * 100.0, tol_stable * 100.0, abs(last) * 100.0),
+                   observed, changes, [])
 
 
 class ScheduledTrainingWorm:
@@ -327,6 +459,48 @@ class ScheduledTrainingWorm:
             note_failure("scheduling:L303", None)
             return None
 
+    def _rampup_decision(self) -> Dict[str, Any]:
+        """EP252 -- this run's training-set size, from the observed reward series.
+
+        Reads prior `training_run_complete` rows (oldest-first) and hands the
+        reward series to `rampup_data_limit`. READ-ONLY on history, like
+        `_plateau_skip_reason`: a caller that only asks a question must not
+        mutate anything. Fails open to the configured limit, and never raises --
+        a schedule is not worth a crash.
+        """
+        base = int(getattr(self.config, "data_limit", 0) or 0)
+        hold = {"limit": base, "action": "hold", "stable": False,
+                "destabilised": False, "reason": "unavailable",
+                "observed": [], "changes": [], "window": 0,
+                "gaps": ["unavailable"]}
+        if not self.config.record_to_memory:
+            # The reward series lives in the rows execute() writes. With
+            # recording off there is no series, so any ramp would be decided on
+            # evidence this config never produced (`_plateau_skip_reason` makes
+            # the same argument for the plateau signal).
+            return {**hold, "reason": "recording-disabled",
+                    "gaps": ["recording-disabled"]}
+        try:
+            store = self._get_store()
+            if store is None:
+                return hold
+            recent = store.query_memories(event_type="training_run_complete",
+                                          limit=int(RAMPUP_WINDOW))
+            rewards: List[Any] = []
+            for row in reversed(list(recent or [])):   # store returns newest-first
+                data = row.get("data", {})
+                if isinstance(data, str):
+                    data = json.loads(data)
+                # A row without `avg_reward` is not an observation. Skipping it
+                # is honest; passing the None on would poison the whole series
+                # and report a non-numeric reward the store never contained.
+                if isinstance(data, dict) and data.get("avg_reward") is not None:
+                    rewards.append(data.get("avg_reward"))
+            return rampup_data_limit(rewards, base)
+        except Exception as exc:
+            note_failure("scheduling:rampup-decision", exc)
+            return hold
+
     def execute(self) -> TrainingRun:
         """Execute one full training pipeline run.
 
@@ -363,6 +537,16 @@ class ScheduledTrainingWorm:
             return _skipped_run
 
         _synthetic = False  # bound before try: exception paths below read it
+
+        # EP252 (Drop-Stable-Rampup): the training SET is scheduled too. The size
+        # is decided from the observed reward series before extraction, because
+        # `data_limit` IS what the extractor is asked for -- a ramp that does not
+        # reach this call would change nothing. The decision is persisted on the
+        # config so a ramp compounds across runs and a drop backs off from where
+        # the ramp left it, and it is recorded with the run below.
+        rampup = self._rampup_decision()
+        data_limit = int(rampup.get("limit") or self.config.data_limit)
+        self.config.data_limit = data_limit
         try:
             # Stage 1: DataPipelineWorm — extract data
             pipeline = self._get_pipeline()
@@ -370,7 +554,7 @@ class ScheduledTrainingWorm:
                 raise RuntimeError("DataPipelineWorm unavailable")
             records = pipeline.extract_from_memory(
                 source=self.config.source_filter,
-                limit=self.config.data_limit,
+                limit=data_limit,
                 exclude_sources=self.config.exclude_sources,
             )
             n_records = len(records)
@@ -461,6 +645,8 @@ class ScheduledTrainingWorm:
                         "records": n_records,
                         "synthetic": _synthetic,
                         "episodes": self.config.n_episodes,
+                        "data_limit": data_limit,
+                        "rampup": str(rampup.get("action") or "hold"),
                         "avg_reward": avg_reward,
                         "q_table_size": q_table_size,
                         "model_version": new_version,
