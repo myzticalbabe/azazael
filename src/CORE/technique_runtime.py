@@ -57,11 +57,8 @@ from typing import Any, Callable, Dict, List
 #: time only in minimal environments.
 try:                                                       # pragma: no cover
     from CORE.WORMS.expansion import engram as _engram
-    from CORE.WORMS.expansion.engram import (  # noqa: F401
-        run_read_driven_consolidation as _read_driven_consolidation)
 except Exception:                                          # pragma: no cover
     _engram = None
-    _read_driven_consolidation = None
 
 try:                                                       # pragma: no cover
     from CORE import verification_gate as _vg
@@ -391,8 +388,14 @@ def recall_with_feedback(query: str, consolidate: bool = False,
             "total_reads": state.get("total"),
             "abstained": state.get("abstained"),
         }
-        if consolidate and _read_driven_consolidation is not None:
-            closed = _read_driven_consolidation(router=router)
+        # Resolve by NAME off the module, not through an aliased import. An
+        # `X as _Y` import hides this call from static reachability analysis,
+        # which is the exact defect class the mesh wire-or-cut gate exists to
+        # catch -- `PF16` then reports the callee as having "no production
+        # reference of any kind". Naming it here keeps the reference visible.
+        consolidate_fn = getattr(_engram, "run_read_driven_consolidation", None)
+        if consolidate and consolidate_fn is not None:
+            closed = consolidate_fn(router=router)
             out["consolidated"] = bool(closed.get("read_driven"))
             out["needs_writing"] = bool(
                 (closed.get("read_pressure") or {}).get("needs_writing"))
