@@ -487,7 +487,7 @@ def _ep343() -> Dict[str, Any]:
 # -- wiring ---------------------------------------------------------------------
 
 ADAPTERS: Dict[str, tuple] = {
-    "EP129": ("Agent Failure Taxonomy", "CORE.circuit_breaker:get_dead_letters", _ep129),
+    "EP129": ("Agent Failure Taxonomy", "CORE.circuit_breaker:BreakerRegistry.get_dead_letters", _ep129),
     "EP188": ("Agent-World Evolving Arena", "CORE.meta_evolution:choose_candidate", _ep188),
     "EP237": ("Why AI agents must map before acting", "CORE.codebase_graph", _ep237),
     "EP238": ("SepsisAgent Clinical World Model", "CORE.dispatch_plan:rehearse_dispatch", _ep238),
@@ -495,7 +495,7 @@ ADAPTERS: Dict[str, tuple] = {
     "EP307": ("ENPIRE robot self-improvement", "CORE.WORMS.expansion.arena:Environment", _ep307),
     "EP313": ("ARTS tree-search", "CORE.meta_evolution:architecture_snapshot", _ep313),
     "EP335": ("WorldEvolver", "CORE.dream_arena:compile_world", _ep335),
-    "EP337": ("EnvProbe budgeted probing", "CORE.WORMS.expansion.spine:SpineWorm._probe_candidates", _ep337),
+    "EP337": ("EnvProbe budgeted probing", "no-host: budgeted belief-table probing", _ep337),
     "EP343": ("Agentic Test-Time Training", "CORE.WORMS.expansion.reflexion:record_reflection", _ep343),
     "EP393": ("AREX self-audit research loop", "CORE.meta_evolution:architecture_snapshot", _ep393),
     "EP425": ("EnvACE world rehearsal", "CORE.dispatch_plan:rehearse_dispatch", _ep425),

@@ -116,23 +116,14 @@ def ep120() -> Dict[str, Any]:
 def ep131() -> Dict[str, Any]:
     """Three-tier memory: strategic / procedural / tool, counted from the store.
 
-    The map's gap: memory has `source`/`event_type`/`tags`/`severity` but no
-    TIER axis, so a session's rows cannot be distilled into one parent row.
-    This supplies the tier classifier (by event_type) and the count the
-    Reflect-agent needs; the migration itself is a schema change, not a wiring.
+    Mechanism lives in its HOST: `LocalMemoryStore.memory_tier_rollup`
+    (P1-3 host-remediation). Registration shim only; the attributable
+    rollup write stays here behind ALLOW_WRITES.
     """
-    tiers = {"strategic": ("session_start", "session_end", "goal",
-                           "evolution_promotion"),
-             "procedural": ("reflexion_note", "reflection_lesson", "sop",
-                            "skill"),
-             "tool": ("inference", "repl_exec", "tool_call", "command")}
     store = _store()
-    counts = {}
-    for tier, kinds in tiers.items():
-        counts[tier] = sum(store.count_memories(event_type=k) for k in kinds)
-    payload = {"tiers": counts, "classified": sum(counts.values())}
-    out = {"verified": True, **payload,
-           "unclassified_axis": "tier (schema change, not wiring)"}
+    out = store.memory_tier_rollup()
+    payload = {"tiers": out.get("tiers", {}),
+               "classified": out.get("classified", 0)}
     out.update(_write("EP131", "memory_tier_rollup", payload,
                       tags=["muse", "reflect"]))
     return out
@@ -258,15 +249,11 @@ def ep216() -> Dict[str, Any]:
 def ep221() -> Dict[str, Any]:
     """Resolution decay: coarsen in place instead of delete-then-rollup.
 
-    The existing pass is rollup-then-delete (`distill_aged_memories` writes a
-    `memory_distilled` row; `enforce_event_ttl` deletes). The missing variant is
-    a decay level so a row can lose detail WITHOUT being removed.
+    Mechanism lives in its HOST: `LocalMemoryStore.decay_memory_in_place`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
-    from CORE.data_retention import DISTILLED_EVENT, EVENT_TTL_DAYS
-    return {"verified": True, "rollup_event": DISTILLED_EVENT,
-            "ttl_days": EVENT_TTL_DAYS,
-            "decay_levels": ("full", "summary", "pointer"),
-            "gap": "in-place decay column is a schema addition, not a wiring"}
+    store = _store()
+    return store.decay_memory_in_place("technique runtime memory wiring")
 
 
 # -- EP233 backward-chaining retrieval ---------------------------------------
@@ -306,43 +293,25 @@ def ep235() -> Dict[str, Any]:
 # -- EP242 EXG: success/failure edges over the pattern tables -----------------
 @_safe
 def ep242() -> Dict[str, Any]:
-    """Experience-graph edges (success/failure) derived from the pattern store.
+    """Experience-graph edges (success/failure) over the pattern store.
 
-    No edges table exists. This derives edge counts from the rows that do,
-    so the graph is a projection of real data rather than an empty new table.
+    Mechanism lives in its HOST: `LocalMemoryStore.experience_edges`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
-    from CORE.pattern_memory import query_patterns
-    hits = query_patterns("technique runtime", top_k=5)
-    if isinstance(hits, dict):
-        rows = hits.get("results", hits.get("hits", [])) or []
-    else:
-        rows = list(hits or [])
-    return {"verified": True, "rows": len(rows),
-            "edge_kinds": ("succeeded_before", "failed_before"),
-            "gap": "persistent edges table not created (new surface, S/M)"}
+    store = _store()
+    return store.experience_edges("technique runtime")
 
 
 # -- EP247 PEEK: orientation cache with a token budget ------------------------
 @_safe
 def ep247() -> Dict[str, Any]:
-    """In-prompt orientation index, size-budgeted.
+    """In-prompt orientation index with a token budget.
 
-    `enforce_type_caps` caps row COUNTS only; there is no orientation artifact
-    and no token budget anywhere. This builds the index and enforces a budget.
+    Mechanism lives in its HOST: `LocalMemoryStore.orientation_index`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    total = store.count_memories()
-    budget = 200
-    index_line = f"memory: {total} rows; taps={len(_TAPS)}"
-    used = len(index_line.split())
-    return {"verified": True, "index": index_line,
-            "token_budget": budget, "used": used,
-            "over_budget": used > budget}
-
-
-#: taps the orientation index summarises (kept module-level, cheap)
-_TAPS = ("reflexion_note", "evolution_result", "inference", "retrieval_audit",
-         "technique_wiring")
+    return store.orientation_index(budget_tokens=200)
 
 
 # -- EP249 Mem-pi: on-demand generation + abstention -------------------------
@@ -364,16 +333,11 @@ def ep249() -> Dict[str, Any]:
 def ep319() -> Dict[str, Any]:
     """Coverage / preservation / faithfulness check across a memory transition.
 
-    Reuses the real `_validate_event_args` for schema validity, then checks that
-    a transition preserves the row count it claims to.
+    Mechanism lives in its HOST: `LocalMemoryStore.transition_check`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    before = store.count_memories()
-    after = store.count_memories()
-    return {"verified": True, "coverage": before == after,
-            "preservation": after >= 0, "faithfulness": True,
-            "validator": "CORE.local_memory:_validate_event_args",
-            "note": "checks are structural; semantic faithfulness is caller-owned"}
+    return store.transition_check()
 
 
 # -- EP336 ACE: reversible per-step re-typing ---------------------------------
@@ -381,16 +345,11 @@ def ep319() -> Dict[str, Any]:
 def ep336() -> Dict[str, Any]:
     """raw -> abstract -> drop as a REVERSIBLE re-typing.
 
-    `severity` is already a de-facto type field and `tombstone` is already the
-    reversible state change (it wipes the payload but keeps the row), so the
-    primitive the technique needs exists; this names the ladder over it.
+    Mechanism lives in its HOST: `LocalMemoryStore.retype_ladder`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    return {"verified": True,
-            "levels": ("raw (severity=info)", "abstract (summary row)",
-                       "drop (severity=deleted via tombstone)"),
-            "reversible": hasattr(store, "tombstone"),
-            "writes": False}
+    return store.retype_ladder()
 
 
 # -- EP370 SLEUTH: epistemic working set -------------------------------------
@@ -547,23 +506,23 @@ def ep478() -> Dict[str, Any]:
 
 
 # -- registration -------------------------------------------------------------
-register("EP120", "Reflexion reflect-and-replay", "CORE.local_memory:triage_real_errors", ep120, LAYER)
-register("EP131", "MUSE three-tier memory", "CORE.local_memory:count_memories", ep131, LAYER)
+register("EP120", "Reflexion reflect-and-replay", "CORE.local_memory:LocalMemoryStore.reflect_replay", ep120, LAYER)
+register("EP131", "MUSE three-tier memory", "CORE.local_memory:LocalMemoryStore.memory_tier_rollup", ep131, LAYER)
 register("EP144", "Evo-Memory streaming consolidation", "CORE.WORMS.expansion.engram:DreamConsolidatorWorm.consolidate", ep144, LAYER)
-register("EP146", "InfiAgent bounded context", "CORE.local_memory:fetch_all_memories", ep146, LAYER)
+register("EP146", "InfiAgent bounded context", "CORE.local_memory:LocalMemoryStore.bounded_context", ep146, LAYER)
 register("EP154", "FS-Researcher workspace protocol", "CORE.local_memory:LocalMemoryStore.export_json", ep154, LAYER)
-register("EP160", "AgentSys isolation + sanitize", "CORE.local_memory:tombstone", ep160, LAYER)
+register("EP160", "AgentSys isolation + sanitize", "CORE.local_memory:LocalMemoryStore.agent_scope_probe", ep160, LAYER)
 register("EP192", "Ontology layer as external memory", "CORE.pattern_memory:pattern_stats", ep192, LAYER)
 register("EP206", "ObjectGraph document graph", "CORE.local_memory:get_knowledge_graph_stats", ep206, LAYER)
 register("EP216", "ShadowMem pending-action scoring", "CORE.local_memory:audit_result_set", ep216, LAYER)
-register("EP221", "ScrapMem resolution decay", "CORE.data_retention:distill_aged_memories", ep221, LAYER)
-register("EP233", "Backward-chaining retrieval", "CORE.local_memory:search_memories", ep233, LAYER)
+register("EP221", "ScrapMem resolution decay", "CORE.local_memory:LocalMemoryStore.decay_memory_in_place", ep221, LAYER)
+register("EP233", "Backward-chaining retrieval", "CORE.local_memory:LocalMemoryStore.backward_chain_recall", ep233, LAYER)
 register("EP235", "SAGE reader->writer coupling", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep235, LAYER)
-register("EP242", "EXG experience edges", "CORE.pattern_memory:query_patterns", ep242, LAYER)
-register("EP247", "PEEK orientation cache", "CORE.data_retention:enforce_type_caps", ep247, LAYER)
+register("EP242", "EXG experience edges", "CORE.local_memory:LocalMemoryStore.experience_edges", ep242, LAYER)
+register("EP247", "PEEK orientation cache", "CORE.local_memory:LocalMemoryStore.orientation_index", ep247, LAYER)
 register("EP249", "Mem-pi generation + abstention", "CORE.WORMS.expansion.dreaming:DreamingModule.recall_scenarios", ep249, LAYER)
-register("EP319", "TRUSTMEM transition verifier", "CORE.local_memory:_validate_event_args", ep319, LAYER)
-register("EP336", "ACE reversible re-typing", "CORE.local_memory:tombstone", ep336, LAYER)
+register("EP319", "TRUSTMEM transition verifier", "CORE.local_memory:LocalMemoryStore.transition_check", ep319, LAYER)
+register("EP336", "ACE reversible re-typing", "CORE.local_memory:LocalMemoryStore.retype_ladder", ep336, LAYER)
 register("EP370", "SLEUTH epistemic working set", "CORE.verification_gate:epistemic_state", ep370, LAYER)
 register("EP389", "Supra mode-classified recall", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep389, LAYER)
 register("EP391", "PRO-LONG programmatic memory", "CORE.local_memory:count_memories", ep391, LAYER)

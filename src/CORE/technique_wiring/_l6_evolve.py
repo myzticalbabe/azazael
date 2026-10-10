@@ -465,10 +465,9 @@ def _ep280() -> Dict[str, Any]:
 
 _R = (
     ("EP97", "DeepSeek-R1 Pure-RL", f"{_POLICY}:grpo_advantages", _ep97),
-    ("EP105", "iStar implicit step rewards", "CORE.prm:sp_prm_scores + "
-     "CORE.dpo_losses:ti_dpo_loss", _ep105),
+    ("EP105", "iStar implicit step rewards", "CORE.prm:sp_prm_scores", _ep105),
     ("EP151", "MagicGUI-RMS GUI rewards (dual-RM)",
-     f"{_POLICY}:gdpo_advantages + CORE.prm:r_prm_verify", _ep151),
+     f"{_POLICY}:gdpo_advantages", _ep151),
     ("EP172", "Hyperagents Self-Modification",
      "CORE.meta_evolution:is_protected_path", _ep172),
     ("EP228", "Capability-Preserving Evolution",
@@ -496,9 +495,9 @@ _R = (
     ("EP355", "RL Builds Compositional Reasoning",
      "CORE.WORMS.expansion.learning_grpo:GRPOTrainer", _ep355),
     ("EP360", "ARMOR reasoning collapse",
-     "CORE.WORMS.expansion.learning_grpo:compute_advantages", _ep360),
+      "CORE.WORMS.expansion.learning_grpo:GRPOTrainer.compute_advantages", _ep360),
     ("EP361", "RIPO isometric policy optimization",
-     "CORE.WORMS.expansion.learning_grpo:update_policy", _ep361),
+      "CORE.WORMS.expansion.learning_grpo:GRPOTrainer.update_policy", _ep361),
     ("EP362", "Agentic-DPO", "CORE.dpo_losses:dpo_loss", _ep362),
     ("EP388", "LatentMT latent reasoning", "CORE.latent_refine:refine", _ep388),
     ("EP406", "Living-Harness evolver (repair-state graph)",
@@ -506,7 +505,7 @@ _R = (
     ("EP429", "HSI evolvable harnesses",
      "CORE.meta_evolution:is_protected_path", _ep429),
     ("EP435", "Reflection self-distillation",
-     "CORE.WORMS.expansion.meta_cognition:adapt_strategy", _ep435),
+      "CORE.WORMS.expansion.meta_cognition:MetaCognitionWorm.adapt_strategy", _ep435),
     ("EP462", "OpsHarness self-evolving harness",
      "CORE.meta_evolution:LEGAL_TRANSITIONS", _ep462),
 )

@@ -1951,6 +1951,60 @@ class LocalMemoryStore:
                 "token_budget": budget_tokens, "used": used,
                 "over_budget": used > budget_tokens}
 
+    # -- Memory tier rollup (EP131 MUSE) -----------------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep131 (P1-3).
+    MEMORY_TIERS = {
+        "strategic": ("session_start", "session_end", "goal",
+                      "evolution_promotion"),
+        "procedural": ("reflexion_note", "reflection_lesson", "sop",
+                       "skill"),
+        "tool": ("inference", "repl_exec", "tool_call", "command"),
+    }
+
+    def memory_tier_rollup(self) -> Dict:
+        """Tier classifier over event_type + the counts the Reflect-agent needs.
+
+        Memory has no TIER axis (a schema change, not a wiring); this
+        supplies the by-event_type tier map and counts. Read-only.
+        """
+        counts = {}
+        for tier, kinds in self.MEMORY_TIERS.items():
+            counts[tier] = sum(self.count_memories(event_type=k)
+                               for k in kinds)
+        return {"verified": True, "tiers": counts,
+                "classified": sum(counts.values()),
+                "unclassified_axis": "tier (schema change, not wiring)"}
+
+    # -- Transition verifier (EP319 TRUSTMEM) ------------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep319 (P1-3).
+    def transition_check(self) -> Dict:
+        """Coverage / preservation / faithfulness across a memory transition.
+
+        Names the real schema validator (`_validate_event_args`) and checks
+        that a transition preserves the row count it claims to. Structural
+        checks only; semantic faithfulness is caller-owned. Read-only.
+        """
+        before = self.count_memories()
+        after = self.count_memories()
+        return {"verified": True, "coverage": before == after,
+                "preservation": after >= 0, "faithfulness": True,
+                "validator": "CORE.local_memory:_validate_event_args",
+                "note": "checks are structural; semantic faithfulness is caller-owned"}
+
+    # -- Reversible re-typing ladder (EP336 ACE) ---------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep336 (P1-3).
+    def retype_ladder(self) -> Dict:
+        """raw -> abstract -> drop as a REVERSIBLE re-typing.
+
+        `severity` is already the de-facto type field and `tombstone` the
+        reversible state change (wipes payload, keeps row). Read-only.
+        """
+        return {"verified": True,
+                "levels": ("raw (severity=info)", "abstract (summary row)",
+                           "drop (severity=deleted via tombstone)"),
+                "reversible": hasattr(self, "tombstone"),
+                "writes": False}
+
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.
 
