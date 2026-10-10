@@ -1,35 +1,15 @@
 {
- "generated_at": "2026-10-10T13:01:58.005038",
+ "generated_at": "2026-10-10T16:15:32.283023",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
-  "dispatched": 59,
+  "dispatched": 58,
   "pending": 108
  },
- "total": 170,
+ "total": 169,
  "declared": {
-  "NeuralPipeline:NeuralPipeline.replay_failed": {
-   "decider": "test_is_the_wire",
-   "decider_evidence": [
-    "tests/test_replay_failed.py:42",
-    "tests/test_replay_failed.py:53",
-    "tests/test_replay_failed.py:47"
-   ],
-   "line": 725,
-   "module": "NeuralPipeline",
-   "qualname": "NeuralPipeline.replay_failed",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def replay_failed(\n        self,\n        execute_fn: Optional[Callable[[str, dict], dict]] = None,\n        max_concurrent: int = 2,\n    ) -> Dict[str, Any]:\n        \"\"\"Replay pending dead letters through `execute_fn`.\n\n        Contract pinned by tests/test_replay_failed.py:\n\n          * an EMPTY queue needs no executor -- it returns\n            ``{\"replayed\": 0, \"results\": []}``;\n          * pending letters with NO executor raise RuntimeError naming both the\n            missing argument and the queue depth. It must not surface as a\n            TypeError: the previous signature did not accept `execute_fn` at\n            all, so a caller that had one failed with \"got an unexpected keyword\n            argument 'execute_fn'\" and a caller that had none got the DLQ's\n            \"missing 1 required positional argument: 'execute_fn'\" -- neither of\n            which says what to pass;\n          * pending letters WITH an executor delegate to\n            ``DeadLetterQueue.replay_all(execute_fn, max_concurrent=...)`` (the\n            real signature takes the executor positionally) and report the\n            count, so a caller can tell how many actually ran.\n        \"\"\"\n        pending = self.dlq.get_pending() if hasattr(self.dlq, \"get_pending\") else []\n        if not pending:\n            return {\"replayed\": 0, \"results\": []}\n        if execute_fn is None:\n            raise RuntimeError(\n                f\"replay_failed() has {len(pending)} dead letter(s) to replay \"\n                f\"but no executor: pass execute_fn=<callable(worm_name, config)>.\"\n            )\n        results = self.dlq.replay_all(execute_fn, max_concurrent=max_concurrent)\n        return {\"replayed\": len(results), \"results\": results}",
-   "status": "pending",
-   "triage": "test_reached_only",
-   "triage_evidence": [
-    "tests/test_replay_failed.py:42",
-    "tests/test_replay_failed.py:53",
-    "tests/test_replay_failed.py:47"
-   ]
-  },
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "dead_candidate",
    "decider_evidence": [],
@@ -517,36 +497,13 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
-  "engram:DreamConsolidatorWorm.read_pressure": {
+  "engram:run_read_driven_consolidation": {
    "module": "engram",
-   "qualname": "DreamConsolidatorWorm.read_pressure",
-   "line": 657,
-   "seg": "def read_pressure(self, router=None) -> dict:\n        \"\"\"The read-side signal the writer was missing (EP235).\n\n        `RecallRouterWorm` already records what was recalled and how well it\n        scored, and nothing consumed it. This turns that record into the one\n        number a writer can act on: the ABSTENTION rate. Reads that found\n        nothing are unmet demand -- the store is missing what consumers ask\n        for, and that is a reason to consolidate toward the gap rather than\n        only replaying dreams.\n        \"\"\"\n        try:\n            if router is None:\n                st = {}\n            elif hasattr(router, \"recall_state\"):\n                st = router.recall_state()\n            elif hasattr(router, \"stats\"):\n                st = router.stats()\n            else:\n                st = {}\n        except Exception:\n            note_failure(\"engram:L679\", None)\n            st = {}\n        st = dict(st or {})\n        total = int(st.get(\"total\", 0) or 0)\n        abstained = int(st.get(\"abstained\", st.get(\"fallback\", 0)) or 0)\n        scores = [float(s) for s in (st.get(\"last_scores\") or [])\n                  if isinstance(s, (int, float))]\n        mean_top = round(sum(scores) / len(scores), 4) if scores else None\n        rate = round(abstained / total, 4) if total else 0.0\n        return {\"total_reads\": total, \"abstained\": abstained,\n                \"abstention_rate\": rate, \"mean_top_score\": mean_top,\n                \"needs_writing\": rate >= self.UNMET_DEMAND_FLOOR,\n                \"signal\": (\"unmet-demand\" if rate >= self.UNMET_DEMAND_FLOOR\n                           else (\"weak-relevance\" if (mean_top is not None\n                                                      and mean_top < 0.5)\n                                 else \"served\"))}",
-   "status": "dispatched",
-   "reason": "Kept pending P10: public read-signal API on a registered worm; dead wrappers removed 2026-10-10; needs a consolidation consumer.",
-   "evidence": [
-    "src/CORE/WORMS/expansion/engram.py:709"
-   ]
-  },
-  "error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery": {
-   "decider": "test_is_the_wire",
-   "decider_evidence": [
-    "tests/test_error_recovery.py:76",
-    "tests/test_error_recovery.py:95",
-    "tests/test_error_recovery.py:115"
-   ],
-   "line": 100,
-   "module": "error_recovery",
-   "qualname": "ErrorRecoveryOrchestrator.execute_with_recovery",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def execute_with_recovery(self, worm_type: str, worm_instance: Any,\n                              execute_fn: (Callable | None) = None) -> dict[str, Any]:\n        \"\"\"Execute a worm with full error recovery pipeline.\n\n        Args:\n            worm_type: Worm type identifier\n            worm_instance: Worm object with execute() method\n            execute_fn: Optional custom execution function (default: worm_instance.execute)\n\n        Returns:\n            dict with result, recovery_stats, and strategy used\n        \"\"\"\n        if execute_fn is None:\n            execute_fn = lambda: worm_instance.execute()\n\n        # Periodic cleanup of stale data across ALL worms (memory leak prevention)\n        self._periodic_cleanup()\n\n        # Check circuit breaker\n        if self._is_circuit_open(worm_type):\n            entry = RecoveryEntry(\n                worm_type=worm_type, attempt=0, outcome=\"circuit_open\",\n                duration_ms=0, strategy=\"skip\",\n                error=f\"Circuit breaker open for {worm_type}\",\n            )\n            self._record_recovery(entry)\n            return {\n                \"result\": None,\n                \"outcome\": \"circuit_open\",\n                \"recovery\": {\"strategy\": \"skip\", \"attempts\": 0},\n            }\n\n        # Remove stale failure windows\n        self._cleanup_failure_windows(worm_type)\n\n        last_error = None\n        for attempt in range(1, self.max_retries + 1):\n            start = time.perf_counter()\n            try:\n                result = execute_fn()\n                duration_ms = (time.perf_counter() - start) * 1000\n\n                entry = RecoveryEntry(\n                    worm_type=worm_type, attempt=attempt, outcome=\"success\",\n                    duration_ms=round(duration_ms, 2), strategy=\"retry\",\n                )\n                self._record_recovery(entry)\n\n                # Reset failure count on success\n                with self._lock:\n                    self._failure_counts[worm_type] = 0\n\n                return {\n                    \"result\": result,\n                    \"outcome\": \"success\",\n                    \"recovery\": {\n                        \"strategy\": \"retry\",\n                        \"attempts\": attempt,\n                        \"duration_ms\": round(duration_ms, 2),\n                    },\n                }\n\n            except Exception as e:\n                note_failure(\"error_recovery:L151\", e)\n                duration_ms = (time.perf_counter() - start) * 1000\n                last_error = str(e)\n\n                entry = RecoveryEntry(\n                    worm_type=worm_type, attempt=attempt, outcome=\"failed\",\n                    duration_ms=round(duration_ms, 2), strategy=\"retry\",\n                    error=last_error,\n                )\n                self._record_recovery(entry)\n\n                # Track failure\n                with self._lock:\n                    self._failure_counts[worm_type] += 1\n                    self._failure_windows[worm_type].append(time.monotonic())\n                    # Cap failure windows to prevent memory leak\n                    if len(self._failure_windows[worm_type]) > 200:\n                        self._failure_windows[worm_type] = self._failure_windows[worm_type][-200:]\n\n                # Check circuit breaker threshold\n                recent_fails = self._count_recent_failures(worm_type)\n                if recent_fails >= self.circuit_threshold:\n                    with self._lock:\n                        self._circuit_open[worm_type] = time.monotonic()\n                    entry = RecoveryEntry(\n                        worm_type=worm_type, attempt=attempt, outcome=\"circuit_open\",\n                        duration_ms=round(duration_ms, 2), strategy=\"circuit_break\",\n                        error=f\"Circuit threshold reached ({recent_fails} failures)\",\n                    )\n                    self._record_recovery(entry)\n                    return {\n                        \"result\": None,\n                        \"outcome\": \"circuit_open\",\n                        \"recovery\": {\"strategy\": \"circuit_break\", \"attempts\": attempt},\n                    }\n\n                # Exponential backoff with jitter\n                if attempt < self.max_retries:\n                    backoff_ms = self.base_backoff_ms * (2 ** (attempt - 1))\n                    jitter_ms = random.uniform(0, backoff_ms * 0.5)\n                    time.sleep((backoff_ms + jitter_ms) / 1000.0)\n\n        # All retries exhausted \u2014 try fallback\n        fallback_result = self._execute_fallback(worm_type, worm_instance, last_error)\n\n        return {\n            \"result\": fallback_result,\n            \"outcome\": \"degraded\",\n            \"recovery\": {\n                \"strategy\": \"fallback\",\n                \"attempts\": self.max_retries,\n                \"last_error\": last_error,\n            },\n        }",
+   "qualname": "run_read_driven_consolidation",
+   "line": 770,
+   "seg": "def run_read_driven_consolidation(router=None, dream_items=None,\n                                  index=None) -> dict:\n    \"\"\"No-argument-callable form of EP235's loop closure (restored).\n\n    Exists so a caller (or a boundary) can close the recall -> write loop with\n    one call and no setup. Fail-open: returns a dict carrying the error rather\n    than raising, so a read path is never broken by bookkeeping.\n    \"\"\"\n    try:\n        return DreamConsolidatorWorm().consolidate_from_reads(\n            router=router, dream_items=dream_items, index=index)\n    except Exception as exc:\n        note_failure(\"engram:read-driven-consolidation\", exc)\n        return {\"success\": False, \"error\": f\"{type(exc).__name__}: {exc}\"}",
    "status": "pending",
-   "triage": "test_reached_only",
-   "triage_evidence": [
-    "tests/test_error_recovery.py:76",
-    "tests/test_error_recovery.py:95",
-    "tests/test_error_recovery.py:115"
-   ]
+   "reason": ""
   },
   "error_recovery:ErrorRecoveryOrchestrator.reset_circuit": {
    "decider": "test_is_the_wire",
@@ -845,6 +802,14 @@
     "tests/test_learning_worms.py:611"
    ]
   },
+  "learning_pipeline:DataPipelineWorm.ablate_sources": {
+   "module": "learning_pipeline",
+   "qualname": "DataPipelineWorm.ablate_sources",
+   "line": 694,
+   "seg": "def ablate_sources(self, sources: list | None = None,\n                       exclude_variants: list | None = None) -> Dict[str, Any]:\n        \"\"\"Ablation harness: measured composition over source variants (EP318).\n\n        Runs extract_from_memory once per exclude-set variant and reports\n        per-variant record counts. The DOWNSTREAM metric half (which variant\n        trains better) stays deferred: training comparison needs the\n        orchestrator loop, not the pipeline \u2014 the harness measures the\n        composition axis the metric would read.\n        \"\"\"\n        variants = list(exclude_variants or [[]])\n        rows: Dict[str, Any] = {}\n        for ex in variants:\n            try:\n                recs = self.extract_from_memory(\n                    source=sources if isinstance(sources, str) else None,\n                    limit=200,\n                    exclude_sources=list(ex or []))\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = len(recs or [])\n            except Exception as exc:\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = (\n                    f\"error:{type(exc).__name__}\")\n        return {\"variants\": rows, \"n_variants\": len(rows),\n                \"composition_axis\": \"exclude_sources parameterized\"}",
+   "status": "pending",
+   "reason": ""
+  },
   "learning_pipeline:DataPipelineWorm.extract_field": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -999,7 +964,7 @@
     "tests/test_learning_evolution.py:97",
     "tests/test_learning_evolution.py:108"
    ],
-   "line": 172,
+   "line": 223,
    "module": "learning_replay",
    "qualname": "PrioritizedReplayBuffer.add_from_memories",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1058,6 +1023,14 @@
     "tests/test_learning_worms.py:382",
     "tests/test_learning_worms.py:395"
    ]
+  },
+  "learning_versioner:pareto_retain": {
+   "module": "learning_versioner",
+   "qualname": "pareto_retain",
+   "line": 240,
+   "seg": "def pareto_retain(candidates, metrics_key=\"metrics\"):\n    \"\"\"Pareto retention filter over version candidates (EP234, set half).\n\n    candidates: [{..., metrics: {obj: float}}], all objectives maximized.\n    Returns {\"retained\", \"dominated\"} (version strings). Wiring this into\n    register_model as the retention predicate (collapsing EP228/EP234/EP462)\n    stays deferred: admission policy needs coordinator approval.\n    \"\"\"\n    vecs = {}\n    for c in candidates or []:\n        m = (c or {}).get(metrics_key, {}) or {}\n        try:\n            vecs[str(c.get(\"version\", \"?\"))] = [float(v) for v in m.values()]\n        except (TypeError, ValueError):\n            continue\n    names = list(vecs)\n    retained: list = []\n    dominated: list = []\n    for a in names:\n        beaten = False\n        for b in names:\n            if a == b or len(vecs[b]) != len(vecs[a]) or not vecs[a]:\n                continue\n            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))\n                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):\n                beaten = True\n                break\n        (dominated if beaten else retained).append(a)\n    return {\"retained\": retained, \"dominated\": dominated}",
+   "status": "pending",
+   "reason": ""
   },
   "loom:NoveltyDrive.novelty_weight": {
    "decider": "test_is_the_wire",
@@ -1657,7 +1630,7 @@
   "spine_registry:_iso_or": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 3692,
+   "line": 3696,
    "module": "spine_registry",
    "qualname": "_iso_or",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1705,7 +1678,7 @@
     "tests/test_spine_mesh.py:1105",
     "tests/test_spine_mesh.py:1147"
    ],
-   "line": 3563,
+   "line": 3567,
    "module": "spine_registry",
    "qualname": "get_gossip_trust_state",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1723,7 +1696,7 @@
    "decider_evidence": [
     "tests/test_spine_mesh.py:299"
    ],
-   "line": 3222,
+   "line": 3226,
    "module": "spine_registry",
    "qualname": "get_module_health",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1815,26 +1788,6 @@
     "tests/test_brainstem_playing_field.py:241",
     "tests/test_spine_tombstone_enforcement.py:84",
     "tests/test_spine_tombstone_enforcement.py:91"
-   ]
-  },
-  "spine_registry:purge_implausible_stamps": {
-   "decider": "test_is_the_wire",
-   "decider_evidence": [
-    "tests/test_mesh_clock_poison.py:232",
-    "tests/test_mesh_clock_poison.py:237",
-    "tests/test_mesh_clock_poison.py:286"
-   ],
-   "line": 3141,
-   "module": "spine_registry",
-   "qualname": "purge_implausible_stamps",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def purge_implausible_stamps(dry_run: bool = True) -> Dict[str, Any]:\n    \"\"\"Repair ordering stamps that sit beyond the clock's drift window.\n\n    Opt-in, never automatic. Refusal (see `_stamp_adoptable`) makes a poisoned\n    stamp harmless \u2014 it cannot win a merge and cannot propagate \u2014 but it stays\n    in the store, and therefore in every gossip payload, forever. A real store\n    was found carrying 98 year-2999 stamps\n    (``032472162000000-04631-windows``) written before the drift bound existed.\n\n    Each implausible ``hlc`` sidecar is REPLACED with a stamp derived from the\n    record's own human-readable ISO field, not deleted: deleting it would make\n    the record look older than every real write and lose its next merge, which\n    is a different bug from the one being fixed. ``field_stamps`` on fabric\n    records are repaired the same way.\n\n    ``dry_run=True`` (the default) reports what would change and touches\n    nothing. Returns per-area counts plus `repaired` / `scanned`. Never raises.\n\n    Operator usage:\n        python -c \"from CORE import spine_registry as s; print(s.purge_implausible_stamps(False))\"\n    \"\"\"\n    report: Dict[str, Any] = {\"dry_run\": bool(dry_run), \"repaired\": 0,\n                              \"scanned\": 0, \"areas\": {}, \"examples\": []}\n\n    def _fix(rec: Any, iso_field: str, area: str) -> None:\n        if not isinstance(rec, dict):\n            return\n        report[\"scanned\"] += 1\n        stamp = rec.get(\"hlc\")\n        if not stamp or _stamp_adoptable(str(stamp)):\n            return\n        report[\"repaired\"] += 1\n        report[\"areas\"][area] = report[\"areas\"].get(area, 0) + 1\n        if len(report[\"examples\"]) < 5:\n            report[\"examples\"].append({\"area\": area, \"stamp\": str(stamp)[:40],\n                                      \"from\": str(rec.get(iso_field) or \"\")[:32]})\n        if dry_run:\n            return\n        try:\n            from CORE.hlc import normalize_stamp\n            rec[\"hlc\"] = normalize_stamp(str(rec.get(iso_field) or \"\"))\n        except Exception:  # pragma: no cover - defensive\n            note_failure(\"spine_registry:L3108\", None)\n            rec.pop(\"hlc\", None)\n\n    try:\n        with _HOMEOSTAT_LOCK:\n            for rec in _HOMEOSTAT.values():\n                _fix(rec, \"last_at\", \"homeostat\")\n        with _SPINE_LOCK:\n            for rec in _SPINE_MAP.values():\n                _fix(rec, \"last_at\", \"spine_map\")\n        with _QUARANTINE_LOCK:\n            for box in _QUARANTINE_VOTES.values():\n                for rec in (box or {}).values():\n                    _fix(rec, \"at\", \"quarantine_votes\")\n        with _FABRIC_LOCK:\n            for rec in _FABRIC_STATE.values():\n                _fix(rec, \"updated_at\", \"fabric_state\")\n                stamps = rec.get(\"field_stamps\") if isinstance(rec, dict) else None\n                if not isinstance(stamps, dict):\n                    continue\n                for key, stamp in list(stamps.items()):\n                    if stamp and not _stamp_adoptable(str(stamp)):\n                        report[\"repaired\"] += 1\n                        report[\"areas\"][\"fabric_field_stamps\"] = \\\n                            report[\"areas\"].get(\"fabric_field_stamps\", 0) + 1\n                        if not dry_run:\n                            try:\n                                from CORE.hlc import normalize_stamp\n                                stamps[key] = normalize_stamp(\n                                    str(rec.get(\"updated_at\") or \"\"))\n                            except Exception:  # pragma: no cover - defensive\n                                note_failure(\"spine_registry:L3138\", None)\n                                stamps.pop(key, None)\n    except Exception as exc:  # pragma: no cover - defensive\n        note_failure(\"spine_registry:L3140\", exc)\n        report[\"error\"] = str(exc)[:160]\n    return report",
-   "status": "pending",
-   "triage": "test_reached_only",
-   "triage_evidence": [
-    "tests/test_mesh_clock_poison.py:232",
-    "tests/test_mesh_clock_poison.py:237",
-    "tests/test_mesh_clock_poison.py:286"
    ]
   },
   "spine_registry:purged_blocked_writes": {
@@ -2290,16 +2243,5 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   }
- },
- "triage_counts": {
-  "test_reached_only": 49,
-  "no_reference_anywhere": 59
- },
- "decider_counts": {
-  "protocol_or_override": 0,
-  "declared_in_data": 3,
-  "dynamic_call": 8,
-  "test_is_the_wire": 43,
-  "dead_candidate": 54
  }
 }
