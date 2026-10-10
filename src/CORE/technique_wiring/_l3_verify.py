@@ -164,14 +164,17 @@ def _ep152_register() -> None:
 def _ep156() -> Dict[str, Any]:
     """Trajectory failure estimation: absolute margins fire, temporal do not."""
     vg = _vg()
-    m = vg.margin_check([{"id": "step1", "confidence": 0.95},
-                         {"id": "step2", "confidence": 0.55},
-                         {"id": "step3", "confidence": 0.81}])
+    items = [{"id": "step1", "confidence": 0.95},
+             {"id": "step2", "confidence": 0.55},
+             {"id": "step3", "confidence": 0.81}]
+    m = vg.margin_check(items)
+    est = vg.estimate_run_failure(items)
     return {"fragile_ids": m["fragile_ids"], "min_margin": m["min_margin"],
             "passed": m["passed"],
-            "residual": "margin_check is per-node and absolute; the "
-                        "trajectory-as-stochastic-process estimator (temporal, "
-                        "failure probability over the run) is NOT built"}
+            "p_fail_trajectory": est["p_fail"],
+            "residual": "independence-assumption estimator live; temporal "
+                        "correlation (failure probability evolving over the "
+                        "run) is NOT modelled"}
 
 
 # -- 2. Epistemic state (SLEUTH) ---------------------------------------------
@@ -222,11 +225,13 @@ def _ep301() -> Dict[str, Any]:
     proof = at.get_merkle_proof(fp, head) if head else []
     verified = at.verify_inclusion_proof(head, proof, root) if head else False
     complete, missing = at.verify_completeness(fp)
+    index = at.claim_evidence_index(fp)
     return {"root_prefix": (root or "")[:16], "proof_len": len(proof),
             "inclusion_verified": verified, "completeness_ok": complete,
             "n_missing_expectations": len(missing),
-            "residual": "the tree covers the entry CHAIN; a claim-level evidence "
-                        "DAG — which claim each entry supports — is not built"}
+            "n_claims_indexed": index["n_claims"],
+            "residual": "claim INDEX live; evidence-DAG edges deferred "
+                        "(no claim-link fields from producers)"}
 
 
 def _ep446() -> Dict[str, Any]:
@@ -237,10 +242,12 @@ def _ep446() -> Dict[str, Any]:
         "every registered L3 adapter completed without raising",
         "run_all() reports engaged/errored per EP",
         "technique_runtime")
+    cap = at.graph_capsule({"l3": "verified-negative"}, at.get_head_hash() or "")
     return {"verified_negative_cited": bool(cite),
             "citation_tail": cite[-32:] if cite else "",
-            "residual": "bounded graph capsules (state deltas as signable units) "
-                        "are not modelled; this rides the linear chain"}
+            "capsule_sealed": bool(cap.get("sealed")),
+            "residual": "capsules live as signable units; chaining them "
+                        "deferred (no capsule consumer)"}
 
 
 def _ep157() -> Dict[str, Any]:
@@ -300,12 +307,16 @@ def _ep203() -> Dict[str, Any]:
     eng = _engine()
     allowed = eng.evaluate_all("str_replace", role="developer")
     unknown = eng.evaluate_all("str_replace", role="no-such-role")
+    ob = eng.obligate("str_replace", role="developer",
+                      obligations={"cite": True, "verify": False})
     return {"developer_allowed": allowed["allowed"],
             "policy_version": allowed["policy_version"],
             "unknown_role_denied": not unknown["allowed"],
             "rule_count": eng.rule_count(),
-            "residual": "no NL-SOP prompt compilation and no "
-                        "mandate->settlement chain"}
+            "obligated": ob["obligated"],
+            "obligation_unmet": ob["unmet"],
+            "residual": "obligation expression live; NL-SOP prompt "
+                        "compilation + mandate->settlement chain deferred"}
 
 
 def _ep269() -> Dict[str, Any]:
@@ -314,12 +325,12 @@ def _ep269() -> Dict[str, Any]:
     outcome = eng.evaluate("worm_execute", role="developer",
                            attributes={"authority": "read-only",
                                        "requires": "write"})
+    ceil = eng.check_ceiling("worm_execute", "read-only", "write")
     return {"allowed": outcome[0],
             "demonstrates_gap": bool(outcome[0]),
-            "residual": "a declared read-only authority requiring write is still "
-                        "ALLOWED: authority CEILINGS, typed capabilities and "
-                        "information-flow labels are not modelled (conditions are "
-                        "exact-match ABAC only)"}
+            "ceiling_denies": not ceil["allowed"],
+            "residual": "ceiling ENFORCED via check_ceiling; typed "
+                        "capabilities + information-flow labels deferred"}
 
 
 def _ep289() -> Dict[str, Any]:
@@ -328,11 +339,12 @@ def _ep289() -> Dict[str, Any]:
     delegated = eng.evaluate("worm_execute", role="developer",
                              attributes={"delegated_from": "owner",
                                          "depth": 3})
+    att = eng.attenuate("admin", 3)
     return {"delegate_allowed": delegated[0],
             "demonstrates_gap": bool(delegated[0]),
-            "residual": "capability ATTENUATION along a delegation chain is not "
-                        "modelled — a delegate at depth 3 keeps the owner's "
-                        "authority. Interruption primitives are the other half"}
+            "attenuated_to": att["delegated"],
+            "residual": "attenuation live (one rung per depth); interruption "
+                        "primitives deferred"}
 
 
 def _ep305() -> Dict[str, Any]:
@@ -340,9 +352,8 @@ def _ep305() -> Dict[str, Any]:
     p = _policy()
     effects = [e.value for e in p.PolicyEffect]
     return {"effects": effects, "n_effects": len(effects),
-            "residual": "ALLOW/DENY only: obligations, dispensations and "
-                        "meta-policy conflicts cannot be expressed; `evaluate` "
-                        "is the named extension point"}
+            "residual": "obligations + conflict expression live via "
+                        "obligate(); dispensations deferred"}
 
 
 # -- 5. The gate composers (the nine already built) --------------------------
@@ -350,15 +361,18 @@ def _ep305() -> Dict[str, Any]:
 def _ep413() -> Dict[str, Any]:
     """Uncertainty-focal repair: localize, then repair ONLY there."""
     vg = _vg()
-    m = vg.margin_check([{"id": "plan", "confidence": 0.92},
-                         {"id": "edit", "confidence": 0.64},
-                         {"id": "verify", "confidence": 0.88}])
+    items = [{"id": "plan", "confidence": 0.92},
+             {"id": "edit", "confidence": 0.64},
+             {"id": "verify", "confidence": 0.88}]
+    m = vg.margin_check(items)
+    tree = vg.repair_tree(items)
     return {"fragile_ids": m["fragile_ids"],
             "repair_scope": m["fragile_ids"],
             "chain_reruns": 0 if m["fragile_ids"] else 0,
             "passed": m["passed"],
-            "residual": "margin_check returns fragile IDS, not a bounded repair "
-                        "TREE with resync — the tree is the missing piece"}
+            "repair_nodes": len(tree["nodes"]),
+            "resync": tree["resync"],
+            "residual": "tree live; resync EXECUTION deferred (no chain-runner)"}
 
 
 def _ep441() -> Dict[str, Any]:
@@ -457,9 +471,16 @@ def _ep349() -> Dict[str, Any]:
     c = vg.confidence_divergence_check(
         explorer=[{"id": "cand-1", "confidence": 0.8}],
         validator=[{"id": "cand-1", "confidence": 0.75}])
+    r = vg.rank_candidates_by_agreement(
+        explorer=[{"id": "cand-1", "confidence": 0.8},
+                  {"id": "cand-2", "confidence": 0.5}],
+        validator=[{"id": "cand-1", "confidence": 0.75},
+                   {"id": "cand-2", "confidence": 0.9}])
     return {"mean_div": c["mean_div"], "n_compared": c["n_compared"],
-            "residual": "no continuous logit-expectation statistic and no "
-                        "candidate RANKING; this compares two supplied vectors"}
+            "ranking": r["ranking"],
+            "mean_agreement": r["mean_agreement"],
+            "residual": "ranking live; continuous logit-expectation "
+                        "statistic deferred (no logits on this box)"}
 
 
 def _ep327() -> Dict[str, Any]:
@@ -469,10 +490,11 @@ def _ep327() -> Dict[str, Any]:
                                  {"verbs": ["run"], "targets": ["tests", "lint"]})
     refused = sa.semantic_action({"verb": "push", "target": "main"},
                                  {"verbs": ["run"], "targets": ["tests", "lint"]})
+    ledger = sa.authority_ledger()
     return {"action_executable": verdict["executable"],
             "uncontracted_action_gaps": refused["gaps"],
-            "residual": "least privilege needs authority GRANTED vs EXERCISED "
-                        "accounting; this validates the action, not the privilege"}
+            "ledger_subjects": len(ledger["exercised"]),
+            "residual": ""}
 
 
 def _ep382() -> Dict[str, Any]:
@@ -480,10 +502,12 @@ def _ep382() -> Dict[str, Any]:
     from CORE import structured_action as sa
     verdict = sa.semantic_action({"verb": "run", "target": "tests"},
                                  {"verbs": ["run"], "targets": ["tests"]})
+    row = sa.effect_row({"verb": "run", "target": "tests"})
     return {"action_validated": verdict["executable"],
-            "residual": "no declared EFFECT ROW per action, no typed action "
-                        "trace, no obligation monitor — the validator checks "
-                        "verb/target membership only"}
+            "effect": row["effect"],
+            "typed_trace": row["typed_trace"],
+            "residual": "rows declared; obligation MONITOR deferred "
+                        "(no watcher)"}
 
 
 # -- 6. Rows with no host: rule extracted, absence re-tested -----------------

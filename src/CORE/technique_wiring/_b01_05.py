@@ -13,6 +13,8 @@ verdict is SURVEY the adapter restates the extracted rule and re-tests that no
 mechanism was invented for it — the honest form for a paper with no technique.
 """
 
+from CORE.dispatch_plan import record_backtrack, reuse_prefix
+from CORE.skill_library import family_index
 from CORE.technique_runtime import register
 from typing import List
 
@@ -87,7 +89,6 @@ def _ep142():
 # -- EP150 Agentic Reasoning Survey: roadmap, no mechanism --------------------
 @_safe
 def _ep150():
-    from CORE.skill_library import family_index
     idx = family_index([{"name": "seed", "family": "layer-L2"}])
     return {"invoked": True, "verdict": "SURVEY",
             "n_families": idx.get("n_families"),
@@ -99,13 +100,14 @@ def _ep150():
 # -- EP345 retry-from-pivotal-turn ------------------------------------------
 @_safe
 def _ep345():
-    from CORE import dispatch_plan as dp
-    citation = dp.record_backtrack(
+    citation = record_backtrack(
         "technique-wiring:EP345",
         "pivotal-turn recorded; prefix reuse is the residual delta")
+    back = reuse_prefix("technique-wiring:EP345")
     return {"invoked": True, "cited": bool(citation),
-            "gap": "turn-level record + prefix reuse / suffix isolation "
-                   "(record_backtrack prunes and keeps the lesson only)"}
+            "prefix_reusable": bool(back.get("reusable")),
+            "gap": "reuse live; caller-side plan splitting deferred "
+                   "(no live plan object at this layer)"}
 
 
 # -- EP403 COVENANT: compile an NL SOP to a checkable workflow ---------------
@@ -145,10 +147,12 @@ def _ep412():
     # inside the competence band (it applies the band; it does not estimate).
     kept = po.depo_filter({"already-mastered": 0.0, "frontier": 0.4,
                            "out-of-reach": 1.0})
+    capped = po.depo_filter({"frontier-a": 0.4, "frontier-b": 0.5,
+                             "frontier-c": 0.6}, budget=2)
     return {"invoked": True, "filtered": len(kept) if hasattr(kept, "__len__")
             else "n/a",
-            "gap": "precision/trajectory budget as an explicit knob; "
-                   "depo_filter is the existing pre-rollout filter to hang it on"}
+            "budget_capped": len(capped),
+            "gap": ""}
 
 
 # -- EP442 Mobius: shared memory, decoupled reasoners ------------------------
@@ -157,10 +161,15 @@ def _ep442():
     from CORE import MemoryBus as mb
     bus = mb.MemoryBus()
     subs = getattr(bus, "_subscribers", None)
+    carrier = mb.HiddenStateCarrier()
+    carrier.put("reasoner-a", {"x": 1.0})
+    carrier.put("reasoner-b", {"x": 3.0})
+    view = carrier.shared_view()
     return {"invoked": True, "bus_constructed": bus is not None,
             "subscribers_attr": subs is not None,
-            "gap": "hidden-state carrier so multiple reasoners query one store "
-                   "(the store exists; the carrier does not)"}
+            "carrier_reasoners": view["reasoners"],
+            "carrier_mean_x": view["mean"].get("x"),
+            "gap": "carrier live; reasoner wiring-through deferred"}
 
 
 # -- EP471 ARISE-RL: the reward gate, invoked both ways ----------------------
