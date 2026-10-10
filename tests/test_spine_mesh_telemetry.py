@@ -78,6 +78,34 @@ def test_policy_latest_survives_journal_ring_wrap():
         sr.spine_reset()
 
 
+def test_replay_refuses_unratified_retirement():
+    """White gate (§5.7): replay must not undo a Black-Queen retirement.
+
+    The journal row survives; only its replay is skipped, so a stale policy
+    cannot resurrect an adjustment for a retired organ.
+    """
+    from CORE.worm_registry import WORM_REGISTRY, _replay_policy_journal
+
+    target = "HomeostatWorm"
+    assert target in WORM_REGISTRY, "fixture worm missing from the registry"
+    info = WORM_REGISTRY[target]
+    original = info.get("cooldown_seconds")
+    saved_state = info.get("lifecycle_state")
+    try:
+        sr.journal_policy("test", "policy_adjust", target, {
+            "cooldown_seconds": {"from": original, "to": 123.0}})
+        info["lifecycle_state"] = "retired"
+        info["cooldown_seconds"] = original  # simulate a fresh process
+        _replay_policy_journal()
+        assert info["cooldown_seconds"] == original, (
+            "replay applied a journaled change to a retired worm "
+            "(White-gate regression)")
+    finally:
+        info["lifecycle_state"] = saved_state
+        info["cooldown_seconds"] = original
+        sr.spine_reset()
+
+
 def test_policy_latest_does_not_clobber_live_memory():
     """load_spine_state() merges, so a mid-process load cannot roll back."""
     sr.spine_reset()

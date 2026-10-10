@@ -334,6 +334,21 @@ def _replay_policy_journal() -> int:
                     info = WORM_REGISTRY.get(name)
                     if not info:
                         continue
+                    # White team (audit §5.7): replay consults the ratifier.
+                    # An entry the governor refuses (retired worm, naming
+                    # violation, out-of-range values) is skipped, never
+                    # replayed — otherwise a Black-Queen retirement could be
+                    # undone by a stale journal. Fail-closed on ratifier
+                    # error: an unvalidated instrument admits nothing.
+                    try:
+                        from CORE.worm_governance import WormGovernor
+                        _verdict = WormGovernor().ratify_policy(
+                            entry, registry=WORM_REGISTRY)
+                    except Exception as exc:
+                        note_failure("worm_registry:policy-ratify", exc)
+                        continue
+                    if not _verdict.get("approved"):
+                        continue
                     cd = (changes.get("cooldown_seconds") or {}).get("to")
                     pr = (changes.get("priority") or {}).get("to")
                     touched = False
