@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Unit tests for ML.metacog - online stall/loop monitor.
+Unit tests for ML.step_monitor - online stall/loop monitor.
 """
 
 import sys
@@ -10,7 +10,7 @@ from pathlib import Path
 # Ensure azazael/src is on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from ML.metacog import StepEvent, StepMonitor
+from ML.step_monitor import StepEvent, StepMonitor
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

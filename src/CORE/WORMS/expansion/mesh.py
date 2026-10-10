@@ -4,6 +4,10 @@ NEURAL MESH — Category: MESH (4 worms)
 Fabric transport for all environments: Windows 11 <-> WSL2 <-> Bare Metal <-> Kali <-> G:
 
 MeshRouterWorm, GossipSyncWorm, PartitionHealerWorm, EnvBeaconWorm
+
+Transport fabric, not the whole codebase: per-env adapters live in
+envmesh.py, inference serving in servemesh.py, the wire in
+mesh_transport.py. Unrelated to the Sep-28 intermesh audit (a document).
 """
 
 import os

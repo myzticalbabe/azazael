@@ -4,6 +4,9 @@ NEURAL MESH — Category: SERVEMESH (3 worms)
 Inference serving mesh: Win, Bare, WSL2.
 
 InferenceLoadBalancerWorm, ProviderFailoverMeshWorm, ModelShardServerWorm
+
+Inference-serving mesh; not per-env adapters (envmesh.py) or the fabric
+itself (mesh.py).
 """
 
 import time

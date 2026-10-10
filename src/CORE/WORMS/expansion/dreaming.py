@@ -22,6 +22,9 @@ Features:
 - PAMS/LocalMemoryStore integration for dream persistence
 
 Created: June 4, 2026 — Neural Advancement Realignment Session
+
+Scenario replay / synthesis engine; not ML.trace_consolidator (the digest
+writer).
 """
 
 import json

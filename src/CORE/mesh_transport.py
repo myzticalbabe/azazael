@@ -5,6 +5,8 @@ Length-prefixed JSON envelopes over TCP loopback, one listener per env,
 delivery receipts. Stdlib-only. MeshRouterWorm.send() delivers through this;
 route() keeps its scoring-only contract for backward compatibility.
 
+Wire protocol for mesh.py's fabric; not the mesh itself.
+
 TOPOLOGY LIMIT (documented 2026-09-27, so the next audit does not re-find it
 as a defect): the default bind is 127.0.0.1, so cross-HOST delivery (bare
 metal, remote kali) cannot work as deployed -- only envs sharing a loopback
