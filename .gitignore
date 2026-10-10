@@ -231,6 +231,29 @@ backup/
 renders/
 reports/env_inventory/
 
+# Evidence INSIDE state/ (2026-10-10, flaw S6). `state/` above is ignored because
+# most of it is live runtime state that must never be reverted by a checkout -- but
+# three of its files are the EVIDENCE for the adoption, reachability and suite
+# numbers quoted in commit messages and in STRUCTURAL_FLAWS_315T.md. While they are
+# ignored, a fresh clone cannot reproduce those numbers, only trust them: the same
+# defect as S10 (an untracked commit gate). See EVIDENCE.md.
+#
+# The shape is forced by git's own rule: "It is not possible to re-include a file if
+# a parent directory of that file is excluded." A bare `!state/adoption_census.json`
+# therefore does NOTHING while `state/` is ignored. The directory must be
+# re-included first, its contents re-excluded, and only then the files negated --
+# and since the LAST matching pattern wins, this block must stay AFTER the `state/`
+# rule above.
+!state/
+state/*
+!state/adoption_census.json
+!state/orphan_scan.json
+!state/suite_baseline.jsonl
+# Still ignored on purpose: every other state/ file, and every SUBDIRECTORY of
+# state/ (`state/*` re-excludes them as directories, and a file inside an ignored
+# directory cannot be re-included). No rule here may be relaxed to `!state/**`.
+
+
 # Hub-local scratch that never carried content (2026-10-07): stray file whose
 # name is a single U+F0220 private-use character.
 \357\200\242
