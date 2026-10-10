@@ -355,7 +355,7 @@ host.** The plan had no refactor task, which is why no host was ever edited.
 | **T-13** | Host remediation programme: work `SOTA_ROW_RESCORE.md` row by row, moving each delta into the host it names | the blueprint asks for adoption ("extends the engram gate", "extends clusters"), not adjacency | L |
 | **T-14** | Add a plan task type for host refactors, so a technique cannot be marked satisfied without an edit to its host | mechanism 2 of the diagnosis: no refactor task existed in T-1..T-12 | S |
 | **T-15** | Replace the adoption instrument: count production call sites per technique and score exercise-only engagement as **zero** | mechanism 3: `exercise_technique_runtime.py` reports `engaged=181` while production callers were 1 | M |
-| **T-16** | Swallow remediation: 2,561 certified-silent handlers (`SWALLOW_INVENTORY.md`), starting with `worm_registry.py` (30 marker-hidden) and the expansion modules | an unrecorded swallow is indistinguishable from success | L |
+| **T-16** | Swallow remediation: ~~2,561 certified-silent handlers~~ **DONE 2026-10-10 — premise was stale.** Re-measured on today's tree the inventory reports **26** rows, not 2,994: commit `30836145` (2026-10-09) had already swept it, and `SWALLOW_INVENTORY.json` was a pre-refactor artifact whose line numbers had drifted. 23 of the 26 were repaired in an 8-worker fan-out; **3 remain by design** (the recorder's own handler + 2 optional-import guards) — see the SUPERSEDED banner in `SWALLOW_INVENTORY.md` | an unrecorded swallow is indistinguishable from success | L |
 
 Do NOT: build one new module per technique to close these rows. That is the defect
 T-13 exists to remove.
