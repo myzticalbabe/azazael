@@ -11,9 +11,11 @@ Now with LocalMemoryStore fallback for offline recording + recall.
 When PAMS server is unreachable, automatically uses SQLite-backed
 local memory with full query/recall/search capability.
 
-Thin wrapper that any agent, worm, module, or orchestrator can import
-to record events to the PAMS memory server. Gracefully degrades
-if PAMS is not running — never blocks or crashes on recording failure.
+Durable event recorder: keeps every event in the local SQLite store that
+trainers and recall actually read. (2026-10-10: the PAMS HTTP post it used
+to try first targeted a route the server never had; it now records locally
+and returns True for kept, False for buffer-only. Curated promotion to PAMS
+long-term memory belongs to MemoryBus._post_to_pams.)
 
 Original location (deprecated): azazael/src/UTILITIES/PamsRecorder.py
 """
@@ -21,7 +23,6 @@ Original location (deprecated): azazael/src/UTILITIES/PamsRecorder.py
 import os
 import sys
 import json
-import time
 import threading
 from CORE.uuid7 import uuid7
 from datetime import datetime
@@ -38,14 +39,6 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 _AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
-
-# Try requests for PAMS HTTP API
-try:
-    import requests
-    HTTP_OK = True
-except ImportError:
-    note_failure("PamsRecorder:L37", None)
-    HTTP_OK = False
 
 # Try sqlite3 for direct DB fallback
 try:
@@ -79,17 +72,14 @@ class PamsRecorder:
     Records agent actions, worm executions, morph events, debug diagnostics,
     fleet status changes, and any other Azazael events.
     
-    Uses LocalMemoryStore (SQLite) as primary local fallback when PAMS is
-    unreachable. Provides full query/recall/search capability.
+    Uses LocalMemoryStore (SQLite) as the durable event store.
+    Provides full query/recall/search capability.
     """
     
     VERSION = "2.0.1"
     _instance = None
     _instance_lock = threading.Lock()
     _lock = threading.Lock()
-    _pams_unreachable = False
-    _pams_retry_interval = 60.0
-    _pams_last_attempt = 0.0
     # NOTE (2026-09-21): the constructor is deliberately NOT a singleton.
     #
     # `get_recorder()` is the singleton accessor and has used double-checked
@@ -181,7 +171,7 @@ class PamsRecorder:
             tags: Optional list of string tags
         
         Returns:
-            True if recorded successfully to PAMS or local store, False if buffer-only
+            True if recorded to the local store, False if buffer-only
         """
         if data is None:
             data = {}
@@ -195,34 +185,18 @@ class PamsRecorder:
             "data": data,
         }
         
-        # Try PAMS HTTP API first (skip if previously unreachable)
-        now = time.monotonic()
-        if HTTP_OK:
-            should_retry = not type(self)._pams_unreachable
-            if not should_retry and (now - type(self)._pams_last_attempt) >= type(self)._pams_retry_interval:
-                should_retry = True
-            if should_retry:
-                type(self)._pams_last_attempt = now
-                try:
-                    resp = requests.post(
-                        f"{PAMS_URL}/api/memory",
-                        json=event,
-                        timeout=2,
-                    )
-                    if resp.status_code == 200:
-                        with type(self)._lock:
-                            type(self)._pams_unreachable = False  # Clear flag on success
-                        with self._count_lock:
-                            self.event_count += 1
-                        return True
-                except Exception:
-                    # Cache unreachable state — retry after interval
-                    # Cache unreachable state — retry after interval
-                    note_failure("PamsRecorder:L206", None)
-                    with type(self)._lock:
-                        type(self)._pams_unreachable = True
-        
-        # -- Primary fallback: Local SQLite memory store (lazy init) ----
+        # NOTE (2026-10-10): the PAMS HTTP layer is removed. It posted every
+        # event to POST {PAMS_URL}/api/memory — a route the server never had
+        # (real routes: GET /api/health, POST /api/memories/promote for curated
+        # promotion with embedding + API key). Every call failed into silent
+        # local fallback while reporting PAMS success. Curated promotion belongs
+        # to MemoryBus._post_to_pams; hot event telemetry belongs here, in the
+        # local store that trainers and recall actually read.
+        # Memory unity: this recorder is a FEEDER into the canonical store
+        # (LocalMemoryStore). Join key for cross-system reads: correlation_id
+        # (UUID7) on every row; query by source/event_type to consume.
+
+        # -- Primary store: Local SQLite memory store (lazy init) ----
         if not self._local_ok and not self._local_store_init_attempted:
             self._ensure_local_store()
         if self._local_ok:
@@ -379,8 +353,7 @@ class PamsRecorder:
     def reset_for_testing(cls):
         """Reset singleton state for test isolation. Only use in tests."""
         with cls._lock:
-            cls._pams_unreachable = False
-            cls._pams_last_attempt = 0.0
+            cls._instance = None
 
 
 # Singleton access (P0 fix June 11 2026: double-checked locking)
