@@ -29,6 +29,25 @@ Whole modules exist that **no production module imports**:
 | `src/CORE/rubric_evolution.py` | `gate_distillation` (EP350/351) cannot be adopted |
 | `src/CORE/cascade.py` | `CascadeRouter` (EP201); also named in `THEATER_REMOVAL_TASKS` as an **unverified worker draft** — should be dispositioned, not wired |
 
+**Dispositioned 2026-10-10 (evening) — commit `3f8ad03f`:**
+
+- `structured_action` → **ADOPTED.** `compliance/policy.py` consults `semantic_action`
+  on its evaluate path and can deny on its verdict; production call sites at
+  `policy.py:54,196,206`. EP168/269/327/382 score ADOPTED (EP269/EP327/EP382 were
+  never blocked by reachability alone and now read the same way).
+- `cascade` → **WIRED, against this report's own recommendation.**
+  `sequential_analyzer` escalates a one-step chain to the deep tier below
+  `CASCADE_THRESHOLD` (a one-step chain can never satisfy `check_convergence`, so the
+  `fast` strategy previously accepted its cheap answer at any confidence), and the
+  tests assert both directions. **This contradiction is deliberate and stays visible:**
+  either `cascade.py` was good enough to adopt (in which case remove it from
+  `THEATER_REMOVAL_TASKS`) or it was not (in which case revert the wiring). Leaving
+  both statements standing is the defect.
+- `rubric_evolution` → **ACCEPT-GAP.** `gate_distillation` (EP350/351) has no consumer,
+  and GRPO does not run, so gating `GRPOTrainer.update_policy` would be theatre. A
+  gain-gate integration was written into `learning_grpo.py` and **reverted** for exactly
+  that reason; its test was removed with it.
+
 **Scale (new this session) — `tools/orphan_scan.py`.** From the four shipped entry
 points (`run_tests.py`, `health_server.py`, `cli_observability.py`, `CORE/__init__.py`):
 **309 of 701 `src/` modules reachable, 392 unreachable**, of which **330 have no
@@ -58,8 +77,14 @@ Grep-verified zero callers outside their own host and the exercise layer:
 - `confirmed_revise` — *fixed this session*: `technique_runtime.revise_until_confirmed`
   now closes the gate→repair loop. Before that the gate could reject and nothing
   could respond.
-- `rehearse_dispatch` — still zero callers; host `dispatch_plan.py` **is** reachable
-  (`METACLUSTER.py:338`), so this needs a real consumer, not a wire.
+- `rehearse_dispatch` — **RESOLVED 2026-10-10** (commit `3f8ad03f`):
+  `MetaCluster._plan_execution_order` rehearses the plan and its assignment before
+  dispatch, and its verdict, predicted failures and pool load ride the plan note;
+  `orchestrate()` calls that method. **The claim in this report was too generous and is
+  corrected here:** `METACLUSTER.py:338` is an import *inside* a method that
+  `orchestrate()` did not call, so the host was reachable in principle only. A reader
+  who trusted "host is already reachable" would have wired the symbol into an uncalled
+  method and moved the counter without moving behaviour.
 - `gate_distillation` — zero callers, host orphaned (S1).
 
 A gate nothing consumes is indistinguishable from verification and changes nothing.
@@ -94,13 +119,28 @@ is at `synapse.py:348`), and five named **prose instead of a symbol**
 `reconstruct`). Corrected this session to real hosts / explicit `no-target`.
 Adoption counts are therefore bounded by a file a human edits by hand.
 
-## S6 — Evidence lives outside version control · CONFIRMED
+**Worse than S6, found 2026-10-10 (evening):** that map is not in this checkout at
+all. `state/sota_batches/batch06/technique_codebase_map.json` resolves to the **parent**
+directory (`C:/Azazael/state/...`, while the repo root is `C:/Azazael/azazael`), so no
+`.gitignore` rule here can version it — the file that bounds every adoption number is
+absent from the repository. Recorded in `EVIDENCE.md`.
+
+## S6 — Evidence lives outside version control · **RESOLVED 2026-10-10**
 
 `state/` is gitignored, so the artefacts that justify this session's claims —
 `adoption_census.json`, `orphan_scan.json`, `suite_baseline.jsonl`, the
-`sota_batches/batch06/` re-check docs — are **not committed**. A claim in a commit
-message cannot be reproduced from the repo alone. Either commit the reports or move
-them somewhere tracked.
+`sota_batches/batch06/` re-check docs — were **not committed**. A claim in a commit
+message could not be reproduced from the repo alone.
+
+**Resolution** (commit `183ef1ec`): `.gitignore` re-includes exactly three artefacts
+(`state/adoption_census.json`, `state/orphan_scan.json`, `state/suite_baseline.jsonl`)
+and `EVIDENCE.md` at the repo root names each one, the claim it supports and the command
+that regenerates it. The rules needed the **directory negation first** (`!state/`, then
+`state/*`, then the file negations): git documents that a file negation is inert while a
+parent directory is excluded — the same trap that forced `.githooks/pre-commit` to be
+force-added. Verified with `git check-ignore -v`, which shows the three artefacts
+matching their negation while a sibling (`state/evolved_rl_params.json`) stays ignored.
+The one artefact this could **not** reach is the map itself — see S5.
 
 ## S7 — No green full-suite baseline · **RESOLVED — SUITE IS GREEN**
 
@@ -179,10 +219,10 @@ Force-added `.githooks/pre-commit` so the gate is reviewable and reproducible. *
 ## What to do next (ordered)
 
 1. **Act on the orphan classification — it is DONE** (`ORPHAN_TRIAGE_315T.md`, 392/392 rows): 201 SUBAPP-ENTRY, 99 DEAD, 52 FACADE, 40 UNCLEAR. Because the large class is sub-apps, the live decision is a **launch/registration policy** for apps no shipped entry point starts, not wholesale deletion. Start with the 99 DEAD and the 52 FACADE.
-2. **Decide S1's module integrations.** Needs an owner decision — integrating `structured_action` (ASIL), `rubric_evolution` and `cascade` into production runtime changes behaviour. Without that decision, mark EP168/269/327/382/350/351/201 as documented accept-gaps.
-3. **Give `rehearse_dispatch` a real consumer** in the dispatch path (S2). Its host is already reachable via `METACLUSTER.py:338`; the symbol is what has no caller.
-4. **Move the evidence into version control** (S6, still OPEN). `adoption_census.json`, `orphan_scan.json`, `suite_baseline.jsonl` and the `sota_batches/batch06/` re-check docs all live under the gitignored `state/`, so this session's numbers are not reproducible from the repo. Same class as S10.
-5. **Build the three BUILD-IN-HOST ABSENT rows** — EP183 (LogicLoc), EP206 (ObjectGraph), EP252 (Drop-Stable-Rampup) — **inside an existing host with a real caller**. `ABSENT_TRIAGE_315T.md` holds the generated split (9 accept-gap-infra / 3 build-in-host / 7 needs-host) and states the route rule so it can be argued with. Do not create standalone modules for them: that is EXERCISE-ONLY by construction (S3).
+2. ~~**Decide S1's module integrations.**~~ **DONE 2026-10-10 (`3f8ad03f`).** `structured_action` adopted (EP168/269/327/382); `cascade` wired but **contradicting this report — resolve one way or the other**; `rubric_evolution` marked accept-gap (EP350/351).
+3. ~~**Give `rehearse_dispatch` a real consumer** in the dispatch path (S2).~~ **DONE 2026-10-10 (`3f8ad03f`)** — and note the host was *not* in fact reachable until `orchestrate()` was wired to `_plan_execution_order` (see S2).
+4. ~~**Move the evidence into version control** (S6).~~ **DONE 2026-10-10 (`183ef1ec`)** for the three artefacts; the map and the batch06 re-check docs are outside the checkout entirely (S5), so they remain unreproducible.
+5. ~~**Build the three BUILD-IN-HOST ABSENT rows** — EP183 (LogicLoc), EP206 (ObjectGraph), EP252 (Drop-Stable-Rampup).~~ **DONE 2026-10-10 (`ac9dc46a`)**, each inside its named host with both directions asserted. **The residual limit is measured, not waved away:** each new function is reached from *inside* its host, so the census credits the row on the **host symbol**, not on the new function. A caller in a different production module does not exist, and manufacturing one to move the counter is the failure this list forbids. EP206's build also exposed a stale flag — `document_graph_stats` reported `typed_nodes: false` beside a built typed layer, i.e. a **missing measurement read as a fact**.
 6. **Decide S10's open question** — whether `.githooks` stays gitignored. If it does, the checks belong in a tracked `tools/preflight_all.py` that the hook merely calls.
 7. **Then re-check the suite** (`python tools/suite_baseline.py`; it resumes, so it only re-runs batches that are not green).
 
