@@ -26,6 +26,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from CORE.technique_runtime import register
+from CORE.WORMS.expansion import policy_optimization as _po
+from CORE.WORMS.expansion.learning_grpo import order_by_difficulty
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -247,9 +249,13 @@ def _ep228() -> Dict[str, Any]:
 
 def _ep234() -> Dict[str, Any]:
     """Pareto retention (EP234) — the scalar predicate is the blocker."""
+    pf = _po.pareto_front({"a": (1.0, 0.0), "b": (0.0, 1.0),
+                           "c": (0.4, 0.4)})
     return {"engaged": True,
             "criterion": _signature("CORE.meta_evolution", "improvement_proved"),
-            "delta": "criteria vector + Pareto front absent",
+            "pareto_front": pf["front"],
+            "delta": "Pareto SET live (pareto_front); criteria vector + "
+                     "retention PREDICATE deferred (no admission caller)",
             "collapse": "same edit site as EP228/EP462 (one retention predicate)"}
 
 
@@ -409,9 +415,13 @@ def _ep355() -> Dict[str, Any]:
     """Primitive-then-composition curriculum (EP355) — tabular analogue only."""
     src = _source_has("CORE.WORMS.expansion.learning_grpo", "GRPOTrainer",
                       "context_key", "save_policy", "load_policy")
+    ordered = order_by_difficulty(["hard", "easy"],
+                                  {"easy": 0.1, "hard": 0.9})
     return {"engaged": True, "trainer_read": src.get("read"),
             "matched": src.get("matched"),
-            "delta": "difficulty ordering over context_key + train gating",
+            "difficulty_order": ordered["ordered"],
+            "delta": "ordering live; train GATING deferred (no gating "
+                     "consumer — ordering without one would be decoration)",
             "note": "faithful version needs an RL trainer over a real model"}
 
 
@@ -419,8 +429,12 @@ def _ep360() -> Dict[str, Any]:
     """Anchor-Rollout off-policy sampling + mixed objective (EP360)."""
     src = _source_has("CORE.WORMS.expansion.learning_grpo", "compute_advantages",
                       "global_stats", "std", "DAPO")
+    anchored = _source_has("CORE.WORMS.expansion.learning_grpo",
+                           "GRPOTrainer.snapshot_anchor", "snapshot_anchor")
     return {"engaged": True, "present": src.get("matched"),
-            "delta": "anchor reference set from _history + mixed objective",
+            "anchor_method_live": bool(anchored.get("matched")),
+            "delta": "anchor snapshots live (snapshot_anchor, capped at 20); "
+                     "mixed objective deferred (no weight-space host)",
             "note": "global-norm fallback is the existing anchor analogue"}
 
 

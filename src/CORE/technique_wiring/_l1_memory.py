@@ -80,6 +80,9 @@ def _store():
     return get_memory_store()
 
 
+from CORE.local_memory import resolve_conflicts as _resolve_conflicts
+
+
 def _write(ep: str, event_type: str, data: Dict[str, Any],
            tags: List[str] | None = None) -> Dict[str, Any]:
     """Record ONE attributable row for an L1 write loop, gated by ALLOW_WRITES."""
@@ -366,11 +369,12 @@ def ep389() -> Dict[str, Any]:
     from CORE.WORMS.expansion.engram import RecallRouterWorm
     route = RecallRouterWorm().route_recall("technique runtime") or {}
     mode = route.get("mode")
+    strat = route.get("stratified_payload") or {}
     return {"verified": True, "mode": mode,
             "abstained": bool(route.get("abstained", False)),
-            "stratified_payload": False,
-            "gap": ("modes are transport-level not cognitive; payload is not "
-                    "stratified (engram.py route_recall mode branches)")}
+            "stratified_payload": strat.get("mode", False),
+            "gap": ("fallback stratified; owner/semantic branches carry "
+                    "transport payloads — cognitive stratification deferred")}
 
 
 # -- EP391 PRO-LONG: programmatic memory (the reference implementation) ------
@@ -429,11 +433,20 @@ def ep463() -> Dict[str, Any]:
     PAMS + engram + local_memory hold overlapping facts; the technique's rule is
     to resolve conflicts by a declared ordering rather than last-write-wins.
     """
+    demo = _resolve_conflicts([
+        {"id": "fact-1", "source": "engram", "value": "old",
+         "recency": 0.9},
+        {"id": "fact-1", "source": "local_memory", "value": "new",
+         "recency": 0.1}])
     return {"verified": True,
             "sources": ["CORE.local_memory", "CORE.pattern_memory",
                         "CORE.WORMS.expansion.engram"],
             "rule": "declared precedence > recency (semiring)",
-            "gap": "no shared conflict resolver yet (M)"}
+            "demo_winner": demo["resolved"]["fact-1"]["source"],
+            "demo_conflicts": demo["n_conflicts"],
+            "gap": ("resolver live on representative conflict; no LIVE "
+                    "cross-store conflict has been observed — stays deferred "
+                    "until one fires")}
 
 
 # -- EP478 ECOKV: composite diversity + importance eviction ------------------
