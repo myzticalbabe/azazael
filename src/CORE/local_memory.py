@@ -2012,13 +2012,23 @@ class LocalMemoryStore:
 
         `get_knowledge_graph_stats` counts a flat table; this exposes the
         adjacency the graph would need from the rows that exist, rather than
-        inventing a second store. A typed node/edge layer is a new build,
-        not a wiring. Read-only.
+        inventing a second store. The typed node/edge layer this method used to
+        report as MISSING is now built (`_object_graph_counts` for the cheap
+        aggregate, `object_graph_document` for the materialised graph), so it
+        reports the layer instead of a gap -- a `typed_nodes: False` sitting
+        next to a built layer is the appearance/reality drift this tree keeps
+        paying for. Read-only.
         """
         stats = self.get_knowledge_graph_stats() or {}
+        typed = stats.get("object_graph") or {}
+        built = bool(typed.get("typed"))
         return {"verified": True, "stats": stats,
-                "typed_nodes": False, "typed_edges": False,
-                "gap": "typed node/edge layer is a new build (L), not a wiring"}
+                "typed_nodes": built, "typed_edges": built,
+                "n_nodes": int(typed.get("n_nodes") or 0),
+                "n_edges": int(typed.get("n_edges") or 0),
+                "gap": "" if built else
+                       "typed node/edge layer unavailable (%s)" % (
+                           ";".join(typed.get("gaps") or []) or "unknown")}
 
     # -- Programmatic memory surface (EP391 PRO-LONG) ----------------------
     # Host-remediated from technique_wiring/_l1_memory.py::ep391 (P1-3).
@@ -2667,6 +2677,9 @@ class LocalMemoryStore:
             Dict with total_patterns, by_agent, by_type, avg_confidence.
         """
         conn = self._get_conn()
+        # EP206: initialised OUTSIDE the try so the additive return below cannot
+        # raise NameError on the failure path.
+        object_graph: Dict[str, Any] = {}
         try:
             total = conn.execute("SELECT COUNT(*) as n FROM knowledge_patterns").fetchone()["n"]
 
@@ -2687,6 +2700,9 @@ class LocalMemoryStore:
             avg_conf = conn.execute(
                 "SELECT AVG(confidence) as avg_c FROM knowledge_patterns"
             ).fetchone()["avg_c"] or 0.0
+            # EP206: the typed node/edge layer, counted on the connection that is
+            # already open. Counts only -- see `_object_graph_counts`.
+            object_graph = self._object_graph_counts(conn)
         finally:
             conn.close()
 
@@ -2695,7 +2711,192 @@ class LocalMemoryStore:
             "by_agent": by_agent,
             "by_type": by_type,
             "avg_confidence": round(avg_conf, 4),
+            # Additive key. Every existing caller reads the keys above BY NAME
+            # (WORMS/WORM_SELECTOR.py:300 forwards the whole dict; the tests index
+            # specific keys), so the typed layer becomes visible to production
+            # without changing anything that was already returned.
+            "object_graph": object_graph,
         }
+
+    # -- ObjectGraph agent file format (EP206) -------------------------------
+    #: Versioned on-disk format for an agent's object graph. The tag is what
+    #: `load_object_graph` validates against, so a document written by a
+    #: different era is REJECTED BY NAME instead of being read as if it were
+    #: this one.
+    OBJECT_GRAPH_FORMAT = "objectgraph/1"
+
+    def _object_graph_counts(self, conn: sqlite3.Connection) -> Dict[str, Any]:
+        """Typed node/edge COUNTS, on an already-open connection (EP206).
+
+        Counts only (`COUNT`, `COUNT DISTINCT`): this store reaches 200k+ rows,
+        so materialising the graph is reserved for `object_graph_document`.
+        Edges are exactly two per pattern row -- the pattern's agent hub and its
+        type hub -- so the total is DERIVED, never estimated. Fails open with a
+        named gap rather than breaking the stats caller.
+        """
+        try:
+            n_patterns = conn.execute(
+                "SELECT COUNT(*) AS n FROM knowledge_patterns").fetchone()["n"]
+            n_agents = conn.execute(
+                "SELECT COUNT(DISTINCT source_agent) AS n "
+                "FROM knowledge_patterns").fetchone()["n"]
+            n_types = conn.execute(
+                "SELECT COUNT(DISTINCT pattern_type) AS n "
+                "FROM knowledge_patterns").fetchone()["n"]
+        except Exception as exc:                  # noqa: BLE001 -- stats are advisory
+            _note_failure("local_memory:object-graph-counts", exc)
+            return {"typed": False, "gaps": ["count-failed:%s" % type(exc).__name__]}
+        p, a, t = int(n_patterns), int(n_agents), int(n_types)
+        return {"typed": True, "format": self.OBJECT_GRAPH_FORMAT,
+                "n_pattern_nodes": p, "n_agent_nodes": a, "n_type_nodes": t,
+                "n_nodes": p + a + t, "n_edges": 2 * p, "gaps": []}
+
+    def object_graph_document(self, limit: int = 0) -> Dict[str, Any]:
+        """Build the typed node/edge document for the knowledge graph (EP206).
+
+        Nodes are the rows that EXIST, not a schema sketch: one `pattern` node
+        per row, one `agent` hub per distinct `source_agent`, one `pattern_type`
+        hub per distinct type. Edges are the adjacency a flat counter cannot
+        express -- `authored_by` (pattern -> agent) and `of_type` (pattern ->
+        type). Nothing is invented: each edge endpoint is a node in this same
+        document, which is what `load_object_graph` re-checks on read.
+
+        Ordering is deterministic (rows by id, hubs sorted), so two documents
+        over the same rows differ only in `generated_at`. `limit` bounds the
+        pattern rows read; 0 reads all, and `truncated` says which happened
+        rather than letting a partial graph look complete. Read-only.
+        """
+        doc: Dict[str, Any] = {
+            "format": self.OBJECT_GRAPH_FORMAT,
+            "version": self.VERSION,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "nodes": [], "edges": [], "truncated": False, "gaps": [],
+        }
+        conn = self._get_conn()
+        try:
+            sql = ("SELECT id, source_agent, pattern_type, confidence, hit_count "
+                   "FROM knowledge_patterns ORDER BY id")
+            if limit and int(limit) > 0:
+                sql += " LIMIT %d" % int(limit)
+            rows = conn.execute(sql).fetchall()
+            total = conn.execute(
+                "SELECT COUNT(*) AS n FROM knowledge_patterns").fetchone()["n"]
+        except Exception as exc:                  # noqa: BLE001 -- a graph is advisory
+            _note_failure("local_memory:object-graph-document", exc)
+            doc["gaps"] = ["query-failed:%s" % type(exc).__name__]
+            return doc
+        finally:
+            conn.close()
+
+        nodes: List[Dict[str, Any]] = []
+        edges: List[Dict[str, Any]] = []
+        agents: Dict[str, int] = {}
+        types: Dict[str, int] = {}
+        for r in rows:
+            pid = int(r["id"])
+            agent = str(r["source_agent"])
+            ptype = str(r["pattern_type"])
+            nodes.append({"id": "pattern:%d" % pid, "kind": "pattern",
+                          "row": pid, "agent": agent, "type": ptype,
+                          "confidence": round(float(r["confidence"] or 0.0), 4),
+                          "hits": int(r["hit_count"] or 0)})
+            edges.append({"from": "pattern:%d" % pid,
+                          "to": "agent:%s" % agent, "rel": "authored_by"})
+            edges.append({"from": "pattern:%d" % pid,
+                          "to": "type:%s" % ptype, "rel": "of_type"})
+            agents[agent] = agents.get(agent, 0) + 1
+            types[ptype] = types.get(ptype, 0) + 1
+        for agent in sorted(agents):
+            nodes.append({"id": "agent:%s" % agent, "kind": "agent",
+                          "patterns": agents[agent]})
+        for ptype in sorted(types):
+            nodes.append({"id": "type:%s" % ptype, "kind": "pattern_type",
+                          "patterns": types[ptype]})
+        doc["nodes"] = nodes
+        doc["edges"] = edges
+        doc["n_nodes"] = len(nodes)
+        doc["n_edges"] = len(edges)
+        doc["n_patterns_total"] = int(total)
+        doc["truncated"] = bool(limit and len(rows) < int(total))
+        return doc
+
+    def export_object_graph(self, path: str, limit: int = 0) -> Dict[str, Any]:
+        """Write the object-graph document to `path` (EP206 file format).
+
+        Same write mechanism as `export_json` (plain UTF-8 `json.dump`), so the
+        file is readable by anything that already reads this module's exports.
+        Fails OPEN: an unwritable path returns `written: False` with a named gap
+        instead of raising, because a snapshot must never be able to break the
+        session that produced it.
+        """
+        doc = self.object_graph_document(limit=limit)
+        out = str(path)
+        try:
+            with open(out, "w", encoding="utf-8") as fh:
+                json.dump(doc, fh, indent=2, ensure_ascii=False)
+        except OSError as exc:
+            _note_failure("local_memory:object-graph-export", exc)
+            return {"written": False, "path": out,
+                    "gaps": ["export-failed:%s" % type(exc).__name__],
+                    "n_nodes": int(doc.get("n_nodes") or 0),
+                    "n_edges": int(doc.get("n_edges") or 0)}
+        try:
+            size = os.path.getsize(out)
+        except OSError as exc:
+            _note_failure("local_memory:object-graph-export-size", exc)
+            size = -1
+        return {"written": True, "path": out, "bytes": size,
+                "format": doc.get("format"),
+                "n_nodes": int(doc.get("n_nodes") or 0),
+                "n_edges": int(doc.get("n_edges") or 0),
+                "gaps": list(doc.get("gaps") or [])}
+
+    def load_object_graph(self, path: str) -> Dict[str, Any]:
+        """Read and VALIDATE an ObjectGraph document written by this module.
+
+        Validation is the half that makes a format worth having: the format tag
+        must be one this module writes, the node/edge collections must be lists,
+        and every edge endpoint must resolve to a node in the SAME document --
+        a dangling edge is a broken graph, not a warning. Returns `valid` with
+        every gap named; unreadable input is reported, never raised. Read-only.
+        """
+        out = str(path)
+        try:
+            with open(out, "r", encoding="utf-8") as fh:
+                doc = json.load(fh)
+        except (OSError, ValueError) as exc:
+            _note_failure("local_memory:object-graph-load", exc)
+            return {"valid": False, "path": out,
+                    "gaps": ["unreadable:%s" % type(exc).__name__],
+                    "nodes": [], "edges": [], "n_nodes": 0, "n_edges": 0}
+        if not isinstance(doc, dict):
+            return {"valid": False, "path": out, "gaps": ["not-an-object"],
+                    "nodes": [], "edges": [], "n_nodes": 0, "n_edges": 0}
+        gaps: List[str] = []
+        fmt = str(doc.get("format") or "")
+        if fmt != self.OBJECT_GRAPH_FORMAT:
+            gaps.append("unknown-format:%s" % (fmt or "missing"))
+        nodes = doc.get("nodes")
+        edges = doc.get("edges")
+        if not isinstance(nodes, list):
+            gaps.append("nodes-not-a-list")
+            nodes = []
+        if not isinstance(edges, list):
+            gaps.append("edges-not-a-list")
+            edges = []
+        known = {str(n.get("id")) for n in nodes
+                 if isinstance(n, dict) and n.get("id")}
+        for e in edges:
+            if not isinstance(e, dict):
+                gaps.append("edge-not-an-object")
+                continue
+            if (str(e.get("from") or "") not in known
+                    or str(e.get("to") or "") not in known):
+                gaps.append("dangling-edge:%s->%s" % (e.get("from"), e.get("to")))
+        return {"valid": not gaps, "path": out, "gaps": gaps, "format": fmt,
+                "nodes": nodes, "edges": edges,
+                "n_nodes": len(nodes), "n_edges": len(edges)}
+
 
     @staticmethod
     def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
