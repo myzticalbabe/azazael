@@ -101,17 +101,48 @@ PAMS_API_PREFIX = "/api"
 
 #: Port discovery: pams-server picks a free port (21434, else 21435, ...)
 #: and records it. A hardcoded URL rots the moment it restarts elsewhere.
-_PAMS_PORT_FILES = (
-    Path(r"G:\source-of-truth\persistent-ai-memory\memory_data\mcp_server_port.json"),
-)
+def _port_file_candidates() -> Tuple[Path, ...]:
+    """Every place a running pams-server may record its port, best-first.
+
+    2026-10-10 (M-2): this was a single `G:\\...` path. On a machine without
+    the G: archive drive there was NO candidate at all, so discovery fell
+    straight through to the hardcoded PAMS_URL and rotted the moment the server
+    moved port. The live store is under the user's home; $PAMS_PORT_FILE and
+    $PAMS_DB_DIR are the project's own knobs for this directory and win when set.
+    The G: path is kept LAST so an archive copy cannot outrank a live one.
+    """
+    candidates: List[Path] = []
+    explicit = (os.environ.get("PAMS_PORT_FILE") or "").strip()
+    if explicit:
+        candidates.append(Path(explicit))
+    db_dir = (os.environ.get("PAMS_DB_DIR") or "").strip()
+    if db_dir:
+        candidates.append(Path(db_dir) / "mcp_server_port.json")
+    candidates.append(Path.home() / ".pams" / "mcp_server_port.json")
+    candidates.append(Path.home() / "AppData" / "Local" / "persistent-ai-memory"
+                      / "memory_data" / "mcp_server_port.json")
+    candidates.append(Path(
+        r"G:\source-of-truth\persistent-ai-memory\memory_data\mcp_server_port.json"))
+    return tuple(candidates)
+
+
+_PAMS_PORT_FILES = _port_file_candidates()
 
 
 def _resolve_pams_url() -> str:
     """Best-effort PAMS base URL: explicit env wins, then the server's own
-    port file, then the default. Never raises."""
+    port file, then the default. Never raises.
+
+    2026-10-10 (M-2): among several port files the FRESHEST wins, instead of the
+    first one in list order / the first one that parses. A stale copy (an
+    archive drive left behind by an earlier run) used to pin the bus to a
+    long-dead port, which is indistinguishable from PAMS being down.
+    """
     env = (os.environ.get("PAMS_URL") or "").strip()
     if env:
         return env.rstrip("/")
+    best_mtime: float = -1.0
+    best_url = ""
     for pf in _PAMS_PORT_FILES:
         try:
             if not pf.is_file():
@@ -119,13 +150,19 @@ def _resolve_pams_url() -> str:
             data = json.loads(pf.read_text(encoding="utf-8"))
             port = int(data.get("active_port") or 0)
             if port > 0:
-                return f"http://127.0.0.1:{port}"
-            url = str(data.get("http_url") or "").strip()
-            if url:
-                return url.rstrip("/")
+                candidate = f"http://127.0.0.1:{port}"
+            else:
+                candidate = str(data.get("http_url") or "").strip().rstrip("/")
+            if not candidate:
+                continue
+            mtime = pf.stat().st_mtime
+            if mtime > best_mtime:
+                best_mtime, best_url = mtime, candidate
         except Exception:
             note_failure("MemoryBus:L115", None)
             continue
+    if best_url:
+        return best_url
     return PAMS_URL.rstrip("/")
 
 
@@ -815,8 +852,27 @@ class MemoryBus:
 
     # -- Internal --------------------------------------------------------------
 
-    def _check_pams(self) -> bool:
-        """Check if PAMS server is reachable (GET /api/health)."""
+    def refresh_pams_url(self) -> bool:
+        """Re-discover the PAMS port; True when the resolved URL changed.
+
+        2026-10-10 (M-2): the URL was resolved once in __init__ and cached for
+        the life of the bus. The server picks a free port on every restart, so a
+        long-lived bus stayed pointed at the dead port and every publish fell
+        into the local queue -- silently, because fail-open is the design here.
+        Never raises.
+        """
+        try:
+            resolved = _resolve_pams_url()
+        except Exception:
+            note_failure("MemoryBus:refresh-pams-url", None)
+            return False
+        if resolved and resolved != self.pams_url:
+            self.pams_url = resolved
+            return True
+        return False
+
+    def _pams_probe(self) -> bool:
+        """One reachability attempt against the CURRENT self.pams_url."""
         try:
             if HAS_REQUESTS:
                 resp = requests.get(f"{self.pams_url}{PAMS_API_PREFIX}/health", timeout=PAMS_TIMEOUT)
@@ -828,6 +884,19 @@ class MemoryBus:
         except Exception:
             note_failure("MemoryBus:L773", None)
             return False
+
+    def _check_pams(self) -> bool:
+        """Check if PAMS server is reachable (GET /api/health).
+
+        2026-10-10 (M-2): a failed check re-resolves the port and retries ONCE.
+        Bounded and one-shot by construction: the retry happens only when the
+        resolved URL actually changed, so it cannot loop.
+        """
+        if self._pams_probe():
+            return True
+        if self.refresh_pams_url():
+            return self._pams_probe()
+        return False
 
     def _post_to_pams(self, topic: str, content: Any,
                         metadata: Dict[str, Any], source: str) -> Optional[Any]:

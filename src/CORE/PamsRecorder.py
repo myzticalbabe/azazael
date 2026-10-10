@@ -61,7 +61,20 @@ except ImportError:
     LocalMemoryStore = None  # type: ignore
 
 PAMS_URL = os.environ.get("PAMS_URL", "http://127.0.0.1:21434")
-PAMS_DB_DIR = os.environ.get("PAMS_DB_DIR", str(Path.home() / "AppData" / "Local" / "Programs" / "Python" / "Python314" / "Lib" / "site-packages" / "memory_data"))
+#: M-2 (2026-10-10): the default used to resolve INSIDE the installed
+#: interpreter's tree and was pinned to Python314 --
+#: `~/AppData/Local/Programs/Python/Python314/Lib/site-packages/memory_data`.
+#: That is stale twice over: it moves with the interpreter version, and it is a
+#: package directory rather than a store. $PAMS_DB_DIR still wins when set; the
+#: fallback is now the live store under the user's home.
+#: NOTE: nothing in this module reads these two any more -- the conversations.db
+#: layer that used them was removed by the F10 fix (see record_event, which now
+#: writes LocalMemoryStore first and this module's JSON buffer last). They are
+#: kept for external importers, and now at least point somewhere that exists.
+PAMS_DB_DIR = os.environ.get(
+    "PAMS_DB_DIR",
+    str(Path.home() / ".pams" / "memory_data"),
+)
 RECORDINGS_DB = os.path.join(PAMS_DB_DIR, "conversations.db")
 
 
