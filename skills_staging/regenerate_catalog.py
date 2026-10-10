@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Regenerate SKILLS_CATALOG.md from the canonical azazael/skills/ directory.
 
-Preserves: header, curated Loading Order, historical "New Skills"/"Skills Updated"
-sections from the existing catalog.
+Preserves: header and historical sections after the Quick Reference tables
+("New Skills"/"Skills Updated"/etc.) from the existing catalog. Note: no
+Loading Order section exists to preserve (absent since the Sep-29 regen; a
+curated order would be kept verbatim if re-added — corrected 2026-10-10).
 Regenerates: the Skill Quick Reference tables (Core + Package) covering ALL
 canonical skills, numbered sequentially.
 Appends: a "New Skills - Created 2026-08-23" section for the package batches.
