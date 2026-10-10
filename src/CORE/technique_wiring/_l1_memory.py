@@ -211,15 +211,11 @@ def ep192() -> Dict[str, Any]:
 def ep206() -> Dict[str, Any]:
     """Typed document-graph traversal over the flat knowledge-graph counter.
 
-    ABSENT as a format (review), and `get_knowledge_graph_stats` only counts a
-    flat table. This exposes the adjacency the graph would need from the rows
-    that exist, rather than inventing a second store.
+    Mechanism lives in its HOST: `LocalMemoryStore.document_graph_stats`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    stats = store.get_knowledge_graph_stats() or {}
-    return {"verified": True, "stats": stats,
-            "typed_nodes": False, "typed_edges": False,
-            "gap": "typed node/edge layer is a new build (L), not a wiring"}
+    return store.document_graph_stats()
 
 
 # -- EP216 ShadowMem: score PENDING actions pre-execution ---------------------
@@ -402,15 +398,11 @@ def ep389() -> Dict[str, Any]:
 def ep391() -> Dict[str, Any]:
     """Programmatic memory: the store's own typed query surface.
 
-    Graded PRESENT in the review. Invoked here so the claim has a call site.
+    Mechanism lives in its HOST: `LocalMemoryStore.programmatic_memory_surface`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
     store = _store()
-    return {"verified": True, "typed_queries": ["count_memories",
-                                                "fetch_all_memories",
-                                                "search_memories",
-                                                "query_memories",
-                                                "triage_real_errors"],
-            "rows": store.count_memories()}
+    return store.programmatic_memory_surface()
 
 
 # -- EP394 five-primitive lifecycle + compaction fidelity --------------------
@@ -418,22 +410,11 @@ def ep391() -> Dict[str, Any]:
 def ep394() -> Dict[str, Any]:
     """Lifecycle primitives, all REAL, plus the missing fidelity measure.
 
-    `TYPE_CAPS`, `distill_aged_memories`, `enforce_event_ttl`,
-    `enforce_global_quota`, `run_maintenance` implement the primitives; what was
-    missing is a measure of whether compaction kept the signal.
+    Mechanism lives in its HOST: `LocalMemoryStore.lifecycle_fidelity`
+    (P1-3 host-remediation). This adapter is the registration shim.
     """
-    from CORE.data_retention import (DISTILLED_EVENT, TYPE_CAPS,
-                                     PROTECTED_EVENTS)
-    from CORE.local_memory import get_memory_store
-    store = get_memory_store()
-    raw = store.count_memories()
-    distilled = store.count_memories(event_type=DISTILLED_EVENT)
-    fidelity = None if not raw else round(distilled / max(raw, 1), 4)
-    return {"verified": True, "capped_types": len(TYPE_CAPS),
-            "protected": len(PROTECTED_EVENTS),
-            "raw_rows": raw, "rollup_rows": distilled,
-            "compaction_fidelity": fidelity,
-            "primitives": ["distill", "ttl", "caps", "quota", "maintenance"]}
+    store = _store()
+    return store.lifecycle_fidelity()
 
 
 # -- EP395 ConsistencyGate: write-time admission -----------------------------
@@ -513,7 +494,7 @@ register("EP146", "InfiAgent bounded context", "CORE.local_memory:LocalMemorySto
 register("EP154", "FS-Researcher workspace protocol", "CORE.local_memory:LocalMemoryStore.export_json", ep154, LAYER)
 register("EP160", "AgentSys isolation + sanitize", "CORE.local_memory:LocalMemoryStore.agent_scope_probe", ep160, LAYER)
 register("EP192", "Ontology layer as external memory", "CORE.pattern_memory:pattern_stats", ep192, LAYER)
-register("EP206", "ObjectGraph document graph", "CORE.local_memory:get_knowledge_graph_stats", ep206, LAYER)
+register("EP206", "ObjectGraph document graph", "CORE.local_memory:LocalMemoryStore.document_graph_stats", ep206, LAYER)
 register("EP216", "ShadowMem pending-action scoring", "CORE.local_memory:audit_result_set", ep216, LAYER)
 register("EP221", "ScrapMem resolution decay", "CORE.local_memory:LocalMemoryStore.decay_memory_in_place", ep221, LAYER)
 register("EP233", "Backward-chaining retrieval", "CORE.local_memory:LocalMemoryStore.backward_chain_recall", ep233, LAYER)
@@ -525,8 +506,8 @@ register("EP319", "TRUSTMEM transition verifier", "CORE.local_memory:LocalMemory
 register("EP336", "ACE reversible re-typing", "CORE.local_memory:LocalMemoryStore.retype_ladder", ep336, LAYER)
 register("EP370", "SLEUTH epistemic working set", "CORE.verification_gate:epistemic_state", ep370, LAYER)
 register("EP389", "Supra mode-classified recall", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep389, LAYER)
-register("EP391", "PRO-LONG programmatic memory", "CORE.local_memory:count_memories", ep391, LAYER)
-register("EP394", "Five-primitive lifecycle + fidelity", "CORE.data_retention:distill_aged_memories", ep394, LAYER)
+register("EP391", "PRO-LONG programmatic memory", "CORE.local_memory:LocalMemoryStore.programmatic_memory_surface", ep391, LAYER)
+register("EP394", "Five-primitive lifecycle + fidelity", "CORE.local_memory:LocalMemoryStore.lifecycle_fidelity", ep394, LAYER)
 register("EP395", "ConsistencyGate write admission", "CORE.local_memory:record_event", ep395, LAYER)
 register("EP414", "Generative compaction", "CORE.data_retention:DISTILLED_EVENT", ep414, LAYER)
 register("EP463", "PolyMemDB semiring conflicts", "CORE.local_memory:get_memory_store", ep463, LAYER)
