@@ -489,7 +489,7 @@ def _ep343() -> Dict[str, Any]:
 ADAPTERS: Dict[str, tuple] = {
     "EP129": ("Agent Failure Taxonomy", "CORE.circuit_breaker:BreakerRegistry.get_dead_letters", _ep129),
     "EP188": ("Agent-World Evolving Arena", "CORE.meta_evolution:choose_candidate", _ep188),
-    "EP237": ("Why AI agents must map before acting", "CORE.codebase_graph", _ep237),
+    "EP237": ("Why AI agents must map before acting", "no-host: act-time map stage missing", _ep237),
     "EP238": ("SepsisAgent Clinical World Model", "CORE.dispatch_plan:rehearse_dispatch", _ep238),
     "EP267": ("CoMAP co-evolution", "CORE.WORMS.expansion.dreaming:DreamingModule.dream", _ep267),
     "EP307": ("ENPIRE robot self-improvement", "CORE.WORMS.expansion.arena:Environment", _ep307),
