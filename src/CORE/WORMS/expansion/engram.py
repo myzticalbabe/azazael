@@ -708,6 +708,33 @@ class DreamConsolidatorWorm:
                                                       and mean_top < 0.5)
                                  else "served"))}
 
+    def consolidate_from_reads(self, router=None, dream_items=None,
+                               index=None) -> dict:
+        """Consolidate with the read signal folded in (EP235).
+
+        Restored. The theater removal deleted this on the day it was written,
+        justified as "zero callers" -- which severed the recall -> consolidation
+        loop: the router kept producing read pressure and nothing consumed it.
+        This is that consumer half. It runs the existing `consolidate`
+        UNCHANGED (so dream-driven behaviour is preserved), folds the read
+        pressure into the verdict, and records the pressure through the store
+        this module already has -- no new store, no new dependency.
+
+        `dream_items` defaults to an empty list rather than None because
+        `consolidate` takes it positionally: a read-driven pass carries no dream
+        batch, and an empty batch is the honest input for "consolidate toward
+        the gap the reads reported".
+        """
+        pressure = self.read_pressure(router=router)
+        result = dict(self.consolidate(dream_items=list(dream_items or []),
+                                       index=index) or {})
+        result["read_pressure"] = pressure
+        result["read_driven"] = True
+        if pressure.get("needs_writing"):
+            self._record_read_stats(pressure)
+            result["reason"] = "unmet-demand: consolidated toward the gap"
+        return result
+
     def _record_read_stats(self, pressure: dict) -> bool:
         """Persist derived read pressure from the router (EP235 read path).
 
@@ -738,3 +765,19 @@ class DreamConsolidatorWorm:
 
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute", "result": self.stats()}
+
+
+def run_read_driven_consolidation(router=None, dream_items=None,
+                                  index=None) -> dict:
+    """No-argument-callable form of EP235's loop closure (restored).
+
+    Exists so a caller (or a boundary) can close the recall -> write loop with
+    one call and no setup. Fail-open: returns a dict carrying the error rather
+    than raising, so a read path is never broken by bookkeeping.
+    """
+    try:
+        return DreamConsolidatorWorm().consolidate_from_reads(
+            router=router, dream_items=dream_items, index=index)
+    except Exception as exc:
+        note_failure("engram:read-driven-consolidation", exc)
+        return {"success": False, "error": f"{type(exc).__name__}: {exc}"}
