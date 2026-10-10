@@ -1743,6 +1743,47 @@ class LocalMemoryStore:
 
         return sorted(trend.values(), key=lambda d: d["date"])
 
+    # -- Backward-chaining retrieval (EP233) --------------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep233 (P1-3): the
+    # store that owns search_memories composes goal decomposition over it.
+    def backward_chain_recall(self, goal: str, subgoal_limit: int = 4,
+                              per_subgoal: int = 5) -> Dict:
+        """Goal-oriented backward chaining over the FTS5 index (EP233).
+
+        Decompose `goal` into informative sub-queries, retrieve per subgoal,
+        merge with per-subgoal attribution kept (which subgoal fetched which
+        row), so the caller judges coverage over the goal as a whole instead
+        of one similarity score against one utterance. Read-only.
+        """
+        if not goal or not str(goal).strip():
+            return {"verified": False, "error": "empty goal"}
+        tokens = [w for w in str(goal).split() if len(w) > 3][:subgoal_limit]
+        if not tokens:
+            tokens = [str(goal).strip()]
+        hits: Dict[str, List[Dict]] = {}
+        merged: Dict[int, Dict] = {}
+        for sg in tokens:
+            rows = self.search_memories(sg, limit=per_subgoal) or []
+            hits[sg] = len(rows)
+            for row in rows:
+                rid = row.get("id") if isinstance(row, dict) else None
+                if rid is None:
+                    continue
+                entry = merged.setdefault(rid, {"row": row, "matched_by": []})
+                entry["matched_by"].append(sg)
+        ranked = sorted(merged.values(), key=lambda e: -len(e["matched_by"]))
+        return {
+            "verified": True,
+            "goal": str(goal),
+            "subgoals": tokens,
+            "hits_per_subgoal": hits,
+            "merged": sum(hits.values()),
+            "distinct_rows": len(ranked),
+            "best_rows": [{"id": (e["row"].get("id")
+                                   if isinstance(e["row"], dict) else None),
+                           "matched_by": e["matched_by"]} for e in ranked[:5]],
+        }
+
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.
 
@@ -1761,6 +1802,52 @@ class LocalMemoryStore:
         ).fetchall()
         conn.close()
         return [{"date": r["day"], "count": r["cnt"]} for r in rows]
+
+    # -- Reflect-and-replay (EP120 Reflexion Verbal RL) ---------------------
+    # Moved HERE from CORE/technique_wiring/_l1_memory.py::ep120 in the P1-3
+    # host-remediation pass: the host that owns the clustering primitives owns
+    # their composition. _l1_memory keeps only the registration call.
+    def reflect_replay(self, days: int = 7, limit: int = 100,
+                       top_n: int = 3) -> Dict:
+        """Cluster real errors, weigh by trend, distill one lesson dict.
+
+        The Reflexion technique's store-side half: cluster the last `days` of
+        real errors (never test fixtures), join the 30-day trend axis so a
+        cluster's weight reflects whether it is rising or dying, and return a
+        lesson the Actor can pin before its next run. Read-mostly: the only
+        write is the caller's choice to record the lesson via record_event.
+        """
+        raw = self.triage_real_errors(days=days, limit=limit)
+        trends = self.get_error_trends(days=30) or []
+        # triage_real_errors returns a summary dict, not a row list: read the
+        # rows out of it (iterating the dict yields keys and clusters nothing).
+        rows = raw.get("clusters") or [] if isinstance(raw, dict) else (raw or [])
+        clusters: Dict[str, int] = {}
+        for e in (rows if isinstance(rows, list) else []):
+            if not isinstance(e, dict):
+                continue
+            sig = "%s::%s" % (e.get("signature") or e.get("source", "?"),
+                              e.get("sample_event") or e.get("severity") or "?")
+            clusters[sig] = clusters.get(sig, 0) + int(e.get("count", 1) or 1)
+        weighted = []
+        for sig, count in clusters.items():
+            # Trend multiplier: error count slope over the trend window.
+            slope = (sum(d.get("errors", 0) for d in trends[-7:])
+                     - sum(d.get("errors", 0) for d in trends[-14:-7]))
+            weighted.append((sig, count, slope))
+        top = sorted(weighted, key=lambda kv: (-kv[1], -kv[2]))[:top_n]
+        lesson = {
+            "clusters": len(clusters),
+            "top": [{"signature": s, "count": c, "trend_slope": t}
+                    for (s, c, t) in top],
+            "trend_points": len(trends),
+        }
+        return {
+            "verified": True,
+            "clusters": len(clusters),
+            "top_cluster": top[0][0] if top else None,
+            "lesson": lesson,
+        }
 
     # -- Auto-Vacuum Scheduler ---------------------------------------------
 
