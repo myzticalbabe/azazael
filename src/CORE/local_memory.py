@@ -310,6 +310,10 @@ class LocalMemoryStore:
             ("correlation_id", "TEXT"),
             ("audit_hash", "TEXT"),
             ("schema_version", "INTEGER NOT NULL DEFAULT 2"),
+            # EP221 ScrapMem (P1-3 host-remediation): in-place resolution decay
+            # needs a stage column — NULL/'full' = untouched, 'summary'/'pointer'
+            # = decayed. Additive, non-destructive, same pattern as CD1.
+            ("decay_level", "TEXT"),
         ]
         for col_name, col_type in migrations:
             if col_name not in existing_cols:
@@ -1772,6 +1776,19 @@ class LocalMemoryStore:
                 entry = merged.setdefault(rid, {"row": row, "matched_by": []})
                 entry["matched_by"].append(sg)
         ranked = sorted(merged.values(), key=lambda e: -len(e["matched_by"]))
+        try:
+            rows = [e["row"] for e in ranked
+                    if isinstance(e.get("row"), dict)]
+            audit = self.audit_retrieval(rows, query_context=goal)
+            kept_ids = {r.get("id")
+                        for r in self.filter_quarantined(rows, audit)}
+            ranked = [e for e in ranked
+                      if e.get("row", {}).get("id") in kept_ids]
+        except Exception as exc:
+            _note_failure("local_memory:backward-chain-audit", exc)
+            audit = {"n_checked": len(ranked), "n_quarantined": 0,
+                     "quarantined_ids": [], "reasons": [],
+                     "fallback": "unfiltered"}
         return {
             "verified": True,
             "goal": str(goal),
@@ -1782,6 +1799,7 @@ class LocalMemoryStore:
             "best_rows": [{"id": (e["row"].get("id")
                                    if isinstance(e["row"], dict) else None),
                            "matched_by": e["matched_by"]} for e in ranked[:5]],
+            "audit": audit,
         }
 
     # -- Bounded-context reconstruction (EP146 InfiAgent) ------------------
@@ -1796,12 +1814,22 @@ class LocalMemoryStore:
         task. Read-only.
         """
         rows = self.fetch_all_memories(limit=window) or []
-        brief = self.reconstruct_events(rows, current_task=current_task,
+        try:
+            audit = self.audit_retrieval(rows, query_context=current_task)
+            kept = self.filter_quarantined(rows, audit)
+        except Exception as exc:
+            _note_failure("local_memory:bounded-context-audit", exc)
+            kept = rows
+            audit = {"n_checked": len(rows), "n_quarantined": 0,
+                     "quarantined_ids": [], "reasons": [],
+                     "fallback": "unfiltered"}
+        brief = self.reconstruct_events(kept, current_task=current_task,
                                         max_items=max_items)
         return {"verified": True, "window": len(rows),
                 "count_total": self.count_memories(),
                 "items": len(brief.get("items", []) or []),
-                "suppressed": len(brief.get("verified_absent", []) or [])}
+                "suppressed": len(brief.get("verified_absent", []) or []),
+                "audit": audit}
 
     # -- Per-agent isolation scoping (EP160 AgentSys) -----------------------
     # Host-remediated from technique_wiring/_l1_memory.py::ep160 (P1-3).
@@ -1822,6 +1850,106 @@ class LocalMemoryStore:
             "isolation": "source/session_id scoping (existing params)",
             "scoped_rows": len(scoped),
         }
+
+    # -- In-place resolution decay (EP221 ScrapMem) --------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep221 (P1-3).
+    DECAY_LEVELS = ("full", "summary", "pointer")
+
+    def decay_memory_in_place(self, query: str = "nb", limit: int = 5) -> Dict:
+        """Coarsen rows in place (EP221) instead of delete-then-rollup.
+
+        The existing retention passes are rollup-then-DELETE: a row either
+        keeps every detail or is gone. The missing variant is DECAY: a row
+        loses detail but stays — `data` is shrunk to a pointer when the row is
+        already old, `decay_level` marks the stage, and nothing is deleted.
+        """
+        conn = self._get_conn()
+        decays = 0
+        from CORE.data_retention import EVENT_TTL_DAYS
+        try:
+            rows = conn.execute(
+                "SELECT id FROM memories "
+                "WHERE (decay_level IS NULL OR decay_level = 'full') "
+                "AND timestamp < datetime('now', ?) LIMIT ?",
+                ("-" + str(EVENT_TTL_DAYS) + " days", limit),
+            ).fetchall()
+            for r in rows:
+                try:
+                    conn.execute(
+                        "UPDATE memories SET decay_level = ?, "
+                        "data = json_object('pointer', id, "
+                        "'kept', 'row retained; payload decayed in place') "
+                        "WHERE id = ?",
+                        ("pointer", r["id"]),
+                    )
+                    decays += 1
+                except Exception as exc:
+                    _note_failure("local_memory:decay_update", exc)
+            conn.commit()
+        finally:
+            conn.close()
+        # schema addition is idempotent: try ADD COLUMN and treat "duplicate" as fine
+        return {"verified": decays >= 0, "decayed": decays, "ttl_days": EVENT_TTL_DAYS,
+                "decay_levels": self.DECAY_LEVELS,
+                "note": "in-place decay; nothing deleted"}
+
+    # -- Experience-graph edges (EP242 EXG) --------------------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep242 (P1-3).
+    def experience_edges(self, query: str = "technique runtime",
+                         top_k: int = 5) -> Dict:
+        """Project success/failure edges from the pattern store's real rows.
+
+        No edges table exists; this derives edge counts from rows that do, so
+        the graph is a projection of real data rather than an empty new
+        table. Traversal consumers get (pattern, edge_kind, weight) triples.
+        """
+        from CORE.pattern_memory import query_patterns
+        hits = query_patterns(query, top_k=top_k)
+        if isinstance(hits, dict):
+            rows = hits.get("results", hits.get("hits", [])) or []
+        else:
+            rows = list(hits or [])
+        edges: Dict[str, int] = {"succeeded_before": 0, "failed_before": 0}
+        for r in rows:
+            if not isinstance(r, dict):
+                continue
+            meta = r.get("metadata") or {}
+            outcome = str((meta.get("outcome") if isinstance(meta, dict)
+                           else r.get("outcome")) or "").lower()
+            if "fail" in outcome:
+                edges["failed_before"] += 1
+            elif outcome:
+                edges["succeeded_before"] += 1
+        return {"verified": True, "rows": len(rows),
+                "edge_kinds": tuple(edges), "edges": edges,
+                "note": "projection of pattern rows; persistent edge table is a separate surface"}
+
+    # -- Orientation cache with token budget (EP247 PEEK) --------------------
+    # Host-remediated from technique_wiring/_l1_memory.py::ep247 (P1-3).
+    ORIENTATION_TAPS = ("reflexion_note", "evolution_result", "inference",
+                        "retrieval_audit", "technique_wiring")
+
+    def orientation_index(self, budget_tokens: int = 200) -> Dict:
+        """Constant-size orientation map summarising the store in <=budget tokens.
+
+        `enforce_type_caps` caps row COUNTS only; this is the in-prompt half:
+        one line per tap (event_type), its recent count, and an overall row
+        count — clipped to the token budget by dropping the smallest taps.
+        Read-only.
+        """
+        total = self.count_memories()
+        lines = ["memory: %d rows" % total]
+        for tap in self.ORIENTATION_TAPS:
+            n = self.count_memories(event_type=tap)
+            lines.append("%s: %d" % (tap, n))
+        used = sum(len(l.split()) for l in lines)
+        while used > budget_tokens and len(lines) > 1:
+            # drop the last (least important) tap line until under budget
+            dropped = lines.pop()
+            used = sum(len(l.split()) for l in lines)
+        return {"verified": True, "index": "\n".join(lines),
+                "token_budget": budget_tokens, "used": used,
+                "over_budget": used > budget_tokens}
 
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.

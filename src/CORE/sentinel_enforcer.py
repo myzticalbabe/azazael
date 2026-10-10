@@ -1,23 +1,29 @@
 """
-sentinel_enforcer.py — Permanent Enforcement Wrapper (Gemini-Architected v2)
+sentinel_enforcer.py — Opt-in Enforcement Wrapper (Gemini-Architected v2)
 
-Wraps all disk-modifying operations with mandatory pre-validation through
-SentinelValidator (RULE 0S/0T) and ASTAntiPatternScanner (RULE 0X-7).
+Wraps disk-modifying operations that CHOOSE to route through it with
+pre-validation through SentinelValidator (RULE 0S/0T) and ASTAntiPatternScanner
+(RULE 0X-7). Advisory unless armed: importing this module arms the
+sys.addaudithook tripwire for in-process open(w/a/+) only. Subprocess, shell,
+hand-edit, and any code path that never calls enforce() bypass it by design —
+no mechanism here can observe those paths (corrected 2026-10-10; the v2 header
+previously claimed unbypassability).
 
-v2 UPGRADE (Jun 17, 2026): sys.addaudithook global interceptor blocks ALL
-unauthorized file writes at the CPython interpreter level. The only way to
-write to disk is through enforce() which sets a thread-local token.
+v2 UPGRADE (Jun 17, 2026): sys.addaudithook interceptor observes in-process
+file writes at the CPython interpreter level. Writes routed through enforce()
+set a thread-local token.
 
 Design (per Gemini):
-1. Tool Overrides: Wrap str_replace/write_file in mandatory execution decorator
+1. Tool Overrides: Wrap str_replace/write_file in execution decorator (opt-in —
+   only callers routed through enforce() are gated)
 2. In-Memory Pre-Validation: Pipe intent through SentinelValidator + scanner
-3. Fail-Closed Blocking: Abort tool execution on gate denial
+3. Fail-Closed Blocking: Abort tool execution on gate denial (when routed)
 4. Auto-Rollback: Overwrite with .pre_gate_backup on post-edit violation
 5. Git Hooks: Enforce consistency test + scanner as pre-commit hooks
-6. sys.addaudithook: CPython-level I/O interception — unbypassable
+6. sys.addaudithook: CPython-level I/O observation — a tripwire, not a wall
 
-This module is the PERMANENT answer to rule violations. It cannot be skipped,
-bypassed, or overridden. Every edit flows through this gate.
+This module is the PERMANENT record of the rule-violation answer for paths that
+opt in. It cannot see paths that never call it.
 """
 
 import ast
@@ -399,11 +405,6 @@ def enforce_write(filepath: str, content: str) -> tuple[bool, str]:
     return enforce(filepath, old, content, action="write_file")
 
 
-def enforce_replace(filepath: str, old_str: str, new_str: str) -> tuple[bool, str]:
-    """Enforce rules before a str_replace operation."""
-    return enforce(filepath, old_str, new_str, action="str_replace")
-
-
 # ---------------------------------------------------------------------------
 # Auto-rollback
 # ---------------------------------------------------------------------------
@@ -430,62 +431,6 @@ def rollback(filepath: str) -> bool:
     except Exception:
         note_failure("sentinel_enforcer:L413", None)
         return False
-
-
-def post_validate(filepath: str) -> tuple[bool, str]:
-    """Run post-edit validation. Auto-rollback on failure.
-
-    Args:
-        filepath: Path to the edited file
-
-    Returns:
-        (passed: bool, message: str)
-    """
-    fp = Path(filepath)
-    if not fp.exists():
-        return True, "File does not exist — nothing to validate"
-
-    try:
-        content = fp.read_text(encoding="utf-8")
-    except Exception as e:
-        note_failure("sentinel_enforcer:L432", e)
-        return False, f"Cannot read file for post-validation: {e}"
-
-    # Syntax check
-    try:
-        ast.parse(content)
-    except SyntaxError as e:
-        note_failure("sentinel_enforcer:L438", e)
-        rolled = rollback(filepath)
-        msg = f"POST-EDIT SYNTAX ERROR at line {e.lineno}: {e.msg}"
-        if rolled:
-            msg += " — AUTO-ROLLBACK applied from .pre_gate_backup"
-        return False, msg
-
-    # Anti-pattern scan
-    if _SCANNER_AVAILABLE:
-        scanner = ASTAntiPatternScanner()
-        result = scanner.scan_source(filepath, content)
-        if not result.passed:
-            rolled = rollback(filepath)
-            num = result.finding_count
-            msg = (
-                f"POST-EDIT ANTI-PATTERN: {num} finding(s) introduced "
-                f"— AUTO-ROLLBACK applied from .pre_gate_backup"
-            )
-            return False, msg
-
-    # 0-indent check
-    runaway = _detect_0_indent_runaway(content)
-    if runaway:
-        rolled = rollback(filepath)
-        msg = (
-            f"POST-EDIT 0-INDENT RUNAWAY at lines {runaway} "
-            f"— AUTO-ROLLBACK applied from .pre_gate_backup"
-        )
-        return False, msg
-
-    return True, "POST-VALIDATE: OK"
 
 
 # ---------------------------------------------------------------------------

@@ -239,21 +239,26 @@ then verify — verified `True` on
 ## 9. TECHNIQUE LAYER — how much is actually adopted (measured 2026-10-09)
 
 Call path: `src/CORE/technique_runtime.py` registers 181 harvested techniques, and
-`tools/exercise_technique_runtime.py` reports `corpus 181 / wired 181 / engaged 181 /
-errored 0`. **That is a statement about the registry, not about the codebase** — read
-alone it overstates capability, so it must not be quoted as coverage.
+(historically) `tools/exercise_technique_runtime.py` reported `corpus 181 / wired 181 /
+engaged 181 / errored 0` — archived 2026-10-10 to `archive/theater-2026-10-10/`, so
+quote the registry numbers (`load_slices` 9/9 ok, 181 wired, verified 2026-10-10),
+not the archived script. **That is a statement about the registry, not about the
+codebase** — read alone it overstates capability, so it must not be quoted as coverage.
 
 Production call sites into the layer, measured by grep over `src/` excluding the
 layer itself and `tools/`:
 
 | technique boundary | production caller |
 |---|---|
-| plan modelling | `WORMS/METACLUSTER.py` (`plan_dag`) |
-| edit verification | `sentinel_enforcer.py` (`verify_boundary`) |
-| failure reflection | `circuit_breaker.py`, `WORMS/METACLUSTER.py` (`reflect_on_failure`) |
-| read-driven consolidation | `WORMS/expansion/engram.py` (read pressure) |
+| plan modelling (3 symbols) | `WORMS/METACLUSTER.py` (`plan_dag`, `eliminate_common_subgraphs`, `record_dispatch_plan`) |
+| edit verification | `sentinel_enforcer.py` (`verify_boundary`, advisory-only) |
+| failure reflection | `circuit_breaker.py`, `WORMS/METACLUSTER.py` (`reflect_on_failure`, fail-open) |
 
-So: **181 techniques have a call path; 5 production call sites reach it.** The
+So: **181 techniques have a call path; 4 production call-site locations (6 symbol
+invocations) reach it** (corrected 2026-10-10: the earlier count of 5 included
+`WORMS/expansion/engram.py` read-pressure, which is intra-module — defined at
+`engram.py:673`, consumed at `:725`/`:738` in the same file, with zero imports of
+any technique module — so it is not a call site *into the layer*). The
 remaining adoption work is T-13 in `TODO_315T_BUILD.md`; the reassignment of the 48
 rows that pointed at the wrong host is in `SOTA_ROW_RESCORE.md`. Coverage must
 be counted as production call sites per technique, with exercise-only engagement

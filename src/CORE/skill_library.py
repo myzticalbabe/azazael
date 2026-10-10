@@ -249,6 +249,9 @@ def merge_sops(a: Any, b: Any) -> Dict[str, Any]:
     "deduped" (steps the merge collapsed), "conflicts", "gaps", "ok"}. A real
     order conflict, or a step one side declares mutually exclusive with the
     other's, is NAMED in `conflicts` and sets ok=False — never resolved.
+
+    Production caller: tools/canon_drift_check._reconcile (EvoSOP union
+    resolver with overwrite fallback, EP354).
     """
     raw_a, raw_b = _steps_of(a), _steps_of(b)
     sa, sb = _uniq(raw_a), _uniq(raw_b)
@@ -327,6 +330,9 @@ def prune_sops(entries: List[Any], evidence: Dict[str, Any],
 
     Returns {"kept", "pruned" (names), "reasons" {name: why}, "n_kept",
     "n_pruned", "gaps"}. gaps names malformed input, not pruning itself.
+
+    No production caller yet (EP354): wiring it needs a real evidence source
+    ({name: support}); never call with empty evidence — every entry would prune.
     """
     kept: List[str] = []
     pruned: List[str] = []

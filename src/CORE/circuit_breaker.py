@@ -21,7 +21,6 @@ from typing import Any, Callable, List
 __all__ = [
     "CircuitBreaker", "BreakerRegistry", "CircuitConfig", "CircuitState",
     "DeadLetter", "breaker_registry", "replan_from_dead_letters",
-    "replan_after_failures",
 ]
 
 log = logging.getLogger(__name__)
@@ -618,20 +617,6 @@ def _reflect_on_failure(breaker: "CircuitBreaker", error: str,
         # Recorded so the swallow is observable instead of success-shaped.
         _note_failure("circuit_breaker:reflect", exc)
         return
-
-
-def replan_after_failures(registry=None, limit: int = 50) -> dict:
-    """Ask for the next-attempt replan after failures (EP129).
-
-    The explicit entry point for a caller that has just seen failures and wants
-    the adjustments rather than the raw queue. Delegates to
-    `replan_from_dead_letters`. The production failure path already reaches that
-    logic through `_reflect_on_failure` - scoped to the breaker that failed - so
-    this exists for a caller that wants the fleet-wide view. Note that the
-    per-breaker path is the one that is exercised today; this fleet-wide wrapper
-    has no caller yet.
-    """
-    return replan_from_dead_letters(registry, limit)
 
 
 if __name__ == "__main__":
