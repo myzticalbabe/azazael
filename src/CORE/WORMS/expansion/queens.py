@@ -832,7 +832,8 @@ def _stamps_from_outcomes(limit: int = 1000) -> Dict[str, float]:
                 continue
             try:
                 ts = _dt.fromisoformat(str(at)).timestamp()
-            except Exception:
+            except Exception as exc:
+                note_failure("expansion/queens:835", exc)
                 continue
             if ts > stamps.get(name, 0.0):
                 stamps[name] = ts

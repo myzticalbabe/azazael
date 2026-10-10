@@ -800,7 +800,8 @@ def order_by_difficulty(items: list, difficulty, reverse: bool = False) -> dict:
         try:
             val = float(difficulty(nm) if callable(difficulty)
                         else difficulty.get(nm, 0.5))
-        except (TypeError, ValueError, AttributeError):
+        except (TypeError, ValueError, AttributeError) as exc:
+            note_failure("expansion/learning_grpo:803", exc)
             val = 0.5
         return val
     ordered = sorted(list(items or []), key=_score, reverse=bool(reverse))

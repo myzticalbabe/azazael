@@ -52,6 +52,18 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+#: EP44 ReAct driver (thought -> action -> observation). Imported at module level
+#: because a workflow step is now able to use it; `None` only when the sibling
+#: module is absent, which makes the `react_drive` action a NAMED error rather
+#: than a silent no-op -- a step that cannot reason must not look like one that did.
+try:
+    from CORE.structured_action import drive as _react_drive_impl
+    from CORE.structured_action import record_reasoning_trace as _record_reasoning_trace
+except ImportError:
+    note_failure("workflow:structured_action-import", None)
+    _react_drive_impl = None
+    _record_reasoning_trace = None
+
 # -- Lazy Config (thread-safe) ------------------------------------
 _cfg = None
 _cfg_lock = threading.Lock()
@@ -665,6 +677,8 @@ class WorkflowEngine:
                 result = self._run_execute_nature(action_params)
             elif action == "run_pipeline":
                 result = self._run_pipeline(action_params, step_results)
+            elif action == "react_drive":
+                result = self._run_react_drive(action_params)
             elif action == "condition":
                 result = self._run_condition(action_params, step_results, params)
             elif action == "sleep":
@@ -779,6 +793,41 @@ class WorkflowEngine:
         """Evaluate a condition."""
         condition = params.get("condition", "")
         return ConditionalRouter.evaluate(condition, step_results, wf_params)
+
+    def _run_react_drive(self, params: dict) -> Any:
+        """Drive this step with the EP44 ReAct loop (thought -> action -> observation).
+
+        `CORE.structured_action.drive` is LLM-free: the caller supplies cognition
+        through `thought_fn` (``fn(state) -> proposal``) and the loop supplies the
+        step interleaving, both validations, and the plan repair. A gap does NOT
+        fail the step -- it is recorded AND the plan gains a ``repair:<gap>``
+        step, which is the technique EP44 is about (a controller that only
+        reports gaps is the thing it replaces).
+        """
+        if _react_drive_impl is None:
+            raise ValueError("react_drive unavailable: CORE.structured_action "
+                             "could not be imported")
+
+        app = str(params.get("app", "workflow"))
+        plan = list(params.get("plan", []) or [])
+        contract = dict(params.get("contract", {}) or {})
+        required_keys = list(params.get("required_keys", []) or [])
+        thought_fn = params.get("thought_fn")
+        if not callable(thought_fn):
+            raise ValueError(
+                "react_drive requires a callable 'thought_fn' in step params "
+                "(a step with no cognition would terminate at once and read as done)")
+
+        result = _react_drive_impl(
+            app, plan, contract, required_keys, thought_fn,
+            max_steps=int(params.get("max_steps", 12)),
+        )
+        if _record_reasoning_trace is not None:
+            try:
+                result["citation"] = _record_reasoning_trace(app, result)
+            except Exception as exc:
+                note_failure("workflow:react-cite", exc)
+        return result
 
     # -- Workflow Execution ------------------------------------------
 

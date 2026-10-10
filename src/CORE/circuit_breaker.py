@@ -16,11 +16,12 @@ import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, List
+from typing import Any, Callable, Dict, List
 
 __all__ = [
     "CircuitBreaker", "BreakerRegistry", "CircuitConfig", "CircuitState",
     "DeadLetter", "breaker_registry", "replan_from_dead_letters",
+    "supervise_drift",
 ]
 
 log = logging.getLogger(__name__)
@@ -37,6 +38,15 @@ try:
 except ImportError:                               # runtime absent: stay importable
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         _SWALLOWED.append("%s:no-recorder" % where)
+
+#: EP383 — the divergence signal the breaker terminates on. Module-level (an
+#: in-function import is a ratchet failure) and fail-open: the breaker must
+#: stay importable without the gate, and only terminate on a PROVEN drift.
+try:
+    from CORE.verification_gate import confidence_divergence_check as _drift_check
+except ImportError:                               # gate absent: supervision off
+    note_failure("circuit_breaker:drift-import", None)
+    _drift_check = None
 
 
 def _note_failure(where: str, exc: BaseException | None = None) -> None:
@@ -113,6 +123,9 @@ class CircuitBreaker:
         self.trip_reason = ""
         self.tripped_at = 0.0
         self.tripped_by_operator = False
+        # EP383: provenance for trips caused by a safety-drift signal, kept
+        # beside the operator-trip provenance so `stats()` surfaces both.
+        self.drift_trips: List[Dict[str, Any]] = []
         self._lock = threading.Lock()
         self._cancelled = threading.Event()
         # EP129: the phase currently being attempted, set by declared_phase().
@@ -213,6 +226,62 @@ class CircuitBreaker:
         """
         with self._lock:
             return bool(self.tripped_by_operator)
+
+    def supervise_drift(self, explorer: List[Dict[str, Any]],
+                        validator: List[Dict[str, Any]],
+                        reason: str = "safety-drift",
+                        max_mean_div: float = 0.15,
+                        max_max_div: float = 0.30) -> Dict[str, Any]:
+        """Trip OPEN when an explorer/validator pair diverges (EP383).
+
+        Why this exists: `verification_gate.confidence_divergence_check`
+        detects the confident-but-wrong case, but a detected drift terminated
+        nothing — the finding was a verdict with no consequence. Termination
+        belongs on the breaker (that is what `force_trip` is for), so this is
+        the consequence: a failed divergence check trips the breaker OPEN and
+        the provenance is recorded in `drift_trips` (surfaced by `stats()`).
+
+        Fail-open in the same sense as the rest of this module: a missing gate
+        module or a raising check yields a named gap with `checked=False`; it
+        never raises, and it never trips on uncertainty — an unproven drift is
+        not a drift.
+
+        Returns {"checked", "passed", "tripped", "reason", "mean_div",
+        "diverged_ids", "gaps"}.
+        """
+        out: Dict[str, Any] = {"checked": False, "passed": None,
+                               "tripped": False, "reason": "",
+                               "mean_div": None, "diverged_ids": [],
+                               "gaps": []}
+        if _drift_check is None:
+            out["gaps"].append("verification-gate-unavailable")
+            return out
+        try:
+            check = _drift_check(explorer or [], validator or [],
+                                 max_mean_div=max_mean_div,
+                                 max_max_div=max_max_div)
+        except Exception as exc:                  # noqa: BLE001 — supervision is best-effort
+            _note_failure("circuit_breaker:drift-check", exc)
+            out["gaps"].append(f"divergence-check-failed:{type(exc).__name__}")
+            return out
+        out["checked"] = True
+        out["passed"] = bool(check.get("passed"))
+        out["mean_div"] = check.get("mean_div")
+        out["diverged_ids"] = [str(i) for i in (check.get("diverged_ids") or [])]
+        if out["passed"]:
+            return out
+        trip_reason = "%s:diverged=%s" % (
+            str(reason or "safety-drift")[:160],
+            ",".join(out["diverged_ids"]) or "-")
+        self.force_trip(trip_reason)
+        out["tripped"] = True
+        out["reason"] = trip_reason
+        with self._lock:
+            self.drift_trips.append({"reason": trip_reason,
+                                     "diverged_ids": list(out["diverged_ids"]),
+                                     "mean_div": out["mean_div"],
+                                     "at": self.tripped_at})
+        return out
 
     def reset(self):
         """Reset the circuit breaker. Thread-safe.
@@ -350,6 +419,7 @@ class CircuitBreaker:
                 "trip_reason": self.trip_reason,
                 "tripped_at": self.tripped_at,
                 "held": self.tripped_by_operator,
+                "drift_trips": list(self.drift_trips),
             }
 
 
@@ -632,6 +702,29 @@ def _reflect_on_failure(breaker: "CircuitBreaker", error: str,
         # Recorded so the swallow is observable instead of success-shaped.
         _note_failure("circuit_breaker:reflect", exc)
         return
+
+
+def supervise_drift(name: str, explorer: List[Dict[str, Any]],
+                    validator: List[Dict[str, Any]],
+                    registry=None, reason: str = "safety-drift") -> Dict[str, Any]:
+    """Supervise action safety for one breaker by name (EP383).
+
+    The one-line hook for a caller that already holds an explorer/validator
+    confidence pair: it resolves the breaker (creating it if absent, exactly as
+    `BreakerRegistry.get` does) and delegates to
+    `CircuitBreaker.supervise_drift`. Fail-open: an unusable registry yields a
+    named gap, never an exception.
+    """
+    out: Dict[str, Any] = {"checked": False, "passed": None, "tripped": False,
+                           "reason": "", "gaps": []}
+    try:
+        reg = registry if registry is not None else breaker_registry
+        breaker = reg.get(name)
+    except Exception as exc:                      # noqa: BLE001 — supervision is best-effort
+        _note_failure("circuit_breaker:supervise-registry", exc)
+        out["gaps"].append(f"registry-unavailable:{type(exc).__name__}")
+        return out
+    return breaker.supervise_drift(explorer, validator, reason=reason)
 
 
 if __name__ == "__main__":

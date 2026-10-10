@@ -51,18 +51,40 @@ import threading
 import time
 from typing import Any, Callable, Dict, List
 
+#: The ledger lives in a leaf module (stdlib only, zero CORE imports) so that
+#: any module can import the recorder without risking an import cycle -- a cycle
+#: caught by a guarded import would silently turn every recording into a no-op.
+#: Re-exported here because callers and tests reach it as
+#: `technique_runtime.note_failure` / `technique_runtime.failure_notes`.
+#:
+#: ORDER MATTERS: the ledger now precedes the guarded imports below, because
+#: their handlers record. A recorder bound later in the file would raise
+#: NameError *from inside* the handler, turning a caught import failure into an
+#: uncaught one and taking this module's whole import down with it.
+from CORE.failure_ledger import failure_notes, note_failure  # noqa: F401
+
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
 #: The worms tree, imported at module level (fail-open) so the restored read
 #: path has a caller. Guarded rather than lazy: a function-level import counts
 #: against the anti-pattern ratchet, and this dependency is optional at import
 #: time only in minimal environments.
 try:                                                       # pragma: no cover
     from CORE.WORMS.expansion import engram as _engram
-except Exception:                                          # pragma: no cover
+except Exception as exc:                                   # pragma: no cover
+    note_failure("technique_runtime:60", exc)
     _engram = None
 
 try:                                                       # pragma: no cover
     from CORE import verification_gate as _vg
-except Exception:                                          # pragma: no cover
+except Exception as exc:                                   # pragma: no cover
+    note_failure("technique_runtime:65", exc)
     _vg = None
 
 from CORE.local_memory import get_memory_store
@@ -75,22 +97,6 @@ __all__ = [
 #: EP code -> {"ep", "name", "where", "fn", "layer"}. Populated by `register`
 #: from the slice modules and by the direct helpers below.
 ADAPTERS: Dict[str, Dict[str, Any]] = {}
-
-#: The ledger lives in a leaf module (stdlib only, zero CORE imports) so that
-#: any module can import the recorder without risking an import cycle -- a cycle
-#: caught by a guarded import would silently turn every recording into a no-op.
-#: Re-exported here because callers and tests reach it as
-#: `technique_runtime.note_failure` / `technique_runtime.failure_notes`.
-from CORE.failure_ledger import failure_notes, note_failure  # noqa: F401
-
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 #: Slice modules under CORE.technique_wiring/. Imported lazily so a slice that
 #: fails to import (a missing optional dep) degrades to "that layer is not wired"
@@ -379,7 +385,8 @@ def recall_with_feedback(query: str, consolidate: bool = False,
         state = {}
         try:
             state = router.recall_state() or {}
-        except Exception:
+        except Exception as exc:
+            note_failure("technique_runtime:382", exc)
             state = {}
         out: Dict[str, Any] = {
             "routed": True,

@@ -56,6 +56,21 @@ def _note_failure(where: str, exc: BaseException | None = None) -> None:
     except Exception as _e:
         _SWALLOWED.append("%s:%s" % (where, type(_e).__name__))
 
+
+#: EP370 (SLEUTH) — structured investigative working set. The IMPLEMENTATION
+#: lives in CORE.verification_gate (its host); this module's recall path is
+#: the CONSUMER that surfaces it (see `recall_with_abstention`). Guarded like
+#: the recorder above so the store stays importable without the gate.
+try:
+    from CORE.verification_gate import epistemic_state
+except ImportError:                               # gate absent: stay importable
+    def epistemic_state(findings=None, hypotheses=None,
+                        questions=None) -> Dict[str, Any]:
+        return {"confirmed": [], "hypotheses": [], "open": [],
+                "n_confirmed": 0, "n_hypotheses": 0, "n_open": 0,
+                "gaps": ["no-verification-gate"], "ok": False}
+
+
 # -- Storage location ------------------------------------------------------
 def _get_store_path() -> Path:
     """Determine storage path.
@@ -2190,14 +2205,21 @@ class LocalMemoryStore:
                                floor: float = 0.5) -> Dict:
         """Context-conditioned recall that ABSTAINS instead of proceeding empty.
 
-        Returns {answer, evidence[], abstained, floor}. evidence rows are
-        matches whose derived salience clears the floor; abstained is True
-        with a reason otherwise. Callers must branch on `abstained`, not on
-        row count. floor is clamped to [0,1].
+        Returns {answer, evidence[], abstained, floor, working_set}.
+        evidence rows are matches whose derived salience clears the floor;
+        abstained is True with a reason otherwise. Callers must branch on
+        `abstained`, not on row count. floor is clamped to [0,1].
+
+        `working_set` (EP370 SLEUTH) is the structured view of the same
+        matches — confirmed (provenance-carrying) vs hypotheses (demoted,
+        the demotion named in its `gaps`) — so a caller surfaces
+        investigative state instead of raw rows. Additive: no pre-existing
+        key changes meaning.
         """
         try:
             floor = max(0.0, min(1.0, float(floor)))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            _note_failure("local_memory:recall-abstain-floor", exc)
             floor = 0.5
         try:
             hits = self.search_memories(query) or []
@@ -2211,11 +2233,29 @@ class LocalMemoryStore:
                 continue
             try:
                 ranked.append((r, float(r["rank"])))
-            except (KeyError, TypeError, ValueError):
+            except (KeyError, TypeError, ValueError) as exc:
+                _note_failure("local_memory:recall-abstain-rank", exc)
                 continue
+        # EP370 (SLEUTH): surface the structured investigative working set
+        # instead of raw rows. The partition reuses THIS store's own
+        # grounding test — the same audit_hash/event_uuid provenance check
+        # `audit_result_set` uses to quarantine ungrounded rows: a match
+        # that carries provenance is a CONFIRMED finding; one without is
+        # DEMOTED to a hypothesis, and epistemic_state names the demotion in
+        # `gaps`. Nothing is invented for rows the store cannot ground.
+        findings: List[Dict[str, Any]] = []
+        hypotheses: List[Dict[str, Any]] = []
+        for r, _rank in ranked:
+            prov = str(r.get("audit_hash") or r.get("event_uuid") or "")
+            label = str(r.get("event_type") or "") or "memory-%s" % r.get("id")
+            item = {"fact": "%s (id=%s)" % (label, r.get("id")),
+                    "sources": [prov] if prov else []}
+            (findings if prov else hypotheses).append(item)
+        working_set = epistemic_state(findings=findings, hypotheses=hypotheses)
         if not ranked:
             return {"verified": True, "answer": None, "evidence": [],
                     "abstained": True, "floor": floor,
+                    "working_set": working_set,
                     "reason": "no evidence row clears the salience floor"}
         best = min(s for _, s in ranked)
         evidence = []
@@ -2228,10 +2268,12 @@ class LocalMemoryStore:
         if not evidence:
             return {"verified": True, "answer": None, "evidence": [],
                     "abstained": True, "floor": floor,
+                    "working_set": working_set,
                     "reason": "no evidence row clears the salience floor"}
         return {"verified": True,
                 "answer": "evidence-backed (%d rows)" % len(evidence),
-                "evidence": evidence[:5], "abstained": False, "floor": floor}
+                "evidence": evidence[:5], "abstained": False, "floor": floor,
+                "working_set": working_set}
 
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.
@@ -2970,7 +3012,8 @@ def resolve_conflicts(facts: List[Dict],
         def _key(f: Dict) -> Any:
             try:
                 rec = float(f.get("recency", 0.0) or 0.0)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError) as exc:
+                _note_failure("local_memory:conflict-recency", exc)
                 rec = 0.0
             return (rank.get(str(f.get("source", "")), 999), -rec)
         best = min(group, key=_key)

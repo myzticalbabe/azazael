@@ -83,7 +83,8 @@ def gather(limit: int = 200) -> Dict[str, Any]:
         subj = str(d.get("subject", d.get("team", d.get("worm", "?"))))
         try:
             rewards[subj] = float(d.get("value", d.get("reward", 0.0)))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("training-intake:86", exc)
             continue
     out["rewards"] = rewards
     out["n_rewards"] = len(rewards)
@@ -94,7 +95,8 @@ def gather(limit: int = 200) -> Dict[str, Any]:
         try:
             if d.get("predicted") is not None and d.get("realised") is not None:
                 errs.append(abs(float(d["predicted"]) - float(d["realised"])))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError) as exc:
+            note_failure("training-intake:97", exc)
             continue
     out["calibration"] = {"n": len(cal_rows),
                           "n_scored": len(errs),

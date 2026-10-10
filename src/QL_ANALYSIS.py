@@ -8,7 +8,9 @@ used by Desktop/AZAZAEL_Standalone/build_all.py.
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'AZAZAEL_TOOLKIT'))
-from QL_ANALYSIS import main
+# Package-qualified: a bare `from QL_ANALYSIS import main` re-enters this shim
+# (same name, already in sys.modules) before `main` exists -> circular import.
+from AZAZAEL_TOOLKIT.QL_ANALYSIS import main
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only

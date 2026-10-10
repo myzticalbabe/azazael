@@ -322,7 +322,8 @@ class PolicyEngine:
         order = ["none", "read-only", "read-write", "admin"]
         try:
             idx = order.index(str(authority or "none").strip().lower())
-        except ValueError:
+        except ValueError as exc:
+            note_failure("policy:325", exc)
             idx = 0
         steps = max(0, int(depth))
         return {"delegated": order[max(0, idx - steps)],

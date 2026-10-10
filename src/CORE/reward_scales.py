@@ -207,7 +207,8 @@ def calibration_snapshot(store: Any, limit: int = 5000) -> Dict[str, Any]:
         rid = r.get("id", 0)
         try:
             rid = int(rid)
-        except Exception:
+        except Exception as exc:
+            note_failure("reward-scales:210", exc)
             rid = 0
         if sid not in latest or rid > latest[sid].get("_id", -1):
             latest[sid] = {"value": float(v), "_id": rid}
