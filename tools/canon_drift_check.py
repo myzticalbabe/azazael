@@ -70,9 +70,26 @@ if str(ROOT / "src") not in sys.path:
 #: envs); _evosop_merge falls back to richer-wins, so --check/--fix never
 #: depend on this import.
 try:
-    from CORE.skill_library import merge_sops as _MERGE_SOPS  # noqa: E402
+    from CORE.skill_library import (  # noqa: E402
+        family_index as _FAMILY_INDEX,
+        merge_sops as _MERGE_SOPS,
+        protocol_artifact as _PROTOCOL_ARTIFACT,
+    )
 except Exception:
     _MERGE_SOPS = None  # type: ignore[assignment]
+    _FAMILY_INDEX = None  # type: ignore[assignment]
+    _PROTOCOL_ARTIFACT = None  # type: ignore[assignment]
+
+#: The corpus's OWN procedure, as a protocol artifact (EP34). The steps are the
+#: ones `--fix` actually performs, below — so the artifact describes real
+#: behaviour rather than desired behaviour. `--catalogue` emits it.
+_CORPUS_PROTOCOL_STEPS = [
+    "classify the source corpus against the load path",
+    "restore frontmatter-only drift from the source",
+    "merge substantive drift with the EvoSOP union operator",
+    "fall back to richer-wins when a merge is not an improvement",
+    "promote load-path orphans into the source corpus",
+]
 
 
 def _read(path: Path) -> str:
@@ -275,6 +292,57 @@ def cmd_fix() -> int:
     return 0
 
 
+def _family_of(name: str) -> str:
+    """Procedural family for a skill name (CASS family-index input).
+
+    `azazael-pkg-aadict` -> `pkg`, `azazael-cain-pipeline` -> `cain`. Families
+    come from the naming convention the corpus already uses, so this groups what
+    is there instead of inventing a taxonomy.
+    """
+    n = name
+    if n.startswith("azazael-"):
+        n = n[len("azazael-"):]
+    return n.split("-")[0] or "unfiled"
+
+
+def cmd_catalogue(rep: dict) -> int:
+    """Print the corpus family index and the corpus's own protocol artifact.
+
+    Until now the L2 layer was a flat markdown corpus with no machine-readable
+    grouping and no stated procedure, so `family_index` (CASS) and
+    `protocol_artifact` (MAPD/EP34) had no production consumer. This is that
+    consumer: it groups the real corpus into procedural families and emits the
+    reconciliation procedure as a protocol artifact.
+    """
+    if _FAMILY_INDEX is None or _PROTOCOL_ARTIFACT is None:
+        print("\n  catalogue skipped: CORE.skill_library unavailable")
+        return 0
+    src = source_map()
+    idx = _FAMILY_INDEX([{"name": n, "family": _family_of(n)}
+                         for n in sorted(src)])
+    proto = _PROTOCOL_ARTIFACT(
+        "canon-drift-reconcile",
+        _CORPUS_PROTOCOL_STEPS,
+        ["source corpus skills: %d" % rep["source_count"],
+         "load path skills: %d" % rep["load_count"],
+         "substantive drift: %d" % len(rep["substantive"]),
+         "frontmatter-only drift: %d" % len(rep["frontmatter_only"])])
+
+    print("\n  procedural families (CASS audit input): %d over %d skills"
+          % (idx["n_families"], idx["n_skills"]))
+    for fam, names in sorted(idx["families"].items(),
+                             key=lambda kv: (-len(kv[1]), kv[0]))[:12]:
+        print("    %-20s %5d" % (fam, len(names)))
+    if idx["unassigned"]:
+        print("    %-20s %5d" % ("(unassigned)", len(idx["unassigned"])))
+    print("  protocol artifact: %s -- %d steps, %d grounding facts, valid=%s"
+          % (proto.get("task_type"), len(proto.get("reasoning_plan", [])),
+             len(proto.get("grounding_facts", [])), proto.get("valid")))
+    if proto.get("gaps"):
+        print("    gaps: %s" % "; ".join(proto["gaps"]))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Fail when the skill source corpus and load path diverge.",
@@ -286,10 +354,15 @@ def main(argv: list[str] | None = None) -> int:
                        help="list drift, never gate")
     group.add_argument("--fix", action="store_true",
                        help="reconcile both live layers (content-preserving)")
+    group.add_argument("--catalogue", action="store_true",
+                       help="report + the corpus family index and protocol artifact")
     args = ap.parse_args(argv)
     if args.report:
         _report(classify())
         return 0
+    if args.catalogue:
+        _report(classify())
+        return cmd_catalogue(classify())
     if args.fix:
         return cmd_fix()
     return cmd_check()
