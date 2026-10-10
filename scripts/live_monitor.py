@@ -1263,6 +1263,27 @@ def collect(con):
     except Exception as exc:
         print("links block failed: %s" % type(exc).__name__, file=sys.stderr)
 
+    # reward-ledger adoption (canonical co-tabulation intake): per-scale
+    # counts and means straight from the canonical rows. Only ok=True
+    # numeric rows count, mirroring scale_distributions(); empty until a
+    # producer (GRPO shadow, rainbow round) emits.
+    data["rewards"] = None
+    try:
+        _rrows = con.execute(
+            "SELECT json_extract(data, '$.scale_id'), COUNT(*), "
+            "AVG(CAST(json_extract(data, '$.value') AS REAL)), "
+            "MAX(timestamp) FROM memories "
+            "WHERE source='reward-ledger' "
+            "AND json_extract(data, '$.ok') = 1 "
+            "AND typeof(json_extract(data, '$.value')) IN ('integer', 'real') "
+            "GROUP BY json_extract(data, '$.scale_id')").fetchall()
+        data["rewards"] = {
+            "by_scale": {r[0]: {"n": r[1], "mean": r[2]} for r in _rrows},
+            "latest": max((r[3] for r in _rrows), default=None),
+        }
+    except Exception as exc:
+        print("rewards block failed: %s" % type(exc).__name__, file=sys.stderr)
+
     # mesh fabric: the fleet cycle is the architecture the rest of the
     # system now runs on, yet this board had no mesh row at all, so a dead
     # mesh read as a healthy board. Folded into `freshness` so staleness

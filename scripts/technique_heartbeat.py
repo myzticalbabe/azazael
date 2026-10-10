@@ -65,6 +65,12 @@ def main() -> int:
             "errored": run.get("errored"),
         }
         out["steps"]["health"] = fleet_link_health(limit=1000)
+        try:
+            from CORE.WORMS.expansion.queens import rainbow_round
+            out["steps"]["rainbow"] = rainbow_round(probe_limit=1)
+        except Exception as exc:
+            _fail("technique-heartbeat:rainbow", exc)
+            out["steps"]["rainbow"] = {"ok": False}
         ok = run.get("errored", 1) == 0
         out["ok"] = bool(ok)
         try:

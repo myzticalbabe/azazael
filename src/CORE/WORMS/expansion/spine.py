@@ -2110,6 +2110,22 @@ class SpineCycleWorm:
             except Exception as exc:
                 note_failure("spine:L2045", exc)
                 report["governance"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
+            # Rainbow hooks: per-queen join rows so the cycle's governance is
+            # observable in the unity ledger (fail-open, lazy import; no locks
+            # held here — a hook is a memory write, never a gate).
+            try:
+                from CORE.technique_runtime import record_link as _rainbow_link
+                _gov = report.get("governance") or {}
+                _ent = (_gov.get("entrenchment") or {}).get("counts", {})
+                _ret = _gov.get("retirement") or {}
+                _rainbow_link(
+                    "rainbow_cycle", "governance:gray-black",
+                    bool((_gov.get("entrenchment") or {}).get("success", True)
+                         and _ret.get("success", True)),
+                    citation="entrenched=%s retired=%s" % (
+                        _ent.get("entrenched"), _ret.get("retired")))
+            except Exception as exc:
+                note_failure("spine:rainbow-governance-hook", exc)
 
 
             # 3. Red Queen — pressure probes; stands down if not queen.
@@ -2124,6 +2140,15 @@ class SpineCycleWorm:
             except Exception as exc:
                 note_failure("spine:L2058", exc)
                 report["red_queen"] = {"success": False, "error": str(exc)[:_ERR_CAP]}
+            try:
+                from CORE.technique_runtime import record_link as _rainbow_link_red
+                _rq = report.get("red_queen") or {}
+                _rainbow_link_red(
+                    "rainbow_cycle", "red",
+                    bool(_rq.get("success", True)),
+                    citation="natures=%s" % ",".join(_rq.get("natures_probed") or []))
+            except Exception as exc:
+                note_failure("spine:rainbow-red-hook", exc)
 
             # 4. Persist — restart-safe state for the next session
             if _spine is not None:
