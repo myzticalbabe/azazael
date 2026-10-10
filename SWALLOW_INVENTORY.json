@@ -1,0 +1,41 @@
+{
+  "by_file": {
+    "src/CORE/failure_ledger.py": {
+      "unlogged_handler": 1
+    },
+    "src/CORE/inference/sequential_analyzer.py": {
+      "unlogged_handler": 1
+    },
+    "src/CORE/local_memory.py": {
+      "unlogged_handler": 1
+    }
+  },
+  "by_shape": {
+    "unlogged_handler": 3
+  },
+  "root": "src",
+  "rows": [
+    {
+      "body": "_LOST_NOTES[0] += 1",
+      "file": "src/CORE/failure_ledger.py",
+      "line": 43,
+      "shape": "unlogged_handler",
+      "type": "Exception"
+    },
+    {
+      "body": "CascadeRouter = None",
+      "file": "src/CORE/inference/sequential_analyzer.py",
+      "line": 47,
+      "shape": "unlogged_handler",
+      "type": "ImportError"
+    },
+    {
+      "body": "def epistemic_state(findings=None, hypotheses=None, questions=None) -> Dict[str, Any]:",
+      "file": "src/CORE/local_memory.py",
+      "line": 66,
+      "shape": "unlogged_handler",
+      "type": "ImportError"
+    }
+  ],
+  "total": 3
+}
