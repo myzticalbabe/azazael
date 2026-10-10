@@ -506,7 +506,7 @@ _safe("EP227", "Continuous-plan generator",
 _safe("EP232", "Consensus depth limit + Lead-Anchor",
       "CORE.WORMS.expansion.consensus:QuorumVoterWorm", _ep232)
 _safe("EP248", "Monte-Carlo latency cost model",
-      "CORE.dispatch_plan:plan_dag (cost model)", _ep248)
+      "no-host: Monte-Carlo latency cost model", _ep248)
 _safe("EP252", "Quality-aware data/batch schedule",
       "CORE.WORMS.expansion.scheduling:TrainingRun", _ep252)
 _safe("EP253", "Learned participation prior",
@@ -532,7 +532,7 @@ _safe("EP431", "(role, subtask) experts",
 _safe("EP438", "Ready-cohort fixed-window batching",
       "CORE.freethreading:WorkStealingPool.submit", _ep438)
 _safe("EP464", "Progress-gain router",
-      "CORE.dispatch_plan:plan_dag (selection stage)", _ep464)
+      "no-host: pure selection rule; MetaCluster hook open", _ep464)
 
 
 #: The confirmed `eliminate_common_subgraphs` defect, exposed as data so a
