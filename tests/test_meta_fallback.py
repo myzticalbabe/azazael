@@ -125,10 +125,17 @@ class TestContextScope(unittest.TestCase):
             path=cand["path"], line=cand["line"], detector="count_zero_tie",
             severity="HIGH", code="if n == 0:", why="t", source_hash="t")
         ctx = mod._context_for(cand)
-        self.assertIn("def _reachable_tpm", ctx)
-        # The actual tie site (~90 lines down) must be visible now.
-        self.assertIn("max(candidates", ctx)
+        self.assertIn("def _tpm", ctx)
         self.assertLessEqual(len(ctx.splitlines()), 200)
+        # The tie site no longer lives inside the TPM helper (refactor moved
+        # it out); pin it with its own candidate so this check stays live.
+        tie = mod.me.Candidate(
+            path="src/CORE/WORMS/expansion/exmachina.py", line=1496,
+            detector="count_zero_tie",
+            severity="HIGH", code="max(candidates", why="t", source_hash="t")
+        ctx2 = mod._context_for(tie)
+        self.assertIn("max(candidates", ctx2)
+        self.assertLessEqual(len(ctx2.splitlines()), 200)
 
     def test_module_level_target_keeps_radius(self):
         mod = _load_cycle()

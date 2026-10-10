@@ -1,16 +1,16 @@
 {
-  "recorded_at": "2026-10-09T22:31:03+00:00",
+  "recorded_at": "2026-10-10T13:02:44+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 694,
+  "files_scanned": 698,
   "category_counts": {
     "hardcoded_win_path": 14,
-    "import_inside_function": 1059,
+    "import_inside_function": 1064,
     "open_no_encoding": 239,
     "shell_true": 1,
     "subprocess_no_timeout": 95,
     "unicode_emoji": 1260
   },
-  "total_findings": 2668
+  "total_findings": 2673
 }
