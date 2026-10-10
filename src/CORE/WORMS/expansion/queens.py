@@ -808,6 +808,39 @@ def _rainbow_reward(store, team: str, value, scale_id: str) -> bool:
         return False
 
 
+def _stamps_from_outcomes(limit: int = 1000) -> Dict[str, float]:
+    """Worm -> last outcome epoch from the homeostat view (durable).
+
+    Gives the scout quota real ignorance ordering instead of cold-start.
+    The event stream is in-memory (empty in a fresh process); the view is
+    the persisted form and carries `last_at` per worm. Mixed ISO/float
+    stamps would crash the sort, so unparseable stamps are dropped
+    (cold-start for that worm). Bounded read, never raises.
+    """
+    stamps: Dict[str, float] = {}
+    try:
+        from datetime import datetime as _dt
+        from CORE import spine_registry as _sr2
+        view = _sr2.get_homeostat_view() or {}
+        items = list(view.items())[:max(1, int(limit))]
+        for key, rec in items:
+            if not isinstance(rec, dict):
+                continue
+            name = str(key).split(":")[-1] if ":" in str(key) else str(key)
+            at = rec.get("last_at")
+            if not name or not at:
+                continue
+            try:
+                ts = _dt.fromisoformat(str(at)).timestamp()
+            except Exception:
+                continue
+            if ts > stamps.get(name, 0.0):
+                stamps[name] = ts
+    except Exception as exc:
+        note_failure("queens:rainbow-stamps", exc)
+    return stamps
+
+
 def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
     """Run every colour team once, bounded and report-only. Never raises.
 
@@ -926,15 +959,20 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
         _finish("white", "ratify-backlog",
                 {"ok": False, "error": repr(exc)[:160]}, None, "rate_01")
 
-    # -- SCOUT: cold-start quota composition (home: ScoutBeeWorm) -----------
+    # -- SCOUT: quota composition by real ignorance (home: ScoutBeeWorm) ----
+    # last_probed comes from the homeostat outcome stream (empty only when
+    # the stream is unreachable — the labeled cold-start fallback).
     try:
         from CORE.worm_registry import WORM_REGISTRY as _REG2
         eligible = [(n, i) for n, i in list(_REG2.items())[:200]]
+        stamps = _stamps_from_outcomes()
         sel = ScoutBeeWorm().select(eligible, min(8, max(1, len(eligible))),
-                                    last_probed={})
+                                    last_probed=stamps)
         chosen = len(sel.get("chosen") or [])
-        _finish("scout", "coldstart-quota:%d-eligible" % len(eligible),
+        _finish("scout", "quota:%d-eligible:%d-stamped" % (len(eligible),
+                                                           len(stamps)),
                 {"ok": True, "eligible": len(eligible), "chosen": chosen,
+                 "stamped": len(stamps),
                  "scouts": len(sel.get("scout") or [])},
                 chosen, "count")
     except Exception as exc:
