@@ -760,3 +760,194 @@ def _local_env() -> str:
         note_failure("queens:L737", None)
         import os
         return "windows" if os.name == "nt" else "bare"
+
+
+# ═══════════════════════════════════════════════════════════════════
+# RAINBOW ROUND — the colour teams as one executable round
+# ═══════════════════════════════════════════════════════════════════
+#
+# The colour roles live in DIFFERENT layers (red: xenomorph probes in
+# spine.py; gray/black: monitor/analysis here; yellow: attestation in the
+# morphogenesis gate; white: ratification in worm_governance.py), so the
+# round coordinates rather than relocates: each team runs in its home
+# module and reports here. Report-only everywhere except the spine cycle's
+# own cadence — a heartbeat round must never retire, quarantine, or
+# promote (black runs propose(apply=False), gray runs detect(persist=False),
+# yellow reads the staged pen without promoting, white ratifies without
+# replaying).
+#
+# Each team leaves one join row (memory unity, hook:rainbow_round:<team>)
+# and one canonical reward row (reward co-tabulation intake,
+# source:reward-ledger, provenance rainbow_round) so the learning loop can
+# consume per-team outcomes in one common scale.
+
+RAINBOW_TEAMS = ("red", "gray", "black", "yellow", "white", "scout")
+
+
+def _rainbow_hook(team: str, subject: str, ok: bool, citation: str = "") -> bool:
+    """One join row per team outcome. Never raises."""
+    try:
+        from CORE.technique_runtime import record_link
+        return bool(record_link("rainbow_round:%s" % team, subject,
+                                bool(ok), citation=str(citation or "")))
+    except Exception as exc:
+        note_failure("queens:rainbow-hook", exc)
+        return False
+
+
+def _rainbow_reward(store, team: str, value, scale_id: str) -> bool:
+    """One canonical reward row per team. Skips None (no fabrication)."""
+    if value is None or store is None:
+        return False
+    try:
+        from CORE import reward_scales as _rs
+        return bool(_rs.emit_canonical(store, value, scale_id,
+                                       "rainbow_round", worm="rainbow:%s" % team))
+    except Exception as exc:
+        note_failure("queens:rainbow-reward", exc)
+        return False
+
+
+def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
+    """Run every colour team once, bounded and report-only. Never raises.
+
+    Returns {"teams": {color: {...}}, "ok": bool}. Each team entry carries
+    its outcome plus hook/reward evidence flags. A team that errors reports
+    {"ok": False, "error": ...} and the round continues — one sick queen
+    must not ground the rainbow.
+    """
+    out: Dict[str, Any] = {"teams": {}, "ok": True}
+    try:
+        from CORE.local_memory import get_memory_store
+        store = get_memory_store()
+    except Exception as exc:
+        note_failure("queens:rainbow-store", exc)
+        store = None
+
+    def _finish(team: str, subject: str, result: Dict[str, Any],
+                reward_value, reward_scale: str) -> None:
+        ok = bool(result.get("ok", True))
+        result["hook_kept"] = _rainbow_hook(team, subject, ok)
+        result["reward_kept"] = _rainbow_reward(store, team, reward_value,
+                                                reward_scale)
+        out["teams"][team] = result
+        if not ok:
+            out["ok"] = False
+
+    # -- RED: hostile read-only probes (home: spine.RedQueenWorm) ----------
+    try:
+        from CORE.WORMS.expansion.spine import RedQueenWorm
+        rq = RedQueenWorm()
+        natures = list(getattr(rq, "PROBE_NATURES", ()) or ())
+        probed, failed = 0, 0
+        for nat in natures:
+            try:
+                p = rq.pressure_probe(nat, limit=max(1, int(probe_limit)))
+                probed += 1
+                failed += sum(1 for r in (p.get("results") or [])
+                              if not r.get("success"))
+            except Exception as exc:
+                note_failure("queens:rainbow-red", exc)
+        red_ok: Any = (1.0 - failed / probed) if probed else None
+        _finish("red", "pressure-probe:%d-natures" % len(natures),
+                {"ok": True, "natures": len(natures), "probed": probed,
+                 "failed": failed, "ok_rate": red_ok},
+                red_ok, "rate_01")
+    except Exception as exc:
+        note_failure("queens:rainbow-red", exc)
+        _finish("red", "pressure-probe", {"ok": False, "error": repr(exc)[:160]},
+                None, "rate_01")
+
+    # -- GRAY: entrenchment delta, report-only (home: GrayQueenWorm) --------
+    try:
+        gq = GrayQueenWorm()
+        d = gq.detect(persist=False) or {}
+        counts = d.get("counts", {}) if isinstance(d, dict) else {}
+        entrenched = counts.get("entrenched")
+        _finish("gray", "entrenchment-delta",
+                {"ok": bool(d.get("success", True)), "counts": counts},
+                entrenched if isinstance(entrenched, int) else None, "count")
+    except Exception as exc:
+        note_failure("queens:rainbow-gray", exc)
+        _finish("gray", "entrenchment-delta",
+                {"ok": False, "error": repr(exc)[:160]}, None, "count")
+
+    # -- BLACK: retirement proposals, propose-only (home: BlackQueenWorm) ---
+    try:
+        bq = BlackQueenWorm()
+        p = bq.propose(apply=False) or {}
+        retired = p.get("retired")
+        _finish("black", "retirement-proposals",
+                {"ok": bool(p.get("success", True)),
+                 "retired": retired, "held": len(p.get("pending") or [])},
+                retired if isinstance(retired, int) else None, "count")
+    except Exception as exc:
+        note_failure("queens:rainbow-black", exc)
+        _finish("black", "retirement-proposals",
+                {"ok": False, "error": repr(exc)[:160]}, None, "count")
+
+    # -- YELLOW: attestation backlog (home: morphogenesis gate) -------------
+    # Read-only: staged-pen depth. Promotion itself stays on the cycle's
+    # cadence; the round reports the gate backlog, never moves files.
+    try:
+        from CORE.WORMS.expansion.spine import MorphogenesisWorm
+        staged = MorphogenesisWorm().staged() or []
+        _finish("yellow", "attestation-backlog",
+                {"ok": True, "staged": len(staged)},
+                len(staged), "count")
+    except Exception as exc:
+        note_failure("queens:rainbow-yellow", exc)
+        _finish("yellow", "attestation-backlog",
+                {"ok": False, "error": repr(exc)[:160]}, None, "count")
+
+    # -- WHITE: ratify the pending journal (home: worm_governance) ----------
+    # Read-only verdicts: ratify_policy approves/refuses without replaying,
+    # so evaluating the backlog changes nothing durable.
+    try:
+        from CORE import spine_registry as _sr
+        from CORE.worm_registry import WORM_REGISTRY as _REG
+        from CORE.worm_governance import WormGovernor
+        journal = _sr.get_policy_journal() or []
+        gov = WormGovernor()
+        approved = 0
+        for entry in journal:
+            try:
+                if gov.ratify_policy(entry, registry=_REG).get("approved"):
+                    approved += 1
+            except Exception as exc:
+                note_failure("queens:rainbow-white-entry", exc)
+        rate: Any = (approved / len(journal)) if journal else None
+        _finish("white", "ratify-backlog:%d" % len(journal),
+                {"ok": True, "pending": len(journal), "approved": approved,
+                 "approval_rate": rate},
+                rate, "rate_01")
+    except Exception as exc:
+        note_failure("queens:rainbow-white", exc)
+        _finish("white", "ratify-backlog",
+                {"ok": False, "error": repr(exc)[:160]}, None, "rate_01")
+
+    # -- SCOUT: cold-start quota composition (home: ScoutBeeWorm) -----------
+    try:
+        from CORE.worm_registry import WORM_REGISTRY as _REG2
+        eligible = [(n, i) for n, i in list(_REG2.items())[:200]]
+        sel = ScoutBeeWorm().select(eligible, min(8, max(1, len(eligible))),
+                                    last_probed={})
+        chosen = len(sel.get("chosen") or [])
+        _finish("scout", "coldstart-quota:%d-eligible" % len(eligible),
+                {"ok": True, "eligible": len(eligible), "chosen": chosen,
+                 "scouts": len(sel.get("scout") or [])},
+                chosen, "count")
+    except Exception as exc:
+        note_failure("queens:rainbow-scout", exc)
+        _finish("scout", "coldstart-quota",
+                {"ok": False, "error": repr(exc)[:160]}, None, "count")
+
+    # Round aggregate: one row per round so trend queries don't re-aggregate
+    # six team rows. Per-team rows carry the detail; this carries the verdict.
+    bits = ",".join(
+        "%s:%s" % (t, "ok" if (out["teams"].get(t) or {}).get("ok", True) else "ERR")
+        for t in RAINBOW_TEAMS)
+    out["aggregate_kept"] = _rainbow_hook("round", "6-teams", out["ok"],
+                                          citation=bits)
+
+    return out
