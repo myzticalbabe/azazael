@@ -104,7 +104,32 @@ else
 fi
 echo ""
 
-# ─── Check 5 (non-blocking): PMB outcome observer ───
+# ─── Check 5: mesh wire-or-cut ledger freshness ───
+# NEURAL_MESH_WIRE_OR_CUT.json is GENERATED, and nothing regenerated it when
+# a caller changed -- so it went stale silently. Measured 2026-10-10: the
+# restored EP235 loop made read_pressure statically called while the ledger
+# still said `dispatched`, and tests/test_mesh_wire_or_cut.py failed on state
+# the code had already moved past. Fails when the set of unreferenced
+# functions no longer matches the committed ledger.
+echo "[Mesh] Checking wire-or-cut ledger freshness..."
+if [ -f "$SCRIPT_DIR/tools/mesh_function_preflight.py" ]; then
+    # Capture first, then print: piping into tail would make $? tail's
+    # status and this gate would read the wrong exit code.
+    MESH_OUT=$(PYTHONPATH="src:${PYTHONPATH:-}" python "$SCRIPT_DIR/tools/mesh_function_preflight.py" --check 2>&1)
+    MESH_EXIT=$?
+    echo "$MESH_OUT" | tail -12
+    if [ $MESH_EXIT -ne 0 ]; then
+        echo ""
+        echo "[Mesh] Ledger is STALE against the code. Refresh:"
+        echo "[Mesh]   python tools/mesh_function_preflight.py --verdict --triage"
+        exit 1
+    fi
+else
+    echo "[Mesh] check not found -- passing loud (check unrunnable)"
+fi
+echo ""
+
+# ─── Check 6 (non-blocking): PMB outcome observer ───
 # A commit is an outcome-bearing turn. Recording it here feeds PMB's
 # Earned-Memory loop (`lesson_impact`) and its adherence pass, both of which
 # read the `agent_actions` table. That table is written on this host by
