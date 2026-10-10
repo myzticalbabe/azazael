@@ -48,6 +48,8 @@ importer at all**.
 
 Worklist: `state/orphan_scan.json` (gitignored — see S6).
 
+**Scanner repaired 2026-10-10** (defect found by a worker, then verified): it could not see RELATIVE imports, so `PERSEPHONE.lib` read as an orphan while its own facades import it. Now resolves `.`, `..` and `from . import member`: import edges 13,131 -> 13,222, `no_importer` 330 -> 306. The worker's conclusion was one level off and is worth remembering — `eve_unleashed.cache/engine/core` are FALSE for `no_importer` (the facade does import them, `__init__.py:8-11`) but correctly UNREACHABLE, because the `eve_unleashed` package itself has no reachable importer and reachability is transitive from the entry points. A sibling's import cannot confer reachability.
+
 ## S2 — Gates without actuators · CONFIRMED
 
 The verifier class that computes a verdict and has **no consumer that acts on it**.
@@ -162,9 +164,21 @@ worse, passes on a stale ledger). This is the same class as `PMB LESSONS #93`
 
 Force-added `.githooks/pre-commit` so the gate is reviewable and reproducible. **Worth an explicit decision:** if `.githooks` is ignored deliberately, the alternative is to move the checks into a tracked runner (e.g. `tools/preflight_all.py`) that the hook merely calls, so the gate is versioned even when the hook file is not.
 
+## S11 — Tests under `src/` are never collected · CONFIRMED
+
+`pytest.ini` sets `testpaths = tests`, so every `test_*.py` under `src/` is invisible to the suite. `src/AOA/conftest.py` admits it in its own docstring, and `src/AOA/test_arm_exports.py` records that it was written to prevent a regression that then RECURRED because it was never collected. A test that cannot run is worse than no test: it reads as coverage. (Found by worker 1.)
+
+## S12 — Hardcoded absolute paths · CONFIRMED
+
+`src/AOA/rebuild_html.py` reaches into `C:/Users/clint/Desktop/AOA/...`, and `src/AOA/arms/codex_arm.py` / `eve_arm.py` build `Path.home()`-relative paths. These break on any other machine, and nothing in the suite can see them because the modules are unreachable (S1). (Found by worker 1.)
+
+## S13 — Duplicate modules inflate every census · CONFIRMED
+
+`AzazaelDynamicLogger` exists three times (`UTILITIES/`, `TOOLS/`, `src/`) with the two non-root copies unreachable; `src/AOA/refresh_aoa_data.py` and `refresh_oa_data.py` are 414 lines each; `AUTO_DOC_GENERATOR`, `emoji_maker` and `enhanced_animations` exist at root AND under `CODEX/CORE/`. Any count over files over-counts capability, and a fix applied to one copy silently misses the others. (Found independently by workers 1 and 3.)
+
 ## What to do next (ordered)
 
-1. **Classify the orphan worklist** (`state/orphan_scan.json`, 392 candidates): sub-app entry points vs genuine dead capability, then wire-or-delete per row. It is a worklist, not a defect count — see S1's caveats.
+1. **Act on the orphan classification — it is DONE** (`ORPHAN_TRIAGE_315T.md`, 392/392 rows): 201 SUBAPP-ENTRY, 99 DEAD, 52 FACADE, 40 UNCLEAR. Because the large class is sub-apps, the live decision is a **launch/registration policy** for apps no shipped entry point starts, not wholesale deletion. Start with the 99 DEAD and the 52 FACADE.
 2. **Decide S1's module integrations.** Needs an owner decision — integrating `structured_action` (ASIL), `rubric_evolution` and `cascade` into production runtime changes behaviour. Without that decision, mark EP168/269/327/382/350/351/201 as documented accept-gaps.
 3. **Give `rehearse_dispatch` a real consumer** in the dispatch path (S2). Its host is already reachable via `METACLUSTER.py:338`; the symbol is what has no caller.
 4. **Move the evidence into version control** (S6, still OPEN). `adoption_census.json`, `orphan_scan.json`, `suite_baseline.jsonl` and the `sota_batches/batch06/` re-check docs all live under the gitignored `state/`, so this session's numbers are not reproducible from the repo. Same class as S10.
