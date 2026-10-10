@@ -314,9 +314,12 @@ def check_clock_and_alert(webhook_url: (str | None) = None) -> int:
     try:
         skew_limit = int(os.environ.get("AZAZAEL_CLOCK_SKEW_ALERT_MS", "60000"))
         refuse_limit = int(os.environ.get("AZAZAEL_CLOCK_REJECT_ALERT", "1"))
+        auto_purge_at = int(os.environ.get("AZAZAEL_CLOCK_AUTO_PURGE_REFUSED",
+                                           "25"))
     except ValueError:
         note_failure("notifier:L308", None)
         skew_limit, refuse_limit = 60000, 1
+        auto_purge_at = 25
 
     critical = 0
     # A refused stamp is the harder failure: the peer's stamps are being
@@ -324,6 +327,19 @@ def check_clock_and_alert(webhook_url: (str | None) = None) -> int:
     if refused >= refuse_limit:
         critical += 1
         mins = refused_skew_ms / 60000.0
+        # Auto-remedy: refused stamps already lose ordering (they cannot win
+        # a merge or propagate), so purging reclaims gossip/store space
+        # without changing any ordering outcome. Gated well above the alert
+        # threshold: a lone refused stamp is a curiosity (legacy load), a
+        # pile is a wrong clock. 0 disables. Never raises.
+        purged = None
+        if auto_purge_at > 0 and refused >= auto_purge_at:
+            try:
+                from CORE import spine_registry as _sr
+                purged = _sr.purge_implausible_stamps(dry_run=False).get(
+                    "repaired", 0)
+            except Exception as exc:
+                note_failure("notifier:clock-auto-purge", exc)
         send_slack_alert(
             f":clock1: *{refused} peer stamp(s) refused* on `{node}`\n"
             f"> Worst offset: {refused_skew_ms:,}ms (~{mins:,.0f} min beyond the "
@@ -332,7 +348,10 @@ def check_clock_and_alert(webhook_url: (str | None) = None) -> int:
             f"a merge or propagate — but a peer outside the bound cannot be "
             f"ordered against at all.\n"
             f"> Repair a store that already holds them: "
-            f"`spine_registry.purge_implausible_stamps(dry_run=False)`",
+            f"`spine_registry.purge_implausible_stamps(dry_run=False)`"
+            + (f"\n> Auto-purge repaired {purged} stamp(s) "
+               f"(AZAZAEL_CLOCK_AUTO_PURGE_REFUSED={auto_purge_at})."
+               if purged is not None else ""),
             webhook_url, title="Clock Trust Alert",
         )
 

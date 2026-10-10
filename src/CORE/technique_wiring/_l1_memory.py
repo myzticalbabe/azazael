@@ -293,13 +293,12 @@ def ep247() -> Dict[str, Any]:
 def ep249() -> Dict[str, Any]:
     """Context-conditioned recall that ABSTAINS instead of proceeding empty.
 
-    `DreamingModule.recall_scenarios` returns `{"recalled": 0, "message": ...}`
-    and callers proceed anyway. The technique is the abstention contract.
+    Mechanism lives in its HOST: `LocalMemoryStore.recall_with_abstention`
+    (P1-3 host-BUILT: no streaming recall host existed). This adapter is
+    the registration shim.
     """
-    return {"verified": True,
-            "contract": ("recall(query) -> {answer, evidence[], abstained}"),
-            "abstain_when": "no evidence row clears the salience floor",
-            "gap": "DreamingModule is batch/offline; streaming variant not built"}
+    store = _store()
+    return store.recall_with_abstention("technique runtime memory wiring")
 
 
 # -- EP319 TRUSTMEM: transition verifier --------------------------------------
@@ -464,7 +463,7 @@ register("EP233", "Backward-chaining retrieval", "CORE.local_memory:LocalMemoryS
 register("EP235", "SAGE reader->writer coupling", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep235, LAYER)
 register("EP242", "EXG experience edges", "CORE.local_memory:LocalMemoryStore.experience_edges", ep242, LAYER)
 register("EP247", "PEEK orientation cache", "CORE.local_memory:LocalMemoryStore.orientation_index", ep247, LAYER)
-register("EP249", "Mem-pi generation + abstention", "CORE.WORMS.expansion.dreaming:DreamingModule.recall_scenarios", ep249, LAYER)
+register("EP249", "Mem-pi generation + abstention", "CORE.local_memory:LocalMemoryStore.recall_with_abstention", ep249, LAYER)
 register("EP319", "TRUSTMEM transition verifier", "CORE.local_memory:LocalMemoryStore.transition_check", ep319, LAYER)
 register("EP336", "ACE reversible re-typing", "CORE.local_memory:LocalMemoryStore.retype_ladder", ep336, LAYER)
 register("EP370", "SLEUTH epistemic working set", "CORE.verification_gate:epistemic_state", ep370, LAYER)

@@ -2168,6 +2168,61 @@ class LocalMemoryStore:
                 "current_rule": "SUM(LENGTH(data)) largest type, oldest id first",
                 "gap": "composite rule is an edit to enforce_global_quota (M)"}
 
+    # -- Recall with abstention (EP249 Mem-pi) -------------------------------
+    # Host-built (not moved) for technique_wiring/_l1_memory.py::ep249 (P1-3):
+    # no streaming recall-with-abstention host existed, so this is the
+    # minimal real one. Salience is DERIVED from the FTS5 rank the search
+    # already measured (best rank -> 1.0, relative within the result set),
+    # never from foreign score fields (different spaces — the co-tabulation
+    # lesson) and never invented for unranked rows (they score 0.0: no
+    # measured salience, no evidence). Read-only.
+    def recall_with_abstention(self, query: str,
+                               floor: float = 0.5) -> Dict:
+        """Context-conditioned recall that ABSTAINS instead of proceeding empty.
+
+        Returns {answer, evidence[], abstained, floor}. evidence rows are
+        matches whose derived salience clears the floor; abstained is True
+        with a reason otherwise. Callers must branch on `abstained`, not on
+        row count. floor is clamped to [0,1].
+        """
+        try:
+            floor = max(0.0, min(1.0, float(floor)))
+        except (TypeError, ValueError):
+            floor = 0.5
+        try:
+            hits = self.search_memories(query) or []
+        except Exception as exc:
+            _note_failure("local_memory:recall-abstain-search", exc)
+            hits = []
+        rows = hits if isinstance(hits, list) else hits.get("results", [])
+        ranked = []
+        for r in rows or []:
+            if not isinstance(r, dict):
+                continue
+            try:
+                ranked.append((r, float(r["rank"])))
+            except (KeyError, TypeError, ValueError):
+                continue
+        if not ranked:
+            return {"verified": True, "answer": None, "evidence": [],
+                    "abstained": True, "floor": floor,
+                    "reason": "no evidence row clears the salience floor"}
+        best = min(s for _, s in ranked)
+        evidence = []
+        for r, s in ranked:
+            sal = 1.0 if s == best else (s / best if best else 0.0)
+            if sal >= floor:
+                evidence.append({"id": r.get("id"),
+                                 "event_type": r.get("event_type"),
+                                 "score": round(sal, 4)})
+        if not evidence:
+            return {"verified": True, "answer": None, "evidence": [],
+                    "abstained": True, "floor": floor,
+                    "reason": "no evidence row clears the salience floor"}
+        return {"verified": True,
+                "answer": "evidence-backed (%d rows)" % len(evidence),
+                "evidence": evidence[:5], "abstained": False, "floor": floor}
+
     def get_db_growth(self, days: int = 30) -> List[Dict]:
         """Get daily event count growth for trend analysis.
 
