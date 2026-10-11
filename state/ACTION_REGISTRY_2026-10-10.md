@@ -416,3 +416,71 @@ S-8; M-3; M-4; E-1; E-2; and the whole section 7 backlog.
 - **A registry row is a claim, not a fact.** Seven rows so far could not reproduce their own
   citation. Falsify the row against the tree FIRST; a row that cannot reproduce is a row to
   correct, not to implement.
+
+## 11. WAVE 4 VERIFICATION (2026-10-11) — a consumer in git whose supplier was not
+
+Commit: `95c5371d` (4 files — the session-protocol tools plus the shared log vocabulary).
+
+### A DEFECT THE WAVE 4 COMMITS THEMSELVES CREATED
+
+`tools/evolution_log.py` was **untracked while three tracked files imported it at module level**
+— `evolution_progress.py:96`, `fitness_arm_liveness.py:68`, `render_ouroboros.py:85`. So
+`b0d3f2b4` landed three consumers of a module that existed on one disk only, and a fresh clone
+would have raised `ImportError` on all three. Landed here, and verified satisfiable from the real
+tree afterwards. Same shape as L-5 one level up: not an instrument that cannot see, but a repo
+that cannot reproduce itself.
+
+### CLASS-LEVEL SWEEP, not just the instance that was tripped over
+
+Of the **22 untracked top-level `tools/*.py` modules**, none is IMPORTED by tracked code, and
+exactly one is a documented PROCEDURE in tracked code:
+
+- `tools/repoint_315t.py` — named by `tools/verify_engram_mcp.py` as `REPIN_REFERENCE` and in its
+  docstring's re-pin procedure. A tracked gate instructing the operator to run a tool that is not
+  in git is the same defect; landed.
+- Four more are mentioned only by a TODO/handoff/census artifact — a record of what was used, not
+  a dependency: `accelerator_bench.py` and `sota_dedup_check.py` (TODO_315T_BUILD.md),
+  `install_technique_deps_315t.py` and `live_record_probe_315t.py`
+  (state/adoption_census.json). Left untracked deliberately.
+
+### THE PRE-COMMIT GATE CAUGHT THIS SESSION'S OWN DEFECT CLASS
+
+The first attempt was REJECTED with two new `silent_except_pass` findings in the files being
+landed (2,224-finding backlog class, added BY the commit). Fixed at the cause, not baselined:
+`audit_chain_repair.py` now NAMES a temp file that survives a failed write instead of hiding the
+cleanup failure, and `engram_supervise.py` now separates "the hook said nothing" from "the hook's
+output could not be read" — a broken supervisor previously reported itself as `nudge: none due`,
+a failure delivered as a clean verdict.
+
+### THE ANCHOR RESIDUAL — expected, owned by the daemon, not fixable from here
+
+`pams daemon_health` still reports `anchor_ok: false` / `severity: warning`: "anchored head
+`0fab035c10253fd9` is no longer in the chain (records below it were rewritten)". This is the
+repair's DOCUMENTED cost, stated in `tools/audit_chain_repair.py:43-47`: recomputing each `hash`
+from its `prev_hash` means any external anchor over the old head cannot match — "it is the
+definition of repairing a hash chain — and it is precisely why the pre-repair copy is mandatory".
+The chain itself is sound (`chain_ok: true`, 847 entries, head `f8b4c41820e70159`). The anchor
+store is `~/.audit/daemon_health.anchors.jsonl` (793 checkpoints; newest `2026-10-10T15:11:47`,
+entry_count 847 carrying the OLD head) and it is written by the pmb daemon launcher, OUTSIDE this
+repo; **no tool in this tree can re-anchor it**, and the repo's own `anchor_head_hash()`
+(`CORE/audit_trail.py:443`) targets a different store (`.audit/anchors.jsonl`, the session chain).
+A forced `pams trigger_database_maintenance` did NOT re-anchor. The next action therefore belongs
+to the daemon's next checkpoint — an UNVERIFIED expectation, not a fact — and until then every
+health check carries a warning whose cause is historical. Do NOT hand-write an anchor entry: a
+fabricated Merkle root in the root-of-trust store is worse than a stale one.
+
+### METHOD NOTE — the truncated-view trap has a cwd form
+
+`cd C:/Azazael && ... git ls-files tools/session_start.py` ran the query from the PARENT tree, so
+every file came back `UNTRACKED` — including five that are tracked. The `cd` in the command
+silently overrode the tool's working directory. It was caught only because the parent tree has no
+`tools/`, and corrected by re-running from `git rev-parse --show-toplevel`. Same family as
+`| head -N`: a view that answers a question about a different thing.
+
+### ALSO FOUND, NOT FIXED (open)
+
+`repoint_315t.py` dry-runs cleanly and mutates nothing (`~/.agents/mcp.json` mtime unchanged) but
+currently plans **0 edits against 11 rule MISMATCHes** — its rule table expects hit counts the tree
+no longer has, so it refuses to act (by design: it will not apply approximately). The 3.15t
+repoint it exists to perform cannot run until the rules are re-measured;
+`state/repoint_315t.json` holds the per-rule detail.
