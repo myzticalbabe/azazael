@@ -99,7 +99,8 @@ REPORT = REPO / "logs" / "aggregate_suite_report.json"
 #: ``test_the_isolation_profile_names_only_files_that_exist`` went red. The
 #: entry is dropped rather than restored: those tests targeted the combined
 #: ``CORE.WORMS.NATURE_CLUSTERS`` module that the surgery retired, and its
-#: coverage now lives in ``test_nature_integration_map`` / ``test_spine_mesh``.
+#: coverage now lives in ``test_spine_mesh`` (the intermesh mapper and its
+#: ``test_nature_integration_map`` were removed with the taxonomy on 2026-10-09).
 ISOLATION_PROFILE = (
     "tests/test_wiring_cycle.py",
     "tests/test_registry_importable.py",
