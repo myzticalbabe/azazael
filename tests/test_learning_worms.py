@@ -815,6 +815,56 @@ class TestSchemaAwareFeatureExtractor(unittest.TestCase):
         self.assertEqual(meta["count"], 1)
         self.assertIn("training_complete", meta["shapes_used"])
 
+    def test_worm_executed_shape_registered(self):
+        """clusterwormz_worm_executed is a known shape (not unknown)."""
+        from CORE.WORMS.expansion.learning import DATA_SHAPES
+        self.assertIn("clusterwormz_worm_executed", DATA_SHAPES)
+
+    def test_extract_worm_executed_live_rows(self):
+        """Featurize transcribed live telemetry rows (producer: worm_telemetry.emit_worm_outcome).
+
+        Fixture transcribed 2026-10-11 from LocalMemoryStore row
+        source=ClusterWORMZ event_type=clusterwormz_worm_executed
+        (ResinWorm success). Second row adds a failure with error text and
+        a decision_id: both must be EXCLUDED from features (free text and
+        unique ids would explode the one-hot dims), never crash extraction.
+        """
+        records = [
+            {
+                "event_type": "clusterwormz_worm_executed",
+                "severity": "info",
+                "source": "ClusterWORMZ",
+                "data": {"worm": "ResinWorm", "success": True,
+                         "standby": False, "duration_ms": 0.5347728729248047,
+                         "error": None, "cluster_type": "custom",
+                         "cluster_id": "cluster_custom_1791730128308377700"},
+            },
+            {
+                "event_type": "clusterwormz_worm_executed",
+                "severity": "error",
+                "source": "ClusterWORMZ",
+                "data": {"worm": "OtherWorm", "success": False,
+                         "standby": False, "duration_ms": 12.5,
+                         "error": "boom: something failed in the worm",
+                         "decision_id": "d-xyz-1", "cluster_type": "custom",
+                         "cluster_id": "cluster_custom_999"},
+            },
+        ]
+        features, meta = self.extractor.extract(records)
+        self.assertEqual(meta["count"], 2)
+        self.assertEqual(meta["unknown_shapes"], 0)
+        self.assertIn("clusterwormz_worm_executed", meta["shapes_used"])
+        self.assertEqual(len(features[0]), len(features[1]))
+        self.assertGreater(meta["dim"], 4)  # severity + 3 numerics + one-hots
+        names = meta["field_names"]
+        self.assertIn("clusterwormz_worm_executed::success", names)
+        self.assertIn("clusterwormz_worm_executed::duration_ms", names)
+        self.assertFalse([n for n in names if "error" in n or "decision_id" in n
+                          or "cluster_id" in n])
+        # success encodes True->1.0 / False->0.0 right after severity
+        self.assertEqual(features[0][1], 1.0)
+        self.assertEqual(features[1][1], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

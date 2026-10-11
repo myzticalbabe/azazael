@@ -175,6 +175,29 @@ DATA_SHAPES = {
         },
         "numeric_keys": ["n_episodes", "total_duration_ms", "avg_reward", "q_table_size"],
     },
+    # Canonical per-worm execution rows (CORE/WORMS/worm_telemetry.py:
+    # emit_worm_outcome, source ClusterWORMZ/ConcurrencyWormExecutor,
+    # event_type clusterwormz_worm_executed). Present in the live store but
+    # previously unknown_shapes: trainers reading cluster trajectories got
+    # the generic numeric fallback instead of typed features.
+    # Deliberately UNMODELED keys from the same payload: `error` (free text —
+    # one-hot over error strings explodes dims), `decision_id` and
+    # `cluster_id` (unique per run — same explosion, zero signal).
+    # Transcribed fixture: {"worm": "ResinWorm", "success": true,
+    # "standby": false, "duration_ms": 0.534..., "error": null,
+    # "cluster_type": "custom", "cluster_id": "cluster_custom_..."}.
+    "clusterwormz_worm_executed": {
+        "type": "execution",
+        "fields": {
+            "worm": "categorical",
+            "success": "numeric",
+            "standby": "numeric",
+            "duration_ms": "numeric",
+            "nature": "categorical",
+            "cluster_type": "categorical",
+        },
+        "numeric_keys": ["success", "standby", "duration_ms"],
+    },
 }
 
 
