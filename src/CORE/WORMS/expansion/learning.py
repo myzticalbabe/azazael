@@ -72,15 +72,12 @@ except ImportError:
 # ─────────────────────────────────────────────────────────────────────────
 # Backward-compatibility re-exports
 #
-# PrioritizedReplayBuffer and GRPOTrainer were extracted into focused
-# modules (learning_replay.py / learning_grpo.py) to avoid loading the
-# 100K+ learning.py monolith. These re-exports keep the original import
-# path working for existing callers and tests.
+# GRPOTrainer was extracted into a focused module (learning_grpo.py) to
+# avoid loading the 100K+ learning.py monolith. This re-export keeps the
+# original import path working for existing callers and tests.
+# (PrioritizedReplayBuffer retired 2026-10-11 with learning_replay.py:
+# zero production callers.)
 # ─────────────────────────────────────────────────────────────────────────
-try:
-    from CORE.WORMS.expansion.learning_replay import PrioritizedReplayBuffer  # noqa: E402, F401
-except ImportError:
-    note_failure("learning:L68", None)
 try:
     from CORE.WORMS.expansion.learning_grpo import GRPOTrainer  # noqa: E402, F401
 except ImportError:

@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-10-11T11:49:40.850936",
+ "generated_at": "2026-10-11T12:26:19.728235",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
   "dispatched": 60,
-  "pending": 111
+  "pending": 110
  },
- "total": 174,
+ "total": 173,
  "declared": {
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "declared_in_data",
@@ -114,7 +114,7 @@
   "chorus:FailureDigest.from_analysis": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_proteus_organs.py:718"
+    "tests/test_proteus_organs.py:689"
    ],
    "line": 85,
    "module": "chorus",
@@ -124,7 +124,7 @@
    "status": "pending",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_proteus_organs.py:718"
+    "tests/test_proteus_organs.py:689"
    ]
   },
   "communication:IPCBridge.create_channel": {
@@ -560,7 +560,7 @@
   "evolution:EvolutionEngine.get_generation_history": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1366,
+   "line": 1357,
    "module": "evolution",
    "qualname": "EvolutionEngine.get_generation_history",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -572,7 +572,7 @@
   "evolution:EvolutionEngine.set_gene_specs": {
    "module": "evolution",
    "qualname": "EvolutionEngine.set_gene_specs",
-   "line": 234,
+   "line": 225,
    "seg": "def set_gene_specs(self, specs: dict[str, dict]) -> None:\n        \"\"\"Define mixed-type genes. Example:\n        {\"interval\": {\"type\": \"float\", \"lo\": 0.1, \"hi\": 5.0},\n         \"parallel\": {\"type\": \"bool\"},\n         \"priority\": {\"type\": \"choice\", \"choices\": [\"low\",\"normal\",\"high\"]},\n         \"workers\":  {\"type\": \"int\", \"lo\": 1, \"hi\": 8}}\n        \"\"\"\n        with self._lock:\n            self._gene_specs = dict(specs or {})\n            # Mirror continuous bounds for legacy paths\n            for name, spec in self._gene_specs.items():\n                t = spec.get(\"type\", \"float\")\n                if t in (\"float\", \"int\"):\n                    self._gene_bounds[name] = (spec[\"lo\"], spec[\"hi\"])",
    "status": "pending",
    "reason": "",
@@ -584,9 +584,9 @@
   "evolution:GeneticOptimizer.optimize_cma": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_v2_engines.py:187"
+    "tests/test_v2_engines.py:154"
    ],
-   "line": 1428,
+   "line": 1419,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_cma",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -594,15 +594,15 @@
    "status": "pending",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_v2_engines.py:187"
+    "tests/test_v2_engines.py:154"
    ]
   },
   "evolution:GeneticOptimizer.optimize_de": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_v2_engines.py:194"
+    "tests/test_v2_engines.py:161"
    ],
-   "line": 1441,
+   "line": 1432,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_de",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -610,13 +610,13 @@
    "status": "pending",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_v2_engines.py:194"
+    "tests/test_v2_engines.py:161"
    ]
   },
   "evolution:GeneticOptimizer.optimize_multi": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 1517,
+   "line": 1508,
    "module": "evolution",
    "qualname": "GeneticOptimizer.optimize_multi",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -629,7 +629,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/evolution.py:123"
    ],
-   "line": 1943,
+   "line": 1856,
    "module": "evolution",
    "qualname": "hypervolume_2d",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:107), so a static caller cannot exist; wire it explicitly or delete it",
@@ -640,7 +640,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/evolution.py:124"
    ],
-   "line": 1955,
+   "line": 1868,
    "module": "evolution",
    "qualname": "moead_weights",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:108), so a static caller cannot exist; wire it explicitly or delete it",
@@ -651,7 +651,7 @@
    "evidence": [
     "src/CORE/WORMS/expansion/evolution.py:125"
    ],
-   "line": 1977,
+   "line": 1890,
    "module": "evolution",
    "qualname": "tchebycheff",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/evolution.py:109), so a static caller cannot exist; wire it explicitly or delete it",
@@ -872,11 +872,11 @@
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
-    "tests/test_backlog_hosts.py:124"
+    "tests/test_backlog_hosts.py:114"
    ],
    "decider": "test_is_the_wire",
    "decider_evidence": [
-    "tests/test_backlog_hosts.py:124"
+    "tests/test_backlog_hosts.py:114"
    ]
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
@@ -1025,24 +1025,6 @@
    "triage": "test_reached_only",
    "triage_evidence": [
     "tests/test_learning_worms.py:37"
-   ]
-  },
-  "learning_replay:PrioritizedReplayBuffer.add_from_memories": {
-   "decider": "test_is_the_wire",
-   "decider_evidence": [
-    "tests/test_learning_evolution.py:97",
-    "tests/test_learning_evolution.py:108"
-   ],
-   "line": 224,
-   "module": "learning_replay",
-   "qualname": "PrioritizedReplayBuffer.add_from_memories",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def add_from_memories(self, records: list[dict],\n                          q_table: dict[str, dict[int, float]] = None) -> int:\n        \"\"\"Bulk-add experiences from LocalMemoryStore records.\n\n        Converts memory records into (state, action, reward, next_state, done)\n        tuples using the same state/reward logic as RLTrainLoop.\n\n        Args:\n            records: list of memory dicts from DataPipelineWorm.\n            q_table: Optional Q-table for computing TD-errors as initial priorities.\n\n        Returns:\n            Number of experiences added.\n        \"\"\"\n        count = 0\n        for i, record in enumerate(records):\n            src = record.get(\"source\", \"unknown\")\n            sev = record.get(\"severity\", \"info\")\n            state = f\"{src}:{sev}\"\n\n            # Next state from next record (wraps around)\n            next_record = records[(i + 1) % len(records)]\n            next_src = next_record.get(\"source\", \"unknown\")\n            next_sev = next_record.get(\"severity\", \"info\")\n            next_state = f\"{next_src}:{next_sev}\"\n\n            # Reward: same as RLTrainLoop\n            data = record.get(\"data\", {})\n            if isinstance(data, dict):\n                duration = data.get(\"duration_ms\", 0)\n                success = sev != \"error\"\n                reward = 1.0 if success else -1.0\n                if duration:\n                    reward -= duration / 10000.0\n            else:\n                reward = 0.0\n\n            # Action: epsilon-greedy from Q-table or random\n            if q_table and state in q_table:\n                action = max(q_table[state], key=q_table[state].get)\n            else:\n                action = random.randint(0, 3)\n\n            # Compute initial priority from TD-error if Q-table available\n            if q_table and state in q_table:\n                old_q = q_table[state].get(action, 0.0)\n                next_max_q = max(q_table[next_state].values(), default=0.0) if next_state in q_table else 0.0\n                td_error = abs(reward + 0.9 * next_max_q - old_q)\n            else:\n                td_error = 1.0  # Unknown state = high priority\n\n            experience = (state, action, reward, next_state,\n                          (i == len(records) - 1))\n            with self._lock:\n                if len(self._buffer) < self._capacity:\n                    self._buffer.append(experience)\n                    self._priorities.append(td_error + 1e-6)\n                else:\n                    self._buffer[self._position] = experience\n                    self._priorities[self._position] = td_error + 1e-6\n                self._position = (self._position + 1) % self._capacity\n            count += 1\n\n        return count",
-   "status": "pending",
-   "triage": "test_reached_only",
-   "triage_evidence": [
-    "tests/test_learning_evolution.py:97",
-    "tests/test_learning_evolution.py:108"
    ]
   },
   "learning_rl:RLTrainLoop.train_episode": {
@@ -2357,14 +2339,14 @@
   }
  },
  "triage_counts": {
-  "test_reached_only": 51,
+  "test_reached_only": 50,
   "no_reference_anywhere": 60
  },
  "decider_counts": {
   "protocol_or_override": 0,
   "declared_in_data": 7,
   "dynamic_call": 8,
-  "test_is_the_wire": 45,
+  "test_is_the_wire": 44,
   "dead_candidate": 51
  }
 }

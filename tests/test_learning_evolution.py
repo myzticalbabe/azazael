@@ -1,7 +1,6 @@
 # coding: utf-8
 """
 Tests for AI/ML/RL Protocol Evolution components:
-- PrioritizedReplayBuffer
 - ABTestRunner DPO preference learning
 - GRPOTrainer
 - Cross-Agent Knowledge Graph (LocalMemoryStore)
@@ -24,120 +23,10 @@ if _src_dir not in sys.path:
     sys.path.insert(0, _src_dir)
 
 from CORE.WORMS.expansion.learning import (
-    PrioritizedReplayBuffer,
     ABTestRunner,
     GRPOTrainer,
 )
 from CORE.local_memory import LocalMemoryStore
-
-
-class TestPrioritizedReplayBuffer(unittest.TestCase):
-    """Tests for PrioritizedReplayBuffer."""
-
-    def test_add_and_size(self):
-        buf = PrioritizedReplayBuffer(capacity=100)
-        self.assertEqual(buf.size, 0)
-        buf.add("state_A", 0, 1.0, "state_B", done=False)
-        self.assertEqual(buf.size, 1)
-        buf.add("state_B", 1, -1.0, "state_C", done=True)
-        self.assertEqual(buf.size, 2)
-
-    def test_capacity_limit(self):
-        buf = PrioritizedReplayBuffer(capacity=3)
-        for i in range(10):
-            buf.add(f"s{i}", i % 4, float(i), f"s{i+1}")
-        self.assertEqual(buf.size, 3)
-
-    def test_sample_returns_batch(self):
-        buf = PrioritizedReplayBuffer(capacity=100)
-        for i in range(20):
-            buf.add(f"s{i}", i % 4, 1.0, f"s{i+1}")
-        batch, indices, weights = buf.sample(batch_size=8)
-        self.assertEqual(len(batch), 8)
-        self.assertEqual(len(indices), 8)
-        self.assertEqual(len(weights), 8)
-        # All weights should be between 0 and 1 (normalized)
-        for w in weights:
-            self.assertGreaterEqual(w, 0.0)
-            self.assertLessEqual(w, 1.0)
-
-    def test_sample_empty_buffer(self):
-        buf = PrioritizedReplayBuffer(capacity=100)
-        batch, indices, weights = buf.sample(batch_size=8)
-        self.assertEqual(batch, [])
-        self.assertEqual(indices, [])
-        self.assertEqual(weights, [])
-
-    def test_sample_larger_than_buffer(self):
-        buf = PrioritizedReplayBuffer(capacity=100)
-        for i in range(5):
-            buf.add(f"s{i}", 0, 1.0, f"s{i+1}")
-        batch, indices, weights = buf.sample(batch_size=10)
-        self.assertEqual(len(batch), 5)  # Can't sample more than available
-
-    def test_update_priorities(self):
-        buf = PrioritizedReplayBuffer(capacity=100)
-        for i in range(10):
-            buf.add(f"s{i}", 0, 1.0, f"s{i+1}")
-        _, indices, _ = buf.sample(batch_size=5)
-        # Update with high TD-errors
-        td_errors = [10.0, 5.0, 2.0, 1.0, 0.5]
-        buf.update_priorities(indices, td_errors)
-        # Verify priorities were updated (stats should show updated values)
-        stats = buf.get_stats()
-        self.assertGreater(stats["max_priority"], 1.0)
-
-    def test_add_from_memories(self):
-        buf = PrioritizedReplayBuffer(capacity=1000)
-        records = [
-            {"source": "SystemZ", "severity": "info", "data": {"duration_ms": 100}},
-            {"source": "ProcessZ", "severity": "error", "data": {"duration_ms": 5000}},
-            {"source": "VulnScanner", "severity": "info", "data": {"duration_ms": 200}},
-        ]
-        count = buf.add_from_memories(records)
-        self.assertEqual(count, 3)
-        self.assertEqual(buf.size, 3)
-
-    def test_add_from_memories_with_q_table(self):
-        buf = PrioritizedReplayBuffer(capacity=1000)
-        records = [
-            {"source": "SystemZ", "severity": "info", "data": {"duration_ms": 100}},
-            {"source": "SystemZ", "severity": "error", "data": {"duration_ms": 5000}},
-        ]
-        q_table = {"SystemZ:info": {0: 0.5, 1: 0.8}, "SystemZ:error": {0: -0.3, 1: -0.5}}
-        count = buf.add_from_memories(records, q_table=q_table)
-        self.assertEqual(count, 2)
-
-    def test_get_stats(self):
-        buf = PrioritizedReplayBuffer(capacity=100)
-        stats = buf.get_stats()
-        self.assertEqual(stats["size"], 0)
-        self.assertEqual(stats["capacity"], 100)
-
-        for i in range(10):
-            buf.add(f"s{i}", 0, 1.0, f"s{i+1}")
-        stats = buf.get_stats()
-        self.assertEqual(stats["size"], 10)
-        self.assertAlmostEqual(stats["fill_pct"], 10.0)
-
-    def test_thread_safety(self):
-        buf = PrioritizedReplayBuffer(capacity=1000)
-        errors = []
-
-        def writer(n):
-            try:
-                for i in range(100):
-                    buf.add(f"t{n}_s{i}", 0, 1.0, f"t{n}_s{i+1}")
-            except Exception as e:
-                errors.append(e)
-
-        threads = [threading.Thread(target=writer, args=(t,)) for t in range(4)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join(timeout=10)
-        self.assertEqual(errors, [])
-        self.assertEqual(buf.size, 400)
 
 
 class TestABTestRunnerDPO(unittest.TestCase):
