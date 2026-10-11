@@ -5,9 +5,9 @@ Immersive visualization using Python + PyGame
 Includes: Core System Animations + Enrichment Display Protocols
 """
 
-import pygame
 import random
 import math
+import sys
 from dataclasses import dataclass, field
 from typing import Any, List
 from enum import Enum
@@ -21,6 +21,25 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+
+#: pygame is a GUI dependency and is deliberately OPTIONAL: it is a compiled wheel
+#: that is not installed on every host, and only this module's `__main__` block
+#: consumes it. MEASURED 2026-10-11: this import used to be BARE and unguarded at
+#: the top of the file, which made the `__main__` failure handler UNREACHABLE --
+#: `ModuleNotFoundError` fired during import, long before the `try` that was
+#: supposed to report it, so the advertised "PyGame not available" message could
+#: never print (the module simply died with a traceback). It now sits AFTER
+#: `note_failure` is bound, so the handler can record rather than swallow.
+try:
+    import pygame
+except ImportError:                               # optional GUI dependency
+    note_failure("azazael_pygame:pygame-import", None)
+    pygame = None
+
+#: Read by the init call below and by the `__main__` entry point. A flag nothing
+#: reads is itself the defect this sweep removes, so both sites consume it.
+_PYGAME_AVAILABLE = pygame is not None
 
 
 class AnimationState(Enum):
@@ -193,7 +212,8 @@ class EnrichmentDisplay:
                 sys["connection_alpha"] = 255
 
 
-pygame.init()
+if _PYGAME_AVAILABLE:
+    pygame.init()                                # absent: skip, do not AttributeError
 
 WIDTH, HEIGHT = 1200, 800
 FPS = 60
@@ -581,9 +601,14 @@ class AzazaelVisualizer:
 
 
 if __name__ == "__main__":
+    if not _PYGAME_AVAILABLE:
+        print("azazael_pygame: the 'pygame' package is required and is not installed.")
+        print("Install it with:  python -m pip install pygame")
+        sys.exit(2)
     try:
         viz = AzazaelVisualizer()
         viz.run()
     except pygame.error as e:
         print(f"PyGame not available: {e}")
-        print("Run: pip install pygame")
+        print("Run: python -m pip install pygame")
+        sys.exit(2)

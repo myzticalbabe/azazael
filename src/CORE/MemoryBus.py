@@ -31,6 +31,7 @@ import json
 import re
 import sqlite3
 import itertools
+import time
 from CORE.uuid7 import uuid7
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -81,6 +82,12 @@ PAMS_TIMEOUT = float(os.environ.get("PAMS_TIMEOUT", "2.0"))
 #: The 2s check timeout never fit it: every post timed out client-side
 #: (server may still have stored it → retry duplicates). 2026-09-28.
 PAMS_POST_TIMEOUT = float(os.environ.get("PAMS_POST_TIMEOUT", "30.0"))
+#: Minimum seconds between re-checks of a DOWN verdict. `_pams_available` is a
+#: startup verdict and `_check_pams()` is the only thing that can revise it, so a
+#: bus built while PAMS was down stayed convinced it was down for the life of the
+#: bus. The throttle keeps a re-check from becoming a probe storm on a hot publish
+#: loop. 2026-10-11 (M-2 residual).
+PAMS_RECHECK_SEC = float(os.environ.get("PAMS_RECHECK_SEC", "15.0"))
 #: Bound per flush_local_queue call so a 5k backlog drains progressively
 #: across nightly runs instead of hanging one task for hours.
 FLUSH_MAX_ROWS = int(os.environ.get("PAMS_FLUSH_MAX_ROWS", "250"))
@@ -393,6 +400,9 @@ class MemoryBus:
 
         # -- Check PAMS connectivity --------------------------------------
         self._pams_available = self._check_pams()
+        #: Earliest monotonic time a DOWN verdict may be re-checked; see
+        #: _ensure_pams_available(). 0.0 means "re-check allowed immediately".
+        self._pams_next_recheck = 0.0
 
     def _init_persistent_queue(self):
         """Initialize the persistent SQLite queue for message durability."""
@@ -516,7 +526,7 @@ class MemoryBus:
 
         self._increment('published')
 
-        if self._pams_available:
+        if self._ensure_pams_available():
             try:
                 msg_id = self._post_to_pams(topic, payload, metadata, source)
                 if msg_id is not None:
@@ -665,7 +675,7 @@ class MemoryBus:
                 messages.extend(local_msgs)
 
         # -- Query PAMS ---------------------------------------------------
-        if self._pams_available:
+        if self._ensure_pams_available():
             try:
                 pams_msgs = self._query_pams(topic=topic, since_id=since_id, limit=limit)
                 if pams_msgs:
@@ -770,7 +780,7 @@ class MemoryBus:
         progressively across runs instead of hanging one caller; pass
         max_rows=0 for the default, <0 for unbounded.
         """
-        if not self._pams_available:
+        if not self._ensure_pams_available():
             return 0
         budget = FLUSH_MAX_ROWS if max_rows == 0 else max_rows
 
@@ -897,6 +907,40 @@ class MemoryBus:
         if self.refresh_pams_url():
             return self._pams_probe()
         return False
+
+    def _ensure_pams_available(self) -> bool:
+        """Current PAMS reachability, re-checking a stale DOWN verdict.
+
+        2026-10-11 (M-2 residual). `_pams_available` was assigned once in
+        `__init__` (`self._pams_available = self._check_pams()`), and `__init__` was
+        the ONLY caller of `_check_pams()` -- so `refresh_pams_url()`, which
+        `_check_pams()` drives, could never fire after construction. The 2026-10-10
+        M-2 repair built the refresh mechanism and left it UNREACHABLE: a fix that
+        cannot fire, which is the defect class this sweep exists to remove.
+
+        Two consequences were live on any bus constructed while PAMS was down:
+        `publish()` and `query()` took the fallback path forever, and `flush()`
+        returned 0 forever, so the local queue never drained -- silently, because
+        fail-open is this module's design.
+
+        Bounded by construction: re-checks only when the cached verdict is False, so
+        the healthy path costs nothing; the throttle limits a hot publish loop to one
+        probe per `PAMS_RECHECK_SEC`; and `_check_pams()` is itself bounded (one
+        re-resolve plus one retry, and only when the resolved URL actually changed),
+        so this cannot loop. Never raises.
+        """
+        if self._pams_available:
+            return True
+        now = time.monotonic()
+        if now < self._pams_next_recheck:
+            return False
+        self._pams_next_recheck = now + PAMS_RECHECK_SEC
+        try:
+            self._pams_available = self._check_pams()
+        except Exception:                          # never break the host
+            note_failure("MemoryBus:ensure-pams-available", None)
+            self._pams_available = False
+        return self._pams_available
 
     def _post_to_pams(self, topic: str, content: Any,
                         metadata: Dict[str, Any], source: str) -> Optional[Any]:

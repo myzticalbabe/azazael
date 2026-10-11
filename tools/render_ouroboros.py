@@ -34,6 +34,10 @@ metaphor -- every colour and every number comes from the instruments' output.
 
 Usage:
     python tools/render_ouroboros.py
+
+Exit codes: 0 = every input was read; 1 = the page was written but was drawn
+from absent/unreadable inputs. It names them, in a panel and in the stamp,
+because a renderer that exits 0 while blind is the blindness this page draws.
 """
 from __future__ import annotations
 
@@ -42,7 +46,6 @@ import html
 import json
 import math
 import os
-import re
 import sys
 import time
 from collections import Counter
@@ -73,30 +76,100 @@ STAGES = [
     ("MEASURE",    "what changed, written down",         "\U0001F4DD", "✅", "❌"),
 ]
 
-RE_PROMO = re.compile(r"promotion standing: beats=(True|False) margin=([-\d.]+) "
-                      r"sprt=(\w+)\(n=(\d+)")
-RE_MORPH = re.compile(r"morph: cycle \d+ adds gene (\S+)")
-RE_CYCLE = re.compile(r" seed=")
-RE_QD = re.compile(r"qd archive: .*?\((\+\d+) this cycle\)")
-RE_ALT = re.compile(r"^(\S+) morph: cycle \d+ adds gene (\S+)")
+# The log's line vocabulary is defined once, in tools/evolution_log.py, so this
+# renderer cannot drift from the three analyst tools. It scans for substrings
+# and captures no subject, so it takes the _SUB patterns (whose group numbering
+# is one field later). RE_ALT was a byte-identical copy of RE_MORPH - now the
+# same definition, keeping the local name because the call sites use it.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from evolution_log import (RE_CYCLE_SUB as RE_CYCLE,  # noqa: E402
+                           RE_MORPH as RE_ALT,
+                           RE_MORPH_SUB as RE_MORPH,
+                           RE_PROMO_SUB as RE_PROMO,
+                           RE_QD_SUB as RE_QD, iter_lines)
+
+
+#: Inputs this run could NOT supply, and the ones it actually read. Module level
+#: so the template can report them without depending on build()'s locals.
+#: MEASURED 2026-10-11 (registry L-5): `load` collapsed "absent" and
+#: "unreadable" into the same None, `parse_log` drew an absent log as 0 cycles,
+#: the page still stamped a fresh `rendered` time, and `main` exited 0 either
+#: way -- so a page built from absent data looked live.
+_BLIND: list[str] = []
+_READ: list[str] = []
+
+
+def _blind(what: str) -> None:
+    """Record an input this run could not supply."""
+    if what not in _BLIND:
+        _BLIND.append(what)
+
+
+def _blind_html() -> str:
+    """The inputs this run could not read, or '' when it read everything."""
+    if not _BLIND:
+        return ""
+    items = "".join(f"<li>{html.escape(b)}</li>" for b in _BLIND)
+    return (
+        '<div class="panel panel-danger" style="margin-top:14px">'
+        f"<h2>\u26a0\ufe0f INPUTS NOT READ \u2014 this page is drawn from "
+        f"{len(_BLIND)} absent/unreadable input(s)</h2>"
+        '<p style="font-size:12px;margin:0 0 8px">Every colour and number below '
+        "is therefore <b>absent</b>, not zero, and the render stamp records when "
+        "this file was WRITTEN \u2014 not how current the data under it is.</p>"
+        f'<ul style="font-size:11.5px">{items}</ul></div>'
+    )
+
+
+def _data_stamp_html() -> str:
+    """When the FRESHEST input was written, and how long ago.
+
+    The page already stamped when it was rendered. That is a different claim from
+    "the data is current", and printing only the former is how a blind render
+    passes for a live one.
+    """
+    mtimes: list[float] = []
+    for p in _READ:
+        try:
+            mtimes.append(os.path.getmtime(p))
+        except OSError as exc:
+            _blind("mtime of %s (%s)" % (p, type(exc).__name__))
+            continue
+    if not mtimes:
+        return "<b>no input was readable \u2014 data age UNKNOWN</b>"
+    newest = max(mtimes)
+    age_h = max(0.0, time.time() - newest) / 3600.0
+    return ("newest input %s (<b>%.1f h ago</b>)"
+            % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(newest)), age_h))
 
 
 def load(name):
     p = os.path.join(STATE, name)
     if not os.path.exists(p):
+        _blind("state/" + name + " (absent)")
         return None
     try:
         with open(p, encoding="utf-8") as fh:
-            return json.load(fh)
-    except Exception:
+            data = json.load(fh)
+    except Exception as exc:
+        # Two statements on purpose: an absent file and an unreadable one are
+        # different findings, and reporting the second as the first is how this
+        # page stayed silent about a corrupt store.
+        _blind("state/%s (UNREADABLE: %s)" % (name, type(exc).__name__))
         return None
+    _READ.append(p)
+    return data
 
 
 def parse_log():
     out = {"cycles": 0, "sprt_n": [], "schemas": [], "qd": [], "arms": []}
     if not os.path.exists(LOG):
+        # An absent log and a quiet system both draw as 0 cycles; only one of
+        # them means the loop is idle, so say which.
+        _blind("logs/evolution_cycle.log (absent)")
         return out
-    for line in open(LOG, encoding="utf-8", errors="replace"):
+    _READ.append(LOG)
+    for line in iter_lines(LOG):
         if RE_CYCLE.search(line):
             out["cycles"] += 1
             out["schemas"].append(None)
@@ -118,6 +191,70 @@ def parse_log():
 
 def ok(v):
     return v in ("IMPROVING", "ALL_ARMS_LIVE", "OK", True)
+
+
+# ── THE GATE'S OWN VERDICT, DERIVED ───────────────────────────────────────
+# `scripts/evolution_cycle.py :: _loop_integrity_gate()` decides whether a cycle
+# may promote. The EV-7 panel below used to ASSERT its answer in static prose
+# ("promotion is currently blocked"), which made this wallboard a picture of the
+# loop rather than the readout it claims to be: that sentence stayed on the page
+# only as long as the degradation lasted, and a healthy loop was told it was
+# blocked. Derive it instead.
+#
+# Mirror the gate's rule EXACTLY, including its deliberate asymmetry -- an
+# ABSENT or STALE verdict is neither healthy nor blocking:
+#
+#   BLOCKED  a file exists, is fresh, and its verdict is in GATE_BAD
+#   BLIND    no file blocked, and at least one was absent, stale or unreadable
+#   OPEN     every configured file was readable, fresh and not bad
+#
+# The first blocking file wins, because the gate returns on it. GATE_MAX_AGE_S
+# and GATE_BAD are kept in step by hand: the renderer must still run when
+# scripts/ is absent, so there is no import here.
+GATE_MAX_AGE_S = 3600.0
+GATE_BAD = ("DEGRADED", "DEAD_ARM", "FAIL")
+GATE_CHECKS = (("loop_integrity.json", "current_verdict"),
+               ("fitness_arms.json", "verdict"))
+
+
+def gate_state(now=None):
+    """(state, detail), state in 'BLOCKED' | 'BLIND' | 'OPEN'.
+
+    Reads LIVE state off disk at render time -- not the parsed `li`/`fa` the rest
+    of the page uses, because those are already None for a missing file and
+    carry no age.
+    """
+    now = time.time() if now is None else now
+    blind = []
+    for fname, key in GATE_CHECKS:
+        path = os.path.join(STATE, fname)
+        if not os.path.exists(path):
+            blind.append(f"{fname} absent")
+            continue
+        try:
+            age = now - os.path.getmtime(path)
+        except OSError:
+            blind.append(f"{fname} mtime unreadable")
+            continue
+        if age > GATE_MAX_AGE_S:
+            blind.append(f"{fname} is {age:.0f}s old "
+                         f"(> {GATE_MAX_AGE_S:.0f}s)")
+            continue
+        try:
+            with open(path, encoding="utf-8") as fh:
+                d = json.load(fh)
+        except Exception:
+            blind.append(f"{fname} unreadable")
+            continue
+        v = d.get(key)
+        if v in GATE_BAD:
+            findings = d.get("current_findings") or d.get("findings") or []
+            first = str(findings[0])[:120] if findings else ""
+            return "BLOCKED", f"{fname} reports {v}" + (
+                f": {first}" if first else "")
+    if blind:
+        return "BLIND", "; ".join(blind)
+    return "OPEN", "both verdicts are fresh and neither is degraded"
 
 
 # ── ARCHETYPES ────────────────────────────────────────────────────────────
@@ -526,6 +663,27 @@ def build():
     cur_ok, arm_ok = ok(cur), ok(armv)
     gate_ok = cur_ok and arm_ok
 
+    # the gate's live answer, derived -- see gate_state() for why this is not
+    # the same question as `gate_ok` above (which has no notion of file age)
+    _g_state, _g_detail = gate_state()
+    if _g_state == "BLOCKED":
+        gate_claim = (
+            f"<b>\U0001F6D1 promotion is currently blocked</b>: "
+            f"{html.escape(_g_detail)}. A cycle that promotes while the loop is "
+            "measurably degrading is a symptom, not progress.")
+    elif _g_state == "BLIND":
+        gate_claim = (
+            f"<b>\U0001F441 the gate is currently blind</b>: "
+            f"{html.escape(_g_detail)}. A missing or stale verdict is deliberately "
+            "neither healthy nor blocking — the instrument may simply not have run "
+            "yet, and refusing to promote on absent instrumentation would be the "
+            "worse failure. Reporting it here keeps the gap visible rather than "
+            "silent.")
+    else:
+        gate_claim = (
+            f"<b>\u2705 the gate is currently open</b>: {html.escape(_g_detail)}, "
+            "so it is not withholding promotion.")
+
     health = {
         "SEARCH": (True, f"{cycles} cycles"),
         "POOLS": (True, "frozen · era pinned"),
@@ -887,9 +1045,8 @@ def build():
   <div class="panel panel-warning">
     Until EV-7, <code>loop_integrity.json</code> and <code>fitness_arms.json</code> had exactly one
     reader each: the tool that wrote them. A run that promoted nothing scored
-    identically to a productive one. The gate now reads them — which is why
-    promotion is <b>currently blocked</b>: the loop is measurably degraded, and a cycle
-    that promotes while the loop degrades is a symptom, not progress.
+    identically to a productive one. The gate now reads them —
+    {gate_claim}
   </div>
 
   <div class="panel {fnd_panel}">
@@ -932,8 +1089,11 @@ def build():
     </div>
   </div>
 
+  {_blind_html()}
+
   <div style="margin-top:18px;color:#3d4a44;font-size:10.5px;letter-spacing:1.5px">
-    rendered {time.strftime('%Y-%m-%d %H:%M:%S')} · tools/render_ouroboros.py ·
+    rendered {time.strftime('%Y-%m-%d %H:%M:%S')} · {_data_stamp_html()} ·
+    tools/render_ouroboros.py ·
     chain job <b>render</b> · auto-reload 60s · keyframes reused verbatim from
     src/CODEX/SESSION_TEMPLATE/templates/output_cain.html
   </div>
@@ -951,6 +1111,14 @@ def main() -> int:
     with open(OUT, "w", encoding="utf-8") as fh:
         fh.write(doc)
     print(f"render-ouroboros: wrote {OUT} ({len(doc):,} bytes)")
+    if _BLIND:
+        # Non-zero so the return code is visible as a failed job: this page
+        # carries its own "FAILED JOBS -- non-zero return, invisible to liveness"
+        # table, and a renderer that exits 0 while blind is exactly the blindness
+        # it draws.
+        print("render-ouroboros: BLIND on %d input(s): %s"
+              % (len(_BLIND), ", ".join(_BLIND)))
+        return 1
     return 0
 
 
