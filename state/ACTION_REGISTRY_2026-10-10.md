@@ -436,8 +436,16 @@ Of the **22 untracked top-level `tools/*.py` modules**, none is IMPORTED by trac
 exactly one is a documented PROCEDURE in tracked code:
 
 - `tools/repoint_315t.py` — named by `tools/verify_engram_mcp.py` as `REPIN_REFERENCE` and in its
-  docstring's re-pin procedure. A tracked gate instructing the operator to run a tool that is not
-  in git is the same defect; landed.
+  docstring's re-pin procedure, so a tracked gate instructs the operator to run a tool that is not
+  in git. **NOT landed, and deliberately**: the pre-commit scanner rejected it for
+  `hardcoded_win_path 0 -> 2` (+2 against the repo-wide baseline), and the paths are intrinsic to
+  what the tool does (it searches for literal interpreter paths and substitutes a literal one).
+  It is also a NO-OP today — 11 rule MISMATCHes, `planned: 0 edits`. Landing it would raise the
+  repo's permanent baseline for a tool that currently does nothing, so the honest state is
+  recorded instead: it must be re-measured against this tree (TODO_315T_BUILD.md's repoint item)
+  and its path literals derived per the scanner's own remedy (Path.home() / get_project_root())
+  before it is landed. The gate's other route — baselining the +2 with an explanation — was NOT
+  taken: a new file that adds findings to a ratcheted baseline defeats the ratchet's purpose.
 - Four more are mentioned only by a TODO/handoff/census artifact — a record of what was used, not
   a dependency: `accelerator_bench.py` and `sota_dedup_check.py` (TODO_315T_BUILD.md),
   `install_technique_deps_315t.py` and `live_record_probe_315t.py`
@@ -469,6 +477,15 @@ to the daemon's next checkpoint — an UNVERIFIED expectation, not a fact — an
 health check carries a warning whose cause is historical. Do NOT hand-write an anchor entry: a
 fabricated Merkle root in the root-of-trust store is worse than a stale one.
 
+### METHOD NOTE — the same trap, twice, and then its sibling
+
+**Hit again in this very section.** `git commit` commits the INDEX, not the worktree. A commit was
+REJECTED by the scanner, the file was then CORRECTED in the worktree, and the re-commit was run
+without re-running `git add` — so the commit landed the pre-rejection version and the correction sat
+unstaged. The tell was a staged diff of **68 insertions and 0 deletions** for an edit that REMOVED
+words: read insertions-vs-deletions as a SHAPE, not just a count. After every rejected commit,
+re-`add` the file before committing again.
+
 ### METHOD NOTE — the truncated-view trap has a cwd form
 
 `cd C:/Azazael && ... git ls-files tools/session_start.py` ran the query from the PARENT tree, so
@@ -483,4 +500,7 @@ silently overrode the tool's working directory. It was caught only because the p
 currently plans **0 edits against 11 rule MISMATCHes** — its rule table expects hit counts the tree
 no longer has, so it refuses to act (by design: it will not apply approximately). The 3.15t
 repoint it exists to perform cannot run until the rules are re-measured;
-`state/repoint_315t.json` holds the per-rule detail.
+`state/repoint_315t.json` holds the per-rule detail (7 of the 11 printed by the dry run:
+`run_evolution_cycle_314t.bat`, `open_aoa_monitor.bat`, `open_lilith_live_monitor.bat`,
+`refresh_oa_data.bat`, `config/config.yaml`, `src/config/ecosystem_config.yaml`,
+`src/config/pams_bridge.json` — each expecting 1-3 hits and finding 0).
