@@ -39,15 +39,14 @@ Usage:
     # WHERE s.trace_id = '...';
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any, Sequence, List
-
-from opentelemetry.sdk.trace import ReadableSpan
-from opentelemetry.sdk.trace.export import SpanExportResult
+from typing import TYPE_CHECKING, Any, Sequence, List
 
 #: This list used to sit INSIDE the module docstring above, i.e. inside a string
 #: literal, so it was never assigned: `from CORE.cd3_exporter import *` exported
@@ -72,6 +71,50 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+# -- OTel SDK, GUARDED (optional in fact, mandatory in the old code) ----
+# The SDK is optional in FACT but was mandatory in the CODE: the two module-level
+# imports that used to sit at the top made `import CORE.cd3_exporter` itself raise
+# wherever the SDK is absent. Measured 2026-10-10 on the production interpreter
+# (C:/Azazael/.venvs/py315t): only the bare `opentelemetry` namespace package is
+# installed, and `from opentelemetry.sdk.trace import ReadableSpan` raises
+# ModuleNotFoundError.
+#
+# The cost was not the missing tracing path, it was the WORKING one.
+# `tests/conftest.py` imports this module inside `except Exception: pass`, so the
+# failure silently skipped its `_default_exporter` release at teardown; and
+# `tests/test_spine_mesh_wiring.py` guards on `importorskip("opentelemetry.sdk.trace")`,
+# so the only test that exercises this module was being SKIPPED rather than run.
+#
+# Nothing here needs the SDK to WRITE a span -- `SQLiteSpanExporter` persists to
+# SQLite itself and merely NAMES the SDK's types -- so the module now imports
+# cleanly either way, and `OTEL_SDK_AVAILABLE` reports which case it is in.
+if TYPE_CHECKING:               # annotation-only: never evaluated at run time
+    from opentelemetry.sdk.trace import ReadableSpan
+
+
+class _SpanExportResultFallback:
+    """The two `SpanExportResult` members this module actually RETURNS.
+
+    `export()` returns `SpanExportResult.SUCCESS`, and `.FAILURE` on error, so
+    degrading the name to `None` would turn an absent optional dependency into an
+    `AttributeError` at the point of use instead of a value a caller can branch
+    on. Only the two members returned here are defined; this is not a stand-in
+    for the SDK enum.
+    """
+
+    SUCCESS = 0
+    FAILURE = 1
+
+
+OTEL_SDK_AVAILABLE = False
+try:
+    from opentelemetry.sdk.trace.export import SpanExportResult
+
+    OTEL_SDK_AVAILABLE = True
+except ImportError as _otel_missing:            # optional dependency absent
+    note_failure("cd3_exporter:otel-sdk-import", _otel_missing)
+    SpanExportResult = _SpanExportResultFallback
 
 # -- DB path resolution -----------------------------------------------
 # Default to same DB as DirectMemory for cross-ledger queries.
@@ -331,7 +374,18 @@ def configure_otel_tracing(
 
     Returns:
         opentelemetry Tracer instance ready for use.
+
+    Raises:
+        ImportError: when the OpenTelemetry SDK is absent. Only the SDK is
+            optional -- ``SQLiteSpanExporter`` persists spans without it.
     """
+    if not OTEL_SDK_AVAILABLE:
+        raise ImportError(
+            "configure_otel_tracing() requires the OpenTelemetry SDK, which is "
+            "not installed in this interpreter (pip install opentelemetry-sdk). "
+            "SQLiteSpanExporter needs no SDK and writes spans to SQLite directly."
+        )
+
     from opentelemetry.sdk.resources import Resource
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
