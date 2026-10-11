@@ -126,6 +126,14 @@ def build(graph_path: Path, out_dir: Path, label: str) -> None:
     dirs: dict[str, dict] = {}
     for i, nd in enumerate(labels):
         path = nd["file"]
+        if not path:
+            # Nodes with no file -- concept / community hubs the extractor
+            # emits without a "file" key value -- have no directory to belong
+            # to. Without this guard Path(None) raised TypeError and aborted
+            # the whole cosmos rebuild at the first such node (2026-10-09);
+            # the community-histogram loop below already guards the same
+            # field with `if f:`, so this is the missing half of that guard.
+            continue
         parts = [p for p in Path(path).parts if p not in ("", ".", "\\", "/")]
         for k in range(1, len(parts) + 1):
             key = "/".join(parts[:k])

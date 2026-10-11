@@ -41,9 +41,15 @@ REGISTRY: tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...] = (
     ("NEURAL_MESH_FUNCTION_TODO.md", ("src",), ("*.py",)),
     ("NEURAL_MESH_WIRE_OR_CUT.json", ("src",), ("*.py",)),
     ("NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md", ("src",), ("*.py",)),
-    ("NEURAL_MESH_INTEGRATION_MAP.json", ("src",), ("*.py",)),
-    ("NEURAL_MESH_INTEROP.mmd", ("src",), ("*.py",)),
-    ("logs/capability_wiring_dataset.jsonl", ("src",), ("*.py",)),
+    # The three intermesh artifacts (NEURAL_MESH_INTEGRATION_MAP.json,
+    # NEURAL_MESH_INTEROP.mmd, logs/capability_wiring_dataset.jsonl) are NOT
+    # listed: their producer, tools/nature_integration_map.py, was removed on
+    # 2026-10-09 with the nature taxonomy it consumed (U3 surgery / D1). An
+    # artifact with no generator can only ever go stale, so tracking it would
+    # turn this audit into a permanent failure. They stay on disk as the
+    # forensic record of the removed taxonomy -- the preflight exclusion
+    # regression asserts their filenames -- and the taxonomy itself was
+    # re-extracted into state/RECOVERED_NATURE_DEFINITIONS.json.
     ("graphify-out/graph.json", ("src",), ("*.py",)),
     ("graphify-out/GRAPH_REPORT.md", ("src",), ("*.py",)),
 )
@@ -290,7 +296,7 @@ def main(argv: Sequence[str] | None = None,
                  if drifted else ""))
         print("Refresh with: python tools/mesh_function_preflight.py "
               "&& python tools/mesh_function_preflight.py --verdict "
-              "&& python tools/nature_integration_map.py")
+              "&& python tools/refresh_all.py")
         return 1
     print()
     print("OK: every derived artifact is at least as new as its sources")

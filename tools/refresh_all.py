@@ -8,12 +8,20 @@ The refresh order is the measured dependency chain, not a guess:
     mesh_function_preflight.py --verdict --propose --triage --worklist
                                            -> NEURAL_MESH_WIRE_OR_CUT.json
                                            + NEURAL_MESH_WIRE_OR_CUT_WORKLIST.md
-    nature_integration_map.py              -> MAP.json + INTEROP.mmd + dataset
 
-The census must run first because `--verdict` reads the probe results, and the
-map last because it consumes the verdict table. Running them out of order
-produces a map built on a previous census -- which is exactly how the table
-went stale in the first place (section 12 of the audit analysis).
+The census must run first because `--verdict` reads the probe results. Running
+them out of order produces a verdict table built on a previous census -- which
+is exactly how the table went stale in the first place (section 12 of the audit
+analysis).
+
+The intermesh step (`nature_integration_map.py` -> NEURAL_MESH_INTEGRATION_MAP
+.json + NEURAL_MESH_INTEROP.mmd + logs/capability_wiring_dataset.jsonl) was
+dropped on 2026-10-09 together with the nature taxonomy it consumed (U3 surgery
+/ D1). Its artifacts are deliberately left on disk as the forensic record of
+that taxonomy -- the preflight exclusion regression asserts their filenames --
+but nothing regenerates them any more, so they are out of this chain and out of
+the freshness registry. The taxonomy they were built from was re-extracted from
+bytecode into state/RECOVERED_NATURE_DEFINITIONS.json.
 
 The hygiene step is a regression guard, not a clean-up: it fails on a new
 duplicate basename under src/, a new file over 20 MB, or a new top-level path,
@@ -94,7 +102,6 @@ STEPS: tuple[tuple[tuple[str, ...], str], ...] = (
     (("tools/mesh_function_preflight.py", "--verdict", "--propose", "--triage",
       "--worklist"),
      "verdict + triage + worklist -> NEURAL_MESH_WIRE_OR_CUT.json + WORKLIST.md"),
-    (("tools/nature_integration_map.py",), "map -> MAP.json + INTEROP.mmd + dataset"),
     (("tools/fs_hygiene.py", "--check"), "hygiene -> regression guard"),
     (("tools/audit_parseable_files.py", "--check"),
      "parseable files -> mislabel regression guard"),

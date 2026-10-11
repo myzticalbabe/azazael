@@ -44,7 +44,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import re
 import statistics
 import sys
 import time
@@ -58,15 +57,12 @@ PROMOTED = os.path.join(ROOT, "state", "evolved_rl_params.json")
 MIN_SAMPLES = 20          # below this, a distribution is not characterised
 QUANTILE = 0.75           # where a "worth acting on" gate belongs
 
-RE_CYCLE = re.compile(r"^(\S+) seed=(\d+)")
-RE_PROMO = re.compile(
-    r"^(\S+) promotion standing: beats=(True|False) margin=([-\d.]+)")
-RE_AB = re.compile(
-    r"^(\S+) morph A/B: (\S+) default\((\w+)\)=([-\d.]+) "
-    r"treatment\((\w+)\)=([-\d.]+) delta=([-\d.]+)")
-RE_MORPH = re.compile(r"^(\S+) morph: cycle \d+ adds gene (\S+)")
-RE_CONV = re.compile(r"^(\S+) converged at gen (\d+)")
-RE_BEST = re.compile(r"^(\S+) BEST: (\{.*\})")
+# The log's line vocabulary is defined once, in tools/evolution_log.py, so this
+# reader cannot drift from the other three. RE_PROMO here is the short standing
+# line; evolution_progress reads the same line to full sprt depth.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from evolution_log import (RE_AB, RE_BEST, RE_CONV, RE_CYCLE,  # noqa: E402
+                           RE_MORPH, RE_PROMO, iter_lines)
 
 
 def pct(xs, q):
@@ -96,7 +92,7 @@ def bench_evolution() -> dict:
     per_arm = defaultdict(list)
     gens, arm_gene, last_promo = [], None, None
     cyc_ts = None
-    for line in open(LOG, encoding="utf-8", errors="replace"):
+    for line in iter_lines(LOG):
         m = RE_CYCLE.match(line)
         if m:
             cyc_ts = m.group(1)

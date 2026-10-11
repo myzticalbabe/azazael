@@ -91,12 +91,15 @@ def preflight():
     return ok
 
 
-def start_server(wait_s=420):
+def start_server(wait_s=420, lowvram=False, min_vram_free_gb=5.0):
     OUT.mkdir(parents=True, exist_ok=True)
     cmd = [str(VENV_PY), str(APP / "main.py"),
            "--listen", HOST, "--port", str(PORT),
            "--output-directory", str(OUT),
            "--disable-auto-launch"]
+    if lowvram:
+        cmd.append("--lowvram")
+        print("lowvram mode: weights stream instead of full-load")
     print("launching:", " ".join(cmd[:3]), "... --listen", HOST, "--port", PORT)
     log = open(APP.parent / "comfyui_headless.log", "w", encoding="utf-8")
     proc = subprocess.Popen(cmd, cwd=str(APP), stdout=log, stderr=subprocess.STDOUT,  # scanner:ignore
@@ -118,8 +121,19 @@ def start_server(wait_s=420):
         try:
             st = _get("/system_stats", timeout=4)
             dev = (st.get("devices") or [{}])[0]
+            free_gb = (dev.get("vram_free") or 0) / 1073741824
             print(f"  API up after {int(time.time()-t0)}s  device={dev.get('name')}  "
                   f"vram_free={dev.get('vram_free')}  vram_total={dev.get('vram_total')}")
+            if free_gb < min_vram_free_gb:
+                print(f"ABORT: XPU free {free_gb:.2f} GB < {min_vram_free_gb} GB gate -- "
+                      f"a tenant is squatting (LM Studio model? ollama? browser?). "
+                      f"Stopping server instead of OOMing.")
+                proc.terminate()
+                try:
+                    proc.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                return None
             return proc
         except Exception:
             time.sleep(4)
@@ -146,6 +160,7 @@ def queue(prompt, timeout=3600):
             st = h[pid].get("status", {})
             if st.get("status_str") == "error":
                 print("  EXECUTION ERROR:", json.dumps(st)[:400])
+                return None
             return h[pid]
         time.sleep(5)
     print("TIMEOUT waiting for", pid)
@@ -155,6 +170,8 @@ def queue(prompt, timeout=3600):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preflight-only", action="store_true")
+    ap.add_argument("--lowvram", action="store_true",
+                    help="stream weights (slower, fits squatted/fragmented XPU)")
     ap.add_argument("--no-start", action="store_true",
                     help="assume a server is already listening")
     a = ap.parse_args()
@@ -170,7 +187,7 @@ def main():
     if a.no_start:
         proc = None
     else:
-        proc = start_server()
+        proc = start_server(lowvram=a.lowvram)
         if proc is None:
             return 2
 

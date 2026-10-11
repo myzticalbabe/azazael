@@ -70,6 +70,8 @@ def main():
     ap.add_argument("--port-wait", type=int, default=90)
     ap.add_argument("--run-timeout", type=int, default=1200)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--no-retry", action="store_true",
+                    help="skip the automatic --lowvram retry pass for failures")
     a = ap.parse_args()
 
     items = sorted(Path(a.dir).glob(a.pattern))
@@ -109,6 +111,33 @@ def main():
             time.sleep(a.cooldown)
 
     print(f"\n{'=' * 70}\nBATCH SUMMARY: {len(ok)} ok, {len(failed)} failed, {len(skipped)} skipped")
+    if failed and not a.no_retry:
+        print(f"\nRETRY PASS with --lowvram after {a.cooldown * 2}s settle ...")
+        time.sleep(a.cooldown * 2)
+        still_failed = []
+        for wf_name in failed:
+            wf = Path(a.dir) / wf_name
+            ram = free_ram_gb()
+            print(f"retry {wf_name} (free RAM {ram:.2f} GB)")
+            if ram < a.min_ram_gb or not wait_port_free(a.port_wait):
+                print("  SKIP: gate failed on retry")
+                still_failed.append(wf_name)
+                continue
+            shutil.copy2(wf, ACTIVE)
+            try:
+                r = subprocess.run([str(VENV_PY), str(HEADLESS), "--lowvram"],
+                                   timeout=a.run_timeout)
+                if r.returncode == 0:
+                    ok.append(wf_name)
+                    print("  PASS (lowvram) " + wf_name)
+                else:
+                    still_failed.append(wf_name)
+                    print("  FAIL (lowvram) " + wf_name)
+            except subprocess.TimeoutExpired:
+                print("  FAIL (timeout, lowvram) " + wf_name)
+                still_failed.append(wf_name)
+        failed = still_failed
+        print(f"\nFINAL: {len(ok)} ok, {len(failed)} failed, {len(skipped)} skipped")
     for n in failed:
         print("  FAILED:", n)
     for n in skipped:
