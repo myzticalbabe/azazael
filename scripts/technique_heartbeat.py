@@ -41,6 +41,112 @@ def _fail(where, exc):
     print(f"heartbeat note: {where}: {type(exc).__name__}: {exc}", file=sys.stderr)
 
 
+#: Action vocabularies the PSYCHE fit loop accepts (PSYCHE/distill.py
+#: choice_features). Anything else in a chain row is a malformed row, not a
+#: new action type: counted, never fitted.
+_PSYCHE_ACTIONS = {"persist": {"continue", "quit", "defer"},
+                   "fair": {"fair", "share", "exploit", "withhold"}}
+
+
+def psyche_fit_step(store=None, chain_limit: int = 500) -> dict:
+    """Hourly PSYCHE fit leg: behavior chains -> per-actor thetas (L4 closer).
+
+    Reads `psyche-chain`/`behavior_action` rows, fits each actor's history
+    with the REAL `choice_features`/`fit_choice_traits` (no reimplementation),
+    writes the OWNER snapshot only when at least one trait fitted (an
+    abstention must never clobber the last good snapshot), and records a fit
+    report row whenever chains existed — so `no-input` (nothing to read) and
+    `abstained` (read, too sparse to fit) stay distinguishable downstream.
+    Never raises; returns the report dict (also stored under
+    out["steps"]["psyche_fit"] by main).
+    """
+    report: dict = {"ok": False, "n_rows": 0, "actors": {},
+                    "snapshot_written": False, "verdict": "no-input"}
+    try:
+        from PSYCHE.distill import choice_features, fit_choice_traits
+        from PSYCHE.traits import default_theta_path
+        if store is None:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+        rows = (store.query_memories(source="psyche-chain",
+                                     event_type="behavior_action",
+                                     limit=chain_limit) or [])
+        report["n_rows"] = len(rows)
+        if not rows:
+            # Healthy idle, not a failure: the leg ran, nothing was fitted,
+            # nothing was written. ok=True distinguishes this from leg-failed.
+            report["ok"] = True
+            return report
+        by_actor: dict = {}
+        malformed = 0
+        for row in rows:
+            try:
+                data = (row or {}).get("data", {})
+                if isinstance(data, str):
+                    data = json.loads(data)
+                if not isinstance(data, dict):
+                    raise ValueError("non-dict data")
+                actor = str(data.get("actor") or "?")[:80]
+                kind = data.get("kind")
+                action = data.get("action")
+                if kind not in _PSYCHE_ACTIONS or action not in _PSYCHE_ACTIONS[kind]:
+                    malformed += 1
+                    continue
+                by_actor.setdefault(actor, []).append(
+                    {"kind": kind, "action": action,
+                     "planned": bool(data.get("planned", False))})
+            except Exception:
+                malformed += 1
+        report["malformed"] = malformed
+        fitted_any_owner = False
+        for actor in sorted(by_actor):
+            actions = by_actor[actor]
+            feats = choice_features(actions)
+            fitted = fit_choice_traits(feats)
+            n_persist = sum(1 for a in actions if a["kind"] == "persist")
+            n_fair = sum(1 for a in actions if a["kind"] == "fair")
+            entry = {"n_actions": len(actions), "n_persist": n_persist,
+                     "n_fair": n_fair, "C": fitted.get("C"),
+                     "H": fitted.get("H")}
+            report["actors"][actor] = entry
+            if actor == "owner":
+                scores = {k: v for k, v in
+                          (("C", fitted.get("C")), ("H", fitted.get("H")))
+                          if isinstance(v, (int, float))}
+                if scores:
+                    snapshot = {"name": "heartbeat-fit",
+                                "source": "psyche-heartbeat",
+                                "domain_scores": scores,
+                                "n_used": len(actions)}
+                    dest = default_theta_path()
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_text(json.dumps(snapshot, indent=2,
+                                               sort_keys=True),
+                                    encoding="utf-8")
+                    report["snapshot_written"] = True
+                    fitted_any_owner = True
+        if fitted_any_owner:
+            report["verdict"] = "fitted"
+        elif report["actors"]:
+            report["verdict"] = "abstained-below-threshold"
+        try:
+            store.record_event(
+                source="psyche-fit", event_type="theta_fit", data=report,
+                severity="info", tags=["psyche", "theta-fit"])
+            report["report_recorded"] = True
+        except Exception as exc:
+            _fail("technique-heartbeat:psyche-fit-report", exc)
+            report["report_recorded"] = False
+        report["ok"] = True
+        return report
+    except Exception as exc:
+        _fail("technique-heartbeat:psyche-fit", exc)
+        report["ok"] = False
+        report["verdict"] = "leg-failed"
+        report["error"] = f"{type(exc).__name__}: {exc}"
+        return report
+
+
 def main() -> int:
     t0 = time.perf_counter()
     out = {"ok": True, "steps": {}}
@@ -86,6 +192,11 @@ def main() -> int:
             "strategy": (_rec.get("recovery") or {}).get("strategy"),
         }
         out["steps"]["health"] = fleet_link_health(limit=1000)
+        try:
+            out["steps"]["psyche_fit"] = psyche_fit_step()
+        except Exception as exc:
+            _fail("technique-heartbeat:psyche-fit-leg", exc)
+            out["steps"]["psyche_fit"] = {"ok": False, "verdict": "leg-failed"}
         try:
             from CORE.WORMS.expansion.queens import rainbow_round
             out["steps"]["rainbow"] = rainbow_round(probe_limit=1)
