@@ -4,6 +4,10 @@
 #
 # Check order (cheap-and-broad first, so a bad commit is rejected early):
 #   1. bulk-diff focus gate      (scripts/commit_gate.py)
+#   1b. stale-index guard        (tools/index_drift_check.py) -- a path staged
+#       and then edited again would be committed as the STALE blob, and the
+#       scanner below reads the INDEX, so it would certify a version that is
+#       not on disk at all
 #   2. staged NEW anti-pattern  (tools/staged_scanner_gate.py, per-file vs HEAD)
 #   3. canon drift check         (tools/canon_drift_check.py --check)
 #   4. repo-wide anti-pattern ratchet (tools/anti_pattern_gate.py --check)
@@ -39,6 +43,33 @@ if command -v python3 >/dev/null 2>&1; then
     echo "[Gate] Changeset is focused."
 else
     echo "[Gate] python3 not found -- passing loud (gate unrunnable)"
+fi
+echo ""
+
+# ─── Check 1b: stale-index guard ───
+# Runs BEFORE the scanner, because the scanner reads the INDEX
+# (`git show :0:<path>`): with a stale index it certifies a version nobody has
+# on disk -- and that version is what would be COMMITTED. Measured 2026-10-11:
+# a commit rejected by the scanner was then corrected in the worktree and
+# re-committed without `git add`, so HEAD recorded the opposite of the truth.
+# The tell was a staged diff of 68 insertions(+) and 0 DELETIONS for an edit
+# that removed words -- a shape nobody reads at the moment it happens.
+echo "[IndexDrift] Checking that every staged path matches the worktree..."
+if [ -f "$SCRIPT_DIR/tools/index_drift_check.py" ]; then
+    # Capture first, then print: `cmd | tail` would make $? tail's status, not
+    # the check's, and a gate that reads the wrong exit code is worse than none.
+    DRIFT_OUT=$(python "$SCRIPT_DIR/tools/index_drift_check.py" 2>&1)
+    DRIFT_EXIT=$?
+    echo "$DRIFT_OUT" | tail -12
+    if [ $DRIFT_EXIT -ne 0 ]; then
+        echo ""
+        echo "[IndexDrift] A staged path has unstaged edits: the commit would"
+        echo "[IndexDrift] carry the version from before that edit."
+        echo "[IndexDrift] Fix: git add <path>   (or declare ALLOW_STALE_INDEX=1)"
+        exit 1
+    fi
+else
+    echo "[IndexDrift] guard not found -- passing loud (guard unrunnable)"
 fi
 echo ""
 

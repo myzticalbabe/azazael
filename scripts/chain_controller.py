@@ -98,6 +98,17 @@ JOBS: dict[str, tuple[Any, int, str, str, tuple[str, ...]]] = {
     # so it gets its own nightly slot with a generous budget.
     "graphify": ("nightly:02:00", 5400, "py", "graphify_refresh.py", ()),
     "liveness": (1800, 120, "py", "audit_loop_liveness.py", ()),
+    # Capability liveness (registry L-5, 2026-10-11): the instrument that
+    # answers "has this mechanism ever actually RUN?" had tests and no
+    # scheduler -- a rule nobody runs, so a capability could be present,
+    # reachable and never executed while every other instrument read healthy.
+    # It is an in-memory comparison of counters against one state store, so
+    # the only unbounded part is its in-process `artifact_freshness` call,
+    # which the `artifacts` job above budgets 300s; 420 leaves headroom for
+    # that plus the walk and stays under the 1800s interval, so at most one
+    # run is in flight. Display output, non-mutating: not in MUTATING_JOBS,
+    # so it also runs in observation-only mode.
+    "capability-liveness": (1800, 420, "py", "tools/capability_liveness.py", ()),
     "maint": ("nightly:03:00", 1800, "py", "nightly_maintenance.py", ()),
     # Meta-reflection distill loop (2026-09-26, skill azazael-meta-reflection):
     # one generalized instruction per day from trial trajectories, validated
@@ -115,8 +126,19 @@ JOBS: dict[str, tuple[Any, int, str, str, tuple[str, ...]]] = {
 #: Without this it logged a false failure every 1800s and drowned the real
 #: ones. The oracle that reads _SKIP_RC (silent_crashes) is told the same
 #: thing, so rc=1 here is never mistaken for a silent crash.
+#: `capability-liveness` rc=1 is the same shape as terence: the tool exits 1
+#: when it FOUND a capability that has never executed, or when the state store
+#: could not be read at all -- the instrument reporting blindness is it
+#: WORKING, not crashing (its docstring fixes those two as the only meanings
+#: of 1). Its row still carries returncode, stdout and stderr either way, so
+#: nothing is discarded. Residual, stated rather than hidden: an unhandled
+#: exception ALSO exits 1, so this carves that code out of `ok` for this job
+#: and relies on `silent_crashes` reading _SKIP_RC from source plus the
+#: captured stderr to tell a report from a crash -- exactly the trade
+#: `terence` already carries.
 _SKIP_RC: dict[str, tuple[int, ...]] = {"train": (1,), "tensor": (3,),
-                                       "terence": (1,)}
+                                       "terence": (1,),
+                                       "capability-liveness": (1,)}
 
 JOB_PRIORITY = {name: index for index, name in enumerate(JOBS)}
 

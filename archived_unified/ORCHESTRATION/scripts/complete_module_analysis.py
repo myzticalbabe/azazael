@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Comprehensive Analysis of ALL Python Modules on C:\ Drive
+Comprehensive Analysis of ALL Python Modules on the system drive
 - Complete module discovery and analysis
 - Full dependency mapping
 - Error detection and fixes

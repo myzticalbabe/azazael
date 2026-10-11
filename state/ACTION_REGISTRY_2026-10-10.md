@@ -122,6 +122,31 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
   Both totals are counted by hand from `list_directory`, so treat them as ±3, not exact;
   the ORDER OF MAGNITUDE is the finding. Original text follows; **the corrected counts
   are the ones to work from**):
+  RE-MEASURED 2026-10-11 (worker 5) with machine-generated listings instead of a hand
+  tally — `glob` returns its own `count`, and a `*.bat` pattern **cannot** match
+  `x.bat.bak-...`, so live and stale counts separate exactly. **Three numbers in the
+  block above are wrong; the ORDER OF MAGNITUDE finding holds and is strengthened.**
+  - `scripts/*.bat` = **19 live — reproduces EXACTLY.** But the stale copies are
+    **6, not 5** (`glob scripts/*.bak-*` = `open_aoa_monitor`, `open_lilith_live_monitor`,
+    `refresh_oa_data`, `run_chain_live`, `run_evolution_cycle_314t`,
+    `run_evolution_cycle_hyper` — all `.bat.bak-20261009-135335`), so the directory holds
+    **25 `.bat`-named files, not 24**. The missed one is the `hyper` cycle.
+  - `scripts/` = **279 visible files (+1 dotfile `.progress_anchor.md` = 280) + 6
+    subdirectories**, so "~258" **understates it by ~21** — the row erred in the safe
+    direction, but it is still a wrong number.
+  - `tools/` = **191 files (173 `.py` + 18 non-`.py`) + 5 subdirectories.** The 18
+    non-`.py` reproduces EXACTLY, but the total is **not stable**: it read 190 at an
+    earlier listing in the same session and 191 minutes later, because concurrent work
+    in this session created `tools/index_drift_check.py` while the row was being counted.
+  - The named set (9 tools + 5 scripts) **reproduces** — all 9 exist (`claim_guard.py`,
+    `hook_dispatch.py`, `learner_bridge.py`+`learner_bridge2.py`, `module_ownership.py`,
+    `terence_watch.py`, `command_center.py`, `chain_watchdog.py`, `chain20.py`,
+    `run_azazael_chain.py`).
+  - **THE METHOD FINDING:** a hard-coded count in a row DECAYS, and this row's own
+    directory demonstrated it by gaining a file mid-session. Any count here must carry
+    the date AND the instrument that produced it; a bare number is a claim about a tree
+    that no longer exists. `tools/chain_watchdog.py` is still the unscheduled supervisor
+    the row flags.
   `claim_guard.py`, `hook_dispatch.py`, `learner_bridge*.py`, `module_ownership.py`,
   `terence_watch.py`, `command_center.py`, `chain_watchdog.py` (unscheduled supervisor!),
   `chain20.py`, `run_azazael_chain.py`, ~30 probe/patch one-shots (`fix_swallows.py` et al
@@ -184,8 +209,9 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
   SUBAPP-ENTRY rows, not a code defect. It also generates clean (CODEBASE_AUDIT_TODO.md
   S28-2: 11 styles, 0 defects), so CUT loses working capability. No first-class caller
   was invented to satisfy this row.
-- [ ] S-4 gateway (Rust :18080) + gateway-go (:18081): never run, unconfigured ports,
-  zero `src/` refs. Run + configure or cut both.
+- [~] S-4 gateway (Rust :18080) + gateway-go (:18081): never run, unconfigured ports,
+  zero `src/` refs. Run + configure or cut both. **The "cut both" half is now SETTLED —
+  see the disposition below: RETAINED-WITH-REFERENT. The "never run" half stays open.**
   MEASURED 2026-10-10 (worker 7): **the port claim in this row is WRONG and must be
   corrected.** Both crate trees exist (`gateway/Cargo.toml` + `gateway/src/main.rs`;
   `gateway-go/go.mod` + `gateway-go/main.go`) and no `src/` module references either
@@ -195,9 +221,33 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
   `CORE/web_dashboard.py:22` (`--port 18080`); `UTILITIES/KLINK/klink.py:564` merely
   probes `127.0.0.1:18080`; `config/ecosystem_config.yaml:55` sets `port: 18080`.
   So "gateway (Rust :18080)" conflates the crate with llama-server's port — a row that
-  mis-states its own evidence. DISPOSITION = CUT both crates (nothing in `src/` loses a
-  referent) — owner executes; the port attribution must be fixed first, or a future
-  reader will delete llama-server's configuration believing it is the gateway's.
+  mis-states its own evidence. **That port correction HOLDS and is kept:** `18080` is
+  llama-server's, confirmed at `config/config.yaml:21` and `config/production.yaml:35`
+  (both `llama_url: "http://127.0.0.1:18080"`, inside a `llama:` block whose `backend:` is
+  `"llama-server"`). Do NOT delete either believing it is the gateway's.
+  MEASURED 2026-10-11 (worker 5) — **the DISPOSITION's premise is FALSE and is corrected:
+  "nothing in `src/` loses a referent" is true of `src/` ONLY, and the row generalized it
+  to the whole repo.** `tools/graph_semantic/` references both crates deliberately:
+  - `coverage_layer.py:183-189` — a `POLYGLOT` entry `("proj_gateway_go", "gateway-go —
+    OpenAI-compatible inference gateway", "gateway-go/go.mod", ...)` whose rationale is
+    quoted from the crate's own manifest ("front end over llama-server backends ... go.mod
+    module gateway-go, go 1.26.3").
+  - `coverage_layer.py:208-217` — **the bridge.** Line 209 collects `go_sources` as every
+    node whose `source_file` starts with `gateway-go/`; line 213 adds
+    `add_edge("proj_gateway_go", n["id"], "references", ...)` for each, capped at 25
+    (:215), and :217 prints `gateway-go nodes linked: N`. This is the fix for the
+    degree-0 polyglot island (see `semantic_layer.py:461-462`, `graph_polyglot_islands`),
+    so removing the tree makes the bridge dangle rather than disappear quietly.
+  - `README.md:138-140` lists `gateway-go` among the polyglot islands the coverage layer
+    closes; `semantic_layer.py:461-462` records the same node citing `gateway-go/go.mod`.
+  Both crate trees exist: `gateway/Cargo.toml`, `gateway/Cargo.lock` (a file this row does
+  not name), `gateway/src/main.rs`, `gateway-go/go.mod`, `gateway-go/main.go`.
+  DISPOSITION = **RETAINED-WITH-REFERENT — nothing was cut.** CUT is not safe while the
+  coverage layer bridges the tree; either the bridge is removed in the SAME change
+  (`coverage_layer.py`'s `POLYGLOT` entry + the `go_sources`/`add_edge` block, plus the
+  `README.md` and `semantic_layer.py` references) and the crate cut with it, or the crates
+  stay and this row closes. Splitting the two would leave a graph edge into a deleted
+  tree. The row's "never run / unconfigured ports" half is untouched here and remains open.
 - [x] S-5 AOA: live standalone but inward-only (zero `CORE`/`ORCHESTRATION` importers).
   Invoke from runtime or accept standalone status explicitly.
   MEASURED 2026-10-10 (worker 7) — **CLOSED as ACCEPTED-STANDALONE.** A search of `src/`
