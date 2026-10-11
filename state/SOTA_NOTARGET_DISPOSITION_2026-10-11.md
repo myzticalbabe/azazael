@@ -147,3 +147,28 @@ precision. Proven: 7 new tests (`tests/test_delegation_person_context.py`)
 Still open: PAMS behavior-chain producer for `choice_features`
 (`persist`/`fair` schema unwritten anywhere), person store/table, scheduled
 fitter runs — the L4/L5 climb.
+
+## Addendum — L4 loop closed (2026-10-11 later; commit with this addendum)
+
+Producer: `delegation.py:_chain_record` deposits `psyche-chain` /
+`behavior_action` rows on the three rendezvous outcomes — worm
+`persist`/`defer` (planned) at park, owner `fair`/`share` (planned) on
+answer, owner `fair`/`withhold` (unplanned) on waited timeout. Best-effort
+tap, same discipline as `_announce`; skipped under pytest unless
+`PSYCHE_CHAIN_TEST=1` (production-log quarantine: test deposits would later
+fit as owner behavior — the failure the guard exists to prevent).
+
+Consumer: `technique_heartbeat.py:psyche_fit_step` (hourly
+Azazael-TechniqueHeartbeat leg, guarded into `out["steps"]["psyche_fit"]`).
+Reads ≤500 chain rows, validates the `choice_features` vocab (malformed
+counted, never fitted), fits per-actor with the REAL functions, writes the
+OWNER snapshot only when ≥1 trait fitted (abstention never clobbers),
+records a `psyche-fit`/`theta_fit` report row whenever chains existed.
+Tri-state verdicts: `no-input` (ok:true, healthy idle, nothing written),
+`abstained-below-threshold`, `fitted`, `leg-failed` (ok:false).
+Live probe: `{"ok": true, "n_rows": 0, "verdict": "no-input"}` on the real
+store. Fleet-actor executor emission deliberately NOT built (thin trait
+semantics for a fleet + hot-path touch; documented follow-up).
+Proven: 7 loop tests hermetic on a fake store (`test_psyche_fit_loop.py`);
+one self-caught test bug fixed at analysis (thread-race row order asserted
+as ordered — assertion relaxed to order-insensitive, code was correct).

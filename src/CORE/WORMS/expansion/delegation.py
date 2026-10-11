@@ -33,6 +33,7 @@ never a hang and never a guessed answer.
 
 from __future__ import annotations
 
+import os
 import threading
 import time
 import uuid
@@ -184,6 +185,45 @@ def _person_context() -> Dict[str, Any]:
         return {}
 
 
+def _chain_emit_allowed() -> bool:
+    """Whether a behavior-chain row may be deposited now.
+
+    Production-log quarantine (cf. conftest's AZAZAEL_CYCLE_LOG): test runs
+    must not deposit chains the fitter would later fit as owner behavior.
+    Skipped under pytest unless PSYCHE_CHAIN_TEST=1 forcibly enables the
+    path for the hermetic tests (which use a fake store, never the live one).
+    """
+    if os.environ.get("PSYCHE_CHAIN_TEST") == "1":
+        return True
+    return not os.environ.get("PYTEST_CURRENT_TEST")
+
+
+def _chain_record(actor: str, kind: str, action: str, planned: bool,
+                  decision_id: Any = None, worm: Any = None) -> None:
+    """Deposit one behavior-chain row for the PSYCHE fit loop (L4 producer).
+
+    Actors: the asking worm (`persist`/`defer`, planned) at park, the owner
+    (`fair`/`share`, planned) on answer, the owner (`fair`/`withhold`,
+    unplanned) on waited timeout. Best-effort: never raises, never blocks,
+    never fires under pytest (see _chain_emit_allowed).
+    """
+    if not _chain_emit_allowed():
+        return
+    try:
+        from CORE.local_memory import get_memory_store
+        store = get_memory_store()
+        if store is None:
+            return
+        store.record_event(
+            source="psyche-chain", event_type="behavior_action",
+            data={"actor": str(actor or "?")[:80], "kind": kind,
+                  "action": action, "planned": bool(planned),
+                  "decision_id": decision_id, "worm": worm},
+            severity="info", tags=["psyche", "behavior-chain"])
+    except Exception as exc:
+        note_failure("delegation:chain-record", exc)
+
+
 def ask_owner(question: str, *,
               decision_id: Optional[str] = None,
               worm: Optional[str] = None,
@@ -214,6 +254,7 @@ def ask_owner(question: str, *,
     if person:
         payload["person"] = person
     _announce("%s.%s" % (QUESTION_TOPIC, worm or "unknown"), payload, bus)
+    _chain_record(worm or "worm", "persist", "defer", True, did, worm)
     t0 = time.monotonic()
     got = ev.wait(float(timeout_s))
     with _lock:
@@ -221,6 +262,7 @@ def ask_owner(question: str, *,
     waited = time.monotonic() - t0
     if got and slot is not None and slot[2]:
         return slot[1]
+    _chain_record("owner", "fair", "withhold", False, did, worm)
     raise ClarificationTimeout(q, decision_id=did, worm=worm, waited_s=waited)
 
 
@@ -238,6 +280,7 @@ def answer_question(decision_id: str, answer: Any,
         slot[0].set()
     _announce("%s.%s" % (ANSWER_TOPIC, decision_id),
               {"decision_id": decision_id, "answered": True}, bus)
+    _chain_record("owner", "fair", "share", True, decision_id)
     return True
 
 
