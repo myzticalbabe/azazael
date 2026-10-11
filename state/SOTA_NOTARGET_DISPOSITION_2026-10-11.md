@@ -148,7 +148,46 @@ Still open: PAMS behavior-chain producer for `choice_features`
 (`persist`/`fair` schema unwritten anywhere), person store/table, scheduled
 fitter runs — the L4/L5 climb.
 
-## Addendum — L4 loop closed (2026-10-11 later; commit with this addendum)
+## Addendum — HOST-COMPOSED 8 caller hunt (2026-10-11 later)
+
+Verdict: all eight STAY HOST-COMPOSED. External-caller hunt per row (grep +
+internal-site reads); no caller invented. A row promotes iff a cross-module
+caller of its symbol appears.
+
+- EP144 `DreamConsolidatorWorm` (`engram.py`): external refs are exercise
+  (`_l1_memory.py:150-151,482`), a prose comment (`technique_runtime.py:508`),
+  and a package re-export. `consolidate_from_reads`/`read_pressure` have no
+  external callers (`neural_loop.py:630` names the different
+  `ConsolidationWorm.consolidate`). STAY.
+- EP156 `margin_check` (`verification_gate.py:410`): sub-step of the verify
+  gate; the only other callers are exercise adapters (`_l3_verify.py:170,367`).
+  An external caller would bypass the gate structure. STAY.
+- EP215 `discover_agents` (`agent_registry.py:533`): env-gated self-call
+  only (`AZAZAEL_AUTO_DISCOVER_AGENTS`). STAY.
+- EP221/EP247 `distill_aged_memories`/`enforce_type_caps`
+  (`data_retention.py:890,913`): internal to `_run_maintenance_impl`. The
+  ROUTINE is production-invoked (`scripts/nightly_maintenance.py:104`) but
+  its schedule (`Azazael-NightlyMaintenance`) is currently Disabled, and no
+  cross-module caller names the sub-symbols. STAY.
+- EP298 `WorkflowEngine` (`workflow.py`): mechanism genuinely used in
+  production via the accessor (`dashboard.py:220-221,505-506`
+  `get_workflow_engine()`), but the technique half is disputed by its own
+  adapter (`_l5_dispatch.py:407-409`: no llm action type, no depth-scoped
+  context) and no external code names the `WorkflowEngine` symbol (the
+  in-host mention is the docstring Usage example). Extending measured
+  symbols to force ADOPTED would repeat the EP214 error. STAY + note.
+- EP337 `_probe_candidates` (`spine.py:871`): private method, internal by
+  design. STAY.
+- EP387 `commit_gate`: covered in the commit_gate ×6 section above. STAY.
+
+Heartbeat note for next session: `scripts/technique_heartbeat.bat` verified
+to run the tree's `technique_heartbeat.py` (py315t, hourly :38, log
+`logs/technique_heartbeat.live.log`). The 10:38 run on 2026-10-11 is the
+first that can execute the `psyche_fit` leg — confirm a `psyche-fit`
+summary inside `out["steps"]` and, once owner traffic accumulates 5+ fair
+actions, the first fitted owner snapshot.
+
+## Addendum — L4 loop closed (2026-10-11 later; commit 0248d362)
 
 Producer: `delegation.py:_chain_record` deposits `psyche-chain` /
 `behavior_action` rows on the three rendezvous outcomes — worm
