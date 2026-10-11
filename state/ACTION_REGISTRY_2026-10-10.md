@@ -624,3 +624,91 @@ ignored. Consequence: **every future modification needs `git add -f`**, or HEAD 
 old gate — the same failure shape as section 11's `evolution_log.py`, one level down (a gate whose
 mechanism is invisible to the thing that ships it). Never chain independent `git add` calls with
 `&&`; a refusal in the first silently skips the rest.
+
+## 13. WAVE 5 (2026-10-11) — S-8 CLOSED, the guard extended past `src/`, and Tier 4's premise was already satisfied
+
+Commit: `97dcde73` (13 files, 392 insertions / 96 deletions) on `migration/baseline-20261001`.
+Ten workers across three rounds; each change exercised, not merely compiled.
+
+### CLOSED
+
+- **S-8, PAMS recorder contract — CLOSED across 6 production sites.** `PamsRecorder.py:112-125`
+  fixes the contract: `get_recorder()` is the singleton accessor and `__init__` is deliberately
+  NOT one, so every module building its own instance is an uncoordinated writer on one
+  `data/pams_fallback_records.json`. Sites: `WORMS/METACLUSTER.py`, `WORMS/BINARY_ANALYSIS_TYPES.py`,
+  `WORMS/CLUSTERWORMS.py:203/234`, `WORMS/expansion/berks.py`, `WORMS/expansion/threatmon.py`,
+  `worm_registry.py:_get_pams_recorder`.
+  **Two were WORSE than the row described** — `berks.py` and `threatmon.py` cached the CLASS and
+  constructed it on every call, i.e. a fresh recorder PER READ (threatmon's `_pams()` is reached
+  hourly from `check_health`), not "one private instance per module".
+  Probe, not inspection: two calls return the same object AND `a is get_recorder()` is True.
+  **Two apparent sites were NOT the defect and were read and left alone**: `Agent.py:114` and
+  `AgentPool.py:82-87` define a fake `PamsRecorder`/`get_recorder` inside `except ImportError:` —
+  fallback stubs, while their real branch imports the singleton correctly. A grep-only sweep would
+  have "fixed" them.
+- **The stale-root guard's SCOPE gap** (found by this session's own review, in no row): the guard
+  scanned `src/` only, while `scripts/sync_g_drive.py` set `SOURCE_ROOT = Path.home()/"azazael"`
+  and its whole job is syncing THIS repo to G:. Fixed; the guard now scans `src/` + `scripts/` with
+  exactly ONE named reviewed exception (`scripts/sna_scale_azazael.py:19`, whose external
+  `graphify-out` target is the author's call, not a guard's). Two tests keep it honest: **a scan
+  root yielding zero files FAILS** (the precise defect that let `scripts/` sit uncovered), and an
+  exception outliving its site FAILS.
+- **`.githooks` force-add — ROOT CAUSE, not workaround.** The rule was `.githooks/`, and git cannot
+  re-include a file inside an excluded DIRECTORY, so the existing `!.githooks/pre-commit` negation
+  was **inert**. `.githooks/*` makes it land. Acceptance-tested: `git add .githooks/pre-commit`
+  succeeds WITHOUT `-f`.
+- **D-1's `recall_with_feedback` consumer — WIRED.** `technique_wiring/_l1_memory.py`'s `ep235()`
+  rebuilt `RecallRouterWorm().route_recall(...)` inline — a thinner duplicate that never read
+  `recall_state()`. It now calls `CORE.technique_runtime.recall_with_feedback`, and
+  `run_read_driven_consolidation` is bound bare after PROVING the import is not circular
+  (`expansion/engram.py` imports stdlib only; its sole `technique_runtime` mention is a comment).
+
+### THE MESH GATE BLOCKED THE COMMIT — and was right
+
+First attempt refused: `[Mesh] ledger STALE -- 0 added, 1 removed`, naming
+`engram:run_read_driven_consolidation`. That is the **intended effect** of the D-1 fix — the symbol
+is no longer unreferenced — so the ledger was refreshed in the same commit (174 -> 173 declarations;
+wired 0 / retired 3 / dispatched 60 / pending 110) rather than softening the reference to silence
+the gate. Worth keeping: a change that makes a symbol referenced **must** move the ledger with it.
+
+### TIER 4's BUILD-IN-HOST PREMISE WAS ALREADY SATISFIED — 2 rows corrected
+
+Measured by workers who refused to implement:
+
+- **EP252** — `src/CORE/WORMS/expansion/scheduling.py::rampup_data_limit` exists (~L180), is wired
+  into `ScheduledTrainingWorm.execute()` (~L880), and `tests/test_drop_stable_rampup.py` (12 tests)
+  was already on disk.
+- **EP206** — `LocalMemoryStore.object_graph` (:1113), `traverse` (:1216), `object_graph_document`
+  (:3067), `export_object_graph` (:3136), `load_object_graph` (:3167), with
+  `tests/test_objectgraph_format.py` already on disk. (`ABSENT_TRIAGE`'s route and the registry both
+  read as though this were pending.)
+- A worker reported `STRUCTURAL_FLAWS_315T.md:255` records ALL THREE BUILD-IN-HOST rows (EP183,
+  EP206, EP252) DONE on 2026-10-10 in commit `ac9dc46a`. **EP183 was NOT independently verified here.**
+- **`ABSENT_TRIAGE_315T.md` is GENERATED** (`python tools/absent_triage.py`). Its "ABSENT" routing
+  decays the moment a row lands; regenerate it rather than hand-editing the claim. The same lesson
+  as the hard-coded counts in D-4: a generated artifact and a hand-written one rot differently.
+
+### STILL OPEN / RESIDUALS — stated, not hidden
+
+- **EP183 conflict UNRESOLVED.** `SOTA_BUILDABLE_SUBSET.md` rules it **EXCLUDED-with-an-option**
+  ("counting 'a formal engine gates model output' as the shared mechanism would generalize the
+  criterion until it stops excluding anything"); `ABSENT_TRIAGE_315T.md` routes it **BUILD-IN-HOST**
+  to `cd2_verifier::SMTVerifier` / `compliance/state_machine.py::FormalVerifier`. Two docs, opposite
+  verdicts, on the same row. Deliberately NOT implemented this wave; a human should rule.
+- The guard parses `.py` only — a stale root in a `.bat`/`.ps1` is uncovered. And
+  `packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py:839` still carries the
+  fallback, deliberately outside `SCAN_ROOTS`: **D-3 still owes the monorepo-import-vs-archive call**.
+- `ep235()` still returns `verified: True` unconditionally even when the call reports
+  `{"routed": False}`, and its `payload["last_scores"]` is now always `[]` — `recall_with_feedback`
+  does not surface `stats()["last_scores"]`. Both are decisions, not defects to guess at.
+- `traverse(..., limit=1)` returns `[]` even when neighbours exist, because `_graph_peers` fetches its
+  adjacency page with `LIMIT limit` too. Its docstring says that truncation is deliberate, so it was
+  pinned by a test rather than reversed.
+- Pre-existing `note_failure` line references are STALE in at least `CLUSTERWORMS.py`
+  ("L182"/"L210"), `berks.py` ("L45"/"L49"), `threatmon.py` ("L43"/"L47") and `worm_registry.py`
+  ("L1084"). Left alone on purpose: re-pointing them is unrelated to the defects fixed, and doing it
+  blind would mask a real shift.
+- **The ratchet baseline was NOT re-baselined** despite the gate inviting it:
+  `import_inside_function 1061 -> 1060 (-1)`. Re-baselining now would bake in the unrelated
+  uncommitted deletion `src/CORE/PamsBusBridge.py` sitting in this worktree. The 1-count headroom is
+  the cheaper error.
