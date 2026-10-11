@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from PSYCHE import affect as A
 from PSYCHE import identify as I
+from PSYCHE.traits import default_theta_path
 
 PMB_DB = (Path.home() / ".pmb" / "workspaces" / "04a151a73354"
           / "events.sqlite")
@@ -185,7 +186,42 @@ def _fit_on_pairs(sits: list, pads: list) -> dict:
             "prior_mse": round(prior_mse, 5)}
 
 
+def emit_theta(report: dict) -> str:
+    """Persist a fitted theta as the live person snapshot (producer half).
+
+    Writes ONLY on verdict "ok": emitting on insufficient-signal would
+    publish a neutral fiction as a fitted person, violating this tool's
+    honesty contract. Returns a human-readable outcome line; never raises.
+    """
+    try:
+        if not isinstance(report, dict) or report.get("verdict") != "ok":
+            return ("emit-theta: REFUSED (%s) - snapshot not written"
+                    % (report.get("verdict", "no-report")
+                       if isinstance(report, dict) else "no-report"))
+        theta = report.get("theta", {}) or {}
+        scores = {d: round(float(theta[d]), 3) for d in I.DOMAINS
+                  if isinstance(theta.get(d), (int, float))
+                  and 1.0 <= float(theta[d]) <= 5.0}
+        if not scores:
+            return "emit-theta: REFUSED (no usable domain scores)"
+        snapshot = {"name": "live-fit", "source": "psyche_live_fit",
+                    "domain_scores": scores, "mse": report.get("mse"),
+                    "n_used": report.get("n_used")}
+        dest = default_theta_path()
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(snapshot, indent=2, sort_keys=True),
+                        encoding="utf-8")
+        return "emit-theta: wrote %s" % dest
+    except Exception as exc:
+        return "emit-theta: FAILED (%s)" % exc
+
+
 if __name__ == "__main__":
     import sys as _sys
-    limit = int(_sys.argv[1]) if len(_sys.argv) > 1 else 120
-    print(json.dumps(live_fit(limit), indent=2, default=str))
+    args = [a for a in _sys.argv[1:] if not a.startswith("--")]
+    emit = "--emit-theta" in _sys.argv[1:]
+    limit = int(args[0]) if args else 120
+    report = live_fit(limit)
+    print(json.dumps(report, indent=2, default=str))
+    if emit:
+        print(emit_theta(report))

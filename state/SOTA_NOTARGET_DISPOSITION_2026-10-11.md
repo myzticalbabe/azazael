@@ -59,9 +59,11 @@ Target set to the adapter's `where` verbatim. Missing precondition in parenthese
 ## EP350 (reward-gated distillation) — ACCEPT-GAP with complete evidence
 
 `gate_distillation` (`rubric_evolution.py:89`) has zero production callers.
-Candidate consumers checked and excluded: `PSYCHE/distill.py` is a toy
-person-simulator lab (BC/DAgger/dDPO over synthetic traits), imported only by
-`_l6_evolve.py:462` exercise; GRPO trains real policies but nothing gates a
+Candidate consumers checked and excluded: `PSYCHE/distill.py` is a REAL
+distillation mechanism at toy calibration scope (corrected 2026-10-11: a
+5-worker fan-out verified the math claimed — softmax/BC/DAgger/log-interp —
+is present; "toy scale" is calibration scope, not fakery), still L0 with
+only the `_l6_evolve.py:462` exercise importer; GRPO trains real policies but nothing gates a
 distillation decision on gain; `record_rubric_cycle` cites the ledger without
 gating. The replay protocol (`ingest_replay_trajectory`,
 `replay_offline_step`) is unfed. Revisit when a real policy-distillation loop
@@ -119,3 +121,29 @@ only EP214+EP227 flipped, zero collateral.
 
 Score moved 106→104 by precision, same class as the 10 verified de-adoptions
 in `23f5fa5f`. Revisit any row the day its missing precondition lands.
+
+## Addendum — PSYCHE production invocation (user correction, 2026-10-11 later)
+
+CORRECTION: this file called PSYCHE "a toy person-simulator lab". Falsified
+by a 5-worker fan-out (inventory, reach audit, consumer map, mechanism
+adjudication, git history): PSYCHE is six real phases (~1500 lines, gated
+suites, honest-scope calibration). Reach was L2 max (`affect`/`identify` via
+manual `tools/psyche_live_fit.py`), zero L3+; git history shows it was NEVER
+wired to production (sole `PSYCHE.distill` string ref is the `b9fd796f`
+exercise adapter; its `run_all` drivers were deleted in `0426a7fc`).
+
+First live edge landed (commit with this addendum): the delegation channel
+now enriches its question announcement with the fitted person theta when a
+snapshot exists, fail-open and byte-identical when absent —
+`src/CORE/WORMS/expansion/delegation.py:_person_context` (lazy PSYCHE
+import, OSError-silent, invalid-shapes recorded, never raises).
+Producer half: `tools/psyche_live_fit.py --emit-theta` persists the fitted
+domain-score snapshot to `PSYCHE.traits.default_theta_path()` (REFUSES on
+insufficient-signal, per the tool's honesty contract). Shared shape:
+`{name, source, domain_scores, mse, n_used}` — domain scores only, because a
+live fit never measures facet detail and expanding it would fabricate
+precision. Proven: 7 new tests (`tests/test_delegation_person_context.py`)
++ emit accept/refuse probe; 18 delegation + 50 PSYCHE tests green.
+Still open: PAMS behavior-chain producer for `choice_features`
+(`persist`/`fair` schema unwritten anywhere), person store/table, scheduled
+fitter runs — the L4/L5 climb.

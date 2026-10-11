@@ -32,7 +32,9 @@ what loads).
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
@@ -228,3 +230,27 @@ def keying_balance() -> dict[str, dict[str, int]]:
         minus = sum(1 for d, _f, k, _t in ITEMS if d == domain and not k)
         out[domain] = {"+": plus, "-": minus}
     return out
+
+
+#: Live-store filename for a fitted person theta (domain-score snapshot JSON).
+#: Home-based, like the PAMS live store (`~/.pams`) and the memory store
+#: (`~/.azazael/memory_store.db`), so every checkout tree shares one person
+#: record. This is a LIVE data path, never a project-root fallback: the
+#: stale-root guard covers `Path.home() / "azazael"` (the old checkout),
+#: while `.azazael` is the live store directory every tree already shares.
+#:
+#: Shape note: the file holds FITTED DOMAIN SCORES
+#: (`{"name", "source", "domain_scores": {D: 1..5}, "mse", "n_used"}`), not a
+#: TraitVector. A live fit (identify-style descent) yields domain levels only;
+#: expanding them into facet detail would fabricate precision the fit never
+#: measured, so the snapshot keeps exactly what was fitted. Readers must
+#: range-check each score and drop non-numeric values.
+THETA_SNAPSHOT_FILENAME = "person_theta.json"
+
+
+def default_theta_path() -> Path:
+    """Canonical live path for the fitted theta, overridable via PSYCHE_THETA."""
+    override = os.environ.get("PSYCHE_THETA")
+    if override:
+        return Path(override)
+    return Path.home() / ".azazael" / THETA_SNAPSHOT_FILENAME
