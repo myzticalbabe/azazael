@@ -60,7 +60,13 @@ never be reported as health.
 Usage:
     python tools/evolution_progress.py
     python tools/evolution_progress.py --json
-Exit: 0 IMPROVING / 1 DEGRADED / 2 NO_DATA
+Exit: 0 IMPROVING / 1 DEGRADED / 2 NO_DATA / 3 NO_INPUT
+
+NO_DATA MEANS IT READ THE LOG AND FOUND NOTHING TO REPORT. NO_INPUT MEANS IT
+COULD NOT READ THE LOG AT ALL. Until 2026-10-11 those were one verdict with one
+exit code, so "my input is missing" was indistinguishable from "the loop
+produced nothing" -- an instrument reporting its own blindness as a measurement
+(action registry item L-5).
 """
 from __future__ import annotations
 
@@ -83,17 +89,13 @@ QD_ZERO_CYCLES = 4        # consecutive "+0 this cycle" before calling QD stalle
 TREND_WINDOW = 8          # cycles used for the margin trend test
 CURRENT_WINDOW = 12       # cycles defining "right now" for the current_* verdict
 
-RE_CYCLE = re.compile(r"^(\S+) seed=(\d+)")
-RE_MORPH = re.compile(r"^(\S+) morph: cycle \d+ adds gene (\S+)")
-RE_STRIP = re.compile(r"^(\S+) morph: stripped prior extra genes from (\d+)")
-RE_BEST = re.compile(r"^(\S+) BEST: (\{.*\})")
-RE_PROMO = re.compile(
-    r"^(\S+) promotion standing: beats=(True|False) margin=([-\d.]+) "
-    r"sprt=(\w+)\(n=(\d+) llr=([-\d.]+) sigma=([-\d.]+)\) streak=(\d+)/(\d+)")
-RE_QD = re.compile(r"^(\S+) qd archive: .*?\((\+\d+) this cycle\)")
-RE_CONV = re.compile(r"^(\S+) converged at gen (\d+)")
-RE_PROMOTED = re.compile(r"^(\S+) (?:PROMOTED|promotion committed|"
-                         r"promote: wrote|champion promoted)")
+# The log's line vocabulary is defined once, in tools/evolution_log.py, so this
+# reader cannot drift from the other three. RE_PROMO here is the full-depth
+# standing line (sprt/llr/sigma/streak), not the short form the other analysts use.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from evolution_log import (RE_BEST, RE_CONV, RE_CYCLE, RE_MORPH,  # noqa: E402
+                           RE_PROMOTED, RE_QD, RE_STRIP,
+                           RE_PROMO_SPRT as RE_PROMO, iter_lines)
 
 STOPWORDS = {
     "which", "there", "their", "would", "about", "never", "always", "these",
@@ -106,12 +108,40 @@ TOOL_TOKEN = re.compile(r"\b([a-z][a-z0-9_]{4,})\b")
 MEMORY_TOOLS = {"record_batch", "record_keyed_fact", "record_fact", "record_goal",
                 "record_activity", "mark_lesson_followed", "prepare"}
 
+#: BEST lines the parser could not read. This was a bare `pass`, so a dropped line
+#: silently removed a cycle from the comparability data; it is counted and
+#: reported instead. A non-empty count is a real hole in the measurement.
+BEST_PARSE_FAILURES: list[str] = []
+
+
+def _input_state(path: str) -> dict:
+    """What the reader actually got, so NO_DATA cannot mean two things.
+
+    MEASURED (action registry item L-5): this tool reported NO_DATA with the same
+    message and the same exit code whether the log was absent or present-and-empty,
+    which made "I could not read my input" and "my input says the loop produced
+    nothing" the same report. This states which of the two actually happened.
+    """
+    if not os.path.exists(path):
+        return {"path": path, "found": False, "bytes": 0, "unreadable": True,
+                "reason": "log not found"}
+    try:
+        size = os.path.getsize(path)
+    except OSError as exc:
+        return {"path": path, "found": True, "bytes": 0, "unreadable": True,
+                "reason": "stat failed: %s" % exc}
+    if size == 0:
+        return {"path": path, "found": True, "bytes": 0, "unreadable": False,
+                "reason": "log exists but is empty"}
+    return {"path": path, "found": True, "bytes": size, "unreadable": False,
+            "reason": "read"}
+
 
 def parse(path: str) -> dict:
     if not os.path.exists(path):
         return {}
     cycles, cur = [], None
-    for line in open(path, encoding="utf-8", errors="replace"):
+    for line in iter_lines(path):
         line = line.rstrip("\n")
         m = RE_CYCLE.match(line)
         if m:
@@ -137,8 +167,12 @@ def parse(path: str) -> dict:
                 genes = json.loads(m.group(2).replace("'", '"'))
                 cur["best"] = genes
                 cur["schema"] = cur["schema"] or _schema_of(genes)
-            except Exception:
-                pass
+            except Exception as exc:
+                # Recorded rather than swallowed. A BEST line that will not parse
+                # silently drops a cycle from the per-schema arm counts, and a bare
+                # `pass` here was also a single-statement handler (a scanner finding).
+                BEST_PARSE_FAILURES.append("%s: %s" % (m.group(1), exc))
+                continue
             continue
         m = RE_PROMO.match(line)
         if m:
@@ -311,7 +345,10 @@ def main() -> int:
     ap.add_argument("--no-write", action="store_true")
     a = ap.parse_args()
 
+    state = _input_state(LOG)
     rep = analyse(parse(LOG))
+    rep["input"] = state
+    rep["best_parse_failures"] = len(BEST_PARSE_FAILURES)
     if not a.no_write and rep.get("verdict") != "NO_DATA":
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         prev = None
@@ -329,7 +366,12 @@ def main() -> int:
         print(json.dumps(rep, indent=2, default=str))
     else:
         if rep["verdict"] == "NO_DATA":
-            print("evolution_progress: NO_DATA - no cycles parsed from the log")
+            if not state["found"] or state["unreadable"]:
+                print("evolution_progress: NO_INPUT - could not read %s (%s)"
+                      % (LOG, state["reason"]))
+                return 3
+            print("evolution_progress: NO_DATA - read %s (%d bytes) but parsed "
+                  "no cycles" % (LOG, state["bytes"]))
             return 2
         print(f"evolution_progress: all-time={rep['verdict']}  "
               f"CURRENT={rep['current_verdict']}  "

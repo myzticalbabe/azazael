@@ -40,14 +40,18 @@ decomposition. Absence of a component must not read as health.
 Usage:
     python tools/fitness_arm_liveness.py
     python tools/fitness_arm_liveness.py --json
-Exit: 0 ALL ARMS LIVE / 1 DEAD OR STARVED ARM / 2 NO_DATA
+Exit: 0 ALL ARMS LIVE / 1 DEAD OR STARVED ARM / 2 NO_DATA / 3 NO_INPUT
+
+NO_DATA MEANS IT READ THE LOG AND FOUND NO `BEST parts:` LINES. NO_INPUT MEANS
+IT COULD NOT READ THE LOG AT ALL. Until 2026-10-11 those were one verdict with
+one exit code, so a missing log reported exactly like a loop that never scored --
+blindness rendered as a measurement (action registry item L-5).
 """
 from __future__ import annotations
 
 import argparse
 import json
 import os
-import re
 import statistics
 import sys
 import time
@@ -57,21 +61,46 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG = os.path.join(ROOT, "logs", "evolution_cycle.log")
 OUT = os.path.join(ROOT, "state", "fitness_arms.json")
 
-RE_PARTS = re.compile(r"^(\S+) BEST parts: total=([-\d.]+) info=([-\d.]+) alert=([-\d.]+)")
-RE_POOLS = re.compile(r"^(\S+) frozen pools: info=(\d+) alert=(\d+)")
-RE_MORPH = re.compile(r"^(\S+) morph: cycle \d+ adds gene (\S+)")
-RE_PROMO = re.compile(r"^(\S+) promotion standing: beats=(True|False) margin=([-\d.]+)")
+# The log's line vocabulary is defined once, in tools/evolution_log.py, so this
+# reader cannot drift from the other three. RE_PROMO here is the short standing
+# line; evolution_progress reads the same line to full sprt depth.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from evolution_log import (RE_MORPH, RE_PARTS, RE_POOLS, RE_PROMO,  # noqa: E402
+                           iter_lines)
 
 ARMS = ("info", "alert")
 ZERO = 1e-9          # a component at or below this contributes nothing
 MIN_POOL_RATIO = 0.10   # an arm with <10% of the largest pool is starved
 
 
+def _input_state(path: str) -> dict:
+    """What the reader actually got, so NO_DATA cannot mean two things.
+
+    MEASURED (action registry item L-5): this tool reported NO_DATA with the same
+    message and the same exit code whether the log was absent or
+    present-without-`BEST parts:` lines, so "I could not read my input" and "the
+    loop never scored a two-arm total" were the same report. This states which.
+    """
+    if not os.path.exists(path):
+        return {"path": path, "found": False, "bytes": 0, "unreadable": True,
+                "reason": "log not found"}
+    try:
+        size = os.path.getsize(path)
+    except OSError as exc:
+        return {"path": path, "found": True, "bytes": 0, "unreadable": True,
+                "reason": "stat failed: %s" % exc}
+    if size == 0:
+        return {"path": path, "found": True, "bytes": 0, "unreadable": False,
+                "reason": "log exists but is empty"}
+    return {"path": path, "found": True, "bytes": size, "unreadable": False,
+            "reason": "read"}
+
+
 def parse(path: str) -> dict:
     if not os.path.exists(path):
         return {}
     parts, pools, arms_seq, cur_gene = [], [], [], None
-    for line in open(path, encoding="utf-8", errors="replace"):
+    for line in iter_lines(path):
         m = RE_PARTS.match(line)
         if m:
             parts.append({"ts": m.group(1), "total": float(m.group(2)),
@@ -162,7 +191,9 @@ def main() -> int:
     ap.add_argument("--no-write", action="store_true")
     a = ap.parse_args()
 
+    state = _input_state(LOG)
     rep = analyse(parse(LOG))
+    rep["input"] = state
     if rep.get("verdict") != "NO_DATA" and not a.no_write:
         os.makedirs(os.path.dirname(OUT), exist_ok=True)
         with open(OUT, "w", encoding="utf-8") as fh:
@@ -172,7 +203,12 @@ def main() -> int:
         print(json.dumps(rep, indent=2, default=str))
     else:
         if rep["verdict"] == "NO_DATA":
-            print("fitness_arm_liveness: NO_DATA")
+            if not state["found"] or state["unreadable"]:
+                print("fitness_arm_liveness: NO_INPUT - could not read %s (%s)"
+                      % (LOG, state["reason"]))
+                return 3
+            print("fitness_arm_liveness: NO_DATA - read %s (%d bytes) but parsed "
+                  "no `BEST parts:` lines" % (LOG, state["bytes"]))
             return 2
         print(f"fitness_arm_liveness: {rep['verdict']}")
         print(f"  cycles: {rep['cycles']}   mean total: {rep['total_mean']}")

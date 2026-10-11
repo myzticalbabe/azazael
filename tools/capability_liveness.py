@@ -38,14 +38,18 @@ USAGE
     python tools/capability_liveness.py --state PATH
 
 Exit codes: 0 = every check either passed or is legitimately dormant;
-1 = at least one capability is present in code and has never executed.
+1 = at least one capability is present in code and has never executed, OR the
+    state store could not be read -- an unread instrument is not a passing one.
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import os
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -56,6 +60,13 @@ if str(SRC) not in sys.path:
 DEFAULT_STATE = Path.home() / ".azazael" / "spine_state.json"
 
 OK, DORMANT, UNPROVEN, FAIL = "ok", "dormant", "unproven", "fail"
+
+#: The state store could not be read AT ALL. Deliberately not in PASSING: an
+#: instrument that cannot tell "nothing to report" from "I read nothing" is the
+#: blindness this tool exists to name (registry item L-5). MEASURED 2026-10-11:
+#: `_load`'s error sentinel had no reader, so a missing or unreadable store made
+#: every check report `dormant`/`ok` and the whole gate exit 0.
+UNREADABLE = "unreadable"
 
 #: Statuses that do NOT fail the gate. `unproven` is the important one: the
 #: ledger holds history from before the mechanism was reachable, so a zero
@@ -68,7 +79,11 @@ PASSING = (OK, DORMANT, UNPROVEN)
 def _load(path: Path) -> Dict[str, Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception as exc:  # a missing store is not a capability failure
+    except Exception as exc:
+        # NOT a benign missing store. `run()` inspects this sentinel and reports
+        # every check UNREADABLE, because degrading to {} here is exactly what
+        # made the instrument answer "dormant" and "ok" about a store it never
+        # opened.
         return {"__error__": f"{type(exc).__name__}: {exc}"}
 
 
@@ -100,7 +115,6 @@ def _n(state: Dict[str, Any], key: str) -> int:
 
 def _after(record: Dict[str, Any], iso: str) -> bool:
     """True when the record was touched at or after `iso`."""
-    from datetime import datetime, timezone
     try:
         bound = datetime.fromisoformat(iso)
     except ValueError:
@@ -118,7 +132,6 @@ def _after(record: Dict[str, Any], iso: str) -> bool:
 
 def _recent(record: Dict[str, Any], window_days: float) -> bool:
     """True when the record was touched inside the window."""
-    from datetime import datetime, timedelta, timezone
     stamp = str(record.get("last_at") or "")
     if not stamp:
         return False
@@ -211,12 +224,14 @@ def check_route_ledger_writers(state: Dict[str, Any]) -> tuple[str, str]:
     """
     homeo = _homeo(state)
     bad = []
+    judged = 0
     for k, v in homeo.items():
         if not str(k).startswith("route:"):
             continue
         hist = v.get("hist_ms")
         if not isinstance(hist, list) or len(hist) < 6:
             continue
+        judged += 1
         # A real latency series is not dominated by one repeated value. A
         # hardcoded collection window IS one value, over and over: the live
         # record alternated [~95ms, 8000ms, ~98ms, 8000ms, ...] forever. The
@@ -225,8 +240,15 @@ def check_route_ledger_writers(state: Dict[str, Any]) -> tuple[str, str]:
         n_eight = sum(1 for x in hist if x == 8000.0)
         if n_eight >= 3 and n_eight >= 0.4 * len(hist):
             bad.append(k[6:])
+    if not bad and judged == 0:
+        # Vacuous truth is not a verdict: with no latency series to inspect,
+        # "no fabricated durations found" is a claim about nothing. Reporting
+        # it as OK is how an instrument that reads nothing looks healthy.
+        return DORMANT, ("no route record carries a latency series of >= 6 "
+                         "samples, so no fabricated duration could be detected")
     if not bad:
-        return OK, "no route record carries a hardcoded-period latency series"
+        return OK, (f"no fabricated latency series across {judged} route "
+                    f"record(s)")
     return FAIL, (
         f"route(s) with a hardcoded 8000ms latency series (fabricated "
         f"durations, not measurements): {bad}")
@@ -235,8 +257,6 @@ def check_route_ledger_writers(state: Dict[str, Any]) -> tuple[str, str]:
 def check_derived_artifacts_fresh(state: Dict[str, Any] | None = None
                                   ) -> tuple[str, str]:
     """A derived map older than its sources is a confidently-wrong document."""
-    import contextlib
-    import io
     root = Path(__file__).resolve().parents[1]
     try:
         sys.path.insert(0, str(root / "tools"))
@@ -245,14 +265,24 @@ def check_derived_artifacts_fresh(state: Dict[str, Any] | None = None
         return DORMANT, f"artifact_freshness unavailable ({type(exc).__name__})"
     # It prints a table; swallow it so this tool's own output stays parseable
     # when it is composed into a gate.
+    rc: Any = None
     try:
-        with contextlib.redirect_stdout(io.StringIO()):
-            rc = af.main([]) if callable(getattr(af, "main", None)) else None
+        fn = getattr(af, "main", None)
+        if callable(fn):
+            with contextlib.redirect_stdout(io.StringIO()):
+                rc = fn([])
     except SystemExit as exc:
-        rc = exc.code
-    except Exception:
-        rc = None
-    if rc in (0, None):
+        # `sys.exit()` carries code None and means SUCCESS, not "unmeasured".
+        rc = 0 if exc.code is None else exc.code
+    except Exception as exc:
+        rc = f"raised {type(exc).__name__}"
+    if rc is None:
+        # MEASURED 2026-10-11: this used to return OK, because `rc is None` was
+        # folded in with `rc == 0`. That asserts freshness for a check that never
+        # executed -- the same blindness as a zero counter over an unread store.
+        return UNPROVEN, ("artifact_freshness exposes no callable main(); "
+                          "freshness is UNMEASURED, not verified")
+    if rc == 0:
         return OK, "every derived artifact is newer than its sources"
     return FAIL, f"artifact_freshness reports stale derived artifacts (rc={rc})"
 
@@ -267,6 +297,16 @@ CHECKS = (
 
 def run(state_path: Path, since: str | None = None) -> List[Dict[str, str]]:
     state = _load(state_path)
+    err = state.get("__error__")
+    if err:
+        # ONE cause, reported per check, so a caller filtering on `status`
+        # cannot read a single genuine verdict out of a store never opened.
+        return [
+            {"check": name, "status": UNREADABLE,
+             "detail": f"state store {state_path} could not be read ({err}); "
+                       f"no check can be settled"}
+            for name, _fn in CHECKS
+        ]
     rows: List[Dict[str, str]] = []
     for name, fn in CHECKS:
         try:
@@ -293,6 +333,7 @@ def main(argv: List[str] | None = None) -> int:
     state_path = Path(os.path.expanduser(args.state))
     rows = run(state_path, since=args.since)
     failed = [r for r in rows if r["status"] == FAIL]
+    unreadable = [r for r in rows if r["status"] == UNREADABLE]
     unproven = [r for r in rows if r["status"] == UNPROVEN]
 
     if args.as_json:
@@ -301,6 +342,7 @@ def main(argv: List[str] | None = None) -> int:
             "since": args.since,
             "checks": rows,
             "failed": len(failed),
+            "unreadable": len(unreadable),
             "unproven": len(unproven),
         }, indent=2))
     else:
@@ -309,6 +351,10 @@ def main(argv: List[str] | None = None) -> int:
         for r in rows:
             print(f"{r['check']:<26} {r['status']:<9} {r['detail']}")
         print()
+        if unreadable:
+            print(f"UNREADABLE: {len(unreadable)} check(s) could not be settled "
+                  f"because the state store could not be read. That is a "
+                  f"FAILURE, not dormancy -- pass --state PATH.")
         if unproven:
             print(f"WATCH: {len(unproven)} check(s) cannot be settled from the "
                   f"current ledger -- re-run with --since to attribute.")
@@ -317,10 +363,10 @@ def main(argv: List[str] | None = None) -> int:
                   f"code and have never executed.")
             print("A capability that suppresses a failure mode must leave a "
                   "live trace. Zero is not neutral.")
-        elif not unproven:
+        elif all(r["status"] in PASSING for r in rows):
             print("OK: every checked capability either ran or is legitimately "
                   "dormant.")
-    return 1 if failed else 0
+    return 1 if (failed or unreadable) else 0
 
 
 if __name__ == "__main__":
