@@ -673,6 +673,91 @@ class GRPOTrainer:
         return {"success": True, "method": "get_stats", "result": self.get_stats()}
 
 
+def snapshot_log_ratios(store=None, limit: int = 10) -> dict[str, Any]:
+    """Direct-OPD implicit reward over STORED snapshot pairs (EP351, live rows).
+
+    The _l6_evolve adapter computes this ratio over supplied toy dicts; this
+    reads the real `GRPOTrainer/policy_snapshot` rows instead. For each
+    consecutive pair (older, newer): per shared context, softmax both score
+    vectors — scores are unbounded floats that can be negative, so the raw
+    log of a score is meaningless — then mean over keys of
+    log(new_p) - log(old_p). Identical policies score exactly 0.0.
+    Returns per-pair {older_id, newer_id, n_contexts, mean_log_ratio,
+    max_abs_log_ratio} with verdict "pairs" / "single-snapshot" /
+    "no-input". Read-only: never writes, never tombstones. Never raises.
+    """
+    out: dict[str, Any] = {"ok": False, "pairs": [], "n_snapshots": 0,
+                            "verdict": "no-input"}
+    try:
+        if store is None:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+        rows = (store.query_memories(source="GRPOTrainer",
+                                     event_type="policy_snapshot",
+                                     limit=max(2, int(limit))) or [])
+    except Exception as exc:
+        note_failure("learning_grpo:log-ratio-read", exc)
+        out["verdict"] = "leg-failed"
+        out["error"] = "%s: %s" % (type(exc).__name__, exc)
+        return out
+    snaps = []
+    for r in rows:
+        try:
+            data = (r or {}).get("data", {})
+            if isinstance(data, str):
+                data = json.loads(data)
+            policy = (data or {}).get("policy", {})
+            if not isinstance(policy, dict) or not policy:
+                continue
+            snaps.append({"id": (r or {}).get("id"), "policy": policy})
+        except Exception:
+            continue
+    out["n_snapshots"] = len(snaps)
+    if len(snaps) < 2:
+        out["ok"] = True
+        out["verdict"] = ("single-snapshot" if snaps else "no-input")
+        return out
+    pairs = []
+    for newer, older in zip(snaps[:-1], snaps[1:]):
+        deltas = []
+        for ctx, new_worms in (newer["policy"] or {}).items():
+            old_worms = (older["policy"] or {}).get(ctx)
+            if not isinstance(new_worms, dict) or not isinstance(old_worms, dict):
+                continue
+            keys = [k for k in new_worms if k in old_worms]
+            try:
+                new_vals = [float(new_worms[k]) for k in keys]
+                old_vals = [float(old_worms[k]) for k in keys]
+            except (TypeError, ValueError):
+                continue
+            if not keys:
+                continue
+            mx = max(new_vals + old_vals)
+            new_p = [math.exp(v - mx) for v in new_vals]
+            old_p = [math.exp(v - mx) for v in old_vals]
+            sn, so = sum(new_p), sum(old_p)
+            if sn <= 0 or so <= 0:
+                continue
+            for nv, ov in zip(new_p, old_p):
+                deltas.append(math.log((nv / sn) / max(ov / so, 1e-300)))
+        if not deltas:
+            continue
+        pairs.append({
+            "newer_id": newer["id"], "older_id": older["id"],
+            "n_contexts": sum(
+                1 for ctx in (newer["policy"] or {})
+                if isinstance((newer["policy"] or {}).get(ctx), dict)
+                and isinstance((older["policy"] or {}).get(ctx), dict)),
+            "mean_log_ratio": round(sum(deltas) / len(deltas), 6),
+            "max_abs_log_ratio": round(max(abs(d) for d in deltas), 6),
+            "n_cells": len(deltas),
+        })
+    out["pairs"] = pairs
+    out["ok"] = True
+    out["verdict"] = "pairs" if pairs else "no-common-context"
+    return out
+
+
 # -- A/B Test Runner with DPO ----------------------------------------------
 
 
