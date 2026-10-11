@@ -44,7 +44,7 @@ from CORE.WORMS.expansion.loom import (
     spectral_summary, NoveltyDrive, descriptors_from_archive,
 )
 from CORE.WORMS.expansion.nerve import (
-    Neuromodulator, context_vector, modulated_q_update, NerveTrainer,
+    Neuromodulator, context_vector, modulated_q_update,
     MODULATION_LO, MODULATION_HI,
 )
 from CORE.WORMS.expansion.chorus import (
@@ -608,24 +608,6 @@ class TestNerve(unittest.TestCase):
         modulated_q_update(q, "s", "a", 0.0, None, 0.1, 0.99, [1.0, 1.0, 1.0])
         self.assertIn(("s", "a"), q)
 
-    def test_trainer_accepts_improvement(self):
-        m = Neuromodulator(use_torch=False)
-        t = NerveTrainer(m, sigma=0.05, lr=0.5, seed=0)
-        # reward = how close the modulation vector is to all-ones
-        def evaluate(mod):
-            return -sum(abs(v - 1.0) for v in mod.modulations([0.5] * 6))
-        for _ in range(5):
-            t.step(evaluate, n_offspring=4)
-        self.assertTrue(t.history)
-
-    def test_trainer_tolerates_broken_evaluator(self):
-        m = Neuromodulator(use_torch=False)
-        t = NerveTrainer(m, seed=0)
-        def boom(mod):
-            raise RuntimeError("eval down")
-        row = t.step(boom, n_offspring=2)
-        self.assertIn("accepted", row)
-
     def test_neuromodulator_degrades_without_torch(self):
         """Default construction requests torch; absence must degrade, not raise."""
         import CORE.WORMS.expansion.nerve as nerve
@@ -634,17 +616,6 @@ class TestNerve(unittest.TestCase):
             self.assertEqual(m.backend, "numpy")
             mods = m.modulations(nerve.context_vector("s", "sev", 1, 10, 0.2))
             self.assertEqual(len(mods), m.n_out)
-
-    def test_trainer_persistence(self):
-        with tempfile.TemporaryDirectory() as d:
-            p = os.path.join(d, "nerve.json")
-            m = Neuromodulator(use_torch=False)
-            t = NerveTrainer(m, seed=0, path=p)
-            t.step(lambda mm: 1.0, n_offspring=2)
-            self.assertTrue(os.path.exists(p))
-            back = Neuromodulator.load(p)
-            self.assertIsNotNone(back)
-            self.assertEqual(len(back.get_params()), m.n_params)
 
 
 # ══════════════════════════════════════════════════════════════════════

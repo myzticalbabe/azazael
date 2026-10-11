@@ -125,7 +125,7 @@ check("novelty drive engages", _drive_run)
 
 # -- nerve -------------------------------------------------------------
 from CORE.WORMS.expansion.nerve import (
-    Neuromodulator, NerveTrainer, context_vector, modulated_q_update,
+    Neuromodulator, context_vector, modulated_q_update,
 )
 
 print("\n[nerve]")
@@ -142,8 +142,6 @@ def _nerve_run():
 
 
 check("plasticity rule", _nerve_run)
-check("ES trainer", lambda: NerveTrainer(_nm, seed=0).step(
-    lambda m: -sum(abs(v - 1.0) for v in m.modulations([0.5] * 6)), 3)["n_params"])
 
 
 def _nerve_default_backend():

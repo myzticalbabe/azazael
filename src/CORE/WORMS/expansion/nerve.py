@@ -54,7 +54,6 @@ except ImportError:                               # never break the host
 __all__ = [
     "Neuromodulator",
     "modulated_q_update",
-    "NerveTrainer",
     "context_vector",
 ]
 
@@ -409,89 +408,3 @@ def modulated_q_update(q: Dict[Any, float], state: Any, action: Any, reward: flo
     td = reward + gamma_t * best_next - prev
     q[key] = prev + alpha_t * td
     return td
-
-
-class NerveTrainer:
-    """Outer loop: evolves the modulator with a (1+l) evolution strategy.
-
-    Chosen deliberately over backprop-through-episodes. The reward signal is a
-    black-box evaluation number (the same number the pipeline already computes),
-    there is no differentiable path to it, and the parameter count is tiny — so
-    a small ES is both honest and sufficient. Reward is evaluation performance;
-    update count is never used as fitness (`learning_rl.py:335`).
-    """
-
-    def __init__(self, modulator: Neuromodulator, sigma: float = 0.1,
-                 lr: float = 0.05, seed: int = 0, path: Optional[str] = None):
-        self.mod = modulator
-        self.sigma = float(sigma)
-        self.lr = float(lr)
-        self.rng = random.Random(seed)
-        self.path = path
-        self.history: List[dict] = []
-        self.best_score = float("-inf")
-
-    def _evaluate(self, evaluate: Any, params: Sequence[float]) -> float:
-        saved = self.mod.get_params()
-        try:
-            self.mod.set_params(params)
-            return float(evaluate(self.mod))
-        except Exception:
-            note_failure("nerve:L423", None)
-            return float("-inf")
-        finally:
-            self.mod.set_params(saved)
-
-    def step(self, evaluate: Any, n_offspring: int = 4) -> dict:
-        """One (1+l) generation. `evaluate(modulator) -> score` (higher better)."""
-        base = self.mod.get_params()
-        base_score = np_base = None
-        try:
-            base_score = float(evaluate(self.mod))
-        except Exception:
-            note_failure("nerve:L434", None)
-            base_score = float("-inf")
-
-        improvements: List[Tuple[float, List[float]]] = []
-        for _ in range(max(1, n_offspring)):
-            cand = [p + self.rng.gauss(0.0, self.sigma) for p in base]
-            score = self._evaluate(evaluate, cand)
-            improvements.append((score, cand))
-
-        improvements.sort(key=lambda t: t[0], reverse=True)
-        best_score, best_params = improvements[0]
-
-        accepted = best_score > base_score
-        if accepted:
-            # convex combination toward the winner = a smoothed ES step
-            blended = [b + self.lr * (w - b) for b, w in zip(base, best_params)]
-            self.mod.set_params(blended)
-            self.sigma = max(0.01, self.sigma * 0.98)
-        else:
-            self.sigma = min(0.5, self.sigma * 1.05)
-
-        self.best_score = max(self.best_score, best_score)
-        row = {"base": base_score, "best": best_score, "accepted": accepted,
-               "sigma": self.sigma, "n_params": self.mod.n_params}
-        self.history.append(row)
-        if self.path:
-            self._persist()
-        return row
-
-    def _persist(self) -> None:
-        try:
-            if self.path:
-                self.mod.save(self.path)
-            with open(str(self.path) + ".history.json", "w", encoding="utf-8") as fh:
-                json.dump(self.history[-128:], fh, indent=1)
-        except Exception:
-            note_failure("nerve:L469", None) # scanner:ignore
-
-    def train(self, evaluate: Any, generations: int = 20, n_offspring: int = 4
-              ) -> Dict[str, Any]:
-        start = self.best_score
-        for _ in range(max(1, generations)):
-            self.step(evaluate, n_offspring)
-        return {"generations": generations, "best": self.best_score,
-                "gain": (self.best_score - start) if start != float("-inf") else None,
-                "backend": self.mod.backend}
