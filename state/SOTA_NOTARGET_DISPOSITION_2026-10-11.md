@@ -85,3 +85,37 @@ mechanism: no action unless the symbol is ever split.
   (retargeted, caller-less), EP350 (gap above).
 - HOST-COMPOSED 8: EP144,156,215,221,247,298,337,387 — promotion candidates
   iff a cross-module caller appears; not pursued (no theater).
+
+## Addendum — rulings on the 5 flagged rows (user-directed, 2026-10-11 later)
+
+Evidence re-checked by grep before ruling; map backup
+`C:/Temp/technique_codebase_map.bak-20261011c.json`. Census self-test 7/7
+after; tally 104 ADOPTED / 110 in_production / 10 EX / 8 HC / 19 NO-TARGET;
+only EP214+EP227 flipped, zero collateral.
+
+- EP110 → `no-host: single-agent baseline harness (OneFlow is an external
+  framework; no baseline harness in tree)`. The `allocation:MCTSPlanner`
+  adapter covers a different concept (simulate-vs-spawn); MCTSPlanner has
+  zero production callers (only `_l5_dispatch.py:286` exercise), so it is
+  noted as uncatalogued, not attached.
+- EP262 → `no-host: self-improving web-agent loop`. selenium/playwright occur
+  only in docs/logs/test-tables/bat files — zero browser-driving production
+  code. `neural_loop:STAGES` (exists, `:87`, internally used) not attached:
+  different concept.
+- EP308 → `no-host: math muscle-memory host`. `math_certainty.py` is file
+  comparison, not math memory; `cd2_verifier/SMTVerifier` is formal
+  verification, a different mechanism from skill reuse. SoftSkill adapter
+  mismatch noted, not attached.
+- EP214 → `no-host: no def-use/data-flow analysis` (adapter verbatim).
+  ADOPTED→NO-TARGET. Rationale: plan_dag validates caller-written task DAGs
+  and CSE dedups worm sets — neither is statement-level def-use/repair
+  graphs, and the tree holds no program-analysis module (only venv-manifest
+  noise). DAG/CSE stay adopted under EP130/171/186/197/223/374; nothing real
+  lost.
+- EP227 → `no-host: needs trained flow model` (adapter verbatim).
+  ADOPTED→NO-TARGET. Rationale: plan_dag is discrete batch planning, not
+  continuous tool flow; zero `flow_model|continuous_plan|normalizing_flow|
+  diffusion_polic|flow_matching` hits in `src/CORE`.
+
+Score moved 106→104 by precision, same class as the 10 verified de-adoptions
+in `23f5fa5f`. Revisit any row the day its missing precondition lands.
