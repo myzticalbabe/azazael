@@ -5,7 +5,6 @@
 __all__ = [
     "ALGO_DEFAULTS",
     "SB3Agent",
-    "SB3AgentPool",
     "SUPPORTED_ALGOS",
 ]
 
@@ -22,7 +21,6 @@ Features:
 - save() / load() — Model persistence
 - Auto-register with ModelVersioner after training
 - MemoryBus events for training progress
-- SB3AgentPool for multi-agent parallel training
 
 Usage:
     agent = SB3Agent(algo="PPO", policy="MlpPolicy")
@@ -1096,120 +1094,6 @@ class SB3Agent(FreeThreadedAgent):
                 f"steps={self._total_timesteps_trained})")
 
 
-# -- SB3AgentPool ------------------------------------------------------------
-
-@register_agent(category="rl", priority=7, description="Multi-agent SB3 pool for parallel training and inference")
-class SB3AgentPool(FreeThreadedAgent):
-    """
-    Pool of SB3Agent instances for parallel training and inference.
-
-    Manages a pool of SB3Agent workers for distributed training runs
-    or batch inference across multiple algorithms/configurations.
-
-    Usage:
-        pool = SB3AgentPool(n_agents=4)
-        results = pool.train_parallel(source="SystemZ", total_timesteps=5000)
-        predictions = pool.predict_parallel(observations)
-    """
-
-    VERSION = "1.0.0"
-
-    def __init__(self, config: AgentConfig = None, n_agents: int = 4,
-                 algo: str = "PPO", algo_kwargs: dict = None):
-        super().__init__(config or AgentConfig(
-            agent_name="SB3Pool",
-            pams_source="sb3_pool",
-        ))
-        self.n_agents = n_agents
-        self.algo = algo
-        self.algo_kwargs = algo_kwargs or {}
-        self._agents: list[SB3Agent] = []
-        self._init_agents()
-
-    def _init_agents(self) -> None:
-        """Initialize the pool of SB3Agent workers."""
-        for i in range(self.n_agents):
-            agent = SB3Agent(
-                config=AgentConfig(agent_name=f"SB3-Worker-{i}", pams_source="sb3_pool"),
-                algo=self.algo,
-                algo_kwargs=self.algo_kwargs,
-                seed=int(time.time()) + i,
-            )
-            self._agents.append(agent)
-
-    def train_parallel(self, source: (str | None) = None, event_type: (str | None) = None,
-                       total_timesteps: int = 5000,
-                       hyperparameter_grid: (list[dict] | None) = None) -> list[dict]:
-        """
-        Train agents in parallel with optional hyperparameter grid.
-
-        Uses FreeThreadedAgent.execute_many() for true parallel training
-        across all agents in the pool.
-
-        Args:
-            source: Filter memories by source.
-            event_type: Filter by event type.
-            total_timesteps: Timesteps per training run.
-            hyperparameter_grid: list of param dicts, one per agent.
-                If provided, each agent trains with different params.
-                If None, all agents train with default params.
-
-        Returns:
-            list of training result dicts.
-        """
-        tasks = []
-        for i, agent in enumerate(self._agents):
-            kwargs = {}
-            if hyperparameter_grid and i < len(hyperparameter_grid):
-                kwargs = hyperparameter_grid[i]
-            task_payload = {
-                "source": source, "event_type": event_type,
-                "total_timesteps": total_timesteps, "register_model": False,
-                **kwargs
-            }
-            tasks.append({"action": "train", "payload": task_payload})
-
-        # Run parallel via execute_many (uses FreeThreadPool internally)
-        task_results = self.execute_many(tasks, task_type="parallel_train")
-
-        results = []
-        for tr in task_results:
-            if tr.success and tr.result:
-                results.append(tr.result)
-            else:
-                results.append({"error": tr.error or "Unknown error", "trained": False})
-        return results
-
-    def predict_parallel(self, observations: list[np.ndarray]) -> list[Any]:
-        """Run batch inference across all agents."""
-        predictions = []
-        for agent in self._agents:
-            preds = agent.predict_batch(observations)
-            predictions.append(preds)
-        return predictions
-
-    def get_best_agent(self) -> (SB3Agent | None):
-        """Get the agent with the most training experience."""
-        if not self._agents:
-            return None
-        return max(self._agents, key=lambda a: a._total_timesteps_trained)
-
-    def _run(self, task: dict[str, Any], pool: Any = None) -> Any:
-        action = task.get("action", "train_parallel")
-        payload = task.get("payload", task)
-
-        if action == "train_parallel":
-            return self.train_parallel(**payload)
-        elif action == "predict_parallel":
-            obs_list = [np.array(o) for o in payload.get("observations", [])]
-            return self.predict_parallel(obs_list)
-        elif action == "get_best_agent":
-            best = self.get_best_agent()
-            return {"best_agent_id": best.agent_id if best else None}
-        else:
-            return {"error": f"Unknown action: {action}"}
-
-
 # -- Self-test -----------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -1245,9 +1129,5 @@ if __name__ == '__main__':
         # Test 4: Training history
         history = agent.get_training_history()
         print(f"\n  [4] Training history: {len(history)} entries")
-
-        # Test 5: AgentPool
-        pool = SB3AgentPool(n_agents=2, algo="PPO")
-        print(f"\n  [5] Pool created: {pool.n_agents} agents")
 
     print("\n" + "=" * 60)

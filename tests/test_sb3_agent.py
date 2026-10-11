@@ -244,54 +244,6 @@ class TestSB3Agent(unittest.TestCase):
         self.assertIn("PPO", rep)
 
 
-class TestSB3AgentPool(unittest.TestCase):
-    """Test SB3AgentPool."""
-
-    def setUp(self):
-        try:
-            import stable_baselines3
-            self.HAS_SB3 = True
-        except ImportError:
-            self.HAS_SB3 = False
-
-    def test_create_pool(self):
-        """SB3AgentPool should create N agents."""
-        if not self.HAS_SB3:
-            self.skipTest("SB3 not installed")
-        from CORE.sb3_agent import SB3AgentPool
-        pool = SB3AgentPool(n_agents=3, algo="PPO")
-        self.assertEqual(pool.n_agents, 3)
-        self.assertEqual(len(pool._agents), 3)
-
-    def test_get_best_agent_empty(self):
-        """get_best_agent should return an agent."""
-        if not self.HAS_SB3:
-            self.skipTest("SB3 not installed")
-        from CORE.sb3_agent import SB3AgentPool
-        pool = SB3AgentPool(n_agents=2, algo="PPO")
-        best = pool.get_best_agent()
-        self.assertIsNotNone(best)
-
-    def test_pool_run_task(self):
-        """SB3AgentPool._run should dispatch actions."""
-        if not self.HAS_SB3:
-            self.skipTest("SB3 not installed")
-        from CORE.sb3_agent import SB3AgentPool
-        pool = SB3AgentPool(n_agents=2, algo="PPO")
-        result = pool._run({"action": "get_best_agent", "payload": {}}, None)
-        self.assertIn("best_agent_id", result)
-
-    def test_predict_parallel(self):
-        """predict_parallel should return predictions per agent."""
-        if not self.HAS_SB3:
-            self.skipTest("SB3 not installed")
-        from CORE.sb3_agent import SB3AgentPool
-        pool = SB3AgentPool(n_agents=2, algo="PPO")
-        obs_list = [np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32) for _ in range(2)]
-        predictions = pool.predict_parallel(obs_list)
-        self.assertEqual(len(predictions), pool.n_agents)
-
-
 class TestRLTrainLoopPersistence(unittest.TestCase):
     """Test RLTrainLoop ModelVersioner integration."""
 
