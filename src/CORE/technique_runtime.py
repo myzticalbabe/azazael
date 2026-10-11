@@ -408,6 +408,13 @@ def recall_with_feedback(query: str, consolidate: bool = False,
             "mode": (route or {}).get("mode"),
             "total_reads": state.get("total"),
             "abstained": state.get("abstained"),
+            # EP235 residual: the scores were already IN HAND. `recall_state()`
+            # returns `last_scores` alongside total/abstained
+            # (CORE/WORMS/expansion/engram.py:544), so the recorded cause
+            # ("never reads stats()") was wrong -- the data was fetched and then
+            # dropped here, which is why every consumer payload was permanently
+            # empty. Surface it instead of taking a second reading.
+            "last_scores": list(state.get("last_scores") or []),
         }
         # Bound by the module-level `from ... import` above, NOT resolved as a
         # string. A `getattr(mod, "name")` is invisible to static reachability
