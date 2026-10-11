@@ -101,19 +101,10 @@ SERVED_ENGINES: tuple[str, ...] = (
 )
 
 UNSERVED_ENGINES: dict[str, str] = {
-    "MAPElites": (
-        "Implemented and tested (tests/test_v2_engines.py) but no production "
-        "driver instantiates it: the cycle's arms are GA, SepCMAES, DE and the "
-        "TPE surrogate. Quality-diversity needs a behaviour descriptor the "
-        "fitness function does not produce, so wiring it before that exists "
-        "would put a second, unexplained optimiser on the same objective."
-    ),
-    "IslandModel": (
-        "Implemented and tested (tests/test_v2_engines.py) but unreferenced by "
-        "production: it is a wrapper for running SEVERAL engines with migration, "
-        "and the cycle already runs its arms as an explicit per-cycle choice. "
-        "Wiring it would duplicate arm scheduling rather than extend it."
-    ),
+    # Retired 2026-10-11 (trainer retirement wave 2B): MAPElites and
+    # IslandModel had zero production/scheduled callers (tests only).
+    # Entries removed with the classes; the dict stays as the registry
+    # the wire-or-cut verdict tests iterate.
 }
 
 # The NSGA-III / MOEA-D helpers are unreferenced too, and saying so keeps the
@@ -1784,84 +1775,6 @@ class DifferentialEvolution:
                 "best_fitness": self.fit[self.best_idx], "history": history}
 
 
-@register_worm(
-    category="learning", priority=6, cooldown_seconds=120.0,
-    description="MAP-Elites — quality-diversity archive preventing fixed-point stagnation"
-)
-class MAPElites:
-    """MAP-Elites quality-diversity archive (audit item P1).
-
-    behavior_fn(genes) -> tuple[float,...] maps a genome to a behavior
-    descriptor; the archive keeps the fittest genome per grid cell.
-    Fixes the D-2 failure class (identical-champion stalls): even when one
-    cell dominates fitness, other cells preserve stepping stones.
-    """
-
-    VERSION = "2.0.0"
-
-    def __init__(self, behavior_dims: (list | None) = None,
-                 gene_bounds: (dict | None) = None):
-        # Standby default (bare instantiation by the cluster runner): 2-D
-        # 4x4 QD grid matching the wallboard convention. Real searches pass
-        # explicit dims.
-        behavior_dims = behavior_dims or [("novelty", 4, 0.0, 1.0),
-                                          ("quality", 4, 0.0, 1.0)]
-        self._lock = threading.Lock()
-        self.dims = [(n, int(b), float(lo), float(hi)) for n, b, lo, hi in behavior_dims]
-        self.gene_bounds = dict(gene_bounds or {})
-        self.archive: dict[tuple, dict] = {}  # cell -> {"genes","fitness","behavior"}
-
-    def cell_of(self, behavior: tuple) -> tuple:
-        cell = []
-        for ( _n, bins, lo, hi), b in zip(self.dims, behavior):
-            b = max(lo, min(hi, float(b)))
-            idx = min(bins - 1, int((b - lo) / (hi - lo or 1.0) * bins))
-            cell.append(idx)
-        return tuple(cell)
-
-    def add(self, genes: dict, fitness: float, behavior: tuple) -> bool:
-        """Insert; True if cell was empty or improved."""
-        cell = self.cell_of(behavior)
-        with self._lock:
-            cur = self.archive.get(cell)
-            if cur is None or float(fitness) > float(cur["fitness"]):
-                self.archive[cell] = {"genes": dict(genes), "fitness": float(fitness),
-                                      "behavior": tuple(behavior)}
-                return True
-            return False
-
-    def suggest(self) -> dict:
-        """Random elite + Gaussian perturb, or uniform when empty/unbounded."""
-        with self._lock:
-            elites = list(self.archive.values())
-        if not elites or not self.gene_bounds:
-            if not self.gene_bounds:
-                return {}
-            return {k: random.uniform(float(v[0]), float(v[1]))
-                    for k, v in self.gene_bounds.items()}
-        e = random.choice(elites)
-        out = {}
-        for k, v in e["genes"].items():
-            if k in self.gene_bounds and isinstance(v, (int, float)) and not isinstance(v, bool):
-                lo, hi = float(self.gene_bounds[k][0]), float(self.gene_bounds[k][1])
-                out[k] = max(lo, min(hi, random.gauss(float(v), 0.1 * (hi - lo))))
-            else:
-                out[k] = v
-        return out
-
-    def stats(self) -> dict[str, Any]:
-        with self._lock:
-            cells = list(self.archive.values())
-        total = 1
-        for (_n, b, _l, _h) in self.dims:
-            total *= b
-        fits = [c["fitness"] for c in cells]
-        return {"filled": len(cells), "total_cells": total,
-                "coverage": (len(cells) / total) if total else 0.0,
-                "qd_score": sum(fits) if fits else 0.0,
-                "best": max(fits) if fits else 0.0}
-
-
 class TPESurrogate:
     """Tree-structured Parzen Estimator lite (audit item P2, sample efficiency).
 
@@ -1977,81 +1890,3 @@ def moead_weights(pop_size: int, n_obj: int) -> list[tuple]:
 def tchebycheff(values: list[float], weight: tuple, ideal: list[float]) -> float:
     """Tchebycheff scalarization (minimize)."""
     return max(w * abs(v - z) for w, v, z in zip(weight, values, ideal))
-
-
-class IslandModel:
-    """Archipelago parallel GA (audit item P2): N EvolutionEngine islands
-    with ring migration. Eval stays parallel per island; search becomes
-    parallel across islands — the topology free-threading was missing."""
-
-    VERSION = "2.0.0"
-
-    def __init__(self, n_islands: int = 4, population_size: int = 24,
-                 gene_bounds: (dict | None) = None,
-                 migration_interval: int = 3, migration_size: int = 2,
-                 engine_kwargs: (dict | None) = None):
-        self._lock = threading.Lock()
-        self.islands: list[EvolutionEngine] = []
-        kw = dict(engine_kwargs or {})
-        kw.setdefault("memory_store", "none")
-        for _ in range(max(1, n_islands)):
-            e = EvolutionEngine(population_size=population_size, **kw)
-            if gene_bounds:
-                e.initialize_population(dict(gene_bounds))
-            self.islands.append(e)
-        self.migration_interval = migration_interval
-        self.migration_size = migration_size
-        self._gen = 0
-
-    def step(self, fitness_fn, workers: int = 1) -> dict[str, Any]:
-        """One generation on every island + periodic ring migration."""
-        import concurrent.futures as _cf
-        with _cf.ThreadPoolExecutor(max_workers=len(self.islands),
-                                     thread_name_prefix="island") as pool:
-            def _one(e: EvolutionEngine):
-                e.evaluate_population(fitness_fn, use_curative=False, workers=workers)
-                return e.evolve()
-            list(pool.map(_one, self.islands))
-        self._gen += 1
-        migrated = 0
-        if self._gen % self.migration_interval == 0:
-            n = len(self.islands)
-            # snapshot emigrants first so migration is order-independent
-            emigrants = []
-            for e in self.islands:
-                with e._lock:
-                    emigrants.append(sorted(e._population, key=lambda g: -g.fitness)
-                                     [:self.migration_size])
-            for i, e in enumerate(self.islands):
-                incoming = emigrants[(i - 1) % n]
-                with e._lock:
-                    # replace worst with incoming copies (fresh IDs, no fitness leak)
-                    e._population.sort(key=lambda g: g.fitness)
-                    for k, g in enumerate(incoming):
-                        if k < len(e._population):
-                            e._population[k] = Genome(genes=dict(g.genes),
-                                                      generation=self._gen,
-                                                      parent_ids=[g.id])
-                            migrated += 1
-        best = self.best_overall()
-        return {"generation": self._gen, "migrated": migrated,
-                "best_fitness": best.fitness if best else 0.0,
-                "islands": len(self.islands)}
-
-    def best_overall(self):
-        best = None
-        for e in self.islands:
-            b = e.get_best_genome()
-            if b is not None and (best is None or b.fitness > best.fitness):
-                best = b
-        return best
-
-    def optimize(self, fitness_fn, generations: int = 10,
-                 workers: int = 1) -> dict[str, Any]:
-        hist = []
-        for _ in range(generations):
-            hist.append(self.step(fitness_fn, workers=workers))
-        best = self.best_overall()
-        return {"best_genes": dict(best.genes) if best else {},
-                "best_fitness": best.fitness if best else 0.0,
-                "history": hist}

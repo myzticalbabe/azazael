@@ -4,7 +4,7 @@ Tests for the v2.0 evolution engines (audit gap G-4, 2026-09-11).
 
 Covers what tests/test_nsga2.py does not: SBX + polynomial mutation,
 mixed-type genomes, gene-hash fitness cache, SepCMAES, Differential
-Evolution, MAP-Elites, TPESurrogate, IslandModel, NSGA-III reference
+Evolution, TPESurrogate, NSGA-III reference
 points, hypervolume, and the GeneticOptimizer cma/de wrappers.
 
 Run:  python -m pytest tests/test_v2_engines.py -q   (from repo root)
@@ -20,8 +20,6 @@ from CORE.WORMS.expansion.evolution import (  # noqa: E402
     DifferentialEvolution,
     EvolutionEngine,
     GeneticOptimizer,
-    IslandModel,
-    MAPElites,
     SepCMAES,
     TPESurrogate,
     generate_reference_points,
@@ -125,26 +123,6 @@ class TestDE(unittest.TestCase):
         self.assertIn("x", r["best_genes"])
 
 
-class TestMAPElites(unittest.TestCase):
-    def test_add_stats_suggest(self):
-        m = MAPElites([("b1", 4, 0.0, 1.0), ("b2", 4, 0.0, 1.0)],
-                      {"x": (0.0, 1.0)})
-        self.assertTrue(m.add({"x": 0.5}, 1.0, (0.1, 0.9)))
-        self.assertFalse(m.add({"x": 0.4}, 0.5, (0.1, 0.9)))  # worse, same cell
-        self.assertTrue(m.add({"x": 0.6}, 2.0, (0.1, 0.9)))   # better, same cell
-        st = m.stats()
-        self.assertEqual(st["filled"], 1)
-        self.assertEqual(st["best"], 2.0)
-        s = m.suggest()
-        self.assertTrue(0.0 <= s["x"] <= 1.0)
-
-    def test_cell_spread(self):
-        m = MAPElites([("b", 2, 0.0, 1.0)], {"x": (0.0, 1.0)})
-        m.add({"x": 0.1}, 1.0, (0.1,))
-        m.add({"x": 0.9}, 1.0, (0.9,))
-        self.assertEqual(m.stats()["filled"], 2)
-
-
 class TestTPE(unittest.TestCase):
     def test_suggest_in_bounds(self):
         t = TPESurrogate({"x": (0.0, 1.0), "y": (-5.0, 5.0)})
@@ -155,17 +133,6 @@ class TestTPE(unittest.TestCase):
             s = t.suggest()
             self.assertTrue(0.0 <= s["x"] <= 1.0)
             self.assertTrue(-5.0 <= s["y"] <= 5.0)
-
-
-class TestIsland(unittest.TestCase):
-    def test_step_and_optimize(self):
-        isl = IslandModel(n_islands=2, population_size=8,
-                          gene_bounds={"x": (-5.0, 5.0)})
-        s = isl.step(lambda g: -(g.genes["x"] ** 2))
-        self.assertEqual(s["islands"], 2)
-        self.assertIn("best_fitness", s)
-        r = isl.optimize(lambda g: -(g.genes["x"] ** 2), generations=3)
-        self.assertGreater(r["best_fitness"], -25.0)
 
 
 class TestManyObjectiveHelpers(unittest.TestCase):
@@ -387,33 +354,6 @@ class TestMutationKills(unittest.TestCase):
             c = e._crossover({"x": 150.0}, {"x": 160.0}, {"x": (100.0, 200.0)})
             self.assertGreaterEqual(c["x"], 100.0)
             self.assertLessEqual(c["x"], 200.0)
-
-    def test_mapelites_suggest_empty_archive(self):
-        # kills: bool-flip Or->And @1565 (empty-archive guard).
-        # An empty archive must yield a uniform draw; the mutant takes
-        # the elite branch with no elites and crashes on random.choice.
-        m = MAPElites([("b", 4, 0.0, 1.0)], {"x": (0.0, 1.0)})
-        s = m.suggest()
-        self.assertTrue(0.0 <= s["x"] <= 1.0)
-
-    def test_mapelites_suggest_stays_near_elite(self):
-        # kills: not-drop @1565 (if not elites or not bounds).
-        # With an elite at x=0.05, Gaussian-perturb suggestions cluster
-        # near it; the mutant returns uniform draws across (0, 1).
-        m = MAPElites([("b", 4, 0.0, 1.0)], {"x": (0.0, 1.0)})
-        m.add({"x": 0.05}, 1.0, (0.05,))
-        worst = max(m.suggest()["x"] for _ in range(20))
-        self.assertLess(worst, 0.5)
-
-    def test_mapelites_suggest_keeps_bool(self):
-        # kills: not-drop @1573 (not isinstance(v, bool)).
-        # Bool genes must pass through unperturbed; the mutant perturbs
-        # them into floats via float(True) + gaussian noise.
-        m = MAPElites([("b", 2, 0.0, 1.0)],
-                      {"f": (0.0, 1.0), "b": (0.0, 1.0)})
-        m.add({"f": 0.5, "b": True}, 1.0, (0.5,))
-        for _ in range(10):
-            self.assertIs(m.suggest()["b"], True)
 
     def test_tpe_suggest_respects_nonzero_bounds(self):
         # kills: arith-flip Sub->Add @1649 (denormalizer hi - lo).
