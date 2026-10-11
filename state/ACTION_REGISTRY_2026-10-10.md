@@ -333,3 +333,86 @@ the four files covering them directly.
 Still OPEN from this file: G-0a/G-0b/G-0c, H-1..H-6, L-1..L-5, D-1's remaining four items,
 D-3's three, D-4, S-1..S-4 and S-8, M-1..M-4, E-1/E-2, and the whole section 7 backlog.
 The D-4 counts in this file are corrected in place and are the ones to work from.
+
+## 10. WAVE 3/4 (2026-10-11) — the stale-root class closed WITH a guard; instruments given exit codes
+
+Commits: `f2b838e5` (29 files), `b0d3f2b4` (7 files).
+
+### CLOSED, each with an executed probe or a test
+
+- **[1] the stale-root fallback CLASS** (22+ sites, ~24 modules). The shared piece is
+  `CORE.paths.get_project_root_safe()` — it honours `AZAZAEL_ROOT` first, never raises, and on a
+  sentinel failure returns the tree it ships in. Bootstrap modules where importing CORE is
+  circular by construction (`src/AOA`, `src/INTERPRETERS`, `src/TOOLS`, `src/UTILITIES`) derive
+  `Path(__file__).resolve().parents[N]` instead, N counted per file.
+  **The guard that was missing is now `tests/test_no_stale_root_fallback.py`** — AST-based, both
+  quote styles, and carrying a NEGATIVE CONTROL. It caught 2 sites a truncated grep had hidden
+  (`src/UVZ.py`/`src/META/UVZ.py` turned out to be FALSE POSITIVES of its own first needle, which
+  is why the needle now requires the sibling to BE the `Path.home()` call).
+  Two consequences of the old fallback were LIVE, not theoretical: `PamsRecorder.__init__`
+  mkdir'd and wrote `C:/Users/clint/azazael/data/`, and both INTERPRETERS runners forwarded the
+  stale root to their child process.
+- **[4] pygame** — neither file failed honestly. `import pygame` was bare at MODULE level and
+  pygame is NOT installed, so both modules died at import, which made the `__main__` handler
+  advertising `pip install pygame` UNREACHABLE — and that handler exited 0 anyway. Now a guarded
+  module-level import, `_PYGAME_AVAILABLE` read at two sites, and an entry point that exits 2.
+  Canonical is `src/azazael_pygame.py` (`function_inventory.json:54`, `ERROR_LOG.md:1744`
+  reference it; nothing references the copy); `src/CODEX/CORE/azazael_pygame.py` is a near-copy
+  differing in 3 dead statements, and **D-3 should retire it**. Nothing imports either file.
+- **[6] M-2 — BOTH halves.** *PamsRecorder:* its default already resolves the LIVE
+  `~/.pams/memory_data`; there is no site-packages candidate left, so the registry's claim is
+  STALE. *MemoryBus:* the candidate list already carries the live path best-first with the G:
+  archive LAST (fixed in `cbacbbdb`), and its residual — `_pams_available` frozen at
+  construction, so a bus built while PAMS was down stayed convinced for its whole life — is now
+  a throttled re-check (`PAMS_RECHECK_SEC`, 15s) via `_ensure_pams_available()`.
+- **[7] L-5, the four blind instruments** — code half DONE. The unifying defect: an instrument
+  that cannot distinguish "nothing to report" from "I could not read anything", so it reports
+  health it never measured. `evolution_progress`/`fitness_arm_liveness`: `if not
+  os.path.exists(path): return {}` gave a MISSING log and an EMPTY log the same `NO_DATA` and the
+  same exit 2; now `_input_state()` distinguishes them and the codes split, **3 NO_INPUT vs
+  2 NO_DATA**. `capability_liveness`: `_load`'s error sentinel had NO reader, so a missing store
+  made every check `dormant`/`ok` and exited 0; now `UNREADABLE` (not in `PASSING`) and a
+  never-measured check returns `UNPROVEN` instead of OK. `render_ouroboros`: the stamp
+  re-asserted liveness over stale data — it printed only `rendered <now>`; it now also carries the
+  FRESHEST input's mtime and age plus an `INPUTS NOT READ` panel, and exits 1 when blind where it
+  exited 0 while the page itself carried a "FAILED JOBS — non-zero return, invisible to liveness"
+  table. **The SCHEDULING half is NOT closed**: nothing produces `chain_controller_due.json`,
+  which is an ops change, not a file change.
+- **[5] M-1 — premise STALE, real defect found and repaired.** `pams daemon_health` returns
+  well-formed JSON; the malformed-CallToolResult / 20-pydantic-error shape does NOT reproduce.
+  What the LIVE probe did surface is a genuinely broken hash chain: `~/.audit/daemon_health.jsonl`
+  reported `record 346 (file line 346): prev_hash does not chain`, 8 genesis-linked records after
+  the first, 847 parseable lines, 0 torn fragments. REPAIRED with the repo's own
+  `tools/audit_chain_repair.py --apply` and re-verified: **chain validates YES, 0 genesis-linked,
+  847 records, head `f8b4c41820e70159`**, with a size-verified pre-repair backup
+  (`daemon_health.jsonl.pre_repair_20261011T014412Z`, 302556 bytes) kept alongside it. The tool
+  quarantines torn bytes rather than deleting them; here there were none to quarantine.
+
+### STALE ROWS CORRECTED — the 5th, 6th and 7th this session
+
+- D-1 `replan_after_failures` (`circuit_breaker.py:623`) — **no definition anywhere in `src/`.**
+- D-1 `enforce_replace` (`sentinel_enforcer:402`) — **no definition anywhere in `src/`.**
+- D-1 `sentinel_enforcer.post_validate:435` — **HAS a caller**: `sentinel_enforcer.py:494` calls
+  it from inside `enforce_write`. Live, not orphaned.
+
+### STILL OPEN
+
+G-0a/G-0b/G-0c; H-1..H-6; L-1/L-2/L-3 and L-4; D-1's `recall_with_feedback` (callers are the
+ARCHIVED exercise only); D-3 (`archived_unified/`, `packages/azazael-core`, `*.pre_gate_backup`,
+plus retiring the pygame copy); D-2's `METACLUSTER.export_state` write-only trio; D-4; S-1..S-4;
+S-8; M-3; M-4; E-1; E-2; and the whole section 7 backlog.
+
+### METHOD NOTES — both cost real wrong conclusions this session
+
+- **A truncated view is not a result.** `| head -N` on a `git status` or a grep produced FOUR
+  wrong conclusions: a "cleared" stale-root class that still had 2 sites, an "unmodified" file
+  (`MemoryBus.py`) that was in fact already edited, and a missed set of files twice. Take the full
+  listing or a COUNT; never conclude from a cut-off pipe. `&&` has the same shape — one failing
+  `wc -l` silently prevented an entire test sweep from running.
+- **The staged scanner reads the INDEX, not the worktree.** Two ratchet fixes (`allocation.py`,
+  `scheduling.py`) were committed MISSING because the index held a pre-fix version while the
+  worktree held the fix — and the scanner passed, because index-vs-HEAD looked unchanged. Before
+  claiming "committed", read `git diff` (worktree vs index), never a staged-only grep.
+- **A registry row is a claim, not a fact.** Seven rows so far could not reproduce their own
+  citation. Falsify the row against the tree FIRST; a row that cannot reproduce is a row to
+  correct, not to implement.
