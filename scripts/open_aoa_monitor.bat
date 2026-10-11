@@ -22,8 +22,9 @@ rem scientific stack (scipy, torch) publishes cp314t-only wheels, so the GIL
 rem build cannot import them. Fall back to the GIL build only if 3.14t is
 rem absent, then to whatever `python` resolves to. Same ladder as
 rem refresh_oa_data.bat.
-set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe
-if not exist "%PY%" set PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe
+set PY=C:\Azazael\.venvs\py315t\Scripts\python.exe
+if not exist "%PY%" set PY=C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe
+if not exist "%PY%" set PY=python3.15t
 if not exist "%PY%" set PY=python
 
 :loop

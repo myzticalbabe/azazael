@@ -19,6 +19,6 @@ REM Speed (2026-09-26): 14 eval workers on the 16-thread box. Bit-identical
 REM results at any count. Episodes deliberately stay at default 320 for one
 REM clean morph era; drop via AZAZAEL_EVAL_EPISODES later if cycles are slow.
 set "AZAZAEL_EVO_WORKERS=14"
-set "PY=C:\Users\clint\AppData\Local\Programs\Python\Python314\python.exe"
+set "PY=C:\Azazael\.venvs\py315t\Scripts\python.exe"
 "%PY%" "%~dp0chain_controller.py" --live --interval 30 --allow-mutations >> "%~dp0..\logs\chain_controller.live.log" 2>&1
 endlocal

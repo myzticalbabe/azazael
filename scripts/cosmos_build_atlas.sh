@@ -18,6 +18,19 @@
 set -euo pipefail
 
 ATLAS="${GRAPHIFY_ATLAS:-$HOME/Desktop/Graphify_Codebase_Atlas_2026-08-27}"
+
+# helper: bash path -> Windows path. python3 on this box is a NATIVE Windows
+# interpreter, so a MSYS-style /c/... path is not openable by it -- doing so
+# raised FileNotFoundError in the deploy step and aborted the build after the
+# cosmos data had already been written (2026-10-09). graphify_refresh_all.sh
+# carries the same helper for the same reason; keep the two in step.
+win_path() { # <bash path>
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -m "$1" 2>/dev/null || echo "$1"
+  else
+    echo "$1" | sed 's|^/\([a-z]\)/|\1:/|I'
+  fi
+}
 DESKTOP_ROOT="${GRAPHIFY_DESKTOP_ROOT:-$HOME/Desktop}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXPORT="$SCRIPT_DIR/cosmos_export.py"
@@ -69,7 +82,7 @@ for repo in "${REPOS[@]}"; do
   python3 "$EXPORT" "$graph" "$ATLAS/$repo/cosmos" --label "$repo"
   log "[$repo] deploying viewer"
    cp "$VIEWER_SRC/dist/viewer.bundle.js" "$ATLAS/$repo/viewer.bundle.js"
-   nodes=$(python3 -c "import json; print(len(json.load(open(r'$graph', encoding='utf-8'))['nodes']))")
+   nodes=$(python3 -c "import json; print(len(json.load(open(r'$(win_path "$graph")', encoding='utf-8'))['nodes']))")
   # Generate the label-chunk <script> tags dynamically (small repos have 1 chunk,
   # azazael has 11) and substitute into the HTML template.
   nchunks=$(ls "$ATLAS/$repo/cosmos"/graph.labels.[0-9]*.js 2>/dev/null | wc -l)
