@@ -758,6 +758,91 @@ def snapshot_log_ratios(store=None, limit: int = 10) -> dict[str, Any]:
     return out
 
 
+def snapshot_concentration(store=None, limit: int = 10) -> dict[str, Any]:
+    """Per-context concentration over STORED snapshot pairs (RIPO/ARMOR health).
+
+    RIPO's isometry and ARMOR's anchors both guard one failure mode:
+    exploration collapse, where all mass piles onto one worm. There are no
+    token rollouts here to clip or anchor, so this watches the observable
+    equivalent: for the NEWER snapshot of each consecutive pair, softmax
+    each shared context and record entropy (nats) plus max share, aggregated
+    as mean_entropy / min_entropy / max_max_share over contexts. A live
+    policy with min_entropy near 0 and max_max_share near 1 is collapsed,
+    however stable its log-ratio drift looks. Read-only: never writes,
+    never tombstones. Never raises.
+    """
+    out: dict[str, Any] = {"ok": False, "pairs": [], "n_snapshots": 0,
+                            "verdict": "no-input"}
+    try:
+        if store is None:
+            from CORE.local_memory import get_memory_store
+            store = get_memory_store()
+        rows = (store.query_memories(source="GRPOTrainer",
+                                     event_type="policy_snapshot",
+                                     limit=max(2, int(limit))) or [])
+    except Exception as exc:
+        note_failure("learning_grpo:concentration-read", exc)
+        out["verdict"] = "leg-failed"
+        out["error"] = "%s: %s" % (type(exc).__name__, exc)
+        return out
+    snaps = []
+    for r in rows:
+        try:
+            data = (r or {}).get("data", {})
+            if isinstance(data, str):
+                data = json.loads(data)
+            policy = (data or {}).get("policy", {})
+            if not isinstance(policy, dict) or not policy:
+                continue
+            snaps.append({"id": (r or {}).get("id"), "policy": policy})
+        except Exception:
+            continue
+    out["n_snapshots"] = len(snaps)
+    if len(snaps) < 2:
+        out["ok"] = True
+        out["verdict"] = ("single-snapshot" if snaps else "no-input")
+        return out
+    pairs = []
+    for newer, older in zip(snaps[:-1], snaps[1:]):
+        entropies = []
+        shares = []
+        n_ctx = 0
+        for ctx, new_worms in (newer["policy"] or {}).items():
+            old_worms = (older["policy"] or {}).get(ctx)
+            if not isinstance(new_worms, dict) or not isinstance(old_worms, dict):
+                continue
+            keys = [k for k in new_worms if k in old_worms]
+            try:
+                new_vals = [float(new_worms[k]) for k in keys]
+            except (TypeError, ValueError):
+                continue
+            if not keys:
+                continue
+            mx = max(new_vals)
+            exps = [math.exp(v - mx) for v in new_vals]
+            tot = sum(exps)
+            if tot <= 0:
+                continue
+            probs = [e / tot for e in exps]
+            ent = -sum(p * math.log(max(p, 1e-300)) for p in probs)
+            entropies.append(ent)
+            shares.append(max(probs))
+            n_ctx += 1
+        if not entropies:
+            continue
+        pairs.append({
+            "newer_id": newer["id"], "older_id": older["id"],
+            "n_contexts": n_ctx,
+            "mean_entropy": round(sum(entropies) / len(entropies), 6),
+            "min_entropy": round(min(entropies), 6),
+            "max_max_share": round(max(shares), 6),
+        })
+    out["pairs"] = pairs
+    out["ok"] = True
+    out["verdict"] = "pairs" if pairs else "no-common-context"
+    return out
+
+
 # -- A/B Test Runner with DPO ----------------------------------------------
 
 
