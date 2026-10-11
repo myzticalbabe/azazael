@@ -32,10 +32,23 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+#: Canonical root resolver. `AZAZAEL_ROOT` below used to fall back to
+#: `Path.home() / "azazael"` -- a DIFFERENT, stale checkout from this repo -- so with
+#: the env vars unset the index was built against the wrong tree. The env chain is
+#: kept verbatim, including the `Azazael_ROOT` variant; only the last fallback moved.
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # never break the host
+    note_failure("bibl_crawler:core-paths-import", None)
+
+    def _get_project_root_safe() -> Path:
+        # CORE unreachable: derive from this file (src/ORCHESTRATION/BIBL/ -> root).
+        return Path(__file__).resolve().parents[3]
+
 # Configuration
 AZAZAEL_ROOT = os.environ.get(
     "AZAZAEL_ROOT",
-    os.environ.get("Azazael_ROOT", str(Path.home() / "azazael"))
+    os.environ.get("Azazael_ROOT", str(_get_project_root_safe()))
 )
 BIBL_DIRS = [
     Path(AZAZAEL_ROOT) / "src" / "ORCHESTRATION" / "BIBL",

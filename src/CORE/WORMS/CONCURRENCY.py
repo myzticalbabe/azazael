@@ -40,6 +40,25 @@ except ImportError:
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "HYDRA" / "ml_platforms"))
 
+# ── Canonical project root ─────────────────────────────────────────────────
+# The fallback at the three sites below used to be `Path.home() / "azazael"`,
+# which names a DIFFERENT, stale checkout from this repo (C:/Azazael/azazael), so
+# with AZAZAEL_ROOT unset `worms_dir` resolved inside the wrong tree and the worm
+# and cluster loaders pointed at modules that are not the ones that ship here.
+# `CORE.paths.get_project_root_safe()` makes that decision ONCE for the project:
+# AZAZAEL_ROOT first (it delegates to get_project_root, so the precedence and the
+# per-call env re-read at each call site are unchanged), then the tree it ships in.
+# Guarded with a location-derived fallback for the same reason the freethreading
+# import above is guarded: this module is also loaded by the standalone exercise
+# paths, where `CORE` may be unreachable and an unguarded import would take the
+# whole module down where it previously fell back.
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # CORE unreachable: this file's own tree
+    def _get_project_root_safe() -> Path:
+        # src/CORE/WORMS/CONCURRENCY.py -> [0]=WORMS [1]=CORE [2]=src [3]=root
+        return Path(__file__).resolve().parents[3]
+
 # coding: utf-8
 """
 CONCURRENCY MANAGER - Cotemporaneous Execution Engine
@@ -263,7 +282,7 @@ class WormExecutor:
 
     def load_worm(self, worm_name: str) -> bool:
         """Load a worm module."""
-        azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+        azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(_get_project_root_safe())))
         worms_dir = os.path.join(azazael_root, "src", "CORE", "WORMS")
         
         worm_paths = {
@@ -364,7 +383,7 @@ class ClusterExecutor:
 
     def load_clusters(self):
         """Load cluster modules."""
-        azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+        azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(_get_project_root_safe())))
         worms_dir = os.path.join(azazael_root, "src", "CORE", "WORMS")
         try:
             if worms_dir not in sys.path:
@@ -378,7 +397,7 @@ class ClusterExecutor:
     def execute_cluster(self, cluster_name: str, cancellation_token: Any = None) -> ExecutionResult:
         """Execute a single cluster."""
         time.time()
-        azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+        azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(_get_project_root_safe())))
         worms_dir = os.path.join(azazael_root, "src", "CORE", "WORMS")
 
         # Check cancellation before executing

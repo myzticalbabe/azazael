@@ -9,7 +9,7 @@ import sys, json, time
 from pathlib import Path
 
 # Wire Azazael
-sys.path.insert(0, str(Path.home() / 'azazael' / 'src'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'src'))
 # Wire AOA
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 

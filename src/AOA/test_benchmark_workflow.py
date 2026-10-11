@@ -5,7 +5,7 @@ and verify results against benchmark_data.json baselines.
 import sys, json, time
 from pathlib import Path
 
-sys.path.insert(0, str(Path.home() / 'azazael' / 'src'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'src'))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import arms.azazael_arm, arms.codex_arm, arms.eve_arm, arms.libra_arm, arms.support_arms, arms.kali_arm

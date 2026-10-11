@@ -45,6 +45,13 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
+#: Canonical project root for this module's default paths. The fallback used to be
+#: `Path.home() / "azazael"`, which names a DIFFERENT, stale checkout from this repo
+#: (`C:/Azazael/azazael`), so with the env vars unset the crawler targeted the wrong
+#: tree. CORE.paths owns that resolution (AZAZAEL_ROOT first, never raises), so the
+#: decision is made once instead of re-derived per module.
+from CORE.paths import get_project_root_safe as _get_project_root_safe
+
 # REMOVED 2026-10-10: five `try: pass / <NAME>_AVAILABLE = True / except ImportError`
 # blocks (SYSTEMZ, PROCESSZ, DISKZ, CLOCKZ, NETWORXZ). In each, the import
 # statement had been replaced by `pass`, so the flag was set True unconditionally
@@ -85,7 +92,7 @@ class WORMZConfig:
     """WORMZ crawling configuration."""
 
     # Root path — auto-resolved once from AZAZAEL_ROOT env or default
-    _azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+    _azazael_root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(_get_project_root_safe())))
 
     # Target folders to crawl
     TARGET_FOLDERS = [

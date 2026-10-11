@@ -26,6 +26,7 @@ Environment Variables:
 from .state import VERSION, clear_cache
 from .internal import (
     get_project_root,
+    get_project_root_safe,
     get_src_dir,
     get_core_dir,
     get_worms_dir,
@@ -59,6 +60,7 @@ __all__ = [
     "VERSION",
     "clear_cache",
     "get_project_root",
+    "get_project_root_safe",
     "get_src_dir",
     "get_core_dir",
     "get_worms_dir",

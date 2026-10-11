@@ -53,6 +53,14 @@ except ImportError:                               # runtime absent: stay importa
         _SWALLOWED.append("%s:no-recorder" % where)
 
 
+#: Canonical project root for this module's default paths. The fallback used to be
+#: `Path.home() / "azazael"`, which names a DIFFERENT, stale checkout from this repo
+#: (`C:/Azazael/azazael`), so `export_state()` with no filepath wrote the state file
+#: into a tree nobody reads. CORE.paths owns that resolution (AZAZAEL_ROOT first,
+#: never raises), so the decision is made once instead of re-derived per module.
+from CORE.paths import get_project_root_safe as _get_project_root_safe
+
+
 def _note_failure(where: str, exc: BaseException | None = None) -> None:
     """Record a fail-open swallow. Never raises."""
     try:
@@ -1125,7 +1133,7 @@ class MetaCluster:
     def export_state(self, filepath: str = "") -> str:
         """Export full MetaCluster state to JSON."""
         if not filepath:
-            filepath = str(Path.home() / "azazael" / "data" / "metacluster_state.json")
+            filepath = str(_get_project_root_safe() / "data" / "metacluster_state.json")
         
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         

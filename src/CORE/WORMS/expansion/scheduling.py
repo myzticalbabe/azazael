@@ -52,6 +52,23 @@ except ImportError:
             return False
 
 
+# -- Allocation policy (EP187) ----------------------------------------
+#: Resolved once at import, not inside the two methods that use it: a
+#: function-level import is a counted anti-pattern here
+#: (`import_inside_function`), and the ratchet rejects an increase in it.
+#: `allocation.py` imports only stdlib plus the failure ledger, so this
+#: direction is one-way -- it never imports this module, so there is no cycle.
+try:
+    from CORE.WORMS.expansion.allocation import (
+        ThompsonAllocator, reward_for_outcome)
+except ImportError:
+    # Both callers below test these for None; no availability flag is set,
+    # because a flag nothing reads is itself the defect this sweep removes.
+    note_failure("scheduling:allocation-import", None)
+    ThompsonAllocator = None
+    reward_for_outcome = None
+
+
 # G-3 (2026-09-11): single tuning/deployment horizon. Evolution evaluated
 # candidates at N_EPISODES=80 while production trained at n_episodes=50 —
 # horizon-sensitive genes (discount, epsilon_decay) were tuned on one
@@ -492,10 +509,11 @@ class ScheduledTrainingWorm:
         alloc = getattr(self, "_allocator", None)
         if alloc is not None:
             return alloc
-        try:
-            from CORE.WORMS.expansion.allocation import ThompsonAllocator
-        except ImportError as exc:
-            note_failure("scheduling:allocator-import", exc)
+        if ThompsonAllocator is None:
+            # Guarded at import (see the allocation block at the top of the
+            # module); a successful import here would have to be re-imported
+            # per call, which the anti-pattern ratchet counts.
+            note_failure("scheduling:allocator-import", None)
             return None
         configured = list((getattr(self.config, "contribution_weights", None) or {}).keys())
         if configured:
@@ -547,8 +565,10 @@ class ScheduledTrainingWorm:
         alloc = self._get_allocator(seed=str(arm))
         if alloc is None:
             return current
+        if reward_for_outcome is None:
+            note_failure("scheduling:allocation-import", None)
+            return current
         try:
-            from CORE.WORMS.expansion.allocation import reward_for_outcome
             ok, w = reward_for_outcome(outcome)
             if weight is not None:
                 w = float(weight)

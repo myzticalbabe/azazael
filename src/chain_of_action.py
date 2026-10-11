@@ -22,7 +22,22 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # Configuration — uses environment variables with fallbacks
-AZAZAEL_ROOT = Path(os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")))
+
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # never break the host
+    note_failure("chain_of_action:core-paths-import", None)
+    _get_project_root_safe = None
+
+#: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be
+#: `Path.home() / "azazael"` -- a DIFFERENT, stale checkout from this repo -- so with
+#: AZAZAEL_ROOT unset this script operated on the WRONG tree. `parents[1]` is this
+#: file's own tree (chain_of_action.py sits at the src/ root) and answers only the case
+#: where CORE.paths is unimportable.
+_DEFAULT_ROOT = (str(_get_project_root_safe()) if _get_project_root_safe is not None
+                 else str(Path(__file__).resolve().parents[1]))
+
+AZAZAEL_ROOT = Path(os.environ.get("AZAZAEL_ROOT", _DEFAULT_ROOT))
 BACKUP_ROOT = Path(os.environ.get("AZAZAEL_BACKUP", str(Path.home() / "azazael_backup")))
 DOCS_DIR = BACKUP_ROOT / "docs"
 WHEELS_DIR = AZAZAEL_ROOT / "AZAZAEL_BOOT" / "linux-wheels"

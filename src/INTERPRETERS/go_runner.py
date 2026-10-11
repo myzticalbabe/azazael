@@ -34,8 +34,22 @@ except ImportError:                               # never break the host
 
 # --- Configuration -----------------------------------------------------------
 
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # never break the host
+    note_failure("go_runner:core-paths-import", None)
+    _get_project_root_safe = None
+
+#: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be
+#: `Path.home() / "azazael"` -- a DIFFERENT, stale checkout from this repo -- so with
+#: AZAZAEL_ROOT unset this runner resolved the WRONG tree and forwarded it to the child
+#: process it spawns. `parents[2]` (this file's own tree) answers only the case where
+#: CORE.paths is unimportable.
+_DEFAULT_ROOT = (str(_get_project_root_safe()) if _get_project_root_safe is not None
+                 else str(Path(__file__).resolve().parents[2]))
+
 AZAZAEL_ROOT = os.environ.get(
-    "AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael"))
+    "AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", _DEFAULT_ROOT)
 )
 
 GO_BUILD_DIR = Path(AZAZAEL_ROOT) / "build" / "go"

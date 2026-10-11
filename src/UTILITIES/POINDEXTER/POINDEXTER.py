@@ -348,7 +348,7 @@ print(f"  Avg Path Length:        {props['avg_path_length']:.2f}")
 print(f"  Clustering Coefficient:   {props['clustering_coefficient']:.4f}")
 print()
 
-root = os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael"))
+root = os.environ.get("AZAZAEL_ROOT", str(Path(__file__).resolve().parents[3]))
 output_path = os.path.join(root, "output", "poindexter_report.json")
 Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 with open(output_path, "w") as f:
