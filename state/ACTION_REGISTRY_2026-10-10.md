@@ -1,6 +1,7 @@
 # ACTION REGISTRY — blind + non-applied shelfware → integration
 
-Date: 2026-10-10. Repo: `C:/Azazael/azazael`, branch `migration/baseline-20261001`, HEAD `52b7b453`.
+Date: 2026-10-10. Repo: `C:/Azazael/azazael`, branch `migration/baseline-20261001`.
+HEAD at first write `52b7b453`; HEAD after wave 2 (2026-10-10 evening) `9552f8f5`.
 Production interpreter: `C:/Azazael/.venvs/py315t` (3.15.0rc3 free-threaded, GIL off).
 Source: audits of 2026-10-10 (MCP/architecture/tests/SOTA baseline, 3.15t reachability,
 caller-census challenge, training-vs-harvest gap, orphan/subsystem/docs-TODO sweeps).
@@ -58,18 +59,60 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
 
 ## 3. DEAD CODE + DUPLICATES (remove, don't carry)
 
-- [ ] D-1 Remove or wire: `replan_after_failures` (`circuit_breaker.py:623`, self-admits
-  no caller), `recall_with_feedback` (`technique_runtime.py:310`),
-  `run_read_driven_consolidation` + `consolidate_from_reads` (`engram.py:610,710`),
-  `discover_wirings` (`technique_runtime.py:147`),
-  `sentinel_enforcer.post_validate:435`, `enforce_replace:402`.
-- [ ] D-2 Give the write-only telemetry consumers or stop emitting:
-  `engram_read_pressure` (`engram.py:738`, 1 hit repo-wide),
-  `technique-wiring` citations (`technique_runtime.py:161,199`).
-- [ ] D-3 Delete duplicates after prod-copy check: repo-root `METACLUSTER.py`
-  (1153-line orphan, zero importers) vs `src/CORE/WORMS/METACLUSTER.py` (prod);
-  `archived_unified/` CLUSTERWORMS copy; `packages/azazael-core` mirror (never imported
-  by `src/`, 0 hits — decide: monorepo import or delete); `*.pre_gate_backup` files.
+- [~] D-1 PARTIAL — wave 2 (2026-10-10 evening) resolved three of these by EVIDENCE, not by
+  wiring something up:
+  - `discover_wirings` — **STALE ROW, DROPPED**: 0 occurrences in HEAD
+    (`git show HEAD:src/CORE/technique_runtime.py | grep -c discover_wirings` -> `0`). The
+    row cited a symbol that never existed, so nothing was removed.
+  - `run_read_driven_consolidation` + `consolidate_from_reads` — **CLOSED, already wired by
+    a later pass**: `read_pressure` (~674) <- `consolidate_from_reads` (:728) <-
+    `run_read_driven_consolidation` (:787), and `_record_read_stats` is live on the read
+    path through `RecallRouterWorm._note_read`, called from `route_recall` on all three
+    branches (:424 owner_lookup, :446 semantic, :458 fallback). RESIDUAL: the only
+    reference to the loop from outside is a STRING LITERAL at
+    `technique_runtime.py:403` (`getattr(_engram, "run_read_driven_consolidation", None)`),
+    which is why the mesh ledger still files it `dispatched`; naming it as an attribute
+    would give a static caller. NOT DONE.
+  - `recall_with_feedback` (`technique_runtime.py:362`) — EXISTS, deliberately restored; its
+    only callers are the ARCHIVED `archive/theater-2026-10-10/exercise_technique_runtime.py:19,61`.
+    The consumer to wire is `src/CORE/technique_wiring/_l1_memory.py:250-259`, whose adapter
+    rebuilds `RecallRouterWorm().route_recall(...)` inline — a thinner duplicate of it.
+    Owns the only NAMED reference to `engram.run_read_driven_consolidation`, so cutting it
+    would re-break that. STILL OPEN.
+  - `replan_after_failures` (`circuit_breaker.py:623`), `sentinel_enforcer.post_validate:435`,
+    `enforce_replace:402` — STILL OPEN.
+  - NEW, same defect class, FIXED this wave: `technique_runtime`'s recorder guard could never
+    fire — an UNGUARDED `from CORE.failure_ledger import failure_notes, note_failure` with a
+    redundant `try: from CORE.failure_ledger import note_failure / except ImportError:` block
+    BELOW it, so the handler was unreachable in both branches (name already bound, or the
+    module had already aborted). Removed; `failure_ledger` is a stdlib-only leaf, so the
+    guard was never load-bearing.
+- [x] D-2 **CLOSED** — wave 2 (2026-10-10 evening). Both halves have real readers, checked
+  producer-against-consumer rather than trusted from a docstring:
+  - `engram_read_pressure`: the writer (`engram.py` `_record_read_stats`, ~:744-761) emits
+    `source="engram-read-pressure"`, `event_type="read_pressure"`, `data=pressure`; the
+    reader `technique_runtime._read_pressure_summary` (:483) queries that exact `source` and
+    reads `data["signal"]` and `data["abstention_rate"]` — the keys `read_pressure()`
+    produces — and `fleet_link_health` folds it in (:570), which
+    `scripts/technique_heartbeat.py:49,88` calls, itself driven by the scheduled
+    `scripts/technique_heartbeat.bat`.
+  - `technique-wiring` citations (`technique_runtime.py` `_cite`, used by `status()` and
+    `run_all()`, ~:179/:217): the citation lands on the hash-chained ledger via
+    `audit_trail.audit_verification_gate`, read by `audit_trail.verify_completeness`, which
+    is called from `compliance/sentinel_gate.py`, `cli_audit.py`, `compliance/governance.py`,
+    `audit_repair.py`, `scripts/close_audit_sessions.py`. Removing the emit would subtract
+    from the audit trail, so it stays.
+- [~] D-3 PARTIAL — wave 2 (2026-10-10 evening):
+  - repo-root `METACLUSTER.py` — **STALE ROW, DROPPED**: absent from the repo root, from
+    `..` (the session root) and from `/c/Azazael`. The row was kept alive by a misreading:
+    `git ls-files --error-unmatch METACLUSTER.py` exiting non-zero asserts NOT TRACKED, which
+    is not the claim "a file exists here". The production copy
+    (`src/CORE/WORMS/METACLUSTER.py`, 1269 lines) is the only one present.
+  - `archived_unified/` CLUSTERWORMS copy — EXISTS. STILL OPEN.
+  - `packages/azazael-core` mirror — EXISTS, 0 `src/` references to `azazael_core`; the only
+    `azazael-core` strings in `src/` are the `service_name` argument at
+    `cd3_exporter.py:30,315,326`. Decide monorepo-import vs archive. STILL OPEN.
+  - `*.pre_gate_backup` files — not yet counted. STILL OPEN.
 - [ ] D-4 Triage orphan tools/scripts (**counts in this row are wrong by ~7-11x** —
   measured 2026-10-10 (worker 7) by counting the directory listings: `tools/` = **189
   entries (171 `.py` + 18 `.sh`/`.js`/`.ps1`/`.json`/`.txt`)**, not ~15; `scripts/` =
@@ -83,10 +126,22 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
   `terence_watch.py`, `command_center.py`, `chain_watchdog.py` (unscheduled supervisor!),
   `chain20.py`, `run_azazael_chain.py`, ~30 probe/patch one-shots (`fix_swallows.py` et al
   are ONE-SHOT-DONE — archive, don't schedule). Decide per item: schedule / archive / delete.
-- [ ] D-5 Fix or quarantine the 7 import FAILs: 5 self-circular `from X import main`
-  (`COMPREHENSIVE_FIX`, `environment_manager`, `math_certainty`, `QL_ANALYSIS`,
-  `update_docs_paths`), `pygame` (drop or vendor), `opentelemetry.sdk` (install or drop
-  `CORE/cd3_exporter`).
+- [x] D-5 **CLOSED** — wave 2 (2026-10-10 evening), 6 of 7 items; `pygame` split out below:
+  - the 5 self-circular `from X import main` shims — **already fixed and committed**: all five
+    are CLEAN against `HEAD` (`git status --short` empty) and import package-qualified, e.g.
+    `src/math_certainty.py:13` -> `from AZAZAEL_TOOLKIT.math_certainty import main`, with the
+    reason recorded in-line at `src/COMPREHENSIVE_FIX.py:14-20`. The registry row was stale.
+  - `opentelemetry.sdk` — **FIXED**. The SDK is genuinely absent on the production
+    interpreter (`ModuleNotFoundError: No module named 'opentelemetry.sdk'`) while
+    `cd3_exporter.py:49-50` imported it at MODULE level, so `import CORE.cd3_exporter`
+    RAISED. Probes now: `OTEL_SDK_AVAILABLE False`; `SpanExportResult` =
+    `_SpanExportResultFallback`; `SQLiteSpanExporter` present; `DB_PATH` =
+    `C:\\Users\\clint\\.azazael\\memory_store.db`; `configure_otel_tracing()` raises a named
+    `ImportError`. It also un-swallowed a live degradation: `tests/conftest.py:255` sat in a
+    bare `except Exception: pass`, so its teardown silently skipped on this host.
+  - `pygame` — **STILL OPEN**: `src/azazael_pygame.py:8` and a second copy at
+    `src/CODEX/CORE/azazael_pygame.py:8`. Drop or vendor, and settle whether the pair is a
+    duplicate to dedupe.
 
 ## 4. SUBSYSTEM WIRE-OR-CUT (one decision each, then execute)
 
@@ -153,9 +208,24 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
   conftest.py/pytest.ini and 3 test modules), so it is an operational standalone app,
   not shelfware. Disposition executed as the row's own second option: standalone status
   is now explicit. Nothing to wire; no capability lost.
-- [ ] S-6 HORUS monitor (points at non-existent paths) + `dashboard/ouroboros.html`
-  (static snapshot, no fetch, stale JSONs): repair data flow or cut. Keep
-  `scripts/live_monitor.py` (LIVE, hot-DB polling).
+- [~] S-6 PARTIAL — the HORUS half is **REPAIRED and probe-verified** (wave 2, 2026-10-10
+  evening); the `ouroboros.html` half is instrument blindness (L-5), not a stale file.
+  HORUS defaulted its root to `Path.home() / "azazael"` — a DIFFERENT, stale checkout from
+  this repo — at EIGHT sites (`:98 :118 :582 :688 :830 :840 :934 :1037` pre-fix), so with
+  `HORUS_OUTPUT` and `AZAZAEL_ROOT` unset it read and wrote the wrong tree's output dir. It
+  now resolves ONE module-level canonical root: `CORE.paths.get_project_root()` (which is a
+  PACKAGE, `src/CORE/paths/__init__.py`), behind its own `src/CORE` sentinel, falling back to
+  the module's own repo root. Precedence is unchanged at every site. Four probes:
+  vars unset -> `C:\\Azazael\\azazael` (NOT `C:\\Users\\clint\\azazael`);
+  `HORUS_OUTPUT=C:/probe/horus` -> that path;
+  `AZAZAEL_ROOT` at a VALID root -> `C:\\temp_fakeroot`;
+  `AZAZAEL_ROOT` at an INVALID path -> the shipping tree, which is the resolver's documented
+  sentinel behaviour rather than a dropped override. (The last one is the easy misreading:
+  the first probe of this looked like the override was ignored until a VALID alternative root
+  was supplied.)
+  NEW sub-item from the same worker, STILL OPEN, other files — the identical stale
+  `~/azazael` fallback survives at `src/ORCHESTRATION/hydra_bridge.py:30`,
+  `src/ORCHESTRATION/HYDRA.py:92,662`, `src/BIBL/bibl_map.py:672`.
   MEASURED 2026-10-10 (worker 7) — **two corrections to the claim, one part UNSETTLED.**
   (a) "points at non-existent paths" is STALE for the live module: `ORCHESTRATION/HORUS.py:98`
   defaults to `os.environ.get("HORUS_OUTPUT", os.environ.get("AZAZAEL_ROOT",
@@ -237,3 +307,29 @@ scheduled runs + pre-commit worm check (C-15). Ops: disk-80% alert, G: backup ga
 - Exercise-only engagement scores zero (T-15); production-call-sites-per-technique
   is the adoption metric. Instrument self-reads (`engaged=181`) are not evidence.
 - Re-run the orphan/dead sweeps after each batch — the tree drifts faster than docs.
+
+## 9. WAVE 2 (2026-10-10 evening) — what closed, what was corrected, what remains
+
+Commits: `f448ae7c` (63 files, the SOTA fix + audit wave) and `9552f8f5` (3 files, this one).
+
+Closed with evidence: D-2 (both halves), D-5 (6 of 7), S-6/HORUS, and D-1's
+`run_read_driven_consolidation` branch.
+
+Three registry rows were STALE and are corrected above rather than worked around. All three
+failed the same way — a claim carried forward without re-measuring:
+1. D-1 `discover_wirings` — the symbol has never existed (0 hits in HEAD).
+2. D-3 repo-root `METACLUSTER.py` — the file does not exist; `git ls-files --error-unmatch`
+   non-zero means NOT TRACKED, not EXISTS.
+3. D-5 the 5 self-circular shims — fixed and committed before this wave.
+
+Method that found them, worth repeating: try to FALSIFY the row against the tree first. A row
+that cannot reproduce its own citation is a row to correct, not to implement.
+
+Gates on the wave-2 tree: commit gate focused, staged scanner no new anti-patterns, canon
+drift 1244/1244, anti-pattern gate 2670 == baseline, mesh ledger fresh at 174 declarations,
+578 passed / 2 skipped / 0 failed on the 41-file sweep for the touched modules, 89 passed on
+the four files covering them directly.
+
+Still OPEN from this file: G-0a/G-0b/G-0c, H-1..H-6, L-1..L-5, D-1's remaining four items,
+D-3's three, D-4, S-1..S-4 and S-8, M-1..M-4, E-1/E-2, and the whole section 7 backlog.
+The D-4 counts in this file are corrected in place and are the ones to work from.
