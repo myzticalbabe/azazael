@@ -40,7 +40,7 @@ Date: 2026-02-10
 # coding: utf-8
 """
 Comprehensive Python Module Analysis and BAT Improvement System
-- Find all Python modules on C:\ drive
+- Find all Python modules on the system drive
 - Run comprehensive tests
 - Fix errors with debuggable solutions
 - Dependency analysis
