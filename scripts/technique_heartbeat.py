@@ -218,6 +218,26 @@ def main() -> int:
             _fail("technique-heartbeat:policy-drift-leg", exc)
             out["steps"]["policy_drift"] = {"ok": False, "verdict": "leg-failed"}
         try:
+            from CORE.WORMS.expansion.learning_grpo import snapshot_concentration
+            from CORE.local_memory import get_memory_store as _get_store_c
+            _conc = snapshot_concentration(store=_get_store_c())
+            out["steps"]["policy_concentration"] = _conc
+            if _conc.get("verdict") == "pairs":
+                try:
+                    _get_store_c().record_event(
+                        source="GRPOTrainer", event_type="policy_concentration",
+                        data={"pairs": _conc.get("pairs"),
+                              "n_snapshots": _conc.get("n_snapshots")},
+                        severity="info",
+                        tags=["grpo", "policy", "concentration"])
+                    out["steps"]["policy_concentration_kept"] = True
+                except Exception as exc:
+                    _fail("technique-heartbeat:policy-concentration-report", exc)
+                    out["steps"]["policy_concentration_kept"] = False
+        except Exception as exc:
+            _fail("technique-heartbeat:policy-concentration-leg", exc)
+            out["steps"]["policy_concentration"] = {"ok": False, "verdict": "leg-failed"}
+        try:
             from CORE.WORMS.expansion.queens import rainbow_round
             out["steps"]["rainbow"] = rainbow_round(probe_limit=1)
         except Exception as exc:
