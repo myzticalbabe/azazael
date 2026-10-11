@@ -41,7 +41,10 @@ WHAT IT DOES
        server set. A pin whose absolute path still exists is reported as a
        warning; a pin whose absolute path is GONE is reported as an error,
        because that server cannot spawn. Re-pin procedure:
-       `azazael/tools/repoint_315t.py` (dry run by default, --apply backs up).
+       `azazael/tools/repoint_315t.py` (dry run by default, --apply backs up) -
+       a sibling of this file, and UNTRACKED as of 2026-10-11, so the report
+       names it as unavailable when it is absent rather than printing a command
+       a fresh clone cannot run.
        This file only DETECTS - it never rewrites a pin.
 
 USAGE
@@ -102,6 +105,32 @@ REMOTE_KEYS = {"type", "url", "params", "headers"}
 INTERPRETER_MARKERS = (".venvs", "python.exe", "pythonw.exe",
                        "py314", "py315t", "Python314", "Python315")
 REPIN_REFERENCE = "azazael/tools/repoint_315t.py"
+
+# Resolve the reference against the repo root this file already computes (CWD,
+# line 80), so the label and the existence probe CANNOT drift apart: the string
+# the report prints is the same one that gets probed. Deriving the path a second
+# way - e.g. `Path(__file__).parent / "repoint_315t.py"` - would work today and
+# silently disagree the moment either form is edited.
+REPIN_TOOL = CWD / REPIN_REFERENCE
+
+
+def repin_reference_note():
+    """One line naming the re-pin procedure, or saying it is NOT AVAILABLE.
+
+    A gate that instructs the operator to run a tool which is not in git gives
+    advice a fresh clone cannot follow. MEASURED 2026-10-11: the reference below
+    is correct, but the tool is UNTRACKED, so this guard used to end its pin
+    report with a command that need not exist on the machine reading it.
+    Presence is now reported instead of assumed. `Path.is_file()` swallows
+    OSError internally, exactly like the `os.path.isfile` used in
+    `report_pins`, so probing the path adds no bare handler.
+    """
+    if REPIN_TOOL.is_file():
+        return ("    re-pin  : %s  (dry run by default; --apply writes with backups)"
+                % REPIN_REFERENCE)
+    return ("    re-pin  : %s is NOT PRESENT on this checkout - the re-pin "
+            "procedure is UNAVAILABLE here; re-pin by hand and re-run this guard"
+            % REPIN_REFERENCE)
 
 
 def hdr(t):
@@ -230,8 +259,7 @@ def report_pins(data):
         else:
             print("    ~ %s.%s = %s  (bare name, resolves via PATH)"
                   % (name, where, value))
-    print("    re-pin  : %s  (dry run by default; --apply writes with backups)"
-          % REPIN_REFERENCE)
+    print(repin_reference_note())
     return pins, errs
 
 
