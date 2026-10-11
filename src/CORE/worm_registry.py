@@ -43,11 +43,11 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:
-    from CORE.PamsRecorder import PamsRecorder
+    from CORE.PamsRecorder import get_recorder  # singleton accessor (PamsRecorder.py:112-125)
 except ImportError as exc:
     # PAMS is optional, but its absence is still a degradation: memory recording
     # is unavailable for this process. Recorded rather than silently defaulted.
-    PamsRecorder = None
+    get_recorder = None
     note_failure("worm_registry:L37:optional-pams-absent", exc)
 
 # NOTE: CORE.worm_registry_cache is intentionally NOT imported here at module
@@ -1122,9 +1122,9 @@ def _get_pams_recorder():
     if _pams_instance is None:
         with _pams_instance_lock:
             if _pams_instance is None:
-                if PamsRecorder is not None:
+                if get_recorder is not None:
                     try:
-                        _pams_instance = PamsRecorder()
+                        _pams_instance = get_recorder()
                     except ImportError as exc:   # noqa: BLE001 - PAMS unavailable at runtime
                         note_failure("worm_registry:L1084:pams-instantiate", exc)
                         _pams_instance = False

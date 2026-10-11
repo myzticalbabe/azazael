@@ -37,7 +37,7 @@ except ImportError:
 
 # -- PAMS + MemoryBus (lazy, double-checked locking for 3.14t) -------------
 # Same house pattern as CLUSTERWORMS/METACLUSTER: audit trail + live pub/sub.
-_PamsRecorderCls = None
+_get_recorder = None
 _pams_lock = threading.Lock()
 _MemoryBusCls = None
 _bus_lock = threading.Lock()
@@ -45,18 +45,18 @@ _mem_bus = None
 
 
 def _pams():
-    global _PamsRecorderCls
-    if _PamsRecorderCls is None:
+    global _get_recorder
+    if _get_recorder is None:
         with _pams_lock:
-            if _PamsRecorderCls is None:
+            if _get_recorder is None:
                 try:
-                    from CORE.PamsRecorder import PamsRecorder
-                    _PamsRecorderCls = PamsRecorder
+                    from CORE.PamsRecorder import get_recorder
+                    _get_recorder = get_recorder
                 except ImportError:
                     note_failure("berks:L45", None)
                     return None
     try:
-        return _PamsRecorderCls()
+        return _get_recorder()
     except Exception:
         note_failure("berks:L49", None)
         return None

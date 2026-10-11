@@ -41,8 +41,8 @@ def _get_pams():
         with _pams_lock:
             if _pams is None:
                 try:
-                    from CORE.PamsRecorder import PamsRecorder
-                    _pams = PamsRecorder()
+                    from CORE.PamsRecorder import get_recorder
+                    _pams = get_recorder()
                 except ImportError:
                     note_failure("BINARY_ANALYSIS_TYPES:L36", None)
                     _pams = False  # Sentinel: don't retry
