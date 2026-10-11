@@ -554,3 +554,73 @@ repoint it exists to perform cannot run until the rules are re-measured;
 `run_evolution_cycle_314t.bat`, `open_aoa_monitor.bat`, `open_lilith_live_monitor.bat`,
 `refresh_oa_data.bat`, `config/config.yaml`, `src/config/ecosystem_config.yaml`,
 `src/config/pams_bridge.json` — each expecting 1-3 hits and finding 0).
+
+## 12. WAVE 4 LANDED — and the gate REJECTED the wave's own fix (2026-10-11)
+
+Commit: `a57ea026` (9 files, 704 insertions / 65 deletions) on `migration/baseline-20261001`.
+
+### WHAT LANDED
+
+`tools/index_drift_check.py` wired as pre-commit check 1b, `tests/test_tool_error_handlers.py`,
+`tests/test_no_untracked_imported_module.py`, `scripts/chain_controller.py`,
+`dashboard/ouroboros.html`, the two `archived_unified/ORCHESTRATION/scripts/` modules, and this file.
+
+**The stale-index guard ran for real, on the very commit that shipped it:**
+`[IndexDrift] 9 staged path(s); none edited after staging`. The class section 11 describes as a
+method note is now mechanized, and its first execution was self-verifying.
+
+All five gate checks passed on the real commit: focus gate (declared bulk), IndexDrift, staged
+scanner (`6 staged .py file(s): no new anti-patterns`), canon drift `1244 == 1244` with
+`substantive drift: 0`, ratchet `now 2670 == baseline 2670`, mesh ledger fresh at 174 declarations.
+
+### THE FIX THAT CREATED A NEW FINDING — caught before it landed
+
+The first attempt was REJECTED: `archived_unified/.../comprehensive_analysis.py:
+hardcoded_win_path 3 -> 4 (+1)`. The `+1` was **my own escape fix**. `C:\ drive` (backslash then a
+space) did NOT match the rule; rewriting it as `C:\\ drive` silenced the SyntaxWarning but matched
+`[A-Z]:\\` for the first time. **The two gates pull in opposite directions on the same character.**
+Resolved at the cause with ZERO backslashes — those docstring lines are now prose ("on the system
+drive"), which satisfies both. NOT baselined: a deliberate `--baseline` bump for a docstring is
+exactly the ratchet erosion the ratchet exists to prevent.
+
+Residual, measured rather than assumed: the four `invalid escape` SyntaxWarnings still print during
+the scanner run, and they are **HEAD-side** — the scanner compiles the pre-fix blob it is diffing
+against. Per-file `py_compile` with `-W error::SyntaxWarning` over the staged snapshots emits
+NOTHING, so the committed bytes are escape-clean. A gate is only as clean as the side of the diff
+you are reading.
+
+### THE CHAIN'S SCHEDULING HALF — root-caused, one artifact produced
+
+Section 10 left this open. The writer is `_mark_completed`, reachable ONLY from the live loop
+(`chain_controller.py:672`) and `catch_up (:595)`; `--job` never writes it. The task `Azazael-Chain`
+reads `task_state: ok` / `Running` yet `last_fire: null` with `task_last_result: -2147020576`
+(`0x800710E0` = Win32 4320). Its action `scripts\run_chain_live.bat` carries `Start In: N/A`, and
+`logs/chain_controller.live.log` — the file that wrapper exists to write — was NEVER CREATED, so the
+action never started, while `<ExecutionTimeLimit>PT0S</ExecutionTimeLimit>` (unlimited) explains a
+stuck `Running` that holds no lock and writes nothing.
+`state/chain_controller_due.json` now EXISTS (414 bytes) through the real writer path (bounded
+`--live`), and the render job proved blind-input propagation end-to-end: exit 1 carrying
+`BLIND on 1 input(s): state/chain_ops.json (absent)` inside `render-all`'s output.
+**The scheduler fault is the operator's next action, not a file change** — the controller
+deliberately never touches the scheduler.
+
+### repoint_315t.py — CLOSED as ALREADY APPLIED, not patched
+
+Section 11 said "re-measure before landing". Measured: `config/config.yaml:32` and
+`run_chain_live.bat:22` ALREADY carry `C:/Azazael/.venvs/py315t/Scripts/python.exe`. So the 11
+"expected 1, found 0" MISMATCHes are the signature of a repoint **already performed**, not a broken
+rule table. `.venvs/py315t/Scripts/python.exe` exists and runs (probe returned `RAN`); the venv that
+does NOT exist is `py314t` — the path this session's own fallback kept reaching for, which is why
+the missing venv looked like the bat's fault. Corollary worth keeping: **the rule table is the
+regression detector for the repoint** — "fixing" its expected counts to match today's tree would
+delete the only signal that the repoint is still in force.
+
+### .githooks/pre-commit — TRACKED and gitignored at the same time
+
+`git add .githooks/pre-commit` was REFUSED ("The following paths are ignored"), and because the
+staging command chained with `&&`, it short-circuited and staged NOTHING. The file IS in the index
+(`git ls-files` lists it), so it was force-added at some earlier point while the path stayed
+ignored. Consequence: **every future modification needs `git add -f`**, or HEAD silently keeps the
+old gate — the same failure shape as section 11's `evolution_log.py`, one level down (a gate whose
+mechanism is invisible to the thing that ships it). Never chain independent `git add` calls with
+`&&`; a refusal in the first silently skips the rest.
