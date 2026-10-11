@@ -712,3 +712,50 @@ Measured by workers who refused to implement:
   `import_inside_function 1061 -> 1060 (-1)`. Re-baselining now would bake in the unrelated
   uncommitted deletion `src/CORE/PamsBusBridge.py` sitting in this worktree. The 1-count headroom is
   the cheaper error.
+
+## 14. WAVE 5 VERIFICATION PASS (2026-10-11) — L-5's residual closed, three more stale rows, one new class
+
+Measured after `97dcde73` by PROBE and grep against the tree, not by reading the rows.
+
+### L-5 residual — CLOSED for `chain_ops`
+
+`state/chain_controller_due.json` exists (414 bytes, 2026-10-10 22:02) but is **THIN**:
+`keys: ['render']` and **`last_fire: None`** — one job entry carrying no fire time. With the artifact
+present, `tools/chain_ops.py` no longer prints `NO_DATA: chain_controller_due.json missing or
+unreadable`. It produced a full report — `CHAIN OPS jobs=1`, DURATION `measurable 1/1`, reason
+"the state file records fire time, not runtime, so duration is not measurable for ANY job until …" —
+and exited **1**, which for this tool is it REPORTING findings, not crashing. The instrument that was
+blind is reading. Still unverified: the other L-5 readers, `terence_invariants.py:751/864/1202/2433`
+and `process_benchmark.py:54/135/222`.
+
+### NEW CLASS, from that same instrument — 13 of 32 `state/` artifacts have NO READERS
+
+`chain_ops.py`'s own CONSUMPTION section: `artifacts: 32`, `with NO readers: 13`, naming
+`converge_315.partial.json`, `dep_gap_315t.json`, `orphan_scan.json` (+ 10 more). This is the
+producer-without-consumer defect at the ARTIFACT level — the same shape as D-1/D-2 at the code level,
+and no existing row covers it. The instrument found a class on its first honest run.
+
+### STALE ROWS 8, 9 and 10 — all three falsified against the tree
+
+1. **`replan_after_failures`** — `grep -rn replan_after_failures src --include=*.py` → **0 hits.** No
+definition, no caller. Same class as `discover_wirings` (dropped in wave 2). The row cites
+`circuit_breaker.py:623`; that line is not a definition. **CORRECT: drop the row.**
+2. **`enforce_replace`** — `grep -n enforce_replace src/CORE/sentinel_enforcer.py` → **0 hits.** So
+§10's "no definition anywhere in `src/`" is **CORRECT**. But this exposes a SECOND defect:
+`SOTA_ROW_RESCORE.md:203` cites `src/CORE/sentinel_enforcer.py :: enforce_replace` as **EP125's HOST**,
+and that symbol does not exist — an EP row's host attestation names nothing. The phantom came from
+that row's own "symbol-scan" column (`enforce 236, enforce_write 373, enforce_replace 385,
+get_status 550`): **a symbol scan that lists a name is not evidence the name is defined.**
+**CORRECT: fix the EP125 host citation; do not implement a symbol nothing calls.**
+3. **`chain_watchdog`** (D-4's "unscheduled supervisor") — no hit in any `scripts/*.bat`, and no hit
+in `src/**/*.py` outside its own file. It exists at `scripts/chain_watchdog.py` and **nothing
+schedules or calls it.** D-4's claim **HOLDS**; only that row's counts were wrong.
+
+### ALSO STALE — `TODO_315T_BUILD.md:67` (row T-1)
+
+That line states `chain_controller.py --status` reports `"task_state": "disabled"` /
+`"task_detail": "Disabled"`. Measured 2026-10-11: `task_state: ok`, `task_detail: Running`,
+`last_fire: null`, `task_last_result: -2147020576`. **The task is NOT disabled** — it runs and never
+completes a fire. Unlike the generated `ABSENT_TRIAGE_315T.md`, this file is hand-written, so the line
+should be corrected at the source. Recorded here so the next session does not act on "disabled" and
+re-enable a task that is already enabled but broken at the action.
