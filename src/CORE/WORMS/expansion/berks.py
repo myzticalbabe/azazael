@@ -31,7 +31,7 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
-    note_failure("berks:L24", None)
+    note_failure("berks:register-worm-import", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -53,12 +53,12 @@ def _pams():
                     from CORE.PamsRecorder import get_recorder
                     _get_recorder = get_recorder
                 except ImportError:
-                    note_failure("berks:L45", None)
+                    note_failure("berks:pams-import", None)
                     return None
     try:
         return _get_recorder()
     except Exception:
-        note_failure("berks:L49", None)
+        note_failure("berks:pams-construct", None)
         return None
 
 
@@ -72,7 +72,7 @@ def _bus():
                     _MemoryBusCls = MemoryBus
                     _mem_bus = MemoryBus()
                 except ImportError:
-                    note_failure("berks:L62", None)
+                    note_failure("berks:bus-import", None)
                     return None
     return _mem_bus
 
@@ -138,7 +138,7 @@ class BerksMonitorWorm:
             rec["dns_ip"] = socket.gethostbyname(host)
             rec["dns_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         except Exception as e:
-            note_failure("berks:L126", e)
+            note_failure("berks:dns-lookup", e)
             rec["dns_error"] = str(e)[:800]
         # TLS cert expiry
         try:
@@ -154,10 +154,10 @@ class BerksMonitorWorm:
                 exp_ts = calendar.timegm(_t.strptime(exp, "%b %d %H:%M:%S %Y %Z"))
                 rec["tls_days_left"] = round((exp_ts - time.time()) / 86400, 1)
             except Exception:
-                note_failure("berks:L141", None)
+                note_failure("berks:tls-expiry-parse", None)
                 rec["tls_days_left"] = None
         except Exception as e:
-            note_failure("berks:L143", e)
+            note_failure("berks:tls-probe", e)
             rec["tls_error"] = str(e)[:800]
         # HTTP: HEAD first (cheap); some hosts (e.g. berkscc.org) 405
         # HEAD but serve GET fine — fall back instead of crying DOWN.
@@ -169,7 +169,7 @@ class BerksMonitorWorm:
             rec["http_status"] = r.status
             rec["http_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         except Exception as e:
-            note_failure("berks:L154", e)
+            note_failure("berks:http-head", e)
             if "405" in str(e):
                 try:
                     req = urllib.request.Request(
@@ -182,7 +182,7 @@ class BerksMonitorWorm:
                     rec["http_ms"] = round((time.perf_counter() - t0) * 1000, 1)
                     rec["http_via"] = "GET-fallback"
                 except Exception as e2:
-                    note_failure("berks:L166", e2)
+                    note_failure("berks:http-get-fallback", e2)
                     rec["http_error"] = str(e2)[:150]
                     rec["http_status"] = 0
             else:
@@ -198,7 +198,7 @@ class BerksMonitorWorm:
             if p is not None and hasattr(p, "record"):
                 p.record(event_type, data)
         except Exception:
-            note_failure("berks:L181", None)
+            note_failure("berks:pams-record", None)
 
     def _publish(self, results: list, alerts: list):
         """MemoryBus live pub/sub for inter-agent coordination."""
@@ -208,7 +208,7 @@ class BerksMonitorWorm:
                 b.publish("monitor.berks", {"results": results,
                                             "alerts": [a.__dict__ for a in alerts]})
         except Exception:
-            note_failure("berks:L191", None)
+            note_failure("berks:bus-publish", None)
 
     def _to_alerts(self, results: list) -> list:
         """Severity alerts from thresholds (mirrors DbAlert tiers)."""
@@ -282,7 +282,7 @@ class BerksMonitorWorm:
                 try:
                     self.check_health()
                 except Exception:
-                    note_failure("berks:L265", None)
+                    note_failure("berks:monitor-loop", None)
         t = threading.Thread(target=loop, name="berks-monitor",
                              daemon=True)
         t.start()

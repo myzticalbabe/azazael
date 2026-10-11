@@ -85,7 +85,7 @@ try:
         ClarificationTimeout as _ClarificationTimeout,
     )
 except Exception as exc:  # noqa: BLE001 -- optional channel
-    _note_failure("clusterworms:L69", exc)
+    _note_failure("clusterworms:delegation-import", exc)
     class _NeedsClarification(Exception):  # type: ignore[no-redef]
         """Fallback so the `except` clauses below stay valid when absent."""
 
@@ -154,7 +154,7 @@ class _WatchdogThread:
                     try:
                         done = fut.done()
                     except Exception as exc:              # noqa: BLE001 - was silent
-                        _note_failure("clusterworms:L137", exc)
+                        _note_failure("clusterworms:future-done-probe", exc)
                         done = False
                         if done is True:
                             with self._lock:
@@ -164,14 +164,14 @@ class _WatchdogThread:
                         try:
                             fut.cancel()
                         except Exception as exc:              # noqa: BLE001 - was silent
-                            _note_failure("clusterworms:L146", exc)
+                            _note_failure("clusterworms:future-cancel", exc)
                             pass
                         with self._lock:
                             self._futures.pop(fut, None)
                             if name not in self._timeouts:
                                 self._timeouts.append(name)
             except Exception as exc:                      # noqa: BLE001 - was silent
-                _note_failure("clusterworms:L152", exc)
+                _note_failure("clusterworms:poll-loop", exc)
                 pass
             _t.sleep(self._poll_interval)
 
@@ -183,7 +183,7 @@ try:
     )
     _REGISTRY_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
-    _note_failure("clusterworms:L163", exc)
+    _note_failure("clusterworms:registry-import", exc)
     _REGISTRY_OK = False
     WORM_REGISTRY = {}
     def get_worms_by_category(category: str) -> Dict[str, Dict[Any, Any]]: return {}
@@ -203,7 +203,7 @@ try:
     from CORE.PamsRecorder import get_recorder as _get_recorder  # singleton accessor (PamsRecorder.py:112-125)
     _PAMS_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
-    _note_failure("clusterworms:L182", exc)
+    _note_failure("clusterworms:pams-import", exc)
     _PAMS_OK = False
     _get_recorder = None
 
@@ -211,7 +211,7 @@ try:
     from CORE.MemoryBus import MemoryBus as _MemoryBusCls
     _MEMBUS_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
-    _note_failure("clusterworms:L189", exc)
+    _note_failure("clusterworms:bus-import", exc)
     _MEMBUS_OK = False
     _MemoryBusCls = None
 
@@ -233,7 +233,7 @@ def _get_pams():
                 try:
                     _pams = _get_recorder()
                 except Exception as exc:  # noqa: BLE001 — optional recorder; fall back to None
-                    _note_failure("clusterworms:L210", exc)
+                    _note_failure("clusterworms:pams-construct", exc)
                     _pams = False
     return _pams if _pams else None
 def _get_mem_bus():
@@ -248,7 +248,7 @@ def _get_mem_bus():
                 try:
                     _mem_bus = _MemoryBusCls()
                 except Exception as exc:  # noqa: BLE001 — optional bus; fall back to None
-                    _note_failure("clusterworms:L224", exc)
+                    _note_failure("clusterworms:bus-construct", exc)
                     _mem_bus = False
     return _mem_bus if _mem_bus else None
 
@@ -259,7 +259,7 @@ try:
     from concurrent.futures import as_completed
     _FREETHREAD_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
-    _note_failure("clusterworms:L234", exc)
+    _note_failure("clusterworms:freethreading-import", exc)
     _FREETHREAD_OK = False
     FreeThreadPool = None
     CancellationToken = None
@@ -269,7 +269,7 @@ except ImportError as exc:                            # noqa: BLE001 - was silen
         try:
             return not sys._is_gil_enabled()
         except Exception as exc:  # noqa: BLE001 — 314t detection best-effort
-            _note_failure("clusterworms:L243", exc)
+            _note_failure("clusterworms:gil-check", exc)
             return False
 
     def as_completed(fs, timeout=None):
@@ -287,7 +287,7 @@ try:
     from CORE.circuit_breaker import BreakerRegistry as _BreakerRegistryCls
     from CORE.config import get_config as _get_config
 except ImportError as exc:                            # noqa: BLE001 - was silent
-    _note_failure("clusterworms:L260", exc)
+    _note_failure("clusterworms:breaker-import", exc)
     _BreakerRegistryCls = None
     _get_config = None
 
@@ -306,7 +306,7 @@ def _get_breaker_registry():
                     _cfg = _get_config()
                     _breaker_registry = _BreakerRegistryCls()
                 except Exception as exc:  # noqa: BLE001 — optional breaker; fall back to None
-                    _note_failure("clusterworms:L278", exc)
+                    _note_failure("clusterworms:breaker-construct", exc)
                     _breaker_registry = False
     return _breaker_registry if _breaker_registry else None
 
@@ -342,11 +342,11 @@ def _ensure_legacy_modules():
         try:
             __import__(_mod_name)  # bare import (works for src/ root modules)
         except ImportError as exc:                    # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L313", exc)
+            _note_failure("clusterworms:legacy-module-import", exc)
             try:
                 __import__(f"CORE.WORMS.{_mod_name}", fromlist=[_mod_name])  # full path
             except ImportError as exc2:               # noqa: BLE001 - was silent
-                _note_failure("clusterworms:L316", exc2)
+                _note_failure("clusterworms:legacy-module-import-full", exc2)
                 pass  # not available -- will fall through to registry
 
     # Rebuild _LEGACY_DISPATCH now that modules are imported
@@ -442,7 +442,7 @@ class ClusterResult:
         try:
             thr = float(self.partial_failure_threshold)
         except (TypeError, ValueError) as exc:         # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L411", exc)
+            _note_failure("clusterworms:result-threshold-parse", exc)
             thr = 1.0
         rate = self.success_count / total
         if rate >= thr:
@@ -592,7 +592,7 @@ def _resolve_worm_dynamic(module_name: str) -> Optional[Dict[str, Any]]:
             result = _LEGACY_DISPATCH[module_name]()
             return {"success": True, "method": "legacy_dispatch", "result": result}
         except Exception as e:  # noqa: BLE001 — dispatch failure reports, never raises
-            _note_failure("clusterworms:L560", e)
+            _note_failure("clusterworms:legacy-dispatch", e)
             return {"success": False, "error": str(e), "method": "legacy_dispatch"}
     
     # Strategy 3: Try to import and find the class by convention
@@ -607,7 +607,7 @@ def _resolve_worm_dynamic(module_name: str) -> Optional[Dict[str, Any]]:
             cls = getattr(mod, cls_name)
             return _execute_worm_class(module_name, cls)
         except Exception as exc:  # noqa: BLE001 — fall through to next resolution strategy
-            _note_failure("clusterworms:L574", exc)
+            _note_failure("clusterworms:module-map-resolution", exc)
             pass
     
     return None
@@ -641,7 +641,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
     try:
         instance = cls()
     except Exception as e:  # noqa: BLE001 — instantiation failure reports, never raises
-        _note_failure("clusterworms:L607", e)
+        _note_failure("clusterworms:worm-instantiate", e)
         return {"success": False, "error": f"Instantiation failed: {str(e)}"}
 
     last_error = None
@@ -663,7 +663,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
                     last_error_method = method_name
                     continue
             except ValueError as exc:                 # noqa: BLE001 - was silent
-                _note_failure("clusterworms:L628", exc)
+                _note_failure("clusterworms:signature-inspect", exc)
                 pass
 
             try:
@@ -672,7 +672,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
                     result = result.__dict__
                 return {"success": True, "method": method_name, "result": result}
             except Exception as e:  # noqa: BLE001 — method failure reports, tries fallback
-                _note_failure("clusterworms:L636", e)
+                _note_failure("clusterworms:standard-method", e)
                 clarified = _clarification_outcome(e, method_name)
                 if clarified is not None:
                     return clarified
@@ -699,7 +699,7 @@ def _execute_worm_class(name: str, cls: type) -> Dict[str, Any]:
                 result = result.__dict__
             return {"success": True, "method": method_name, "result": result}
         except Exception as e:  # noqa: BLE001 — try next standard method
-            _note_failure("clusterworms:L662", e)
+            _note_failure("clusterworms:fallback-method", e)
             clarified = _clarification_outcome(e, method_name)
             if clarified is not None:
                 return clarified
@@ -810,7 +810,7 @@ class WormExecutor:
             try:
                 cancellation_token.raise_if_cancelled()
             except (TaskCancelledError, Exception) as exc:   # noqa: BLE001 - was silent
-                _note_failure("clusterworms:L772", exc)
+                _note_failure("clusterworms:cancellation-check", exc)
                 return {
                     "name": self.name,
                     "success": False,
@@ -846,7 +846,7 @@ class WormExecutor:
         try:
             output = breaker.retry_with_backoff(_do_execute, max_retries=_max_retries)
         except RuntimeError as e:
-            _note_failure("clusterworms:L807", e)
+            _note_failure("clusterworms:breaker-runtime-error", e)
             # Circuit open, cancelled, or all retries exhausted
             output = {
                 "name": self.name,
@@ -857,7 +857,7 @@ class WormExecutor:
                 "breaker_state": breaker.state.value,
             }
         except Exception as e:  # noqa: BLE001 — breaker execution boundary
-            _note_failure("clusterworms:L817", e)
+            _note_failure("clusterworms:breaker-execution", e)
             
             output = {
                 "name": self.name,
@@ -895,7 +895,7 @@ class WormExecutor:
                 result = {"error": error}
 
         except _NeedsClarification as _nc:
-            _note_failure("clusterworms:L854", _nc)
+            _note_failure("clusterworms:needs-clarification", _nc)
             # A worm asking for owner input is not a crash. Normalise it into a
             # needs_input outcome carrying the question and the decision_id, so
             # the ask is visible and joinable rather than swallowed.
@@ -907,7 +907,7 @@ class WormExecutor:
                      "outcome": "needs_input"}
             success = False
         except _ClarificationTimeout as _ct:
-            _note_failure("clusterworms:L865", _ct)
+            _note_failure("clusterworms:clarification-timeout", _ct)
             # Fail-closed: no answer arrived, so nothing was decided. Marked
             # timed_out both at top level and inside result, because callers
             # read one or the other and neither may read it as success.
@@ -921,7 +921,7 @@ class WormExecutor:
                      "outcome": "clarification_timeout"}
             success = False
         except Exception as e:  # noqa: BLE001 — worm execution reports, never raises
-            _note_failure("clusterworms:L878", e)
+            _note_failure("clusterworms:worm-execution", e)
             error = str(e)
             result = {"error": error}
             success = False
@@ -958,7 +958,7 @@ def _record_cluster_worm_telemetry(name: str, result: Dict[str, Any],
                           decision_id=str(decision_id) if decision_id else None,
                           source="ClusterWORMZ")
     except Exception as exc:                          # noqa: BLE001 - was silent
-        _note_failure("clusterworms:L914", exc)
+        _note_failure("clusterworms:telemetry-emit", exc)
         pass
 
 
@@ -1021,7 +1021,7 @@ class ClusterWORMZ:
         try:
             v = float(value)
         except (TypeError, ValueError) as exc:         # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L976", exc)
+            _note_failure("clusterworms:threshold-parse", exc)
             v = 1.0
         self._partial_failure_threshold = min(1.0, max(0.0, v))
         return self._partial_failure_threshold
@@ -1088,7 +1088,7 @@ class ClusterWORMZ:
                     source="ClusterWORMZ",
                 )
             except Exception as exc:  # noqa: BLE001 — bus publish best-effort
-                _note_failure("clusterworms:L1042", exc)
+                _note_failure("clusterworms:bus-publish-nature", exc)
                 pass
         
         return cluster
@@ -1180,7 +1180,7 @@ class ClusterWORMZ:
                                {"cluster_type": self.cluster_type,
                                 "cluster_id": self.cluster_id})
         except Exception as exc:                      # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L1133", exc)
+            _note_failure("clusterworms:directmemory-record-start", exc)
             pass
         
         mem_bus = _get_mem_bus()
@@ -1192,7 +1192,7 @@ class ClusterWORMZ:
                     source="ClusterWORMZ",
                 )
             except Exception as exc:  # noqa: BLE001 — bus publish best-effort
-                _note_failure("clusterworms:L1144", exc)
+                _note_failure("clusterworms:bus-publish-execute", exc)
                 pass
         
         results = []
@@ -1241,7 +1241,7 @@ class ClusterWORMZ:
                             results.append(out)
                             mark_spawned(name)
                         except TimeoutError as exc:       # noqa: BLE001 - was silent
-                            _note_failure("clusterworms:L1192", exc)
+                            _note_failure("clusterworms:pool-worm-timeout", exc)
                             self.cancellation_token.cancel()
                             if self._cancel_event:
                                 self._cancel_event.set()
@@ -1256,7 +1256,7 @@ class ClusterWORMZ:
                                 "timed_out": True,
                             })
                         except Exception as e:  # noqa: BLE001 — per-worm boundary reports
-                            _note_failure("clusterworms:L1206", e)
+                            _note_failure("clusterworms:pool-worm-failure", e)
                             results.append({
                                 "name": name,
                                 "success": False,
@@ -1265,7 +1265,7 @@ class ClusterWORMZ:
                                 "error": str(e),
                             })
                 except TimeoutError as exc:               # noqa: BLE001 - was silent
-                    _note_failure("clusterworms:L1214", exc)
+                    _note_failure("clusterworms:pool-batch-timeout", exc)
                     self.cancellation_token.cancel()
                     if self._cancel_event:
                         self._cancel_event.set()
@@ -1311,7 +1311,7 @@ class ClusterWORMZ:
                                 "cluster_id": self.cluster_id,
                                 "results": len(results)})
         except Exception as exc:                      # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L1259", exc)
+            _note_failure("clusterworms:directmemory-record-complete", exc)
             pass
 
         return results
@@ -1321,7 +1321,7 @@ class ClusterWORMZ:
         try:
             info = (WORM_REGISTRY.get(name) or {}) if _REGISTRY_OK else {}
         except Exception as exc:                      # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L1268", exc)
+            _note_failure("clusterworms:skip-registry-lookup", exc)
             info = {}
         if str(info.get("lifecycle_state") or "") == "retired":
             self._last_skips["retired"].append(name)
@@ -1332,7 +1332,7 @@ class ClusterWORMZ:
                 self._last_skips["quarantined"].append(name)
                 return True
         except Exception as exc:                      # noqa: BLE001 - was silent
-            _note_failure("clusterworms:L1278", exc)
+            _note_failure("clusterworms:quarantine-check", exc)
             pass
         return False
 
@@ -1454,7 +1454,7 @@ class ClusterWORMZ:
                     "breaker_stats": breaker_reg.all_stats(),
                 }
             except Exception as exc:  # noqa: BLE001 — breaker stats best-effort
-                _note_failure("clusterworms:L1399", exc)
+                _note_failure("clusterworms:breaker-stats", exc)
                 pass
         
         return {
@@ -1566,7 +1566,7 @@ class ClusterWORMZ:
                     severity="info",
                 )
             except Exception as exc:  # noqa: BLE001 — telemetry best-effort
-                _note_failure("clusterworms:L1510", exc)
+                _note_failure("clusterworms:pams-record-event", exc)
                 pass
 
     def __repr__(self):
