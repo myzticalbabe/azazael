@@ -13,6 +13,14 @@ for the record (most repaired modules carry one) is not a violation while real c
 
 The needle is checked in both quote styles, because the two `src/AOA` test modules
 used single quotes and a double-quote-only sweep silently missed them.
+
+SCOPE WIDENED 2026-10-11: the guard originally scanned `src/` only, and that is exactly
+where it was blind -- `scripts/sync_g_drive.py:40` kept a live
+`Path.home() / "azazael"` fallback while this file passed green, and that script's whole
+job is syncing the repo to G:, so with `AZAZAEL_ROOT` unset it read the wrong tree. A
+guard that covers one directory of the tree is not the class closed. Scan roots are now
+`src/` + `scripts/`; `packages/` deliberately stays out because registry row D-3 still
+owns the open question of whether that mirror is a monorepo import or an archive.
 """
 from __future__ import annotations
 
@@ -22,7 +30,35 @@ from pathlib import Path
 
 import pytest
 
-SRC = Path(__file__).resolve().parents[1] / "src"
+REPO = Path(__file__).resolve().parents[1]
+
+#: Scan roots. `src/` was the original scope; `scripts/` is the GAP that let a live
+#: fallback survive at `scripts/sync_g_drive.py:40` while this guard passed. MEASURED
+#: 2026-10-11: the class is `src/` + `scripts/` (26 `Path.home()` uses live under
+#: scripts/, of which exactly two divide by "azazael" -- one fixed, one excepted).
+#:
+#: `packages/` is OUT OF SCOPE on purpose, not by oversight: registry row D-3 owns the
+#: open decision whether `packages/azazael-core` is a monorepo import or an archive,
+#: and its copy
+#: (`packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py`) carries the
+#: same fallback. Adding it here would decide that row by accident.
+SCAN_ROOTS = (REPO / "src", REPO / "scripts")
+
+#: Reviewed exceptions: `<repo-relative posix path>:<line>` -> reason.
+#:
+#: A NAMED single entry, never a directory skip, so every other file under the scan
+#: roots stays covered. An entry here is a reviewable act with a stated reason, and
+#: `test_reviewed_exceptions_are_still_real` FAILS when an entry outlives the site it
+#: excused -- stale permission is as dangerous as a missing check, because it silently
+#: re-authorises the site if the fallback comes back.
+_REVIEWED_EXCEPTIONS = {
+    "scripts/sna_scale_azazael.py:19": (
+        "ROOT = Path.home() / 'azazael' / 'graphify-out' -- reads the "
+        "graphify-out/graph.nd*.js shards of an externally-created checkout. "
+        "Repointing it changes WHICH shards it reads, which is the author's call, "
+        "not a guard's."
+    ),
+}
 
 #: The stale value, in the shapes the tree actually used: `"azazael"` and `'azazael'`.
 _STALE_NAMES = {"azazael"}
@@ -63,32 +99,77 @@ def stale_root_lines(tree: ast.AST) -> list[int]:
     return sorted(set(hits))
 
 
-def test_no_module_falls_back_to_a_home_relative_azazael_root() -> None:
-    """The whole point of this file: keep the count at zero."""
-    offenders: list[str] = []
-    scanned = 0
-    for path in sorted(SRC.rglob("*.py")):
-        # Backup litter is not importable code; it is tracked separately (registry D-3).
-        if ".pre_gate_backup" in path.name:
-            continue
-        scanned += 1
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8"))
-        except (SyntaxError, UnicodeDecodeError):
-            # A file that cannot be parsed cannot contribute an importable fallback.
-            continue
-        for lineno in stale_root_lines(tree):
-            offenders.append("%s:%d" % (path.relative_to(SRC.parent), lineno))
+def _scan() -> dict[str, list[int]]:
+    """Map `<repo-relative posix path>` -> stale-root line numbers, over SCAN_ROOTS.
 
+    Shared by the guard and by the exception-freshness test, so the two can never
+    disagree about what the tree contains.
+    """
+    found: dict[str, list[int]] = {}
+    for root in SCAN_ROOTS:
+        # A root that is not there would let this guard pass while looking at
+        # nothing -- the same failure shape it exists to catch.
+        assert root.is_dir(), "scan root %s does not exist" % root
+        for path in sorted(root.rglob("*.py")):
+            # Backup litter is not importable code; it is tracked separately (registry D-3).
+            if ".pre_gate_backup" in path.name:
+                continue
+            rel = path.relative_to(REPO).as_posix()
+            found[rel] = []
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+            except (SyntaxError, UnicodeDecodeError):
+                # A file that cannot be parsed cannot contribute an importable fallback.
+                continue
+            found[rel] = stale_root_lines(tree)
+    return found
+
+
+def _scan_offenders() -> list[str]:
+    """`<path>:<line>` for every stale root, in a stable order."""
+    out: list[str] = []
+    for rel, lines in sorted(_scan().items()):
+        out.extend("%s:%d" % (rel, lineno) for lineno in lines)
+    return out
+
+
+def test_no_module_falls_back_to_a_home_relative_azazael_root() -> None:
+    """The whole point of this file: keep the count at zero, across every scan root."""
+    scanned = len(_scan())
     assert scanned > 100, (
-        "scan found only %d files under %s -- the guard is not looking where it "
-        "thinks it is" % (scanned, SRC)
+        "scan found only %d files across %s -- the guard is not looking where it "
+        "thinks it is" % (scanned, SCAN_ROOTS)
     )
-    assert not offenders, (
+    unexpected = [o for o in _scan_offenders() if o not in _REVIEWED_EXCEPTIONS]
+    assert not unexpected, (
         "stale home-relative project-root fallback reintroduced at: %s\n"
         "Use `CORE.paths.get_project_root_safe()` (honours AZAZAEL_ROOT, never "
         "raises), or in a bootstrap module that cannot import CORE yet, "
-        "`Path(__file__).resolve().parents[N]`." % ", ".join(offenders)
+        "`Path(__file__).resolve().parents[N]`.\n"
+        "If the site legitimately names a DIFFERENT tree, add ONE named entry to "
+        "_REVIEWED_EXCEPTIONS with its reason -- never widen the guard."
+        % ", ".join(unexpected)
+    )
+
+
+def test_every_scan_root_is_actually_searched() -> None:
+    """A root listed in SCAN_ROOTS that yields nothing is a silent gap.
+
+    This is the specific defect that let `scripts/` sit uncovered: the guard looked
+    like it covered the tree while it scanned one directory.
+    """
+    per_root = {root.name: sum(1 for _ in root.rglob("*.py")) for root in SCAN_ROOTS}
+    assert per_root, "SCAN_ROOTS is empty"
+    empty = sorted(name for name, count in per_root.items() if count == 0)
+    assert not empty, "scan root(s) contributed zero .py files: %s" % empty
+
+
+def test_reviewed_exceptions_are_still_real() -> None:
+    """An exception that matches no site is stale permission, not a kindness."""
+    stale = sorted(set(_REVIEWED_EXCEPTIONS) - set(_scan_offenders()))
+    assert not stale, (
+        "reviewed exception(s) no longer match any site: %s -- the exception "
+        "outlived the code it excused; delete the entry" % ", ".join(stale)
     )
 
 

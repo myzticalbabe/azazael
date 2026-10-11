@@ -96,8 +96,8 @@ def _get_pams():
         with _pams_lock:
             if _pams is None:
                 try:
-                    from CORE.PamsRecorder import PamsRecorder
-                    _pams = PamsRecorder()
+                    from CORE.PamsRecorder import get_recorder
+                    _pams = get_recorder()
                 except ImportError:
                     note_failure("METACLUSTER:L92", None)
                     _pams = False

@@ -200,12 +200,12 @@ except ImportError as exc:                            # noqa: BLE001 - was silen
 # re-entrant. These module-level imports happen at import time on the
 # main thread, so _get_pams() / _get_mem_bus() are simple lookups.
 try:
-    from CORE.PamsRecorder import PamsRecorder as _PamsRecorderCls
+    from CORE.PamsRecorder import get_recorder as _get_recorder  # singleton accessor (PamsRecorder.py:112-125)
     _PAMS_OK = True
 except ImportError as exc:                            # noqa: BLE001 - was silent
     _note_failure("clusterworms:L182", exc)
     _PAMS_OK = False
-    _PamsRecorderCls = None
+    _get_recorder = None
 
 try:
     from CORE.MemoryBus import MemoryBus as _MemoryBusCls
@@ -231,7 +231,7 @@ def _get_pams():
         with _pams_lock:
             if _pams is None:
                 try:
-                    _pams = _PamsRecorderCls()
+                    _pams = _get_recorder()
                 except Exception as exc:  # noqa: BLE001 — optional recorder; fall back to None
                     _note_failure("clusterworms:L210", exc)
                     _pams = False

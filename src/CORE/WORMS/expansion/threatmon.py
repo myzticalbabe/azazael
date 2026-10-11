@@ -35,7 +35,7 @@ except ImportError:
     def register_worm(**kw):
         return lambda cls: cls
 
-_PamsRecorderCls = None
+_get_recorder = None
 _pams_lock = threading.Lock()
 _MemoryBusCls = None
 _bus_lock = threading.Lock()
@@ -43,18 +43,18 @@ _mem_bus = None
 
 
 def _pams():
-    global _PamsRecorderCls
-    if _PamsRecorderCls is None:
+    global _get_recorder
+    if _get_recorder is None:
         with _pams_lock:
-            if _PamsRecorderCls is None:
+            if _get_recorder is None:
                 try:
-                    from CORE.PamsRecorder import PamsRecorder
-                    _PamsRecorderCls = PamsRecorder
+                    from CORE.PamsRecorder import get_recorder
+                    _get_recorder = get_recorder  # singleton accessor (PamsRecorder.py:112-125)
                 except ImportError:
                     note_failure("threatmon:L43", None)
                     return None
     try:
-        return _PamsRecorderCls()
+        return _get_recorder()  # one shared recorder, not a new one per call
     except Exception:
         note_failure("threatmon:L47", None)
         return None

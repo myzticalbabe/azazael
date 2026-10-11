@@ -83,6 +83,18 @@ except Exception as exc:                                   # pragma: no cover
     note_failure("technique_runtime:60", exc)
     _engram = None
 
+#: Same dependency, bound as a SYMBOL rather than reached by name through a
+#: string. Registry D-1: `engram.py` imports nothing but the standard library
+#: (its only `technique_runtime` mention is a comment), so this adds no cycle
+#: that the `engram as _engram` import above has not already taken on.
+#: `run_read_driven_consolidation` goes into `__all__` nowhere on purpose: the
+#: point is that the reference is VISIBLE, not that it is re-exported.
+try:                                                       # pragma: no cover
+    from CORE.WORMS.expansion.engram import run_read_driven_consolidation
+except Exception as exc:                                   # pragma: no cover
+    note_failure("technique_runtime:64", exc)
+    run_read_driven_consolidation = None
+
 try:                                                       # pragma: no cover
     from CORE import verification_gate as _vg
 except Exception as exc:                                   # pragma: no cover
@@ -397,14 +409,14 @@ def recall_with_feedback(query: str, consolidate: bool = False,
             "total_reads": state.get("total"),
             "abstained": state.get("abstained"),
         }
-        # Resolve by NAME off the module, not through an aliased import. An
-        # `X as _Y` import hides this call from static reachability analysis,
-        # which is the exact defect class the mesh wire-or-cut gate exists to
-        # catch -- `PF16` then reports the callee as having "no production
-        # reference of any kind". Naming it here keeps the reference visible.
-        consolidate_fn = getattr(_engram, "run_read_driven_consolidation", None)
-        if consolidate and consolidate_fn is not None:
-            closed = consolidate_fn(router=router)
+        # Bound by the module-level `from ... import` above, NOT resolved as a
+        # string. A `getattr(mod, "name")` is invisible to static reachability
+        # analysis -- the exact defect class the mesh wire-or-cut gate exists to
+        # catch, where `PF16` reports the callee as having "no production
+        # reference of any kind". An `X as _Y` alias is equally invisible, so the
+        # name is bound bare: the bound name IS the reference.
+        if consolidate and run_read_driven_consolidation is not None:
+            closed = run_read_driven_consolidation(router=router)
             out["consolidated"] = bool(closed.get("read_driven"))
             out["needs_writing"] = bool(
                 (closed.get("read_pressure") or {}).get("needs_writing"))

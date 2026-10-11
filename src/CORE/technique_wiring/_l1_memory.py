@@ -35,16 +35,21 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 try:                                                    # pragma: no cover
-    from CORE.technique_runtime import register
+    from CORE.technique_runtime import recall_with_feedback, register
 except Exception:                                       # pragma: no cover
     note_failure("_l1_memory:L30", None)
     try:
-        from ..technique_runtime import register
+        from ..technique_runtime import recall_with_feedback, register
     except Exception:
         note_failure("_l1_memory:L33", None)
         def register(*_a: Any, **_k: Any) -> None:       # type: ignore[misc]
             """No-op when the runtime is unavailable: this module must import."""
             return None
+
+        def recall_with_feedback(query: str, consolidate: bool = False,
+                                 **_k: Any) -> Dict[str, Any]:
+            """Runtime unavailable: report the miss rather than pretend."""
+            return {"routed": False, "reason": "technique_runtime unavailable"}
 
 LAYER = "L1"
 
@@ -247,20 +252,23 @@ def ep233() -> Dict[str, Any]:
 def ep235() -> Dict[str, Any]:
     """Read statistics fed back to the consolidator (the missing loop).
 
-    Mechanism lives in its HOST: `RecallRouterWorm.route_recall` /
-    `RecallRouterWorm.stats` (CORE.WORMS.expansion.engram — owning host
+    Mechanism lives in its HOST: `CORE.technique_runtime.recall_with_feedback`
+    -> `RecallRouterWorm.route_recall` / `RecallRouterWorm.recall_state`
+    (CORE.WORMS.expansion.engram — owning host
     verified via importlib; P1-3 host-remediation, other-host shim: the
     reader->writer join owns to the router/consolidator, not the memory
     store). Registration shim; the attributable feedback write stays here
     behind ALLOW_WRITES.
     """
-    from CORE.WORMS.expansion.engram import RecallRouterWorm
-    router = RecallRouterWorm()
-    route = router.route_recall("technique runtime memory wiring") or {}
-    stats = router.stats() if hasattr(router, "stats") else {}
-    payload = {"mode": route.get("mode"), "route": route.get("route"),
-               "hits": stats.get("total"),
-               "last_scores": (stats.get("last_scores") or [])[:3]}
+    # Registry D-1: call the restored read->write join instead of rebuilding the
+    # router inline. The inline form reported a route while learning nothing from
+    # it -- `recall_with_feedback` is the only caller that reads
+    # `RecallRouterWorm.recall_state()`. Imported at module level above: a
+    # function-level import counts against the anti-pattern ratchet.
+    recalled = recall_with_feedback("technique runtime memory wiring") or {}
+    payload = {"mode": recalled.get("mode"), "route": recalled.get("route"),
+               "hits": recalled.get("total_reads", 0),
+               "last_scores": list(recalled.get("last_scores") or [])[:3]}
     out = {"verified": True, "reader_to_writer": "joined", **payload}
     out.update(_write("EP235", "recall_feedback", payload,
                       tags=["sage", "recall-feedback"]))

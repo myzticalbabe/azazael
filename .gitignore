@@ -79,10 +79,19 @@ coverage_inference_html/
 .agent/
 
 # Githooks (local)
-.githooks/
+.githooks/*
 # ...except the live pre-commit itself (2026-09-28): core.hooksPath points
-# here, so an ignored hook is invisible enforcement. Force-tracked with
-# `git add -f`; keep it that way.
+# here, so an ignored hook is invisible enforcement, and 2026-10-11 measured
+# the consequence: `git add .githooks/pre-commit` was REFUSED with "The
+# following paths are ignored" (the file is tracked, force-added once), and
+# that refusal sat inside an `&&` chain and staged NOTHING at all.
+#
+# The rule above is `.githooks/*`, NOT `.githooks/`. A trailing-slash rule
+# excludes the DIRECTORY, and git cannot re-include a file whose parent
+# directory is excluded -- the same rule the `state/` block below quotes -- so
+# under `.githooks/` this negation did NOTHING and the hook stayed ignored
+# while tracked. Excluding the CONTENTS instead lets the negation land, so the
+# gate ships in a fresh clone with no force-add.
 !.githooks/pre-commit
 nul
 

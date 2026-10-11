@@ -28,6 +28,11 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional, Any
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from CORE.paths import get_project_root_safe  # noqa: E402
+
 # Ensure UTF-8 on Windows
 if sys.platform == "win32":
     try:
@@ -37,7 +42,12 @@ if sys.platform == "win32":
 
 # ── Configuration ──────────────────────────────────────────────────
 
-SOURCE_ROOT = Path.home() / "azazael"
+# Repo root via the canonical resolver, NOT `Path.home() / "azazael"`: that named a
+# DIFFERENT, stale checkout, so with AZAZAEL_ROOT unset this synced the WRONG tree to
+# G:. get_project_root_safe() honours AZAZAEL_ROOT first, never raises, and on a
+# sentinel failure returns the tree it ships in.
+# Guard: tests/test_no_stale_root_fallback.py (scan roots src/ + scripts/).
+SOURCE_ROOT = Path(get_project_root_safe())
 G_SOURCE_OF_TRUTH = Path("G:/source-of-truth/azazael")
 
 # Checkpoint file for resume tracking

@@ -252,3 +252,121 @@ def test_document_graph_stats_reports_the_built_layer():
         doc = store.object_graph_document()
         assert report["n_nodes"] == doc["n_nodes"]
         assert report["n_edges"] == doc["n_edges"]
+
+
+# -- the two graph properties the traversal tests above do not reach -----------------
+
+#: MEASURED 2026-10-11 (worker 5, EP206). The traversal tests in
+#: `tests/test_local_memory_sota_rows.py` all exercise a PATH -- `a-b-c` over one
+#: shared `correlation_id`. The published edge set is still `zip(ordered,
+#: ordered[1:])` per key, so a path never closes. Nothing pinned what happens when
+#: the edges DO close, and `traverse`'s docstring claims both bounds are enforced
+#: without a test for either. These two tests close that gap. No change was needed
+#: in `CORE/local_memory.py`: the row's implementation already exists (see the
+#: stale-row note in the module docstring above) and the properties below hold.
+
+
+def test_traversal_terminates_on_a_cycle_and_visits_each_node_once():
+    """A closed edge set must terminate, and no node may be visited twice.
+
+    A cycle needs TWO keys to close. The store's default `session_id` is shared by
+    every row written to one store, so the session chain supplies `1-2` and `2-3`;
+    one shared `correlation_id` on the first and last row supplies `3-1`. A
+    traversal without a `seen` set seeded with `start_id` re-walks that ring until
+    `depth` runs out, so the assertion is not merely "it returns" -- it returns
+    each reachable node EXACTLY once and excludes the start node.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        store = LocalMemoryStore(db_path=os.path.join(tmp, "cycle.db"))
+        # Only the first and last row share a correlation_id; all three share the
+        # store's session, which is what the session edge chain is derived from.
+        first = store.record_event("worker", "cycle", {"p": 1},
+                                  correlation_id="ring")
+        second = store.record_event("worker", "cycle", {"p": 2})
+        third = store.record_event("worker", "cycle", {"p": 3},
+                                   correlation_id="ring")
+
+        graph = store.object_graph(limit=50)
+        published = {(e["type"], e["from"], e["to"]) for e in graph["edges"]}
+        # The triangle is a precondition, not an assumption: if the session column
+        # were not projected the failure prints the edges that WERE published.
+        assert ("correlation", first, third) in published, published
+        assert ("session", first, second) in published, published
+        assert ("session", second, third) in published, published
+
+        # `depth=6` is far past the cycle length (3), so a `seen` set that omitted
+        # the start node would revisit the ring and blow past these two rows.
+        reached = store.traverse(first, depth=6, limit=50)
+
+        ids = [r["id"] for r in reached]
+        assert sorted(ids) == sorted([second, third]), (
+            "a cycle must terminate after reaching each node once: %r" % (ids,))
+        assert len(ids) == len(set(ids)), "a cycle revisited a node: %r" % (ids,)
+        assert first not in ids, "the start node must not be its own result"
+        # Both arriving edge kinds are reported, not just the first one found.
+        assert {r["_edge"] for r in reached} == {"session", "correlation"}
+
+
+def test_traversal_limit_is_a_cap_and_can_return_fewer_than_it():
+    """`limit` is enforced, and it also CLIPS the group page it reads adjacency from.
+
+    Two behaviours, both measured here rather than assumed:
+
+    1. `limit` bounds the result -- a traversal never returns more than it.
+    2. A small `limit` returns FEWER rows than the cap, because `_graph_peers`
+       fetches the adjacency page with `LIMIT limit` as well: the page is clipped
+       to the cap, so a node's successor can fall outside it and the neighbourhood
+       reads empty. `_graph_peers`' docstring states this truncation deliberately
+       ("a node absent from the fetched group ... yields [] ... recorded rather
+       than returned as a confident empty neighbourhood"), so it is pinned as
+       observed behaviour, NOT corrected here.
+
+    Consequence worth knowing before changing it: `limit=1` returns nothing at all
+    even when neighbours exist, because the page holds only the node itself and has
+    neither a predecessor nor a successor in view.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        store = LocalMemoryStore(db_path=os.path.join(tmp, "bound.db"))
+        root = store.record_event("worker", "bound", {"p": 0}, correlation_id="ring")
+        for i in range(1, 5):
+            store.record_event("worker", "bound", {"p": i}, correlation_id="ring")
+
+        # The chain is 1-2-3-4-5, so four rows are reachable from the root.
+        unbounded = store.traverse(root, edge_types=["correlation"], depth=5, limit=50)
+        assert len(unbounded) == 4, [r["id"] for r in unbounded]
+
+        bounded = store.traverse(root, edge_types=["correlation"], depth=5, limit=2)
+        assert len(bounded) <= 2, [r["id"] for r in bounded]
+        assert len(bounded) < len(unbounded), (len(bounded), len(unbounded))
+
+        # The documented consequence of (2), pinned so it cannot become silent.
+        assert store.traverse(root, edge_types=["correlation"], depth=5,
+                              limit=1) == []
+
+
+def test_a_valid_empty_graph_is_distinguishable_from_a_failed_read():
+    """An empty graph and an unreadable one must not answer the same.
+
+    Both report `n_nodes == 0`, so the distinction has to be carried by
+    `valid`/`gaps` -- otherwise a caller cannot tell "no rows yet" from "the file
+    is broken", and a snapshot that failed to write looks like a store that is
+    genuinely empty.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        store = LocalMemoryStore(db_path=os.path.join(tmp, "empty.db"))
+        out = os.path.join(tmp, "empty_graph.json")
+
+        # A store with no patterns exports a well-formed document with no nodes.
+        exported = store.export_object_graph(out)
+        assert exported["written"] is True, exported
+        assert exported["n_nodes"] == 0 and exported["n_edges"] == 0
+
+        empty = store.load_object_graph(out)
+        assert empty["valid"] is True and empty["gaps"] == [], empty["gaps"]
+        assert empty["n_nodes"] == 0 and empty["nodes"] == []
+
+        failed = store.load_object_graph(os.path.join(tmp, "absent.json"))
+        assert failed["valid"] is False and failed["gaps"], failed
+        # Same count, opposite verdict: the distinction is `valid`, not a number.
+        assert failed["n_nodes"] == empty["n_nodes"]
+        assert failed["valid"] != empty["valid"]

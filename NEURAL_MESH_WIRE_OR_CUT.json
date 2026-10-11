@@ -1,19 +1,19 @@
 {
- "generated_at": "2026-10-10T19:45:06.767472",
+ "generated_at": "2026-10-10T22:25:24.585225",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
-  "dispatched": 61,
+  "dispatched": 60,
   "pending": 110
  },
- "total": 174,
+ "total": 173,
  "declared": {
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "dead_candidate",
    "decider_evidence": [],
-   "line": 343,
+   "line": 346,
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -25,15 +25,27 @@
   "allocation:ThompsonAllocator.ingest_outcome": {
    "module": "allocation",
    "qualname": "ThompsonAllocator.ingest_outcome",
-   "line": 276,
+   "line": 279,
    "seg": "def ingest_outcome(self, arm: str, outcome: str) -> \"Tuple[bool, float]\":\n        \"\"\"EP253/EP187: reward-ingest path for callers that speak outcome names.\n\n        Routes the outcome through `reward_for_outcome` (so an unknown string\n        still fails closed) and records it via `update`. Returns the\n        (success, weight) actually applied, so a caller can log what the arm\n        was credited with instead of assuming it.\n        \"\"\"\n        ok, w = reward_for_outcome(outcome)\n        self.update(arm, success=ok, weight=w)\n        return ok, w",
    "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_allocation_sota_rows.py:156",
+    "tests/test_allocation_sota_rows.py:165",
+    "tests/test_allocation_sota_rows.py:147"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_allocation_sota_rows.py:156",
+    "tests/test_allocation_sota_rows.py:165",
+    "tests/test_allocation_sota_rows.py:147"
+   ]
   },
   "allocation:joint_action_space": {
    "module": "allocation",
    "qualname": "joint_action_space",
-   "line": 354,
+   "line": 357,
    "seg": "def joint_action_space(*allocators, name: str = \"joint\") -> Dict[str, object]:\n    \"\"\"EP223: compose several allocators into ONE discrete action space.\n\n    Each action is prefixed `\"<name>:<arm>\"` so it can be dispatched back to\n    the allocator that owns it (`owners` maps action -> the index of the\n    allocator passed in), which is what a single joint policy over\n    `cluster_route` / `cascade` / this module needs. Priors are renormalised\n    across the union so they stay a distribution. Read-only: `action_space()`\n    does not mutate.\n\n    Two allocators may name the same arm. That is not a collision to drop: the\n    first owner keeps the bare `\"<name>:<arm>\"` and a later owner's duplicate\n    is qualified `\"<name>:<index>:<arm>\"`, so every arm of every allocator\n    stays in the set and stays dispatchable through `owners`. Skipping the\n    duplicate would silently delete that arm's prior and any contribution\n    credited to it - a dropped arm is indistinguishable from one that never\n    earned anything, which is exactly the blindness this set exists to end.\n    \"\"\"\n    actions: List[str] = []\n    priors: Dict[str, float] = {}\n    owners: Dict[str, int] = {}\n    for idx, alloc in enumerate(allocators):\n        space = alloc.action_space()\n        for arm in space[\"actions\"]:\n            key = \"%s:%s\" % (name, arm)\n            if key in priors:\n                key = \"%s:%d:%s\" % (name, idx, arm)\n            suffix = 2\n            while key in priors:\n                key = \"%s:%d:%s#%d\" % (name, idx, arm, suffix)\n                suffix += 1\n            actions.append(key)\n            priors[key] = float(space[\"priors\"].get(arm, 0.0))\n            owners[key] = idx\n    total = sum(priors.values()) or 1.0\n    return {\n        \"kind\": \"discrete\",\n        \"source\": name,\n        \"actions\": actions,\n        \"n_actions\": len(actions),\n        \"priors\": {k: v / total for k, v in priors.items()},\n        \"owners\": owners,\n    }",
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/allocation.py:40), so a static caller cannot exist; wire it explicitly or delete it",
@@ -504,17 +516,6 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
-  "engram:run_read_driven_consolidation": {
-   "module": "engram",
-   "qualname": "run_read_driven_consolidation",
-   "line": 778,
-   "seg": "def run_read_driven_consolidation(router=None, dream_items=None,\n                                  index=None) -> dict:\n    \"\"\"No-argument-callable form of EP235's loop closure (restored).\n\n    Exists so a caller (or a boundary) can close the recall -> write loop with\n    one call and no setup. Fail-open: returns a dict carrying the error rather\n    than raising, so a read path is never broken by bookkeeping.\n    \"\"\"\n    try:\n        return DreamConsolidatorWorm().consolidate_from_reads(\n            router=router, dream_items=dream_items, index=index)\n    except Exception as exc:\n        note_failure(\"engram:read-driven-consolidation\", exc)\n        return {\"success\": False, \"error\": f\"{type(exc).__name__}: {exc}\"}",
-   "status": "dispatched",
-   "reason": "only production reference is a string literal (src/CORE/technique_runtime.py:403), so a static caller cannot exist; wire it explicitly or delete it",
-   "evidence": [
-    "src/CORE/technique_runtime.py:403"
-   ]
-  },
   "error_recovery:ErrorRecoveryOrchestrator.reset_circuit": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -818,7 +819,19 @@
    "line": 376,
    "seg": "def ingest_replay_trajectory(self, trajectory: dict, source: str = \"\") -> dict:\n        \"\"\"Admit one recorded trajectory as a replayed prefix (EP350).\n\n        \"Training without live environments\" needs the recorded decision\n        prefix, not the environment: a trajectory is the sequence of\n        (context_key, worm, reward) triples a real run already produced. An\n        unusable trajectory reports accepted=False with its reason, so a\n        caller cannot mistake an empty ingest for a stored prefix.\n        \"\"\"\n        steps = []\n        for raw in (trajectory or {}).get(\"steps\", []) or []:\n            if not isinstance(raw, dict) or not raw.get(\"worm\"):\n                continue\n            steps.append({\"context_key\": str(raw.get(\"context_key\", \"default\")),\n                          \"worm\": str(raw[\"worm\"]),\n                          \"reward\": float(raw.get(\"reward\", 0.0))})\n        if not steps:\n            return {\"accepted\": False, \"reason\": \"no usable steps\",\n                    \"n_buffered\": len(self._replay)}\n        with self._lock:\n            self._replay.append({\"source\": str(source), \"steps\": steps,\n                                 \"timestamp\": time.time()})\n            self._replay = self._replay[-200:]\n            n = len(self._replay)\n        return {\"accepted\": True, \"n_steps\": len(steps), \"n_buffered\": n}",
    "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_grpo_sota_rows.py:36",
+    "tests/test_grpo_sota_rows.py:55",
+    "tests/test_grpo_sota_rows.py:71"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_grpo_sota_rows.py:36",
+    "tests/test_grpo_sota_rows.py:55",
+    "tests/test_grpo_sota_rows.py:71"
+   ]
   },
   "learning_grpo:GRPOTrainer.replay_offline_step": {
    "module": "learning_grpo",
@@ -826,7 +839,19 @@
    "line": 407,
    "seg": "def replay_offline_step(self, prefix: dict | None = None) -> dict:\n        \"\"\"Update the policy from a replayed prefix - no environment runs.\n\n        Steps are grouped by context_key and each group goes through the\n        ordinary update_policy, so the offline path reuses the live one\n        rather than forking a second trainer whose gradient nothing compares.\n        \"\"\"\n        if prefix is None:\n            buffered = self.replay_batch(1)\n            prefix = buffered[0] if buffered else None\n        if not prefix:\n            return {\"updated\": False, \"reason\": \"no buffered prefix\"}\n        by_ctx: dict[str, list[dict]] = {}\n        for step in prefix.get(\"steps\", []) or []:\n            by_ctx.setdefault(step.get(\"context_key\", \"default\"), []).append(step)\n        results = {}\n        for ctx, steps in by_ctx.items():\n            results[ctx] = self.update_policy(\n                [s[\"worm\"] for s in steps],\n                [float(s.get(\"reward\", 0.0)) for s in steps],\n                context_key=ctx)\n        return {\"updated\": True, \"contexts\": results,\n                \"n_steps\": sum(len(s) for s in by_ctx.values())}",
    "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_grpo_sota_rows.py:45",
+    "tests/test_grpo_sota_rows.py:61",
+    "tests/test_grpo_sota_rows.py:78"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_grpo_sota_rows.py:45",
+    "tests/test_grpo_sota_rows.py:61",
+    "tests/test_grpo_sota_rows.py:78"
+   ]
   },
   "learning_pipeline:DataPipelineWorm.ablate_sources": {
    "module": "learning_pipeline",
@@ -834,7 +859,15 @@
    "line": 694,
    "seg": "def ablate_sources(self, sources: list | None = None,\n                       exclude_variants: list | None = None) -> Dict[str, Any]:\n        \"\"\"Ablation harness: measured composition over source variants (EP318).\n\n        Runs extract_from_memory once per exclude-set variant and reports\n        per-variant record counts. The DOWNSTREAM metric half (which variant\n        trains better) stays deferred: training comparison needs the\n        orchestrator loop, not the pipeline \u2014 the harness measures the\n        composition axis the metric would read.\n        \"\"\"\n        variants = list(exclude_variants or [[]])\n        rows: Dict[str, Any] = {}\n        for ex in variants:\n            try:\n                recs = self.extract_from_memory(\n                    source=sources if isinstance(sources, str) else None,\n                    limit=200,\n                    exclude_sources=list(ex or []))\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = len(recs or [])\n            except Exception as exc:\n                note_failure(\"expansion/learning_pipeline:713\", exc)\n                rows[\"excluded:\" + \",\".join(ex or [\"none\"])] = (\n                    f\"error:{type(exc).__name__}\")\n        return {\"variants\": rows, \"n_variants\": len(rows),\n                \"composition_axis\": \"exclude_sources parameterized\"}",
    "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_backlog_hosts.py:124"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_backlog_hosts.py:124"
+   ]
   },
   "learning_pipeline:DataPipelineWorm.extract_field": {
    "decider": "test_is_the_wire",
@@ -1056,7 +1089,11 @@
    "line": 240,
    "seg": "def pareto_retain(candidates, metrics_key=\"metrics\"):\n    \"\"\"Pareto retention filter over version candidates (EP234, set half).\n\n    candidates: [{..., metrics: {obj: float}}], all objectives maximized.\n    Returns {\"retained\", \"dominated\"} (version strings). Wiring this into\n    register_model as the retention predicate (collapsing EP228/EP234/EP462)\n    stays deferred: admission policy needs coordinator approval.\n    \"\"\"\n    vecs = {}\n    for c in candidates or []:\n        m = (c or {}).get(metrics_key, {}) or {}\n        try:\n            vecs[str(c.get(\"version\", \"?\"))] = [float(v) for v in m.values()]\n        except (TypeError, ValueError) as exc:\n            note_failure(\"expansion/learning_versioner:253\", exc)\n            continue\n    names = list(vecs)\n    retained: list = []\n    dominated: list = []\n    for a in names:\n        beaten = False\n        for b in names:\n            if a == b or len(vecs[b]) != len(vecs[a]) or not vecs[a]:\n                continue\n            if (all(y >= x for x, y in zip(vecs[a], vecs[b]))\n                    and any(y > x for x, y in zip(vecs[a], vecs[b]))):\n                beaten = True\n                break\n        (dominated if beaten else retained).append(a)\n    return {\"retained\": retained, \"dominated\": dominated}",
    "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dead_candidate",
+   "decider_evidence": []
   },
   "loom:NoveltyDrive.novelty_weight": {
    "decider": "test_is_the_wire",
@@ -1472,7 +1509,7 @@
    "decider_evidence": [
     "tests/test_scheduling.py:205"
    ],
-   "line": 459,
+   "line": 476,
    "module": "scheduling",
    "qualname": "ScheduledTrainingWorm._get_ab",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1486,17 +1523,27 @@
   "scheduling:ScheduledTrainingWorm.record_contribution": {
    "module": "scheduling",
    "qualname": "ScheduledTrainingWorm.record_contribution",
-   "line": 534,
-   "seg": "def record_contribution(self, arm: str, outcome: str,\n                            weight: (float | None) = None) -> Dict[str, Any]:\n        \"\"\"EP187 \u2014 feed one cycle outcome back into the allocation policy.\n\n        `allocation.py` owns the mechanism and is consumed, not reimplemented:\n        `reward_for_outcome` maps the outcome onto (success, weight) and\n        `ThompsonAllocator` keeps the Beta posteriors. This republishes the\n        resulting posterior means as `config.contribution_weights` \u2014 the field\n        `next_interval_hours` reads \u2014 so the value has a source and the field has\n        a reader. On any failure the weights are returned unchanged: a telemetry\n        hiccup must not silently re-time the schedule.\n        \"\"\"\n        current = dict(getattr(self.config, \"contribution_weights\", None) or {})\n        alloc = self._get_allocator(seed=str(arm))\n        if alloc is None:\n            return current\n        try:\n            from CORE.WORMS.expansion.allocation import reward_for_outcome\n            ok, w = reward_for_outcome(outcome)\n            if weight is not None:\n                w = float(weight)\n            alloc.update(str(arm), success=ok, weight=w)\n            self.config.contribution_weights = {\n                str(a): float(v) for a, v in alloc.weights().items()}\n            return dict(self.config.contribution_weights)\n        except Exception as e:\n            note_failure(\"scheduling:record-contribution\", e)\n            return current",
+   "line": 552,
+   "seg": "def record_contribution(self, arm: str, outcome: str,\n                            weight: (float | None) = None) -> Dict[str, Any]:\n        \"\"\"EP187 \u2014 feed one cycle outcome back into the allocation policy.\n\n        `allocation.py` owns the mechanism and is consumed, not reimplemented:\n        `reward_for_outcome` maps the outcome onto (success, weight) and\n        `ThompsonAllocator` keeps the Beta posteriors. This republishes the\n        resulting posterior means as `config.contribution_weights` \u2014 the field\n        `next_interval_hours` reads \u2014 so the value has a source and the field has\n        a reader. On any failure the weights are returned unchanged: a telemetry\n        hiccup must not silently re-time the schedule.\n        \"\"\"\n        current = dict(getattr(self.config, \"contribution_weights\", None) or {})\n        alloc = self._get_allocator(seed=str(arm))\n        if alloc is None:\n            return current\n        if reward_for_outcome is None:\n            note_failure(\"scheduling:allocation-import\", None)\n            return current\n        try:\n            ok, w = reward_for_outcome(outcome)\n            if weight is not None:\n                w = float(weight)\n            alloc.update(str(arm), success=ok, weight=w)\n            self.config.contribution_weights = {\n                str(a): float(v) for a, v in alloc.weights().items()}\n            return dict(self.config.contribution_weights)\n        except Exception as e:\n            note_failure(\"scheduling:record-contribution\", e)\n            return current",
    "status": "pending",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)"
+   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "triage": "test_reached_only",
+   "triage_evidence": [
+    "tests/test_scheduling_sota_rows.py:103",
+    "tests/test_scheduling_sota_rows.py:104"
+   ],
+   "decider": "test_is_the_wire",
+   "decider_evidence": [
+    "tests/test_scheduling_sota_rows.py:103",
+    "tests/test_scheduling_sota_rows.py:104"
+   ]
   },
   "scheduling:TrainingOrchestrator.get_run_history": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
     "tests/test_training_orchestrator.py:95"
    ],
-   "line": 1520,
+   "line": 1540,
    "module": "scheduling",
    "qualname": "TrainingOrchestrator.get_run_history",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -2288,5 +2335,16 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   }
+ },
+ "triage_counts": {
+  "test_reached_only": 51,
+  "no_reference_anywhere": 59
+ },
+ "decider_counts": {
+  "protocol_or_override": 0,
+  "declared_in_data": 3,
+  "dynamic_call": 8,
+  "test_is_the_wire": 45,
+  "dead_candidate": 54
  }
 }
