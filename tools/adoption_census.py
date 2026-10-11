@@ -99,6 +99,39 @@ def _is_prose_context(line: str) -> bool:
     return False
 
 
+#: A symbol mentioned only inside string literals is prose, not a call site.
+#: Real false-positive: `src/CORE/local_memory.py:2465` is the dict value
+#: `"gap": "composite rule is an edit to enforce_global_quota (M)"` — a prose
+#: mention of `enforce_global_quota` that adopted EP221 on nothing. AST already
+#: excludes multi-line literals from the candidate lines; single-line literals
+#: are blanked per line instead. Limitation: f-string interpolations are blanked
+#: along with their literal (a symbol referenced ONLY as `f"{sym}"` is missed);
+#: no catalogued row does that, and the self-test guards the tradeoff.
+_STRING_RE = re.compile(r'"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\'')
+
+
+def _code_part(line: str) -> str:
+    """`line` with single-line string literals blanked (comments kept)."""
+    return _STRING_RE.sub('""', line)
+
+
+def _alias_use(code: str, aliases: set) -> bool:
+    """True when an import alias is genuinely used on this code-stripped line."""
+    for n in aliases:
+        if n not in code:
+            continue
+        if _is_prose_context(code):
+            continue
+        if _IMPORT.match(code):
+            continue
+        # Defining the fallback stub (`class _NeedsClarification`) is not a
+        # use of the channel — CLUSTERWORMS.py:89 names it without consuming it.
+        if re.match(r"\s*(def|class)\s+" + re.escape(n) + r"\b", code):
+            continue
+        return True
+    return False
+
+
 def _noncode_lines(text: str) -> set:
     """1-based line numbers that cannot hold a call site.
 
@@ -139,16 +172,24 @@ def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
       `CORE/local_memory.py :: LocalMemoryStore + CORE/structured_action.py :: observe`
       `azazael/src/CORE/skill_library.py :: protocol_artifact, commit_gate, family_index`
       `CORE/freethreading.py :: WorkStealingPool ; CORE/dispatch_plan.py :: ...`
+      `` `CORE/dream_arena.py :: compile_world, admit_worlds` · `CORE/.../consolidation.py :: ...` ``
+      `CORE/WORMS/expansion/delegation.py :: `ask_owner` / `answer_question` / `NeedsClarification``
     and some are prefixed `nearest:`. The first version of this tool treated the
     whole string as one `path :: symbol` pair, which silently mis-measured every
-    multi-symbol and multi-host row.
+    multi-symbol and multi-host row. Two later variants of the same defect:
+    segments joined by `·` (EP335: the consolidation host was never measured and
+    DreamCriticWorm silently dropped) and symbols joined by `/` (EP213: only
+    ask_owner was measured while answer_question/NeedsClarification were cut off
+    at the first whitespace token).
     """
     raw = (target or "").strip()
-    if not raw or raw in {"\ufffd", "-", "n/a", "N/A"}:
+    if not raw or raw in {"�", "-", "n/a", "N/A", "—"}:
         return []
     raw = re.sub(r"^nearest\s*:\s*", "", raw, flags=re.IGNORECASE)
     out: List[Tuple[str, List[str]]] = []
-    for seg in re.split(r"\s*(?:\+|;)\s*", raw):
+    # Segments split on + | ; | · | • — every one of these joins hosts in the
+    # real map (+/; the common case, · in 3 rows e.g. EP335, • defensively).
+    for seg in re.split(r"\s*(?:\+|;|·|•)\s*", raw):
         if "::" not in seg:
             continue
         path, _, symbols = seg.partition("::")
@@ -159,7 +200,11 @@ def _parse_segments(target: str) -> List[Tuple[str, List[str]]]:
         if path.startswith("azazael/"):
             path = path[len("azazael/"):]
         syms: List[str] = []
-        for raw_sym in re.split(r"[,]", symbols):
+        # Symbols split on , or / — identifiers never contain `/`, so after the
+        # `::` partition any slash is a separator (EP213's
+        # `ask_owner` / `answer_question` / `NeedsClarification`). Split before
+        # stripping whitespace so each alternative survives intact.
+        for raw_sym in re.split(r"[,/]", symbols):
             s = raw_sym.strip().strip("`*\"' ")
             s = re.split(r"\s+", s)[0] if s else ""
             # Symbols are identifiers (optionally dotted). The map writes some as
@@ -194,6 +239,35 @@ def _is_call_occurrence(line: str, symbol: str, def_owner: bool) -> bool:
 #: files x ~1.5 symbols is >200k ast.parse calls, which took the census past a
 #: 10-minute timeout. The files do not change during a run, so one pass is enough.
 _FILE_CACHE: Dict[Path, Tuple[str, set]] = {}
+
+#: Per-file import-alias map: base name -> {asnames}. Parsed once per file for
+#: the same reason as _FILE_CACHE above: resolving aliases via ast.parse per
+#: (file, symbol) triple re-parses every file per symbol and pushes the census
+#: past the command timeout.
+_ALIAS_CACHE: Dict[Path, Dict[str, set]] = {}
+
+
+def _alias_map(path: Path, text: str) -> Dict[str, set]:
+    """Return {imported name -> {asnames}} for `path`, parsed once per run."""
+    hit = _ALIAS_CACHE.get(path)
+    if hit is None:
+        hit = {}
+        try:
+            _tree = ast.parse(text)
+        except (SyntaxError, ValueError, MemoryError):
+            _tree = None
+        if _tree is not None:
+            for _node in ast.walk(_tree):
+                if isinstance(_node, ast.ImportFrom):
+                    for _a in _node.names:
+                        if _a.asname:
+                            hit.setdefault(_a.name, set()).add(_a.asname)
+                elif isinstance(_node, ast.Import):
+                    for _a in _node.names:
+                        if _a.asname:
+                            hit.setdefault(_a.name.split(".")[-1], set()).add(_a.asname)
+        _ALIAS_CACHE[path] = hit
+    return hit
 
 
 def _load(path: Path) -> Tuple[str, set]:
@@ -236,8 +310,15 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
     # Aliases: `from X import merge_sops as _MERGE_SOPS` means the real call site
     # says `_MERGE_SOPS(...)`. Without this the tool misses every aliased caller --
     # it reported canon_drift_check.py (the one REAL production caller of
-    # merge_sops) as absent.
-    names = {short}
+    # merge_sops) as absent. Resolved via AST so parenthesised multi-line imports
+    # (`from X import (\n merge_sops as _MERGE_SOPS,\n)`) are seen; the previous
+    # line-regex only matched single-line `from X import y` and missed the
+    # continuation lines entirely (self-test positive control failed on
+    # tools/canon_drift_check.py:73-77 for exactly this reason).
+    # Alias map is cached per file: parsing per (file, symbol) triple regressed
+    # the census past the command timeout. The regex pass below stays as a
+    # fallback for files ast.parse cannot handle.
+    names = {short} | set(_alias_map(path, text).get(short, ()))
     for line in text.splitlines():
         m = re.match(r"\s*from\s+\S+\s+import\s+(.+)$", line)
         if not m:
@@ -252,13 +333,16 @@ def _sniff(path: Path, symbol: str, repo: Path) -> Tuple[bool, List[str], List[s
 
     prod: List[str] = []
     exer: List[str] = []
-    for i, line in enumerate(text.splitlines(), 1):
+    lines = text.splitlines()
+    for i, line in enumerate(lines, 1):
         if i in skip:
             continue
-        if not any(n in line for n in names):
+        # String-only mentions are prose, not call sites (local_memory.py:2465
+        # adopted EP221 on a dict-value sentence naming enforce_global_quota).
+        code = _code_part(line)
+        if not any(n in code for n in names):
             continue
-        if not _is_call_occurrence(line, short, def_owner=defined_here) and not any(
-                _is_call_occurrence(line, n, def_owner=False) for n in names - {short}):
+        if not _is_call_occurrence(code, short, def_owner=defined_here) and not _alias_use(code, names - {short}):
             continue
         loc = f"{rel}:{i}"
         (exer if rel.startswith(EXERCISE_DIR) else prod).append(loc)
@@ -290,6 +374,11 @@ def _candidate_files(repo: Path = REPO) -> List[Path]:
         for p in base.rglob("*.py"):
             rel = p.relative_to(repo).as_posix()
             if rel.startswith(NON_PROD_PREFIXES) or ".pre_gate_backup" in rel:
+                continue
+            # Test suites nested inside the production tree (src/tests/) are
+            # still tests: EP337 scored ADOPTED on src/tests/test_worm_registry.py
+            # mentions of _probe_candidates. Any tests/ segment disqualifies.
+            if "/tests/" in "/" + rel:
                 continue
             if rel == _SELF:
                 continue
@@ -481,6 +570,12 @@ def _self_test(repo: Path = REPO) -> int:
                 number is prose-inflated.
       NEGATIVE-B at least one catalogued symbol must score EXERCISE-ONLY, or the
                 instrument cannot tell the exercise layer apart from production.
+      NEGATIVE-D a symbol named ONLY inside a single-line string literal is prose,
+                not a call site: `src/CORE/local_memory.py:2465` is the dict value
+                `"gap": "composite rule is an edit to enforce_global_quota (M)"`,
+                which falsely adopted EP221 before string-blanking.
+      NEGATIVE-E no candidate file may live under a tests/ directory:
+                `src/tests/test_worm_registry.py` mentions falsely adopted EP337.
     """
     failures: List[str] = []
 
@@ -552,6 +647,29 @@ def _self_test(repo: Path = REPO) -> int:
                 "symbol matched nothing (the owner gate is too strict)")
         else:
             print(f"positive control C OK: qualified symbol found -> {(ph + eh)[:2]}")
+
+    # NEGATIVE-D: the string-literal prose line must not be counted.
+    str_fixture = repo / "src" / "CORE" / "local_memory.py"
+    if str_fixture.exists():
+        _, ph, eh = _sniff(str_fixture, "enforce_global_quota", repo)
+        bad = [loc for loc in (ph + eh) if loc.endswith(":2465")]
+        if bad:
+            failures.append(
+                "negative control D FAILED: string-literal prose "
+                f"src/CORE/local_memory.py:2465 counted as a call site -> {bad}")
+        else:
+            print("negative control D OK: string-only mention scores nothing "
+                  f"(other hits this file: {(ph + eh)[:2] or 'none'})")
+
+    # NEGATIVE-E: tests/ directories are never production surface.
+    cands = _candidate_files(repo)
+    test_cands = [p for p in cands if "/tests/" in "/" + p.relative_to(repo).as_posix()]
+    if test_cands:
+        failures.append(
+            "negative control E FAILED: tests/ files among candidates -> "
+            f"{[p.relative_to(repo).as_posix() for p in test_cands][:3]}")
+    else:
+        print(f"negative control E OK: 0 tests/ files among {len(cands)} candidates")
 
     # NEGATIVE-A also in whole-tree form: prose anywhere must stay uncounted.
     for loc in prod:
