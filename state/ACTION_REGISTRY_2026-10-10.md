@@ -759,3 +759,113 @@ That line states `chain_controller.py --status` reports `"task_state": "disabled
 completes a fire. Unlike the generated `ABSENT_TRIAGE_315T.md`, this file is hand-written, so the line
 should be corrected at the source. Recorded here so the next session does not act on "disabled" and
 re-enable a task that is already enabled but broken at the action.
+
+## 15. WAVE 6 (2026-10-11) — four residuals closed, one falsified claim, and a second ratchet that lies
+
+Commits: `ecb34974` (labels), `61838878` (EP235), `73df012e` (guard/packages), `927e9cf7` (engram
+guard), `5b5b3918` (pygame shim). Five focused commits, not one bulk op — see the gate note below.
+
+### CLOSED
+
+- **The stale `note_failure` line references — CLOSED, and the population was 17x the brief.** §13
+  left these "alone on purpose"; the brief for this wave named ~6. The real population was **105
+  sites** across four files: `berks.py` 12, `threatmon.py` 11, `CLUSTERWORMS.py` 41,
+  `worm_registry.py` 41. Each is now named by its EVENT (`berks:pams-import`,
+  `clusterworms:cancel` -> `clusterworms:future-cancel`, `worm_registry:discovery-cache-write`) with
+  the stale number dropped. `grep -c ':L[0-9]'` is **0** in all four files.
+  **Why this is safe, measured rather than assumed:** `failure_ledger.note_failure` builds
+  `key = "%s:%s" % (where, type(exc).__name__)` — the label is an opaque dict key, and a repo-wide
+  grep found **no code that parses the `:L<NN>` form**. The rename changes what a human reads, not
+  what any consumer does.
+  **Two labels were collapsed hazards, deliberately kept distinct:** `L313`/`L316` are the
+  bare-import-then-full-path retry pair.
+- **EP235's two residuals — CLOSED, and the RECORDED CAUSE WAS WRONG.** §13 and §14 both state
+  `recall_with_feedback` "does not surface `stats()[\"last_scores\"]`". `RecallRouterWorm.recall_state()`
+  **already returns `last_scores`** (`expansion/engram.py:544`); the defect was that the value was
+  fetched and then thrown away. So the fix surfaces it rather than taking a second reading, and
+  `ep235()`'s `verified` now follows the route outcome instead of being hard-coded `True`. Pinned by
+  `tests/test_recall_feedback_contract.py`, whose failure case requires the `reader_to_writer` key —
+  the property `_safe`'s fail-open shape (`{"verified": False, "reason": ...}`) does NOT carry, so a
+  bare `verified is False` cannot pass merely because an exception was swallowed.
+- **The guard's `packages/` blind spot — CLOSED.** §13 recorded
+  `packages/azazael-core/.../METACLUSTER.py:839` as "deliberately outside `SCAN_ROOTS`". The needle
+  regex over the WHOLE `packages/` tree returned **exactly one** match, so `SCAN_ROOTS` now includes
+  `packages/` — safe rather than hopeful. The fork's own `paths.py` has no `get_project_root_safe`
+  (only `get_project_root`), so the resolver is a three-tier chain rather than the twin's single
+  import; the twin's verbatim import would have raised on the standalone package.
+- **The engram guard naming an untracked tool — CLOSED.** `REPIN_REFERENCE` pointed at
+  `tools/repoint_315t.py`, which is NOT in git, so a fresh clone was instructed to run a tool it does
+  not have. The guard now probes the string it prints. Exit codes and the no-losses property held:
+  `exit 0`, `PASS`.
+- **D-5's pygame duplicate — CLOSED.** `src/CODEX/CORE/azazael_pygame.py` was a near-copy of
+  `src/azazael_pygame.py` differing only in 3 dead statements; it is now a deprecation shim that
+  re-exports the canonical surface (14 names + `_PYGAME_AVAILABLE`) and warns, with a structural test
+  that fails if the retired implementation is pasted back.
+
+### THE COMMIT GATE REFUSED — and the refusal was correct
+
+First attempt: `BULK CHANGESET BLOCKED — 12 staged files exceed the bulk limit (8)`, plus
+`azazael_pygame.py changes 704 lines (limit 150/file)`. **Resolved by splitting into five focused
+commits, NOT by declaring the whole thing bulk.** Only the single-file 704-line retirement used
+`ALLOW_BULK_COMMIT=1`, which its own message offered for exactly that case — a deletion cannot be
+written to fit a 150-line file limit, and the alternative would have been five artificial partial
+deletions of one duplicate.
+
+### TWO METHODS FAILURES WORTH KEEPING
+
+1. **A worker without ripgrep cannot finish a file-wide sweep.** The worker converted 3 files
+   completely and had to leave `worm_registry.py` half in each convention (it correctly REFUSED to
+   claim otherwise). The coordinator finished the remaining 42 sites with `grep -n ':L[0-9]'` +
+   line-targeted edits. **A blind worker is the wrong owner for "every occurrence in a 2,206-line
+   file".**
+2. **A worker's own test could not run, and it did not know.** `test_recall_feedback_contract.py`
+   died at COLLECTION with `ModuleNotFoundError: No module named 'CORE'` — the rootdir `conftest.py`
+   redirects the stores but never puts `src/` on `sys.path`, so the repo's per-file idiom
+   (`test_agent.py`: `sys.path.insert(0, .../src)`) is the bootstrap. Fixed; then
+   **153 passed, 2 skipped** across the five affected suites. **A green-looking report is not a run.**
+
+### FALSIFIED — a claim from this wave's own worker
+
+Worker 1 reported the EP206 registration cited the wrong symbol (`document_graph_stats` vs
+`get_knowledge_graph_stats`/`object_graph`/`traverse`) and flagged it "worth reconciling".
+**Measured: FALSE.** `document_graph_stats` exists at `src/CORE/local_memory.py:2296`;
+`get_knowledge_graph_stats` (:2986) is simply a DIFFERENT symbol. The registration's host citation is
+correct and EP206 needs no correction. Recorded so the next session does not chase it — a
+partial-inventory inference dressed as a symbol check is the §14 `enforce_replace` failure in reverse.
+
+### NEW FINDING — `scripts/compliance_ratchet.py` is a second ratchet with a false verdict
+
+Discovered by contradiction: the commit hook reported `import_inside_function 1061 -> 1059 (-2)` and
+`OK: no anti-pattern regressions`, while `python scripts/compliance_ratchet.py` reported
+`BLOCKED, category increased: import_inside_function 953 -> 1059`.
+
+Both are real; they are different instruments:
+
+| | authoritative | the stale one |
+|---|---|---|
+| tool | `tools/anti_pattern_gate.py --check` (hook check 4) | `scripts/compliance_ratchet.py` |
+| baseline | `logs/anti_pattern_baseline.json` (rolling, 2026-10-10, 2670 findings) | `config/compliance_baseline.json` (**hand-recorded 2026-10-03**, 953) |
+| called by | `.githooks/pre-commit` | **NOTHING** — repo-wide grep finds only its own docstring |
+
+So the `+106` is **eight days of drift against a hand-recorded snapshot**, not this wave's change (the
+real ratchet measured this wave as an IMPROVEMENT). Two consequences worth keeping:
+
+- **Its verdict is false, and acting on the "fix" would be worse than ignoring it.** The tool's own
+  remedy is `--record`, which would bake 106 findings into the baseline permanently — precisely the
+  erosion §13 refused (`"a deliberate --baseline bump for a docstring is exactly the ratchet erosion
+  the ratchet exists to prevent"`). **Do NOT `--record`.**
+- **Recommended disposition: retire it in favour of `tools/anti_pattern_gate.py`**, or make it
+  report its baseline's AGE and refuse to issue a verdict on a stale one. A gate that can never pass
+  is not a gate; it is a producer with no consumer that still talks.
+
+### STILL OPEN (unchanged where not noted)
+
+EP183's conflict still needs a human ruling. D-3's monorepo-import-vs-archive call is still owed
+(this wave removed the stale root and brought the tree under the guard WITHOUT deciding it). The 13
+reader-less `state/` artifacts are enumerated in §14 but not dispositioned. The guard still parses
+`.py` only, so a stale root in a `.bat`/`.ps1` is uncovered. `traverse(limit=1)`'s truncation stays
+pinned rather than reversed. The ratchet headroom is now **`1061 -> 1059` (-2), deliberately NOT
+banked** — `src/CORE/PamsBusBridge.py`'s uncommitted deletion still sits in this worktree and
+re-baselining would bake it in. And the repo-wide `:L<NN>` convention elsewhere (~200 files still use
+it) was NOT swept: this wave made the four files that carried the drift internally consistent, and
+the divergence is recorded here rather than left to be discovered.
