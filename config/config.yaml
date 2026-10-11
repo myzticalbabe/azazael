@@ -29,4 +29,4 @@ paths:
 
 free_threading:
   enabled: true
-  python_path: "C:/Users/clint/AppData/Local/Programs/Python/Python314/python.exe"
+  python_path: "C:/Azazael/.venvs/py315t/Scripts/python.exe"
