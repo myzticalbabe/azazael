@@ -32,17 +32,16 @@ _ROOT = os.path.dirname(_HERE)
 _SCRIPTS = os.path.join(_ROOT, "scripts")
 
 #: Every entry point that carries the shared hygiene call.
+#: Retired 2026-10-11 (trainer/loop retirement wave 1): evolve_loop.py,
+#: train_fleet.py, train_today.py moved to archive/retired-trainers-2026-10-11/.
 ENTRY_POINTS = (
     "berks_monitor.py",
-    "evolve_loop.py",
     "gossip_export.py",
     "gossip_round.py",
     "night_shift.py",
     "regen_config_trace.py",
     "spine_cycle_apply.py",
     "threat_monitor.py",
-    "train_fleet.py",
-    "train_today.py",
 )
 
 
