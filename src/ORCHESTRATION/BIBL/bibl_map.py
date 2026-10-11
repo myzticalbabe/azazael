@@ -70,6 +70,20 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
+#: Canonical root resolver. `_default_root()` below used to fall back to
+#: `Path.home() / "azazael"`, which names a DIFFERENT, stale checkout from the tree
+#: this module ships in -- so with AZAZAEL_ROOT unset the CLI crawled and rendered
+#: the wrong tree. `get_project_root_safe()` is shared with every other module that
+#: made the same choice, so the decision lives in one place.
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # never break the host
+    note_failure("bibl_map:core-paths-import", None)
+
+    def _get_project_root_safe() -> Path:
+        # CORE unreachable: derive from this file (src/ORCHESTRATION/BIBL/ -> root).
+        return Path(__file__).resolve().parents[3]
+
 # Range files, matching the layout the Kali snapshot used.
 RANGES = (("A", "F", "A-F"), ("G", "L", "G-L"),
           ("M", "R", "M-R"), ("S", "Z", "S-Z"))
@@ -669,7 +683,7 @@ def _default_root() -> Path:
     env = os.environ.get("AZAZAEL_ROOT")
     if env:
         return Path(env)
-    return Path.home() / "azazael"
+    return _get_project_root_safe()
 
 
 def cmd_crawl(args) -> int:

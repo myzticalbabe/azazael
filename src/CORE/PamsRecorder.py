@@ -38,7 +38,24 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-_AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+#: Root resolver (2026-10-11). This module used to fall back to
+#: `Path.home() / "azazael"` -- a DIFFERENT, stale checkout from this repo -- and
+#: `__init__` then MKDIRs `<that>/data/` for the JSON fallback buffer, so with
+#: AZAZAEL_ROOT unset the buffer was written into the wrong tree. The resolver
+#: lives in CORE.paths so the decision is made once instead of per module:
+#: AZAZAEL_ROOT first, never raises, falls back to the tree it ships in.
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # never break the host
+    note_failure("PamsRecorder:core-paths-import", None)
+
+    def _get_project_root_safe():                 # CORE unreachable: own tree
+        return Path(__file__).resolve().parents[2]
+
+_AZAZAEL_ROOT = os.environ.get(
+    "AZAZAEL_ROOT",
+    os.environ.get("Azazael_ROOT", str(_get_project_root_safe())),
+)
 
 # Try sqlite3 for direct DB fallback
 try:

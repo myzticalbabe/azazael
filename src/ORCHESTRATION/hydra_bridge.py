@@ -27,7 +27,40 @@ from pathlib import Path
 from typing import Any, Dict, List
 from dataclasses import dataclass, field
 
-_AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
+#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
+#: Declared BEFORE the root resolver below, because that resolver's ImportError
+#: handler records through it: a recorder bound after its first use raises NameError
+#: from INSIDE the handler, turning a caught import failure into an uncaught one.
+
+try:
+    from CORE.failure_ledger import note_failure
+except ImportError:                               # never break the host
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+#: Canonical root resolver, shared with HORUS / HYDRA / BIBL. The old fallback was
+#: `Path.home() / "azazael"` -- a DIFFERENT, STALE checkout from this repo
+#: (C:/Azazael/azazael) -- so with AZAZAEL_ROOT unset this module pushed the wrong
+#: tree's ORCHESTRATION / META / UTILITIES onto sys.path.
+
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # src/ not on sys.path
+    note_failure("hydra_bridge:core-paths-import", None)
+    _get_project_root_safe = None
+
+#: This file is src/ORCHESTRATION/hydra_bridge.py, so parents[2] is the repo root.
+_ROOT_FALLBACK = Path(__file__).resolve().parents[2]
+
+_AZAZAEL_ROOT = os.environ.get(
+    "AZAZAEL_ROOT",
+    os.environ.get(
+        "Azazael_ROOT",
+        str(_get_project_root_safe() if _get_project_root_safe is not None
+            else _ROOT_FALLBACK),
+    ),
+)
 _ORCH_DIR = os.path.join(_AZAZAEL_ROOT, "src", "ORCHESTRATION")
 _META_DIR = os.path.join(_AZAZAEL_ROOT, "src", "META")
 _UTIL_DIR = os.path.join(_AZAZAEL_ROOT, "src", "UTILITIES")
@@ -38,15 +71,6 @@ sys.path.insert(0, _UTIL_DIR) if _UTIL_DIR not in sys.path else None
 
 # Import core components
 from HYDRA import HYDRACluster, ClusterConfig, ProcessingStage, StageResult
-
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 # PAMS recording
 try:

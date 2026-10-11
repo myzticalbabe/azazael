@@ -39,7 +39,7 @@ _SRC_DIR = Path(__file__).resolve().parent.parent
 if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
 
-AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael"))
+AZAZAEL_ROOT = os.environ.get("AZAZAEL_ROOT", str(Path(__file__).resolve().parents[2]))
 DEBUG_DIR = Path(AZAZAEL_ROOT) / ".debug"
 DEBUG_DIR.mkdir(parents=True, exist_ok=True)
 

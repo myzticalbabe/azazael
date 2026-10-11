@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import List
 
 # Wire Azazael sub-system
-_AZAZAEL_SRC = Path.home() / 'azazael' / 'src'
+_AZAZAEL_SRC = Path(__file__).resolve().parents[3] / 'src'
 if _AZAZAEL_SRC.exists():
     sys.path.insert(0, str(_AZAZAEL_SRC))
 

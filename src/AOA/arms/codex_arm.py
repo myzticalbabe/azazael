@@ -14,8 +14,8 @@ except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
-_CODEX_STUDIO = Path.home() / 'azazael' / 'src' / 'CODEX' / 'CODEX_Studio.py'
-_PYTHON_314T = Path.home() / 'azazael' / '.venv-3.14t' / 'Scripts' / 'python.exe'
+_CODEX_STUDIO = Path(__file__).resolve().parents[3] / 'src' / 'CODEX' / 'CODEX_Studio.py'
+_PYTHON_314T = Path(__file__).resolve().parents[3] / '.venv-3.14t' / 'Scripts' / 'python.exe'
 
 def _get_python():
     if _PYTHON_314T.exists():

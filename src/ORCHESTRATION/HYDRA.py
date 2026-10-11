@@ -39,6 +39,29 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
+#: Canonical root resolver, shared with HORUS / hydra_bridge / BIBL. Every env-var
+#: fallback below used to be `Path.home() / "azazael"` -- a DIFFERENT, STALE
+#: checkout from this repo (C:/Azazael/azazael) -- so with AZAZAEL_ROOT unset HYDRA
+#: read and wrote the wrong tree. `get_project_root_safe()` keeps AZAZAEL_ROOT's
+#: precedence, never raises, and answers a sentinel failure with the tree this file
+#: ships in (CORE/paths/internal.py).
+
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # src/ not on sys.path
+    note_failure("HYDRA:core-paths-import", None)
+    _get_project_root_safe = None
+
+
+#: This file is src/ORCHESTRATION/HYDRA.py, so parents[2] is the repo root.
+_ROOT_FALLBACK = Path(__file__).resolve().parents[2]
+
+#: ONE value for both readers below (the ClusterConfig default and the CLI
+#: --output default); the readers must agree on it.
+_DEFAULT_ROOT = str(_get_project_root_safe() if _get_project_root_safe is not None
+                    else _ROOT_FALLBACK)
+
+
 class ProcessingStage(Enum):
     """HYDRA processing stages."""
 
@@ -89,7 +112,7 @@ class ClusterConfig:
 
     base_path: str = os.environ.get(
         "AZAZAEL_ROOT",
-        os.environ.get("Azazael_ROOT", str(Path.home() / "azazael"))
+        os.environ.get("Azazael_ROOT", _DEFAULT_ROOT)
     )
     parallel_stages: bool = False
     max_retries: int = 3
@@ -659,7 +682,9 @@ def launcher():
         "--no-parallel", action="store_true", help="Disable parallel stage execution"
     )
     parser.add_argument(
-        "--output", default=str(Path.home() / "azazael" / "src" / "HYDRA"), help="Output directory"
+        "--output",
+        default=str(Path(_DEFAULT_ROOT) / "src" / "HYDRA"),
+        help="Output directory",
     )
     parser.add_argument("--popup", action="store_true", help="Show popup window")
 

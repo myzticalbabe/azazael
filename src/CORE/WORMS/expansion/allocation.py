@@ -24,6 +24,7 @@ change can be discovered instead of being structurally unreachable.
 from __future__ import annotations
 
 import json
+import math
 import random
 from typing import Dict, Iterable, List, Optional
 
@@ -265,8 +266,10 @@ class ThompsonAllocator:
         an arm holding 40 pulls at a 0.6 mean has earned more of the budget
         than one holding a single pull at the same mean. score = mean *
         (1 + ln(1 + pulls)), normalised.
+
+        `math` is imported at module level: a function-local import counts as
+        `import_inside_function`, and the ratchet rejects an increase in it.
         """
-        import math
         raw = self.weights()
         scored = {a: raw[a] * (1.0 + math.log1p(max(0, self._pulls.get(a, 0))))
                   for a in self.arms}

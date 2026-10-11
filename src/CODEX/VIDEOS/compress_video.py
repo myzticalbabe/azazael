@@ -37,9 +37,23 @@ except ImportError:                               # never break the host
 
 # --- Configuration -----------------------------------------------------------
 
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # never break the host
+    note_failure("compress_video:core-paths-import", None)
+    _get_project_root_safe = None
+
+#: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be
+#: `Path.home() / "azazael"` -- a DIFFERENT, stale checkout from this repo -- so with
+#: AZAZAEL_ROOT unset the default output dir was built under the WRONG tree.
+#: `parents[3]` is this file's own tree (CODEX/VIDEOS/compress_video.py) and answers only
+#: the case where CORE.paths is unimportable.
+_DEFAULT_ROOT = (str(_get_project_root_safe()) if _get_project_root_safe is not None
+                 else str(Path(__file__).resolve().parents[3]))
+
 AZAZAEL_ROOT = os.environ.get(
     "AZAZAEL_ROOT",
-    os.environ.get("Azazael_ROOT", str(Path.home() / "azazael"))
+    os.environ.get("Azazael_ROOT", _DEFAULT_ROOT)
 )
 
 DEFAULT_OUTPUT_DIR = Path(AZAZAEL_ROOT) / "output" / "videos" / "compressed"

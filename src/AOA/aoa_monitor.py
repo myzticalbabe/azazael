@@ -33,7 +33,14 @@ except ImportError:                               # never break the host
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-sys.path.insert(0, str(Path.home() / "azazael" / "src"))
+# `src/` is one level above this file's own directory (AOA/ -> src/).
+# `_SRC_DIR` reuses the single `resolve()` already done above, so this module
+# keeps ONE resolution of `__file__`; it is the same path as `parents[1]`.
+# REPLACED `Path.home() / "azazael" / "src"`, which names a DIFFERENT, stale
+# checkout from the one this file ships in -- with the env unset it put the
+# wrong tree on sys.path, and with it whatever stale CORE lives there.
+_SRC_DIR = HERE.parent
+sys.path.insert(0, str(_SRC_DIR))
 
 C_RED = "\x1b[91m"
 C_GRN = "\x1b[92m"

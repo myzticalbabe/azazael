@@ -34,7 +34,7 @@ except ImportError:                               # never break the host
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 
-AZAZAEL_ROOT = Path(os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")))
+AZAZAEL_ROOT = Path(os.environ.get("AZAZAEL_ROOT", str(Path(__file__).resolve().parents[2])))
 ARCHIVE_DIR = AZAZAEL_ROOT / "archived"
 ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
 

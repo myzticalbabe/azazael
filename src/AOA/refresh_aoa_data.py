@@ -61,7 +61,14 @@ MILESTONE = BASE / "AOA_MILESTONE.json"
 BENCHMARK = BASE / "benchmark_data.json"
 
 sys.path.insert(0, str(BASE))
-sys.path.insert(0, str(Path.home() / "azazael" / "src"))
+# `src/` is one level above BASE (this file's own directory, AOA/ -> src/).
+# `_SRC_DIR` reuses the single `resolve()` already done above, so this module
+# keeps ONE resolution of `__file__`; it is the same path as `parents[1]`.
+# REPLACED `Path.home() / "azazael" / "src"`, which names a DIFFERENT, stale
+# checkout from the one this file ships in -- with the env unset it put the
+# wrong tree on sys.path, and with it whatever stale CORE lives there.
+_SRC_DIR = BASE.parent
+sys.path.insert(0, str(_SRC_DIR))
 
 ARM_MODULES = (
     "arms.azazael_arm", "arms.codex_arm", "arms.eve_arm",

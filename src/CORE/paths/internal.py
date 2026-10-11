@@ -64,6 +64,30 @@ def get_project_root() -> Path:
     return _cache["project_root"]
 
 
+def get_project_root_safe() -> Path:
+    """Project root that CANNOT raise -- the fail-open sibling of
+    :func:`get_project_root`.
+
+    MEASURED 2026-10-11. Twenty-two sites across ~20 modules carried the fallback
+    ``Path.home() / "azazael"`` for their project root, which on this host names a
+    DIFFERENT, stale checkout from the one the module ships in (``C:/Azazael/azazael``),
+    so with ``AZAZAEL_ROOT`` unset they read and wrote the wrong tree. Each site fixed
+    itself that way because ``get_project_root()`` RAISES on a sentinel failure and a
+    monitor must not die for it.
+
+    This exists so that decision is made ONCE. It shares ``get_project_root()``'s
+    precedence exactly -- ``AZAZAEL_ROOT`` first, then the location-derived root -- and
+    only the sentinel failure is answered differently: instead of the stale home-relative
+    path it returns this file's own tree root (``src/CORE/paths/internal.py`` is four
+    levels below the root, so ``parents[3]``), which is by construction the tree the
+    caller is running from.
+    """
+    try:
+        return get_project_root()
+    except RuntimeError:
+        return Path(__file__).resolve().parents[3]
+
+
 def get_src_dir() -> Path:
     """Get the azazael/src/ directory."""
     if "src_dir" not in _cache:

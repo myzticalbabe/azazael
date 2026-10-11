@@ -202,7 +202,7 @@ class Tarbaby:
 
     @staticmethod
     def _default_root() -> str:
-        return os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael"))
+        return os.environ.get("AZAZAEL_ROOT", str(Path(__file__).resolve().parents[3]))
 
     def __init__(self, base_path: (str | None) = None):
         if base_path is None:
