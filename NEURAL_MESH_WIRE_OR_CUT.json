@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-10-11T11:16:18.645370",
+ "generated_at": "2026-10-11T11:49:40.850936",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
   "dispatched": 60,
-  "pending": 112
+  "pending": 111
  },
- "total": 175,
+ "total": 174,
  "declared": {
   "allocation:ThompsonAllocator.choose_with_bonus": {
    "decider": "declared_in_data",
@@ -486,18 +486,6 @@
    "qualname": "DreamingModule.get_dream_stats",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "seg": "def get_dream_stats(self) -> dict[str, Any]:\n        \"\"\"Get dreaming statistics.\"\"\"\n        with self._lock:\n            return dict(self._dream_stats)",
-   "status": "pending",
-   "triage": "no_reference_anywhere",
-   "triage_evidence": []
-  },
-  "dreaming:HypnagogicSynthesizer.ingest_domains": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
-   "line": 1042,
-   "module": "dreaming",
-   "qualname": "HypnagogicSynthesizer.ingest_domains",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
-   "seg": "def ingest_domains(self, domains: dict[str, list[dict]]) -> dict[str, int]:\n        \"\"\"Ingest patterns from multiple domains for cross-domain blending.\n\n        Args:\n            domains: {domain_name: [pattern_dicts]} mapping\n\n        Returns:\n            dict with ingested counts per domain\n        \"\"\"\n        counts = {}\n        with self._lock:\n            for domain, patterns in domains.items():\n                self._domain_patterns[domain] = patterns\n                counts[domain] = len(patterns)\n        return counts",
    "status": "pending",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
@@ -2370,13 +2358,13 @@
  },
  "triage_counts": {
   "test_reached_only": 51,
-  "no_reference_anywhere": 61
+  "no_reference_anywhere": 60
  },
  "decider_counts": {
   "protocol_or_override": 0,
   "declared_in_data": 7,
   "dynamic_call": 8,
   "test_is_the_wire": 45,
-  "dead_candidate": 52
+  "dead_candidate": 51
  }
 }

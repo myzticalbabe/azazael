@@ -32,7 +32,7 @@ from .db_monitor import DatabaseMonitorWorm
 from .visualization import DashboardGen, GraphRenderer, ReportCompiler, HeatmapBuilder, TimelineViz
 from .meta_cognition import MetaCognitionWorm
 from .evolution import EvolutionEngine, GeneticOptimizer
-from .dreaming import DreamingModule, HypnagogicSynthesizer
+from .dreaming import DreamingModule
 from .race_detector import RaceConditionDetector
 from .error_recovery import ErrorRecoveryOrchestrator
 from .mesh import MeshRouterWorm, GossipSyncWorm, PartitionHealerWorm, EnvBeaconWorm
@@ -87,7 +87,7 @@ __all__ = [
     "DashboardGen", "GraphRenderer", "ReportCompiler", "HeatmapBuilder", "TimelineViz",
     # neural_advancement (meta-cognition, evolution, dreaming)
     "MetaCognitionWorm", "EvolutionEngine", "GeneticOptimizer",
-    "DreamingModule", "HypnagogicSynthesizer",
+    "DreamingModule",
     # infrastructure (race detection, error recovery)
     "RaceConditionDetector", "ErrorRecoveryOrchestrator",
     # neural mesh fabric (25 worms, 7 natures)
