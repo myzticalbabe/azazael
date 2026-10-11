@@ -44,7 +44,6 @@ from CORE.skill_library import (
     route_hierarchy, scan_witness_canonical, shapley_marginal,
 )
 from CORE.technique_runtime import note_failure, register
-from CORE.WORMS.expansion.learning_replay import PrioritizedReplayBuffer
 
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
@@ -512,19 +511,13 @@ def _ep455() -> Dict[str, Any]:
 def _ep458() -> Dict[str, Any]:
     """`skill_library` never executes a skill (its own docstring says so), so no
     pass@k exists here. Exercised: the commit path that would consume outcomes.
+    (PrioritizedReplayBuffer retired 2026-10-11 with zero production callers;
+    the contrast demo moved out with it — the commit path below is unchanged.)
     """
     verdict = commit_gate({"name": "WormEdit", "family": "dispatch"}, _evidence())
-    buf = PrioritizedReplayBuffer(capacity=10)
-    buf.add("s1", 0, 1.0, "s2", episode="ep-good")
-    buf.add("s1", 0, 0.0, "s2", episode="ep-bad")
-    contrast = buf.contrast_pass_rates()
-    return {"ok": True, "invoked": "CORE.skill_library:commit_gate+"
-                                   "contrast_pass_rates",
+    return {"ok": True, "invoked": "CORE.skill_library:commit_gate",
             "accepted": bool(verdict.get("accepted")),
-            "spread": contrast["spread"],
-            "abstain": contrast["abstain"],
-            "delta": "contrast live over held outcomes; pass@k OUTCOME "
-                     "production still needs an execution host",
+            "delta": "commit path live; pass@k OUTCOME production still needs an execution host",
             "blocked": "needs an execution host to produce pass@k outcomes"}
 
 

@@ -46,16 +46,6 @@ def test_authority_ledger_reads_live_store():
     assert set(out) == {"granted", "exercised", "gap"}
 
 
-def test_replay_contrast_spread_and_abstain():
-    from CORE.WORMS.expansion.learning_replay import PrioritizedReplayBuffer
-    buf = PrioritizedReplayBuffer(capacity=10)
-    buf.add("s", 0, 1.0, "s2", episode="good")
-    buf.add("s", 0, 0.0, "s2", episode="bad")
-    c = buf.contrast_pass_rates()
-    assert c["spread"] == 1.0
-    assert c["abstain"] is True
-
-
 def test_carrier_shared_mean():
     from CORE.MemoryBus import HiddenStateCarrier
     car = HiddenStateCarrier()
@@ -137,7 +127,8 @@ def test_adapters_invoke_new_hosts():
     assert l2._ep427()["delta"] == ""
     assert l2._ep363()["version_field_consumed"] is True
     assert l2._ep364()["depth"] == 2
-    assert l2._ep458()["spread"] == 1.0
+    assert l2._ep458()["accepted"] is True
+    assert l2._ep458()["invoked"] == "CORE.skill_library:commit_gate"
     assert l3._ep269()["ceiling_denies"] is True
     assert l3._ep289()["attenuated_to"] == "none"
     assert l3._ep413()["repair_nodes"] == 1
