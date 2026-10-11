@@ -22,8 +22,6 @@ rem dir and are exposed ONLY to this process via PYTHONPATH.
 rem
 rem PYTHONPATH is prepended (not replaced) so the project's own src/ resolution
 rem and stdlib still work exactly as before.
-set PYTHONPATH=C:\Users\clint\.azazael\py314t_site;%PYTHONPATH%
-
 set AZAZAEL_PROTEUS_ORACLE=1
 set AZAZAEL_PROTEUS_TRAIN=1
 set AZAZAEL_PROTEUS_CRANIUM=1
@@ -31,5 +29,5 @@ set AZAZAEL_PROTEUS_CIRCULATION=1
 set AZAZAEL_PROTEUS_MORPH=1
 set AZAZAEL_TENSOR_GENOME=1
 
-"C:\Users\clint\AppData\Local\Programs\Python\Python314\python3.14t.exe" "%~dp0evolution_cycle.py"
+"C:\Azazael\.venvs\py315t\Scripts\python.exe" "%~dp0evolution_cycle.py"
 exit /b %ERRORLEVEL%
