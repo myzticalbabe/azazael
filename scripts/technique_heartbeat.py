@@ -198,6 +198,26 @@ def main() -> int:
             _fail("technique-heartbeat:psyche-fit-leg", exc)
             out["steps"]["psyche_fit"] = {"ok": False, "verdict": "leg-failed"}
         try:
+            from CORE.WORMS.expansion.learning_grpo import snapshot_log_ratios
+            from CORE.local_memory import get_memory_store as _get_store
+            _drift = snapshot_log_ratios(store=_get_store())
+            out["steps"]["policy_drift"] = _drift
+            if _drift.get("verdict") == "pairs":
+                try:
+                    _get_store().record_event(
+                        source="GRPOTrainer", event_type="policy_drift",
+                        data={"pairs": _drift.get("pairs"),
+                              "n_snapshots": _drift.get("n_snapshots")},
+                        severity="info",
+                        tags=["grpo", "policy", "drift"])
+                    out["steps"]["policy_drift_kept"] = True
+                except Exception as exc:
+                    _fail("technique-heartbeat:policy-drift-report", exc)
+                    out["steps"]["policy_drift_kept"] = False
+        except Exception as exc:
+            _fail("technique-heartbeat:policy-drift-leg", exc)
+            out["steps"]["policy_drift"] = {"ok": False, "verdict": "leg-failed"}
+        try:
             from CORE.WORMS.expansion.queens import rainbow_round
             out["steps"]["rainbow"] = rainbow_round(probe_limit=1)
         except Exception as exc:
