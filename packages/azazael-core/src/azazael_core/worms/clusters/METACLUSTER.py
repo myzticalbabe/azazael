@@ -53,6 +53,23 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Optional, Any, Callable
 from dataclasses import dataclass, field
+
+#: Canonical root resolver. `export_state()` below used to fall back to
+#: `Path.home() / "azazael"`, which names a DIFFERENT, stale checkout from the tree this
+#: module ships in -- so with AZAZAEL_ROOT unset it wrote the state file into a tree
+#: nobody reads. The production twin (`src/CORE/WORMS/METACLUSTER.py`) resolves it through
+#: `CORE.paths.get_project_root_safe()` (AZAZAEL_ROOT first, never raises); this fork uses
+#: the same decision so the two cannot drift apart again.
+try:
+    from CORE.paths import get_project_root_safe as _get_project_root_safe
+except ImportError:                               # standalone package: its own resolver
+    try:
+        from azazael_core.paths import get_project_root as _get_project_root_safe
+    except ImportError:                           # neither reachable: derive from this file
+        def _get_project_root_safe() -> Path:
+            # azazael-core/src/azazael_core/worms/clusters/ -> azazael-core/ (this
+            # fork's own project root, where its pyproject.toml lives).
+            return Path(__file__).resolve().parents[4]
 from collections import defaultdict, OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -836,7 +853,7 @@ class MetaCluster:
     def export_state(self, filepath: str = "") -> str:
         """Export full MetaCluster state to JSON."""
         if not filepath:
-            filepath = str(Path.home() / "azazael" / "data" / "metacluster_state.json")
+            filepath = str(_get_project_root_safe() / "data" / "metacluster_state.json")
         
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         
