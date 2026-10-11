@@ -6,7 +6,7 @@ and running this does not change a status. Decide, then set the status in the ta
 
 | Class | Pending | What it means |
 |---|---|---|
-| `test_reached_only` | 49 | a test names it, so it is exercised -- decide whether the test is the wire or the function should also be reachable from production |
+| `test_reached_only` | 51 | a test names it, so it is exercised -- decide whether the test is the wire or the function should also be reachable from production |
 | `no_reference_anywhere` | 59 | nothing in the tree names it, not even a test -- the candidate pool for retirement, or for explicit wiring |
 
 The same rows, by the fact that decides them. A class is how the row was measured; a decider is what to act on:
@@ -14,22 +14,24 @@ The same rows, by the fact that decides them. A class is how the row was measure
 | Decider | Pending | What it means |
 |---|---|---|
 | `protocol_or_override` | 0 | the same name is defined by another class in the tree, so a caller can reach it through a base or an interface -- keep or retire, but a name-based reference search can never settle it |
-| `declared_in_data` | 3 | a non-Python artifact names it -- a registry cache, capability map, stage manifest or config. The reference index reads Python source only, so this is a wire the probe structurally cannot see, and the row must not be cut on its evidence |
+| `declared_in_data` | 7 | a non-Python artifact names it -- a registry cache, capability map, stage manifest or config. The reference index reads Python source only, so this is a wire the probe structurally cannot see, and the row must not be cut on its evidence |
 | `dynamic_call` | 8 | the defining module builds a call target at runtime (`getattr` with a computed name), so 'no reference' is the probe's limit, not proof of death -- wire explicitly or leave, but do not cut on this evidence |
-| `test_is_the_wire` | 43 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
-| `dead_candidate` | 54 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
+| `test_is_the_wire` | 45 | a test is the only caller: accept the test as the wire, or give production a caller -- either way it is a decision, not a defect |
+| `dead_candidate` | 50 | no caller of any kind, no override, no computed dispatch anywhere in the defining module -- the retirement pool |
 
-## test_reached_only (49)
+## test_reached_only (51)
 
-- [ ] `NeuralPipeline:NeuralPipeline.replay_failed` (`NeuralPipeline:725`) -- reached by tests/test_replay_failed.py:42, tests/test_replay_failed.py:53, tests/test_replay_failed.py:47 [test_is_the_wire: tests/test_replay_failed.py:42; tests/test_replay_failed.py:53; tests/test_replay_failed.py:47]
+- [ ] `allocation:ThompsonAllocator.ingest_outcome` (`allocation:279`) -- reached by tests/test_allocation_sota_rows.py:156, tests/test_allocation_sota_rows.py:165, tests/test_allocation_sota_rows.py:147 [test_is_the_wire: tests/test_allocation_sota_rows.py:156; tests/test_allocation_sota_rows.py:165; tests/test_allocation_sota_rows.py:147]
 - [ ] `chorus:FailureDigest.from_analysis` (`chorus:85`) -- reached by tests/test_proteus_organs.py:718 [test_is_the_wire: tests/test_proteus_organs.py:718]
 - [ ] `db_monitor:DatabaseMonitorWorm._policy_advice` (`db_monitor:436`) -- reached by tests/test_policy_advice.py:56 [test_is_the_wire: tests/test_policy_advice.py:56]
 - [ ] `db_monitor:DatabaseMonitorWorm.create_backup` (`db_monitor:215`) -- reached by tests/test_db_monitor_worm.py:445, tests/test_db_monitor_worm.py:458, tests/test_db_monitor_worm.py:479 [test_is_the_wire: tests/test_db_monitor_worm.py:445; tests/test_db_monitor_worm.py:458; tests/test_db_monitor_worm.py:479]
-- [ ] `error_recovery:ErrorRecoveryOrchestrator.execute_with_recovery` (`error_recovery:100`) -- reached by tests/test_error_recovery.py:76, tests/test_error_recovery.py:95, tests/test_error_recovery.py:115 [test_is_the_wire: tests/test_error_recovery.py:76; tests/test_error_recovery.py:95; tests/test_error_recovery.py:115]
 - [ ] `error_recovery:ErrorRecoveryOrchestrator.reset_circuit` (`error_recovery:328`) -- reached by tests/test_error_recovery.py:193, tests/test_p0_worms.py:261, tests/test_p0_worms.py:286 [test_is_the_wire: tests/test_error_recovery.py:193; tests/test_p0_worms.py:261; tests/test_p0_worms.py:286]
 - [ ] `evolution:GeneticOptimizer.optimize_cma` (`evolution:1428`) -- reached by tests/test_v2_engines.py:187 [test_is_the_wire: tests/test_v2_engines.py:187]
 - [ ] `evolution:GeneticOptimizer.optimize_de` (`evolution:1441`) -- reached by tests/test_v2_engines.py:194 [test_is_the_wire: tests/test_v2_engines.py:194]
-- [ ] `learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report` (`learning_features:357`) -- reached by tests/test_learning_worms.py:593, tests/test_learning_worms.py:611 [test_is_the_wire: tests/test_learning_worms.py:593; tests/test_learning_worms.py:611]
+- [ ] `learning_features:SchemaAwareFeatureExtractor.fallback_accuracy_report` (`learning_features:380`) -- reached by tests/test_learning_worms.py:593, tests/test_learning_worms.py:611 [test_is_the_wire: tests/test_learning_worms.py:593; tests/test_learning_worms.py:611]
+- [ ] `learning_grpo:GRPOTrainer.ingest_replay_trajectory` (`learning_grpo:376`) -- reached by tests/test_grpo_sota_rows.py:36, tests/test_grpo_sota_rows.py:55, tests/test_grpo_sota_rows.py:71 [test_is_the_wire: tests/test_grpo_sota_rows.py:36; tests/test_grpo_sota_rows.py:55; tests/test_grpo_sota_rows.py:71]
+- [ ] `learning_grpo:GRPOTrainer.replay_offline_step` (`learning_grpo:407`) -- reached by tests/test_grpo_sota_rows.py:45, tests/test_grpo_sota_rows.py:61, tests/test_grpo_sota_rows.py:78 [test_is_the_wire: tests/test_grpo_sota_rows.py:45; tests/test_grpo_sota_rows.py:61; tests/test_grpo_sota_rows.py:78]
+- [ ] `learning_pipeline:DataPipelineWorm.ablate_sources` (`learning_pipeline:694`) -- reached by tests/test_backlog_hosts.py:124 [test_is_the_wire: tests/test_backlog_hosts.py:124]
 - [ ] `learning_pipeline:DataPipelineWorm.extract_field` (`learning_pipeline:203`) -- reached by tests/test_learning_worms.py:68 [test_is_the_wire: tests/test_learning_worms.py:68]
 - [ ] `learning_pipeline:DataPipelineWorm.extract_recent` (`learning_pipeline:161`) -- reached by tests/test_learning_worms.py:42 [test_is_the_wire: tests/test_learning_worms.py:42]
 - [ ] `learning_pipeline:DataPipelineWorm.filter_by_severity` (`learning_pipeline:218`) -- reached by tests/test_learning_worms.py:79 [test_is_the_wire: tests/test_learning_worms.py:79]
@@ -39,29 +41,29 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `learning_pipeline:DataPipelineWorm.process_batches` (`learning_pipeline:276`) -- reached by tests/test_learning_worms.py:128 [test_is_the_wire: tests/test_learning_worms.py:128]
 - [ ] `learning_pipeline:DataPipelineWorm.schedule_dynamic_refresh` (`learning_pipeline:559`) -- reached by tests/test_learning_worms.py:544, tests/test_learning_worms.py:553, tests/test_learning_worms.py:564 [test_is_the_wire: tests/test_learning_worms.py:544; tests/test_learning_worms.py:553; tests/test_learning_worms.py:564]
 - [ ] `learning_pipeline:DataPipelineWorm.search_memory` (`learning_pipeline:154`) -- reached by tests/test_learning_worms.py:37 [test_is_the_wire: tests/test_learning_worms.py:37]
-- [ ] `learning_replay:PrioritizedReplayBuffer.add_from_memories` (`learning_replay:172`) -- reached by tests/test_learning_evolution.py:97, tests/test_learning_evolution.py:108 [test_is_the_wire: tests/test_learning_evolution.py:97; tests/test_learning_evolution.py:108]
+- [ ] `learning_replay:PrioritizedReplayBuffer.add_from_memories` (`learning_replay:224`) -- reached by tests/test_learning_evolution.py:97, tests/test_learning_evolution.py:108 [test_is_the_wire: tests/test_learning_evolution.py:97; tests/test_learning_evolution.py:108]
 - [ ] `learning_rl:RLTrainLoop.tune_and_train` (`learning_rl:858`) -- reached by tests/test_learning_worms.py:354, tests/test_learning_worms.py:367 [test_is_the_wire: tests/test_learning_worms.py:354; tests/test_learning_worms.py:367]
 - [ ] `learning_rl:RLTrainLoop.tune_history` (`learning_rl:988`) -- reached by tests/test_learning_worms.py:382, tests/test_learning_worms.py:395 [test_is_the_wire: tests/test_learning_worms.py:382; tests/test_learning_worms.py:395]
 - [ ] `loom:NoveltyDrive.novelty_weight` (`loom:272`) -- reached by tests/test_proteus_organs.py:530, tests/test_proteus_organs.py:531 [test_is_the_wire: tests/test_proteus_organs.py:530; tests/test_proteus_organs.py:531]
 - [ ] `loom:descriptors_from_archive` (`loom:320`) -- reached by tests/test_proteus_organs.py:551 [test_is_the_wire: tests/test_proteus_organs.py:551]
-- [ ] `meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation` (`meta_cognition:941`) -- reached by tests/test_neural_advancement.py:213, tests/test_neural_advancement.py:220, tests/test_neural_advancement.py:226 [test_is_the_wire: tests/test_neural_advancement.py:213; tests/test_neural_advancement.py:220; tests/test_neural_advancement.py:226]
+- [ ] `meta_cognition:MetaCognitionWorm.compute_cross_worm_correlation` (`meta_cognition:1165`) -- reached by tests/test_neural_advancement.py:213, tests/test_neural_advancement.py:220, tests/test_neural_advancement.py:226 [test_is_the_wire: tests/test_neural_advancement.py:213; tests/test_neural_advancement.py:220; tests/test_neural_advancement.py:226]
 - [ ] `morph:Genome.to_trainer_kwargs` (`morph:260`) -- reached by tests/test_proteus_organs.py:115, tests/test_proteus_organs.py:127, tests/test_proteus_organs.py:138 [test_is_the_wire: tests/test_proteus_organs.py:115; tests/test_proteus_organs.py:127; tests/test_proteus_organs.py:138]
 - [ ] `morph:load_genome` (`morph:503`) -- reached by tests/test_proteus_organs.py:314, tests/test_proteus_organs.py:320 [test_is_the_wire: tests/test_proteus_organs.py:314; tests/test_proteus_organs.py:320]
 - [ ] `morph:save_genome` (`morph:495`) -- reached by tests/test_proteus_organs.py:313 [test_is_the_wire: tests/test_proteus_organs.py:313]
 - [ ] `race_detector:RaceConditionDetector.instrument_worm` (`race_detector:128`) -- reached by tests/test_p0_worms.py:80, tests/test_p0_worms.py:87, tests/test_p0_worms.py:92 [dynamic_call: src/CORE/WORMS/expansion/race_detector.py]
 - [ ] `race_detector:RaceConditionDetector.uninstrument_worm` (`race_detector:236`) -- reached by tests/test_p0_worms.py:130, tests/test_p0_worms.py:137, tests/test_p0_worms.py:192 [dynamic_call: src/CORE/WORMS/expansion/race_detector.py]
-- [ ] `scheduling:ScheduledTrainingWorm._get_ab` (`scheduling:216`) -- reached by tests/test_scheduling.py:205 [test_is_the_wire: tests/test_scheduling.py:205]
-- [ ] `scheduling:TrainingOrchestrator.get_run_history` (`scheduling:1140`) -- reached by tests/test_training_orchestrator.py:95 [test_is_the_wire: tests/test_training_orchestrator.py:95]
+- [ ] `scheduling:ScheduledTrainingWorm._get_ab` (`scheduling:476`) -- reached by tests/test_scheduling.py:205 [test_is_the_wire: tests/test_scheduling.py:205]
+- [ ] `scheduling:ScheduledTrainingWorm.record_contribution` (`scheduling:552`) -- reached by tests/test_scheduling_sota_rows.py:103, tests/test_scheduling_sota_rows.py:104 [test_is_the_wire: tests/test_scheduling_sota_rows.py:103; tests/test_scheduling_sota_rows.py:104]
+- [ ] `scheduling:TrainingOrchestrator.get_run_history` (`scheduling:1540`) -- reached by tests/test_training_orchestrator.py:95 [test_is_the_wire: tests/test_training_orchestrator.py:95]
 - [ ] `spine:MorphogenesisWorm.retrieve_staged` (`spine:3859`) -- reached by tests/test_contract_pinning.py:77, tests/test_contract_pinning.py:81 [dynamic_call: src/CORE/WORMS/expansion/spine.py]
 - [ ] `spine:measure_skill_lift` (`spine:4022`) -- reached by tests/test_contract_pinning.py:110, tests/test_contract_pinning.py:112 [dynamic_call: src/CORE/WORMS/expansion/spine.py]
 - [ ] `spine_registry:audit_state` (`spine_registry:2272`) -- reached by tests/test_brainstem_playing_field.py:230 [test_is_the_wire: tests/test_brainstem_playing_field.py:230]
 - [ ] `spine_registry:counter_floor_report` (`spine_registry:2236`) -- reached by tests/test_spine_brainstem_persistence.py:563 [test_is_the_wire: tests/test_spine_brainstem_persistence.py:563]
-- [ ] `spine_registry:get_gossip_trust_state` (`spine_registry:3563`) -- reached by tests/test_gossip_trust_allowlist.py:243, tests/test_spine_mesh.py:1105, tests/test_spine_mesh.py:1147 [test_is_the_wire: tests/test_gossip_trust_allowlist.py:243; tests/test_spine_mesh.py:1105; tests/test_spine_mesh.py:1147]
-- [ ] `spine_registry:get_module_health` (`spine_registry:3222`) -- reached by tests/test_spine_mesh.py:299 [test_is_the_wire: tests/test_spine_mesh.py:299]
+- [ ] `spine_registry:get_gossip_trust_state` (`spine_registry:3567`) -- reached by tests/test_gossip_trust_allowlist.py:243, tests/test_spine_mesh.py:1105, tests/test_spine_mesh.py:1147 [test_is_the_wire: tests/test_gossip_trust_allowlist.py:243; tests/test_spine_mesh.py:1105; tests/test_spine_mesh.py:1147]
+- [ ] `spine_registry:get_module_health` (`spine_registry:3226`) -- reached by tests/test_spine_mesh.py:299 [test_is_the_wire: tests/test_spine_mesh.py:299]
 - [ ] `spine_registry:get_q_evidence` (`spine_registry:2078`) -- reached by tests/test_brainstem_playing_field.py:123, tests/test_brainstem_playing_field.py:131, tests/test_brainstem_playing_field.py:157 [test_is_the_wire: tests/test_brainstem_playing_field.py:123; tests/test_brainstem_playing_field.py:131; tests/test_brainstem_playing_field.py:157]
 - [ ] `spine_registry:homeostat_reset` (`spine_registry:3021`) -- reached by tests/test_spine_mesh.py:114, tests/test_spine_mesh.py:125, tests/test_spine_mesh.py:140 [test_is_the_wire: tests/test_spine_mesh.py:114; tests/test_spine_mesh.py:125; tests/test_spine_mesh.py:140]
 - [ ] `spine_registry:purge_fixtures` (`spine_registry:2328`) -- reached by tests/test_brainstem_playing_field.py:241, tests/test_spine_tombstone_enforcement.py:84, tests/test_spine_tombstone_enforcement.py:91 [test_is_the_wire: tests/test_brainstem_playing_field.py:241; tests/test_spine_tombstone_enforcement.py:84; tests/test_spine_tombstone_enforcement.py:91]
-- [ ] `spine_registry:purge_implausible_stamps` (`spine_registry:3141`) -- reached by tests/test_mesh_clock_poison.py:232, tests/test_mesh_clock_poison.py:237, tests/test_mesh_clock_poison.py:286 [test_is_the_wire: tests/test_mesh_clock_poison.py:232; tests/test_mesh_clock_poison.py:237; tests/test_mesh_clock_poison.py:286]
 - [ ] `spine_registry:purged_blocked_writes` (`spine_registry:426`) -- reached by tests/test_spine_tombstone_enforcement.py:107, tests/test_spine_tombstone_enforcement.py:126, tests/test_spine_tombstone_enforcement.py:128 [test_is_the_wire: tests/test_spine_tombstone_enforcement.py:107; tests/test_spine_tombstone_enforcement.py:126; tests/test_spine_tombstone_enforcement.py:128]
 - [ ] `spine_registry:reset_counters` (`spine_registry:2184`) -- reached by tests/test_spine_brainstem_persistence.py:509, tests/test_spine_brainstem_persistence.py:526, tests/test_spine_brainstem_persistence.py:544 [test_is_the_wire: tests/test_spine_brainstem_persistence.py:509; tests/test_spine_brainstem_persistence.py:526; tests/test_spine_brainstem_persistence.py:544]
 - [ ] `spine_registry:revert_policy` (`spine_registry:3053`) -- reached by tests/test_spine_mesh.py:708 [test_is_the_wire: tests/test_spine_mesh.py:708]
@@ -73,18 +75,17 @@ The same rows, by the fact that decides them. A class is how the row was measure
 
 ## no_reference_anywhere (59)
 
-- [ ] `allocation:ThompsonAllocator.choose_with_bonus` (`allocation:277`) [dead_candidate]
-- [ ] `axon:LatencyCompensatorWorm.compensate` (`axon:131`) [dead_candidate]
-- [ ] `axon:MyelinSheathWorm.boost_for` (`axon:47`) [dead_candidate]
-- [ ] `axon:MyelinSheathWorm.myelinate` (`axon:42`) [dead_candidate]
-- [ ] `backup:CheckpointWorm.restore_checkpoint` (`backup:215`) [dead_candidate]
+- [ ] `allocation:ThompsonAllocator.choose_with_bonus` (`allocation:346`) [declared_in_data: named by state/wire_or_cut_queue.json:6]
+- [ ] `axon:LatencyCompensatorWorm.compensate` (`axon:131`) [declared_in_data: named by state/wire_or_cut_queue.json:12]
+- [ ] `axon:MyelinSheathWorm.boost_for` (`axon:47`) [declared_in_data: named by state/wire_or_cut_queue.json:18]
+- [ ] `axon:MyelinSheathWorm.myelinate` (`axon:42`) [declared_in_data: named by state/wire_or_cut_queue.json:24]
+- [ ] `backup:CheckpointWorm.restore_checkpoint` (`backup:225`) [declared_in_data: named by state/wire_or_cut_queue.json:30]
 - [ ] `communication:IPCBridge.create_channel` (`communication:175`) [dead_candidate]
 - [ ] `communication:IPCBridge.receive` (`communication:190`) [dead_candidate]
 - [ ] `config:ConfigLinter.lint_yaml` (`config:80`) [dead_candidate]
 - [ ] `consolidation:EngramIndexerWorm.lookup` (`consolidation:110`) [declared_in_data: named by worm_config_trace.json:1926]
-- [ ] `consolidation:SharpWaveReplayWorm.replay_batch` (`consolidation:54`) [dead_candidate]
 - [ ] `consolidation:SleepConsolidatorWorm.sleep_cycle` (`consolidation:79`) [dead_candidate]
-- [ ] `container:ResourceQuotaWatch.set_quota` (`container:224`) [dead_candidate]
+- [ ] `container:ResourceQuotaWatch.set_quota` (`container:242`) [dead_candidate]
 - [ ] `dendrite:AttentionGateWorm.set_bias` (`dendrite:81`) [dead_candidate]
 - [ ] `dendrite:DendriteAggregatorWorm.set_gain` (`dendrite:43`) [dead_candidate]
 - [ ] `dreaming:DreamingModule.get_dream_stats` (`dreaming:987`) [dead_candidate]
@@ -98,13 +99,14 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `exmachina:_tpm` (`exmachina:1372`) [dead_candidate]
 - [ ] `federated:RewardShaperMeshWorm.local_score` (`federated:327`) [dead_candidate]
 - [ ] `glia:MicrogliaWorm.check_path` (`glia:126`) [dead_candidate]
+- [ ] `learning_versioner:pareto_retain` (`learning_versioner:240`) [dead_candidate]
 - [ ] `mesh:MeshRouterWorm.invalidate_route` (`mesh:278`) [dead_candidate]
-- [ ] `meta_cognition:internalize` (`meta_cognition:64`) [dead_candidate]
+- [ ] `meta_cognition:internalize` (`meta_cognition:83`) [dead_candidate]
 - [ ] `migration:CodeMigrator.run_2to3` (`migration:79`) [dead_candidate]
 - [ ] `migration:LegacyShimGen.write_shim` (`migration:228`) [dead_candidate]
 - [ ] `oracle:FitnessOracle.acquisition` (`oracle:264`) [dead_candidate]
 - [ ] `oracle:FitnessOracle.era_robust_probability` (`oracle:270`) [dead_candidate]
-- [ ] `profiling:CPUFlameProfiler.to_flamegraph_data` (`profiling:226`) [dead_candidate]
+- [ ] `profiling:CPUFlameProfiler.to_flamegraph_data` (`profiling:236`) [dead_candidate]
 - [ ] `profiling:CodeProfiler.detect_hotspots` (`profiling:80`) [dead_candidate]
 - [ ] `profiling:CodeProfiler.profile_function` (`profiling:63`) [dead_candidate]
 - [ ] `proteus_hooks:morph_policy_refresh` (`proteus_hooks:1219`) [dead_candidate]
@@ -116,7 +118,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `session_state:SessionStateManager.register_worm_state` (`session_state:142`) [dead_candidate]
 - [ ] `session_state:SessionStateManager.unregister_worm_state` (`session_state:190`) [dead_candidate]
 - [ ] `spine:SpineCycleWorm._nature_success_rate` (`spine:2696`) [dynamic_call: src/CORE/WORMS/expansion/spine.py]
-- [ ] `spine_registry:_iso_or` (`spine_registry:3692`) [dead_candidate]
+- [ ] `spine_registry:_iso_or` (`spine_registry:3696`) [dead_candidate]
 - [ ] `spine_registry:get_q_variance` (`spine_registry:1941`) [dead_candidate]
 - [ ] `spine_registry:q_confidence` (`spine_registry:2032`) [dead_candidate]
 - [ ] `spine_registry:route_last_at` (`spine_registry:2590`) [dead_candidate]
@@ -128,7 +130,7 @@ The same rows, by the fact that decides them. A class is how the row was measure
 - [ ] `thalamus:SensoryRelayWorm.relay` (`thalamus:78`) [declared_in_data: named by worm_config_trace.json:1971]
 - [ ] `visualization:DashboardGen.add_panel` (`visualization:64`) [dead_candidate]
 - [ ] `xenomorph:ChestbursterWorm.burst` (`xenomorph:167`) [dead_candidate]
-- [ ] `xenomorph:DroneWorm.carry` (`xenomorph:191`) [declared_in_data: named by state/evolution_pool_snapshot.json:1]
+- [ ] `xenomorph:DroneWorm.carry` (`xenomorph:191`) [dead_candidate]
 - [ ] `xenomorph:OvomorphWorm.hatch` (`xenomorph:115`) [dead_candidate]
 - [ ] `xenomorph:OvomorphWorm.lay` (`xenomorph:107`) [dead_candidate]
 - [ ] `xenomorph:ResinWorm.secrete` (`xenomorph:425`) [dead_candidate]
