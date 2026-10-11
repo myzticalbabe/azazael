@@ -57,19 +57,21 @@ from typing import Any, Callable, Dict, List
 #: Re-exported here because callers and tests reach it as
 #: `technique_runtime.note_failure` / `technique_runtime.failure_notes`.
 #:
-#: ORDER MATTERS: the ledger now precedes the guarded imports below, because
-#: their handlers record. A recorder bound later in the file would raise
-#: NameError *from inside* the handler, turning a caught import failure into an
-#: uncaught one and taking this module's whole import down with it.
+#: ORDER MATTERS, and here it is enforced BY CONSTRUCTION: this is the ONLY
+#: binding of the recorder, and it is deliberately UNGUARDED. A
+#: `try: from CORE.failure_ledger import note_failure / except ImportError:`
+#: block used to sit BELOW this unguarded import of the same two names, which
+#: made its handler unreachable: the name was either already bound (so the
+#: handler could not fire) or this import had already aborted the module (so
+#: execution never reached it). A guard that can never fire is a gate that can
+#: never fail -- the same defect class as one that can never pass -- so it was
+#: removed rather than kept as reassurance. The ledger is importable
+#: unconditionally by design: `CORE/failure_ledger.py` imports nothing but the
+#: standard library, and its own docstring records why a GUARDED import of the
+#: recorder would silently downgrade every recording to a no-op (the recorder
+#: swallowing itself). The guarded engram/verification-gate imports below still
+#: record through this binding, which is why it must come first.
 from CORE.failure_ledger import failure_notes, note_failure  # noqa: F401
-
-#: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
-#: leaf, so this fallback should never fire -- if it does, the ledger is missing).
-try:
-    from CORE.failure_ledger import note_failure
-except ImportError:                               # never break the host
-    def note_failure(where: str, exc: BaseException | None = None) -> None:
-        pass  # ledger missing; evidence-vs-silence tradeoff capped here
 
 #: The worms tree, imported at module level (fail-open) so the restored read
 #: path has a caller. Guarded rather than lazy: a function-level import counts

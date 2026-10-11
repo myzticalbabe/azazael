@@ -17,7 +17,7 @@ Usage:
 Configuration:
     - Output format: HTML, JSON, Console
     - Destination: popup, file, browser, all
-    - Path: C:/Users/clint/Desktop/HORUS
+    - Path: $HORUS_OUTPUT, else <repo root>/output/horus via CORE.paths.get_project_root()
 """
 
 import json
@@ -51,6 +51,54 @@ try:
 except ImportError:                               # never break the host
     def note_failure(where: str, exc: BaseException | None = None) -> None:
         pass  # ledger missing; evidence-vs-silence tradeoff capped here
+
+#: Canonical root resolver. Every env-var fallback below used to be
+#: `Path.home() / "azazael"` -- a DIFFERENT, stale checkout from this repo -- so
+#: with the env vars unset HORUS read and wrote the wrong tree's output dir.
+#: Swallows recorded when CORE.paths cannot be imported (it is the canonical
+#: resolver for every path in this project, so its absence is the finding).
+
+try:
+    from CORE.paths import get_project_root as _get_project_root
+except ImportError:                               # never break the host
+    note_failure("HORUS:core-paths-import", None)
+    _get_project_root = None
+
+
+#: This file is src/ORCHESTRATION/HORUS.py, so two levels above its parent is
+#: the repo root -- the same tree this module ships in. Used only when
+#: CORE.paths is unavailable or its sentinel rejects the resolved root.
+_FALLBACK_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _default_root() -> Path:
+    """Canonical root for the env-var fallbacks in this module.
+
+    MEASURED 2026-10-10 (action registry S-6): the fallback at every site below
+    used to be ``Path.home() / "azazael"``, which is a DIFFERENT, stale checkout
+    from this repo (``C:/Azazael/azazael``). On a host where neither
+    ``HORUS_OUTPUT`` nor ``AZAZAEL_ROOT`` is set, HORUS therefore read and wrote
+    the wrong tree's output directory.
+
+    ``CORE.paths.get_project_root()`` is the canonical resolver: ``AZAZAEL_ROOT``
+    first, else derived from its own file location behind a ``src/CORE`` sentinel
+    check that RAISES rather than returning a home-relative guess.
+    """
+    if _get_project_root is not None:
+        try:
+            candidate = Path(_get_project_root())
+        except RuntimeError as exc:
+            note_failure("HORUS:project-root-sentinel", exc)
+            candidate = _FALLBACK_ROOT
+        if (candidate / "src" / "CORE").is_dir():
+            return candidate
+    return _FALLBACK_ROOT
+
+
+#: Resolved at import; the readers below must agree on one value.
+_DEFAULT_ROOT = _default_root()
+_DEFAULT_HORUS_OUTPUT = os.environ.get("HORUS_OUTPUT", str(_DEFAULT_ROOT / "output" / "horus"))
+
 
 if TYPE_CHECKING:
     import tkinter as tk
@@ -95,7 +143,7 @@ class OutputConfig:
 
     format: OutputFormat = OutputFormat.HTML
     destination: OutputDestination = OutputDestination.ALL
-    base_path: str = os.environ.get("HORUS_OUTPUT", os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")) + "/output/horus")
+    base_path: str = _DEFAULT_HORUS_OUTPUT
     auto_open_browser: bool = True
     include_timestamp: bool = True
     status_colors: bool = True
@@ -115,7 +163,7 @@ class OutputConfig:
         return cls(
             format=OutputFormat(data.get("format", "html")),
             destination=OutputDestination(data.get("destination", "all")),
-            base_path=data.get("base_path", os.environ.get("HORUS_OUTPUT", os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")) + "/output/horus")),
+            base_path=data.get("base_path", _DEFAULT_HORUS_OUTPUT),
             auto_open_browser=data.get("auto_open_browser", True),
             include_timestamp=data.get("include_timestamp", True),
             status_colors=data.get("status_colors", True),
@@ -579,7 +627,7 @@ def run_ml_analysis(cluster: Any = None) -> HORUSOutput:
         # Fallback: scan local project for Python modules
         # Fallback: scan local project for Python modules
         note_failure("HORUS:L569", None)
-        root = Path(os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")))
+        root = Path(os.environ.get("AZAZAEL_ROOT", str(_DEFAULT_ROOT)))
         modules = {}
         for py_file in root.rglob("*.py"):
             if "__pycache__" in str(py_file) or ".git" in str(py_file):
@@ -685,7 +733,7 @@ def config_output(
         OutputConfig object
     """
     if base_path is None:
-        base_path = os.environ.get("HORUS_OUTPUT", os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")) + "/output/horus")
+        base_path = os.environ.get("HORUS_OUTPUT", str(_DEFAULT_ROOT / "output" / "horus"))
     config = OutputConfig(
         format=OutputFormat(format),
         destination=OutputDestination(destination),
@@ -827,7 +875,7 @@ def launcher():
 def export_ecosystem_info(filepath: (str | None) = None) -> str:
     """Export machine-readable ecosystem information."""
     if filepath is None:
-        root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(Path.home() / "azazael")))
+        root = os.environ.get("AZAZAEL_ROOT", os.environ.get("Azazael_ROOT", str(_DEFAULT_ROOT)))
         filepath = os.path.join(root, "output", "horus", "ecosystem_info.json")
 
     ecosystem_data = {
@@ -837,7 +885,7 @@ def export_ecosystem_info(filepath: (str | None) = None) -> str:
             "architecture": "7-tier worm system",
             "created": "2026-02-11",
             "platform": "Windows",
-            "root_path": os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")),
+            "root_path": os.environ.get("AZAZAEL_ROOT", str(_DEFAULT_ROOT)),
         },
         "components": {
             "WORMZ": {"type": "worm", "count": 10, "health": "healthy"},
@@ -931,7 +979,7 @@ class HORUSLiveMonitor:
         if base_path:
             self.base_path = Path(base_path)
         else:
-            self.base_path = Path(os.environ.get("AZAZAEL_ROOT", str(Path.home() / "azazael")))
+            self.base_path = Path(os.environ.get("AZAZAEL_ROOT", str(_DEFAULT_ROOT)))
 
         self.setup_ui()
         self.setup_components()
