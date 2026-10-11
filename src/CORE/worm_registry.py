@@ -48,7 +48,7 @@ except ImportError as exc:
     # PAMS is optional, but its absence is still a degradation: memory recording
     # is unavailable for this process. Recorded rather than silently defaulted.
     get_recorder = None
-    note_failure("worm_registry:L37:optional-pams-absent", exc)
+    note_failure("worm_registry:optional-pams-absent", exc)
 
 # NOTE: CORE.worm_registry_cache is intentionally NOT imported here at module
 # level. worm_registry_cache lazily imports CORE.worm_registry (for
@@ -282,7 +282,7 @@ def is_protected_worm(info: Optional[dict]) -> bool:
     try:
         return FLEET_GOVERNOR_TAG in tags
     except TypeError as exc:          # noqa: BLE001 - tags may not be a container
-        note_failure("worm_registry:L271:fleet-governor-tag-type", exc)
+        note_failure("worm_registry:fleet-governor-tag-type", exc)
         return False
 
 
@@ -300,7 +300,7 @@ def _replay_policy_journal() -> int:
         try:
             _spine_reg.load_spine_state()
         except Exception as exc:  # noqa: BLE001 - replay is best-effort
-            note_failure("worm_registry:L288:spine-load-state", exc)
+            note_failure("worm_registry:spine-load-state", exc)
         # G10: the journal is a bounded ring, so replaying it directly meant a
         # worm whose last adaptation had been evicted silently reverted to its
         # decorator default — a regression that only shows up once the fleet is
@@ -313,7 +313,7 @@ def _replay_policy_journal() -> int:
             try:
                 latest = getter()
             except Exception as exc:      # noqa: BLE001 - fall back to the ring
-                note_failure("worm_registry:L301:policy-latest-getter", exc)
+                note_failure("worm_registry:policy-latest-getter", exc)
                 latest = None
         if not latest:
             _journal = getattr(_spine_reg, "_POLICY_JOURNAL", None) or []
@@ -360,10 +360,10 @@ def _replay_policy_journal() -> int:
                         touched = True
                     adjusted += 1 if touched else 0
                 except Exception as exc:  # noqa: BLE001 - skip the malformed entry
-                    note_failure("worm_registry:L332:policy-entry-apply", exc)
+                    note_failure("worm_registry:policy-entry-apply", exc)
                     continue
     except Exception as exc:          # noqa: BLE001 - never break registration
-        note_failure("worm_registry:L334:policy-journal-replay", exc)
+        note_failure("worm_registry:policy-journal-replay", exc)
     return adjusted
 
 
@@ -419,7 +419,7 @@ def _ensure_summary_contract(cls: type) -> str:
         if callable(existing):
             return "declared"
     except Exception as exc:          # noqa: BLE001 - absent method is the normal case
-        note_failure("worm_registry:L390:summary-declared-probe", exc)
+        note_failure("worm_registry:summary-declared-probe", exc)
     try:
         # The mixin's implementation reads its two schema attributes, and a class
         # that does not inherit the mixin has neither — attaching only the method
@@ -436,7 +436,7 @@ def _ensure_summary_contract(cls: type) -> str:
     except Exception as exc:
         # Builtin / C-extension types refuse attribute assignment. Nothing to do
         # here, and refusing to register a worm over it would be worse.
-        note_failure("worm_registry:L405:summary-attach-refused", exc)
+        note_failure("worm_registry:summary-attach-refused", exc)
         return "unavailable"
 
 
@@ -481,7 +481,7 @@ def register_worm(
         try:
             source_file = inspect.getfile(cls)
         except (OSError, TypeError, Exception):
-            note_failure("worm_registry:L469", None)
+            note_failure("worm_registry:source-file-probe", None)
             source_file = ""  # exec()-defined classes or REPL classes have no source file
 
         # Normalize bare module names to their package-qualified import path.
@@ -624,7 +624,7 @@ def _discover_worms_impl(
                 _replay_policy_journal()
                 return len(WORM_REGISTRY)
         except Exception as exc:
-            note_failure("worm_registry:L611", exc)
+            note_failure("worm_registry:discovery-cache-read", exc)
             _log_event("discovery_cache_miss", error=str(exc)[:80])
             pass  # Cache unavailable — fall through to full discovery
 
@@ -681,7 +681,7 @@ def _discover_worms_impl(
             try:
                 module = importlib.import_module(qualified)
             except ImportError:
-                note_failure("worm_registry:L667", None)
+                note_failure("worm_registry:qualified-module-import", None)
                 module = importlib.import_module(module_name)
 
             # After import, skip dir() loop if @register_worm already registered this module
@@ -754,7 +754,7 @@ def _discover_worms_impl(
 
         except Exception as exc:      # noqa: BLE001 - one bad module must not stop discovery
             # Module might have import issues or psutil segfaults
-            note_failure("worm_registry:L720:module-auto-register", exc)
+            note_failure("worm_registry:module-auto-register", exc)
 
     # --- VF (Vermillion LightFury) worm auto-discovery ---
     # vermillion_lightfury uses package-style imports (worms.nmap_scanner),
@@ -776,10 +776,10 @@ def _discover_worms_impl(
                 try:
                     importlib.import_module(_vf_mod_name)
                 except Exception as exc:  # noqa: BLE001 - one bad VF module is skipped
-                    note_failure("worm_registry:L743:vf-module-import", exc)
+                    note_failure("worm_registry:vf-module-import", exc)
             _vf_already_discovered = True
         except Exception as exc:      # noqa: BLE001 - VF tree is optional
-            note_failure("worm_registry:L746:vf-discovery", exc)
+            note_failure("worm_registry:vf-discovery", exc)
 
     # -- Replay persisted policy adaptations (2026-09-14, helper below) --
     _replay_policy_journal()
@@ -810,7 +810,7 @@ def _discover_worms_impl(
             # rebuilds. Logged rather than silently swallowed, because a save
             # that fails every run leaves an older cache answering for a fleet
             # it no longer describes, with nothing reporting a problem.
-            note_failure("worm_registry:L787", _save_exc)
+            note_failure("worm_registry:discovery-cache-write", _save_exc)
             _log_event("discovery_cache_save_failed",
                        error=repr(_save_exc)[:200])
 
@@ -1014,11 +1014,11 @@ def _new_decision_id() -> Optional[str]:
         from CORE.WORMS.expansion.spawn_credit import new_decision_id
         return new_decision_id()
     except Exception as exc:          # noqa: BLE001 - a local mint is the fallback
-        note_failure("worm_registry:L976:decision-id-mint", exc)
+        note_failure("worm_registry:decision-id-mint", exc)
         try:
             return "d-%d" % time.time_ns()
         except Exception as exc:      # noqa: BLE001 - no id at all than a crash
-            note_failure("worm_registry:L979:decision-id-fallback", exc)
+            note_failure("worm_registry:decision-id-fallback", exc)
             return None
 
 
@@ -1052,7 +1052,7 @@ def _load_promoted_wiring() -> Optional[Dict[str, Any]]:
         st = os.stat(WIRING_PROMOTED_PATH)
         stamp = (st.st_mtime, st.st_size)
     except OSError as exc:            # noqa: BLE001 - no promotion yet is the initial state
-        note_failure("worm_registry:L1012:no-promoted-wiring-yet", exc)
+        note_failure("worm_registry:no-promoted-wiring-yet", exc)
         return None
 
     if _wiring_cache is not None and _wiring_cache_stamp == stamp:
@@ -1071,7 +1071,7 @@ def _load_promoted_wiring() -> Optional[Dict[str, Any]]:
             _wiring_cache_stamp = stamp
             return data
         except Exception as exc:      # noqa: BLE001 - corrupt genome falls back to registry
-            note_failure("worm_registry:L1030:wiring-unreadable", exc)
+            note_failure("worm_registry:wiring-unreadable", exc)
             return None
 
 
@@ -1101,18 +1101,18 @@ def _decision_versions() -> Dict[str, Any]:
         from CORE.WORMS.expansion import hyperopt as _hyp
         out["hp"] = _hyp.fingerprint(_hyp.load())
     except Exception as exc:          # noqa: BLE001 - None means "not readable"
-        note_failure("worm_registry:L1059:versions-hp", exc)
+        note_failure("worm_registry:versions-hp", exc)
     try:
         data = _load_promoted_wiring() or {}
         out["wg"] = data.get("fingerprint")
         out["wg_gen"] = data.get("generation")
     except Exception as exc:          # noqa: BLE001 - None means "not readable"
-        note_failure("worm_registry:L1065:versions-wg", exc)
+        note_failure("worm_registry:versions-wg", exc)
     try:
         from CORE import spine_registry as _sr
         out["spine_edges"] = len(_sr.get_q_weights())
     except Exception as exc:          # noqa: BLE001 - None means "not readable"
-        note_failure("worm_registry:L1070:versions-spine", exc)
+        note_failure("worm_registry:versions-spine", exc)
     return out
 
 
@@ -1126,7 +1126,7 @@ def _get_pams_recorder():
                     try:
                         _pams_instance = get_recorder()
                     except ImportError as exc:   # noqa: BLE001 - PAMS unavailable at runtime
-                        note_failure("worm_registry:L1084:pams-instantiate", exc)
+                        note_failure("worm_registry:pams-instantiate", exc)
                         _pams_instance = False
                 else:
                     _pams_instance = False
@@ -1256,9 +1256,9 @@ class BaseWormMixin:
                         result = result.__dict__
                     return {"success": True, "method": method_name, "result": result}
             except AttributeError as exc:  # noqa: BLE001 - fall through to fields
-                note_failure("worm_registry:L1213:summary-method-attr", exc)
+                note_failure("worm_registry:summary-method-attr", exc)
             except Exception as exc:        # noqa: BLE001 - summary is advisory
-                note_failure("worm_registry:L1215:summary-method-call", exc)
+                note_failure("worm_registry:summary-method-call", exc)
 
         # -- Explicit field summary --
         fields = self.__summary_fields__
@@ -1268,7 +1268,7 @@ class BaseWormMixin:
                 try:
                     result[field_name] = object.__getattribute__(self, field_name)
                 except AttributeError as exc:   # noqa: BLE001 - field is optional
-                    note_failure("worm_registry:L1225:summary-field-attr", exc)
+                    note_failure("worm_registry:summary-field-attr", exc)
             return {"success": True, "method": "get_summary", "result": result}
 
         # -- Fallback: basic class info (no introspection) --
@@ -1336,7 +1336,7 @@ class SpawnDiversityEngine:
                     severity="info",
                 )
             except Exception as exc:        # noqa: BLE001 - recording is best-effort
-                note_failure("worm_registry:L1293:pams-record", exc)
+                note_failure("worm_registry:pams-record", exc)
 
     def record_spawn(self, worm_type: str, category: str, priority: int, reason: str = ""):
         """Record a spawn event for diversity tracking."""
@@ -1389,7 +1389,7 @@ class SpawnDiversityEngine:
                     if now - last_time < cooldown:
                         continue  # Still on cooldown
                 except (ValueError, TypeError) as exc:   # noqa: BLE001 - unparseable timestamp
-                    note_failure("worm_registry:L1346:cooldown-parse", exc)
+                    note_failure("worm_registry:cooldown-parse", exc)
 
             category = info.get("category", "utility")
 
@@ -1410,7 +1410,7 @@ class SpawnDiversityEngine:
                     hours_since = (now - last_time) / 3600
                     staleness_bonus = min(3.0, hours_since * 0.5)  # Up to 3.0 bonus
                 except (ValueError, TypeError) as exc:   # noqa: BLE001 - unparseable timestamp
-                    note_failure("worm_registry:L1367:staleness-parse", exc)
+                    note_failure("worm_registry:staleness-parse", exc)
 
             # -- Time-based pattern bonus --
             hour = datetime.now().hour
@@ -1541,7 +1541,7 @@ class SpawnDiversityEngine:
         try:
             wiring = _load_promoted_wiring()
         except Exception as exc:          # noqa: BLE001 - ordering must not stop the fleet
-            note_failure("worm_registry:L1498:promoted-wiring-load", exc)
+            note_failure("worm_registry:promoted-wiring-load", exc)
             wiring = None
         wiring_priority = (wiring or {}).get("priority") or {}
         wiring_active = (wiring or {}).get("active")
@@ -1554,7 +1554,7 @@ class SpawnDiversityEngine:
                 try:
                     priority = int(wiring_priority[name])
                 except (TypeError, ValueError) as exc:   # noqa: BLE001 - malformed genome
-                    note_failure("worm_registry:L1510:wiring-priority-parse", exc)
+                    note_failure("worm_registry:wiring-priority-parse", exc)
             # Demoted-out organs rank below every ranked one, deterministically.
             demoted = 1 if (active_set is not None and name not in active_set) else 0
             return (
@@ -1643,7 +1643,7 @@ class SpawnDiversityEngine:
                     last_time = datetime.fromisoformat(last_spawned).timestamp()
                     hours_since = (now - last_time) / 3600
                 except (ValueError, TypeError) as exc:   # noqa: BLE001 - unparseable timestamp
-                    note_failure("worm_registry:L1599:staleness-report-parse", exc)
+                    note_failure("worm_registry:staleness-report-parse", exc)
 
             staleness = float("inf") if spawn_count == 0 else (hours_since or float("inf"))
 
@@ -1852,7 +1852,7 @@ def validate_registry_importable() -> Dict[str, Any]:
             discover_worms()
             discovered = True
         except Exception as exc:  # noqa: BLE001 - recorded, not swallowed
-            note_failure("worm_registry:L1832", exc)
+            note_failure("worm_registry:discover-call", exc)
             discovery_error = f"{type(exc).__name__}: {exc}"
         with _registry_lock:
             entries = list(WORM_REGISTRY.items())
@@ -1871,7 +1871,7 @@ def validate_registry_importable() -> Dict[str, Any]:
                 raise ImportError(f"class {name!r} not found in module {module!r}")
             checked += 1
         except Exception as exc:
-            note_failure("worm_registry:L1850", exc)
+            note_failure("worm_registry:worm-module-import", exc)
             broken.append({
                 "name": name,
                 "module": module,
@@ -1940,7 +1940,7 @@ def repair_registry() -> Dict[str, Any]:
         from CORE.worm_registry_cache import invalidate_cache
         invalidate_cache()
     except Exception as exc:          # noqa: BLE001 - cache invalidation is best-effort
-        note_failure("worm_registry:L1894:repair-cache-invalidate", exc)
+        note_failure("worm_registry:repair-cache-invalidate", exc)
 
     importlib.invalidate_caches()  # clear importlib metadata caches too
 
@@ -1956,7 +1956,7 @@ def repair_registry() -> Dict[str, Any]:
     try:
         discover_worms()
     except Exception as exc:          # noqa: BLE001 - repair reports what it found
-        note_failure("worm_registry:L1910:repair-rediscover", exc)
+        note_failure("worm_registry:repair-rediscover", exc)
 
     after = validate_registry_importable()
     broken_out = set(b.get("name") for b in (after.get("broken") or []))
@@ -2018,7 +2018,7 @@ def _hosts_worms(mod_name: str, mod: Any, targets: Set[str]) -> bool:
             return "register_worm" in fh.read()
     except OSError as exc:
         # Unreadable source: prefer re-import over serving a stale fleet.
-        note_failure("worm_registry:L1971:unreadable-worm-source", exc)
+        note_failure("worm_registry:unreadable-worm-source", exc)
         return True
 
 
@@ -2074,10 +2074,10 @@ def _purge_worm_modules(worm_modules: Optional[Set[str]] = None) -> None:
                     if _mf and Path(_mf).resolve().parent != Path(worms_dir).resolve():
                         continue
                 except OSError as exc:    # noqa: BLE001 - probe is advisory
-                    note_failure("worm_registry:L2027:module-file-probe", exc)
+                    note_failure("worm_registry:module-file-probe", exc)
                 del sys.modules[mod_name]
     except OSError as exc:            # noqa: BLE001 - no WORMS dir is a real state
-        note_failure("worm_registry:L2030:worms-dir-list", exc)
+        note_failure("worm_registry:worms-dir-list", exc)
 
 
 def reset_registry(purge_modules: bool = True):
@@ -2129,7 +2129,7 @@ def reset_registry(purge_modules: bool = True):
         from CORE.worm_registry_cache import invalidate_cache
         invalidate_cache()
     except Exception as exc:          # noqa: BLE001 - cache invalidation is best-effort
-        note_failure("worm_registry:L1686:reset-cache-invalidate", exc)
+        note_failure("worm_registry:reset-cache-invalidate", exc)
     if purge_modules:
         _purge_worm_modules(_module_targets)
 
@@ -2200,7 +2200,7 @@ def _auto_discover():
     try:
         discover_worms()
     except Exception as exc:          # noqa: BLE001 - import must never fail here
-        note_failure("worm_registry:L2153:auto-discover", exc)
+        note_failure("worm_registry:auto-discover", exc)
 
 
 # Don't auto-discover at import time (let caller decide when)

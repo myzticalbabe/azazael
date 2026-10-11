@@ -31,7 +31,7 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
 except ImportError:
-    note_failure("threatmon:L24", None)
+    note_failure("threatmon:register-worm-import", None)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -51,12 +51,12 @@ def _pams():
                     from CORE.PamsRecorder import get_recorder
                     _get_recorder = get_recorder  # singleton accessor (PamsRecorder.py:112-125)
                 except ImportError:
-                    note_failure("threatmon:L43", None)
+                    note_failure("threatmon:pams-import", None)
                     return None
     try:
         return _get_recorder()  # one shared recorder, not a new one per call
     except Exception:
-        note_failure("threatmon:L47", None)
+        note_failure("threatmon:pams-construct", None)
         return None
 
 
@@ -70,7 +70,7 @@ def _bus():
                     _MemoryBusCls = MemoryBus
                     _mem_bus = MemoryBus()
                 except ImportError:
-                    note_failure("threatmon:L60", None)
+                    note_failure("threatmon:bus-import", None)
                     return None
     return _mem_bus
 
@@ -122,7 +122,7 @@ def _load(name: str, default):
             with open(p, encoding="utf-8") as f:
                 return json.load(f)
     except Exception:
-        note_failure("threatmon:L111", None)
+        note_failure("threatmon:feed-load", None)
     return default
 
 
@@ -138,7 +138,7 @@ def feed_freshness(now=None) -> tuple:
         try:
             m = os.path.getmtime(os.path.join(MODELS, name))
         except OSError:
-            note_failure("threatmon:L127", None)
+            note_failure("threatmon:feed-mtime", None)
             continue
         if newest is None or m > newest:
             newest = m
@@ -211,14 +211,14 @@ class ThreatIntelMonitorWorm:
             if p is not None and hasattr(p, "record"):
                 p.record("threat_check", snap.__dict__)
         except Exception:
-            note_failure("threatmon:L199", None)
+            note_failure("threatmon:pams-record", None)
         try:
             b = _bus()
             if b is not None and hasattr(b, "publish"):
                 b.publish("monitor.threat", {"snapshot": snap.__dict__,
                                              "alerts": [a.__dict__ for a in alerts]})
         except Exception:
-            note_failure("threatmon:L206", None)
+            note_failure("threatmon:bus-publish", None)
         return snap, alerts
 
     def _ledger_samples(self) -> int:
@@ -228,12 +228,12 @@ class ThreatIntelMonitorWorm:
                 if hasattr(sp, "load_spine_state"):
                     sp.load_spine_state()
             except Exception:
-                note_failure("threatmon:L216", None)
+                note_failure("threatmon:spine-state-load", None)
             view = sp.get_homeostat_view() if hasattr(sp, "get_homeostat_view") else {}
             return sum(v.get("successes", 0) + v.get("failures", 0)
                        for k, v in view.items() if k.startswith("triage:"))
         except Exception:
-            note_failure("threatmon:L221", None)
+            note_failure("threatmon:ledger-samples", None)
             return 0
 
     def start_monitor(self, interval_seconds: float = 3600.0):
@@ -244,7 +244,7 @@ class ThreatIntelMonitorWorm:
                 try:
                     self.check_health()
                 except Exception:
-                    note_failure("threatmon:L231", None)
+                    note_failure("threatmon:monitor-loop", None)
         t = threading.Thread(target=loop, name="threat-monitor", daemon=True)
         t.start()
         return stop
