@@ -1,18 +1,20 @@
 {
- "generated_at": "2026-10-10T22:25:24.585225",
+ "generated_at": "2026-10-11T11:16:18.645370",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 0,
   "retired": 3,
   "dispatched": 60,
-  "pending": 110
+  "pending": 112
  },
- "total": 173,
+ "total": 175,
  "declared": {
   "allocation:ThompsonAllocator.choose_with_bonus": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:6"
+   ],
    "line": 346,
    "module": "allocation",
    "qualname": "ThompsonAllocator.choose_with_bonus",
@@ -50,12 +52,14 @@
    "status": "dispatched",
    "reason": "only production reference is a string literal (src/CORE/WORMS/expansion/allocation.py:40), so a static caller cannot exist; wire it explicitly or delete it",
    "evidence": [
-    "src/CORE/WORMS/expansion/allocation.py:40"
+    "src/CORE/WORMS/expansion/allocation.py:41"
    ]
   },
   "axon:LatencyCompensatorWorm.compensate": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:12"
+   ],
    "line": 131,
    "module": "axon",
    "qualname": "LatencyCompensatorWorm.compensate",
@@ -66,8 +70,10 @@
    "triage_evidence": []
   },
   "axon:MyelinSheathWorm.boost_for": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:18"
+   ],
    "line": 47,
    "module": "axon",
    "qualname": "MyelinSheathWorm.boost_for",
@@ -78,8 +84,10 @@
    "triage_evidence": []
   },
   "axon:MyelinSheathWorm.myelinate": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:24"
+   ],
    "line": 42,
    "module": "axon",
    "qualname": "MyelinSheathWorm.myelinate",
@@ -90,8 +98,10 @@
    "triage_evidence": []
   },
   "backup:CheckpointWorm.restore_checkpoint": {
-   "decider": "dead_candidate",
-   "decider_evidence": [],
+   "decider": "declared_in_data",
+   "decider_evidence": [
+    "named by state/wire_or_cut_queue.json:30"
+   ],
    "line": 225,
    "module": "backup",
    "qualname": "CheckpointWorm.restore_checkpoint",
@@ -571,6 +581,18 @@
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
+  "evolution:EvolutionEngine.set_gene_specs": {
+   "module": "evolution",
+   "qualname": "EvolutionEngine.set_gene_specs",
+   "line": 234,
+   "seg": "def set_gene_specs(self, specs: dict[str, dict]) -> None:\n        \"\"\"Define mixed-type genes. Example:\n        {\"interval\": {\"type\": \"float\", \"lo\": 0.1, \"hi\": 5.0},\n         \"parallel\": {\"type\": \"bool\"},\n         \"priority\": {\"type\": \"choice\", \"choices\": [\"low\",\"normal\",\"high\"]},\n         \"workers\":  {\"type\": \"int\", \"lo\": 1, \"hi\": 8}}\n        \"\"\"\n        with self._lock:\n            self._gene_specs = dict(specs or {})\n            # Mirror continuous bounds for legacy paths\n            for name, spec in self._gene_specs.items():\n                t = spec.get(\"type\", \"float\")\n                if t in (\"float\", \"int\"):\n                    self._gene_bounds[name] = (spec[\"lo\"], spec[\"hi\"])",
+   "status": "pending",
+   "reason": "",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dead_candidate",
+   "decider_evidence": []
+  },
   "evolution:GeneticOptimizer.optimize_cma": {
    "decider": "test_is_the_wire",
    "decider_evidence": [
@@ -777,7 +799,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1213"
    ],
-   "line": 459,
+   "line": 482,
    "module": "learning_features",
    "qualname": "FeatureEngineer.impute_missing",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
@@ -788,7 +810,7 @@
    "evidence": [
     "src/CORE/worm_registry.py:1213"
    ],
-   "line": 449,
+   "line": 472,
    "module": "learning_features",
    "qualname": "FeatureEngineer.one_hot_encode",
    "reason": "only production reference is a string literal (src/CORE/worm_registry.py:1155), so a static caller cannot exist; wire it explicitly or delete it",
@@ -801,7 +823,7 @@
     "tests/test_learning_worms.py:593",
     "tests/test_learning_worms.py:611"
    ],
-   "line": 357,
+   "line": 380,
    "module": "learning_features",
    "qualname": "SchemaAwareFeatureExtractor.fallback_accuracy_report",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -1082,6 +1104,18 @@
     "tests/test_learning_worms.py:382",
     "tests/test_learning_worms.py:395"
    ]
+  },
+  "learning_rl:unmapped_severities": {
+   "module": "learning_rl",
+   "qualname": "unmapped_severities",
+   "line": 114,
+   "seg": "def unmapped_severities() -> Dict[str, int]:\n    \"\"\"Severities seen in the data that the reward table does not cover.\"\"\"\n    return dict(_UNMAPPED_SEVERITIES)",
+   "status": "pending",
+   "reason": "",
+   "triage": "no_reference_anywhere",
+   "triage_evidence": [],
+   "decider": "dead_candidate",
+   "decider_evidence": []
   },
   "learning_versioner:pareto_retain": {
    "module": "learning_versioner",
@@ -2286,10 +2320,8 @@
    "triage_evidence": []
   },
   "xenomorph:DroneWorm.carry": {
-   "decider": "declared_in_data",
-   "decider_evidence": [
-    "named by state/evolution_pool_snapshot.json:1"
-   ],
+   "decider": "dead_candidate",
+   "decider_evidence": [],
    "line": 191,
    "module": "xenomorph",
    "qualname": "DroneWorm.carry",
@@ -2338,13 +2370,13 @@
  },
  "triage_counts": {
   "test_reached_only": 51,
-  "no_reference_anywhere": 59
+  "no_reference_anywhere": 61
  },
  "decider_counts": {
   "protocol_or_override": 0,
-  "declared_in_data": 3,
+  "declared_in_data": 7,
   "dynamic_call": 8,
   "test_is_the_wire": 45,
-  "dead_candidate": 54
+  "dead_candidate": 52
  }
 }
