@@ -187,6 +187,27 @@ first that can execute the `psyche_fit` leg — confirm a `psyche-fit`
 summary inside `out["steps"]` and, once owner traffic accumulates 5+ fair
 actions, the first fitted owner snapshot.
 
+## Addendum — heartbeat L4 verified live + two negative hunts (2026-10-11 later)
+
+- Heartbeat 10:38 run executed `psyche_fit` in scheduled production traffic:
+  `out["steps"]["psyche_fit"] = {"ok": true, "n_rows": 0, "actors": {},
+  "snapshot_written": false, "verdict": "no-input"}` (log line 2134, final
+  blob lines 2081–2222). Designed behavior: healthy idle, nothing written.
+  (`rainbow.scout` blocks in the same log come from `queens.py:rainbow_round`
+  output keys, not a foreign writer — verified, no anomaly.)
+- commit_gate×5: `--fix` investigated as the candidate consumer and REJECTED
+  as a wiring target. `commit_gate` requires execution proof + transfer
+  masking; reconciled skills carry neither, so every call would reject —
+  rejection spam, not signal. Rows stay EXERCISE-ONLY.
+- EP345 `record_backtrack`: no natural caller found. `reflexion.py`
+  mentions `reuse_prefix` in prose only (zero call sites);
+  `circuit_breaker.replan_from_dead_letters` replans without lessons, and
+  synthesizing lesson text from error strings would fabricate the very
+  corrective content the mechanism exists to keep. Row stays EXERCISE-ONLY.
+- EP259/EP280/EP336/EP350 unchanged (established gaps). Next: real traffic
+  (owner answers for H-fit), a distillation loop, or a difficulty-sampling
+  training path — whichever lands first reopens its row.
+
 ## Addendum — L4 loop closed (2026-10-11 later; commit 0248d362)
 
 Producer: `delegation.py:_chain_record` deposits `psyche-chain` /
