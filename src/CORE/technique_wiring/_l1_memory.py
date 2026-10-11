@@ -266,10 +266,17 @@ def ep235() -> Dict[str, Any]:
     # `RecallRouterWorm.recall_state()`. Imported at module level above: a
     # function-level import counts against the anti-pattern ratchet.
     recalled = recall_with_feedback("technique runtime memory wiring") or {}
+    routed = bool(recalled.get("routed"))
     payload = {"mode": recalled.get("mode"), "route": recalled.get("route"),
                "hits": recalled.get("total_reads", 0),
                "last_scores": list(recalled.get("last_scores") or [])[:3]}
-    out = {"verified": True, "reader_to_writer": "joined", **payload}
+    # Registry D-1 residual: `verified` reports whether the read->write join
+    # actually ROUTED. It was hard-coded True, so a call that returned
+    # {"routed": False, ...} still claimed a verified join -- the dishonesty
+    # this file's header rule 1 forbids. `reader_to_writer` keeps its key and
+    # now names the outcome rather than asserting one.
+    out = {"verified": routed,
+           "reader_to_writer": "joined" if routed else "unrouted", **payload}
     out.update(_write("EP235", "recall_feedback", payload,
                       tags=["sage", "recall-feedback"]))
     return out
@@ -481,7 +488,7 @@ register("EP206", "ObjectGraph document graph", "CORE.local_memory:LocalMemorySt
 register("EP216", "ShadowMem pending-action scoring", "CORE.local_memory:LocalMemoryStore.score_pending_actions", ep216, LAYER)
 register("EP221", "ScrapMem resolution decay", "CORE.local_memory:LocalMemoryStore.decay_memory_in_place", ep221, LAYER)
 register("EP233", "Backward-chaining retrieval", "CORE.local_memory:LocalMemoryStore.backward_chain_recall", ep233, LAYER)
-register("EP235", "SAGE reader->writer coupling", "CORE.WORMS.expansion.engram:RecallRouterWorm.route_recall", ep235, LAYER)
+register("EP235", "SAGE reader->writer coupling", "CORE.technique_runtime.recall_with_feedback", ep235, LAYER)
 register("EP242", "EXG experience edges", "CORE.local_memory:LocalMemoryStore.experience_edges", ep242, LAYER)
 register("EP247", "PEEK orientation cache", "CORE.local_memory:LocalMemoryStore.orientation_index", ep247, LAYER)
 register("EP249", "Mem-pi generation + abstention", "CORE.local_memory:LocalMemoryStore.recall_with_abstention", ep249, LAYER)
