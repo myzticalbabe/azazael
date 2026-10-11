@@ -19,8 +19,16 @@ where it was blind -- `scripts/sync_g_drive.py:40` kept a live
 `Path.home() / "azazael"` fallback while this file passed green, and that script's whole
 job is syncing the repo to G:, so with `AZAZAEL_ROOT` unset it read the wrong tree. A
 guard that covers one directory of the tree is not the class closed. Scan roots are now
-`src/` + `scripts/`; `packages/` deliberately stays out because registry row D-3 still
-owns the open question of whether that mirror is a monorepo import or an archive.
+`src/` + `scripts/`, and then `packages/` as well: MEASURED 2026-10-11, the needle regex
+over the whole `packages/` tree returned exactly ONE match --
+`packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py:839`, the
+`azazael-core` FORK of this same module, whose `export_state` wrote the state file into
+the stale checkout. It is repaired and the tree is scanned, so the next one cannot
+arrive unnoticed.
+
+Scanning `packages/` does NOT decide registry row D-3 (is that mirror a monorepo import
+or an archive): this guard asserts ONE property -- no stale home-relative project root --
+and that property holds under either disposition. D-3 keeps its own decision.
 """
 from __future__ import annotations
 
@@ -37,12 +45,28 @@ REPO = Path(__file__).resolve().parents[1]
 #: 2026-10-11: the class is `src/` + `scripts/` (26 `Path.home()` uses live under
 #: scripts/, of which exactly two divide by "azazael" -- one fixed, one excepted).
 #:
-#: `packages/` is OUT OF SCOPE on purpose, not by oversight: registry row D-3 owns the
-#: open decision whether `packages/azazael-core` is a monorepo import or an archive,
-#: and its copy
-#: (`packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py`) carries the
-#: same fallback. Adding it here would decide that row by accident.
-SCAN_ROOTS = (REPO / "src", REPO / "scripts")
+#: `packages/` was OUT OF SCOPE until the tree was actually measured. It holds the
+#: `azazael-core` FORK of this same module, and that fork carried the identical fallback.
+#: MEASURED 2026-10-11 with the needle regex over the whole tree: exactly ONE match, at
+#: `packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py:839`. It is
+#: repaired, so the tree is in scope -- scanned trees are a claim about coverage, and a
+#: tree that ships a copy of the code is part of the class.
+SCAN_ROOTS = (REPO / "src", REPO / "scripts", REPO / "packages")
+
+#: Directory names holding COPIES or dependencies, never this repo's source. Mirrors the
+#: SKIP_DIRS convention already used by `src/ORCHESTRATION/BIBL/bibl_map.py`.
+#:
+#: WHY THIS IS NEEDED NOW THAT `packages/` IS SCANNED: `rglob` does not respect
+#: `.gitignore`, so a `build/lib/` or vendored copy of this module would fail the guard
+#: for a site that no longer exists in source -- the guard would be red about a
+#: pre-fix artefact. This is a SCOPE statement, never a hiding place: a fallback in real
+#: source must never be added here, and `test_every_scan_root_is_actually_searched`
+#: counts with the same filter, so a root reduced to copies alone still FAILS.
+_SKIP_DIRS = frozenset({
+    ".git", "__pycache__", "node_modules", "site-packages",
+    ".venv", "venv", ".venv-3.14t", "build", "dist", ".eggs",
+    ".mypy_cache", ".pytest_cache", ".ruff_cache",
+})
 
 #: Reviewed exceptions: `<repo-relative posix path>:<line>` -> reason.
 #:
@@ -99,6 +123,25 @@ def stale_root_lines(tree: ast.AST) -> list[int]:
     return sorted(set(hits))
 
 
+def _iter_py(root: Path):
+    """Every source `.py` under `root`, in a stable order, minus copies and litter.
+
+    Shared by `_scan` and by the per-root coverage test on purpose: if the coverage test
+    counted with a plain `rglob` while `_scan` applied `_SKIP_DIRS`, a root reduced to
+    build copies alone would pass coverage while the guard looked at nothing -- the
+    exact failure shape this file exists to catch.
+    """
+    for path in sorted(root.rglob("*.py")):
+        # Backup litter is not importable code; it is tracked separately (registry D-3).
+        if ".pre_gate_backup" in path.name:
+            continue
+        # Compare only the parts INSIDE the scan root, so a parent directory that
+        # happens to be named `build` cannot silently skip the whole tree.
+        if _SKIP_DIRS.intersection(path.relative_to(root).parts[:-1]):
+            continue
+        yield path
+
+
 def _scan() -> dict[str, list[int]]:
     """Map `<repo-relative posix path>` -> stale-root line numbers, over SCAN_ROOTS.
 
@@ -110,10 +153,7 @@ def _scan() -> dict[str, list[int]]:
         # A root that is not there would let this guard pass while looking at
         # nothing -- the same failure shape it exists to catch.
         assert root.is_dir(), "scan root %s does not exist" % root
-        for path in sorted(root.rglob("*.py")):
-            # Backup litter is not importable code; it is tracked separately (registry D-3).
-            if ".pre_gate_backup" in path.name:
-                continue
+        for path in _iter_py(root):
             rel = path.relative_to(REPO).as_posix()
             found[rel] = []
             try:
@@ -158,7 +198,7 @@ def test_every_scan_root_is_actually_searched() -> None:
     This is the specific defect that let `scripts/` sit uncovered: the guard looked
     like it covered the tree while it scanned one directory.
     """
-    per_root = {root.name: sum(1 for _ in root.rglob("*.py")) for root in SCAN_ROOTS}
+    per_root = {root.name: sum(1 for _ in _iter_py(root)) for root in SCAN_ROOTS}
     assert per_root, "SCAN_ROOTS is empty"
     empty = sorted(name for name, count in per_root.items() if count == 0)
     assert not empty, "scan root(s) contributed zero .py files: %s" % empty
