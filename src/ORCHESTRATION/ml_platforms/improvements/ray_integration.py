@@ -177,102 +177,10 @@ class RayIntegration:
             ray.shutdown()
 
 
-class DistributedTrainer:
-    """
-    Distributed training wrapper for any ML framework.
-
-    WHY THIS MATTERS:
-    - Training at scale requires distributed computing
-    - Each framework has different distributed APIs
-    - Ray provides framework-agnostic distribution
-
-    IMPLEMENTATION:
-    - DataParallel-style distribution
-    - Support for any model/training code
-    - Automatic gradient synchronization
-    """
-
-    def __init__(
-        self,
-        num_workers: int = 4,
-        backend: str = "nccl",
-        use_gpu: bool = True,
-    ):
-        """
-        Initialize distributed trainer.
-
-        Args:
-            num_workers: Number of worker processes
-            backend: Communication backend ("nccl", "gloo", "horovod")
-            use_gpu: Whether to use GPU acceleration
-        """
-        if not HAS_RAY:
-            raise ImportError("Ray not installed. Run: pip install ray")
-
-        self.num_workers = num_workers
-        self.backend = backend
-        self.use_gpu = use_gpu
-        self.workers = []
-
-    def train(
-        self,
-        model_fn: Callable,
-        data_fn: Callable,
-        epochs: int = 10,
-    ) -> Any:
-        """
-        Run distributed training.
-
-        Args:
-            model_fn: Function that returns a model
-            data_fn: Function that returns training data
-            epochs: Number of training epochs
-
-        Returns:
-            Trained model
-        """
-        import ray
-
-        @ray.remote(num_gpus=0.5 if self.use_gpu else 0)
-        class TrainerActor:
-            def __init__(self):
-                self.model = model_fn()
-                self.data = data_fn()
-
-            def train_epoch(self, epoch: int):
-                # Framework-agnostic training step
-                loss = 0
-                for batch in self.data:
-                    # Your training logic here
-                    loss += 0.1  # Placeholder
-                return loss
-
-            def get_model(self):
-                return self.model
-
-        self.workers = [TrainerActor.remote() for _ in range(self.num_workers)]
-
-        for epoch in range(epochs):
-            losses = [worker.train_epoch.remote(epoch) for worker in self.workers]
-            ray.get(losses)
-
-        return ray.get(self.workers[0].get_model.remote())
-
-
 def parallel_map(func: Callable, items: list[Any]) -> list[Any]:
     """Simple parallel map using Ray."""
     trainer = RayIntegration()
     return trainer.parallel_map(func, items)
-
-
-def distributed_train(
-    model_fn: Callable,
-    data_fn: Callable,
-    num_workers: int = 4,
-) -> Any:
-    """Simple distributed training."""
-    trainer = DistributedTrainer(num_workers=num_workers)
-    return trainer.train(model_fn, data_fn)
 
 
 if __name__ == "__main__":
