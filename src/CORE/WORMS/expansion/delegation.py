@@ -142,6 +142,48 @@ def _announce(topic: str, payload: Dict[str, Any], bus: Any = None) -> None:
         note_failure("delegation:L129", None)
 
 
+def _person_context() -> Dict[str, Any]:
+    """Best-effort person summary for the question announcement.
+
+    Loads the fitted theta snapshot (`PSYCHE.traits.default_theta_path`,
+    overridable via PSYCHE_THETA) and returns a small summary dict for the
+    owner-side consumer to tailor wording or auto-answer low-risk asks.
+    Returns {} when no snapshot exists or it is unusable — an absent person
+    record is the NORMAL state, not a failure, so only genuine read/parse
+    errors are recorded, never a missing file. Never raises.
+    """
+    try:
+        from PSYCHE.traits import DOMAINS, default_theta_path
+    except Exception as exc:
+        note_failure("delegation:person-import", exc)
+        return {}
+    try:
+        import json as _json
+        text = default_theta_path().read_text(encoding="utf-8")
+        payload = _json.loads(text)
+    except OSError:
+        return {}  # no snapshot yet; normal, not recorded
+    except Exception as exc:
+        note_failure("delegation:person-parse", exc)
+        return {}
+    try:
+        raw_scores = payload.get("domain_scores", {}) or {}
+        scores = {d: round(float(raw_scores[d]), 3) for d in DOMAINS
+                  if isinstance(raw_scores.get(d), (int, float))
+                  and 1.0 <= float(raw_scores[d]) <= 5.0}
+        if not scores:
+            return {}
+        out: Dict[str, Any] = {"theta": scores}
+        if payload.get("name"):
+            out["name"] = str(payload["name"])[:80]
+        if payload.get("source"):
+            out["source"] = str(payload["source"])[:80]
+        return out
+    except Exception as exc:
+        note_failure("delegation:person-shape", exc)
+        return {}
+
+
 def ask_owner(question: str, *,
               decision_id: Optional[str] = None,
               worm: Optional[str] = None,
@@ -161,9 +203,17 @@ def ask_owner(question: str, *,
     ev = threading.Event()
     with _lock:
         _waiters[did] = [ev, None, False]
-    _announce("%s.%s" % (QUESTION_TOPIC, worm or "unknown"),
-              {"question": q, "decision_id": did, "worm": worm,
-               "timeout_s": float(timeout_s)}, bus)
+    payload: Dict[str, Any] = {
+        "question": q, "decision_id": did, "worm": worm,
+        "timeout_s": float(timeout_s),
+    }
+    # Person enrichment (PSYCHE integration): when a fitted theta snapshot
+    # exists, the owner side sees who it is answering for. Absent by default;
+    # the rendezvous below is identical either way (fail-open, never blocks).
+    person = _person_context()
+    if person:
+        payload["person"] = person
+    _announce("%s.%s" % (QUESTION_TOPIC, worm or "unknown"), payload, bus)
     t0 = time.monotonic()
     got = ev.wait(float(timeout_s))
     with _lock:
