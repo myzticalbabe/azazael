@@ -47,12 +47,25 @@ def _fake_scan(counts: dict, files: int = 10):
     return _scan
 
 
-def _write_baseline(path: Path, counts: dict, scheme: str = gate.IDENTITY_SCHEME):
-    path.write_text(json.dumps({
+def _fake_scan_with_files(counts: dict, files: int = 10, per_file: dict | None = None):
+    """Replacement for gate.scan_with_files: fixed counts plus per-file detail."""
+    def _scan(target: str, *a, **k):
+        return Counter(counts), files, dict(per_file or {})
+    return _scan
+
+
+def _write_baseline(path: Path, counts: dict, scheme: str = gate.IDENTITY_SCHEME,
+                    file_counts: dict | None = None):
+    """Write a baseline. `file_counts` is omitted unless given, so the tests
+    that pin the pre-2026-10-13 (no per-file counts) fallback stay honest."""
+    payload = {
         "recorded_at": "2026-10-03T00:00:00+00:00",
         "identity_scheme": scheme,
         "category_counts": counts,
-    }), encoding="utf-8")
+    }
+    if file_counts is not None:
+        payload["file_counts"] = file_counts
+    path.write_text(json.dumps(payload), encoding="utf-8")
 
 
 @pytest.fixture
@@ -66,14 +79,21 @@ def base_file(tmp_path):
 class TestCheck:
     def test_equal_counts_pass(self, base_file, monkeypatch, capsys):
         _write_baseline(base_file, {"unicode_emoji": 5, "os_system": 0})
-        monkeypatch.setattr(gate, "scan", _fake_scan({"unicode_emoji": 5}))
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 5}))
         rc = gate.cmd_check("src", base_file)
         assert rc == 0
         assert "OK: no anti-pattern regressions" in capsys.readouterr().out
 
     def test_increase_fails(self, base_file, monkeypatch, capsys):
         _write_baseline(base_file, {"unicode_emoji": 5})
-        monkeypatch.setattr(gate, "scan", _fake_scan({"unicode_emoji": 6}))
+        # The FAIL path now works out which CHANGED files carry the category,
+        # and that shells out to git. Pinned, so this test measures the gate
+        # rather than the live worktree (the reason the scanner is injected at
+        # all). The assertion below is about the per-category delta either way.
+        monkeypatch.setattr(gate, "_changed_paths", lambda target: {"CORE/x.py"})
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 6}))
         rc = gate.cmd_check("src", base_file)
         assert rc == 1
         out = capsys.readouterr().out
@@ -83,8 +103,10 @@ class TestCheck:
                                                     capsys):
         """A swap is a regression: one class down, a NEW class appears."""
         _write_baseline(base_file, {"unicode_emoji": 10})
-        monkeypatch.setattr(gate, "scan",
-                            _fake_scan({"unicode_emoji": 9, "os_system": 1}))
+        monkeypatch.setattr(gate, "_changed_paths", lambda target: {"CORE/x.py"})
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 9,
+                                                   "os_system": 1}))
         rc = gate.cmd_check("src", base_file)
         assert rc == 1
         out = capsys.readouterr().out
@@ -92,7 +114,8 @@ class TestCheck:
 
     def test_decrease_does_not_fail(self, base_file, monkeypatch, capsys):
         _write_baseline(base_file, {"unicode_emoji": 10, "os_system": 0})
-        monkeypatch.setattr(gate, "scan", _fake_scan({"unicode_emoji": 3}))
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 3}))
         rc = gate.cmd_check("src", base_file)
         assert rc == 0
         out = capsys.readouterr().out
@@ -103,7 +126,8 @@ class TestCheck:
         """The three driven-to-zero categories must not re-appear as NEW."""
         _write_baseline(base_file, {"t_string": 0, "os_system": 0,
                                     "cls_new_factory": 0, "unicode_emoji": 5})
-        monkeypatch.setattr(gate, "scan", _fake_scan({"unicode_emoji": 5}))
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 5}))
         assert gate.cmd_check("src", base_file) == 0
 
 
@@ -119,7 +143,8 @@ class TestBaselineIntegrity:
     def test_scheme_mismatch_is_refused(self, base_file, monkeypatch, capsys):
         """Counts are not comparable across schemes; refuse, do not diff."""
         _write_baseline(base_file, {"unicode_emoji": 5}, scheme="old-scheme-v0")
-        monkeypatch.setattr(gate, "scan", _fake_scan({"unicode_emoji": 5}))
+        monkeypatch.setattr(gate, "scan_with_files",
+                            _fake_scan_with_files({"unicode_emoji": 5}))
         rc = gate.cmd_check("src", base_file)
         assert rc == 2
         assert "identity_scheme" in capsys.readouterr().err
@@ -187,3 +212,154 @@ class TestRealScanner:
         (tmp_path / "bad.py").write_text('X = "\U0001F600"\n', encoding="utf-8")
         counts, _files = gate.scan(str(tmp_path))
         assert counts.get("unicode_emoji", 0) >= 1
+
+
+# ── per-file attribution (followup #3, 2026-10-13) ───────────────────────
+
+
+class TestAttribution:
+    """A regression must name the FILE, not just the category.
+
+    Earned 2026-10-13: an unrelated concurrent edit to two `src/` files took the
+    repo-wide count over baseline and blocked a commit whose own diff was a
+    single test file. The per-category delta was correct and useless -- nothing
+    in the output said which file to look at, so the committer had to bisect the
+    worktree by hand. This class pins the "where" the FAIL path was missing.
+
+    The `TestCheck` fakes above now patch `scan_with_files` rather than `scan`,
+    because `cmd_check` reads the finer view to print that section: the seam
+    moved, so the injection follows it. `scan` keeps its own callers
+    (`cmd_report`, `TestCommittedBaseline`) unchanged; `--baseline` records
+    per-file counts through `scan_with_files`, which is what makes the EXACT
+    mode below available to the next failure.
+
+    A ranking of the files HOLDING a category was not good enough. Measured the
+    same day: it named an untouched file with 32 findings as the owner of a
+    regression carried by a file with 3, and the file that actually grew did not
+    appear in the list at all. So the blame is a DELTA where the baseline allows
+    it, a labelled changed-files view where it does not, and both a cap and an
+    unexplained increase are always admitted in words rather than silently.
+    """
+
+    def test_scan_with_files_agrees_with_scan_and_attributes_per_file(self, tmp_path):
+        """The finer view is the SAME measurement, and it names the right file."""
+        (tmp_path / "clean.py").write_text("def f() -> int:\n    return 1\n",
+                                           encoding="utf-8")
+        (tmp_path / "bad.py").write_text('X = "\U0001F600"\n', encoding="utf-8")
+
+        counts, files = gate.scan(str(tmp_path))
+        counts2, files2, per_file = gate.scan_with_files(str(tmp_path))
+
+        # One instrument, one scope: the two views cannot disagree.
+        assert counts2 == counts
+        assert files2 == files == 2
+        # The responsible file is named, by a path RELATIVE to the scan root --
+        # not the absolute path the scanner reports, which would be noise in a
+        # failure message.
+        assert "bad.py" in per_file, per_file
+        assert per_file["bad.py"].get("unicode_emoji", 0) >= 1
+        assert str(tmp_path) not in " ".join(per_file)
+        assert "clean.py" not in per_file, "a clean file has nothing to attribute"
+        # The attribution explains the total rather than restating a different
+        # one: summing it must reproduce the whole-tree counts exactly.
+        summed: Counter = Counter()
+        for bucket in per_file.values():
+            summed.update(bucket)
+        assert summed == counts
+
+    def test_exact_mode_names_only_the_files_that_increased(self, base_file,
+                                                            monkeypatch, capsys):
+        """A baseline WITH per-file counts makes the blame a real delta.
+
+        Three things must hold at once: the file that GREW is named first, a file
+        that merely HOLDS a lot of the category is not named at all, and a file
+        that shrank (or is gone) is not either. Without the second and third the
+        list degenerates into a popularity ranking, which is exactly what the
+        first version of this section printed.
+        """
+        worst = "CORE/loud.py"
+        per_file = {worst: Counter({"unicode_emoji": 9}),
+                    "CORE/holder.py": Counter({"unicode_emoji": 1})}
+        for i in range(gate.ATTRIBUTION_LIMIT):
+            per_file["CORE/other_%d.py" % i] = Counter({"unicode_emoji": 3})
+        total = 9 + gate.ATTRIBUTION_LIMIT * 3 + 1
+        _write_baseline(base_file, {"unicode_emoji": 7},
+                        file_counts={worst: {"unicode_emoji": 2},
+                                     "CORE/holder.py": {"unicode_emoji": 1},
+                                     "CORE/gone.py": {"unicode_emoji": 4}})
+        monkeypatch.setattr(
+            gate, "scan_with_files",
+            _fake_scan_with_files({"unicode_emoji": total},
+                                  files=len(per_file), per_file=per_file))
+
+        rc = gate.cmd_check("src", base_file)
+
+        assert rc == 1
+        out = capsys.readouterr().out
+        assert "WHERE" in out
+        # The reader is told which reference produced the numbers.
+        assert "reference: per-file increase vs baseline" in out
+        # Worst first, and shown as an increase: 2 -> 9.
+        assert out.index(worst) < out.index("CORE/other_0.py")
+        assert "+7" in out
+        # A holder that did not move is not a cause, and neither is a file that
+        # only existed in the baseline.
+        assert "CORE/holder.py" not in out
+        assert "CORE/gone.py" not in out
+        # The cap is REPORTED: 1 + ATTRIBUTION_LIMIT owners against a limit of
+        # ATTRIBUTION_LIMIT leaves exactly one file unshown.
+        assert "(+1 more file(s) not shown)" in out
+
+    def test_fallback_mode_labels_itself_and_names_a_changed_file(
+            self, base_file, monkeypatch, capsys):
+        """No `file_counts` in the baseline -> blame falls on CHANGED content.
+
+        Every baseline recorded before 2026-10-13 lacks per-file counts, so this
+        is the mode the installed hook actually runs in. It must name the changed
+        file, refuse to name an untouched holder, and SAY that the reference is
+        the changed-file view rather than an exact delta -- a weaker reference
+        that does not announce itself is how the first version misled.
+        """
+        _write_baseline(base_file, {"unicode_emoji": 1})       # no file_counts
+        monkeypatch.setattr(gate, "_changed_paths",
+                            lambda target: {"CORE/changed.py"})
+        per_file = {"CORE/changed.py": Counter({"unicode_emoji": 4}),
+                    "CORE/untouched.py": Counter({"unicode_emoji": 30})}
+        monkeypatch.setattr(
+            gate, "scan_with_files",
+            _fake_scan_with_files({"unicode_emoji": 34}, files=2,
+                                  per_file=per_file))
+
+        rc = gate.cmd_check("src", base_file)
+
+        assert rc == 1
+        out = capsys.readouterr().out
+        assert "no per-file counts" in out
+        assert "re-run --baseline" in out
+        assert "CORE/changed.py" in out
+        assert "CORE/untouched.py" not in out, "a holder is not a cause"
+
+    def test_fallback_mode_reports_an_increase_no_changed_file_explains(
+            self, base_file, monkeypatch, capsys):
+        """An unexplained increase must be SAID, not omitted.
+
+        If the count grew while no changed file carries the category, the
+        baseline is stale. Printing nothing there would read as "the tree is
+        fine", which is the false reassurance this gate exists to prevent.
+        """
+        _write_baseline(base_file, {"unicode_emoji": 1})
+        monkeypatch.setattr(gate, "_changed_paths", lambda target: set())
+        monkeypatch.setattr(
+            gate, "scan_with_files",
+            _fake_scan_with_files({"unicode_emoji": 30}, files=1,
+                                  per_file={"CORE/untouched.py":
+                                            Counter({"unicode_emoji": 30})}))
+
+        rc = gate.cmd_check("src", base_file)
+
+        assert rc == 1
+        out = capsys.readouterr().out
+        assert "NOT explained by the working tree" in out
+        assert "stale baseline" in out
+        # And it must not quietly promote the unrelated holder to "the cause".
+        assert "CORE/untouched.py" not in out

@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from collections import Counter
 from datetime import datetime, timezone
@@ -66,6 +67,11 @@ IDENTITY_SCHEME = "category-counts-v1"
 DEFAULT_DIR = "src"
 BASELINE = ROOT / "logs" / "anti_pattern_baseline.json"
 
+#: How many files the failure output names per regressed category. A cap keeps a
+#: widely-repeated class (an emoji in 400 files) from burying the one that
+#: caused the commit; it is always REPORTED when it truncates, never silent.
+ATTRIBUTION_LIMIT = 5
+
 
 def scan(target: str, tracked_only: bool = False) -> tuple[Counter, int]:
     """Return (per-category counts, files scanned) for a directory.
@@ -79,10 +85,21 @@ def scan(target: str, tracked_only: bool = False) -> tuple[Counter, int]:
     blocks reviewed changesets for files no commit contains. Tracked-only
     keeps the gate on the commit while the full scan stays one flag away.
     """
+    counts, files, _per_file = _tally(_scan_results(target, tracked_only), target)
+    return counts, files
+
+
+def _scan_results(target: str, tracked_only: bool = False) -> list:
+    """Scan the in-scope files once. The ONE place a scan's scope is decided.
+
+    `scan` and `scan_with_files` both come through here, so they cannot disagree
+    about which files a run covered (or about what `--tracked-only` selected).
+    The scanner is imported lazily because importing it is not free and this
+    module must stay importable from a bare checkout.
+    """
     from CORE.compliance.scanner import ASTAntiPatternScanner  # noqa: PLC0415
 
     if tracked_only:
-        import subprocess
         proc = subprocess.run(
             ["git", "ls-files", "--full-name", "-z"],
             capture_output=True, text=True, errors="replace", timeout=120,
@@ -93,15 +110,182 @@ def scan(target: str, tracked_only: bool = False) -> tuple[Counter, int]:
         results = ASTAntiPatternScanner().scan_files(files)
     else:
         results = ASTAntiPatternScanner().scan_directory(str(ROOT / target))
+    return results
+
+
+def _git_z(args: list[str]) -> list[str]:
+    """Run git and split its NUL-separated output.
+
+    The platform codec is not good enough here, and the failure is SILENT: git
+    emits UTF-8 paths, and on Windows the default cp1252 decode raises
+    `UnicodeDecodeError` inside subprocess's reader thread, which surfaces as an
+    EMPTY stdout rather than as an error. Measured 2026-10-13: that scored a
+    file holding two findings as "0 at HEAD" and produced a phantom attribution
+    -- a whole-file delta that was an artefact of decoding, not of the code.
+    `errors="replace"` keeps a mangled byte mangled instead of a file missing.
+    """
+    proc = subprocess.run(["git", *args], capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=120,
+                          cwd=str(ROOT))
+    if proc.returncode != 0:
+        # Loud, deliberately. An empty list here is indistinguishable from
+        # "nothing changed", and the caller would then print a plausible, WRONG
+        # explanation ("no changed file carries it") for what is really a git
+        # failure -- the same class of silent-wrong-answer this file exists to
+        # prevent.
+        raise RuntimeError("git %s failed (rc=%d): %s"
+                           % (" ".join(args), proc.returncode,
+                              proc.stderr.strip()[:200]))
+    return [p for p in proc.stdout.split("\0") if p.strip()]
+
+
+def _changed_paths(target: str) -> set[str]:
+    """Scan-root-relative paths under `target` whose CONTENT differs from HEAD.
+
+    A repo-wide category count can only grow through a file whose content
+    changed, so this is the candidate set for blame when the baseline carries no
+    per-file counts. Untracked files count too: they are inside the scan and are
+    how a new finding usually arrives.
+
+    Paths are normalised to forward slashes because `per_file` keys come from
+    `Path.relative_to`, which keeps whatever separator the platform produced.
+    Comparing an unnormalised pair would silently attribute nothing on Windows.
+    """
+    prefix = target.strip("/") + "/"
+    raw = (_git_z(["diff", "--name-only", "-z", "HEAD", "--", target])
+           + _git_z(["ls-files", "--others", "--exclude-standard", "-z",
+                     "--", target]))
+    return {p[len(prefix):].replace("\\", "/") for p in raw
+            if p.startswith(prefix) and p.endswith(".py")}
+
+
+def _tally(results: list, target: str) -> tuple[Counter, int, dict[str, Counter]]:
+    """Turn scan results into (per-category counts, files, per-file counts).
+
+    ONE place turns results into counts, so the whole-tree total and the
+    per-file attribution cannot drift apart -- the attribution IS the same
+    measurement read at a finer grain, and summing it reproduces the total.
+
+    `file_count` stays ``len(results)``: the number of files SCANNED, not the
+    number carrying a finding, so `scan`'s existing callers see exactly the
+    numbers they saw before.
+
+    ``results`` is a ``list[AntiPatternResult]``; annotated loosely because the
+    scanner is imported lazily inside `_scan_results`.
+    """
+    root = ROOT / target
     counts: Counter = Counter()
+    per_file: dict[str, Counter] = {}
     for r in results:
+        if not r.findings:
+            continue
+        try:
+            rel = str(Path(r.filepath).relative_to(root))
+        except ValueError:
+            # Not under the scan root (a caller-supplied path). Keep it visible
+            # rather than dropping the finding from the view that explains the
+            # total.
+            rel = r.filepath
+        bucket = per_file.setdefault(rel, Counter())
         for _line, category, _snippet in r.findings:
             counts[category] += 1
-    return counts, len(results)
+            bucket[category] += 1
+    return counts, len(results), per_file
 
 
-def baseline_payload(counts: Counter, files: int, target: str) -> dict:
-    return {
+def scan_with_files(target: str, tracked_only: bool = False) -> tuple[Counter, int, dict[str, Counter]]:
+    """`scan`, plus per-FILE attribution of every category.
+
+    `scan` answers "did this class get worse"; this answers "in which file",
+    which is the question a blocked committer actually has. Earned 2026-10-13:
+    an unrelated concurrent edit to two `src/` files took the repo-wide count
+    over baseline and blocked a commit whose own diff was a single test file,
+    and the per-category delta alone could not name the file responsible.
+
+    Shares `_scan_results` with `scan`, so scope is decided in exactly one place
+    and the two functions cannot disagree about what was measured.
+    """
+    return _tally(_scan_results(target, tracked_only), target)
+
+
+def _print_attribution(categories: list[str], per_file: dict[str, Counter],
+                       base_file_counts: dict | None = None,
+                       target: str = DEFAULT_DIR) -> None:
+    """Name the files that EXPLAIN each regression -- a delta, never a ranking.
+
+    Earned 2026-10-13: the first version of this listed the files with the
+    largest CURRENT count of a category. On the live tree it named
+    `tests/test_ecosystem.py` (32 findings, untouched by any change) as the owner
+    of a regression actually carried by `CORE/skill_library.py` (2 -> 3), which
+    the list did not mention at all. A holder is not a cause, and the committer
+    still had to bisect the worktree by hand.
+
+    Two modes, and the header ALWAYS says which, so the weaker reference can
+    never be mistaken for the exact one:
+
+    * EXACT -- the baseline carries `file_counts`: per file `now - baseline`,
+      positive deltas only. This is the real answer.
+    * FALLBACK -- every baseline recorded before `file_counts` existed: the
+      files whose content changed vs HEAD, the only route by which a repo-wide
+      total can grow.
+
+    Either way, a regressed category with no file to blame is reported as
+    exactly that. Silence there would read as "the tree is fine", which is the
+    opposite of what an unexplained increase means -- and the truncation notice
+    exists for the same reason: a capped list that does not admit its cap is a
+    quiet claim to be complete.
+    """
+    want_exact = bool(base_file_counts)
+    base = {str(k).replace("\\", "/"): v
+            for k, v in (base_file_counts or {}).items()}
+    changed = set() if want_exact else _changed_paths(target)
+    print("    reference: %s" % (
+        "per-file increase vs baseline" if want_exact else
+        "changed-files view -- this baseline has no per-file counts, so blame "
+        "falls on content that changed; re-run --baseline to record them and "
+        "get exact deltas"))
+    for cat in categories:
+        owners: list[tuple[str, int]] = []
+        for raw_rel, counts in per_file.items():
+            rel = str(raw_rel).replace("\\", "/")
+            if want_exact:
+                grew = counts.get(cat, 0) - base.get(rel, {}).get(cat, 0)
+                if grew > 0:
+                    owners.append((rel, grew))
+            elif counts.get(cat) and rel in changed:
+                owners.append((rel, counts[cat]))
+        if not owners:
+            if want_exact:
+                print("      %s: no per-file increase in the scan -- the "
+                      "category grew without any single file growing (a "
+                      "partial baseline?) -- could not be attributed" % cat)
+            else:
+                print("      %s: no CHANGED file carries it -- the increase is "
+                      "NOT explained by the working tree (stale baseline?)"
+                      % cat)
+            continue
+        owners.sort(key=lambda kv: (-kv[1], kv[0]))
+        print("    %s:" % cat)
+        for rel, n in owners[:ATTRIBUTION_LIMIT]:
+            # A delta carries its sign; a changed-file COUNT must not, or the
+            # fallback would print a count as if it were an increase.
+            print(("      %+5d  %s" if want_exact else "      %5d  %s")
+                  % (n, rel))
+        omitted = len(owners) - ATTRIBUTION_LIMIT
+        if omitted > 0:
+            print("      (+%d more file(s) not shown)" % omitted)
+
+
+def baseline_payload(counts: Counter, files: int, target: str,
+                     file_counts: dict[str, Counter] | None = None) -> dict:
+    """The baseline document. `file_counts` is additive and optional.
+
+    Every existing key keeps its name and meaning, so a baseline recorded
+    before per-file counts existed still loads, still gates, and still reports
+    the same numbers (such a baseline merely cannot attribute a failure
+    exactly -- see `_print_attribution`, which says so).
+    """
+    payload = {
         "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "identity_scheme": IDENTITY_SCHEME,
         "scanner": "CORE.compliance.scanner",
@@ -110,6 +294,12 @@ def baseline_payload(counts: Counter, files: int, target: str) -> dict:
         "category_counts": dict(sorted(counts.items())),
         "total_findings": sum(counts.values()),
     }
+    if file_counts:
+        payload["file_counts"] = {
+            str(rel): dict(sorted(bucket.items()))
+            for rel, bucket in sorted(file_counts.items()) if bucket
+        }
+    return payload
 
 
 def load_baseline(path: Path) -> dict:
@@ -134,10 +324,11 @@ def _resolve_out(path_arg: str | None, narrowed: bool, kind: str) -> Path:
 
 def cmd_baseline(target: str, out: Path, narrowed: bool,
                  tracked_only: bool = False) -> int:
-    counts, files = scan(target, tracked_only)
+    counts, files, per_file = scan_with_files(target, tracked_only)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(baseline_payload(counts, files, target), indent=2),
-                   encoding="utf-8")
+    out.write_text(
+        json.dumps(baseline_payload(counts, files, target, per_file), indent=2),
+        encoding="utf-8")
     print("baseline written: %s" % out)
     if narrowed:
         print("  (narrowed to %r -- whole-tree --check will not read this file)"
@@ -168,7 +359,7 @@ def cmd_check(target: str, baseline_path: Path,
         return 2
 
     recorded: dict = base.get("category_counts") or {}
-    current, files = scan(target, tracked_only)
+    current, files, per_file = scan_with_files(target, tracked_only)
 
     regressions = []
     for cat, n in current.items():
@@ -212,6 +403,16 @@ def cmd_check(target: str, baseline_path: Path,
         print("\n  cleared (recorded, now zero): %s" % ", ".join(gone_categories))
 
     if regressions or new_categories:
+        # Worst delta first, deduped: a NEW category is also a regression
+        # (recorded 0 -> n), so without the dedupe it would be attributed twice.
+        order = [cat for cat, _was, _n
+                 in sorted(regressions, key=lambda t: -(t[2] - t[1]))]
+        for cat in new_categories:
+            if cat not in order:
+                order.append(cat)
+        print("\n  WHERE (per-file, worst first, capped at %d per category):"
+              % ATTRIBUTION_LIMIT)
+        _print_attribution(order, per_file, base.get("file_counts"), target)
         print("\nFAIL: %d regression(s) and %d new category/categories. New "
               "anti-patterns are not allowed; fix them, or -- if a count is a "
               "deliberate, reviewed increase -- re-run --baseline."
