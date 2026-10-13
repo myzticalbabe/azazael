@@ -26,8 +26,12 @@ read while a false negative costs a silent capability.
 from __future__ import annotations
 
 import argparse
+import ast
+import io
 import json
 import re
+import tokenize
+import warnings
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -94,6 +98,91 @@ def iter_py(roots: tuple[Path, ...]) -> list[Path]:
     return out
 
 
+#: Files whose prose could not be masked (tokenize/ast refused). An unmasked
+#: file is scanned raw, which is the pre-2026-10-13 behaviour, so this is a
+#: downgrade in precision rather than a skipped file -- and it is recorded
+#: instead of being swallowed.
+MASK_FAILURES: list[str] = []
+
+
+def _mask_prose(text: str) -> str:
+    """Blank COMMENTS and DOCSTRINGS, preserving every byte offset.
+
+    MEASURED (engram #569): the detectors ran over the raw file text, so a
+    finding could land inside prose that merely QUOTES the pattern. Live, 7
+    findings were prose -- `queens.py:790` (a docstring) and six comments in
+    `tests/test_colour_queens.py` -- and the meta-evolution control plane
+    selected the docstring, proposing to rewrite documentation as if it were a
+    check. A comment is never a check, so matching prose is a false positive by
+    construction, and this tool's own docstring prices a false positive at one
+    read while pricing a false negative at a silently absent capability.
+
+    Only comments and DOCSTRINGS are masked. Inline string literals are left
+    intact on purpose: `default_true` matches the literal `.get("ok", True)`, so
+    blanking every string token would delete the detector it is meant to sharpen.
+
+    Offsets are preserved character-for-character (newlines kept), so `line` and
+    `code` stay exact. `ast` reports columns in UTF-8 BYTES while `tokenize`
+    reports CHARACTERS, and this tree contains non-ASCII prose -- mixing the two
+    indexed past the end of the buffer, so byte columns are converted per line.
+    An unparseable file falls back to its raw text rather than being skipped, and
+    the fallback is recorded in `MASK_FAILURES`.
+    """
+    buf = list(text)
+    starts = [0]
+    for i, ch in enumerate(text):
+        if ch == "\n":
+            starts.append(i + 1)
+    starts.append(len(text))  # so the final line is sliceable
+
+    def blank(a: int, b: int) -> None:
+        for i in range(max(0, a), min(len(buf), b)):
+            if buf[i] != "\n":
+                buf[i] = " "
+
+    def offset(row: int, col: int, chars: bool) -> int:
+        """Absolute offset of (row, col); `col` is bytes unless `chars`."""
+        index = min(max(row, 1), len(starts) - 1)
+        base = starts[index - 1]
+        if chars:
+            return base + col
+        line = text[base:starts[index]]
+        return base + len(line.encode("utf-8")[:col].decode("utf-8", "ignore"))
+
+    with warnings.catch_warnings():
+        # The scanned file's own escapes must not spray SyntaxWarnings into the
+        # audit's output: this tool reads 1200+ files, and a warning wall hides
+        # the report the run exists to produce.
+        warnings.simplefilter("ignore")
+        try:
+            tree = ast.parse(text)
+        except (SyntaxError, ValueError) as exc:
+            MASK_FAILURES.append("ast: %s" % type(exc).__name__)
+            tree = None
+    if tree is not None:
+        for node in ast.walk(tree):
+            body = getattr(node, "body", None)
+            if not isinstance(body, list) or not body:
+                continue
+            first = body[0]
+            if not isinstance(first, ast.Expr):
+                continue
+            value = first.value
+            if not (isinstance(value, ast.Constant)
+                    and isinstance(value.value, str)):
+                continue
+            blank(offset(value.lineno, value.col_offset, chars=False),
+                  offset(value.end_lineno, value.end_col_offset, chars=False))
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+            if tok.type == tokenize.COMMENT:
+                blank(offset(tok.start[0], tok.start[1], chars=True),
+                      offset(tok.end[0], tok.end[1], chars=True))
+    except (tokenize.TokenError, IndentationError, SyntaxError) as exc:
+        MASK_FAILURES.append("tokenize: %s" % type(exc).__name__)
+    return "".join(buf)
+
+
 def scan_file(path: Path) -> list[dict]:
     findings: list[dict] = []
     try:
@@ -101,8 +190,9 @@ def scan_file(path: Path) -> list[dict]:
     except OSError:
         return findings
     lines = text.splitlines()
+    masked = _mask_prose(text)
     for name, pattern, sev, why in DETECTORS:
-        for m in re.finditer(pattern, text):
+        for m in re.finditer(pattern, masked):
             ln = text.count("\n", 0, m.start()) + 1
             snippet = (lines[ln - 1].strip() if ln - 1 < len(lines) else "")[:100]
             findings.append({
