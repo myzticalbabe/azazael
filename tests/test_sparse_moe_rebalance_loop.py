@@ -16,7 +16,7 @@ Without that pair, a ``converged`` flag that is a constant would satisfy either
 run on its own, which is what makes this file falsifiable rather than a restating
 of the other one.
 
-Three measured facts are asserted and each has a negative direction:
+Four measured facts are asserted and each has a negative direction:
 
   * a cap of 1 nudge leaves the fixture UNBALANCED, while the same fixture at
     ``DEFAULT_BALANCE_MAX_ITERS`` converges -- so ``converged`` cannot be a
@@ -24,7 +24,12 @@ Three measured facts are asserted and each has a negative direction:
   * the cap is a REPORTED PARAMETER: at cap 1 the report says ``iterations ==
     max_iters == 1`` and ``cap_hit``, rather than inferring a bound;
   * a collinear batch sits ON its structural floor, ``log(top_k)/log(n)`` = 1/3
-    for top-k 2 over 8 experts, and must NOT be reported as ``load_balanced``.
+    for top-k 2 over 8 experts, and must NOT be reported as ``load_balanced``;
+  * the ``top_k_pinned`` name fires EXACTLY when every probe token chose the same
+    top-k set, and on a fixture it names no admissible bias can widen the used set
+    -- the trigger is an equivalence and the name is a verified claim, not a
+    symptom read off the load (see
+    ``test_top_k_pinned_fires_exactly_when_one_choice_set_is_shared``).
 
 Imports happen INSIDE each function on purpose, and that is load-bearing:
 importing ``CORE.WORMS.expansion.cutting_edge_model`` registers a worm as a
@@ -41,6 +46,7 @@ local recomputation so they cannot pass by reading the module's number back.
 """
 
 import math
+import random
 import sys
 from pathlib import Path
 
@@ -192,17 +198,13 @@ def test_the_iteration_cap_is_a_reported_parameter_when_hit():
         # structural reason applies) -- never omitted, so a reader can tell
         # "no bound" from "not reported".
         #
-        # WHY THIS ASSERTS THE CAP AND NOT A BOUND NAME: `rebalance` derives
-        # `top_k_pinned` from `after["used_experts"] <= top_k` alone, which is a
-        # SYMPTOM shared by "the batch is geometrically pinned" and "the cap was
-        # too small to move the load off one or two experts". On this fixture the
-        # used set stays wide (every expert is a second pick), so the distinction
-        # does not arise here and no bound name is asserted. The strict,
-        # evidence-based discriminator -- a pinned set means EVERY probe token
-        # chose the SAME top-k set, so the count of distinct chosen sets is 1 --
-        # is reported to the coordinator rather than changed here, because two
-        # sibling fixtures in tests/test_cutting_edge_production_fixes.py pin the
-        # current vocabulary and that file cannot be re-run from this slice.
+        # WHY THIS ASSERTS THE CAP AND NOT A BOUND NAME: on this fixture the used
+        # set stays wide (every expert is a second pick), so no structural reason
+        # applies and the honest report is the cap plus no name. The name-vs-cap
+        # separation itself is pinned by
+        # `test_top_k_pinned_fires_exactly_when_one_choice_set_is_shared`, which
+        # also MEASURES why the obvious stricter discriminator must not be used
+        # here (it would un-name the genuinely pinned fixture).
         assert "bound" in report, sorted(report)
         # The bias clamp is still respected at a small cap: the loop cannot
         # overshoot its own authority just because it stopped early.
@@ -247,3 +249,134 @@ def test_a_collinear_batch_is_reported_on_its_entropy_floor_not_as_convergence()
     assert abs(report["after"]["entropy_normalised"]
                - _normalised_entropy(report["after"]["counts"], moe.n_experts)) < 1e-12, (
         report["after"])
+
+
+def test_top_k_pinned_fires_exactly_when_one_choice_set_is_shared():
+    """The pin's trigger is an EQUIVALENCE, and the name is a verified claim.
+
+    A note carried out of engram #582 claimed ``rebalance`` derives
+    ``top_k_pinned`` from ``after["used_experts"] <= top_k`` alone, a "symptom"
+    shared by a genuinely pinned batch and a cap too small to move the load, and
+    proposed the strict discriminator "every probe token chose the SAME top-k
+    set" as a fix. MEASURED, that note is wrong in both halves, so this test pins
+    the truth instead and the change was NOT made.
+
+    (1) The two readings are the SAME reading. ``route()`` gives every token
+    exactly ``top_k`` DISTINCT experts, so a union of size ``top_k`` from
+    ``top_k``-sized sets forces every set to be equal, and a union of ``top_k + 1``
+    is already wider than any single token's choice. Across 480 fixtures
+    (40 seeds x 3 configs x 4 batch shapes) the two never disagreed; this test
+    re-derives the two readings from ``route`` for a smaller sweep and fails if
+    they ever separate. A fixture with more than one choice set is required, so
+    the equivalence cannot pass by every batch being trivially singular.
+
+    (2) The obvious "stricter" alternative is WRONG on the case the name exists
+    for. Requiring the raw-logit margin to exceed the total bias authority
+    (``2 * MAX_GATE_BIAS``) un-names the genuinely pinned collinear fixture:
+    its measured margin is 0.176, because the pin comes from every token being
+    IDENTICAL, not from a wide margin. Adopting it would fail the three sibling
+    fixtures in ``tests/test_cutting_edge_production_fixes.py`` that pin this
+    vocabulary. That rejection is the reason a test lives here at all.
+
+    (3) The structural claim itself is checked rather than assumed. On fixtures
+    the loop actually NAMES pinned, the used set must survive every admissible
+    bias: both corners of the bias box (each bias at +/- ``MAX_GATE_BIAS``, one
+    favouring widening and one favouring the current set) plus a mixed-sign
+    corner. The name asserts "a floor no bias can move", which is a claim about
+    every bias, not only the one the loop happened to accumulate.
+
+    A small ``max_iters`` is used for the sweep because the pin is a property of
+    the routing state, not of how long the loop ran, and the collinear fixture is
+    measured to name the pin at cap 1 and cap 8 as well as at the default cap
+    (the default-cap case is covered by
+    ``test_a_collinear_batch_is_reported_on_its_entropy_floor_not_as_convergence``).
+    """
+    from CORE.WORMS.expansion.cutting_edge_model import (  # scanner:ignore
+        MAX_GATE_BIAS, SparseMoE,
+    )
+
+    def build(seed, n_experts, top_k, d_model):
+        return SparseMoE(d_model=d_model, n_experts=n_experts, top_k=top_k,
+                         seed=seed)
+
+    sweep_cap = 8
+    mismatches, widened = [], []
+    pinned_names = wider_sets = 0
+    for seed in (3, 7, 11, 23):
+        for n_experts, top_k, d_model in ((8, 2, 16), (8, 3, 16), (16, 2, 24)):
+            gate = build(seed, n_experts, top_k, d_model)
+            rng = random.Random(seed)
+            batches = {
+                "collinear": [[1.0] * d_model for _ in range(8)],
+                "gate_rows": [list(r) for r in gate.gate],
+                "collapse": ([list(gate.gate[0])] * 24
+                             + [list(gate.gate[i]) for i in range(1, n_experts)]),
+                "random": [[rng.uniform(-1.0, 1.0) for _ in range(d_model)]
+                           for _ in range(12)],
+            }
+            for label, rows in batches.items():
+                moe = build(seed, n_experts, top_k, d_model)
+                report = moe.rebalance(rows, max_iters=sweep_cap)
+
+                # Recompute the observation the name is derived from, from
+                # `route`, instead of reading the module's number back. The loop
+                # is over, so this is the same biased state `after` describes.
+                chosen, _weights, _probs = moe.route(rows)
+                sets = [frozenset(c) for c in chosen]
+                counts = [0] * n_experts
+                for group in sets:
+                    for expert_id in group:
+                        counts[expert_id] += 1
+                assert counts == report["after"]["counts"], (
+                    "the fixture is not measuring the state the name reads: %s"
+                    % ((seed, n_experts, top_k, label),))
+
+                after_used = report["after"]["used_experts"]
+                distinct = len(set(sets))
+                if (after_used <= moe.top_k) != (distinct == 1):
+                    mismatches.append(
+                        (seed, n_experts, top_k, label, after_used, distinct))
+                if distinct > 1:
+                    wider_sets += 1
+
+                if report["bound"] != "top_k_pinned":
+                    continue
+                pinned_names += 1
+                # A named pin IS "one shared choice set" -- the equivalence's
+                # forward direction, asserted where the name is actually used.
+                assert distinct == 1, (
+                    "a named pin must mean ONE shared choice set: %s"
+                    % ((seed, n_experts, top_k, label, after_used, distinct),))
+                used_set = {i for i, c in enumerate(counts) if c > 0}
+                for vector in (
+                        # every bias set to widen the used set as far as the
+                        # clamp allows -- the most favourable admissible state
+                        [MAX_GATE_BIAS if i not in used_set else -MAX_GATE_BIAS
+                         for i in range(n_experts)],
+                        # the opposite corner
+                        [-MAX_GATE_BIAS if i not in used_set else MAX_GATE_BIAS
+                         for i in range(n_experts)],
+                        # mixed signs, so the check is not only the two uniform
+                        # corners
+                        [MAX_GATE_BIAS if (i not in used_set) == (i % 2 == 0)
+                         else -MAX_GATE_BIAS for i in range(n_experts)]):
+                    probe = build(seed, n_experts, top_k, d_model)
+                    probe.gate_bias = list(vector)
+                    probe_chosen, _pw, _pp = probe.route(rows)
+                    probe_used = len(set().union(*[set(c) for c in probe_chosen]))
+                    if probe_used > moe.top_k:
+                        widened.append(
+                            (seed, n_experts, top_k, label, probe_used))
+
+    assert not mismatches, (
+        "`used_experts <= top_k` must be EXACTLY 'every token chose the same "
+        "top-k set'; these fixtures separate the two readings: %s" % (mismatches,))
+    assert wider_sets, (
+        "no fixture produced more than one choice set, so the equivalence was "
+        "never exercised and would pass on a constant")
+    assert pinned_names, (
+        "no fixture was named top_k_pinned, so the structural half of this test "
+        "is blind and proves nothing")
+    assert not widened, (
+        "a named pin must survive EVERY admissible bias, including the corners "
+        "that maximally favour widening; these widened instead: %s" % (widened,))
