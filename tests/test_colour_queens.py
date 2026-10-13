@@ -563,3 +563,96 @@ def test_black_queen_fails_closed_on_an_unvalidated_comparator(
     after = {n: (i or {}).get("lifecycle_state")
              for n, i in WORM_REGISTRY.items()}
     assert after == before, "a refused run must not mutate the registry"
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Verification fields — a MISSING verdict must not read as PASS
+#
+# MEASURED (engram #569): `rainbow_round`'s `_finish` read each team verdict as
+# `result.get("ok", True)`, and the gray/black teams read their producer as
+# `d.get("success", True)` / `p.get("success", True)`. Any producer that dropped
+# its field therefore reported a PASS it never verified — the `default_true`
+# class the meta-evolution detector raises as HIGH against this module, and the
+# candidate it had queued here. `_verification_ok` fail-closes on absence and
+# RECORDS it, so a removed field becomes evidence instead of a silent pass.
+# ═══════════════════════════════════════════════════════════════════
+
+def test_verification_field_reads_a_present_verdict_both_ways():
+    from CORE.WORMS.expansion.queens import _verification_ok
+    assert _verification_ok({"ok": True}, "ok", "test") is True
+    assert _verification_ok({"ok": False}, "ok", "test") is False
+    assert _verification_ok({"success": 0}, "success", "test") is False
+
+
+def test_absent_verification_field_is_not_a_pass():
+    """The load-bearing direction: absence must not be credited as success."""
+    from CORE.WORMS.expansion.queens import _verification_ok
+    assert _verification_ok({}, "ok", "test") is False
+    assert _verification_ok({"other": True}, "success", "test") is False
+    assert _verification_ok(None, "ok", "test") is False
+    assert _verification_ok("not-a-dict", "ok", "test") is False
+
+
+def test_queens_module_has_no_default_true_verdict_reads():
+    """Source guard: the vacuous defaults must not come back.
+
+    The three sites were `result.get("ok", True)` (`rainbow_round._finish`),
+    `d.get("success", True)` (GrayQueenWorm) and `p.get("success", True)`
+    (BlackQueenWorm). Each one made DELETING the producer's field invisible.
+    """
+    import ast
+    from CORE.WORMS.expansion import queens
+    src = Path(queens.__file__).read_text(encoding="utf-8")
+    offenders = []
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        if not (isinstance(func, ast.Attribute) and func.attr == "get"):
+            continue
+        if len(node.args) == 2 and isinstance(node.args[1], ast.Constant) \
+                and node.args[1].value is True:
+            offenders.append(node.lineno)
+    assert not offenders, \
+        "a missing verification field reads as PASS again at line(s) %s" % offenders
+    assert "_verification_ok" in src, "the fail-closed reader was removed"
+
+
+def test_rainbow_round_reports_a_verdict_for_every_team(monkeypatch):
+    """Every team row carries a verdict, and a broken round is not healthy.
+
+    All six producers are replaced with ones that raise, so the round is
+    exercised WITHOUT its live probes, the real census or the developer's
+    memory store: a team that fails must land as `ok: False`, never as an
+    absent key that the aggregate could mistake for a pass.
+    """
+    import CORE.local_memory as lm
+    from CORE import worm_governance
+    from CORE.WORMS.expansion import queens, spine
+
+    class _Explode:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("injected team failure")
+
+    # The failure ledger is a real file, so the round's own records are captured
+    # here instead of being written to the developer's state from a test.
+    monkeypatch.setattr(queens, "note_failure", lambda *a, **k: None)
+    monkeypatch.setattr(lm, "get_memory_store", lambda *a, **k: None)
+    monkeypatch.setattr(queens, "_rainbow_hook", lambda *a, **k: True)
+    monkeypatch.setattr(queens, "_rainbow_reward", lambda *a, **k: True)
+    for target, name in ((queens, "GrayQueenWorm"),
+                         (queens, "BlackQueenWorm"),
+                         (queens, "ScoutBeeWorm"),
+                         (spine, "RedQueenWorm"),
+                         (spine, "MorphogenesisWorm"),
+                         (worm_governance, "WormGovernor")):
+        monkeypatch.setattr(target, name, _Explode)
+
+    out = queens.rainbow_round()
+    assert set(out["teams"]) == set(queens.RAINBOW_TEAMS)
+    assert all("ok" in row for row in out["teams"].values()), \
+        "a team row must always carry its verdict"
+    assert any(row["ok"] is False for row in out["teams"].values()), \
+        "an injected failure must be reported as not-ok"
+    assert out["ok"] is False, \
+        "a round containing a failed team cannot report itself healthy"

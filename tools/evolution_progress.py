@@ -71,6 +71,7 @@ produced nothing" -- an instrument reporting its own blindness as a measurement
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import os
 import re
@@ -164,7 +165,7 @@ def parse(path: str) -> dict:
         m = RE_BEST.match(line)
         if m:
             try:
-                genes = json.loads(m.group(2).replace("'", '"'))
+                genes = _parse_best(m.group(2))
                 cur["best"] = genes
                 cur["schema"] = cur["schema"] or _schema_of(genes)
             except Exception as exc:
@@ -193,6 +194,29 @@ def parse(path: str) -> dict:
         if RE_PROMOTED.match(line):
             cur["promoted"] = True
     return {"cycles": cycles}
+
+
+def _parse_best(text: str) -> dict:
+    """Parse a `BEST:` payload, which is a Python repr -- not JSON.
+
+    MEASURED (engram #569): the previous reader was
+    `json.loads(text.replace("'", '"'))` and it failed on **all 18** `BEST:`
+    lines in the live log, because the trial gene is a Python bool
+    (`'by_session': False`) and `False` is not valid JSON. Every cycle therefore
+    dropped out of the per-schema arm counts with `cur["best"] is None`.
+
+    The producer is `log('BEST: %s' % (best.genes if best else None))`
+    (`scripts/evolution_cycle.py`), i.e. `repr(dict)`, so the payload is parsed
+    as the Python literal it actually is; `json.loads` stays first so a producer
+    that switches to `json.dumps` keeps working.
+    """
+    try:
+        value = json.loads(text)
+    except ValueError:
+        value = ast.literal_eval(text)
+    if not isinstance(value, dict):
+        raise ValueError("BEST payload is %s, not a dict" % type(value).__name__)
+    return value
 
 
 def _schema_of(genes: dict) -> str:
