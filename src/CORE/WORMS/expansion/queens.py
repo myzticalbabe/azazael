@@ -784,6 +784,23 @@ def _local_env() -> str:
 RAINBOW_TEAMS = ("red", "gray", "black", "yellow", "white", "scout")
 
 
+def _verification_ok(container: Any, key: str, where: str) -> bool:
+    """Read a verification field, treating ABSENCE as unverified -- not PASS.
+
+    MEASURED: `result.get("ok", True)` made a missing verdict field read as
+    success, which is the `default_true` class the meta-evolution detector raises
+    as HIGH ("a missing verification field reads as PASS") and queued as its
+    pending candidate against this module. Every return path of
+    `GrayQueenWorm.detect` and `BlackQueenWorm.propose` carries its key, so
+    flipping the default is behaviour-preserving on real data; a producer that
+    drops the key now RECORDS the absence instead of reporting it as a pass.
+    """
+    if isinstance(container, dict) and key in container:
+        return bool(container[key])
+    note_failure("%s:missing-%s" % (where, key), None)
+    return False
+
+
 def _rainbow_hook(team: str, subject: str, ok: bool, citation: str = "") -> bool:
     """One join row per team outcome. Never raises."""
     try:
@@ -860,7 +877,7 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
 
     def _finish(team: str, subject: str, result: Dict[str, Any],
                 reward_value, reward_scale: str) -> None:
-        ok = bool(result.get("ok", True))
+        ok = _verification_ok(result, "ok", "queens:rainbow-finish")
         result["hook_kept"] = _rainbow_hook(team, subject, ok)
         result["reward_kept"] = _rainbow_reward(store, team, reward_value,
                                                 reward_scale)
@@ -899,7 +916,8 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
         counts = d.get("counts", {}) if isinstance(d, dict) else {}
         entrenched = counts.get("entrenched")
         _finish("gray", "entrenchment-delta",
-                {"ok": bool(d.get("success", True)), "counts": counts},
+                {"ok": _verification_ok(d, "success", "queens:rainbow-gray"),
+                 "counts": counts},
                 entrenched if isinstance(entrenched, int) else None, "count")
     except Exception as exc:
         note_failure("queens:rainbow-gray", exc)
@@ -912,7 +930,7 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
         p = bq.propose(apply=False) or {}
         retired = p.get("retired")
         _finish("black", "retirement-proposals",
-                {"ok": bool(p.get("success", True)),
+                {"ok": _verification_ok(p, "success", "queens:rainbow-black"),
                  "retired": retired, "held": len(p.get("pending") or [])},
                 retired if isinstance(retired, int) else None, "count")
     except Exception as exc:
@@ -984,7 +1002,9 @@ def rainbow_round(probe_limit: int = 1) -> Dict[str, Any]:
     # Round aggregate: one row per round so trend queries don't re-aggregate
     # six team rows. Per-team rows carry the detail; this carries the verdict.
     bits = ",".join(
-        "%s:%s" % (t, "ok" if (out["teams"].get(t) or {}).get("ok", True) else "ERR")
+        "%s:%s" % (t, "ok" if _verification_ok(out["teams"].get(t), "ok",
+                                                "queens:rainbow-summary")
+                   else "ERR")
         for t in RAINBOW_TEAMS)
     out["aggregate_kept"] = _rainbow_hook("round", "6-teams", out["ok"],
                                           citation=bits)
