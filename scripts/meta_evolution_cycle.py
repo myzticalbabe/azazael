@@ -505,16 +505,30 @@ def _run_debate_fallback(candidate: me.Candidate, model: str,
                            "error": f"debate harness unavailable: {exc}"[:200]}}
 
 
-def _evaluate_with_self_modify(patch_path: Path, band: Sequence[str], model: str) -> dict[str, Any]:
+def _evaluate_with_self_modify(patch_path: Path,
+                               band: Sequence[str]) -> dict[str, Any]:
+    """Run the test-band evaluator over the patched tree.
+
+    MEASURED (engram #569): this called
+    `self_modify(patch, band, keep_on_tie=True, model=model, progress=False)`,
+    but `tools/self_modify.self_modify` accepts neither `model` nor `progress`.
+    EVERY `--apply` cycle therefore raised `TypeError` here and was reported as
+    `verdict: rejected`, so the meta-evolution loop could never retain a mutation
+    -- and the crash was reported as an evaluation rejection rather than as a
+    broken harness. The evaluator is test-based (tier2 band, optional tier3
+    suite) and takes no model, so none is forwarded.
+    """
     tools_dir = ROOT / "tools"
     if str(tools_dir) not in sys.path:
         sys.path.insert(0, str(tools_dir))
     try:
         import self_modify
-        return self_modify.self_modify(
-            patch_path, band, keep_on_tie=True, model=model, progress=False)
+        return self_modify.self_modify(patch_path, band, keep_on_tie=True)
     except Exception as exc:
-        return {"verdict": "rejected", "reason": f"harness error: {exc}"}
+        # A distinct verdict keeps a harness crash from reading as a verdict on
+        # the candidate; the cycle's own reason line is rewritten from this.
+        return {"verdict": "harness_error",
+                "reason": "harness error: %s: %s" % (type(exc).__name__, exc)}
 
 
 def _restore(paths: Sequence[str], backups: Mapping[str, bytes]) -> list[str]:
@@ -643,7 +657,7 @@ def run_cycle(apply: bool = False, model: str = DEFAULT_MODEL,
     })
 
     life.transition("evaluate")
-    evaluated = _evaluate_with_self_modify(patch_path, band, model)
+    evaluated = _evaluate_with_self_modify(patch_path, band)
     report["phases"]["evaluate"] = {
         "verdict": evaluated.get("verdict"), "reason": evaluated.get("reason", ""),
         "band": band, "baseline": evaluated.get("baseline"),
@@ -662,6 +676,9 @@ def run_cycle(apply: bool = False, model: str = DEFAULT_MODEL,
     evaluator_ok = evaluated.get("verdict") == "kept"
     retained, proof_reason = me.improvement_proved(
         before_count, after_count, evaluator_ok, t2)
+    if evaluated.get("verdict") == "harness_error":
+        # Do not let a broken evaluator present itself as a rejected candidate.
+        proof_reason = str(evaluated.get("reason") or proof_reason)
 
     if retained:
         life.transition("retain")
