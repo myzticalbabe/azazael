@@ -3,12 +3,12 @@
   "rows": 141,
   "tally": {
     "NO-TARGET": 23,
-    "HOST-COMPOSED": 17,
-    "ADOPTED": 97,
-    "EXERCISE-ONLY": 4
+    "HOST-COMPOSED": 18,
+    "ADOPTED": 94,
+    "EXERCISE-ONLY": 6
   },
-  "adoption_score": 97,
-  "in_production": 114,
+  "adoption_score": 94,
+  "in_production": 112,
   "built_count": 118,
   "note": "adoption_score counts ADOPTED rows (caller in a DIFFERENT production module); in_production adds HOST-COMPOSED (consumed by production code in its own host, where that host is imported by production). EXERCISE-ONLY and HOSTED-ONLY score zero by mandate (ACTION_REGISTRY H-2, TODO_315T_BUILD T-15)",
   "results": [
@@ -1273,7 +1273,7 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:97"
+        "src/CORE/WORMS/expansion/__init__.py:41"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l1_memory.py:146",
@@ -1685,19 +1685,11 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
+        "src/CORE/compliance/governance.py:847",
+        "src/CORE/compliance/governance.py:866",
+        "scripts/close_audit_sessions.py:187",
         "scripts/close_audit_sessions.py:188",
-        "src/CORE/__init__.py:87",
-        "src/CORE/audit_repair.py:125",
-        "src/CORE/audit_repair.py:146",
-        "src/CORE/audit_repair.py:69",
-        "src/CORE/audit_repair.py:71",
-        "src/CORE/audit_repair.py:94",
-        "src/CORE/cli_audit.py:120",
-        "src/CORE/cli_audit.py:67",
-        "src/CORE/compliance/governance.py:720",
-        "src/ORCHESTRATION/MathCertainty.py:262",
-        "src/ORCHESTRATION/MathCertainty.py:352",
-        "src/ORCHESTRATION/MathCertainty.py:358"
+        "src/verify_all.py:210"
       ],
       "exercise_call_sites": [],
       "host_internal_uses": [
@@ -1707,7 +1699,7 @@
         "src/CORE/audit_trail.py:1710",
         "src/CORE/audit_trail.py:1740"
       ],
-      "n_production": 13,
+      "n_production": 5,
       "n_exercise": 0,
       "verdict": "ADOPTED"
     },
@@ -2072,10 +2064,7 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l2_skills.py:169",
         "src/CORE/technique_wiring/_l2_skills.py:170",
@@ -2097,9 +2086,9 @@
         "src/CORE/technique_wiring/_l2_skills.py:570"
       ],
       "host_internal_uses": [],
-      "n_production": 2,
+      "n_production": 0,
       "n_exercise": 18,
-      "verdict": "ADOPTED"
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP168",
@@ -2121,9 +2110,10 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "src/CORE/compliance/policy.py:196",
-        "src/CORE/compliance/policy.py:206",
-        "src/CORE/compliance/policy.py:54"
+        "src/CORE/compliance/policy.py:51",
+        "src/CORE/compliance/policy.py:242",
+        "src/CORE/compliance/policy.py:244",
+        "src/CORE/compliance/policy.py:254"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_b01_05.py:67",
@@ -2142,7 +2132,7 @@
       "host_internal_uses": [
         "src/CORE/structured_action.py:201"
       ],
-      "n_production": 3,
+      "n_production": 4,
       "n_exercise": 12,
       "verdict": "ADOPTED"
     },
@@ -2166,13 +2156,18 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/technique_runtime.py:260"
+        "src/CORE/technique_runtime.py:280",
+        "src/CORE/technique_runtime.py:288",
+        "src/CORE/WORMS/expansion/meta_cognition.py:70",
+        "src/CORE/WORMS/expansion/meta_cognition.py:793",
+        "src/CORE/sentinel_enforcer.py:240",
+        "src/CORE/technique_runtime.py:353"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l3_verify.py:434"
       ],
       "host_internal_uses": [],
-      "n_production": 1,
+      "n_production": 6,
       "n_exercise": 1,
       "verdict": "ADOPTED"
     },
@@ -2200,49 +2195,9 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "scripts/meta_evolution_cycle.py:543",
-        "scripts/meta_evolution_cycle.py:574",
-        "scripts/meta_evolution_cycle.py:663",
-        "src/AOA/build_final.py:116",
-        "src/AOA/inject.py:50",
-        "src/AOA/test_cross_arm.py:336",
-        "src/AOA/test_cross_arm.py:39",
-        "src/CORE/worm_governance.py:1001",
-        "src/CORE/worm_governance.py:1003",
-        "src/CORE/worm_governance.py:1004",
-        "src/CORE/worm_governance.py:1005",
-        "src/CORE/worm_governance.py:1006",
-        "src/CORE/worm_governance.py:1018",
-        "src/CORE/worm_governance.py:1029",
-        "src/CORE/worm_governance.py:1038",
-        "src/CORE/worm_governance.py:1040",
-        "src/CORE/worm_governance.py:1042",
-        "src/CORE/worm_governance.py:107",
-        "src/CORE/worm_governance.py:1080",
-        "src/CORE/worm_governance.py:1144",
-        "src/CORE/worm_governance.py:121",
-        "src/CORE/worm_governance.py:1274",
-        "src/CORE/worm_governance.py:129",
-        "src/CORE/worm_governance.py:138",
-        "src/CORE/worm_governance.py:1380",
-        "src/CORE/worm_governance.py:148",
-        "src/CORE/worm_governance.py:831",
-        "src/CORE/worm_governance.py:858",
-        "src/CORE/worm_governance.py:864",
-        "src/CORE/worm_governance.py:866",
-        "src/CORE/worm_governance.py:931",
-        "src/CORE/worm_governance.py:942",
-        "src/CORE/worm_governance.py:944",
-        "src/CORE/worm_governance.py:945",
-        "src/CORE/worm_governance.py:966",
-        "src/CORE/worm_governance.py:977",
-        "src/CORE/worm_governance.py:99",
-        "src/CORE/worm_governance.py:994",
-        "src/CORE/worm_governance.py:995",
-        "src/CORE/worm_governance.py:996",
-        "src/CORE/worm_governance.py:997",
-        "tools/render_monitors.py:798",
-        "tools/render_monitors.py:818"
+        "scripts/meta_evolution_cycle.py:562",
+        "scripts/meta_evolution_cycle.py:593",
+        "scripts/meta_evolution_cycle.py:682"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:267",
@@ -2260,7 +2215,7 @@
         "src/CORE/meta_evolution.py:527",
         "src/CORE/meta_evolution.py:528"
       ],
-      "n_production": 43,
+      "n_production": 3,
       "n_exercise": 10,
       "verdict": "ADOPTED"
     },
@@ -2317,10 +2272,8 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:96",
-        "src/CORE/WORMS/expansion/spine.py:167",
-        "src/CORE/WORMS/expansion/spine.py:941",
-        "src/CORE/WORMS/expansion/spine.py:944"
+        "src/CORE/WORMS/expansion/__init__.py:40",
+        "src/CORE/WORMS/expansion/spine.py:163"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l5_dispatch.py:423",
@@ -2333,7 +2286,7 @@
       "host_internal_uses": [
         "src/CORE/WORMS/expansion/consensus.py:76"
       ],
-      "n_production": 4,
+      "n_production": 2,
       "n_exercise": 6,
       "verdict": "ADOPTED"
     },
@@ -2358,51 +2311,7 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172",
-        "scripts/meta_evolution_cycle.py:543",
-        "src/AOA/build_final.py:116",
-        "src/AOA/inject.py:50",
-        "src/AOA/test_cross_arm.py:336",
-        "src/AOA/test_cross_arm.py:39",
-        "src/CORE/worm_governance.py:1001",
-        "src/CORE/worm_governance.py:1003",
-        "src/CORE/worm_governance.py:1004",
-        "src/CORE/worm_governance.py:1005",
-        "src/CORE/worm_governance.py:1006",
-        "src/CORE/worm_governance.py:1018",
-        "src/CORE/worm_governance.py:1029",
-        "src/CORE/worm_governance.py:1038",
-        "src/CORE/worm_governance.py:1040",
-        "src/CORE/worm_governance.py:1042",
-        "src/CORE/worm_governance.py:107",
-        "src/CORE/worm_governance.py:1080",
-        "src/CORE/worm_governance.py:1144",
-        "src/CORE/worm_governance.py:121",
-        "src/CORE/worm_governance.py:1274",
-        "src/CORE/worm_governance.py:129",
-        "src/CORE/worm_governance.py:138",
-        "src/CORE/worm_governance.py:1380",
-        "src/CORE/worm_governance.py:148",
-        "src/CORE/worm_governance.py:831",
-        "src/CORE/worm_governance.py:858",
-        "src/CORE/worm_governance.py:864",
-        "src/CORE/worm_governance.py:866",
-        "src/CORE/worm_governance.py:931",
-        "src/CORE/worm_governance.py:942",
-        "src/CORE/worm_governance.py:944",
-        "src/CORE/worm_governance.py:945",
-        "src/CORE/worm_governance.py:966",
-        "src/CORE/worm_governance.py:977",
-        "src/CORE/worm_governance.py:99",
-        "src/CORE/worm_governance.py:994",
-        "src/CORE/worm_governance.py:995",
-        "src/CORE/worm_governance.py:996",
-        "src/CORE/worm_governance.py:997",
-        "tools/render_monitors.py:798",
-        "tools/render_monitors.py:818"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l2_skills.py:169",
         "src/CORE/technique_wiring/_l2_skills.py:170",
@@ -2427,9 +2336,9 @@
       "host_internal_uses": [
         "src/CORE/meta_evolution.py:527"
       ],
-      "n_production": 43,
+      "n_production": 0,
       "n_exercise": 19,
-      "verdict": "ADOPTED"
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP183",
@@ -2498,8 +2407,9 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/METACLUSTER.py:352",
-        "src/CORE/WORMS/METACLUSTER.py:378"
+        "src/CORE/WORMS/METACLUSTER.py:369",
+        "src/CORE/WORMS/METACLUSTER.py:411",
+        "src/CORE/WORMS/METACLUSTER.py:461"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:394",
@@ -2530,7 +2440,7 @@
         "src/CORE/technique_wiring/_l5_dispatch.py:77"
       ],
       "host_internal_uses": [],
-      "n_production": 2,
+      "n_production": 3,
       "n_exercise": 26,
       "verdict": "ADOPTED"
     },
@@ -2556,27 +2466,8 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "scripts/_evo_graph_build.py:107",
-        "scripts/_evo_graph_build.py:68",
-        "scripts/_evo_graph_build.py:70",
-        "scripts/_evo_graph_build.py:71",
-        "scripts/_evo_graph_build.py:72",
-        "scripts/live_monitor.py:565",
-        "scripts/live_monitor.py:898",
-        "scripts/run_training_orchestrator.py:587",
-        "scripts/run_training_orchestrator.py:66",
-        "scripts/trace_adaptation.py:106",
-        "scripts/trace_adaptation.py:350",
-        "scripts/trace_adaptation.py:99",
-        "scripts/track_monitor.py:274",
-        "scripts/track_registry.py:54",
-        "src/CORE/WORMS/METACLUSTER.py:378",
-        "src/CORE/WORMS/expansion/__init__.py:81",
-        "src/CORE/dashboard.py:235",
-        "src/CORE/dashboard.py:552",
-        "src/CORE/dashboard.py:555",
-        "src/CORE/dashboard.py:562",
-        "src/CORE/health_server.py:135"
+        "src/CORE/WORMS/METACLUSTER.py:369",
+        "src/CORE/WORMS/METACLUSTER.py:461"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l5_dispatch.py:123",
@@ -2592,7 +2483,7 @@
         "src/CORE/WORMS/expansion/scheduling.py:405",
         "src/CORE/WORMS/expansion/scheduling.py:640"
       ],
-      "n_production": 21,
+      "n_production": 2,
       "n_exercise": 6,
       "verdict": "ADOPTED"
     },
@@ -2616,7 +2507,7 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "scripts/meta_evolution_cycle.py:663"
+        "scripts/meta_evolution_cycle.py:682"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:268",
@@ -2822,7 +2713,8 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/METACLUSTER.py:352"
+        "src/CORE/WORMS/METACLUSTER.py:369",
+        "src/CORE/WORMS/METACLUSTER.py:411"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:394",
@@ -2849,7 +2741,7 @@
         "src/CORE/technique_wiring/_l5_dispatch.py:77"
       ],
       "host_internal_uses": [],
-      "n_production": 1,
+      "n_production": 2,
       "n_exercise": 22,
       "verdict": "ADOPTED"
     },
@@ -2873,10 +2765,10 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:95",
-        "src/CORE/WORMS/expansion/spine.py:1774",
-        "src/CORE/WORMS/expansion/spine.py:233",
-        "src/CORE/WORMS/expansion/spine.py:658"
+        "src/CORE/WORMS/expansion/__init__.py:39",
+        "src/CORE/WORMS/expansion/spine.py:226",
+        "src/CORE/WORMS/expansion/spine.py:658",
+        "src/CORE/WORMS/expansion/spine.py:1774"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l0_model.py:134",
@@ -2914,7 +2806,7 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/inference/sequential_analyzer.py:48",
+        "src/CORE/inference/sequential_analyzer.py:46",
         "src/CORE/inference/sequential_analyzer.py:592"
       ],
       "exercise_call_sites": [
@@ -2950,20 +2842,7 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [
-        "src/CORE/dispatch_plan.py:219",
-        "src/CORE/dispatch_plan.py:308",
-        "src/CORE/latent_align.py:131",
-        "src/CORE/latent_refine.py:120",
-        "src/CORE/rubric_evolution.py:116",
-        "src/CORE/skill_library.py:153",
-        "src/CORE/skill_library.py:418",
-        "src/CORE/structured_action.py:148",
-        "src/CORE/structured_action.py:232",
-        "src/CORE/technique_runtime.py:429",
-        "src/CORE/verification_gate.py:429",
-        "src/CORE/verification_gate.py:705"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [],
       "host_internal_uses": [
         "src/CORE/compliance_auditor.py:393",
@@ -2971,9 +2850,9 @@
         "src/CORE/compliance_auditor.py:413",
         "src/CORE/compliance_auditor.py:730"
       ],
-      "n_production": 12,
+      "n_production": 0,
       "n_exercise": 0,
-      "verdict": "ADOPTED"
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP206",
@@ -3027,15 +2906,8 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/inference/sequential_analyzer.py:214",
-        "src/CORE/inference/sequential_analyzer.py:232",
-        "src/CORE/inference/sequential_analyzer.py:257",
-        "src/CORE/inference/sequential_analyzer.py:260",
-        "src/CORE/inference/sequential_analyzer.py:357",
-        "src/CORE/inference/sequential_analyzer.py:358",
-        "src/CORE/inference/sequential_analyzer.py:592",
-        "src/CORE/inference/sequential_analyzer.py:603",
-        "src/CORE/inference/sequential_analyzer.py:604"
+        "src/CORE/inference/sequential_analyzer.py:46",
+        "src/CORE/inference/sequential_analyzer.py:603"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l0_model.py:202",
@@ -3052,7 +2924,7 @@
         "src/CORE/technique_wiring/_l5_dispatch.py:534"
       ],
       "host_internal_uses": [],
-      "n_production": 9,
+      "n_production": 2,
       "n_exercise": 12,
       "verdict": "ADOPTED"
     },
@@ -3078,9 +2950,9 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "src/CORE/NeuralPipeline.py:100",
-        "src/CORE/NeuralPipeline.py:188",
-        "src/CORE/NeuralPipeline.py:467"
+        "src/CORE/NeuralPipeline.py:37",
+        "src/CORE/NeuralPipeline.py:201",
+        "src/CORE/NeuralPipeline.py:480"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l5_dispatch.py:261",
@@ -3144,7 +3016,8 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/METACLUSTER.py:352"
+        "src/CORE/WORMS/METACLUSTER.py:369",
+        "src/CORE/WORMS/METACLUSTER.py:411"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:394",
@@ -3171,7 +3044,7 @@
         "src/CORE/technique_wiring/_l5_dispatch.py:77"
       ],
       "host_internal_uses": [],
-      "n_production": 1,
+      "n_production": 2,
       "n_exercise": 22,
       "verdict": "ADOPTED"
     },
@@ -3229,17 +3102,7 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:100",
-        "src/CORE/WORMS/expansion/spine.py:207",
-        "src/CORE/WORMS/expansion/spine.py:3926",
-        "src/CORE/WORMS/expansion/spine.py:941",
-        "src/CORE/WORMS/expansion/spine.py:945",
-        "src/CORE/WORMS/expansion/wiring_genome.py:92",
-        "src/CORE/direct_memory.py:2349",
-        "src/CORE/local_memory.py:1047",
-        "src/CORE/local_memory.py:1782",
-        "src/CORE/local_memory.py:1818",
-        "src/CORE/local_memory.py:967"
+        "src/CORE/direct_memory.py:2349"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l3_verify.py:285",
@@ -3251,7 +3114,7 @@
         "src/CORE/local_memory.py:1819",
         "src/CORE/local_memory.py:2083"
       ],
-      "n_production": 11,
+      "n_production": 1,
       "n_exercise": 2,
       "verdict": "ADOPTED"
     },
