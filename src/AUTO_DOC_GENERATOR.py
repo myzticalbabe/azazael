@@ -35,8 +35,8 @@ class DocumentationGenerator:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
             tree = ast.parse(content)
-        except (SyntaxError, FileNotFoundError):
-            note_failure("AUTO_DOC_GENERATOR:L29", None)
+        except (SyntaxError, FileNotFoundError) as exc:
+            note_failure("AUTO_DOC_GENERATOR:L29", exc)
             return {"error": "Could not parse file"}
 
         docstrings = {
@@ -180,8 +180,8 @@ if __name__ == "__main__":
     import sys
     try:
         from CORE.paths import get_desktop_dir
-    except ImportError:
-        note_failure("AUTO_DOC_GENERATOR:L173", None)
+    except ImportError as exc:
+        note_failure("AUTO_DOC_GENERATOR:L173", exc)
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         from CORE.paths import get_desktop_dir
 

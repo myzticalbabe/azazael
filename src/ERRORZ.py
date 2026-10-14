@@ -50,8 +50,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("ERRORZ:L44", None)
+except ImportError as exc:
+    note_failure("ERRORZ:L44", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -59,8 +59,8 @@ except ImportError:
 try:
     from CORE.paths import get_error_targets, DESKTOP_TARGET_NAMES, LOCAL_TARGET_SUBDIRS
     _HAS_PATHS = True
-except ImportError:
-    note_failure("ERRORZ:L52", None)
+except ImportError as exc:
+    note_failure("ERRORZ:L52", exc)
     _HAS_PATHS = False
     # Standalone mirror of CORE/paths.py (kept in sync manually)
     DESKTOP_TARGET_NAMES = [
@@ -209,8 +209,8 @@ class ERRORZ:
                 snippet.append(f"{marker} {i + 1:4d} | {lines[i].rstrip()}")
 
             return "\n".join(snippet)
-        except Exception:
-            note_failure("ERRORZ:L201", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L201", exc)
             return ""
 
     def _check_syntax_errors(self, file_path: Path) -> list[ErrorEntry]:
@@ -286,8 +286,8 @@ class ERRORZ:
                     code_snippet=self._get_code_context(file_path, e.lineno or 1),
                 )
             )
-        except Exception:
-            note_failure("ERRORZ:L276", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L276", exc)
 
         return errors
 
@@ -317,8 +317,8 @@ class ERRORZ:
                             )
                         )
 
-        except Exception:
-            note_failure("ERRORZ:L307", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L307", exc)
 
         return errors
 
@@ -347,8 +347,8 @@ class ERRORZ:
                         )
                     )
 
-        except Exception:
-            note_failure("ERRORZ:L337", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L337", exc)
 
         return errors
 
@@ -380,8 +380,8 @@ class ERRORZ:
                             )
                         )
 
-        except Exception:
-            note_failure("ERRORZ:L370", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L370", exc)
 
         return errors
 
@@ -425,8 +425,8 @@ class ERRORZ:
                             )
                         )
 
-        except Exception:
-            note_failure("ERRORZ:L415", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L415", exc)
 
         return errors
 

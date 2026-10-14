@@ -50,23 +50,23 @@ except ImportError:                               # never break the host
 try:
     import psutil
     HAS_PSUTIL = True
-except ImportError:
-    note_failure("performance_monitor:L44", None)
+except ImportError as exc:
+    note_failure("performance_monitor:L44", exc)
     psutil = None  # type: ignore
     HAS_PSUTIL = False
 
 try:
     import sqlite3 as _sqlite
     HAS_SQLITE = True
-except ImportError:
-    note_failure("performance_monitor:L51", None)
+except ImportError as exc:
+    note_failure("performance_monitor:L51", exc)
     HAS_SQLITE = False
 
 try:
     import requests as _requests
     HAS_REQUESTS = True
-except ImportError:
-    note_failure("performance_monitor:L57", None)
+except ImportError as exc:
+    note_failure("performance_monitor:L57", exc)
     _requests = None  # type: ignore — keeps monkeypatch targets importable without requests
     HAS_REQUESTS = False
 
@@ -209,8 +209,8 @@ class PerformanceMonitor:
                 snap.network_recv_mb = round(net_io.bytes_recv / (1024 ** 2), 2)
 
             snap.process_count = len(psutil.pids())
-        except Exception:
-            note_failure("performance_monitor:L200", None) # Graceful degradation  # scanner:ignore
+        except Exception as exc:
+            note_failure("performance_monitor:L200", exc) # Graceful degradation  # scanner:ignore
 
         return snap
 
@@ -237,8 +237,8 @@ class PerformanceMonitor:
         def _work() -> None:
             try:
                 box["n"] = len(proc.open_files() or [])
-            except Exception:           # noqa: BLE001 - best effort metric
-                note_failure("performance_monitor:L228", None)
+            except Exception as exc:           # noqa: BLE001 - best effort metric
+                note_failure("performance_monitor:L228", exc)
                 box["n"] = 0
 
         worker = threading.Thread(target=_work, daemon=True)
@@ -268,11 +268,11 @@ class PerformanceMonitor:
                                for kw in self.WATCHED_PROCESSES):
                         continue
                     candidates.append((info["pid"] or 0, name))
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    note_failure("performance_monitor:L258", None)
+                except (psutil.NoSuchProcess, psutil.AccessDenied) as exc:
+                    note_failure("performance_monitor:L258", exc)
                     continue
-        except Exception:
-            note_failure("performance_monitor:L260", None) # scanner:ignore
+        except Exception as exc:
+            note_failure("performance_monitor:L260", exc) # scanner:ignore
 
         # Pass 2: only the matched processes pay for the expensive attributes.
         snapshots = []
@@ -303,11 +303,11 @@ class PerformanceMonitor:
                     open_files=open_files,
                     uptime_seconds=round(time.time() - (created or time.time()), 0),
                 ))
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                note_failure("performance_monitor:L292", None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as exc:
+                note_failure("performance_monitor:L292", exc)
                 continue
-            except Exception:
-                note_failure("performance_monitor:L294", None)
+            except Exception as exc:
+                note_failure("performance_monitor:L294", exc)
                 continue
 
         return sorted(snapshots, key=lambda s: s.memory_rss_mb, reverse=True)
@@ -342,8 +342,8 @@ class PerformanceMonitor:
                         schema_ver = conn.execute(
                             "SELECT value FROM metadata WHERE key='schema_version'"
                         ).fetchone()
-                    except Exception:
-                        note_failure("performance_monitor:L329", None)
+                    except Exception as exc:
+                        note_failure("performance_monitor:L329", exc)
                         schema_ver = None
 
                     snap = DBHealthSnapshot(
@@ -358,8 +358,8 @@ class PerformanceMonitor:
                     snapshots.append(snap)
                 finally:
                     conn.close()
-            except Exception:
-                note_failure("performance_monitor:L344", None) # scanner:ignore
+            except Exception as exc:
+                note_failure("performance_monitor:L344", exc) # scanner:ignore
 
         return snapshots
 
@@ -421,8 +421,8 @@ class PerformanceMonitor:
             body = resp.json()
             if isinstance(body, dict):
                 version = body.get("version", "")
-        except Exception:
-            note_failure("performance_monitor:L406", None) # scanner:ignore
+        except Exception as exc:
+            note_failure("performance_monitor:L406", exc) # scanner:ignore
         return ServiceHealth(
             name=name, url=url, reachable=True,
             status_code=resp.status_code,

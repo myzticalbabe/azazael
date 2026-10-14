@@ -266,8 +266,8 @@ class HYDRAOptimizer:
             for worm in worm_sequence:
                 try:
                     r = executor(worm, params) or {}
-                except Exception:
-                    note_failure("HYDRAMETA:L260", None)
+                except Exception as exc:
+                    note_failure("HYDRAMETA:L260", exc)
                     r = {"success": False, "duration_ms": 0.0}
                 ok = bool(r.get("success", False))
                 ms = float(r.get("duration_ms", 0.0) or 0.0)
@@ -333,8 +333,8 @@ class PersistenceManager:
         try:
             if self.state_file.exists():
                 return json.loads(self.state_file.read_text())
-        except Exception:
-            note_failure("HYDRAMETA:L326", None)
+        except Exception as exc:
+            note_failure("HYDRAMETA:L326", exc)
         return {
             "version": "1.0.0",
             "last_run": None,
@@ -350,8 +350,8 @@ class PersistenceManager:
         try:
             if self.trials_file.exists():
                 return json.loads(self.trials_file.read_text())
-        except Exception:
-            note_failure("HYDRAMETA:L343", None)
+        except Exception as exc:
+            note_failure("HYDRAMETA:L343", exc)
         return []
 
     def save_state(self, state: dict):
@@ -442,13 +442,13 @@ class HYDRAMETA:
         """
         try:
             return __import__(name)
-        except ImportError:
-            note_failure("HYDRAMETA:L435", None)
+        except ImportError as exc:
+            note_failure("HYDRAMETA:L435", exc)
         try:
             import importlib
             return importlib.import_module(f"CORE.WORMS.{name}")
-        except ImportError:
-            note_failure("HYDRAMETA:L440", None)
+        except ImportError as exc:
+            note_failure("HYDRAMETA:L440", exc)
             return None
 
     def _select_worms_strategy(

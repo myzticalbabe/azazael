@@ -140,8 +140,8 @@ class HYDRA_CONTAINER:
                 timeout=10,
             )
             return result.returncode == 0
-        except (OSError, subprocess.TimeoutExpired):
-            note_failure("HYDRA_CONTAINER:L134", None)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            note_failure("HYDRA_CONTAINER:L134", exc)
             return False  # docker missing or unreachable
 
     def _run_docker(self, args: list[str], timeout: int = 300) -> tuple[bool, str, str]:
@@ -155,11 +155,11 @@ class HYDRA_CONTAINER:
                 timeout=timeout,
             )
             return result.returncode == 0, result.stdout, result.stderr
-        except subprocess.TimeoutExpired:
-            note_failure("HYDRA_CONTAINER:L148", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("HYDRA_CONTAINER:L148", exc)
             return False, "", "Command timed out"
-        except FileNotFoundError:
-            note_failure("HYDRA_CONTAINER:L150", None)
+        except FileNotFoundError as exc:
+            note_failure("HYDRA_CONTAINER:L150", exc)
             return False, "", "Docker not found"
         except OSError as e:
             note_failure("HYDRA_CONTAINER:L152", e)
@@ -235,8 +235,8 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
                     if "ms" in output
                     else 0
                 )
-            except (ValueError, IndexError):
-                note_failure("HYDRA_CONTAINER:L225", None)
+            except (ValueError, IndexError) as exc:
+                note_failure("HYDRA_CONTAINER:L225", exc)
 
         execution = ContainerExecution(
             execution_id=execution_id,
@@ -527,8 +527,8 @@ CMD ["python", "WORMZ/{worm_name}.py", "--status"]
             try:
                 with open(state_file) as f:
                     self.state = json.load(f)
-            except (OSError, ValueError):
-                note_failure("HYDRA_CONTAINER:L517", None)
+            except (OSError, ValueError) as exc:
+                note_failure("HYDRA_CONTAINER:L517", exc)
                 self.state = {}  # unreadable or corrupt state file
 
     def get_status(self) -> dict[str, Any]:

@@ -63,8 +63,8 @@ class DynamicLogger:
                 if msg_data is None:
                     break
                 self._write_to_file(msg_data)
-            except queue.Empty:
-                note_failure("AzazaelDynamicLogger:L57", None)
+            except queue.Empty as exc:
+                note_failure("AzazaelDynamicLogger:L57", exc)
                 continue
             except Exception as e:
                 import sys
@@ -166,8 +166,8 @@ class DynamicLogger:
             try:
                 msg = self._log_queue.get_nowait()
                 self._write_to_file(msg)
-            except queue.Empty:
-                note_failure("AzazaelDynamicLogger:L159", None)
+            except queue.Empty as exc:
+                note_failure("AzazaelDynamicLogger:L159", exc)
                 break
 
 

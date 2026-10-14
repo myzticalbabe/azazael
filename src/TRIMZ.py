@@ -46,8 +46,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("TRIMZ:L40", None)
+except ImportError as exc:
+    note_failure("TRIMZ:L40", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -59,8 +59,8 @@ from tkinter import ttk, scrolledtext
 try:
     from CORE.paths import get_trim_targets, DESKTOP_TARGET_NAMES, LOCAL_TARGET_SUBDIRS
     _HAS_PATHS = True
-except ImportError:
-    note_failure("TRIMZ:L51", None)
+except ImportError as exc:
+    note_failure("TRIMZ:L51", exc)
     _HAS_PATHS = False
     # Standalone mirror of CORE/paths.py (kept in sync manually)
     DESKTOP_TARGET_NAMES = [
@@ -253,8 +253,8 @@ class BIBLIntegrator:
                     dt = datetime.fromisoformat(entry.last_updated)
                     if dt.timestamp() < cutoff:
                         stale.append(term)
-                except (ValueError, OSError):
-                    note_failure("TRIMZ:L244", None)
+                except (ValueError, OSError) as exc:
+                    note_failure("TRIMZ:L244", exc)
         return stale
 
 

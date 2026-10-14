@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # never break the host
-    note_failure("chain_of_action:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("chain_of_action:core-paths-import", exc)
     _get_project_root_safe = None
 
 #: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be

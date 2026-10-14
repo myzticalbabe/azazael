@@ -47,8 +47,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("METRICZ:L41", None)
+except ImportError as exc:
+    note_failure("METRICZ:L41", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -335,8 +335,8 @@ class METRICZ:
                                     "source": point.source,
                                 }
                             )
-                except Exception:
-                    note_failure("METRICZ:L327", None)
+                except Exception as exc:
+                    note_failure("METRICZ:L327", exc)
 
         return results
 
@@ -373,8 +373,8 @@ class METRICZ:
                     first = datetime.fromisoformat(comp_records[0].start_time)
                     last = datetime.fromisoformat(comp_records[-1].start_time)
                     time_span = (last - first).total_seconds()
-                except Exception:
-                    note_failure("METRICZ:L365", None)
+                except Exception as exc:
+                    note_failure("METRICZ:L365", exc)
                     time_span = 1
 
             throughput = len(comp_records) / max(time_span / 60, 1)
@@ -491,8 +491,8 @@ class METRICZ:
                 if format == "json":
                     json.dump(metrics, f, indent=2)
             return True
-        except Exception:
-            note_failure("METRICZ:L482", None)
+        except Exception as exc:
+            note_failure("METRICZ:L482", exc)
             return False
 
     def _save_metrics(self):
@@ -515,8 +515,8 @@ class METRICZ:
                     f,
                     indent=2,
                 )
-        except Exception:
-            note_failure("METRICZ:L505", None)
+        except Exception as exc:
+            note_failure("METRICZ:L505", exc)
 
     def _save_executions(self):
         """Persist executions."""
@@ -543,8 +543,8 @@ class METRICZ:
                     f,
                     indent=2,
                 )
-        except Exception:
-            note_failure("METRICZ:L533", None)
+        except Exception as exc:
+            note_failure("METRICZ:L533", exc)
 
     def _save_alerts(self):
         """Persist alerts."""
@@ -553,8 +553,8 @@ class METRICZ:
         try:
             with open(alerts_file, "w") as f:
                 json.dump(self.alerts[-1000:], f, indent=2)
-        except Exception:
-            note_failure("METRICZ:L543", None)
+        except Exception as exc:
+            note_failure("METRICZ:L543", exc)
 
     def _load_data(self):
         """Load persisted data."""
@@ -573,8 +573,8 @@ class METRICZ:
                                 source=d.get("source", ""),
                             )
                         )
-            except Exception:
-                note_failure("METRICZ:L563", None)
+            except Exception as exc:
+                note_failure("METRICZ:L563", exc)
 
     def run_popup(self):
         """Run with GUI popup."""

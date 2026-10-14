@@ -102,8 +102,8 @@ class MetaWormConfig:
         from CORE.paths import get_src_dir, get_desktop_targets
         _PROJECT_ROOT = str(get_src_dir())
         _HAS_PATHS = True
-    except ImportError:
-        note_failure("METAWORMS_ENRICHED:L105", None)
+    except ImportError as exc:
+        note_failure("METAWORMS_ENRICHED:L105", exc)
         _HAS_PATHS = False
         _PROJECT_ROOT = str(Path(__file__).resolve().parent)
 
@@ -578,8 +578,8 @@ class METRICZ:
 
                     metrics["by_file"].append(file_metrics)
                     items += 1
-                except (SyntaxError, UnicodeDecodeError, Exception):
-                    note_failure("METAWORMS_ENRICHED:L577", None)
+                except (SyntaxError, UnicodeDecodeError, Exception) as exc:
+                    note_failure("METAWORMS_ENRICHED:L577", exc)
 
         # Calculate averages
         if metrics["totals"]["classes"] > 0:
@@ -633,8 +633,8 @@ class LOGZ:
                         if "DEBUG" in line:
                             logs["debug"]["total"] += 1
                             items += 1
-                except (OSError, UnicodeDecodeError, Exception):
-                    note_failure("METAWORMS_ENRICHED:L632", None)
+                except (OSError, UnicodeDecodeError, Exception) as exc:
+                    note_failure("METAWORMS_ENRICHED:L632", exc)
 
         return WormResult(
             name="LOGZ",
@@ -709,8 +709,8 @@ class CHANGEZ:
                                 }
                             )
                             items += 1
-                    except (OSError, PermissionError, Exception):
-                        note_failure("METAWORMS_ENRICHED:L708", None)
+                    except (OSError, PermissionError, Exception) as exc:
+                        note_failure("METAWORMS_ENRICHED:L708", exc)
 
         changes["recent"] = sorted(changes["recent"], key=lambda x: x["age_hours"])[:30]
 

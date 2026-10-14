@@ -263,8 +263,8 @@ if __name__ == "__main__":
         for vf in victim:
             try:
                 os.remove(vf)
-            except OSError:
-                note_failure("matrix_animation:L256", None)
+            except OSError as exc:
+                note_failure("matrix_animation:L256", exc)
         print(f"Cleaned {len(victim)} PPM intermediates (KEEP_FRAMES=1 to retain).")
     else:
         print("Kept PPM intermediates (encode missing or KEEP_FRAMES=1).")
