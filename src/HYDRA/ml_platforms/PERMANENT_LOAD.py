@@ -50,8 +50,8 @@ if ML_PATH not in sys.path:
         with open(site_path, "a") as f:
             f.write(f"\nimport sys\nsys.path.insert(0, r'{ML_PATH}')\n")
         print("[OK] Persisted to user sitecustomize.py")
-    except Exception:
-        note_failure("PERMANENT_LOAD:L43", None)
+    except Exception as exc:
+        note_failure("PERMANENT_LOAD:L43", exc)
 
 # 2. Import all ML platform tools
 try:

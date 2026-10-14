@@ -65,8 +65,8 @@ class LexiconUpdater:
         try:
             with open(file_path, "rb") as f:
                 return hashlib.sha256(f.read()).hexdigest()
-        except Exception:
-            note_failure("config:L59", None)
+        except Exception as exc:
+            note_failure("config:L59", exc)
             return ""
 
     def get_module_info(self, py_file: Path) -> dict[str, Any]:
@@ -353,8 +353,8 @@ class LexiconUpdater:
         try:
             while True:
                 time.sleep(interval)
-        except KeyboardInterrupt:
-            note_failure("config:L346", None)
+        except KeyboardInterrupt as exc:
+            note_failure("config:L346", exc)
             observer.stop()
         observer.join()
 

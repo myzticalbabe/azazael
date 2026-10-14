@@ -81,8 +81,8 @@ __version__ = "2.0.0"
 try:
     from CORE.paths import get_src_dir
     __path__ = str(get_src_dir() / "ORCHESTRATION" / "ml_platforms")
-except ImportError:
-    note_failure("harness:L74", None)
+except ImportError as exc:
+    note_failure("harness:L74", exc)
     __path__ = str(Path(__file__).resolve().parent)
 
 
@@ -223,8 +223,8 @@ def cmd_status(args):
         try:
             mod = __import__(import_name)
             frameworks[name] = mod.__version__
-        except ImportError:
-            note_failure("harness:L215", None)
+        except ImportError as exc:
+            note_failure("harness:L215", exc)
             frameworks[name] = "not installed"
 
     status["frameworks"] = frameworks
