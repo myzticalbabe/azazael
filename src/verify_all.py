@@ -71,8 +71,8 @@ def run_cmd(args: list[str], timeout: int = 120, label: str = "") -> tuple[bool,
             text=True,
             timeout=timeout,
         )
-    except subprocess.TimeoutExpired:
-        note_failure("verify_all:L64", None)
+    except subprocess.TimeoutExpired as exc:
+        note_failure("verify_all:L64", exc)
         return False, f"[TIMEOUT after {timeout}s] {label}"
     except OSError as exc:
         note_failure("verify_all:L66", exc)

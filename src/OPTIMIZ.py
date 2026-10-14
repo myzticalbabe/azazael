@@ -37,8 +37,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("OPTIMIZ:L30", None)
+except ImportError as exc:
+    note_failure("OPTIMIZ:L30", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls

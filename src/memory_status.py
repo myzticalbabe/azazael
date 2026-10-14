@@ -172,8 +172,8 @@ class MemoryStatus:
                         sesh["passed"] = data.get("passed", 0)
                         sesh["failed"] = data.get("failed", 0)
                         sesh["timestamp"] = data.get("timestamp", "")
-                    except Exception:
-                        note_failure("memory_status:L165", None)
+                    except Exception as exc:
+                        note_failure("memory_status:L165", exc)
                 session_data.append(sesh)
 
             status.available = True
@@ -223,8 +223,8 @@ class MemoryStatus:
                 from AzazaelDynamicLogger import DynamicLogger
                 logger = DynamicLogger()
                 status.details["singleton"] = "active"
-            except Exception:
-                note_failure("memory_status:L215", None)
+            except Exception as exc:
+                note_failure("memory_status:L215", exc)
                 status.details["singleton"] = "not available"
         except Exception as e:
             note_failure("memory_status:L217", e)

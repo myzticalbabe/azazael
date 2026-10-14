@@ -53,8 +53,8 @@ except ImportError:                               # never break the host
 try:
     IS_FREE_THREADED = not sys._is_gil_enabled()
     GIL_STATUS = "FREE-THREADED ⚡"
-except Exception:
-    note_failure("AZAZAEL_Inference_Studio:L47", None)
+except Exception as exc:
+    note_failure("AZAZAEL_Inference_Studio:L47", exc)
     IS_FREE_THREADED = False
     GIL_STATUS = "GIL Locked 🔒"
 
@@ -207,8 +207,8 @@ class EmotionEngine:
         for cb in self._observers:
             try:
                 cb(self._current_emoji)
-            except Exception:
-                note_failure("AZAZAEL_Inference_Studio:L200", None)
+            except Exception as exc:
+                note_failure("AZAZAEL_Inference_Studio:L200", exc)
 
 # Global emotion engine
 emotion = EmotionEngine()
@@ -266,8 +266,8 @@ def detect_hardware() -> HardwareProfile:
         ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(ms))
         profile.ram_gb = ms.ullTotalPhys / (1024**3)
         profile.ram_free_gb = ms.ullAvailPhys / (1024**3)
-    except Exception:
-        note_failure("AZAZAEL_Inference_Studio:L259", None)
+    except Exception as exc:
+        note_failure("AZAZAEL_Inference_Studio:L259", exc)
 
     # NVIDIA GPU detection
     try:
@@ -288,8 +288,8 @@ def detect_hardware() -> HardwareProfile:
                                   memory_mb=int(mem_str) if mem_str.isdigit() else 0,
                                   backends=["CUDA", "TensorRT"])
                     profile.gpus.append(gpu)
-    except Exception:
-        note_failure("AZAZAEL_Inference_Studio:L281", None)
+    except Exception as exc:
+        note_failure("AZAZAEL_Inference_Studio:L281", exc)
 
     # AMD GPU via rocm-smi
     if not profile.gpus:
@@ -303,8 +303,8 @@ def detect_hardware() -> HardwareProfile:
                             name=line.strip(), vendor="AMD",
                             backends=["ROCm", "Vulkan"]
                         ))
-        except Exception:
-            note_failure("AZAZAEL_Inference_Studio:L296", None)
+        except Exception as exc:
+            note_failure("AZAZAEL_Inference_Studio:L296", exc)
 
     # Intel GPU via wmic (Windows)
     if not profile.gpus:
@@ -327,8 +327,8 @@ def detect_hardware() -> HardwareProfile:
                         memory_mb=mem,
                         backends=["OpenVINO", "oneAPI"]
                     ))
-        except Exception:
-            note_failure("AZAZAEL_Inference_Studio:L320", None)
+        except Exception as exc:
+            note_failure("AZAZAEL_Inference_Studio:L320", exc)
 
     # Apple Silicon
     if profile.platform == "Darwin" and "arm" in profile.arch.lower():
@@ -401,8 +401,8 @@ def detect_frameworks() -> list[Framework]:
             mod = __import__(fw.import_name)
             fw.version = getattr(mod, "__version__", "?")
             fw.status = FWStatus.AVAILABLE
-        except Exception:
-            note_failure("AZAZAEL_Inference_Studio:L394", None)
+        except Exception as exc:
+            note_failure("AZAZAEL_Inference_Studio:L394", exc)
             fw.status = FWStatus.NOT_FOUND
     return FRAMEWORKS_DB
 
@@ -1138,8 +1138,8 @@ class InferenceStudio:
                                         break
                         if count >= 20:
                             break
-            except Exception:
-                note_failure("AZAZAEL_Inference_Studio:L1130", None)
+            except Exception as exc:
+                note_failure("AZAZAEL_Inference_Studio:L1130", exc)
                 continue
 
         # Also scan current directory and parent (with iteration limit)
@@ -1158,8 +1158,8 @@ class InferenceStudio:
                                     break
                     if count >= 10:
                         break
-        except Exception:
-            note_failure("AZAZAEL_Inference_Studio:L1149", None)
+        except Exception as exc:
+            note_failure("AZAZAEL_Inference_Studio:L1149", exc)
 
         self._populate_artifacts()
 
@@ -1378,8 +1378,8 @@ class InferenceStudio:
                 try:
                     self.root.after(0, functools.partial(
                         self.anim_emoji_lbl.configure, text=emotion.emoji))
-                except Exception:
-                    note_failure("AZAZAEL_Inference_Studio:L1369", None)
+                except Exception as exc:
+                    note_failure("AZAZAEL_Inference_Studio:L1369", exc)
                 time.sleep(0.8)
         threading.Thread(target=morph_loop, daemon=True).start()
 
@@ -1661,8 +1661,8 @@ class Pulsator:
         b = int(self.cs[2] + (self.ce[2] - self.cs[2]) * t)
         try:
             self.widget.configure(fg=self._rgb2hex((r, g, b)))
-        except Exception:
-            note_failure("AZAZAEL_Inference_Studio:L1652", None)
+        except Exception as exc:
+            note_failure("AZAZAEL_Inference_Studio:L1652", exc)
         self.widget.after(ms, self._tick, ms)
 
 
@@ -1724,8 +1724,8 @@ def main():
                                "CODEX", "codex_icon.ico")
             if os.path.exists(icon):
                 root.iconbitmap(icon)
-        except Exception:
-            note_failure("AZAZAEL_Inference_Studio:L1715", None)
+        except Exception as exc:
+            note_failure("AZAZAEL_Inference_Studio:L1715", exc)
         InferenceStudio(root)
         root.mainloop()
 

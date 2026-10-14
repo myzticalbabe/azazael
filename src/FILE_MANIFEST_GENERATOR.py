@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 # Dynamic path resolution
 try:
     from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("FILE_MANIFEST_GENERATOR:L18", None)
+except ImportError as exc:
+    note_failure("FILE_MANIFEST_GENERATOR:L18", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from CORE.paths import get_desktop_dir
 

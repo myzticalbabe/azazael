@@ -102,8 +102,8 @@ class UVZ:
                 output=result.stdout + result.stderr,
                 duration_ms=int((time.time() - start) * 1000),
             )
-        except subprocess.TimeoutExpired:
-            note_failure("UVZ:L96", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("UVZ:L96", exc)
             return UVResult(
                 success=False,
                 command=" ".join(cmd),

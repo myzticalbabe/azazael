@@ -177,10 +177,10 @@ class SessionMemory:
             if row:
                 try:
                     current_version = int(row[0])
-                except ValueError:
+                except ValueError as exc:
                     # Old format like "1.0.0" — treat as version 1
                     # Old format like "1.0.0" — treat as version 1
-                    note_failure("session_memory:L171", None)
+                    note_failure("session_memory:L171", exc)
                     current_version = 1
             else:
                 current_version = 0
@@ -362,8 +362,8 @@ class SessionMemory:
                 from performance_monitor import PerformanceMonitor
                 pm = PerformanceMonitor()
                 self._session_start_perf = pm.capture()
-            except Exception:
-                note_failure("session_memory:L354", None)
+            except Exception as exc:
+                note_failure("session_memory:L354", exc)
                 self._session_start_perf = None
         else:
             self._session_start_perf = None
@@ -446,8 +446,8 @@ class SessionMemory:
         # Auto-snapshot operability trends for time-series tracking
         try:
             self.record_operability_snapshot()
-        except Exception:
-            note_failure("session_memory:L437", None) # Snapshot failure should not block session close
+        except Exception as exc:
+            note_failure("session_memory:L437", exc) # Snapshot failure should not block session close
 
         self._current_session_id = None
 
@@ -1493,8 +1493,8 @@ class SessionMemory:
                 "baseline_at": self._session_start_perf.get("captured_at"),
                 "current_at": current.get("captured_at"),
             }
-        except Exception:
-            note_failure("session_memory:L1482", None)
+        except Exception as exc:
+            note_failure("session_memory:L1482", exc)
             return None
 
     def get_statistics(self) -> dict[str, Any]:

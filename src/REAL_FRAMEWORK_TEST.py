@@ -65,8 +65,8 @@ class RealFrameworkTest:
             try:
                 with open("/proc/version") as f:
                     platform_info["proc_version"] = f.read().strip()
-            except Exception:
-                note_failure("REAL_FRAMEWORK_TEST:L58", None)
+            except Exception as exc:
+                note_failure("REAL_FRAMEWORK_TEST:L58", exc)
 
         # Check Windows
         platform_info["is_windows"] = os.name == "nt"
@@ -388,8 +388,8 @@ class RealFrameworkTest:
             sys_info["memory_rss"] = (
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
             )
-        except Exception:
-            note_failure("REAL_FRAMEWORK_TEST:L381", None)
+        except Exception as exc:
+            note_failure("REAL_FRAMEWORK_TEST:L381", exc)
 
         for key, val in sys_info.items():
             self.log(f"  {key}: {val}", "OK")

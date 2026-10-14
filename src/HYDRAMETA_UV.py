@@ -86,8 +86,8 @@ class HYDRAMETA_UVConfig:
         from CORE.paths import get_src_dir, get_desktop_dir, DESKTOP_TARGET_NAMES
         _PROJECT_ROOT = str(get_src_dir())
         _HAS_PATHS = True
-    except ImportError:
-        note_failure("HYDRAMETA_UV:L80", None)
+    except ImportError as exc:
+        note_failure("HYDRAMETA_UV:L80", exc)
         _HAS_PATHS = False
         _PROJECT_ROOT = str(Path(__file__).resolve().parent)
         # Standalone mirror of CORE/paths/targets.py (kept in sync manually)
@@ -225,14 +225,14 @@ class HYDRAMETA_UV:
             try:
                 with open(state_file, encoding="utf-8") as f:
                     self.state = json.load(f)
-            except Exception:
-                note_failure("HYDRAMETA_UV:L217", None)
+            except Exception as exc:
+                note_failure("HYDRAMETA_UV:L217", exc)
                 bad = state_file.with_name(
                     state_file.name + ".corrupt-%d" % int(time.time()))
                 try:
                     state_file.replace(bad)
-                except Exception:
-                    note_failure("HYDRAMETA_UV:L222", None)
+                except Exception as exc:
+                    note_failure("HYDRAMETA_UV:L222", exc)
                 self.state = {"best_sequence": [], "best_params": {}}
 
     def _save_state(self):
@@ -263,8 +263,8 @@ class HYDRAMETA_UV:
                 result.stdout + result.stderr,
                 int((time.time() - start) * 1000),
             )
-        except subprocess.TimeoutExpired:
-            note_failure("HYDRAMETA_UV:L254", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("HYDRAMETA_UV:L254", exc)
             return False, "Timeout", int((time.time() - start) * 1000)
         except Exception as e:
             note_failure("HYDRAMETA_UV:L256", e)
@@ -481,8 +481,8 @@ class HYDRAMETA_UV:
         if workers is None:
             try:
                 workers = int(self.config.DEFAULT_PARAMS.get("uv_workers", 4))
-            except Exception:
-                note_failure("HYDRAMETA_UV:L468", None)
+            except Exception as exc:
+                note_failure("HYDRAMETA_UV:L468", exc)
                 workers = 4
         workers = max(1, workers)
 

@@ -43,8 +43,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("TELEMETRYZ:L37", None)
+except ImportError as exc:
+    note_failure("TELEMETRYZ:L37", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls

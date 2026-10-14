@@ -23,8 +23,8 @@ except ImportError:                               # never break the host
 # Dynamic path resolution
 try:
     from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("CHANGELOG_GENERATOR:L16", None)
+except ImportError as exc:
+    note_failure("CHANGELOG_GENERATOR:L16", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from CORE.paths import get_desktop_dir
 
@@ -63,8 +63,8 @@ class ChangelogGenerator:
                         version_info["major"] = int(
                             line.split(":")[1].strip().rstrip(",")
                         )
-                    except ValueError:
-                        note_failure("CHANGELOG_GENERATOR:L55", None)
+                    except ValueError as exc:
+                        note_failure("CHANGELOG_GENERATOR:L55", exc)
             return version_info
         return {
             "major": 2,

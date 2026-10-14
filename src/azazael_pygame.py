@@ -33,8 +33,8 @@ except ImportError:                               # never break the host
 #: `note_failure` is bound, so the handler can record rather than swallow.
 try:
     import pygame
-except ImportError:                               # optional GUI dependency
-    note_failure("azazael_pygame:pygame-import", None)
+except ImportError as exc:                               # optional GUI dependency
+    note_failure("azazael_pygame:pygame-import", exc)
     pygame = None
 
 #: Read by the init call below and by the `__main__` entry point. A flag nothing
