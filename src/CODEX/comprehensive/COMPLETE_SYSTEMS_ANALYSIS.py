@@ -443,8 +443,8 @@ def save_complete_report():
     try:
         from CORE.paths import get_desktop_dir
         out_dir = get_desktop_dir() / "CODEX" / "comprehensive"
-    except ImportError:
-        note_failure("COMPLETE_SYSTEMS_ANALYSIS:L436", None)
+    except ImportError as exc:
+        note_failure("COMPLETE_SYSTEMS_ANALYSIS:L436", exc)
         out_dir = Path.home() / "Desktop" / "CODEX" / "comprehensive"
 
     out_dir.mkdir(parents=True, exist_ok=True)
