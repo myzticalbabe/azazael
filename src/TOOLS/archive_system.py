@@ -86,8 +86,8 @@ class ArchiveSystem:
             for d in sorted(set(f.parent for f in ppm_files), reverse=True):
                 try:
                     d.rmdir()
-                except OSError:
-                    note_failure("archive_system:L79", None)
+                except OSError as exc:
+                    note_failure("archive_system:L79", exc)
 
         self.archived.append(("PPM frames", f"{len(ppm_files)} files", total_size))
         self.total_size += total_size
@@ -165,8 +165,8 @@ class ArchiveSystem:
             for d in sorted(set(f.parent for f in video_files), reverse=True):
                 try:
                     d.rmdir()
-                except OSError:
-                    note_failure("archive_system:L158", None)
+                except OSError as exc:
+                    note_failure("archive_system:L158", exc)
 
         self.archived.append(("Large videos", f"{len(video_files)} files", total_size))
         self.total_size += total_size
