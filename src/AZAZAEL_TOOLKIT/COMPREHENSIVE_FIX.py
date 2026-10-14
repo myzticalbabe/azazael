@@ -40,8 +40,8 @@ class ComprehensiveFix:
         try:
             with open(self.log_file, "a") as f:
                 f.write(line)
-        except Exception:
-            note_failure("COMPREHENSIVE_FIX:L33", None)
+        except Exception as exc:
+            note_failure("COMPREHENSIVE_FIX:L33", exc)
 
     def detect_platform(self):
         self.log("Detecting platform...", "INFO")
@@ -75,8 +75,8 @@ class ComprehensiveFix:
                     if f"import {module}" in content:
                         try:
                             __import__(module)
-                        except ImportError:
-                            note_failure("COMPREHENSIVE_FIX:L68", None)
+                        except ImportError as exc:
+                            note_failure("COMPREHENSIVE_FIX:L68", exc)
                             issues.append(f"Missing: {module}")
                 if issues:
                     errors.append(
