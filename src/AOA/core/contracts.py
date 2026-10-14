@@ -89,8 +89,8 @@ def parse_timestamp(value: Any) -> Optional[datetime]:
     try:
         text = str(value).strip().replace("Z", "+00:00")
         parsed = datetime.fromisoformat(text)
-    except (ValueError, TypeError):
-        note_failure("contracts:L83", None)
+    except (ValueError, TypeError) as exc:
+        note_failure("contracts:L83", exc)
         return None
     if parsed.tzinfo is not None:
         parsed = parsed.astimezone().replace(tzinfo=None)
@@ -267,8 +267,8 @@ def check_result(result: ArmResult, at: Optional[datetime] = None) -> List[str]:
             value = float(result.stale_after_s)
             if value <= 0 or value != value or value == float("inf"):
                 violations.append("stale_after_s_not_positive")
-        except (TypeError, ValueError):
-            note_failure("contracts:L260", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("contracts:L260", exc)
             violations.append("stale_after_s_not_numeric")
     elif result.status == "ok" and result.data is not None:
         # A datum handed back with no declared lifetime is the original gap.

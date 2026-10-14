@@ -190,8 +190,8 @@ def _ensure_arms_imported() -> None:
             importlib.import_module(name)
             _ARMS_IMPORTED = True
             return
-        except Exception:
-            note_failure("arm_registry:L184", None)
+        except Exception as exc:
+            note_failure("arm_registry:L184", exc)
             continue
     # The arm modules import ``core.*`` ABSOLUTELY, so the package only resolves
     # when the AOA root (the parent of ``core``) is importable. The documented
@@ -200,15 +200,15 @@ def _ensure_arms_imported() -> None:
         aoa_root = str(Path(__file__).resolve().parents[1])
         if aoa_root not in sys.path:
             sys.path.insert(0, aoa_root)
-    except Exception:
-        note_failure("arm_registry:L193", None)
+    except Exception as exc:
+        note_failure("arm_registry:L193", exc)
     for name in _arms_package_names():
         try:
             importlib.import_module(name)
             _ARMS_IMPORTED = True
             return
-        except Exception:
-            note_failure("arm_registry:L200", None)
+        except Exception as exc:
+            note_failure("arm_registry:L200", exc)
             continue
     # Last resort: import the modules one by one. The package ``__init__`` fails
     # as a unit on a single bad arm, which would otherwise hide all the others.
@@ -218,8 +218,8 @@ def _ensure_arms_imported() -> None:
             try:
                 importlib.import_module("%s.%s" % (base, mod))
                 ok = True
-            except Exception:
-                note_failure("arm_registry:L210", None)
+            except Exception as exc:
+                note_failure("arm_registry:L210", exc)
                 continue
     _ARMS_IMPORTED = ok
 
