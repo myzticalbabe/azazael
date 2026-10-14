@@ -68,7 +68,8 @@ for e in entries[:limit]:
     r = subprocess.run([ENGRAM, "save", "%s steal" % e["name"], content,
                         "--type", "learning", "--project", "azazael",
                         "--scope", "project", "--topic", topic],
-                       capture_output=True, text=True, timeout=120)
+                       capture_output=True, text=True, timeout=120,
+                       encoding="utf-8", errors="replace")
     if r.returncode == 0:
         ok += 1
         seen.add(topic)

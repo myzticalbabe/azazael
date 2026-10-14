@@ -31,7 +31,8 @@ def pmb_context(topic: str) -> None:
     try:
         r = subprocess.run(
             [str(PMB_PY), str(CLIENT), "prepare", topic],
-            timeout=90, capture_output=True, text=True, errors="replace",
+            timeout=90, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
         print(r.stdout[-3000:] if r.stdout else "(no context returned)")
     except Exception as e:
@@ -45,7 +46,8 @@ def engram_context() -> None:
     try:
         r = subprocess.run(
             [ENGRAM_BIN, "context", ENGRAM_PROJECT],
-            timeout=60, capture_output=True, text=True, errors="replace",
+            timeout=60, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
         out = (r.stdout or "").strip()
         # Head, not tail: engram lists newest-first, so the tail is the
@@ -75,7 +77,8 @@ def mcp_guard() -> None:
     try:
         r = subprocess.run(
             [sys.executable, str(guard)],
-            timeout=180, capture_output=True, text=True, errors="replace",
+            timeout=180, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
     except Exception as e:
         print(f"session_start: MCP guard could not run ({e})")

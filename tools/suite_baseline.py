@@ -67,7 +67,7 @@ def run_batch(idx: int, batch: list[str], timeout: int = 900) -> dict:
         proc = subprocess.run(
             [PY, "-m", "pytest", "-q", "--tb=line", "-rf", *batch],
             cwd=str(REPO), capture_output=True, text=True,
-            errors="replace", timeout=timeout)
+            encoding="utf-8", errors="replace", timeout=timeout)
         rc, raw = proc.returncode, (proc.stdout or "")
     except subprocess.TimeoutExpired as exc:
         timed_out = True
