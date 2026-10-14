@@ -110,7 +110,7 @@ UNSERVED_ENGINES: dict[str, str] = {
 # The NSGA-III / MOEA-D helpers are unreferenced too, and saying so keeps the
 # audit honest instead of quietly counting them as part of a wired engine.
 UNSERVED_HELPERS: dict[str, str] = {
-    "generate_reference_points": "NSGA-III reference directions; only exercised by tests.",
+    "generate_reference_points": "NSGA-III reference directions; now served via algorithm_lab_cycle._diversity_contract (L3→L4).",
     "hypervolume_2d": "Pareto hypervolume metric; only exercised by tests.",
     "moead_weights": "MOEA/D weight vectors; no production caller and no test.",
     "tchebycheff": "MOEA/D scalarisation; no production caller and no test.",
