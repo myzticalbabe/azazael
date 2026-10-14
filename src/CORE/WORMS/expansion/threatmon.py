@@ -30,8 +30,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("threatmon:register-worm-import", None)
+except ImportError as exc:
+    note_failure("threatmon:register-worm-import", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -50,13 +50,13 @@ def _pams():
                 try:
                     from CORE.PamsRecorder import get_recorder
                     _get_recorder = get_recorder  # singleton accessor (PamsRecorder.py:112-125)
-                except ImportError:
-                    note_failure("threatmon:pams-import", None)
+                except ImportError as exc:
+                    note_failure("threatmon:pams-import", exc)
                     return None
     try:
         return _get_recorder()  # one shared recorder, not a new one per call
-    except Exception:
-        note_failure("threatmon:pams-construct", None)
+    except Exception as exc:
+        note_failure("threatmon:pams-construct", exc)
         return None
 
 
@@ -69,8 +69,8 @@ def _bus():
                     from CORE.MemoryBus import MemoryBus
                     _MemoryBusCls = MemoryBus
                     _mem_bus = MemoryBus()
-                except ImportError:
-                    note_failure("threatmon:bus-import", None)
+                except ImportError as exc:
+                    note_failure("threatmon:bus-import", exc)
                     return None
     return _mem_bus
 
@@ -121,8 +121,8 @@ def _load(name: str, default):
         if os.path.exists(p):
             with open(p, encoding="utf-8") as f:
                 return json.load(f)
-    except Exception:
-        note_failure("threatmon:feed-load", None)
+    except Exception as exc:
+        note_failure("threatmon:feed-load", exc)
     return default
 
 
@@ -137,8 +137,8 @@ def feed_freshness(now=None) -> tuple:
     for name in FEED_FILES:
         try:
             m = os.path.getmtime(os.path.join(MODELS, name))
-        except OSError:
-            note_failure("threatmon:feed-mtime", None)
+        except OSError as exc:
+            note_failure("threatmon:feed-mtime", exc)
             continue
         if newest is None or m > newest:
             newest = m
@@ -210,15 +210,15 @@ class ThreatIntelMonitorWorm:
             p = _pams()
             if p is not None and hasattr(p, "record"):
                 p.record("threat_check", snap.__dict__)
-        except Exception:
-            note_failure("threatmon:pams-record", None)
+        except Exception as exc:
+            note_failure("threatmon:pams-record", exc)
         try:
             b = _bus()
             if b is not None and hasattr(b, "publish"):
                 b.publish("monitor.threat", {"snapshot": snap.__dict__,
                                              "alerts": [a.__dict__ for a in alerts]})
-        except Exception:
-            note_failure("threatmon:bus-publish", None)
+        except Exception as exc:
+            note_failure("threatmon:bus-publish", exc)
         return snap, alerts
 
     def _ledger_samples(self) -> int:
@@ -227,13 +227,13 @@ class ThreatIntelMonitorWorm:
             try:
                 if hasattr(sp, "load_spine_state"):
                     sp.load_spine_state()
-            except Exception:
-                note_failure("threatmon:spine-state-load", None)
+            except Exception as exc:
+                note_failure("threatmon:spine-state-load", exc)
             view = sp.get_homeostat_view() if hasattr(sp, "get_homeostat_view") else {}
             return sum(v.get("successes", 0) + v.get("failures", 0)
                        for k, v in view.items() if k.startswith("triage:"))
-        except Exception:
-            note_failure("threatmon:ledger-samples", None)
+        except Exception as exc:
+            note_failure("threatmon:ledger-samples", exc)
             return 0
 
     def start_monitor(self, interval_seconds: float = 3600.0):
@@ -243,8 +243,8 @@ class ThreatIntelMonitorWorm:
             while not stop.wait(interval_seconds):
                 try:
                     self.check_health()
-                except Exception:
-                    note_failure("threatmon:monitor-loop", None)
+                except Exception as exc:
+                    note_failure("threatmon:monitor-loop", exc)
         t = threading.Thread(target=loop, name="threat-monitor", daemon=True)
         t.start()
         return stop

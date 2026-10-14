@@ -220,8 +220,8 @@ def record(tag: str, exc: BaseException) -> int:
     """Account for a failure that was absorbed by hand-written code."""
     try:
         return LEDGER.note(str(tag), exc)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("silence:L214", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("silence:L214", exc)
         return 0
 
 
@@ -229,8 +229,8 @@ def tripped(tag: Optional[str] = None) -> Any:
     """Proxy for ``LEDGER.tripped``."""
     try:
         return LEDGER.tripped(tag)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("silence:L222", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("silence:L222", exc)
         return False if tag is not None else []
 
 
@@ -238,8 +238,8 @@ def signatures(tag: str) -> dict[str, int]:
     """Distinct failure signatures absorbed under ``tag``."""
     try:
         return LEDGER.signatures(tag)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("silence:L230", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("silence:L230", exc)
         return {}
 
 
@@ -247,8 +247,8 @@ def silence_report() -> dict:
     """Full ledger snapshot. Never raises."""
     try:
         return LEDGER.snapshot()
-    except Exception:  # pragma: no cover - defensive
-        note_failure("silence:L238", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("silence:L238", exc)
         return {"tags": 0, "total_ignored": 0, "tripped": [], "counts": {},
                 "signatures": {}, "first_seen": {}, "last_seen": {}}
 
@@ -257,6 +257,6 @@ def silence_reset() -> int:
     """Clear the ledger. For tests that assert on absolute counts."""
     try:
         return LEDGER.reset()
-    except Exception:  # pragma: no cover - defensive
-        note_failure("silence:L247", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("silence:L247", exc)
         return 0

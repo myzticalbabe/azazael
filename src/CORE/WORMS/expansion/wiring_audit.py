@@ -64,8 +64,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("wiring_audit:L58", None)
+except ImportError as exc:
+    note_failure("wiring_audit:L58", exc)
     _REGISTRY = False
 
     def register_worm(**kw):  # noqa: D103
@@ -75,8 +75,8 @@ except ImportError:
 try:
     from CORE.local_memory import get_memory_store
     _STORE = True
-except ImportError:
-    note_failure("wiring_audit:L68", None)
+except ImportError as exc:
+    note_failure("wiring_audit:L68", exc)
     _STORE = False
 
     def get_memory_store(*a, **k):  # noqa: D103
@@ -142,8 +142,8 @@ class WiringAuditWorm:
         try:
             with contextlib.redirect_stdout(buf):
                 return module.self_test() == 0
-        except Exception:  # noqa: BLE001 — an unvalidatable instrument is not ok
-            note_failure("wiring_audit:L134", None)
+        except Exception as exc:  # noqa: BLE001 — an unvalidatable instrument is not ok
+            note_failure("wiring_audit:L134", exc)
             return False
 
     # -- Execution ------------------------------------------------------
@@ -230,8 +230,8 @@ class WiringAuditWorm:
                     "duration_s")},
                 tags=["audit", "wiring", "monitor"],
             )
-        except Exception:  # noqa: BLE001 — recording is best-effort
-            note_failure("wiring_audit:L220", None)
+        except Exception as exc:  # noqa: BLE001 — recording is best-effort
+            note_failure("wiring_audit:L220", exc)
 
     # -- Scheduler ------------------------------------------------------
 
@@ -239,8 +239,8 @@ class WiringAuditWorm:
         while not self._stop.is_set():
             try:
                 self.execute()
-            except Exception:  # noqa: BLE001 — a monitor must survive its own failures
-                note_failure("wiring_audit:L229", None)
+            except Exception as exc:  # noqa: BLE001 — a monitor must survive its own failures
+                note_failure("wiring_audit:L229", exc)
             self._stop.wait(self.config.interval_seconds)
 
     def start_scheduler(self) -> None:

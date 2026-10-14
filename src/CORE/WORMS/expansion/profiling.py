@@ -24,8 +24,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("profiling:L18", None)
+except ImportError as exc:
+    note_failure("profiling:L18", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -34,8 +34,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("profiling:L27", None)
+except ImportError as exc:
+    note_failure("profiling:L27", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -44,8 +44,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("profiling:L36", None)
+        except Exception as exc:
+            note_failure("profiling:L36", exc)
             return False
 
 
@@ -87,8 +87,8 @@ class CodeProfiler:
                     pct = float(parts[3])
                     if pct > threshold_pct:
                         hotspots.append({"function": " ".join(parts[5:]), "time_pct": pct})
-                except ValueError:
-                    note_failure("profiling:L78", None)
+                except ValueError as exc:
+                    note_failure("profiling:L78", exc)
         return hotspots[:10]
     def get_summary(self):
         # Report the profiles actually collected. With an empty store there is

@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("telemetry:L19", None)
+except ImportError as exc:
+    note_failure("telemetry:L19", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -35,8 +35,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("telemetry:L28", None)
+except ImportError as exc:
+    note_failure("telemetry:L28", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -45,8 +45,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("telemetry:L37", None)
+        except Exception as exc:
+            note_failure("telemetry:L37", exc)
             return False
 
 
@@ -193,8 +193,8 @@ class EventRouter:
         for cb in callbacks:
             try:
                 cb(event)
-            except Exception:
-                note_failure("telemetry:L184", None)
+            except Exception as exc:
+                note_failure("telemetry:L184", exc)
 
     def get_recent_events(self, topic: str = "", limit: int = 50) -> list[dict]:
         with self._lock:

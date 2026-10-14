@@ -27,8 +27,8 @@ try:
     from CORE.WORMS.expansion.fabric_state import (
         hydrate, publish, cap_list, cap_map,
     )
-except ImportError:  # pragma: no cover - defensive
-    note_failure("federated:L21", None)
+except ImportError as exc:  # pragma: no cover - defensive
+    note_failure("federated:L21", exc)
     def hydrate(instance, provider, attrs):
         return 0
 
@@ -43,8 +43,8 @@ except ImportError:  # pragma: no cover - defensive
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("federated:L36", None)
+except ImportError as exc:
+    note_failure("federated:L36", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -60,13 +60,13 @@ def _age_seconds(at: Any, now: datetime | None = None) -> float:
         return 0.0
     try:
         ts = datetime.fromisoformat(at)
-    except Exception:
-        note_failure("federated:L52", None)
+    except Exception as exc:
+        note_failure("federated:L52", exc)
         return 0.0
     try:
         return max(0.0, ((now or datetime.now()) - ts).total_seconds())
-    except Exception:
-        note_failure("federated:L56", None)
+    except Exception as exc:
+        note_failure("federated:L56", exc)
         return 0.0
 
 
@@ -319,8 +319,8 @@ class RewardShaperMeshWorm:
             import json as _json
             cls._REWARD_MODEL = _json.load(
                 open("G:/source-of-truth/azazael_models/reward_model.json", encoding="utf-8"))
-        except Exception:
-            note_failure("federated:L309", None)
+        except Exception as exc:
+            note_failure("federated:L309", exc)
             cls._REWARD_MODEL = {}
         return cls._REWARD_MODEL
 

@@ -38,8 +38,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("code_audit:L32", None)
+except ImportError as exc:
+    note_failure("code_audit:L32", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -47,8 +47,8 @@ except ImportError:
 try:
     from CORE.local_memory import get_memory_store
     _STORE = True
-except ImportError:
-    note_failure("code_audit:L40", None)
+except ImportError as exc:
+    note_failure("code_audit:L40", exc)
     _STORE = False
     def get_memory_store(*a, **k):  # noqa: D103
         return None
@@ -98,8 +98,8 @@ class WeeklyCodeAuditWorm:
                     timeout=self.config.max_duration_seconds,
                     env={**os.environ, "PYTHONUTF8": "1"},
                 )
-            except Exception:
-                note_failure("code_audit:L90", None)
+            except Exception as exc:
+                note_failure("code_audit:L90", exc)
                 continue
             for line in (proc.stdout or "").splitlines():
                 total += 1
@@ -109,8 +109,8 @@ class WeeklyCodeAuditWorm:
                         # classify by message tail, e.g. "... undefined name 'np'"
                         try:
                             name = line.rsplit("undefined name ", 1)[1].strip().strip("'\"")
-                        except Exception:
-                            note_failure("code_audit:L100", None)
+                        except Exception as exc:
+                            note_failure("code_audit:L100", exc)
                             name = "?"
                         classes[name] = classes.get(name, 0) + 1
         return {"total_issues": total, "undefined_total": len(undefined),
@@ -148,8 +148,8 @@ class WeeklyCodeAuditWorm:
                 },
                 confidence=min(1.0, 0.5 + 0.05 * count),
             )
-        except Exception:
-            note_failure("code_audit:L138", None)
+        except Exception as exc:
+            note_failure("code_audit:L138", exc)
 
     # -- Execution ------------------------------------------------------
 
@@ -187,8 +187,8 @@ class WeeklyCodeAuditWorm:
                            "duration_s", "classes")},
                     tags=["audit", "training"],
                 )
-            except Exception:
-                note_failure("code_audit:L177", None)
+            except Exception as exc:
+                note_failure("code_audit:L177", exc)
         return result
 
     # -- Scheduler ------------------------------------------------------
@@ -197,8 +197,8 @@ class WeeklyCodeAuditWorm:
         while not self._stop.is_set():
             try:
                 self.execute()
-            except Exception:
-                note_failure("code_audit:L187", None)
+            except Exception as exc:
+                note_failure("code_audit:L187", exc)
             self._stop.wait(self.config.interval_seconds)
 
     def start_scheduler(self) -> None:

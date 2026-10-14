@@ -46,16 +46,16 @@ _PERSISTENCE_DISABLED = object()
 try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
-except ImportError:
-    note_failure("meta_cognition:L37", None)
+except ImportError as exc:
+    note_failure("meta_cognition:L37", exc)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("meta_cognition:L44", None)
+except ImportError as exc:
+    note_failure("meta_cognition:L44", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -69,8 +69,8 @@ except ImportError:
 try:
     from CORE.verification_gate import verify_before_accept as _verify_before_accept
     _VERIFICATION_OK = True
-except ImportError:
-    note_failure("meta_cognition:verification-gate-import", None)
+except ImportError as exc:
+    note_failure("meta_cognition:verification-gate-import", exc)
     _VERIFICATION_OK = False
     _verify_before_accept = None
 
@@ -275,8 +275,8 @@ class MetaCognitionWorm:
         if _LOCAL_MEMORY_OK and _get_memory_store_global is not None:
             try:
                 return _get_memory_store_global()
-            except Exception:
-                note_failure("meta_cognition:L243", None)
+            except Exception as exc:
+                note_failure("meta_cognition:L243", exc)
                 return None
         return None
 
@@ -293,8 +293,8 @@ class MetaCognitionWorm:
                 severity="error" if obs["outcome"] == "error" else "info",
                 tags=["meta_cognition", obs["worm_type"], obs["outcome"]],
             )
-        except Exception:
-            note_failure("meta_cognition:L260", None)
+        except Exception as exc:
+            note_failure("meta_cognition:L260", exc)
 
     # -- ANALYZE Phase --------------------------------------------------
 
@@ -504,8 +504,8 @@ class MetaCognitionWorm:
             current_score = self._strategy_scores[worm_type].get(current_strategy, 0.5)
         try:
             current_score = float(current_score) or 0.5
-        except (TypeError, ValueError):
-            note_failure("meta_cognition:L471", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("meta_cognition:L471", exc)
             current_score = 0.5
 
         # Score each available strategy from stored history (default 0.5)
@@ -516,8 +516,8 @@ class MetaCognitionWorm:
             stored = self._strategy_scores[worm_type].get(alt)
             try:
                 scores[alt] = float(stored) if stored is not None else 0.5
-            except (TypeError, ValueError):
-                note_failure("meta_cognition:L482", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("meta_cognition:L482", exc)
                 scores[alt] = 0.5
 
         should_adapt = False
@@ -612,8 +612,8 @@ class MetaCognitionWorm:
                 severity="warning" if adaptation.get("should_adapt") else "info",
                 tags=["meta_cognition", "adaptation", adaptation.get("worm_type", "unknown")],
             )
-        except Exception:
-            note_failure("meta_cognition:L577", None)
+        except Exception as exc:
+            note_failure("meta_cognition:L577", exc)
 
     # -- VALIDATE Phase -------------------------------------------------
 
@@ -719,8 +719,8 @@ class MetaCognitionWorm:
                 support = claim.get("support")
             try:
                 claimed = float(claim.get("confidence", 0.5) or 0.5)
-            except (TypeError, ValueError):
-                note_failure("meta_cognition:dialectic/claim-confidence", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("meta_cognition:dialectic/claim-confidence", exc)
                 claimed = 0.5
         else:
             text = str(claim or "").strip()
@@ -731,8 +731,8 @@ class MetaCognitionWorm:
 
         try:
             claimed = max(0.0, min(1.0, float(claimed)))
-        except (TypeError, ValueError):
-            note_failure("meta_cognition:dialectic/claim-clamp", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("meta_cognition:dialectic/claim-clamp", exc)
             claimed = 0.5
 
         # -- ANTITHESIS: the engine's own record for this subject.
@@ -950,8 +950,8 @@ class MetaCognitionWorm:
                     severity="info",
                     tags=["meta_cognition", "report", "introspection"],
                 )
-            except Exception:
-                note_failure("meta_cognition:L713", None)
+            except Exception as exc:
+                note_failure("meta_cognition:L713", exc)
         # Auto-save state for session-to-session persistence
         if self._persistence_enabled:
             self.save_state()
@@ -991,8 +991,8 @@ class MetaCognitionWorm:
                     severity="info",
                     tags=["meta_cognition", "persistence", "save"],
                 )
-            except Exception:
-                note_failure("meta_cognition:L753", None)
+            except Exception as exc:
+                note_failure("meta_cognition:L753", exc)
 
         return state
 
@@ -1024,8 +1024,8 @@ class MetaCognitionWorm:
                 if isinstance(data, str):
                     try:
                         data = json.loads(data)
-                    except (json.JSONDecodeError, TypeError):
-                        note_failure("meta_cognition:L786", None)
+                    except (json.JSONDecodeError, TypeError) as exc:
+                        note_failure("meta_cognition:L786", exc)
                         continue
                 if not isinstance(data, dict) or "episode_count" not in data:
                     continue
@@ -1047,8 +1047,8 @@ class MetaCognitionWorm:
                 return True
 
             return False
-        except Exception:
-            note_failure("meta_cognition:L807", None)
+        except Exception as exc:
+            note_failure("meta_cognition:L807", exc)
             return False
 
     # -- Anomaly Detection --------------------------------------------
@@ -1321,5 +1321,5 @@ try:
             else:
                 return {"error": f"Unknown meta-cognition action: {action}"}
 
-except ImportError:
-    note_failure("meta_cognition:L1078", None)
+except ImportError as exc:
+    note_failure("meta_cognition:L1078", exc)

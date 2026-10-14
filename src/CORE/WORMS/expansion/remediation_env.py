@@ -63,8 +63,8 @@ try:
     import gymnasium as gym
     from gymnasium import spaces
     _HAS_GYM = True
-except Exception:                                    # pragma: no cover
-    note_failure("remediation_env:L57", None)
+except Exception as exc:                                    # pragma: no cover
+    note_failure("remediation_env:L57", exc)
     gym = None
     _HAS_GYM = False
 

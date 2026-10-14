@@ -53,8 +53,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:  # standalone import: keep the class usable without the mesh
-    note_failure("algorithm_observers:L47", None)
+except ImportError as exc:  # standalone import: keep the class usable without the mesh
+    note_failure("algorithm_observers:L47", exc)
     _REGISTRY = False
 
     def register_worm(**kw):  # noqa: D103 - shim, see code_audit.py pattern
@@ -81,8 +81,8 @@ def _age_min(iso: Optional[str]) -> Optional[float]:
         return None
     try:
         stamp = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-    except ValueError:
-        note_failure("algorithm_observers:L74", None)
+    except ValueError as exc:
+        note_failure("algorithm_observers:L74", exc)
         return None
     if stamp.tzinfo is None:
         stamp = stamp.replace(tzinfo=timezone.utc)
@@ -95,8 +95,8 @@ def _read_json(path: Path) -> Optional[Dict[str, Any]]:
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else None
-    except (OSError, ValueError):
-        note_failure("algorithm_observers:L87", None)
+    except (OSError, ValueError) as exc:
+        note_failure("algorithm_observers:L87", exc)
         return None
 
 

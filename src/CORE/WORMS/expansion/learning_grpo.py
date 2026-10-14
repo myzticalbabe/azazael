@@ -32,8 +32,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("learning_grpo:L25", None)
+except ImportError as exc:
+    note_failure("learning_grpo:L25", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -42,8 +42,8 @@ except ImportError:
 # -- Reward-scale co-tabulation (memory unity): decomposed shadow terms -----
 try:
     from CORE.reward_scales import emit_canonical as _emit_canonical
-except ImportError:                               # never break the host
-    note_failure("learning_grpo:reward-scales", None)
+except ImportError as exc:                               # never break the host
+    note_failure("learning_grpo:reward-scales", exc)
     _emit_canonical = None  # type: ignore
 
 
@@ -132,8 +132,8 @@ class GRPOTrainer:
         """
         try:
             from CORE.worm_registry import WORM_REGISTRY
-        except ImportError:
-            note_failure("learning_grpo:L94", None)
+        except ImportError as exc:
+            note_failure("learning_grpo:L94", exc)
             return []
 
         registry = WORM_REGISTRY
@@ -240,8 +240,8 @@ class GRPOTrainer:
                 else:
                     reward = 0.0  # No execution history yet: neutral reward
                 rewards.append(reward)
-        except Exception:
-            note_failure("learning_grpo:L180", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L180", exc)
             rewards = [0.0] * len(group)
 
         return rewards
@@ -365,8 +365,8 @@ class GRPOTrainer:
                 },
                 severity="info", tags=["grpo", "policy", context_key],
             )
-        except Exception:
-            note_failure("learning_grpo:L299", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L299", exc)
 
         # Auto-save full policy snapshot after every update
         self.save_policy()
@@ -534,16 +534,16 @@ class GRPOTrainer:
             def _blended(w):
                 try:
                     conf = mc.get_confidence(w)
-                except Exception:
-                    note_failure("learning_grpo:L329", None)
+                except Exception as exc:
+                    note_failure("learning_grpo:L329", exc)
                     conf = 0.5
                 return policy[w] * (0.5 + conf)
 
             ranked = sorted(policy, key=_blended, reverse=True)
             if ranked:
                 return ranked[0]
-        except Exception:
-            note_failure("learning_grpo:L336", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L336", exc)
         return best
 
     def get_policy(self, context_key: str = None) -> dict[str, Any]:
@@ -603,8 +603,8 @@ class GRPOTrainer:
             except Exception as e:  # noqa: BLE001 — logged, never silent
                 print("GRPO tombstone cleanup failed: %s" % str(e)[:160], flush=True)
             return True
-        except Exception:
-            note_failure("learning_grpo:L397", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L397", exc)
             return False
 
     def load_policy(self) -> bool:
@@ -636,8 +636,8 @@ class GRPOTrainer:
                             w: float(s) for w, s in worms.items()
                         }
             return bool(self._policy)
-        except Exception:
-            note_failure("learning_grpo:L429", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L429", exc)
             return False
 
     def get_stats(self) -> dict[str, Any]:
@@ -895,8 +895,8 @@ class ABTestRunner:
             store = get_memory_store()
             rows = store.query_memories(event_type="preference_recorded",
                                         limit=limit)
-        except Exception:
-            note_failure("learning_grpo:L517", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L517", exc)
             return 0
         import json as _json
         loaded = 0
@@ -909,8 +909,8 @@ class ABTestRunner:
                 if isinstance(d, str):
                     try:
                         d = _json.loads(d)
-                    except Exception:
-                        note_failure("learning_grpo:L530", None)
+                    except Exception as exc:
+                        note_failure("learning_grpo:L530", exc)
                         continue
                 if not isinstance(d, dict) or d.get("experiment") != experiment:
                     continue
@@ -996,8 +996,8 @@ class ABTestRunner:
                 },
                 severity="info", tags=["dpo", "preference", experiment],
             )
-        except Exception:
-            note_failure("learning_grpo:L616", None)
+        except Exception as exc:
+            note_failure("learning_grpo:L616", exc)
 
         return entry
 

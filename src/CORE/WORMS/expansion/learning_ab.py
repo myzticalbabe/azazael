@@ -23,8 +23,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("learning_ab:L17", None)
+except ImportError as exc:
+    note_failure("learning_ab:L17", exc)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -34,8 +34,8 @@ def register_worm(**kw):
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("learning_ab:L27", None)
+except ImportError as exc:
+    note_failure("learning_ab:L27", exc)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -44,8 +44,8 @@ def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:  # noqa: BLE001 — 314t detection is best-effort
-            note_failure("learning_ab:L36", None)
+        except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning_ab:L36", exc)
             return False
 
 @register_worm(category="learning", priority=4, cooldown_seconds=120.0,

@@ -115,8 +115,8 @@ def validate_genes(genes: Any) -> GeneCheck:
             continue
         try:
             value = float(raw)
-        except (TypeError, ValueError):
-            note_failure("rl_gene_bounds:L109", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("rl_gene_bounds:L109", exc)
             problems.append(f"{name}={raw!r} is not numeric")
             continue
         lo, hi = RL_GENE_BOUNDS[name]

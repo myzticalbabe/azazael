@@ -199,8 +199,8 @@ class CPPNGenome:
                 out = self._forward_torch(coords, mats)
                 flat = out.reshape(-1).tolist() if hasattr(out, "reshape") else list(out)
                 return [float(v) for v in flat[:n]]
-            except Exception:
-                note_failure("cppn:L193", None) # fall through to pure Python
+            except Exception as exc:
+                note_failure("cppn:L193", exc) # fall through to pure Python
 
         vals = []
         for c in coords[:n]:

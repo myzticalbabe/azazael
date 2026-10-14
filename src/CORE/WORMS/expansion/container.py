@@ -24,8 +24,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("container:L18", None)
+except ImportError as exc:
+    note_failure("container:L18", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -34,8 +34,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("container:L27", None)
+except ImportError as exc:
+    note_failure("container:L27", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -44,8 +44,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("container:L36", None)
+        except Exception as exc:
+            note_failure("container:L36", exc)
             return False
 
 
@@ -85,8 +85,8 @@ class ContainerOrch:
                 data = json.loads(r.stdout)
                 state = data[0].get("State", {}) if data else {}
                 return {"name": name, "running": state.get("Running", False), "status": state.get("Status", "unknown")}
-        except Exception:
-            note_failure("container:L75", None)
+        except Exception as exc:
+            note_failure("container:L75", exc)
         return {"name": name, "running": False, "status": "error"}
 
     def stop(self, name: str) -> dict[str, Any]:
@@ -143,8 +143,8 @@ class ComposeValidator:
                 for svc_name, svc in (data.get("services") or {}).items():
                     if "image" not in svc and "build" not in svc:
                         issues.append({"msg": f"Service '{svc_name}' missing image or build"})
-        except ImportError:
-            note_failure("container:L125", None)
+        except ImportError as exc:
+            note_failure("container:L125", exc)
             content = path.read_text(encoding="utf-8")
             if "services:" not in content:
                 issues.append({"msg": "Missing 'services:' section"})
@@ -256,8 +256,8 @@ class ResourceQuotaWatch:
                 return {"container": container, "cpu_pct": cpu, "mem_mb": mem_mb,
                         "over_cpu": cpu > quota.get("cpu_limit", 100),
                         "over_mem": mem_mb > quota.get("mem_mb", 1024)}
-        except Exception:
-            note_failure("container:L223", None)
+        except Exception as exc:
+            note_failure("container:L223", exc)
         return {"container": container, "error": "Could not read stats"}
 
     def get_summary(self):

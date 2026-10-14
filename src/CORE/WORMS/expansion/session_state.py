@@ -37,8 +37,8 @@ __all__ = ["SessionStateManager"]
 try:
     from CORE.worm_registry import register_worm, BaseWormMixin
     _REGISTRY_OK = True
-except ImportError:
-    note_failure("session_state:L31", None)
+except ImportError as exc:
+    note_failure("session_state:L31", exc)
     _REGISTRY_OK = False
     class BaseWormMixin:  # type: ignore[no-redef]
         pass
@@ -60,8 +60,8 @@ def _get_store():
                 try:
                     from CORE.local_memory import LocalMemoryStore
                     _store = LocalMemoryStore()
-                except ImportError:
-                    note_failure("session_state:L53", None)
+                except ImportError as exc:
+                    note_failure("session_state:L53", exc)
                     _store = False
     return _store if _store else None
 
@@ -79,8 +79,8 @@ def _get_dm():
                 try:
                     from CORE.direct_memory import DirectMemory
                     _dm = DirectMemory(session_id="session_state_manager")
-                except ImportError:
-                    note_failure("session_state:L71", None)
+                except ImportError as exc:
+                    note_failure("session_state:L71", exc)
                     _dm = False
     return _dm if _dm else None
 
@@ -177,8 +177,8 @@ class SessionStateManager(BaseWormMixin):
                     {"worm": worm_name, "version": version},
                     tags=["session_state", "registration"],
                 )
-            except Exception:
-                note_failure("session_state:L168", None)
+            except Exception as exc:
+                note_failure("session_state:L168", exc)
 
         return {
             "worm": worm_name,
@@ -379,8 +379,8 @@ class SessionStateManager(BaseWormMixin):
                     severity="info",
                     tags=["session_state", "snapshot"],
                 )
-            except Exception:
-                note_failure("session_state:L369", None)
+            except Exception as exc:
+                note_failure("session_state:L369", exc)
 
         self._last_snapshot_id = snapshot_id
 
@@ -476,8 +476,8 @@ class SessionStateManager(BaseWormMixin):
                     severity="info" if fail == 0 else "warning",
                     tags=["session_state", "restore"],
                 )
-            except Exception:
-                note_failure("session_state:L464", None)
+            except Exception as exc:
+                note_failure("session_state:L464", exc)
 
         return {
             "worms_restored": len(results),
@@ -577,8 +577,8 @@ class SessionStateManager(BaseWormMixin):
         # Persist snapshot file
         try:
             self.export_snapshots()
-        except Exception:
-            note_failure("session_state:L565", None)
+        except Exception as exc:
+            note_failure("session_state:L565", exc)
 
         dm = _get_dm()
         if dm:
@@ -593,8 +593,8 @@ class SessionStateManager(BaseWormMixin):
                     },
                     tags=["session_state", "execute"],
                 )
-            except Exception:
-                note_failure("session_state:L581", None)
+            except Exception as exc:
+                note_failure("session_state:L581", exc)
 
         result["execution_count"] = self._execution_count
         result["manager_version"] = self.VERSION

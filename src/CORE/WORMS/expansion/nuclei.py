@@ -40,8 +40,8 @@ def _optional_import(module: str, attr: str) -> Any:
 
     try:
         return getattr(importlib.import_module(module), attr)
-    except (ImportError, AttributeError):
-        note_failure("nuclei:L34", None)
+    except (ImportError, AttributeError) as exc:
+        note_failure("nuclei:L34", exc)
         return None
 
 
@@ -78,8 +78,8 @@ def _decode_wsl_output(data: bytes) -> str:
     if b"\x00" in data:
         try:
             return data.decode("utf-16")
-        except (UnicodeDecodeError, ValueError):
-            note_failure("nuclei:L71", None)
+        except (UnicodeDecodeError, ValueError) as exc:
+            note_failure("nuclei:L71", exc)
     return data.decode("utf-8", errors="replace")
 
 
@@ -126,8 +126,8 @@ class NucleiBridge:
                 return False
             probe = _run_wsl(["which", "nuclei"], timeout=60)
             return probe.returncode == 0 and bool(probe.stdout.strip())
-        except Exception:
-            note_failure("nuclei:L119", None)
+        except Exception as exc:
+            note_failure("nuclei:L119", exc)
             return False
 
     # -- template feed ------------------------------------------------
@@ -139,8 +139,8 @@ class NucleiBridge:
                 line = line.strip()
                 if line:
                     return line
-        except Exception:
-            note_failure("nuclei:L131", None)
+        except Exception as exc:
+            note_failure("nuclei:L131", exc)
         return ""
 
     def update_templates(self, timeout: int = 600) -> dict[str, Any]:
@@ -160,8 +160,8 @@ class NucleiBridge:
             try:
                 self._state_path.parent.mkdir(parents=True, exist_ok=True)
                 self._state_path.write_text(json.dumps(state, indent=2), encoding="utf-8")
-            except Exception:
-                note_failure("nuclei:L151", None)
+            except Exception as exc:
+                note_failure("nuclei:L151", exc)
             return state
 
     def templates_status(self) -> dict[str, Any]:
@@ -169,8 +169,8 @@ class NucleiBridge:
         try:
             if self._state_path.exists():
                 return json.loads(self._state_path.read_text(encoding="utf-8"))
-        except Exception:
-            note_failure("nuclei:L160", None)
+        except Exception as exc:
+            note_failure("nuclei:L160", exc)
         return {}
 
     # -- scanning -----------------------------------------------------
@@ -202,8 +202,8 @@ class NucleiBridge:
         finally:
             try:
                 Path(targets_file).unlink()
-            except Exception:
-                note_failure("nuclei:L193", None)
+            except Exception as exc:
+                note_failure("nuclei:L193", exc)
         findings: list[dict[str, Any]] = []
         for line in proc.stdout.splitlines():
             line = line.strip()
@@ -211,8 +211,8 @@ class NucleiBridge:
                 continue
             try:
                 event = json.loads(line)
-            except (json.JSONDecodeError, ValueError):
-                note_failure("nuclei:L202", None)
+            except (json.JSONDecodeError, ValueError) as exc:
+                note_failure("nuclei:L202", exc)
                 continue
             info = event.get("info", {}) if isinstance(event.get("info"), dict) else {}
             findings.append({

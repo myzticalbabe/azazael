@@ -70,30 +70,30 @@ def _loud(message: str) -> None:
     try:
         import logging as _logging
         _logging.getLogger(__name__).warning("%s", message)
-    except Exception:
-        note_failure("spine:L61", None)
+    except Exception as exc:
+        note_failure("spine:L61", exc)
         return
     try:
         import logging as _logging
         if _logging.root.manager.disable < _logging.WARNING:
             return  # a handler (or lastResort -> stderr) already has it
-    except Exception:
-        note_failure("spine:L67", None)
+    except Exception as exc:
+        note_failure("spine:L67", exc)
         return
     try:
         import sys as _sys
         _sys.stderr.write(message + "\n")
         _sys.stderr.flush()
-    except Exception:
-        note_failure("spine:L73", None)
+    except Exception as exc:
+        note_failure("spine:L73", exc)
         pass
 
 
 try:
     from CORE.worm_registry import (register_worm, WORM_REGISTRY,
                                     is_protected_worm, PROTECTED_NATURES)
-except ImportError:  # pragma: no cover — registry optional
-    note_failure("spine:L80", None)
+except ImportError as exc:  # pragma: no cover — registry optional
+    note_failure("spine:L80", exc)
     def register_worm(**kw):
         return lambda cls: cls
     WORM_REGISTRY = {}
@@ -104,8 +104,8 @@ except ImportError:  # pragma: no cover — registry optional
 
 try:
     from CORE import spine_registry as _spine
-except ImportError:  # pragma: no cover — spine ledger optional
-    note_failure("spine:L91", None)
+except ImportError as exc:  # pragma: no cover — spine ledger optional
+    note_failure("spine:L91", exc)
     _spine = None
 
 
@@ -115,8 +115,8 @@ def get_anomaly_meta() -> Any:
         return None
     try:
         return _spine.get_anomaly_model_meta()
-    except Exception:
-        note_failure("spine:L101", None)
+    except Exception as exc:
+        note_failure("spine:L101", exc)
         return None
 
 #: U3 surgery: the nature taxonomy map is gone (D1). There is no declared
@@ -131,8 +131,8 @@ try:
     from CORE.WORMS.expansion.mesh import (
         EnvBeaconWorm, MeshRouterWorm, GossipSyncWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L116", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L116", exc)
     EnvBeaconWorm = None
     MeshRouterWorm = None
     GossipSyncWorm = None
@@ -144,8 +144,8 @@ try:
     from CORE.WORMS.expansion.thalamus import (
         ThalamicGateWorm, ArousalSwitchWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L128", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L128", exc)
     ThalamicGateWorm = None
     ArousalSwitchWorm = None
 
@@ -154,16 +154,16 @@ except ImportError:  # pragma: no cover
 # plasticity engine now asks it for per-parameter multipliers every cycle.
 try:
     from CORE.WORMS.expansion.nerve import Neuromodulator, context_vector
-except ImportError:  # pragma: no cover
-    note_failure("spine:L137", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L137", exc)
     Neuromodulator = None
     context_vector = None
 try:
     from CORE.WORMS.expansion.consensus import (
         QuorumVoterWorm, LeaderElectorWorm, SplitBrainResolverWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L144", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L144", exc)
     QuorumVoterWorm = None
     LeaderElectorWorm = None
     SplitBrainResolverWorm = None
@@ -174,8 +174,8 @@ except ImportError:  # pragma: no cover
 # Queen" described code that never ran.
 try:
     from CORE.WORMS.expansion.xenomorph import PraetorianWorm
-except ImportError:  # pragma: no cover
-    note_failure("spine:L155", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L155", exc)
     PraetorianWorm = None
 
 # Servemesh + federated organs. Audit 2026-09-15 (finding #6): all six had no
@@ -186,8 +186,8 @@ try:
     from CORE.WORMS.expansion.servemesh import (
         InferenceLoadBalancerWorm, ProviderFailoverMeshWorm, ModelShardServerWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L166", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L166", exc)
     InferenceLoadBalancerWorm = None
     ProviderFailoverMeshWorm = None
     ModelShardServerWorm = None
@@ -195,15 +195,15 @@ try:
     from CORE.WORMS.expansion.federated import (
         FederatedAggregatorWorm, NASMeshSearcherWorm, RewardShaperMeshWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L174", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L174", exc)
     FederatedAggregatorWorm = None
     NASMeshSearcherWorm = None
     RewardShaperMeshWorm = None
 try:
     from CORE.WORMS.expansion.immune import QuarantineWorm, AttestationWorm
-except ImportError:  # pragma: no cover
-    note_failure("spine:L180", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L180", exc)
     QuarantineWorm = None
     AttestationWorm = None
 
@@ -216,8 +216,8 @@ try:
     from CORE.WORMS.expansion.queens import (
         ScoutBeeWorm, GrayQueenWorm, BlackQueenWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L193", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L193", exc)
     ScoutBeeWorm = None
     GrayQueenWorm = None
     BlackQueenWorm = None
@@ -226,8 +226,8 @@ try:
         SynapseWeightWorm, MoEDispatcherWorm, SSMSequenceWorm,
         AttentionRouterWorm,
     )
-except ImportError:  # pragma: no cover
-    note_failure("spine:L202", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("spine:L202", exc)
     SynapseWeightWorm = None
     MoEDispatcherWorm = None
     SSMSequenceWorm = None
@@ -244,24 +244,24 @@ def _tuned(name: str, default: Any) -> Any:
     try:
         from CORE.WORMS.expansion import hyperopt
         return hyperopt.get(name, default)
-    except Exception:
-        note_failure("spine:L245", None)
+    except Exception as exc:
+        note_failure("spine:L245", exc)
         return default
 
 
 def _tuned_int(name: str, default: int) -> int:
     try:
         return int(_tuned(name, default))
-    except Exception:
-        note_failure("spine:L252", None)
+    except Exception as exc:
+        note_failure("spine:L252", exc)
         return int(default)
 
 
 def _tuned_float(name: str, default: float) -> float:
     try:
         return float(_tuned(name, default))
-    except Exception:
-        note_failure("spine:L259", None)
+    except Exception as exc:
+        note_failure("spine:L259", exc)
         return float(default)
 
 
@@ -277,8 +277,8 @@ def _local_env() -> str:
     try:
         from CORE.env_id import env_id
         return env_id()
-    except Exception:  # pragma: no cover - defensive, CORE.env_id is stdlib-only
-        note_failure("spine:L275", None)
+    except Exception as exc:  # pragma: no cover - defensive, CORE.env_id is stdlib-only
+        note_failure("spine:L275", exc)
         import os
         return "windows" if os.name == "nt" else "bare"
 
@@ -339,8 +339,8 @@ class SpineMapperWorm:
         if _spine is not None:
             try:
                 q_weights = _spine.get_q_weights()
-            except Exception:
-                note_failure("spine:L336", None)
+            except Exception as exc:
+                note_failure("spine:L336", exc)
                 q_weights = {}
         if _spine is not None:
             for name, info in WORM_REGISTRY.items():
@@ -377,8 +377,8 @@ class SpineMapperWorm:
         if _spine is not None:
             try:
                 route_usage = _spine.get_route_usage()
-            except Exception:
-                note_failure("spine:L372", None)
+            except Exception as exc:
+                note_failure("spine:L372", exc)
                 route_usage = {}
             for route, usage in route_usage.items():
                 src, _, dst = route.partition(">")
@@ -406,8 +406,8 @@ class SpineMapperWorm:
         if self._edge_source is not None:
             try:
                 worm_edges = list(self._edge_source.top_edges(10) or [])
-            except Exception:
-                note_failure("spine:L400", None)
+            except Exception as exc:
+                note_failure("spine:L400", exc)
                 worm_edges = []
             if worm_edges and _spine is not None:
                 _spine.record_spine_event("worm_edges", {
@@ -696,8 +696,8 @@ class RedQueenWorm:
         if EnvBeaconWorm is not None:
             try:
                 peers = EnvBeaconWorm().peers()
-            except Exception:
-                note_failure("spine:L689", None)
+            except Exception as exc:
+                note_failure("spine:L689", exc)
                 peers = None
         try:
             return Lilith().claim(peers=peers)
@@ -769,8 +769,8 @@ class RedQueenWorm:
                 picked = self._scout.select(eligible, limit, self._last_probed)
                 chosen = list(picked["chosen"])
                 self._last_scouts = list(picked.get("scout") or [])
-            except Exception:
-                note_failure("spine:L760", None)
+            except Exception as exc:
+                note_failure("spine:L760", exc)
                 self._scout = None
         if self._scout is None:
             eligible.sort(key=lambda kv: (self._last_probed.get(kv[0], 0.0),
@@ -1139,8 +1139,8 @@ class SpineGossipWorm:
                     payload = _json.loads(peer_file.read_text(encoding="utf-8"))
                     _spine.merge_spine_gossip(payload)
                     kademlia_merges += 1
-                except Exception:
-                    note_failure("spine:L1127", None)
+                except Exception as exc:
+                    note_failure("spine:L1127", exc)
             self._add_peer(peer_env)
         legacy: dict[str, Any] = {}
         try:
@@ -1293,13 +1293,13 @@ class PlasticityEngineWorm:
             self._stdp = STDPClockWorm()
             self._ewc = ElasticConsolidationWorm()
             self._forget = ForgettingCurveWorm()
-        except ImportError:  # pragma: no cover
-            note_failure("spine:L1280", None)
+        except ImportError as exc:  # pragma: no cover
+            note_failure("spine:L1280", exc)
         if Neuromodulator is not None:
             try:
                 self._neuromod = Neuromodulator(n_out=3, in_dim=6, hidden=16)
-            except Exception:
-                note_failure("spine:L1285", None)
+            except Exception as exc:
+                note_failure("spine:L1285", exc)
                 self._neuromod = None
 
     # -- core learning rule -------------------------------------------
@@ -1369,8 +1369,8 @@ class PlasticityEngineWorm:
             ta = datetime.fromisoformat(str(a_iso))
             tb = datetime.fromisoformat(str(b_iso))
             return max(0.0, (tb - ta).total_seconds() * 1000.0)
-        except Exception:
-            note_failure("spine:L1355", None)
+        except Exception as exc:
+            note_failure("spine:L1355", exc)
             return 0.0
 
     def _modulation(self, events: list[dict]) -> float:
@@ -1386,8 +1386,8 @@ class PlasticityEngineWorm:
                                  rate, 0.0)
             mods = self._neuromod.modulations(ctx)
             return max(0.25, min(2.0, sum(mods) / max(1, len(mods))))
-        except Exception:
-            note_failure("spine:L1371", None)
+        except Exception as exc:
+            note_failure("spine:L1371", exc)
             return 1.0
 
     def _enforce_cap(self) -> None:
@@ -1519,8 +1519,8 @@ class MeshArchitectWorm:
             return {}
         try:
             return dict(self._edge_source.edge_weights() or {})
-        except Exception:
-            note_failure("spine:L1501", None)
+        except Exception as exc:
+            note_failure("spine:L1501", exc)
             return {}
 
     @staticmethod
@@ -1539,8 +1539,8 @@ class MeshArchitectWorm:
             return {}
         try:
             homeo = _spine.get_homeostat_view() or {}
-        except Exception:
-            note_failure("spine:L1520", None)
+        except Exception as exc:
+            note_failure("spine:L1520", exc)
             return {}
         agg: dict[str, list[float]] = {}
         for key, rec in homeo.items():
@@ -1639,8 +1639,8 @@ class MeshArchitectWorm:
             for entry in applied:
                 try:
                     _spine.record_spine_event("topology_proposal", entry)
-                except Exception:
-                    note_failure("spine:L1619", None)
+                except Exception as exc:
+                    note_failure("spine:L1619", exc)
         saved = self.save()
         return {"success": True, "applied": applied, "overlay_size": len(snapshot),
                 "persisted": saved, "mutated_config": False}
@@ -1780,8 +1780,8 @@ class SpineCycleWorm:
             from CORE.WORMS.expansion.plasticity import HebbianUpdaterWorm, STDPClockWorm
             self._hebbian = HebbianUpdaterWorm()
             self._stdp = STDPClockWorm()
-        except ImportError:
-            note_failure("spine:L1758", None)
+        except ImportError as exc:
+            note_failure("spine:L1758", exc)
         # G7 / F2 wiring (2026-09-14): persistent edge weights + TD(lambda)
         # eligibility traces. Before this, the plasticity stage computed a
         # delta from a hardcoded 0.0 weight and threw the result away.
@@ -1809,8 +1809,8 @@ class SpineCycleWorm:
             from CORE.WORMS.expansion.immune import AutoencoderAnomalyWorm
             self._anomaly = AutoencoderAnomalyWorm()
             self._anomaly.load()
-        except Exception:
-            note_failure("spine:L1787", None)
+        except Exception as exc:
+            note_failure("spine:L1787", exc)
             self._anomaly = None
         # F8: the architect reads the same weight store the mapper does, and
         # proposes (never unilaterally performs) topology edits.
@@ -1829,16 +1829,16 @@ class SpineCycleWorm:
             self._power = PowerBudgetWorm()
             self._thermal = ThermalThrottleWorm()
             self._quota = QuotaEnforcerWorm()
-        except Exception:
-            note_failure("spine:L1806", None)
+        except Exception as exc:
+            note_failure("spine:L1806", exc)
             self._power = self._thermal = self._quota = None
         # G8: Morphogenesis output gate
         self._morphogenesis = None
         try:
             from CORE.WORMS.expansion.spine import MorphogenesisWorm
             self._morphogenesis = MorphogenesisWorm()
-        except ImportError:
-            note_failure("spine:L1813", None)
+        except ImportError as exc:
+            note_failure("spine:L1813", exc)
         # Colour queens (audit §5.1/§5.2): Gray (entrenchment delta) and Black
         # (quorum-gated retirement). Their named consumer is the governance
         # stage below — without a caller they would be exactly the orphan
@@ -1929,8 +1929,8 @@ class SpineCycleWorm:
             if extra:
                 payload.update(extra)
             _spine.record_spine_event("spine_cycle", payload)
-        except Exception:
-            note_failure("spine:L1903", None)
+        except Exception as exc:
+            note_failure("spine:L1903", exc)
 
     def run_cycle(self, apply: bool = False,
                   degrade_to_observe: bool = False) -> dict[str, Any]:
@@ -2269,8 +2269,8 @@ class SpineCycleWorm:
         if self._plasticity._updates % 5 == 0:
             try:
                 result["consolidation"] = self._plasticity.consolidate()
-            except Exception:
-                note_failure("spine:L2175", None)
+            except Exception as exc:
+                note_failure("spine:L2175", exc)
                 pass
         return result
 
@@ -2298,8 +2298,8 @@ class SpineCycleWorm:
                     salience = 0.35 + min(0.5, float(e.get("ms") or 0.0) / 2000.0)
                 if self._thalamus.filter("monitor", salience).get("passed"):
                     kept.append(e)
-            except Exception:
-                note_failure("spine:L2203", None)
+            except Exception as exc:
+                note_failure("spine:L2203", exc)
                 kept.append(e)
         return kept
 
@@ -2322,8 +2322,8 @@ class SpineCycleWorm:
         out: dict[str, Any] = {"success": True}
         try:
             events = _spine.get_outcome_events()
-        except Exception:
-            note_failure("spine:L2226", None)
+        except Exception as exc:
+            note_failure("spine:L2226", exc)
             events = []
         window = events[-50:]
 
@@ -2455,8 +2455,8 @@ class SpineCycleWorm:
                 mode = self._arousal.get_mode()
                 out["arousal"] = {"mode": mode.get("mode"),
                                   "budgets": mode.get("budgets")}
-            except Exception:
-                note_failure("spine:L2398", None)
+            except Exception as exc:
+                note_failure("spine:L2398", exc)
 
         # GossipSyncWorm.gossip() was orphaned; merge this env's own snapshot
         # so the organ has a real caller and drift is detectable locally.
@@ -2465,8 +2465,8 @@ class SpineCycleWorm:
                 snap = {f"q:{k}": round(v, 4)
                         for k, v in list(_spine.get_q_weights().items())[:25]}
                 out["sync"] = self._sync.gossip(snap)
-            except Exception:
-                note_failure("spine:L2408", None)
+            except Exception as exc:
+                note_failure("spine:L2408", exc)
         return out
 
     def _anomaly_metrics(self) -> list[float]:
@@ -2485,8 +2485,8 @@ class SpineCycleWorm:
             scars = _spine.get_scars()
             q_weights = _spine.get_q_weights()
             routes = _spine.get_route_usage()
-        except Exception:
-            note_failure("spine:L2383", None)
+        except Exception as exc:
+            note_failure("spine:L2383", exc)
             return []
 
         import math
@@ -2559,8 +2559,8 @@ class SpineCycleWorm:
                         > int(self._anomaly._observations)):
                     if self._anomaly.import_model(shared):
                         adopted = meta
-            except Exception:
-                note_failure("spine:L2456", None)
+            except Exception as exc:
+                note_failure("spine:L2456", exc)
                 adopted = None
 
         obs = self._anomaly.observe(vec)
@@ -2575,8 +2575,8 @@ class SpineCycleWorm:
             try:
                 obs["published"] = _spine.publish_anomaly_model(
                     self._anomaly.export_model())
-            except Exception:
-                note_failure("spine:L2518", None)
+            except Exception as exc:
+                note_failure("spine:L2518", exc)
         return {"success": True, "alert": obs.get("alert"),
                 "recon_error": obs.get("recon_error"),
                 "threshold": obs.get("threshold"),
@@ -2641,8 +2641,8 @@ class SpineCycleWorm:
                     "thermal_state": (out.get("thermal") or {}).get("state"),
                     "thermal_source": (out.get("thermal") or {}).get("source"),
                 })
-            except Exception:
-                note_failure("spine:L2534", None)
+            except Exception as exc:
+                note_failure("spine:L2534", exc)
                 pass
         return out
 
@@ -2676,8 +2676,8 @@ class SpineCycleWorm:
             return {}
         try:
             homeo = _spine.get_homeostat_view()
-        except Exception:
-            note_failure("spine:L2567", None)
+        except Exception as exc:
+            note_failure("spine:L2567", exc)
             return {}
         rates: dict[str, float] = {}
         for key, rec in (homeo or {}).items():
@@ -2709,8 +2709,8 @@ class SpineCycleWorm:
             return None
         try:
             usage = _spine.get_route_usage()
-        except Exception:
-            note_failure("spine:L2599", None)
+        except Exception as exc:
+            note_failure("spine:L2599", exc)
             return None
         rec = usage.get(f"{_local_env()}>{dst_env}")
         if not isinstance(rec, dict):
@@ -2816,8 +2816,8 @@ class SpineCycleWorm:
     def _provider_alias(cls, name: str) -> str:
         try:
             return str(ProviderFailoverMeshWorm.PROVIDER_ALIASES.get(name, name))
-        except Exception:  # pragma: no cover - defensive
-            note_failure("spine:L2702", None)
+        except Exception as exc:  # pragma: no cover - defensive
+            note_failure("spine:L2702", exc)
             return str(cls._PROVIDER_ALIAS_FALLBACK.get(name, name))
 
     @classmethod
@@ -2845,8 +2845,8 @@ class SpineCycleWorm:
                 PROVIDER_REGISTRY,
                 provider_credential_configured,
             )
-        except Exception:
-            note_failure("spine:L2730", None)
+        except Exception as exc:
+            note_failure("spine:L2730", exc)
             return {}
         loopback = ("localhost", "127.0.0.1", "0.0.0.0", "[::1]")
         out: dict[str, bool] = {}
@@ -2865,8 +2865,8 @@ class SpineCycleWorm:
             # which silently dropped a working provider from the chain.
             try:
                 out[str(name)] = bool(provider_credential_configured(pid))
-            except Exception:  # pragma: no cover - defensive
-                note_failure("spine:L2749", None)
+            except Exception as exc:  # pragma: no cover - defensive
+                note_failure("spine:L2749", exc)
                 out[str(name)] = bool(os.environ.get(str(var)))
         return out
 
@@ -2882,15 +2882,15 @@ class SpineCycleWorm:
         from pathlib import Path
         try:
             from CORE.fs_probe import bounded_first_dir
-        except Exception:  # pragma: no cover - probe helper optional
-            note_failure("spine:L2765", None)
+        except Exception as exc:  # pragma: no cover - probe helper optional
+            note_failure("spine:L2765", exc)
             def bounded_first_dir(cands, timeout_s=2.5):  # type: ignore
                 for c in cands or ():
                     try:
                         if Path(c).is_dir():
                             return c
-                    except Exception:
-                        note_failure("spine:L2771", None)
+                    except Exception as exc:
+                        note_failure("spine:L2771", exc)
                         continue
                 return None
         # Bounded, CONCURRENT probe. An unreachable root answers None (= "the
@@ -2907,8 +2907,8 @@ class SpineCycleWorm:
         published = 0
         try:
             entries = sorted(root.iterdir())[: self.SHARD_PUBLISH_MAX]
-        except OSError:
-            note_failure("spine:L2788", None)
+        except OSError as exc:
+            note_failure("spine:L2788", exc)
             return 0
         for f in entries:
             try:
@@ -2922,8 +2922,8 @@ class SpineCycleWorm:
                 shards.publish(f.stem, digest, _local_env(), fmt,
                                "Q4_K_M" if fmt == "gguf" else "n/a")
                 published += 1
-            except Exception:
-                note_failure("spine:L2864", None)
+            except Exception as exc:
+                note_failure("spine:L2864", exc)
                 continue
         return published
 
@@ -2939,14 +2939,14 @@ class SpineCycleWorm:
         forks: list[tuple] = []
         try:
             models = (shards.execute().get("result", {}) or {}).get("models") or []
-        except Exception:
-            note_failure("spine:L2818", None)
+        except Exception as exc:
+            note_failure("spine:L2818", exc)
             return forks
         for model in list(models)[: self.FORK_SCAN_MAX]:
             try:
                 entries = shards.locate(str(model)).get("shards") or []
-            except Exception:
-                note_failure("spine:L2823", None)
+            except Exception as exc:
+                note_failure("spine:L2823", exc)
                 continue
             by_hash: dict[str, list] = {}
             for e in entries:
@@ -2966,8 +2966,8 @@ class SpineCycleWorm:
         # 1. Real registry: the RULE 0D provider chain.
         try:
             from CORE.inference.providers import PROVIDER_REGISTRY
-        except Exception:
-            note_failure("spine:L2843", None)
+        except Exception as exc:
+            note_failure("spine:L2843", exc)
             PROVIDER_REGISTRY = {}
         lb = InferenceLoadBalancerWorm()
         registered = 0
@@ -3051,8 +3051,8 @@ class SpineCycleWorm:
             if EnvBeaconWorm is not None:
                 try:
                     peers = list(EnvBeaconWorm().peers().get("peers") or [])
-                except Exception:
-                    note_failure("spine:L2924", None)
+                except Exception as exc:
+                    note_failure("spine:L2924", exc)
                     peers = []
             for env in [_local_env()] + peers:
                 elect.nominate(str(env), "peer", priority=5)
@@ -3069,8 +3069,8 @@ class SpineCycleWorm:
                 claim = Lilith().claim(peers={"peers": res.get("peers") or []})
                 queen_present = str(claim.get("role", "")).startswith("queen")
                 res["queen_role"] = claim.get("role")
-            except Exception:
-                note_failure("spine:L2941", None)
+            except Exception as exc:
+                note_failure("spine:L2941", exc)
                 queen_present = False
             term = int(leader.get("term") or 0)
             try:
@@ -3127,13 +3127,13 @@ class SpineCycleWorm:
         if _spine is not None:
             try:
                 q = _spine.get_q_weights() or {}
-            except Exception:
-                note_failure("spine:L2996", None)
+            except Exception as exc:
+                note_failure("spine:L2996", exc)
                 q = {}
             try:
                 nodes = _spine.get_spine_map() or {}
-            except Exception:
-                note_failure("spine:L3000", None)
+            except Exception as exc:
+                note_failure("spine:L3000", exc)
                 nodes = {}
         # 2. Reward shaping from the real provider chain (finding #6: `score`
         #    and `weights` had no caller, so the DLQ never filled and the
@@ -3225,16 +3225,16 @@ class SpineCycleWorm:
         if _spine is not None:
             try:
                 q_raw = _spine.get_q_weights() or {}
-            except Exception:
-                note_failure("spine:L3091", None)
+            except Exception as exc:
+                note_failure("spine:L3091", exc)
                 q_raw = {}
         q_by_nature: dict[str, float] = {}
         for key, val in q_raw.items():
             nature = str(key).split(":", 1)[0]
             try:
                 q_by_nature[nature] = q_by_nature.get(nature, 0.0) + float(val)
-            except (TypeError, ValueError):
-                note_failure("spine:L3098", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("spine:L3098", exc)
                 continue
         if not q_by_nature:
             # No measured signal means no honest objective. Reporting that is
@@ -3372,8 +3372,8 @@ class SpineCycleWorm:
                 shutil.copy2(f, stage / f.name)
                 staged += 1
                 staged_bytes += size
-            except OSError:
-                note_failure("spine:L3319", None)
+            except OSError as exc:
+                note_failure("spine:L3319", exc)
                 continue
         res: dict[str, Any] = {"staged_files": staged,
                                "staged_bytes": staged_bytes,
@@ -3422,8 +3422,8 @@ class SpineCycleWorm:
         if manifest_path.is_file():
             try:
                 previous = json.loads(manifest_path.read_text(encoding="utf-8"))
-            except (OSError, ValueError):
-                note_failure("spine:L3282", None)
+            except (OSError, ValueError) as exc:
+                note_failure("spine:L3282", exc)
                 previous = {}
         if previous:
             delta = inc.find_changes(previous, current)
@@ -3461,8 +3461,8 @@ class SpineCycleWorm:
                     try:
                         if p.is_file():
                             restored += 1
-                    except OSError:
-                        note_failure("spine:L3234", None)
+                    except OSError as exc:
+                        note_failure("spine:L3234", exc)
                         continue
                 res["restored_files"] = restored
         finally:
@@ -3606,14 +3606,14 @@ class MorphogenesisWorm:
         try:
             from CORE.WORMS.expansion.spawn_credit import live_spawn_credit
             from CORE.worm_registry import WORM_REGISTRY
-        except Exception:
-            note_failure("spine:L3463", None)
+        except Exception as exc:
+            note_failure("spine:L3463", exc)
             return out
         try:
             credit = live_spawn_credit()
             chosen_never = credit.chosen_but_never_run()
-        except Exception:
-            note_failure("spine:L3468", None)
+        except Exception as exc:
+            note_failure("spine:L3468", exc)
             return out
         if not chosen_never:
             return out
@@ -3633,16 +3633,16 @@ class MorphogenesisWorm:
         for name in chosen_never:
             try:
                 reg = WORM_REGISTRY.get(name)
-            except Exception:
-                note_failure("spine:L3488", None)
+            except Exception as exc:
+                note_failure("spine:L3488", exc)
                 reg = None
             if reg is None:
                 skipped.append(str(name))
                 continue
             try:
                 nature = str(reg.get("category") or "expansion")
-            except Exception:
-                note_failure("spine:L3495", None)
+            except Exception as exc:
+                note_failure("spine:L3495", exc)
                 nature = "expansion"
             by_nature.setdefault(nature, []).append(name)
 
@@ -3653,8 +3653,8 @@ class MorphogenesisWorm:
                     "opportunity trigger skipped %d chosen name(s) absent from "
                     "the registry (bad records, not capability gaps): %s",
                     len(skipped), ", ".join(sorted(skipped)[:6]))
-            except Exception:
-                note_failure("spine:L3506", None)
+            except Exception as exc:
+                note_failure("spine:L3506", exc)
                 pass
 
         for nature, worms in sorted(by_nature.items()):
@@ -3793,8 +3793,8 @@ class {cls}:
                     _spine.record_spine_event("morphogenesis_staged", {
                         "file": path.name, "source_worm": e["worm"],
                         "trigger": trigger})
-            except Exception:
-                note_failure("spine:L3645", None)
+            except Exception as exc:
+                note_failure("spine:L3645", exc)
                 continue
         return written
 
@@ -3817,8 +3817,8 @@ class {cls}:
         if self.OPPORTUNITY_ENABLED:
             try:
                 opportunity = self._opportunity_patterns()
-            except Exception:
-                note_failure("spine:L3668", None)
+            except Exception as exc:
+                note_failure("spine:L3668", exc)
                 opportunity = []
 
         proposals: list[dict[str, Any]] = []
@@ -3851,8 +3851,8 @@ class {cls}:
             try:
                 out.append({"file": p.name, "path": str(p),
                             "bytes": p.stat().st_size})
-            except OSError:
-                note_failure("spine:L3701", None)
+            except OSError as exc:
+                note_failure("spine:L3701", exc)
                 continue
         return out
 
@@ -3873,14 +3873,14 @@ class {cls}:
         scored = []
         try:
             files = sorted(pen.glob("*.py"))
-        except OSError:
-            note_failure("spine:L3722", None)
+        except OSError as exc:
+            note_failure("spine:L3722", exc)
             return []
         for p in files:
             try:
                 head = p.read_text(encoding="utf-8", errors="replace")[:1200]
-            except OSError:
-                note_failure("spine:L3727", None)
+            except OSError as exc:
+                note_failure("spine:L3727", exc)
                 continue
             doc = "%s %s" % (p.stem.replace("_", " ").lower(), head.lower())
             overlap = len(set(q.split()) & set(doc.split()))
@@ -3924,8 +3924,8 @@ class {cls}:
                     "promotions": [], "pending": []}
         try:
             qz = QuarantineWorm() if QuarantineWorm is not None else None
-        except Exception:  # pragma: no cover - defensive
-            note_failure("spine:L3771", None)
+        except Exception as exc:  # pragma: no cover - defensive
+            note_failure("spine:L3771", exc)
             qz = None
         # Yellow team (audit §5.6): AttestationWorm.attest_file() already does
         # py_compile + SHA-256 + a free-threading check and had ZERO consumers —
@@ -3935,8 +3935,8 @@ class {cls}:
         # promotable.
         try:
             att = AttestationWorm() if AttestationWorm is not None else None
-        except Exception:  # pragma: no cover - defensive
-            note_failure("spine:L3781", None)
+        except Exception as exc:  # pragma: no cover - defensive
+            note_failure("spine:L3781", exc)
             att = None
         for cand in candidates:
             name = cand["file"]
@@ -3944,8 +3944,8 @@ class {cls}:
             if qz is not None:
                 try:
                     qz.quarantine(name, "morphogenesis:awaiting_quorum")
-                except Exception:
-                    note_failure("spine:L3789", None)
+                except Exception as exc:
+                    note_failure("spine:L3789", exc)
                     pass
             vote: dict[str, Any] = {}
             if _spine is not None:
@@ -3953,8 +3953,8 @@ class {cls}:
                     vote = _spine.cast_quarantine_vote(
                         finding, "operator" if force else env,
                         "promote", quorum=quorum)
-                except Exception:
-                    note_failure("spine:L3797", None)
+                except Exception as exc:
+                    note_failure("spine:L3797", exc)
                     vote = {}
             decided = bool(force) or bool(vote.get("decided"))
             if not decided:
@@ -3988,8 +3988,8 @@ class {cls}:
                                 "morphogenesis_attestation_refused", {
                                     "file": name,
                                     "compiles": (attestation or {}).get("compiles")})
-                        except Exception:
-                            note_failure("spine:L3830", None)
+                        except Exception as exc:
+                            note_failure("spine:L3830", exc)
                             pass
                     continue
             try:
@@ -4030,8 +4030,8 @@ def measure_skill_lift(with_skill: dict, without_skill: dict) -> dict:
     try:
         wp, wt = int(with_skill.get("passed", 0)), int(with_skill.get("total", 0))
         np_, nt = int(without_skill.get("passed", 0)), int(without_skill.get("total", 0))
-    except (TypeError, ValueError):
-        note_failure("spine:L3870", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("spine:L3870", exc)
         return {"lift": 0.0, "verdict": "unmeasurable"}
     if wt <= 0 or nt <= 0:
         return {"lift": 0.0, "verdict": "unmeasurable"}
@@ -4188,8 +4188,8 @@ class ConsolidationWorm:
                         reinforced += 1
                     else:
                         _skip("reinforce_rejected")
-            except Exception:
-                note_failure("spine:L4025", None)
+            except Exception as exc:
+                note_failure("spine:L4025", exc)
                 _skip("dream_error")
                 continue
         with self._lock:
@@ -4206,8 +4206,8 @@ class ConsolidationWorm:
         if reinforced and _spine is not None:
             try:
                 persisted = _spine.save_spine_state()
-            except Exception:
-                note_failure("spine:L4042", None)
+            except Exception as exc:
+                note_failure("spine:L4042", exc)
                 persisted = {"saved": False, "reason": "save_failed"}
         if _spine is not None:
             _spine.record_spine_event("consolidation", {

@@ -26,8 +26,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("config:L20", None)
+except ImportError as exc:
+    note_failure("config:L20", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -36,8 +36,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("config:L29", None)
+except ImportError as exc:
+    note_failure("config:L29", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -46,8 +46,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("config:L38", None)
+        except Exception as exc:
+            note_failure("config:L38", exc)
             return False
 
 

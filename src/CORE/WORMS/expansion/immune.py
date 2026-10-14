@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("immune:L19", None)
+except ImportError as exc:
+    note_failure("immune:L19", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -84,8 +84,8 @@ class ImmuneSentinelWorm:
                 if _os.path.exists(p):
                     cls._EBPF_BASELINE = _json.load(open(p, encoding="utf-8"))
                     break
-            except Exception:
-                note_failure("immune:L77", None)
+            except Exception as exc:
+                note_failure("immune:L77", exc)
                 continue
         else:
             cls._EBPF_BASELINE = {}
@@ -103,8 +103,8 @@ class ImmuneSentinelWorm:
             try:
                 from river.drift import ADWIN
                 cls._ADWIN[metric] = ADWIN()
-            except ImportError:
-                note_failure("immune:L95", None)
+            except ImportError as exc:
+                note_failure("immune:L95", exc)
                 cls._ADWIN[metric] = False
         return cls._ADWIN[metric] or None
 
@@ -122,8 +122,8 @@ class ImmuneSentinelWorm:
             try:
                 det.update(per_sec)
                 r["drift"] = bool(det.drift_detected)
-            except Exception:
-                note_failure("immune:L113", None)
+            except Exception as exc:
+                note_failure("immune:L113", exc)
         if base is None:
             return {**r, "src": "online-only", "comm": comm}
         mu = base["per_sec_mean"]
@@ -164,8 +164,8 @@ class QuarantineWorm:
         try:
             from CORE import spine_registry as _sr
             return _sr
-        except Exception:
-            note_failure("immune:L155", None)
+        except Exception as exc:
+            note_failure("immune:L155", exc)
             return None
 
     def quarantine(self, item_id: str, reason: str) -> dict[str, Any]:
@@ -181,8 +181,8 @@ class QuarantineWorm:
                 spine.quarantine_item(item_id, reason)
                 count = spine.quarantine_count()
                 shared = True
-            except Exception:
-                note_failure("immune:L171", None)
+            except Exception as exc:
+                note_failure("immune:L171", exc)
                 shared = False
         return {"success": True, "item": item_id,
                 "quarantined": count, "shared": shared}
@@ -199,8 +199,8 @@ class QuarantineWorm:
                 spine.release_item(item_id)
                 count = spine.quarantine_count()
                 shared = True
-            except Exception:
-                note_failure("immune:L188", None)
+            except Exception as exc:
+                note_failure("immune:L188", exc)
                 shared = False
         return {"success": True, "item": item_id, "released": gone,
                 "quarantined": count, "shared": shared}
@@ -215,8 +215,8 @@ class QuarantineWorm:
         if spine is not None:
             try:
                 return bool(spine.is_quarantined(item_id))
-            except Exception:
-                note_failure("immune:L203", None)
+            except Exception as exc:
+                note_failure("immune:L203", exc)
         with self._lock:
             return item_id in self._quarantined
 
@@ -226,8 +226,8 @@ class QuarantineWorm:
         if spine is not None:
             try:
                 return dict(spine.get_quarantine_items())
-            except Exception:
-                note_failure("immune:L214", None)
+            except Exception as exc:
+                note_failure("immune:L214", exc)
         with self._lock:
             return {k: dict(v) for k, v in self._quarantined.items()}
 
@@ -263,14 +263,14 @@ class AttestationWorm:
             try:
                 py_compile.compile(str(p), doraise=True)
                 compiles = True
-            except Exception:
-                note_failure("immune:L250", None)
+            except Exception as exc:
+                note_failure("immune:L250", exc)
                 compiles = False
         try:
             from CORE.freethreading import is_free_threaded
             ft = is_free_threaded()
-        except Exception:
-            note_failure("immune:L255", None)
+        except Exception as exc:
+            note_failure("immune:L255", exc)
             ft = False
         rec = {"path": str(p), "sha": digest, "compiles": compiles,
                "ft": ft, "at": datetime.now().isoformat(),
@@ -498,8 +498,8 @@ class AutoencoderAnomalyWorm:
             if (len(w_enc) != h or any(len(r) != n for r in w_enc)
                     or len(w_dec) != n or any(len(r) != h for r in w_dec)):
                 return False
-        except (KeyError, TypeError, ValueError):
-            note_failure("immune:L483", None)
+        except (KeyError, TypeError, ValueError) as exc:
+            note_failure("immune:L483", exc)
             return False
         with self._lock:
             self._W_enc = w_enc

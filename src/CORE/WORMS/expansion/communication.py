@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("communication:L19", None)
+except ImportError as exc:
+    note_failure("communication:L19", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -35,8 +35,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("communication:L28", None)
+except ImportError as exc:
+    note_failure("communication:L28", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -45,8 +45,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("communication:L37", None)
+        except Exception as exc:
+            note_failure("communication:L37", exc)
             return False
 
 
@@ -76,8 +76,8 @@ class MessageBroker:
         for h in handlers:
             try:
                 h(msg)
-            except Exception:
-                note_failure("communication:L67", None)
+            except Exception as exc:
+                note_failure("communication:L67", exc)
 
     def replay(self, topic: str = "", limit: int = 100) -> list[dict]:
         with self._lock:
@@ -227,8 +227,8 @@ class ProtocolNegotiator:
         protocols = ["json"]
         try:
             protocols.append("msgpack")
-        except ImportError:
-            note_failure("communication:L216", None)
+        except ImportError as exc:
+            note_failure("communication:L216", exc)
         return protocols
 
     def serialize(self, data: Any, protocol: str) -> bytes:

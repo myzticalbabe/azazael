@@ -104,13 +104,13 @@ def _new_decision_id() -> str:
     try:
         from CORE.WORMS.expansion.spawn_credit import new_decision_id
         return str(new_decision_id())
-    except Exception:
-        note_failure("delegation:L97", None)
+    except Exception as exc:
+        note_failure("delegation:L97", exc)
         try:
             from CORE.uuid7 import uuid7
             return "d-local-%s" % uuid7().hex[:12]
-        except Exception:
-            note_failure("delegation:L101", None)
+        except Exception as exc:
+            note_failure("delegation:L101", exc)
             return "d-local-%s" % uuid.uuid4().hex[:12]
 
 
@@ -121,12 +121,12 @@ def _announce(topic: str, payload: Dict[str, Any], bus: Any = None) -> None:
             try:
                 from CORE.MemoryBus import MemoryBus
                 bus = MemoryBus()
-            except Exception:
-                note_failure("delegation:L112", None)
+            except Exception as exc:
+                note_failure("delegation:L112", exc)
                 return
         bus.publish(topic, payload, source="delegation")
-    except Exception:
-        note_failure("delegation:L115", None)
+    except Exception as exc:
+        note_failure("delegation:L115", exc)
     try:
         from CORE.local_memory import get_memory_store
         store = get_memory_store()
@@ -139,8 +139,8 @@ def _announce(topic: str, payload: Dict[str, Any], bus: Any = None) -> None:
                       "worm": payload.get("worm"),
                       "answered": bool(payload.get("answered", False))},
                 severity="info", tags=["delegation", "ask-owner"])
-    except Exception:
-        note_failure("delegation:L129", None)
+    except Exception as exc:
+        note_failure("delegation:L129", exc)
 
 
 def _person_context() -> Dict[str, Any]:
@@ -303,12 +303,12 @@ def on_question(callback: Callable[[Any], None], *,
             try:
                 from CORE.MemoryBus import MemoryBus
                 bus = MemoryBus()
-            except Exception:
-                note_failure("delegation:L201", None)
+            except Exception as exc:
+                note_failure("delegation:L201", exc)
                 return None
         return int(bus.subscribe(pattern, callback))
-    except Exception:
-        note_failure("delegation:L204", None)
+    except Exception as exc:
+        note_failure("delegation:L204", exc)
         return None
 
 

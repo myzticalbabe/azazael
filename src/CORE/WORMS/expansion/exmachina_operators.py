@@ -63,8 +63,8 @@ except ImportError:                               # never break the host
 
 try:                                       # same-directory import, no package init
     from exmachina import ncd, ridge_fit, _finite   # type: ignore
-except Exception:                          # pragma: no cover - import shape guard
-    note_failure("exmachina_operators:L57", None)
+except Exception as exc:                          # pragma: no cover - import shape guard
+    note_failure("exmachina_operators:L57", exc)
     from .exmachina import ncd, ridge_fit, _finite   # type: ignore
 
 __all__ = [
@@ -986,8 +986,8 @@ def rank_candidates(items: Sequence[dict], covered: Optional[Sequence[Any]] = No
             continue
         try:
             p = float(it.get(field, it.get("p", 0.5)))
-        except (TypeError, ValueError):
-            note_failure("exmachina_operators:L979", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("exmachina_operators:L979", exc)
             continue
         # A nan probability is MISSING information, not zero information.
         # Ranking it last would quietly put an unmeasured item behind a
@@ -1001,8 +1001,8 @@ def rank_candidates(items: Sequence[dict], covered: Optional[Sequence[Any]] = No
             for h in have:
                 try:
                     sims.append(1.0 - ncd(it, h))
-                except Exception:
-                    note_failure("exmachina_operators:L993", None)
+                except Exception as exc:
+                    note_failure("exmachina_operators:L993", exc)
                     continue
             red = max(sims) if sims else 0.0
         score = eig * (1.0 - float(redundancy_penalty) * max(0.0, min(1.0, red)))
@@ -1045,8 +1045,8 @@ def operator_report(rows: Sequence[dict], features: Optional[Sequence[str]] = No
                 continue
             try:
                 f = float(v)
-            except (TypeError, ValueError):
-                note_failure("exmachina_operators:L1036", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("exmachina_operators:L1036", exc)
                 continue
             if math.isfinite(f):
                 got[k] = f

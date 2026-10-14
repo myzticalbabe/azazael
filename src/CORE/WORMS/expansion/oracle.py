@@ -77,16 +77,16 @@ def era_descriptor(pool: Optional[dict]) -> List[float]:
     if isinstance(p, str):
         try:
             p = json.loads(p)
-        except Exception:
-            note_failure("oracle:L71", None)
+        except Exception as exc:
+            note_failure("oracle:L71", exc)
             p = {}
 
     def _f(key):
         v = p.get(key)
         try:
             return float(v)
-        except (TypeError, ValueError):
-            note_failure("oracle:L78", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("oracle:L78", exc)
             return 0.0
 
     info = _f("info")
@@ -143,8 +143,8 @@ class FitnessOracle:
         try:
             from CORE.device import get_device
             self._device = get_device()
-        except Exception:
-            note_failure("oracle:L135", None)
+        except Exception as exc:
+            note_failure("oracle:L135", exc)
             self._device = "cpu"
         return self._device
 
@@ -504,8 +504,8 @@ def build_dataset(rows, gene_keys: Optional[Sequence[str]] = None,
         if isinstance(data, str):
             try:
                 data = json.loads(data)
-            except Exception:
-                note_failure("oracle:L495", None)
+            except Exception as exc:
+                note_failure("oracle:L495", exc)
                 continue
         if not isinstance(data, dict):
             continue
@@ -517,8 +517,8 @@ def build_dataset(rows, gene_keys: Optional[Sequence[str]] = None,
             continue
         try:
             gvec = [float(genes[k]) for k in gene_keys]
-        except (KeyError, TypeError, ValueError):
-            note_failure("oracle:L507", None)
+        except (KeyError, TypeError, ValueError) as exc:
+            note_failure("oracle:L507", exc)
             continue
         era = era_descriptor(data.get("pool_fingerprint"))
         X.append(gvec + era)

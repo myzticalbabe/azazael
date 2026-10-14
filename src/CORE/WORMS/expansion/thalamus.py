@@ -21,8 +21,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("thalamus:L15", None)
+except ImportError as exc:
+    note_failure("thalamus:L15", exc)
     def register_worm(**kw):
         return lambda cls: cls
 

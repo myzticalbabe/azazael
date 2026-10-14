@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("visualization:L19", None)
+except ImportError as exc:
+    note_failure("visualization:L19", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -35,8 +35,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("visualization:L28", None)
+except ImportError as exc:
+    note_failure("visualization:L28", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -45,8 +45,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("visualization:L37", None)
+        except Exception as exc:
+            note_failure("visualization:L37", exc)
             return False
 
 
@@ -128,8 +128,8 @@ class GraphRenderer:
             r = subprocess.run(["dot", "-Tsvg", "-o", output_path],
                 input=dot, capture_output=True, text=True, timeout=10)
             return r.returncode == 0
-        except Exception:
-            note_failure("visualization:L119", None)
+        except Exception as exc:
+            note_failure("visualization:L119", exc)
             return False
 
 

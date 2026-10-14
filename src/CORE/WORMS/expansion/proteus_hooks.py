@@ -107,8 +107,8 @@ def row_payload(row: Any) -> Optional[dict]:
     if isinstance(data, str):
         try:
             data = json.loads(data)
-        except Exception:
-            note_failure("proteus_hooks:L101", None)
+        except Exception as exc:
+            note_failure("proteus_hooks:L101", exc)
             return None
     return data if isinstance(data, dict) else None
 
@@ -119,13 +119,13 @@ def _margin_of(data: dict) -> Optional[float]:
     if m is None:
         try:
             m = float(data.get("best_total")) - float(data.get("baseline"))
-        except (TypeError, ValueError):
-            note_failure("proteus_hooks:L112", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L112", exc)
             return None
     try:
         f = float(m)
-    except (TypeError, ValueError):
-        note_failure("proteus_hooks:L116", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("proteus_hooks:L116", exc)
         return None
     return f if math.isfinite(f) else None
 
@@ -198,8 +198,8 @@ def cranium_decide(rows: Iterable[Any], pool_id: str, margin_now: float,
         _cur = round(float(margin_now), 6)
         if _cur not in seen.setdefault(str(pool_id), set()):
             ev.observe(str(pool_id), float(margin_now))
-    except (TypeError, ValueError):
-        note_failure("proteus_hooks:L189", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("proteus_hooks:L189", exc)
 
     post = ev.posterior()
     p_above = ev.prob_above(float(threshold))
@@ -327,8 +327,8 @@ def _load_allocator(state_path: str, arms: Sequence[str]) -> ThompsonAllocator:
                     alloc._f[a] = alloc._prior[1]
             _apply_explore_env(alloc)
             return alloc
-        except Exception:
-            note_failure("proteus_hooks:L318", None)
+        except Exception as exc:
+            note_failure("proteus_hooks:L318", exc)
     alloc = ThompsonAllocator(list(arms), floor=0.02, rng=random.Random())
     _apply_explore_env(alloc)
     return alloc
@@ -342,8 +342,8 @@ def _apply_explore_env(alloc: ThompsonAllocator) -> None:
         if raw == "":
             return
         alloc.explore = min(1.0, max(0.0, float(raw)))
-    except Exception:
-        note_failure("proteus_hooks:L333", None)
+    except Exception as exc:
+        note_failure("proteus_hooks:L333", exc)
 
 
 def circulation_decide(state_path: str, arms: Sequence[str] = SEARCH_ARMS,
@@ -529,8 +529,8 @@ def morph_trainer_kwargs(genes: Dict[str, Any]) -> Dict[str, Any]:
         else:
             try:
                 out[kwarg] = float(v)
-            except (TypeError, ValueError):
-                note_failure("proteus_hooks:L518", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("proteus_hooks:L518", exc)
                 continue
     return out
 
@@ -550,8 +550,8 @@ def _as_bool(v: Any) -> bool:
         return v.strip().lower() in ("1", "true", "yes", "on")
     try:
         return float(v) >= 0.5
-    except (TypeError, ValueError):
-        note_failure("proteus_hooks:L538", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("proteus_hooks:L538", exc)
         return False
 
 
@@ -574,8 +574,8 @@ def morph_effective(gene: Any, genes: Dict[str, Any]) -> Any:
             return _as_bool(v)
         try:
             return float(v)
-        except (TypeError, ValueError):
-            note_failure("proteus_hooks:L561", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L561", exc)
             return None
     return None
 
@@ -675,8 +675,8 @@ def morph_ab_delta(control_fitness: Any, treatment_fitness: Any) -> Optional[flo
         if delta != delta or delta in (float("inf"), float("-inf")):
             return None
         return round(delta, 4)
-    except (TypeError, ValueError):
-        note_failure("proteus_hooks:L661", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("proteus_hooks:L661", exc)
         return None
 
 
@@ -724,8 +724,8 @@ def morph_record(history_path: str, cycle_index: int, gene: Optional[dict],
         os.makedirs(os.path.dirname(os.path.abspath(history_path)), exist_ok=True)
         with open(history_path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(row) + "\n")
-    except Exception:
-        note_failure("proteus_hooks:L709", None)
+    except Exception as exc:
+        note_failure("proteus_hooks:L709", exc)
 
 
 def _row_ab_delta(r: dict) -> Optional[float]:
@@ -743,8 +743,8 @@ def _row_ab_delta(r: dict) -> Optional[float]:
             d = float(ab["delta"])
             if d == d and d not in (float("inf"), float("-inf")):
                 return round(d, 4)
-        except (TypeError, ValueError):
-            note_failure("proteus_hooks:L728", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L728", exc)
     return morph_ab_delta(ab.get("control_fitness"),
                           ab.get("treatment_fitness"))
 
@@ -783,13 +783,13 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
                     continue
                 try:
                     d = json.loads(line)
-                except Exception:
-                    note_failure("proteus_hooks:L768", None)
+                except Exception as exc:
+                    note_failure("proteus_hooks:L768", exc)
                     continue
                 if isinstance(d, dict) and d.get("fitness") is not None:
                     rows.append(d)
-    except Exception:
-        note_failure("proteus_hooks:L772", None)
+    except Exception as exc:
+        note_failure("proteus_hooks:L772", exc)
 
     by_dim: Dict[int, List[float]] = {}
     by_gene: Dict[str, List[float]] = {}          # EFFECTIVE trials only
@@ -801,8 +801,8 @@ def morph_dimension_summary(history_path: str) -> Dict[str, Any]:
         try:
             fit = float(r["fitness"])
             by_dim.setdefault(int(r["dimension"]), []).append(fit)
-        except (KeyError, TypeError, ValueError):
-            note_failure("proteus_hooks:L785", None)
+        except (KeyError, TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L785", exc)
             continue
         g = r.get("gene")
         if not g:
@@ -918,8 +918,8 @@ def _binomial_tail(k: int, n: int) -> Optional[float]:
         for i in range(k, n + 1):
             num += math.comb(n, i)
         return num / float(2 ** n)
-    except Exception:
-        note_failure("proteus_hooks:L901", None)
+    except Exception as exc:
+        note_failure("proteus_hooks:L901", exc)
         return None
 
 
@@ -934,13 +934,13 @@ def _morph_read_rows(history_path: str) -> List[dict]:
                     continue
                 try:
                     row = json.loads(line)
-                except (ValueError, TypeError):
-                    note_failure("proteus_hooks:L916", None)
+                except (ValueError, TypeError) as exc:
+                    note_failure("proteus_hooks:L916", exc)
                     continue
                 if isinstance(row, dict):
                     out.append(row)
-    except OSError:
-        note_failure("proteus_hooks:L920", None)
+    except OSError as exc:
+        note_failure("proteus_hooks:L920", exc)
         return []
     return out
 
@@ -1010,8 +1010,8 @@ def morph_free_growth(history_path: str) -> Dict[str, Any]:
                     is_inert = bool(morph_is_inert(str(row.get("gene")),
                                                    {str(row.get("gene")): raw},
                                                    MORPH_TRAINER_DEFAULTS))
-                except Exception:
-                    note_failure("proteus_hooks:L990", None)
+                except Exception as exc:
+                    note_failure("proteus_hooks:L990", exc)
                     is_inert = None
         if is_inert is None:
             continue
@@ -1019,8 +1019,8 @@ def morph_free_growth(history_path: str) -> Dict[str, Any]:
             continue
         try:
             delta = float(row.get("fitness")) - float(row.get("baseline_fitness"))
-        except (TypeError, ValueError):
-            note_failure("proteus_hooks:L998", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L998", exc)
             delta = 0.0
         inert_deltas.append(delta)
         if delta > 0.0:
@@ -1085,8 +1085,8 @@ def morph_rotation_verdict(evidence: Optional[Dict[str, Any]],
         try:
             n = int(ev.get("n") or 0)
             win = float(ev.get("win_rate"))
-        except (TypeError, ValueError):
-            note_failure("proteus_hooks:L1063", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L1063", exc)
             undetermined.append(str(gene))
             continue
         p_pays, p_hurts = ev.get("p_pays"), ev.get("p_hurts")
@@ -1115,8 +1115,8 @@ def morph_rotation_retired(policy_path: str) -> Dict[str, Any]:
     try:
         with open(policy_path, encoding="utf-8") as fh:
             policy = json.load(fh)
-    except (OSError, ValueError):
-        note_failure("proteus_hooks:L1092", None)
+    except (OSError, ValueError) as exc:
+        note_failure("proteus_hooks:L1092", exc)
         out["reason"] = "no readable policy: rotation state is undetermined"
         return out
     if not isinstance(policy, dict):
@@ -1159,8 +1159,8 @@ def _morph_write_policy(policy_path: str, policy: dict) -> bool:
             with open(policy_path, "w", encoding="utf-8") as fh:
                 json.dump(policy, fh, indent=2, sort_keys=True)
         return True
-    except OSError:
-        note_failure("proteus_hooks:L1135", None)
+    except OSError as exc:
+        note_failure("proteus_hooks:L1135", exc)
         return False
 
 
@@ -1193,8 +1193,8 @@ def morph_evidence_from_ledger(history_path: str) -> Dict[str, Any]:
             continue
         try:
             by_gene.setdefault(str(gene), []).append(float(delta))
-        except (TypeError, ValueError):
-            note_failure("proteus_hooks:L1168", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("proteus_hooks:L1168", exc)
             continue
 
     evidence: Dict[str, Any] = {}
@@ -1238,8 +1238,8 @@ def morph_policy_refresh(policy_path: str, history_path: str,
             loaded = json.load(fh)
         if isinstance(loaded, dict):
             policy = loaded
-    except (OSError, ValueError):
-        note_failure("proteus_hooks:L1212", None)
+    except (OSError, ValueError) as exc:
+        note_failure("proteus_hooks:L1212", exc)
         policy = {}
 
     rules = policy.get("rules") if isinstance(policy.get("rules"), dict) else None

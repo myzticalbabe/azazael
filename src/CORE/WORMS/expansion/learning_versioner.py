@@ -23,8 +23,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("learning_versioner:L17", None)
+except ImportError as exc:
+    note_failure("learning_versioner:L17", exc)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -34,8 +34,8 @@ def register_worm(**kw):
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("learning_versioner:L27", None)
+except ImportError as exc:
+    note_failure("learning_versioner:L27", exc)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -44,8 +44,8 @@ def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:  # noqa: BLE001 — 314t detection is best-effort
-            note_failure("learning_versioner:L36", None)
+        except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning_versioner:L36", exc)
             return False
 
 @register_worm(category="learning", priority=5, cooldown_seconds=60.0,
@@ -107,8 +107,8 @@ class ModelVersioner:
                     try:
                         from CORE.local_memory import get_memory_store
                         self._store = get_memory_store()
-                    except ImportError:
-                        note_failure("learning_versioner:L98", None)
+                    except ImportError as exc:
+                        note_failure("learning_versioner:L98", exc)
                         self._store = False
         return self._store if self._store else None
     def register_model(self, name: str, version: str, metrics: Dict[str, float],
@@ -152,8 +152,8 @@ class ModelVersioner:
                     },
                     severity="info", tags=["model", "versioner"]
                 )
-            except Exception:  # noqa: BLE001 — version-clone telemetry best-effort
-                note_failure("learning_versioner:L142", None)
+            except Exception as exc:  # noqa: BLE001 — version-clone telemetry best-effort
+                note_failure("learning_versioner:L142", exc)
 
         return entry
     def compare_versions(self, name: str, v1: str, v2: str) -> Dict[str, Any]:

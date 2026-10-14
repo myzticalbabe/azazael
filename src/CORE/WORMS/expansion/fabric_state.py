@@ -69,8 +69,8 @@ def cap_list(seq: Any, limit: int) -> Any:
     try:
         if isinstance(seq, list) and limit > 0 and len(seq) > limit:
             del seq[:len(seq) - limit]
-    except Exception:
-        note_failure("fabric_state:L63", None)
+    except Exception as exc:
+        note_failure("fabric_state:L63", exc)
     return seq
 
 
@@ -85,8 +85,8 @@ def cap_map(d: Any, limit: int) -> Any:
         if isinstance(d, dict) and limit > 0 and len(d) > limit:
             for k in list(d)[:len(d) - limit]:
                 d.pop(k, None)
-    except Exception:
-        note_failure("fabric_state:L79", None)
+    except Exception as exc:
+        note_failure("fabric_state:L79", exc)
     return d
 
 
@@ -94,8 +94,8 @@ def _spine() -> Optional[Any]:
     try:
         from CORE import spine_registry
         return spine_registry
-    except Exception:  # pragma: no cover - defensive
-        note_failure("fabric_state:L88", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("fabric_state:L88", exc)
         return None
 
 
@@ -136,8 +136,8 @@ def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
         return 0
     try:
         state = spi.get_fabric_state(str(provider))
-    except Exception:
-        note_failure("fabric_state:L129", None)
+    except Exception as exc:
+        note_failure("fabric_state:L129", exc)
         return 0
     if not isinstance(state, dict):
         return 0
@@ -157,8 +157,8 @@ def hydrate(instance: Any, provider: str, attrs: Iterable[str]) -> int:
             else:
                 setattr(instance, attr, saved)
             restored += 1
-        except Exception:
-            note_failure("fabric_state:L149", None)
+        except Exception as exc:
+            note_failure("fabric_state:L149", exc)
             continue
     return restored
 
@@ -177,8 +177,8 @@ def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
     for attr in attrs:
         try:
             val = getattr(instance, attr, None)
-        except Exception:
-            note_failure("fabric_state:L168", None)
+        except Exception as exc:
+            note_failure("fabric_state:L168", exc)
             continue
         if val is None:
             continue
@@ -189,6 +189,6 @@ def publish(instance: Any, provider: str, attrs: Iterable[str]) -> bool:
     try:
         spi.publish_fabric_state(str(provider), state)
         return True
-    except Exception:
-        note_failure("fabric_state:L179", None)
+    except Exception as exc:
+        note_failure("fabric_state:L179", exc)
         return False

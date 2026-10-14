@@ -325,8 +325,8 @@ class ThompsonAllocator:
         obj._wins = dict(data.get("wins") or obj._wins)
         try:
             obj._explore_hits = int(data.get("explore_hits", 0) or 0)
-        except (TypeError, ValueError):
-            note_failure("allocation:L250", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("allocation:L250", exc)
             obj._explore_hits = 0
         for a in obj._s:
             if a not in obj.arms:

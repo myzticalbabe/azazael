@@ -412,8 +412,8 @@ def _priority_weight(genome: WiringGenome, name: str) -> float:
     """The genome's own priority for an organ, clamped into the legal band."""
     try:
         value = float(genome.priority.get(name, DEFAULT_PRIORITY))
-    except (TypeError, ValueError):
-        note_failure("wiring_genome:L406", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("wiring_genome:L406", exc)
         value = float(DEFAULT_PRIORITY)
     return max(float(PRIORITY_LO), min(float(PRIORITY_HI), value))
 

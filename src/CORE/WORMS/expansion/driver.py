@@ -31,8 +31,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("driver:L25", None)
+except ImportError as exc:
+    note_failure("driver:L25", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -102,8 +102,8 @@ class GemmaDriverWorm:
                 text = (msg.get("reasoning_content") or "").strip()
             self._log_call(prompt, text)
             return text
-        except Exception:
-            note_failure("driver:L95", None)
+        except Exception as exc:
+            note_failure("driver:L95", exc)
             with self._lock:
                 self._fallbacks += 1
             return None
@@ -124,8 +124,8 @@ class GemmaDriverWorm:
                 goal = json.loads(txt[start:txt.rfind("}") + 1])
                 return {"success": True, "src": "gemma-e2b", "fitness": fit,
                         "goal": goal}
-            except Exception:
-                note_failure("driver:L116", None)
+            except Exception as exc:
+                note_failure("driver:L116", exc)
         # fallback: aim at the weakest improvable component (fail_rate is a
         # raw input, not a maximand — never target it directly).
         comps = {k: v for k, v in fit.get("components", {}).items()
@@ -185,8 +185,8 @@ class GemmaDriverWorm:
             if not txt:
                 return None, conf
             return txt.lower().startswith("y"), conf
-        except Exception:
-            note_failure("driver:L177", None)
+        except Exception as exc:
+            note_failure("driver:L177", exc)
             with self._lock:
                 self._fallbacks += 1
             return None, 0.0
@@ -225,16 +225,16 @@ class GemmaDriverWorm:
                 start = reply.find("{")
                 json.loads(reply[start:reply.rfind("}") + 1])
                 parsed_ok = True
-            except Exception:
-                note_failure("driver:L216", None)
+            except Exception as exc:
+                note_failure("driver:L216", exc)
             rec = {"at": datetime.now(timezone.utc).isoformat(),
                    "prompt": prompt[:500], "reply": reply[:800],
                    "parsed_ok": parsed_ok, "empty": not bool(reply)}
             _os.makedirs(_os.path.dirname(self.MISTAKE_LOG), exist_ok=True)
             with open(self.MISTAKE_LOG, "a", encoding="utf-8") as f:
                 f.write(json.dumps(rec) + "\n")
-        except Exception:
-            note_failure("driver:L224", None)
+        except Exception as exc:
+            note_failure("driver:L224", exc)
 
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute", "result": self.stats()}

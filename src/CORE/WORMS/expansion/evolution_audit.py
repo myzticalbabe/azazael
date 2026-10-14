@@ -52,8 +52,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("evolution_audit:L46", None)
+except ImportError as exc:
+    note_failure("evolution_audit:L46", exc)
     _REGISTRY = False
 
     def register_worm(**kw):  # noqa: D103
@@ -63,8 +63,8 @@ except ImportError:
 try:
     from CORE.local_memory import get_memory_store
     _STORE = True
-except ImportError:
-    note_failure("evolution_audit:L56", None)
+except ImportError as exc:
+    note_failure("evolution_audit:L56", exc)
     _STORE = False
 
     def get_memory_store(*a, **k):  # noqa: D103
@@ -142,8 +142,8 @@ class EvolutionIntegrityWorm:
                 cwd=str(script.parent.parent),
                 env={**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"},
             )
-        except subprocess.TimeoutExpired:
-            note_failure("evolution_audit:L134", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("evolution_audit:L134", exc)
             return {"ran": False, "ok": False,
                     "reason": f"timed out after {self.config.max_duration_seconds}s"}
         except Exception as exc:  # noqa: BLE001 — the audit must never crash the caller
@@ -160,8 +160,8 @@ class EvolutionIntegrityWorm:
                     frag = line.split("RESULT:", 1)[1].strip().split()[0]
                     passed_s, total_s = frag.split("/")
                     passed, total = int(passed_s), int(total_s)
-                except (IndexError, ValueError):
-                    note_failure("evolution_audit:L150", None)
+                except (IndexError, ValueError) as exc:
+                    note_failure("evolution_audit:L150", exc)
         # Take failures from the inline `[FAIL] name - detail` lines, NOT the
         # `RESULT:`/`FAILED:` summary. The summary carries only the check NAME, so
         # a marker looking for detail text ("no artifacts yet") could never match
@@ -318,8 +318,8 @@ class EvolutionIntegrityWorm:
                         "champion_genes", "duration_s")},
                     tags=["audit", "evolution", "monitor"],
                 )
-            except Exception:  # noqa: BLE001 — recording is best-effort
-                note_failure("evolution_audit:L306", None)
+            except Exception as exc:  # noqa: BLE001 — recording is best-effort
+                note_failure("evolution_audit:L306", exc)
 
         return result
 
@@ -329,8 +329,8 @@ class EvolutionIntegrityWorm:
         while not self._stop.is_set():
             try:
                 self.execute()
-            except Exception:  # noqa: BLE001 — a monitor must survive its own failures
-                note_failure("evolution_audit:L317", None)
+            except Exception as exc:  # noqa: BLE001 — a monitor must survive its own failures
+                note_failure("evolution_audit:L317", exc)
             self._stop.wait(self.config.interval_seconds)
 
     def start_scheduler(self) -> None:
