@@ -39,8 +39,8 @@ except ImportError:                               # never break the host
 # Dynamic path resolution
 try:
     from CORE.paths import get_src_dir
-except ImportError:
-    note_failure("TARBABY:L33", None)
+except ImportError as exc:
+    note_failure("TARBABY:L33", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
     from CORE.paths import get_src_dir
 

@@ -606,8 +606,8 @@ class TarbabyEnhanced:
                     backup_created=True,
                     error_message=None,
                 )
-            except Exception:
-                note_failure("tarbaby_enhanced:L593", None)
+            except Exception as exc:
+                note_failure("tarbaby_enhanced:L593", exc)
                 continue
 
         return ConflictResolution(
