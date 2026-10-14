@@ -193,8 +193,8 @@ try:
             _st = _dt.fromisoformat(_r.get("started_at", ""))
             _en = _dt.fromisoformat(_r.get("completed_at", ""))
             _ms = max(0.0, (_en - _st).total_seconds() * 1000.0)
-        except Exception:
-            note_failure("test_benchmark_workflow:L186", None)
+        except Exception as exc:
+            note_failure("test_benchmark_workflow:L186", exc)
             _ms = 0.0
         _ok = (_r.get("status") == "completed"
                and (_r.get("result") or {}).get("status") == "ok")

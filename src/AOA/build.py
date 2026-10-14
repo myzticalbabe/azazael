@@ -42,8 +42,8 @@ try:
     try:
         wc = int(ArmRegistry().get_arm('azazael').execute('discover_worms')
                  .get('data', {}).get('worm_count', wc))
-    except Exception:
-        note_failure("build:L35", None)
+    except Exception as exc:
+        note_failure("build:L35", exc)
 except Exception as _e:
     print(f'Registry probe failed ({_e}); diagrams will fall back to benchmark statics')
 

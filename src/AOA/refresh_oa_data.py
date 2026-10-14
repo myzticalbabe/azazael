@@ -194,8 +194,8 @@ def refresh_milestone(check_only=False):
         if path is not None:
             try:
                 rel = path.relative_to(BASE).as_posix()
-            except ValueError:
-                note_failure("refresh_oa_data:L180", None)
+            except ValueError as exc:
+                note_failure("refresh_oa_data:L180", exc)
                 rel = str(path)
             new["path"] = rel
         if live_lines is not None and live_lines != m.get("lines"):
@@ -396,8 +396,8 @@ def main():
     try:
         import logging as _lg
         _lg.disable(_lg.WARNING)
-    except Exception:
-        note_failure("refresh_oa_data:L381", None)
+    except Exception as exc:
+        note_failure("refresh_oa_data:L381", exc)
 
     print(f"AOA data refresh  ({'CHECK ONLY' if args.check else 'WRITE'})  {_now()}")
     arms = live_arms()

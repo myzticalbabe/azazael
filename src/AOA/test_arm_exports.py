@@ -41,8 +41,8 @@ def _arm_classes(mod):
             continue
         try:
             obj = getattr(mod, name)
-        except Exception:
-            note_failure("test_arm_exports:L34", None)
+        except Exception as exc:
+            note_failure("test_arm_exports:L34", exc)
             continue
         if isinstance(obj, type) and obj.__module__ == mod.__name__:
             out.append(name)
