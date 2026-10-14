@@ -31,7 +31,7 @@ def _run(cmd, cwd, timeout=3600):
     env = dict(_os.environ, PYTHONUTF8="1")
     try:
         r = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True,
-                           timeout=timeout, env=env)
+                           timeout=timeout, env=env, encoding="utf-8", errors="replace")
         return r.returncode, ((r.stdout or "") + (r.stderr or ""))[-1500:]
     except subprocess.TimeoutExpired:
         return 124, "TIMEOUT"

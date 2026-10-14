@@ -71,7 +71,7 @@ def convert_file(input_path: Path, output_path: Path,
                 "-b:a", audio_bitrate,
                 str(output_path),
             ],
-            capture_output=True, text=True, timeout=1200,
+            capture_output=True, text=True, timeout=1200, encoding="utf-8", errors="replace"
         )
         elapsed = time.time() - start
 

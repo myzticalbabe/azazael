@@ -135,7 +135,7 @@ def run_suite(
     try:
         proc = subprocess.run(
             cmd, cwd=str(ROOT), env=env, capture_output=True, text=True,
-            timeout=timeout,
+            timeout=timeout, encoding="utf-8", errors="replace"
         )
         output = (proc.stdout or "") + (proc.stderr or "")
         record.update(
