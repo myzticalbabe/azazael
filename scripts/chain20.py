@@ -28,7 +28,7 @@ def step(name, args, binary=None):
     try:
         p = subprocess.run([binary or PY] + args, capture_output=True,
                            text=True, timeout=STEP_TIMEOUT,
-                           cwd=r'C:\Users\clint\azazael')
+                           cwd=r'C:\Users\clint\azazael', encoding="utf-8", errors="replace")
         ok = p.returncode == 0
         tail = ((p.stdout or '') + (p.stderr or '')).strip().splitlines()
         tail = tail[-1][-160:] if tail else ''

@@ -224,7 +224,7 @@ def run_recorder(script_path: Path, dry_run: bool = False) -> bool:
     result = subprocess.run(
         ["node", str(script_path)],
         capture_output=True, text=True, timeout=600,  # 10 min max
-        cwd=str(RECORDERS_DIR),
+        cwd=str(RECORDERS_DIR), encoding="utf-8", errors="replace"
     )
     elapsed = time.time() - start
 
@@ -275,7 +275,7 @@ def compress_video(template_name: str, dry_run: bool = False) -> bool:
         "--profile", "cain",
     ]
     start = time.time()
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace")
     elapsed = time.time() - start
 
     compressed_path = output_prefix.with_suffix(".mp4")

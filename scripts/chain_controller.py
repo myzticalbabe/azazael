@@ -339,7 +339,7 @@ def _own_task_state() -> tuple[str, int | None, str]:
     try:
         result = subprocess.run(
             ["schtasks", "/query", "/tn", TASK_NAME, "/fo", "CSV", "/v"],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace"
         )
     except Exception as exc:
         return "unknown", None, str(exc)[:160]
@@ -446,7 +446,7 @@ def run_one(name: str, *, dry_run: bool = False) -> dict[str, Any]:
     _t0 = time.perf_counter()
     try:
         result = subprocess.run(command, cwd=str(ROOT), capture_output=True,
-                                text=True, timeout=timeout)
+                                text=True, timeout=timeout, encoding="utf-8", errors="replace")
         row.update({"returncode": result.returncode,
                     "stdout": (result.stdout or "")[-2000:],
                     "stderr": (result.stderr or "")[-2000:]})
@@ -644,7 +644,7 @@ def _maybe_followup(name: str, result: dict[str, Any], *,
         return {"ran": False, "reason": f"target not found: {target}"}
     try:
         proc = subprocess.run([_python(), str(path)], cwd=str(ROOT),
-                              capture_output=True, text=True, timeout=timeout)
+                              capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
         tail = [ln for ln in (proc.stdout or "").strip().splitlines()
                 if ln.strip()]
         return {"ran": True, "target": target, "rc": proc.returncode,

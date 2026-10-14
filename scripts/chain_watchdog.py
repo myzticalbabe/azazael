@@ -104,7 +104,7 @@ def _revive() -> dict[str, Any]:
     try:
         result = subprocess.run(
             ["schtasks", "/run", "/tn", TASK_NAME],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace"
         )
         if result.returncode == 0:
             return {"method": "schtasks /run " + TASK_NAME, "ok": True}
