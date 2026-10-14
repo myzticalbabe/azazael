@@ -66,7 +66,7 @@ def preflight():
             "print('total_gb', round(p.total_memory/1073741824,2))")
     try:
         r = subprocess.run([str(VENV_PY), "-c", code], capture_output=True,
-                           text=True, timeout=180)
+                           text=True, timeout=180, encoding="utf-8", errors="replace")
         for line in r.stdout.strip().splitlines():
             print("   ", line)
         if r.returncode != 0:

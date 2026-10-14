@@ -62,7 +62,7 @@ def free_memory_note() -> str:
         p = subprocess.run(
             ["powershell", "-NoProfile", "-Command",
              "(Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
         kb = int((p.stdout or "").strip())
         return "%.1f GiB RAM free" % (kb / 1048576.0)
     except Exception as e:

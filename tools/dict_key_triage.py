@@ -82,7 +82,8 @@ def key_for(f: dict[str, Any]) -> str:
 
 def run_contract(scope: list[str]) -> dict[str, Any]:
     cmd = [sys.executable, str(CONTRACT), "--json", "--scope", *scope]
-    r = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
+    r = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
     if r.returncode == 2:
         raise SystemExit("dict_key_contract is INCONCLUSIVE: %s" % r.stderr)
     return json.loads(r.stdout or "{}")

@@ -228,7 +228,7 @@ def collect_aoa() -> dict[str, Any]:
     command = [sys.executable, str(ROOT / "src" / "AOA" / "aoa_monitor.py"), "--json", "--once"]
     try:
         result = subprocess.run(
-            command, cwd=str(ROOT), capture_output=True, text=True, timeout=90,
+            command, cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90,
         )
         if result.returncode != 0:
             raise RuntimeError((result.stderr or result.stdout or "AOA probe failed")[-240:])
