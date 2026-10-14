@@ -31,6 +31,16 @@ try:
     from track_registry import LAB_COMPONENTS  # noqa: E402
 except ImportError:  # pragma: no cover - defensive
     LAB_COMPONENTS = {}
+
+try:
+    from CORE.technique_runtime import record_link  # noqa: E402
+except ImportError:  # pragma: no cover - fail-open
+    record_link = None  # type: ignore[assignment]
+try:
+    from CORE.failure_ledger import note_failure  # noqa: E402
+except ImportError:  # pragma: no cover - fail-open
+    def note_failure(where: str, exc: BaseException | None = None) -> None:
+        pass
 from CORE.WORMS.expansion.diversity import (  # noqa: E402
     Individual,
     NSGAIII,
@@ -113,6 +123,27 @@ def _diversity_contract(seed: int) -> dict[str, Any]:
     }
 
 
+def _deposit_nsga3(
+    record_link_fn: Any, contract: dict[str, Any], seed: int
+) -> None:
+    """Persist NSGA-III contract evidence into the live memory store.
+
+    Moves the DIVERSITY_QD_NSGA3 component from L3 (invoked) to L4 (evidenced
+    in store) on the production-reach ladder. Fail-open: never raises.
+    """
+    try:
+        ok = contract.get("selected", 0) > 0
+        record_link_fn(
+            "algorithm_lab.diversity_qd_nsga3",
+            "nsga3_contract.seed=%d.selected=%d" % (seed, contract.get("selected", 0)),
+            bool(ok),
+            citation="nsga3_contract=%s" % json.dumps(contract, sort_keys=True),
+            decision_id="nsga3_seed_%d" % seed,
+        )
+    except Exception as exc:
+        note_failure("algorithm_lab_cycle:deposit-nsga3", exc)
+
+
 def run_cycle(
     *,
     seed: int = 314,
@@ -141,6 +172,8 @@ def run_cycle(
         "nsga3_contract": _diversity_contract(seed),
         "production_rotation_changed": False,
     }
+    if record_link is not None:
+        _deposit_nsga3(record_link, payload["nsga3_contract"], seed)
     _write_json(output_path, payload)
 
     regression = _read_regression_report(regression_report)
