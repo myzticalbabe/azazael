@@ -182,8 +182,8 @@ class SyncManager:
         except subprocess.CalledProcessError as e:
             note_failure("sync_manager:L173", e)
             result.errors.append(str(e))
-        except FileNotFoundError:
-            note_failure("sync_manager:L175", None)
+        except FileNotFoundError as exc:
+            note_failure("sync_manager:L175", exc)
             result.errors.append("rsync not found. Install via: sudo apt install rsync")
 
         result.duration = (datetime.now() - start_time).total_seconds()
@@ -247,8 +247,8 @@ class SyncManager:
                     result.files_synced = -1
                 else:
                     result.errors.append(result_obj.stderr)
-        except FileNotFoundError:
-            note_failure("sync_manager:L238", None)
+        except FileNotFoundError as exc:
+            note_failure("sync_manager:L238", exc)
             result.errors.append("ADB not found. Install Android SDK platform tools.")
 
         return result
