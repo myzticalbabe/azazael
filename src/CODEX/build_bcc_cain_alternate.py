@@ -31,8 +31,8 @@ except ImportError:                               # never break the host
 if hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
-    except Exception:
-        note_failure("build_bcc_cain_alternate:L24", None)
+    except Exception as exc:
+        note_failure("build_bcc_cain_alternate:L24", exc)
 
 TEMPLATE = Path(__file__).resolve().parent / "SESSION_TEMPLATE" / "templates" / "output_cain.html"
 DEFAULT_OUTPUT = Path(__file__).resolve().parents[3] / "Desktop" / "FACEBOOK" / "CAIN_ORIGINAL_TEMPLATE_BCC_ALTERNATE.html"
