@@ -51,8 +51,8 @@ def check_daemon_running() -> bool:
             timeout=10,
         )
         return "parallax_validator" in result.stdout
-    except Exception:
-        note_failure("check_parallax:L44", None)
+    except Exception as exc:
+        note_failure("check_parallax:L44", exc)
         return False
 
 
