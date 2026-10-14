@@ -458,6 +458,39 @@ def verify_before_accept(subject: str,
             # EP383: detection is not supervision -- make the drift terminate.
             reasons.append(_terminate_on_drift(subject, exp, val))
 
+        # EP417 (S-RCT) calibration half, absorbed: `preperiod_calibrate` fits a
+        # least-squares scale+bias over pre-period predicted/actual pairs and
+        # reports the squared-error cut (the paper's ~77x). It was registered as
+        # EP417's mechanism (technique_wiring/_l3_verify.py) with ZERO callers
+        # repo-wide. The gate already holds exactly the predicted (explorer) /
+        # actual (validator) pair, so the fit runs on the SAME id-join the
+        # divergence check uses rather than on a synthetic vector. The result is
+        # not a dangling report: it enters `reasons`, i.e. the gate's verdict and
+        # (via the EP446 hook above) the audited evidence.
+        _vmap = {str(v.get("id", "?")): v for v in (val or [])}
+        _x: List[float] = []
+        _y: List[float] = []
+        for _e in (exp or []):
+            _pair = _vmap.get(str(_e.get("id", "?")))
+            if _pair is None:
+                continue
+            try:
+                _x.append(float(_e.get("confidence", 0.0)))
+                _y.append(float(_pair.get("confidence", 0.0)))
+            except (TypeError, ValueError) as exc:    # noqa: BLE001 - malformed input
+                _note_failure("verification_gate:ep417-calib-parse", exc)
+                continue
+        _cal = preperiod_calibrate(_x, _y)
+        if _cal["n_pairs"] >= 2:
+            # `error_ratio` is the host's own contract and is +inf when the fit is
+            # exact (calibrated SSE == 0). Render that as "perfect" rather than
+            # letting "inf" leak into a verdict string.
+            _cut = _cal["error_ratio"]
+            _cut_txt = "perfect" if _cut == float("inf") else f"{_cut:.2f}x"
+            reasons.append(
+                f"s-rct-calib(scale={_cal['scale']:.3f},"
+                f"bias={_cal['bias']:.3f},error-cut={_cut_txt})")
+
     if tdd_tracks is not None:
         t = tdd_dual_track_check(tdd_tracks.get("tests"),
                                  tdd_tracks.get("code"))
