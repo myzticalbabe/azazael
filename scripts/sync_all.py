@@ -155,7 +155,7 @@ def run_wsl(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     try:
         result = subprocess.run(
             ["wsl.exe", "-d", "Ubuntu-26.04", "-e", "bash", "-c", cmd],
-            capture_output=True, text=True, timeout=timeout,
+            capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
         )
         return result.returncode, result.stdout, result.stderr
     except subprocess.TimeoutExpired:
@@ -401,7 +401,7 @@ def run_wsl_kali(cmd: str, timeout: int = 60) -> Tuple[int, str, str]:
     try:
         result = subprocess.run(
             ["wsl.exe", "-d", "kali-linux", "-u", "root", "-e", "bash", "-c", cmd],
-            capture_output=True, text=True, timeout=timeout,
+            capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
         )
         return result.returncode, result.stdout, result.stderr
     except subprocess.TimeoutExpired:

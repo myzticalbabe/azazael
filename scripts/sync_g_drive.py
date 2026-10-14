@@ -188,7 +188,7 @@ def robocopy(src: Path, dst: Path, extra_flags: str = "",
     cmd = ["robocopy", str(src), str(dst)] + flags
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout
+            cmd, capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
         )
         # robocopy return codes 0-7 are success
         if result.returncode > 7:

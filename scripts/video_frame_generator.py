@@ -380,7 +380,7 @@ def generate_template_video(template_path, output_path):
         "-t", str(duration),
         str(output_path)
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
     
     # Clean up PPM
     try:
@@ -406,7 +406,7 @@ def convert_to_wmv(mp4_path):
         "-q:v", "3",
         str(wmv_path)
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace")
     if result.returncode == 0 and wmv_path.exists():
         sz = os.path.getsize(wmv_path) / (1024 * 1024)
         print(f"    WMV: {sz:.1f} MB")

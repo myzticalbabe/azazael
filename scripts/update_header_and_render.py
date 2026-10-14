@@ -112,7 +112,7 @@ root_dir = os.path.join(script_dir, '..')
 html_script = os.path.join(root_dir, 'build_disclosure_html.py')
 
 if os.path.exists(html_script):
-    r = subprocess.run([sys.executable, html_script], capture_output=True, text=True, timeout=30, cwd=root_dir)
+    r = subprocess.run([sys.executable, html_script], capture_output=True, text=True, timeout=30, cwd=root_dir, encoding="utf-8", errors="replace")
     if r.returncode == 0:
         print(f"HTML generated: {r.stdout.strip()}")
     else:

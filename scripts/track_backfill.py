@@ -59,7 +59,7 @@ def main():
         t0 = time.time()
         try:
             p = subprocess.run([PYTHON, ORCH, '--algo', algo],
-                               capture_output=True, text=True, timeout=600)
+                               capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace")
             good = p.returncode == 0
         except Exception as e:
             good = False
