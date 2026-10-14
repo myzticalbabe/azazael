@@ -27,7 +27,7 @@ KEYS = ("unicode_emoji", "import_inside_function", "hardcoded_win_path")
 def measure() -> dict:
     proc = subprocess.run(
         [sys.executable, str(SCANNER), "--report", "--dir", str(ROOT / "src")],
-        capture_output=True, text=True, timeout=600)
+        capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace")
     counts = {}
     for line in (proc.stdout or "").splitlines():
         m = re.match(r"\s*(\w+):\s+(\d+)\s*$", line)

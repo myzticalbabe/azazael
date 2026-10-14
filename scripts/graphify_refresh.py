@@ -51,7 +51,7 @@ def main() -> int:
         result = subprocess.run(
             [binary, "update", "."],
             cwd=str(ROOT), capture_output=True, text=True,
-            timeout=INTERNAL_TIMEOUT_S,
+            timeout=INTERNAL_TIMEOUT_S, encoding="utf-8", errors="replace"
         )
         row["returncode"] = result.returncode
         tail = ((result.stdout or "") + (result.stderr or ""))[-2000:]

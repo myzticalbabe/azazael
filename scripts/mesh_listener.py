@@ -242,7 +242,7 @@ def _listener_pids() -> list[int]:
                 ["powershell", "-NoProfile", "-NonInteractive", "-Command",
                  "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" "
                  "| Select-Object ProcessId,CommandLine | ConvertTo-Json"],
-                capture_output=True, text=True, timeout=25)
+                capture_output=True, text=True, timeout=25, encoding="utf-8", errors="replace")
             try:
                 procs = json.loads(r.stdout or "null") or []
             except Exception:
@@ -264,11 +264,11 @@ def _listener_pids() -> list[int]:
         import shutil as _sh
         if _sh.which("pgrep"):
             r = subprocess.run(["pgrep", "-f", "mesh_listener.py"],
-                               capture_output=True, text=True, timeout=15)
+                               capture_output=True, text=True, timeout=15, encoding="utf-8", errors="replace")
             pids = [int(x) for x in r.stdout.split() if x.strip().isdigit()]
         else:
             r = subprocess.run(["ps", "-eo", "pid,args"],
-                               capture_output=True, text=True, timeout=15)
+                               capture_output=True, text=True, timeout=15, encoding="utf-8", errors="replace")
             pids = []
             for line in (r.stdout or "").splitlines()[1:]:
                 parts = line.strip().split(None, 1)

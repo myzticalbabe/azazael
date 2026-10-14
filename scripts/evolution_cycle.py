@@ -1312,7 +1312,7 @@ def _train_oracle_subprocess():
         import subprocess
         p = subprocess.run([PY_GIL, TRAIN_ORACLE_SCRIPT], capture_output=True,
                            text=True, timeout=900, cwd=os.path.dirname(
-                               os.path.dirname(os.path.abspath(__file__))))
+                               os.path.dirname(os.path.abspath(__file__))), encoding="utf-8", errors="replace")
         return 'rc=%s %s' % (p.returncode, (p.stdout or '').strip()[-200:])
     except Exception as e:
         return 'train spawn failed: %s' % str(e)[:140]
