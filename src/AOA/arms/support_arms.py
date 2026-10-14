@@ -138,8 +138,8 @@ class LlamaServerArm(BaseArm):
                     "data": {"initialized": self._initialized, "server_found": True, "server_status": result.stdout[:200]}
                 }
             return {"status": "error", "error": "Unknown: " + capability}
-        except self._subprocess.TimeoutExpired:
-            note_failure("support_arms:L130", None)
+        except self._subprocess.TimeoutExpired as exc:
+            note_failure("support_arms:L130", exc)
             return {"status": "error", "error": "LlamaServer operation timed out"}
         except Exception as e:
             note_failure("support_arms:L132", e)

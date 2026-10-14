@@ -117,8 +117,8 @@ class KaliArm(BaseArm):
                     capture_output=True, text=True, timeout=8,
                 )
                 present[tool] = r.returncode == 0 and r.stdout.strip() != ""
-            except Exception:
-                note_failure("kali_arm:L111", None)
+            except Exception as exc:
+                note_failure("kali_arm:L111", exc)
                 present[tool] = False
         return present
 
@@ -176,8 +176,8 @@ class KaliArm(BaseArm):
                 if r.stdout.strip():
                     return {"version": r.stdout.strip().splitlines()[0][:90]}
             return {"version": None}
-        except Exception:
-            note_failure("kali_arm:L168", None)
+        except Exception as exc:
+            note_failure("kali_arm:L168", exc)
             return {"version": None}
 
     def _run_tool(self, tool: str, args: list) -> dict:
