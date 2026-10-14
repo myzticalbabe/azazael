@@ -168,8 +168,8 @@ class UnifiedInstaller:
                 return True, result.stdout
             else:
                 return False, result.stderr[:500]
-        except subprocess.TimeoutExpired:
-            note_failure("install_manager:L162", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("install_manager:L162", exc)
             return False, "Command timed out"
         except Exception as e:
             note_failure("install_manager:L164", e)
@@ -192,8 +192,8 @@ class UnifiedInstaller:
         mod = None
         try:
             from CORE import python_env as mod  # type: ignore[no-redef]
-        except Exception:
-            note_failure("install_manager:L184", None)
+        except Exception as exc:
+            note_failure("install_manager:L184", exc)
             try:
                 from pathlib import Path
 
@@ -201,8 +201,8 @@ class UnifiedInstaller:
                 if str(src_root) not in sys.path:
                     sys.path.insert(0, str(src_root))
                 from CORE import python_env as mod  # type: ignore[no-redef]
-            except Exception:
-                note_failure("install_manager:L192", None)
+            except Exception as exc:
+                note_failure("install_manager:L192", exc)
                 mod = None
         self._python_env_mod = mod
         return mod
@@ -221,8 +221,8 @@ class UnifiedInstaller:
             if result.get("ok"):
                 version = (result.get("stdout") or "").strip()
                 return version or None
-        except Exception:
-            note_failure("install_manager:L211", None)
+        except Exception as exc:
+            note_failure("install_manager:L211", exc)
         return None
 
     def check_version(self, package: str) -> (str | None):
@@ -245,8 +245,8 @@ class UnifiedInstaller:
             )
             if result.returncode == 0:
                 return result.stdout.strip()
-        except Exception:
-            note_failure("install_manager:L235", None)
+        except Exception as exc:
+            note_failure("install_manager:L235", exc)
         return None
 
     def check_compatibility(self) -> dict[str, tuple[bool, str]]:

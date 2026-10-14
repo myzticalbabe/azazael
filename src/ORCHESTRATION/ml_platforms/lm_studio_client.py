@@ -345,8 +345,8 @@ def detect_local_llm() -> (str | None):
             if response.status_code == 200:
                 print(f"[OK] {name} detected at {url}")
                 return url
-        except requests.exceptions.RequestException:
-            note_failure("lm_studio_client:L331", None)
+        except requests.exceptions.RequestException as exc:
+            note_failure("lm_studio_client:L331", exc)
 
     print("[WARN] No local LLM provider detected")
     print("       Start LM Studio or Ollama and try again")

@@ -216,8 +216,8 @@ def cmd_status(args):
         try:
             mod = __import__(import_name)
             frameworks[name] = mod.__version__
-        except ImportError:
-            note_failure("harness:L209", None)
+        except ImportError as exc:
+            note_failure("harness:L209", exc)
             frameworks[name] = "not installed"
 
     status["frameworks"] = frameworks

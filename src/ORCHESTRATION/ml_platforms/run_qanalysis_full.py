@@ -73,8 +73,8 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         q_table[0, 0] += current_alpha * (torch_score - q_table[0, 0])
         q_table[1, 0] += current_alpha * (0.90 - q_table[1, 0])
         q_table[3, 0] += current_alpha * (0.95 - q_table[3, 0])
-    except Exception:
-        note_failure("run_qanalysis_full:L66", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_full:L66", exc)
 
     try:
         import tensorflow as tf
@@ -88,8 +88,8 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
 
         q_table[0, 1] += current_alpha * (tf_score - q_table[0, 1])
         q_table[1, 1] += current_alpha * (0.88 - q_table[1, 1])
-    except Exception:
-        note_failure("run_qanalysis_full:L81", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_full:L81", exc)
 
     try:
         import jax.numpy as jnp
@@ -101,8 +101,8 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
 
         q_table[4, 3] += current_alpha * (0.92 - q_table[4, 3])
         q_table[3, 3] += current_alpha * (0.88 - q_table[3, 3])
-    except Exception:
-        note_failure("run_qanalysis_full:L94", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_full:L94", exc)
 
     try:
         import numpy as np
@@ -112,8 +112,8 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         np.dot(x, y)
 
         q_table[2, 2] += current_alpha * (0.95 - q_table[2, 2])
-    except Exception:
-        note_failure("run_qanalysis_full:L105", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_full:L105", exc)
 
     try:
         from scipy import stats
@@ -122,8 +122,8 @@ def run_full_iteration(iter_num, alpha_decay=0.995):
         stats.describe(data)
 
         q_table[2, 4] += current_alpha * (0.85 - q_table[2, 4])
-    except Exception:
-        note_failure("run_qanalysis_full:L115", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_full:L115", exc)
 
     q_table[2, 5] += current_alpha * (0.75 - q_table[2, 5])
 

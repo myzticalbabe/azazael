@@ -110,8 +110,8 @@ class PlatformHealthMonitor:
                 mod = importlib.import_module(pkg)
                 version = getattr(mod, "__version__", "unknown")
                 available.append(f"{pkg}:{version}")
-            except ImportError:
-                note_failure("health_monitor:L104", None)
+            except ImportError as exc:
+                note_failure("health_monitor:L104", exc)
                 missing.append(pkg)
 
         if missing:
@@ -165,8 +165,8 @@ class PlatformHealthMonitor:
                     message=f"GPU available: {gpu_info['count']} device(s)",
                     value=gpu_info,
                 )
-        except ImportError:
-            note_failure("health_monitor:L158", None)
+        except ImportError as exc:
+            note_failure("health_monitor:L158", exc)
 
         try:
             import tensorflow as tf
@@ -181,8 +181,8 @@ class PlatformHealthMonitor:
                     message=f"TensorFlow GPU available: {gpu_info['count']} device(s)",
                     value=gpu_info,
                 )
-        except ImportError:
-            note_failure("health_monitor:L174", None)
+        except ImportError as exc:
+            note_failure("health_monitor:L174", exc)
 
         return HealthCheck(
             name="gpu_availability",
@@ -310,8 +310,8 @@ class PlatformHealthMonitor:
 
             compat_info["torch_cuda"] = getattr(torch.version, "cuda", "Not found")
             compat_info["cuda_available"] = torch.cuda.is_available()
-        except ImportError:
-            note_failure("health_monitor:L302", None)
+        except ImportError as exc:
+            note_failure("health_monitor:L302", exc)
 
         try:
             import tensorflow as tf
@@ -319,8 +319,8 @@ class PlatformHealthMonitor:
             compat_info["tf_cuda"] = tf.sysconfig.get_build_info().get(
                 "cuda_version", "Not found"
             )
-        except ImportError:
-            note_failure("health_monitor:L311", None)
+        except ImportError as exc:
+            note_failure("health_monitor:L311", exc)
 
         if compat_info["cuda_available"]:
             compat_info["compatible"] = True

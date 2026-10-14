@@ -886,8 +886,8 @@ def interactive_mode(qa_system: MLFrameworkQA):
                     state = qa_system.parse_question(question)
                     qa_system.update_q_table(state, answer.framework, rating)
                     print("Thank you for feedback! Learning...\n")
-        except ValueError:
-            note_failure("framework_activator:L879", None)
+        except ValueError as exc:
+            note_failure("framework_activator:L879", exc)
 
 
 def main():
