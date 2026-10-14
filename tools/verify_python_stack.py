@@ -84,6 +84,7 @@ def _probe(module: str, python: str, timeout: float) -> dict:
         proc = subprocess.run(
             [python, "-c", code],
             capture_output=True, text=True, timeout=timeout,
+            encoding="utf-8", errors="replace",
         )
     except subprocess.TimeoutExpired:
         return {"module": module, "status": "TIMEOUT",

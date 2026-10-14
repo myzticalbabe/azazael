@@ -144,7 +144,7 @@ def run_checker(targets: Optional[Sequence[str]] = None,
         cmd += list(targets)
     try:
         proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, timeout=timeout, encoding="utf-8", errors="replace")
     except (OSError, subprocess.TimeoutExpired) as exc:
         print("checker failed to run: %s" % exc, file=sys.stderr)
         return 125, ""

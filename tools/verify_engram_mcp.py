@@ -548,7 +548,7 @@ def handshake(entry, timeout=30):
     try:
         p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,  # scanner:ignore subprocess_no_timeout -- Popen takes no timeout kwarg; this spawn is bounded by th.join(timeout) and the p.kill() that follows it, and communicate(timeout=) is unusable because an MCP server does not exit after answering
                              stderr=subprocess.DEVNULL, text=True, bufsize=1,
-                             cwd=str(CWD), env=env)
+                             cwd=str(CWD), env=env, encoding="utf-8", errors="replace")
     except Exception as e:
         _note("handshake/spawn", e)
         return None, "spawn failed: %s" % e

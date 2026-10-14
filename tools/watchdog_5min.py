@@ -35,7 +35,8 @@ def main() -> int:
         r = subprocess.run(
             [str(PY), "-m", "pytest", "-q", "--tb=no", "-p", "no:cacheprovider",
              "-n", "auto", "--continue-on-collection-errors"] + FAST,
-            cwd=str(HERE), capture_output=True, text=True, timeout=300)
+            cwd=str(HERE), capture_output=True, text=True, timeout=300,
+            encoding="utf-8", errors="replace")
         tail = (r.stdout or "").strip().splitlines()[-2:]
         rec.update({"ok": r.returncode == 0, "rc": r.returncode,
                     "tail": tail})
