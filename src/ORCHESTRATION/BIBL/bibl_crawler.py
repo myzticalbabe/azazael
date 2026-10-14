@@ -38,8 +38,8 @@ except ImportError:                               # never break the host
 #: kept verbatim, including the `Azazael_ROOT` variant; only the last fallback moved.
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # never break the host
-    note_failure("bibl_crawler:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("bibl_crawler:core-paths-import", exc)
 
     def _get_project_root_safe() -> Path:
         # CORE unreachable: derive from this file (src/ORCHESTRATION/BIBL/ -> root).
@@ -190,8 +190,8 @@ def load_index():
         try:
             with open(INDEX_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            note_failure("bibl_crawler:L170", None)
+        except (json.JSONDecodeError, IOError) as exc:
+            note_failure("bibl_crawler:L170", exc)
     return build_index()
 
 
