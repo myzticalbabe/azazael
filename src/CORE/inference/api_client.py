@@ -90,8 +90,8 @@ def safe_error_message(err: str, max_len: int = 120) -> str:
     # Strip non-ASCII for Windows console safety
     try:
         err = err.encode("ascii", errors="replace").decode("ascii")
-    except Exception:
-        note_failure("api_client:L84", None)
+    except Exception as exc:
+        note_failure("api_client:L84", exc)
     return err[:max_len]
 
 

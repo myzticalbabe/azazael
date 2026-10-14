@@ -329,8 +329,8 @@ class ThreadedInferenceEngine:
                     result = future.result(timeout=effective_timeout)
                     with results_lock:
                         results_list.append(result)
-                except FutureTimeout:
-                    note_failure("threaded:L322", None)
+                except FutureTimeout as exc:
+                    note_failure("threaded:L322", exc)
                     with results_lock:
                         results_list.append(ProviderResult(
                             provider=target_id,
@@ -637,8 +637,8 @@ class ThreadedInferenceEngine:
             )
             try:
                 return future.result(timeout=timeout)
-            except TimeoutError:
-                note_failure("threaded:L628", None)
+            except TimeoutError as exc:
+                note_failure("threaded:L628", exc)
                 return ProviderResult(
                     provider=provider_id,
                     model="",

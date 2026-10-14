@@ -29,8 +29,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.inference.providers import get_provider, list_providers, get_best_provider
     HAS_CLOUD_PROVIDERS = True
-except ImportError:
-    note_failure("cloud_tab:L23", None)
+except ImportError as exc:
+    note_failure("cloud_tab:L23", exc)
     HAS_CLOUD_PROVIDERS = False
 
 VERSION = "1.0.0"
@@ -83,8 +83,8 @@ class CloudTab:
                 for p in list_providers():
                     if p["has_api_key"]:
                         prov_values.append(p["id"])
-            except Exception:
-                note_failure("cloud_tab:L76", None)
+            except Exception as exc:
+                note_failure("cloud_tab:L76", exc)
         self.prov_cb = ttk.Combobox(prov_row, textvariable=self.prov_var,
                                      values=prov_values, state="readonly",
                                      font=("Segoe UI", 10), width=18)
@@ -143,8 +143,8 @@ class CloudTab:
     def get_prompt(self) -> str:
         try:
             return self.prompt_input.get("1.0", "end-1c")
-        except Exception:
-            note_failure("cloud_tab:L136", None)
+        except Exception as exc:
+            note_failure("cloud_tab:L136", exc)
             return "Explain quantum computing in one sentence."
 
     def _on_provider_select(self, event=None):
@@ -161,8 +161,8 @@ class CloudTab:
                     if p["has_api_key"]:
                         configured.append(p["id"])
                 self.parent.after(0, functools.partial(self._on_refreshed, configured))
-            except Exception:
-                note_failure("cloud_tab:L153", None)
+            except Exception as exc:
+                note_failure("cloud_tab:L153", exc)
         threading.Thread(target=do_refresh, daemon=True).start()
 
     def _on_refreshed(self, configured):
@@ -183,8 +183,8 @@ class CloudTab:
                 try:
                     best = get_best_provider()
                     provider_name = best.provider_name
-                except Exception:
-                    note_failure("cloud_tab:L175", None)
+                except Exception as exc:
+                    note_failure("cloud_tab:L175", exc)
                     provider_name = "none"
             else:
                 provider_name = "none"
@@ -226,8 +226,8 @@ class CloudTab:
         try:
             if not self.launch_btn.winfo_exists():
                 return
-        except Exception:
-            note_failure("cloud_tab:L216", None)
+        except Exception as exc:
+            note_failure("cloud_tab:L216", exc)
             return
 
         self.launch_btn.configure(state="normal", text="SEND TO CLOUD",
@@ -247,8 +247,8 @@ class CloudTab:
             err = result.get("error", "Unknown error")
             try:
                 err = err.encode("ascii", errors="replace").decode("ascii")
-            except Exception:
-                note_failure("cloud_tab:L236", None)
+            except Exception as exc:
+                note_failure("cloud_tab:L236", exc)
             # Redact API keys that may leak in error messages
             err_safe = err[:120]
             out.insert("1.0", f"ERROR [{provider_name}]:\n{err_safe}")
@@ -262,8 +262,8 @@ class CloudTab:
             # Strip non-ASCII for Windows safety
             try:
                 content = content.encode("ascii", errors="replace").decode("ascii")
-            except Exception:
-                note_failure("cloud_tab:L251", None)
+            except Exception as exc:
+                note_failure("cloud_tab:L251", exc)
             model = result.get("model", "?")
             tokens = result.get("usage", {}).get("total_tokens", 0)
             ms = result.get("elapsed_ms", 0)
@@ -279,5 +279,5 @@ class CloudTab:
         try:
             self.prompt_input.delete("1.0", "end")
             self.prompt_input.insert("1.0", text)
-        except Exception:
-            note_failure("cloud_tab:L268", None)
+        except Exception as exc:
+            note_failure("cloud_tab:L268", exc)

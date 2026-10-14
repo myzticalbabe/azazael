@@ -92,8 +92,8 @@ _ENV_FLAG = "AZAZAEL_INFERENCE_MEMORY"
 try:  # pragma: no cover - availability depends on the deployment
     from CORE.PamsRecorder import get_recorder  # type: ignore
     HAS_PAMS = True
-except ImportError:  # pragma: no cover
-    note_failure("inference_memory:L86", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("inference_memory:L86", exc)
     HAS_PAMS = False
     get_recorder = None  # type: ignore
 
@@ -115,8 +115,8 @@ def _get_recorder():
             return None
         try:
             _recorder = get_recorder()
-        except Exception:  # noqa: BLE001 — memory is optional
-            note_failure("inference_memory:L108", None)
+        except Exception as exc:  # noqa: BLE001 — memory is optional
+            note_failure("inference_memory:L108", exc)
             _recorder = None
     return _recorder
 
@@ -155,8 +155,8 @@ def _record(event_type: str, data: Dict[str, Any], severity: str = "info",
             event_type, data, source=src, severity=severity,
             tags=[src, str(data.get("provider", ""))],
         ))
-    except Exception:  # noqa: BLE001 — must never break inference
-        note_failure("inference_memory:L147", None)
+    except Exception as exc:  # noqa: BLE001 — must never break inference
+        note_failure("inference_memory:L147", exc)
         return False
     if stored:
         _maybe_retention()
@@ -193,8 +193,8 @@ def _max_turns() -> int:
         return _DEFAULT_MAX_TURNS
     try:
         return int(raw)
-    except ValueError:
-        note_failure("inference_memory:L184", None)
+    except ValueError as exc:
+        note_failure("inference_memory:L184", exc)
         return _DEFAULT_MAX_TURNS
 
 
@@ -204,8 +204,8 @@ def _max_operator() -> int:
         return _DEFAULT_MAX_OPERATOR
     try:
         return int(raw)
-    except ValueError:
-        note_failure("inference_memory:L194", None)
+    except ValueError as exc:
+        note_failure("inference_memory:L194", exc)
         return _DEFAULT_MAX_OPERATOR
 
 
@@ -270,8 +270,8 @@ def enforce_retention(max_turns: Optional[int] = None,
     try:
         recorder._ensure_local_store()  # noqa: SLF001 — the only way to force init
         store = getattr(recorder, "_local_store", None)
-    except Exception:  # noqa: BLE001
-        note_failure("inference_memory:L259", None)
+    except Exception as exc:  # noqa: BLE001
+        note_failure("inference_memory:L259", exc)
         store = None
     if store is None:
         return {"ok": False, "reason": "no local store"}
@@ -280,8 +280,8 @@ def enforce_retention(max_turns: Optional[int] = None,
     try:
         turns = _prune(store, cap, source=SOURCE)
         operators = _prune(store, op_cap, event_type=EVENT_OPERATOR)
-    except Exception:  # noqa: BLE001
-        note_failure("inference_memory:L268", None)
+    except Exception as exc:  # noqa: BLE001
+        note_failure("inference_memory:L268", exc)
         return {"ok": False, "reason": "query or tombstone failed"}
 
     result: Dict[str, Any] = {
@@ -293,8 +293,8 @@ def enforce_retention(max_turns: Optional[int] = None,
         try:
             store.vacuum()
             result["vacuumed"] = True
-        except Exception:  # noqa: BLE001
-            note_failure("inference_memory:L280", None)
+        except Exception as exc:  # noqa: BLE001
+            note_failure("inference_memory:L280", exc)
             result["vacuumed"] = False
     return result
 
@@ -310,8 +310,8 @@ def _maybe_retention() -> None:
             _writes_since_retention = 0
         if _max_turns() > 0:
             enforce_retention()
-    except Exception:  # noqa: BLE001 — maintenance must never break inference
-        note_failure("inference_memory:L296", None)
+    except Exception as exc:  # noqa: BLE001 — maintenance must never break inference
+        note_failure("inference_memory:L296", exc)
 
 
 # -- Public API ---------------------------------------------------------
@@ -363,8 +363,8 @@ def recall_turns(limit: int = 20, provider: Optional[str] = None) -> List[Dict[s
         return []
     try:
         rows = recorder.query_memories(source=SOURCE, event_type=EVENT_TURN, limit=limit)
-    except Exception:  # noqa: BLE001
-        note_failure("inference_memory:L349", None)
+    except Exception as exc:  # noqa: BLE001
+        note_failure("inference_memory:L349", exc)
         return []
     if provider:
         rows = [r for r in rows
@@ -435,8 +435,8 @@ def recall_operator_sessions(limit: int = 10,
         rows = recorder.query_memories(
             event_type=EVENT_OPERATOR, limit=limit,
             source=operator_source(model) if model else None)
-    except Exception:  # noqa: BLE001
-        note_failure("inference_memory:L420", None)
+    except Exception as exc:  # noqa: BLE001
+        note_failure("inference_memory:L420", exc)
         return []
     return list(rows)
 
@@ -452,7 +452,7 @@ def memory_stats() -> Dict[str, Any]:
     if recorder is not None:
         try:
             stats["store"] = recorder.get_stats()
-        except Exception:  # noqa: BLE001
-            note_failure("inference_memory:L436", None)
+        except Exception as exc:  # noqa: BLE001
+            note_failure("inference_memory:L436", exc)
             stats["store"] = "unavailable"
     return stats

@@ -39,8 +39,8 @@ except ImportError:                               # never break the host
 # Auto-record inference spawns in audit trail for RULE 0T verifiable citations
 try:
     from CORE.audit_trail import audit_inference_spawn as _audit_inference_spawn
-except ImportError:
-    note_failure("inference_cache:L32", None)
+except ImportError as exc:
+    note_failure("inference_cache:L32", exc)
     _audit_inference_spawn = None  # audit_trail not available — graceful degradation
 
 
@@ -122,17 +122,17 @@ def record_inference(agent_name, model, prompt, response, metadata=None):
         if _audit_inference_spawn is not None:
             try:
                 _audit_inference_spawn(agent_name, str(filepath), model)
-            except Exception:
-                note_failure("inference_cache:L114", None) # audit trail failure must not block inference recording
-    except Exception:
+            except Exception as exc:
+                note_failure("inference_cache:L114", exc) # audit trail failure must not block inference recording
+    except Exception as exc:
         # Graceful degradation — never crash the caller
         # Graceful degradation — never crash the caller
-        note_failure("inference_cache:L116", None)
+        note_failure("inference_cache:L116", exc)
         if temp_path.exists():
             try:
                 temp_path.unlink()
-            except Exception:
-                note_failure("inference_cache:L121", None)
+            except Exception as exc:
+                note_failure("inference_cache:L121", exc)
         return ""
 
     return str(filepath)
