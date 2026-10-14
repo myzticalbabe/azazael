@@ -103,8 +103,8 @@ class HydraProtocols:
             from CORE.paths import get_src_dir, get_desktop_dir
             _desktop = get_desktop_dir()
             get_src_dir()
-        except ImportError:
-            note_failure("hydra_protocols:L96", None)
+        except ImportError as exc:
+            note_failure("hydra_protocols:L96", exc)
             import sys as _sys
             _sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
             from CORE.paths import get_src_dir, get_desktop_dir
