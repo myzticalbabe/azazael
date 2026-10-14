@@ -41,8 +41,8 @@ def find_syntax_errors(directory: str) -> list[dict]:
                         "msg": e.msg,
                     }
                 )
-        except (PermissionError, OSError):
-            note_failure("fix_syntax_errors:L33", None)
+        except (PermissionError, OSError) as exc:
+            note_failure("fix_syntax_errors:L33", exc)
             continue
 
     return errors

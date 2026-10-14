@@ -32,8 +32,8 @@ try:
     from hypothesis import given, strategies as st, settings
 
     HYPOTHESIS_AVAILABLE = True
-except ImportError:
-    note_failure("test_enhancements:L25", None)
+except ImportError as exc:
+    note_failure("test_enhancements:L25", exc)
     HYPOTHESIS_AVAILABLE = False
 
 # REMOVED 2026-10-10 (no-op gate sweep): `try: pass / FUZZING_AVAILABLE = True`.
@@ -218,8 +218,8 @@ class TestFuzzing:
                     args = parts[1:]
                     assert isinstance(action, str)
                     assert isinstance(args, list)
-            except Exception:
-                note_failure("test_enhancements:L211", None)
+            except Exception as exc:
+                note_failure("test_enhancements:L211", exc)
 
     def test_path_fuzz(self):
         """Path handling should be robust."""
@@ -240,8 +240,8 @@ class TestFuzzing:
                 p = pathlib.Path(path_str)
                 parts = p.parts
                 assert isinstance(parts, tuple)
-            except Exception:
-                note_failure("test_enhancements:L233", None)
+            except Exception as exc:
+                note_failure("test_enhancements:L233", exc)
 
     def test_json_fuzz(self):
         """JSON parsing should handle invalid input."""
@@ -262,8 +262,8 @@ class TestFuzzing:
         for json_str in test_jsons:
             try:
                 json.loads(json_str)
-            except (json.JSONDecodeError, TypeError, ValueError):
-                note_failure("test_enhancements:L255", None)
+            except (json.JSONDecodeError, TypeError, ValueError) as exc:
+                note_failure("test_enhancements:L255", exc)
 
 
 class TestConcurrencyProperties:

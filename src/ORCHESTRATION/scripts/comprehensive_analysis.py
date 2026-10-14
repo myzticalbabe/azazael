@@ -157,8 +157,8 @@ class PythonModuleFinder:
 
                         self.modules[full_path] = module_info
 
-                    except (PermissionError, OSError):
-                        note_failure("comprehensive_analysis:L151", None)
+                    except (PermissionError, OSError) as exc:
+                        note_failure("comprehensive_analysis:L151", exc)
                         continue
 
         print(f"Found {len(self.modules)} Python modules")
@@ -264,8 +264,8 @@ class ModuleTester:
             else:
                 result.errors.append(proc.stderr)
 
-        except subprocess.TimeoutExpired:
-            note_failure("comprehensive_analysis:L255", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("comprehensive_analysis:L255", exc)
             result.errors.append("Test timed out (>30s)")
         except Exception as e:
             note_failure("comprehensive_analysis:L257", e)
@@ -321,8 +321,8 @@ class ModuleFixer:
                     issues.append(
                         "Potential encoding issues - recommend adding # coding: utf-8"
                     )
-        except Exception:
-            note_failure("comprehensive_analysis:L310", None)
+        except Exception as exc:
+            note_failure("comprehensive_analysis:L310", exc)
             issues.append("Cannot read file for encoding check")
 
         # Issue 2: Missing imports
@@ -489,8 +489,8 @@ class PrerequisiteChecker:
                 if pkg.lower() in imp_lower or pkg.replace("-", "_") in imp_lower:
                     try:
                         __import__(pkg)
-                    except ImportError:
-                        note_failure("comprehensive_analysis:L476", None)
+                    except ImportError as exc:
+                        note_failure("comprehensive_analysis:L476", exc)
                         if pkg not in report["missing_packages"]:
                             report["missing_packages"].append(
                                 {"package": pkg, "install": install_cmd}

@@ -144,8 +144,8 @@ class CompleteModuleFinder:
                             print(f"\nReached limit of {limit} modules")
                             break
 
-                    except (PermissionError, OSError):
-                        note_failure("complete_module_analysis:L138", None)
+                    except (PermissionError, OSError) as exc:
+                        note_failure("complete_module_analysis:L138", exc)
                         self.scan_stats["errors"] += 1
                         continue
 
@@ -518,8 +518,8 @@ class PrerequisiteChecker:
                     if pkg.lower() in imp_lower or pkg.replace("-", "_") == imp_lower:
                         try:
                             __import__(pkg)
-                        except ImportError:
-                            note_failure("complete_module_analysis:L507", None)
+                        except ImportError as exc:
+                            note_failure("complete_module_analysis:L507", exc)
                             self.missing_by_package[pkg].append(path)
                             package_usage[pkg] += 1
 

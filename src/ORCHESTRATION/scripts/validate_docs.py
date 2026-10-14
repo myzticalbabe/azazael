@@ -155,8 +155,8 @@ class DocumentationValidator:
                 date = datetime.strptime(date_str, "%Y-%m-%d")
                 if date < datetime.now() - timedelta(days=365):
                     issues.append(f"Document is over 1 year old ({date_str})")
-            except ValueError:
-                note_failure("validate_docs:L148", None)
+            except ValueError as exc:
+                note_failure("validate_docs:L148", exc)
 
         return issues
 
@@ -232,8 +232,8 @@ class DocumentationValidator:
                     self.external_link_results[url] = False
                 else:
                     self.external_link_results[url] = True
-            except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
-                note_failure("validate_docs:L225", None)
+            except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as exc:
+                note_failure("validate_docs:L225", exc)
                 issues.append(f"Could not verify external link: {url}")
                 self.external_link_results[url] = None
 
@@ -267,8 +267,8 @@ class DocumentationValidator:
                     error_lines = result.stderr.strip().split("\n")[:3]
                     issues.append(f"Code block {i + 1} error: {'; '.join(error_lines)}")
 
-            except subprocess.TimeoutExpired:
-                note_failure("validate_docs:L259", None)
+            except subprocess.TimeoutExpired as exc:
+                note_failure("validate_docs:L259", exc)
                 issues.append(f"Code block {i + 1} timed out (>30s)")
             except Exception as e:
                 note_failure("validate_docs:L261", e)
