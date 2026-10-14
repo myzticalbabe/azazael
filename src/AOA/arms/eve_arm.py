@@ -41,8 +41,8 @@ class EveArm(BaseArm):
                 )
                 try:
                     data = json.loads(result.stdout) if result.stdout.strip() else {}
-                except json.JSONDecodeError:
-                    note_failure("eve_arm:L35", None)
+                except json.JSONDecodeError as exc:
+                    note_failure("eve_arm:L35", exc)
                     data = {"output": result.stdout[:200]}
                 return {"status": "ok", "data": {"selected_model": data.get("model", "gemini"), "task": task, "confidence": data.get("confidence", 0.9)}}
 
@@ -55,8 +55,8 @@ class EveArm(BaseArm):
                 )
                 try:
                     data = json.loads(result.stdout) if result.stdout.strip() else {}
-                except json.JSONDecodeError:
-                    note_failure("eve_arm:L48", None)
+                except json.JSONDecodeError as exc:
+                    note_failure("eve_arm:L48", exc)
                     data = {"output": result.stdout[:200]}
                 return {"status": "ok", "data": {"models_tested": data.get("models_tested", 5), "top_model": data.get("top_model", "gemini-2.5-pro"), "score": data.get("score", 94.2)}}
 
@@ -79,8 +79,8 @@ class EveArm(BaseArm):
                     "data": {"initialized": self._initialized, "eve_dir": str(_EVE_DIR), "eve_app_exists": self._eve_exists}
                 }
             return {"status": "error", "error": "Unknown: " + capability}
-        except subprocess.TimeoutExpired:
-            note_failure("eve_arm:L71", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("eve_arm:L71", exc)
             return {"status": "error", "error": "EveUnleashed operation timed out"}
         except Exception as e:
             note_failure("eve_arm:L73", e)
