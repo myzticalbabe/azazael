@@ -57,8 +57,8 @@ class CascadeRouter:
                    "confidence": float(conf), "big_answer": str(big_ans)[:2000]}
             with open(self.ledger_path, "a", encoding="utf-8") as fh:
                 fh.write(_json.dumps(row) + "\n")
-        except Exception:
-            note_failure("cascade:L37", None)
+        except Exception as exc:
+            note_failure("cascade:L37", exc)
 
     def route(self, task, triage_fn, big_fn, threshold=None) -> dict:
         ans, conf = triage_fn(task)

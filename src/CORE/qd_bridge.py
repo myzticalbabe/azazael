@@ -31,8 +31,8 @@ def qd_step(map_elites, island, fitness_fn: Callable,
             continue
         try:
             behavior = tuple(behavior_fn(dict(best.genes)))
-        except Exception:
-            note_failure("qd_bridge:L25", None)
+        except Exception as exc:
+            note_failure("qd_bridge:L25", exc)
             continue
         if map_elites.add(dict(best.genes), float(best.fitness), behavior):
             archived += 1

@@ -221,8 +221,8 @@ class NeuralPipeline:
                 if provider.has_valid_key():
                     self._api_providers[api_name] = provider
                     self._api_scores[api_name] = 1.0  # Start with perfect score
-            except Exception:
-                note_failure("NeuralPipeline:L202", None)
+            except Exception as exc:
+                note_failure("NeuralPipeline:L202", exc)
 
     # -- Pipeline Orchestration ----------------------------------------
 
@@ -562,12 +562,12 @@ class NeuralPipeline:
                             self._api_scores.get(api_name, 1.0) + 0.01
                         )
                         return score
-                    except (ValueError, TypeError):
-                        note_failure("NeuralPipeline:L541", None)
-            except Exception:
+                    except (ValueError, TypeError) as exc:
+                        note_failure("NeuralPipeline:L541", exc)
+            except Exception as exc:
                 # Penalize failing API
                 # Penalize failing API
-                note_failure("NeuralPipeline:L543", None)
+                note_failure("NeuralPipeline:L543", exc)
                 self._api_scores[api_name] = max(
                     0.1,
                     self._api_scores.get(api_name, 1.0) - 0.05
@@ -608,11 +608,11 @@ class NeuralPipeline:
                             "score": score,
                             "explanation": parts[1] if len(parts) > 1 else "",
                         }
-                    except (ValueError, IndexError):
-                        note_failure("NeuralPipeline:L585", None)
+                    except (ValueError, IndexError) as exc:
+                        note_failure("NeuralPipeline:L585", exc)
                         api_details[api_name] = {"raw": content}
-            except Exception:
-                note_failure("NeuralPipeline:L587", None)
+            except Exception as exc:
+                note_failure("NeuralPipeline:L587", exc)
                 api_details[api_name] = {"error": "API call failed"}
 
         avg_score = round(sum(scores) / len(scores), 4) if scores else None
@@ -669,8 +669,8 @@ class NeuralPipeline:
                     try:
                         score_part = content.split("SCORE:")[-1].strip()
                         scores.append(int(score_part.split()[0]))
-                    except (ValueError, IndexError):
-                        note_failure("NeuralPipeline:L644", None)
+                    except (ValueError, IndexError) as exc:
+                        note_failure("NeuralPipeline:L644", exc)
             except Exception as e:
                 note_failure("NeuralPipeline:L646", e)
                 api_results[api_name] = {"status": "ERROR", "error": str(e)}
@@ -706,8 +706,8 @@ class NeuralPipeline:
                 severity="info" if metrics.get("status") == "success" else "error",
                 tags=["neural_pipeline", metrics.get("agent_type", "unknown")],
             )
-        except Exception:
-            note_failure("NeuralPipeline:L680", None)
+        except Exception as exc:
+            note_failure("NeuralPipeline:L680", exc)
 
         with self._lock:
             self._run_history.append(metrics)

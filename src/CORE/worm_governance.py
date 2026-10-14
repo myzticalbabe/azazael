@@ -458,8 +458,8 @@ class DedupAnalyzer:
                 params = [p.name for p in sig.parameters.values()
                           if p.name != "self" and p.name != "cls"]
                 signatures[name] = params
-            except (ValueError, TypeError):
-                note_failure("worm_governance:L452", None)
+            except (ValueError, TypeError) as exc:
+                note_failure("worm_governance:L452", exc)
 
         self._sig_cache[cls_id] = signatures
         return signatures
@@ -511,8 +511,8 @@ class DedupAnalyzer:
                     tokens.add(low)
                 elif tok.type in (tokenize.STRING, tokenize.NUMBER):
                     tokens.add(tok.string.strip().lower()[:40])
-        except Exception:
-            note_failure("worm_governance:L505", None)
+        except Exception as exc:
+            note_failure("worm_governance:L505", exc)
             tokens = set()
         result = frozenset(tokens)
         self._impl_cache[cls_id] = result
@@ -922,8 +922,8 @@ class LifecycleManager:
                     hours_since = (now - last_time).total_seconds() / 3600
                     if hours_since > self.STALE_HOURS:
                         stale.append(name)
-                except (ValueError, TypeError):
-                    note_failure("worm_governance:L913", None)
+                except (ValueError, TypeError) as exc:
+                    note_failure("worm_governance:L913", exc)
                     stale.append(name)
 
         return stale
@@ -956,8 +956,8 @@ class LifecycleManager:
                 try:
                     last_time = datetime.fromisoformat(last_spawned)
                     hours_since = (now - last_time).total_seconds() / 3600
-                except (ValueError, TypeError):
-                    note_failure("worm_governance:L946", None)
+                except (ValueError, TypeError) as exc:
+                    note_failure("worm_governance:L946", exc)
 
             vitality = self.get_vitality_score(name, info)
             deprecation_reason = info.get("deprecation_reason")
@@ -1225,8 +1225,8 @@ class WormGovernor:
                               name in self.naming_validator.LEGACY_VERSION_SUFFIX)
                     if not legacy:
                         reasons.append("naming_violation")
-            except Exception:
-                note_failure("worm_governance:L1215", None)
+            except Exception as exc:
+                note_failure("worm_governance:L1215", exc)
                 reasons.append("naming_check_error")
         changes = entry.get("changes") or {}
         if isinstance(changes, dict):

@@ -1115,8 +1115,8 @@ def build_html_page(watch: bool = False, interval: int = 5) -> str:
     try:
         from CORE.dashboard import get_report
         report = get_report()
-    except Exception:
-        note_failure("web_dashboard:L1109", None)
+    except Exception as exc:
+        note_failure("web_dashboard:L1109", exc)
         report = {"timestamp": datetime.now().isoformat(), "error": "Failed to gather report"}
 
     timestamp = report.get("timestamp", datetime.now().isoformat())
@@ -1194,8 +1194,8 @@ class WebDashboardHandler(BaseHTTPRequestHandler):
         try:
             from CORE.health_server import get_health_json
             data = get_health_json().encode("utf-8")
-        except Exception:
-            note_failure("web_dashboard:L1187", None)
+        except Exception as exc:
+            note_failure("web_dashboard:L1187", exc)
             data = b'{"error": "Failed to gather health data"}'
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -1208,8 +1208,8 @@ class WebDashboardHandler(BaseHTTPRequestHandler):
         try:
             from CORE.health_server import get_prometheus_metrics
             data = get_prometheus_metrics().encode("utf-8")
-        except Exception:
-            note_failure("web_dashboard:L1200", None)
+        except Exception as exc:
+            note_failure("web_dashboard:L1200", exc)
             data = b"# ERROR: Failed to gather metrics"
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
@@ -1262,8 +1262,8 @@ class WebDashboardServer:
         if self.server:
             try:
                 self.server.server_close()
-            except OSError:
-                note_failure("web_dashboard:L1253", None) # scanner:ignore
+            except OSError as exc:
+                note_failure("web_dashboard:L1253", exc) # scanner:ignore
 
     def start_background(self) -> threading.Thread:
         """Start the web dashboard in a background daemon thread."""

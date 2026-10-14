@@ -32,8 +32,8 @@ def fgsm_delta_f1(X, y, eps: float = 0.05, seed: int = 0) -> dict:
             m = LogisticRegression(max_iter=500)
             m.fit(Xt, yt)
             return lambda v: float(m.predict_proba([v])[0][1])
-        except Exception:
-            note_failure("robust:L25", None)
+        except Exception as exc:
+            note_failure("robust:L25", exc)
             mu1 = [sum(r[i] for r, t in zip(Xt, yt) if t) / max(1, sum(yt))
                    for i in range(len(Xt[0]))]
             mu0 = [sum(r[i] for r, t in zip(Xt, yt) if not t) / max(1, len(yt) - sum(yt))
@@ -77,8 +77,8 @@ def smote(X, y, k: int = 3, seed: int = 0):
         nn = NearestNeighbors(n_neighbors=min(k + 1, len(mn))).fit([X[i] for i in mn])
         _, idx = nn.kneighbors([X[i] for i in mn])
         nbrs = [[mn[j] for j in row[1:]] for row in idx]
-    except Exception:
-        note_failure("robust:L69", None)
+    except Exception as exc:
+        note_failure("robust:L69", exc)
         nbrs = []
         for i in mn:
             ds = sorted(((dist(i, j), j) for j in mn if j != i))[:k]

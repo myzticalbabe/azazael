@@ -141,8 +141,8 @@ class CodebaseGraph:
         module_id = self._module_id(path)
         try:
             lines = path.read_text(encoding="utf-8").count("\n") + 1
-        except (OSError, UnicodeError):
-            note_failure("codebase_graph:L98", None)
+        except (OSError, UnicodeError) as exc:
+            note_failure("codebase_graph:L98", exc)
             lines = 0
         self.nodes[module_id] = GraphNode(
             node_id=module_id,

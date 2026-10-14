@@ -116,15 +116,15 @@ def get_device():
         if hasattr(torch, "xpu") and torch.xpu.is_available():
             _RESOLVED = torch.device("xpu:0")
             return _RESOLVED
-    except Exception:
-        note_failure("device:L108", None)
+    except Exception as exc:
+        note_failure("device:L108", exc)
 
     try:
         if torch.cuda.is_available():
             _RESOLVED = torch.device("cuda:0")
             return _RESOLVED
-    except Exception:
-        note_failure("device:L115", None)
+    except Exception as exc:
+        note_failure("device:L115", exc)
 
     _RESOLVED = torch.device("cpu")
     return _RESOLVED
@@ -150,8 +150,8 @@ def to_device(obj, dtype=None):
         if dtype is not None:
             return obj.to(dev, dtype)
         return obj.to(dev)
-    except Exception:
-        note_failure("device:L142", None)
+    except Exception as exc:
+        note_failure("device:L142", exc)
         return obj
 
 
@@ -166,8 +166,8 @@ def synchronize() -> None:
             torch.xpu.synchronize()
         elif dev == "cuda":
             torch.cuda.synchronize()
-    except Exception:
-        note_failure("device:L157", None)
+    except Exception as exc:
+        note_failure("device:L157", exc)
 
 
 def empty_cache() -> None:
@@ -179,8 +179,8 @@ def empty_cache() -> None:
             torch.xpu.empty_cache()
         elif device_label() == "cuda":
             torch.cuda.empty_cache()
-    except Exception:
-        note_failure("device:L170", None)
+    except Exception as exc:
+        note_failure("device:L170", exc)
 
 
 def describe() -> dict:
@@ -222,8 +222,8 @@ def suggest_batch_size(base: int = 64, cap: int = 512) -> int:
         return max(1, min(base, cap))
     try:
         mem_gib = getattr(torch.xpu.get_device_properties(0), "total_memory", 0) / 2 ** 30
-    except Exception:
-        note_failure("device:L212", None)
+    except Exception as exc:
+        note_failure("device:L212", exc)
         mem_gib = 0.0
     if mem_gib <= 0:
         return base

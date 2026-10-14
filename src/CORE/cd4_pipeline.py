@@ -170,8 +170,8 @@ def load_build_manifest(project_root: (str | None) = None) -> dict[str, Any]:
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             return getattr(mod, "BUILD_TARGETS", {})
-    except Exception:
-        note_failure("cd4_pipeline:L122", None)
+    except Exception as exc:
+        note_failure("cd4_pipeline:L122", exc)
     return {}
 
 
@@ -428,8 +428,8 @@ class NuitkaBuildPipeline:
                     "stderr": result.stderr[-1000:],
                 },
             )
-        except subprocess.TimeoutExpired:
-            note_failure("cd4_pipeline:L331", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("cd4_pipeline:L331", exc)
             return self._stage_result(
                 STAGE_INTERPRETED, False,
                 "pytest timed out after 300s",
@@ -498,8 +498,8 @@ class NuitkaBuildPipeline:
                     [sys.executable, patch_script, "--apply", "--verify"],
                     capture_output=True, text=True, timeout=60,
                 )
-            except Exception:
-                note_failure("cd4_pipeline:L400", None) # Non-fatal - build may still work
+            except Exception as exc:
+                note_failure("cd4_pipeline:L400", exc) # Non-fatal - build may still work
 
         # Build target
         if target:
@@ -546,8 +546,8 @@ class NuitkaBuildPipeline:
                         "manifest": manifest_valid,
                     },
                 )
-            except subprocess.TimeoutExpired:
-                note_failure("cd4_pipeline:L448", None)
+            except subprocess.TimeoutExpired as exc:
+                note_failure("cd4_pipeline:L448", exc)
                 return self._stage_result(
                     STAGE_COMPILATION, False,
                     f"Nuitka build timed out (600s): {target}",
@@ -667,8 +667,8 @@ class NuitkaBuildPipeline:
                     "stderr": result.stderr[-1000:],
                 },
             )
-        except subprocess.TimeoutExpired:
-            note_failure("cd4_pipeline:L541", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("cd4_pipeline:L541", exc)
             return self._stage_result(
                 STAGE_VALIDATION, False,
                 "Compiled validation timed out after 300s",

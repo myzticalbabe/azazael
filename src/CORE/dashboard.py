@@ -103,8 +103,8 @@ def _parse_since(since_str: (str | None)) -> (float | None):
             return datetime.fromisoformat(s).timestamp()
         else:
             return datetime.fromisoformat(s).timestamp()
-    except (ValueError, TypeError):
-        note_failure("dashboard:L97", None)
+    except (ValueError, TypeError) as exc:
+        note_failure("dashboard:L97", exc)
         return None
 
 
@@ -185,8 +185,8 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "clusters": {"timeout": cfg.clusters.default_timeout, "max_parallel": cfg.clusters.max_parallel_worms, "retries": cfg.clusters.max_retries},
             "log_level": cfg.observability.logging.level,
         }
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L174", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L174", exc)
 
     try:
         from CORE.local_memory import get_memory_store
@@ -199,8 +199,8 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "top_sources": dict(sorted(mem_stats.get("sources", {}).items(), key=lambda x: -x[1])[:5]),
             "top_events": dict(sorted(mem_stats.get("event_types", {}).items(), key=lambda x: -x[1])[:5]),
         }
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L188", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L188", exc)
 
     try:
         from CORE.WORMS.METACLUSTER import MetaCluster
@@ -213,8 +213,8 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "cross_nature_routes": mc_state.get("cross_nature_routes", 0),
             "orchestration_history": mc_state.get("orchestration_history", 0),
         }
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L202", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L202", exc)
 
     try:
         from CORE.workflow import get_workflow_engine
@@ -225,8 +225,8 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
             "total_executions": wf_status["history_count"],
             "last_execution": wf_status["last_execution"],
         }
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L214", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L214", exc)
 
     try:
         from CORE.local_memory import get_memory_store
@@ -246,8 +246,8 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
                     "model_version": data.get("model_version", "?"),
                 })
         report["scheduling"] = {"recent_runs": training_runs, "total_runs": len(training_runs)}
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L235", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L235", exc)
 
     try:
         # TrainingOrchestrator (SB3 deep RL)
@@ -267,16 +267,16 @@ def get_report(since: (str | None) = None) -> dict[str, Any]:
                     "duration_ms": data.get("duration_ms", 0),
                 })
         report["sb3_training"] = {"recent_runs": sb3_runs, "total_runs": len(sb3_runs)}
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L256", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L256", exc)
 
     try:
         from CORE.WORMS.expansion.db_monitor import DatabaseMonitorWorm
         monitor = DatabaseMonitorWorm()
         report["db_monitor"] = monitor.get_db_summary()
         report["db_monitor_full"] = monitor.get_report()
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L264", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L264", exc)
 
     return report
 
@@ -339,8 +339,8 @@ def _mesh_report() -> dict[str, Any]:
             clock["refused"] = h.rejected()
             clock["refused_skew_ms"] = h.rejected_skew_ms()
             clock["observations"] = h.observations()
-        except Exception:  # pragma: no cover - defensive
-            note_failure("dashboard:L328", None)
+        except Exception as exc:  # pragma: no cover - defensive
+            note_failure("dashboard:L328", exc)
         mesh["clock"] = clock
         mesh["queue"] = sp.get_spine_summary()
     except Exception as e:  # noqa: BLE001 — non-fatal subsystem isolation
@@ -539,8 +539,8 @@ def render_workflows():
                 icon = "[OK]" if h.success else "[!!]"
                 print(f"  {icon} {h.workflow_name}  ({h.success_count} ok / {h.failure_count} fail / {h.skipped_count} skipped)  {h.duration_ms:.0f}ms")
             print()
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L526", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L526", exc)
 
 
 def render_scheduling():
@@ -683,8 +683,8 @@ def render_db_health():
         from CORE.config import get_config
         cfg = get_config()
         max_size_warn = cfg.memory_store.max_size_mb_warn
-    except Exception:  # noqa: BLE001 — non-fatal subsystem isolation
-        note_failure("dashboard:L670", None)
+    except Exception as exc:  # noqa: BLE001 — non-fatal subsystem isolation
+        note_failure("dashboard:L670", exc)
         max_size_warn = 100
 
     if db_size_mb > max_size_warn:
@@ -964,8 +964,8 @@ def main():
             from CORE.WORMS.expansion.db_monitor import DatabaseMonitorWorm
             _db_monitor_instance = DatabaseMonitorWorm()
             _db_monitor_instance.start_monitor(interval_seconds=args.interval * 2)
-        except Exception:  # noqa: BLE001 — optional background monitor; skip
-            note_failure("dashboard:L950", None)
+        except Exception as exc:  # noqa: BLE001 — optional background monitor; skip
+            note_failure("dashboard:L950", exc)
 
     # Start background SB3 TrainingOrchestrator alongside DB monitor
     _training_orchestrator = None

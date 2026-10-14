@@ -71,8 +71,8 @@ class League:
         for a, b in itertools.combinations(players, 2):
             try:
                 s = float(match_fn(a, b))
-            except Exception:
-                note_failure("league:L64", None)
+            except Exception as exc:
+                note_failure("league:L64", exc)
                 s = 0.5
             s = min(1.0, max(0.0, s))
             r = self.record(a, b, s)
@@ -138,5 +138,5 @@ class League:
             d = json.load(open(path, encoding="utf-8"))
             self.ratings.update({k: float(v) for k, v in d.get("ratings", {}).items()})
             self.games.update({k: int(v) for k, v in d.get("games", {}).items()})
-        except Exception:
-            note_failure("league:L130", None)
+        except Exception as exc:
+            note_failure("league:L130", exc)

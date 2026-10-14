@@ -28,23 +28,23 @@ def fit_budget(items: list[dict], budget: int,
     """Pack items in order until ``budget`` is spent. Never raises."""
     try:
         budget = max(0, int(budget))
-    except (TypeError, ValueError):
-        note_failure("memory_diagnostic:L21", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("memory_diagnostic:L21", exc)
         return list(items or [])
     if size_of is None:
         def size_of(it):
             try:
                 return len(str(it.get("text", it)))
-            except Exception:
-                note_failure("memory_diagnostic:L27", None)
+            except Exception as exc:
+                note_failure("memory_diagnostic:L27", exc)
                 return 0
     out = []
     spent = 0
     for it in items or []:
         try:
             cost = int(size_of(it))
-        except Exception:
-            note_failure("memory_diagnostic:L34", None)
+        except Exception as exc:
+            note_failure("memory_diagnostic:L34", exc)
             cost = 0
         if spent + cost > budget and out:
             break

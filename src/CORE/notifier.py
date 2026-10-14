@@ -316,8 +316,8 @@ def check_clock_and_alert(webhook_url: (str | None) = None) -> int:
         refuse_limit = int(os.environ.get("AZAZAEL_CLOCK_REJECT_ALERT", "1"))
         auto_purge_at = int(os.environ.get("AZAZAEL_CLOCK_AUTO_PURGE_REFUSED",
                                            "25"))
-    except ValueError:
-        note_failure("notifier:L308", None)
+    except ValueError as exc:
+        note_failure("notifier:L308", exc)
         skew_limit, refuse_limit = 60000, 1
         auto_purge_at = 25
 

@@ -127,7 +127,7 @@ def list_undo_logs(limit: int = 20) -> list:
                 "source": data.get("source_id", "?")[:20],
                 "target": data.get("target_id", "?")[:20],
             })
-        except Exception:
-            note_failure("rollback:L119", None)
+        except Exception as exc:
+            note_failure("rollback:L119", exc)
             continue
     return results

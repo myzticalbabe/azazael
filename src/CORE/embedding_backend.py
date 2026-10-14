@@ -88,10 +88,10 @@ class _EmbeddingCache:
     def _ensure_db(self) -> None:
         try:
             self._db_path.parent.mkdir(parents=True, exist_ok=True)
-        except OSError:
+        except OSError as exc:
             # D: not writable/absent — fall back to user home
             # D: not writable/absent — fall back to user home
-            note_failure("embedding_backend:L82", None)
+            note_failure("embedding_backend:L82", exc)
             self._db_path = Path.home() / ".azazael" / "embedding_cache.db"
             self._db_path.parent.mkdir(parents=True, exist_ok=True)
         with self._lock:
@@ -129,8 +129,8 @@ class _EmbeddingCache:
                 return None
             vec = json.loads(row[0])
             return vec if isinstance(vec, list) else None
-        except Exception:
-            note_failure("embedding_backend:L121", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L121", exc)
             return None
 
     def put(self, text: str, vec: List[float], backend: str,
@@ -146,8 +146,8 @@ class _EmbeddingCache:
                 (key, json.dumps(vec), backend, len(vec), time.time()),
             )
             conn.commit()
-        except Exception:
-            note_failure("embedding_backend:L137", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L137", exc)
 
     def stats(self) -> Dict[str, Any]:
         try:
@@ -157,8 +157,8 @@ class _EmbeddingCache:
                 "SELECT backend, COUNT(*) FROM embeddings GROUP BY backend"
             ).fetchall())
             return {"cache_path": str(self._db_path), "cached": total, "by_backend": by_backend}
-        except Exception:
-            note_failure("embedding_backend:L148", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L148", exc)
             return {"cache_path": str(self._db_path), "cached": 0, "by_backend": {}}
 
 
@@ -191,8 +191,8 @@ class _OllamaBackend:
             with urllib.request.urlopen(req, timeout=3) as resp:
                 resp.read()
             return True
-        except Exception:
-            note_failure("embedding_backend:L181", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L181", exc)
             with self._lock:
                 self._down_until[model] = time.time() + _NEGATIVE_CACHE_TTL
             return False
@@ -212,8 +212,8 @@ class _OllamaBackend:
             if not isinstance(vec, list) or len(vec) < 64:
                 return None
             return [float(x) for x in vec]
-        except Exception:
-            note_failure("embedding_backend:L201", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L201", exc)
             with self._lock:
                 self._down_until[model] = time.time() + _NEGATIVE_CACHE_TTL
             return None
@@ -249,8 +249,8 @@ class _LlamaServerBackend:
             if not ok:
                 raise RuntimeError("not ready")
             return True
-        except Exception:
-            note_failure("embedding_backend:L237", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L237", exc)
             with self._lock:
                 self._down_until = time.time() + _NEGATIVE_CACHE_TTL
             return False
@@ -279,8 +279,8 @@ class _LlamaServerBackend:
             if norm > 0:
                 pooled = [x / norm for x in pooled]
             return pooled
-        except Exception:
-            note_failure("embedding_backend:L266", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L266", exc)
             with self._lock:
                 self._down_until = time.time() + _NEGATIVE_CACHE_TTL
             return None
@@ -331,8 +331,8 @@ def _pulled_models() -> List[str]:
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         names = {m.get("name", "").split(":")[0] for m in data.get("models", [])}
-    except Exception:
-        note_failure("embedding_backend:L317", None)
+    except Exception as exc:
+        note_failure("embedding_backend:L317", exc)
         names = set()
     for name in names:
         if name in MODEL_REGISTRY:
@@ -354,8 +354,8 @@ def _config_get(key: str, default: Any = None) -> Any:
         if not row:
             return default
         return json.loads(row[0])
-    except Exception:
-        note_failure("embedding_backend:L339", None)
+    except Exception as exc:
+        note_failure("embedding_backend:L339", exc)
         return default
 
 
@@ -370,8 +370,8 @@ def _config_put(key: str, value: Any) -> None:
             (key, json.dumps(value)),
         )
         conn.commit()
-    except Exception:
-        note_failure("embedding_backend:L354", None)
+    except Exception as exc:
+        note_failure("embedding_backend:L354", exc)
 
 
 def optimal_dim() -> int:
@@ -424,14 +424,14 @@ def _corpus_for_optimization(limit: int = 200) -> List[Dict[str, Any]]:
             (limit,),
         ).fetchall()
         conn.close()
-    except Exception:
-        note_failure("embedding_backend:L408", None)
+    except Exception as exc:
+        note_failure("embedding_backend:L408", exc)
         return docs
     for r in rows:
         try:
             m = json.loads(r["metadata"])
-        except Exception:
-            note_failure("embedding_backend:L413", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L413", exc)
             continue
         if not isinstance(m, dict):
             continue
@@ -485,8 +485,8 @@ def _mrr_at_dim(docs: List[Dict[str, Any]], k: int, model: str = DEFAULT_MODEL) 
         sim = M @ M.T  # (n, n) cosine
         np.fill_diagonal(sim, -1.0)  # exclude self
         mat = sim
-    except Exception:
-        note_failure("embedding_backend:L467", None)
+    except Exception as exc:
+        note_failure("embedding_backend:L467", exc)
         mat = None
 
     def _order(i: int) -> List[int]:
@@ -506,8 +506,8 @@ def _mrr_at_dim(docs: List[Dict[str, Any]], k: int, model: str = DEFAULT_MODEL) 
             Q = Q / (np.linalg.norm(Q, axis=1, keepdims=True) + 1e-9)
             qsim = Q @ M.T
             qmat = True
-        except Exception:
-            note_failure("embedding_backend:L487", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L487", exc)
             qmat = False
         for qi, (q, expected) in enumerate(_PARAPHRASE_EVAL):
             if q not in q_proj:
@@ -573,8 +573,8 @@ def optimize_dimension(verbose: bool = True) -> Dict[str, Any]:
         models_used[str(d)] = m
         try:
             scores[str(d)] = round(_mrr_at_dim(docs, d, m), 4)
-        except Exception:
-            note_failure("embedding_backend:L553", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L553", exc)
             scores[str(d)] = 0.0
     best_dim = max(_CANDIDATE_DIMS, key=lambda d: scores[str(d)])
     best_model = models_used.get(str(best_dim)) or DEFAULT_MODEL
@@ -636,8 +636,8 @@ def embed_text(text: str, model: str = DEFAULT_MODEL) -> List[float]:
                 vec = backend.embed(text, model)
             else:
                 vec = backend.embed(text)
-        except Exception:
-            note_failure("embedding_backend:L615", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L615", exc)
             vec = None
         if vec is not None:
             with _pick_lock:
@@ -656,8 +656,8 @@ def embed_many(texts: List[str], model: str = DEFAULT_MODEL) -> List[List[float]
     for t in texts:
         try:
             out.append(embed_text(t, model))
-        except Exception:
-            note_failure("embedding_backend:L634", None)
+        except Exception as exc:
+            note_failure("embedding_backend:L634", exc)
             out.append([0.0] * CANONICAL_DIM)
     return out
 

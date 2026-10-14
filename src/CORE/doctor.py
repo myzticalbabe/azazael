@@ -78,8 +78,8 @@ def check_index_usage() -> list:
             uses_index = expected_index in plan_str
             results.append({"query": query[:60], "expected_index": expected_index, "uses_index": uses_index, "plan": plan_str[:800]})
         conn.close()
-    except Exception:
-        note_failure("doctor:L70", None)
+    except Exception as exc:
+        note_failure("doctor:L70", exc)
     return results
 
 
@@ -112,8 +112,8 @@ def check_file_permissions() -> list:
             is_writable = bool(mode & stat.S_IWRITE)
             if is_writable:
                 issues.append(f"{fp.name}: writable (should be read-only)")
-        except Exception:
-            note_failure("doctor:L104", None)
+        except Exception as exc:
+            note_failure("doctor:L104", exc)
     return issues
 
 
@@ -140,8 +140,8 @@ def check_disk_space() -> dict:
             total_gb = round(usage.total / (1024**3), 1)
             pct = round(usage.used / usage.total * 100, 1)
             result[label] = {"free_gb": free_gb, "total_gb": total_gb, "used_pct": pct}
-        except Exception:
-            note_failure("doctor:L132", None)
+        except Exception as exc:
+            note_failure("doctor:L132", exc)
     return result
 
 
@@ -190,16 +190,16 @@ def check_registry_importable() -> dict:
             out["source"] = "warm"
             out["ok"] = bool(cached.get("valid"))
             return out
-    except Exception:
-        note_failure("doctor:L182", None)
+    except Exception as exc:
+        note_failure("doctor:L182", exc)
 
     try:
         # Ensure the registry is populated so validation isn't vacuous.
         try:
             from CORE.startup_warm import ensure_registry_warm
             ensure_registry_warm()
-        except Exception:
-            note_failure("doctor:L190", None)
+        except Exception as exc:
+            note_failure("doctor:L190", exc)
         from CORE.worm_registry import validate_registry_importable
         res = validate_registry_importable()
         out = dict(res)

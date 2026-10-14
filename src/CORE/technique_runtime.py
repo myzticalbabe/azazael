@@ -177,8 +177,8 @@ def _ep_key(ep: str) -> tuple:
     """Sort EPs numerically ('EP9' before 'EP10'), non-numeric last."""
     try:
         return (0, int(ep[2:]))
-    except ValueError:
-        note_failure("technique_runtime:L132", None)
+    except ValueError as exc:
+        note_failure("technique_runtime:L132", exc)
         return (1, 0)
 
 
@@ -321,8 +321,8 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
             decision_id=decision_id))
         if predicted is not None:
             _record_calibration(question, predicted, decision_id)
-    except Exception:
-        note_failure("technique_runtime:L275", None)
+    except Exception as exc:
+        note_failure("technique_runtime:L275", exc)
         written = False
     record_link("technique_runtime.reflect_on_failure", question, written,
                 decision_id=str(decision_id or ""))

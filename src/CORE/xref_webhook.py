@@ -33,8 +33,8 @@ def notify_new_links(new_links: int, total: int, webhook_url: str) -> bool:
             headers={"Content-Type": "application/json"}, method="POST")
         urllib.request.urlopen(req, timeout=5)
         return True
-    except Exception:
-        note_failure("xref_webhook:L26", None)
+    except Exception as exc:
+        note_failure("xref_webhook:L26", exc)
         return False
 
 if __name__ == "__main__":

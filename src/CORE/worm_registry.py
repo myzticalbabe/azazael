@@ -480,8 +480,8 @@ def register_worm(
         module = cls.__module__
         try:
             source_file = inspect.getfile(cls)
-        except (OSError, TypeError, Exception):
-            note_failure("worm_registry:source-file-probe", None)
+        except (OSError, TypeError, Exception) as exc:
+            note_failure("worm_registry:source-file-probe", exc)
             source_file = ""  # exec()-defined classes or REPL classes have no source file
 
         # Normalize bare module names to their package-qualified import path.
@@ -680,8 +680,8 @@ def _discover_worms_impl(
             qualified = "CORE.WORMS." + module_name
             try:
                 module = importlib.import_module(qualified)
-            except ImportError:
-                note_failure("worm_registry:qualified-module-import", None)
+            except ImportError as exc:
+                note_failure("worm_registry:qualified-module-import", exc)
                 module = importlib.import_module(module_name)
 
             # After import, skip dir() loop if @register_worm already registered this module

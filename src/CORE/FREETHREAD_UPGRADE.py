@@ -47,8 +47,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("FREETHREAD_UPGRADE:L41", None)
+        except Exception as exc:
+            note_failure("FREETHREAD_UPGRADE:L41", exc)
             return False
 
     class FreeThreadPool:

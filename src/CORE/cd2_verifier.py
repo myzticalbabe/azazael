@@ -47,8 +47,8 @@ except ImportError:                               # never break the host
 try:
     import z3
     Z3_AVAILABLE = True
-except ImportError:
-    note_failure("cd2_verifier:L38", None)
+except ImportError as exc:
+    note_failure("cd2_verifier:L38", exc)
     Z3_AVAILABLE = False
 
 
@@ -83,8 +83,8 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
     stats: Dict[str, str] = {}
     try:
         stats = {k: str(v) for k, v in solver.statistics()}
-    except Exception:
-        note_failure("cd2_verifier:L73", None)
+    except Exception as exc:
+        note_failure("cd2_verifier:L73", exc)
 
     smt2 = ""
     try:
@@ -102,8 +102,8 @@ def serialize_solver_result(solver: Any, model_name: str) -> Dict[str, Any]:
             classification = "SAT"
         elif result == unsat:
             classification = "UNSAT"
-    except ImportError:
-        note_failure("cd2_verifier:L91", None)
+    except ImportError as exc:
+        note_failure("cd2_verifier:L91", exc)
         result_str = str(result)
         if result_str == "sat":
             classification = "SAT"

@@ -69,8 +69,8 @@ def has_module(name: str) -> bool:
     """
     try:
         return importlib.util.find_spec(name) is not None
-    except Exception:
-        note_failure("native_guard:L63", None)
+    except Exception as exc:
+        note_failure("native_guard:L63", exc)
         return False
 
 
@@ -95,8 +95,8 @@ def import_ok(name: str, timeout: float = 60.0) -> bool:
             timeout=timeout,
         )
         ok = proc.returncode == 0
-    except Exception:
-        note_failure("native_guard:L88", None)
+    except Exception as exc:
+        note_failure("native_guard:L88", exc)
         ok = False
     _IMPORT_OK[name] = ok
     return ok

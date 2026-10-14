@@ -175,8 +175,8 @@ class InferencePool:
             mw = model_warmup or "llama3.2:1b"
             try:
                 _ollama_infer("warmup", model=mw, max_tokens=1, timeout=5.0)
-            except Exception:
-                note_failure("inference_pool:L166", None)
+            except Exception as exc:
+                note_failure("inference_pool:L166", exc)
 
     def _check_connectivity(self) -> bool:
         """Check if Ollama server is reachable."""
@@ -191,8 +191,8 @@ class InferencePool:
             with urllib.request.urlopen(req, timeout=3) as resp:
                 self._health_ok = resp.status == 200
                 return self._health_ok
-        except Exception:
-            note_failure("inference_pool:L182", None)
+        except Exception as exc:
+            note_failure("inference_pool:L182", exc)
             self._health_ok = False
             return False
 
@@ -303,16 +303,16 @@ class InferencePool:
         # Try parsing
         try:
             return json.loads(text)
-        except json.JSONDecodeError:
-            note_failure("inference_pool:L293", None)
+        except json.JSONDecodeError as exc:
+            note_failure("inference_pool:L293", exc)
         # Try finding JSON object in text
         start = text.find("{")
         end = text.rfind("}")
         if start >= 0 and end > start:
             try:
                 return json.loads(text[start:end+1])
-            except json.JSONDecodeError:
-                note_failure("inference_pool:L301", None)
+            except json.JSONDecodeError as exc:
+                note_failure("inference_pool:L301", exc)
         return {"_raw": response}
 
     @staticmethod
@@ -412,8 +412,8 @@ class InferencePool:
             with urllib.request.urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 return data.get("models", [])
-        except Exception:
-            note_failure("inference_pool:L402", None)
+        except Exception as exc:
+            note_failure("inference_pool:L402", exc)
             return []
 
     def infer_with_fallback(self, prompt: str,

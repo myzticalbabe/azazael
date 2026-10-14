@@ -412,10 +412,10 @@ def configure_otel_tracing(
     provider.add_span_processor(processor)
     try:
         trace.set_tracer_provider(provider)
-    except Exception:
+    except Exception as exc:
         # The provider is process-global and settable once; if one is already
         # installed we use whatever is active instead of failing the caller.
-        note_failure("cd3_exporter:L332", None)
+        note_failure("cd3_exporter:L332", exc)
 
     return trace.get_tracer(__name__)
 

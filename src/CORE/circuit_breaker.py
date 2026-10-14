@@ -44,8 +44,8 @@ except ImportError:                               # runtime absent: stay importa
 #: stay importable without the gate, and only terminate on a PROVEN drift.
 try:
     from CORE.verification_gate import confidence_divergence_check as _drift_check
-except ImportError:                               # gate absent: supervision off
-    note_failure("circuit_breaker:drift-import", None)
+except ImportError as exc:                               # gate absent: supervision off
+    note_failure("circuit_breaker:drift-import", exc)
     _drift_check = None
 
 
@@ -204,8 +204,8 @@ class CircuitBreaker:
             with self._phase_lock:
                 previous = self._phase
                 self._phase = name
-        except Exception:
-            note_failure("circuit_breaker:L195", None)
+        except Exception as exc:
+            note_failure("circuit_breaker:L195", exc)
             previous = ""
         try:
             yield name

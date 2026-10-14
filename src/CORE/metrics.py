@@ -57,8 +57,8 @@ except ImportError:                               # never break the host
 
 try:
     from http.server import HTTPServer, BaseHTTPRequestHandler
-except ImportError:
-    note_failure("metrics:L51", None)
+except ImportError as exc:
+    note_failure("metrics:L51", exc)
     HTTPServer = None
     BaseHTTPRequestHandler = object
 
@@ -242,8 +242,8 @@ class MetricsRegistry:
             labels = json.loads(labels_key)
             parts = [f'{k}="{v}"' for k, v in sorted(labels.items())]
             return "{" + ",".join(parts) + "}" if parts else ""
-        except (json.JSONDecodeError, AttributeError):
-            note_failure("metrics:L235", None)
+        except (json.JSONDecodeError, AttributeError) as exc:
+            note_failure("metrics:L235", exc)
             return ""
 
 
@@ -299,8 +299,8 @@ class MetricsHandler(BaseHTTPRequestHandler):
         try:
             from CORE.direct_memory import DirectMemory
             DirectMemory.db_size()
-        except Exception:
-            note_failure("metrics:L291", None)
+        except Exception as exc:
+            note_failure("metrics:L291", exc)
             healthy = False
         status = 200 if healthy else 503
         body = json.dumps({

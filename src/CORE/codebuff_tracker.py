@@ -257,8 +257,8 @@ def _parse_row(row: sqlite3.Row) -> dict:
     for field in ("data", "tags"):
         try:
             d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
-        except (json.JSONDecodeError, TypeError):
-            note_failure("codebuff_tracker:L251", None)
+        except (json.JSONDecodeError, TypeError) as exc:
+            note_failure("codebuff_tracker:L251", exc)
     return d
 
 # -- Quality Guidelines for event data --
@@ -330,8 +330,8 @@ class CodebuffTracker:
                             "Explicit record_session_end() should be called "
                             "for better summary data.",
                 })
-            except Exception:
-                note_failure("codebuff_tracker:L324", None) # Silently handle atexit errors
+            except Exception as exc:
+                note_failure("codebuff_tracker:L324", exc) # Silently handle atexit errors
 
     @property
     def session_id(self) -> str:
@@ -484,8 +484,8 @@ class CodebuffTracker:
         # Unregister atexit handler to prevent double-recording
         try:
             atexit.unregister(self._atexit_handler)
-        except Exception:
-            note_failure("codebuff_tracker:L478", None)
+        except Exception as exc:
+            note_failure("codebuff_tracker:L478", exc)
 
         summary = summary or {}
         summary.update({

@@ -97,8 +97,8 @@ def gate_distillation(baseline_reward: float,
     try:
         base = float(baseline_reward)
         mem = float(memory_reward)
-    except (TypeError, ValueError):
-        note_failure("rubric_evolution:L100", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("rubric_evolution:L100", exc)
         return {"distill": False, "gain": 0.0,
                 "gaps": ["non-numeric-rewards"]}
     return {"distill": mem > base, "gain": mem - base}

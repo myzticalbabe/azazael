@@ -173,8 +173,8 @@ def _candidate_from_finding(root: Path, finding: Mapping[str, Any]) -> Candidate
         line = int(finding["line"])
         detector = str(finding["detector"])
         severity = str(finding.get("severity", "LOW")).upper()
-    except (KeyError, TypeError, ValueError, MetaEvolutionError):
-        note_failure("meta_evolution:L164", None)
+    except (KeyError, TypeError, ValueError, MetaEvolutionError) as exc:
+        note_failure("meta_evolution:L164", exc)
         return None
     if not path.is_file() or is_protected_path(rel):
         return None
@@ -364,8 +364,8 @@ def _build_call_index(root: Path) -> dict[str, list[str]]:
         rel = path.relative_to(root).as_posix()
         try:
             tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-        except (OSError, SyntaxError):
-            note_failure("meta_evolution:L353", None)
+        except (OSError, SyntaxError) as exc:
+            note_failure("meta_evolution:L353", exc)
             continue
         for node in ast.walk(tree):
             if not isinstance(node, ast.Call):
@@ -394,8 +394,8 @@ def _chain_job_specs(root: Path) -> dict[str, dict[str, Any]]:
         return {}
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-    except (OSError, SyntaxError):
-        note_failure("meta_evolution:L382", None)
+    except (OSError, SyntaxError) as exc:
+        note_failure("meta_evolution:L382", exc)
         return {}
     for node in tree.body:
         if not isinstance(node, ast.Assign):
@@ -410,8 +410,8 @@ def _chain_job_specs(root: Path) -> dict[str, dict[str, Any]]:
                 continue
             try:
                 elements = [ast.literal_eval(item) for item in value.elts]
-            except (ValueError, TypeError):
-                note_failure("meta_evolution:L397", None)
+            except (ValueError, TypeError) as exc:
+                note_failure("meta_evolution:L397", exc)
                 continue
             if len(elements) == 5:
                 out[str(key.value)] = {

@@ -213,8 +213,8 @@ class SecretsManager:
                     value = value.strip().strip('"').strip("'")
                     if key and value:
                         env_vars_from_file[key] = value
-            except OSError:
-                note_failure("secrets_manager:L206", None)
+            except OSError as exc:
+                note_failure("secrets_manager:L206", exc)
 
         # Load config JSONs (no lock needed — file reads are safe)
         config_vars: dict[str, str] = {}
@@ -226,8 +226,8 @@ class SecretsManager:
                     if api_key:
                         stem = cf.stem.replace("_config", "")
                         config_vars[stem] = api_key
-                except (json.JSONDecodeError, OSError):
-                    note_failure("secrets_manager:L219", None)
+                except (json.JSONDecodeError, OSError) as exc:
+                    note_failure("secrets_manager:L219", exc)
 
         # Build cache under lock — single atomic update
         with self._cache_lock:
@@ -345,8 +345,8 @@ class SecretsManager:
             tmp_path.replace(self._env_path)
             self._refresh()
             return True
-        except OSError:
-            note_failure("secrets_manager:L338", None)
+        except OSError as exc:
+            note_failure("secrets_manager:L338", exc)
             return False
 
     def reload(self) -> None:

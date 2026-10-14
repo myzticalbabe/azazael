@@ -22,8 +22,8 @@ except ImportError:                               # never break the host
 # Core modules
 try:
     from CORE import bootstrap
-except ImportError:
-    note_failure("LOCAL_DEV:L14", None)
+except ImportError as exc:
+    note_failure("LOCAL_DEV:L14", exc)
     bootstrap = None  # Optional bootstrap module (not always present)
 
 from CORE import NODE

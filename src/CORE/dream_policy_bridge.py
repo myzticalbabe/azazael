@@ -60,8 +60,8 @@ def _governance_blocked(suggestion: Dict[str, Any]) -> bool:
             [{"id": "dream_policy", "archetype": "The Artist"}],
         )
         return result.get("decision") == "blocked"
-    except Exception:
-        note_failure("dream_policy_bridge:L54", None)
+    except Exception as exc:
+        note_failure("dream_policy_bridge:L54", exc)
         return True
 
 
@@ -118,8 +118,8 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
     if mc is not None:
         try:
             mc.save_state()
-        except Exception:
-            note_failure("dream_policy_bridge:L109", None)
+        except Exception as exc:
+            note_failure("dream_policy_bridge:L109", exc)
 
     try:
         from CORE.direct_memory import DirectMemory
@@ -130,6 +130,6 @@ def apply_dream_policy(suggestions: Optional[List[Dict[str, Any]]],
             "details": {"applied": applied, "skipped": skipped},
             "governance_min_confidence": min_confidence,
         }, tags=["policy", "dream", "bridge"])
-    except Exception:
-        note_failure("dream_policy_bridge:L121", None)
+    except Exception as exc:
+        note_failure("dream_policy_bridge:L121", exc)
     return {"applied": applied, "skipped": skipped}

@@ -77,8 +77,8 @@ def env_host(env: str) -> str:
             host = str(table.get(env) or "") if isinstance(table, dict) else ""
             if host:
                 return host
-        except (ValueError, TypeError):
-            note_failure("mesh_transport:L68", None) # a broken table must not break delivery; loopback is the truth
+        except (ValueError, TypeError) as exc:
+            note_failure("mesh_transport:L68", exc) # a broken table must not break delivery; loopback is the truth
     return "127.0.0.1"
 
 
@@ -113,8 +113,8 @@ def load_spilled(env: str, limit: int = 1000) -> list:
     try:
         rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()
                 if line.strip()]
-    except (OSError, ValueError):
-        note_failure("mesh_transport:L104", None)
+    except (OSError, ValueError) as exc:
+        note_failure("mesh_transport:L104", exc)
         return []
     mine = [r.get("msg") for r in rows if r.get("env") == env and isinstance(r.get("msg"), dict)][:limit]
     rest = [r for r in rows if not (r.get("env") == env and isinstance(r.get("msg"), dict))]
@@ -124,8 +124,8 @@ def load_spilled(env: str, limit: int = 1000) -> list:
             for r in rest:
                 fh.write(json.dumps(r, ensure_ascii=False) + "\n")
         tmp.replace(path)
-    except OSError:
-        note_failure("mesh_transport:L114", None) # spill read-back is best-effort; a lost tail is logged by stats
+    except OSError as exc:
+        note_failure("mesh_transport:L114", exc) # spill read-back is best-effort; a lost tail is logged by stats
     return mine
 
 def port_for(env: str) -> int:
@@ -203,11 +203,11 @@ class MeshTransport:
         while self._srv:
             try:
                 conn, _ = self._srv.accept()
-            except socket.timeout:
-                note_failure("mesh_transport:L193", None)
+            except socket.timeout as exc:
+                note_failure("mesh_transport:L193", exc)
                 continue
-            except OSError:
-                note_failure("mesh_transport:L195", None)
+            except OSError as exc:
+                note_failure("mesh_transport:L195", exc)
                 break
             try:
                 with conn:
@@ -236,8 +236,8 @@ class MeshTransport:
                                           "reason": reason,
                                           "at": time.time()}).encode()
                     conn.sendall(struct.pack("!I", len(receipt)) + receipt)
-            except Exception:
-                note_failure("mesh_transport:L224", None)
+            except Exception as exc:
+                note_failure("mesh_transport:L224", exc)
                 with self._lock:
                     self.errors += 1
 
@@ -273,8 +273,8 @@ class MeshTransport:
         if srv:
             try:
                 srv.close()
-            except Exception:
-                note_failure("mesh_transport:L259", None)
+            except Exception as exc:
+                note_failure("mesh_transport:L259", exc)
         with self._lock:
             leftover, self._inbox = self._inbox, []
         self.spilled += spill_inbox(self.env, leftover)

@@ -482,8 +482,8 @@ def atomic_write(
         backup = path_p.with_suffix(path_p.suffix + ".bak")
         try:
             shutil.copy2(str(path_p), str(backup))
-        except OSError:
-            note_failure("safe_file_ops:L471", None)
+        except OSError as exc:
+            note_failure("safe_file_ops:L471", exc)
 
     # Write to temp file in same directory (atomic rename)
     fd, tmp_path = tempfile.mkstemp(
@@ -513,8 +513,8 @@ def atomic_write(
         if os.path.exists(tmp_path):
             try:
                 os.unlink(tmp_path)
-            except OSError:
-                note_failure("safe_file_ops:L501", None)
+            except OSError as exc:
+                note_failure("safe_file_ops:L501", exc)
 
 
 # ── Chunked Copy (for large directories) ────────────────────────────
@@ -558,8 +558,8 @@ def safe_copytree_chunked(
     if cp.exists():
         try:
             completed = json.loads(cp.read_text())
-        except (json.JSONDecodeError, OSError):
-            note_failure("safe_file_ops:L546", None)
+        except (json.JSONDecodeError, OSError) as exc:
+            note_failure("safe_file_ops:L546", exc)
             completed = {}
 
     # Collect all files to copy
@@ -594,8 +594,8 @@ def safe_copytree_chunked(
         if (i + 1) % 10 == 0:
             try:
                 cp.write_text(json.dumps(completed))
-            except OSError:
-                note_failure("safe_file_ops:L580", None)
+            except OSError as exc:
+                note_failure("safe_file_ops:L580", exc)
 
         if progress_callback:
             progress_callback(i + 1, total, rel)
@@ -603,15 +603,15 @@ def safe_copytree_chunked(
     # Save final checkpoint
     try:
         cp.write_text(json.dumps(completed))
-    except OSError:
-        note_failure("safe_file_ops:L589", None)
+    except OSError as exc:
+        note_failure("safe_file_ops:L589", exc)
 
     # Clean up checkpoint on success
     if not errors:
         try:
             cp.unlink()
-        except OSError:
-            note_failure("safe_file_ops:L596", None)
+        except OSError as exc:
+            note_failure("safe_file_ops:L596", exc)
 
     result: dict[str, object] = {
         "success": len(errors) == 0,
@@ -641,6 +641,6 @@ def is_same_drive(path1: str | Path, path2: str | Path) -> bool:
     # Unix: check device IDs (stat.st_dev)
     try:
         return os.stat(path1).st_dev == os.stat(path2).st_dev
-    except OSError:
-        note_failure("safe_file_ops:L627", None)
+    except OSError as exc:
+        note_failure("safe_file_ops:L627", exc)
         return False

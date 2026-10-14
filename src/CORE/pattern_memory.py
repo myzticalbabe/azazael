@@ -44,8 +44,8 @@ def _embed(text: str, timeout: int = 30) -> Optional[List[float]]:
             headers={"Content-Type": "application/json"}, method="POST")
         data = json.loads(urllib.request.urlopen(req, timeout=timeout).read())
         return data["embedding"]
-    except Exception:
-        note_failure("pattern_memory:L38", None)
+    except Exception as exc:
+        note_failure("pattern_memory:L38", exc)
         return None
 
 
@@ -91,14 +91,14 @@ def query_patterns(text: str, top_k: int = 5,
             continue
         try:
             vec = json.loads(emb)
-        except (json.JSONDecodeError, TypeError):
-            note_failure("pattern_memory:L84", None)
+        except (json.JSONDecodeError, TypeError) as exc:
+            note_failure("pattern_memory:L84", exc)
             continue
         score = 0.7 * _cosine(qv, vec) + 0.3 * float(conf or 0)
         try:
             meta_obj = json.loads(meta) if meta else {}
-        except (json.JSONDecodeError, TypeError):
-            note_failure("pattern_memory:L89", None)
+        except (json.JSONDecodeError, TypeError) as exc:
+            note_failure("pattern_memory:L89", exc)
             meta_obj = {"raw": str(meta)[:200]}
         hits.append({"table": tbl, "id": rid, "pattern_type": ptype,
                      "confidence": conf, "score": round(score, 4),

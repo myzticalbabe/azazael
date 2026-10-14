@@ -161,8 +161,8 @@ class FreeThreadedAgent(ABC):
             # Python 3.14 t-string Template — format with its bound variables
             try:
                 msg_str = str(message)
-            except Exception:
-                note_failure("FreeThreadedAgent:L155", None)
+            except Exception as exc:
+                note_failure("FreeThreadedAgent:L155", exc)
                 msg_str = repr(message)
         else:
             msg_str = str(message)

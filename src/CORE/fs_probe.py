@@ -165,8 +165,8 @@ def _carried_permit() -> Callable[[], Any]:
     try:
         held = bool(guard.permit_active())
         factory = guard.worker_permit
-    except Exception:
-        note_failure("fs_probe:L159", None)
+    except Exception as exc:
+        note_failure("fs_probe:L159", exc)
         return contextlib.nullcontext
 
     def _make():
@@ -369,17 +369,17 @@ def bounded_subprocess_output(argv, timeout_s: float = 10.0) -> Dict[str, Any]:
                                             stdout=out, stderr=err)
                     try:
                         proc.wait(timeout=timeout_s)
-                    except Exception:
-                        note_failure("fs_probe:L360", None)
+                    except Exception as exc:
+                        note_failure("fs_probe:L360", exc)
                         box["timeout"] = True
                         try:
                             proc.kill()
-                        except Exception:
-                            note_failure("fs_probe:L364", None)
+                        except Exception as exc:
+                            note_failure("fs_probe:L364", exc)
                         try:
                             proc.wait(timeout=1.0)
-                        except Exception:
-                            note_failure("fs_probe:L368", None)
+                        except Exception as exc:
+                            note_failure("fs_probe:L368", exc)
                     out.seek(0)
                     err.seek(0)
                     raw = out.read() + err.read()
@@ -440,8 +440,8 @@ def _child_probe(op: str, path: str, timeout_s: float) -> Any:
         try:
             with open(outp, "r", encoding="utf-8") as fh:
                 payload = json.load(fh)
-        except Exception:
-            note_failure("fs_probe:L425", None)
+        except Exception as exc:
+            note_failure("fs_probe:L425", exc)
             return _UNANSWERED
         if not isinstance(payload, dict):
             return _UNANSWERED
@@ -452,8 +452,8 @@ def _child_probe(op: str, path: str, timeout_s: float) -> Any:
     finally:
         try:
             os.unlink(outp)
-        except OSError:
-            note_failure("fs_probe:L436", None)
+        except OSError as exc:
+            note_failure("fs_probe:L436", exc)
 
 
 def _bounded_io(path, fn: Callable[[], Any], timeout_s: float,
@@ -502,8 +502,8 @@ def bounded_path_probe(fn: Callable[[], bool],
     def _predicate() -> bool:
         try:
             return bool(fn())
-        except Exception:
-            note_failure("fs_probe:L486", None)
+        except Exception as exc:
+            note_failure("fs_probe:L486", exc)
             return False
 
     return bounded_call(_predicate, timeout_s=timeout_s, default=None,

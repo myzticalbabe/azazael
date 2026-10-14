@@ -125,5 +125,5 @@ def configure_logging(level: str = "INFO") -> None:
 # Re-export the production JSON formatter for readers that want it.
 try:
     from CORE.logging_config import JSONFormatter  # noqa: F401
-except ImportError:
-    note_failure("logging:L118", None)
+except ImportError as exc:
+    note_failure("logging:L118", exc)
