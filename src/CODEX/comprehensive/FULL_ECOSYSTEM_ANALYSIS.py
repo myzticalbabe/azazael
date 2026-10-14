@@ -352,8 +352,8 @@ if __name__ == "__main__":
     try:
         from CORE.paths import get_desktop_dir
         out_dir = get_desktop_dir() / "CODEX" / "comprehensive"
-    except ImportError:
-        note_failure("FULL_ECOSYSTEM_ANALYSIS:L345", None)
+    except ImportError as exc:
+        note_failure("FULL_ECOSYSTEM_ANALYSIS:L345", exc)
         out_dir = Path.home() / "Desktop" / "CODEX" / "comprehensive"
 
     out_dir.mkdir(parents=True, exist_ok=True)
