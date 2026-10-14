@@ -63,8 +63,18 @@ def result_path(f: pathlib.Path) -> pathlib.Path:
     return RESULTS / (f.stem + ".json")
 
 
+def _timeout_text(blob) -> str:
+    """TimeoutExpired stdout/stderr stay bytes even under text=True."""
+    if blob is None:
+        return ""
+    if isinstance(blob, bytes):
+        return blob.decode("utf-8", "replace")
+    return str(blob)
+
+
 def run_one(f: pathlib.Path) -> dict:
     started = time.time()
+    timeout_output = ""
     try:
         proc = subprocess.run(
             [PYTHON, "-m", "pytest", str(f.relative_to(ROOT)),
@@ -73,8 +83,14 @@ def run_one(f: pathlib.Path) -> dict:
             timeout=PER_FILE_TIMEOUT, encoding="utf-8", errors="replace"
         )
         rc, text = proc.returncode, proc.stdout + proc.stderr
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as exc:
+        # rc stays -9 (a distinct, greppable code) but the output the file
+        # printed before it wedged is kept: "TIMEOUT" alone cannot tell a
+        # deadlock from a test stuck on one slow call, and that partial text is
+        # the only evidence a timeout leaves. It is stored as its own field so
+        # the summary/failure parsing below is unchanged.
         rc, text = -9, f"TIMEOUT after {PER_FILE_TIMEOUT}s"
+        timeout_output = _timeout_text(exc.stdout) + _timeout_text(exc.stderr)
     except Exception as exc:  # a worker crash must not kill the run
         rc, text = -8, f"runner error: {exc!r}"
 
@@ -95,6 +111,7 @@ def run_one(f: pathlib.Path) -> dict:
         "seconds": round(time.time() - started, 1),
         "failures": failures[:40],
         "summary": summary,
+        "timeout_output": timeout_output[-4000:],
     }
     try:
         result_path(f).parent.mkdir(parents=True, exist_ok=True)

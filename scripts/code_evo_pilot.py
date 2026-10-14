@@ -41,13 +41,25 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _text(blob) -> str:
+    """TimeoutExpired stdout/stderr stay bytes even under text=True."""
+    if blob is None:
+        return ""
+    if isinstance(blob, bytes):
+        return blob.decode("utf-8", "replace")
+    return str(blob)
+
+
 def _run(cmd, cwd, timeout=600, env=None):
     try:
         r = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True,
                            timeout=timeout, env=env, encoding="utf-8", errors="replace")
         return r.returncode, (r.stdout or "")[-3000:], (r.stderr or "")[-3000:]
     except subprocess.TimeoutExpired as e:
-        return 124, (e.stdout or "")[-3000:] if isinstance(e.stdout, str) else "", "TIMEOUT"
+        # rc 124 is authoritative and the partial streams are the evidence: the
+        # old return replaced stderr with the literal "TIMEOUT", which dropped
+        # pytest's own header/traceback -- the part that says WHERE it hung.
+        return 124, _text(e.stdout)[-3000:], (_text(e.stderr)[-3000:] or "TIMEOUT")
     except Exception as e:
         return 127, "", "%s: %s" % (type(e).__name__, str(e)[:200])
 
