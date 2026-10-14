@@ -40,7 +40,7 @@ def _git(args, cwd, timeout=90):
     """Run git, returning (returncode, stdout, stderr). Never raises on rc!=0."""
     try:
         p = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True,
-                           text=True, timeout=timeout)
+                           text=True, timeout=timeout, encoding="utf-8", errors="replace")
         return p.returncode, p.stdout.strip(), p.stderr.strip()
     except FileNotFoundError:
         return 2, "", "git not found on PATH"

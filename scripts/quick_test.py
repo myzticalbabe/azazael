@@ -23,7 +23,7 @@ cmd = ["ffmpeg", "-y", "-f", "lavfi",
     f"{OUT}/AZAZAEL_TEST_Ecosystem.mp4"]
 
 print(f"Running: {' '.join(cmd[:5])}...")
-result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+result = subprocess.run(cmd, capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
 
 if result.returncode == 0:
     sz = os.path.getsize(f"{OUT}/AZAZAEL_TEST_Ecosystem.mp4") / (1024*1024)
