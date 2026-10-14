@@ -138,8 +138,8 @@ def _get_cached_provider(name: str):
     if name not in _provider_cache:
         try:
             _provider_cache[name] = get_provider(name)
-        except Exception:
-            note_failure("query_loop:L131", None)
+        except Exception as exc:
+            note_failure("query_loop:L131", exc)
             return None
     return _provider_cache[name]
 

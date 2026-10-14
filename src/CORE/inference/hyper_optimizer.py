@@ -295,8 +295,8 @@ class HyperOptimizer:
         if name not in self._provider_cache:
             try:
                 self._provider_cache[name] = get_provider(name)
-            except Exception:
-                note_failure("hyper_optimizer:L289", None)
+            except Exception as exc:
+                note_failure("hyper_optimizer:L289", exc)
                 return None
         return self._provider_cache[name]
 

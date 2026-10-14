@@ -54,8 +54,8 @@ class InferenceBusPublisher:
                 from CORE.MemoryBus import MemoryBus
                 self._bus = MemoryBus()
             self._bus.publish("inference.result", data, source=self._source)
-        except Exception:
-            note_failure("bus_utils:L48", None) # MemoryBus unavailable — non-fatal
+        except Exception as exc:
+            note_failure("bus_utils:L48", exc) # MemoryBus unavailable — non-fatal
 
     def __repr__(self) -> str:
         return (

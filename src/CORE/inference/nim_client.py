@@ -45,8 +45,8 @@ except ImportError:                               # never break the host
 # 3.14t port: openai SDK needs pydantic_core (no free-threaded build).
 try:
     from openai import OpenAI
-except ImportError:
-    note_failure("nim_client:L39", None)
+except ImportError as exc:
+    note_failure("nim_client:L39", exc)
     OpenAI = None
 
 from CORE.inference.providers import OpenAIProvider
@@ -147,8 +147,8 @@ class NimClient(OpenAIProvider):
                 with open(NIM_CONFIG_FILE, "r", encoding="utf-8") as fh:
                     file_config = json.load(fh)
                 api_key = file_config.get("api_key", "")
-            except (json.JSONDecodeError, OSError):
-                note_failure("nim_client:L139", None)
+            except (json.JSONDecodeError, OSError) as exc:
+                note_failure("nim_client:L139", exc)
 
         return NimConfig(
             api_key=api_key,
@@ -167,8 +167,8 @@ class NimClient(OpenAIProvider):
                     "model": self.config.model,
                 }, fh, indent=2)
             return True
-        except OSError:
-            note_failure("nim_client:L159", None)
+        except OSError as exc:
+            note_failure("nim_client:L159", exc)
             return False
 
     # -- Key validation (NIM-specific: nvapi- prefix) ---------------
@@ -235,8 +235,8 @@ class NimClient(OpenAIProvider):
         try:
             from openai import OpenAI  # noqa: F401
             results["import_ok"] = True
-        except ImportError:
-            note_failure("nim_client:L226", None)
+        except ImportError as exc:
+            note_failure("nim_client:L226", exc)
             results["issues"].append("openai package not installed")
             results["import_ok"] = False
 
