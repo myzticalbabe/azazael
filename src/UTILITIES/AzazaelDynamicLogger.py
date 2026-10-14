@@ -48,8 +48,8 @@ class DynamicLogger:
                 msg = self._log_queue.get(timeout=0.1)
                 if msg is None: break
                 self._persist(msg)
-            except queue.Empty:
-                note_failure("AzazaelDynamicLogger:L41", None)
+            except queue.Empty as exc:
+                note_failure("AzazaelDynamicLogger:L41", exc)
                 continue
 
     def _persist(self, msg):
@@ -60,8 +60,8 @@ class DynamicLogger:
             with open(lp, 'a', encoding='utf-8') as f:
                 f.write(f"{msg['ts']} | {msg['lvl']:7} | {msg['msg']}\n")
                 f.flush(); os.fsync(f.fileno())
-        except Exception:
-            note_failure("AzazaelDynamicLogger:L51", None)
+        except Exception as exc:
+            note_failure("AzazaelDynamicLogger:L51", exc)
 
     def log(self, msg, lvl=LogLevel.INFO, tag=""):
         if self._quiet: return
