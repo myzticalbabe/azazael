@@ -66,8 +66,8 @@ class RealFrameworkTest:
             try:
                 with open("/proc/version") as f:
                     platform_info["proc_version"] = f.read().strip()
-            except Exception:
-                note_failure("REAL_FRAMEWORK_TEST:L59", None)
+            except Exception as exc:
+                note_failure("REAL_FRAMEWORK_TEST:L59", exc)
 
         # Check Windows
         platform_info["is_windows"] = os.name == "nt"
@@ -390,8 +390,8 @@ class RealFrameworkTest:
             sys_info["memory_rss"] = (
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
             )
-        except (ImportError, AttributeError):
-            note_failure("REAL_FRAMEWORK_TEST:L383", None)
+        except (ImportError, AttributeError) as exc:
+            note_failure("REAL_FRAMEWORK_TEST:L383", exc)
             sys_info["memory_rss"] = "N/A (Windows)"
 
         for key, val in sys_info.items():
