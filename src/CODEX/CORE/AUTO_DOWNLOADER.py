@@ -255,8 +255,8 @@ def get_version(self) -> (str | None):
         for line in result.stdout.split("\n"):
             if line.startswith("Version:"):
                 return line.split(":")[1].strip()
-    except Exception:
-        note_failure("AUTO_DOWNLOADER:L249", None)
+    except Exception as exc:
+        note_failure("AUTO_DOWNLOADER:L249", exc)
     return None
 
 
@@ -264,8 +264,8 @@ def is_installed(self) -> bool:
     try:
         subprocess.run(self.get_verify_command(), capture_output=True, timeout=10)
         return True
-    except Exception:
-        note_failure("AUTO_DOWNLOADER:L258", None)
+    except Exception as exc:
+        note_failure("AUTO_DOWNLOADER:L258", exc)
         return False
 
 
