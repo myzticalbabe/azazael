@@ -29,8 +29,8 @@ except ImportError:                               # never break the host
 if hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
-    except Exception:
-        note_failure("inject_session_cain:L22", None)
+    except Exception as exc:
+        note_failure("inject_session_cain:L22", exc)
 
 TEMPLATE_PATH = Path(__file__).resolve().parent / "SESSION_TEMPLATE" / "templates" / "output_cain.html"
 
