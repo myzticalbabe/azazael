@@ -56,6 +56,20 @@ def _tree_files_at(sha, files):
     return out
 
 
+def _worktree_bytes(blob):
+    """Convert blob bytes to what checkout would write on this machine.
+
+    With core.autocrlf=true an LF-only blob checks out as CRLF; writing raw
+    blob bytes leaves a permanent phantom `M` (hashes match, status dirty).
+    Mirror checkout: convert only when the blob itself has no CR.
+    """
+    if b"\r" not in blob:
+        conv = _run(["git", "config", "core.autocrlf"])
+        if conv.stdout.strip().lower() == "true":
+            return blob.replace(b"\n", b"\r\n")
+    return blob
+
+
 def check_sha(sha):
     r = _run(["git", "log", "--oneline", "-1", sha])
     ok = r.returncode == 0 and bool(r.stdout.strip())
@@ -143,7 +157,7 @@ def check_neg_control(sha, tests, py315t):
                     p.unlink()  # file added by the fix: absence is pre-image
             else:
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_bytes(pre[f])
+                p.write_bytes(_worktree_bytes(pre[f]))
         r = _run([sys.executable, "-m", "pytest", "-q"] + tests)
         tail = (r.stdout + r.stderr).strip().splitlines()
         summary = tail[-1] if tail else "no output"
@@ -159,7 +173,7 @@ def check_neg_control(sha, tests, py315t):
                     p.unlink()
             else:
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_bytes(live[f])
+                p.write_bytes(_worktree_bytes(live[f]))
         after = _tree_files_at("HEAD", files)
         bad = [f for f in files
                if (after[f] or b"") != (live[f] or b"")]
