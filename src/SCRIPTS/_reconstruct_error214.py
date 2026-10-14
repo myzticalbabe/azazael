@@ -43,8 +43,8 @@ if str(_SRC_DIR) not in sys.path:
 try:
     from CORE.compliance.pre_action_gate import PreActionGate
     _GATE_AVAILABLE = True
-except ImportError:
-    note_failure("_reconstruct_error214:L36", None)
+except ImportError as exc:
+    note_failure("_reconstruct_error214:L36", exc)
     _GATE_AVAILABLE = False
     PreActionGate = None  # type: ignore
 

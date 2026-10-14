@@ -63,8 +63,8 @@ def scan_path():
             for f in p.iterdir():
                 if f.suffix.lower() in (".exe", ".cmd", ".bat") and f.is_file():
                     out.setdefault(f.stem.lower(), str(p))
-        except OSError:
-            note_failure("generate_tool_skills:L56", None)
+        except OSError as exc:
+            note_failure("generate_tool_skills:L56", exc)
     return out
 
 
@@ -75,8 +75,8 @@ def scan_pip():
             name = (dist.metadata.get("Name") or "?").lower()
             bins = sorted({ep.name for ep in dist.entry_points
                            if getattr(ep, "group", "") == "console_scripts"})
-        except Exception:
-            note_failure("generate_tool_skills:L68", None)
+        except Exception as exc:
+            note_failure("generate_tool_skills:L68", exc)
             continue
         if bins:
             rows[name] = bins
@@ -87,8 +87,8 @@ def scan_pm(cmd):
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
         return [ln.strip() for ln in (r.stdout or "").splitlines() if ln.strip()]
-    except Exception:
-        note_failure("generate_tool_skills:L79", None)
+    except Exception as exc:
+        note_failure("generate_tool_skills:L79", exc)
         return []
 
 

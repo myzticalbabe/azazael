@@ -104,8 +104,8 @@ def check_telemetry() -> tuple[bool, str]:
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
             age_hours = (datetime.now(timezone.utc) - ts).total_seconds() / 3600.0
-        except ValueError:
-            note_failure("session_start_check:L96", None)
+        except ValueError as exc:
+            note_failure("session_start_check:L96", exc)
 
     ratio = data.get("compliance_ratio")
     parts = [

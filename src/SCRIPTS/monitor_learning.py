@@ -83,8 +83,8 @@ def _parse_ts(s):
         return None
     try:
         return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
-    except ValueError:
-        note_failure("monitor_learning:L76", None)
+    except ValueError as exc:
+        note_failure("monitor_learning:L76", exc)
         return None
 
 
@@ -93,8 +93,8 @@ def _as_dict(data):
         return data
     try:
         return json.loads(data)
-    except (TypeError, json.JSONDecodeError):
-        note_failure("monitor_learning:L85", None)
+    except (TypeError, json.JSONDecodeError) as exc:
+        note_failure("monitor_learning:L85", exc)
         return {}
 
 

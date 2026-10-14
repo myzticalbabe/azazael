@@ -56,8 +56,8 @@ def _cleanup_temp_files(paths: list[str]):
     for p in paths:
         try:
             Path(p).unlink(missing_ok=True)
-        except OSError:
-            note_failure("gated_edit:L49", None)
+        except OSError as exc:
+            note_failure("gated_edit:L49", exc)
 
 
 def run(filepath: str, old_b64: str, new_b64: str,
@@ -120,8 +120,8 @@ def run(filepath: str, old_b64: str, new_b64: str,
         try:
             signal.signal(sig, lambda s, f: (_cleanup_temp_files(temp_files),
                                               sys.exit(1)))
-        except (ValueError, OSError):
-            note_failure("gated_edit:L113", None) # Signal handlers not available in all environments
+        except (ValueError, OSError) as exc:
+            note_failure("gated_edit:L113", exc) # Signal handlers not available in all environments
 
     # Build command for gate_str_replace.py
     cmd = [

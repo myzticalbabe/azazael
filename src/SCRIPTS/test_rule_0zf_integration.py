@@ -23,8 +23,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 try:
     from CORE.compliance.pre_action_gate import PreActionGate
     GATE_AVAILABLE = True
-except ImportError:
-    note_failure("test_rule_0zf_integration:L16", None)
+except ImportError as exc:
+    note_failure("test_rule_0zf_integration:L16", exc)
     GATE_AVAILABLE = False
 
 
@@ -100,8 +100,8 @@ def test_pre_action_gate_check_line():
     try:
         with open("SYSTEM_INSTRUCTIONS.md", "r", encoding="utf-8") as f:
             content = f.read()
-    except FileNotFoundError:
-        note_failure("test_rule_0zf_integration:L92", None)
+    except FileNotFoundError as exc:
+        note_failure("test_rule_0zf_integration:L92", exc)
         with open("azazael/SYSTEM_INSTRUCTIONS.md", "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -120,8 +120,8 @@ def test_compliance_sentinel_has_0zf():
     try:
         with open("SYSTEM_INSTRUCTIONS.md", "r", encoding="utf-8") as f:
             content = f.read()
-    except FileNotFoundError:
-        note_failure("test_rule_0zf_integration:L111", None)
+    except FileNotFoundError as exc:
+        note_failure("test_rule_0zf_integration:L111", exc)
         with open("azazael/SYSTEM_INSTRUCTIONS.md", "r", encoding="utf-8") as f:
             content = f.read()
 

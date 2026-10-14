@@ -15,8 +15,8 @@ sys.path.insert(0, "src")
 try:
     from CORE.compliance.pre_action_gate import PreActionGate, reset_telemetry_state
     GATE_AVAILABLE = True
-except ImportError:
-    note_failure("test_rule_0zf_telemetry:L8", None)
+except ImportError as exc:
+    note_failure("test_rule_0zf_telemetry:L8", exc)
     GATE_AVAILABLE = False
 
 

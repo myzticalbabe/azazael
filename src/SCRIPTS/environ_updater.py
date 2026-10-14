@@ -203,8 +203,8 @@ class AzazaelEnvironment:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
             return self.matcher.detect(content, file_path)
-        except Exception:
-            note_failure("environ_updater:L196", None)
+        except Exception as exc:
+            note_failure("environ_updater:L196", exc)
             return []
 
     def _print_results(self, status: EnvironmentStatus):
@@ -261,8 +261,8 @@ class AzazaelEnvironment:
                         fixed += 1
                         files_fixed.add(conflict.file_path)
 
-            except Exception:
-                note_failure("environ_updater:L253", None)
+            except Exception as exc:
+                note_failure("environ_updater:L253", exc)
                 errors += 1
 
         result = {"fixed": fixed, "errors": errors, "files": len(files_fixed)}

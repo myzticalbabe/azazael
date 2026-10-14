@@ -41,8 +41,8 @@ def find_bare_except_lines(filepath: Path) -> list:
     content = filepath.read_text(encoding='utf-8')
     try:
         tree = ast.parse(content, filename=str(filepath))
-    except SyntaxError:
-        note_failure("fix_bare_excepts:L34", None)
+    except SyntaxError as exc:
+        note_failure("fix_bare_excepts:L34", exc)
         return []
 
     lines = []

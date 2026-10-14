@@ -183,8 +183,8 @@ class GateStrReplace:
                         f"Only the FIRST occurrence will be replaced. "
                         f"Use --all to replace ALL {count} occurrences."
                     )
-            except Exception:
-                note_failure("gate_str_replace:L174", None) # Count check is advisory; don't block on read error
+            except Exception as exc:
+                note_failure("gate_str_replace:L174", exc) # Count check is advisory; don't block on read error
 
             # Record the attempt
             attempt_id = ""
