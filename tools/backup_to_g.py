@@ -42,7 +42,7 @@ def sync():
         str(DST) + "/",
     ]
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, encoding="utf-8", errors="replace")
 
     if result.returncode == 0:
         # Count new total

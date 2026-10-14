@@ -286,7 +286,7 @@ def _stream_command(cmd: Sequence[str], timeout: int,
     try:
         proc = subprocess.Popen(cmd, cwd=str(REPO), stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, text=True,
-                                errors="replace", bufsize=1)
+                                encoding="utf-8", errors="replace", bufsize=1)
     except OSError as exc:
         if handle:
             handle.close()

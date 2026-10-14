@@ -51,7 +51,7 @@ NOISE_NAMES = {".mypy_cache", "__pycache__"}
 
 def _git(*args: str, cwd: Path = ROOT) -> tuple[int, str]:
     r = subprocess.run(["git", *args], cwd=str(cwd),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 

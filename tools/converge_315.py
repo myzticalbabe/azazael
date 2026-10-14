@@ -39,7 +39,8 @@ def list_slow_nodeids(python):
     r = subprocess.run(
         [str(python), "-m", "pytest", "--collect-only", "-q",
          "-p", "no:cacheprovider", "-m", "slow"],
-        cwd=str(HERE), capture_output=True, text=True, timeout=300)
+        cwd=str(HERE), capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=300)
     ids = []
     for line in (r.stdout or "").splitlines():
         line = line.strip()
@@ -61,7 +62,7 @@ def run_suite(python, extra, junit_path, timeout_s):
                "-File", str(wrapper), "--"] + cmd
     try:
         r = subprocess.run(cmd, cwd=str(HERE), capture_output=True, text=True,
-                           timeout=timeout_s)
+                           encoding="utf-8", errors="replace", timeout=timeout_s)
         tail = (r.stdout or "").strip().splitlines()[-5:]
     except subprocess.TimeoutExpired:
         return {"ok": False, "timeout": True, "tail": ["TIMEOUT"]}
