@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -52,16 +53,54 @@ LEDGER = ROOT / "logs" / "mutation_ledger.jsonl"
 BAND = ("tests/test_mesh_fabric_followups.py", "tests/test_mesh_fabric_gaps.py",
         "tests/test_mesh_fabric_health.py", "tests/test_artifact_freshness.py")
 
+#: How much of a command's output a ledger row carries. The VERDICT is read
+#: from rc alone; these slices exist so a human reading the ledger can see WHY
+#: a mutation failed without re-running it. Bounded because the ledger is
+#: append-only, and unbounded rows are how an audit file becomes unreadable.
+EVIDENCE_CHARS = 2000
+#: rc written when a command does not return. An authoritative CODE is the
+#: point of a failure record -- `None` reads as "unknown" to every consumer of
+#: the ledger, which is the one thing a failure row must not be. 124/127 are
+#: the conventions the rest of the toolbelt already speaks (code_evo_pilot).
+RC_TIMEOUT = 124
+RC_SPAWN_ERROR = 127
+
+
+def _text(blob: Any) -> str:
+    """Normalise TimeoutExpired stdout/stderr, which stay bytes under text=True."""
+    if blob is None:
+        return ""
+    if isinstance(blob, bytes):
+        return blob.decode("utf-8", "replace")
+    return str(blob)
+
+
+def _slice(text: str) -> str:
+    return text[-EVIDENCE_CHARS:]
+
 
 def _run(cmd: Sequence[str], timeout: int) -> dict[str, Any]:
     try:
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
                               text=True, encoding="utf-8", errors="replace",
                               timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return {"rc": None, "out": "", "err": "timeout", "timeout": True}
-    return {"rc": proc.returncode, "out": proc.stdout or "",
-            "err": (proc.stderr or "")[-400:]}
+    except subprocess.TimeoutExpired as exc:
+        # A hung command still produced output, and TimeoutExpired carries it.
+        # Dropping it (the old `"out": ""`) made a mutation that wedged pytest
+        # indistinguishable from one that wedged on an import error -- the row
+        # said only "timeout", so the evidence died with the process.
+        return {"rc": RC_TIMEOUT, "timeout": True,
+                "out": _slice(_text(exc.stdout)),
+                "err": _slice(_text(exc.stderr)) or "timeout"}
+    except OSError as exc:
+        return {"rc": RC_SPAWN_ERROR, "timeout": False, "out": "",
+                "err": "%s: %s" % (type(exc).__name__, str(exc)[:200])}
+    # Every branch states `timeout`, so a ledger row always has the same shape.
+    # `worse_than` and `tier2_band` read it, and an audit row whose keys vary by
+    # how the command ended is a row a reader has to special-case.
+    return {"rc": proc.returncode, "timeout": False,
+            "out": _slice(proc.stdout or ""),
+            "err": _slice(proc.stderr or "")}
 
 
 def _apply_subs(subs: dict[str, list], encoding: str) -> tuple[bool, str]:
@@ -160,16 +199,35 @@ def record(row: dict[str, Any]) -> None:
 
     Without this, each cycle re-derives the same findings: there is no memory of
     'we tried wiring X, it regressed, we reverted', so nothing accumulates.
+
+    Ledger discipline (2026-10-14) -- stated once, because the ledger is an
+    audit artifact and these three rules are what keep it readable years later:
+
+      1. every row carries a ``verdict``. Readers group by it and a row without
+         one is invisible. A row is recorded on every early-return path and not
+         all of them set it, so the guarantee is made here, at the one write.
+      2. the row is flushed AND fsynced before the handle closes, so a crash
+         mid-append cannot leave a torn line. `--ledger` used to parse every
+         line with json.loads and die on the first torn one, so a single crash
+         made the entire attempt history unreadable.
+      3. a DirectMemory mirror failure is recorded INTO the row rather than
+         swallowed: "the second record of account is down" is itself worth
+         knowing, and a bare pass hides it.
     """
-    LEDGER.parent.mkdir(parents=True, exist_ok=True)
-    with LEDGER.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(row, default=str) + "\n")
+    row.setdefault("verdict", "unknown")
     try:
         sys.path.insert(0, str(ROOT / "src"))
         from CORE.direct_memory import DirectMemory  # noqa: PLC0415
         DirectMemory().record("self_modify_attempt", row)
-    except Exception:
-        pass  # memory is a nice-to-have; the ledger is the record of account
+    except Exception as exc:
+        # The mirror is a nice-to-have; the ledger is the record of account.
+        # Record that the mirror failed rather than dropping the fact.
+        row["direct_memory_error"] = "%s: %s" % (type(exc).__name__, str(exc)[:120])
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    with LEDGER.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(row, default=str) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
 
 
 def self_modify(patch: Path, targets: Sequence[str],
@@ -314,7 +372,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not LEDGER.is_file():
             print("no attempts recorded yet")
             return 0
-        rows = [json.loads(x) for x in LEDGER.read_text(encoding="utf-8").splitlines() if x.strip()]
+        rows, torn = [], 0
+        for line in LEDGER.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                torn += 1  # a torn append; report it, don't die on it
+        if torn:
+            print("WARNING: %d unreadable ledger line(s) skipped" % torn)
         print("%-22s %-10s %-34s %s" % ("WHEN", "VERDICT", "REASON", "TIER2"))
         for r in rows[-20:]:
             t2 = r.get("tier2") or {}

@@ -14,6 +14,12 @@ SCRIPTS = r'C:\Users\clint\azazael\scripts'
 LOG = r'C:\Users\clint\azazael\logs\chain20.log'
 ROUNDS = 20
 STEP_TIMEOUT = 900
+#: rc recorded when a step does not return. The log line's `rc=` field is read
+#: as a code, so it has to BE one -- it used to print `rc=FAIL`, a verdict word
+#: in a field named rc, and discarded the exception text, so a timed-out round
+#: and a crashed round looked identical and neither left a code to grep for.
+RC_TIMEOUT = 124
+RC_EXC = 127
 
 
 def log(msg):
@@ -25,18 +31,28 @@ def log(msg):
 
 def step(name, args, binary=None):
     t0 = time.time()
+    rc = None
     try:
         p = subprocess.run([binary or PY] + args, capture_output=True,
                            text=True, timeout=STEP_TIMEOUT,
                            cwd=r'C:\Users\clint\azazael', encoding="utf-8", errors="replace")
-        ok = p.returncode == 0
+        rc = p.returncode
         tail = ((p.stdout or '') + (p.stderr or '')).strip().splitlines()
         tail = tail[-1][-160:] if tail else ''
+    except subprocess.TimeoutExpired as e:
+        # The partial output survives the timeout; keep it as the evidence of
+        # WHERE the step hung instead of replacing it with the word TIMEOUT.
+        part = (e.stdout or '') + (e.stderr or '')
+        if isinstance(part, bytes):
+            part = part.decode('utf-8', 'replace')
+        rc = RC_TIMEOUT
+        tail = 'TIMEOUT after %ss :: %s' % (
+            STEP_TIMEOUT, part.strip().replace('\n', ' ')[-160:])
     except Exception as e:
-        ok, tail = False, 'EXC %s' % str(e)[:120]
-    log('%s rc=%s %.0fs :: %s' % (name, 'ok' if ok else 'FAIL',
-                                  time.time() - t0, tail))
-    return ok
+        rc = RC_EXC
+        tail = 'EXC %s: %s' % (type(e).__name__, str(e)[:120])
+    log('%s rc=%s %.0fs :: %s' % (name, rc, time.time() - t0, tail))
+    return rc == 0
 
 
 def main():

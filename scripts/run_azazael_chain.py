@@ -187,6 +187,7 @@ def _start_slow(job, spec):
     elif kind == "wsl":
         cmd = ["wsl.exe"] + list(target)
     else:
+        _log("START-FAIL-EVIDENCE %s: unknown job kind %r" % (job, kind))
         return None
     logf = os.path.join(_ROOT, "logs", "chain_%s.log" % job)
     try:
@@ -197,7 +198,14 @@ def _start_slow(job, spec):
         p = subprocess.Popen(cmd, cwd=_ROOT, stdout=lf, stderr=subprocess.STDOUT,
                              creationflags=(0x08000000 if os.name == "nt" else 0))
         return p.pid
-    except Exception:
+    except Exception as e:
+        # Failure evidence: the caller logs only "START-FAIL <job>", so without
+        # this the REASON a launch failed (missing target, wrong interpreter,
+        # permissions) is unrecoverable from the log after the fact. An armed
+        # liveness obligation already records THAT it did not start; this
+        # records WHY.
+        _log("START-FAIL-EVIDENCE %s cmd=%s: %s: %s"
+             % (job, cmd[0], type(e).__name__, str(e)[:200]))
         return None
 
 
