@@ -120,7 +120,7 @@ def run_chunk(index: int, total: int, files: list[str],
            "-p", "no:hypothesispytest"]
     try:
         proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True,
-                              text=True, timeout=timeout, env=env)
+                              text=True, timeout=timeout, env=env, encoding="utf-8", errors="replace")
     except subprocess.TimeoutExpired as exc:
         # A timeout is a result, not a crash: record it and keep going so the
         # remaining chunks still produce a verdict.

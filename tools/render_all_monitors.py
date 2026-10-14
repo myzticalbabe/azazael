@@ -28,7 +28,8 @@ def _run(target: str, args: list[str]) -> tuple[bool, str]:
     try:
         proc = subprocess.run(
             [sys.executable, str(HERE / target), *args],
-            cwd=str(ROOT), capture_output=True, text=True, timeout=300)
+            cwd=str(ROOT), capture_output=True, text=True, timeout=300,
+            encoding="utf-8", errors="replace")
     except Exception as exc:
         return False, f"{target}: spawn failed: {exc}"[:160]
     tail = ((proc.stdout or "") + (proc.stderr or "")).strip().splitlines()

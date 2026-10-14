@@ -84,7 +84,7 @@ def main():
         import subprocess
         r = subprocess.run(
             ["schtasks", "/query", "/TN", "worm_matrix_scheduler"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
         if r.returncode != 0:
             escalate.append("M2 worm_matrix_scheduler task MISSING - operator must create it")
         else:

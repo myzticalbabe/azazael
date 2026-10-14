@@ -113,7 +113,7 @@ def run_step(args: Sequence[str], timeout: int = 900) -> dict:
     cmd = [sys.executable, *args]
     try:
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, timeout=timeout, encoding="utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         return {"cmd": " ".join(args), "rc": None, "error": "timeout"}
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
