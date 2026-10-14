@@ -484,6 +484,19 @@ def verify_before_accept(subject: str,
             from CORE import audit_trail as _at  # noqa: PLC0415 (lazy: no cycle)
             citation = _at.audit_verification_gate(
                 subject, accepted, reasons, remediations)
+            # EP446 (ATP capsules/negatives), absorbed: `audit_verified_negative`
+            # is the documented home for "proof that something did NOT occur"
+            # (audit_trail.py:691) and had ZERO callers outside its own module --
+            # registered while the mechanism ran nowhere. An ACCEPTED gate is
+            # exactly that proof: every supplied condition was tested and the
+            # failure did not occur. Recorded on the same hash chain, behind the
+            # same `record` opt-in, so nothing is written when recording is off.
+            if accepted:
+                _at.audit_verified_negative(
+                    subject,
+                    claim="verification gate conditions held; no failure detected",
+                    evidence="; ".join(reasons) or "no checks supplied",
+                    checked_by="CORE.verification_gate:verify_before_accept")
         except Exception as exc:                      # noqa: BLE001 - ledger best-effort
             _note_failure("verification_gate:gate-cite", exc)
 
