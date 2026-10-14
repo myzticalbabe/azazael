@@ -62,24 +62,24 @@ try:
     import torch
 
     HAS_TORCH = True
-except ImportError:
-    note_failure("tensor_utils:L55", None)
+except ImportError as exc:
+    note_failure("tensor_utils:L55", exc)
     HAS_TORCH = False
 
 try:
     import tensorflow as tf
 
     HAS_TF = True
-except ImportError:
-    note_failure("tensor_utils:L62", None)
+except ImportError as exc:
+    note_failure("tensor_utils:L62", exc)
     HAS_TF = False
 
 try:
     import jax.numpy as jnp
 
     HAS_JAX = True
-except ImportError:
-    note_failure("tensor_utils:L69", None)
+except ImportError as exc:
+    note_failure("tensor_utils:L69", exc)
     HAS_JAX = False
 
 

@@ -745,8 +745,8 @@ class WeaknessTester:
             for task in invalid_tasks:
                 try:
                     ai.get_framework_recommendation(task)
-                except Exception:  # noqa: BLE001 — harness verifies invalid task does not raise
-                    note_failure("weakness_testing:L724", None)
+                except Exception as exc:  # noqa: BLE001 — harness verifies invalid task does not raise
+                    note_failure("weakness_testing:L724", exc)
                     passed = False
                     break
 
@@ -917,8 +917,8 @@ class WeaknessTester:
                     duration=1.0,
                     success=True,
                 )
-            except Exception:  # noqa: BLE001 — harness verifies target does not raise
-                note_failure("weakness_testing:L891", None)
+            except Exception as exc:  # noqa: BLE001 — harness verifies target does not raise
+                note_failure("weakness_testing:L891", exc)
                 passed = False
 
             self.suite.add(
@@ -1094,8 +1094,8 @@ class WeaknessTester:
             try:
                 ai.get_framework_recommendation("test")
                 recovered = True
-            except Exception:  # noqa: BLE001 — recovery test expects no exception
-                note_failure("weakness_testing:L1063", None)
+            except Exception as exc:  # noqa: BLE001 — recovery test expects no exception
+                note_failure("weakness_testing:L1063", exc)
                 recovered = False
 
             passed = recovered

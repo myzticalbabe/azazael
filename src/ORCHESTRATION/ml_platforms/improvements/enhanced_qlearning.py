@@ -34,16 +34,16 @@ try:
     from numba import jit
 
     NUMBA_AVAILABLE = True
-except ImportError:
-    note_failure("enhanced_qlearning:L28", None)
+except ImportError as exc:
+    note_failure("enhanced_qlearning:L28", exc)
     NUMBA_AVAILABLE = False
 
 try:
     import optuna
 
     OPTUNA_AVAILABLE = True
-except ImportError:
-    note_failure("enhanced_qlearning:L35", None)
+except ImportError as exc:
+    note_failure("enhanced_qlearning:L35", exc)
     OPTUNA_AVAILABLE = False
 
 

@@ -289,8 +289,8 @@ class SmartCache:
         for module in modules:
             try:
                 __import__(module)
-            except ImportError:
-                note_failure("strategic_intelligence:L283", None)
+            except ImportError as exc:
+                note_failure("strategic_intelligence:L283", exc)
 
 
 class PerformanceProfiler:
