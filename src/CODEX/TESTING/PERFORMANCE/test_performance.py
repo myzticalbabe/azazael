@@ -66,8 +66,8 @@ class PerformanceBenchmarks:
                 }
             )
             return elapsed
-        except Exception:
-            note_failure("test_performance:L59", None)
+        except Exception as exc:
+            note_failure("test_performance:L59", exc)
             return None
 
     def benchmark_metaworms(self):
@@ -87,8 +87,8 @@ class PerformanceBenchmarks:
                 }
             )
             return elapsed
-        except Exception:
-            note_failure("test_performance:L79", None)
+        except Exception as exc:
+            note_failure("test_performance:L79", exc)
             return None
 
     def benchmark_hydra_pipeline(self):
@@ -104,8 +104,8 @@ class PerformanceBenchmarks:
                 {"test": "hydra_pipeline", "elapsed_ms": elapsed * 1000}
             )
             return elapsed
-        except Exception:
-            note_failure("test_performance:L95", None)
+        except Exception as exc:
+            note_failure("test_performance:L95", exc)
             return None
 
     def run_all_benchmarks(self) -> dict:
