@@ -102,7 +102,7 @@ def _scan_results(target: str, tracked_only: bool = False) -> list:
     if tracked_only:
         proc = subprocess.run(
             ["git", "ls-files", "--full-name", "-z"],
-            capture_output=True, text=True, errors="replace", timeout=120,
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120,
             cwd=str(ROOT))
         prefix = target.strip("/") + "/"
         files = [str(ROOT / p) for p in proc.stdout.split("\0")

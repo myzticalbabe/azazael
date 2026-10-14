@@ -56,7 +56,8 @@ BAND = ("tests/test_mesh_fabric_followups.py", "tests/test_mesh_fabric_gaps.py",
 def _run(cmd: Sequence[str], timeout: int) -> dict[str, Any]:
     try:
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, encoding="utf-8", errors="replace",
+                              timeout=timeout)
     except subprocess.TimeoutExpired:
         return {"rc": None, "out": "", "err": "timeout", "timeout": True}
     return {"rc": proc.returncode, "out": proc.stdout or "",
