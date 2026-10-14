@@ -85,8 +85,8 @@ Shared successfully
     def close_win():
         try:
             root.destroy()
-        except Exception:
-            note_failure("POPUP_BUGFREE:L78", None)
+        except Exception as exc:
+            note_failure("POPUP_BUGFREE:L78", exc)
         sys.exit(0)
 
     close_btn = tk.Button(
@@ -118,8 +118,8 @@ Shared successfully
 
     try:
         root.mainloop()
-    except KeyboardInterrupt:
-        note_failure("POPUP_BUGFREE:L111", None)
+    except KeyboardInterrupt as exc:
+        note_failure("POPUP_BUGFREE:L111", exc)
         sys.exit(0)
 
 
