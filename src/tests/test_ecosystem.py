@@ -343,32 +343,32 @@ class TestEcosystemIntegration(unittest.TestCase):
         modules = []
         try:
             modules.append("WORMZ")
-        except Exception:
-            note_failure("test_ecosystem:L330", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L330", exc)
         try:
             modules.append("CONCURRENCY")
-        except Exception:
-            note_failure("test_ecosystem:L333", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L333", exc)
         try:
             modules.append("MetaWormSpawner")
-        except Exception:
-            note_failure("test_ecosystem:L336", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L336", exc)
         try:
             modules.append("DebugZ")
-        except Exception:
-            note_failure("test_ecosystem:L339", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L339", exc)
         try:
             modules.append("InferenceBridge")
-        except Exception:
-            note_failure("test_ecosystem:L342", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L342", exc)
         try:
             modules.append("DistillZ")
-        except Exception:
-            note_failure("test_ecosystem:L345", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L345", exc)
         try:
             modules.append("FleetZ")
-        except Exception:
-            note_failure("test_ecosystem:L348", None)
+        except Exception as exc:
+            note_failure("test_ecosystem:L348", exc)
         self.assertGreaterEqual(len(modules), 4, f"Only loaded: {modules}")
 
     def test_metaworm_inference_bridge_integration(self):
