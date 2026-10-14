@@ -71,8 +71,8 @@ try:
         get_merkle_proof, audit_anomaly_scan, audit_expect_action
     )
     _AUDIT_AVAILABLE = True
-except ImportError:
-    note_failure("sentinel_gate:L64", None)
+except ImportError as exc:
+    note_failure("sentinel_gate:L64", exc)
     _AUDIT_AVAILABLE = False
     verify_entry_hash = None
     verify_signature = None
@@ -87,8 +87,8 @@ except ImportError:
 try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
-except ImportError:
-    note_failure("sentinel_gate:L79", None)
+except ImportError as exc:
+    note_failure("sentinel_gate:L79", exc)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
@@ -124,8 +124,8 @@ except ImportError as _pag_e:
 try:
     from CORE.sentinel_enforcer import lock_file, unlock_file
     _LOCKING_AVAILABLE = True
-except ImportError:
-    note_failure("sentinel_gate:L113", None)
+except ImportError as exc:
+    note_failure("sentinel_gate:L113", exc)
     _LOCKING_AVAILABLE = False
     def lock_file(f): return False
     def unlock_file(f): return False
@@ -359,8 +359,8 @@ def _verify_audit_citation(citation, audit_filepath, expected_type, agent_filter
     filepath, line_str = parts
     try:
         line_num = int(line_str)
-    except ValueError:
-        note_failure("sentinel_gate:L346", None)
+    except ValueError as exc:
+        note_failure("sentinel_gate:L346", exc)
         return False
 
     if not Path(filepath).exists():
@@ -649,8 +649,8 @@ def validate_rule_0x(data, audit_filepath=None):
         # v2: Verify state machine is in GATE_ASSERT before proceeding
         try:
             co.state_machine.transition_to(ComplianceState.GATE_ASSERT)
-        except StateMachineError:
-            note_failure("sentinel_gate:L635", None)
+        except StateMachineError as exc:
+            note_failure("sentinel_gate:L635", exc)
 
         # v2: FAIL-CLOSED — state MUST be GATE_ASSERT
         current_state = co.state_machine.state.name if hasattr(co.state_machine.state, 'name') else "UNKNOWN"
@@ -685,8 +685,8 @@ def validate_rule_0x(data, audit_filepath=None):
         score = 0.0
         try:
             score = co.scorer.get_weighted_score()
-        except Exception:
-            note_failure("sentinel_gate:L671", None)
+        except Exception as exc:
+            note_failure("sentinel_gate:L671", exc)
 
         if all_passed:
             return True, "[VERIFIABLE] RULE 0X: %d/%d checks passed (score: %.2f)" % (
@@ -915,8 +915,8 @@ class SentinelValidator:
         try:
             dm = DirectMemory()
             events = dm.list_events(500)
-        except Exception:
-            note_failure("sentinel_gate:L899", None)
+        except Exception as exc:
+            note_failure("sentinel_gate:L899", exc)
             self.results.append({"key": "CROSS-REF", "passed": True,
                                 "message": "N/A - DirectMemory error"})
             return True
@@ -1111,10 +1111,10 @@ def main():
             try:
                 from SCRIPTS.generate_telemetry import main as telemetry_export
                 telemetry_export()
-            except Exception:
-                note_failure("sentinel_gate:L1094", None) # Telemetry export is advisory
-        except Exception:
-            note_failure("sentinel_gate:L1096", None) # Telemetry is advisory, never block the gate
+            except Exception as exc:
+                note_failure("sentinel_gate:L1094", exc) # Telemetry export is advisory
+        except Exception as exc:
+            note_failure("sentinel_gate:L1096", exc) # Telemetry is advisory, never block the gate
 
     # --expect mode: declare expected action for proof-of-omission (v3.1.0)
     if args.expect:

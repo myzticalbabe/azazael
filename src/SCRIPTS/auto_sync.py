@@ -57,8 +57,8 @@ def compute_hashes(directory: Path) -> dict[str, str]:
         try:
             content = fpath.read_bytes()
             hashes[str(fpath.relative_to(directory))] = hashlib.md5(content).hexdigest()
-        except OSError:
-            note_failure("auto_sync:L50", None)
+        except OSError as exc:
+            note_failure("auto_sync:L50", exc)
             continue
     return hashes
 
@@ -158,8 +158,8 @@ def watch_loop(interval: int = 5, quiet: bool = False, watchdog: bool = False):
                 if _EXIT_REQUESTED:
                     break
                 time.sleep(1)
-        except KeyboardInterrupt:
-            note_failure("auto_sync:L150", None)
+        except KeyboardInterrupt as exc:
+            note_failure("auto_sync:L150", exc)
             break
         except Exception as e:
             if not quiet:

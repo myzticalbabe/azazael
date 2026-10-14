@@ -129,8 +129,8 @@ def _wsl_distro_running(name: str) -> bool | None:
             if name.lower() in line.lower():
                 return "running" in line.lower()
         return False  # Distro not found in list
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        note_failure("sync_canonical_docs:L123", None)
+    except (FileNotFoundError, subprocess.TimeoutExpired) as exc:
+        note_failure("sync_canonical_docs:L123", exc)
         return None  # wsl.exe unavailable or timeout — can't determine
 
 

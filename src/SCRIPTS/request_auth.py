@@ -55,16 +55,16 @@ except ImportError:                               # never break the host
 try:
     from CORE.compliance.scanner import ASTAntiPatternScanner
     _SCANNER_AVAILABLE = True
-except ImportError:
-    note_failure("request_auth:L48", None)
+except ImportError as exc:
+    note_failure("request_auth:L48", exc)
     _SCANNER_AVAILABLE = False
     ASTAntiPatternScanner = None  # type: ignore
 
 try:
     from CORE.compliance.broker import can_edit, gate_passed, gate_asserted
     _BROKER_AVAILABLE = True
-except ImportError:
-    note_failure("request_auth:L55", None)
+except ImportError as exc:
+    note_failure("request_auth:L55", exc)
     _BROKER_AVAILABLE = False
     can_edit = None  # type: ignore
     gate_passed = None  # type: ignore
@@ -120,8 +120,8 @@ def _native_import_ok(module: str) -> bool:
             [sys.executable, "-c", "import %s" % module],
             capture_output=True, text=True, timeout=60)
         ok = proc.returncode == 0
-    except Exception:
-        note_failure("request_auth:L111", None)
+    except Exception as exc:
+        note_failure("request_auth:L111", exc)
         ok = False
     _NATIVE_IMPORT_OK[module] = ok
     return ok
@@ -162,8 +162,8 @@ def _get_ed25519_key():
             print(f"[request_auth] Ed25519 key load/generate failed: {e}. Using BLAKE2b fallback.",
                   file=sys.stderr)
             _ED25519_AVAILABLE = False
-    except ImportError:
-        note_failure("request_auth:L152", None)
+    except ImportError as exc:
+        note_failure("request_auth:L152", exc)
         _ED25519_AVAILABLE = False
     return _ED25519_KEY
 
@@ -243,8 +243,8 @@ def is_token_valid(token_path: Path, filepath: str, max_age_seconds: int = 15) -
     
     try:
         data = json.loads(token_path.read_text())
-    except (json.JSONDecodeError, OSError):
-        note_failure("request_auth:L232", None)
+    except (json.JSONDecodeError, OSError) as exc:
+        note_failure("request_auth:L232", exc)
         return False
     
     # Check target matches
@@ -258,8 +258,8 @@ def is_token_valid(token_path: Path, filepath: str, max_age_seconds: int = 15) -
         age = (datetime.now(timezone.utc) - token_time).total_seconds()
         if age > max_age_seconds:
             return False
-    except (ValueError, TypeError):
-        note_failure("request_auth:L246", None)
+    except (ValueError, TypeError) as exc:
+        note_failure("request_auth:L246", exc)
         return False
     
     # Verify signature
@@ -318,8 +318,8 @@ def _check_state_machine() -> tuple[bool, str]:
             return False, f"WORM HEALTH CRITICAL: {worm.get('message')}"
         
         return True, f"State: {summary.get('state_machine_state', '?')}"
-    except ImportError:
-        note_failure("request_auth:L305", None)
+    except ImportError as exc:
+        note_failure("request_auth:L305", exc)
         return True, "State machine not loaded (non-blocking for auth)"
 
 

@@ -69,16 +69,16 @@ except ImportError as _pag_e:
 try:
     from CORE.compliance.orchestrator import ComplianceOrchestrator
     _ORCHESTRATOR_AVAILABLE = True
-except ImportError:
-    note_failure("gate_bash:L62", None)
+except ImportError as exc:
+    note_failure("gate_bash:L62", exc)
     _ORCHESTRATOR_AVAILABLE = False
     ComplianceOrchestrator = None
 
 try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
-except ImportError:
-    note_failure("gate_bash:L69", None)
+except ImportError as exc:
+    note_failure("gate_bash:L69", exc)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
@@ -281,8 +281,8 @@ class GateBash:
                     "category": verdict["category"],
                     "severity": verdict["severity"],
                 })
-            except Exception:
-                note_failure("gate_bash:L272", None)
+            except Exception as exc:
+                note_failure("gate_bash:L272", exc)
 
         # RULE 0X + 0Y compliance check
         if self.orchestrator:
@@ -332,8 +332,8 @@ class GateBash:
                 text=True,
                 timeout=timeout,
             )
-        except (FileNotFoundError, OSError):
-            note_failure("gate_bash:L322", None)
+        except (FileNotFoundError, OSError) as exc:
+            note_failure("gate_bash:L322", exc)
             return subprocess.run(
                 ["cmd.exe", "/c", command],
                 capture_output=True,
@@ -371,8 +371,8 @@ class GateBash:
             else:
                 print(f"[EXECUTE] FAILED (exit {result.returncode})")
                 return False, f"Command failed with exit {result.returncode}", result
-        except subprocess.TimeoutExpired:
-            note_failure("gate_bash:L360", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("gate_bash:L360", exc)
             return False, f"Command timed out after {timeout}s", None
         except Exception as e:
             note_failure("gate_bash:L362", e)
