@@ -44,7 +44,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def _run(cmd, cwd, timeout=600, env=None):
     try:
         r = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True,
-                           timeout=timeout, env=env)
+                           timeout=timeout, env=env, encoding="utf-8", errors="replace")
         return r.returncode, (r.stdout or "")[-3000:], (r.stderr or "")[-3000:]
     except subprocess.TimeoutExpired as e:
         return 124, (e.stdout or "")[-3000:] if isinstance(e.stdout, str) else "", "TIMEOUT"

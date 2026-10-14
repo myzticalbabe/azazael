@@ -374,7 +374,7 @@ def step3_compress_video(raw_video: Path, compressed_output: Path,
         ]
         print(f"  Running: python compress_video.py compress --profile cain ...")
         start = time.time()
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace")
         elapsed = time.time() - start
 
         if result.returncode == 0 and compressed_output.exists():
@@ -406,7 +406,7 @@ def step3_compress_video(raw_video: Path, compressed_output: Path,
         ]
         print(f"  Running: ffmpeg -i input.mp4 -c:v libx264 -crf {CAIN_CRF} ...")
         start = time.time()
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, encoding="utf-8", errors="replace")
         elapsed = time.time() - start
 
         if result.returncode == 0 and compressed_output.exists():
@@ -484,7 +484,7 @@ def step4_analyze_video(video_path: Path, raw_video: Optional[Path] = None,
     print(f"  Analyzing: {video_path.name} ({video_path.stat().st_size / (1024*1024):.1f} MB)")
     print()
     cmd_analyze = [sys.executable, str(analyzer_script), "--analyze", str(video_path)]
-    result = subprocess.run(cmd_analyze, capture_output=True, text=True, timeout=30)
+    result = subprocess.run(cmd_analyze, capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
 
     if result.returncode == 0:
         print(result.stdout)
@@ -507,7 +507,7 @@ def step4_analyze_video(video_path: Path, raw_video: Optional[Path] = None,
         # Run compliance on raw video for comparison
         print(f"  Raw video compliance:")
         cmd_raw = [sys.executable, str(analyzer_script), "--analyze", str(raw_video)]
-        raw_result = subprocess.run(cmd_raw, capture_output=True, text=True, timeout=30)
+        raw_result = subprocess.run(cmd_raw, capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
         if raw_result.returncode == 0:
             # Extract just the compliance lines
             for line in raw_result.stdout.split("\n"):

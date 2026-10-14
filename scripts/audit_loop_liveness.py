@@ -507,7 +507,7 @@ def task_status(name: str) -> tuple[str, str]:
     try:
         proc = subprocess.run(
             ["schtasks", "/query", "/tn", name, "/fo", "CSV", "/nh"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace")
     except FileNotFoundError:
         return "UNKNOWN", "schtasks unavailable (use --no-tasks off Windows)"
     except Exception as exc:
@@ -757,7 +757,7 @@ def _query_all_tasks() -> str:
     """
     try:
         proc = subprocess.run(["schtasks", "/query", "/fo", "CSV", "/v"],
-                              capture_output=True, text=True, timeout=60)
+                              capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
         return proc.stdout or ""
     except Exception:
         return ""

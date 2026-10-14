@@ -143,7 +143,7 @@ def verify_windows_nuitka() -> bool:
         r = subprocess.run(
             [sys.executable, str(patch), "--verify"],
             capture_output=True, text=True, timeout=30,
-            cwd=str(PROJECT_ROOT),
+            cwd=str(PROJECT_ROOT), encoding="utf-8", errors="replace"
         )
         return r.returncode == 0
     except Exception:
@@ -156,7 +156,7 @@ def verify_wsl_nuitka() -> bool:
         r = subprocess.run(
             ["wsl", "-d", "Ubuntu-26.04", "-e", "bash", "-c",
              "python3.15t /root/azazael/docs/scripts/patch_nuitka_315t.py --verify 2>&1"],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace"
         )
         return r.returncode == 0
     except Exception:
@@ -182,7 +182,7 @@ def build_target_windows(name: str, target: Dict, out_dir: Path) -> Dict:
     ]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=300, cwd=str(PROJECT_ROOT))
+                              timeout=300, cwd=str(PROJECT_ROOT), encoding="utf-8", errors="replace")
         if proc.returncode == 0:
             result["success"] = True
         else:
@@ -222,7 +222,7 @@ def build_target_wsl(name: str, target: Dict, out_dir: Path) -> Dict:
     try:
         proc = subprocess.run(
             ["wsl", "-d", "Ubuntu-26.04", "-e", "bash", "-c", cmd],
-            capture_output=True, text=True, timeout=300,
+            capture_output=True, text=True, timeout=300, encoding="utf-8", errors="replace"
         )
         if proc.returncode == 0:
             result["success"] = True
