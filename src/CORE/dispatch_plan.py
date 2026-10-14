@@ -461,3 +461,66 @@ def reuse_prefix(branch: str) -> dict:
             "reusable": bool(lesson),
             "isolation": ("suffix-after-pivotal-turn is quarantined; "
                           "do not blend into the reused prefix")}
+
+
+# -- L5: simulate-vs-spawn costing (EP110) --------------------------------------
+#: Default prices: a rehearsal costs ~8% of a spawn per task, so confirming an
+#: n-task plan costs sim*n while blindly spawning it risks spawn*n.
+#: Confirmation pays for itself once it can avoid a single wasted spawn, i.e.
+#: at n >= spawn/sim -- the threshold is DERIVED from the prices, never chosen.
+SIM_COST_PER_TASK = 0.08
+SPAWN_COST_PER_TASK = 1.0
+
+
+def simulate_vs_spawn(dag, roles, rehearsal=None, *,
+                      sim_cost_per_task=SIM_COST_PER_TASK,
+                      spawn_cost_per_task=SPAWN_COST_PER_TASK):
+    """Price a rehearsal against the spawn it replaces (EP110).
+
+    INFORMATION-based verdict, never a bare cost ratio: at the default prices
+    sim_total < spawn_total holds for every plan of two or more tasks, so a
+    ratio rule would return "simulate" unconditionally and prove nothing. The
+    decision instead rides (a) predicted failures from the rehearsal, which
+    override everything, and (b) a confirm threshold DERIVED from the prices
+    (spawn/sim -- the plan size at which confirmation pays for itself).
+
+    Never raises: costing runs on the dispatch hot path, so degenerate input
+    reports a verdict (basis EP110:degenerate) instead of throwing. Returns
+    {"decision", "predicted_failures" (count), "savings", "n_tasks",
+    "confirm_threshold", "basis", "sim_total", "spawn_total"}.
+    """
+    try:
+        order = list((dag or {}).get("order") or [])
+    except Exception:
+        order = []
+    n_tasks = len(order)
+    sim = _as_float(sim_cost_per_task)
+    spawn = _as_float(spawn_cost_per_task)
+    threshold = int(spawn / sim) if sim > 0 else 0
+    if isinstance(rehearsal, dict):
+        predicted = rehearsal.get("predicted_failures") or []
+    else:
+        predicted = []
+    try:
+        n_fail = len(predicted)
+    except TypeError:
+        n_fail = 0 if not predicted else 1
+    sim_total = sim * n_tasks
+    spawn_total = spawn * n_tasks
+    if not isinstance(rehearsal, dict) and not order:
+        decision = "spawn"
+        basis = "EP110:degenerate-empty-plan"
+    elif n_fail:
+        decision = "simulate"
+        basis = "EP110:predicted-failures-%d" % n_fail
+    elif n_tasks >= threshold:
+        decision = "simulate"
+        basis = "EP110:size-confirmation-%d-ge-%d" % (n_tasks, threshold)
+    else:
+        decision = "spawn"
+        basis = "EP110:clean-small-%d-lt-%d" % (n_tasks, threshold)
+    savings = round(spawn_total - sim_total, 6) if decision == "simulate" else 0.0
+    return {"decision": decision, "predicted_failures": n_fail,
+            "savings": savings, "n_tasks": n_tasks,
+            "confirm_threshold": threshold, "basis": basis,
+            "sim_total": sim_total, "spawn_total": spawn_total}

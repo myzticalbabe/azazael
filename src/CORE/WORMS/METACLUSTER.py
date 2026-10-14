@@ -368,7 +368,7 @@ class MetaCluster:
         try:
             from CORE.dispatch_plan import (
                 assign_roles, eliminate_common_subgraphs, plan_dag,
-                record_dispatch_plan, rehearse_dispatch,
+                record_dispatch_plan, rehearse_dispatch, simulate_vs_spawn,
             )
         except Exception as exc:  # noqa: BLE001 — planning is optional
             note_failure("METACLUSTER:L333", exc)
@@ -423,6 +423,12 @@ class MetaCluster:
                 {"category": "metacluster"})
             rehearsal = rehearse_dispatch(plan, assignment)
             predicted = list(rehearsal.get("predicted_failures") or [])
+            # EP110 (simulate-vs-spawn): price the rehearsal against the
+            # spawn it replaces and ride the verdict on the plan note and
+            # plan_out, so the costing reaches the live dispatch seam. Pure
+            # and non-raising by contract; the outer guard stays backstop.
+            costing = simulate_vs_spawn(plan, assignment,
+                                        rehearsal=rehearsal)
             if not plan.get("valid"):
                 # The rehearsal's predicted failures (plan-gap:*/assign-gap:*)
                 # EXPLAIN the unusable plan, so they are what the fallback note
@@ -432,7 +438,7 @@ class MetaCluster:
                     str(g) for g in (predicted or (plan.get("gaps") or [])))
                 self._publish_plan(plan_out, plan=plan, ordered=names,
                                    levels={}, assignment=assignment,
-                                   rehearsal=rehearsal,
+                                   rehearsal=rehearsal, costing=costing,
                                    atoms=dict(self._atom_worms),
                                    note="plan-fallback:invalid(%s)" % gaps[:120])
                 return names, {}, "plan-fallback:invalid(%s)" % gaps[:120]
@@ -472,6 +478,7 @@ class MetaCluster:
             # without a second telemetry channel.
             note += ",rehearsed=%s,predicted_failures=%d" % (
                 "go" if rehearsal.get("go") else "hold", len(predicted))
+            note += ",cost=%s" % costing.get("decision", "spawn")
             pool_load = rehearsal.get("pool_load") or {}
             if pool_load:
                 busiest = max(pool_load, key=lambda p: pool_load[p])
@@ -487,7 +494,8 @@ class MetaCluster:
                 _note_failure("metacluster:plan-event", exc)
             self._publish_plan(plan_out, plan=plan, ordered=ordered,
                                levels=levels, assignment=assignment,
-                               rehearsal=rehearsal, atoms=dict(self._atom_worms),
+                               rehearsal=rehearsal, costing=costing,
+                               atoms=dict(self._atom_worms),
                                note=note)
             return ordered, levels, note
         except Exception as exc:  # noqa: BLE001 — never break orchestration
