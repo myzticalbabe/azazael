@@ -579,9 +579,9 @@ def create_video():
 
         font_small = ImageFont.truetype("consolas.ttf", 20)
 
-    except Exception:
+    except Exception as exc:
 
-        note_failure("make_video:L572", None)
+        note_failure("make_video:L572", exc)
         ImageFont.load_default()
 
         font_header = ImageFont.load_default()

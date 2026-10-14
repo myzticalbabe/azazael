@@ -39,8 +39,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # never break the host
-    note_failure("compress_video:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("compress_video:core-paths-import", exc)
     _get_project_root_safe = None
 
 #: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be
@@ -90,8 +90,8 @@ def _codec_available(codec_name):
             ["ffmpeg", "-encoders"], capture_output=True, text=True, timeout=10
         )
         return codec_name in result.stdout
-    except Exception:
-        note_failure("compress_video:L69", None)
+    except Exception as exc:
+        note_failure("compress_video:L69", exc)
         return False
 
 
@@ -191,8 +191,8 @@ def encode_gif(input_path, output_path, fps=15, width=960):
     r2 = subprocess.run(cmd2, capture_output=True, text=True)
     try:
         Path(palette).unlink()
-    except OSError:
-        note_failure("compress_video:L169", None)
+    except OSError as exc:
+        note_failure("compress_video:L169", exc)
     if r2.returncode == 0 and out_file.exists():
         mb = round(os.path.getsize(out_file) / (1024 * 1024), 2)
         print(f"  [OK] {out_file.name} ({mb} MB, looping)")
@@ -340,8 +340,8 @@ def compress_video(input_path, output_path, profile=None,
         for logfile in passlog_path.parent.glob(f"{passlog_path.name}*.log*"):
             try:
                 logfile.unlink()
-            except OSError:
-                note_failure("compress_video:L318", None)
+            except OSError as exc:
+                note_failure("compress_video:L318", exc)
 
         success = r2.returncode == 0
 

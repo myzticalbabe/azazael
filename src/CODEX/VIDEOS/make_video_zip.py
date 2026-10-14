@@ -215,9 +215,9 @@ def create_video():
 
             ImageFont.truetype("arialbd.ttf", 56)
 
-        except Exception:
+        except Exception as exc:
 
-            note_failure("make_video_zip:L208", None)
+            note_failure("make_video_zip:L208", exc)
             font_large = ImageFont.load_default()
 
             ImageFont.load_default()

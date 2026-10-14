@@ -616,9 +616,9 @@ def create_video():
 
         font_tiny = ImageFont.truetype("consolas.ttf", 26)
 
-    except Exception:
+    except Exception as exc:
 
-        note_failure("make_video_zipper:L609", None)
+        note_failure("make_video_zipper:L609", exc)
         font_big = ImageFont.load_default()
 
         font_large = ImageFont.load_default()

@@ -45,8 +45,8 @@ class DualPanePopup:
         try:
             with open("frame_sequence.json", "r") as f:
                 data = json.load(f)
-        except Exception:
-            note_failure("create_dual_pane_popup:L38", None)
+        except Exception as exc:
+            note_failure("create_dual_pane_popup:L38", exc)
             data = [
                 {
                     "name": "CONFLICTS_DETECTED",

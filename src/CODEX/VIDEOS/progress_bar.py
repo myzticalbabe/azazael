@@ -201,8 +201,8 @@ def ffmpeg_with_progress(cmd: list[str], duration: float = 0,
         try:
             proc.terminate()
             proc.wait(timeout=5)
-        except Exception:
-            note_failure("progress_bar:L194", None)
+        except Exception as exc:
+            note_failure("progress_bar:L194", exc)
         print(f"\n  {label_prefix}⚠️  Cancelled")
         return False
     except Exception as e:
