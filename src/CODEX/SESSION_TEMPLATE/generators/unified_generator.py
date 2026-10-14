@@ -5503,17 +5503,17 @@ def _enhanced_animation_css():
     """
     try:
         from CODEX.CORE.enhanced_animations import generate_css
-    except Exception:
-        note_failure("unified_generator:L5497", None)
+    except Exception as exc:
+        note_failure("unified_generator:L5497", exc)
         try:
             from enhanced_animations import generate_css
-        except Exception:
-            note_failure("unified_generator:L5500", None)
+        except Exception as exc:
+            note_failure("unified_generator:L5500", exc)
             return ""
     try:
         css = generate_css()
-    except Exception:
-        note_failure("unified_generator:L5504", None)
+    except Exception as exc:
+        note_failure("unified_generator:L5504", exc)
         return ""
     for name in ("shimmer", "sparkle"):
         css = css.replace("@keyframes %s" % name,
