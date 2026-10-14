@@ -75,8 +75,8 @@ class CodexArm(BaseArm):
                     }
                 }
             return {"status": "error", "error": "Unknown: " + capability}
-        except subprocess.TimeoutExpired:
-            note_failure("codex_arm:L69", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("codex_arm:L69", exc)
             return {"status": "error", "error": "Video rendering timed out (600s)"}
         except Exception as e:
             note_failure("codex_arm:L71", e)
