@@ -3,12 +3,12 @@
   "rows": 141,
   "tally": {
     "NO-TARGET": 23,
-    "HOST-COMPOSED": 14,
-    "ADOPTED": 94,
-    "EXERCISE-ONLY": 10
+    "HOST-COMPOSED": 13,
+    "ADOPTED": 93,
+    "EXERCISE-ONLY": 12
   },
-  "adoption_score": 94,
-  "in_production": 108,
+  "adoption_score": 93,
+  "in_production": 106,
   "built_count": 118,
   "note": "adoption_score counts ADOPTED rows (caller in a DIFFERENT production module); in_production adds HOST-COMPOSED (consumed by production code in its own host, where that host is imported by production). EXERCISE-ONLY and HOSTED-ONLY score zero by mandate (ACTION_REGISTRY H-2, TODO_315T_BUILD T-15)",
   "results": [
@@ -4738,9 +4738,7 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [
-        "src/CORE/dashboard.py:509"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [],
       "host_internal_uses": [
         "src/CORE/workflow.py:914",
@@ -4748,9 +4746,9 @@
         "src/CORE/workflow.py:972",
         "src/CORE/workflow.py:978"
       ],
-      "n_production": 1,
+      "n_production": 0,
       "n_exercise": 0,
-      "verdict": "ADOPTED"
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP300",
@@ -4791,16 +4789,14 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [
-        "src/SCRIPTS/sentinel_gate.py:81"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l3_verify.py:226"
       ],
       "host_internal_uses": [],
-      "n_production": 1,
+      "n_production": 0,
       "n_exercise": 1,
-      "verdict": "ADOPTED"
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP302",
@@ -4821,7 +4817,10 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "tools/canon_drift_check.py:73",
+        "tools/canon_drift_check.py:321"
+      ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_b01_05.py:189",
         "src/CORE/technique_wiring/_b01_05.py:92",
@@ -4844,9 +4843,9 @@
       "host_internal_uses": [
         "src/CORE/skill_library.py:663"
       ],
-      "n_production": 0,
+      "n_production": 2,
       "n_exercise": 17,
-      "verdict": "HOST-COMPOSED"
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP305",
@@ -5325,7 +5324,7 @@
       ],
       "n_production": 0,
       "n_exercise": 2,
-      "verdict": "HOST-COMPOSED"
+      "verdict": "EXERCISE-ONLY"
     },
     {
       "ep": "EP343",
