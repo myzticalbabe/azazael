@@ -22,8 +22,8 @@ except ImportError:                               # never break the host
 # Dynamic path resolution
 try:
     from CORE.paths import get_src_dir
-except ImportError:
-    note_failure("HYDRA_ANALYZER:L16", None)
+except ImportError as exc:
+    note_failure("HYDRA_ANALYZER:L16", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_src_dir
 
@@ -100,8 +100,8 @@ def load_json(path: Path) -> dict:
     try:
         if path.exists():
             return json.loads(path.read_text())
-    except Exception:
-        note_failure("HYDRA_ANALYZER:L93", None)
+    except Exception as exc:
+        note_failure("HYDRA_ANALYZER:L93", exc)
     return {}
 
 
@@ -134,8 +134,8 @@ def discover_modules() -> dict[str, Any]:
                     "exists": True,
                     "lines": len(content.splitlines()),
                 }
-            except Exception:
-                note_failure("HYDRA_ANALYZER:L127", None)
+            except Exception as exc:
+                note_failure("HYDRA_ANALYZER:L127", exc)
                 modules[f.replace(".py", "")] = {
                     "path": str(p),
                     "size": p.stat().st_size,

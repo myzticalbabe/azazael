@@ -48,8 +48,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # src/ not on sys.path
-    note_failure("HYDRA:core-paths-import", None)
+except ImportError as exc:                               # src/ not on sys.path
+    note_failure("HYDRA:core-paths-import", exc)
     _get_project_root_safe = None
 
 
@@ -408,8 +408,8 @@ class HYDRACluster:
                     elif item[0] == "destroy":
                         popup.destroy()
                         return
-            except queue.Empty:
-                note_failure("HYDRA:L378", None)
+            except queue.Empty as exc:
+                note_failure("HYDRA:L378", exc)
             popup.after(100, _process_queue)
 
         results_container: list[StageResult] = []

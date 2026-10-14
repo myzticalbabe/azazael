@@ -118,8 +118,8 @@ class AssistantLogProtocol:
         try:
             with open(path, "r") as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            note_failure("AssistantLogProtocol:L112", None)
+        except (FileNotFoundError, json.JSONDecodeError) as exc:
+            note_failure("AssistantLogProtocol:L112", exc)
             return {
                 "version": self.VERSION,
                 "entries": [],

@@ -406,8 +406,8 @@ class SelfImprovingGUI:
                     threading.sleep(30)
                     if random.random() < 0.3:
                         self._self_improve()
-                except Exception:
-                    note_failure("SelfImprovingGUI:L399", None)
+                except Exception as exc:
+                    note_failure("SelfImprovingGUI:L399", exc)
 
         threading.Thread(target=improvement_loop, daemon=True).start()
 

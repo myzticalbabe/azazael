@@ -197,8 +197,8 @@ class SystemToolExecutor:
             output = result.stdout
             error = result.stderr
             return_code = result.returncode
-        except subprocess.TimeoutExpired:
-            note_failure("ADLP_SystemTools:L191", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("ADLP_SystemTools:L191", exc)
             success = False
             output = ""
             error = "Command timed out"
@@ -411,8 +411,8 @@ class AssistantLogProtocol:
         try:
             with open(path, "r") as f:
                 return json.load(f)
-        except Exception:
-            note_failure("ADLP_SystemTools:L403", None)
+        except Exception as exc:
+            note_failure("ADLP_SystemTools:L403", exc)
             return {
                 "version": self.VERSION,
                 "entries": [],

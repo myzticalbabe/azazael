@@ -233,8 +233,8 @@ class SystemManagerGUI:
         style = ttk.Style()
         try:
             style.theme_use("dark")
-        except Exception:
-            note_failure("SystemManagerGUI:L226", None)
+        except Exception as exc:
+            note_failure("SystemManagerGUI:L226", exc)
         style.configure("TFrame", background=COLOR_BG)
         style.configure(
             "TLabel", background=COLOR_BG, foreground=COLOR_FG, font=("Consolas", 10)
@@ -596,8 +596,8 @@ class SystemManagerGUI:
                     if os.path.isfile(path):
                         os.remove(path)
                         count += 1
-                except Exception:
-                    note_failure("SystemManagerGUI:L589", None)
+                except Exception as exc:
+                    note_failure("SystemManagerGUI:L589", exc)
         return {"files_removed": count}
 
     def _cleanup_installers(self) -> dict:
@@ -609,8 +609,8 @@ class SystemManagerGUI:
                     try:
                         os.remove(os.path.join(downloads, f))
                         removed += 1
-                    except Exception:
-                        note_failure("SystemManagerGUI:L602", None)
+                    except Exception as exc:
+                        note_failure("SystemManagerGUI:L602", exc)
         return {"count": removed}
 
     def _update_tree_view(self, root_node: FileNode):
