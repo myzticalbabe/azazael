@@ -58,8 +58,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("BINARY_ANALYSIS:L52", None)
+except ImportError as exc:
+    note_failure("BINARY_ANALYSIS:L52", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -91,8 +91,8 @@ class BinaryAnalysis:
                     event_type=f"binanalysis.{event_type}",
                     data=data, source="BinaryAnalysis", severity=severity,
                 )
-            except Exception:
-                note_failure("BINARY_ANALYSIS:L84", None)
+            except Exception as exc:
+                note_failure("BINARY_ANALYSIS:L84", exc)
 
     # -- nm (Symbol Extraction) ------------------------------------------------
 

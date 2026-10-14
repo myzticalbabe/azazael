@@ -23,8 +23,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("ERROR_SCAN_WORM:L16", None)
+except ImportError as exc:
+    note_failure("ERROR_SCAN_WORM:L16", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -60,8 +60,8 @@ class FastErrorScanner:
                 or first_bytes.startswith(b"\xff\xfe")
                 or first_bytes.startswith(b"\xfe\xff")
             )
-        except Exception:
-            note_failure("ERROR_SCAN_WORM:L52", None)
+        except Exception as exc:
+            note_failure("ERROR_SCAN_WORM:L52", exc)
             return False
 
     def remove_bom(self, file_path: Path) -> bool:
@@ -72,8 +72,8 @@ class FastErrorScanner:
             with open(file_path, "wb") as f:
                 f.write(content)
             return True
-        except Exception:
-            note_failure("ERROR_SCAN_WORM:L63", None)
+        except Exception as exc:
+            note_failure("ERROR_SCAN_WORM:L63", exc)
             return False
 
     def check_syntax(self, file_path: Path) -> tuple[bool, str]:

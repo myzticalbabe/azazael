@@ -31,8 +31,8 @@ VENV_PYTHON = Path(sys.executable)
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("DIAGNOSTIC_WORM:L25", None)
+except ImportError as exc:
+    note_failure("DIAGNOSTIC_WORM:L25", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -68,8 +68,8 @@ class DiagnosticWorm:
                 if content.startswith(b"\xef\xbb\xbf"):
                     results["bom_files"].append(str(py_file))
                     self.fix_bom(py_file)
-            except Exception:
-                note_failure("DIAGNOSTIC_WORM:L61", None)
+            except Exception as exc:
+                note_failure("DIAGNOSTIC_WORM:L61", exc)
 
         print(f"      Found: {len(results['bom_files'])} BOM files")
         for f in results["bom_files"][:5]:
@@ -133,8 +133,8 @@ class DiagnosticWorm:
                 content = py_file.read_bytes()
                 if pattern in content:
                     bad_files.append(py_file)
-            except Exception:
-                note_failure("DIAGNOSTIC_WORM:L125", None)
+            except Exception as exc:
+                note_failure("DIAGNOSTIC_WORM:L125", exc)
 
         return bad_files
 

@@ -29,8 +29,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:  # pragma: no cover - standalone/import-time fallback
-    note_failure("CLAWBOT:L22", None)
+except ImportError as exc:  # pragma: no cover - standalone/import-time fallback
+    note_failure("CLAWBOT:L22", exc)
     def register_worm(**kw):  # type: ignore
         return lambda cls: cls
 

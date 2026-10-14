@@ -74,8 +74,8 @@ def _note_failure(where: str, exc: BaseException | None = None) -> None:
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("REVERSE_TOOLS:L77", None)
+except ImportError as exc:
+    note_failure("REVERSE_TOOLS:L77", exc)
     _REGISTRY = False
     def register_worm(category='', priority=0, cooldown_seconds=0.0, description='', tags=None):        return lambda cls: cls
 
@@ -86,8 +86,8 @@ try:
         sys.path.insert(0, _ft_path)
     from CORE.PamsRecorder import get_recorder
     _pams: Any = get_recorder()
-except ImportError:
-    note_failure("REVERSE_TOOLS:L88", None)
+except ImportError as exc:
+    note_failure("REVERSE_TOOLS:L88", exc)
     _pams: Any = None
 IS_WINDOWS = sys.platform == "win32"
 IS_LINUX = sys.platform.startswith("linux")
@@ -261,8 +261,8 @@ class ReverseTools:
                 status.path = "r2pipe (Python)"
                 status.version = getattr(r2pipe, "__version__", "unknown")
                 status.notes = "r2pipe available (Python binding only)"
-            except ImportError:
-                note_failure("REVERSE_TOOLS:L262", None)
+            except ImportError as exc:
+                note_failure("REVERSE_TOOLS:L262", exc)
 
         self._record("check_radare2", {"installed": status.installed, "version": status.version})
         return status
@@ -541,10 +541,10 @@ class ReverseTools:
 
             r2.quit()
 
-        except ImportError:
+        except ImportError as exc:
             # Fallback: try r2 command line directly
             # Fallback: try r2 command line directly
-            note_failure("REVERSE_TOOLS:L542", None)
+            note_failure("REVERSE_TOOLS:L542", exc)
             analysis = self._radare2_cli(str(full_path), auto_analysis)
         except Exception as e:  # noqa: BLE001 — best-effort boundary
             self._record("radare2_error", {"path": str(full_path), "error": str(e)}, severity="error")

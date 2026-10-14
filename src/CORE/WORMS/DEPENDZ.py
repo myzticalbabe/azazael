@@ -166,8 +166,8 @@ class DEPENDZ:
                     parsed = self._parse_dep_line(line)
                     if parsed and parsed[0] not in self._deps:
                         self._deps[parsed[0]] = parsed[1]
-            except Exception:
-                note_failure("DEPENDZ:L160", None)
+            except Exception as exc:
+                note_failure("DEPENDZ:L160", exc)
 
     def _parse_pyproject(self) -> None:
         """Parse pyproject.toml for dependencies."""
@@ -192,8 +192,8 @@ class DEPENDZ:
                         ver = match.group(2).strip() if match.group(2) else "any"
                         if pkg not in self._deps:
                             self._deps[pkg] = ver
-        except Exception:
-            note_failure("DEPENDZ:L186", None)
+        except Exception as exc:
+            note_failure("DEPENDZ:L186", exc)
 
     def _scan_imports(self) -> None:
         """Scan all .py files for import statements."""
@@ -211,8 +211,8 @@ class DEPENDZ:
                     elif isinstance(node, ast.ImportFrom):
                         if node.module:
                             self._imports_found.add(node.module.split(".")[0].lower())
-            except (SyntaxError, UnicodeDecodeError):
-                note_failure("DEPENDZ:L205", None)
+            except (SyntaxError, UnicodeDecodeError) as exc:
+                note_failure("DEPENDZ:L205", exc)
 
     def _detect_unused(self) -> list[str]:
         """Find packages in requirements that are never imported."""
@@ -270,8 +270,8 @@ class DEPENDZ:
                 for part in rel_parts:
                     if part:
                         self._local_modules.add(part.lower())
-            except (ValueError, IndexError):
-                note_failure("DEPENDZ:L264", None)
+            except (ValueError, IndexError) as exc:
+                note_failure("DEPENDZ:L264", exc)
             if py_file.name == "__init__.py":
                 parent = py_file.parent.name
                 if parent:
@@ -295,8 +295,8 @@ class DEPENDZ:
                     parsed = self._parse_dep_line(line)
                     if parsed:
                         versions[parsed[0]].append((str(req_file.name), parsed[1]))
-            except Exception:
-                note_failure("DEPENDZ:L289", None)
+            except Exception as exc:
+                note_failure("DEPENDZ:L289", exc)
 
         drift = []
         for pkg, ver_list in versions.items():
@@ -325,8 +325,8 @@ class DEPENDZ:
                     if p["name"].lower().replace("-", "_") in self._deps or
                        p["name"].lower() in self._deps
                 ]
-        except (subprocess.TimeoutExpired, Exception):
-            note_failure("DEPENDZ:L319", None)
+        except (subprocess.TimeoutExpired, Exception) as exc:
+            note_failure("DEPENDZ:L319", exc)
         return []
 
     # -- Standard Worm Methods ----------------------------------------

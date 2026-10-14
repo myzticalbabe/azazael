@@ -45,8 +45,8 @@ try:
     from sklearn.preprocessing import StandardScaler
 
     SKLEARN_AVAILABLE = True
-except ImportError:
-    note_failure("SYSTEMZ_ML:L39", None)
+except ImportError as exc:
+    note_failure("SYSTEMZ_ML:L39", exc)
     SKLEARN_AVAILABLE = False
 
 
@@ -89,8 +89,8 @@ class ResourcePrediction:
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("SYSTEMZ_ML:L82", None)
+except ImportError as exc:
+    note_failure("SYSTEMZ_ML:L82", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -449,8 +449,8 @@ class SYSTEMZ_ML:
                         )
                         for d in data
                     ]
-            except Exception:
-                note_failure("SYSTEMZ_ML:L440", None)
+            except Exception as exc:
+                note_failure("SYSTEMZ_ML:L440", exc)
                 self.history = []
 
     def _save_model(self):
@@ -480,8 +480,8 @@ class SYSTEMZ_ML:
                 self.anomaly_model = model_data.get("anomaly_model")
                 self.scaler = model_data.get("scaler")
                 self.baseline = model_data.get("baseline", {})
-            except Exception:
-                note_failure("SYSTEMZ_ML:L470", None)
+            except Exception as exc:
+                note_failure("SYSTEMZ_ML:L470", exc)
 
     def analyze_trends(self, hours: int = 24) -> dict[str, Any]:
         """Analyze historical trends."""

@@ -42,26 +42,26 @@ except ImportError:                               # never break the host
 # Module-level conditional imports (3.14t safe - no function-body imports)
 try:
     from CAIN_ANALYZER import run_complete_analysis as _cain_analyze
-except ImportError:
-    note_failure("CODEX_TOOLS:L36", None)
+except ImportError as exc:
+    note_failure("CODEX_TOOLS:L36", exc)
     _cain_analyze = None
 
 try:
     from AUTO_DOWNLOADER import AutoDownloader as _AutoDownloader
-except ImportError:
-    note_failure("CODEX_TOOLS:L41", None)
+except ImportError as exc:
+    note_failure("CODEX_TOOLS:L41", exc)
     _AutoDownloader = None
 
 try:
     from emoji_maker import EmojiMaker as _EmojiMaker
-except ImportError:
-    note_failure("CODEX_TOOLS:L46", None)
+except ImportError as exc:
+    note_failure("CODEX_TOOLS:L46", exc)
     _EmojiMaker = None
 
 try:
     from enhanced_animations import ANIMATIONS as _ANIMATIONS, generate_css as _generate_css
-except ImportError:
-    note_failure("CODEX_TOOLS:L51", None)
+except ImportError as exc:
+    note_failure("CODEX_TOOLS:L51", exc)
     _ANIMATIONS = {}
     _generate_css = None
 

@@ -143,8 +143,8 @@ class WORMZConfig:
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("WORMZ:register_worm-import", None)
+except ImportError as exc:
+    note_failure("WORMZ:register_worm-import", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 

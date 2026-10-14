@@ -56,10 +56,10 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
+except ImportError as exc:
     # No-op fallback so the module works without the registry
     # No-op fallback so the module works without the registry
-    note_failure("CAIN_WORM:L50", None)
+    note_failure("CAIN_WORM:L50", exc)
     def register_worm(**kwargs):
         def decorator(cls):
             return cls
@@ -247,8 +247,8 @@ if __name__ == "__main__":
         if path.exists():
             try:
                 session_data = json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                note_failure("CAIN_WORM:L239", None)
+            except Exception as exc:
+                note_failure("CAIN_WORM:L239", exc)
 
     result = CainWorm.run_complete_analysis()
     if output_format == "json":

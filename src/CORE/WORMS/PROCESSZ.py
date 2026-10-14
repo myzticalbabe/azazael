@@ -36,8 +36,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("PROCESSZ:L30", None)
+except ImportError as exc:
+    note_failure("PROCESSZ:L30", exc)
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
 
 
@@ -91,8 +91,8 @@ class PROCESSZ:
                         "vms_mb": round(mem_info.vms / (1024**2), 2),
                     },
                 )
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            note_failure("PROCESSZ:L84", None)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as exc:
+            note_failure("PROCESSZ:L84", exc)
             return None
 
     def list_processes(
@@ -123,8 +123,8 @@ class PROCESSZ:
                         if filter_name.lower() not in info.name.lower():
                             continue
                     processes.append(info)
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, AttributeError):
-                note_failure("PROCESSZ:L115", None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, AttributeError) as exc:
+                note_failure("PROCESSZ:L115", exc)
 
         sort_keys = {
             "cpu_percent": lambda x: x.cpu_percent,
@@ -147,8 +147,8 @@ class PROCESSZ:
         try:
             proc = psutil.Process(pid)
             return self._get_process_info(proc)
-        except psutil.NoSuchProcess:
-            note_failure("PROCESSZ:L139", None)
+        except psutil.NoSuchProcess as exc:
+            note_failure("PROCESSZ:L139", exc)
             return None
 
     def kill_process(self, pid: int, graceful: bool = True) -> bool:
@@ -162,8 +162,8 @@ class PROCESSZ:
             else:
                 proc.kill()
             return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired):
-            note_failure("PROCESSZ:L153", None)
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.TimeoutExpired) as exc:
+            note_failure("PROCESSZ:L153", exc)
             return False
 
     def kill_by_name(self, name: str, graceful: bool = True) -> int:
@@ -175,8 +175,8 @@ class PROCESSZ:
                 if proc.info["name"] and name.lower() in proc.info["name"].lower():
                     if self.kill_process(proc.pid, graceful):
                         killed += 1
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                note_failure("PROCESSZ:L165", None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as exc:
+                note_failure("PROCESSZ:L165", exc)
         return killed
 
     def get_summary(self) -> dict[str, Any]:
@@ -200,8 +200,8 @@ class PROCESSZ:
                     by_status["sleeping"] += 1
                 else:
                     by_status["other"] += 1
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, AttributeError):
-                note_failure("PROCESSZ:L190", None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess, AttributeError) as exc:
+                note_failure("PROCESSZ:L190", exc)
 
         return {
             "total_processes": len(psutil.pids()),

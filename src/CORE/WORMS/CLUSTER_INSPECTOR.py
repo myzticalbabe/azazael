@@ -332,8 +332,8 @@ class HTMLInspector:
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("CLUSTER_INSPECTOR:L321", None)
+except ImportError as exc:
+    note_failure("CLUSTER_INSPECTOR:L321", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 

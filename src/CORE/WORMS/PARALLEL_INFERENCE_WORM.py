@@ -133,15 +133,15 @@ class ParallelInferenceWorm:
                 tags=tags or [],
                 source="parallel_inference_worm",
             )
-        except Exception:
-            note_failure("PARALLEL_INFERENCE_WORM:L127", None) # Recording is best-effort
+        except Exception as exc:
+            note_failure("PARALLEL_INFERENCE_WORM:L127", exc) # Recording is best-effort
 
     def _publish(self, data: dict[str, Any]):
         """Publish to MemoryBus."""
         try:
             self._bus_pub.publish(data)
-        except Exception:
-            note_failure("PARALLEL_INFERENCE_WORM:L134", None)
+        except Exception as exc:
+            note_failure("PARALLEL_INFERENCE_WORM:L134", exc)
 
     # ------------------------------------------------------------------
     # Single inference — unified entry point
@@ -315,8 +315,8 @@ class ParallelInferenceWorm:
                         name = parts[0].strip()
                         if name:
                             ollama_models.append(name)
-        except (FileNotFoundError, Exception):
-            note_failure("PARALLEL_INFERENCE_WORM:L309", None)
+        except (FileNotFoundError, Exception) as exc:
+            note_failure("PARALLEL_INFERENCE_WORM:L309", exc)
 
         # Fallback: known models from scan
         if not ollama_models:
@@ -528,8 +528,8 @@ class ParallelInferenceWorm:
                 data = json.loads(resp.read().decode("utf-8"))
             api_models = [m["id"] for m in data.get("data", []) if "id" in m]
             server_running = True
-        except Exception:
-            note_failure("PARALLEL_INFERENCE_WORM:L520", None)
+        except Exception as exc:
+            note_failure("PARALLEL_INFERENCE_WORM:L520", exc)
             server_running = False
 
         self._record(

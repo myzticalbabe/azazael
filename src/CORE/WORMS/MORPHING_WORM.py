@@ -83,8 +83,8 @@ class MorphingWorm:
                 content = f.read()
             if b"\xef\xbb\xbf" in content:
                 return {"type": "BOM", "severity": "HIGH", "fix": "remove_bom"}
-        except (OSError, PermissionError):
-            note_failure("MORPHING_WORM:L76", None)
+        except (OSError, PermissionError) as exc:
+            note_failure("MORPHING_WORM:L76", exc)
         return None
 
     def detect_syntax(self, fp: Path) -> (dict | None):
@@ -100,8 +100,8 @@ class MorphingWorm:
                 "line": e.lineno,
                 "msg": e.msg,
             }
-        except Exception:
-            note_failure("MORPHING_WORM:L92", None)
+        except Exception as exc:
+            note_failure("MORPHING_WORM:L92", exc)
         return None
 
     def detect_imports(self, fp: Path) -> (dict | None):
@@ -114,8 +114,8 @@ class MorphingWorm:
             )
             if result.returncode != 0:
                 return {"type": "IMPORT", "severity": "MEDIUM"}
-        except (subprocess.TimeoutExpired, Exception):
-            note_failure("MORPHING_WORM:L106", None)
+        except (subprocess.TimeoutExpired, Exception) as exc:
+            note_failure("MORPHING_WORM:L106", exc)
         return None
 
     def detect_escape_sequences(self, fp: Path) -> (dict | None):
@@ -127,8 +127,8 @@ class MorphingWorm:
                 if "\\ " in line and 'r"' not in line and "r'" not in line:
                     if '"""' not in line and "'''" not in line:
                         return {"type": "ESCAPE", "severity": "LOW", "line": i}
-        except (OSError, PermissionError):
-            note_failure("MORPHING_WORM:L119", None)
+        except (OSError, PermissionError) as exc:
+            note_failure("MORPHING_WORM:L119", exc)
         return None
 
     def detect_malformed_patterns(self, fp: Path) -> list[dict]:
@@ -157,8 +157,8 @@ class MorphingWorm:
                                 "desc": desc,
                             }
                         )
-        except (OSError, UnicodeDecodeError):
-            note_failure("MORPHING_WORM:L149", None)
+        except (OSError, UnicodeDecodeError) as exc:
+            note_failure("MORPHING_WORM:L149", exc)
         return issues
 
     def auto_fix_bom(self, fp: Path) -> bool:
@@ -169,8 +169,8 @@ class MorphingWorm:
             with open(fp, "wb") as f:
                 f.write(content)
             return True
-        except (OSError, PermissionError):
-            note_failure("MORPHING_WORM:L161", None)
+        except (OSError, PermissionError) as exc:
+            note_failure("MORPHING_WORM:L161", exc)
             return False
 
     def auto_fix_syntax_known(self, fp: Path, error_type: str) -> bool:

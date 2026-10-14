@@ -38,8 +38,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("DISKZ:L32", None)
+except ImportError as exc:
+    note_failure("DISKZ:L32", exc)
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
 
 
@@ -101,8 +101,8 @@ class DISKZ:
                         "percent": usage.percent,
                     }
                 )
-            except (PermissionError, OSError):
-                note_failure("DISKZ:L94", None)
+            except (PermissionError, OSError) as exc:
+                note_failure("DISKZ:L94", exc)
                 partitions.append(
                     {
                         "device": part.device,
@@ -175,10 +175,10 @@ class DISKZ:
                             )
                             directories[str(item)] = round(total / (1024**2), 2)
                             scan_directory(item, depth + 1)
-                        except (PermissionError, OSError):
-                            note_failure("DISKZ:L167", None)
-            except PermissionError:
-                note_failure("DISKZ:L169", None)
+                        except (PermissionError, OSError) as exc:
+                            note_failure("DISKZ:L167", exc)
+            except PermissionError as exc:
+                note_failure("DISKZ:L169", exc)
 
         scan_directory(base, 0)
 
@@ -218,10 +218,10 @@ class DISKZ:
                                         ).isoformat(),
                                     }
                                 )
-                        except (OSError, PermissionError):
-                            note_failure("DISKZ:L210", None)
-            except PermissionError:
-                note_failure("DISKZ:L212", None)
+                        except (OSError, PermissionError) as exc:
+                            note_failure("DISKZ:L210", exc)
+            except PermissionError as exc:
+                note_failure("DISKZ:L212", exc)
                 continue
 
         large_files.sort(key=lambda x: x["size_mb"], reverse=True)

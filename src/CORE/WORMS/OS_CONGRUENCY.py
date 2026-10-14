@@ -109,8 +109,8 @@ class DiskPartition:
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("os_congruency:L103", None)
+except ImportError as exc:
+    note_failure("os_congruency:L103", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -121,8 +121,8 @@ class OSCongruency:
         try:
             import psutil
             self.boot_time = datetime.fromtimestamp(psutil.boot_time())
-        except Exception:  # noqa: BLE001 — psutil unavailable; fall back to now
-            note_failure("os_congruency:L114", None)
+        except Exception as exc:  # noqa: BLE001 — psutil unavailable; fall back to now
+            note_failure("os_congruency:L114", exc)
             self.boot_time = datetime.now()
         self.lock = threading.Lock()
 
@@ -152,8 +152,8 @@ class OSCongruency:
                 "freq_max_mhz": cpu_freq.max if cpu_freq else 0,
                 "percent_per_core": psutil.cpu_percent(interval=None, percpu=True),
             }
-        except Exception:  # noqa: BLE001 — psutil read failed; return neutral defaults
-            note_failure("os_congruency:L143", None)
+        except Exception as exc:  # noqa: BLE001 — psutil read failed; return neutral defaults
+            note_failure("os_congruency:L143", exc)
             return {"percent": 0, "count": 4, "freq_mhz": 0}
 
     def _get_memory_info(self) -> dict[str, Any]:
@@ -170,8 +170,8 @@ class OSCongruency:
                 "swap_used_gb": round(swap.used / (1024**3), 2),
                 "swap_total_gb": round(swap.total / (1024**3), 2),
             }
-        except Exception:  # noqa: BLE001 — psutil memory read failed; neutral defaults
-            note_failure("os_congruency:L160", None)
+        except Exception as exc:  # noqa: BLE001 — psutil memory read failed; neutral defaults
+            note_failure("os_congruency:L160", exc)
             return {"percent": 0, "used_gb": 0, "total_gb": 0}
 
     def _get_disk_info(self) -> dict[str, Any]:
@@ -194,8 +194,8 @@ class OSCongruency:
                             "percent": usage.percent,
                         }
                     )
-                except Exception:  # noqa: BLE001 — per-partition probe best-effort
-                    note_failure("os_congruency:L183", None)
+                except Exception as exc:  # noqa: BLE001 — per-partition probe best-effort
+                    note_failure("os_congruency:L183", exc)
 
             io = psutil.disk_io_counters()
             return {
@@ -206,8 +206,8 @@ class OSCongruency:
                 "io_read_mb": round(io.read_bytes / (1024**2), 2),
                 "io_write_mb": round(io.write_bytes / (1024**2), 2),
             }
-        except Exception:  # noqa: BLE001 — psutil disk read failed; neutral defaults
-            note_failure("os_congruency:L195", None)
+        except Exception as exc:  # noqa: BLE001 — psutil disk read failed; neutral defaults
+            note_failure("os_congruency:L195", exc)
             return {"root_percent": 0, "partitions": []}
 
     def _get_network_info(self) -> dict[str, Any]:
@@ -231,8 +231,8 @@ class OSCongruency:
                     for name, stat in stats.items()
                 ],
             }
-        except Exception:  # noqa: BLE001 — psutil network read failed; neutral defaults
-            note_failure("os_congruency:L219", None)
+        except Exception as exc:  # noqa: BLE001 — psutil network read failed; neutral defaults
+            note_failure("os_congruency:L219", exc)
             return {"bytes_sent_mb": 0, "bytes_recv_mb": 0, "interfaces": 0}
 
     def _get_process_info(self) -> dict[str, Any]:
@@ -248,8 +248,8 @@ class OSCongruency:
                 try:
                     proc_info = proc.info
                     total_threads += proc_info.get("num_threads", 0)
-                except Exception:  # noqa: BLE001 — per-process probe best-effort
-                    note_failure("os_congruency:L235", None)
+                except Exception as exc:  # noqa: BLE001 — per-process probe best-effort
+                    note_failure("os_congruency:L235", exc)
 
             return {
                 "count": len(processes),
@@ -258,8 +258,8 @@ class OSCongruency:
                     [p for p in processes if p.info.get("status") == "running"]
                 ),
             }
-        except Exception:  # noqa: BLE001 — psutil process read failed; neutral defaults
-            note_failure("os_congruency:L245", None)
+        except Exception as exc:  # noqa: BLE001 — psutil process read failed; neutral defaults
+            note_failure("os_congruency:L245", exc)
             return {"count": 0, "threads": 0}
 
     def get_system_status(self) -> SystemStatus:
@@ -307,10 +307,10 @@ class OSCongruency:
                         "running": int(parts[1]),
                         "stopped": int(parts[2]),
                     }
-                except ValueError:
-                    note_failure("os_congruency:L293", None)
-        except (OSError, subprocess.SubprocessError):  # noqa: BLE001 — PS unavailable / no services
-            note_failure("os_congruency:L295", None)
+                except ValueError as exc:
+                    note_failure("os_congruency:L293", exc)
+        except (OSError, subprocess.SubprocessError) as exc:  # noqa: BLE001 — PS unavailable / no services
+            note_failure("os_congruency:L295", exc)
         return {"total": 0, "running": 0, "stopped": 0}
 
     def get_services(self, running_only: bool = False) -> list[WindowsService]:
@@ -342,10 +342,10 @@ class OSCongruency:
                                     description=s.get("Description", ""),
                                 )
                             )
-                except json_module.JSONDecodeError:
-                    note_failure("os_congruency:L328", None)
-        except Exception:  # noqa: BLE001 — service query best-effort; return what we have
-            note_failure("os_congruency:L330", None)
+                except json_module.JSONDecodeError as exc:
+                    note_failure("os_congruency:L328", exc)
+        except Exception as exc:  # noqa: BLE001 — service query best-effort; return what we have
+            note_failure("os_congruency:L330", exc)
         return services
 
     def start_service(self, service_name: str) -> bool:
@@ -353,8 +353,8 @@ class OSCongruency:
         try:
             result = self._run_powershell(f"Start-Service -Name '{service_name}'")
             return "Error" not in result
-        except (OSError, subprocess.SubprocessError):  # noqa: BLE001 — service operation failure
-            note_failure("os_congruency:L339", None)
+        except (OSError, subprocess.SubprocessError) as exc:  # noqa: BLE001 — service operation failure
+            note_failure("os_congruency:L339", exc)
             return False
 
     def stop_service(self, service_name: str) -> bool:
@@ -362,8 +362,8 @@ class OSCongruency:
         try:
             result = self._run_powershell(f"Stop-Service -Name '{service_name}'")
             return "Error" not in result
-        except (OSError, subprocess.SubprocessError):  # noqa: BLE001 — service operation failure
-            note_failure("os_congruency:L347", None)
+        except (OSError, subprocess.SubprocessError) as exc:  # noqa: BLE001 — service operation failure
+            note_failure("os_congruency:L347", exc)
             return False
 
     def get_startup_programs(self) -> list[StartupItem]:
@@ -408,10 +408,10 @@ class OSCongruency:
                                     registry_key=f"{hive}:{key_path}",
                                 )
                             )
-                        except OSError:  # individual registry value unusable — skip
-                            note_failure("os_congruency:L392", None)
-            except OSError:  # registry key missing/inaccessible — skip this hive
-                note_failure("os_congruency:L394", None)
+                        except OSError as exc:  # individual registry value unusable — skip
+                            note_failure("os_congruency:L392", exc)
+            except OSError as exc:  # registry key missing/inaccessible — skip this hive
+                note_failure("os_congruency:L394", exc)
 
         startup_folders = [
             os.path.expandvars(
@@ -434,8 +434,8 @@ class OSCongruency:
                                     registry_key="StartupFolder",
                                 )
                             )
-            except Exception:  # noqa: BLE001 — startup folder unreadable; best-effort
-                note_failure("os_congruency:L418", None)
+            except Exception as exc:  # noqa: BLE001 — startup folder unreadable; best-effort
+                note_failure("os_congruency:L418", exc)
 
         return startup_items
 
@@ -464,10 +464,10 @@ class OSCongruency:
                                     "message": str(e.get("Message", ""))[:200],
                                 }
                             )
-                except json_module.JSONDecodeError:
-                    note_failure("os_congruency:L448", None)
-        except Exception:  # noqa: BLE001 — event log query failed; return what we have
-            note_failure("os_congruency:L450", None)
+                except json_module.JSONDecodeError as exc:
+                    note_failure("os_congruency:L448", exc)
+        except Exception as exc:  # noqa: BLE001 — event log query failed; return what we have
+            note_failure("os_congruency:L450", exc)
         return events
 
     def get_windows_updates(self) -> dict[str, Any]:
@@ -477,8 +477,8 @@ class OSCongruency:
                 "Get-WindowsUpdate -UpdatesOnly | ConvertTo-Json -Depth 2; (Get-Wulog -Newest 10 | Select-Object Time,Status,Message | ConvertTo-Json -Depth 2)"
             )
             return {"status": "checked", "output": result[:500]}
-        except Exception:  # noqa: BLE001 — update check failed; report error state
-            note_failure("os_congruency:L461", None)
+        except Exception as exc:  # noqa: BLE001 — update check failed; report error state
+            note_failure("os_congruency:L461", exc)
             return {"status": "error", "output": ""}
 
     def get_users(self) -> list[dict[str, Any]]:
@@ -491,16 +491,16 @@ class OSCongruency:
             for line in result.split("\n"):
                 if line.strip():
                     users.append({"username": line.strip()})
-        except Exception:  # noqa: BLE001 — user enumeration best-effort
-            note_failure("os_congruency:L474", None)
+        except Exception as exc:  # noqa: BLE001 — user enumeration best-effort
+            note_failure("os_congruency:L474", exc)
 
         try:
             result = self._run_powershell("query user 2>nul")
             for line in result.split("\n"):
                 if "ACTIVE" in line.upper() or "DISCONNECTED" in line.upper():
                     users.append({"session": line.strip()})
-        except Exception:  # noqa: BLE001 — session query best-effort
-            note_failure("os_congruency:L482", None)
+        except Exception as exc:  # noqa: BLE001 — session query best-effort
+            note_failure("os_congruency:L482", exc)
 
         return users
 
@@ -523,10 +523,10 @@ class OSCongruency:
                             filesystem=part.fstype,
                         )
                     )
-                except Exception:  # noqa: BLE001 — per-partition probe best-effort
-                    note_failure("os_congruency:L506", None)
-        except Exception:  # noqa: BLE001 — partition enumeration best-effort
-            note_failure("os_congruency:L508", None)
+                except Exception as exc:  # noqa: BLE001 — per-partition probe best-effort
+                    note_failure("os_congruency:L506", exc)
+        except Exception as exc:  # noqa: BLE001 — partition enumeration best-effort
+            note_failure("os_congruency:L508", exc)
         return partitions
 
     def get_driver_list(self) -> list[dict[str, Any]]:
@@ -551,10 +551,10 @@ class OSCongruency:
                                     "class": str(d.get("ClassDescription", ""))[:30],
                                 }
                             )
-                except json_module.JSONDecodeError:
-                    note_failure("os_congruency:L534", None)
-        except Exception:  # noqa: BLE001 — driver query best-effort
-            note_failure("os_congruency:L536", None)
+                except json_module.JSONDecodeError as exc:
+                    note_failure("os_congruency:L534", exc)
+        except Exception as exc:  # noqa: BLE001 — driver query best-effort
+            note_failure("os_congruency:L536", exc)
         return drivers
 
     def get_summary(self) -> dict[str, Any]:

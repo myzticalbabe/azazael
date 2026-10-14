@@ -50,8 +50,8 @@ def fix_bom_files():
                 py_file.write_bytes(content)
                 print(f"      Fixed BOM: {py_file.relative_to(AZAAZEL_ROOT)}")
                 fixed += 1
-        except Exception:
-            note_failure("OMNI_WORM:L43", None)
+        except Exception as exc:
+            note_failure("OMNI_WORM:L43", exc)
     print(f"      Total BOM fixes: {fixed}")
     return fixed
 
@@ -85,8 +85,8 @@ def fix_syspath_imports():
                     py_file.write_text(new_text, encoding="utf-8")
                     print(f"      Fixed: {py_file.relative_to(AZAAZEL_ROOT)}")
                     fixed += 1
-        except Exception:
-            note_failure("OMNI_WORM:L78", None)
+        except Exception as exc:
+            note_failure("OMNI_WORM:L78", exc)
 
     print(f"      Total sys.path fixes: {fixed}")
     return fixed
@@ -131,8 +131,8 @@ def create_init_files():
                 init_file.write_text(init_content, encoding="utf-8")
                 print(f"      Created: {d.name}/__init__.py")
                 created += 1
-            except Exception:
-                note_failure("OMNI_WORM:L124", None)
+            except Exception as exc:
+                note_failure("OMNI_WORM:L124", exc)
 
     print(f"      Total created: {created}")
     return created

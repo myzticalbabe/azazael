@@ -94,8 +94,8 @@ class InferenceSubscriberWorm:
             self._bus.subscribe("cluster.>", self._on_cluster_event)
             self._bus.subscribe("nature.>", self._on_nature_event)
             self._bus.subscribe("inference.>", self._on_inference_event)
-        except ImportError:
-            note_failure("INFERENCE_SUBSCRIBER:L88", None)
+        except ImportError as exc:
+            note_failure("INFERENCE_SUBSCRIBER:L88", exc)
 
     def stop(self):
         """Stop listening and clean up subscriptions."""
@@ -104,8 +104,8 @@ class InferenceSubscriberWorm:
             for pattern in ("cluster.>", "nature.>", "inference.>"):
                 try:
                     self._bus.unsubscribe(pattern)
-                except Exception:
-                    note_failure("INFERENCE_SUBSCRIBER:L98", None)
+                except Exception as exc:
+                    note_failure("INFERENCE_SUBSCRIBER:L98", exc)
 
     # -- Event Handlers ----------------------------------------------
 
@@ -261,8 +261,8 @@ class InferenceSubscriberWorm:
                             "timestamp": datetime.now().isoformat(),
                         })
                 return alerts
-        except Exception:
-            note_failure("INFERENCE_SUBSCRIBER:L255", None)
+        except Exception as exc:
+            note_failure("INFERENCE_SUBSCRIBER:L255", exc)
 
         return []
 
@@ -274,8 +274,8 @@ class InferenceSubscriberWorm:
             try:
                 from CORE.WORMS.INFERENCE_WORM import InferenceWorm
                 self._inference_worm = InferenceWorm()
-            except ImportError:
-                note_failure("INFERENCE_SUBSCRIBER:L268", None)
+            except ImportError as exc:
+                note_failure("INFERENCE_SUBSCRIBER:L268", exc)
                 self._inference_worm = False
         return self._inference_worm if self._inference_worm else None
 
@@ -288,8 +288,8 @@ class InferenceSubscriberWorm:
                     alert,
                     source="InferenceSubscriberWorm",
                 )
-        except Exception:
-            note_failure("INFERENCE_SUBSCRIBER:L281", None)
+        except Exception as exc:
+            note_failure("INFERENCE_SUBSCRIBER:L281", exc)
 
     # -- Public API --------------------------------------------------
 

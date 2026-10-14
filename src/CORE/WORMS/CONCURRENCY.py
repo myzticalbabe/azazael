@@ -126,8 +126,8 @@ def _record_execution(name: str, result: "ExecutionResult",
         return bool(emit_worm_outcome_from_result(
             name, result, source="ConcurrencyWormExecutor",
             decision_id=str(decision_id) if decision_id else None))
-    except Exception:
-        note_failure("CONCURRENCY:L101", None)
+    except Exception as exc:
+        note_failure("CONCURRENCY:L101", exc)
         return False
 
 
@@ -174,8 +174,8 @@ class TaskManager:
         if cancellation_token is not None and hasattr(cancellation_token, 'raise_if_cancelled'):
             try:
                 cancellation_token.raise_if_cancelled()
-            except TaskCancelledError:
-                note_failure("CONCURRENCY:L148", None)
+            except TaskCancelledError as exc:
+                note_failure("CONCURRENCY:L148", exc)
                 result.error = "Cancelled"
                 result.duration_ms = (time.time() - start) * 1000
                 with self.lock:
@@ -188,8 +188,8 @@ class TaskManager:
             output = func(*args, **kwargs)
             result.success = True
             result.result = output
-        except TaskCancelledError:
-            note_failure("CONCURRENCY:L161", None)
+        except TaskCancelledError as exc:
+            note_failure("CONCURRENCY:L161", exc)
             result.error = "Cancelled"
         except Exception as e:
             note_failure("CONCURRENCY:L163", e)
@@ -246,10 +246,10 @@ class TaskManager:
                                 error=str(e),
                             )
                         )
-            except TimeoutError:
+            except TimeoutError as exc:
                 # Cancel via token then cancel remaining futures
                 # Cancel via token then cancel remaining futures
-                note_failure("CONCURRENCY:L216", None)
+                note_failure("CONCURRENCY:L216", exc)
                 if cancellation_token is not None and hasattr(cancellation_token, 'cancel'):
                     cancellation_token.cancel()
                 for f in futures:
@@ -303,8 +303,8 @@ class WormExecutor:
             exec(f"from {module} import {class_name}", globals())
             self.worm_modules[worm_name] = (module, class_name)
             return True
-        except Exception:
-            note_failure("CONCURRENCY:L271", None)
+        except Exception as exc:
+            note_failure("CONCURRENCY:L271", exc)
             return False
 
     def execute_worm(self, worm_name: str, cancellation_token: Any = None,
@@ -391,8 +391,8 @@ class ClusterExecutor:
             from CLUSTERWORMS import CLUSTER_REGISTRY
 
             self.clusters = {name: info for name, info in CLUSTER_REGISTRY.items()}
-        except Exception:
-            note_failure("CONCURRENCY:L357", None)
+        except Exception as exc:
+            note_failure("CONCURRENCY:L357", exc)
 
     def execute_cluster(self, cluster_name: str, cancellation_token: Any = None) -> ExecutionResult:
         """Execute a single cluster."""
@@ -404,8 +404,8 @@ class ClusterExecutor:
         if cancellation_token is not None and hasattr(cancellation_token, 'raise_if_cancelled'):
             try:
                 cancellation_token.raise_if_cancelled()
-            except TaskCancelledError:
-                note_failure("CONCURRENCY:L370", None)
+            except TaskCancelledError as exc:
+                note_failure("CONCURRENCY:L370", exc)
                 return ExecutionResult(
                     task_id=str(time.time()),
                     task_name=f"cluster:{cluster_name}",
@@ -456,8 +456,8 @@ class ClusterExecutor:
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("CONCURRENCY:L420", None)
+except ImportError as exc:
+    note_failure("CONCURRENCY:L420", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 

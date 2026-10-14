@@ -45,8 +45,8 @@ try:
     from sklearn.ensemble import RandomForestRegressor
 
     SKLEARN_AVAILABLE = True
-except ImportError:
-    note_failure("SMARTDISK:L39", None)
+except ImportError as exc:
+    note_failure("SMARTDISK:L39", exc)
     SKLEARN_AVAILABLE = False
 
 
@@ -93,8 +93,8 @@ class DiskAlert:
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("SMARTDISK:L86", None)
+except ImportError as exc:
+    note_failure("SMARTDISK:L86", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -223,8 +223,8 @@ class SMARTDISK:
                 timeout=30,
             )
             return result.stdout + result.stderr
-        except FileNotFoundError:
-            note_failure("SMARTDISK:L214", None)
+        except FileNotFoundError as exc:
+            note_failure("SMARTDISK:L214", exc)
             return "smartctl not found"
         except Exception as e:
             note_failure("SMARTDISK:L216", e)
@@ -255,14 +255,14 @@ class SMARTDISK:
                 try:
                     temp = line.split(":")[-1].split()[0].strip()
                     data["temperature"] = float(temp)
-                except Exception:
-                    note_failure("SMARTDISK:L244", None)
+                except Exception as exc:
+                    note_failure("SMARTDISK:L244", exc)
             elif "Power_On_Hours" in line:
                 try:
                     poh = line.split()[-1].strip()
                     data["power_on_hours"] = int(poh)
-                except Exception:
-                    note_failure("SMARTDISK:L250", None)
+                except Exception as exc:
+                    note_failure("SMARTDISK:L250", exc)
             elif line.startswith("ID#") and "ATTRIBUTE_NAME" in line:
                 data["attributes"] = self._parse_attributes(output)
                 break
@@ -311,8 +311,8 @@ class SMARTDISK:
                                 "status": status,
                             }
                         )
-                    except Exception:
-                        note_failure("SMARTDISK:L300", None)
+                    except Exception as exc:
+                        note_failure("SMARTDISK:L300", exc)
 
         return attributes
 
@@ -578,8 +578,8 @@ class SMARTDISK:
             try:
                 with open(self.history_file) as f:
                     self.disk_history = json.load(f)
-            except Exception:
-                note_failure("SMARTDISK:L567", None)
+            except Exception as exc:
+                note_failure("SMARTDISK:L567", exc)
                 self.disk_history = []
 
     def _save_model(self):
@@ -589,8 +589,8 @@ class SMARTDISK:
         try:
             with open(self.model_file, "wb") as f:
                 pickle.dump(self.failure_model, f)
-        except Exception:
-            note_failure("SMARTDISK:L577", None)
+        except Exception as exc:
+            note_failure("SMARTDISK:L577", exc)
 
     def _load_model(self):
         """Load persisted model."""
@@ -599,8 +599,8 @@ class SMARTDISK:
         try:
             with open(self.model_file, "rb") as f:
                 self.failure_model = pickle.load(f)
-        except Exception:
-            note_failure("SMARTDISK:L587", None)
+        except Exception as exc:
+            note_failure("SMARTDISK:L587", exc)
 
     def get_status(self) -> dict[str, Any]:
         """Get disk status summary."""

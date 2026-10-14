@@ -49,8 +49,8 @@ def _record(event_type: str, data: dict[str, Any], severity: str = "info"):
                     event_type=f"binanalysis.{event_type}",
                     data=data, source="BinaryAnalysis", severity=severity,
                 )
-            except Exception:
-                note_failure("BINARY_ANALYSIS_PARSE:L43", None)
+            except Exception as exc:
+                note_failure("BINARY_ANALYSIS_PARSE:L43", exc)
 
 
 def _shannon_entropy(data: bytes) -> float:
@@ -81,8 +81,8 @@ def is_pe_file(path: Path) -> bool:
             f.seek(pe_offset)
             pe_sig = f.read(4)
             return pe_sig == b"PE\x00\x00"
-    except Exception:
-        note_failure("BINARY_ANALYSIS_PARSE:L75", None)
+    except Exception as exc:
+        note_failure("BINARY_ANALYSIS_PARSE:L75", exc)
         return False
 
 
@@ -92,8 +92,8 @@ def is_elf_file(path: Path) -> bool:
         with open(path, "rb") as f:
             magic = f.read(4)
             return magic == b"\x7fELF"
-    except Exception:
-        note_failure("BINARY_ANALYSIS_PARSE:L85", None)
+    except Exception as exc:
+        note_failure("BINARY_ANALYSIS_PARSE:L85", exc)
         return False
 
 
@@ -120,8 +120,8 @@ def _rva_to_offset(f, rva: int) -> (int | None):
 
             if sec_vaddr <= rva < sec_vaddr + sec_vsize:
                 return (rva - sec_vaddr) + sec_raw_offset
-    except Exception:
-        note_failure("BINARY_ANALYSIS_PARSE:L112", None)
+    except Exception as exc:
+        note_failure("BINARY_ANALYSIS_PARSE:L112", exc)
     return None
 
 
@@ -171,8 +171,8 @@ def _parse_exports(f, dir_info: tuple[int, int]) -> list[SymbolEntry]:
                     symbol_type="T",
                     section=f"export_{i}",
                 ))
-    except Exception:
-        note_failure("BINARY_ANALYSIS_PARSE:L163", None)
+    except Exception as exc:
+        note_failure("BINARY_ANALYSIS_PARSE:L163", exc)
     return symbols
 
 
@@ -210,8 +210,8 @@ def _parse_imports(f, dir_info: tuple[int, int]) -> list[SymbolEntry]:
                     symbol_type="U",
                     section="IMPORT",
                 ))
-    except Exception:
-        note_failure("BINARY_ANALYSIS_PARSE:L202", None)
+    except Exception as exc:
+        note_failure("BINARY_ANALYSIS_PARSE:L202", exc)
     return symbols
 
 
@@ -274,14 +274,14 @@ def _nm_linux(path: Path, demangle: bool = False) -> list[SymbolEntry]:
                 continue
             try:
                 addr = int(parts[0], 16) if parts[0] != "U" else 0
-            except ValueError:
-                note_failure("BINARY_ANALYSIS_PARSE:L266", None)
+            except ValueError as exc:
+                note_failure("BINARY_ANALYSIS_PARSE:L266", exc)
                 addr = 0
             size_str = parts[1]
             try:
                 size = int(size_str, 16)
-            except ValueError:
-                note_failure("BINARY_ANALYSIS_PARSE:L271", None)
+            except ValueError as exc:
+                note_failure("BINARY_ANALYSIS_PARSE:L271", exc)
                 size = 0
             sym_type = parts[2]
             name = parts[3] if len(parts) > 3 else ""
@@ -314,12 +314,12 @@ def _nm_external(path: Path) -> list[SymbolEntry]:
                                 address=addr, name=name,
                                 symbol_type="?", section="external",
                             ))
-                        except ValueError:
-                            note_failure("BINARY_ANALYSIS_PARSE:L304", None)
+                        except ValueError as exc:
+                            note_failure("BINARY_ANALYSIS_PARSE:L304", exc)
                 if symbols:
                     break
-        except Exception:
-            note_failure("BINARY_ANALYSIS_PARSE:L308", None)
+        except Exception as exc:
+            note_failure("BINARY_ANALYSIS_PARSE:L308", exc)
     return symbols
 
 
@@ -434,8 +434,8 @@ def parse_pe_headers(path: str) -> PeHeaders:
             # Exports/imports via nm
             try:
                 symbols = _nm_pe(full_path)
-            except Exception:
-                note_failure("BINARY_ANALYSIS_PARSE:L424", None)
+            except Exception as exc:
+                note_failure("BINARY_ANALYSIS_PARSE:L424", exc)
                 symbols = []
             for s in symbols:
                 if s.symbol_type == "T":

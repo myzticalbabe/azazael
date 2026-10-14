@@ -38,8 +38,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("SYSTEMZ:L32", None)
+except ImportError as exc:
+    note_failure("SYSTEMZ:L32", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -75,8 +75,8 @@ class SystemZ:
         try:
             import psutil
             self.boot_time = datetime.fromtimestamp(psutil.boot_time())
-        except Exception:
-            note_failure("SYSTEMZ:L68", None)
+        except Exception as exc:
+            note_failure("SYSTEMZ:L68", exc)
             self.boot_time = datetime.now()
 
     def get_cpu(self, interval: float = 1.0) -> dict[str, Any]:
@@ -124,8 +124,8 @@ class SystemZ:
                 info = proc.info
                 if info["cpu_percent"] is not None:
                     processes.append(info)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                note_failure("SYSTEMZ:L116", None)
+            except (psutil.NoSuchProcess, psutil.AccessDenied) as exc:
+                note_failure("SYSTEMZ:L116", exc)
         processes.sort(key=lambda x: x.get("cpu_percent", 0), reverse=True)
         return processes[:limit]
 

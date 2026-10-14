@@ -23,8 +23,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("MORPHING_WORM_V2:L16", None)
+except ImportError as exc:
+    note_failure("MORPHING_WORM_V2:L16", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -64,8 +64,8 @@ class MorphingWormV2:
                     "severity": "HIGH",
                     "file": str(fp.relative_to(self.root)),
                 }
-        except (OSError, PermissionError):
-            note_failure("MORPHING_WORM_V2:L56", None)
+        except (OSError, PermissionError) as exc:
+            note_failure("MORPHING_WORM_V2:L56", exc)
         return None
 
     def check_syntax(self, fp: Path) -> (dict | None):
@@ -81,8 +81,8 @@ class MorphingWormV2:
                 "file": str(fp.relative_to(self.root)),
                 "msg": str(e),
             }
-        except Exception:
-            note_failure("MORPHING_WORM_V2:L72", None)
+        except Exception as exc:
+            note_failure("MORPHING_WORM_V2:L72", exc)
             return {
                 "type": "READ_ERROR",
                 "severity": "LOW",
@@ -134,8 +134,8 @@ class MorphingWormV2:
                         }
                     )
 
-        except Exception:
-            note_failure("MORPHING_WORM_V2:L124", None)
+        except Exception as exc:
+            note_failure("MORPHING_WORM_V2:L124", exc)
         return issues
 
     def run_scan(self):

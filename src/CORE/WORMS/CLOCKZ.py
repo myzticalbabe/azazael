@@ -36,8 +36,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("CLOCKZ:L30", None)
+except ImportError as exc:
+    note_failure("CLOCKZ:L30", exc)
     register_worm = lambda **kw: (lambda cls: cls)  # no-op fallback
 
 
