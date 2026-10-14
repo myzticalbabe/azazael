@@ -25,7 +25,12 @@ _ROOT = os.path.dirname(_HERE)
 _SCRIPTS = os.path.join(_ROOT, "scripts")
 
 #: Callers known to drive the gate with apply=True.
-KNOWN_CALLERS = {"night_shift.py", "spine_cycle_apply.py", "train_today.py"}
+#: `train_today.py` is deliberately absent: it was retired to
+#: archive/retired-trainers-2026-10-11/ by afc74bd1 ("Retire dead trainers wave
+#: 1a"), and this sweep only scans scripts/. Keeping it listed asserted a file
+#: the sweep can no longer see, so the check failed for a retirement rather than
+#: for the defect it guards against (a caller printing success-shaped output).
+KNOWN_CALLERS = {"night_shift.py", "spine_cycle_apply.py"}
 
 
 def _gate_callers() -> dict[str, str]:
