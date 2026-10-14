@@ -35,10 +35,25 @@ def _run(cmd, timeout=600, **kw):
         timeout=timeout, **kw)
 
 
+def _run_bytes(cmd, **kw):
+    return subprocess.run(
+        cmd, capture_output=True, cwd=str(ROOT),
+        timeout=kw.pop("timeout", 600), **kw)
+
+
 def _tree_dirty():
     r = _run(["git", "status", "--short"])
     return [l for l in r.stdout.splitlines()
             if l.strip() and not l.startswith("??")]
+
+
+def _tree_files_at(sha, files):
+    """Worktree bytes of `files` as of `sha` (None where sha lacks the file)."""
+    out = {}
+    for f in files:
+        r = _run_bytes(["git", "show", "%s:%s" % (sha, f)])
+        out[f] = r.stdout if r.returncode == 0 else None
+    return out
 
 
 def check_sha(sha):
@@ -96,28 +111,39 @@ def check_tests(tests, py315t):
 
 
 def check_neg_control(sha, tests, py315t):
-    """Prove test adequacy: with the fix stashed, the tests must FAIL.
+    """Prove test adequacy: with the fix reverted, the tests must FAIL.
 
     Passing-without-the-fix means the tests cannot discriminate (the UTBoost
-    case: hundreds of erroneous patches scored as correct). Refuses to run on
-    a dirty tree -- stashing over uncommitted work risks losing it.
+    case: hundreds of erroneous patches scored as correct). Reverts via
+    `git show SHA~1:path` round-trip (never stash: stashing a clean tree is a
+    no-op that makes the later pop fail). Refuses on a dirty tree; restores
+    byte-exact and hash-verifies, aborting loudly on any mismatch.
     """
     if not tests:
         return True, "no tests named, control skipped"
     dirty = _tree_dirty()
     if dirty:
-        return False, ("tree dirty (%d tracked change(s)) -- stash would "
+        return False, ("tree dirty (%d tracked change(s)) -- revert would "
                        "endanger uncommitted work; commit first" % len(dirty))
-    files = _run(["git", "show", "--name-only", "--format=",
-                  sha]).stdout.splitlines()
-    files = [l for l in files if l.strip()]
+    files = [l for l in _run(["git", "show", "--name-only", "--format=",
+                              sha]).stdout.splitlines() if l.strip()]
     if not files:
-        return False, "cannot list commit files for stash"
-    r = _run(["git", "stash", "push", "-m", "lane-acceptance-neg-control"]
-             + files)
-    if r.returncode != 0:
-        return False, "stash failed: %s" % (r.stderr.strip()[:100])
+        return False, "cannot list commit files"
+    live = _tree_files_at(sha, files)
+    pre = _tree_files_at(sha + "~1", files)
+    missing = [f for f in files if live[f] is None]
+    if missing:
+        return False, "cannot read committed bytes for: %s" % ", ".join(
+            missing[:3])
     try:
+        for f in files:
+            p = ROOT / f
+            if pre[f] is None:
+                if p.exists():
+                    p.unlink()  # file added by the fix: absence is pre-image
+            else:
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_bytes(pre[f])
         r = _run([sys.executable, "-m", "pytest", "-q"] + tests)
         tail = (r.stdout + r.stderr).strip().splitlines()
         summary = tail[-1] if tail else "no output"
@@ -126,10 +152,21 @@ def check_neg_control(sha, tests, py315t):
                            "(UTBoost case); strengthen tests, not the fix")
         return True, "tests fail without the fix (%s)" % summary[:100]
     finally:
-        pop = _run(["git", "stash", "pop"])
-        if pop.returncode != 0:
-            print("FATAL: stash pop failed -- inspect `git stash list` "
-                  "and restore by hand; refusing to continue.")
+        for f in files:
+            p = ROOT / f
+            if live[f] is None:
+                if p.exists():
+                    p.unlink()
+            else:
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_bytes(live[f])
+        after = _tree_files_at("HEAD", files)
+        bad = [f for f in files
+               if (after[f] or b"") != (live[f] or b"")]
+        if bad:
+            print("FATAL: restore mismatch on %s -- worktree differs from "
+                  "the verified bytes; inspect by hand, refusing to "
+                  "continue." % ", ".join(bad[:5]))
             raise SystemExit(2)
 
 
