@@ -77,8 +77,8 @@ except ImportError:                               # never break the host
 #: made the same choice, so the decision lives in one place.
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # never break the host
-    note_failure("bibl_map:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("bibl_map:core-paths-import", exc)
 
     def _get_project_root_safe() -> Path:
         # CORE unreachable: derive from this file (src/ORCHESTRATION/BIBL/ -> root).
@@ -197,8 +197,8 @@ def _iter_files(root: Path, exts: set[str], max_bytes: int) -> Iterable[Path]:
                 continue
             try:
                 size = p.stat().st_size
-            except OSError:
-                note_failure("bibl_map:L177", None)
+            except OSError as exc:
+                note_failure("bibl_map:L177", exc)
                 continue
             if 0 < size <= max_bytes:
                 yield p
@@ -231,8 +231,8 @@ def crawl_code(root: Path) -> tuple[dict[str, Node], dict[str, int]]:
         try:
             source = path.read_text(encoding="utf-8", errors="replace")
             tree = ast.parse(source)
-        except (OSError, SyntaxError, ValueError, RecursionError):
-            note_failure("bibl_map:L210", None)
+        except (OSError, SyntaxError, ValueError, RecursionError) as exc:
+            note_failure("bibl_map:L210", exc)
             stats["parse_errors"] += 1
             continue
         stats["files"] += 1
@@ -289,8 +289,8 @@ def _walk_symbols(nodes: dict[str, Node], stats: dict, rel: str,
                     for b in node.bases:
                         try:
                             bases.append(_clean(ast.unparse(b), 80))
-                        except (ValueError, TypeError):
-                            note_failure("bibl_map:L267", None)
+                        except (ValueError, TypeError) as exc:
+                            note_failure("bibl_map:L267", exc)
                 nodes[key] = Node(
                     name=_clean(label, 120), raw_name=raw,
                     kind=kind, graph="code",
@@ -322,8 +322,8 @@ def _walk_symbols(nodes: dict[str, Node], stats: dict, rel: str,
 def _source_segment(source: str, node: ast.AST) -> str:
     try:
         seg = ast.get_source_segment(source, node)
-    except (ValueError, TypeError):
-        note_failure("bibl_map:L300", None)
+    except (ValueError, TypeError) as exc:
+        note_failure("bibl_map:L300", exc)
         seg = None
     return seg or ""
 
@@ -341,8 +341,8 @@ def crawl_docs(root: Path) -> tuple[dict[str, Node], dict[str, int]]:
         rel = str(path.relative_to(root)).replace("\\", "/")
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            note_failure("bibl_map:L318", None)
+        except OSError as exc:
+            note_failure("bibl_map:L318", exc)
             continue
         stats["files"] += 1
         for lineno, line in enumerate(text.splitlines(), 1):
