@@ -26,7 +26,7 @@ B = Path("C:/Users/clint/azazael")
 
 def git(tree: Path, *args: str) -> str:
     proc = subprocess.run(["git", "-C", str(tree), *args],
-                          capture_output=True, text=True, timeout=60)
+                          capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise RuntimeError("%s: git %s failed: %s" % (
             tree, " ".join(args), (proc.stderr or "").strip()[:200]))

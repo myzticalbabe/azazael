@@ -42,7 +42,7 @@ def check_cli(name: str, version_flag: str = "--version") -> dict:
     try:
         cmd_path = _resolve_cmd(name)
         result = subprocess.run(
-            cmd_path + [version_flag], capture_output=True, text=True, timeout=10
+            cmd_path + [version_flag], capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace"
         )
         if result.returncode == 0:
             version = result.stdout.strip() or result.stderr.strip()
@@ -72,7 +72,7 @@ def check_npm_package(package: str) -> dict:
         else:
             cmd = [npm_exe, 'list', '-g', package, '--depth=0']
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=15
+            cmd, capture_output=True, text=True, timeout=15, encoding="utf-8", errors="replace"
         )
         available = result.returncode == 0
         version = ""
@@ -129,7 +129,7 @@ def check_graph_input_hygiene(timeout: int = 300) -> dict:
     try:
         proc = subprocess.run(
             [sys.executable, tool, "--check", "--deep"],
-            capture_output=True, text=True, timeout=timeout,
+            capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace"
         )
     except subprocess.TimeoutExpired:
         return {"available": False, "ok": True, "note": f"timed out after {timeout}s"}
@@ -273,7 +273,7 @@ def main():
         if os.path.exists(p):
             try:
                 result = subprocess.run(
-                    [p, "--version"], capture_output=True, text=True, timeout=10
+                    [p, "--version"], capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace"
                 )
                 print(f"    [OK] {p}")
                 print(f"          {result.stdout.strip()}")
@@ -326,7 +326,7 @@ def main():
     try:
         result = subprocess.run(
             ["python", "-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace"
         )
         pyver = result.stdout.strip()
         print(f"    [OK] Python (default): {pyver}")

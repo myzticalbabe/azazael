@@ -43,7 +43,7 @@ def check_autoflake_available() -> bool:
     try:
         result = subprocess.run(
             [sys.executable, '-m', 'autoflake', '--version'],
-            capture_output=True, text=True, timeout=10
+            capture_output=True, text=True, timeout=10, encoding="utf-8", errors="replace"
         )
         return result.returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
@@ -78,7 +78,7 @@ def run_autoflake(filepath: str, fix: bool = False) -> Tuple[str, int, str, str]
 
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=30
+            cmd, capture_output=True, text=True, timeout=30, encoding="utf-8", errors="replace"
         )
         return (filepath, result.returncode, result.stdout, result.stderr)
     except subprocess.TimeoutExpired:

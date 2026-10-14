@@ -37,7 +37,7 @@ GENERATED_DIRS = ("output/", "graphify-out/", "backup/")
 
 def _git(*args: str) -> str:
     r = subprocess.run(["git", *args], capture_output=True, text=True,
-                       timeout=60)
+                       timeout=60, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         raise RuntimeError("git %s failed: %s" % (" ".join(args), r.stderr[:200]))
     return r.stdout
