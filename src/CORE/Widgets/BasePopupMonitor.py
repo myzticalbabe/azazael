@@ -199,15 +199,15 @@ class BasePopupMonitor:
         """
         try:
             self.q.put_nowait(QueueMessage(action=action, payload=payload))
-        except queue.Full:
+        except queue.Full as exc:
             # Queue backpressure — drop oldest to make room
             # Queue backpressure — drop oldest to make room
-            note_failure("BasePopupMonitor:L193", None)
+            note_failure("BasePopupMonitor:L193", exc)
             try:
                 self.q.get_nowait()
                 self.q.put_nowait(QueueMessage(action=action, payload=payload))
-            except queue.Empty:
-                note_failure("BasePopupMonitor:L198", None)
+            except queue.Empty as exc:
+                note_failure("BasePopupMonitor:L198", exc)
 
     def _safe_log(self, message: str, level: str = "INFO"):
         """Convenience: enqueue a log message."""
@@ -244,8 +244,8 @@ class BasePopupMonitor:
 
                 self.handle_message(msg)
 
-        except queue.Empty:
-            note_failure("BasePopupMonitor:L236", None)
+        except queue.Empty as exc:
+            note_failure("BasePopupMonitor:L236", exc)
 
         if self.running and self.root:
             self.root.after(100, self._process_queue_internal)
@@ -307,8 +307,8 @@ class BasePopupMonitor:
             try:
                 self.root.quit()
                 self.root.destroy()
-            except tk.TclError:
-                note_failure("BasePopupMonitor:L299", None) # Window already destroyed
+            except tk.TclError as exc:
+                note_failure("BasePopupMonitor:L299", exc) # Window already destroyed
 
     def close(self):
         """Request window close from any thread (via queue)."""
