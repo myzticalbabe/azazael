@@ -673,7 +673,7 @@ class WorkStealingPool:
             if group_id not in self._groups:
                 raise KeyError(f"unknown group_id {group_id!r}")
             total = len(self._groups[group_id])
-        deadline = time.time() + timeout if timeout else float('inf')
+        deadline = time.time() + timeout if timeout is not None else float('inf')
         while time.time() < deadline:
             with self._group_lock:
                 done = self._group_done.get(group_id, 0)
@@ -739,7 +739,7 @@ class WorkStealingPool:
 
     def wait_all(self, timeout: Optional[float] = None) -> bool:
         """Wait until all submitted tasks are completed."""
-        deadline = time.time() + timeout if timeout else float('inf')
+        deadline = time.time() + timeout if timeout is not None else float('inf')
         while time.time() < deadline:
             with self._counter_lock:
                 if self._total_completed >= self._total_submitted:
