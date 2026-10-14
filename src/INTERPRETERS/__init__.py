@@ -182,8 +182,8 @@ def run_javascript(code: str) -> RunResult:
     finally:
         try:
             os.unlink(temp_path)
-        except OSError:
-            note_failure("__init__:L172", None)
+        except OSError as exc:
+            note_failure("__init__:L172", exc)
 
 
 # --- Unified Dispatcher -----------------------------------------------------

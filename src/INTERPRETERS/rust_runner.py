@@ -36,8 +36,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # never break the host
-    note_failure("rust_runner:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("rust_runner:core-paths-import", exc)
     _get_project_root_safe = None
 
 #: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be
@@ -127,8 +127,8 @@ class RustRunner:
                 binary_path=str(output_path) if result.returncode == 0 else None,
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
-        except subprocess.TimeoutExpired:
-            note_failure("rust_runner:L106", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("rust_runner:L106", exc)
             return RustResult(
                 success=False,
                 stderr="Compilation timed out (>60s)",
@@ -178,8 +178,8 @@ class RustRunner:
                 duration_ms=duration,
                 binary_path=str(binary_path),
             )
-        except subprocess.TimeoutExpired:
-            note_failure("rust_runner:L155", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("rust_runner:L155", exc)
             return RustResult(
                 success=False,
                 stderr="Execution timed out (>30s)",
@@ -267,8 +267,8 @@ class RustRunner:
                 returncode=result.returncode,
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
-        except subprocess.TimeoutExpired:
-            note_failure("rust_runner:L242", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("rust_runner:L242", exc)
             return RustResult(success=False, stderr="Cargo build timed out (>120s)")
         except Exception as e:
             note_failure("rust_runner:L244", e)

@@ -36,8 +36,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # never break the host
-    note_failure("go_runner:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("go_runner:core-paths-import", exc)
     _get_project_root_safe = None
 
 #: Repo root for the env fallback below. MEASURED 2026-10-11: the fallback used to be
@@ -143,8 +143,8 @@ class GoRunner:
                 duration_ms=duration,
                 errors=self._parse_errors(result.stderr) if result.returncode != 0 else [],
             )
-        except subprocess.TimeoutExpired:
-            note_failure("go_runner:L122", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("go_runner:L122", exc)
             return GoResult(
                 success=False,
                 stderr="Execution timed out (>60s)",
