@@ -67,8 +67,8 @@ def setUpModule():
     for suffix in ("", "-wal", "-shm"):
         try:
             os.remove(_SCRATCH + suffix)
-        except OSError:
-            note_failure("test_learning_loop:L60", None)
+        except OSError as exc:
+            note_failure("test_learning_loop:L60", exc)
     _lm._global_store = _lm.LocalMemoryStore(db_path=_SCRATCH)
     globals()["STORE"] = _lm._global_store
 
@@ -268,13 +268,13 @@ def tearDownModule():
     # deletes its scratch).
     try:
         STORE.close() if hasattr(STORE, "close") else None
-    except Exception:
-        note_failure("test_learning_loop:L261", None)
+    except Exception as exc:
+        note_failure("test_learning_loop:L261", exc)
     try:
         import CORE.local_memory as _lm
         _lm._global_store = None
-    except Exception:
-        note_failure("test_learning_loop:L266", None)
+    except Exception as exc:
+        note_failure("test_learning_loop:L266", exc)
     # Do NOT rmtree the shared scratch dir here: another test module in the
     # suite may still be using it. OS temp cleans it up eventually.
 
