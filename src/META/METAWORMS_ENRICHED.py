@@ -558,8 +558,8 @@ class METRICZ:
 
                     metrics["by_file"].append(file_metrics)
                     items += 1
-                except Exception:
-                    note_failure("METAWORMS_ENRICHED:L562", None)
+                except Exception as exc:
+                    note_failure("METAWORMS_ENRICHED:L562", exc)
 
         # Calculate averages
         if metrics["totals"]["classes"] > 0:
@@ -616,8 +616,8 @@ class LOGZ:
                         if "DEBUG" in line:
                             logs["debug"]["total"] += 1
                             items += 1
-                except Exception:
-                    note_failure("METAWORMS_ENRICHED:L620", None)
+                except Exception as exc:
+                    note_failure("METAWORMS_ENRICHED:L620", exc)
 
         return WormResult(
             name="LOGZ",
@@ -695,8 +695,8 @@ class CHANGEZ:
                                 }
                             )
                             items += 1
-                    except Exception:
-                        note_failure("METAWORMS_ENRICHED:L699", None)
+                    except Exception as exc:
+                        note_failure("METAWORMS_ENRICHED:L699", exc)
 
         changes["recent"] = sorted(changes["recent"], key=lambda x: x["age_hours"])[:30]
 

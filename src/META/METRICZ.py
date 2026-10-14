@@ -316,8 +316,8 @@ class METRICZ:
                                     "source": point.source,
                                 }
                             )
-                except Exception:
-                    note_failure("METRICZ:L310", None)
+                except Exception as exc:
+                    note_failure("METRICZ:L310", exc)
 
         return results
 
@@ -354,8 +354,8 @@ class METRICZ:
                     first = datetime.fromisoformat(comp_records[0].start_time)
                     last = datetime.fromisoformat(comp_records[-1].start_time)
                     time_span = (last - first).total_seconds()
-                except Exception:
-                    note_failure("METRICZ:L348", None)
+                except Exception as exc:
+                    note_failure("METRICZ:L348", exc)
                     time_span = 1
 
             throughput = len(comp_records) / max(time_span / 60, 1)
@@ -472,8 +472,8 @@ class METRICZ:
                 if format == "json":
                     json.dump(metrics, f, indent=2)
             return True
-        except Exception:
-            note_failure("METRICZ:L465", None)
+        except Exception as exc:
+            note_failure("METRICZ:L465", exc)
             return False
 
     def _save_metrics(self):
@@ -496,8 +496,8 @@ class METRICZ:
                     f,
                     indent=2,
                 )
-        except Exception:
-            note_failure("METRICZ:L488", None)
+        except Exception as exc:
+            note_failure("METRICZ:L488", exc)
 
     def _save_executions(self):
         """Persist executions."""
@@ -524,8 +524,8 @@ class METRICZ:
                     f,
                     indent=2,
                 )
-        except Exception:
-            note_failure("METRICZ:L516", None)
+        except Exception as exc:
+            note_failure("METRICZ:L516", exc)
 
     def _save_alerts(self):
         """Persist alerts."""
@@ -534,8 +534,8 @@ class METRICZ:
         try:
             with open(alerts_file, "w") as f:
                 json.dump(self.alerts[-1000:], f, indent=2)
-        except Exception:
-            note_failure("METRICZ:L526", None)
+        except Exception as exc:
+            note_failure("METRICZ:L526", exc)
 
     def _load_data(self):
         """Load persisted data."""
@@ -554,8 +554,8 @@ class METRICZ:
                                 source=d.get("source", ""),
                             )
                         )
-            except Exception:
-                note_failure("METRICZ:L546", None)
+            except Exception as exc:
+                note_failure("METRICZ:L546", exc)
 
     def run_popup(self):
         """Run with GUI popup."""

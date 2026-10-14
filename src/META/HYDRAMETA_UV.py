@@ -158,8 +158,8 @@ class HYDRAMETA_UV:
             try:
                 with open(state_file) as f:
                     self.state = json.load(f)
-            except Exception:
-                note_failure("HYDRAMETA_UV:L152", None)
+            except Exception as exc:
+                note_failure("HYDRAMETA_UV:L152", exc)
                 self.state = {"best_sequence": [], "best_params": {}}
 
     def _save_state(self):
@@ -188,8 +188,8 @@ class HYDRAMETA_UV:
                 result.stdout + result.stderr,
                 int((time.time() - start) * 1000),
             )
-        except subprocess.TimeoutExpired:
-            note_failure("HYDRAMETA_UV:L181", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("HYDRAMETA_UV:L181", exc)
             return False, "Timeout", int((time.time() - start) * 1000)
         except Exception as e:
             note_failure("HYDRAMETA_UV:L183", e)

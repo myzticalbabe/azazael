@@ -49,8 +49,8 @@ except ImportError:                               # never break the host
 # azazael/src/META/TRIMZ.py, so the parent of the parent is azazael/src/.
 try:
     from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("TRIMZ:L43", None)
+except ImportError as exc:
+    note_failure("TRIMZ:L43", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_desktop_dir
 
@@ -233,8 +233,8 @@ class BIBLIntegrator:
                     dt = datetime.fromisoformat(entry.last_updated)
                     if dt.timestamp() < cutoff:
                         stale.append(term)
-                except Exception:
-                    note_failure("TRIMZ:L226", None)
+                except Exception as exc:
+                    note_failure("TRIMZ:L226", exc)
         return stale
 
 
