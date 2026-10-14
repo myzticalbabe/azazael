@@ -30,7 +30,8 @@ def main() -> int:
             [sys.executable, "-c",
              "import json; m=json.load(open('state/converge_315.json')); "
              "print('converge:', m.get('iteration'), 'live:', m.get('total_live'))"],
-            timeout=30, capture_output=True, text=True, errors="replace",
+            timeout=30, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
         print((r.stdout or "").strip() or "(no converge manifest yet)")
     except Exception:

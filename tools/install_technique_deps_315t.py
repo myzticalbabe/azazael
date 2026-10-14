@@ -88,6 +88,7 @@ def _pip(args: list[str]) -> subprocess.CompletedProcess:
     return subprocess.run(  # noqa: S603 - fixed argv, no shell
         [sys.executable, "-m", "pip", *args],
         capture_output=True, text=True, timeout=1800,
+        encoding="utf-8", errors="replace",
     )
 
 

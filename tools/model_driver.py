@@ -125,7 +125,8 @@ def run_harness(patch_path: Path, model: str) -> dict:
     proc = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "self_modify.py"), "--patch",
          str(patch_path), "--tier2", BAND, "--model", model],
-        cwd=str(ROOT), capture_output=True, text=True, timeout=3600)
+        cwd=str(ROOT), capture_output=True, text=True, timeout=3600,
+        encoding="utf-8", errors="replace")
     out = proc.stdout
     verdict = next((l.split(":", 1)[1].strip() for l in out.splitlines()
                     if l.startswith("verdict")), "?")

@@ -46,7 +46,8 @@ def run_harness(patch: Path, band: str) -> dict:
     proc = subprocess.run(
         [sys.executable, str(ROOT / "tools" / "self_modify.py"), "--patch", str(patch),
          "--tier2", band, "--model", "revert-selftest"],
-        cwd=str(ROOT), capture_output=True, text=True, timeout=1800)
+        cwd=str(ROOT), capture_output=True, text=True, timeout=1800,
+        encoding="utf-8", errors="replace")
     return {"rc": proc.returncode, "out": proc.stdout, "err": proc.stderr}
 
 
