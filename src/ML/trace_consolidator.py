@@ -48,8 +48,8 @@ def summarize_snapshot(path: Path) -> SessionSignature:
     sig = SessionSignature(session_id=path.stem)
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
-    except OSError:
-        note_failure("dream:L39", None)
+    except OSError as exc:
+        note_failure("dream:L39", exc)
         return sig
     for raw in lines:
         raw = raw.strip()
@@ -57,8 +57,8 @@ def summarize_snapshot(path: Path) -> SessionSignature:
             continue
         try:
             line = json.loads(raw)
-        except (json.JSONDecodeError, ValueError):
-            note_failure("dream:L47", None)
+        except (json.JSONDecodeError, ValueError) as exc:
+            note_failure("dream:L47", exc)
             continue
         kind = line.get("type")
         if kind == "session":
@@ -86,8 +86,8 @@ def load_report_verdicts(report_path: Path) -> dict[str, str]:
     """Extract dimension->verdict from a judge report file ({} when absent)."""
     try:
         report = json.loads(report_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError, ValueError):
-        note_failure("dream:L75", None)
+    except (OSError, json.JSONDecodeError, ValueError) as exc:
+        note_failure("dream:L75", exc)
         return {}
     return {
         str(d.get("name", "?")): str(d.get("verdict", "?"))
