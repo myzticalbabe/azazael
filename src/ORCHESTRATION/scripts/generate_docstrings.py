@@ -43,8 +43,8 @@ def generate_docstring(module_path: Path) -> str:
             elif isinstance(node, ast.ClassDef):
                 classes.append(node.name)
 
-    except Exception:
-        note_failure("generate_docstrings:L36", None)
+    except Exception as exc:
+        note_failure("generate_docstrings:L36", exc)
         functions = []
         classes = []
 
@@ -98,8 +98,8 @@ Functions:
             module_path.write_text(new_content, encoding="utf-8")
             return True
 
-    except Exception:
-            note_failure("generate_docstrings:L90", None)
+    except Exception as exc:
+            note_failure("generate_docstrings:L90", exc)
             return False
 
 

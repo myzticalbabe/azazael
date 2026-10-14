@@ -65,8 +65,8 @@ try:
     import psutil
 
     PSUTIL_AVAILABLE = True
-except ImportError:
-    note_failure("azazael_wsa:L52", None)
+except ImportError as exc:
+    note_failure("azazael_wsa:L52", exc)
     PSUTIL_AVAILABLE = False
 
 
@@ -197,11 +197,11 @@ class WSAClient:
                 timeout=timeout or self.timeout,
             )
             return result.stdout, result.stderr, result.returncode
-        except subprocess.TimeoutExpired:
-            note_failure("azazael_wsa:L182", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("azazael_wsa:L182", exc)
             return "", "Command timed out", -1
-        except FileNotFoundError:
-            note_failure("azazael_wsa:L184", None)
+        except FileNotFoundError as exc:
+            note_failure("azazael_wsa:L184", exc)
             return "", f"ADB not found: {self.adb_path}", -1
 
     def connect(self, retries: int = 3, delay: float = 2.0) -> bool:

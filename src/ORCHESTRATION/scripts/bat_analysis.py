@@ -237,8 +237,8 @@ class InteroperabilityGraph:
         try:
             cycles = list(nx.simple_cycles(self.graph.to_undirected()))
             return [list(c) for c in cycles]
-        except Exception:
-            note_failure("bat_analysis:L230", None)
+        except Exception as exc:
+            note_failure("bat_analysis:L230", exc)
             return []
 
     def detect_orphans(self) -> list[str]:

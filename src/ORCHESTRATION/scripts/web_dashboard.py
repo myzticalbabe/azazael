@@ -39,8 +39,8 @@ try:
     import altair as alt
 
     STREAMLIT_AVAILABLE = True
-except ImportError:
-    note_failure("web_dashboard:L32", None)
+except ImportError as exc:
+    note_failure("web_dashboard:L32", exc)
     STREAMLIT_AVAILABLE = False
 
 

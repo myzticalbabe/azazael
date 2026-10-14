@@ -43,8 +43,8 @@ try:
     from colorama import Fore, Style, init
 
     COLORAMA_AVAILABLE = True
-except ImportError:
-    note_failure("azazael_cli:L37", None)
+except ImportError as exc:
+    note_failure("azazael_cli:L37", exc)
     COLORAMA_AVAILABLE = False
 
 try:
@@ -57,8 +57,8 @@ try:
     from rich.table import Table
 
     RICH_AVAILABLE = True
-except ImportError:
-    note_failure("azazael_cli:L50", None)
+except ImportError as exc:
+    note_failure("azazael_cli:L50", exc)
     RICH_AVAILABLE = False
 
 
@@ -137,8 +137,8 @@ class AzazaelConfig:
                     config = self.DEFAULT_CONFIG.copy()
                     config.update(loaded)
                     return config
-            except Exception:
-                note_failure("azazael_cli:L129", None)
+            except Exception as exc:
+                note_failure("azazael_cli:L129", exc)
                 return self.DEFAULT_CONFIG.copy()
         return self.DEFAULT_CONFIG.copy()
 

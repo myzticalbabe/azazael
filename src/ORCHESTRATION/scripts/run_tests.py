@@ -61,8 +61,8 @@ def test_module_import(path: str) -> dict:
         result["passed"] = proc.returncode == 0
         if proc.returncode != 0:
             result["error"] = proc.stderr[:200]
-    except subprocess.TimeoutExpired:
-        note_failure("run_tests:L52", None)
+    except subprocess.TimeoutExpired as exc:
+        note_failure("run_tests:L52", exc)
         result["error"] = "Timeout"
     except Exception as e:
         note_failure("run_tests:L54", e)
