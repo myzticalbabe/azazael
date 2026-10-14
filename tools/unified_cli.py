@@ -60,7 +60,12 @@ def main():
 
     full_cmd = f"{COMMANDS[cmd]} {extra_args}"
     print(f"▶ {full_cmd}\n")
-    subprocess.run(full_cmd, shell=True)
+    # Foreground dispatcher: the child inherits stdio and streams to the
+    # terminal, so "runs until Ctrl-C" IS the contract here. Deliberately left
+    # unbounded: with shell=True a bound kills only the SHELL, so it would
+    # orphan the long-lived server children (api -> uvicorn --reload,
+    # dashboard -> flask_dashboard) while reporting a timeout.
+    subprocess.run(full_cmd, shell=True)  # gate:allow-no-timeout: foreground dispatcher on inherited stdio; a bound cannot kill the server's process group and would orphan it
 
 
 if __name__ == "__main__":

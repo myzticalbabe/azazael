@@ -28,17 +28,28 @@ ROOT = Path(__file__).resolve().parents[1]
 PLACEHOLDER = re.compile(r"PLACEHOLDER", re.IGNORECASE)
 
 
-def _run(cmd, timeout=600, **kw):
+def _run(cmd, timeout=600):
+    """Text-mode subprocess.
+
+    The `**kw` forwarding seam was removed 2026-10-14: no caller ever passed
+    one, and it is what made the encoding audit report this call UNDETERMINED
+    -- a forwarded kwarg could in principle override `encoding` (or `text`),
+    so the audit could not statically prove the call names its encoding.
+    """
     return subprocess.run(
         cmd, capture_output=True, text=True,
         encoding="utf-8", errors="replace", cwd=str(ROOT),
-        timeout=timeout, **kw)
+        timeout=timeout)
 
 
-def _run_bytes(cmd, **kw):
+def _run_bytes(cmd, timeout=600):
+    """Binary-mode subprocess: no `text=`, so nothing is decoded and no
+    encoding is required. Named explicitly rather than forwarded so the audit
+    can SEE that -- it reported this call UNDETERMINED while the kwargs that
+    might have added `text=True` were opaque.
+    """
     return subprocess.run(
-        cmd, capture_output=True, cwd=str(ROOT),
-        timeout=kw.pop("timeout", 600), **kw)
+        cmd, capture_output=True, cwd=str(ROOT), timeout=timeout)
 
 
 def _tree_dirty():
