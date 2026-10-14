@@ -60,8 +60,8 @@ except ImportError:                               # never break the host
 try:
     from PIL import Image, ImageDraw, ImageFont
     HAS_PIL = True
-except ImportError:
-    note_failure("generate_dashboard_video:L53", None)
+except ImportError as exc:
+    note_failure("generate_dashboard_video:L53", exc)
     HAS_PIL = False
 
 # --- Project paths ---
@@ -393,8 +393,8 @@ class DashboardCardDataExtractor(HTMLParser):
                 char = chr(int(name[1:], 16))
             else:
                 char = chr(int(name))
-        except (ValueError, OverflowError):
-            note_failure("generate_dashboard_video:L385", None)
+        except (ValueError, OverflowError) as exc:
+            note_failure("generate_dashboard_video:L385", exc)
             char = f"&#{name};"
         self._append_to_current(char)
 
@@ -457,14 +457,14 @@ def render_vibrant_dashboard_frames(cards_data, frames_dir, width, height, fps,
         for name in names:
             try:
                 return ImageFont.truetype(name, size)
-            except Exception:
-                note_failure("generate_dashboard_video:L448", None)
+            except Exception as exc:
+                note_failure("generate_dashboard_video:L448", exc)
                 continue
         # Try loading default with larger size (Pillow >= 9.0)
         try:
             return ImageFont.load_default().font_variant(size=size)
-        except Exception:
-            note_failure("generate_dashboard_video:L453", None)
+        except Exception as exc:
+            note_failure("generate_dashboard_video:L453", exc)
         return None
 
     title_font = _try_load_font(["segoeuib.ttf", "arialbd.ttf", "arial.ttf"], 52)
@@ -1031,8 +1031,8 @@ def browser_visual_mode(html_path, output_path, fps, duration, width, height,
     try:
         if os.path.exists(capture_script_path):
             os.remove(capture_script_path)
-    except Exception:
-        note_failure("generate_dashboard_video:L1021", None)
+    except Exception as exc:
+        note_failure("generate_dashboard_video:L1021", exc)
 
     if success and os.path.exists(output_path):
         size_mb = os.path.getsize(output_path) / 1024 / 1024

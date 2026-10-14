@@ -1222,9 +1222,9 @@ def create_video():
 
             font_small = ImageFont.truetype("arial.ttf", 30)
 
-        except Exception:
+        except Exception as exc:
 
-            note_failure("make_video_vibrant:L1215", None)
+            note_failure("make_video_vibrant:L1215", exc)
             ImageFont.load_default()
 
             font_large = ImageFont.load_default()

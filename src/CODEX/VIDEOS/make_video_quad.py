@@ -270,9 +270,9 @@ def create_video():
 
             font_medium = ImageFont.truetype("arialbd.ttf", 48)
 
-        except Exception:
+        except Exception as exc:
 
-            note_failure("make_video_quad:L263", None)
+            note_failure("make_video_quad:L263", exc)
             font_huge = ImageFont.load_default()
 
             font_large = ImageFont.load_default()

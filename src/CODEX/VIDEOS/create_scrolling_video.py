@@ -928,9 +928,9 @@ try:
 
     print("Cleaned up frames directory")
 
-except Exception:
+except Exception as exc:
 
-    note_failure("create_scrolling_video:L921", None)
+    note_failure("create_scrolling_video:L921", exc)
 
 """
 
