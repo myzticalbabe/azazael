@@ -3,11 +3,11 @@
   "rows": 141,
   "tally": {
     "NO-TARGET": 23,
-    "HOST-COMPOSED": 15,
-    "ADOPTED": 99,
+    "HOST-COMPOSED": 17,
+    "ADOPTED": 97,
     "EXERCISE-ONLY": 4
   },
-  "adoption_score": 99,
+  "adoption_score": 97,
   "in_production": 114,
   "built_count": 118,
   "note": "adoption_score counts ADOPTED rows (caller in a DIFFERENT production module); in_production adds HOST-COMPOSED (consumed by production code in its own host, where that host is imported by production). EXERCISE-ONLY and HOSTED-ONLY score zero by mandate (ACTION_REGISTRY H-2, TODO_315T_BUILD T-15)",
@@ -230,10 +230,10 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:95",
-        "src/CORE/WORMS/expansion/spine.py:1774",
-        "src/CORE/WORMS/expansion/spine.py:233",
-        "src/CORE/WORMS/expansion/spine.py:658"
+        "src/CORE/WORMS/expansion/__init__.py:39",
+        "src/CORE/WORMS/expansion/spine.py:226",
+        "src/CORE/WORMS/expansion/spine.py:658",
+        "src/CORE/WORMS/expansion/spine.py:1774"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l0_model.py:134",
@@ -291,10 +291,10 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:95",
-        "src/CORE/WORMS/expansion/spine.py:1774",
-        "src/CORE/WORMS/expansion/spine.py:233",
-        "src/CORE/WORMS/expansion/spine.py:658"
+        "src/CORE/WORMS/expansion/__init__.py:39",
+        "src/CORE/WORMS/expansion/spine.py:226",
+        "src/CORE/WORMS/expansion/spine.py:658",
+        "src/CORE/WORMS/expansion/spine.py:1774"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l0_model.py:134",
@@ -333,18 +333,7 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [
-        "scripts/live_monitor.py:576",
-        "scripts/live_monitor.py:588",
-        "scripts/run_training_orchestrator.py:1000",
-        "scripts/run_training_orchestrator.py:1001",
-        "scripts/run_training_orchestrator.py:541",
-        "scripts/run_training_orchestrator.py:558",
-        "scripts/run_training_orchestrator.py:571",
-        "scripts/track_monitor.py:285",
-        "scripts/track_monitor.py:297",
-        "src/CORE/WORMS/expansion/learning_grpo.py:731"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l6_evolve.py:154",
         "src/CORE/technique_wiring/_l6_evolve.py:157",
@@ -359,9 +348,9 @@
         "src/CORE/dpo_losses.py:57",
         "src/CORE/dpo_losses.py:58"
       ],
-      "n_production": 10,
+      "n_production": 0,
       "n_exercise": 7,
-      "verdict": "ADOPTED"
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP105",
@@ -384,18 +373,7 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [
-        "scripts/live_monitor.py:576",
-        "scripts/live_monitor.py:588",
-        "scripts/run_training_orchestrator.py:1000",
-        "scripts/run_training_orchestrator.py:1001",
-        "scripts/run_training_orchestrator.py:541",
-        "scripts/run_training_orchestrator.py:558",
-        "scripts/run_training_orchestrator.py:571",
-        "scripts/track_monitor.py:285",
-        "scripts/track_monitor.py:297",
-        "src/CORE/WORMS/expansion/learning_grpo.py:731"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l6_evolve.py:154",
         "src/CORE/technique_wiring/_l6_evolve.py:157",
@@ -410,9 +388,9 @@
         "src/CORE/dpo_losses.py:57",
         "src/CORE/dpo_losses.py:58"
       ],
-      "n_production": 10,
+      "n_production": 0,
       "n_exercise": 7,
-      "verdict": "ADOPTED"
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP106",
@@ -433,9 +411,7 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [
-        "tools/install_technique_deps_315t.py:43"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l3_verify.py:519",
         "src/CORE/technique_wiring/_l3_verify.py:559",
@@ -448,9 +424,9 @@
         "src/CORE/cd2_verifier.py:764",
         "src/CORE/cd2_verifier.py:786"
       ],
-      "n_production": 1,
+      "n_production": 0,
       "n_exercise": 4,
-      "verdict": "ADOPTED"
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP110",
@@ -799,36 +775,8 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "scripts/db_health.py:22",
-        "scripts/dlq_burndown.py:119",
-        "scripts/dlq_watch.py:181",
-        "scripts/run_mesh_cycle.py:256",
-        "src/CORE/NeuralPipeline.py:185",
-        "src/CORE/WORMS/dead_letter_queue.py:101",
-        "src/CORE/WORMS/dead_letter_queue.py:117",
         "src/CORE/WORMS/dead_letter_queue.py:121",
-        "src/CORE/WORMS/dead_letter_queue.py:157",
-        "src/CORE/WORMS/dead_letter_queue.py:173",
-        "src/CORE/WORMS/dead_letter_queue.py:198",
-        "src/CORE/WORMS/dead_letter_queue.py:216",
-        "src/CORE/WORMS/dead_letter_queue.py:274",
-        "src/CORE/WORMS/dead_letter_queue.py:300",
-        "src/CORE/WORMS/dead_letter_queue.py:315",
-        "src/CORE/WORMS/dead_letter_queue.py:320",
-        "src/CORE/WORMS/dead_letter_queue.py:325",
-        "src/CORE/WORMS/dead_letter_queue.py:415",
-        "src/CORE/WORMS/dead_letter_queue.py:531",
-        "src/CORE/WORMS/dead_letter_queue.py:79",
-        "src/CORE/WORMS/expansion/glia.py:101",
-        "src/CORE/WORMS/expansion/mesh.py:515",
-        "src/CORE/WORMS/expansion/mesh.py:630",
-        "src/CORE/config.py:127",
-        "src/CORE/config.py:139",
-        "src/CORE/config.py:372",
-        "src/CORE/config.py:395",
-        "src/CORE/config.py:57",
-        "src/CORE/inference/providers.py:2935",
-        "src/CORE/inference/providers.py:2938"
+        "src/CORE/WORMS/dead_letter_queue.py:173"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:207"
@@ -854,7 +802,7 @@
         "src/CORE/circuit_breaker.py:595",
         "src/CORE/circuit_breaker.py:639"
       ],
-      "n_production": 30,
+      "n_production": 2,
       "n_exercise": 1,
       "verdict": "ADOPTED"
     },
@@ -880,8 +828,9 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/METACLUSTER.py:352",
-        "src/CORE/WORMS/METACLUSTER.py:378"
+        "src/CORE/WORMS/METACLUSTER.py:369",
+        "src/CORE/WORMS/METACLUSTER.py:411",
+        "src/CORE/WORMS/METACLUSTER.py:461"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l4_exec.py:394",
@@ -912,7 +861,7 @@
         "src/CORE/technique_wiring/_l5_dispatch.py:77"
       ],
       "host_internal_uses": [],
-      "n_production": 2,
+      "n_production": 3,
       "n_exercise": 26,
       "verdict": "ADOPTED"
     },
@@ -1112,8 +1061,9 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "scripts/commit_gate.py:138",
-        "scripts/commit_gate.py:172"
+        "tools/canon_drift_check.py:73",
+        "tools/canon_drift_check.py:321",
+        "tools/canon_drift_check.py:323"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_b01_05.py:189",
@@ -1160,7 +1110,7 @@
         "src/CORE/skill_library.py:584",
         "src/CORE/skill_library.py:663"
       ],
-      "n_production": 2,
+      "n_production": 3,
       "n_exercise": 38,
       "verdict": "ADOPTED"
     },
@@ -1184,10 +1134,10 @@
       "built": true,
       "host_reachable": false,
       "production_call_sites": [
-        "src/CORE/WORMS/expansion/__init__.py:95",
-        "src/CORE/WORMS/expansion/spine.py:1774",
-        "src/CORE/WORMS/expansion/spine.py:233",
-        "src/CORE/WORMS/expansion/spine.py:658"
+        "src/CORE/WORMS/expansion/__init__.py:39",
+        "src/CORE/WORMS/expansion/spine.py:226",
+        "src/CORE/WORMS/expansion/spine.py:658",
+        "src/CORE/WORMS/expansion/spine.py:1774"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l0_model.py:134",
@@ -1251,78 +1201,12 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "scripts/env_drift_alarm.py:404",
-        "scripts/generate_capability_templates.py:165",
-        "scripts/generate_capability_templates.py:225",
-        "scripts/pre_build_check.py:188",
-        "scripts/sync_all.py:475",
-        "scripts/sync_all.py:585",
-        "scripts/sync_all.py:627",
-        "scripts/verify_proteus.py:101",
-        "scripts/verify_proteus.py:69",
+        "scripts/verify_proteus.py:88",
         "scripts/verify_proteus.py:97",
         "scripts/verify_proteus.py:98",
-        "src/AZAZAEL_Inference_Studio.py:392",
-        "src/AZAZAEL_TOOLKIT/REAL_FRAMEWORK_TEST.py:411",
-        "src/AZAZAEL_TOOLKIT/azazael_toolkit.py:34",
-        "src/AZAZAEL_TOOLKIT/environment_manager.py:149",
-        "src/AZAZAEL_TOOLKIT/environment_manager.py:22",
-        "src/AZAZAEL_TOOLKIT/environment_manager.py:85",
-        "src/CODEX/cain_fill_all_20260930.py:100",
-        "src/CODEX/cain_fill_all_20260930.py:143",
-        "src/CODEX/cain_fill_sections_20260930.py:156",
-        "src/CODEX/cain_fill_sections_20260930.py:239",
-        "src/CODEX/cain_rebuild_final.py:252",
-        "src/CODEX/cain_rebuild_final.py:302",
-        "src/CODEX/cain_redo.py:259",
-        "src/CODEX/inject_cain_20260930.py:130",
-        "src/CODEX/inject_cain_20260930.py:294",
-        "src/CORE/WORMS/CAIN_DATA.py:207",
-        "src/CORE/WORMS/CLUSTER_INSPECTOR.py:354",
-        "src/CORE/WORMS/CLUSTER_INSPECTOR.py:371",
-        "src/CORE/WORMS/CLUSTER_INSPECTOR.py:444",
-        "src/CORE/WORMS/CLUSTER_INSPECTOR.py:91",
-        "src/CORE/WORMS/TOOLBELTZ.py:121",
-        "src/CORE/WORMS/expansion/config.py:98",
-        "src/CORE/dream_arena.py:59",
-        "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py:82",
-        "src/ORCHESTRATION/ECOSYSTEM_CRAWLER_LAUNCHER.py:89",
-        "src/ORCHESTRATION/HYDRA_ANALYZER_V2.py:1138",
-        "src/ORCHESTRATION/SystemManager.py:306",
-        "src/ORCHESTRATION/SystemManager.py:310",
-        "src/ORCHESTRATION/SystemManager.py:388",
-        "src/ORCHESTRATION/scripts/azazael_cli.py:225",
-        "src/QL_FILE_OPTIMIZER.py:394",
-        "src/REAL_FRAMEWORK_TEST.py:408",
-        "src/SCRIPTS/environ_updater.py:147",
-        "src/SCRIPTS/environ_updater.py:163",
-        "src/SCRIPTS/environ_updater.py:169",
-        "src/SCRIPTS/environ_updater.py:210",
-        "src/SCRIPTS/environ_updater.py:402",
-        "src/SCRIPTS/environ_updater.py:421",
-        "src/SCRIPTS/environ_updater.py:442",
-        "src/SCRIPTS/environ_updater.py:59",
-        "src/SCRIPTS/lsp_diagnosis.py:38",
-        "src/TOOLS/PythonSystemMapper.py:326",
-        "src/TOOLS/PythonSystemMapper.py:327",
-        "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py:78",
-        "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py:79",
-        "src/UTILITIES/PERSEPHONE/bin/persephone_cli.py:96",
-        "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py:51",
-        "src/UTILITIES/PERSEPHONE/bin/setup_wizard.py:53",
-        "src/UTILITIES/PERSEPHONE/lib/__init__.py:22",
-        "src/UTILITIES/PERSEPHONE/lib/environment.py:105",
-        "src/UTILITIES/PERSEPHONE/lib/environment.py:106",
-        "src/UTILITIES/PERSEPHONE/lib/environment.py:38",
-        "src/UTILITIES/PERSEPHONE/lib/environment.py:89",
-        "src/UTILITIES/PERSEPHONE/lib/environment.py:97",
-        "src/UTILITIES/PERSEPHONE/persephone.py:592",
-        "src/azazael_toolkit.py:34",
-        "tools/graph_semantic/semantic_layer.py:1008",
-        "tools/graph_semantic/semantic_layer.py:256",
-        "tools/graph_semantic/semantic_layer.py:358",
-        "tools/graph_semantic/semantic_layer.py:500",
-        "tools/graph_semantic/semantic_layer.py:75"
+        "scripts/verify_proteus.py:101",
+        "src/CORE/dream_arena.py:55",
+        "src/CORE/dream_arena.py:64"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_b01_05.py:188",
@@ -1365,7 +1249,7 @@
         "src/CORE/WORMS/expansion/arena.py:56",
         "src/CORE/WORMS/expansion/arena.py:57"
       ],
-      "n_production": 72,
+      "n_production": 6,
       "n_exercise": 12,
       "verdict": "ADOPTED"
     },
@@ -1458,7 +1342,10 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "tools/canon_drift_check.py:73",
+        "tools/canon_drift_check.py:321"
+      ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_b01_05.py:189",
         "src/CORE/technique_wiring/_b01_05.py:92",
@@ -1481,9 +1368,9 @@
       "host_internal_uses": [
         "src/CORE/skill_library.py:663"
       ],
-      "n_production": 0,
+      "n_production": 2,
       "n_exercise": 17,
-      "verdict": "HOST-COMPOSED"
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP151",
@@ -1510,18 +1397,7 @@
       ],
       "built": true,
       "host_reachable": false,
-      "production_call_sites": [
-        "scripts/live_monitor.py:576",
-        "scripts/live_monitor.py:588",
-        "scripts/run_training_orchestrator.py:1000",
-        "scripts/run_training_orchestrator.py:1001",
-        "scripts/run_training_orchestrator.py:541",
-        "scripts/run_training_orchestrator.py:558",
-        "scripts/run_training_orchestrator.py:571",
-        "scripts/track_monitor.py:285",
-        "scripts/track_monitor.py:297",
-        "src/CORE/WORMS/expansion/learning_grpo.py:731"
-      ],
+      "production_call_sites": [],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l6_evolve.py:154",
         "src/CORE/technique_wiring/_l6_evolve.py:157",
@@ -1536,9 +1412,9 @@
         "src/CORE/dpo_losses.py:57",
         "src/CORE/dpo_losses.py:58"
       ],
-      "n_production": 10,
+      "n_production": 0,
       "n_exercise": 7,
-      "verdict": "ADOPTED"
+      "verdict": "HOST-COMPOSED"
     },
     {
       "ep": "EP152",
@@ -1564,7 +1440,12 @@
       "built": true,
       "host_reachable": true,
       "production_call_sites": [
-        "src/CORE/technique_runtime.py:260"
+        "src/CORE/technique_runtime.py:280",
+        "src/CORE/technique_runtime.py:288",
+        "src/CORE/WORMS/expansion/meta_cognition.py:70",
+        "src/CORE/WORMS/expansion/meta_cognition.py:793",
+        "src/CORE/sentinel_enforcer.py:240",
+        "src/CORE/technique_runtime.py:353"
       ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l3_verify.py:170",
@@ -1580,7 +1461,7 @@
         "src/CORE/verification_gate.py:366",
         "src/CORE/verification_gate.py:377"
       ],
-      "n_production": 1,
+      "n_production": 6,
       "n_exercise": 8,
       "verdict": "ADOPTED"
     },
@@ -1730,7 +1611,10 @@
       ],
       "built": true,
       "host_reachable": true,
-      "production_call_sites": [],
+      "production_call_sites": [
+        "tools/canon_drift_check.py:73",
+        "tools/canon_drift_check.py:323"
+      ],
       "exercise_call_sites": [
         "src/CORE/technique_wiring/_l2_skills.py:549",
         "src/CORE/technique_wiring/_l2_skills.py:566",
@@ -1744,9 +1628,9 @@
         "src/PSYCHE/distill.py:181",
         "src/PSYCHE/distill.py:208"
       ],
-      "n_production": 0,
+      "n_production": 2,
       "n_exercise": 3,
-      "verdict": "HOST-COMPOSED"
+      "verdict": "ADOPTED"
     },
     {
       "ep": "EP156",
