@@ -416,6 +416,16 @@ def verify_before_accept(subject: str,
             remediations.append(
                 "repair ONLY at fragile nodes "
                 f"({', '.join(m['fragile_ids'])}); do not re-run the chain")
+            # EP413 (CURE) tree half, absorbed: `repair_tree` used to be built
+            # only by the exercise layer (_l3_verify) and its own tests, so the
+            # technique was registered while the live gate named no resync point.
+            # The tree's docstring says resync EXECUTION is deferred because no
+            # chain-runner exists here -- so the tree's job at this seam is to
+            # NAME where re-verification starts. That is what this adds.
+            _tree = repair_tree(confidences)
+            remediations.append(
+                f"EP413 resync-root={_tree['resync']} "
+                f"({_tree['n_fragile']} fragile node(s) to re-verify)")
 
     if draft_claims is not None or verified_claims is not None:
         d = divergence_gate(draft_claims or [], verified_claims or [])

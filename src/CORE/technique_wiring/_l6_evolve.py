@@ -392,11 +392,44 @@ def _ep429() -> Dict[str, Any]:
 
 
 def _ep435() -> Dict[str, Any]:
-    """Explore→Evaluate→Reflect→Internalize (EP435) — the Adapt half is live."""
+    """Explore->Evaluate->Reflect->Internalize (EP435) — the CHAIN now runs.
+
+    This adapter used to be a surface probe: it reported that `observe`,
+    `analyze_patterns` and `adapt_strategy` EXISTED on the module and called
+    none of them. The technique was registered while its actual mechanism --
+    `meta_cognition.internalize`, the analyse -> recommend -> adapt sequence
+    that IS the EP435 Internalize phase -- had zero callers anywhere in src/.
+    Registered-but-not-absorbed, which is the shelfware shape.
+
+    Absorbed (engram #632): drive the real chain. `internalize` is fail-open
+    and read-mostly by default (`persist=False` builds the engine with
+    persistence disabled), so this cannot churn a live strategy; the engine's
+    own `ADOPT_CONFIDENCE` gate decides whether anything is adopted.
+    """
+    mod, why = _import(("CORE.WORMS.expansion.meta_cognition",))
+    if mod is None:
+        return {"engaged": False, "reason": why}
+    fn = getattr(mod, "internalize", None)
+    if fn is None:
+        return {"engaged": False,
+                "reason": "internalize absent from meta_cognition",
+                "surfaced": _surface("CORE.WORMS.expansion.meta_cognition",
+                                     "observe", "analyze_patterns",
+                                     "adapt_strategy",
+                                     "generate_introspection_report")}
+    out: Any = None
+    try:
+        out = fn({"worm_type": "ep435_probe", "action": "internalize_chain",
+                  "outcome": "success", "context": {"probe": "l6_ep435"}})
+    except Exception as exc:                          # pragma: no cover - host
+        note_failure("_l6_evolve:ep435", exc)
+        out = {"error": f"{type(exc).__name__}: {exc}"}
+    ok = isinstance(out, dict) and "error" not in out
     return {"engaged": True,
-            "surfaced": _surface("CORE.WORMS.expansion.meta_cognition",
-                                 "observe", "analyze_patterns", "adapt_strategy",
-                                 "generate_introspection_report"),
+            "chain_ran": ok,
+            "verdict_keys": sorted(out.keys())[:8] if isinstance(out, dict) else [],
+            "adopted": bool(out.get("adopted")) if isinstance(out, dict) else False,
+            "confidence": out.get("confidence") if isinstance(out, dict) else None,
             "delta": "Explore phase (contrastive calibration) + join to the buffer",
             "adapt_callsite": "DREAM_STRATEGY_TUNING steers dreaming"}
 
