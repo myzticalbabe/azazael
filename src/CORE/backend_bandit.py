@@ -38,14 +38,14 @@ class BackendBandit:
         """Seed priors from measured tok/s rows (backend-compare + GO rows)."""
         try:
             lines = BENCH.read_text().splitlines()
-        except Exception:
-            note_failure("backend_bandit:L31", None)
+        except Exception as exc:
+            note_failure("backend_bandit:L31", exc)
             return
         for line in lines:
             try:
                 r = json.loads(line)
-            except Exception:
-                note_failure("backend_bandit:L36", None)
+            except Exception as exc:
+                note_failure("backend_bandit:L36", exc)
                 continue
             if r.get("type") == "backend-compare":
                 m = r.get("model", "?")
@@ -80,8 +80,8 @@ class BackendBandit:
                 fp = fingerprint(path)
                 if fp.get("magic_ok") and fp.get("loadable") is False:
                     return "ollama"
-            except Exception:
-                note_failure("backend_bandit:L71", None)
+            except Exception as exc:
+                note_failure("backend_bandit:L71", exc)
         cands = {}
         for (m, b), (s, f, _t, _n) in self._stats.items():
             if m in model or model in m:

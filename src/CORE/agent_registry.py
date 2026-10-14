@@ -102,8 +102,8 @@ def register_agent(
         module = cls.__module__
         try:
             source_file = inspect.getfile(cls) if hasattr(inspect, 'getfile') else ""
-        except (TypeError, OSError):
-            note_failure("agent_registry:L105", None)
+        except (TypeError, OSError) as exc:
+            note_failure("agent_registry:L105", exc)
             source_file = ""
 
         with _registry_lock:

@@ -29,8 +29,8 @@ def sp_prm_scores(orm_score_fn, tokens: list[str]) -> list[float]:
     for i in range(1, len(tokens) + 1):
         try:
             p = max(1e-6, min(1 - 1e-6, float(orm_score_fn(" ".join(tokens[:i])))))
-        except Exception:
-            note_failure("prm:L22", None)
+        except Exception as exc:
+            note_failure("prm:L22", exc)
             p = 0.5
         s = math.log(p / (1.0 - p))
         full.append(s - cum)

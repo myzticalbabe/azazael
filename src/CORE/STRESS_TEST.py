@@ -247,8 +247,8 @@ class AzazaelStressTest:
             try:
                 sock.connect(("127.0.0.1", 12345))
                 errors.append("Unexpected connection")
-            except ConnectionRefusedError:
-                note_failure("STRESS_TEST:L235", None)
+            except ConnectionRefusedError as exc:
+                note_failure("STRESS_TEST:L235", exc)
             finally:
                 sock.close()
 

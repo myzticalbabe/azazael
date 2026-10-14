@@ -30,8 +30,8 @@ def audit_to_html(filepath: str) -> str:
             try:
                 d = json.loads(line)
                 entries.append((i, d))
-            except json.JSONDecodeError:
-                note_failure("audit_export_html:L23", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_export_html:L23", exc)
                 entries.append((i, {"_corrupt": True, "_raw": line[:200]}))
 
     rows = ""

@@ -57,8 +57,8 @@ class AzazaelNode:
                     issues["bom_files"].append(str(py_file))
                 if "sys.path.insert" in content and "C:\\Users" in content:  # scanner:ignore deliberate: detector for this anti-pattern
                     issues["syntax_errors"].append(str(py_file))
-            except Exception:
-                note_failure("NODE:L51", None)
+            except Exception as exc:
+                note_failure("NODE:L51", exc)
                 issues["syntax_errors"].append(str(py_file))
 
         return issues
@@ -71,8 +71,8 @@ class AzazaelNode:
             path.write_text(content, encoding="utf-8")
             self.deficiencies_fixed.append(f"BOM removed: {file_path}")
             return True
-        except Exception:
-            note_failure("NODE:L64", None)
+        except Exception as exc:
+            note_failure("NODE:L64", exc)
             return False
 
     def fix_bad_syspath(self, file_path: str) -> bool:
@@ -98,8 +98,8 @@ class AzazaelNode:
                     self.deficiencies_fixed.append(f"sys.path fixed: {file_path}")
                     return True
             return False
-        except Exception:
-            note_failure("NODE:L90", None)
+        except Exception as exc:
+            note_failure("NODE:L90", exc)
             return False
 
     def activate_ml(self) -> dict[str, Any]:

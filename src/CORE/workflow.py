@@ -59,8 +59,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.structured_action import drive as _react_drive_impl
     from CORE.structured_action import record_reasoning_trace as _record_reasoning_trace
-except ImportError:
-    note_failure("workflow:structured_action-import", None)
+except ImportError as exc:
+    note_failure("workflow:structured_action-import", exc)
     _react_drive_impl = None
     _record_reasoning_trace = None
 
@@ -71,8 +71,8 @@ except ImportError:
 #: driver entirely.
 try:
     from CORE.structured_action import drive_for_workflow_step as _react_step_drive
-except ImportError:
-    note_failure("workflow:react-step-entry-import", None)
+except ImportError as exc:
+    note_failure("workflow:react-step-entry-import", exc)
     _react_step_drive = None
 
 # -- Lazy Config (thread-safe) ------------------------------------
@@ -89,8 +89,8 @@ def _get_config():
                 try:
                     from CORE.config import get_config
                     _cfg = get_config()
-                except ImportError:
-                    note_failure("workflow:L60", None)
+                except ImportError as exc:
+                    note_failure("workflow:L60", exc)
                     _cfg = False
     return _cfg if _cfg else None
 
@@ -357,20 +357,20 @@ class ConditionalRouter:
                     return (left_lower == "true") == (right_lower == "true")
                 try:
                     return float(left) == float(right)
-                except ValueError:
-                    note_failure("workflow:L325", None)
+                except ValueError as exc:
+                    note_failure("workflow:L325", exc)
                     return left_lower == right_lower
             elif op_str == ">":
                 try:
                     return float(left) > float(right)
-                except ValueError:
-                    note_failure("workflow:L330", None)
+                except ValueError as exc:
+                    note_failure("workflow:L330", exc)
                     return left_lower > right_lower
             elif op_str == "<":
                 try:
                     return float(left) < float(right)
-                except ValueError:
-                    note_failure("workflow:L335", None)
+                except ValueError as exc:
+                    note_failure("workflow:L335", exc)
                     return left_lower < right_lower
 
         # -- Dot-path comparison — e.g. "step_id.field == value" --
@@ -399,23 +399,23 @@ class ConditionalRouter:
             if isinstance(value, (int, float)):
                 try:
                     return value == float(right)
-                except ValueError:
-                    note_failure("workflow:L364", None)
+                except ValueError as exc:
+                    note_failure("workflow:L364", exc)
                     return str(value) == right
             return str(value).lower() == right.lower()
 
         elif op_str == ">":
             try:
                 return float(value) > float(right)
-            except (ValueError, TypeError):
-                note_failure("workflow:L371", None)
+            except (ValueError, TypeError) as exc:
+                note_failure("workflow:L371", exc)
                 return False
 
         elif op_str == "<":
             try:
                 return float(value) < float(right)
-            except (ValueError, TypeError):
-                note_failure("workflow:L377", None)
+            except (ValueError, TypeError) as exc:
+                note_failure("workflow:L377", exc)
                 return False
 
         return True
@@ -987,8 +987,8 @@ class WorkflowEngine:
                     for fut in as_completed(fut_map, timeout=300):
                         # _run_step handles its own exceptions and updates shared state via lock
                         pass
-                except TimeoutError:
-                    note_failure("workflow:L867", None)
+                except TimeoutError as exc:
+                    note_failure("workflow:L867", exc)
                     for fut, sid in fut_map.items():
                         if not fut.done():
                             fut.cancel()
@@ -1038,8 +1038,8 @@ class WorkflowEngine:
                 severity="info" if result.success else "warning",
                 tags=["workflow", workflow.name],
             )
-        except Exception:
-            note_failure("workflow:L909", None)
+        except Exception as exc:
+            note_failure("workflow:L909", exc)
 
         with self._lock:
             self._history.append(result)

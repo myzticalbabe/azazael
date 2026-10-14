@@ -35,8 +35,8 @@ def auto_link_at_creation(dm_session_id: str) -> bool:
         return False
     try:
         dm_dt = datetime.fromisoformat(row[0])
-    except (ValueError, TypeError):
-        note_failure("xref_auto_link:L28", None)
+    except (ValueError, TypeError) as exc:
+        note_failure("xref_auto_link:L28", exc)
         return False
 
     # Find closest AJ session within 5 seconds
@@ -56,8 +56,8 @@ def auto_link_at_creation(dm_session_id: str) -> bool:
                                 str(fp), audit_session_id=d.get("session_uuid", ""),
                                 mapping_type="auto", confidence=1.0,
                                 notes="auto-linked at creation")
-        except Exception:
-            note_failure("xref_auto_link:L48", None)
+        except Exception as exc:
+            note_failure("xref_auto_link:L48", exc)
             continue
     return False
 

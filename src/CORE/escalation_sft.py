@@ -22,14 +22,14 @@ def consume(ledger_path: str, out_path: str = "") -> dict:
     pairs, skipped = [], 0
     try:
         lines = open(ledger_path, encoding="utf-8").read().splitlines()
-    except Exception:
-        note_failure("escalation_sft:L15", None)
+    except Exception as exc:
+        note_failure("escalation_sft:L15", exc)
         return {"pairs": 0, "skipped": 0, "error": "ledger-unreadable"}
     for line in lines:
         try:
             r = json.loads(line)
-        except Exception:
-            note_failure("escalation_sft:L20", None)
+        except Exception as exc:
+            note_failure("escalation_sft:L20", exc)
             skipped += 1
             continue
         task, big = (r.get("task") or "").strip(), (r.get("big_answer") or "").strip()

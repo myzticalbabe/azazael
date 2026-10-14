@@ -65,8 +65,8 @@ def archive_summary(archive_dir: (Path | None) = None) -> List[Dict[str, Any]]:
         rows = conn.execute(
             "SELECT month, db_path, memories_moved, sessions_moved, moved_at "
             "FROM archive_manifest ORDER BY month").fetchall()
-    except Exception:
-        note_failure("archive_store:L58", None)
+    except Exception as exc:
+        note_failure("archive_store:L58", exc)
         return []
     finally:
         conn.close()

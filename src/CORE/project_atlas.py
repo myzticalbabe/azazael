@@ -105,8 +105,8 @@ class ProjectAtlas:
                 seen += 1
                 try:
                     relative = path.relative_to(root)
-                except ValueError:
-                    note_failure("project_atlas:L98", None)
+                except ValueError as exc:
+                    note_failure("project_atlas:L98", exc)
                     continue
                 if any(part in self.excluded_parts for part in relative.parts):
                     project.excluded_paths += 1
@@ -170,8 +170,8 @@ class ProjectAtlas:
         if path.suffix.lower() == ".py" and record.readable:
             try:
                 tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-            except (OSError, UnicodeError, SyntaxError):
-                note_failure("project_atlas:L161", None)
+            except (OSError, UnicodeError, SyntaxError) as exc:
+                note_failure("project_atlas:L161", exc)
                 return
             for node in ast.walk(tree):
                 imported = node.names[0].name if isinstance(node, ast.Import) and node.names else node.module if isinstance(node, ast.ImportFrom) else None

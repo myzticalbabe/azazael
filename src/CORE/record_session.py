@@ -327,8 +327,8 @@ class SessionRecorder:
             for field in ("data", "tags"):
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
-                except (json.JSONDecodeError, TypeError):
-                    note_failure("record_session:L321", None)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("record_session:L321", exc)
             results.append(d)
         return results
 

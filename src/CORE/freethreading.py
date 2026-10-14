@@ -77,8 +77,8 @@ class CancellationToken:
         for cb in callbacks:
             try:
                 cb()
-            except Exception:
-                note_failure("freethreading:L71", None)
+            except Exception as exc:
+                note_failure("freethreading:L71", exc)
 
     @property
     def is_cancelled(self) -> bool:
@@ -103,8 +103,8 @@ class CancellationToken:
             if self._event.is_set():
                 try:
                     cb()
-                except Exception:
-                    note_failure("freethreading:L97", None)
+                except Exception as exc:
+                    note_failure("freethreading:L97", exc)
             else:
                 self._callbacks.append(cb)
 
@@ -127,10 +127,10 @@ def is_free_threaded() -> bool:
     """
     try:
         return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-    except Exception:
+    except Exception as exc:
         # Fallback for older Python or unusual builds
         # Fallback for older Python or unusual builds
-        note_failure("freethreading:L121", None)
+        note_failure("freethreading:L121", exc)
         return hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
 
 def get_thread_info() -> dict:
@@ -349,8 +349,8 @@ class FreeThreadPool:
         if exe is not None:
             try:
                 exe.shutdown(wait=wait, cancel_futures=cancel_futures)
-            except TypeError:
-                note_failure("freethreading:L341", None)
+            except TypeError as exc:
+                note_failure("freethreading:L341", exc)
                 exe.shutdown(wait=wait)
 
     @property
@@ -402,8 +402,8 @@ class FreeThreadPool:
                         "label": label, "success": True,
                         "result": future.result(timeout=1.0), "error": None,
                     })
-                except TimeoutError:
-                    note_failure("freethreading:L393", None)
+                except TimeoutError as exc:
+                    note_failure("freethreading:L393", exc)
                     future.cancel()
                     results.append({
                         "label": label, "success": False,
@@ -415,8 +415,8 @@ class FreeThreadPool:
                         "label": label, "success": False,
                         "result": None, "error": str(e),
                     })
-        except TimeoutError:
-            note_failure("freethreading:L404", None)
+        except TimeoutError as exc:
+            note_failure("freethreading:L404", exc)
             for future, label in futures.items():
                 if not future.done():
                     future.cancel()
@@ -951,8 +951,8 @@ def detect_devices() -> list[DeviceParallelConfig]:
                 configs.append(DeviceParallelConfig.for_gpu())
             elif 'NPU' in d.upper():
                 configs.append(DeviceParallelConfig.for_npu())
-    except ImportError:
-        note_failure("freethreading:L807", None)
+    except ImportError as exc:
+        note_failure("freethreading:L807", exc)
     return configs
 
 
@@ -996,10 +996,10 @@ class OpenVINOAsyncRunner:
                 self._infer_queue = ov.AsyncInferQueue(
                     self._compiled_model, self._num_requests
                 )
-            except TypeError:
+            except TypeError as exc:
                 # Fallback: older OpenVINO versions
                 # Fallback: older OpenVINO versions
-                note_failure("freethreading:L852", None)
+                note_failure("freethreading:L852", exc)
                 self._infer_queue = ov.AsyncInferQueue(
                     self._compiled_model, self._num_requests
                 )
@@ -1055,8 +1055,8 @@ class OpenVINOAsyncRunner:
         try:
             import openvino as ov
             return ov.Core().available_devices
-        except ImportError:
-            note_failure("freethreading:L909", None)
+        except ImportError as exc:
+            note_failure("freethreading:L909", exc)
             return []
 
     def __repr__(self) -> str:

@@ -59,8 +59,8 @@ def scan(root: Path | str, output_dir: Path | str, batch_size: int = 50000, batc
                     continue
                 if path.is_file():
                     paths.append(relative.as_posix())
-            except OSError:
-                note_failure("full_scan:L52", None)
+            except OSError as exc:
+                note_failure("full_scan:L52", exc)
                 continue
         paths.sort()
         index_path.write_text("\n".join(paths) + ("\n" if paths else ""), encoding="utf-8")

@@ -49,8 +49,8 @@ def cmd_status():
     try:
         open_count = DirectMemory.get_open_sessions_count()
         print(f"  Open sessions: {open_count}")
-    except Exception:
-        note_failure("cli_memory:L42", None)
+    except Exception as exc:
+        note_failure("cli_memory:L42", exc)
     try:
         conn = sqlite3.connect(_get_db(), timeout=2)
         total = conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0]

@@ -65,8 +65,8 @@ def _promoted_path() -> Path:
     try:
         from CORE import worm_registry as wr
         return Path(wr.WIRING_PROMOTED_PATH)
-    except Exception:
-        note_failure("l1_wiring_audit:L59", None)
+    except Exception as exc:
+        note_failure("l1_wiring_audit:L59", exc)
         return _state_dir() / "wiring_promoted.json"
 
 
@@ -82,15 +82,15 @@ def load_lineage(limit: int = 4000) -> List[Dict[str, Any]]:
                     continue
                 try:
                     row = json.loads(line)
-                except Exception:
-                    note_failure("l1_wiring_audit:L75", None)
+                except Exception as exc:
+                    note_failure("l1_wiring_audit:L75", exc)
                     continue
                 if isinstance(row, dict):
                     out.append(row)
                     if len(out) >= limit:
                         break
-    except Exception:
-        note_failure("l1_wiring_audit:L81", None)
+    except Exception as exc:
+        note_failure("l1_wiring_audit:L81", exc)
         return []
     return out
 
@@ -99,8 +99,8 @@ def load_promoted() -> Optional[Dict[str, Any]]:
     """The accepted genome, or None. Absent is the correct initial state."""
     try:
         data = json.loads(_promoted_path().read_text(encoding="utf-8"))
-    except Exception:
-        note_failure("l1_wiring_audit:L90", None)
+    except Exception as exc:
+        note_failure("l1_wiring_audit:L90", exc)
         return None
     return data if isinstance(data, dict) else None
 
@@ -151,8 +151,8 @@ def dimensions(genome: Optional[Dict[str, Any]]) -> Dict[str, Any]:
         from CORE.WORMS.expansion import wiring_genome as wg
         observable = {op.__name__ for op in wg.OBSERVABLE_MUTATIONS}
         exists = {op.__name__ for op in wg.MUTATIONS}
-    except Exception:
-        note_failure("l1_wiring_audit:L141", None)
+    except Exception as exc:
+        note_failure("l1_wiring_audit:L141", exc)
         observable, exists = set(), set()
     live, excluded, unwired = [], [], []
     for field, op in _AXIS_OPERATOR.items():
@@ -223,8 +223,8 @@ def effector_effect(q_weights: Optional[Dict[str, float]] = None,
             try:
                 from CORE import spine_registry as sr
                 q_weights = sr.get_q_weights()
-            except Exception:
-                note_failure("l1_wiring_audit:L212", None)
+            except Exception as exc:
+                note_failure("l1_wiring_audit:L212", exc)
                 q_weights = {}
 
         engine = wr.SpawnDiversityEngine()
@@ -232,8 +232,8 @@ def effector_effect(q_weights: Optional[Dict[str, float]] = None,
         absent = os.path.join(os.path.dirname(real_path), "__no_genome__.json")
         try:
             os.remove(absent)
-        except OSError:
-            note_failure("l1_wiring_audit:L220", None)
+        except OSError as exc:
+            note_failure("l1_wiring_audit:L220", exc)
         try:
             for nat, cands in by_nature.items():
                 if len(cands) < 2:
@@ -314,8 +314,8 @@ def objective_health() -> Dict[str, Any]:
 def _coerce_float(value: Any) -> Optional[float]:
     try:
         return float(value)
-    except (TypeError, ValueError):
-        note_failure("l1_wiring_audit:L300", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("l1_wiring_audit:L300", exc)
         return None
 
 
@@ -373,8 +373,8 @@ def margin_reachability(rows: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         try:
             d = float(r["best_delta"])
             m = float(r["margin"])
-        except (TypeError, ValueError):
-            note_failure("l1_wiring_audit:L358", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("l1_wiring_audit:L358", exc)
             continue
         samples += 1
         deltas.append(d)

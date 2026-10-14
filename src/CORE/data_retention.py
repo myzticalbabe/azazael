@@ -196,8 +196,9 @@ def distill_aged_memories(ttl_days: int = EVENT_TTL_DAYS,
             .format(",".join("?" * len(PROTECTED_EVENTS))),
             (cutoff, *PROTECTED_EVENTS),
         ).fetchall()
-    except Exception:
+    except Exception as exc:
         conn.close()
+        _note_failure("data_retention:fetch_expired_rows", exc)
         raise
     groups: dict = {}
     for _id, source, event_type, severity, ts, data in rows:

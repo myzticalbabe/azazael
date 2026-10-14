@@ -76,8 +76,8 @@ def _release_lock():
     try:
         if _LOCK_FILE.exists():
             _LOCK_FILE.unlink()
-    except Exception:
-        note_failure("azazael_ctl:L70", None)
+    except Exception as exc:
+        note_failure("azazael_ctl:L70", exc)
 
 def _color(text: str, code: str) -> str:
     if not _COLORS:
@@ -577,8 +577,8 @@ def main():
                 idx = rest_args.index("--interval")
                 if idx + 1 < len(rest_args):
                     interval = int(rest_args[idx + 1])
-            except (ValueError, IndexError):
-                note_failure("azazael_ctl:L569", None)
+            except (ValueError, IndexError) as exc:
+                note_failure("azazael_ctl:L569", exc)
             try:
                 while True:
                     print("\033[2J\033[H", end="")

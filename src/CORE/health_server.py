@@ -63,8 +63,8 @@ def get_health_json() -> str:
     try:
         from CORE.circuit_breaker import breaker_registry
         report["breakers"] = breaker_registry.all_stats()
-    except Exception:
-        note_failure("health_server:L55", None)
+    except Exception as exc:
+        note_failure("health_server:L55", exc)
 
     return json.dumps(report, indent=2, default=str)
 
@@ -94,8 +94,8 @@ def get_prometheus_metrics() -> str:
         lines.append(f"azazael_health_ok {overall}")
         for status, count in report["counts"].items():
             lines.append(f'azazael_components_total{{status="{status}"}} {count}')
-    except Exception:
-        note_failure("health_server:L86", None)
+    except Exception as exc:
+        note_failure("health_server:L86", exc)
         lines.append("azazael_health_ok 0")
 
     # Metrics
@@ -112,8 +112,8 @@ def get_prometheus_metrics() -> str:
                 safe_name = name.replace(".", "_").replace(" ", "_")
                 lines.append(f'azazael_metric_count{{name="{safe_name}"}} {agg["count"]}')
                 lines.append(f'azazael_metric_avg{{name="{safe_name}"}} {agg["avg"]}')
-    except Exception:
-        note_failure("health_server:L103", None)
+    except Exception as exc:
+        note_failure("health_server:L103", exc)
 
     # Memory + Training (single store query)
     lines.append("")
@@ -138,8 +138,8 @@ def get_prometheus_metrics() -> str:
             last = results[-1].get("data", {})
             if isinstance(last, dict):
                 lines.append(f'azazael_training_reward_avg {last.get("avg_reward", 0)}')
-    except Exception:
-        note_failure("health_server:L129", None)
+    except Exception as exc:
+        note_failure("health_server:L129", exc)
 
     # MetaCluster
     lines.append("")
@@ -154,8 +154,8 @@ def get_prometheus_metrics() -> str:
         ncm = state.get("ncm", {})
         lines.append(f'azazael_worms_total {ncm.get("total_worms", 0)}')
         lines.append(f'azazael_orchestration_runs_total {state.get("orchestration_history", 0)}')
-    except Exception:
-        note_failure("health_server:L145", None)
+    except Exception as exc:
+        note_failure("health_server:L145", exc)
 
     lines.append("")
     return "\n".join(lines)
@@ -199,11 +199,11 @@ class PrometheusServer:
                 conn, addr = self.server.accept()
                 t = threading.Thread(target=self.handle_client, args=(conn,), daemon=True)
                 t.start()
-            except socket.timeout:
-                note_failure("health_server:L189", None)
+            except socket.timeout as exc:
+                note_failure("health_server:L189", exc)
                 continue
-            except OSError:
-                note_failure("health_server:L191", None)
+            except OSError as exc:
+                note_failure("health_server:L191", exc)
                 break
 
         print("Prometheus metrics stopped.", flush=True)
@@ -213,8 +213,8 @@ class PrometheusServer:
         if self.server:
             try:
                 self.server.close()
-            except OSError:
-                note_failure("health_server:L201", None)
+            except OSError as exc:
+                note_failure("health_server:L201", exc)
 
     def start_background(self) -> threading.Thread:
         t = threading.Thread(target=self.start, daemon=True)
@@ -258,11 +258,11 @@ class HealthServer:
                 conn, addr = self.server.accept()
                 t = threading.Thread(target=self.handle_client, args=(conn,), daemon=True)
                 t.start()
-            except socket.timeout:
-                note_failure("health_server:L245", None)
+            except socket.timeout as exc:
+                note_failure("health_server:L245", exc)
                 continue
-            except OSError:
-                note_failure("health_server:L247", None)
+            except OSError as exc:
+                note_failure("health_server:L247", exc)
                 break
         
         print("Health server stopped.", flush=True)
@@ -273,8 +273,8 @@ class HealthServer:
         if self.server:
             try:
                 self.server.close()
-            except OSError:
-                note_failure("health_server:L258", None)
+            except OSError as exc:
+                note_failure("health_server:L258", exc)
 
     def start_background(self) -> threading.Thread:
         """Start the health server in a background daemon thread."""

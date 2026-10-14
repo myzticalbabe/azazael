@@ -42,8 +42,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.safe_sql import sql as safe_sql
     _HAS_SAFE_SQL = True
-except ImportError:
-    note_failure("postgres_memory:L36", None)
+except ImportError as exc:
+    note_failure("postgres_memory:L36", exc)
     _HAS_SAFE_SQL = False
     def safe_sql(template: str, **kw) -> Any:
         """Fallback when SafeSQL module is unavailable."""
@@ -69,8 +69,8 @@ try:
     import psycopg2.extras
     import psycopg2.pool
     _HAS_PSYCOPG2 = True
-except ImportError:
-    note_failure("postgres_memory:L62", None)
+except ImportError as exc:
+    note_failure("postgres_memory:L62", exc)
     _HAS_PSYCOPG2 = False
     psycopg2 = None
 def _get_dsn() -> str:
@@ -349,8 +349,8 @@ class PostgresMemoryStore:
             for field in ("data", "tags"):
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
-                except (json.JSONDecodeError, TypeError):
-                    note_failure("postgres_memory:L341", None)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("postgres_memory:L341", exc)
             results.append(d)
         return results
     def search_memories(self, query: str, source: Optional[str] = None,
@@ -402,10 +402,10 @@ class PostgresMemoryStore:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                 cur.execute(sql, params)
                 rows = cur.fetchall()
-        except Exception:
+        except Exception as exc:
             # Fall back to LIKE search if FTS fails
             # Fall back to LIKE search if FTS fails
-            note_failure("postgres_memory:L394", None)
+            note_failure("postgres_memory:L394", exc)
             like_param = f"%{query}%"
             if source:
                 sql = (
@@ -431,8 +431,8 @@ class PostgresMemoryStore:
             for field in ("data", "tags"):
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
-                except (json.JSONDecodeError, TypeError):
-                    note_failure("postgres_memory:L421", None)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("postgres_memory:L421", exc)
             results.append(d)
         return results
     def recall_recent(self, limit: int = 20, source: Optional[str] = None) -> List[Dict]:
@@ -477,8 +477,8 @@ class PostgresMemoryStore:
                     )
                     db_size_bytes = cur.fetchone()["db_size_bytes"]
                     db_size_mb = db_size_bytes / (1024 * 1024)
-                except Exception:
-                    note_failure("postgres_memory:L467", None)
+                except Exception as exc:
+                    note_failure("postgres_memory:L467", exc)
                     db_size_mb = 0.0
 
         finally:
@@ -518,8 +518,8 @@ class PostgresMemoryStore:
             for field in ("data", "tags"):
                 try:
                     d[field] = json.loads(d[field]) if isinstance(d[field], str) else d[field]
-                except (json.JSONDecodeError, TypeError):
-                    note_failure("postgres_memory:L507", None)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("postgres_memory:L507", exc)
             memories.append(d)
 
         with open(out_path, "w", encoding="utf-8") as f:
@@ -673,8 +673,8 @@ class PostgresMemoryStore:
                         {"name": s["sequencename"], "last_value": s["last_value"]}
                         for s in sequences
                     ]
-                except Exception:
-                    note_failure("postgres_memory:L662", None)
+                except Exception as exc:
+                    note_failure("postgres_memory:L662", exc)
 
                 # 5. Check pool health
                 pool = getattr(self, "_pool", None)
@@ -861,8 +861,8 @@ class PostgresMemoryStore:
                 row = cur.fetchone()
                 if row:
                     running = row[0].lower() == "on"
-        except Exception:
-            note_failure("postgres_memory:L849", None) # Fall back to True
+        except Exception as exc:
+            note_failure("postgres_memory:L849", exc) # Fall back to True
         finally:
             self._put_conn(conn)
         return {

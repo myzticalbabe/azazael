@@ -81,8 +81,8 @@ def margin_check(items: List[Dict[str, Any]],
     for it in items:
         try:
             conf = float(it.get("confidence", 0.0))
-        except (TypeError, ValueError):
-            note_failure("verification_gate:L84", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("verification_gate:L84", exc)
             conf = 0.0
         margin = conf - threshold
         if margin < min_margin:
@@ -105,8 +105,8 @@ def estimate_run_failure(items: List[Dict[str, Any]]) -> Dict[str, Any]:
     for it in items or []:
         try:
             conf = float(it.get("confidence", 0.0))
-        except (TypeError, ValueError):
-            note_failure("verification_gate:L-est", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("verification_gate:L-est", exc)
             conf = 0.0
         p_ok *= max(0.0, min(1.0, conf))
         n += 1
@@ -128,8 +128,8 @@ def rank_candidates_by_agreement(explorer: List[Dict[str, Any]],
     for v in validator or []:
         try:
             val[str(v.get("id"))] = float(v.get("confidence", 0.0))
-        except (TypeError, ValueError):
-            note_failure("verification_gate:L-rank", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("verification_gate:L-rank", exc)
     scored = []
     for e in explorer or []:
         cid = str(e.get("id", "?"))
@@ -137,8 +137,8 @@ def rank_candidates_by_agreement(explorer: List[Dict[str, Any]],
             continue
         try:
             ec = float(e.get("confidence", 0.0))
-        except (TypeError, ValueError):
-            note_failure("verification_gate:L-rank", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("verification_gate:L-rank", exc)
             ec = 0.0
         scored.append((cid, round(1.0 - abs(ec - val[cid]), 6)))
     scored.sort(key=lambda kv: -kv[1])
@@ -164,8 +164,8 @@ def repair_tree(items: List[Dict[str, Any]],
     for it in items or []:
         try:
             conf = float(it.get("confidence", 0.0))
-        except (TypeError, ValueError):
-            note_failure("verification_gate:L-tree", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("verification_gate:L-tree", exc)
             conf = 0.0
         cid = str(it.get("id", "?"))
         margin = conf - threshold
@@ -360,8 +360,8 @@ def tdd_dual_track_check(tests_track: Optional[Dict[str, Any]],
     try:
         tv = int(tests_track.get("version", 0))
         cv = int(code_track.get("version", 0))
-    except (TypeError, ValueError):
-        note_failure("verification_gate:L231", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("verification_gate:L231", exc)
         tv, cv = 0, 0
     first = (tv >= cv) if require_tests_first else True
     passing = bool(tests_track.get("passed", False))
@@ -759,8 +759,8 @@ def decompose_rubric(criterion: str,
     subquestions = [f"Does the artifact satisfy: {c}?" for c in clauses]
     try:
         cap = int(max_subquestions)
-    except (TypeError, ValueError):
-        note_failure("verification_gate:L571", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("verification_gate:L571", exc)
         cap = 0
     if cap and len(subquestions) > cap:
         dropped = len(subquestions) - cap
@@ -796,8 +796,8 @@ def record_epistemic(result: Dict[str, Any]) -> str:
     result = result or {}
     try:
         n = int(result.get("n_confirmed", len(result.get("confirmed", []) or [])))
-    except (TypeError, ValueError):
-        note_failure("verification_gate:L607", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("verification_gate:L607", exc)
         n = 0
     accepted = bool(result.get("ok", False))
     gaps = list(result.get("gaps", []) or [])

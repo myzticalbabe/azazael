@@ -35,8 +35,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.audit_trail import EVENT_VOCAB
-except ImportError:
-    note_failure("vocab_migration:L29", None)
+except ImportError as exc:
+    note_failure("vocab_migration:L29", exc)
     EVENT_VOCAB = {}
 from CORE.direct_memory import DB_PATH as _DB
 from typing import List

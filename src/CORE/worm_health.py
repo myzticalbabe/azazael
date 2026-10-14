@@ -136,16 +136,16 @@ class WormHealthScorer:
                     avg_duration = w.get("avg_duration_ms", 0.0)
                     execution_count = w.get("execution_count", 0)
                     break
-        except ImportError:
-            note_failure("worm_health:L130", None)
+        except ImportError as exc:
+            note_failure("worm_health:L130", exc)
 
         try:
             from CORE.worm_registry import WORM_REGISTRY
             info = WORM_REGISTRY.get(name, {})
             spawn_count = info.get("spawn_count", 0)
             last_spawned = info.get("last_spawned")
-        except ImportError:
-            note_failure("worm_health:L138", None)
+        except ImportError as exc:
+            note_failure("worm_health:L138", exc)
 
         # ── Dimension 1: Success rate (0-50) ───────────────────────
         success_rate_score = (success_rate / 100.0) * 50.0
@@ -204,8 +204,8 @@ class WormHealthScorer:
             from CORE.worm_registry import discover_worms, WORM_REGISTRY
             discover_worms()
             worm_names = list(WORM_REGISTRY)
-        except ImportError:
-            note_failure("worm_health:L198", None)
+        except ImportError as exc:
+            note_failure("worm_health:L198", exc)
 
         if not worm_names:
             return {
@@ -254,8 +254,8 @@ class WormHealthScorer:
                     "degraded": sum(1 for s in scores if self.DEGRADED_THRESHOLD <= s < self.HEALTHY_THRESHOLD),
                     "critical": sum(1 for s in scores if s < self.DEGRADED_THRESHOLD),
                 }
-        except ImportError:
-            note_failure("worm_health:L248", None)
+        except ImportError as exc:
+            note_failure("worm_health:L248", exc)
 
         return {
             "overall_health": overall_health,
@@ -353,10 +353,10 @@ class WormHealthScorer:
                 last_time = last_spawned.timestamp()
             else:
                 last_time = datetime.fromisoformat(str(last_spawned)).timestamp()
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as exc:
             # Can't parse — assume moderate activity
             # Can't parse — assume moderate activity
-            note_failure("worm_health:L347", None)
+            note_failure("worm_health:L347", exc)
             return min(spawn_count * 3.0, max_score)
 
         hours_since = (time.time() - last_time) / 3600.0

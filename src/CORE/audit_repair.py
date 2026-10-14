@@ -54,8 +54,8 @@ def _read_full_audit(fp: Path) -> list:
             try:
                 data = json.loads(line)
                 results.append((i, data, raw))
-            except json.JSONDecodeError:
-                note_failure("audit_repair:L47", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_repair:L47", exc)
                 results.append((i, None, raw))
     return results
 

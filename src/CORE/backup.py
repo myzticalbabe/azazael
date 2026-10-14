@@ -101,8 +101,8 @@ def list_backups() -> list:
                 "file_list": [f.get("path", "")[-40:] for f in files_info[:10]],
                 "integrity_verified": data.get("integrity_verified", False),
             })
-        except Exception:
-            note_failure("backup:L94", None)
+        except Exception as exc:
+            note_failure("backup:L94", exc)
             continue
     return backups
 
@@ -131,8 +131,8 @@ def incremental_backup(output_dir: str = None) -> dict:
             last_data = json.loads(last_manifest.read_text(encoding="utf-8"))
             for f in last_data.get("files", []):
                 last_hashes[f["path"]] = f["hash"]
-        except Exception:
-            note_failure("backup:L123", None)
+        except Exception as exc:
+            note_failure("backup:L123", exc)
     
     # Collect files
     from CORE.direct_memory import DB_PATH
@@ -158,8 +158,8 @@ def incremental_backup(output_dir: str = None) -> dict:
             rel = str(Path(fp).relative_to(Path.home()))
             if rel not in last_hashes or last_hashes[rel] != h:
                 new_files.append((fp, rel, h))
-        except Exception:
-            note_failure("backup:L150", None)
+        except Exception as exc:
+            note_failure("backup:L150", exc)
             new_files.append((fp, str(fp), "unknown"))
     
     if not new_files:
@@ -249,8 +249,8 @@ def verify_backup_integrity(manifest_path: str) -> dict:
                 mismatched.append({"path": rel_path, "expected": expected_hash[:16], "actual": actual_hash[:16]})
             else:
                 verified += 1
-        except Exception:
-            note_failure("backup:L239", None)
+        except Exception as exc:
+            note_failure("backup:L239", exc)
             mismatched.append({"path": rel_path, "error": "Cannot read file"})
 
     return {

@@ -50,8 +50,8 @@ def norm_calibrate(vec: List[float]) -> Dict[str, Any]:
     """
     try:
         vals = [float(x) for x in (vec or [])]
-    except (TypeError, ValueError):
-        note_failure("latent_align:L53", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("latent_align:L53", exc)
         return {"calibrated": [], "norm": 0.0, "gaps": ["non-numeric-vector"]}
     norm = math.sqrt(sum(v * v for v in vals))
     if not vals:
@@ -90,8 +90,8 @@ def orthogonal_align(source: List[List[float]],
                 "gaps": [f"dim-mismatch:{len(S[0])}vs{len(T[0])}"]}
     try:
         import torch  # noqa: PLC0415 (optional backend, gated)
-    except ImportError:
-        note_failure("latent_align:L91", None)
+    except ImportError as exc:
+        note_failure("latent_align:L91", exc)
         return {"aligned": None, "rotation": None,
                 "gaps": ["torch-unavailable"]}
     St = torch.tensor(S, dtype=torch.float64)

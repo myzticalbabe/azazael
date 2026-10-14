@@ -24,8 +24,8 @@ __all__ = ['FastErrorScanner']
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("ERROR_SCAN_WORM:L18", None)
+except ImportError as exc:
+    note_failure("ERROR_SCAN_WORM:L18", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -61,8 +61,8 @@ class FastErrorScanner:
                 or first_bytes.startswith(b"\xff\xfe")
                 or first_bytes.startswith(b"\xfe\xff")
             )
-        except Exception:
-            note_failure("ERROR_SCAN_WORM:L54", None)
+        except Exception as exc:
+            note_failure("ERROR_SCAN_WORM:L54", exc)
             return False
 
     def remove_bom(self, file_path: Path) -> bool:
@@ -73,8 +73,8 @@ class FastErrorScanner:
             with open(file_path, "wb") as f:
                 f.write(content)
             return True
-        except Exception:
-            note_failure("ERROR_SCAN_WORM:L65", None)
+        except Exception as exc:
+            note_failure("ERROR_SCAN_WORM:L65", exc)
             return False
 
     def check_syntax(self, file_path: Path) -> tuple[bool, str]:

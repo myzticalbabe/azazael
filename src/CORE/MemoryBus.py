@@ -56,8 +56,8 @@ if _azazael_src not in sys.path:
 try:
     from CORE.freethreading import is_free_threaded, ThreadSafeDict, ThreadSafeList
     HAS_FREETHREADING = True
-except ImportError:
-    note_failure("MemoryBus:L49", None)
+except ImportError as exc:
+    note_failure("MemoryBus:L49", exc)
     HAS_FREETHREADING = False
     ThreadSafeDict: Any = dict  # type: ignore[no-redef]
     ThreadSafeList: Any = list  # type: ignore[no-redef]
@@ -70,8 +70,8 @@ IS_FREE_THREADED = is_free_threaded()
 try:
     import requests
     HAS_REQUESTS = True
-except ImportError:
-    note_failure("MemoryBus:L62", None)
+except ImportError as exc:
+    note_failure("MemoryBus:L62", exc)
     HAS_REQUESTS = False
     import urllib.request
     import urllib.error
@@ -165,8 +165,8 @@ def _resolve_pams_url() -> str:
             mtime = pf.stat().st_mtime
             if mtime > best_mtime:
                 best_mtime, best_url = mtime, candidate
-        except Exception:
-            note_failure("MemoryBus:L115", None)
+        except Exception as exc:
+            note_failure("MemoryBus:L115", exc)
             continue
     if best_url:
         return best_url
@@ -194,8 +194,8 @@ def _pams_api_key() -> str | None:
         kf = Path(str(_pam.__file__)).resolve().parent / "keys" / "mcpo_api_key.txt"
         if kf.is_file():
             _PAMS_API_KEY = kf.read_text(encoding="utf-8").strip() or None
-    except Exception:
-        note_failure("MemoryBus:L141", None)
+    except Exception as exc:
+        note_failure("MemoryBus:L141", exc)
     return _PAMS_API_KEY
 
 
@@ -242,8 +242,8 @@ def _get_memorybus_db_path() -> Path:
     try:
         from CORE.direct_memory import _get_telemetry_db_path
         return _get_telemetry_db_path()
-    except Exception:
-        note_failure("MemoryBus:L189", None)
+    except Exception as exc:
+        note_failure("MemoryBus:L189", exc)
         env_dir = os.environ.get("AZAZAEL_MEMORY_DIR", "")
         if env_dir:
             base = Path(env_dir)
@@ -417,8 +417,8 @@ class MemoryBus:
             self._migrate_queue_schema(conn)
             conn.close()
             self._persistent_queue_initialized = True
-        except Exception:
-            note_failure("MemoryBus:L322", None)
+        except Exception as exc:
+            note_failure("MemoryBus:L322", exc)
 
     def _migrate_queue_schema(self, conn: sqlite3.Connection):
         """Run additive schema migrations for existing queue tables.
@@ -493,8 +493,8 @@ class MemoryBus:
             conn.commit()
             conn.close()
             return row_id
-        except Exception:
-            note_failure("MemoryBus:L398", None)
+        except Exception as exc:
+            note_failure("MemoryBus:L398", exc)
             self._increment('pams_errors')
             return 0
 
@@ -535,8 +535,8 @@ class MemoryBus:
                             self._last_seen.get(topic, 0), msg_id
                         )
                     return msg_id
-            except Exception:
-                note_failure("MemoryBus:L439", None)
+            except Exception as exc:
+                note_failure("MemoryBus:L439", exc)
                 self._increment('pams_errors')
 
         # -- Fallback: store locally + persist to SQLite -----------------
@@ -680,8 +680,8 @@ class MemoryBus:
                 pams_msgs = self._query_pams(topic=topic, since_id=since_id, limit=limit)
                 if pams_msgs:
                     messages.extend(pams_msgs)
-            except Exception:
-                note_failure("MemoryBus:L583", None)
+            except Exception as exc:
+                note_failure("MemoryBus:L583", exc)
                 self._increment('pams_errors')
 
         # Deduplicate by message_id
@@ -740,8 +740,8 @@ class MemoryBus:
                 conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
                 pq_size = conn.execute("SELECT COUNT(*) FROM memorybus_queue WHERE flushed=0").fetchone()[0]
                 conn.close()
-        except Exception:
-            note_failure("MemoryBus:L642", None)
+        except Exception as exc:
+            note_failure("MemoryBus:L642", exc)
 
         with self._stats_lock:
             stats_snapshot = dict(self._stats_data)
@@ -800,8 +800,8 @@ class MemoryBus:
                         flushed += 1
                     else:
                         remaining.append(msg)
-                except Exception:
-                    note_failure("MemoryBus:L702", None)
+                except Exception as exc:
+                    note_failure("MemoryBus:L702", exc)
                     remaining.append(msg)
             self._local_queue = remaining
 
@@ -825,8 +825,8 @@ class MemoryBus:
                             flushed_ids.append(row[0])
                             flushed += 1
                             self._increment('persistent_flushed')
-                    except Exception:
-                        note_failure("MemoryBus:L726", None)
+                    except Exception as exc:
+                        note_failure("MemoryBus:L726", exc)
                 # Batch update all flushed messages in one query
                 if flushed_ids:
                     conn2 = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
@@ -837,8 +837,8 @@ class MemoryBus:
                     )
                     conn2.commit()
                     conn2.close()
-            except Exception:
-                note_failure("MemoryBus:L738", None)
+            except Exception as exc:
+                note_failure("MemoryBus:L738", exc)
 
         # Retire flushed rows: they live in PAMS now. Without this the queue
         # table grows forever (was 214MB, zero rows ever flushed). Best
@@ -855,8 +855,8 @@ class MemoryBus:
                 (day_cut,))
             conn3.commit()
             conn3.close()
-        except Exception:
-            note_failure("MemoryBus:L756", None)
+        except Exception as exc:
+            note_failure("MemoryBus:L756", exc)
 
         return flushed
 
@@ -873,8 +873,8 @@ class MemoryBus:
         """
         try:
             resolved = _resolve_pams_url()
-        except Exception:
-            note_failure("MemoryBus:refresh-pams-url", None)
+        except Exception as exc:
+            note_failure("MemoryBus:refresh-pams-url", exc)
             return False
         if resolved and resolved != self.pams_url:
             self.pams_url = resolved
@@ -891,8 +891,8 @@ class MemoryBus:
                 req = urllib.request.Request(f"{self.pams_url}{PAMS_API_PREFIX}/health")
                 with urllib.request.urlopen(req, timeout=PAMS_TIMEOUT) as resp:
                     return resp.status == 200
-        except Exception:
-            note_failure("MemoryBus:L773", None)
+        except Exception as exc:
+            note_failure("MemoryBus:L773", exc)
             return False
 
     def _check_pams(self) -> bool:
@@ -937,8 +937,8 @@ class MemoryBus:
         self._pams_next_recheck = now + PAMS_RECHECK_SEC
         try:
             self._pams_available = self._check_pams()
-        except Exception:                          # never break the host
-            note_failure("MemoryBus:ensure-pams-available", None)
+        except Exception as exc:                          # never break the host
+            note_failure("MemoryBus:ensure-pams-available", exc)
             self._pams_available = False
         return self._pams_available
 
@@ -1021,9 +1021,9 @@ class MemoryBus:
                     callback(msg)
                     count += 1
                     self._increment('delivered')
-            except Exception:
+            except Exception as exc:
                 # Don't let one bad callback crash the bus
-                note_failure("MemoryBus:L851", None)
+                note_failure("MemoryBus:L851", exc)
 
         return count
 
@@ -1051,8 +1051,8 @@ class MemoryBus:
                 conn = sqlite3.connect(str(_MEMORYBUS_DB_PATH), timeout=2)
                 conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
                 conn.close()
-            except Exception:
-                note_failure("MemoryBus:L881", None)
+            except Exception as exc:
+                note_failure("MemoryBus:L881", exc)
 
     @staticmethod
     def _matches_topic(pattern: str, topic: str) -> bool:

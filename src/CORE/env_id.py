@@ -58,8 +58,8 @@ def _read(path: str) -> str:
     try:
         with open(path, "r", errors="replace") as f:
             return f.read()
-    except Exception:
-        note_failure("env_id:L51", None)
+    except Exception as exc:
+        note_failure("env_id:L51", exc)
         return ""
 
 
@@ -158,14 +158,14 @@ def describe_env() -> dict:
     try:
         import psutil
         mem_gb = round(psutil.virtual_memory().total / 1e9, 1)
-    except Exception:
-        note_failure("env_id:L150", None)
+    except Exception as exc:
+        note_failure("env_id:L150", exc)
         try:
             with open("/proc/meminfo", "r") as f:
                 mem_kb = int(f.readline().split()[1])
             mem_gb = round(mem_kb / 1e6, 1)
-        except Exception:
-            note_failure("env_id:L155", None)
+        except Exception as exc:
+            note_failure("env_id:L155", exc)
             mem_gb = 0.0
     return {"env": env, "virt": virt, "cpu": os.cpu_count() or 0,
             "mem_gb": mem_gb, "bare_likely": env == "bare" and virt == "bare_metal_or_unknown"}
@@ -185,6 +185,6 @@ def _windows_hypervisor_present() -> bool:
         ) as k:
             val, _ = winreg.QueryValueEx(k, "HypervisorPresent")
         return bool(val)
-    except Exception:
-        note_failure("env_id:L175", None)
+    except Exception as exc:
+        note_failure("env_id:L175", exc)
         return False

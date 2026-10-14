@@ -96,8 +96,8 @@ def _node_id() -> str:
     try:
         from CORE.env_id import env_id
         return str(env_id())[:24] or "unknown"
-    except Exception:  # pragma: no cover - defensive
-        note_failure("hlc:L90", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("hlc:L90", exc)
         return "unknown"
 
 
@@ -109,8 +109,8 @@ def pack_stamp(physical_ms: int, counter: int, node: str = "") -> str:
     """
     try:
         physical = int(physical_ms)
-    except Exception:
-        note_failure("hlc:L102", None)
+    except Exception as exc:
+        note_failure("hlc:L102", exc)
         physical = 0
     return "%0*d-%0*d-%s" % (
         PHYSICAL_DIGITS, max(0, min(MAX_PHYSICAL, physical)),
@@ -155,8 +155,8 @@ def normalize_stamp(value: str, node: str = _LEGACY_NODE) -> str:
                 from datetime import datetime
                 return pack_stamp(int(datetime.fromisoformat(text).timestamp() * 1000),
                                   0, node)
-            except Exception:
-                note_failure("hlc:L147", None)
+            except Exception as exc:
+                note_failure("hlc:L147", exc)
             try:
                 magnitude = abs(float(text))
                 # Unit detection by MAGNITUDE. Note the old code multiplied by
@@ -176,8 +176,8 @@ def normalize_stamp(value: str, node: str = _LEGACY_NODE) -> str:
                 else:                        # seconds
                     millis = magnitude * 1000
                 return pack_stamp(int(millis), 0, node)
-            except Exception:
-                note_failure("hlc:L168", None)
+            except Exception as exc:
+                note_failure("hlc:L168", exc)
     return pack_stamp(0, 0, node)
 
 

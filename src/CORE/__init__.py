@@ -58,8 +58,8 @@ except ImportError:                               # never break the host
 # Fall back to empty dicts to avoid blocking all CORE imports.
 try:
     from CORE.audit_trail import EVENT_VOCAB, EVENT_VOCAB_REVERSE
-except ImportError:
-    note_failure("__init__:L51", None)
+except ImportError as exc:
+    note_failure("__init__:L51", exc)
     EVENT_VOCAB: dict = {}
     EVENT_VOCAB_REVERSE: dict = {}
 
@@ -67,8 +67,8 @@ except ImportError:
 try:
     from CORE.inference_pool import InferencePool
     _has_inference_pool = True
-except ImportError:
-    note_failure("__init__:L59", None)
+except ImportError as exc:
+    note_failure("__init__:L59", exc)
     _has_inference_pool = False
     InferencePool = None  # type: ignore
 

@@ -35,16 +35,16 @@ def hdbscan_lite(vecs, min_size: int = 5):
         labels = list(map(int, cl.labels_))
         noise = sum(1 for l in labels if l == -1) / max(1, len(labels))
         return {"labels": labels, "noise_rate": noise, "backend": "hdbscan"}
-    except Exception:
-        note_failure("cluster_route:L21", None)
+    except Exception as exc:
+        note_failure("cluster_route:L21", exc)
     try:
         from sklearn.cluster import HDBSCAN as _H
         cl = _H(min_cluster_size=min_size).fit(vecs)
         labels = list(map(int, cl.labels_))
         noise = sum(1 for l in labels if l == -1) / max(1, len(labels))
         return {"labels": labels, "noise_rate": noise, "backend": "sklearn"}
-    except Exception:
-        note_failure("cluster_route:L29", None)
+    except Exception as exc:
+        note_failure("cluster_route:L29", exc)
     # fallback: greedy threshold (mean pairwise dist / 2)
     import math
     n = len(vecs)
@@ -143,8 +143,8 @@ def tpe_lite_suggest(trials, bounds: dict, n_candidates: int = 24, suggest=None)
         # Optuna present — caller should build real study; keep lite path
         # deterministic for tests. (Full study lives in tune script.)
         pass
-    except Exception:
-        note_failure("cluster_route:L79", None)
+    except Exception as exc:
+        note_failure("cluster_route:L79", exc)
     ranked = sorted(trials, key=lambda t: t[1], reverse=True)
     good = ranked[:max(1, len(ranked) // 4)]
     base = good[0][0]

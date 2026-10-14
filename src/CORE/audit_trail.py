@@ -77,8 +77,8 @@ except ImportError:                               # never break the host
 try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     _CRYPTO_AVAILABLE = True
-except ImportError:
-    note_failure("audit_trail:L70", None)
+except ImportError as exc:
+    note_failure("audit_trail:L70", exc)
     _CRYPTO_AVAILABLE = False
     ed25519 = None
     serialization = None
@@ -155,8 +155,8 @@ def _get_signing_key() -> bytes:
         # Restrict permissions on private key (POSIX only, Windows ignores)
         try:
             os.chmod(SIGNING_KEY_PATH, stat.S_IREAD | stat.S_IWRITE)
-        except Exception:
-            note_failure("audit_trail:L147", None)
+        except Exception as exc:
+            note_failure("audit_trail:L147", exc)
         _signing_key = priv_bytes
 
     return _signing_key
@@ -199,15 +199,15 @@ def verify_signature(data: dict) -> bool:
 
     try:
         signature = base64.b64decode(sig_b64)
-    except Exception:
-        note_failure("audit_trail:L191", None)
+    except Exception as exc:
+        note_failure("audit_trail:L191", exc)
         return False  # Corrupt signature encoding
 
     pub_bytes = PUBLIC_KEY_PATH.read_bytes()
     try:
         pub_key = ed25519.Ed25519PublicKey.from_public_bytes(pub_bytes)
-    except Exception:
-        note_failure("audit_trail:L197", None)
+    except Exception as exc:
+        note_failure("audit_trail:L197", exc)
         return False
 
     # Reconstruct what was signed: the entry WITHOUT hash, signature, entry_count
@@ -218,8 +218,8 @@ def verify_signature(data: dict) -> bool:
     try:
         pub_key.verify(signature, message)
         return True
-    except Exception:
-        note_failure("audit_trail:L208", None)
+    except Exception as exc:
+        note_failure("audit_trail:L208", exc)
         return False
 
 
@@ -343,8 +343,8 @@ class _authorized_write:
         try:
             from CORE import sentinel_enforcer as _se  # noqa: PLC0415
             self._enforcer = _se
-        except Exception:
-            note_failure("audit_trail:L332", None)
+        except Exception as exc:
+            note_failure("audit_trail:L332", exc)
             self._enforcer = None
         if self._enforcer is not None:
             self._enforcer._GATED_CALL.is_active = True
@@ -392,8 +392,8 @@ def audit_session_start() -> str:
     try:
         _ensure_session()
         return str(_session_filepath) if _session_filepath else ""
-    except Exception:
-        note_failure("audit_trail:L380", None)
+    except Exception as exc:
+        note_failure("audit_trail:L380", exc)
         return ""
 
 
@@ -431,8 +431,8 @@ def _atexit_anchor():
     try:
         if _session_started and _session_filepath and _session_filepath.exists():
             close_session()
-    except Exception:
-        note_failure("audit_trail:L418", None)
+    except Exception as exc:
+        note_failure("audit_trail:L418", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -490,8 +490,8 @@ def verify_head_hash(audit_filepath: str) -> tuple:
                 if os.path.normpath(str(data.get("audit_file", ""))) == os.path.normpath(audit_filepath):
                     stored_hash = data.get("head_hash", "")
                     break
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L477", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L477", exc)
                 continue
 
     if not stored_hash:
@@ -518,8 +518,8 @@ def get_anchored_files() -> list:
                     data.get("head_hash", ""),
                     data.get("entry_count", 0),
                 ))
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L504", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L504", exc)
                 continue
     return results
 
@@ -771,8 +771,8 @@ def verify_completeness(filepath: str) -> tuple:
                 continue
             try:
                 data = json.loads(line)
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L756", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L756", exc)
                 continue
 
             entry_type = data.get("type", "")
@@ -957,8 +957,8 @@ def get_merkle_root(filepath: str) -> str:
                 continue
             try:
                 data = json.loads(line)
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L848", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L848", exc)
                 continue
             # Exclude chain checkpoints and session_end from Merkle tree
             if data.get("type") in ("chain_checkpoint", "session_end"):
@@ -997,8 +997,8 @@ def get_merkle_proof(filepath: str, target_hash: str) -> list:
                 continue
             try:
                 data = json.loads(line)
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L887", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L887", exc)
                 continue
             if data.get("type") in ("chain_checkpoint", "session_end"):
                 continue
@@ -1117,8 +1117,8 @@ def verify_chain(filepath: str, from_checkpoint: int = 0) -> tuple:
 
                 try:
                     data = json.loads(line)
-                except json.JSONDecodeError:
-                    note_failure("audit_trail:L1006", None)
+                except json.JSONDecodeError as exc:
+                    note_failure("audit_trail:L1006", exc)
                     return False, i
 
                 # Skip until checkpoint line (improvement #5)
@@ -1189,8 +1189,8 @@ def verify_chain_skip_corrupt(filepath: str) -> tuple:
 
             try:
                 data = json.loads(line)
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L1077", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L1077", exc)
                 corrupt_lines.append(i)
                 error_details.append((i, "Corrupt JSON"))
                 continue
@@ -1242,8 +1242,8 @@ def get_head_hash(filepath: str = None) -> str:
                     h = data.get("hash", "")
                     if h:
                         last_hash = h
-                except json.JSONDecodeError:
-                    note_failure("audit_trail:L1129", None)
+                except json.JSONDecodeError as exc:
+                    note_failure("audit_trail:L1129", exc)
         return last_hash
     finally:
         if own_lock:
@@ -1268,16 +1268,16 @@ def verify_monotonicity(filepath: str) -> tuple:
                 continue
             try:
                 data = json.loads(line)
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L1155", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L1155", exc)
                 continue
             ts_str = data.get("ts", "")
             if not ts_str:
                 continue
             try:
                 ts = datetime.datetime.fromisoformat(ts_str)
-            except ValueError:
-                note_failure("audit_trail:L1162", None)
+            except ValueError as exc:
+                note_failure("audit_trail:L1162", exc)
                 continue
             if last_ts is not None and ts < last_ts:
                 return False, i
@@ -1298,8 +1298,8 @@ def lock_audit_file(filepath: str) -> bool:
     try:
         os.chmod(filepath, stat.S_IREAD)
         return True
-    except Exception:
-        note_failure("audit_trail:L1183", None)
+    except Exception as exc:
+        note_failure("audit_trail:L1183", exc)
         return False
 
 
@@ -1308,8 +1308,8 @@ def unlock_audit_file(filepath: str) -> bool:
     try:
         os.chmod(filepath, stat.S_IWRITE | stat.S_IREAD)
         return True
-    except Exception:
-        note_failure("audit_trail:L1192", None)
+    except Exception as exc:
+        note_failure("audit_trail:L1192", exc)
         return False
 
 
@@ -1399,8 +1399,8 @@ def audit_anomaly_scan(filepath: str) -> list:
             try:
                 data = json.loads(line)
                 entries.append((i, data))
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L1282", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L1282", exc)
                 anomalies.append(f"Line {i}: Corrupt JSON")
                 continue
 
@@ -1426,8 +1426,8 @@ def audit_anomaly_scan(filepath: str) -> list:
             is_readonly = not (os.stat(filepath).st_mode & stat.S_IWRITE)
             if is_readonly:
                 anomalies.append("Structural: Read-only session file missing session_end entry (possible truncation)")
-        except Exception:
-            note_failure("audit_trail:L1308", None)
+        except Exception as exc:
+            note_failure("audit_trail:L1308", exc)
 
     # Rate anomaly: >100 entries in any 1-second window
     entry_times = []
@@ -1436,8 +1436,8 @@ def audit_anomaly_scan(filepath: str) -> list:
         if ts_str:
             try:
                 entry_times.append((ln, datetime.datetime.fromisoformat(ts_str)))
-            except ValueError:
-                note_failure("audit_trail:L1318", None)
+            except ValueError as exc:
+                note_failure("audit_trail:L1318", exc)
                 continue
 
     if len(entry_times) > 1:
@@ -1473,8 +1473,8 @@ def audit_anomaly_scan(filepath: str) -> list:
                         f"Temporal anomaly: Future timestamp at line {ln}: {ts_str} "
                         f"(current time: {now.isoformat(timespec='seconds')})"
                     )
-            except ValueError:
-                note_failure("audit_trail:L1354", None)
+            except ValueError as exc:
+                note_failure("audit_trail:L1354", exc)
 
     # Temporal: non-monotonic (already caught by verify_monotonicity, but log here too)
     last_ts = None
@@ -1483,8 +1483,8 @@ def audit_anomaly_scan(filepath: str) -> list:
         if ts_str:
             try:
                 ts = datetime.datetime.fromisoformat(ts_str)
-            except ValueError:
-                note_failure("audit_trail:L1364", None)
+            except ValueError as exc:
+                note_failure("audit_trail:L1364", exc)
                 continue
             if last_ts is not None and ts < last_ts:
                 anomalies.append(
@@ -1541,8 +1541,8 @@ def read_audit_lines(filepath: str = None) -> list:
             try:
                 data = json.loads(line)
                 results.append((i, data))
-            except json.JSONDecodeError:
-                note_failure("audit_trail:L1421", None)
+            except json.JSONDecodeError as exc:
+                note_failure("audit_trail:L1421", exc)
                 results.append((i, {"_corrupt": True, "_raw": line[:200]}))
     return results
 
@@ -1572,8 +1572,8 @@ def verify_citation_exists(citation: str) -> bool:
     filepath, line_str = parts
     try:
         line_num = int(line_str)
-    except ValueError:
-        note_failure("audit_trail:L1451", None)
+    except ValueError as exc:
+        note_failure("audit_trail:L1451", exc)
         return False
     if not Path(filepath).exists():
         return False

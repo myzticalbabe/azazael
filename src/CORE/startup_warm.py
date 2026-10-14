@@ -137,8 +137,8 @@ def _run_registry_validation(force: bool = False):
         from CORE.worm_registry import repair_registry, validate_registry_importable
         try:
             result = validate_registry_importable()
-        except Exception:
-            note_failure("startup_warm:L131", None)
+        except Exception as exc:
+            note_failure("startup_warm:L131", exc)
             result = {"valid": True, "total": 0, "checked": 0, "broken": []}
 
         if result.get("broken"):
@@ -301,8 +301,8 @@ def _warm_worker(on_complete: (Callable | None) = None,
         if on_complete:
             try:
                 on_complete()
-            except Exception:
-                note_failure("startup_warm:L294", None) # scanner:ignore
+            except Exception as exc:
+                note_failure("startup_warm:L294", exc) # scanner:ignore
 
 
 def warm_caches_background(on_complete: (Callable | None) = None) -> threading.Thread:
@@ -539,8 +539,8 @@ def cache_status() -> dict:
             # 2026-09-29: count worms, not info fields. sum(len(v)) summed
             # each entry's field count (5-8x the worm count).
             registry_size = len(WORM_REGISTRY) if WORM_REGISTRY else 0
-        except (ImportError, AttributeError):
-            note_failure("startup_warm:L532", None) # scanner:ignore
+        except (ImportError, AttributeError) as exc:
+            note_failure("startup_warm:L532", exc) # scanner:ignore
 
     if _last_warm_time is not None:
         last_warm_ago = time.monotonic() - _last_warm_time
@@ -584,8 +584,8 @@ def registry_importability_by_category(
     """
     try:
         from CORE.worm_registry import WORM_REGISTRY, validate_registry_importable
-    except (ImportError, AttributeError):
-        note_failure("startup_warm:L577", None)
+    except (ImportError, AttributeError) as exc:
+        note_failure("startup_warm:L577", exc)
         return {}
 
     if not WORM_REGISTRY:
@@ -607,8 +607,8 @@ def registry_importability_by_category(
         try:
             res = validate_registry_importable()
             broken_names = {b.get("name") for b in (res.get("broken") or []) if b.get("name")}
-        except Exception:
-            note_failure("startup_warm:L599", None)
+        except Exception as exc:
+            note_failure("startup_warm:L599", exc)
             broken_names = set()
 
     breakdown: dict = {}
@@ -643,8 +643,8 @@ def ensure_registry_warm() -> bool:
             # docstring promised it was non-blocking.
             _ensure_registry_validation_async()
             return True
-    except ImportError:
-        note_failure("startup_warm:L634", None) # scanner:ignore
+    except ImportError as exc:
+        note_failure("startup_warm:L634", exc) # scanner:ignore
 
     # Start background warm if not already started
     if not _warmed.is_set():

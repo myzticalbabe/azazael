@@ -134,22 +134,22 @@ try:
         sys.path.insert(0, str(_ROOT))
     from SCRIPTS.sentinel_gate import SentinelValidator, parse_stdin
     _SENTINEL_AVAILABLE = True
-except ImportError:
-    note_failure("sentinel_enforcer:L122", None)
+except ImportError as exc:
+    note_failure("sentinel_enforcer:L122", exc)
     _SENTINEL_AVAILABLE = False
 
 try:
     from CORE.compliance.scanner import ASTAntiPatternScanner, AntiPatternResult
     _SCANNER_AVAILABLE = True
-except ImportError:
-    note_failure("sentinel_enforcer:L128", None)
+except ImportError as exc:
+    note_failure("sentinel_enforcer:L128", exc)
     _SCANNER_AVAILABLE = False
 
 try:
     from CORE.compliance.pre_action_gate import PreActionGate, get_pre_action_gate
     _PAG_AVAILABLE = True
-except ImportError:
-    note_failure("sentinel_enforcer:L134", None)
+except ImportError as exc:
+    note_failure("sentinel_enforcer:L134", exc)
     _PAG_AVAILABLE = False
     PreActionGate = None
     get_pre_action_gate = None
@@ -194,8 +194,8 @@ def _backup_path(filepath: str) -> str:
                             _os.path.relpath(target, root)) + ".pre_gate_backup"
         _os.makedirs(_os.path.dirname(out), exist_ok=True)
         return out
-    except Exception:
-        note_failure("sentinel_enforcer:L178", None)
+    except Exception as exc:
+        note_failure("sentinel_enforcer:L178", exc)
         return filepath + ".pre_gate_backup"
 
 
@@ -209,8 +209,8 @@ def _create_backup(filepath: str) -> str:
         content = fp.read_text(encoding="utf-8")
         Path(backup_path).write_text(content, encoding="utf-8")
         return backup_path
-    except Exception:
-        note_failure("sentinel_enforcer:L192", None)
+    except Exception as exc:
+        note_failure("sentinel_enforcer:L192", exc)
         return ""
 
 
@@ -299,8 +299,8 @@ def _enforce_impl(
                 else:
                     # old_string not found in current file - this will fail anyway
                     proposed = current
-            except Exception:
-                note_failure("sentinel_enforcer:L280", None)
+            except Exception as exc:
+                note_failure("sentinel_enforcer:L280", exc)
                 proposed = new_content
         else:
             proposed = new_content
@@ -401,8 +401,8 @@ def enforce_write(filepath: str, content: str) -> tuple[bool, str]:
     if fp.exists():
         try:
             old = fp.read_text(encoding="utf-8")
-        except Exception:
-            note_failure("sentinel_enforcer:L380", None)
+        except Exception as exc:
+            note_failure("sentinel_enforcer:L380", exc)
     return enforce(filepath, old, content, action="write_file")
 
 
@@ -521,8 +521,8 @@ def rollback(filepath: str) -> bool:
             with _lock:
                 _rollback_count += 1
             return True
-    except Exception:
-        note_failure("sentinel_enforcer:L413", None)
+    except Exception as exc:
+        note_failure("sentinel_enforcer:L413", exc)
         return False
 
 
@@ -718,8 +718,8 @@ def self_test() -> bool:
         for p in _backup_cleanup + ["test.py", "test.py.pre_gate_backup"]:
             try:
                 os.unlink(p)
-            except OSError:
-                note_failure("sentinel_enforcer:L662", None)
+            except OSError as exc:
+                note_failure("sentinel_enforcer:L662", exc)
 
 
 if __name__ == "__main__":

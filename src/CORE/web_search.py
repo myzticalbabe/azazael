@@ -90,8 +90,8 @@ def fetch_url(url: str, *,
     ts = _now()
     try:
         scheme = urllib.parse.urlparse(str(url)).scheme.lower()
-    except Exception:
-        note_failure("web_search:L84", None)
+    except Exception as exc:
+        note_failure("web_search:L84", exc)
         scheme = ""
     if scheme not in ("http", "https"):
         return FetchResult(url=str(url), retrieved_at=ts,
@@ -107,8 +107,8 @@ def fetch_url(url: str, *,
             ctype = ""
             try:
                 ctype = str(resp.headers.get("Content-Type", ""))
-            except Exception:
-                note_failure("web_search:L100", None)
+            except Exception as exc:
+                note_failure("web_search:L100", exc)
                 ctype = ""
             if ctype and not ctype.split(";")[0].strip().startswith(
                     ("text/", "application/json", "application/xml",
@@ -122,17 +122,17 @@ def fetch_url(url: str, *,
             charset = "utf-8"
             try:
                 charset = resp.headers.get_content_charset() or charset
-            except Exception:
-                note_failure("web_search:L114", None)
+            except Exception as exc:
+                note_failure("web_search:L114", exc)
             try:
                 text = raw.decode(charset, errors="replace")
-            except Exception:
-                note_failure("web_search:L118", None)
+            except Exception as exc:
+                note_failure("web_search:L118", exc)
                 text = raw.decode("utf-8", errors="replace")
             try:
                 final_url = resp.geturl()
-            except Exception:
-                note_failure("web_search:L122", None)
+            except Exception as exc:
+                note_failure("web_search:L122", exc)
                 final_url = str(url)
             return FetchResult(url=str(url), final_url=str(final_url),
                                status=status, text=text,
@@ -140,8 +140,8 @@ def fetch_url(url: str, *,
         finally:
             try:
                 resp.close()
-            except Exception:
-                note_failure("web_search:L130", None)
+            except Exception as exc:
+                note_failure("web_search:L130", exc)
     except urllib.error.HTTPError as e:
         note_failure("web_search:L132", e)
         return FetchResult(url=str(url), status=getattr(e, "code", None),
@@ -187,8 +187,8 @@ class WikipediaProvider:
                                    "list": "search", "srsearch": str(query),
                                    "srlimit": max(1, min(int(limit), 20)),
                                    "srprop": "snippet"})
-        except Exception:
-            note_failure("web_search:L174", None)
+        except Exception as exc:
+            note_failure("web_search:L174", exc)
             return []
         out = []
         try:
@@ -200,8 +200,8 @@ class WikipediaProvider:
                     title=title, url=url,
                     snippet=_strip_tags(str(item.get("snippet", ""))),
                     source=self.NAME, retrieved_at=ts))
-        except Exception:
-            note_failure("web_search:L186", None)
+        except Exception as exc:
+            note_failure("web_search:L186", exc)
             return out
         return out
 
@@ -210,8 +210,8 @@ class WikipediaProvider:
         ts = _now()
         try:
             title = result.title
-        except Exception:
-            note_failure("web_search:L195", None)
+        except Exception as exc:
+            note_failure("web_search:L195", exc)
             return FetchResult(retrieved_at=ts, error="bad result")
         if not title:
             return FetchResult(retrieved_at=ts, error="empty title")

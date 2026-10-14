@@ -49,8 +49,8 @@ try:
         ThreadSafeList, ThreadSafeCounter,
     )
     HAS_FREETHREADING = True
-except ImportError:
-    note_failure("AgentPool:L43", None)
+except ImportError as exc:
+    note_failure("AgentPool:L43", exc)
     HAS_FREETHREADING = False
     ThreadSafeDict = dict
     ThreadSafeList = list
@@ -76,8 +76,8 @@ except ImportError:
 try:
     from CORE.PamsRecorder import PamsRecorder, get_recorder
     HAS_PAMS = True
-except ImportError:
-    note_failure("AgentPool:L69", None)
+except ImportError as exc:
+    note_failure("AgentPool:L69", exc)
     HAS_PAMS = False
     def PamsRecorder():
         return type('FakeRecorder', (), {
@@ -207,8 +207,8 @@ class AgentPool:
         if self.record_to_pams and HAS_PAMS:
             try:
                 self._pams = get_recorder()
-            except Exception:
-                note_failure("AgentPool:L199", None)
+            except Exception as exc:
+                note_failure("AgentPool:L199", exc)
 
         if self._pams:
             self._pams.record_event(
@@ -466,8 +466,8 @@ class AgentPool:
                 for f in as_completed(futures):
                     try:
                         f.result()
-                    except Exception:
-                        note_failure("AgentPool:L456", None)
+                    except Exception as exc:
+                        note_failure("AgentPool:L456", exc)
             duration = time.perf_counter() - start
             throughput = iterations_per_level / duration if duration > 0 else 0
 

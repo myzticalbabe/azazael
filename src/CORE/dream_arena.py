@@ -53,8 +53,8 @@ def admit_worlds(arena, dreams: list[dict], genome=None) -> dict:
     compiled, admitted, skipped = 0, 0, 0
     try:
         from CORE.WORMS.expansion.arena import Environment
-    except Exception:
-        note_failure("dream_arena:L41", None)
+    except Exception as exc:
+        note_failure("dream_arena:L41", exc)
         return {"compiled": 0, "admitted": 0, "skipped": len(dreams),
                 "error": "arena-unavailable"}
     for d in dreams:
@@ -72,8 +72,8 @@ def admit_worlds(arena, dreams: list[dict], genome=None) -> dict:
                 admitted += 1
             else:
                 skipped += 1
-        except Exception:
-            note_failure("dream_arena:L59", None)
+        except Exception as exc:
+            note_failure("dream_arena:L59", exc)
             skipped += 1
     return {"compiled": compiled, "admitted": admitted, "skipped": skipped}
 

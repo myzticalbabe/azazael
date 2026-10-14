@@ -59,8 +59,8 @@ def bounded_correct(state: List[float], correction: List[float],
         st = [float(x) for x in (state or [])]
         co = [float(x) for x in (correction or [])]
         bd = float(bound)
-    except (TypeError, ValueError):
-        note_failure("latent_refine:L62", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("latent_refine:L62", exc)
         return {"state": [], "applied_norm": 0.0, "scale": 0.0,
                 "gaps": ["non-numeric"]}
     if len(st) != len(co):
@@ -90,8 +90,8 @@ def refine(initial: List[float],
     """
     try:
         state = [float(x) for x in (initial or [])]
-    except (TypeError, ValueError):
-        note_failure("latent_refine:L92", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("latent_refine:L92", exc)
         return {"refined": [], "residuals": [], "steps": 0,
                 "contracted": False, "gaps": ["non-numeric-initial"]}
     residuals: List[float] = []

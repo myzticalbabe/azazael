@@ -82,13 +82,13 @@ try:
     try:
         _test_record.name = 'override_test'
         # Python < 3.14: name is not protected
-    except AttributeError:
+    except AttributeError as exc:
         # Python >= 3.14: name is protected, apply patch
         # Python >= 3.14: name is protected, apply patch
-        note_failure("azazael_logging:L76", None)
+        note_failure("azazael_logging:L76", exc)
         logging.Logger._log = _safe_log
-except Exception:
-    note_failure("azazael_logging:L79", None)
+except Exception as exc:
+    note_failure("azazael_logging:L79", exc)
 
 
 @dataclass
@@ -124,8 +124,8 @@ class JsonFormatter(logging.Formatter):
                     "type": exc_info[0].__name__,
                     "message": str(exc_info[1]) if exc_info[1] else "",
                 }
-            except (TypeError, AttributeError):
-                note_failure("azazael_logging:L116", None)
+            except (TypeError, AttributeError) as exc:
+                note_failure("azazael_logging:L116", exc)
                 entry["exception"] = {"type": "unknown", "message": str(exc_info)}
         return json.dumps(entry, default=str)
 
@@ -224,8 +224,8 @@ try:
         level=_cfg.observability.logging.level,
         log_file=_cfg.observability.logging.file,
     )
-except Exception:
-    note_failure("azazael_logging:L215", None)
+except Exception as exc:
+    note_failure("azazael_logging:L215", exc)
 
 
 if __name__ == "__main__":
