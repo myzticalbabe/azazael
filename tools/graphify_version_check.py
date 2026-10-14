@@ -70,7 +70,8 @@ def package_version(py: Path) -> str:
     r = subprocess.run(
         [str(py), "-c",
          "import importlib.metadata as m;print(m.version('graphifyy'))"],
-        capture_output=True, text=True)
+        capture_output=True, text=True,
+        encoding="utf-8", errors="replace")
     return (r.stdout or "").strip() or "?"
 
 

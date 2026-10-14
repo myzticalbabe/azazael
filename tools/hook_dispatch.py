@@ -217,7 +217,7 @@ def armed(hook: dict) -> tuple[bool, str]:
         return False, f"owner missing: {check[0]}"
     try:
         p = subprocess.run([PY] + check, cwd=AZ, capture_output=True,
-                           text=True, timeout=300)
+                           text=True, timeout=300, encoding="utf-8", errors="replace")
     except Exception as e:
         return False, f"{type(e).__name__}: {e}"[:80]
     if p.returncode in (0, 1, 2):
@@ -278,7 +278,12 @@ def main() -> int:
         if not check:
             print("  declarative only - no executable to run")
             return 0
-        p = subprocess.run([PY] + check, cwd=AZ)  # scanner:ignore
+        # Bounded to 300s because armed() already runs this identical [PY] + check
+        # shape under timeout=300, so the bound is evidence, not a guess. The bare
+        # `# scanner:ignore` that stood on this line existed only to hide the
+        # missing timeout; with the cause fixed there is nothing left to suppress,
+        # so the marker was removed rather than given a reason.
+        p = subprocess.run([PY] + check, cwd=AZ, timeout=300)
         return p.returncode
 
     st = status()

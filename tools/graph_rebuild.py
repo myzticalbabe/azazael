@@ -91,7 +91,8 @@ def site_dir() -> Path:
                  "s.submodule_search_locations else '')")
         try:
             proc = subprocess.run([str(GRAPHIFY_PY), "-c", probe],
-                                  capture_output=True, text=True, timeout=60)
+                                  capture_output=True, text=True, timeout=60,
+                                  encoding="utf-8", errors="replace")
             line = (proc.stdout or "").strip().splitlines()
             if line and line[-1]:
                 return Path(line[-1])
@@ -133,7 +134,8 @@ def rounds(count: int, sleep_s: int, out: str, timeout: int) -> dict:
         cmd = graphify_cmd(("extract", "src", "--out", out))
         try:
             proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
-                                  text=True, timeout=timeout)
+                                  text=True, timeout=timeout,
+                                  encoding="utf-8", errors="replace")
             text = (proc.stdout or "") + (proc.stderr or "")
             rc = proc.returncode
         except subprocess.TimeoutExpired as exc:
@@ -165,7 +167,8 @@ def cluster_pass(out: str, timeout: int = 1800) -> dict:
     try:
         res = subprocess.run(graphify_cmd(("cluster-only", "--out", out)),
                              cwd=str(ROOT), capture_output=True,
-                             text=True, timeout=timeout)
+                             text=True, timeout=timeout,
+                             encoding="utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         return {"rc": None, "tail": ["timeout"]}
     text = ((res.stdout or "") + (res.stderr or "")).strip().splitlines()

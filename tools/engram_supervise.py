@@ -35,7 +35,8 @@ def run(args, stdin_data=None):
     try:
         r = subprocess.run(
             [ENGRAM_BIN] + args, input=stdin_data,
-            timeout=60, capture_output=True, text=True, errors="replace",
+            timeout=60, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
             cwd=str(HERE.parent))
         return r.stdout or ""
     except Exception as e:

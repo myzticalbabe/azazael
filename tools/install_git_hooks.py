@@ -48,7 +48,8 @@ REQUIRED_HOOKS = ("pre-commit",)
 
 def _git(*args: str) -> tuple[int, str]:
     r = subprocess.run(["git", *args], cwd=str(ROOT),
-                       capture_output=True, text=True)
+                       capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout or "").rstrip("\n") + (r.stderr or "").rstrip("\n")
 
 
