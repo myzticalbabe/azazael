@@ -54,8 +54,8 @@ def _check_xpu_available() -> bool:
         _XPU_AVAILABLE = (
             result.returncode == 0 and result.stdout.strip() == "True"
         )
-    except (subprocess.TimeoutExpired, subprocess.SubprocessError, Exception):
-        note_failure("core:L48", None)
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, Exception) as exc:
+        note_failure("core:L48", exc)
         _XPU_AVAILABLE = False
 
     return _XPU_AVAILABLE
@@ -79,8 +79,8 @@ def _module_installed(name: str) -> bool:
     try:
         import importlib.util
         return importlib.util.find_spec(name) is not None
-    except Exception:
-        note_failure("core:L72", None)
+    except Exception as exc:
+        note_failure("core:L72", exc)
         return False
 
 
@@ -103,8 +103,8 @@ def _import_ok(name: str) -> bool:
                 env=os.environ.copy(),
             )
             ok = proc.returncode == 0
-        except Exception:
-            note_failure("core:L95", None)
+        except Exception as exc:
+            note_failure("core:L95", exc)
             ok = False
     _IMPORT_OK[name] = ok
     return ok
@@ -114,18 +114,18 @@ def _import_ok(name: str) -> bool:
 try:
     from PIL import Image
     HAS_PIL = True
-except ImportError:
-    note_failure("core:L105", None)
+except ImportError as exc:
+    note_failure("core:L105", exc)
     HAS_PIL = False
     Image = None  # type: ignore
 
 # Re-export shared data models (single source of truth across all projects)
 try:
     from shared.models import InferenceResult, BatchResult
-except ImportError:
+except ImportError as exc:
     # Fallback: define locally if shared module not available
     # Fallback: define locally if shared module not available
-    note_failure("core:L112", None)
+    note_failure("core:L112", exc)
     from dataclasses import dataclass, field
 
     @dataclass
@@ -149,8 +149,8 @@ except ImportError:
 # Ensure shared is importable from the library
 try:
     pass
-except ImportError:
-    note_failure("core:L137", None)
+except ImportError as exc:
+    note_failure("core:L137", exc)
     _shared_path = Path(__file__).resolve().parents[4] / "workspace" / "projects"
     if str(_shared_path) not in sys.path:
         sys.path.insert(0, str(_shared_path))
@@ -188,8 +188,8 @@ class ModelLoader:
                 # Intel XPU (Arc GPU via Level Zero / SYCL)
                 # Uses subprocess sandbox to survive segfaults on headless systems
                 frameworks["xpu"] = _check_xpu_available()
-            except Exception:
-                note_failure("core:L175", None)
+            except Exception as exc:
+                note_failure("core:L175", exc)
                 frameworks["cuda"] = False
                 frameworks["metal"] = False
                 frameworks["xpu"] = False
@@ -201,8 +201,8 @@ class ModelLoader:
                 import pyopencl
                 platforms = pyopencl.get_platforms()
                 frameworks["opencl"] = len(platforms) > 0
-            except Exception:
-                note_failure("core:L187", None)
+            except Exception as exc:
+                note_failure("core:L187", exc)
 
         # Vulkan detection (cross-platform GPU compute)
         frameworks["vulkan"] = False
@@ -212,8 +212,8 @@ class ModelLoader:
                 frameworks["vulkan"] = (
                     hasattr(torch, "vulkan") and torch.vulkan.is_available()
                 )
-            except Exception:
-                note_failure("core:L198", None)
+            except Exception as exc:
+                note_failure("core:L198", exc)
 
         return frameworks
 
@@ -315,8 +315,8 @@ class ModelLoader:
                             "total_memory_gb": round(props.total_memory / (1024**3), 2),
                             "backend": "xpu",
                         })
-                    except Exception:
-                        note_failure("core:L301", None)
+                    except Exception as exc:
+                        note_failure("core:L301", exc)
                         info["devices"].append({
                             "index": i,
                             "name": f"Intel XPU Device {i}",
@@ -328,8 +328,8 @@ class ModelLoader:
                     "name": "Apple Metal (MPS)",
                     "backend": "mps",
                 })
-        except ImportError:
-            note_failure("core:L313", None)
+        except ImportError as exc:
+            note_failure("core:L313", exc)
 
         # OpenCL detection (independent of torch)
         try:
@@ -346,8 +346,8 @@ class ModelLoader:
                             "backend": "opencl",
                             "platform": plat.name,
                         })
-        except ImportError:
-            note_failure("core:L331", None)
+        except ImportError as exc:
+            note_failure("core:L331", exc)
 
         # Vulkan detection (via torch backend)
         try:
@@ -355,8 +355,8 @@ class ModelLoader:
             info["vulkan_available"] = (
                 hasattr(torch, "vulkan") and torch.vulkan.is_available()
             )
-        except Exception:
-            note_failure("core:L340", None)
+        except Exception as exc:
+            note_failure("core:L340", exc)
 
         info["device_count"] = len(info["devices"])
 
@@ -380,8 +380,8 @@ class ModelLoader:
                 return "xpu"
             if torch.backends.mps.is_available():
                 return "mps"
-        except ImportError:
-            note_failure("core:L365", None)
+        except ImportError as exc:
+            note_failure("core:L365", exc)
         return "cpu"
 
     @staticmethod

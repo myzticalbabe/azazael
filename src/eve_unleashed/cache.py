@@ -35,8 +35,8 @@ def _hash_inputs(inputs: Any) -> str:
         try:
             arr = np.array(inputs, dtype=np.float32)
             return hashlib.sha256(arr.tobytes()).hexdigest()[:16]
-        except (ValueError, TypeError):
-            note_failure("cache:L29", None)
+        except (ValueError, TypeError) as exc:
+            note_failure("cache:L29", exc)
     serialized = json.dumps(inputs, sort_keys=True, default=str).encode()
     return hashlib.sha256(serialized).hexdigest()[:16]
 
@@ -47,8 +47,8 @@ def _estimate_size(result: Any) -> int:
         return result.nbytes
     try:
         return sys.getsizeof(result)
-    except TypeError:
-        note_failure("cache:L41", None)
+    except TypeError as exc:
+        note_failure("cache:L41", exc)
         return 1024  # conservative guess for complex objects
 
 

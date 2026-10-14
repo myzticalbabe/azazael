@@ -208,8 +208,8 @@ class InferenceEngine:
             else:
                 _lat = float(result.total_time_ms) / max(1, len(result.results))
             get_registry().record_inference(_mpath, _lat, framework)
-        except Exception:
-            note_failure("engine:L202", None)
+        except Exception as exc:
+            note_failure("engine:L202", exc)
 
         # Store in cache
         if not batch and self._cache is not None:
@@ -540,8 +540,8 @@ class InferenceEngine:
                     self._single_infer(model, framework, warmup_input)
                 elif framework in ("gguf", "transformers", "vl"):
                     self._single_infer(model, framework, "warmup")
-            except Exception:
-                note_failure("engine:L534", None) # Warmup failures are non-fatal
+            except Exception as exc:
+                note_failure("engine:L534", exc) # Warmup failures are non-fatal
 
     def batch_infer(self, handle: str, inputs_list: list) -> BatchResult:
         """Run batched inference (public API for backward compatibility)."""
@@ -556,8 +556,8 @@ class InferenceEngine:
         """Ensure executor is shut down on garbage collection."""
         try:
             self._executor.shutdown(wait=False)
-        except Exception:
-            note_failure("engine:L550", None)
+        except Exception as exc:
+            note_failure("engine:L550", exc)
 
 
 def create_engine(config_path: (str | None) = None) -> InferenceEngine:

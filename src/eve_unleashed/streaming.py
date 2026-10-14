@@ -154,8 +154,8 @@ async def stream_transformers(
                 temperature=0.7,
                 pad_token_id=tokenizer.eos_token_id,
             )
-        except Exception:
-            note_failure("streaming:L148", None)
+        except Exception as exc:
+            note_failure("streaming:L148", exc)
         finally:
             # Ensure the async generator always unblocks, even on error
             loop.call_soon_threadsafe(queue.put_nowait, ("", True))
