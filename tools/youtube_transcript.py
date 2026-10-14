@@ -46,7 +46,8 @@ def parse_id(s):
 
 def _run(cmd, timeout=120):
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+                           encoding="utf-8", errors="replace")
         return r.returncode, (r.stdout or "").strip(), (r.stderr or "").strip()[-2000:]
     except subprocess.TimeoutExpired:
         return 124, "", "timeout"
