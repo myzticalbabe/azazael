@@ -35,7 +35,47 @@ from pathlib import Path
 from typing import Any, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
-LEDGER = ROOT / "logs" / "mutation_ledger.jsonl"
+
+
+def _ledger_paths() -> list[Path]:
+    """Rotated generations oldest-first, then the live ledger.
+
+    The scheme lives in `self_modify`, which owns the rotator. This reader used
+    to re-state the generation count and the path template itself, so changing
+    the rotator silently desynchronised it -- and the failure is quiet: a reader
+    that names fewer generations than exist still returns rows, it just stops
+    seeing the archived ones. The scorecard below counts verdicts across the
+    whole history, so it would reset at a rotation it could not see.
+    """
+    tools_dir = str(ROOT / "tools")
+    if tools_dir not in sys.path:
+        sys.path.insert(0, tools_dir)
+    import self_modify  # noqa: PLC0415 -- lazy, so this stays runnable as a script
+    return self_modify.ledger_paths()
+
+
+def _ledger_rows() -> list[dict]:
+    """Every ledger row, oldest generation first, tolerant of torn lines.
+
+    The ledger rotates (`mutation_ledger.jsonl.N`, 5 generations). The scorecard
+    below counts verdicts across the whole history, so reading only the live
+    file would silently reset it at every rotation.
+    """
+    rows: list[dict] = []
+    torn = 0
+    for path in _ledger_paths():
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                torn += 1  # a torn append: counted, never fatal
+    if torn:
+        print("[ledger] %d unreadable line(s) skipped" % torn, file=sys.stderr)
+    return rows
 
 # Declared budgets, not discovered ones. A model's window is a constraint that
 # either holds or is silently negotiated away, so it is stated here and enforced
@@ -142,16 +182,10 @@ def scoreboard() -> dict:
     owner would make the board useless in the same way a fitness function with
     the wrong optimum is worse than none.
     """
-    if not LEDGER.is_file():
+    if not any(p.is_file() for p in _ledger_paths()):
         return {"attempts": 0, "models": {}, "note": "no ledger yet"}
     per: dict[str, dict[str, int]] = {}
-    for line in LEDGER.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        try:
-            row = json.loads(line)
-        except ValueError:
-            continue
+    for row in _ledger_rows():
         key = str(row.get("model") or "unattributed")
         bucket = per.setdefault(key, {"kept": 0, "reverted": 0, "rejected": 0})
         verdict = str(row.get("verdict", "unknown"))

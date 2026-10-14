@@ -59,7 +59,39 @@ from pathlib import Path
 from typing import Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
-LEDGER = ROOT / "logs" / "mutation_ledger.jsonl"
+
+
+def _ledger_rows() -> list[dict]:
+    """Every ledger row, oldest generation first, tolerant of torn lines.
+
+    The generation list comes from `self_modify`, which owns the rotator. This
+    reader used to re-state the generation count and the path template, so it
+    could silently stop seeing generations the rotator was writing -- and
+    attempts() reads history so a failed attempt is not re-derived, so a reader
+    that misses a generation re-derives exactly what the ledger exists to
+    remember. `ledger_paths()` also reads the module globals at call time, so a
+    caller that repoints the ledger for a test is now honoured here too.
+    """
+    tools_dir = str(ROOT / "tools")
+    if tools_dir not in sys.path:
+        sys.path.insert(0, tools_dir)
+    import self_modify  # noqa: PLC0415 -- lazy, so this stays runnable as a script
+    paths = self_modify.ledger_paths()
+    rows: list[dict] = []
+    torn = 0
+    for path in paths:
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                torn += 1  # a torn append: counted, never fatal
+    if torn:
+        print("[ledger] %d unreadable line(s) skipped" % torn, file=sys.stderr)
+    return rows
 
 
 def attempts() -> dict:
@@ -71,15 +103,9 @@ def attempts() -> dict:
     attempts cumulative instead of episodic.
     """
     empty = {"total": 0, "kept": 0, "reverted": [], "rejected": []}
-    if not LEDGER.is_file():
+    rows = _ledger_rows()
+    if not rows:
         return empty
-    rows: list[dict] = []
-    for line in LEDGER.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            try:
-                rows.append(json.loads(line))
-            except ValueError:
-                continue
     return {"total": len(rows),
             "kept": sum(1 for r in rows if r.get("verdict") == "kept"),
             "reverted": [r for r in rows if r.get("verdict") == "reverted"],
