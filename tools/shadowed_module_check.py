@@ -76,7 +76,8 @@ def tracked_py(repo: Path) -> list[str]:
     """
     try:
         r = subprocess.run(["git", "ls-files", "*.py"], cwd=str(repo),
-                           capture_output=True, text=True)
+                           capture_output=True, text=True,
+                           encoding="utf-8", errors="replace")
         if r.returncode == 0:
             out = [p for p in r.stdout.splitlines() if p.strip()]
             if out:

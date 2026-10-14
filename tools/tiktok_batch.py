@@ -31,7 +31,8 @@ def ffprobe(path):
     cmd = ["ffprobe", "-v", "error", "-show_format", "-show_streams",
            "-of", "json", str(path)]
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120,
+                           encoding="utf-8", errors="replace")
         return json.loads(r.stdout or "{}")
     except Exception as e:
         return {"error": str(e)}

@@ -37,7 +37,7 @@ def _view_text() -> str:
     try:
         p = subprocess.run([sys.executable, str(TERENCE), "--environments"],
                            cwd=str(ROOT), capture_output=True, text=True,
-                           timeout=120)
+                           timeout=120, encoding="utf-8", errors="replace")
         return (p.stdout or "") + (p.stderr or "")
     except Exception as exc:
         return "view failed: %s" % exc

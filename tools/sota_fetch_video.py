@@ -16,7 +16,8 @@ YT_BASE = "https://www.youtube.com/watch?v="
 
 
 def run(cmd, timeout):
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout,
+                       encoding="utf-8", errors="replace")
     if p.returncode != 0:
         raise RuntimeError(f"FAILED {' '.join(cmd)}\n{p.stderr[-2000:]}")
     return p

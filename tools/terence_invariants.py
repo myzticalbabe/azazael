@@ -92,7 +92,7 @@ class Fault(dict):
 
 def _run(args, timeout=900):
     p = subprocess.run([PY] + args, cwd=AZ, capture_output=True, text=True,
-                       timeout=timeout)
+                       encoding="utf-8", errors="replace", timeout=timeout)
     return p.returncode, p.stdout, p.stderr
 
 
