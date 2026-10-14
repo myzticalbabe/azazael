@@ -46,8 +46,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root_safe as _get_project_root_safe
-except ImportError:                               # src/ not on sys.path
-    note_failure("hydra_bridge:core-paths-import", None)
+except ImportError as exc:                               # src/ not on sys.path
+    note_failure("hydra_bridge:core-paths-import", exc)
     _get_project_root_safe = None
 
 #: This file is src/ORCHESTRATION/hydra_bridge.py, so parents[2] is the repo root.
@@ -76,16 +76,16 @@ from HYDRA import HYDRACluster, ClusterConfig, ProcessingStage, StageResult
 try:
     from CORE.PamsRecorder import get_recorder
     PAMS_REC = get_recorder()
-except ImportError:
-    note_failure("hydra_bridge:L46", None)
+except ImportError as exc:
+    note_failure("hydra_bridge:L46", exc)
     PAMS_REC = None
 
 # InferenceBridge (may fail if llama-server not running)
 try:
     from InferenceBridge import InferenceBridge
     BRIDGE_AVAILABLE = True
-except ImportError:
-    note_failure("hydra_bridge:L53", None)
+except ImportError as exc:
+    note_failure("hydra_bridge:L53", exc)
     BRIDGE_AVAILABLE = False
 
 
@@ -117,8 +117,8 @@ class HydraBridge:
         if BRIDGE_AVAILABLE:
             try:
                 self.bridge = InferenceBridge()
-            except Exception:
-                note_failure("hydra_bridge:L85", None)
+            except Exception as exc:
+                note_failure("hydra_bridge:L85", exc)
         self._recorder = PAMS_REC
 
     def run_full_pipeline(self, use_llm: bool = True) -> PipelineReport:
@@ -232,8 +232,8 @@ What went well? What can be improved? Respond concisely (2-3 sentences)."""
 
             if resp.success:
                 return resp.response
-        except Exception:
-            note_failure("hydra_bridge:L200", None)
+        except Exception as exc:
+            note_failure("hydra_bridge:L200", exc)
 
         return None
 

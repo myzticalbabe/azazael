@@ -553,8 +553,8 @@ class SystemManager:
                             os.remove(fp)
                             count += 1
                             freed += size
-                        except Exception:
-                            note_failure("SystemManager:L545", None)
+                        except Exception as exc:
+                            note_failure("SystemManager:L545", exc)
                 cleaned["paths"].append(path)
                 cleaned["files_removed"] += count
                 cleaned["space_freed_mb"] += round(freed / (1024 * 1024), 2)

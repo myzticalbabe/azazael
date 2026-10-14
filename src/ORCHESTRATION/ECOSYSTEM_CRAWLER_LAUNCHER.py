@@ -32,8 +32,8 @@ except ImportError:                               # never break the host
 # Dynamic path resolution
 try:
     from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("ECOSYSTEM_CRAWLER_LAUNCHER:L25", None)
+except ImportError as exc:
+    note_failure("ECOSYSTEM_CRAWLER_LAUNCHER:L25", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_desktop_dir
 

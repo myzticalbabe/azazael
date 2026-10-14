@@ -60,8 +60,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.paths import get_project_root as _get_project_root
-except ImportError:                               # never break the host
-    note_failure("HORUS:core-paths-import", None)
+except ImportError as exc:                               # never break the host
+    note_failure("HORUS:core-paths-import", exc)
     _get_project_root = None
 
 
@@ -623,10 +623,10 @@ def run_ml_analysis(cluster: Any = None) -> HORUSOutput:
     try:
         from ml_platforms.config import discover_modules
         modules = discover_modules()
-    except ImportError:
+    except ImportError as exc:
         # Fallback: scan local project for Python modules
         # Fallback: scan local project for Python modules
-        note_failure("HORUS:L569", None)
+        note_failure("HORUS:L569", exc)
         root = Path(os.environ.get("AZAZAEL_ROOT", str(_DEFAULT_ROOT)))
         modules = {}
         for py_file in root.rglob("*.py"):
@@ -648,8 +648,8 @@ def run_ml_analysis(cluster: Any = None) -> HORUSOutput:
                     "functions": functions,
                     "classes": classes,
                 }
-            except Exception:
-                note_failure("HORUS:L592", None)
+            except Exception as exc:
+                note_failure("HORUS:L592", exc)
                 modules[rel] = {"name": py_file.stem, "docstring": "", "functions": [], "classes": []}
 
     entries = []
@@ -935,8 +935,8 @@ try:
     from enum import Enum
     import subprocess
     _TKINTER_AVAILABLE = True
-except ImportError:
-    note_failure("HORUS:L878", None)
+except ImportError as exc:
+    note_failure("HORUS:L878", exc)
     _TKINTER_AVAILABLE = False
 
 
@@ -1325,8 +1325,8 @@ class HORUSLiveMonitor:
                     comp.status = status
                     self.render_grid()
                     self.log(f"{name} complete", name, comp.color)
-        except queue.Empty:
-            note_failure("HORUS:L1265", None)
+        except queue.Empty as exc:
+            note_failure("HORUS:L1265", exc)
         if self.running:
             self.root.after(100, self.process_queue)
 

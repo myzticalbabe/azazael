@@ -76,8 +76,8 @@ class FusionCore:
         try:
             with open(p, "r") as f:
                 return json.load(f)
-        except Exception:
-            note_failure("ADLP_FusionCore:L69", None)
+        except Exception as exc:
+            note_failure("ADLP_FusionCore:L69", exc)
             return {}
 
     def _reg(self, n, t, v, f):

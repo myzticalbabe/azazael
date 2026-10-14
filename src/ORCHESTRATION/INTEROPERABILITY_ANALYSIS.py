@@ -553,8 +553,8 @@ except ImportError:                               # never break the host
     # Save report
 try:
     from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("INTEROPERABILITY_ANALYSIS:L547", None)
+except ImportError as exc:
+    note_failure("INTEROPERABILITY_ANALYSIS:L547", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from CORE.paths import get_desktop_dir
 from typing import List

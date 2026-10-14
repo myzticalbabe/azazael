@@ -51,8 +51,8 @@ except ImportError:                               # never break the host
 # Dynamic path resolution
 try:
     from CORE.paths import get_output_dir
-except ImportError:
-    note_failure("TARBABY:L45", None)
+except ImportError as exc:
+    note_failure("TARBABY:L45", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_output_dir
 
@@ -268,8 +268,8 @@ class TARBABYCompiler:
                         _safe_walk(item)
                     elif item.suffix.lower() in (".py", ".pyw"):
                         python_files.append(str(item))
-            except PermissionError:
-                note_failure("TARBABY:L261", None)
+            except PermissionError as exc:
+                note_failure("TARBABY:L261", exc)
 
         try:
             if recursive:
@@ -281,8 +281,8 @@ class TARBABYCompiler:
                 for py_file in search_path.glob("*.py"):
                     if not self._should_skip(py_file):
                         python_files.append(str(py_file))
-        except PermissionError:
-            note_failure("TARBABY:L274", None)
+        except PermissionError as exc:
+            note_failure("TARBABY:L274", exc)
         return python_files
 
     def _should_skip(self, path: Path) -> bool:
