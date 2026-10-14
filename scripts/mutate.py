@@ -144,7 +144,7 @@ def run_tests(test_args, timeout):
     try:
         r = subprocess.run(
             [sys.executable, "-m", "pytest"] + test_args + ["-q", "-p", "no:cacheprovider"],
-            capture_output=True, text=True, timeout=timeout, cwd=ROOT)
+            capture_output=True, text=True, timeout=timeout, cwd=ROOT, encoding="utf-8", errors="replace")
         return r.returncode == 0
     except subprocess.TimeoutExpired:
         return None  # timed out: neither killed nor survived
