@@ -81,7 +81,8 @@ def _is_freethreaded(python: str) -> bool:
         out = subprocess.run(
             [python, "-c",
              "import sysconfig;print(sysconfig.get_config_var('Py_GIL_DISABLED'))"],
-            capture_output=True, text=True, timeout=60)
+            capture_output=True, text=True, timeout=60,
+            encoding="utf-8", errors="replace")
         return out.stdout.strip() == "1"
     except Exception:
         return False
@@ -100,7 +101,8 @@ def _pip_download(spec: str, abi: str, dest: Path, python: str,
            "--implementation", "cp", "--abi", abi, "-d", str(dest)]
     if allow_pre:
         cmd.append("--pre")
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+    proc = subprocess.run(cmd, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace")
     wheels = sorted(dest.glob("*.whl"))
     if proc.returncode != 0 or not wheels:
         return None
@@ -270,7 +272,8 @@ def _probe(module: str, python: str, timeout: float) -> str:
     try:
         proc = subprocess.run(
             [python, "-c", f"import {module}"],
-            capture_output=True, text=True, timeout=timeout)
+            capture_output=True, text=True, timeout=timeout,
+            encoding="utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         return "TIMEOUT"
     if proc.returncode == 0:
@@ -438,7 +441,8 @@ def main() -> int:
             proc = subprocess.run(
                 [_installer_for(primary), "-m", "pip", "install",
                  "--force-reinstall", "--no-deps", "--no-warn-conflicts",
-                 str(primary)], capture_output=True, text=True)
+                 str(primary)], capture_output=True, text=True,
+                 encoding="utf-8", errors="replace")
             if proc.returncode != 0:
                 # Retry with the GIL build if the FT build is unusable.
                 alt = gil_wheel if primary is ft_wheel else None
@@ -447,7 +451,8 @@ def main() -> int:
                     proc = subprocess.run(
                         [_installer_for(primary), "-m", "pip", "install",
                          "--force-reinstall", "--no-deps", "--no-warn-conflicts",
-                         str(primary)], capture_output=True, text=True)
+                         str(primary)], capture_output=True, text=True,
+                         encoding="utf-8", errors="replace")
                 if proc.returncode != 0:
                     print(f"   install failed: "
                           f"{(proc.stderr or proc.stdout).strip().splitlines()[-1][:100]}")

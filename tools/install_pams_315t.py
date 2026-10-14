@@ -186,7 +186,7 @@ def verify(target: Path) -> int:
     ).replace("__MODS__", repr(THIRD_PARTY))
     import subprocess
     proc = subprocess.run([str(python), "-c", code], capture_output=True, text=True,
-                          timeout=600)
+                          timeout=600, encoding="utf-8", errors="replace")
     payload = {}
     for line in reversed(proc.stdout.splitlines()):
         try:

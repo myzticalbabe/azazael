@@ -77,7 +77,8 @@ def _graphify_install_dir(py: Path) -> Path | None:
              "s.submodule_search_locations else '')")
     try:
         proc = subprocess.run([str(py), "-c", probe], capture_output=True,
-                              text=True, timeout=60)
+                              text=True, timeout=60,
+                              encoding="utf-8", errors="replace")
     except (OSError, subprocess.TimeoutExpired):
         return None
     line = (proc.stdout or "").strip().splitlines()
@@ -90,7 +91,8 @@ def _graphify_version(py: Path) -> str:
         proc = subprocess.run(
             [str(py), "-c",
              "import importlib.metadata as m; print(m.version('graphifyy'))"],
-            capture_output=True, text=True, timeout=60)
+            capture_output=True, text=True, timeout=60,
+            encoding="utf-8", errors="replace")
     except (OSError, subprocess.TimeoutExpired):
         return "?"
     return (proc.stdout or "?").strip() or "?"
