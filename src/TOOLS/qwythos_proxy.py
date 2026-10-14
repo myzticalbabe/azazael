@@ -73,8 +73,8 @@ def _coerce(value: str) -> object:
         return ""
     try:
         return json.loads(text)
-    except (json.JSONDecodeError, ValueError):
-        note_failure("qwythos_proxy:L66", None)
+    except (json.JSONDecodeError, ValueError) as exc:
+        note_failure("qwythos_proxy:L66", exc)
         return text
 
 
@@ -143,8 +143,8 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length) if length else b"{}"
         try:
             req = json.loads(raw.decode("utf-8"))
-        except (json.JSONDecodeError, ValueError):
-            note_failure("qwythos_proxy:L134", None)
+        except (json.JSONDecodeError, ValueError) as exc:
+            note_failure("qwythos_proxy:L134", exc)
             self._send(400, b'{"error":"invalid JSON body"}')
             return
         model = req.get("model", "")
@@ -157,16 +157,16 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 if float(req.get("temperature", 1.0)) > 0.2:
                     req["temperature"] = 0.2
-            except (TypeError, ValueError):
-                note_failure("qwythos_proxy:L147", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("qwythos_proxy:L147", exc)
                 req["temperature"] = 0.2
             opts = req.get("options")
             if isinstance(opts, dict) and "temperature" in opts:
                 try:
                     if float(opts["temperature"]) > 0.2:
                         opts["temperature"] = 0.2
-                except (TypeError, ValueError):
-                    note_failure("qwythos_proxy:L154", None)
+                except (TypeError, ValueError) as exc:
+                    note_failure("qwythos_proxy:L154", exc)
                     opts["temperature"] = 0.2
         code, data = _forward(
             "/v1/chat/completions", json.dumps(req).encode("utf-8"), "POST"
@@ -176,8 +176,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         try:
             resp = json.loads(data.decode("utf-8"))
-        except (json.JSONDecodeError, ValueError):
-            note_failure("qwythos_proxy:L164", None)
+        except (json.JSONDecodeError, ValueError) as exc:
+            note_failure("qwythos_proxy:L164", exc)
             self._send(code, data)
             return
         choices = resp.get("choices") or []

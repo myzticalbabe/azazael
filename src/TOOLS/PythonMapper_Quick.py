@@ -47,8 +47,8 @@ class QuickMapper:
                 shlex.split(cmd), capture_output=True, text=True, timeout=30
             )
             return r.stdout.strip(), r.returncode
-        except Exception:
-            note_failure("PythonMapper_Quick:L40", None)
+        except Exception as exc:
+            note_failure("PythonMapper_Quick:L40", exc)
             return "", 1
 
     def get_version(self, path):

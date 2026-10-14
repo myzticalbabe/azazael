@@ -57,8 +57,8 @@ class DynamicLogger:
     def _setup_logging(self):
         try:
             self._start_background_writer()
-        except Exception:
-            note_failure("AzazaelDynamicLogger:L51", None)
+        except Exception as exc:
+            note_failure("AzazaelDynamicLogger:L51", exc)
 
     def _start_background_writer(self):
         self._writer_thread = threading.Thread(
@@ -73,11 +73,11 @@ class DynamicLogger:
                 if msg_data is None:
                     break
                 self._write_to_file(msg_data)
-            except queue.Empty:
-                note_failure("AzazaelDynamicLogger:L67", None)
+            except queue.Empty as exc:
+                note_failure("AzazaelDynamicLogger:L67", exc)
                 continue
-            except Exception:
-                note_failure("AzazaelDynamicLogger:L69", None)
+            except Exception as exc:
+                note_failure("AzazaelDynamicLogger:L69", exc)
 
     def _write_to_file(self, msg_data: dict[str, Any]):
         try:
@@ -91,8 +91,8 @@ class DynamicLogger:
                 f.write(f"{timestamp} | {level:7} | {message}\n")
                 f.flush()
                 os.fsync(f.fileno())
-        except Exception:
-            note_failure("AzazaelDynamicLogger:L84", None)
+        except Exception as exc:
+            note_failure("AzazaelDynamicLogger:L84", exc)
 
     def set_level(self, level: str):
         self._level = level
@@ -174,8 +174,8 @@ class DynamicLogger:
             try:
                 msg = self._log_queue.get_nowait()
                 self._write_to_file(msg)
-            except queue.Empty:
-                note_failure("AzazaelDynamicLogger:L167", None)
+            except queue.Empty as exc:
+                note_failure("AzazaelDynamicLogger:L167", exc)
                 break
 
 

@@ -92,8 +92,8 @@ class ComprehensiveFix:
                     if f"import {module}" in content:
                         try:
                             __import__(module)
-                        except ImportError:
-                            note_failure("COMPREHENSIVE_FIX:L85", None)
+                        except ImportError as exc:
+                            note_failure("COMPREHENSIVE_FIX:L85", exc)
                             issues.append(f"Missing: {module}")
                 
                 # Syntax patterns
@@ -225,8 +225,8 @@ class ComprehensiveFix:
                     if "mainloop" not in content:
                         gui_issues.append(f"{py_file.name}: missing mainloop()")
                         
-            except Exception:
-                note_failure("COMPREHENSIVE_FIX:L215", None)
+            except Exception as exc:
+                note_failure("COMPREHENSIVE_FIX:L215", exc)
         
         return gui_issues
     

@@ -82,8 +82,8 @@ class DebugRunner:
                 error=result.stderr[:1000],
                 message="OK" if result.returncode == 0 else f"Exit code {result.returncode}",
             )
-        except subprocess.TimeoutExpired:
-            note_failure("debug_runner:L75", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("debug_runner:L75", exc)
             return TestResult(component, False, 30000, error="Timed out (>30s)")
         except Exception as e:
             note_failure("debug_runner:L77", e)
