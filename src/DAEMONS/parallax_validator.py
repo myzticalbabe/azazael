@@ -142,8 +142,8 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
         age = (datetime.now(timezone.utc) - token_time).total_seconds()
         if age > max_age_seconds:
             return False, f"Token expired ({age:.1f}s > {max_age_seconds}s max)"
-    except (ValueError, TypeError):
-        note_failure("parallax_validator:L134", None)
+    except (ValueError, TypeError) as exc:
+        note_failure("parallax_validator:L134", exc)
         return False, "Token timestamp invalid"
     
     # Verify signature (Ed25519 preferred, BLAKE2b fallback)
@@ -173,8 +173,8 @@ def verify_token(filepath: str, max_age_seconds: int = 15) -> tuple[bool, str]:
                 try:
                     public_key.verify(sig_bytes, payload)
                     valid_sig = True
-                except InvalidSignature:
-                    note_failure("parallax_validator:L164", None)
+                except InvalidSignature as exc:
+                    note_failure("parallax_validator:L164", exc)
                     valid_sig = False
         except (ImportError, OSError, ValueError) as e:
             note_failure("parallax_validator:L166", e)
@@ -251,8 +251,8 @@ def revert_file(filepath: str) -> tuple[bool, str]:
         
         return False, f"Revert failed: git={result.stderr.strip()}, no backup"
     
-    except subprocess.TimeoutExpired:
-        note_failure("parallax_validator:L240", None)
+    except subprocess.TimeoutExpired as exc:
+        note_failure("parallax_validator:L240", exc)
         return False, "Git checkout timed out"
     except Exception as e:
         note_failure("parallax_validator:L242", e)
@@ -383,8 +383,8 @@ class ParallaxHandler:
         # Get relative path from workspace
         try:
             rel_path = str(Path(filepath).relative_to(_WORKSPACE))
-        except ValueError:
-            note_failure("parallax_validator:L370", None)
+        except ValueError as exc:
+            note_failure("parallax_validator:L370", exc)
             rel_path = filepath
         
         valid, reason = verify_token(rel_path)
@@ -446,8 +446,8 @@ def audit_once(dry_run: bool = False) -> dict:
             timeout=30,
         )
         modified = [f.strip() for f in result.stdout.split("\n") if f.strip()]
-    except Exception:
-        note_failure("parallax_validator:L432", None)
+    except Exception as exc:
+        note_failure("parallax_validator:L432", exc)
         modified = []
     
     for filepath in modified:

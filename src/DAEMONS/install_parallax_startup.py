@@ -154,8 +154,8 @@ def check_status() -> dict:
             timeout=10,
         )
         status["daemon_running"] = "parallax_validator" in result.stdout
-    except Exception:
-        note_failure("install_parallax_startup:L147", None)
+    except Exception as exc:
+        note_failure("install_parallax_startup:L147", exc)
         status["daemon_running"] = False
 
     return status
