@@ -56,7 +56,7 @@ def regen():
     os.makedirs(OUT, exist_ok=True)
     cmd = [sys.executable, SNA, "--out", RESULTS,
            "--person-edges", PERSON_EDGES, "--export-csv", OUT]
-    subprocess.run(cmd, check=True, cwd=ROOT)
+    subprocess.run(cmd, check=True, cwd=ROOT, timeout=1800)
     # GraphML with centrality + community + k-core attributes (import = one drag)
     import csv
     import networkx as nx

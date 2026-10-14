@@ -42,6 +42,13 @@ JDK_HINTS = [
     r"C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot",
 ]
 
+#: Authoritative return code when a bounded Java step does not return. Same
+#: value as scripts/chain20.py's RC_TIMEOUT: the caller gets a code it can
+#: branch on, instead of a traceback out of main().
+RC_TIMEOUT = 124
+COMPILE_TIMEOUT_S = 900
+DRIVER_TIMEOUT_S = 1800
+
 
 def find_gephi_dir():
     for base in GEPHI_HINTS:
@@ -150,7 +157,12 @@ def main():
     if not args.no_compile and (not os.path.isfile(cls)
                                 or os.path.getmtime(src) > os.path.getmtime(cls)):
         print("[run] compiling...")
-        r = subprocess.run([java.replace("java.exe", "javac.exe"), "@" + compile_args])
+        try:
+            r = subprocess.run([java.replace("java.exe", "javac.exe"), "@" + compile_args],
+                               timeout=COMPILE_TIMEOUT_S)
+        except subprocess.TimeoutExpired:
+            print(f"ERROR: javac exceeded its {COMPILE_TIMEOUT_S}s bound")
+            return RC_TIMEOUT
         if r.returncode != 0:
             print("ERROR: compile failed")
             return r.returncode
@@ -182,14 +194,27 @@ def main():
             driver_args += ["--label-by", args.label_by]
 
     print("[run] executing driver...")
-    r = subprocess.run(driver_args)
-    if not args.keep:
-        for f in (argfile, compile_args):
-            try:
-                os.remove(f)
-            except OSError:
-                pass
-    return r.returncode
+    rc = RC_TIMEOUT
+    try:
+        r = subprocess.run(driver_args, timeout=DRIVER_TIMEOUT_S)
+        rc = r.returncode
+    except subprocess.TimeoutExpired:
+        # An authoritative code (scripts/chain20.py uses the same RC_TIMEOUT)
+        # rather than a traceback escaping main().
+        print(f"ERROR: java driver exceeded its {DRIVER_TIMEOUT_S}s bound")
+    finally:
+        # Runs on every path, the timeout included: otherwise a timed-out run
+        # leaks both temp argfiles.
+        if not args.keep:
+            leftovers = []
+            for f in (argfile, compile_args):
+                try:
+                    os.remove(f)
+                except OSError as exc:
+                    leftovers.append(f"{f} ({type(exc).__name__}: {exc})")
+            if leftovers:
+                print("[run] note: could not remove " + ", ".join(leftovers))
+    return rc
 
 
 if __name__ == "__main__":

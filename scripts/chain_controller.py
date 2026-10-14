@@ -120,6 +120,20 @@ JOBS: dict[str, tuple[Any, int, str, str, tuple[str, ...]]] = {
     "tensor": (21600, 1800, "py", "train_tensor_model.py", ()),
 }
 
+# Session tracking for commit limits and parallel execution.
+# Moved OUT of the JOBS dict literal (2026-10-14): this block had been spliced
+# into the middle of the `terence` entry's comment, splitting that comment in
+# two and leaving `MAX_FILES_PER_SESSION = 8` where a dict KEY was expected --
+# SyntaxError at line 48, so tests/test_chain_controller.py could not even
+# import the module. The constants are unchanged; only their home is.
+MAX_FILES_PER_SESSION = 8   # ≤8-file same-session commits
+MAX_PARALLEL_SLICES = 4     # max parallel slices (adjust to the machine)
+_session_file_count = 0       # files committed in current session
+_session_parallel_slices = 0  # active parallel slices
+
+# QD Archive path for state measurement
+QD_ARCHIVE_PATH = ROOT / "state" / "qd_archive.json"
+
 #: Honest-skip exit codes per job (see run_one): a by-design skip is ok.
 #: `terence` rc=1 is not a skip but a REPORT -- the invariant scan exits 1
 #: because it FOUND faults (195 on a healthy tree), which is the job working.

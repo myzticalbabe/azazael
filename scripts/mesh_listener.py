@@ -356,27 +356,36 @@ def keepalive(env: str) -> int:
                           else round(age, 1)}))
         return 0
 
-    popen_kwargs: dict = {
-        "cwd": str(ROOT),
-        "stdout": subprocess.DEVNULL,
-        "stderr": subprocess.DEVNULL,
-        "stdin": subprocess.DEVNULL,
-    }
-    if os.name == "nt":
-        popen_kwargs["creationflags"] = (
-            subprocess.CREATE_NEW_PROCESS_GROUP
-            | getattr(subprocess, "DETACHED_PROCESS", 0)
-        )
-    else:
-        popen_kwargs["start_new_session"] = True
     env_vars = dict(os.environ)
     env_vars["AZAZAEL_MESH_ENV"] = env
     # Explicit, not inherited: the respawn must not silently drop a
     # cross-host bind back to loopback (see _bind_addr).
     env_vars["AZAZAEL_MESH_BIND"] = _bind_addr()
+    # Explicit kwargs rather than a `**popen_kwargs` dict (2026-10-14): a
+    # forwarded dict made the encoding audit report this spawn as UNDETERMINED,
+    # because it cannot prove a forwarded key does not add `text=True`. A
+    # detached respawn has no pipes at all, so nothing is decoded -- spelling
+    # the flags out is what lets the audit clear the call.
+    #
+    # The platform split is computed into LOCALS so there is still exactly ONE
+    # Popen call site. Two branches each naming Popen is a second counted site
+    # -- the staged scanner read that split as subprocess_no_timeout 1 -> 2, and
+    # it was right -- and it is a divergence hazard besides. `creationflags=0`
+    # and `start_new_session=False` are the neutral values on the other
+    # platform, so this is the same call the kwargs dict used to make.
+    if os.name == "nt":
+        _creationflags = (subprocess.CREATE_NEW_PROCESS_GROUP
+                          | getattr(subprocess, "DETACHED_PROCESS", 0))
+        _new_session = False
+    else:
+        _creationflags = 0
+        _new_session = True
     proc = subprocess.Popen(
         [sys.executable, str(Path(__file__).resolve())],
-        env=env_vars, **popen_kwargs)
+        cwd=str(ROOT), env=env_vars,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        creationflags=_creationflags, start_new_session=_new_session)
     never_ran = (not hb) or age == float("inf")
     print(json.dumps({"action": "spawned", "env": env, "port": port,
                       "pid": proc.pid,

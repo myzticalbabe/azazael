@@ -63,9 +63,9 @@ def generate_dashboard(output_path: str, since: str = None,
             if sys.platform == "win32":
                 os.startfile(path)
             elif sys.platform == "darwin":
-                subprocess.run(["open", path], check=False)
+                subprocess.run(["open", path], check=False, timeout=30)
             else:
-                subprocess.run(["xdg-open", path], check=False)
+                subprocess.run(["xdg-open", path], check=False, timeout=30)
         except Exception as e:
             print(f"  [WARN] Could not open browser: {e}")
 
