@@ -73,7 +73,7 @@ def _pid_alive(pid: int) -> bool:
         try:
             out = subprocess.run(
                 ["tasklist", "/fi", "PID eq %d" % pid, "/fo", "csv"],
-                capture_output=True, text=True, timeout=15)
+                capture_output=True, text=True, timeout=15, encoding="utf-8", errors="replace")
             return ("\"%d\"" % pid) in (out.stdout or "") or (" %d " % pid) in (out.stdout or "")
         except Exception:
             return True
@@ -265,7 +265,7 @@ def _refresh_derived_maps(timeout: float = 900.0) -> None:
     script = os.path.join(_HERE, "refresh_all.py")
     try:
         r = subprocess.run([sys.executable, script], capture_output=True,
-                           text=True, timeout=timeout)
+                           text=True, timeout=timeout, encoding="utf-8", errors="replace")
     except Exception as exc:
         log(f"refresh: raised {str(exc)[:_ERR]}")
     else:
@@ -286,7 +286,7 @@ def main() -> int:
     try:
         import subprocess as _sp0
         _gr = _sp0.run([sys.executable, os.path.join(_HERE, "gossip_round.py")],
-                       capture_output=True, text=True, timeout=300)
+                       capture_output=True, text=True, timeout=300, encoding="utf-8", errors="replace")
         _gl = (_gr.stdout or "").strip().splitlines()
         log(f"gossip: {_gl[-1][:160] if _gl else 'no-output'}")
     except Exception as exc:
@@ -352,7 +352,7 @@ def main() -> int:
                              ("kali-linux", "wsl2-kali")):
             r = _sp.run(["wsl", "-d", distro, "--", "python3",
                          "/mnt/c/Users/clint/azazael/scripts/bcc_oneshot.py"],
-                        capture_output=True, text=True, timeout=120)
+                        capture_output=True, text=True, timeout=120, encoding="utf-8", errors="replace")
             try:
                 ebpf = _json.loads((r.stdout or "").strip().splitlines()[-1])
             except Exception:
