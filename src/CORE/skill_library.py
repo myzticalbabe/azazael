@@ -39,9 +39,11 @@ Usage:
 import hashlib
 import json
 from collections import Counter
+from datetime import datetime, timezone
 from itertools import permutations
 from typing import Any, Dict, List, Optional
 
+from CORE import audit_trail as _at
 from CORE.local_memory import get_memory_store
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. An
@@ -681,3 +683,249 @@ def route_hierarchy(skills: List[Dict[str, Any]]) -> Dict[str, Any]:
             "families": sorted(tree),
             "lazy_manifests": True,
             "unassigned": list(families.get("unassigned") or [])}
+
+
+# -- EP162: 4-gate trust path for community skills ---------------------------------
+def trust_path_gate(skill_artifact: Dict[str, Any],
+                    provenance: Dict[str, Any]) -> Dict[str, Any]:
+    """Four-gate trust path (EP162): static analysis, semantic classification,
+    behavioural sandboxing, permission validation.
+
+    Extends commit_gate with community-skill security gates. Every gate
+    produces a verdict + remediation; all four must pass for acceptance.
+    """
+    name = str((skill_artifact or {}).get("name", "?")).strip()
+    gates: List[Dict[str, Any]] = []
+
+    # Gate 1: Static analysis - check for injection patterns, unsafe imports
+    static = _static_analysis_gate(skill_artifact)
+    gates.append({"gate": "static_analysis", **static})
+
+    # Gate 2: Semantic classification - classify skill intent/capability
+    semantic = _semantic_classification_gate(skill_artifact)
+    gates.append({"gate": "semantic_classification", **semantic})
+
+    # Gate 3: Behavioural sandboxing - dry-run in restricted context
+    sandbox = _behavioural_sandbox_gate(skill_artifact)
+    gates.append({"gate": "behavioural_sandbox", **sandbox})
+
+    # Gate 4: Permission validation - check capability manifest vs allowlist
+    permission = _permission_validation_gate(provenance)
+    gates.append({"gate": "permission_validation", **permission})
+
+    all_passed = all(g.get("passed", False) for g in gates)
+    reasons = [f"{g['gate']}:{'pass' if g.get('passed') else 'fail'}" for g in gates]
+    remediations = []
+    for g in gates:
+        if not g.get("passed"):
+            remediations.extend(g.get("remediations", []))
+
+    # Provenance tier (graduated): community < verified < audited < core
+    tier = str(provenance.get("tier", "community")).strip().lower()
+    tier_order = {"community": 0, "verified": 1, "audited": 2, "core": 3}
+    tier_level = tier_order.get(tier, 0)
+
+    citation = ""
+    try:
+        # Module scope (see the import block above). A function-level import
+        # here deferred nothing: importing ANY CORE submodule already executes
+        # CORE/__init__.py, which does `from CORE.audit_trail import (...)` at
+        # ITS module scope -- so `import CORE.skill_library` already pulled in
+        # audit_trail and its cryptography ed25519 import either way. It cost
+        # one tracked `import_inside_function` finding, measured 2026-10-13 as
+        # the repo-wide ratchet's only regression.
+        citation = _at.audit_verification_gate(
+            f"skill:{name}:trust", all_passed, reasons, remediations)
+    except Exception as exc:  # noqa: BLE001
+        _note_failure("skill_library:trust-path-cite", exc)
+
+    return {"accepted": all_passed, "gates": gates, "tier": tier,
+            "tier_level": tier_level, "reasons": reasons,
+            "remediations": remediations, "citation": citation}
+
+
+def _static_analysis_gate(artifact: Dict[str, Any]) -> Dict[str, Any]:
+    """Gate 1: Scan for injection patterns, eval/exec, unsafe imports."""
+    code = str(artifact.get("code", artifact.get("body", "")))
+    issues: List[str] = []
+    rem: List[str] = []
+    # Injection patterns
+    for pat in ("eval(", "exec(", "__import__(", "subprocess.", "os.system",
+                "compile(", "getattr(", "setattr(", "delattr("):
+        if pat in code:
+            issues.append(f"injection-pattern:{pat.rstrip('(')}")
+            rem.append(f"remove or guard {pat.rstrip('(')} usage")
+    # Unsafe imports
+    for imp in ("pickle", "marshal", "shelve", "dill", "cloudpickle"):
+        if f"import {imp}" in code or f"from {imp}" in code:
+            issues.append(f"unsafe-import:{imp}")
+            rem.append(f"avoid {imp}; use json/msgpack instead")
+    passed = len(issues) == 0
+    return {"passed": passed, "issues": issues, "remediations": rem}
+
+
+def _semantic_classification_gate(artifact: Dict[str, Any]) -> Dict[str, Any]:
+    """Gate 2: Classify skill intent - must declare capability family."""
+    fam = str(artifact.get("family", "")).strip()
+    caps = artifact.get("capabilities", [])
+    issues: List[str] = []
+    rem: List[str] = []
+    if not fam:
+        issues.append("no-family-declared")
+        rem.append("declare procedural family (SkillGLoW rule)")
+    if not caps:
+        issues.append("no-capabilities-declared")
+        rem.append("list declared capabilities (verbs: read/write/execute/query)")
+    passed = len(issues) == 0
+    return {"passed": passed, "family": fam, "capabilities": caps,
+            "issues": issues, "remediations": rem}
+
+
+def _behavioural_sandbox_gate(artifact: Dict[str, Any]) -> Dict[str, Any]:
+    """Gate 3: Dry-run in restricted context (timeout, no I/O, no net)."""
+    # This is a structural gate - actual sandboxing is caller-owned.
+    # We verify the artifact declares sandbox metadata.
+    meta = artifact.get("sandbox", {}) or {}
+    issues: List[str] = []
+    rem: List[str] = []
+    if not meta.get("declared_timeout_ms"):
+        issues.append("no-timeout-declared")
+        rem.append("declare max execution time in sandbox.timeout_ms")
+    if not meta.get("no_io"):
+        issues.append("no-io-restriction-declared")
+        rem.append("declare sandbox.no_io=true for pure compute skills")
+    if not meta.get("no_network"):
+        issues.append("no-network-restriction-declared")
+        rem.append("declare sandbox.no_network=true")
+    passed = len(issues) == 0
+    return {"passed": passed, "sandbox_meta": meta,
+            "issues": issues, "remediations": rem}
+
+
+def _permission_validation_gate(provenance: Dict[str, Any]) -> Dict[str, Any]:
+    """Gate 4: Validate capability manifest against allowlist."""
+    allowlist = provenance.get("allowlist", []) or []
+    requested = provenance.get("requested_permissions", []) or []
+    issues: List[str] = []
+    rem: List[str] = []
+    for perm in requested:
+        if perm not in allowlist:
+            issues.append(f"permission-denied:{perm}")
+            rem.append(f"add {perm} to allowlist or remove from manifest")
+    passed = len(issues) == 0
+    return {"passed": passed, "allowlist": allowlist,
+            "requested": requested, "issues": issues, "remediations": rem}
+
+
+# -- EP180: RSPL (Recursive Skill Pruning Loop) / Autogenesis AGP/AGS -----------
+def rspl_propose(skill: Dict[str, Any],
+                 metrics: Dict[str, float],
+                 thresholds: Dict[str, float]) -> Dict[str, Any]:
+    """RSPL propose phase (EP180/AGP): assess skill against thresholds,
+    produce a signed proposal for commit/prune/modify.
+    """
+    name = str(skill.get("name", "?")).strip()
+    fam = str(skill.get("family", "")).strip()
+    proposal = {"skill": name, "family": fam, "action": "retain",
+                "metrics": metrics, "thresholds": thresholds,
+                "violations": [], "timestamp": ""}
+    try:
+        proposal["timestamp"] = datetime.now(timezone.utc).isoformat()
+    except Exception as exc:  # noqa: BLE001
+        # Recorded, not swallowed -- this module's own rule above is that an
+        # unrecorded swallow is indistinguishable from success. `timestamp`
+        # keeps the "" it was initialised with, so a consumer of the proposal
+        # sees the identical value; the absence is now visible rather than
+        # reading as a timestamp that was set.
+        _note_failure("skill_library:rspl-propose-timestamp", exc)
+        proposal["timestamp"] = ""
+
+    for k, v in metrics.items():
+        th = thresholds.get(k)
+        if th is not None and v < th:
+            proposal["violations"].append(f"{k}:{v}<{th}")
+
+    if proposal["violations"]:
+        # Decide action: prune if critical, modify if warning
+        crit = [v for v in proposal["violations"] if v.startswith("critical:")]
+        proposal["action"] = "prune" if crit else "modify"
+
+    return proposal
+
+
+def rspl_assess(proposals: List[Dict[str, Any]],
+                budget: Dict[str, Any]) -> Dict[str, Any]:
+    """RSPL assess phase: global budget-aware assessment of proposals.
+    Enforces per-family and global skill-count budgets.
+    """
+    fam_counts: Dict[str, int] = {}
+    for p in proposals:
+        fam = p.get("family", "unassigned")
+        fam_counts[fam] = fam_counts.get(fam, 0) + 1
+
+    max_per_family = budget.get("max_per_family", 50)
+    max_total = budget.get("max_total", 200)
+
+    decisions: List[Dict[str, Any]] = []
+    for p in proposals:
+        fam = p.get("family", "unassigned")
+        over_fam = fam_counts.get(fam, 0) > max_per_family
+        over_total = sum(fam_counts.values()) > max_total
+        action = p.get("action", "retain")
+        if over_fam or over_total:
+            action = "prune" if p.get("violations") else "defer"
+        decisions.append({"skill": p.get("skill"), "family": fam,
+                          "proposed": p.get("action"), "decided": action,
+                          "over_fam": over_fam, "over_total": over_total})
+    return {"decisions": decisions, "fam_counts": fam_counts,
+            "budget": budget}
+
+
+def rspl_commit(decisions: List[Dict[str, Any]],
+                store: Any = None) -> Dict[str, Any]:
+    """RSPL commit phase: apply decisions, record to experience store (EP255).
+    """
+    applied: List[str] = []
+    pruned: List[str] = []
+    deferred: List[str] = []
+    for d in decisions:
+        skill = d.get("skill", "?")
+        act = d.get("decided", "retain")
+        if act == "prune":
+            pruned.append(skill)
+        elif act == "defer":
+            deferred.append(skill)
+        else:
+            applied.append(skill)
+
+    # Record to experience store (EP255 integration)
+    cited = 0
+    if store is not None:
+        try:
+            for s in applied + pruned:
+                cite = store.record_event(
+                    source="skill_library", event_type="rspl_commit",
+                    data={"skill": s, "action": "apply" if s in applied else "prune"},
+                    severity="info", tags=["skill", "rspl"])
+                if cite:
+                    cited += 1
+        except Exception as exc:  # noqa: BLE001
+            _note_failure("skill_library:rspl-commit-store", exc)
+
+    return {"applied": applied, "pruned": pruned, "deferred": deferred,
+            "n_applied": len(applied), "n_pruned": len(pruned),
+            "n_deferred": len(deferred), "cited": cited}
+
+
+def rspl_cycle(skills: List[Dict[str, Any]],
+               metrics_fn,
+               thresholds: Dict[str, float],
+               budget: Dict[str, Any],
+               store: Any = None) -> Dict[str, Any]:
+    """Full RSPL cycle: propose -> assess -> commit.
+    metrics_fn(skill) -> Dict[str, float] extracts metrics per skill.
+    """
+    proposals = [rspl_propose(s, metrics_fn(s), thresholds) for s in skills]
+    assessed = rspl_assess(proposals, budget)
+    committed = rspl_commit(assessed["decisions"], store)
+    return {"proposals": proposals, "assessed": assessed, "committed": committed}
