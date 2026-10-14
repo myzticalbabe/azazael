@@ -268,3 +268,15 @@ state/*
 # Hub-local scratch that never carried content (2026-10-07): stray file whose
 # name is a single U+F0220 private-use character.
 \357\200\242
+
+# Generated work-order output: one file per source file listing
+# handler line | shape | exception type | body (see tools/swallow_inventory.py).
+# The CANONICAL home is state/swallow_sites/ -- the producer documents
+#    python tools/swallow_inventory.py --sites state/swallow_sites
+# and state/* already ignores it as a subdirectory. A run that named its output
+# after a category instead (--sites unlogged_handler) left 108 regenerable files
+# at the repo ROOT, where nothing ignored them: permanent git status noise, and a
+# hazard for any bare git add -A. Same producer, same content, same regeneration
+# command, so ignore the stray directory rather than delete or relocate it.
+# Root-anchored so a legitimate nested directory of this name is unaffected.
+/unlogged_handler/
