@@ -373,8 +373,8 @@ class TERENCE:
         """True when `file_path` lives inside TERENCE's own package."""
         try:
             return cls.SELF_DIR in Path(file_path).resolve().parents
-        except OSError:
-            note_failure("TERENCE:L366", None)
+        except OSError as exc:
+            note_failure("TERENCE:L366", exc)
             return False
 
     @staticmethod
@@ -416,10 +416,10 @@ class TERENCE:
                 try:
                     if _t.time() - _lf.stat().st_mtime > 3600:
                         _lf.unlink()
-                except OSError:
-                    note_failure("TERENCE:L408", None)
-        except Exception:
-            note_failure("TERENCE:L410", None)
+                except OSError as exc:
+                    note_failure("TERENCE:L408", exc)
+        except Exception as exc:
+            note_failure("TERENCE:L410", exc)
         target_folders = [
             os.path.join(root, "ORCHESTRATION"),
             os.path.join(root, "src"),
@@ -487,8 +487,8 @@ class TERENCE:
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-        except (UnicodeDecodeError, OSError):
-            note_failure("TERENCE:L479", None)
+        except (UnicodeDecodeError, OSError) as exc:
+            note_failure("TERENCE:L479", exc)
             return fixes
 
         lines = content.split("\n")
@@ -499,15 +499,15 @@ class TERENCE:
                     desc, (fix_rule["pattern"], fix_rule["fix"]))
                 try:
                     m = re.search(pattern, line)
-                except re.error:
-                    note_failure("TERENCE:L490", None)
+                except re.error as exc:
+                    note_failure("TERENCE:L490", exc)
                     continue
                 if not m or not m.group(0):
                     continue
                 try:
                     fixed_span = re.sub(pattern, repl, m.group(0))
-                except re.error:
-                    note_failure("TERENCE:L496", None)
+                except re.error as exc:
+                    note_failure("TERENCE:L496", exc)
                     continue
                 if fixed_span == m.group(0):
                     continue  # genuine no-op; do not report it as a fix
@@ -636,8 +636,8 @@ class TERENCE:
                 _sys.path.insert(0, _src)
             from CORE.direct_memory import DirectMemory
             rows = DirectMemory().fetch_thoughts(limit=1000)
-        except Exception:
-            note_failure("TERENCE:L625", None)
+        except Exception as exc:
+            note_failure("TERENCE:L625", exc)
             return {}
         import json as _json
         import re as _re
@@ -647,8 +647,8 @@ class TERENCE:
             if isinstance(d, str):
                 try:
                     d = _json.loads(d)
-                except Exception:
-                    note_failure("TERENCE:L635", None)
+                except Exception as exc:
+                    note_failure("TERENCE:L635", exc)
                     continue
             if not isinstance(d, dict):
                 continue
@@ -774,8 +774,8 @@ class TERENCE:
                 raw = f.read()
             try:
                 text = raw.decode("utf-8")
-            except UnicodeDecodeError:
-                note_failure("TERENCE:L761", None)
+            except UnicodeDecodeError as exc:
+                note_failure("TERENCE:L761", exc)
                 return False, "skipped non-UTF8 file"
             lines = text.split("\n")
             if fix.line > len(lines):
@@ -798,11 +798,11 @@ class TERENCE:
                 try:
                     msvcrt.locking(_lfh.fileno(), msvcrt.LK_NBLCK, 1)
                     _locked = True
-                except (OSError, IOError):
-                    note_failure("TERENCE:L784", None)
+                except (OSError, IOError) as exc:
+                    note_failure("TERENCE:L784", exc)
                     _locked = False
-            except Exception:
-                note_failure("TERENCE:L786", None)
+            except Exception as exc:
+                note_failure("TERENCE:L786", exc)
                 _lfh, _locked = None, True
             try:
                 if not _locked:
@@ -821,8 +821,8 @@ class TERENCE:
                     if _lfh:
                         _lfh.close()
                     os.remove(fix.file + ".terence.lock")
-                except Exception:
-                    note_failure("TERENCE:L804", None)
+                except Exception as exc:
+                    note_failure("TERENCE:L804", exc)
             return True, "applied+verified"
         except Exception as e:
             note_failure("TERENCE:L807", e)
@@ -855,8 +855,8 @@ class TERENCE:
                 tags=["terence"],
                 session_id="terence-%s" % time.strftime("%Y-%m-%d"),
             )
-        except Exception:
-            note_failure("TERENCE:L837", None)
+        except Exception as exc:
+            note_failure("TERENCE:L837", exc)
 
     def _state_path(self) -> Path:
         """Path to the persisted last-run record (logs/terence_last_run.json).
@@ -958,8 +958,8 @@ class TERENCE:
                 f.writelines(lines)
 
             return True
-        except Exception:
-            note_failure("TERENCE:L936", None)
+        except Exception as exc:
+            note_failure("TERENCE:L936", exc)
             return False
 
     def run_quick_fix(self):
@@ -987,8 +987,8 @@ class TERENCE:
                 if issues:
                     print(f"  {py_file.name}: {', '.join(issues)}")
                     checked += 1
-            except Exception:
-                note_failure("TERENCE:L964", None)
+            except Exception as exc:
+                note_failure("TERENCE:L964", exc)
 
         print()
         print(f"Quick check: {checked} files with potential issues")
