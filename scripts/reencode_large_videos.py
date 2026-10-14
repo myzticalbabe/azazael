@@ -108,7 +108,7 @@ def get_video_info(video_path: Path) -> Dict:
             "ffprobe", "-v", "quiet", "-print_format", "json",
             "-show_format", "-show_streams", str(video_path)
         ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=15, encoding="utf-8", errors="replace")
         if result.returncode != 0:
             return info
 
@@ -265,7 +265,8 @@ def reencode_video(input_path: Path, output_path: Path,
 
     print(f"  Running: {' '.join(str(c) for c in cmd[:8])}...")
     process = subprocess.run(
-        cmd, capture_output=True, text=True, timeout=3600  # 1h timeout per file
+        cmd, capture_output=True, text=True, timeout=3600,
+        encoding="utf-8", errors="replace"  # 1h timeout per file
     )
 
     elapsed = round(time.time() - start_time, 1)

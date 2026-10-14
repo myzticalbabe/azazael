@@ -74,7 +74,7 @@ def _git(*args: str) -> tuple[int, str]:
     """Run git in the repo. Returns (rc, combined output); never raises."""
     try:
         p = subprocess.run(["git", *args], cwd=str(REPO),
-                           capture_output=True, text=True, timeout=60)
+                           capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace")
     except (OSError, subprocess.TimeoutExpired) as exc:
         return 127, f"git {' '.join(args)} failed: {exc}"
     # NOT .strip(). `git status --porcelain` encodes the status in the first
