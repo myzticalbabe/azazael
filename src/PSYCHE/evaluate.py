@@ -65,8 +65,8 @@ def recall_episodic(rows: list[dict], top_k: int = 5,
         try:
             age_h = max(0.0, float(row.get("age_h", 0.0)))
             sal = max(0.0, min(1.0, float(row.get("salience", 0.5))))
-        except (TypeError, ValueError):
-            note_failure("evaluate:L58", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("evaluate:L58", exc)
             continue
         score = sal * 0.5 ** (age_h / max(1e-9, half_life_h))
         if query_pad is not None and row.get("pad"):
@@ -75,8 +75,8 @@ def recall_episodic(rows: list[dict], top_k: int = 5,
                 na = math.sqrt(sum(a * a for a in row["pad"])) or 1.0
                 nb = math.sqrt(sum(b * b for b in query_pad)) or 1.0
                 score += 0.5 * max(0.0, dot / (na * nb))
-            except (TypeError, ValueError):
-                note_failure("evaluate:L67", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("evaluate:L67", exc)
         scored.append((score, row))
     scored.sort(key=lambda r: -r[0])
     return [row for _s, row in scored[:max(0, top_k)]]
