@@ -133,6 +133,19 @@ from CORE.inference.providers import get_provider
 # -- LocalMemoryStore --------------------------------------------------
 from CORE.local_memory import LocalMemoryStore
 
+# -- CUTTING_EDGE ablation (optional) ------------------------------------
+# Lazy import: cutting_edge_model.py is not yet committed. When present,
+# the pipeline can instantiate cutting-edge components (SparseMoE,
+# SelectiveSSM, AttentionBlock via CuttingEdgeModel).
+try:
+    from CORE.WORMS.expansion.cutting_edge_model import (
+        CuttingEdgeModel,
+        CuttingEdgeConfig,
+    )
+except ImportError:
+    CuttingEdgeModel = None
+    CuttingEdgeConfig = None
+
 #: Swallows recorded when the failure ledger is unavailable (it is a stdlib-only
 #: leaf, so this fallback should never fire -- if it does, the ledger is missing).
 
