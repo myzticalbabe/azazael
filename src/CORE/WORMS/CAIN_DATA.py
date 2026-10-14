@@ -222,8 +222,8 @@ def compute_total_damage() -> str:
             val_str = loss.replace("$", "").lstrip("-").replace(",", "").strip()
             try:
                 total += int(float(val_str))
-            except ValueError:
-                note_failure("CAIN_DATA:L215", None)
+            except ValueError as exc:
+                note_failure("CAIN_DATA:L215", exc)
     return f"-${total}.00"
 
 TOTAL_DAMAGE_PER_INCIDENT: str = compute_total_damage()

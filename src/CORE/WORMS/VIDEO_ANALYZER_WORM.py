@@ -68,8 +68,8 @@ COMPRESSION_RATIO_OK = 0.5  # MB per minute minimum (below = inefficient)
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("VIDEO_ANALYZER_WORM:L62", None)
+except ImportError as exc:
+    note_failure("VIDEO_ANALYZER_WORM:L62", exc)
     def register_worm(**kwargs):
         def decorator(cls):
             return cls
@@ -179,8 +179,8 @@ class VideoAnalyzerWorm:
         except json.JSONDecodeError as e:
             note_failure("VIDEO_ANALYZER_WORM:L169", e)
             info["error"] = f"Invalid ffprobe output: {e}"
-        except subprocess.TimeoutExpired:
-            note_failure("VIDEO_ANALYZER_WORM:L171", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("VIDEO_ANALYZER_WORM:L171", exc)
             info["error"] = "ffprobe timed out (30s)"
         except Exception as e:
             note_failure("VIDEO_ANALYZER_WORM:L173", e)

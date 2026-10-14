@@ -48,8 +48,8 @@ def _record(event_type: str, data: dict[str, Any], severity: str = "info"):
                     event_type=f"binanalysis.{event_type}",
                     data=data, source="BinaryAnalysis", severity=severity,
                 )
-            except Exception:
-                note_failure("BINARY_ANALYSIS_TOOLS:L42", None)
+            except Exception as exc:
+                note_failure("BINARY_ANALYSIS_TOOLS:L42", exc)
 
 
 # -- objdump (Disassembly) --------------------------------------------
@@ -110,8 +110,8 @@ def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
                     current_section = line.split("#")[1].strip().split()[0]
                     if current_section not in result["sections_found"]:
                         result["sections_found"].append(current_section)
-                except IndexError:
-                    note_failure("BINARY_ANALYSIS_TOOLS:L104", None)
+                except IndexError as exc:
+                    note_failure("BINARY_ANALYSIS_TOOLS:L104", exc)
 
             if ":" in line and len(line.split(":", 1)[0].strip()) >= 8:
                 try:
@@ -132,14 +132,14 @@ def _objdump_windows(path: Path, section: str, max_ins: int) -> dict[str, Any]:
                         "instruction": instruction,
                         "section": current_section,
                     })
-                except Exception:
-                    note_failure("BINARY_ANALYSIS_TOOLS:L126", None)
+                except Exception as exc:
+                    note_failure("BINARY_ANALYSIS_TOOLS:L126", exc)
 
             if len(result["instructions"]) >= max_ins:
                 break
 
-    except FileNotFoundError:
-        note_failure("BINARY_ANALYSIS_TOOLS:L132", None)
+    except FileNotFoundError as exc:
+        note_failure("BINARY_ANALYSIS_TOOLS:L132", exc)
         result["error"] = "dumpbin not found. Install Visual Studio Build Tools."
     except Exception as e:
         note_failure("BINARY_ANALYSIS_TOOLS:L134", e)
@@ -187,14 +187,14 @@ def _objdump_linux(path: Path, section: str, max_ins: int) -> dict[str, Any]:
                         "instruction": instruction,
                         "section": current_section,
                     })
-                except Exception:
-                    note_failure("BINARY_ANALYSIS_TOOLS:L179", None)
+                except Exception as exc:
+                    note_failure("BINARY_ANALYSIS_TOOLS:L179", exc)
 
             if len(result["instructions"]) >= max_ins:
                 break
 
-    except FileNotFoundError:
-        note_failure("BINARY_ANALYSIS_TOOLS:L185", None)
+    except FileNotFoundError as exc:
+        note_failure("BINARY_ANALYSIS_TOOLS:L185", exc)
         result["error"] = "objdump not found. Install binutils."
     except Exception as e:
         note_failure("BINARY_ANALYSIS_TOOLS:L187", e)
@@ -245,8 +245,8 @@ def extract_strings(
             for line in proc.stdout.splitlines():
                 if line not in results:
                     results.append(line)
-        except Exception:
-            note_failure("BINARY_ANALYSIS_TOOLS:L235", None)
+        except Exception as exc:
+            note_failure("BINARY_ANALYSIS_TOOLS:L235", exc)
 
     _record("strings", {
         "path": str(full_path), "strings_found": len(results), "min_length": min_length,
@@ -324,14 +324,14 @@ def analyze_memory_maps(pid: (int | None) = None) -> dict[int, list[dict[str, An
     if pid:
         try:
             processes = [psutil.Process(pid)]
-        except psutil.NoSuchProcess:
-            note_failure("BINARY_ANALYSIS_TOOLS:L314", None)
+        except psutil.NoSuchProcess as exc:
+            note_failure("BINARY_ANALYSIS_TOOLS:L314", exc)
             return {}
     else:
         try:
             processes = list(psutil.process_iter())[:50]
-        except Exception:
-            note_failure("BINARY_ANALYSIS_TOOLS:L319", None)
+        except Exception as exc:
+            note_failure("BINARY_ANALYSIS_TOOLS:L319", exc)
 
     for proc in processes:
         mappings = []
@@ -343,8 +343,8 @@ def analyze_memory_maps(pid: (int | None) = None) -> dict[int, list[dict[str, An
                     "size_kb": (mmap.rss // 1024) if hasattr(mmap, 'rss') else 0,
                     "perms": "rwx",
                 })
-        except (psutil.AccessDenied, psutil.NoSuchProcess):
-            note_failure("BINARY_ANALYSIS_TOOLS:L332", None)
+        except (psutil.AccessDenied, psutil.NoSuchProcess) as exc:
+            note_failure("BINARY_ANALYSIS_TOOLS:L332", exc)
 
         if mappings:
             result[proc.pid] = mappings
@@ -488,8 +488,8 @@ def run_awk(
                 else:
                     try:
                         selected.append(fields[idx])
-                    except IndexError:
-                        note_failure("BINARY_ANALYSIS_TOOLS:L474", None)
+                    except IndexError as exc:
+                        note_failure("BINARY_ANALYSIS_TOOLS:L474", exc)
                         selected.append("")
             lines_out.append(output_separator.join(selected))
         else:

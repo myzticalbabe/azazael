@@ -100,8 +100,8 @@ def emit_worm_outcome(
         result = result or {}
         try:
             duration_ms = float(result.get("duration_ms", 0.0) or 0.0)
-        except (TypeError, ValueError):
-            note_failure("worm_telemetry:L94", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("worm_telemetry:L94", exc)
             duration_ms = 0.0
     if error is None:
         result = result or {}
@@ -146,8 +146,8 @@ def emit_worm_outcome(
             tags=["cluster", "worm-telemetry"],
         )
         return True
-    except Exception:
-        note_failure("worm_telemetry:L139", None)
+    except Exception as exc:
+        note_failure("worm_telemetry:L139", exc)
         return False
 
 
@@ -175,6 +175,6 @@ def emit_worm_outcome_from_result(
             error=getattr(result, "error", None),
             standby=bool(getattr(result, "standby", False)),
         )
-    except Exception:
-        note_failure("worm_telemetry:L167", None)
+    except Exception as exc:
+        note_failure("worm_telemetry:L167", exc)
         return False

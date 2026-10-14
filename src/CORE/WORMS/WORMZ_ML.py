@@ -38,8 +38,8 @@ except ImportError:                               # never break the host
 try:
     import numpy as _np  # noqa: F401 (kept for SKU-level compat checks)
     _NUMPY_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ_ML:L32", None)
+except ImportError as exc:
+    note_failure("WORMZ_ML:L32", exc)
     _np = None
     _NUMPY_AVAILABLE = False
 import re
@@ -56,8 +56,8 @@ try:
     from sklearn.ensemble import RandomForestClassifier
 
     SKLEARN_AVAILABLE = True
-except ImportError:
-    note_failure("WORMZ_ML:L49", None)
+except ImportError as exc:
+    note_failure("WORMZ_ML:L49", exc)
     SKLEARN_AVAILABLE = False
 
 
@@ -143,8 +143,8 @@ WORMZ_MLConfig.BIBL_PATH = str(_SRC_DIR / "UTILITIES" / "BIBL")
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("WORMZ_ML:L134", None)
+except ImportError as exc:
+    note_failure("WORMZ_ML:L134", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -187,8 +187,8 @@ class WORMZ_ML:
             )
         try:
             return list(self.vectorizer.fit_transform([content]).toarray()[0])
-        except Exception:
-            note_failure("WORMZ_ML:L177", None)
+        except Exception as exc:
+            note_failure("WORMZ_ML:L177", exc)
             return [0.0] * 100
 
     def _calculate_pattern_score(self, term: str, category: str) -> float:
@@ -214,8 +214,8 @@ class WORMZ_ML:
             category = self.config.CATEGORIES[category_idx]
             confidence = proba[category_idx]
             return category, confidence
-        except Exception:
-            note_failure("WORMZ_ML:L203", None)
+        except Exception as exc:
+            note_failure("WORMZ_ML:L203", exc)
             return "utilities", 0.5
 
     def _prioritize_files(self, files: list[Path]) -> list[CrawlPrediction]:
@@ -232,8 +232,8 @@ class WORMZ_ML:
                     mtime = file_path.stat().st_mtime
                     age_days = (time.time() - mtime) / 86400
                     recency_weight = max(0.3, 1.0 - (age_days / 30))
-                except Exception:
-                    note_failure("WORMZ_ML:L220", None)
+                except Exception as exc:
+                    note_failure("WORMZ_ML:L220", exc)
 
                 size_weight = (
                     min(file_path.stat().st_size / 10000, 1.0)
@@ -263,8 +263,8 @@ class WORMZ_ML:
                         risk_level=risk,
                     )
                 )
-            except Exception:
-                note_failure("WORMZ_ML:L251", None)
+            except Exception as exc:
+                note_failure("WORMZ_ML:L251", exc)
                 predictions.append(
                     CrawlPrediction(
                         file_path=str(file_path),
@@ -456,8 +456,8 @@ class WORMZ_ML:
             self.vectorizer = model_data.get("vectorizer")
             self.cluster_model = model_data.get("cluster_model")
             self.classifier = model_data.get("classifier")
-        except Exception:
-            note_failure("WORMZ_ML:L443", None)
+        except Exception as exc:
+            note_failure("WORMZ_ML:L443", exc)
 
     def _save_patterns(self):
         """Persist learned patterns."""
@@ -471,8 +471,8 @@ class WORMZ_ML:
             try:
                 with open(self.patterns_path) as f:
                     self.learned_patterns = json.load(f)
-            except Exception:
-                note_failure("WORMZ_ML:L458", None)
+            except Exception as exc:
+                note_failure("WORMZ_ML:L458", exc)
                 self.learned_patterns = {}
 
     def update_learned_patterns(self) -> dict[str, Any]:
@@ -496,8 +496,8 @@ class WORMZ_ML:
                         )
                         for e in data.get("entries", [])
                     )
-            except Exception:
-                note_failure("WORMZ_ML:L482", None)
+            except Exception as exc:
+                note_failure("WORMZ_ML:L482", exc)
 
         self._learn_patterns(all_entries)
 

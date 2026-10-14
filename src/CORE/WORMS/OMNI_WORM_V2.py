@@ -24,8 +24,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("OMNI_WORM_V2:L17", None)
+except ImportError as exc:
+    note_failure("OMNI_WORM_V2:L17", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -107,8 +107,8 @@ class OMNIV2:
                     note_failure("OMNI_WORM_V2:L95", e)
                     syntax_count += 1
                     self.errors.append({"file": str(fp), "type": "SYNTAX", "line": e.lineno, "msg": e.msg})
-            except Exception:
-                note_failure("OMNI_WORM_V2:L98", None)
+            except Exception as exc:
+                note_failure("OMNI_WORM_V2:L98", exc)
         
         self.stats["files_scanned"] = scanned
         print(f"  BOM fixes: {bom_count}")

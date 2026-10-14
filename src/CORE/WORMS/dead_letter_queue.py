@@ -120,15 +120,15 @@ class DeadLetterQueue:
                     filtered = {k: v for k, v in item.items() if k in known_fields}
                     dl = DeadLetter(**filtered)
                     loaded.append(dl)
-                except (TypeError, ValueError):
-                    note_failure("dead_letter_queue:L114", None) # Skip malformed entries
+                except (TypeError, ValueError) as exc:
+                    note_failure("dead_letter_queue:L114", exc) # Skip malformed entries
             with self._lock:
                 self._letters = loaded
                 self._total_enqueued = data.get("total_enqueued", len(loaded))
                 self._total_resolved = data.get("total_resolved", 0)
                 self._total_permanent = data.get("total_permanent", 0)
-        except (json.JSONDecodeError, OSError):
-            note_failure("dead_letter_queue:L121", None) # Corrupt file — start fresh
+        except (json.JSONDecodeError, OSError) as exc:
+            note_failure("dead_letter_queue:L121", exc) # Corrupt file — start fresh
 
     def _save(self):
         """Persist dead letters to disk atomically."""
@@ -146,8 +146,8 @@ class DeadLetterQueue:
             tmp = self._storage_path.with_suffix(".tmp")
             tmp.write_text(json.dumps(data, indent=2, default=str))
             tmp.replace(self._storage_path)
-        except OSError:
-            note_failure("dead_letter_queue:L140", None)
+        except OSError as exc:
+            note_failure("dead_letter_queue:L140", exc)
 
     # -- Core Operations --------------------------------------------
 
@@ -430,8 +430,8 @@ class DeadLetterQueue:
         now = datetime.now(timezone.utc)
         try:
             window = float(lookback_seconds)
-        except (TypeError, ValueError):
-            note_failure("dead_letter_queue:L423", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("dead_letter_queue:L423", exc)
             window = 3600.0
         summary: dict[str, Any] = {
             "total_failed": 0,
@@ -449,8 +449,8 @@ class DeadLetterQueue:
                     stamp = stamp.replace(tzinfo=timezone.utc)
                 epoch = stamp.timestamp()
                 age = (now - stamp).total_seconds()
-            except (ValueError, TypeError):
-                note_failure("dead_letter_queue:L441", None)
+            except (ValueError, TypeError) as exc:
+                note_failure("dead_letter_queue:L441", exc)
                 epoch = 0.0
                 age = 0.0
             if age < 0 or age > window:

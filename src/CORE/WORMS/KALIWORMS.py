@@ -27,8 +27,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("KALIWORMS:L20", None)
+except ImportError as exc:
+    note_failure("KALIWORMS:L20", exc)
     def register_worm(**kw):
         return lambda cls: cls
 

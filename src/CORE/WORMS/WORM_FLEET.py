@@ -26,8 +26,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("WORM_FLEET:L19", None)
+except ImportError as exc:
+    note_failure("WORM_FLEET:L19", exc)
     register_worm = lambda **kw: (lambda cls: cls)
 
 
@@ -74,8 +74,8 @@ class WormFleet:
                     content = f.read()
                 if b"\xef\xbb\xbf" in content:
                     issues.append({"file": str(fp), "type": "UTF8_BOM"})
-            except (OSError, PermissionError):
-                note_failure("WORM_FLEET:L66", None)
+            except (OSError, PermissionError) as exc:
+                note_failure("WORM_FLEET:L66", exc)
         return issues
 
     def worm_syntax_guard(self, files: list[Path]) -> list[dict]:
@@ -90,8 +90,8 @@ class WormFleet:
                 issues.append(
                     {"file": str(fp), "type": "SYNTAX", "line": e.lineno, "msg": e.msg}
                 )
-            except Exception:
-                note_failure("WORM_FLEET:L81", None)
+            except Exception as exc:
+                note_failure("WORM_FLEET:L81", exc)
         return issues
 
     def worm_import_watcher(self, files: list[Path]) -> list[dict]:
@@ -106,8 +106,8 @@ class WormFleet:
                 )
                 if result.returncode != 0:
                     issues.append({"file": str(fp), "type": "IMPORT_ERROR"})
-            except (subprocess.TimeoutExpired, Exception):
-                note_failure("WORM_FLEET:L97", None)
+            except (subprocess.TimeoutExpired, Exception) as exc:
+                note_failure("WORM_FLEET:L97", exc)
         return issues
 
     def worm_string_escape_hunter(self, files: list[Path]) -> list[dict]:
@@ -129,8 +129,8 @@ class WormFleet:
                                         "code": line[:60],
                                     }
                                 )
-            except (OSError, PermissionError, UnicodeDecodeError):
-                note_failure("WORM_FLEET:L120", None)
+            except (OSError, PermissionError, UnicodeDecodeError) as exc:
+                note_failure("WORM_FLEET:L120", exc)
         return issues
 
     def run_worm(self, name: str, func, files: list[Path]) -> dict:

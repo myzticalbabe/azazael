@@ -31,8 +31,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm, WORM_REGISTRY, discover_worms
     _REGISTRY = True
-except ImportError:
-    note_failure("WORM_SELECTOR:L25", None)
+except ImportError as exc:
+    note_failure("WORM_SELECTOR:L25", exc)
     _REGISTRY = False
     WORM_REGISTRY = {}
     def discover_worms(): return 0
@@ -73,8 +73,8 @@ class WormSelectorWorm:
             try:
                 from CORE.WORMS.expansion.learning_grpo import GRPOTrainer
                 self._grpo = GRPOTrainer()
-            except ImportError:
-                note_failure("WORM_SELECTOR:L66", None)
+            except ImportError as exc:
+                note_failure("WORM_SELECTOR:L66", exc)
                 self._grpo = False
         return self._grpo if self._grpo else None
 
@@ -83,8 +83,8 @@ class WormSelectorWorm:
             try:
                 from CORE.WORMS.expansion.learning_grpo import ABTestRunner
                 self._ab_runner = ABTestRunner()
-            except ImportError:
-                note_failure("WORM_SELECTOR:L75", None)
+            except ImportError as exc:
+                note_failure("WORM_SELECTOR:L75", exc)
                 self._ab_runner = False
         return self._ab_runner if self._ab_runner else None
 
@@ -92,8 +92,8 @@ class WormSelectorWorm:
         try:
             from CORE.local_memory import get_memory_store
             return get_memory_store()
-        except ImportError:
-            note_failure("WORM_SELECTOR:L83", None)
+        except ImportError as exc:
+            note_failure("WORM_SELECTOR:L83", exc)
             return None
 
     def select_worm(self, task_context: dict) -> dict[str, Any]:
@@ -148,8 +148,8 @@ class WormSelectorWorm:
                             "confidence": best_pattern.get("similarity", 0.5),
                             "pattern_id": best_pattern.get("id"),
                         }
-            except Exception:
-                note_failure("WORM_SELECTOR:L138", None)
+            except Exception as exc:
+                note_failure("WORM_SELECTOR:L138", exc)
 
         # Method 3: SpawnDiversityEngine fallback
         try:
@@ -166,8 +166,8 @@ class WormSelectorWorm:
                     "confidence": 0.3,
                     "candidates": len(candidates),
                 }
-        except Exception:
-            note_failure("WORM_SELECTOR:L156", None)
+        except Exception as exc:
+            note_failure("WORM_SELECTOR:L156", exc)
 
         # Final fallback: any worm from the category
         if category:
@@ -226,8 +226,8 @@ class WormSelectorWorm:
                     if isinstance(data, str):
                         try:
                             data = json.loads(data)
-                        except Exception:
-                            note_failure("WORM_SELECTOR:L216", None)
+                        except Exception as exc:
+                            note_failure("WORM_SELECTOR:L216", exc)
                             continue
                     if isinstance(data, dict):
                         w = data.get("best_worm", "")
@@ -298,8 +298,8 @@ class WormSelectorWorm:
         if store:
             try:
                 kg_stats = store.get_knowledge_graph_stats()
-            except Exception:
-                note_failure("WORM_SELECTOR:L287", None)
+            except Exception as exc:
+                note_failure("WORM_SELECTOR:L287", exc)
 
         return {
             "version": self.VERSION,

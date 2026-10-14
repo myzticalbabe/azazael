@@ -43,8 +43,8 @@ def _get_pams():
                 try:
                     from CORE.PamsRecorder import get_recorder
                     _pams = get_recorder()
-                except ImportError:
-                    note_failure("BINARY_ANALYSIS_TYPES:L36", None)
+                except ImportError as exc:
+                    note_failure("BINARY_ANALYSIS_TYPES:L36", exc)
                     _pams = False  # Sentinel: don't retry
     return _pams if _pams else None
 

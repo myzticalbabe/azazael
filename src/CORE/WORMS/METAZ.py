@@ -80,10 +80,10 @@ class METAZ:
                 tree = ast.parse(content, filename=str(py_file))
                 imports_found += self._analyze_ast(tree, py_file)
 
-            except (SyntaxError, UnicodeDecodeError):
-                note_failure("METAZ:L74", None)
-            except Exception:
-                note_failure("METAZ:L76", None)
+            except (SyntaxError, UnicodeDecodeError) as exc:
+                note_failure("METAZ:L74", exc)
+            except Exception as exc:
+                note_failure("METAZ:L76", exc)
 
         # Compute coupling metrics
         coupling = self._compute_coupling()

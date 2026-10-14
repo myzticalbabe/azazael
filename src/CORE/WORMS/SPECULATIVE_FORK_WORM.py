@@ -36,8 +36,8 @@ except ImportError:
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("SPECULATIVE_FORK_WORM:registry", None)
+except ImportError as exc:
+    note_failure("SPECULATIVE_FORK_WORM:registry", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls

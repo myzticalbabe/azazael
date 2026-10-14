@@ -17,8 +17,8 @@ __all__ = ['WSLRecovery']
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("WSL_RECOVERY_WORM:L10", None)
+except ImportError as exc:
+    note_failure("WSL_RECOVERY_WORM:L10", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
