@@ -31,6 +31,8 @@ This module never imports the engine (the host imports us); inverting that edge
 would trade one call for a cycle.
 """
 
+import subprocess
+from pathlib import Path
 from typing import Any, Dict, List
 
 #: Fail-open swallows recorded when the runtime recorder is unavailable. An
@@ -298,3 +300,133 @@ def drive_for_workflow_step(app: str, plan: List[str], contract: Dict[str, Any],
     result["mutations"] = plan_mutations(result)
     result["citation"] = record_reasoning_trace(app, result) if cite else ""
     return result
+
+
+# -- EP125: SWE-agent ACI file actions + auto-lint guardrail --------------------
+FILE_VERBS = ("view", "search", "edit", "create", "delete", "list", "grep", "glob")
+
+def file_action(action: Dict[str, Any],
+                workspace_root: str) -> Dict[str, Any]:
+    """Validate a file-system action (EP125 SWE-agent ACI).
+
+    action: {"verb": view|search|edit|create|delete|list|grep|glob,
+             "target": path, "args": {...}}
+    workspace_root: absolute root — all targets resolved under it (sandbox).
+    Returns {"executable", "resolved_target", "gaps"} with repair names.
+    """
+    action = action or {}
+    verb = str(action.get("verb", "")).strip().lower()
+    raw_target = str(action.get("target", "")).strip()
+    args = dict(action.get("args", {}) or {})
+
+    gaps: List[str] = []
+    if verb not in FILE_VERBS:
+        gaps.append(f"unknown-file-verb:{verb or '?'}")
+    if not raw_target and verb in ("view", "edit", "create", "delete", "grep", "glob"):
+        gaps.append("target-missing")
+
+    resolved = ""
+    if raw_target and not gaps:
+        try:
+            root = Path(workspace_root).resolve()
+            tgt = (root / raw_target).resolve()
+            if not str(tgt).startswith(str(root)):
+                gaps.append("path-escape:target-outside-workspace")
+            else:
+                resolved = str(tgt)
+        except Exception as exc:  # noqa: BLE001
+            gaps.append(f"path-resolve:{type(exc).__name__}")
+
+    # Auto-lint-after-edit guardrail (EP125): for edit/create, require lint cmd
+    lint_required = verb in ("edit", "create") and not args.get("lint_cmd")
+    if lint_required:
+        gaps.append("lint-cmd-missing:edit/create requires args.lint_cmd")
+        # Repair hint: caller should provide {"lint_cmd": "ruff check", "lint_args": [target]}
+
+    return {"verb": verb, "target": raw_target, "resolved_target": resolved,
+            "args": args, "executable": not gaps, "gaps": gaps}
+
+
+def file_contract(workspace_root: str) -> Dict[str, Any]:
+    """Build the file-system contract for `semantic_action` (EP125).
+
+    Returns {"verbs": FILE_VERBS, "targets": ["<workspace>/**"]} — the
+    target is the workspace tree; actual paths validated by `file_action`.
+    """
+    return {"verbs": list(FILE_VERBS), "targets": [f"{workspace_root}/**"]}
+
+
+def auto_lint_after_edit(target: str, lint_cmd: str,
+                         lint_args: List[str] = None) -> Dict[str, Any]:
+    """Run linter after edit/create — guardrail for EP125."""
+    cmd = [lint_cmd] + (lint_args or [target])
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30,
+                             cwd=os.path.dirname(target) or ".")
+        return {"ran": True, "exit_code": res.returncode,
+                "stdout": res.stdout, "stderr": res.stderr,
+                "passed": res.returncode == 0}
+    except Exception as exc:  # noqa: BLE001
+        return {"ran": False, "error": str(exc), "passed": False}
+
+
+# -- EP269: Authority ceilings (enforcement over authority_ledger) ---------------
+def authority_ceiling(subject: str,
+                      ceiling: Dict[str, float]) -> Dict[str, Any]:
+    """Check exercised vs granted against per-subject ceiling (EP269).
+
+    ceiling: {subject: max_exercised}. If exceeded, action is denied with
+    named repair (reduce scope, request grant, or increase ceiling).
+    """
+    ledger = authority_ledger()
+    exercised = ledger["exercised"].get(subject, 0.0)
+    granted = ledger["granted"].get(subject, 0.0)
+    max_allowed = ceiling.get(subject, float("inf"))
+
+    gap = exercised - granted
+    over_ceiling = exercised > max_allowed
+
+    repairs: List[str] = []
+    if over_ceiling:
+        repairs.append(f"reduce scope: exercised={exercised} > ceiling={max_allowed}")
+        repairs.append(f"request grant for {subject}")
+        repairs.append(f"increase ceiling[{subject}]")
+    if gap > 0:
+        repairs.append(f"privilege gap: exercised={exercised} > granted={granted}")
+
+    return {"subject": subject, "exercised": exercised, "granted": granted,
+            "ceiling": max_allowed, "over_ceiling": over_ceiling,
+            "gap": gap, "denied": over_ceiling, "repairs": repairs}
+
+
+def ceiling_from_policy(policy: Dict[str, Any]) -> Dict[str, float]:
+    """Extract ceilings from a policy document (EP269).
+
+    policy: {"ceilings": {"subject": max, ...}, "default": float}.
+    """
+    return dict((policy or {}).get("ceilings", {}))
+
+
+# -- EP382: Effect typing enforcement (monitoring over effect_row) ---------------
+def effect_monitor(actions: List[Dict[str, Any]],
+                   expected: Dict[str, str]) -> Dict[str, Any]:
+    """Monitor declared effects against expected write/read scopes (EP382).
+
+    expected: {target: "read"|"write"} — what the plan declares.
+    Returns mismatches where action effect != expected.
+    """
+    mismatches: List[Dict[str, Any]] = []
+    for a in actions or []:
+        row = effect_row(a)
+        exp = expected.get(row["target"])
+        if exp and row["effect"] != exp:
+            mismatches.append({"target": row["target"],
+                               "declared": row["effect"],
+                               "expected": exp,
+                               "verb": row["verb"]})
+    return {"mismatches": mismatches, "clean": len(mismatches) == 0,
+            "checked": len(actions or [])}
+
+
+# Required import for auto_lint_after_edit
+import os
