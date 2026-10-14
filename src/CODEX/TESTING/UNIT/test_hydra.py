@@ -37,8 +37,8 @@ class TestHYDRACluster:
 
             cluster = HYDRACluster()
             assert cluster is not None
-        except ImportError:
-            note_failure("test_hydra:L30", None)
+        except ImportError as exc:
+            note_failure("test_hydra:L30", exc)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_run_discover(self):
@@ -48,8 +48,8 @@ class TestHYDRACluster:
 
             cluster = HYDRACluster()
             assert hasattr(cluster, "run_discover")
-        except ImportError:
-            note_failure("test_hydra:L40", None)
+        except ImportError as exc:
+            note_failure("test_hydra:L40", exc)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_run_all(self):
@@ -60,8 +60,8 @@ class TestHYDRACluster:
             cluster = HYDRACluster()
             assert hasattr(cluster, "run_all")
             assert callable(cluster.run_all)
-        except ImportError:
-            note_failure("test_hydra:L51", None)
+        except ImportError as exc:
+            note_failure("test_hydra:L51", exc)
             pytest.skip("HYDRACluster not implemented")
 
     def test_cluster_has_stages(self):
@@ -81,8 +81,8 @@ class TestHYDRACluster:
             cluster = HYDRACluster()
             # Just verify initialization works
             assert cluster is not None
-        except ImportError:
-            note_failure("test_hydra:L71", None)
+        except ImportError as exc:
+            note_failure("test_hydra:L71", exc)
             pytest.skip("HYDRACluster not implemented")
 
 
@@ -96,8 +96,8 @@ class TestHYDRADataClasses:
 
             stage = ProcessingStage(name="test_stage", enabled=True, duration_ms=100.0)
             assert stage.name == "test_stage"
-        except ImportError:
-            note_failure("test_hydra:L85", None)
+        except ImportError as exc:
+            note_failure("test_hydra:L85", exc)
             pytest.skip("ProcessingStage not implemented")
 
 

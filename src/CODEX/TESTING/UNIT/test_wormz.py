@@ -91,8 +91,8 @@ class TestFunctionalWorms:
             pass
 
             assert True
-        except ImportError:
-            note_failure("test_wormz:L84", None)
+        except ImportError as exc:
+            note_failure("test_wormz:L84", exc)
             pytest.skip("SYSTEMZ not implemented")
 
     def test_processz_import(self):
@@ -101,8 +101,8 @@ class TestFunctionalWorms:
             pass
 
             assert True
-        except ImportError:
-            note_failure("test_wormz:L93", None)
+        except ImportError as exc:
+            note_failure("test_wormz:L93", exc)
             pytest.skip("PROCESSZ not implemented")
 
     def test_diskz_import(self):
@@ -111,8 +111,8 @@ class TestFunctionalWorms:
             pass
 
             assert True
-        except ImportError:
-            note_failure("test_wormz:L102", None)
+        except ImportError as exc:
+            note_failure("test_wormz:L102", exc)
             pytest.skip("DISKZ not implemented")
 
 

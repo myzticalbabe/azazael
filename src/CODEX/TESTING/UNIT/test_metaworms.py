@@ -74,8 +74,8 @@ class TestHYDRAMETA:
             optimizer = HYDRAMETA()
             assert optimizer.population_size == 50
             assert optimizer.generations == 100
-        except ImportError:
-            note_failure("test_metaworms:L67", None)
+        except ImportError as exc:
+            note_failure("test_metaworms:L67", exc)
             pytest.skip("HYDRAMETA not implemented")
 
     def test_hydrometa_has_optimize_method(self):
@@ -86,8 +86,8 @@ class TestHYDRAMETA:
             optimizer = HYDRAMETA()
             assert hasattr(optimizer, "optimize")
             assert callable(optimizer.optimize)
-        except ImportError:
-            note_failure("test_metaworms:L78", None)
+        except ImportError as exc:
+            note_failure("test_metaworms:L78", exc)
             pytest.skip("HYDRAMETA not implemented")
 
 
