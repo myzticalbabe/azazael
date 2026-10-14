@@ -1,4 +1,4 @@
-"""technique_blind_audit.py — which registered techniques are EXERCISE-ONLY?
+"""technique_exercise_only_audit.py — which registered techniques are EXERCISE-ONLY?
 
 READ THIS BEFORE QUOTING THE OUTPUT. The name says "blind" but the measurement
 is narrower, and conflating the two produced a wrong finding once already:
@@ -15,8 +15,13 @@ the excluded region, every symbol this tool reports does have a call site inside
 
 GENERAL RULE this tool taught the hard way: a zero is only as good as the corpus
 you searched. Always state the corpus, and re-test any zero against the region you
-excluded. Three separate false zeros in one session came from excluded or
-ill-matched corpora.
+excluded. Four separate false zeros in one session came from excluded,
+ill-matched, or error-masked corpora -- the fourth being a `|| echo "NONE"` that
+rendered four `fatal: not a git repository` errors as confident zeros.
+
+CORPUS GUARDS (below): this tool now REFUSES to report when the corpus is too
+thin to be this repository, because a wrong cwd turns every symbol into a false
+exercise-only. A loud refusal is not a zero.
 
 Intra-module calls COUNT as references (v1 wrongly excluded the defining FILE,
 which false-flagged every symbol called from a sibling function — e.g. EP461
@@ -30,6 +35,20 @@ from pathlib import Path
 
 EXCL = ("technique_wiring", "__pycache__", "archive", "archived",
         ".build", ".venvs", "node_modules", "site-packages")
+
+#: Minimum caller-corpus size. This repository's production surface is well over
+#: a thousand files; a run that sees a handful is a run from the wrong directory,
+#: and every symbol in it would score as exercise-only. Chosen as a floor, not a
+#: measurement, so it needs no maintenance as the tree grows.
+MIN_CORPUS_FILES = 500
+
+# ---------- 0. corpus guard (fail loud, never report a thin-corpus zero) ----------
+if not Path("src/CORE/technique_wiring").is_dir() or \
+        not Path("src/CORE/technique_runtime.py").is_file():
+    raise SystemExit(
+        "REFUSING TO RUN: no src/CORE/technique_wiring/ in the current directory.\n"
+        "Run this from the repository root (C:/Azazael/azazael). cwd=%s"
+        % Path.cwd())
 
 # ---------- 1. resolve `where` ----------
 srcs = list(Path("src/CORE/technique_wiring").glob("*.py"))
@@ -86,6 +105,14 @@ for f in Path(".").rglob("*.py"):
         continue
     files.append((f, s))
 print("caller-corpus files       : %d" % len(files))
+
+# ---------- 2b. corpus sanity: a thin corpus is a wrong cwd, not a finding ----------
+if len(files) < MIN_CORPUS_FILES:
+    raise SystemExit(
+        "REFUSING TO REPORT: caller corpus is only %d files (floor %d).\n"
+        "A corpus this thin is a wrong working directory, and it would turn every\n"
+        "symbol into a false 'exercise-only'. cwd=%s"
+        % (len(files), MIN_CORPUS_FILES, Path.cwd()))
 
 for f, s in files:
     try:
