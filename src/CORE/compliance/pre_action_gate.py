@@ -44,16 +44,16 @@ if str(_SRC_DIR) not in sys.path:
 try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
-except ImportError:
-    note_failure("pre_action_gate:L37", None)
+except ImportError as exc:
+    note_failure("pre_action_gate:L37", exc)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
 try:
     from CORE.compliance.telemetry import ComplianceTelemetry
     _TELEMETRY_AVAILABLE = True
-except ImportError:
-    note_failure("pre_action_gate:L44", None)
+except ImportError as exc:
+    note_failure("pre_action_gate:L44", exc)
     _TELEMETRY_AVAILABLE = False
     ComplianceTelemetry = None
 
@@ -64,8 +64,8 @@ except ImportError:
 #: Module-level (an in-function import is a ratchet failure) and fail-open.
 try:
     from CORE.verification_gate import decompose_rubric as _decompose_rubric
-except ImportError:                               # gate absent: deny stays holistic
-    note_failure("pre_action_gate:verification-gate-import", None)
+except ImportError as exc:                               # gate absent: deny stays holistic
+    note_failure("pre_action_gate:verification-gate-import", exc)
     _decompose_rubric = None
 
 # Orchestrator import is LAZY (deferred to _check_rule_0x_0y) to avoid
@@ -99,8 +99,8 @@ def _lazy_import_orchestrator():
             _oy_component_passed,
         )
         _ORCHESTRATOR_AVAILABLE = True
-    except ImportError:
-        note_failure("pre_action_gate:L79", None)
+    except ImportError as exc:
+        note_failure("pre_action_gate:L79", exc)
         _ORCHESTRATOR_AVAILABLE = False
     return _ORCHESTRATOR_AVAILABLE
 
@@ -125,8 +125,8 @@ def _load_telemetry_state() -> dict:
             "sequential_spawn_count": int(data.get("sequential_spawn_count", 0)),
             "edit_count": int(data.get("edit_count", 0)),
         }
-    except Exception:
-        note_failure("pre_action_gate:L104", None)
+    except Exception as exc:
+        note_failure("pre_action_gate:L104", exc)
         return {"parallel_batch_count": 0, "sequential_spawn_count": 0, "edit_count": 0}
 
 
@@ -144,16 +144,16 @@ def _save_telemetry_state(gate: "PreActionGate") -> None:
             "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
         _TELEMETRY_STATE_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    except Exception:
-        note_failure("pre_action_gate:L122", None) # Persistence is advisory — never block the gate
+    except Exception as exc:
+        note_failure("pre_action_gate:L122", exc) # Persistence is advisory — never block the gate
 
 
 def reset_telemetry_state() -> None:
     """Reset persisted and in-memory RULE 0Z-F counters (test/admin use)."""
     try:
         _TELEMETRY_STATE_PATH.unlink(missing_ok=True)
-    except Exception:
-        note_failure("pre_action_gate:L130", None)
+    except Exception as exc:
+        note_failure("pre_action_gate:L130", exc)
     inst = _pre_action_gate_instance
     if inst is not None:
         with inst._lock:
@@ -242,16 +242,16 @@ class PreActionGate:
         if self.telemetry:
             try:
                 self.telemetry.emit(event_type, "pre_action_gate", status, details)
-            except Exception:
-                note_failure("pre_action_gate:L199", None)
+            except Exception as exc:
+                note_failure("pre_action_gate:L199", exc)
 
     def _record(self, event_type: str, details: dict):
         """Record to DirectMemory for session audit trail."""
         if self.memory:
             try:
                 self.memory.record_event(event_type, details)
-            except Exception:
-                note_failure("pre_action_gate:L207", None)
+            except Exception as exc:
+                note_failure("pre_action_gate:L207", exc)
 
     # ------------------------------------------------------------------
     # Indentation helpers
@@ -540,8 +540,8 @@ class PreActionGate:
                     f"same-scope duplicate at indent {indent}"
                 )
             return None
-        except ImportError:
-            note_failure("pre_action_gate:L497", None) # Fall back to inline implementation below
+        except ImportError as exc:
+            note_failure("pre_action_gate:L497", exc) # Fall back to inline implementation below
 
         # â”€â”€ Fallback: inline duplicate detection (heuristic_recorder unavailable) â”€â”€
         for m in PreActionGate._DUPLICATE_METHOD_RE.finditer(content):
@@ -666,8 +666,8 @@ class PreActionGate:
                 # to the parent scope). Skip it.
                 continue
             return None
-        except ImportError:
-            note_failure("pre_action_gate:L623", None) # Fall back to inline implementation below
+        except ImportError as exc:
+            note_failure("pre_action_gate:L623", exc) # Fall back to inline implementation below
 
         # â”€â”€ Fallback: inline compiled patterns â”€â”€
         jump_re = re.compile(
@@ -794,8 +794,8 @@ class PreActionGate:
                         f"{def_line_no + 1} â€” def with no body before next declaration"
                     )
             return None
-        except ImportError:
-            note_failure("pre_action_gate:L751", None) # Fall back to inline implementation below
+        except ImportError as exc:
+            note_failure("pre_action_gate:L751", exc) # Fall back to inline implementation below
 
         # â”€â”€ Fallback: inline compiled pattern â”€â”€
         dang_re = re.compile(
@@ -1301,8 +1301,8 @@ class PreActionGate:
             backup_path = path.with_suffix(path.suffix + ".pre_gate_backup")
             try:
                 shutil.copy2(path, backup_path)
-            except OSError:
-                note_failure("pre_action_gate:L1103", None)
+            except OSError as exc:
+                note_failure("pre_action_gate:L1103", exc)
                 return ""
 
             bp_str = str(backup_path)
@@ -1360,8 +1360,8 @@ class PreActionGate:
                 if not errors:
                     try:
                         content = path.read_text(encoding="utf-8")
-                    except Exception:
-                        note_failure("pre_action_gate:L1159", None)
+                    except Exception as exc:
+                        note_failure("pre_action_gate:L1159", exc)
                         return False, "Cannot read file for post-edit check"
 
                     lines = content.split("\n")
@@ -1965,8 +1965,8 @@ def _self_test_impl() -> bool:
     try:
         from CORE.compliance.heuristic_recorder import HeuristicErrorRecorder
         _HER = HeuristicErrorRecorder()
-    except ImportError:
-        note_failure("pre_action_gate:L1762", None)
+    except ImportError as exc:
+        note_failure("pre_action_gate:L1762", exc)
         _HER = None
 
     if _HER is None:
@@ -2059,8 +2059,8 @@ def _self_test_impl() -> bool:
     try:
         from CORE.compliance.heuristic_recorder import HeuristicErrorRecorder
         _HER2 = HeuristicErrorRecorder()
-    except ImportError:
-        note_failure("pre_action_gate:L1855", None)
+    except ImportError as exc:
+        note_failure("pre_action_gate:L1855", exc)
         _HER2 = None
 
     if _HER2 is None:
@@ -2117,8 +2117,8 @@ def _self_test_impl() -> bool:
     try:
         from CORE.compliance.heuristic_recorder import HeuristicErrorRecorder
         _HER3 = HeuristicErrorRecorder()
-    except ImportError:
-        note_failure("pre_action_gate:L1912", None)
+    except ImportError as exc:
+        note_failure("pre_action_gate:L1912", exc)
         _HER3 = None
 
     if _HER3 is None:

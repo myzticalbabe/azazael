@@ -24,8 +24,8 @@ except ImportError:                               # never break the host
 try:
     from pydantic import BaseModel, Field, ValidationError
     HAS_PYDANTIC = True
-except ImportError:
-    note_failure("validating:L18", None)
+except ImportError as exc:
+    note_failure("validating:L18", exc)
     HAS_PYDANTIC = False
     BaseModel = object
     Field = None

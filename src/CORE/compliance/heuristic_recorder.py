@@ -39,16 +39,16 @@ except ImportError:                               # never break the host
 try:
     from CORE.direct_memory import DirectMemory
     _MEMORY_AVAILABLE = True
-except ImportError:
-    note_failure("heuristic_recorder:L33", None)
+except ImportError as exc:
+    note_failure("heuristic_recorder:L33", exc)
     _MEMORY_AVAILABLE = False
     DirectMemory = None
 
 try:
     from CORE.compliance.telemetry import ComplianceTelemetry
     _TELEMETRY_AVAILABLE = True
-except ImportError:
-    note_failure("heuristic_recorder:L40", None)
+except ImportError as exc:
+    note_failure("heuristic_recorder:L40", exc)
     _TELEMETRY_AVAILABLE = False
     ComplianceTelemetry = None
 
@@ -391,8 +391,8 @@ class HeuristicErrorRecorder:
                     patterns = data.get("patterns", [])
                     if isinstance(patterns, list) and patterns:
                         write_new = False
-            except Exception:
-                note_failure("heuristic_recorder:L383", None)
+            except Exception as exc:
+                note_failure("heuristic_recorder:L383", exc)
         if write_new:
             payload = {
                 "version": _PATTERN_VERSION,
@@ -420,8 +420,8 @@ class HeuristicErrorRecorder:
                     patterns = data  # Old format: plain list
                 if stored_version == _PATTERN_VERSION and isinstance(patterns, list) and patterns:
                     return patterns
-        except Exception:
-            note_failure("heuristic_recorder:L412", None)
+        except Exception as exc:
+            note_failure("heuristic_recorder:L412", exc)
         return DEFAULT_PATTERNS
 
     # ------------------------------------------------------------------
@@ -469,8 +469,8 @@ class HeuristicErrorRecorder:
         try:
             with open(_LOG_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
-        except Exception:
-            note_failure("heuristic_recorder:L461", None)
+        except Exception as exc:
+            note_failure("heuristic_recorder:L461", exc)
 
         # Write to DirectMemory
         if self.memory:
@@ -478,8 +478,8 @@ class HeuristicErrorRecorder:
                 self.memory.record_event(
                     "heuristic_edit_attempt", record
                 )
-            except Exception:
-                note_failure("heuristic_recorder:L470", None)
+            except Exception as exc:
+                note_failure("heuristic_recorder:L470", exc)
 
         return attempt_id
 
@@ -552,8 +552,8 @@ class HeuristicErrorRecorder:
                     "heuristic_edit_outcome", outcome,
                     severity=severity
                 )
-            except Exception:
-                note_failure("heuristic_recorder:L544", None)
+            except Exception as exc:
+                note_failure("heuristic_recorder:L544", exc)
 
         return outcome
 
@@ -586,8 +586,8 @@ class HeuristicErrorRecorder:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
-        except Exception:
-            note_failure("heuristic_recorder:L576", None)
+        except Exception as exc:
+            note_failure("heuristic_recorder:L576", exc)
             return []
 
         hits = []
@@ -638,8 +638,8 @@ class HeuristicErrorRecorder:
                             if not self._heur10_dangling_body_check(content):
                                 continue
                         hits.append(pattern)
-                except re.error:
-                    note_failure("heuristic_recorder:L627", None) # Skip broken regex patterns
+                except re.error as exc:
+                    note_failure("heuristic_recorder:L627", exc) # Skip broken regex patterns
         return hits
 
     # ------------------------------------------------------------------
@@ -913,8 +913,8 @@ class HeuristicErrorRecorder:
                         "details": error_details,
                     },
                 )
-            except Exception:
-                note_failure("heuristic_recorder:L902", None)
+            except Exception as exc:
+                note_failure("heuristic_recorder:L902", exc)
 
         # ERROR_LOG.md
         error_num = int(datetime.now().timestamp())

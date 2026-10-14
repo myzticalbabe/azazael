@@ -79,8 +79,8 @@ _gate_bash_instance = None
 try:
     import wrapt
     HAS_WRAPT = True
-except ImportError:
-    note_failure("broker:L71", None)
+except ImportError as exc:
+    note_failure("broker:L71", exc)
     HAS_WRAPT = False
 
 
@@ -306,8 +306,8 @@ def reset_gate() -> None:
         _gate_assertion_text = ""
         try:
             _global_sm.reset()
-        except StateMachineError:
-            note_failure("broker:L297", None)
+        except StateMachineError as exc:
+            note_failure("broker:L297", exc)
 
 
 # ---------------------------------------------------------------------------

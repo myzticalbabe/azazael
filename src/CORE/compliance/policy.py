@@ -33,8 +33,8 @@ except ImportError:                               # never break the host
 try:
     import wrapt
     HAS_WRAPT = True
-except ImportError:
-    note_failure("policy:L27", None)
+except ImportError as exc:
+    note_failure("policy:L27", exc)
     HAS_WRAPT = False
 
 
@@ -49,8 +49,8 @@ except ImportError:
 #: is also how the module is meant to be used.
 try:
     from CORE.structured_action import effect_row, observe, semantic_action
-except ImportError:
-    note_failure("policy:structured_action-import", None)
+except ImportError as exc:
+    note_failure("policy:structured_action-import", exc)
     effect_row = observe = semantic_action = None  # type: ignore[assignment]
 
 

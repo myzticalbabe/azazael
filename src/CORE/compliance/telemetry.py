@@ -126,8 +126,8 @@ class ComplianceTelemetry:
         for callback in self._callbacks:
             try:
                 callback(event)
-            except Exception:
-                note_failure("telemetry:L120", None)
+            except Exception as exc:
+                note_failure("telemetry:L120", exc)
 
         return event
 

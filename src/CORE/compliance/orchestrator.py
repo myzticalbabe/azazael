@@ -45,8 +45,8 @@ except ImportError:                               # never break the host
 try:
     import CORE.sentinel_enforcer  # noqa: F401 - triggers sys.addaudithook
     _ENFORCER_LOADED = True
-except ImportError:
-    note_failure("orchestrator:L39", None)
+except ImportError as exc:
+    note_failure("orchestrator:L39", exc)
     _ENFORCER_LOADED = False
 
 # Ensure CORE package is importable when running standalone

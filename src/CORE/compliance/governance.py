@@ -31,8 +31,8 @@ except ImportError:                               # never break the host
 try:
     import networkx as nx
     HAS_NETWORKX = True
-except ImportError:
-    note_failure("governance:L25", None)
+except ImportError as exc:
+    note_failure("governance:L25", exc)
     HAS_NETWORKX = False
     nx = None
 
@@ -600,8 +600,8 @@ class BehavioralGraphAnalyzer:
                                 "severity": "medium",
                                 "description": f"Detected action cycle: {' -> '.join(cycle)}",
                             })
-                except (nx.NetworkXNoCycle, nx.NetworkXError):
-                    note_failure("governance:L449", None)
+                except (nx.NetworkXNoCycle, nx.NetworkXError) as exc:
+                    note_failure("governance:L449", exc)
 
         return anomalies
 
@@ -757,10 +757,10 @@ class DualLedgerValidator:
                                 continue
                             try:
                                 events.append(json.loads(line))
-                            except json.JSONDecodeError:
-                                note_failure("governance:L606", None)
-                except OSError:
-                    note_failure("governance:L608", None)
+                            except json.JSONDecodeError as exc:
+                                note_failure("governance:L606", exc)
+                except OSError as exc:
+                    note_failure("governance:L608", exc)
                     continue
 
         return events
@@ -791,11 +791,11 @@ class DualLedgerValidator:
             for row in cursor.fetchall():
                 try:
                     events.append(dict(row))
-                except Exception:
-                    note_failure("governance:L639", None)
+                except Exception as exc:
+                    note_failure("governance:L639", exc)
             conn.close()
-        except (sqlite3.Error, OSError):
-            note_failure("governance:L642", None)
+        except (sqlite3.Error, OSError) as exc:
+            note_failure("governance:L642", exc)
 
         return events
 
@@ -898,11 +898,11 @@ class RealtimeAuditPipeline:
                         if entry.get("type") not in ("session_start", "chain_checkpoint"):
                             sig_ok = verify_signature(entry)
                             break
-                    except (json.JSONDecodeError, TypeError):
-                        note_failure("governance:L743", None)
+                    except (json.JSONDecodeError, TypeError) as exc:
+                        note_failure("governance:L743", exc)
                         continue
-        except Exception:
-            note_failure("governance:L745", None)
+        except Exception as exc:
+            note_failure("governance:L745", exc)
             sig_ok = False
         layer_results.append({"layer": 7, "name": "Ed25519 signature", "passed": sig_ok})
         if not sig_ok:
