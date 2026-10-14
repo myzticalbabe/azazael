@@ -86,8 +86,8 @@ def test_terence():
                                                     "desc": fix["desc"],
                                                 }
                                             )
-                            except Exception:
-                                note_failure("ECOSYSTEM_TEST:L79", None)
+                            except Exception as exc:
+                                note_failure("ECOSYSTEM_TEST:L79", exc)
 
         print(f"Found {len(errors_found)} potential issues")
 
