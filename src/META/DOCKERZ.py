@@ -103,11 +103,11 @@ class DOCKERZ:
                 timeout=timeout,
             )
             return result.returncode == 0, result.stdout, result.stderr
-        except subprocess.TimeoutExpired:
-            note_failure("DOCKERZ:L97", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("DOCKERZ:L97", exc)
             return False, "", "Command timed out"
-        except FileNotFoundError:
-            note_failure("DOCKERZ:L99", None)
+        except FileNotFoundError as exc:
+            note_failure("DOCKERZ:L99", exc)
             return False, "", "Docker not found"
         except Exception as e:
             note_failure("DOCKERZ:L101", e)

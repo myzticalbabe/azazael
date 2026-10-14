@@ -131,8 +131,8 @@ class METAZ:
                             "extension": f.suffix,
                         }
                         items += 1
-                    except Exception:
-                        note_failure("METAWORMS:L125", None)
+                    except Exception as exc:
+                        note_failure("METAWORMS:L125", exc)
 
         return WormResult(
             name="METAZ",
@@ -147,8 +147,8 @@ class METAZ:
         """Compute file checksum."""
         try:
             return hashlib.md5(path.read_bytes()).hexdigest()[:16]
-        except Exception:
-            note_failure("METAWORMS:L141", None)
+        except Exception as exc:
+            note_failure("METAWORMS:L141", exc)
             return ""
 
 
@@ -188,8 +188,8 @@ class DEPENDZ:
                                 dep = deps[1].split(".")[0]
                                 dependencies[str(f)].append(dep)
                                 items += 1
-                except Exception:
-                    note_failure("METAWORMS:L181", None)
+                except Exception as exc:
+                    note_failure("METAWORMS:L181", exc)
 
         return WormResult(
             name="DEPENDZ",
@@ -231,8 +231,8 @@ class VALIDZ:
                 except SyntaxError as e:
                     note_failure("METAWORMS:L221", e)
                     errors.append(f"{f}:{e.lineno} - {e.msg}")
-                except Exception:
-                    note_failure("METAWORMS:L223", None)
+                except Exception as exc:
+                    note_failure("METAWORMS:L223", exc)
 
         return WormResult(
             name="VALIDZ",
@@ -283,8 +283,8 @@ class DEADZ:
                             unused.append((str(f), f"Line {i}: debug print"))
 
                     items += 1
-                except Exception:
-                    note_failure("METAWORMS:L275", None)
+                except Exception as exc:
+                    note_failure("METAWORMS:L275", exc)
 
         return WormResult(
             name="DEADZ",
@@ -350,8 +350,8 @@ class METRICZ:
                             metrics["functions"] += 1
 
                     items += 1
-                except Exception:
-                    note_failure("METAWORMS:L342", None)
+                except Exception as exc:
+                    note_failure("METAWORMS:L342", exc)
 
         return WormResult(
             name="METRICZ",
@@ -394,8 +394,8 @@ class LOGZ:
                             elif "INFO" in line:
                                 logs["INFO"] += 1
                             items += 1
-                except Exception:
-                    note_failure("METAWORMS:L386", None)
+                except Exception as exc:
+                    note_failure("METAWORMS:L386", exc)
 
         return WormResult(
             name="LOGZ",
@@ -439,8 +439,8 @@ class CHANGEZ:
                         }
                         if changes[str(f)]["recent"]:
                             items += 1
-                    except Exception:
-                        note_failure("METAWORMS:L431", None)
+                    except Exception as exc:
+                        note_failure("METAWORMS:L431", exc)
 
         return WormResult(
             name="CHANGEZ",

@@ -277,8 +277,8 @@ class PersistenceManager:
         try:
             if self.state_file.exists():
                 return json.loads(self.state_file.read_text())
-        except Exception:
-            note_failure("HYDRAMETA:L271", None)
+        except Exception as exc:
+            note_failure("HYDRAMETA:L271", exc)
         return {
             "version": "1.0.0",
             "last_run": None,
@@ -294,8 +294,8 @@ class PersistenceManager:
         try:
             if self.trials_file.exists():
                 return json.loads(self.trials_file.read_text())
-        except Exception:
-            note_failure("HYDRAMETA:L288", None)
+        except Exception as exc:
+            note_failure("HYDRAMETA:L288", exc)
         return []
 
     def save_state(self, state: dict):

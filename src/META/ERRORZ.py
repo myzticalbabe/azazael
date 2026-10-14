@@ -51,8 +51,8 @@ except ImportError:                               # never break the host
 # at azazael/src/META/ERRORZ.py, so the parent of the parent is azazael/src/.
 try:
     from CORE.paths import get_desktop_dir
-except ImportError:
-    note_failure("ERRORZ:L45", None)
+except ImportError as exc:
+    note_failure("ERRORZ:L45", exc)
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     from CORE.paths import get_desktop_dir
 
@@ -184,8 +184,8 @@ class ERRORZ:
                 snippet.append(f"{marker} {i + 1:4d} | {lines[i].rstrip()}")
 
             return "\n".join(snippet)
-        except Exception:
-            note_failure("ERRORZ:L177", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L177", exc)
             return ""
 
     def _check_syntax_errors(self, file_path: Path) -> list[ErrorEntry]:
@@ -261,8 +261,8 @@ class ERRORZ:
                     code_snippet=self._get_code_context(file_path, e.lineno or 1),
                 )
             )
-        except Exception:
-            note_failure("ERRORZ:L252", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L252", exc)
 
         return errors
 
@@ -292,8 +292,8 @@ class ERRORZ:
                             )
                         )
 
-        except Exception:
-            note_failure("ERRORZ:L283", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L283", exc)
 
         return errors
 
@@ -322,8 +322,8 @@ class ERRORZ:
                         )
                     )
 
-        except Exception:
-            note_failure("ERRORZ:L313", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L313", exc)
 
         return errors
 
@@ -355,8 +355,8 @@ class ERRORZ:
                             )
                         )
 
-        except Exception:
-            note_failure("ERRORZ:L346", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L346", exc)
 
         return errors
 
@@ -400,8 +400,8 @@ class ERRORZ:
                             )
                         )
 
-        except Exception:
-            note_failure("ERRORZ:L391", None)
+        except Exception as exc:
+            note_failure("ERRORZ:L391", exc)
 
         return errors
 

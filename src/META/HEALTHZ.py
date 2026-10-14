@@ -66,8 +66,8 @@ class HEALTHZ:
         try:
             if Path(self.STATE_FILE).exists():
                 return json.loads(Path(self.STATE_FILE).read_text())
-        except Exception:
-            note_failure("HEALTHZ:L60", None)
+        except Exception as exc:
+            note_failure("HEALTHZ:L60", exc)
         return {"checks": 0, "last_healthy": True, "history": []}
 
     def _save_state(self):
@@ -75,8 +75,8 @@ class HEALTHZ:
         try:
             Path(self.STATE_FILE).parent.mkdir(exist_ok=True)
             Path(self.STATE_FILE).write_text(json.dumps(self.state, indent=2))
-        except Exception:
-            note_failure("HEALTHZ:L69", None)
+        except Exception as exc:
+            note_failure("HEALTHZ:L69", exc)
 
     def _check_cpu(self) -> str:
         """Check CPU health."""
@@ -112,8 +112,8 @@ class HEALTHZ:
             if counters.errin > 100 or counters.errout > 100:
                 return "WARNING"
             return "OK"
-        except Exception:
-            note_failure("HEALTHZ:L106", None)
+        except Exception as exc:
+            note_failure("HEALTHZ:L106", exc)
             return "UNKNOWN"
 
     def _check_processes(self) -> str:
