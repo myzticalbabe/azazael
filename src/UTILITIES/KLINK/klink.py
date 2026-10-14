@@ -525,8 +525,8 @@ def cmd_pams():
             print(f"  Memory:      {data['memory_usage_mb']:.1f} MB")
         if "cmdline" in data:
             print(f"  Process:     {data.get('cmdline', 'N/A')}")
-    except Exception:
-        note_failure("klink:L517", None)
+    except Exception as exc:
+        note_failure("klink:L517", exc)
     
     # DB files (configurable via PAMS_DATA_DIR env var)
     db_dir = os.environ.get(
