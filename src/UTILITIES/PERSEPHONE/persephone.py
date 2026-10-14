@@ -66,8 +66,8 @@ class PersephoneConfig:
 
 try:
     from version import Azazael_VERSION, PROTOCOL_VERSION, PERSEPHONE_VERSION
-except ImportError:
-    note_failure("persephone:L59", None)
+except ImportError as exc:
+    note_failure("persephone:L59", exc)
     Azazael_VERSION = "2.1.0"
     PROTOCOL_VERSION = "2.0.0"
     PERSEPHONE_VERSION = "1.0.0"
