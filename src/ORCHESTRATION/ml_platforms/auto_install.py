@@ -85,8 +85,8 @@ def check_package(package):
     try:
         __import__(package.replace("-", "_"))
         return True, None
-    except ImportError:
-        note_failure("auto_install:L78", None)
+    except ImportError as exc:
+        note_failure("auto_install:L78", exc)
         return False, None
 
 

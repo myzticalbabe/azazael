@@ -88,8 +88,8 @@ def check_platform_status() -> tuple[list, list]:
         try:
             __import__(pkg.replace("-", "_"))
             available.append((pkg, name))
-        except ImportError:
-            note_failure("diagnostics:L81", None)
+        except ImportError as exc:
+            note_failure("diagnostics:L81", exc)
             unavailable.append((pkg, name))
 
     return available, unavailable

@@ -68,15 +68,15 @@ try:
     pass
 
     HAS_TORCH = True
-except ImportError:
-    note_failure("installation_debug:L62", None)
+except ImportError as exc:
+    note_failure("installation_debug:L62", exc)
 
 try:
     import tensorflow as tf
 
     HAS_TF = True
-except ImportError:
-    note_failure("installation_debug:L69", None)
+except ImportError as exc:
+    note_failure("installation_debug:L69", exc)
 
 
 @dataclass
@@ -229,8 +229,8 @@ class InstallationDebugger:
             import tensorboard
 
             return (InstallationStatus.OK, tensorboard.__version__)
-        except ImportError:
-            note_failure("installation_debug:L222", None)
+        except ImportError as exc:
+            note_failure("installation_debug:L222", exc)
             return (InstallationStatus.MISSING, "TensorBoard not installed")
 
     def install_package(self, package_name: str, upgrade: bool = False) -> bool:
@@ -243,8 +243,8 @@ class InstallationDebugger:
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
             return result.returncode == 0
-        except subprocess.TimeoutExpired:
-            note_failure("installation_debug:L235", None)
+        except subprocess.TimeoutExpired as exc:
+            note_failure("installation_debug:L235", exc)
             return False
 
     def fix_tensorboard(self) -> bool:
@@ -328,11 +328,11 @@ class CompatibilityChecker:
                 importlib.import_module(pkg1)
                 try:
                     importlib.import_module(pkg2)
-                except ImportError:
-                    note_failure("installation_debug:L319", None)
+                except ImportError as exc:
+                    note_failure("installation_debug:L319", exc)
                     detected.append((pkg1, pkg2, message))
-            except ImportError:
-                note_failure("installation_debug:L321", None)
+            except ImportError as exc:
+                note_failure("installation_debug:L321", exc)
         return detected
 
 

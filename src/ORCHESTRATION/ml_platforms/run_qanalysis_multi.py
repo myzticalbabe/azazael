@@ -80,32 +80,32 @@ def load_frameworks():
         import torch
 
         loaded["torch"] = {"version": torch.__version__, "device": "cpu"}
-    except Exception:
-        note_failure("run_qanalysis_multi:L73", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_multi:L73", exc)
     try:
         import tensorflow as tf
 
         loaded["tensorflow"] = {"version": tf.__version__}
-    except Exception:
-        note_failure("run_qanalysis_multi:L79", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_multi:L79", exc)
     try:
         import jax
 
         loaded["jax"] = {"version": jax.__version__}
-    except Exception:
-        note_failure("run_qanalysis_multi:L85", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_multi:L85", exc)
     try:
         import numpy as np
 
         loaded["numpy"] = {"version": np.__version__}
-    except Exception:
-        note_failure("run_qanalysis_multi:L91", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_multi:L91", exc)
     try:
         import scipy
 
         loaded["scipy"] = {"version": scipy.__version__}
-    except Exception:
-        note_failure("run_qanalysis_multi:L97", None)
+    except Exception as exc:
+        note_failure("run_qanalysis_multi:L97", exc)
     return loaded
 
 
