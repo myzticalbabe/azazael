@@ -163,6 +163,7 @@ def check_neg_control(sha, tests, py315t):
         after = _tree_files_at("HEAD", files)
         bad = [f for f in files
                if (after[f] or b"") != (live[f] or b"")]
+        _run(["git", "update-index", "--refresh"])
         if bad:
             print("FATAL: restore mismatch on %s -- worktree differs from "
                   "the verified bytes; inspect by hand, refusing to "
