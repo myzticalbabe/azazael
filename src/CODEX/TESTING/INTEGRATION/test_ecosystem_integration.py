@@ -58,8 +58,8 @@ class TestMetaWormsIntegration:
 
             result = WormResult(name="test", success=True, output={})
             assert result.success is True
-        except ImportError:
-            note_failure("test_ecosystem_integration:L50", None)
+        except ImportError as exc:
+            note_failure("test_ecosystem_integration:L50", exc)
             pytest.skip("METAWORMS not available")
 
 
@@ -83,8 +83,8 @@ class TestKLINKIntegration:
             ]
             for cmd in expected:
                 assert cmd in COMMANDS, f"Missing command: {cmd}"
-        except ImportError:
-            note_failure("test_ecosystem_integration:L74", None)
+        except ImportError as exc:
+            note_failure("test_ecosystem_integration:L74", exc)
             pytest.skip("KLINK not available")
 
 
