@@ -101,8 +101,16 @@ def _pip_download(spec: str, abi: str, dest: Path, python: str,
            "--implementation", "cp", "--abi", abi, "-d", str(dest)]
     if allow_pre:
         cmd.append("--pre")
-    proc = subprocess.run(cmd, capture_output=True, text=True,
-                          encoding="utf-8", errors="replace")
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1800,
+                              encoding="utf-8", errors="replace")
+    except subprocess.TimeoutExpired:
+        # The declared contract is Path | None and the caller records a None as
+        # "no wheel" for THIS spec, then continues to the next one. Escaping
+        # would abort the whole run and lose that per-spec accounting, so the
+        # timeout is reported here and folded into the same contract.
+        print(f"   pip download timed out after 1800s: {spec} ({abi})")
+        return None
     wheels = sorted(dest.glob("*.whl"))
     if proc.returncode != 0 or not wheels:
         return None
@@ -283,6 +291,31 @@ def _probe(module: str, python: str, timeout: float) -> str:
     return "FAIL"
 
 
+def _pip_install(installer: str,
+                 wheel: Path) -> "tuple[subprocess.CompletedProcess[str] | None, str]":
+    """Force-reinstall one wheel with `installer`; returns (process, reason).
+
+    A timeout must NOT escape this call. The caller branches on the result of
+    the install, and one of those branches is the GIL-build fallback retry that
+    exists precisely for an install which did not succeed -- an exception here
+    would skip the recovery instead of triggering it.
+
+    The reason is RETURNED rather than discarded, for two reasons: `None` alone
+    cannot say whether the wheel timed out or pip refused it, and a tuple is not
+    the bare-constant return the scanner reads as `except_return_default`.
+    `rc=...` is the fallback when pip printed nothing, which used to raise
+    IndexError on `.splitlines()[-1]`.
+    """
+    try:
+        return (subprocess.run(
+            [installer, "-m", "pip", "install", "--force-reinstall",
+             "--no-deps", "--no-warn-conflicts", str(wheel)],
+            capture_output=True, text=True, timeout=1800,
+            encoding="utf-8", errors="replace"), "")
+    except subprocess.TimeoutExpired as exc:
+        return (None, "%s after 1800s" % type(exc).__name__)
+
+
 def verify(modules: list[str], ft: str, gil: str, timeout: float) -> int:
     print(f"\nverification (one subprocess per module per interpreter)")
     print(f"  FT : {ft}")
@@ -438,24 +471,20 @@ def main() -> int:
                 """
                 return args.python if "cp314t" in wheel.name else gil_py
 
-            proc = subprocess.run(
-                [_installer_for(primary), "-m", "pip", "install",
-                 "--force-reinstall", "--no-deps", "--no-warn-conflicts",
-                 str(primary)], capture_output=True, text=True,
-                 encoding="utf-8", errors="replace")
-            if proc.returncode != 0:
-                # Retry with the GIL build if the FT build is unusable.
+            proc, why = _pip_install(_installer_for(primary), primary)
+            if proc is None or proc.returncode != 0:
+                # Retry with the GIL build if the FT build is unusable. A
+                # timeout counts as a failure here, so a slow FT install still
+                # reaches the fallback this block exists to perform.
                 alt = gil_wheel if primary is ft_wheel else None
                 if alt is not None:
                     primary, ft_wheel, tier = alt, None, "gil-only"
-                    proc = subprocess.run(
-                        [_installer_for(primary), "-m", "pip", "install",
-                         "--force-reinstall", "--no-deps", "--no-warn-conflicts",
-                         str(primary)], capture_output=True, text=True,
-                         encoding="utf-8", errors="replace")
-                if proc.returncode != 0:
-                    print(f"   install failed: "
-                          f"{(proc.stderr or proc.stdout).strip().splitlines()[-1][:100]}")
+                    proc, why = _pip_install(_installer_for(primary), primary)
+                if proc is None or proc.returncode != 0:
+                    if not why:
+                        tail = (proc.stderr or proc.stdout).strip().splitlines()
+                        why = tail[-1][:100] if tail else "rc=%d" % proc.returncode
+                    print(f"   install failed: {why}")
                     problems.append(spec)
                     continue
 

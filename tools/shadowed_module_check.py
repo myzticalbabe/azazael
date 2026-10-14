@@ -75,15 +75,17 @@ def tracked_py(repo: Path) -> list[str]:
     test would give it, which is the worst possible failure for a checker.
     """
     try:
-        r = subprocess.run(["git", "ls-files", "*.py"], cwd=str(repo),
+        r = subprocess.run(["git", "ls-files", "*.py"], cwd=str(repo), timeout=120,
                            capture_output=True, text=True,
                            encoding="utf-8", errors="replace")
         if r.returncode == 0:
             out = [p for p in r.stdout.splitlines() if p.strip()]
             if out:
                 return out
-    except OSError:
-        pass
+    except (OSError, subprocess.SubprocessError) as exc:
+        sys.stderr.write(
+            "  git ls-files unavailable (%s: %s); walking the tree instead\n"
+            % (type(exc).__name__, exc))
     out = []
     for p in repo.rglob("*.py"):
         if SKIP_PARTS & set(p.parts):
