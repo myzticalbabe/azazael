@@ -142,8 +142,8 @@ class AzazaelCLI:
                     capture_output=True,
                     timeout=5,
                 )
-            except Exception:
-                note_failure("azazael_cli:L135", None)
+            except Exception as exc:
+                note_failure("azazael_cli:L135", exc)
                 errors += 1
         if errors == 0:
             self.log(f"All {len(files)} files valid", "OK")
