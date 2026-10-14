@@ -47,8 +47,8 @@ def _bounded_exists(path: str, timeout_s: float = 5.0) -> bool | None:
     def _probe() -> None:
         try:
             box["exists"] = bool(os.path.exists(path))
-        except Exception:
-            note_failure("mesh:L37", None)
+        except Exception as exc:
+            note_failure("mesh:L37", exc)
             box["exists"] = False
 
     worker = threading.Thread(target=_probe, name="exists-probe", daemon=True)
@@ -68,8 +68,8 @@ try:
     from CORE.env_id import describe_env as _canonical_describe_env
     from CORE.env_id import is_known_env, VALID_ENVS
     _CANONICAL_ENV = True
-except ImportError:  # pragma: no cover - defensive
-    note_failure("mesh:L57", None)
+except ImportError as exc:  # pragma: no cover - defensive
+    note_failure("mesh:L57", exc)
     _CANONICAL_ENV = False
     VALID_ENVS = ("windows", "wsl2-ubuntu", "wsl2-kali", "bare", "kali")
 
@@ -80,8 +80,8 @@ except ImportError:  # pragma: no cover - defensive
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("mesh:L68", None)
+except ImportError as exc:
+    note_failure("mesh:L68", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -89,16 +89,16 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, ThreadSafeDict
     _FREETHREAD = True
-except ImportError:
-    note_failure("mesh:L76", None)
+except ImportError as exc:
+    note_failure("mesh:L76", exc)
     _FREETHREAD = False
     ThreadSafeDict = dict
     def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("mesh:L83", None)
+        except Exception as exc:
+            note_failure("mesh:L83", exc)
             return False
 
 # Fabric operational state (audit 2026-09-15, finding #7): hydrate in
@@ -108,8 +108,8 @@ try:
     from CORE.WORMS.expansion.fabric_state import (
         hydrate, publish, cap_list, cap_map,
     )
-except ImportError:  # pragma: no cover - defensive, keeps mesh importable alone
-    note_failure("mesh:L93", None)
+except ImportError as exc:  # pragma: no cover - defensive, keeps mesh importable alone
+    note_failure("mesh:L93", exc)
     def hydrate(instance, provider, attrs):
         return 0
 
@@ -145,8 +145,8 @@ def _read_text(path: str) -> str:
     try:
         with open(path, 'r', errors='replace') as f:
             return f.read()
-    except Exception:
-        note_failure("mesh:L129", None)
+    except Exception as exc:
+        note_failure("mesh:L129", exc)
         return ""
 
 
@@ -261,8 +261,8 @@ class MeshRouterWorm:
         try:
             from CORE import spine_registry as _spine
             learned = _spine.route_weight_learned(self._env, dst_env, base_w)
-        except Exception:
-            note_failure("mesh:L244", None) # fail open on the static weight; routing must not fail on learning
+        except Exception as exc:
+            note_failure("mesh:L244", exc) # fail open on the static weight; routing must not fail on learning
         return {
             "success": True, "src": self._env, "dst": dst_env,
             "weight": base_w,
@@ -337,8 +337,8 @@ class MeshRouterWorm:
             _spine.record_outcome("route", f"{src}>{dst}",
                                   bool(success), float(duration_ms),
                                   error=error, censored=censored)
-        except Exception:
-            note_failure("mesh:L319", None) # learning is best-effort; routing must not fail on it
+        except Exception as exc:
+            note_failure("mesh:L319", exc) # learning is best-effort; routing must not fail on it
 
     def send(self, dst_env: str, payload: dict,
              timeout: float = 10.0) -> dict[str, Any]:
@@ -386,8 +386,8 @@ class MeshRouterWorm:
                     "status": status,
                     "error": str(res.get("error") or "")[:120],
                     "ms": round(duration_ms, 2)})
-            except Exception:
-                note_failure("mesh:L367", None)
+            except Exception as exc:
+                note_failure("mesh:L367", exc)
         scored.update({"delivered": bool(res.get("success")),
                        "receipt": res.get("receipt"),
                        "error": res.get("error"),
@@ -558,8 +558,8 @@ class PartitionHealerWorm:
             # the interpreter, and decodes the UTF-16LE redirect case.
             try:
                 from CORE.fs_probe import bounded_subprocess_output
-            except Exception:  # pragma: no cover - helper optional
-                note_failure("mesh:L537", None)
+            except Exception as exc:  # pragma: no cover - helper optional
+                note_failure("mesh:L537", exc)
                 bounded_subprocess_output = None
             probe = (bounded_subprocess_output(["wsl", "-l", "-v"], timeout_s=10.0)
                      if bounded_subprocess_output else
@@ -580,13 +580,13 @@ class PartitionHealerWorm:
                     _s.settimeout(1)
                     try:
                         _s.connect(("127.0.0.1", _port))
-                    except Exception:
-                        note_failure("mesh:L558", None)
+                    except Exception as exc:
+                        note_failure("mesh:L558", exc)
                         issues.append(f"peer_down:{_env}")
                     finally:
                         _s.close()
-            except Exception:
-                note_failure("mesh:L562", None)
+            except Exception as exc:
+                note_failure("mesh:L562", exc)
         else:
             if _bounded_exists('/mnt/g', timeout_s=5.0) is not True:
                 issues.append("g_unmounted")
@@ -677,8 +677,8 @@ class EnvBeaconWorm:
             cap["tools"] = {
                 t: bool(_iu.find_spec(t)) for t in ("nmap", "torch", "onnx")
             }
-        except Exception:
-            note_failure("mesh:L652", None)
+        except Exception as exc:
+            note_failure("mesh:L652", exc)
             cap["tools"] = {}
         with self._lock:
             self._beacons[cap["env"]] = cap

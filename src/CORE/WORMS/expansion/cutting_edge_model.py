@@ -83,8 +83,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:                               # registry optional at import time
-    note_failure("cutting_edge_model:L93", None)
+except ImportError as exc:                               # registry optional at import time
+    note_failure("cutting_edge_model:L93", exc)
     _REGISTRY = False
 
     def register_worm(**kw):                      # noqa: ANN003 - shim

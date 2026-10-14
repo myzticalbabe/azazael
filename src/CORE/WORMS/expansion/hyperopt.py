@@ -242,8 +242,8 @@ def _read_json(path) -> Optional[dict]:
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         return data if isinstance(data, dict) else None
-    except Exception:
-        note_failure("hyperopt:L236", None)
+    except Exception as exc:
+        note_failure("hyperopt:L236", exc)
         return None
 
 
@@ -266,8 +266,8 @@ def clamp(name: str, value: Any) -> Any:
         return value
     try:
         v = int(round(float(value))) if spec["kind"] == "int" else float(value)
-    except (TypeError, ValueError):
-        note_failure("hyperopt:L259", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("hyperopt:L259", exc)
         return spec["default"]
     return max(spec["low"], min(spec["high"], v))
 
@@ -293,24 +293,24 @@ def get(name: str, default: Any = None) -> Any:
         data = _read_json(PARAMS_JSON)
         raw = (data or {}).get("params") or {}
         return clamp(name, raw.get(name, spec["default"]))
-    except Exception:
-        note_failure("hyperopt:L285", None)
+    except Exception as exc:
+        note_failure("hyperopt:L285", exc)
         return spec["default"] if default is None else default
 
 
 def get_int(name: str, default: int) -> int:
     try:
         return int(get(name, default))
-    except Exception:
-        note_failure("hyperopt:L292", None)
+    except Exception as exc:
+        note_failure("hyperopt:L292", exc)
         return int(default)
 
 
 def get_float(name: str, default: float) -> float:
     try:
         return float(get(name, default))
-    except Exception:
-        note_failure("hyperopt:L299", None)
+    except Exception as exc:
+        note_failure("hyperopt:L299", exc)
         return float(default)
 
 
@@ -518,11 +518,11 @@ def measure(limit: int = 20000) -> Dict[str, Any]:
         if not WORM_REGISTRY:
             try:
                 discover_worms()
-            except Exception:
-                note_failure("hyperopt:L505", None)
+            except Exception as exc:
+                note_failure("hyperopt:L505", exc)
         registered = len(WORM_REGISTRY)
-    except Exception:
-        note_failure("hyperopt:L508", None)
+    except Exception as exc:
+        note_failure("hyperopt:L508", exc)
         registered = 0
 
     observed = sum(1 for n in outcomes.values() if n > 0)
@@ -577,8 +577,8 @@ def measure(limit: int = 20000) -> Dict[str, Any]:
 def _coerce_float(value: Any) -> Optional[float]:
     try:
         return float(value)
-    except (TypeError, ValueError):
-        note_failure("hyperopt:L563", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("hyperopt:L563", exc)
         return None
 
 
@@ -700,8 +700,8 @@ def canary_tolerance(m: Optional[Dict[str, Any]] = None) -> float:
     m = m if m is not None else measure()
     try:
         n = int(m.get("n_outcome_rows") or 0)
-    except (TypeError, ValueError):
-        note_failure("hyperopt:L685", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("hyperopt:L685", exc)
         n = 0
     if n <= 0:
         return CANARY_TOLERANCE_FLOOR
@@ -723,15 +723,15 @@ def load_lineage(limit: int = 4000) -> List[Dict[str, Any]]:
                     continue
                 try:
                     row = json.loads(line)
-                except Exception:
-                    note_failure("hyperopt:L707", None)
+                except Exception as exc:
+                    note_failure("hyperopt:L707", exc)
                     continue
                 if isinstance(row, dict):
                     out.append(row)
                     if len(out) >= limit:
                         break
-    except Exception:
-        note_failure("hyperopt:L713", None)
+    except Exception as exc:
+        note_failure("hyperopt:L713", exc)
         return []
     return out
 
@@ -818,8 +818,8 @@ def objective_health(m: Optional[Dict[str, Any]] = None,
 
     try:
         n = int(m.get("n_outcome_rows") or 0)
-    except (TypeError, ValueError):
-        note_failure("hyperopt:L800", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("hyperopt:L800", exc)
         n = 0
     return {
         "ok": bool(states),

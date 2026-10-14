@@ -24,8 +24,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("glia:L18", None)
+except ImportError as exc:
+    note_failure("glia:L18", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -51,8 +51,8 @@ class AstrocyteWorm:
                     if f.is_file() and (f.suffix in (".pyc", ".tmp") or f.name.endswith(".log.1")
                                         or f.name == "__pycache__"):
                         victims.append(str(f))
-                except Exception:
-                    note_failure("glia:L44", None)
+                except Exception as exc:
+                    note_failure("glia:L44", exc)
                     continue
                 if len(victims) >= 200:
                     break
@@ -62,8 +62,8 @@ class AstrocyteWorm:
                 try:
                     Path(v).unlink(missing_ok=True)
                     removed += 1
-                except Exception:
-                    note_failure("glia:L54", None)
+                except Exception as exc:
+                    note_failure("glia:L54", exc)
                     continue
         with self._lock:
             self._cleaned += removed
@@ -118,8 +118,8 @@ class MicrogliaWorm:
             import json as _json
             cls._SIZE_DENSITY = _json.load(
                 open("G:/source-of-truth/azazael_models/size_density.json", encoding="utf-8"))
-        except Exception:
-            note_failure("glia:L109", None)
+        except Exception as exc:
+            note_failure("glia:L109", exc)
             cls._SIZE_DENSITY = {}
         return cls._SIZE_DENSITY
 

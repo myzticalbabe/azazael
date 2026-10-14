@@ -204,8 +204,8 @@ def record_reflection(question: str, what_failed: str, what_next: str,
             correlation_id=str(decision_id) if decision_id else None,
         )
         return True
-    except Exception:
-        note_failure("reflexion:L66", None)
+    except Exception as exc:
+        note_failure("reflexion:L66", exc)
         return False
 
 
@@ -233,8 +233,8 @@ def reflections_for(question: str, *, store: Any = None,
             rows = fetch(event_type=EVENT_TYPE, limit=500) or []
         else:
             rows = store.query_memories(event_type=EVENT_TYPE, limit=500) or []
-    except Exception:
-        note_failure("reflexion:L94", None)
+    except Exception as exc:
+        note_failure("reflexion:L94", exc)
         return []
     q = " ".join(str(question or "").lower().split())
     hits = []
@@ -244,8 +244,8 @@ def reflections_for(question: str, *, store: Any = None,
             try:
                 import json as _json
                 d = _json.loads(d)
-            except Exception:
-                note_failure("reflexion:L104", None)
+            except Exception as exc:
+                note_failure("reflexion:L104", exc)
                 continue
         if not isinstance(d, dict):
             continue

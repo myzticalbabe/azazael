@@ -30,21 +30,21 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("envmesh:L21", None)
+except ImportError as exc:
+    note_failure("envmesh:L21", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
 try:
     from CORE.freethreading import is_free_threaded
-except ImportError:
-    note_failure("envmesh:L27", None)
+except ImportError as exc:
+    note_failure("envmesh:L27", exc)
     def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
-        except Exception:
-            note_failure("envmesh:L32", None)
+        except Exception as exc:
+            note_failure("envmesh:L32", exc)
             return False
 
 
@@ -52,8 +52,8 @@ def _read(path: str) -> str:
     try:
         with open(path, "r", errors="replace") as f:
             return f.read()
-    except Exception:
-        note_failure("envmesh:L40", None)
+    except Exception as exc:
+        note_failure("envmesh:L40", exc)
         return ""
 
 
@@ -75,8 +75,8 @@ def env_id_v2() -> str:
     try:
         from CORE.env_id import env_id
         return env_id()
-    except Exception:  # pragma: no cover - defensive
-        note_failure("envmesh:L62", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("envmesh:L62", exc)
         if os.name == "nt":
             return "windows"
         ver = _read("/proc/version").lower()
@@ -150,8 +150,8 @@ class WslKaliWorm:
         for t in ("nmap",):
             try:
                 avail[t] = _iu.find_spec(t) is not None
-            except Exception:
-                note_failure("envmesh:L135", None)
+            except Exception as exc:
+                note_failure("envmesh:L135", exc)
                 avail[t] = False
         for b in ("nmap", "masscan", "nikto", "sqlmap"):
             avail[b + ":bin"] = any(

@@ -25,8 +25,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("migration:L19", None)
+except ImportError as exc:
+    note_failure("migration:L19", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -35,8 +35,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("migration:L28", None)
+except ImportError as exc:
+    note_failure("migration:L28", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -45,8 +45,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("migration:L37", None)
+        except Exception as exc:
+            note_failure("migration:L37", exc)
             return False
 
 
@@ -128,8 +128,8 @@ class DepUpgrader:
                              capture_output=True, text=True, timeout=30)
             if r.returncode == 0:
                 return json.loads(r.stdout)
-        except Exception:
-            note_failure("migration:L118", None)
+        except Exception as exc:
+            note_failure("migration:L118", exc)
         return []
 
     def get_summary(self):

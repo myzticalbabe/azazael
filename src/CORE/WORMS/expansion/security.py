@@ -24,8 +24,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("security:L18", None)
+except ImportError as exc:
+    note_failure("security:L18", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -34,8 +34,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("security:L27", None)
+except ImportError as exc:
+    note_failure("security:L27", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -44,8 +44,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("security:L36", None)
+        except Exception as exc:
+            note_failure("security:L36", exc)
             return False
 
 
@@ -73,8 +73,8 @@ class VulnScanner:
                     if line and not line.startswith("#"):
                         pkg = line.split("==")[0].split(">=")[0].split("<=")[0].strip()
                         self._scanned_deps.add(pkg)
-        except Exception:
-            note_failure("security:L64", None)
+        except Exception as exc:
+            note_failure("security:L64", exc)
 
         with self._lock:
             self._vulns.extend(vulns)
@@ -160,8 +160,8 @@ class CertMonitor:
                             result["expires_in_days"] = days_left
                             result["valid"] = days_left > 0
                         result["issuer"] = str(cert.get("issuer", ""))
-        except Exception:
-            note_failure("security:L151", None)
+        except Exception as exc:
+            note_failure("security:L151", exc)
         with self._lock:
             self._certs[f"{hostname}:{port}"] = result
         return result
@@ -217,8 +217,8 @@ class FirewallAudit:
                         rule[k.strip()] = v.strip()
                 if rule:
                     rules.append(rule)
-        except Exception:
-            note_failure("security:L193", None)
+        except Exception as exc:
+            note_failure("security:L193", exc)
         self._rules = rules
         return rules
 
@@ -260,8 +260,8 @@ class PermissionScanner:
                     world_writable = bool(st.st_mode & 0o002)
                     if world_writable:
                         findings.append({"path": str(f), "mode": oct(st.st_mode), "world_writable": True})
-                except OSError:
-                    note_failure("security:L236", None)
+                except OSError as exc:
+                    note_failure("security:L236", exc)
         with self._lock:
             self._findings = findings
         return findings

@@ -57,8 +57,8 @@ __all__ = [
 
 try:  # GIL interpreter only; the free-threaded build cannot load cp314 wheels.
     import numpy as _np  # type: ignore
-except Exception:  # pragma: no cover - expected under python3.14t
-    note_failure("loom:L51", None)
+except Exception as exc:  # pragma: no cover - expected under python3.14t
+    note_failure("loom:L51", exc)
     _np = None
 
 
@@ -132,8 +132,8 @@ def intrinsic_dimension(points: Sequence[Sequence[float]],
                 cov = (x.T @ x) / float(x.shape[0] - 1)
             eigs = _np.linalg.eigvalsh(cov)[::-1]
             return float(participation_ratio([float(v) for v in eigs]))
-        except Exception:
-            note_failure("loom:L125", None)
+        except Exception as exc:
+            note_failure("loom:L125", exc)
     return participation_ratio(jacobi_eigenvalues(_covariance(points)))
 
 
@@ -178,8 +178,8 @@ def spectral_summary(points: Sequence[Sequence[float]], top_k: int = 3) -> Dict[
             cov = (x.T @ x) / float(max(1, x.shape[0] - 1))
             eigs = [float(v) for v in _np.linalg.eigvalsh(cov)[::-1]]
             used_numpy = True
-        except Exception:
-            note_failure("loom:L171", None)
+        except Exception as exc:
+            note_failure("loom:L171", exc)
             eigs = []
     if not eigs:
         eigs = jacobi_eigenvalues(_covariance(points))
@@ -300,8 +300,8 @@ class NoveltyDrive:
                            "pressure": self.pressure,
                            "collapse_run": self.collapse_run,
                            "history": self.history[-128:]}, fh, indent=1)
-        except Exception:
-            note_failure("loom:L292", None)
+        except Exception as exc:
+            note_failure("loom:L292", exc)
 
     def load(self) -> None:
         if not self.path:
@@ -313,8 +313,8 @@ class NoveltyDrive:
             self.pressure = float(d.get("pressure", 0.0))
             self.collapse_run = int(d.get("collapse_run", 0))
             self.history = list(d.get("history", []))
-        except Exception:
-            note_failure("loom:L305", None)
+        except Exception as exc:
+            note_failure("loom:L305", exc)
 
 
 def descriptors_from_archive(cells: Iterable[dict]) -> List[List[float]]:
@@ -331,7 +331,7 @@ def descriptors_from_archive(cells: Iterable[dict]) -> List[List[float]]:
         if isinstance(d, (list, tuple)) and d:
             try:
                 out.append([float(x) for x in d])
-            except (TypeError, ValueError):
-                note_failure("loom:L323", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("loom:L323", exc)
                 continue
     return out

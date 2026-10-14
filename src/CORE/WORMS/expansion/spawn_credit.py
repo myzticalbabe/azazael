@@ -295,8 +295,8 @@ def _try_data(raw: Any) -> Optional[Dict[str, Any]]:
     if isinstance(raw, (str, bytes)):
         try:
             parsed = json.loads(raw)
-        except (ValueError, TypeError):
-            note_failure("spawn_credit:L289", None)
+        except (ValueError, TypeError) as exc:
+            note_failure("spawn_credit:L289", exc)
             return None
         return parsed if isinstance(parsed, dict) else None
     return None
@@ -414,8 +414,8 @@ def read_outcomes(store: Any = None, limit: int = 20000,
             acc["ok"] += 1
         try:
             dur = float(d.get("duration_ms") or 0.0)
-        except (TypeError, ValueError):
-            note_failure("spawn_credit:L406", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("spawn_credit:L406", exc)
             dur = 0.0
         if dur > 0:
             acc["durs"].append(dur)
@@ -509,8 +509,8 @@ def read_outcome_decisions(store: Any = None, limit: int = 20000,
             continue
         try:
             dur = float(d.get("duration_ms") or 0.0)
-        except (TypeError, ValueError):
-            note_failure("spawn_credit:L500", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("spawn_credit:L500", exc)
             dur = 0.0
         out.setdefault(str(d["decision_id"]), {})[worm] = {
             "success": bool(d.get("success")),
@@ -579,14 +579,14 @@ def build_spawn_credit(store: Any = None, outcome_limit: int = 20000,
                 true_outcomes = int(store.count_memories(event_type=OUTCOME_EVENT))
                 if true_outcomes > sampled_outcomes:
                     credit.n_outcome_rows = true_outcomes
-            except Exception:
-                note_failure("spawn_credit:L569", None)
+            except Exception as exc:
+                note_failure("spawn_credit:L569", exc)
             try:
                 true_choices = int(store.count_memories(event_type=SPAWN_EVENT))
                 if true_choices > sampled_choices:
                     credit.n_choice_rows = true_choices
-            except Exception:
-                note_failure("spawn_credit:L575", None)
+            except Exception as exc:
+                note_failure("spawn_credit:L575", exc)
         durations = [o.mean_duration_ms for o in credit.outcomes.values()
                      if o.mean_duration_ms > 0]
         credit.median_duration_ms = (statistics.median(durations) if durations
@@ -646,8 +646,8 @@ def resolve_store() -> Any:
     try:
         from CORE.local_memory import get_memory_store
         return get_memory_store()
-    except Exception:
-        note_failure("spawn_credit:L635", None)
+    except Exception as exc:
+        note_failure("spawn_credit:L635", exc)
         return None
 
 

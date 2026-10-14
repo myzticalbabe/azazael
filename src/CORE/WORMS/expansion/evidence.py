@@ -93,8 +93,8 @@ class EraEvidence:
         """Record one margin observation inside a named era."""
         try:
             m = float(margin)
-        except (TypeError, ValueError):
-            note_failure("evidence:L87", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("evidence:L87", exc)
             return
         if not math.isfinite(m):
             return
@@ -270,8 +270,8 @@ def evidence_from_rows(rows: Any, margin_key: str = "margin",
         if isinstance(data, str):
             try:
                 data = json.loads(data)
-            except Exception:
-                note_failure("evidence:L263", None)
+            except Exception as exc:
+                note_failure("evidence:L263", exc)
                 continue
         if not isinstance(data, dict):
             continue
@@ -279,8 +279,8 @@ def evidence_from_rows(rows: Any, margin_key: str = "margin",
         if margin is None:
             try:
                 margin = float(data.get("best_total")) - float(data.get("baseline"))
-            except (TypeError, ValueError):
-                note_failure("evidence:L271", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("evidence:L271", exc)
                 continue
         ev.observe(str(data.get(era_key, "unknown")), margin)
     return ev

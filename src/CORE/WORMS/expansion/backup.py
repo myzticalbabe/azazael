@@ -27,8 +27,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("backup:L21", None)
+except ImportError as exc:
+    note_failure("backup:L21", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -37,8 +37,8 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("backup:L30", None)
+except ImportError as exc:
+    note_failure("backup:L30", exc)
     _FREETHREAD = False
     FreeThreadPool = None
     ThreadSafeDict = dict
@@ -47,8 +47,8 @@ except ImportError:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("backup:L39", None)
+        except Exception as exc:
+            note_failure("backup:L39", exc)
             return False
 
 
@@ -108,8 +108,8 @@ class IncrementalBackupWorm:
             if f.is_file():
                 try:
                     manifest[str(f)] = hashlib.sha256(f.read_bytes()).hexdigest()
-                except Exception:
-                    note_failure("backup:L98", None)
+                except Exception as exc:
+                    note_failure("backup:L98", exc)
         return manifest
 
     def find_changes(self, old_manifest: dict[str, str], new_manifest: dict[str, str]) -> dict[str, Any]:

@@ -157,8 +157,8 @@ class GeneSpec:
             if k == "schedule":
                 seq = [min(self.hi, max(self.lo, float(v))) for v in value]
                 return seq or [self.lo, self.hi]
-        except (TypeError, ValueError):
-            note_failure("morph:L151", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("morph:L151", exc)
             return self.sample(random.Random(0))
         return value
 
@@ -176,8 +176,8 @@ class GeneSpec:
             if self.kind == "schedule":
                 return (isinstance(value, (list, tuple)) and len(value) >= 2
                         and all(self.lo <= float(v) <= self.hi for v in value))
-        except (TypeError, ValueError):
-            note_failure("morph:L169", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("morph:L169", exc)
             return False
         return False
 
@@ -251,8 +251,8 @@ class Genome:
             else:
                 try:
                     out.append(float(v))
-                except (TypeError, ValueError):
-                    note_failure("morph:L243", None)
+                except (TypeError, ValueError) as exc:
+                    note_failure("morph:L243", exc)
                     out.append(0.0)
         return out
 
@@ -359,8 +359,8 @@ def structural_mutate(g: Genome, pool: Sequence[GeneSpec],
         op = rng.choice(ops)
         try:
             child = STRUCTURAL_OPS[op](g, rng, pool)
-        except Exception:
-            note_failure("morph:L350", None)
+        except Exception as exc:
+            note_failure("morph:L350", exc)
             child = None
         if child is not None:
             return child, op
@@ -421,8 +421,8 @@ def prune_zero_variance(genomes: Sequence[Genome], min_spread: float = 1e-4
             seen[s.name] = seen.get(s.name, 0) + 1
             try:
                 num = float(v[0]) if isinstance(v, (list, tuple)) and v else float(v)
-            except (TypeError, ValueError):
-                note_failure("morph:L411", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("morph:L411", exc)
                 num = float(bool(v))
             buckets.setdefault(s.name, []).append(num)
 
@@ -453,8 +453,8 @@ def dimension_report(rows: Iterable[dict]) -> dict:
         try:
             d = int(r.get("dimension"))
             f = float(r.get("fitness"))
-        except (TypeError, ValueError):
-            note_failure("morph:L442", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("morph:L442", exc)
             continue
         if math.isnan(f) or math.isinf(f):
             continue
@@ -506,6 +506,6 @@ def load_genome(path: str) -> Optional[Genome]:
             d = json.load(fh)
         specs = [GeneSpec.from_dict(x) for x in d["specs"]]
         return Genome(specs, d["values"])
-    except Exception:
-        note_failure("morph:L494", None)
+    except Exception as exc:
+        note_failure("morph:L494", exc)
         return None

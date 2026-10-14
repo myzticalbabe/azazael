@@ -61,16 +61,16 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm, WORM_REGISTRY
-except ImportError:  # pragma: no cover — registry optional
-    note_failure("queens:L55", None)
+except ImportError as exc:  # pragma: no cover — registry optional
+    note_failure("queens:L55", exc)
     def register_worm(**kw):
         return lambda cls: cls
     WORM_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
 try:
     from CORE import spine_registry as _spine
-except ImportError:  # pragma: no cover — ledger optional
-    note_failure("queens:L62", None)
+except ImportError as exc:  # pragma: no cover — ledger optional
+    note_failure("queens:L62", exc)
     _spine = None
 
 
@@ -96,8 +96,8 @@ def _census_paths() -> Tuple[Path, Path]:
 def _load_json(path: Path) -> Any:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        note_failure("queens:L88", None)
+    except Exception as exc:
+        note_failure("queens:L88", exc)
         return None
 
 
@@ -143,8 +143,8 @@ def _scan_production_mentions() -> Dict[str, set]:
         # src root; appending "src" again would scan nothing and silently
         # disable this guard, so it is asserted below rather than assumed.
         src = Path(__file__).resolve().parents[3]
-    except Exception:  # pragma: no cover - defensive
-        note_failure("queens:L134", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("queens:L134", exc)
         return out
     if not src.exists() or not (src / "CORE").exists():
         return out
@@ -159,8 +159,8 @@ def _scan_production_mentions() -> Dict[str, set]:
             continue
         try:
             tree = _ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-        except Exception:
-            note_failure("queens:L149", None)
+        except Exception as exc:
+            note_failure("queens:L149", exc)
             continue
         rel = str(path)
         hits = {n.id for n in _ast.walk(tree) if isinstance(n, _ast.Name)}
@@ -199,8 +199,8 @@ def _is_wired_in_production(name: str, info: Dict[str, Any]) -> bool:
             handle = _sys.modules.get(mod)
             target = getattr(handle, "__file__", None)
             own_file = str(target) if target else None
-        except Exception:  # pragma: no cover - defensive
-            note_failure("queens:L188", None)
+        except Exception as exc:  # pragma: no cover - defensive
+            note_failure("queens:L188", exc)
             own_file = None
     files = _production_mentions().get(name) or set()
     return bool({f for f in files if f != own_file})
@@ -380,8 +380,8 @@ class GrayQueenWorm:
                 }, indent=1), encoding="utf-8")
                 import os
                 os.replace(str(tmp), str(snap_path))
-            except Exception:
-                note_failure("queens:L368", None) # a failed snapshot must never break the observer
+            except Exception as exc:
+                note_failure("queens:L368", exc) # a failed snapshot must never break the observer
 
         with self._lock:
             self._sessions += 1
@@ -402,8 +402,8 @@ class GrayQueenWorm:
                     "new": len(new), "resolved": len(resolved),
                     "entrenched": len(entrenched),
                     "delta": result["counts"]["delta"]})
-            except Exception:
-                note_failure("queens:L390", None)
+            except Exception as exc:
+                note_failure("queens:L390", exc)
         return result
 
     def execute(self) -> Dict[str, Any]:
@@ -487,8 +487,8 @@ class BlackQueenWorm:
             return 0
         try:
             view = _spine.get_homeostat_view()
-        except Exception:
-            note_failure("queens:L475", None)
+        except Exception as exc:
+            note_failure("queens:L475", exc)
             return 0
         suffix = ":" + name
         total = 0
@@ -502,8 +502,8 @@ class BlackQueenWorm:
         """The lowest-cost registered worm that already covers `name`."""
         try:
             from CORE.worm_governance import DedupAnalyzer
-        except Exception:
-            note_failure("queens:L489", None)
+        except Exception as exc:
+            note_failure("queens:L489", exc)
             return None
         analyzer = DedupAnalyzer()
         best: Optional[Dict[str, Any]] = None
@@ -520,8 +520,8 @@ class BlackQueenWorm:
                 continue
             try:
                 match = analyzer.compare_worms(name, info, other, oinfo)
-            except Exception:
-                note_failure("queens:L506", None)
+            except Exception as exc:
+                note_failure("queens:L506", exc)
                 continue
             if match is None:
                 continue
@@ -548,8 +548,8 @@ class BlackQueenWorm:
         out: List[Dict[str, Any]] = []
         try:
             from CORE.worm_registry import is_protected_worm
-        except Exception:
-            note_failure("queens:L533", None)
+        except Exception as exc:
+            note_failure("queens:L533", exc)
             def is_protected_worm(_info):  # type: ignore
                 return False
         for name, info in list(WORM_REGISTRY.items()):
@@ -658,8 +658,8 @@ class BlackQueenWorm:
                     vote = _spine.cast_quarantine_vote(
                         finding, "operator" if force else env, "retire",
                         quorum=self.QUORUM)
-                except Exception:
-                    note_failure("queens:L641", None)
+                except Exception as exc:
+                    note_failure("queens:L641", exc)
                     vote = {}
             decided = bool(force) or bool(vote.get("decided"))
             if not decided:
@@ -685,8 +685,8 @@ class BlackQueenWorm:
                         "worm": name, "twin": (rec.get("leak") or {}).get("twin"),
                         "forced": bool(force), "envs": vote.get("envs"),
                         "applied": rec["applied"]})
-                except Exception:
-                    note_failure("queens:L667", None)
+                except Exception as exc:
+                    note_failure("queens:L667", exc)
             proposed.append(rec)
         return {"success": True, "evaluated": len(cands),
                 "retired": len(proposed), "held": len(held),
@@ -735,8 +735,8 @@ class BlackQueenWorm:
                 tmp = census_path.with_suffix(census_path.suffix + ".tmp")
                 tmp.write_text(json.dumps(raw, indent=1), encoding="utf-8")
                 os.replace(str(tmp), str(census_path))
-            except Exception:
-                note_failure("queens:L717", None)
+            except Exception as exc:
+                note_failure("queens:L717", exc)
                 return touched  # the in-memory decision still stands
         return touched
 
@@ -756,8 +756,8 @@ def _local_env() -> str:
     try:
         from CORE.env_id import env_id
         return str(env_id())
-    except Exception:  # pragma: no cover - CORE.env_id is stdlib-only
-        note_failure("queens:L737", None)
+    except Exception as exc:  # pragma: no cover - CORE.env_id is stdlib-only
+        note_failure("queens:L737", exc)
         import os
         return "windows" if os.name == "nt" else "bare"
 

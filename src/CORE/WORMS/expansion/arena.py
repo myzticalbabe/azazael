@@ -183,8 +183,8 @@ class Arena:
     def solve(self, genome: Any, env: Environment) -> float:
         try:
             return float(self.solver(genome, env.config()))
-        except Exception:
-            note_failure("arena:L177", None)
+        except Exception as exc:
+            note_failure("arena:L177", exc)
             return float("-inf")
 
     def populate(self, seed_env: Environment, genome: Any, n: int = 8) -> List[ArenaWorld]:
@@ -303,8 +303,8 @@ class Arena:
                                       w.get("fitness", 0.0), w.get("parent"))
                            for w in d.get("worlds", [])]
             self.history = list(d.get("history", []))
-        except Exception:
-            note_failure("arena:L296", None)
+        except Exception as exc:
+            note_failure("arena:L296", exc)
 
 
 def keeper_split(worlds: Sequence[ArenaWorld], keeper_frac: float = 0.25

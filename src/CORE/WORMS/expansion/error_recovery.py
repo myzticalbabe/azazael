@@ -32,8 +32,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("error_recovery:L26", None)
+except ImportError as exc:
+    note_failure("error_recovery:L26", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -42,8 +42,8 @@ except ImportError:
 try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
-except ImportError:
-    note_failure("error_recovery:L35", None)
+except ImportError as exc:
+    note_failure("error_recovery:L35", exc)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
@@ -225,8 +225,8 @@ class ErrorRecoveryOrchestrator:
         if hasattr(worm_instance, 'get_status'):
             try:
                 return worm_instance.get_status()
-            except Exception:
-                note_failure("error_recovery:L216", None)
+            except Exception as exc:
+                note_failure("error_recovery:L216", exc)
 
         # Fallback: return safe degraded response
         return {

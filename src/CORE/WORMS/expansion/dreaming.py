@@ -49,16 +49,16 @@ except ImportError:                               # never break the host
 try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
-except ImportError:
-    note_failure("dreaming:L40", None)
+except ImportError as exc:
+    note_failure("dreaming:L40", exc)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("dreaming:L47", None)
+except ImportError as exc:
+    note_failure("dreaming:L47", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -142,8 +142,8 @@ class DreamingModule:
                 source=source, event_type=event_type,
                 limit=limit, max_age_days=max_age_days,
             )
-        except Exception:
-            note_failure("dreaming:L131", None)
+        except Exception as exc:
+            note_failure("dreaming:L131", exc)
             records = []
 
         if not records:
@@ -165,8 +165,8 @@ class DreamingModule:
                     records.append(_e)
                     _have.add(str(_e.get("id")))
                     errors_added += 1
-        except Exception:
-            note_failure("dreaming:L153", None)
+        except Exception as exc:
+            note_failure("dreaming:L153", exc)
 
         with self._lock:
             self._scenario_memory = records
@@ -202,8 +202,8 @@ class DreamingModule:
                     if cand.get("timestamp", "") > err.get("timestamp", "") and cand not in anchored:
                         anchored.append(cand)
                         break
-        except Exception:
-            note_failure("dreaming:L190", None)
+        except Exception as exc:
+            note_failure("dreaming:L190", exc)
         return anchored
 
     def dream(self, num_episodes: int = 5,
@@ -328,8 +328,8 @@ class DreamingModule:
             if isinstance(data, str):
                 try:
                     data = json.loads(data)
-                except (json.JSONDecodeError, TypeError):
-                    note_failure("dreaming:L316", None)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("dreaming:L316", exc)
                     data = {}
 
             severity = scenario.get("severity", "info")
@@ -459,8 +459,8 @@ class DreamingModule:
                         f"{(md.get('text', '') or json.dumps(md))[:140]}"
                     ),
                 })
-        except Exception:
-            note_failure("dreaming:L446", None)
+        except Exception as exc:
+            note_failure("dreaming:L446", exc)
 
         return suggestions
     def _mine_error_recovery_patterns(self, scenarios: list[dict]) -> list[dict]:
@@ -492,8 +492,8 @@ class DreamingModule:
             if isinstance(d, str):
                 try:
                     d = json.loads(d)
-                except (json.JSONDecodeError, TypeError):
-                    note_failure("dreaming:L479", None)
+                except (json.JSONDecodeError, TypeError) as exc:
+                    note_failure("dreaming:L479", exc)
                     d = {}
             return d if isinstance(d, dict) else {}
 
@@ -504,8 +504,8 @@ class DreamingModule:
                     try:
                         from datetime import datetime as _dt
                         return _dt.fromisoformat(str(raw)).timestamp()
-                    except (ValueError, TypeError):
-                        note_failure("dreaming:L490", None)
+                    except (ValueError, TypeError) as exc:
+                        note_failure("dreaming:L490", exc)
                         continue
             return 0.0
 
@@ -578,8 +578,8 @@ class DreamingModule:
                 if isinstance(err_data, str):
                     try:
                         err_data = json.loads(err_data)
-                    except (json.JSONDecodeError, TypeError):
-                        note_failure("dreaming:L563", None)
+                    except (json.JSONDecodeError, TypeError) as exc:
+                        note_failure("dreaming:L563", exc)
                         err_data = {}
                 error_msg = err_data.get("error", err_data.get("msg", "")) if isinstance(err_data, dict) else str(err_data)
 
@@ -604,8 +604,8 @@ class DreamingModule:
                 if isinstance(suc_data, str):
                     try:
                         suc_data = json.loads(suc_data)
-                    except (json.JSONDecodeError, TypeError):
-                        note_failure("dreaming:L588", None)
+                    except (json.JSONDecodeError, TypeError) as exc:
+                        note_failure("dreaming:L588", exc)
                         suc_data = {}
                 action = suc_data.get("action", suc_data.get("strategy", "")) if isinstance(suc_data, dict) else ""
 
@@ -630,8 +630,8 @@ class DreamingModule:
                     })
 
             return sorted(results, key=lambda r: -r["confidence"])[:5]
-        except Exception:
-            note_failure("dreaming:L613", None)
+        except Exception as exc:
+            note_failure("dreaming:L613", exc)
             return []
 
     def _detect_novel_patterns(self, scenarios: list[dict],
@@ -842,8 +842,8 @@ class DreamingModule:
             try:
                 from CORE.WORMS.expansion.meta_cognition import MetaCognitionWorm
                 tuning, active_strategy = MetaCognitionWorm().dream_tuning_for(source or "global")
-            except Exception:
-                note_failure("dreaming:L823", None)
+            except Exception as exc:
+                note_failure("dreaming:L823", exc)
                 tuning, active_strategy = {}, None
             if tuning:
                 num_episodes = tuning.get("num_episodes", num_episodes)
@@ -881,8 +881,8 @@ class DreamingModule:
             try:
                 from CORE.dream_policy_bridge import apply_dream_policy
                 policy_fn = apply_dream_policy
-            except Exception:
-                note_failure("dreaming:L860", None)
+            except Exception as exc:
+                note_failure("dreaming:L860", exc)
                 policy_fn = None
 
         # INTEGRATE
@@ -929,8 +929,8 @@ class DreamingModule:
             )
             if result["decision"] == "blocked":
                 print(f"[DreamingModule] CurativePool blocked {phase}: {result['block_reasons']}")
-        except ImportError:
-            note_failure("dreaming:L907", None)
+        except ImportError as exc:
+            note_failure("dreaming:L907", exc)
 
     def _persist_dreaming_session(self, dreams: list[Dream]) -> None:
         """Persist dreaming session to LocalMemoryStore.
@@ -961,8 +961,8 @@ class DreamingModule:
                     severity="info",
                     tags=dream.tags,
                 )
-        except Exception:
-            note_failure("dreaming:L939", None)
+        except Exception as exc:
+            note_failure("dreaming:L939", exc)
 
     def _persist_integration(self, dream: Dream) -> None:
         """Persist dream integration to LocalMemoryStore."""
@@ -981,8 +981,8 @@ class DreamingModule:
                 severity="info",
                 tags=["dream", "integration"],
             )
-        except Exception:
-            note_failure("dreaming:L959", None)
+        except Exception as exc:
+            note_failure("dreaming:L959", exc)
 
     def get_dream_stats(self) -> dict[str, Any]:
         """Get dreaming statistics."""
@@ -1005,5 +1005,5 @@ class DreamingModule:
                 severity="info",
                 tags=["dream", "steering", steering.get("strategy", "")],
             )
-        except Exception:
-            note_failure("dreaming:L983", None)
+        except Exception as exc:
+            note_failure("dreaming:L983", exc)

@@ -125,8 +125,8 @@ class _LazyTorch:
                 stderr=subprocess.DEVNULL,
                 timeout=self.IMPORT_TIMEOUT_S,
             )
-        except Exception:
-            note_failure("nerve:L120", None)
+        except Exception as exc:
+            note_failure("nerve:L120", exc)
             return False  # scanner:ignore
         return proc.returncode == 0
 
@@ -134,8 +134,8 @@ class _LazyTorch:
         started = time.monotonic()
         try:
             import torch as _mod
-        except Exception:
-            note_failure("nerve:L128", None)
+        except Exception as exc:
+            note_failure("nerve:L128", exc)
             self._mod = None
             self._state = "absent"
         else:
@@ -164,8 +164,8 @@ class _LazyTorch:
                     self._state = "timeout"
                     return None
                 self._import_here()
-            except Exception:
-                note_failure("nerve:L157", None)
+            except Exception as exc:
+                note_failure("nerve:L157", exc)
                 self._mod = None
                 self._state = "absent"
         return self._mod
@@ -200,8 +200,8 @@ _TORCH_OP_LOCK = threading.Lock()
 
 try:
     import numpy as _np  # type: ignore
-except Exception:  # pragma: no cover
-    note_failure("nerve:L192", None)
+except Exception as exc:  # pragma: no cover
+    note_failure("nerve:L192", exc)
     _np = None
 
 
@@ -274,8 +274,8 @@ class Neuromodulator:
                 for p in self.net.parameters():
                     p.copy_(_torch.empty_like(p).uniform_(-0.5, 0.5, generator=g))
             self.backend = "torch:%s" % dev
-        except Exception:
-            note_failure("nerve:L265", None)
+        except Exception as exc:
+            note_failure("nerve:L265", exc)
             self.net = None
             self.backend = "numpy"
 
@@ -303,8 +303,8 @@ class Neuromodulator:
                 with _TORCH_OP_LOCK, _torch.no_grad():
                     t = _torch.tensor([list(ctx)], dtype=_torch.float32, device=self.net[0].weight.device)
                     raw = [float(v) for v in self.net(t)[0].tolist()]
-            except Exception:
-                note_failure("nerve:L293", None)
+            except Exception as exc:
+                note_failure("nerve:L293", exc)
                 raw = self._forward_numpy(ctx)
         else:
             raw = self._forward_numpy(ctx)
@@ -320,8 +320,8 @@ class Neuromodulator:
                     for p in self.net.parameters():
                         out.extend(float(v) for v in p.detach().cpu().reshape(-1).tolist())
                 return out
-            except Exception:
-                note_failure("nerve:L309", None) # scanner:ignore
+            except Exception as exc:
+                note_failure("nerve:L309", exc) # scanner:ignore
         out = []
         for row in self.w1:
             out.extend(row)
@@ -345,8 +345,8 @@ class Neuromodulator:
                         p.copy_(_torch.tensor(chunk, dtype=p.dtype, device=p.device).view_as(p))
                         i += n
                 return
-            except Exception:
-                note_failure("nerve:L334", None) # scanner:ignore
+            except Exception as exc:
+                note_failure("nerve:L334", exc) # scanner:ignore
         i = 0
         for r in range(self.hidden):
             for c in range(self.in_dim):
@@ -380,8 +380,8 @@ class Neuromodulator:
                       d.get("seed", 0))
             obj.set_params(d.get("params") or [])
             return obj
-        except Exception:
-            note_failure("nerve:L369", None)
+        except Exception as exc:
+            note_failure("nerve:L369", exc)
             return None  # scanner:ignore
 
 

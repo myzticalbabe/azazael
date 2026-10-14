@@ -48,8 +48,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("synapse:L42", None)
+except ImportError as exc:
+    note_failure("synapse:L42", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -83,8 +83,8 @@ class SynapseWeightWorm:
         try:
             from CORE import spine_registry as _spine
             self._spine = _spine
-        except ImportError:
-            note_failure("synapse:L76", None)
+        except ImportError as exc:
+            note_failure("synapse:L76", exc)
 
     def update(self, src: str, dst: str, reward: float,
                duration_ms: float = 0.0, next_value: float = 0.0) -> float:
@@ -112,8 +112,8 @@ class SynapseWeightWorm:
         current = self.weight(src, dst)
         try:
             td_error = float(reward) + self._gamma * float(next_value) - current
-        except (TypeError, ValueError):
-            note_failure("synapse:L105", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("synapse:L105", exc)
             td_error = 0.0
         with self._lock:
             self._updates += 1
@@ -127,8 +127,8 @@ class SynapseWeightWorm:
                 self._spine.record_outcome("synapse", key, td_error > 0.0,
                                            float(duration_ms),
                                            delta=self._lr * td_error)
-            except Exception:
-                note_failure("synapse:L119", None) # learning is best-effort; callers must not fail on it
+            except Exception as exc:
+                note_failure("synapse:L119", exc) # learning is best-effort; callers must not fail on it
         return self.weight(src, dst)
 
     def weight(self, src: str, dst: str) -> float:
@@ -203,8 +203,8 @@ class MoEDispatcherWorm:
         try:
             from CORE import spine_registry as _spine
             self._spine = _spine
-        except ImportError:
-            note_failure("synapse:L195", None)
+        except ImportError as exc:
+            note_failure("synapse:L195", exc)
 
     def available_experts(self) -> dict:
         """Which experts actually exist as importable classes (cached)."""
@@ -215,8 +215,8 @@ class MoEDispatcherWorm:
                     ok = False
                     try:
                         ok = _iu.find_spec(mod) is not None
-                    except Exception:
-                        note_failure("synapse:L207", None)
+                    except Exception as exc:
+                        note_failure("synapse:L207", exc)
                         ok = False
                     self._availability[name] = ok
             return dict(self._availability)
@@ -238,8 +238,8 @@ class MoEDispatcherWorm:
                     scores[e] = max(
                         0.05, scores[e] * (1.0 + self._spine.get_q_weight(
                             self.MOE_NATURE, e)))
-            except Exception:
-                note_failure("synapse:L229", None)
+            except Exception as exc:
+                note_failure("synapse:L229", exc)
         if needs_vision:
             scores["NimInferenceWorm"] = scores.get("NimInferenceWorm", 1.0) + 1.0
         if prompt_len > 4000:
@@ -259,8 +259,8 @@ class MoEDispatcherWorm:
         try:
             mod = __import__(mod_name, fromlist=[cls_name])
             return getattr(mod, cls_name)()
-        except Exception:
-            note_failure("synapse:L250", None)
+        except Exception as exc:
+            note_failure("synapse:L250", exc)
             return None
 
     def top_expert(self, prompt_len: int = 100, needs_vision: bool = False):
@@ -325,8 +325,8 @@ class MoEDispatcherWorm:
         """Report an expert outcome; updates the local score AND the Q-table."""
         try:
             r = max(-1.0, min(1.0, float(reward)))
-        except (TypeError, ValueError):
-            note_failure("synapse:L314", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("synapse:L314", exc)
             return
         with self._lock:
             self._scores[expert] = max(0.05,
@@ -335,8 +335,8 @@ class MoEDispatcherWorm:
             try:
                 self._spine.record_outcome(self.MOE_NATURE, expert, r > 0.0,
                                            0.0, reward=r)
-            except Exception:
-                note_failure("synapse:L323", None)
+            except Exception as exc:
+                note_failure("synapse:L323", exc)
 
     def execute(self) -> dict[str, Any]:
         return {"success": True, "method": "execute",
@@ -407,8 +407,8 @@ class SSMSequenceWorm:
             for raw in values:
                 try:
                     v = float(raw)
-                except (TypeError, ValueError):
-                    note_failure("synapse:L395", None)
+                except (TypeError, ValueError) as exc:
+                    note_failure("synapse:L395", exc)
                     continue
                 # 1. learning step on the previous step's reconstruction error
                 if self._pending is not None:
@@ -505,8 +505,8 @@ class AttentionRouterWorm:
         try:
             from CORE import spine_registry as _spine
             self._spine = _spine
-        except ImportError:
-            note_failure("synapse:L492", None)
+        except ImportError as exc:
+            note_failure("synapse:L492", exc)
 
     def attend(self, task_context: dict | None = None) -> dict[str, Any]:
         """Softmax over natures: Q-derived EMA + manual prior + context bias."""
@@ -519,8 +519,8 @@ class AttentionRouterWorm:
                         self._q_ema[nature] = (self._q_ema.get(nature, 0.0)
                                                * self._decay
                                                + val * (1.0 - self._decay))
-                except Exception:
-                    note_failure("synapse:L506", None)
+                except Exception as exc:
+                    note_failure("synapse:L506", exc)
             scores = {n: self._q_ema.get(n, 0.0) + self._prior.get(n, 0.0)
                       for n in set(self._q_ema) | set(self._prior)}
         if not scores:
@@ -551,8 +551,8 @@ class AttentionRouterWorm:
         """
         try:
             s = max(0.0, min(1.0, float(strength)))
-        except (TypeError, ValueError):
-            note_failure("synapse:L538", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("synapse:L538", exc)
             s = 1.0
         with self._lock:
             delta = (0.1 if success else -0.15) * s

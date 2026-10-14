@@ -35,8 +35,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("metabolic:L29", None)
+except ImportError as exc:
+    note_failure("metabolic:L29", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -83,16 +83,16 @@ class PowerBudgetWorm:
         """
         try:
             import psutil
-        except Exception:
-            note_failure("metabolic:L76", None)
+        except Exception as exc:
+            note_failure("metabolic:L76", exc)
             return {"available": False, "reason": "psutil_unavailable"}
         try:
             pct = float(psutil.cpu_percent(interval=None))
             cores = int(psutil.cpu_count(logical=True) or 1)
             try:
                 load1 = float(psutil.getloadavg()[0])
-            except Exception:
-                note_failure("metabolic:L83", None)
+            except Exception as exc:
+                note_failure("metabolic:L83", exc)
                 load1 = 0.0
             with self._lock:
                 warm = bool(self._last_load.get("warm"))
@@ -195,8 +195,8 @@ class ThermalThrottleWorm:
                     cur = getattr(entry, "current", None)
                     if cur:
                         return float(cur)
-        except Exception:
-            note_failure("metabolic:L185", None)
+        except Exception as exc:
+            note_failure("metabolic:L185", exc)
             return None
         return None
 
@@ -206,8 +206,8 @@ class ThermalThrottleWorm:
                 with open(p) as f:
                     raw = int(f.read().strip())
                     return raw / 1000.0 if raw > 1000 else float(raw)
-            except Exception:
-                note_failure("metabolic:L195", None)
+            except Exception as exc:
+                note_failure("metabolic:L195", exc)
                 continue
         return self._temp_from_psutil()
 
@@ -215,8 +215,8 @@ class ThermalThrottleWorm:
         try:
             import psutil
             return float(psutil.cpu_percent(interval=None))
-        except Exception:
-            note_failure("metabolic:L203", None)
+        except Exception as exc:
+            note_failure("metabolic:L203", exc)
             return None
 
     def recommend_threads(self, current: int = 16) -> dict[str, Any]:

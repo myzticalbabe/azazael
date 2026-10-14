@@ -30,8 +30,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("chaos:L24", None)
+except ImportError as exc:
+    note_failure("chaos:L24", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -66,8 +66,8 @@ class ChaosWorm:
                 try:
                     socket.gethostbyname("nonexistent.invalid.")
                     ok = False  # resolved?! should never happen
-                except Exception:
-                    note_failure("chaos:L59", None)
+                except Exception as exc:
+                    note_failure("chaos:L59", exc)
                     ok = False  # operation failed, truthfully
             else:
                 return {"success": False, "error": f"unknown drill {kind}"}

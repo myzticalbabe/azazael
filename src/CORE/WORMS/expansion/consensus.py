@@ -28,8 +28,8 @@ try:
     from CORE.WORMS.expansion.fabric_state import (
         hydrate, publish, cap_list, cap_map,
     )
-except ImportError:  # pragma: no cover - defensive
-    note_failure("consensus:L22", None)
+except ImportError as exc:  # pragma: no cover - defensive
+    note_failure("consensus:L22", exc)
     def hydrate(instance, provider, attrs):
         return 0
 
@@ -44,8 +44,8 @@ except ImportError:  # pragma: no cover - defensive
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("consensus:L37", None)
+except ImportError as exc:
+    note_failure("consensus:L37", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -105,8 +105,8 @@ class QuorumVoterWorm:
             from CORE import spine_registry as _spine
             shared = _spine.cast_quarantine_vote(
                 finding_id, env, verdict, quorum=self._quorum)
-        except Exception:
-            note_failure("consensus:L97", None)
+        except Exception as exc:
+            note_failure("consensus:L97", exc)
             shared = None
         if shared and shared.get("success"):
             result.update({
@@ -136,8 +136,8 @@ class QuorumVoterWorm:
                 return {"finding": finding_id, "votes": len(ledger),
                         "tally": counts, "envs": sorted(ledger),
                         "source": "spine_ledger"}
-        except Exception:
-            note_failure("consensus:L127", None) # scanner:ignore
+        except Exception as exc:
+            note_failure("consensus:L127", exc) # scanner:ignore
         with self._lock:
             box = self._votes.get(finding_id, [])
             counts = dict(Counter(v["verdict"] for v in box))
@@ -148,8 +148,8 @@ class QuorumVoterWorm:
         try:
             from CORE import spine_registry as _spine
             open_findings = len(_spine.get_quarantine_votes())
-        except Exception:
-            note_failure("consensus:L139", None)
+        except Exception as exc:
+            note_failure("consensus:L139", exc)
             with self._lock:
                 open_findings = len(self._votes)
         return {"success": True, "method": "execute",
@@ -215,13 +215,13 @@ class LeaderElectorWorm:
         import os as _os
         try:
             from CORE.fs_probe import bounded_read_text
-        except Exception:  # pragma: no cover - probe helper optional
-            note_failure("consensus:L205", None)
+        except Exception as exc:  # pragma: no cover - probe helper optional
+            note_failure("consensus:L205", exc)
             def bounded_read_text(p, timeout_s=5.0, label="fs-read"):  # type: ignore
                 try:
                     return open(p, encoding="utf-8").read()
-                except Exception:
-                    note_failure("consensus:L209", None)
+                except Exception as exc:
+                    note_failure("consensus:L209", exc)
                     return None  # scanner:ignore
         # Bounded read. The default `path` lives on G:, and against an
         # unreachable mount a bare `open()` blocks inside the syscall for
@@ -231,14 +231,14 @@ class LeaderElectorWorm:
         raw = None
         try:
             raw = bounded_read_text(path)
-        except OSError:
+        except OSError as exc:
             # Missing/unreachable placement file is an answer ("no placement"),
             # never an exception: callers (fabric cycle, tests on machines
             # without the mount) must get a dict, not a traceback.
             # Missing/unreachable placement file is an answer ("no placement"),
             # never an exception: callers (fabric cycle, tests on machines
             # without the mount) must get a dict, not a traceback.
-            note_failure("consensus:L219", None)
+            note_failure("consensus:L219", exc)
             raw = None
         if raw is None:
             return {"success": False,
@@ -253,8 +253,8 @@ class LeaderElectorWorm:
             from CORE.WORMS.expansion.envmesh import BarePassthroughWorm
             bare_ok = BarePassthroughWorm().probe().get("via", "").startswith("ssh:") or \
                 BarePassthroughWorm().probe_local().get("is_bare_kernel", False)
-        except Exception:
-            note_failure("consensus:L236", None)
+        except Exception as exc:
+            note_failure("consensus:L236", exc)
             bare_ok = _os.environ.get("AZAZAEL_BARE_SSH", "") != ""
         for role, env in assign.items():
             if env == "bare" and not bare_ok:

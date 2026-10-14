@@ -96,14 +96,14 @@ class FailureDigest:
         for r in (top_rows or []):
             try:
                 dims.append(int(r.get("dimension", 0)))
-            except (TypeError, ValueError):
-                note_failure("chorus:L90", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("chorus:L90", exc)
         best = None
         if top_rows:
             try:
                 best = max(float(r.get("fitness")) for r in top_rows if r.get("fitness") is not None)
-            except (TypeError, ValueError):
-                note_failure("chorus:L96", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("chorus:L96", exc)
                 best = None
         return cls(holdout, pinned, flat, starved, dims, best)
 
@@ -197,8 +197,8 @@ def parse_proposals(text: str, limit: int = 8) -> List[dict]:
     for c in candidates:
         try:
             data = json.loads(c)
-        except Exception:
-            note_failure("chorus:L190", None)
+        except Exception as exc:
+            note_failure("chorus:L190", exc)
             continue
         if isinstance(data, dict):
             data = [data]
@@ -303,18 +303,18 @@ class Chorus:
         self._provider_ready = True
         try:
             from CORE.inference.providers import get_best_provider  # type: ignore
-        except Exception:
-            note_failure("chorus:L294", None)
+        except Exception as exc:
+            note_failure("chorus:L294", exc)
             try:
                 from src.CORE.inference.providers import get_best_provider  # type: ignore
-            except Exception:
-                note_failure("chorus:L297", None)
+            except Exception as exc:
+                note_failure("chorus:L297", exc)
                 self._provider = None
                 return None
         try:
             self._provider = get_best_provider()
-        except Exception:
-            note_failure("chorus:L302", None)
+        except Exception as exc:
+            note_failure("chorus:L302", exc)
             self._provider = None
         return self._provider
 
@@ -330,8 +330,8 @@ class Chorus:
             resp = provider.chat(prompt, system_prompt=_SYSTEM,
                                  model=self.model, max_tokens=self.max_tokens,
                                  temperature=self.temperature)
-        except Exception:
-            note_failure("chorus:L318", None)
+        except Exception as exc:
+            note_failure("chorus:L318", exc)
             return ""
         if not isinstance(resp, dict) or resp.get("error"):
             return ""
@@ -341,8 +341,8 @@ class Chorus:
                 from CORE.inference.inference_cache import record_inference  # type: ignore
                 record_inference(self.agent_name, resp.get("model", "unknown"), prompt,
                                  content, metadata={"module": "chorus"})
-            except Exception:
-                note_failure("chorus:L328", None)
+            except Exception as exc:
+                note_failure("chorus:L328", exc)
         return content
 
     # -- main entry point --------------------------------------------------

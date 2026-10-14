@@ -84,8 +84,8 @@ def row_payload(row: Any) -> Optional[dict]:
     if isinstance(data, str):
         try:
             data = json.loads(data)
-        except Exception:
-            note_failure("tensorgene:L78", None)
+        except Exception as exc:
+            note_failure("tensorgene:L78", exc)
             return None
     return data if isinstance(data, dict) else None
 
@@ -123,8 +123,8 @@ def boruta_relevance(history: Sequence[dict], fitness_key: str = "best_total",
                 continue
             try:
                 fv = float(data.get(fitness_key))
-            except (TypeError, ValueError):
-                note_failure("tensorgene:L116", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("tensorgene:L116", exc)
                 continue
             rows.append((genes, fv))
         if len(rows) < min_rows:
@@ -238,8 +238,8 @@ def dedupe_observations(obs: Iterable[tuple]) -> List[tuple]:
     for vec, fit in obs:
         try:
             key = (tuple(round(float(v), 9) for v in vec), round(float(fit), 9))
-        except (TypeError, ValueError):
-            note_failure("tensorgene:L228", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("tensorgene:L228", exc)
             continue
         if key in seen:
             continue
@@ -272,15 +272,15 @@ def correlate(history: Sequence[dict], gene: str,
             continue
         try:
             fv = float(data.get(fitness_key))
-        except (TypeError, ValueError):
-            note_failure("tensorgene:L261", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("tensorgene:L261", exc)
             continue
         vec = []
         for k in sorted(genes):
             try:
                 vec.append(float(genes[k]))
-            except (TypeError, ValueError):
-                note_failure("tensorgene:L267", None)
+            except (TypeError, ValueError) as exc:
+                note_failure("tensorgene:L267", exc)
                 vec.append(0.0)
         # Dedupe on the full gene vector + fitness: identical rows are the same
         # measurement, and the frozen pool makes them common.
@@ -290,8 +290,8 @@ def correlate(history: Sequence[dict], gene: str,
         seen_vecs.add(key)
         try:
             obs.append((float(genes[gene]), fv))
-        except (TypeError, ValueError):
-            note_failure("tensorgene:L277", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("tensorgene:L277", exc)
             continue
 
     diag = {"rows_without_payload": no_payload, "rows_missing_gene": missing_gene}

@@ -23,8 +23,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("learning_pipeline:L17", None)
+except ImportError as exc:
+    note_failure("learning_pipeline:L17", exc)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -34,8 +34,8 @@ def register_worm(**kw):
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("learning_pipeline:L27", None)
+except ImportError as exc:
+    note_failure("learning_pipeline:L27", exc)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -44,8 +44,8 @@ def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:  # noqa: BLE001 — 314t detection is best-effort
-            note_failure("learning_pipeline:L36", None)
+        except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning_pipeline:L36", exc)
             return False
 
 from CORE.WORMS.expansion.learning_features import DATA_SHAPES
@@ -106,8 +106,8 @@ class DataPipelineWorm:
                     try:
                         from CORE.local_memory import get_memory_store
                         self._store = get_memory_store()
-                    except ImportError:
-                        note_failure("learning_pipeline:L96", None)
+                    except ImportError as exc:
+                        note_failure("learning_pipeline:L96", exc)
                         self._store = False
         return self._store if self._store else None
 
@@ -210,8 +210,8 @@ class DataPipelineWorm:
                     if isinstance(val, str):
                         try:
                             val = json.loads(val)
-                        except (json.JSONDecodeError, TypeError):
-                            note_failure("learning_pipeline:L199", None)
+                        except (json.JSONDecodeError, TypeError) as exc:
+                            note_failure("learning_pipeline:L199", exc)
                     results.append(val)
             return results
         return _extract
@@ -517,11 +517,11 @@ class DataPipelineWorm:
                                     if r_dt >= gap_end_dt:
                                         gap_end = i
                                         break
-                                except Exception:  # noqa: BLE001 — timestamp parse best-effort
-                                    note_failure("learning_pipeline:L505", None)
+                                except Exception as exc:  # noqa: BLE001 — timestamp parse best-effort
+                                    note_failure("learning_pipeline:L505", exc)
                         train_end = gap_end
-                    except Exception:  # noqa: BLE001 — gap-detection best-effort
-                        note_failure("learning_pipeline:L508", None)
+                    except Exception as exc:  # noqa: BLE001 — gap-detection best-effort
+                        note_failure("learning_pipeline:L508", exc)
 
             test_start = train_end
             test_end = min(test_start + fold_size + (n % n_folds), n)
@@ -600,8 +600,8 @@ class DataPipelineWorm:
                     severity="info",
                     tags=["shapes", "dynamic", "refresh"],
                 )
-            except Exception:  # noqa: BLE001 — shape-refresh telemetry best-effort
-                note_failure("learning_pipeline:L588", None)
+            except Exception as exc:  # noqa: BLE001 — shape-refresh telemetry best-effort
+                note_failure("learning_pipeline:L588", exc)
 
         return {
             "refresh": refresh_result,
@@ -647,8 +647,8 @@ class DataPipelineWorm:
                 if isinstance(data, str):
                     try:
                         data = json.loads(data)
-                    except (json.JSONDecodeError, TypeError):
-                        note_failure("learning_pipeline:L635", None)
+                    except (json.JSONDecodeError, TypeError) as exc:
+                        note_failure("learning_pipeline:L635", exc)
                         data = {}
                 if not isinstance(data, dict):
                     continue
@@ -779,8 +779,8 @@ def refresh_dynamic_shapes(pipeline=None, sample_limit: int = 100) -> Dict[str, 
     if pipeline is None:
         try:
             pipeline = DataPipelineWorm()
-        except Exception:  # noqa: BLE001 — pipeline creation failure is a signed error
-            note_failure("learning_pipeline:L740", None)
+        except Exception as exc:  # noqa: BLE001 — pipeline creation failure is a signed error
+            note_failure("learning_pipeline:L740", exc)
             return {"error": "Cannot create DataPipelineWorm"}
 
     result = pipeline.auto_discover_shapes(sample_limit=sample_limit)

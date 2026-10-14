@@ -30,8 +30,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("scheduling:L21", None)
+except ImportError as exc:
+    note_failure("scheduling:L21", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -40,15 +40,15 @@ except ImportError:
 try:
     from CORE.freethreading import is_free_threaded
     _FREETHREAD = True
-except ImportError:
-    note_failure("scheduling:L30", None)
+except ImportError as exc:
+    note_failure("scheduling:L30", exc)
     _FREETHREAD = False
     def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:
-            note_failure("scheduling:L36", None)
+        except Exception as exc:
+            note_failure("scheduling:L36", exc)
             return False
 
 
@@ -61,10 +61,10 @@ except ImportError:
 try:
     from CORE.WORMS.expansion.allocation import (
         ThompsonAllocator, reward_for_outcome)
-except ImportError:
+except ImportError as exc:
     # Both callers below test these for None; no availability flag is set,
     # because a flag nothing reads is itself the defect this sweep removes.
-    note_failure("scheduling:allocation-import", None)
+    note_failure("scheduling:allocation-import", exc)
     ThompsonAllocator = None
     reward_for_outcome = None
 
@@ -142,8 +142,8 @@ class ScheduleConfig:
                 dec = float(data["genes"]["epsilon_decay"])
                 self.epsilon_decay = max(0.0, min(dec, 0.2))
             return True
-        except Exception:
-            note_failure("scheduling:L107", None)
+        except Exception as exc:
+            note_failure("scheduling:L107", exc)
             return False
 
 
@@ -237,15 +237,15 @@ def rampup_data_limit(reward_history: List[Any],
 
     try:
         base = int(base_limit)
-    except (TypeError, ValueError):
-        note_failure("scheduling:rampup-base", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("scheduling:rampup-base", exc)
         return _result(0, "hold", False, False, "non-numeric-base-limit", [], [],
                        ["non-numeric-base-limit"])
 
     try:
         horizon = max(2, int(window))
-    except (TypeError, ValueError):
-        note_failure("scheduling:rampup-window", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("scheduling:rampup-window", exc)
         return _result(base, "hold", False, False, "non-numeric-window", [], [],
                        ["non-numeric-window"])
 
@@ -258,8 +258,8 @@ def rampup_data_limit(reward_history: List[Any],
         back = float(backoff_factor)
         tol_stable = abs(float(stability_tolerance))
         tol_drop = abs(float(drop_tolerance))
-    except (TypeError, ValueError):
-        note_failure("scheduling:rampup-tunables", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("scheduling:rampup-tunables", exc)
         lo, hi = RAMPUP_MIN_LIMIT, RAMPUP_MAX_LIMIT
         grow, back = RAMPUP_GROWTH_FACTOR, RAMPUP_BACKOFF_FACTOR
         tol_stable, tol_drop = RAMPUP_STABILITY_TOLERANCE, RAMPUP_DROP_TOLERANCE
@@ -268,8 +268,8 @@ def rampup_data_limit(reward_history: List[Any],
     for value in list(reward_history or [])[-horizon:]:
         try:
             observed.append(float(value))
-        except (TypeError, ValueError):
-            note_failure("scheduling:rampup-history", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("scheduling:rampup-history", exc)
             return _result(base, "hold", False, False, "non-numeric-reward", [], [],
                            ["non-numeric-reward"])
 
@@ -350,8 +350,8 @@ def contribution_weighted_interval(
     """
     try:
         base = float(base_interval_hours)
-    except (TypeError, ValueError):
-        note_failure("scheduling:contribution-base", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("scheduling:contribution-base", exc)
         return {"base": 0.0, "intervals": {}, "shares": {}, "arms": 0,
                 "clamped": [], "gaps": ["non-numeric-base-interval"]}
 
@@ -359,8 +359,8 @@ def contribution_weighted_interval(
         lo = max(0.0, float(min_interval_hours))
         hi = max(lo, float(max_interval_hours))
         fl = min(1.0, max(0.0, float(floor)))
-    except (TypeError, ValueError):
-        note_failure("scheduling:contribution-bounds", None)
+    except (TypeError, ValueError) as exc:
+        note_failure("scheduling:contribution-bounds", exc)
         lo = CONTRIBUTION_MIN_INTERVAL_HOURS
         hi = CONTRIBUTION_MAX_INTERVAL_HOURS
         fl = CONTRIBUTION_FLOOR
@@ -428,8 +428,8 @@ class ScheduledTrainingWorm:
                 print(f"[train] using evolved params: lr={self.config.learning_rate} "
                       f"eps={self.config.epsilon} disc={self.config.discount_factor}",
                       flush=True)
-        except Exception:
-            note_failure("scheduling:L159", None)
+        except Exception as exc:
+            note_failure("scheduling:L159", exc)
         self._lock = threading.Lock()
         self._run_history: list[TrainingRun] = []
         self._scheduler_thread: (threading.Thread | None) = None
@@ -445,56 +445,56 @@ class ScheduledTrainingWorm:
         try:
             from CORE.WORMS.expansion.learning import DataPipelineWorm
             return DataPipelineWorm()
-        except ImportError:
-            note_failure("scheduling:L173", None)
+        except ImportError as exc:
+            note_failure("scheduling:L173", exc)
             return None
 
     def _get_engineer(self):
         try:
             from CORE.WORMS.expansion.learning import FeatureEngineer
             return FeatureEngineer()
-        except ImportError:
-            note_failure("scheduling:L180", None)
+        except ImportError as exc:
+            note_failure("scheduling:L180", exc)
             return None
 
     def _get_rl(self):
         try:
             from CORE.WORMS.expansion.learning import RLTrainLoop
             return RLTrainLoop()
-        except ImportError:
-            note_failure("scheduling:L187", None)
+        except ImportError as exc:
+            note_failure("scheduling:L187", exc)
             return None
 
     def _get_versioner(self):
         try:
             from CORE.WORMS.expansion.learning import ModelVersioner
             return ModelVersioner()
-        except ImportError:
-            note_failure("scheduling:L194", None)
+        except ImportError as exc:
+            note_failure("scheduling:L194", exc)
             return None
 
     def _get_ab(self):
         try:
             from CORE.WORMS.expansion.learning import ABTestRunner
             return ABTestRunner()
-        except ImportError:
-            note_failure("scheduling:L201", None)
+        except ImportError as exc:
+            note_failure("scheduling:L201", exc)
             return None
 
     def _get_store(self):
         try:
             from CORE.local_memory import get_memory_store
             return get_memory_store()
-        except ImportError:
-            note_failure("scheduling:L208", None)
+        except ImportError as exc:
+            note_failure("scheduling:L208", exc)
             return None
 
     def _get_logger(self):
         try:
             from CORE.azazael_logging import get_logger
             return get_logger("scheduling")
-        except ImportError:
-            note_failure("scheduling:L215", None)
+        except ImportError as exc:
+            note_failure("scheduling:L215", exc)
             return None
 
     # -- EP187 contribution-weighted scheduling ----------------------
@@ -610,15 +610,15 @@ class ScheduledTrainingWorm:
                         import json as _json
                         d = _json.loads(d)
                     episodes = int(d.get("episodes", episodes) or episodes)
-            except Exception:
-                note_failure("scheduling:L248", None)
+            except Exception as exc:
+                note_failure("scheduling:L248", exc)
             store.record_event(
                 source="ScheduledTrainingWorm", event_type="training_plateau",
                 data={"reason": reason, "episodes": episodes,
                       "exploration_trigger": True},
                 severity="info", tags=["training", "plateau"])
-        except Exception:
-            note_failure("scheduling:L255", None)
+        except Exception as exc:
+            note_failure("scheduling:L255", exc)
 
     def _plateau_skip_reason(self) -> Optional[str]:
         """Skip retraining when converged on unchanged data (learned knowledge).
@@ -647,8 +647,8 @@ class ScheduledTrainingWorm:
                 if isinstance(d, str):
                     try:
                         d = _json.loads(d)
-                    except (ValueError, TypeError):
-                        note_failure("scheduling:L285", None)
+                    except (ValueError, TypeError) as exc:
+                        note_failure("scheduling:L285", exc)
                         return None
                 datas.append(d if isinstance(d, dict) else {})
             a, b = datas[0], datas[1]
@@ -666,8 +666,8 @@ class ScheduledTrainingWorm:
             if rb and abs(ra - rb) / abs(rb) < 0.02:
                 return f"plateaued: reward {ra} vs {rb} on {a.get('records')} records"
             return None
-        except Exception:
-            note_failure("scheduling:L303", None)
+        except Exception as exc:
+            note_failure("scheduling:L303", exc)
             return None
 
     def _rampup_decision(self) -> Dict[str, Any]:
@@ -1043,8 +1043,8 @@ class ScheduledDbMonitorWorm:
         try:
             from CORE.WORMS.expansion.db_monitor import DatabaseMonitorWorm
             return DatabaseMonitorWorm(use_postgres=self.config.use_postgres, store=self._injected_store)
-        except ImportError:
-            note_failure("scheduling:L621", None)
+        except ImportError as exc:
+            note_failure("scheduling:L621", exc)
             return None
 
     def _get_store(self):
@@ -1052,8 +1052,8 @@ class ScheduledDbMonitorWorm:
         try:
             from CORE.local_memory import get_memory_store
             return get_memory_store()
-        except ImportError:
-            note_failure("scheduling:L629", None)
+        except ImportError as exc:
+            note_failure("scheduling:L629", exc)
             return None
 
     def _get_logger(self):
@@ -1061,8 +1061,8 @@ class ScheduledDbMonitorWorm:
         try:
             from CORE.azazael_logging import get_logger
             return get_logger("db_monitor_scheduler")
-        except ImportError:
-            note_failure("scheduling:L637", None)
+        except ImportError as exc:
+            note_failure("scheduling:L637", exc)
             return None
 
     def execute(self) -> DbMonitorRun:
@@ -1255,8 +1255,8 @@ def _track_regime() -> dict:
     try:
         from CORE.local_memory import track_regime
         return track_regime()
-    except Exception:
-        note_failure("scheduling:L829", None)
+    except Exception as exc:
+        note_failure("scheduling:L829", exc)
         return {}
 
 
@@ -1294,8 +1294,8 @@ class TrainingOrchestrator:
         try:
             from CORE.WORMS.expansion.learning import DataPipelineWorm
             return DataPipelineWorm()
-        except ImportError:
-            note_failure("scheduling:L867", None)
+        except ImportError as exc:
+            note_failure("scheduling:L867", exc)
             return None
 
     def _get_versioner(self):
@@ -1303,8 +1303,8 @@ class TrainingOrchestrator:
         try:
             from CORE.WORMS.expansion.learning import ModelVersioner
             return ModelVersioner()
-        except ImportError:
-            note_failure("scheduling:L875", None)
+        except ImportError as exc:
+            note_failure("scheduling:L875", exc)
             return None
 
     def _get_store(self):
@@ -1312,8 +1312,8 @@ class TrainingOrchestrator:
         try:
             from CORE.local_memory import get_memory_store
             return get_memory_store()
-        except ImportError:
-            note_failure("scheduling:L883", None)
+        except ImportError as exc:
+            note_failure("scheduling:L883", exc)
             return None
 
     def _get_logger(self):
@@ -1321,8 +1321,8 @@ class TrainingOrchestrator:
         try:
             from CORE.azazael_logging import get_logger
             return get_logger("training_orchestrator")
-        except ImportError:
-            note_failure("scheduling:L891", None)
+        except ImportError as exc:
+            note_failure("scheduling:L891", exc)
             return None
 
     # -- Main Execution ----------------------------------------------

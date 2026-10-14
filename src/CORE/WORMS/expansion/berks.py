@@ -30,8 +30,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("berks:register-worm-import", None)
+except ImportError as exc:
+    note_failure("berks:register-worm-import", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -52,13 +52,13 @@ def _pams():
                 try:
                     from CORE.PamsRecorder import get_recorder
                     _get_recorder = get_recorder
-                except ImportError:
-                    note_failure("berks:pams-import", None)
+                except ImportError as exc:
+                    note_failure("berks:pams-import", exc)
                     return None
     try:
         return _get_recorder()
-    except Exception:
-        note_failure("berks:pams-construct", None)
+    except Exception as exc:
+        note_failure("berks:pams-construct", exc)
         return None
 
 
@@ -71,8 +71,8 @@ def _bus():
                     from CORE.MemoryBus import MemoryBus
                     _MemoryBusCls = MemoryBus
                     _mem_bus = MemoryBus()
-                except ImportError:
-                    note_failure("berks:bus-import", None)
+                except ImportError as exc:
+                    note_failure("berks:bus-import", exc)
                     return None
     return _mem_bus
 
@@ -153,8 +153,8 @@ class BerksMonitorWorm:
                 import time as _t
                 exp_ts = calendar.timegm(_t.strptime(exp, "%b %d %H:%M:%S %Y %Z"))
                 rec["tls_days_left"] = round((exp_ts - time.time()) / 86400, 1)
-            except Exception:
-                note_failure("berks:tls-expiry-parse", None)
+            except Exception as exc:
+                note_failure("berks:tls-expiry-parse", exc)
                 rec["tls_days_left"] = None
         except Exception as e:
             note_failure("berks:tls-probe", e)
@@ -197,8 +197,8 @@ class BerksMonitorWorm:
             p = _pams()
             if p is not None and hasattr(p, "record"):
                 p.record(event_type, data)
-        except Exception:
-            note_failure("berks:pams-record", None)
+        except Exception as exc:
+            note_failure("berks:pams-record", exc)
 
     def _publish(self, results: list, alerts: list):
         """MemoryBus live pub/sub for inter-agent coordination."""
@@ -207,8 +207,8 @@ class BerksMonitorWorm:
             if b is not None and hasattr(b, "publish"):
                 b.publish("monitor.berks", {"results": results,
                                             "alerts": [a.__dict__ for a in alerts]})
-        except Exception:
-            note_failure("berks:bus-publish", None)
+        except Exception as exc:
+            note_failure("berks:bus-publish", exc)
 
     def _to_alerts(self, results: list) -> list:
         """Severity alerts from thresholds (mirrors DbAlert tiers)."""
@@ -281,8 +281,8 @@ class BerksMonitorWorm:
             while not stop.wait(interval_seconds):
                 try:
                     self.check_health()
-                except Exception:
-                    note_failure("berks:monitor-loop", None)
+                except Exception as exc:
+                    note_failure("berks:monitor-loop", exc)
         t = threading.Thread(target=loop, name="berks-monitor",
                              daemon=True)
         t.start()

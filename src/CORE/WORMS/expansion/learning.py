@@ -30,8 +30,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("learning:L24", None)
+except ImportError as exc:
+    note_failure("learning:L24", exc)
     _REGISTRY = False
 def register_worm(**kw):
         return lambda cls: cls
@@ -41,8 +41,8 @@ def register_worm(**kw):
 try:
     from CORE.freethreading import is_free_threaded, FreeThreadPool, ThreadSafeDict, ThreadSafeList
     _FREETHREAD = True
-except ImportError:
-    note_failure("learning:L34", None)
+except ImportError as exc:
+    note_failure("learning:L34", exc)
     _FREETHREAD = False
 FreeThreadPool = None
 ThreadSafeDict = dict
@@ -51,8 +51,8 @@ def is_free_threaded() -> bool:
         import sysconfig
         try:
             return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
-        except Exception:  # noqa: BLE001 — 314t detection is best-effort
-            note_failure("learning:L43", None)
+        except Exception as exc:  # noqa: BLE001 — 314t detection is best-effort
+            note_failure("learning:L43", exc)
             return False
 
 from CORE.WORMS.expansion.learning_rl import RLTrainLoop
@@ -65,8 +65,8 @@ from CORE.WORMS.expansion.learning_features import DATA_SHAPES, SchemaAwareFeatu
 # fall back to the v1.0.0 basic stub in learning_ab.py only if that fails.
 try:
     from CORE.WORMS.expansion.learning_grpo import ABTestRunner  # noqa: E402, F401
-except ImportError:
-    note_failure("learning:L55", None)
+except ImportError as exc:
+    note_failure("learning:L55", exc)
     from CORE.WORMS.expansion.learning_ab import ABTestRunner  # noqa: E402, F401
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -80,5 +80,5 @@ except ImportError:
 # ─────────────────────────────────────────────────────────────────────────
 try:
     from CORE.WORMS.expansion.learning_grpo import GRPOTrainer  # noqa: E402, F401
-except ImportError:
-    note_failure("learning:L72", None)
+except ImportError as exc:
+    note_failure("learning:L72", exc)

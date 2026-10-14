@@ -27,8 +27,8 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:
-    note_failure("xenomorph:L21", None)
+except ImportError as exc:
+    note_failure("xenomorph:L21", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
@@ -41,8 +41,8 @@ try:
         hydrate as fabric_hydrate,
         publish as fabric_publish,
     )
-except ImportError:  # pragma: no cover - defensive
-    note_failure("xenomorph:L34", None)
+except ImportError as exc:  # pragma: no cover - defensive
+    note_failure("xenomorph:L34", exc)
     def fabric_hydrate(instance, provider, attrs):
         return 0
 
@@ -61,8 +61,8 @@ def _local_env() -> str:
     try:
         from CORE.env_id import env_id
         return env_id()
-    except Exception:  # pragma: no cover - defensive
-        note_failure("xenomorph:L53", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("xenomorph:L53", exc)
         import os
         return "windows" if os.name == 'nt' else "bare"
 
@@ -86,8 +86,8 @@ def _host_capable(min_cpu: int = 2, min_ram_gb: float = 2.0) -> dict:
         ram_gb = round(psutil.virtual_memory().total / 1e9, 1)
         if ram_gb < min_ram_gb:
             reasons.append(f"ram {ram_gb}GB < {min_ram_gb}GB")
-    except Exception:
-        note_failure("xenomorph:L77", None)
+    except Exception as exc:
+        note_failure("xenomorph:L77", exc)
         reasons.append("ram unknown (psutil missing)")
     return {"ok": not reasons, "reasons": reasons, "cpu": cpu, "ram_gb": ram_gb}
 
@@ -288,8 +288,8 @@ class Lilith:
             return 0.0
         try:
             return datetime.fromisoformat(lease_until).timestamp()
-        except Exception:
-            note_failure("xenomorph:L278", None)
+        except Exception as exc:
+            note_failure("xenomorph:L278", exc)
             return 0.0
 
     def _lease_snapshot(self, now: float | None = None) -> dict[str, Any]:
@@ -389,8 +389,8 @@ class Lilith:
             from CORE import spine_registry as _spine
             vote = _spine.cast_quarantine_vote(
                 finding, "operator" if force else env, "moult", quorum=quorum)
-        except Exception:
-            note_failure("xenomorph:L378", None)
+        except Exception as exc:
+            note_failure("xenomorph:L378", exc)
             vote = {}
         decided = bool(force) or bool(vote.get("decided"))
         if not decided:

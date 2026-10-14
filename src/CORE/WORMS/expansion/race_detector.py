@@ -31,8 +31,8 @@ except ImportError:                               # never break the host
 try:
     from CORE.worm_registry import register_worm
     _REGISTRY = True
-except ImportError:
-    note_failure("race_detector:L25", None)
+except ImportError as exc:
+    note_failure("race_detector:L25", exc)
     _REGISTRY = False
     def register_worm(**kw):
         return lambda cls: cls
@@ -41,8 +41,8 @@ except ImportError:
 try:
     from CORE.local_memory import get_memory_store as _get_memory_store_global
     _LOCAL_MEMORY_OK = True
-except ImportError:
-    note_failure("race_detector:L34", None)
+except ImportError as exc:
+    note_failure("race_detector:L34", exc)
     _LOCAL_MEMORY_OK = False
     _get_memory_store_global = None
 
@@ -207,10 +207,10 @@ class RaceConditionDetector:
         if not hasattr(worm_type, '_rcd_original_setattr'):
             try:
                 type.__setattr__(worm_type, '_rcd_original_setattr', original_setattr)
-            except TypeError:
+            except TypeError as exc:
                 # C extension types don't allow attribute setting — tracing unavailable
                 # C extension types don't allow attribute setting — tracing unavailable
-                note_failure("race_detector:L199", None)
+                note_failure("race_detector:L199", exc)
                 return False
 
         detector_ref = self  # Capture reference for the closure
@@ -287,12 +287,12 @@ class RaceConditionDetector:
                 # Try getattr first (resolves descriptors)
                 try:
                     attr = getattr(instance, name)
-                except Exception:
-                    note_failure("race_detector:L277", None)
+                except Exception as exc:
+                    note_failure("race_detector:L277", exc)
                     try:
                         attr = object.__getattribute__(instance, name)
-                    except AttributeError:
-                        note_failure("race_detector:L280", None)
+                    except AttributeError as exc:
+                        note_failure("race_detector:L280", exc)
                         continue
                 if isinstance(attr, (dict, list, set, bytearray)):
                     shared.add(name)
@@ -341,8 +341,8 @@ class RaceConditionDetector:
                         dt_i = datetime.fromisoformat(t_i)
                         dt_j = datetime.fromisoformat(t_j)
                         delta_ms = abs((dt_j - dt_i).total_seconds() * 1000)
-                    except (ValueError, TypeError):
-                        note_failure("race_detector:L329", None)
+                    except (ValueError, TypeError) as exc:
+                        note_failure("race_detector:L329", exc)
                         continue
 
                     if delta_ms <= self._concurrent_write_window_ms:
@@ -396,8 +396,8 @@ class RaceConditionDetector:
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     lines = f.readlines()
-            except Exception:
-                note_failure("race_detector:L383", None)
+            except Exception as exc:
+                note_failure("race_detector:L383", exc)
                 continue
 
             in_function = 0
@@ -493,7 +493,7 @@ class RaceConditionDetector:
                     severity="warning" if report["summary"]["total_issues"] > 0 else "info",
                     tags=["race_detection", "3.14t", "thread_safety"],
                 )
-        except Exception:
-            note_failure("race_detector:L479", None)
+        except Exception as exc:
+            note_failure("race_detector:L479", exc)
 
         return report

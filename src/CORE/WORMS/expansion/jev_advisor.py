@@ -190,8 +190,8 @@ def validate_choice(answer: Any, candidates: Mapping[str, str]) -> Dict[str, Any
             and abs(sum(probabilities.values()) - 1) < 0.02
             and probabilities[choice] >= max(probabilities.values()) - 1e-6
         )
-    except (KeyError, TypeError, ValueError, ZeroDivisionError):
-        note_failure("jev_advisor:L184", None)
+    except (KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
+        note_failure("jev_advisor:L184", exc)
         valid = False
     if not valid:
         raise JevError("answer failed validation against the offered candidates")
@@ -296,8 +296,8 @@ class JevAdvisor:
                 correlation_id=str(decision_id) if decision_id else None,
             )
             return True
-        except Exception:
-            note_failure("jev_advisor:L289", None)
+        except Exception as exc:
+            note_failure("jev_advisor:L289", exc)
             return False
 
     # -- the call ------------------------------------------------------
@@ -399,8 +399,8 @@ def _data_of(row: Mapping[str, Any]) -> Dict[str, Any]:
     if isinstance(data, str):
         try:
             data = json.loads(data)
-        except (ValueError, TypeError):
-            note_failure("jev_advisor:L391", None)
+        except (ValueError, TypeError) as exc:
+            note_failure("jev_advisor:L391", exc)
             return {}
     return data if isinstance(data, dict) else {}
 

@@ -156,8 +156,8 @@ class LivenessLedger:
         key = str(name)
         try:
             period = max(0.001, float(every))
-        except (TypeError, ValueError):
-            note_failure("liveness:L150", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("liveness:L150", exc)
             return False
         now = time.time()
         with self._lock:
@@ -184,8 +184,8 @@ class LivenessLedger:
         key = str(name)
         try:
             ttl_f = max(0.001, float(ttl))
-        except (TypeError, ValueError):
-            note_failure("liveness:L177", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("liveness:L177", exc)
             return 0.0
         now = time.time()
         with self._lock:
@@ -264,8 +264,8 @@ class LivenessLedger:
         ts = time.time() if now is None else float(now)
         try:
             slack = max(1.0, float(grace))
-        except (TypeError, ValueError):
-            note_failure("liveness:L256", None)
+        except (TypeError, ValueError) as exc:
+            note_failure("liveness:L256", exc)
             slack = 1.0
         found: list[dict] = []
         with self._lock:
@@ -390,8 +390,8 @@ def now_iso() -> str:
     try:
         from datetime import datetime
         return datetime.now().isoformat()
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L381", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L381", exc)
         return ""
 
 
@@ -404,8 +404,8 @@ def require(name: str, every: float = 60.0) -> bool:
     """Declare a recurring obligation. See ``LivenessLedger.require``."""
     try:
         return LEDGER.require(name, every)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L394", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L394", exc)
         return False
 
 
@@ -413,8 +413,8 @@ def expect(name: str, ttl: float = 60.0, detail: str = "") -> float:
     """Arm a one-shot obligation. See ``LivenessLedger.expect``."""
     try:
         return LEDGER.expect(name, ttl, detail)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L402", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L402", exc)
         return 0.0
 
 
@@ -422,8 +422,8 @@ def fulfill(name: str, detail: str = "") -> bool:
     """Discharge a one-shot obligation. See ``LivenessLedger.fulfill``."""
     try:
         return LEDGER.fulfill(name, detail)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L410", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L410", exc)
         return False
 
 
@@ -431,8 +431,8 @@ def beat(name: str, every: float = 60.0, detail: str = "") -> bool:
     """Record a beat for a recurring obligation."""
     try:
         return LEDGER.beat(name, every, detail)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L418", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L418", exc)
         return False
 
 
@@ -474,8 +474,8 @@ def overdue(grace: float = 1.0) -> list:
     """Currently unmet obligations. See ``LivenessLedger.overdue``."""
     try:
         return LEDGER.overdue(grace=grace)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L460", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L460", exc)
         return []
 
 
@@ -483,8 +483,8 @@ def unmonitored() -> list:
     """Declared-but-no-longer-armed names. See ``LivenessLedger.unmonitored``."""
     try:
         return LEDGER.unmonitored()
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L468", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L468", exc)
         return []
 
 
@@ -492,8 +492,8 @@ def liveness_report(grace: float = 1.0) -> dict:
     """Full snapshot for the monitors. Never raises."""
     try:
         return LEDGER.snapshot(grace=grace)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L476", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L476", exc)
         return {
             "armed_now": 0, "beating": 0, "required": 0, "declared_ever": 0,
             "armed_ever": 0, "armed_total": 0, "fulfilled_total": 0,
@@ -507,6 +507,6 @@ def liveness_reset(clear_declarations: bool = False) -> int:
     """Drop obligation state. For tests that assert on absolute counts."""
     try:
         return LEDGER.reset(clear_declarations=clear_declarations)
-    except Exception:  # pragma: no cover - defensive
-        note_failure("liveness:L490", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("liveness:L490", exc)
         return 0

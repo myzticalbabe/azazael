@@ -105,8 +105,8 @@ class Fence:
         """True when nothing has claimed since ``token`` was minted."""
         try:
             return int(token) == self.token()
-        except Exception:
-            note_failure("fencing:L99", None)
+        except Exception as exc:
+            note_failure("fencing:L99", exc)
             return False
 
     # -- committing ------------------------------------------------------
@@ -168,8 +168,8 @@ def fence_for(name: str) -> Fence:
                 f = Fence(key)
                 _FENCES[key] = f
             return f
-    except Exception:  # pragma: no cover - defensive
-        note_failure("fencing:L160", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("fencing:L160", exc)
         return Fence(key)
 
 
@@ -180,8 +180,8 @@ def fences_reset() -> int:
             n = len(_FENCES)
             _FENCES.clear()
             return n
-    except Exception:  # pragma: no cover - defensive
-        note_failure("fencing:L171", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("fencing:L171", exc)
         return 0
 
 
@@ -190,7 +190,7 @@ def fence_report() -> dict:
     try:
         with _FENCES_LOCK:
             return {k: f.snapshot() for k, f in _FENCES.items()}
-    except Exception:  # pragma: no cover - defensive
-        note_failure("fencing:L180", None)
+    except Exception as exc:  # pragma: no cover - defensive
+        note_failure("fencing:L180", exc)
         return {}
 
