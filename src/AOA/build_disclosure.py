@@ -58,8 +58,8 @@ try:
     try:
         wc = int(ArmRegistry().get_arm("azazael").execute("discover_worms")
                  .get("data", {}).get("worm_count", wc))
-    except Exception:
-        note_failure("build_disclosure:L51", None)
+    except Exception as exc:
+        note_failure("build_disclosure:L51", exc)
 except Exception as _e:
     print(f"Registry probe failed ({_e}); architecture diagram will fall back to statics")
 ARCH_SECTION = chr(10).join(ARCH_LINES)
