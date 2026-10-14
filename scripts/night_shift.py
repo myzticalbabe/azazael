@@ -47,7 +47,7 @@ def log(msg):
 
 def run(cmd, timeout=300):
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
         return r.returncode == 0, ((r.stdout or "")[-500:] + (r.stderr or "")[-300:])
     except Exception as e:
         return False, str(e)[:200]

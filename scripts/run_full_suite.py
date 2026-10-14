@@ -70,7 +70,7 @@ def run_one(f: pathlib.Path) -> dict:
             [PYTHON, "-m", "pytest", str(f.relative_to(ROOT)),
              "-q", "--tb=no", "-rf", "-p", "no:randomly"],
             cwd=str(ROOT), capture_output=True, text=True,
-            timeout=PER_FILE_TIMEOUT,
+            timeout=PER_FILE_TIMEOUT, encoding="utf-8", errors="replace"
         )
         rc, text = proc.returncode, proc.stdout + proc.stderr
     except subprocess.TimeoutExpired:

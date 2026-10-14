@@ -76,7 +76,7 @@ def run_one(limit: int, timeout: int) -> dict:
         proc = subprocess.run(
             [sys.executable, str(RUNNER), "--apply", "--limit", str(limit),
              "--out", str(CYCLE_OUT)],
-            capture_output=True, text=True, timeout=timeout)
+            capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
         rc = proc.returncode
         err_tail = [ln for ln in (proc.stderr or "").splitlines() if ln.strip()][-2:]
     except subprocess.TimeoutExpired:

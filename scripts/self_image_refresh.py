@@ -70,7 +70,7 @@ def _pid_alive(pid: int) -> bool:
         try:
             out = subprocess.run(
                 ["tasklist", "/fi", "PID eq %d" % pid, "/fo", "csv"],
-                capture_output=True, text=True, timeout=15)
+                capture_output=True, text=True, timeout=15, encoding="utf-8", errors="replace")
             text = out.stdout or ""
             return ("\"%d\"" % pid) in text or (" %d " % pid) in text
         except Exception:
@@ -197,7 +197,7 @@ def _run_refresh_all(timeout: float = 1200.0) -> int:
     """
     try:
         res = subprocess.run([sys.executable, str(REFRESH_ALL)], cwd=str(ROOT),
-                             capture_output=True, text=True, timeout=timeout)
+                             capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
     except Exception as exc:
         log("refresh_all: raised (%s)" % str(exc)[:120])
         return -1

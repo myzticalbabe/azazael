@@ -133,7 +133,7 @@ def gosp_infer(prompt: str, max_tokens: int) -> tuple[str, int]:
             "semantical_main.py",
             "--text", prompt, "--format", "json"]
         try:
-            _p = _sp.run(_cmd, capture_output=True, text=True, timeout=180)
+            _p = _sp.run(_cmd, capture_output=True, text=True, timeout=180, encoding="utf-8", errors="replace")
         except Exception as e:
             _errs.append("%s: %s" % (_d or "default", str(e)[:100]))
             continue
