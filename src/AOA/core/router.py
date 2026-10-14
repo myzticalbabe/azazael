@@ -193,8 +193,8 @@ def _spine():
     try:
         from CORE import spine_registry as spine
         return spine
-    except Exception:
-        note_failure("router:L187", None)
+    except Exception as exc:
+        note_failure("router:L187", exc)
         return None
 
 
@@ -231,8 +231,8 @@ class CrossArmRouter:
     def _registry_key(self) -> tuple:
         try:
             return tuple(sorted(self.registry.arms.keys()))
-        except Exception:
-            note_failure("router:L224", None)
+        except Exception as exc:
+            note_failure("router:L224", exc)
             return ("<unavailable>",)
 
     def capability_index(self) -> Dict[str, List[str]]:
@@ -248,20 +248,20 @@ class CrossArmRouter:
         index: Dict[str, List[str]] = {}
         try:
             items = list(self.registry.arms.items())
-        except Exception:
-            note_failure("router:L240", None)
+        except Exception as exc:
+            note_failure("router:L240", exc)
             items = []
         for arm_id, arm in items:
             try:
                 caps = arm.get_capabilities() or []
-            except Exception:
+            except Exception as exc:
                 # An Arm whose capability listing raises is skipped for
                 # ROUTING only; it stays registered and explicitly pinned
                 # calls to it still work.
                 # An Arm whose capability listing raises is skipped for
                 # ROUTING only; it stays registered and explicitly pinned
                 # calls to it still work.
-                note_failure("router:L245", None)
+                note_failure("router:L245", exc)
                 continue
             for cap in caps:
                 name = getattr(cap, "name", None)
@@ -279,8 +279,8 @@ class CrossArmRouter:
             arm = self.registry.get_arm(arm_id)
             meta = arm.metadata if arm else None
             return int(getattr(meta, "priority", 0) or 0)
-        except Exception:
-            note_failure("router:L266", None)
+        except Exception as exc:
+            note_failure("router:L266", exc)
             return 0
 
     # ── learned-Q evidence ─────────────────────────────────────────────
@@ -302,8 +302,8 @@ class CrossArmRouter:
         # the degraded path becomes unreachable in practice.
         try:
             spine = _spine()
-        except Exception:
-            note_failure("router:L288", None)
+        except Exception as exc:
+            note_failure("router:L288", exc)
             spine = None
         if spine is None:
             for arm_id in arm_ids:
@@ -315,8 +315,8 @@ class CrossArmRouter:
                 q = float(spine.get_q_weight(ARM_ROUTE_NATURE, worm))
                 pulls = int(spine.get_q_updates(ARM_ROUTE_NATURE, worm))
                 evidence[arm_id] = {"q": q, "pulls": pulls, "known": pulls > 0}
-            except Exception:
-                note_failure("router:L300", None)
+            except Exception as exc:
+                note_failure("router:L300", exc)
                 evidence[arm_id] = {"q": 0.0, "pulls": 0, "known": False}
         return evidence, False, (time.perf_counter() - started) * 1000.0
 
@@ -433,8 +433,8 @@ class CrossArmRouter:
             spine.record_outcome(ARM_ROUTE_NATURE, arm_key,
                                  bool(success), float(duration_ms),
                                  censored=bool(censored))
-        except Exception:
-            note_failure("router:L417", None)
+        except Exception as exc:
+            note_failure("router:L417", exc)
             with self._stats_lock:
                 self._stats["write_backs_suppressed"] += 1
             return False
@@ -529,8 +529,8 @@ class CrossArmRouter:
             from .delegation_spec import from_route
             _spec = from_route(capability, payload, decision, selected)
             _exec_payload = _spec.to_payload(payload)
-        except Exception:
-            note_failure("router:L512", None)
+        except Exception as exc:
+            note_failure("router:L512", exc)
             _spec = None
             _exec_payload = payload
         try:
@@ -553,8 +553,8 @@ class CrossArmRouter:
             if _spec is not None:
                 try:
                     _spec.attach(flat)
-                except Exception:
-                    note_failure("router:L535", None)
+                except Exception as exc:
+                    note_failure("router:L535", exc)
             if decision:
                 flat["routing"] = {
                     "reason": decision.get("reason"),

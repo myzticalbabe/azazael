@@ -118,8 +118,8 @@ def from_route(capability: str,
             reason=reason,
             degraded=degraded,
         )
-    except Exception:
-        note_failure("delegation_spec:L112", None)
+    except Exception as exc:
+        note_failure("delegation_spec:L112", exc)
         safe_ctx = dict(payload) if isinstance(payload, dict) else {}
         return DelegationSpec(
             instruction=str(capability or ""),
