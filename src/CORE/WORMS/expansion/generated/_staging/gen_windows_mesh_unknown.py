@@ -23,15 +23,15 @@ except ImportError:                               # never break the host
 
 try:
     from CORE.worm_registry import register_worm
-except ImportError:  # pragma: no cover
-    note_failure("gen_windows_mesh_unknown:L16", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("gen_windows_mesh_unknown:L16", exc)
     def register_worm(**kw):
         return lambda cls: cls
 
 try:
     from CORE import spine_registry as _spine
-except ImportError:  # pragma: no cover
-    note_failure("gen_windows_mesh_unknown:L22", None)
+except ImportError as exc:  # pragma: no cover
+    note_failure("gen_windows_mesh_unknown:L22", exc)
     _spine = None
 
 
