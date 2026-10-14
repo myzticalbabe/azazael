@@ -66,8 +66,8 @@ def _symbols(rel: str) -> set:
     path = _repo_root() / rel
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
-    except Exception:
-        note_failure("_l4_exec:L60", None)
+    except Exception as exc:
+        note_failure("_l4_exec:L60", exc)
         _SYMBOL_CACHE[rel] = found
         return found
     for node in tree.body:
@@ -205,8 +205,8 @@ def _dlq_fields() -> set:
     try:
         from CORE.circuit_breaker import DeadLetter
         return set(getattr(DeadLetter, "__dataclass_fields__", {}) or {})
-    except Exception:
-        note_failure("_l4_exec:L197", None)
+    except Exception as exc:
+        note_failure("_l4_exec:L197", exc)
         return set()
 
 

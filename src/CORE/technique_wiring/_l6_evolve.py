@@ -108,8 +108,8 @@ def _state_file(rel: str) -> Dict[str, Any]:
         return {"exists": False, "path": rel}
     try:
         rows = sum(1 for _ in p.open(encoding="utf-8", errors="replace"))
-    except Exception:
-        note_failure("_l6_evolve:L97", None)
+    except Exception as exc:
+        note_failure("_l6_evolve:L97", exc)
         rows = -1
     return {"exists": True, "path": rel, "rows": rows}
 
@@ -312,8 +312,8 @@ def _ep309() -> Dict[str, Any]:
         try:
             snap = snapshot(REPO)
             keys = sorted(snap.keys())[:8] if isinstance(snap, dict) else []
-        except Exception:
-            note_failure("_l6_evolve:L296", None)
+        except Exception as exc:
+            note_failure("_l6_evolve:L296", exc)
             keys = []
     return {"engaged": True,
             "surfaced": _surface("CORE.meta_evolution", "choose_candidate",
@@ -354,8 +354,8 @@ def _ep294() -> Dict[str, Any]:
         rows = mod.reflections_for("__technique_runtime_probe__", limit=1) or []
         if rows and isinstance(rows[0], dict):
             keys = sorted(rows[0].keys())
-    except Exception:
-        note_failure("_l6_evolve:L334", None)
+    except Exception as exc:
+        note_failure("_l6_evolve:L334", exc)
         keys = []
     src = _source_has("CORE.WORMS.expansion.reflexion", "record_reflection",
                       "outcome", "utility")
