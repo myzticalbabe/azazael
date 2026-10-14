@@ -62,8 +62,8 @@ def _resolves(*candidates: str) -> List[str]:
         try:
             if importlib.util.find_spec(c) is not None:
                 found.append(c)
-        except Exception:                      # a broken/partial package is absent
-            note_failure("_l0_model:L56", None)
+        except Exception as exc:                      # a broken/partial package is absent
+            note_failure("_l0_model:L56", exc)
             continue
     return found
 
@@ -74,8 +74,8 @@ def _markers(obj: Any, markers: List[str]) -> Dict[str, bool]:
     for m in markers:
         try:
             out[m] = hasattr(obj, m)
-        except Exception:
-            note_failure("_l0_model:L67", None)
+        except Exception as exc:
+            note_failure("_l0_model:L67", exc)
             out[m] = False
     return out
 

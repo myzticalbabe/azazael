@@ -36,12 +36,12 @@ except ImportError:                               # never break the host
 
 try:                                                    # pragma: no cover
     from CORE.technique_runtime import recall_with_feedback, register
-except Exception:                                       # pragma: no cover
-    note_failure("_l1_memory:L30", None)
+except Exception as exc:                                       # pragma: no cover
+    note_failure("_l1_memory:L30", exc)
     try:
         from ..technique_runtime import recall_with_feedback, register
-    except Exception:
-        note_failure("_l1_memory:L33", None)
+    except Exception as exc:
+        note_failure("_l1_memory:L33", exc)
         def register(*_a: Any, **_k: Any) -> None:       # type: ignore[misc]
             """No-op when the runtime is unavailable: this module must import."""
             return None

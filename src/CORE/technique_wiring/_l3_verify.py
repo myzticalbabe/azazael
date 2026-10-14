@@ -543,8 +543,8 @@ def _ep169() -> Dict[str, Any]:
         vg = _vg()
         found = [n for n in dir(vg)
                  if "threat" in n.lower() or "dimension" in n.lower()]
-    except Exception:                                  # noqa: BLE001
-        note_failure("_l3_verify:L511", None)
+    except Exception as exc:                                  # noqa: BLE001
+        note_failure("_l3_verify:L511", exc)
         found = []
     base["threat_or_dimension_symbols"] = found
     base["note"] = ("no threat/dimension taxonomy on the gate — rule extracted"
