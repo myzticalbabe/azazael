@@ -41,8 +41,8 @@ except ImportError:                               # never break the host
 # CORE.native_guard, never an in-process import.
 try:
     from CORE.native_guard import import_ok as _import_ok
-except Exception:  # pragma: no cover - CORE not on path
-    note_failure("onnx_integration:L35", None)
+except Exception as exc:  # pragma: no cover - CORE not on path
+    note_failure("onnx_integration:L35", exc)
     def _import_ok(_name):
         return False
 
@@ -66,16 +66,16 @@ try:
     import torch
 
     HAS_TORCH = True
-except ImportError:
-    note_failure("onnx_integration:L59", None)
+except ImportError as exc:
+    note_failure("onnx_integration:L59", exc)
     HAS_TORCH = False
 
 try:
     import tensorflow as tf
 
     HAS_TF = True
-except ImportError:
-    note_failure("onnx_integration:L66", None)
+except ImportError as exc:
+    note_failure("onnx_integration:L66", exc)
     HAS_TF = False
 
 # -- OpenVINO EP Detection (onnxruntime provider) ----------------------------
@@ -94,8 +94,8 @@ _ov_core = None  # lazy-initialized ov.Core instance
 try:
     import openvino as ov_native
     _HAS_OV_NATIVE = True
-except ImportError:
-    note_failure("onnx_integration:L85", None)
+except ImportError as exc:
+    note_failure("onnx_integration:L85", exc)
     ov_native = None
 def _ensure_openvino_path():
     """Add OpenVINO DLL directories to PATH if available."""
@@ -133,8 +133,8 @@ def _ensure_openvino_path():
             try:
                 cookie = os.add_dll_directory(p)
                 _OV_DLL_COOKIES.append(cookie)
-            except (OSError, AttributeError):
-                note_failure("onnx_integration:L123", None)
+            except (OSError, AttributeError) as exc:
+                note_failure("onnx_integration:L123", exc)
 
 def _detect_openvino():
     """Detect if OpenVINO EP is available and enumerate devices (lazy)."""
@@ -152,8 +152,8 @@ def _detect_openvino():
     try:
         available = ort.get_available_providers()
         _HAS_OPENVINO = _OPENVINO_EP in available
-    except Exception:
-        note_failure("onnx_integration:L142", None)
+    except Exception as exc:
+        note_failure("onnx_integration:L142", exc)
         _HAS_OPENVINO = False
         _OV_DEVICES = {}
         return
@@ -169,11 +169,11 @@ def _detect_openvino():
             try:
                 name = core.get_property(dev, "FULL_DEVICE_NAME")
                 _OV_DEVICES[dev] = name
-            except Exception:
-                note_failure("onnx_integration:L158", None)
+            except Exception as exc:
+                note_failure("onnx_integration:L158", exc)
                 _OV_DEVICES[dev] = dev
-    except Exception:
-        note_failure("onnx_integration:L160", None)
+    except Exception as exc:
+        note_failure("onnx_integration:L160", exc)
 
 def _detect_ov_native():
     """Detect native OpenVINO API availability (lazy)."""
@@ -189,11 +189,11 @@ def _detect_ov_native():
             try:
                 name = _ov_core.get_property(dev, "FULL_DEVICE_NAME")
                 _OV_NATIVE_DEVICES[dev] = name
-            except Exception:
-                note_failure("onnx_integration:L177", None)
+            except Exception as exc:
+                note_failure("onnx_integration:L177", exc)
                 _OV_NATIVE_DEVICES[dev] = dev
-    except Exception:
-        note_failure("onnx_integration:L179", None)
+    except Exception as exc:
+        note_failure("onnx_integration:L179", exc)
         _HAS_OV_NATIVE = False
 
 

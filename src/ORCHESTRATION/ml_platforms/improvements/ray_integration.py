@@ -66,8 +66,8 @@ try:
     import ray
 
     HAS_RAY = True
-except ImportError:
-    note_failure("ray_integration:L60", None)
+except ImportError as exc:
+    note_failure("ray_integration:L60", exc)
     HAS_RAY = False
 
 

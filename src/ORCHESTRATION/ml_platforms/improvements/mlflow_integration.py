@@ -71,8 +71,8 @@ try:
     import mlflow
 
     HAS_MLFLOW = True
-except ImportError:
-    note_failure("mlflow_integration:L65", None)
+except ImportError as exc:
+    note_failure("mlflow_integration:L65", exc)
     HAS_MLFLOW = False
 
 
