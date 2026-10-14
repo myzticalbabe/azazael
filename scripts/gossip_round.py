@@ -43,7 +43,7 @@ def main():
             r = subprocess.run(
                 ["wsl", "-d", distro, "--", "python3",
                  "/mnt/c/Users/clint/azazael/scripts/gossip_export.py"],
-                capture_output=True, text=True, timeout=90)
+                capture_output=True, text=True, timeout=90, encoding="utf-8", errors="replace")
             line = (r.stdout or "").strip().splitlines()
             ok = json.loads(line[-1]).get("success") if line else False
             parts[env] = bool(ok)

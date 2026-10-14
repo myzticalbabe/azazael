@@ -283,7 +283,7 @@ def main(argv: list[str] | None = None) -> int:
             t0 = time.perf_counter()
             try:
                 proc = subprocess.run([str(graphify_py), *step], cwd=str(ROOT),
-                                      capture_output=True, text=True, timeout=5400)
+                                      capture_output=True, text=True, timeout=5400, encoding="utf-8", errors="replace")
                 rc = proc.returncode
                 text = (proc.stdout or "") + (proc.stderr or "")
             except subprocess.TimeoutExpired as exc:

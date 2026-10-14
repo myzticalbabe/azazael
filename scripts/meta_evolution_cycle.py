@@ -84,7 +84,7 @@ def _run(cmd: Sequence[str], timeout: int) -> dict[str, Any]:
     import subprocess
     try:
         proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True,
-                              text=True, timeout=timeout)
+                              text=True, timeout=timeout, encoding="utf-8", errors="replace")
     except subprocess.TimeoutExpired:
         return {"rc": None, "timeout": True, "stdout": "", "stderr": "timeout"}
     return {"rc": proc.returncode, "timeout": False,

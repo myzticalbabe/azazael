@@ -53,13 +53,13 @@ def main() -> int:
     kb = PARITY / "kb.json"
     subprocess.run(
         [GOSP_EXE, "harvest", WIN_P, "-w", "4", "-o", WIN_P + "/kb.json"],
-        capture_output=True, text=True, check=True, timeout=120,
+        capture_output=True, text=True, check=True, timeout=120, encoding="utf-8", errors="replace"
     )
     rust_hits = {}
     for q in QUERIES:
         r = subprocess.run(
             [GOSP_EXE, "search", q, "--kb", WIN_P + "/kb.json", "--top-k", "10", "--format", "json"],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True, text=True, timeout=60, encoding="utf-8", errors="replace"
         )
         try:
             data = json.loads(r.stdout)
