@@ -68,8 +68,8 @@ def make_objectives(
             future = pool.submit(run_agent, genome, task)
             try:
                 return future.result(timeout=per_task_timeout)
-            except FuturesTimeout:
-                note_failure("evolve:L59", None)
+            except FuturesTimeout as exc:
+                note_failure("evolve:L59", exc)
                 return False, per_task_timeout
 
     def objective_error(genome_vec: np.ndarray) -> float:
@@ -128,6 +128,6 @@ def live_run_agent(genome: AgentGenome, task: Task) -> tuple[bool, float]:
         response = agent.run(task["prompt"])
         text = response.text if hasattr(response, "text") else str(response)
         return task["expect"] in text, time.time() - started
-    except Exception:
-        note_failure("evolve:L118", None)
+    except Exception as exc:
+        note_failure("evolve:L118", exc)
         return False, time.time() - started
