@@ -329,10 +329,10 @@ def create_immersive_popup():
         web = tkinterweb.HtmlFrame(root)
         web.load_html(html_content)
         web.pack(fill="both", expand=True)
-    except ImportError:
+    except ImportError as exc:
         # Fallback to simple Tkinter display — always works
         # Fallback to simple Tkinter display — always works
-        note_failure("POPUP_IMMERSIVE:L322", None)
+        note_failure("POPUP_IMMERSIVE:L322", exc)
         text = tk.Text(root, wrap="word", font=("Consolas", 9))
         text.pack(fill="both", expand=True, padx=10, pady=10)
         text.insert(

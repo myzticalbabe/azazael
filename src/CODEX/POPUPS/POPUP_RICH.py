@@ -257,16 +257,16 @@ HORUS INTEGRATION
                 idx[0] = (idx[0] + 1) % len(colors)
                 self.status_label.config(fg=colors[idx[0]])
                 self.root.after(600, cycle_color)
-            except Exception:
-                note_failure("POPUP_RICH:L250", None)
+            except Exception as exc:
+                note_failure("POPUP_RICH:L250", exc)
 
         cycle_color()
 
     def close(self):
         try:
             self.root.destroy()
-        except Exception:
-            note_failure("POPUP_RICH:L258", None)
+        except Exception as exc:
+            note_failure("POPUP_RICH:L258", exc)
         import sys
 
         sys.exit(0)
