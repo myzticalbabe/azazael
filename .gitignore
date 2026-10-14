@@ -258,6 +258,8 @@ state/*
 !state/adoption_census.json
 !state/orphan_scan.json
 !state/suite_baseline.jsonl
+!state/SOLAR_PRO4_EVIDENCE_2026-10-14.jsonl
+!state/SOLAR_PRO4_EVIDENCE_2026-10-14.md
 # Still ignored on purpose: every other state/ file, and every SUBDIRECTORY of
 # state/ (`state/*` re-excludes them as directories, and a file inside an ignored
 # directory cannot be re-included). No rule here may be relaxed to `!state/**`.
