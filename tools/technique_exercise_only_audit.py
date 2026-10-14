@@ -1,10 +1,26 @@
-"""technique_blind_audit.py — which registered techniques have a BLIND mechanism?
+"""technique_blind_audit.py — which registered techniques are EXERCISE-ONLY?
 
-BLIND = the registry's `where` symbol has NO reference anywhere in the repo
-except the line that defines it. Intra-module calls COUNT as references (v1
-wrongly excluded the defining file, which false-flagged every symbol called from
-a sibling function -- e.g. EP461 divergence_gate is called at
-verification_gate.py:431 in its own module).
+READ THIS BEFORE QUOTING THE OUTPUT. The name says "blind" but the measurement
+is narrower, and conflating the two produced a wrong finding once already:
+
+    EXERCISE-ONLY = the registry's `where` symbol has no reference outside
+                    `technique_wiring/` (its own exercise adapter calls it).
+    BLIND         = no reference ANYWHERE. A STRICT SUBSET of exercise-only.
+
+This tool reports the former. `technique_wiring/` is excluded from the corpus on
+purpose (we want *production* callers), so a symbol that only its own adapter
+calls scores here — that is exercise-only, NOT "zero callers". Measured against
+the excluded region, every symbol this tool reports does have a call site inside
+`technique_wiring/`.
+
+GENERAL RULE this tool taught the hard way: a zero is only as good as the corpus
+you searched. Always state the corpus, and re-test any zero against the region you
+excluded. Three separate false zeros in one session came from excluded or
+ill-matched corpora.
+
+Intra-module calls COUNT as references (v1 wrongly excluded the defining FILE,
+which false-flagged every symbol called from a sibling function — e.g. EP461
+divergence_gate is called at verification_gate.py:431 in its own module).
 
 Also separates PROSE `where` values ("ACID agents: ...", survey/doctrine rows)
 from real MODULE:symbol bindings -- prose rows have no mechanism to be blind.
@@ -55,9 +71,18 @@ for mod, sym in real.values():
 
 hits = {s: [] for s in targets}
 files = []
+#: Paths that are NOT production callers. `tests/` and `state/` are excluded
+#: because a test or a throwaway probe that merely NAMES a symbol would otherwise
+#: score as a production caller -- contamination observed live: adding a probe
+#: script that listed the symbol names moved this report from 122/22 to 129/15
+#: without a single line of production code changing.
+NOT_PRODUCTION = ("tests/", "state/", "tools/technique_exercise_only_audit.py")
+
 for f in Path(".").rglob("*.py"):
     s = str(f).replace("\\", "/")
     if any(x in s for x in EXCL):
+        continue
+    if any(s.startswith(x) for x in NOT_PRODUCTION):
         continue
     files.append((f, s))
 print("caller-corpus files       : %d" % len(files))
@@ -74,7 +99,7 @@ for f, s in files:
 
 print("indexed target symbols    : %d" % len(hits))
 
-# ---------- 3. blind = every hit is a def/class line for that symbol ----------
+# --- 3. exercise-only = no hit outside technique_wiring/ (NOT "never called") ---
 BLIND, LIVE = [], 0
 for ep, (mod, sym) in sorted(real.items(), key=lambda kv: int(kv[0][2:])):
     short = sym.split(".")[-1]
@@ -90,8 +115,9 @@ for ep, (mod, sym) in sorted(real.items(), key=lambda kv: int(kv[0][2:])):
         BLIND.append((ep, mod + ":" + sym, short))
 
 print()
-print("LIVE  : %d" % LIVE)
-print("BLIND : %d" % len(BLIND))
+print("PRODUCTION-CALLED      : %d" % LIVE)
+print("EXERCISE-ONLY (of those): %d" % len(BLIND))
+print("  ^ these are called ONLY from technique_wiring/ -- they are NOT uncalled.")
 print()
 for ep, w, short in BLIND:
     print("  %-7s %-56s sym=%s" % (ep, w[:56], short))
