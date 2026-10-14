@@ -159,7 +159,12 @@ def _attempted_ids() -> set[str]:
     Both shapes are accepted here, and _finish() now stamps the flat key.
     """
     ids: set[str] = set()
-    for path in (LINEAGE_PATH, ROOT / "logs" / "mutation_ledger.jsonl"):
+    # Every ledger generation, not just the live file: the ledger rotates
+    # (`mutation_ledger.jsonl.N`), and this guard's whole job is to NEVER
+    # re-select a consumed candidate -- reading only the live file would let it
+    # re-pick anything whose row had been archived away.
+    _ledger_files = sorted((ROOT / "logs").glob("mutation_ledger.jsonl*"))
+    for path in (LINEAGE_PATH, *_ledger_files):
         if not path.is_file():
             continue
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines():

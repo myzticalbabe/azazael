@@ -5,13 +5,25 @@ single-instance locks serialize with scheduled fires (which SKIP while
 a chain step holds its lock). Progress to chain20.log. Rerun-safe:
 each round is independent; failures logged, chain continues.
 """
+import os
 import subprocess
 import time
+from pathlib import Path
 
+#: This script drives ITS OWN checkout. SCRIPTS, LOG and the step cwd used to
+#: hardcode C:\Users\clint\azazael -- so the copy of this file in a second
+#: checkout drove the FIRST one's tree and log, and a run from here silently
+#: operated on the wrong repo (both copies pointed at the same root). Root is
+#: derived now; AZAZAEL_CHAIN20_ROOT is the deliberate override for the rare,
+#: intentional case of driving another tree.
+ROOT = Path(os.environ.get("AZAZAEL_CHAIN20_ROOT")
+            or Path(__file__).resolve().parents[1])
+SCRIPTS = ROOT / "scripts"
+LOG = ROOT / "logs" / "chain20.log"
+
+# Interpreter paths stay pinned: they are machine-level, not repo-relative.
 PY = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python.exe'
 PY_FT = r'C:\Users\clint\AppData\Local\Programs\Python\Python315\python3.15t.exe'
-SCRIPTS = r'C:\Users\clint\azazael\scripts'
-LOG = r'C:\Users\clint\azazael\logs\chain20.log'
 ROUNDS = 20
 STEP_TIMEOUT = 900
 #: rc recorded when a step does not return. The log line's `rc=` field is read
@@ -35,7 +47,7 @@ def step(name, args, binary=None):
     try:
         p = subprocess.run([binary or PY] + args, capture_output=True,
                            text=True, timeout=STEP_TIMEOUT,
-                           cwd=r'C:\Users\clint\azazael', encoding="utf-8", errors="replace")
+                           cwd=str(ROOT), encoding="utf-8", errors="replace")
         rc = p.returncode
         tail = ((p.stdout or '') + (p.stderr or '')).strip().splitlines()
         tail = tail[-1][-160:] if tail else ''
@@ -65,7 +77,7 @@ def main():
                 ('metacog', 'metacog_cycle.py', [], None),
                 ('train', 'run_training_orchestrator.py', [], None),
                 ('evolution', 'evolution_cycle.py', [], PY_FT)):
-            if step('%s[%d]' % (name, i), [SCRIPTS + '\\' + script] + extra,
+            if step('%s[%d]' % (name, i), [str(SCRIPTS / script)] + extra,
                     binary=binary):
                 ok += 1
             else:
