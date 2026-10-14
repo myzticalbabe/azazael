@@ -5,6 +5,7 @@ import sys
 import os
 import time
 import tempfile
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -13,6 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 import pytest
 
 from CORE.local_memory import LocalMemoryStore
+from CORE.failure_ledger import failure_notes, reset_notes
 
 
 class TestQueryRealErrors:
@@ -434,6 +436,135 @@ class TestValidation:
         import pytest
         with pytest.raises(ValueError):
             self.store.record_event("", "type", {}, severity="info")
+
+
+class TestFailureLedgerExceptionCapture:
+    """Verify failure_ledger captures exception types from swallowed failures."""
+
+    def setup_method(self):
+        """Reset failure ledger before each test."""
+        reset_notes()
+
+    def teardown_method(self):
+        """Clean up."""
+        reset_notes()
+
+    def test_failure_ledger_captures_exception_type(self):
+        """_note_failure should record exception type in failure_ledger."""
+        from CORE.local_memory import _note_failure
+
+        # Call _note_failure with a specific exception type
+        try:
+            raise ValueError("test error")
+        except ValueError as exc:
+            _note_failure("test:location", exc)
+
+        notes = failure_notes()
+        # Should have captured the exception type
+        assert "test:location:ValueError" in notes
+        assert notes["test:location:ValueError"] == 1
+
+    def test_failure_ledger_captures_different_exception_types(self):
+        """Different exception types should be recorded separately."""
+        from CORE.local_memory import _note_failure
+
+        try:
+            raise ValueError("value error")
+        except ValueError as exc:
+            _note_failure("test:multi", exc)
+
+        try:
+            raise TypeError("type error")
+        except TypeError as exc:
+            _note_failure("test:multi", exc)
+
+        try:
+            raise RuntimeError("runtime error")
+        except RuntimeError as exc:
+            _note_failure("test:multi", exc)
+
+        notes = failure_notes()
+        assert notes["test:multi:ValueError"] == 1
+        assert notes["test:multi:TypeError"] == 1
+        assert notes["test:multi:RuntimeError"] == 1
+
+    def test_failure_ledger_handles_none_exception(self):
+        """When exc is None, should record 'unknown' type."""
+        from CORE.local_memory import _note_failure
+
+        _note_failure("test:none", None)
+
+        notes = failure_notes()
+        assert "test:none:unknown" in notes
+        assert notes["test:none:unknown"] == 1
+
+    def test_failure_ledger_thread_safety(self):
+        """failure_ledger should be thread-safe under concurrent writes."""
+        from CORE.local_memory import _note_failure
+
+        def writer(exc_type, count):
+            for _ in range(count):
+                try:
+                    raise exc_type("test")
+                except exc_type as exc:
+                    _note_failure("test:thread", exc)
+
+        threads = [
+            threading.Thread(target=writer, args=(ValueError, 100)),
+            threading.Thread(target=writer, args=(TypeError, 100)),
+            threading.Thread(target=writer, args=(RuntimeError, 100)),
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        notes = failure_notes()
+        assert notes["test:thread:ValueError"] == 100
+        assert notes["test:thread:TypeError"] == 100
+        assert notes["test:thread:RuntimeError"] == 100
+
+    def test_local_memory_store_failure_recording(self):
+        """LocalMemoryStore failures should be recorded with exception types."""
+        # Create a store, then make DB readonly to force failures on write
+        import tempfile
+        import os
+        import stat
+
+        tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        tmp.close()
+
+        try:
+            # Create store with writable DB first
+            store = LocalMemoryStore(db_path=tmp.name)
+            # Now make it readonly
+            os.chmod(tmp.name, stat.S_IRUSR)
+
+            # The store is expected to swallow this write failure and record it in
+            # the ledger. If it propagates instead, keep the exception so the
+            # assertion below can name it rather than discarding the evidence.
+            propagated = None
+            try:
+                store.record_event("Test", "event", {"data": "test"})
+            except Exception as exc:
+                propagated = exc
+            finally:
+                store.close()
+
+            notes = failure_notes()
+            # Should have recorded some failure with exception type
+            found = False
+            for key in notes:
+                if key.startswith("local_memory:"):
+                    assert "unknown" not in key or "ValueError" in key or "OperationalError" in key or "PermissionError" in key
+                    found = True
+                    break
+            assert found, f"No local_memory failures recorded (propagated={propagated!r}): {notes}"
+        finally:
+            # Make writable again to close and delete
+            os.chmod(tmp.name, stat.S_IRUSR | stat.S_IWUSR)
+            store.close()
+            os.unlink(tmp.name)
 
 
 if __name__ == "__main__":
