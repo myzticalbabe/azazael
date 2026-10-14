@@ -75,6 +75,20 @@ def evidence_for(symbol):
     return buckets
 
 
+def _p(*parts):
+    """Console-safe print: the evidence corpus contains non-ASCII (emoji,
+    box-drawing) that crashes cp1252 consoles mid-report -- a silent
+    truncation of the very evidence being gathered. Fall back to the
+    CONSOLE encoding with replacement (never UTF-8 round-trip: that
+    preserves the unprintable character and fails again)."""
+    text = " ".join(str(p) for p in parts)
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        enc = sys.stdout.encoding or "utf-8"
+        print(text.encode(enc, "replace").decode(enc))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--ep", default="")
@@ -93,7 +107,7 @@ def main(argv=None):
     for ep in eps:
         row = rows.get(ep)
         if row is None:
-            print("! unknown EP: %s" % ep)
+            _p("! unknown EP: %s" % ep)
             continue
         syms = row.get("symbols") or ([row.get("symbol")]
                                       if row.get("symbol") else [])
@@ -109,22 +123,22 @@ def main(argv=None):
             entry["symbols"][ident] = evidence_for(ident)
         report[ep] = entry
     for ep, entry in report.items():
-        print("===== %s | %s | cov:%s verdict:%s census-n:%s" % (
+        _p("===== %s | %s | cov:%s verdict:%s census-n:%s" % (
             ep, entry["name"], entry["coverage"], entry["verdict"],
             entry["n_production"]))
         for sym, buckets in entry["symbols"].items():
-            print("  [%s] import:%d call:%d def:%d tests:%d wiring:%d "
-                  "prose:%d nonpy:%d" % (
+            _p("  [%s] import:%d call:%d def:%d tests:%d wiring:%d "
+               "prose:%d nonpy:%d" % (
                       sym, len(buckets["import"]), len(buckets["call"]),
                       len(buckets["defline"]), len(buckets["tests"]),
                       len(buckets["wiring"]), len(buckets["prose"]),
                       len(buckets["nonpy"])))
             for loc, text in (buckets["import"] + buckets["call"])[:6]:
-                print("    ", loc, "|", text)
+                _p("    ", loc, "|", text)
     if args.json:
         Path(args.json).write_text(json.dumps(report, indent=1),
                                    encoding="utf-8")
-        print("wrote %s" % args.json)
+        _p("wrote %s" % args.json)
     return 0
 
 
