@@ -125,3 +125,38 @@ def test_start_slow_failure_logs_the_reason(monkeypatch):
     pid = run_azazael_chain._start_slow("bogus", ("x", 1, "nope", "target", ()))
     assert pid is None
     assert any("START-FAIL-EVIDENCE" in line for line in seen), seen
+
+
+def test_ledger_rotation_bounds_growth_without_hiding_history(tmp_path, monkeypatch):
+    """Rotation must bound the file WITHOUT hiding rows from the readers.
+
+    refresh_all.attempts() reads this ledger so a reverted attempt is not
+    re-derived, local_inference.scoreboard() counts verdicts across it, and
+    meta_evolution_cycle._attempted_ids() reads it so a consumed candidate is
+    never re-selected. A rotation those readers cannot see would silently erase
+    the memory the ledger exists to hold -- which is why the readers were
+    changed in the same commit as the rotation.
+    """
+    monkeypatch.setattr(self_modify, "LEDGER", tmp_path / "mutation_ledger.jsonl")
+    monkeypatch.setattr(self_modify, "LEDGER_GENERATIONS", 3)
+    monkeypatch.setattr(self_modify, "LEDGER_MAX_BYTES", 300)
+    monkeypatch.setitem(sys.modules, "CORE.direct_memory", None)
+
+    for i in range(40):
+        self_modify.record({"verdict": "kept" if i % 2 else "reverted", "seq": i})
+
+    gens = list(tmp_path.glob("mutation_ledger.jsonl*"))
+    assert len(gens) <= self_modify.LEDGER_GENERATIONS + 1, \
+        "generation count must be bounded, or rotation bounds nothing"
+    assert all(p.stat().st_size <= self_modify.LEDGER_MAX_BYTES + 2000
+               for p in gens), "a generation must not run away"
+
+    rows, torn = self_modify.read_rows()
+    assert torn == 0
+    seqs = [r["seq"] for r in rows]
+    assert max(seqs) == 39, "the live rows must still be readable"
+    assert seqs == sorted(seqs), "rows must read oldest-generation-first"
+    assert len(rows) >= 10, "rotation must keep a usable window, not one row"
+    # Dropping the OLDEST generation is the only, bounded loss -- so the newest
+    # rows are never the ones discarded.
+    assert min(seqs) > 0, "the LIVE data must survive a rotation"

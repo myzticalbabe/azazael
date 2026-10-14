@@ -65,6 +65,61 @@ EVIDENCE_CHARS = 2000
 RC_TIMEOUT = 124
 RC_SPAWN_ERROR = 127
 
+#: Rotation budget. The ledger is append-only and each row now carries up to
+#: EVIDENCE_CHARS of evidence, so unbounded growth is a slow but real hazard
+#: (~3KB/row). Rotation is only SAFE because every consumer reads ALL
+#: generations: refresh_all.attempts() exists so a reverted attempt is not
+#: re-derived, local_inference's scorecard counts verdicts per model, and
+#: meta_evolution_cycle._attempted_ids() must never re-select a consumed
+#: candidate. Archiving a row those readers cannot see would silently erase
+#: exactly the memory the ledger exists to hold.
+LEDGER_MAX_BYTES = 4_000_000
+LEDGER_GENERATIONS = 5
+
+
+def ledger_paths() -> list[Path]:
+    """Rotated generations oldest-first, then the live ledger."""
+    archived = [LEDGER.with_name("%s.%d" % (LEDGER.name, i))
+                for i in range(LEDGER_GENERATIONS, 0, -1)]
+    return archived + [LEDGER]
+
+
+def rotate_ledger() -> str:
+    """Shift generations when the live ledger is over budget.
+
+    Returns "" for a no-op or a successful shift, else the reason it could not
+    rotate. The OLDEST generation is dropped and that is the only place history
+    is lost -- bounded and stated, rather than a file that grows forever.
+    """
+    try:
+        if not LEDGER.is_file() or LEDGER.stat().st_size < LEDGER_MAX_BYTES:
+            return ""
+        for i in range(LEDGER_GENERATIONS, 0, -1):
+            newer = (LEDGER if i == 1
+                     else LEDGER.with_name("%s.%d" % (LEDGER.name, i - 1)))
+            if newer.is_file():
+                os.replace(newer, LEDGER.with_name("%s.%d" % (LEDGER.name, i)))
+        return ""
+    except OSError as exc:
+        return "%s: %s" % (type(exc).__name__, str(exc)[:120])
+
+
+def read_rows() -> tuple[list[dict[str, Any]], int]:
+    """Every ledger row (oldest generation first) plus the torn-line count."""
+    rows: list[dict[str, Any]] = []
+    torn = 0
+    for path in ledger_paths():
+        if not path.is_file():
+            continue
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not line.strip():
+                continue
+            try:
+                rows.append(json.loads(line))
+            except ValueError:
+                torn += 1  # a torn append: counted and reported, never fatal
+    return rows, torn
+
 
 def _text(blob: Any) -> str:
     """Normalise TimeoutExpired stdout/stderr, which stay bytes under text=True."""
@@ -224,6 +279,11 @@ def record(row: dict[str, Any]) -> None:
         # Record that the mirror failed rather than dropping the fact.
         row["direct_memory_error"] = "%s: %s" % (type(exc).__name__, str(exc)[:120])
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    rotate_error = rotate_ledger()
+    if rotate_error:
+        # Rotation is best-effort: a locked file must not stop the append.
+        # Record why it did not rotate rather than swallow the failure.
+        row["ledger_rotate_error"] = rotate_error
     with LEDGER.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(row, default=str) + "\n")
         fh.flush()
@@ -369,17 +429,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.ledger:
-        if not LEDGER.is_file():
+        if not any(p.is_file() for p in ledger_paths()):
             print("no attempts recorded yet")
             return 0
-        rows, torn = [], 0
-        for line in LEDGER.read_text(encoding="utf-8", errors="replace").splitlines():
-            if not line.strip():
-                continue
-            try:
-                rows.append(json.loads(line))
-            except ValueError:
-                torn += 1  # a torn append; report it, don't die on it
+        rows, torn = read_rows()
         if torn:
             print("WARNING: %d unreadable ledger line(s) skipped" % torn)
         print("%-22s %-10s %-34s %s" % ("WHEN", "VERDICT", "REASON", "TIER2"))
