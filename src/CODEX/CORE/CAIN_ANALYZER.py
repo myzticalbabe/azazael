@@ -51,12 +51,12 @@ try:
         TOTAL_DAMAGE_PER_INCIDENT,
     )
     _CAIN_DATA_OK = True
-except ImportError:
+except ImportError as exc:
     # Minimal fallback for standalone .exe builds that can't resolve CORE.* imports.
     # This is brief — use CAIN_DATA.py for all data changes.
     # Minimal fallback for standalone .exe builds that can't resolve CORE.* imports.
     # This is brief — use CAIN_DATA.py for all data changes.
-    note_failure("CAIN_ANALYZER:L45", None)
+    note_failure("CAIN_ANALYZER:L45", exc)
     CAIN_VERSION = "1.0.0"
     SEVEN_SINS = {}
     MYTHOLOGICAL_ARCHETYPES = {}
@@ -80,8 +80,8 @@ try:
         run_complete_analysis as _worm_analysis,
     )
     _CAN_IMPORT_WORM = True
-except ImportError:
-    note_failure("CAIN_ANALYZER:L71", None)
+except ImportError as exc:
+    note_failure("CAIN_ANALYZER:L71", exc)
 
 
 # --- Analysis Functions --------------------------------------------
