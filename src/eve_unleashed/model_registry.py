@@ -116,8 +116,8 @@ class ModelRegistry:
                 for entry in data.get("models", []):
                     record = ModelRecord.from_dict(entry)
                     self._models[record.canonical_path] = record
-            except (json.JSONDecodeError, KeyError, TypeError):
-                note_failure("model_registry:L110", None)
+            except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                note_failure("model_registry:L110", exc)
 
     def save(self):
         """Persist registry to JSON file."""

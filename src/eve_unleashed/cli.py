@@ -45,10 +45,10 @@ def cmd_infer(args) -> int:
     input_str = args.input
     try:
         inputs = json.loads(input_str)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as exc:
         # Treat as plain string (for GGUF/transformers/VL text prompts)
         # Treat as plain string (for GGUF/transformers/VL text prompts)
-        note_failure("cli:L38", None)
+        note_failure("cli:L38", exc)
         inputs = input_str
 
     # Create engine and load model
