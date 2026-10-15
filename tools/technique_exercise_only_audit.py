@@ -27,6 +27,14 @@ Intra-module calls COUNT as references (v1 wrongly excluded the defining FILE,
 which false-flagged every symbol called from a sibling function — e.g. EP461
 divergence_gate is called at verification_gate.py:431 in its own module).
 
+A reference must be MODULE-QUALIFIED (engram #682). Matching a binding by its
+LAST dotted component alone is a bare token, and a generic one manufactures a
+false POSITIVE: `CORE.latent_refine:refine` reduces to `refine`, and every
+occurrence of the English word "refine" in prose then scored a production call.
+A hit now counts only if its file imports the bound module (directly, or via
+`from MOD import sym [as alias]`) or is the module that defines the symbol — the
+predicate #682 verified against all 18 disputed rows.
+
 Also separates PROSE `where` values ("ACID agents: ...", survey/doctrine rows)
 from real MODULE:symbol bindings -- prose rows have no mechanism to be blind.
 """
@@ -88,6 +96,19 @@ targets = set()
 for mod, sym in real.values():
     targets.add(sym.split(".")[-1])
 
+#: module dotted path -> the source file that defines it (module or package).
+#: A symbol's own module is where an intra-module reference lives. Candidates
+#: include the repo ROOT (e.g. `scripts/meta_reflect:...` -> scripts/meta_reflect.py)
+#: as well as the `src/` tree -- resolving only under src/ drops the intra-module
+#: call of every scripts-rooted binding (missed EP427/EP155/EP270/EP275 once).
+def _module_files(mod):
+    rel = mod.replace(".", "/")
+    cands = [Path("src") / (rel + ".py"), Path("src") / rel / "__init__.py",
+             Path(rel + ".py"), Path(rel) / "__init__.py"]
+    return [str(p).replace("\\", "/") for p in cands if p.is_file()]
+
+mod_files = {mod: _module_files(mod) for mod, _ in real.values()}
+
 hits = {s: [] for s in targets}
 files = []
 #: Paths that are NOT production callers. `tests/` and `state/` are excluded
@@ -114,32 +135,65 @@ if len(files) < MIN_CORPUS_FILES:
         "symbol into a false 'exercise-only'. cwd=%s"
         % (len(files), MIN_CORPUS_FILES, Path.cwd()))
 
+#: per-file import + alias index, built so a module-qualified use is provable
+#: and an aliased use (`from MOD import sym as alias`) still counts.
+imports = {}
+alias_orig = {}
 for f, s in files:
     try:
-        lines = f.read_text(encoding="utf-8", errors="replace").splitlines()
+        text = f.read_text(encoding="utf-8", errors="replace")
     except Exception:
         continue
-    for i, ln in enumerate(lines, 1):
+    mods, aliases = set(), {}
+    for line in text.splitlines():
+        st = line.split("#", 1)[0].strip()
+        if st.startswith("from ") and " import " in st:
+            head, rest = st[5:].split(" import ", 1)
+            mods.add(head.strip())
+            for part in rest.split(","):
+                bits = part.strip().split(" as ")
+                name = bits[0].strip()
+                if name:
+                    mods.add(head.strip() + "." + name)
+                    if len(bits) > 1 and name in targets:
+                        aliases[bits[1].strip()] = name
+        elif st.startswith("import "):
+            for part in st[7:].split(","):
+                name = part.strip().split(" as ")[0].strip()
+                if name:
+                    mods.add(name)
+    imports[s] = mods
+    alias_orig[s] = aliases
+    for i, ln in enumerate(text.splitlines(), 1):
         for tok in set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", ln)):
-            if tok in hits:
-                hits[tok].append((s, i, ln))
+            tgt = tok if tok in hits else aliases.get(tok)
+            if tgt in hits:
+                hits[tgt].append((s, i, ln))
 
 print("indexed target symbols    : %d" % len(hits))
 
-# --- 3. exercise-only = no hit outside technique_wiring/ (NOT "never called") ---
-BLIND, LIVE = [], 0
+# --- 3. exercise-only = no MODULE-QUALIFIED hit outside technique_wiring/ ---
+# A hit is a reference only when its file imports the bound module (directly or
+# by symbol) or IS that module -- otherwise a generic word in prose scores.
+BLIND, LIVE, qual = [], 0, 0
 for ep, (mod, sym) in sorted(real.items(), key=lambda kv: int(kv[0][2:])):
     short = sym.split(".")[-1]
+    mfiles = set(mod_files.get(mod, []))
     refs = []
     for s, i, ln in hits.get(short, []):
         st = ln.strip()
         if re.match(r"^(async\s+)?(def|class)\s+%s\b" % re.escape(short), st):
             continue                      # the definition itself, not a use
-        refs.append((s, i))
+        if s in mfiles or mod in imports.get(s, ()) \
+                or (mod + "." + short) in imports.get(s, ()):
+            refs.append((s, i))
     if refs:
         LIVE += 1
+        qual += len(refs)
     else:
         BLIND.append((ep, mod + ":" + sym, short))
+
+print("module-qualified refs     : %d" % qual)
 
 print()
 print("PRODUCTION-CALLED      : %d" % LIVE)
