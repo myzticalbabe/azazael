@@ -554,9 +554,12 @@ def _ep169() -> Dict[str, Any]:
 
 def _ep183() -> Dict[str, Any]:
     base = _claim(
-        "neurosymbolic localisation: extract program facts and run Datalog over "
-        "them; the symbolic engine here is SMT over COMPLIANCE, not over code",
-        "CORE.cd2_verifier", "SMTVerifier")
+        "neurosymbolic localisation: the LOCALISATION half SHIPS in this repo "
+        "(`localize_violations` <- `SMTVerifier.judge_result`, every REJECT); the "
+        "Datalog-over-program-facts half is ABSENT, and SMT-over-compliance is "
+        "NOT its host -- ruling 2026-10-15 (#740): the old symbol was a different "
+        "mechanism, which is what made BUILD-IN-HOST exclude nothing",
+        "CORE.cd2_verifier", "localize_violations")
     return base
 
 
@@ -651,8 +654,8 @@ def _register_all() -> None:
          "no-host: soft-verified rollout labelling", _ep153),
         ("EP169", "Agentic AI attack/defense survey: 7 dimensions + R1-R7",
          "no-host: 7-dimension threat taxonomy", _ep169),
-        ("EP183", "LogicLoc neurosymbolic localisation (absent)",
-         "CORE.cd2_verifier:SMTVerifier", _ep183),
+        ("EP183", "LogicLoc localisation (PARTIAL: localiser ships, Datalog absent)",
+         "CORE.cd2_verifier:localize_violations", _ep183),
         ("EP278", "VATS error-path injection (absent)",
          "no-host: error-path injection harness", _ep278),
         ("EP352", "Hidden states predict failure (NO-HOST)",
