@@ -19,6 +19,61 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import ci_two_interpreter_gate as gate  # noqa: E402
 
 
+# ── interpreter resolution: an ABSENT module is an environment error ────────
+#
+# Measured 2026-10-15: `src/CORE/python_env.py` does not exist anywhere in the
+# tree, and the unguarded `from CORE import python_env` made the whole gate die
+# with an ImportError traceback -- so a gate whose docstring documents
+# "exit 2 environment error" produced a crash that reads as a bug in the gate.
+# These pin the reported path, not the crash.
+
+
+def _fake_env(primary, gil):
+    class _Env:
+        @staticmethod
+        def primary_python():
+            return primary
+
+        @staticmethod
+        def gil_python():
+            return gil
+
+    return _Env
+
+
+class TestResolveInterpreters:
+
+    def test_an_absent_python_env_is_reported_not_raised(self, monkeypatch, capsys):
+        def _boom():
+            raise ImportError("cannot import name 'python_env' from 'CORE'")
+
+        monkeypatch.setattr(gate, "_load_python_env", _boom)
+        assert gate.resolve_interpreters() == []
+        assert "python_env" in capsys.readouterr().err
+
+    def test_an_absent_module_exits_two_not_one(self, monkeypatch):
+        """The gate's documented environment-error contract."""
+        monkeypatch.setattr(gate, "resolve_interpreters", lambda: [])
+        assert gate.main([]) == 2
+
+    def test_a_present_module_yields_primary_then_gil(self, monkeypatch):
+        monkeypatch.setattr(
+            gate, "_load_python_env",
+            lambda: _fake_env(Path("/fake/primary"), Path("/fake/gil")),
+        )
+        assert gate.resolve_interpreters() == [
+            ("primary", Path("/fake/primary")),
+            ("gil", Path("/fake/gil")),
+        ]
+
+    def test_a_missing_sidecar_drops_only_that_role(self, monkeypatch):
+        monkeypatch.setattr(
+            gate, "_load_python_env",
+            lambda: _fake_env(Path("/fake/primary"), None),
+        )
+        assert gate.resolve_interpreters() == [("primary", Path("/fake/primary"))]
+
+
 # A real `pytest -q` summary, including the trailing subtest line the two
 # interpreters both produced on 2026-09-30.
 SAMPLE = (

@@ -73,14 +73,40 @@ _COUNT_RE = {
 }
 
 
+def _load_python_env():
+    """Import seam for `CORE.python_env`.
+
+    A seam rather than a bare import so the absent-module path can be tested on
+    a host that happens to HAVE the module -- a test that depends on this
+    machine lacking it would prove nothing about the code.
+    """
+    from CORE import python_env
+
+    return python_env
+
+
 def resolve_interpreters() -> list[tuple[str, Path]]:
     """Return the (role, path) pairs to run, primary first.
 
     Resolution goes through `CORE/python_env.py` so the gate and production
     agree on which interpreter is which; a missing sidecar simply drops that
     role (and the comparison reports it) rather than crashing.
+
+    Measured 2026-10-15: that promise was not kept. The import was unguarded, so
+    on a host without `src/CORE/python_env.py` -- the state of this tree -- the
+    gate died with an `ImportError` traceback instead of the ``exit 2
+    environment error`` its own module docstring documents. A traceback cannot
+    be told apart from a bug in the gate, and it skips the `if not interpreters`
+    branch that exists to report precisely this. Returning an empty list routes
+    the condition there.
     """
-    from CORE import python_env
+    try:
+        python_env = _load_python_env()
+    except ImportError as exc:
+        print("[ci-two-interpreter] cannot import CORE.python_env (%s): no "
+              "interpreter roles are resolvable, reporting an environment error "
+              "rather than a verdict" % exc, file=sys.stderr)
+        return []
 
     found: list[tuple[str, Path]] = [("primary", python_env.primary_python())]
     sidecar = python_env.gil_python()
