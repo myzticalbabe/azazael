@@ -1062,3 +1062,54 @@ production agree") describes a fallback, not the stated path.
 ### Still open, named
 
 The 2 blind gates need their baselines recorded (`--record-baseline`) before they can judge on this machine. The hook still does not CALL `tools/preflight_all.py` (§17), and the hook's three-interpreter split is unchanged.
+
+---
+
+## §19 -- The two blind gates, measured rather than cited (corrects §18)
+
+§18 said both blind gates "exit 2 rather than reporting green". That claim was taken from their
+docstrings. Reading the exit paths and running both corrected it in two different directions, and
+one of the corrections is a real defect rather than a mis-statement.
+
+### 1. `aggregate-suite-isolation` exits **1**, not 2
+
+`tools/aggregate_suite_gate.py:568-571` -- `if not baseline_ids and not BASELINE.exists(): ...
+return 1`. Measured via `--check --parse-from <empty>`, which reaches that branch without running a
+suite: **exit 1**. The substance of §18 holds (it does not report green) but the number was wrong.
+
+### 2. `two-interpreter-suite` did not exit 2 -- it **crashed**
+
+`scripts/ci_two_interpreter_gate.py:83` was an unguarded `from CORE import python_env`, and
+`src/CORE/python_env.py` **does not exist anywhere in the tree** (`find . -name python_env.py` ->
+nothing). So the gate died with an `ImportError` traceback instead of the ``exit 2 environment
+error`` its own module docstring documents. Three consequences, in order of severity:
+
+* It **skips the `if not interpreters` branch** that exists to report exactly this, so the failure
+  arrives as a traceback that cannot be told apart from a bug in the gate.
+* §17 recorded this as "describes a fallback, not the stated path". That was **wrong**: there was no
+  fallback. The import was unguarded and the gate never reached its own error handling. A docstring
+  read is not a control-flow measurement.
+* It means the gate could never have produced a verdict on this host, which the BLIND label
+  understated as "cannot judge because a baseline is missing".
+
+**Fixed at the cause**, in the gate's own contract rather than by inventing an interpreter resolution:
+`resolve_interpreters()` now loads the module through a `_load_python_env()` **seam** and routes an
+`ImportError` to the empty-list path, so the documented environment error is what a missing module
+produces. The seam exists so the absent-module path is testable on a host that HAS the module -- a
+test that depends on this machine lacking it would prove nothing about the code.
+
+Measured after the fix: the gate **exits 2** and prints `cannot import CORE.python_env (...): no
+interpreter roles are resolvable, reporting an environment error rather than a verdict`; its control
+artifact is **13 passed** on `py315t` and on 3.14.7 (was 9).
+
+### Verified after the repair
+
+`--self-test --run-controls` **exit 0** with all 8 controls re-executed green (the two-interpreter
+control was edited, so it was re-run, not assumed); `--check` **exit 0** (7 hook gates PASS).
+
+### Still open, named
+
+`src/CORE/python_env.py` is still absent, so `two-interpreter-suite` still cannot resolve roles on
+this host -- it now says so in its documented form instead of crashing. Whether that module should be
+restored or the import removed outright is a decision about which interpreter is primary, and it is
+left open here rather than guessed.
