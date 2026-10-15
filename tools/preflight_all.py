@@ -25,9 +25,13 @@ This tool executes it as a MEASUREMENT rather than an assertion:
                     silent pass, unless declared via ``--allow-unrunnable``.
   * ``--self-test`` prove fail-ability: every declared interpreter must actually
                     execute, every declared control artifact must exist on disk,
-                    every executable control must fail as required, and the
-                    number of gates with NO control is PRINTED rather than
-                    rounded to a pass.
+                    every executable control must fail as required, every gate's
+                    REQUIRED artifact must be present (a gate whose input is gone
+                    cannot judge at all -- it is BLIND, not green), and the number
+                    of gates with NO control is PRINTED rather than rounded to a
+                    pass. Add ``--run-controls`` to EXECUTE each declared control
+                    artifact, which turns declared fail-ability into demonstrated;
+                    add ``--strict`` to make a BLIND gate a failure.
   * ``--force``     re-run. A cached PASS is reused only while its evidence still
                     describes the tree it was recorded against (the gate's own
                     bytes + the staged and worktree state it judged), so a gate
@@ -89,6 +93,11 @@ class Gate(NamedTuple):
     control_test: Optional[str]
     control: Optional[str]
     uncontrolled_because: Optional[str]
+    #: Repo-relative artifacts the gate READS to reach a verdict. Their absence
+    #: means the gate cannot judge at all -- BLIND. A baseline that was never
+    #: recorded on this machine is the common case: the gate exits 2 rather than
+    #: reporting green, and nothing before this surfaced that as a fact.
+    requires: Tuple[str, ...] = ()
 
 
 #: The registry. Every ``inside_hook`` row is transcribed verbatim from
@@ -108,6 +117,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_commit_gate.py",
         control=None,
         uncontrolled_because=None,
+        requires=(),  # reads the git index, which repo_state_hash covers
     ),
     Gate(
         name="stale-index-guard",
@@ -121,6 +131,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_index_drift_check.py",
         control=None,
         uncontrolled_because=None,
+        requires=(),  # two git queries, no file
     ),
     Gate(
         name="staged-scanner",
@@ -134,6 +145,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_staged_scanner_gate.py",
         control=None,
         uncontrolled_because=None,
+        requires=(),  # the index, not a file
     ),
     Gate(
         name="canon-drift",
@@ -147,6 +159,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_canon_drift_check.py",
         control=None,
         uncontrolled_because=None,
+        requires=("skills", ".agents/skills"),  # SOURCE_DIR / LOAD_DIR
     ),
     Gate(
         name="anti-pattern-ratchet",
@@ -160,6 +173,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_anti_pattern_gate.py",
         control="anti-pattern-ratchet",
         uncontrolled_because=None,
+        requires=("logs/anti_pattern_baseline.json",),
     ),
     Gate(
         name="mesh-ledger-freshness",
@@ -173,6 +187,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_mesh_wire_or_cut.py",
         control=None,
         uncontrolled_because=None,
+        requires=("NEURAL_MESH_WIRE_OR_CUT.json",),
     ),
     Gate(
         name="pmb-outcome-observer",
@@ -192,6 +207,7 @@ GATES: Tuple[Gate, ...] = (
             "side-effect recorder, exit code ignored by the hook; a non-zero exit "
             "is not a defect signal, so there is nothing to control"
         ),
+        requires=(),  # the PMB daemon's own store, not a repo path
     ),
     Gate(
         name="two-interpreter-suite",
@@ -205,6 +221,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_ci_two_interpreter_gate.py",
         control=None,
         uncontrolled_because=None,
+        requires=("logs/ci_two_interpreter_gate_baseline.json",),
     ),
     Gate(
         name="aggregate-suite-isolation",
@@ -218,6 +235,7 @@ GATES: Tuple[Gate, ...] = (
         control_test="tests/test_aggregate_suite_gate.py",
         control=None,
         uncontrolled_because=None,
+        requires=("logs/aggregate_suite_baseline.json",),
     ),
     Gate(
         name="type-check",
@@ -235,6 +253,7 @@ GATES: Tuple[Gate, ...] = (
             "registration time; its baseline-ratchet shape is the same as "
             "anti-pattern-ratchet, whose control is executable"
         ),
+        requires=("logs/basedpyright_baseline.json",),
     ),
 )
 
@@ -523,8 +542,9 @@ def cmd_list(gates: Sequence[Gate], as_json: bool) -> int:
         print(json.dumps(
             [{"name": g.name, "argv": list(g.argv), "interpreter": g.interpreter,
               "env": list(g.env), "inside_hook": g.inside_hook, "blocking": g.blocking,
-              "slow": g.slow, "reads": g.reads, "control_test": g.control_test,
-              "control": g.control, "uncontrolled_because": g.uncontrolled_because}
+              "slow": g.slow, "reads": g.reads, "requires": list(g.requires),
+              "control_test": g.control_test, "control": g.control,
+              "uncontrolled_because": g.uncontrolled_because}
              for g in gates], indent=2))
         return 0
     print("registered gates (source of truth for what --check runs):\n")
@@ -534,6 +554,8 @@ def cmd_list(gates: Sequence[Gate], as_json: bool) -> int:
         print("  %-26s %-4s %-12s %-9s %s %s" % (
             g.name, where, kind, g.interpreter, g.argv[0], " ".join(g.argv[1:])))
         print("      reads:   %s" % g.reads)
+        if g.requires:
+            print("      needs:   %s (absent = BLIND, cannot judge)" % ", ".join(g.requires))
         if g.control:
             print("      control: executable (%s)" % g.control)
         elif g.control_test:
@@ -623,8 +645,17 @@ def read_hook() -> Optional[str]:
         return None
 
 
-def cmd_self_test(gates: Sequence[Gate]) -> int:
-    """Prove fail-ability. A check that passes on nothing has proved nothing."""
+def cmd_self_test(gates: Sequence[Gate], run_controls: bool = False,
+                  strict: bool = False, allow_blind: Sequence[str] = ()) -> int:
+    """Prove fail-ability. A check that passes on nothing has proved nothing.
+
+    ``strict=False`` (the default) reports a BLIND gate -- one whose required
+    artifact is absent -- as a counted note rather than a failure, because a
+    baseline that was never recorded on this machine is a normal state for the
+    CI-only gates and failing on it would make the self-test noise. It is still
+    PRINTED, so absence of evidence is never presented as a pass. ``--strict``
+    promotes it, which is the form for a gate that is supposed to be runnable.
+    """
     failures: List[str] = []
     notes: List[str] = []
 
@@ -681,7 +712,24 @@ def cmd_self_test(gates: Sequence[Gate]) -> int:
                 "%s declares control artifact %s, which is not in the tree"
                 % (gate.name, gate.control_test))
 
-    print("\n== 4. executable controls must FAIL as required ==")
+    blind: List[Tuple[Gate, str]] = []
+    print("\n== 4. required artifacts: a gate whose input is ABSENT cannot judge ==")
+    for gate in gates:
+        for rel in gate.requires:
+            if not (REPO / rel).exists():
+                blind.append((gate, rel))
+                break
+    if not blind:
+        print("   OK   every gate's required artifact is present")
+    for gate, rel in blind:
+        declared = gate.name in allow_blind
+        tag = "FAIL" if (strict and not declared) else ("note" if not declared else "ok  ")
+        print("   %s %-26s BLIND -- %s is absent, so it cannot produce a verdict%s"
+              % (tag, gate.name, rel, " [declared via --allow-blind]" if declared else ""))
+        if strict and not declared:
+            failures.append("%s is BLIND: %s is absent, so it cannot judge" % (gate.name, rel))
+
+    print("\n== 5. executable controls must FAIL as required ==")
     for gate in gates:
         if not gate.control:
             continue  # artifact-declared or uncontrolled; reported in section 5
@@ -708,7 +756,7 @@ def cmd_self_test(gates: Sequence[Gate]) -> int:
     executable = [g for g in gates if g.control]
     artifact_only = [g for g in gates if not g.control and g.control_test]
     none_declared = [g for g in gates if not g.control and not g.control_test]
-    print("\n== 5. fail-ability by evidence class ==")
+    print("\n== 6. fail-ability by evidence class ==")
     print("   executable control, demonstrated here : %d" % len(executable))
     print("   artifact-declared, existence verified : %d" % len(artifact_only))
     print("   nothing declared                      : %d" % len(none_declared))
@@ -717,12 +765,42 @@ def cmd_self_test(gates: Sequence[Gate]) -> int:
     for gate in none_declared:
         print("     NONE      %-24s %s" % (gate.name, gate.uncontrolled_because))
 
+    if run_controls:
+        print("\n== 7. control artifacts EXECUTED -- declared fail-ability, now demonstrated ==")
+        for gate in gates:
+            if not gate.control_test:
+                continue
+            interpreter_path = resolve_interpreter(gate.interpreter)
+            if interpreter_path is None:
+                print("   FAIL %-26s interpreter %r absent" % (gate.name, gate.interpreter))
+                failures.append("%s: cannot run its control, interpreter %r absent"
+                                % (gate.name, gate.interpreter))
+                continue
+            started = time.monotonic()
+            result = run_control(
+                [interpreter_path, "-m", "pytest", gate.control_test, "-q"],
+                env=("PYTHONPATH=src",),
+            )
+            seconds = time.monotonic() - started
+            ok = result.exit_code == 0
+            print("   %s %-26s %5.1fs %s"
+                  % ("OK  " if ok else "FAIL", gate.name, seconds, gate.control_test))
+            if not ok:
+                failures.append("%s: control artifact %s exited %s"
+                                % (gate.name, gate.control_test, result.exit_code))
+                for line in result.detail.splitlines()[-4:]:
+                    print("        %s" % line)
+
     for note in notes:
         print("\n[note] %s" % note)
-    print("\n%d gate(s), %d failure(s), %d with no declared control"
-          % (len(gates), len(failures), len(none_declared)))
-    print("   (an artifact-declared control is NOT a demonstrated one -- it is")
-    print("    listed with the test that must carry the control)")
+    print("\n%d gate(s), %d failure(s), %d blind, %d with no declared control"
+          % (len(gates), len(failures), len(blind), len(none_declared)))
+    if run_controls:
+        print("   (artifact-declared controls were EXECUTED above: their fail-ability")
+        print("    is demonstrated for THIS run, and expires with the tree it ran on)")
+    else:
+        print("   (an artifact-declared control is NOT a demonstrated one -- re-run")
+        print("    with --run-controls to execute it, or read the test named beside it)")
     if failures:
         for failure in failures:
             print("  FAIL %s" % failure)
@@ -747,6 +825,12 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
                         help="re-run instead of reusing evidence that still matches")
     parser.add_argument("--allow-unrunnable", action="append", default=[], metavar="GATE",
                         help="declare a gate unrunnable; repeatable, and it is printed")
+    parser.add_argument("--run-controls", action="store_true",
+                        help="with --self-test: EXECUTE each declared control artifact")
+    parser.add_argument("--strict", action="store_true",
+                        help="with --self-test: a BLIND gate is a failure")
+    parser.add_argument("--allow-blind", action="append", default=[], metavar="GATE",
+                        help="with --strict: declare a gate known to be blind; repeatable")
     parser.add_argument("--json", action="store_true", help="machine-readable --list")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
@@ -756,11 +840,15 @@ def main(argv: Optional[Sequence[str]] = None, gates: Sequence[Gate] = GATES) ->
     if args.json and not args.list:
         print("[preflight] --json applies to --list", file=sys.stderr)
         return 2
+    if (args.run_controls or args.strict or args.allow_blind) and not args.self_test:
+        print("[preflight] --run-controls/--strict/--allow-blind apply to --self-test",
+              file=sys.stderr)
+        return 2
 
     if args.list:
         return cmd_list(gates, args.json)
     if args.self_test:
-        return cmd_self_test(gates)
+        return cmd_self_test(gates, args.run_controls, args.strict, args.allow_blind)
     return cmd_check(gates, args.force, args.include_slow, args.allow_unrunnable)
 
 

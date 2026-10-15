@@ -1020,3 +1020,45 @@ unrelated but noticed while reading: `scripts/ci_two_interpreter_gate.py:83` doe
 `from CORE import python_env`, and `src/CORE/python_env.py` **does not exist anywhere in the tree**,
 so that gate's docstring claim ("resolution goes through `CORE/python_env.py` so the gate and
 production agree") describes a fallback, not the stated path.
+
+---
+
+## §18 -- Gate fail-ability demonstrated, not declared (engram #749 item 2)
+
+**P0 verify-each:** #744 is landed -- `9fc874aa`, the three artifacts tracked, all five of that commit's files clean. Nothing was rebuilt.
+
+**Queue verify-each, item by item:**
+
+| Item | Verdict |
+|---|---|
+| 1. Wave 2/3 trainer retirements | Wave 2 **verified complete** (all 7 dormant classes have **0 class definitions** in `src/`). Wave 3 is the **wired** stack and carries 109/41/29 referencing files for `RLTrainLoop`/`GRPOTrainer`/`SB3Agent` -- it was **ruled OPEN by the user in #740** and is left open here rather than executed on a brief line. |
+| 2. Self-testing gate framework | **Advanced** -- see below. |
+| 3. Sharded runner + baseline | **Already landed** in #732: `tools/run_suite_chunked.py` and `state/suite_baseline.jsonl` are both tracked. No action. |
+| 4. Throughput benchmark | **BLOCKED, recorded, not worked around.** `CORE.secrets_manager.get_secret("DEEPSEEK_API_KEY")` returns **None**, so the key is not resolvable by the project's own loader (not merely absent from the shell env). Per the brief: record blocked, never work around. |
+
+### Item 2 -- what "every gate fails on stale state" was still missing
+
+#744 built the framework and gave the ratchet one **executable** control, but left **7 gates declaring their fail-ability by naming a test file without running it**, and `--self-test` never asked whether a gate could judge **at all**. Two capabilities close that:
+
+1. **BLIND detection.** Every gate now declares `requires` -- the repo-relative artifacts it reads to reach a verdict (transcribed from each tool's own constant: `BASELINE`/`DEFAULT_BASELINE`/`VERDICT_OUT`/`SOURCE_DIR`, not guessed). `--self-test` reports a gate whose required artifact is **absent** as **BLIND** -- it cannot produce a verdict -- with the path named. Default is a counted note, because a baseline never recorded on a machine is a normal state for a CI-only gate; `--strict` promotes it to a failure, and `--allow-blind` declares one without ever deleting the fact from the output.
+
+   **Measured consequence:** exactly **2 of 10 gates are BLIND on this machine** --
+   `two-interpreter-suite` (`logs/ci_two_interpreter_gate_baseline.json`) and
+   `aggregate-suite-isolation` (`logs/aggregate_suite_baseline.json`). Both exit 2 rather than
+   reporting green, and nothing had surfaced that. `type-check` was **not** blind: its baseline is
+   `logs/basedpyright_baseline.json`, which exists -- the earlier probe had guessed
+   `logs/type_check_baseline.json`. Transcribing from the source is what caught that.
+
+2. **`--run-controls` EXECUTES each declared control artifact** (pytest, via the gate's own interpreter). All **8** run green, in 55s total: changeset-focus 0.9s, stale-index-guard 1.9s, staged-scanner 1.6s, canon-drift 1.9s, anti-pattern-ratchet 8.0s, mesh-ledger-freshness 31.9s, two-interpreter-suite 3.0s, aggregate-suite-isolation 4.6s. A control that fails is a hard failure of `--self-test`.
+
+### Corrects §17
+
+§17 recorded the fail-ability split as **1 executable / 7 artifact-declared / 2 with nothing declared**. That is now stale: **8 artifact-declared controls are executable on demand** (`--run-controls`), and the two gates with no control are still `pmb-outcome-observer` (side-effect recorder, exit code deliberately ignored) and `type-check`. The summary line also had to be corrected to stop asserting "NOT a demonstrated one" *after* the controls had been executed -- a frozen instruction of exactly the kind §16 records.
+
+### Verified
+
+`--self-test` **exit 0** (0 failures, 2 blind named) and `--self-test --run-controls` **exit 0** (8/8 controls green); `--self-test --strict` **exit 1** by design, naming both blind gates; `--check` **exit 0** (all 7 hook gates PASS). Both suites **101 passed** on `py315t` (3.15.0rc3 free-threaded) and on Python **3.14.7**, exit 0 each.
+
+### Still open, named
+
+The 2 blind gates need their baselines recorded (`--record-baseline`) before they can judge on this machine. The hook still does not CALL `tools/preflight_all.py` (§17), and the hook's three-interpreter split is unchanged.

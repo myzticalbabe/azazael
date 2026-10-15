@@ -16,6 +16,7 @@ Two layers again:
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -344,7 +345,6 @@ class TestCLI:
             assert gate.name in out
 
     def test_list_as_json_is_parseable(self, capsys):
-        import json
         assert pf.cmd_list(pf.GATES, as_json=True) == 0
         payload = json.loads(capsys.readouterr().out)
         assert {row["name"] for row in payload} == {g.name for g in pf.GATES}
@@ -356,3 +356,144 @@ class TestCLI:
     def test_list_and_check_are_mutually_exclusive(self):
         with pytest.raises(SystemExit):
             pf.main(["--list", "--check"])
+
+    def test_list_json_carries_the_required_artifacts(self, capsys):
+        assert pf.cmd_list(pf.GATES, as_json=True) == 0
+        payload = json.loads(capsys.readouterr().out)
+        assert all("requires" in row for row in payload)
+        assert any(row["requires"] for row in payload)
+
+    def test_self_test_only_flags_are_rejected_without_self_test(self):
+        assert pf.main(["--check", "--run-controls"]) == 2
+        assert pf.main(["--check", "--strict"]) == 2
+        assert pf.main(["--list", "--allow-blind", "x"]) == 2
+
+
+# ── BLIND: a gate whose required artifact is gone cannot judge ───────────
+
+
+def _blind_harness(tmp_path, monkeypatch, requires, control_test=None, name="needy"):
+    """A registry whose hook runs nothing, so parity passes with one gate."""
+    hook = tmp_path / ".githooks" / "pre-commit"
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    monkeypatch.setattr(pf, "REPO", tmp_path)
+    monkeypatch.setattr(pf, "HOOK", hook)
+    monkeypatch.setattr(pf, "EVIDENCE", tmp_path / "logs" / "evidence.json")
+    gate = pf.Gate(name=name, argv=("tools/preflight_all.py",), interpreter="python",
+                   env=(), inside_hook=False, blocking=True, slow=True, reads="synthetic",
+                   control_test=control_test, control=None,
+                   uncontrolled_because="synthetic", requires=requires)
+    return gate
+
+
+class TestBlind:
+
+    def test_an_absent_required_artifact_is_reported_blind(self, tmp_path, monkeypatch, capsys):
+        gate = _blind_harness(tmp_path, monkeypatch, ("logs/never_recorded.json",))
+        assert pf.cmd_self_test((gate,)) == 0
+        out = capsys.readouterr().out
+        assert "BLIND" in out
+        assert "logs/never_recorded.json" in out
+
+    def test_a_present_required_artifact_is_not_blind(self, tmp_path, monkeypatch, capsys):
+        (tmp_path / "logs").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "logs" / "there.json").write_text("{}", encoding="utf-8")
+        gate = _blind_harness(tmp_path, monkeypatch, ("logs/there.json",))
+        assert pf.cmd_self_test((gate,)) == 0
+        assert "BLIND" not in capsys.readouterr().out
+
+    def test_strict_promotes_blind_to_a_failure_naming_the_path(self, tmp_path, monkeypatch, capsys):
+        gate = _blind_harness(tmp_path, monkeypatch, ("logs/never_recorded.json",))
+        assert pf.cmd_self_test((gate,), strict=True) == 1
+        out = capsys.readouterr().out
+        assert "BLIND" in out and "logs/never_recorded.json" in out
+
+    def test_allow_blind_declares_it_but_never_hides_it(self, tmp_path, monkeypatch, capsys):
+        gate = _blind_harness(tmp_path, monkeypatch, ("logs/never_recorded.json",))
+        assert pf.cmd_self_test((gate,), strict=True, allow_blind=("needy",)) == 0
+        out = capsys.readouterr().out
+        assert "BLIND" in out, "declaring it must not delete the fact"
+        assert "--allow-blind" in out
+
+    def test_the_summary_reports_the_blind_count(self, capsys):
+        pf.cmd_self_test(pf.GATES)
+        assert "blind" in capsys.readouterr().out
+
+    @pytest.mark.parametrize("gate", pf.GATES, ids=lambda g: g.name)
+    def test_required_artifacts_are_repo_relative(self, gate):
+        for rel in gate.requires:
+            assert not Path(rel).is_absolute(), rel
+            assert ":" not in rel, rel
+
+    def test_the_gates_that_read_a_baseline_declare_one(self):
+        by_name = {g.name: g for g in pf.GATES}
+        for name in ("anti-pattern-ratchet", "mesh-ledger-freshness",
+                     "two-interpreter-suite", "aggregate-suite-isolation", "type-check"):
+            assert by_name[name].requires, name
+
+    def test_gates_that_read_only_git_declare_no_file(self):
+        """Their input is the index, which `repo_state_hash` covers instead."""
+        by_name = {g.name: g for g in pf.GATES}
+        for name in ("changeset-focus", "stale-index-guard", "staged-scanner"):
+            assert by_name[name].requires == (), name
+
+
+# ── --run-controls: execute the declared artifact ───────────────────────
+
+
+def _control_artifact(tmp_path, body):
+    d = tmp_path / "tests"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "test_ctl_fixture.py").write_text(body, encoding="utf-8")
+    return "tests/test_ctl_fixture.py"
+
+
+class TestRunControls:
+
+    def test_a_passing_control_artifact_is_demonstrated(self, tmp_path, monkeypatch, capsys):
+        control = _control_artifact(tmp_path, "def test_ok():\n    assert True\n")
+        gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
+        assert pf.cmd_self_test((gate,), run_controls=True) == 0
+        assert "OK" in capsys.readouterr().out
+
+    def test_a_failing_control_artifact_is_a_hard_failure(self, tmp_path, monkeypatch, capsys):
+        """The only way the framework can notice a control that stopped working."""
+        control = _control_artifact(tmp_path, "def test_bad():\n    assert False\n")
+        gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
+        assert pf.cmd_self_test((gate,), run_controls=True) == 1
+        out = capsys.readouterr().out
+        assert "FAIL" in out and control in out
+
+    def test_a_missing_interpreter_fails_the_control_run(self, tmp_path, monkeypatch, capsys):
+        control = _control_artifact(tmp_path, "def test_ok():\n    assert True\n")
+        gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
+        gate = gate._replace(interpreter="definitely-not-an-interpreter")
+        assert pf.cmd_self_test((gate,), run_controls=True) == 1
+        assert "interpreter" in capsys.readouterr().out
+
+    def test_controls_are_not_run_unless_asked(self, tmp_path, monkeypatch, capsys):
+        control = _control_artifact(tmp_path, "def test_bad():\n    assert False\n")
+        gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
+        assert pf.cmd_self_test((gate,)) == 0
+        assert "EXECUTED" not in capsys.readouterr().out
+
+    def test_the_summary_does_not_call_a_run_control_undeclared(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """After the run, the old 'NOT a demonstrated one' line is a stale claim."""
+        control = _control_artifact(tmp_path, "def test_ok():\n    assert True\n")
+        gate = _blind_harness(tmp_path, monkeypatch, (), control_test=control)
+        pf.cmd_self_test((gate,), run_controls=True)
+        out = capsys.readouterr().out
+        assert "NOT a demonstrated one" not in out
+        assert "demonstrated for THIS run" in out
+
+    def test_every_real_control_artifact_executes_green(self):
+        """The whole point of item 2: fail-ability DEMONSTRATED, not declared.
+
+        Slower than the rest of this file (it runs eight suites), and worth it:
+        this is the assertion that would go red the moment a gate's control
+        stopped exercising the gate.
+        """
+        assert pf.cmd_self_test(pf.GATES, run_controls=True) == 0
