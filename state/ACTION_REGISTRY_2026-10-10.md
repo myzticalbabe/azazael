@@ -690,11 +690,13 @@ Measured by workers who refused to implement:
 
 ### STILL OPEN / RESIDUALS — stated, not hidden
 
-- **EP183 conflict UNRESOLVED.** `SOTA_BUILDABLE_SUBSET.md` rules it **EXCLUDED-with-an-option**
-  ("counting 'a formal engine gates model output' as the shared mechanism would generalize the
-  criterion until it stops excluding anything"); `ABSENT_TRIAGE_315T.md` routes it **BUILD-IN-HOST**
-  to `cd2_verifier::SMTVerifier` / `compliance/state_machine.py::FormalVerifier`. Two docs, opposite
-  verdicts, on the same row. Deliberately NOT implemented this wave; a human should rule.
+- ~~**EP183 conflict UNRESOLVED.**~~ **RULED 2026-10-15 (#740) — see §16.** `SOTA_BUILDABLE_SUBSET.md`
+  rules it **EXCLUDED-with-an-option** ("counting 'a formal engine gates model output' as the shared
+  mechanism would generalize the criterion until it stops excluding anything"); `ABSENT_TRIAGE_315T.md`
+  routed it **BUILD-IN-HOST** to `cd2_verifier::SMTVerifier` / `compliance/state_machine.py::FormalVerifier`.
+  Two docs, opposite verdicts, on the same row. **The EXCLUSION was right and the ROUTING was wrong:**
+  SMT-over-compliance is a different mechanism, and the ABSENT grade underneath the route was itself
+  stale (the map now reads PARTIAL). Fixed at the cause, not argued in prose — §16.
 - The guard parses `.py` only — a stale root in a `.bat`/`.ps1` is uncovered. And
   `packages/azazael-core/src/azazael_core/worms/clusters/METACLUSTER.py:839` still carries the
   fallback, deliberately outside `SCAN_ROOTS`: **D-3 still owes the monorepo-import-vs-archive call**.
@@ -860,7 +862,7 @@ real ratchet measured this wave as an IMPROVEMENT). Two consequences worth keepi
 
 ### STILL OPEN (unchanged where not noted)
 
-EP183's conflict still needs a human ruling. D-3's monorepo-import-vs-archive call is still owed
+EP183's conflict is **RULED (§16)**. D-3's monorepo-import-vs-archive call is still owed
 (this wave removed the stale root and brought the tree under the guard WITHOUT deciding it). The 13
 reader-less `state/` artifacts are enumerated in §14 but not dispositioned. The guard still parses
 `.py` only, so a stale root in a `.bat`/`.ps1` is uncovered. `traverse(limit=1)`'s truncation stays
@@ -869,3 +871,74 @@ banked** — `src/CORE/PamsBusBridge.py`'s uncommitted deletion still sits in th
 re-baselining would bake it in. And the repo-wide `:L<NN>` convention elsewhere (~200 files still use
 it) was NOT swept: this wave made the four files that carried the drift internally consistent, and
 the divergence is recorded here rather than left to be discovered.
+
+## 16. WAVE 7 (2026-10-15) — EP183 RULED, and the triage regenerated from a map that already knew
+
+Owner: DeepSeek, engram #740 item 4. Tree `C:/Azazael/azazael`.
+
+### THE RULING
+
+EP183 (LogicLoc) is **PARTIAL**. The instruments that disagreed were disagreeing about different
+things, so `PARTIAL` satisfies all of them at once:
+
+| instrument | said | verdict |
+|---|---|---|
+| `technique_codebase_map.json` | `PARTIAL` (was `ABSENT`) | **CORRECT — the load-bearing fact** |
+| `SOTA_BUILDABLE_SUBSET.md` | EXCLUDED-with-an-option | **CORRECT** — the build criterion was too general |
+| `ABSENT_TRIAGE_315T.md` | BUILD-IN-HOST at `cd2_verifier::SMTVerifier` | **WRONG — stale route** |
+| `_l3_verify.py:654` registry | `"...(absent)"`, probing `SMTVerifier` | **WRONG — wrong symbol, wrong grade** |
+| `absent_disposition.json` `phase2_action` | "instrument repaired ... now probes `localize_violations`" | **FALSE — never in the tree** |
+
+The exclusion and the routing were never really in conflict once the mechanism is named:
+SMT-over-compliance is **not** LogicLoc's mechanism, so it is no host for the missing half (the
+exclusion is right); the **localisation** half genuinely ships (so "absent" is right to reject).
+
+### EVIDENCE (measured, both interpreters)
+
+- `src/CORE/cd2_verifier.py:223` `def localize_violation(...)`; `:288` `def localize_violations(...)`.
+- `:569` `SMTVerifier.judge_result` calls `localize_violations` on every REJECT, reached via
+  `worker_verifier_judge`.
+- `tests/test_logicloc_localization.py:65,110,123` exercise both directly, including the unlocated case.
+- The adapter, run on `py315t` AND Python 3.14: `host_symbol=localize_violations`,
+  `host_symbol_found=True`, and the mechanism returned `{'region': 'active', 'kind': 'required-field'}`
+  — present AND callable.
+- `grep -rn "localizer ships\|PRESENT: localizer"` -> **0 hits**: the phase-2 repair recorded at
+  `state/sota_batches/batch06/_apply_phase2.py:59` was never applied to this tree.
+
+### FIXED AT THE CAUSE (3 files)
+
+1. `src/CORE/technique_wiring/_l3_verify.py` — EP183 now reads
+   `"LogicLoc localisation (PARTIAL: localiser ships, Datalog absent)"` and probes
+   `CORE.cd2_verifier:localize_violations`, the mechanism rather than a neighbour; its claim text
+   states both halves. **EP106 keeps its `SMTVerifier` symbol** — that row genuinely is the
+   neuro-symbolic survey — so the two rows no longer share a probe by accident.
+2. `ABSENT_TRIAGE_315T.md` — REGENERATED via `python tools/absent_triage.py`. The committed copy was
+   stale: it read **19 ABSENT rows / BUILD-IN-HOST 3 / NEEDS-HOST 7** while the map it consumes had
+   already been re-graded, so the honest output is **14 / 0 / 5**. EP183, EP206 and EP252 leave the
+   build list because their rows are no longer ABSENT, and EP110/EP237 with them.
+3. This section.
+
+### METHOD NOTE — the route decayed because a GENERATED file was left alone
+
+§13 already warned that `ABSENT_TRIAGE_315T.md` is generated and that "its routing decays the moment
+a row lands; regenerate it rather than hand-editing the claim". It then sat unchanged while the map
+moved underneath it, and it spent that time instructing a future session to **build a technique that
+already ships** — the duplicate-work failure mode, in an artifact nobody had to touch. A generated
+artifact whose input changed is not a stale document; it is an active instruction that is now false.
+Regenerating it belongs to whatever changes its input, not to a later session that notices.
+
+### ALSO RULED HERE (item 5, wave 2/3 trainer retirements)
+
+Wave 2 is **COMPLETE and verified**, not pending: every dormant class the waves named is gone from
+`src/` (`HypnagogicSynthesizer`, `DistributedTrainer`, `MAPElites`, `IslandModel`, `SB3AgentPool`,
+`NerveTrainer`, `PrioritizedReplayBuffer` — no definitions anywhere), all 12 modules that used to
+reference them import cleanly (**0 failures**), and every surviving mention is PROSE (docstrings,
+comments, `description=` strings). The two `DistributedTrainer` lines in
+`src/ORCHESTRATION/ml_platforms/improvements/ray_integration.py` are both inside Usage docstring
+examples and import only `typing` — `ray_utils` does not exist in the tree. **Wave 3 is the WIRED
+stack** (`RLTrainLoop`, `SB3Agent`, `GRPOTrainer` + scheduling/evolution/dreaming), which
+`archive/retired-trainers-2026-10-11/README.md` puts "in later waves" and which is still referenced
+by 15+ live modules (`NeuralPipeline.py`, `local_memory.py`, `workflow.py`, `worm_registry.py`,
+`worm_governance.py`, `evolution_cycle.py`). That is a capability-removal decision on the live
+training path, not a tail item — it needs an explicit ruling and a replacement, so it is left OPEN
+here rather than executed on a one-line brief.
