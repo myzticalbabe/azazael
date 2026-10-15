@@ -180,6 +180,10 @@ class Func:
     node: ast.AST = field(repr=False, default=None)
     failures: list[str] = field(default_factory=list)
     prior: str = "P3"
+    # Repo-relative posix path of the defining file (set by build()).
+    # Empty for hand-built stubs in contract tests -- the PF16 predicate
+    # treats an empty path as "unknown file", never as a match.
+    path: str = ""
 
     @property
     def label(self) -> str:
@@ -244,8 +248,24 @@ def _collect(tree: ast.AST, module: str, source: str) -> list[Func]:
     return out
 
 
-def _reference_index() -> tuple[set[str], set[str], set[str]]:
-    """(used anywhere, used by tests, used OUTSIDE tests).
+def _reference_index() -> tuple[set[str], set[str], set[str],
+                               dict[str, set[str]], dict[str, set[str]]]:
+    """(used anywhere, used by tests, used OUTSIDE tests, refs by file, imports by file).
+
+    The last two maps exist because of the generic-token defect class
+    (Error #472 / engram #682, then #719: the bare token ``merge`` in an
+    unrelated tool made ``ContextConcatWorm.merge`` look referenced and
+    silently dropped its ledger row). A bare name is only evidence of a
+    caller in a file that IMPORTS the defining module (or symbol), or in
+    the defining file itself -- see _module_qualified_hit(). The flat
+    sets are kept for PF17 and for callers that only need membership.
+
+    residual (documented, not fixed): ``from package import name`` where
+    ``name`` collides with an unrelated same-named symbol still matches,
+    because static reading cannot resolve which binding a bare name took.
+    What this rule DOES kill is the proven class: a foreign token with no
+    import of any kind (e.g. a local ``def merge`` in tools/ satisfying a
+    method named ``merge`` in expansion/).
 
     The third set is the one PF16 must use, and the docstring has promised it
     since the probe was written without ever returning it -- so PF16 was reading
@@ -264,6 +284,8 @@ def _reference_index() -> tuple[set[str], set[str], set[str]]:
     used: set[str] = set()
     test_used: set[str] = set()
     prod_used: set[str] = set()
+    refs_by_file: dict[str, set[str]] = {}
+    imports_by_file: dict[str, set[str]] = {}
     for base in ("src", "tests", "scripts", "tools"):
         root = REPO / base
         if not root.exists():
@@ -278,12 +300,79 @@ def _reference_index() -> tuple[set[str], set[str], set[str]]:
             names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
             attrs = {n.attr for n in ast.walk(tree) if isinstance(n, ast.Attribute)}
             allnames = names | attrs
+            rel = path.relative_to(REPO).as_posix()
             used |= allnames
             if base == "tests":
                 test_used |= allnames
-            else:
-                prod_used |= allnames
-    return used, test_used, prod_used
+                # Tests are PF17's jurisdiction, never PF16 evidence: the
+                # MoEDispatcherWorm lesson in this docstring. A test-only
+                # caller must not satisfy "a production caller exists".
+                continue
+            refs_by_file[rel] = allnames
+            imports_by_file[rel] = _file_imports(tree)
+            prod_used |= allnames
+    return used, test_used, prod_used, refs_by_file, imports_by_file
+
+
+def _file_imports(tree: ast.AST) -> set[str]:
+    """Every module/symbol name a file binds via import, by stem and symbol.
+
+    Records full dotted paths plus first/last components (``import a.b`` ->
+    ``a.b``/``a``/``b``; ``from a.b import c`` -> ``a.b``/``a``/``b``/``c``)
+    so a defining module stem matches however the importer spelled it.
+    Star imports bind nothing nameable and are skipped.
+    """
+    out: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                parts = alias.name.split(".")
+                out.add(alias.name)
+                out.add(parts[0])
+                out.add(parts[-1])
+        elif isinstance(node, ast.ImportFrom):
+            if node.module:
+                parts = node.module.split(".")
+                out.add(node.module)
+                out.add(parts[0])
+                out.add(parts[-1])
+            for alias in node.names:
+                if alias.name != "*":
+                    out.add(alias.name)
+    return out
+
+
+def _module_qualified_hit(fn: "Func", refs_by_file: dict[str, set[str]],
+                          imports_by_file: dict[str, set[str]]) -> bool:
+    """True when some file genuinely references fn's bare name.
+
+    A bare token counts only in the defining file itself or in a file
+    that imports the defining module stem (or the bare symbol, covering
+    ``from package import name`` re-exports). Constructor calls count for
+    ``__init__``: ``ClassName(...)`` reaches ``ClassName.__init__`` without
+    ever naming ``__init__`` (the bare-token rule would otherwise flag
+    every constructor in the tree, since only ``super().__init__`` -- a
+    different class's init -- mentions the token). An empty fn.path
+    (contract stubs) never matches -- unknown file, not evidence.
+    """
+    head, _, name = fn.qualname.rpartition(".")
+    stem = fn.module
+    for fpath, names in refs_by_file.items():
+        imps = imports_by_file.get(fpath, set())
+        same_file = bool(fn.path) and fpath == fn.path
+        linked = same_file or stem in imps or name in imps
+        if name in names and linked:
+            return True
+        # Constructor reachability: ClassName(...) -> ClassName.__init__.
+        # The class token is distinctive (no generic-token problem), but the
+        # import link is still required -- an unrelated same-named class in
+        # another package must not satisfy it.
+        if name == "__init__" and head:
+            classname = head.rsplit(".", 1)[-1]
+            if classname in names and (
+                    same_file or stem in imps or classname in imps):
+                return True
+    return False
 
 
 def _plain_true(test: ast.expr) -> bool:
@@ -501,7 +590,7 @@ def _prioritise(fn: Func) -> str:
 
 def build(module_filter: str | None = None) -> tuple[list[Func], Counter]:
     files = _iter_files()
-    _used, test_used, prod_used = _reference_index()
+    _used, test_used, prod_used, _file_refs, _file_imports = _reference_index()
     funcs: list[Func] = []
     for path in files:
         module = path.stem
@@ -513,7 +602,9 @@ def build(module_filter: str | None = None) -> tuple[list[Func], Counter]:
         except SyntaxError:
             continue
         found = _collect(tree, module, source)
+        rel = path.relative_to(REPO).as_posix()
         for fn in found:
+            fn.path = rel
             # PF16 = production reachability; PF17 = test reachability. Passing
             # `prod_used` here is what makes `wired` mean "a production caller
             # exists" rather than "something somewhere mentions it".
@@ -866,6 +957,26 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
         entry["status"] = str(entry.get("status") or "pending")
         entry["reason"] = str(entry.get("reason") or "")
         entries[key] = entry
+    # Prior-carry (engram #719): a committed row with no PF16 finding on
+    # regenerate is CARRIED with its disposition intact, never silently
+    # dropped. Dropping on a newly-appeared bare token baked a false
+    # "wired" claim (generic-token class: an unrelated tools/ file's
+    # ``merge()`` call erased dendrite:ContextConcatWorm.merge). The carry
+    # is marked so the next --verdict reviewer rules it instead of
+    # inheriting it blindly; genuine death still exits only via an explicit
+    # `retired` disposition, never via disappearance.
+    missing = [k for k in prior if k not in entries]
+    if missing:
+        refs_by_file, imports_by_file = _module_evidence()
+        for key in missing:
+            old = prior.get(key)
+            entry = dict(old) if isinstance(old, dict) else {}
+            entry["status"] = str(entry.get("status") or "pending")
+            entry["carried"] = True
+            entry["carry_evidence"] = _carry_evidence(key, entry,
+                                                     refs_by_file,
+                                                     imports_by_file)
+            entries[key] = entry
     tally = Counter(e["status"] for e in entries.values())
     return {
         "generated_at": __import__("datetime").datetime.now().isoformat(),
@@ -878,6 +989,35 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
         "total": len(entries),
         "declared": dict(sorted(entries.items())),
     }
+
+
+def _module_evidence() -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    """Per-file reference/import maps for carry evidence (see wire_or_cut)."""
+    _, _, _, refs_by_file, imports_by_file = _reference_index()
+    return refs_by_file, imports_by_file
+
+
+def _carry_evidence(key: str, entry: dict,
+                    refs_by_file: dict[str, set[str]],
+                    imports_by_file: dict[str, set[str]]) -> str:
+    """Where the bare token of a carried row now appears, and whether linked.
+
+    ``key`` is ``module:qualname``. A stub Func (empty path) drives the
+    shared module-qualification predicate: same-file can never match, so
+    only import-linked files count as linked.
+    """
+    module, _, qualname = key.partition(":")
+    name = (qualname or key).rsplit(".", 1)[-1]
+    stub = Func(module=module or key, qualname=qualname or key, lineno=0,
+                end_lineno=0, complexity=0, params=0, is_async=False,
+                source="", seg="")
+    hit_files = sorted(f for f, names in refs_by_file.items() if name in names)
+    linked = _module_qualified_hit(stub, refs_by_file, imports_by_file)
+    return ("no PF16 finding on regenerate; prior status %r carried; bare "
+            "token %r in %d file(s)%s; module-linked: %s" % (
+                entry.get("status", "pending"), name, len(hit_files),
+                (" [" + ", ".join(hit_files[:5]) + "]") if hit_files else "",
+                "yes" if linked else "no"))
 
 
 def propose(table: dict) -> dict:
@@ -1424,9 +1564,14 @@ def main() -> int:
         # static caller -- is enforced by tests/test_mesh_wire_or_cut.py, which
         # re-derives the evidence instead of trusting the file.
         changed: list[str] = []
+        carried = sorted(k for k, e in current.items()
+                         if isinstance(e, dict) and e.get("carried"))
         if not (added or removed or changed):
             print(f"[Mesh] ledger fresh: {len(current)} declaration(s), "
                   f"statuses unchanged")
+            for k in carried[:10]:
+                print(f"   = {k}  (carried: "
+                      f"{current[k].get('carry_evidence', '')[:160]})")
             return 0
         print(f"[Mesh] ledger STALE -- {len(added)} added, {len(removed)} "
               f"removed")
