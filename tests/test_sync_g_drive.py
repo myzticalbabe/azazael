@@ -31,7 +31,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 def tmp_dir():
     """Create a temporary directory for test isolation."""
     d = tempfile.mkdtemp(prefix="test_g_sync_")
-    yield Path(d)
+    # Hermeticity: main() writes a ".last_sync" timestamp under
+    # G_SOURCE_OF_TRUTH and clears the checkpoint afterwards. Redirect it here,
+    # or a unit test mutates the real G: mirror and fails with Errno 22 when
+    # that file cannot be overwritten -- a failure about the host, not the code.
+    with patch("sync_g_drive.G_SOURCE_OF_TRUTH", Path(d)):
+        yield Path(d)
     shutil.rmtree(d, ignore_errors=True)
 
 
