@@ -1085,6 +1085,222 @@ class OpenAIProvider:
                 "provider": self.provider_name,
             }
 
+    @staticmethod
+    def _strip_thinking(text: str) -> str:
+        """Remove <think>...</think> preamble and markdown fences.
+
+        Reasoning models stream chain-of-thought first (sometimes into
+        `reasoning_content`, sometimes inline); either way the payload
+        parser must never see it. Returns the remainder stripped.
+        """
+        out = text or ""
+        while True:
+            start = out.find("<think>")
+            end = out.find("</think>", start + 7) if start >= 0 else -1
+            if start < 0 or end < 0:
+                break
+            out = out[:start] + out[end + 8:]
+        out = out.strip()
+        if out.startswith("```"):
+            out = out[3:]
+            nl = out.find("\n")
+            out = out[nl + 1:] if nl >= 0 else ""
+            if out.rstrip().endswith("```"):
+                out = out.rstrip()[:-3]
+        return out.strip()
+
+    @staticmethod
+    def _parse_structured(text: str) -> Tuple[Any, str]:
+        """Parse a schema-bound payload. Returns (object|None, path).
+
+        Paths: `direct` (clean json.loads), `extracted` (outermost {...}
+        after thinking/fence stripping), `failed`. Never raises.
+        """
+        cleaned = OpenAIProvider._strip_thinking(text)
+        try:
+            return json.loads(cleaned), "direct"
+        except (ValueError, TypeError) as exc:
+            note_failure("providers:structured-parse-direct", exc)
+        try:
+            start = cleaned.find("{")
+            if start >= 0:
+                obj, _ = json.JSONDecoder().raw_decode(cleaned[start:])
+                return obj, "extracted"
+        except (ValueError, TypeError) as exc:
+            note_failure("providers:structured-parse-extract", exc)
+        return None, "failed"
+
+    def structured_chat(
+        self,
+        prompt: str,
+        schema: Dict[str, Any],
+        system_prompt: Optional[str] = None,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        force_tool_fallback: bool = True,
+    ) -> Dict[str, Any]:
+        """Schema-bound completion with graceful provider degradation.
+
+        Ladder, first success wins (each step recorded in `path`):
+          1. `response_format` json_schema + thinking disabled + temp 0.0.
+          2. Same call without `response_format` (providers that reject it,
+             e.g. GLM-through-litellm which silently drops it).
+          3. Forced single tool call carrying the schema (schema-valid args
+             back even where response_format is unsupported).
+        A thinking preamble is stripped before parsing because reasoning
+        traces otherwise eat the token budget and truncate the payload.
+        On total failure returns an `error` dict -- prose is never
+        returned as success.
+        """
+        if not self.has_valid_key():
+            return {
+                "error": (
+                    f"No valid {self.provider_name.upper()} API key. "
+                    f"Set {self.provider_name.upper()}_API_KEY env var."
+                ),
+                "parsed": False,
+                "path": "no-key",
+                "provider": self.provider_name,
+            }
+        breaker = _global_breaker
+        if not breaker.allow_request(self.provider_name):
+            return {
+                "error": (
+                    f"Circuit breaker OPEN for {self.provider_name}. "
+                    f"Provider is temporarily disabled due to repeated failures."
+                ),
+                "elapsed_ms": 0,
+                "parsed": False,
+                "path": "circuit-open",
+                "provider": self.provider_name,
+                "circuit_open": True,
+            }
+        self._check_rate_limit()
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+        cap = max_tokens or self._default_max_tokens()
+        start = time.time()
+
+        def _once(extra: Dict[str, Any]) -> Dict[str, Any]:
+            kwargs: Dict[str, Any] = dict(
+                model=model or self.config.model,
+                messages=messages,
+                max_tokens=cap,
+                temperature=0.0,
+            )
+            kwargs.update(extra)
+            if self.provider_name != "cohere":
+                kwargs["top_p"] = 1.0
+                kwargs["n"] = 1
+            client = self._get_client()
+            response = client.chat.completions.create(**kwargs)
+            choice = response.choices[0]
+            message = choice.message
+            tool_calls = getattr(message, "tool_calls", None) or []
+            if tool_calls:
+                args = getattr(tool_calls[0].function, "arguments", "") or ""
+                return {"raw": args, "via": "tool",
+                        "model": response.model,
+                        "usage": response.usage, "choice": choice}
+            return {"raw": message.content or "", "via": "content",
+                    "model": response.model,
+                    "usage": response.usage, "choice": choice}
+
+        def _usage(usage: Any) -> Dict[str, int]:
+            try:
+                return {
+                    "prompt_tokens": usage.prompt_tokens if usage else 0,
+                    "completion_tokens": usage.completion_tokens if usage else 0,
+                    "total_tokens": usage.total_tokens if usage else 0,
+                }
+            except AttributeError as exc:
+                note_failure("providers:structured-usage-shape", exc)
+                return {"prompt_tokens": 0, "completion_tokens": 0,
+                        "total_tokens": 0}
+
+        def _succeed(raw: str, path: str, out: Dict[str, Any]) -> Dict[str, Any]:
+            obj, parse_path = self._parse_structured(raw)
+            elapsed_ms = int((time.time() - start) * 1000)
+            full_path = path if parse_path == "direct" else path + "+" + parse_path
+            if obj is None:
+                breaker.record_failure(
+                    self.provider_name, "structured parse failed: " + full_path)
+                self._last_error = "structured parse failed: " + full_path
+                return {
+                    "error": "response was not valid JSON",
+                    "raw": (raw or "")[:500],
+                    "parsed": False,
+                    "path": full_path,
+                    "elapsed_ms": elapsed_ms,
+                    "provider": self.provider_name,
+                }
+            with self._lock:
+                self._total_requests += 1
+                usage = _usage(out.get("usage"))
+                self._total_tokens += usage["total_tokens"]
+                self._last_error = None
+            breaker.record_success(self.provider_name)
+            choice = out.get("choice")
+            return {
+                "content": obj,
+                "parsed": True,
+                "path": full_path,
+                "model": out.get("model"),
+                "usage": usage,
+                "finish_reason": getattr(choice, "finish_reason", "unknown")
+                or "unknown",
+                "elapsed_ms": elapsed_ms,
+                "provider": self.provider_name,
+            }
+
+        schema_block = {
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {"name": "azazael_structured",
+                                "strict": True, "schema": schema},
+            },
+            "extra_body": {"chat_template_kwargs": {"enable_thinking": False}},
+        }
+        try:
+            out = _once(schema_block)
+            return _succeed(out["raw"], "schema", out)
+        except Exception as exc:  # noqa: BLE001 -- degrade through the ladder
+            note_failure("providers:structured-schema-step", exc)
+        try:
+            out = _once({})
+            return _succeed(out["raw"], "plain", out)
+        except Exception as exc:  # noqa: BLE001 -- degrade through the ladder
+            note_failure("providers:structured-plain-step", exc)
+        if force_tool_fallback:
+            try:
+                out = _once({
+                    "tools": [{"type": "function",
+                               "function": {"name": "azazael_structured",
+                                            "description": "Return the answer "
+                                            "as JSON matching the schema.",
+                                            "parameters": schema}}],
+                    "tool_choice": {"type": "function",
+                                    "function": {"name": "azazael_structured"}},
+                })
+                if out.get("via") == "tool":
+                    return _succeed(out["raw"], "tool", out)
+                note_failure("providers:structured-tool-no-call", None)
+                return _succeed(out["raw"], "tool-no-call", out)
+            except Exception as exc:  # noqa: BLE001 -- final rung, then honest error
+                note_failure("providers:structured-tool-step", exc)
+        elapsed_ms = int((time.time() - start) * 1000)
+        self._last_error = "all structured rungs failed"
+        breaker.record_failure(self.provider_name, "all structured rungs failed")
+        return {
+            "error": "all structured rungs failed (schema, plain, tool)",
+            "parsed": False,
+            "path": "failed",
+            "elapsed_ms": elapsed_ms,
+            "provider": self.provider_name,
+        }
+
     def chat_stream(
         self,
         prompt: str,
