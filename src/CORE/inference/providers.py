@@ -162,20 +162,19 @@ _LOCAL_REASONING_OVERHEAD = 512
 PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     "groq": {
         "name": "Groq Cloud",
-        "description": "Fastest free inference. LPU-powered. No credit card.",
+        "description": "Fastest free inference. LPU-powered. No credit card. IDs verified against live /v1/models (11) Oct 14 2026. NOTE: raw urllib probes get Cloudflare 1010 — use browser UA or SDK.",
         "base_url": "https://api.groq.com/openai/v1",
-        "default_model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "default_model": "openai/gpt-oss-120b",
         "rate_limit_rpm": 30,
         "key_prefix": "gsk_",
         "env_var": "GROQ_API_KEY",
         "signup_url": "https://console.groq.com",
         "free_models": {
-            "meta-llama/llama-4-scout-17b-16e-instruct": "Llama 4 Scout 17B (Meta, MoE, newest, BEST on Groq)",
-            "llama-3.3-70b-versatile": "Llama 3.3 70B Versatile (fast, general-purpose)",
-            "llama-3.1-8b-instant": "Llama 3.1 8B Instant (fastest, lightweight)",
-            "qwen/qwen3-32b": "Qwen3 32B (Alibaba, multilingual)",
-            "groq/compound": "Groq Compound (multi-model ensemble)",
-            "groq/compound-mini": "Groq Compound Mini (fast ensemble)",
+            "openai/gpt-oss-120b": "GPT OSS 120B (OpenAI open weights, flagship)",
+            "openai/gpt-oss-20b": "GPT OSS 20B (OpenAI open weights, fast)",
+            "qwen/qwen3.8-27b": "Qwen 3.8 27B (Alibaba, multilingual)",
+            "openai/gpt-oss-safeguard-20b": "GPT OSS Safeguard 20B (safety)",
+            "allam-2-7b": "ALLAM 2 7B (Arabic+English, lightweight)",
         },
     },
     "openrouter": {
@@ -227,17 +226,17 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     },
     "gemini": {
         "name": "Google Gemini",
-        "description": "Most generous free tier. Gemini Flash + Pro via AI Studio.",
+        "description": "Most generous free tier. Gemini Flash via AI Studio. Default per Google migration notice Oct 2026 (2.x retired).",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
-        "default_model": "gemini-2.0-flash",
+        "default_model": "gemini-3.8-flash",
         "rate_limit_rpm": 15,
         "key_prefix": "",
         "env_var": "GEMINI_API_KEY",
         "signup_url": "https://aistudio.google.com/apikey",
         "free_models": {
-            "gemini-2.0-flash": "Gemini 2.0 Flash (fast, 1M context)",
-            "gemini-2.0-flash-lite": "Gemini 2.0 Flash Lite (fastest, cheapest)",
-            "gemini-2.5-pro": "Gemini 2.5 Pro (best reasoning, 1M context)",
+            "gemini-3.8-flash": "Gemini 3.8 Flash (current, vendor-directed default)",
+            "gemini-3.5-flash-lite": "Gemini 3.5 Flash Lite (fastest)",
+            "gemini-2.5-flash-lite": "Gemini 2.5 Flash Lite (legacy, existing users)",
         },
     },
     "cloudflare": {
@@ -272,7 +271,7 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     },
     "cerebras": {
         "name": "Cerebras Cloud",
-        "description": "Wafer-scale inference. 1M tokens/day free. No credit card. ~3000 tok/s.",
+        "description": "Wafer-scale inference. NOTE 2026-10-14: permanent free tier is over — now $5/30-day payment-gated trial. Stored key returns 402.",
         "base_url": "https://api.cerebras.ai/v1",
         "default_model": "gpt-oss-120b",
         "rate_limit_rpm": 30,
@@ -286,39 +285,30 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     },
     "nvidia_nim": {
         "name": "NVIDIA NIM",
-        "description": "Rate-limited trial. Permanent free access. 40 RPM. No credit card. 80+ free chat models.",
+        "description": "Rate-limited trial. Permanent free access. 40 RPM. No credit card. IDs verified against live /v1/models catalog (80 models) Oct 14 2026.",
         "base_url": "https://integrate.api.nvidia.com/v1",
-        "default_model": "mistralai/mistral-large-3-675b-instruct-2512",
+        "default_model": "openai/gpt-oss-20b",
         "rate_limit_rpm": 40,
         "key_prefix": "nvapi-",
         "env_var": "NVIDIA_NIM_API_KEY",
         "signup_url": "https://build.nvidia.com",
         "free_models": {
-            "mistralai/mistral-large-3-675b-instruct-2512": "Mistral Large 3 675B (BEST FREE, top-tier reasoning)",
-            "nvidia/nemotron-3-ultra-550b-a55b": "Nemotron Ultra 550B (NVIDIA largest)",
+            "deepseek-ai/deepseek-v4.1-flash": "DeepSeek V4.1 Flash (fast inference)",
             "nvidia/llama-3.1-nemotron-ultra-253b-v1": "Nemotron Ultra 253B (NVIDIA flagship)",
-            "mistralai/mistral-medium-3.5-128b": "Mistral Medium 3.5 128B (strong general)",
-            "mistralai/mistral-large": "Mistral Large (latest release)",
             "nvidia/nemotron-4-340b-instruct": "Nemotron 4 340B (NVIDIA instruct)",
-            "nvidia/llama-3.3-nemotron-super-49b-v1": "Nemotron Super 49B (NVIDIA verified)",
-            "nvidia/llama-3.3-nemotron-super-49b-v1.5": "Nemotron Super 49B v1.5 (NVIDIA latest)",
+            "nvidia/nemotron-3-ultra-550b-a55b": "Nemotron Ultra 550B (NVIDIA largest)",
             "nvidia/nemotron-3-super-120b-a12b": "Nemotron Super 120B (NVIDIA MoE)",
-            "meta/llama-3.1-70b-instruct": "Llama 3.1 70B Instruct (Meta, reliable)",
-            "meta/llama-3.3-70b-instruct": "Llama 3.3 70B Instruct (Meta)",
-            "meta/llama-3.1-8b-instruct": "Llama 3.1 8B Instruct (Meta, lightweight)",
-            "meta/llama-4-maverick-17b-128e-instruct": "Llama 4 Maverick 17B (Meta newest, MoE)",
-            "deepseek-ai/deepseek-r1": "DeepSeek R1 (reasoning model)",
-            "deepseek-ai/deepseek-v4-flash": "DeepSeek V4 Flash (fast inference)",
-            "deepseek-ai/deepseek-v4-pro": "DeepSeek V4 Pro (best reasoning)",
-            "qwen/qwen3.5-397b-a17b": "Qwen 3.5 397B (Alibaba, massive MoE)",
-            "qwen/qwen3-coder-480b-a35b-instruct": "Qwen3 Coder 480B (code specialist)",
-            "qwen/qwen3-next-80b-a3b-instruct": "Qwen3 Next 80B (Alibaba MoE)",
-            "qwen/qwen3.5-122b-a10b": "Qwen 3.5 122B (Alibaba MoE)",
-            "google/gemma-3-12b-it": "Gemma 3 12B (Google, efficient)",
-            "google/gemma-4-31b-it": "Gemma 4 31B (Google, latest)",
-            "ibm/granite-34b-code-instruct": "Granite 34B Code (IBM, code specialized)",
-            "microsoft/phi-4-mini-instruct": "Phi-4 Mini (Microsoft, efficient)",
+            "nvidia/nemotron-3.5-lightning-30b-a3b": "Nemotron Lightning 30B (fast MoE)",
+            "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": "Nemotron Nano Omni Reasoning 30B",
+            "nvidia/nemotron-3.5-content-safety": "Nemotron Content Safety",
+            "moonshotai/kimi-k3": "Kimi K3 (Moonshot, 1M context)",
+            "z-ai/glm-5.3-flash": "GLM 5.3 Flash (Z-AI, fast)",
+            "openai/gpt-oss-20b": "GPT OSS 20B (OpenAI open weights)",
+            "mistralai/mistral-large": "Mistral Large (latest release)",
             "mistralai/codestral-22b-instruct-v0.1": "Codestral 22B (Mistral, code)",
+            "ibm/granite-34b-code-instruct": "Granite 34B Code (IBM, code specialized)",
+            "google/gemma-4-31b-it": "Gemma 4 31B (Google, latest)",
+            "meta/codellama-70b": "CodeLlama 70B (Meta, code)",
         },
     },
     "ollama": {
@@ -361,7 +351,7 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     },
     "github": {
         "name": "GitHub Models",
-        "description": "Free for all GitHub users. Frontier models including GPT-4o.",
+        "description": "[RETIRED by GitHub 2026-07-30 — playground, catalog and inference API shut down. Entry kept for history.]",
         "base_url": "https://models.github.ai/inference",
         "default_model": "gpt-4o-mini",
         "rate_limit_rpm": 10,
@@ -441,6 +431,20 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
             "glm-4.6": "GLM-4.6 (advanced reasoning)",
         },
     },
+    "pollinations": {
+        "name": "Pollinations.ai",
+        "description": "Keyless free inference. OpenAI-compatible. Verified live 2026-10-14 (incl. with dummy bearer). ~1 req/15s anonymous, higher with free key.",
+        "base_url": "https://text.pollinations.ai/openai",
+        "default_model": "openai",
+        "rate_limit_rpm": 4,
+        "key_prefix": "",
+        "env_var": "POLLINATIONS_API_KEY",
+        "signup_url": "https://pollinations.ai",
+        "requires_auth": False,
+        "free_models": {
+            "openai": "Pollinations default (auto-routed, keyless)",
+        },
+    },
     "ollama_native": {
         "name": "Ollama Native (Local)",
         "description": "Local inference via native API. Zero cost. No API key. No rate limits. NOT OpenAI-compatible.",
@@ -465,18 +469,18 @@ PROVIDER_REGISTRY: Dict[str, Dict[str, Any]] = {
     },
     "gemini_native": {
         "name": "Gemini Native (Google)",
-        "description": "Google Gemini native API via generateContent. NOT OpenAI-compatible. Free tier, generous. Uses own RPC protocol.",
+        "description": "Google Gemini native API via generateContent. NOT OpenAI-compatible. Free tier, generous. Uses own RPC protocol. IDs from live /v1beta/models list (50 models) Oct 14 2026.",
         "base_url": "https://generativelanguage.googleapis.com",
-        "default_model": "gemini-2.0-flash",
+        "default_model": "gemini-3.8-flash",
         "rate_limit_rpm": 15,
         "key_prefix": "",
         "env_var": "GEMINI_API_KEY",
         "signup_url": "https://aistudio.google.com/apikey",
         "requires_auth": True,
         "free_models": {
-            "gemini-2.0-flash": "Gemini 2.0 Flash (fast, 1M context)",
-            "gemini-2.5-pro": "Gemini 2.5 Pro (best reasoning, 1M context)",
-            "gemini-2.0-flash-lite": "Gemini 2.0 Flash Lite (fastest)",
+            "gemini-3.8-flash": "Gemini 3.8 Flash (current)",
+            "gemini-2.5-flash": "Gemini 2.5 Flash (stable)",
+            "gemini-2.5-flash-lite": "Gemini 2.5 Flash Lite (fastest)",
         },
     },
     "huggingface_native": {
@@ -808,6 +812,12 @@ class OpenAIProvider:
         # Substitute Cloudflare account_id placeholder
         if "{account_id}" in base_url:
             account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+            if not account_id:
+                try:
+                    _cf = json.loads((Path.home() / ".azazael" / "cloudflare_config.json").read_text(encoding="utf-8"))
+                    account_id = _cf.get("account_id", "") or ""
+                except (OSError, ValueError):
+                    account_id = ""
             if not account_id:
                 # Don't produce a malformed URL — will be caught by has_valid_key() check
                 base_url = base_url.replace("{account_id}", "MISSING_ACCOUNT_ID")
@@ -1287,9 +1297,17 @@ class NativeAPIProvider(ABC):
     
     def _load_config(self):
         info = PROVIDER_REGISTRY.get(self.provider_name, {})
+        api_key = os.environ.get(info.get('env_var', ''), '')
+        if not api_key:
+            api_key = _read_config_key(self.provider_name)
+        if not api_key:
+            base = {'gemini_native': 'gemini', 'huggingface_native': 'huggingface',
+                    'mistral_fim_native': 'mistral', 'cohere_native': 'cohere'}.get(self.provider_name)
+            if base:
+                api_key = _read_config_key(base)
         return ProviderConfig(
             provider=self.provider_name,
-            api_key=os.environ.get(info.get('env_var', ''), ''),
+            api_key=api_key,
             base_url=info.get('base_url', ''),
             model=os.environ.get(
                 f'{self.provider_name.upper()}_MODEL',
@@ -3032,12 +3050,16 @@ def _read_config_key(provider_name: str) -> str:
 def list_providers() -> List[Dict[str, Any]]:
     """List all available providers with their status."""
     result = []
+    _native_base = {'gemini_native': 'gemini', 'huggingface_native': 'huggingface',
+                    'mistral_fim_native': 'mistral', 'cohere_native': 'cohere'}
     for key, info in PROVIDER_REGISTRY.items():
         env_var = info["env_var"]
         has_key = bool(os.environ.get(env_var, ""))
         # Also check config files
         if not has_key:
             has_key = bool(_read_config_key(key))
+        if not has_key and key in _native_base:
+            has_key = bool(_read_config_key(_native_base[key]))
         result.append({
             "id": key,
             "name": info["name"],
