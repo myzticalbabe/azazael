@@ -142,7 +142,7 @@ class CurativePool:
             blocked = True
             block_reasons.append("frustration_detected")
 
-        if not scope_result.get("valid", True):
+        if not scope_result.get("valid", False):
             blocked = True
             block_reasons.append("scope_violation")
 
@@ -516,7 +516,7 @@ class CurativePool:
             with self._lock:
                 self._total_actions += 1
 
-                if not scope_result.get("valid", True):
+                if not scope_result.get("valid", False):
                     self._scope_violations += 1
 
                 if not necessity_result.get("necessary", True):
