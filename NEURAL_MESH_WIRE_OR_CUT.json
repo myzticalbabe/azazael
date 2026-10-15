@@ -4,9 +4,9 @@
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
   "wired": 194,
-  "retired": 53,
+  "retired": 57,
   "dispatched": 60,
-  "pending": 61
+  "pending": 57
  },
  "total": 368,
  "declared": {
@@ -5837,9 +5837,9 @@
    "line": 191,
    "module": "xenomorph",
    "qualname": "DroneWorm.carry",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
    "seg": "def carry(self, dna_id: str, dst_env: str) -> dict[str, Any]:\n        with self._lock:\n            self._carried += 1\n            return {\"success\": True, \"dna\": dna_id, \"src\": _local_env(),\n                    \"dst\": dst_env, \"carried\": self._carried}",
-   "status": "pending",
+   "status": "retired",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
@@ -5906,9 +5906,9 @@
    "line": 115,
    "module": "xenomorph",
    "qualname": "OvomorphWorm.hatch",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
    "seg": "def hatch(self, egg_id: str) -> dict[str, Any]:\n        with self._lock:\n            egg = self._eggs.get(egg_id)\n            if not egg:\n                return {\"success\": False, \"reason\": \"no_egg\"}\n            egg[\"hatched\"] = True\n            self._hatched += 1\n            return {\"success\": True, \"egg\": egg_id, \"hatched_total\": self._hatched}",
-   "status": "pending",
+   "status": "retired",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
@@ -5918,9 +5918,9 @@
    "line": 107,
    "module": "xenomorph",
    "qualname": "OvomorphWorm.lay",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
    "seg": "def lay(self, egg_id: str, payload: dict, env_hint: str = \"any\") -> dict[str, Any]:\n        with self._lock:\n            self._eggs[egg_id] = {\"payload_keys\": list(payload)[:8],\n                                  \"env_hint\": env_hint,\n                                  \"at\": datetime.now().isoformat(),\n                                  \"hatched\": False}\n            return {\"success\": True, \"eggs\": len(self._eggs)}",
-   "status": "pending",
+   "status": "retired",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   },
@@ -5949,9 +5949,9 @@
    "line": 425,
    "module": "xenomorph",
    "qualname": "ResinWorm.secrete",
-   "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
+   "reason": "dead candidate per PF16 triage; no production, test, override, data, or dynamic reference anywhere in the tree; retiring per Kilo #750 work item 2 (dead-candidate pool)",
    "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        import os\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
-   "status": "pending",
+   "status": "retired",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
   }
