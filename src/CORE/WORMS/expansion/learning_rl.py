@@ -411,7 +411,8 @@ class RLTrainLoop:
                           records: Optional[List[Dict]] = None,
                           persist: bool = True,
                           rng: Optional[random.Random] = None,
-                          use_replay: bool = False) -> Dict[str, Any]:
+                          use_replay: bool = False,
+                          use_cutting_edge: bool = False) -> Dict[str, Any]:
         """Train from real execution data in LocalMemoryStore.
 
         Uses DataPipelineWorm to extract records, then treats each
@@ -448,6 +449,13 @@ class RLTrainLoop:
         draws use it instead of the global random module, making the eval
         an isolated pure function of (genome, pool, seed) — required for
         parallel fitness evaluation under free-threading.
+
+        If use_cutting_edge is True, ONE extra training step is routed through
+        the cutting-edge model (SparseMoE + SelectiveSSM + Attention + FFN, from
+        CORE.WORMS.expansion.cutting_edge_model) and reported under the
+        "cutting_edge" key. Off by default: with use_cutting_edge=False the
+        result dict is the one this method returned before the flag existed and
+        the model module is never imported.
 
         Args:
             source: Filter memories by source component
@@ -650,6 +658,68 @@ class RLTrainLoop:
                 "test_records": split_stats.get("test_records", 0),
                 "val_records": split_stats.get("val_records", 0),
                 "total_sessions": split_stats.get("total_sessions", 0),
+            }
+
+        # -- Cutting-edge step (opt-in, off by default) --------------------
+        # The CuttingEdgeModel backend had zero production callers; when the
+        # caller asks for it, route ONE real training step through the model and
+        # report what actually happened rather than a claim. The import is
+        # function-level for the same reason the contract test documents:
+        # importing a worm module at module scope registers a worm at
+        # collection time, as a side effect of the import.
+        if use_cutting_edge:
+            from CORE.freethreading import WorkStealingPool
+            from CORE.WORMS.expansion.cutting_edge_model import (
+                CuttingEdgeConfig,
+                CuttingEdgeModel,
+            )
+
+            # Real rows derived from the records in hand -- severity code, the
+            # mean of the record's numeric data fields, field counts -- every
+            # value bounded to 0..1 so the reward signals below are measurements
+            # of this run rather than constants dressed up as one.
+            _sev_code = {"info": 1.0, "warning": 0.5, "error": 0.25,
+                         "critical": 0.0}
+            _rows: List[List[float]] = []
+            for _rec in records:
+                _data = _rec.get("data") or {}
+                _num = [float(v) for v in _data.values()
+                        if isinstance(v, (int, float))
+                        and not isinstance(v, bool)]
+                _mean = sum(_num) / len(_num) if _num else 0.0
+                _base = [
+                    _sev_code.get(str(_rec.get("severity", "info")), 0.5),
+                    min(1.0, abs(_mean)),
+                    min(1.0, float(len(_num))),
+                    min(1.0, float(len(_data))),
+                    1.0 if _rec.get("source") else 0.0,
+                ]
+                _rows.append((_base * 2)[:8])
+
+            _model = CuttingEdgeModel(CuttingEdgeConfig())
+            with WorkStealingPool(num_workers=2) as _pool:
+                _step = _model.train_parallel(_pool, tokens=_rows, timeout=60.0)
+
+            _flat = [v for _row in _rows for v in _row]
+            _signals = [
+                (sum(1 for v in _flat if v) / len(_flat)) if _flat else 0.0,
+                min(1.0, len(_rows) / 20.0),
+                (sum(1.0 for _r in records
+                     if _r.get("severity") in ("info", "warning"))
+                 / len(records)) if records else 0.0,
+            ]
+            result["cutting_edge"] = {
+                "trained": bool(
+                    _step.get("experts_updated", 0) > 0
+                    and _step.get("loss_after") is not None
+                    and _step.get("loss_before") is not None
+                    and _step["loss_after"] < _step["loss_before"]
+                ),
+                "experts_updated": int(_step.get("experts_updated", 0)),
+                "loss_before": _step.get("loss_before"),
+                "loss_after": _step.get("loss_after"),
+                "reward": _model.reward(_signals, allow_network=False),
+                "active_components": list(_model.active_components()),
             }
 
         # Persist learned policy to LocalMemoryStore + ModelVersioner.
