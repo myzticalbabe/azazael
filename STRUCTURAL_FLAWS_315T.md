@@ -204,6 +204,17 @@ worse, passes on a stale ledger). This is the same class as `PMB LESSONS #93`
 
 Force-added `.githooks/pre-commit` so the gate is reviewable and reproducible. **Worth an explicit decision:** if `.githooks` is ignored deliberately, the alternative is to move the checks into a tracked runner (e.g. `tools/preflight_all.py`) that the hook merely calls, so the gate is versioned even when the hook file is not.
 
+**RESOLVED 2026-10-15.** The decision was taken as the second option, because force-adding the hook only narrowed the problem: `.githooks` is still gitignored, so the hook is one `git rm --cached` -- or one clone on a host without the force-add -- away from vanishing again, and the checks were still assembled inline in shell, leaving "which gates exist" answerable only by reading a hook file.
+
+`tools/preflight_all.py` now carries the registry (`--list`), the runner (`--check`) and the self-test (`--self-test`). The registry is transcribed from the hook, and `--self-test` **re-derives the hook's gate list from the hook text** and fails on any disagreement, so the table cannot silently drift from the gate that actually runs. Its first run reported two facts nobody had recorded:
+
+* **`tests/test_index_drift_check.py` did not exist.** Check 1b is a BLOCKING hook gate whose fail-ability was asserted by nothing. It was written in the same session (76 tests, green on `py315t` and 3.14.7): a gate that cannot be shown to fail is not a gate.
+* **the hook runs its gates on three different interpreters.** Check 1 invokes `python3` (3.13.14 on this host) while checks 1b--5 invoke `python` (3.14.7), and check 6 uses the PMB venv. Every gate passes on both today, so this is a **latent divergence, not a live false green** -- but "the pre-commit gate" is not one interpreter, and a gate resolved by NAME may land on either.
+
+It also executes the false-green protocol's Enforcement clause, which until now was a requirement nobody ran ("every gate has tree hash + mtime + --force + missing evidence fail"): `--force` re-runs; a cached PASS is reused only while the gate's own bytes **and** the staged/worktree state it judged are unchanged; an unrunnable gate is a FAILURE unless declared with `--allow-unrunnable`; and gates with no control are COUNTED and printed rather than rounded to a pass.
+
+**Not done, and named rather than implied:** the hook still assembles its checks inline, so it does not yet *call* this runner. Wiring it is a change to the commit gate itself and was left out of a session whose brief was to build the framework. Until then the registry is a second description of the hook -- which is precisely why `--self-test` fails when the two disagree.
+
 ## S11 — Tests under `src/` are never collected · CONFIRMED
 
 `pytest.ini` sets `testpaths = tests`, so every `test_*.py` under `src/` is invisible to the suite. `src/AOA/conftest.py` admits it in its own docstring, and `src/AOA/test_arm_exports.py` records that it was written to prevent a regression that then RECURRED because it was never collected. A test that cannot run is worse than no test: it reads as coverage. (Found by worker 1.)

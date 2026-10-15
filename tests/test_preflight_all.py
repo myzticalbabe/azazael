@@ -1,0 +1,358 @@
+# coding: utf-8
+"""Tests for `tools/preflight_all.py` -- the gate registry, runner and self-test.
+
+The framework's whole claim is that a check which cannot fail is not a check, so
+these tests are written the same way: every behaviour is driven to the state it
+is supposed to REJECT, not just to the state it is supposed to accept.
+
+Two layers again:
+
+* the registry's relationship to its producer (`.githooks/pre-commit`) is tested
+  against the REAL hook, because the failure mode being prevented is drift
+  between a table and the gate that actually runs;
+* the runner's behaviour is tested against a synthetic gate written into
+  `tmp_path`, so "reuse a cached PASS" and "re-run when the gate changed" are
+  observable rather than inferred.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tools"))
+
+import preflight_all as pf  # noqa: E402
+
+HOOK_SCRIPTS = {
+    "scripts/commit_gate.py",
+    "tools/index_drift_check.py",
+    "tools/staged_scanner_gate.py",
+    "tools/canon_drift_check.py",
+    "tools/anti_pattern_gate.py",
+    "tools/mesh_function_preflight.py",
+    "tools/pmb_session_observe.py",
+}
+
+
+# ── the registry against its producer ────────────────────────────────────
+
+
+class TestHookParity:
+
+    def test_the_real_hook_is_transcribed_exactly(self):
+        text = pf.read_hook()
+        assert text is not None, "the hook must be readable; it is tracked"
+        assert set(pf.hook_gate_scripts(text)) == HOOK_SCRIPTS
+
+    def test_a_script_named_only_in_prose_is_not_counted_as_a_gate(self):
+        """The hook's header mentions `tools/install_git_hooks.py` in a comment."""
+        text = pf.read_hook()
+        assert text is not None
+        assert "install_git_hooks" in text, "premise of this test"
+        assert "tools/install_git_hooks.py" not in pf.hook_gate_scripts(text)
+
+    def test_registry_and_hook_agree(self):
+        ok, message = pf.hook_parity(pf.GATES, pf.read_hook())
+        assert ok, message
+        assert "7 gates" in message
+
+    def test_an_unreadable_hook_is_missing_evidence_not_a_pass(self):
+        ok, message = pf.hook_parity(pf.GATES, None)
+        assert not ok
+        assert "MISSING_EVIDENCE" in message
+
+    def test_a_registered_but_unrun_gate_is_reported_as_drift(self):
+        rogue = pf.Gate(name="rogue", argv=("tools/not_in_hook.py",), interpreter="python",
+                        env=(), inside_hook=True, blocking=True, slow=False, reads="x",
+                        control_test=None, control=None, uncontrolled_because="synthetic")
+        ok, message = pf.hook_parity((*pf.GATES, rogue), pf.read_hook())
+        assert not ok
+        assert "tools/not_in_hook.py" in message
+
+    def test_a_gate_the_hook_runs_but_the_registry_omits_is_reported_as_drift(self):
+        hook = '#!/bin/sh\npython "$SCRIPT_DIR/tools/unregistered.py"\n'
+        ok, message = pf.hook_parity(pf.GATES, hook)
+        assert not ok
+        assert "tools/unregistered.py" in message
+
+
+class TestRegistryIntegrity:
+
+    @pytest.mark.parametrize("gate", pf.GATES, ids=lambda g: g.name)
+    def test_every_registered_script_exists_on_disk(self, gate):
+        assert (pf.REPO / gate.argv[0]).is_file(), gate.argv[0]
+
+    @pytest.mark.parametrize("gate", pf.GATES, ids=lambda g: g.name)
+    def test_an_inside_hook_gate_is_attributed_to_the_hook(self, gate):
+        if gate.inside_hook:
+            assert (pf.REPO / gate.argv[0]).is_file()
+
+    def test_exactly_one_hook_gate_is_non_blocking(self):
+        """The hook's own contract: only the PMB observer ignores its exit code."""
+        non_blocking = [g.name for g in pf.GATES if g.inside_hook and not g.blocking]
+        assert non_blocking == ["pmb-outcome-observer"]
+
+    def test_names_are_unique(self):
+        names = [g.name for g in pf.GATES]
+        assert len(names) == len(set(names))
+
+    def test_every_gate_states_what_it_reads(self):
+        for gate in pf.GATES:
+            assert gate.reads.strip(), gate.name
+
+    def test_a_gate_with_no_control_gives_a_reason(self):
+        for gate in pf.GATES:
+            if not gate.control and not gate.control_test:
+                assert gate.uncontrolled_because, gate.name
+
+
+# ── interpreters ─────────────────────────────────────────────────────────
+
+
+class TestInterpreters:
+
+    def test_the_pmb_venv_interpreter_honours_the_override(self, tmp_path, monkeypatch):
+        fake = tmp_path / "py.exe"
+        fake.write_text("", encoding="utf-8")
+        monkeypatch.setenv("PMB_VENV_PYTHON", str(fake))
+        assert pf.resolve_interpreter("pmb-venv") == str(fake)
+
+    def test_an_unknown_interpreter_name_does_not_resolve(self, monkeypatch):
+        assert pf.resolve_interpreter("definitely-not-an-interpreter") is None
+
+    def test_probing_reports_the_real_version_not_just_a_resolved_name(self):
+        path = pf.resolve_interpreter("python")
+        assert path is not None
+        ok, info = pf.probe_interpreter(path)
+        assert ok
+        assert "v" in info
+
+    def test_probing_a_non_executable_fails_rather_than_passing(self, tmp_path):
+        junk = tmp_path / "junk"
+        junk.write_text("not an interpreter", encoding="utf-8")
+        ok, info = pf.probe_interpreter(str(junk))
+        assert not ok
+        assert info
+
+
+# ── the evidence contract ────────────────────────────────────────────────
+
+
+class TestFingerprint:
+
+    def _gate(self):
+        return pf.Gate(name="x", argv=("tools/index_drift_check.py",), interpreter="python",
+                       env=(), inside_hook=False, blocking=True, slow=False, reads="x",
+                       control_test=None, control=None, uncontrolled_because="synthetic")
+
+    def test_the_same_inputs_fingerprint_the_same(self):
+        gate = self._gate()
+        assert pf.gate_fingerprint(gate, "py", "state") == pf.gate_fingerprint(gate, "py", "state")
+
+    def test_a_different_repo_state_changes_the_fingerprint(self):
+        """A cached PASS recorded against another tree must not be reused."""
+        gate = self._gate()
+        assert pf.gate_fingerprint(gate, "py", "state-a") != pf.gate_fingerprint(gate, "py", "state-b")
+
+    def test_a_missing_repo_state_is_its_own_input(self):
+        gate = self._gate()
+        assert pf.gate_fingerprint(gate, "py", None) != pf.gate_fingerprint(gate, "py", "state")
+
+    def test_a_different_interpreter_changes_the_fingerprint(self):
+        gate = self._gate()
+        assert pf.gate_fingerprint(gate, "py", "s") != pf.gate_fingerprint(gate, "py3", "s")
+
+    def test_the_real_repo_state_resolves_inside_a_repo(self):
+        assert pf.repo_state_hash() is not None
+
+    def test_repo_state_is_none_outside_a_repo(self, tmp_path, monkeypatch):
+        """`GIT_CEILING_DIRECTORIES` stops git walking up out of `tmp_path`.
+
+        Without it, this test asserts a property of wherever pytest's tmp dir
+        happens to live rather than a property of the code: an enclosing repo is
+        exactly why the first version of this test failed.
+        """
+        monkeypatch.setattr(pf, "REPO", tmp_path)
+        monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
+        assert pf.repo_state_hash() is None
+
+
+# ── the runner, against a synthetic gate ─────────────────────────────────
+
+
+def _synthetic(tmp_path, monkeypatch, *, exit_code=0, blocking=True, interpreter="python"):
+    """A real (tiny) gate script in a throwaway repo root.
+
+    The gate reads its own exit code from a sibling `.code` file, so a test can
+    change the gate's VERDICT without touching the script's bytes -- which is
+    what makes "was it reused or re-run?" observable.
+    """
+    (tmp_path / "tools").mkdir(parents=True, exist_ok=True)
+    script = tmp_path / "tools" / "fake_gate.py"
+    script.write_text(
+        "import pathlib, sys\n"
+        "code = pathlib.Path(__file__).with_suffix('.code')\n"
+        "sys.exit(int(code.read_text(encoding='utf-8').strip()))\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "tools" / "fake_gate.code").write_text(str(exit_code), encoding="utf-8")
+    hook = tmp_path / ".githooks" / "pre-commit"
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_text('#!/bin/sh\npython "$SCRIPT_DIR/tools/fake_gate.py"\n', encoding="utf-8")
+    monkeypatch.setattr(pf, "REPO", tmp_path)
+    monkeypatch.setattr(pf, "HOOK", hook)
+    monkeypatch.setattr(pf, "EVIDENCE", tmp_path / "logs" / "evidence.json")
+    monkeypatch.setattr(pf, "repo_state_hash", lambda: "STATE")
+    gate = pf.Gate(name="fake", argv=("tools/fake_gate.py",), interpreter=interpreter,
+                   env=(), inside_hook=True, blocking=blocking, slow=False, reads="synthetic",
+                   control_test=None, control=None, uncontrolled_because="synthetic")
+    return gate, script
+
+
+class TestCheck:
+
+    def test_a_passing_gate_exits_zero_and_records_evidence(self, tmp_path, monkeypatch):
+        gate, _ = _synthetic(tmp_path, monkeypatch)
+        assert pf.main(["--check"], gates=(gate,)) == 0
+        evidence = pf.load_evidence()
+        assert evidence["fake"]["exit_code"] == 0
+        assert evidence["fake"]["fingerprint"]
+
+    def test_a_failing_gate_exits_one_and_records_the_nonzero_exit(self, tmp_path, monkeypatch):
+        gate, _ = _synthetic(tmp_path, monkeypatch, exit_code=1)
+        assert pf.main(["--check"], gates=(gate,)) == 1
+        assert pf.load_evidence()["fake"]["exit_code"] == 1
+
+    def test_a_matching_cached_pass_is_reused_without_re_running(self, tmp_path, monkeypatch, capsys):
+        """The gate's verdict is FLIPPED to fail; a reused PASS still exits 0.
+
+        That is the only way to observe reuse rather than infer it -- and it is
+        also the reason the next two tests exist.
+        """
+        gate, script = _synthetic(tmp_path, monkeypatch, exit_code=0)
+        assert pf.main(["--check"], gates=(gate,)) == 0
+        (script.with_suffix(".code")).write_text("1", encoding="utf-8")
+        assert pf.main(["--check"], gates=(gate,)) == 0
+        assert "CACHED" in capsys.readouterr().out
+
+    def test_force_re_runs_and_finds_the_flipped_verdict(self, tmp_path, monkeypatch):
+        gate, script = _synthetic(tmp_path, monkeypatch, exit_code=0)
+        assert pf.main(["--check"], gates=(gate,)) == 0
+        (script.with_suffix(".code")).write_text("1", encoding="utf-8")
+        assert pf.main(["--check", "--force"], gates=(gate,)) == 1
+
+    def test_editing_the_gate_invalidates_its_cached_pass(self, tmp_path, monkeypatch):
+        gate, script = _synthetic(tmp_path, monkeypatch, exit_code=0)
+        assert pf.main(["--check"], gates=(gate,)) == 0
+        (script.with_suffix(".code")).write_text("1", encoding="utf-8")
+        # A gate edited after its last green run must not inherit that green.
+        script.write_text(script.read_text(encoding="utf-8") + "# a real change\n",
+                          encoding="utf-8")
+        assert pf.main(["--check"], gates=(gate,)) == 1
+
+    def test_an_absent_repo_state_prevents_reuse(self, tmp_path, monkeypatch, capsys):
+        gate, script = _synthetic(tmp_path, monkeypatch, exit_code=0)
+        monkeypatch.setattr(pf, "repo_state_hash", lambda: None)
+        assert pf.main(["--check"], gates=(gate,)) == 0
+        (script.with_suffix(".code")).write_text("1", encoding="utf-8")
+        # No tree hash means no evidence that the PASS still describes the tree.
+        assert pf.main(["--check"], gates=(gate,)) == 1
+        assert "CACHED" not in capsys.readouterr().out
+
+    def test_an_unrunnable_blocking_gate_fails(self, tmp_path, monkeypatch, capsys):
+        gate, _ = _synthetic(tmp_path, monkeypatch, interpreter="definitely-not-an-interpreter")
+        assert pf.main(["--check"], gates=(gate,)) == 1
+        assert "UNRUNNABLE" in capsys.readouterr().out
+
+    def test_an_unrunnable_non_blocking_gate_does_not_fail(self, tmp_path, monkeypatch):
+        gate, _ = _synthetic(tmp_path, monkeypatch, blocking=False,
+                             interpreter="definitely-not-an-interpreter")
+        assert pf.main(["--check"], gates=(gate,)) == 0
+
+    def test_a_declared_unrunnable_gate_is_honoured(self, tmp_path, monkeypatch, capsys):
+        gate, _ = _synthetic(tmp_path, monkeypatch, interpreter="definitely-not-an-interpreter")
+        assert pf.main(["--check", "--allow-unrunnable", "fake"], gates=(gate,)) == 0
+        assert "DECLARED UNRUNNABLE" in capsys.readouterr().out
+
+    def test_registry_drift_stops_the_run(self, tmp_path, monkeypatch):
+        gate, _ = _synthetic(tmp_path, monkeypatch)
+        (tmp_path / ".githooks" / "pre-commit").write_text(
+            "#!/bin/sh\npython \"$SCRIPT_DIR/tools/somewhere_else.py\"\n", encoding="utf-8")
+        assert pf.main(["--check"], gates=(gate,)) == 1
+
+
+# ── the self-test ────────────────────────────────────────────────────────
+
+
+class TestSelfTest:
+
+    def test_the_real_registry_self_tests_green(self):
+        assert pf.cmd_self_test(pf.GATES) == 0
+
+    def test_the_real_self_test_names_the_typescript_interpreter_divergence(self, capsys):
+        """The measured fact: check 1 runs on a different interpreter than 1b-5."""
+        pf.cmd_self_test(pf.GATES)
+        out = capsys.readouterr().out
+        assert "interpreters actually execute" in out
+
+    def test_a_control_that_does_not_fail_is_a_hard_failure(self, monkeypatch, capsys):
+        monkeypatch.setitem(pf.CONTROLS, "anti-pattern-ratchet",
+                            lambda interpreter: (False, "control did NOT fail"))
+        assert pf.cmd_self_test(pf.GATES) == 1
+        assert "control did NOT fail" in capsys.readouterr().out
+
+    def test_a_missing_control_artifact_is_a_hard_failure(self, monkeypatch, capsys):
+        bogus = pf.Gate(name="bogus", argv=("tools/preflight_all.py",), interpreter="python",
+                        env=(), inside_hook=False, blocking=True, slow=True, reads="x",
+                        control_test="tests/never_written.py", control=None,
+                        uncontrolled_because=None)
+        assert pf.cmd_self_test((*pf.GATES, bogus)) == 1
+        assert "tests/never_written.py" in capsys.readouterr().out
+
+    def test_an_unreadable_hook_fails_the_self_test(self, monkeypatch, capsys):
+        monkeypatch.setattr(pf, "read_hook", lambda: None)
+        assert pf.cmd_self_test(pf.GATES) == 1
+        assert "MISSING_EVIDENCE" in capsys.readouterr().out
+
+    def test_a_named_control_with_no_implementation_is_a_failure(self, monkeypatch, capsys):
+        bogus = pf.Gate(name="bogus", argv=("tools/preflight_all.py",), interpreter="python",
+                        env=(), inside_hook=False, blocking=True, slow=True, reads="x",
+                        control_test=None, control="not-implemented", uncontrolled_because=None)
+        assert pf.cmd_self_test((*pf.GATES, bogus)) == 1
+        assert "not-implemented" in capsys.readouterr().out
+
+    def test_gates_with_no_control_are_counted_not_hidden(self, capsys):
+        pf.cmd_self_test(pf.GATES)
+        out = capsys.readouterr().out
+        assert "nothing declared" in out
+        assert "is NOT a demonstrated one" in out
+
+
+# ── the CLI surface ──────────────────────────────────────────────────────
+
+
+class TestCLI:
+
+    def test_list_reports_every_gate(self, capsys):
+        assert pf.cmd_list(pf.GATES, as_json=False) == 0
+        out = capsys.readouterr().out
+        for gate in pf.GATES:
+            assert gate.name in out
+
+    def test_list_as_json_is_parseable(self, capsys):
+        import json
+        assert pf.cmd_list(pf.GATES, as_json=True) == 0
+        payload = json.loads(capsys.readouterr().out)
+        assert {row["name"] for row in payload} == {g.name for g in pf.GATES}
+        assert all("reads" in row for row in payload)
+
+    def test_json_without_list_is_a_usage_error(self):
+        assert pf.main(["--json"]) == 2
+
+    def test_list_and_check_are_mutually_exclusive(self):
+        with pytest.raises(SystemExit):
+            pf.main(["--list", "--check"])

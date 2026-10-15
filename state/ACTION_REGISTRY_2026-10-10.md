@@ -942,3 +942,81 @@ by 15+ live modules (`NeuralPipeline.py`, `local_memory.py`, `workflow.py`, `wor
 `worm_governance.py`, `evolution_cycle.py`). That is a capability-removal decision on the live
 training path, not a tail item — it needs an explicit ruling and a replacement, so it is left OPEN
 here rather than executed on a one-line brief.
+
+---
+
+## §17 -- The tracked gate registry, runner and self-test (engram #744 item 2c)
+
+**What was asked:** item 2's third entry, "self-testing gate framework". **Verify-each first:** all
+three #740 SHAs exist and all 8 files named by the brief are tracked and clean (`dirty=0`), landed
+across `9699273b`, `6836e448`, `b3e825d6`, `7df2d06e`, `21ca4c35`, `1b479b1f`, `9b6c294f` -- so
+item 1 was already complete and nothing was rebuilt.
+
+### The unbuilt artifact was already named, and named exactly
+
+`STRUCTURAL_FLAWS_315T.md` S10 proposed `tools/preflight_all.py` as the tracked runner that would
+version the gate even when `.githooks` is ignored. `ls` confirmed it did not exist, and
+`grep -rln "GATE_REGISTRY\|gate_registry\|all_gates\|list_gates" tools/ scripts/ src/CORE/` returned
+**0 hits** -- there was no machine-readable answer to "what gates does this repo run, on which
+interpreter, against which artifact". The checks were readable only by reading the hook.
+
+### SHIPPED (3 files)
+
+1. `tools/preflight_all.py` -- the registry (`--list`), the runner (`--check`) and the self-test
+   (`--self-test`). The registry is transcribed from `.githooks/pre-commit`; `--self-test`
+   re-derives the hook's gate list **from the hook text** and fails on disagreement, so the table
+   cannot drift from the gate that actually runs. It registers **10 gates** (7 hook + 3 CI-only) and
+   runs the 7 fast ones by default.
+2. `tests/test_index_drift_check.py` -- **the missing control artifact the framework's first run
+   found.** Check 1b is a blocking hook gate with no test in the tree. Two layers: the decision
+   driven through the `_names` seam (every branch reachable without a repo), plus a real
+   end-to-end run against a throwaway git repository, because a guard proven only against a fake
+   `git` proves nothing about the real one.
+3. This section.
+
+### What the first run measured
+
+* **`tests/test_index_drift_check.py` did not exist** -- a BLOCKING hook gate asserting fail-ability
+  with nothing. Fixed rather than documented: the fix is the artifact, not a note.
+* **The hook runs its gates on three different interpreters.** Check 1 uses `python3`
+  (**3.13.14** here) while checks 1b--5 use `python` (**3.14.7**); check 6 uses the PMB venv. Both
+  interpreters pass every gate today, so this is a **latent divergence, not a live false green** --
+  recorded as such.
+* **An executable, sandboxed negative control now exists for the ratchet.** It fabricates a clean
+  file plus a recorded baseline in a temp dir, adds a file carrying an anti-pattern, and requires
+  `--check` to exit non-zero: measured `ratchet exits 1 on an added anti-pattern`. `--baseline-file`
+  is passed EXPLICITLY, because a narrowed `--dir` redirects the default baseline on purpose (the
+  same shape as `aggregate_suite_gate`'s `.partial` redirect) and silently comparing against the repo
+  baseline would make the control test nothing.
+
+### The false-green Enforcement clause, executed instead of asserted
+
+`.agents/skills/azazael-false-green-protocol/SKILL.md` states "every gate has tree hash + mtime +
+--force + missing evidence fail" as mandatory. Nothing executed it. Now: `--force` re-runs; a cached
+PASS is reused **only** while the gate's own bytes AND the staged/worktree state it judged are
+unchanged (`repo_state_hash` over `git diff --cached --binary` + `git diff --binary`, and `None`
+means NO reuse); an unrunnable gate is a FAILURE unless declared with `--allow-unrunnable`; the hook
+file being unreadable is `MISSING_EVIDENCE`, never a pass.
+
+### Fail-ability is a measurement, not a boolean
+
+Reported in three buckets rather than one label, because calling an artifact-declared gate
+"uncontrolled" while printing the artifact it declares is a self-contradiction:
+**1 executable control (demonstrated here) / 7 artifact-declared (existence verified) / 2 with
+nothing declared (reason printed each)**. `--self-test` exits 0 on the current tree with `0 failure(s)`.
+
+### Verified
+
+`--self-test` **exit 0** and `--check` **exit 0** (all 7 hook gates PASS). Both new suites green on
+**both** interpreters: `py315t` (3.15.0rc3 free-threaded) **76 passed**, Python **3.14.7** **76
+passed**, exit 0 each.
+
+### Left open, named
+
+The hook still assembles its checks inline, so it does not yet CALL this runner. Wiring it changes
+the commit gate itself and was out of scope for this brief; until then the registry is a second
+description of the hook, which is exactly why `--self-test` fails when the two disagree. Also
+unrelated but noticed while reading: `scripts/ci_two_interpreter_gate.py:83` does
+`from CORE import python_env`, and `src/CORE/python_env.py` **does not exist anywhere in the tree**,
+so that gate's docstring claim ("resolution goes through `CORE/python_env.py` so the gate and
+production agree") describes a fallback, not the stated path.
