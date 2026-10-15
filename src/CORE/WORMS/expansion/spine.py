@@ -2121,7 +2121,7 @@ class SpineCycleWorm:
                 _rainbow_link(
                     "rainbow_cycle", "governance:gray-black",
                     bool((_gov.get("entrenchment") or {}).get("success", True)
-                         and _ret.get("success", True)),
+                         and _ret.get("success")),
                     citation="entrenched=%s retired=%s" % (
                         _ent.get("entrenched"), _ret.get("retired")))
             except Exception as exc:
@@ -2145,7 +2145,7 @@ class SpineCycleWorm:
                 _rq = report.get("red_queen") or {}
                 _rainbow_link_red(
                     "rainbow_cycle", "red",
-                    bool(_rq.get("success", True)),
+                    bool(_rq.get("success")),
                     citation="natures=%s" % ",".join(_rq.get("natures_probed") or []))
             except Exception as exc:
                 note_failure("spine:rainbow-red-hook", exc)
