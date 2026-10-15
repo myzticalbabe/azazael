@@ -8,13 +8,23 @@ exposes no hook surface, so supervision is delivered here as an explicit gate
 that consults engram's own supervisory outputs and prints a verdict:
 
   doctor     -> store invariants; blocked/errors is a NO-GO
-  conflicts  -> unresolved memory contradictions; any is a NO-GO
+  conflicts  -> unjudged contradiction pairs: pending -> CLARIFY (advisory);
+                an ORPHANED relation -> NO-GO
   hook       -> the nudge / required first action engram would have pushed
   plan       -> open plan + mandate items still owed
 
 Usage: python tools/engram_supervise.py [project]
-Exit 0 = GO (or supervisor unavailable, fail-open to avoid deadlock).
-Exit 1 = NO-GO (a real supervisory signal says do not proceed).
+Exit 0 = GO, or CLARIFY (unjudged conflict pairs are outstanding - advisory,
+         not a block), or supervisor unavailable (fail-open to avoid deadlock).
+Exit 1 = NO-GO (doctor blocked/errors, or an orphaned relation whose endpoint
+         observation is missing - a structurally broken relation).
+
+Why CLARIFY and not NO-GO for unjudged pairs: the store creates candidates by
+itself (every `mem_save` spawns pairs for comparison), so hard-blocking on them
+refuses the next tool call until they are judged - and judging is one of the
+calls being refused, so the block can only be cleared by doing the thing it
+forbids. NO-GO stays reserved for breakage, and the outstanding count is still
+printed in full.
 """
 import json
 import os
@@ -87,29 +97,46 @@ def check_doctor():
     return "GO", [f"doctor: {head}"]
 
 
-def check_conflicts():
-    """Gate on engram's REAL `conflicts stats` output.
+def _judgment_status_counts(text):
+    """Counts from the `By judgment_status:` section ONLY.
 
-    Real format (cmd/engram/conflicts.go:259-291) when relations exist:
-
-        Conflicts Stats (project: P)
-
-          By judgment_status:
-            pending:     N     <- unjudged contradiction (this is the gate)
-            accepted:    N
-            rejected:    N
-            orphaned:    N
-
-          Deferred:    N
-          Dead:        N
-
-    There is NO `Total:` line - `conflicts list` prints Total, `stats` does
-    not. Gating on a fabricated `total` key fails open: it reports GO on a
-    store full of unresolved contradictions. Verified against the Go source.
+    The same payload carries a `By relation type:` section whose keys
+    (related / compatible / supersedes / scoped) hold unrelated numbers. A
+    parser that accepts any `key: digit` line from the whole document can let a
+    relation count masquerade as a judgment count, so this walks section by
+    section: a new `By ...` header switches the block and `Deferred`/`Dead` end
+    it. Blank lines do NOT end a block - the real payload indents its entries
+    directly under the header with no separator.
     """
-    text = strip_banner(run(["conflicts", "stats", "--project", PROJECT]))
-    if text.startswith("__ERR__"):
-        return "unknown", ["conflicts unreachable: " + text]
+    counts = {}
+    in_block = False
+    for line in text.splitlines():
+        s = line.strip()
+        if not s:
+            continue
+        low = s.lower()
+        if low.startswith("by "):
+            in_block = low.startswith("by judgment_status")
+            continue
+        if low.startswith("deferred") or low.startswith("dead"):
+            in_block = False
+            continue
+        if not in_block or ":" not in s:
+            continue
+        k, v = s.split(":", 1)
+        v = v.strip()
+        if v.isdigit():
+            counts[k.strip().lower()] = int(v)
+    return counts
+
+
+def verdict_from_conflicts_stats(text):
+    """Pure verdict for one `conflicts stats` payload -> (verdict, lines).
+
+    verdict is "GO" | "CLARIFY" | "NO-GO" | "unknown". Split out from the
+    subprocess call so the parsing is pinned against text transcribed from a
+    real run rather than against whatever the parser happens to expect.
+    """
     # An unrecognized response (bad flag, usage dump, schema change) must NOT
     # be silently read as healthy - that is the fail-open trap.
     if "Conflicts Stats" not in text and "No relations found" not in text:
@@ -117,30 +144,40 @@ def check_conflicts():
         return "unknown", ["conflicts: unrecognized output, treated as unknown: " + first]
     if "No relations found" in text:
         return "GO", ["conflicts: 0 unresolved"]
-    stats = {}
-    for line in text.splitlines():
-        s = line.strip()
-        if ":" not in s:
-            continue
-        k, v = s.split(":", 1)
-        v = v.strip()
-        if v.isdigit():
-            stats[k.strip().lower()] = int(v)
+    stats = _judgment_status_counts(text)
     pending = stats.get("pending", 0)
     orphaned = stats.get("orphaned", 0)
-    judged = stats.get("accepted", 0) + stats.get("rejected", 0)
-    if pending:
-        return "NO-GO", [
-            f"conflicts: {pending} unresolved (judgment_status=pending) "
-            f"contradiction(s) - resolve before proceeding",
-            f"  (judged={judged}, orphaned={orphaned})",
-        ]
+    judged = (stats.get("accepted", 0) + stats.get("rejected", 0)
+              + stats.get("judged", 0))
     if orphaned:
         return "NO-GO", [
             f"conflicts: {orphaned} orphaned relation(s) - endpoint observation is missing",
-            f"  (pending=0, judged={judged})",
+            f"  (pending={pending}, judged={judged})",
+        ]
+    if pending:
+        # CLARIFY, not NO-GO: these pairs are created by the store itself, so a
+        # hard block here refuses every later tool call until they are judged -
+        # and judging is one of the calls being refused. The count is printed.
+        return "CLARIFY", [
+            f"conflicts: {pending} unjudged pair(s) outstanding "
+            f"(judgment_status=pending) - judge them; not blocking",
+            f"  (judged={judged}, orphaned={orphaned})",
         ]
     return "GO", [f"conflicts: 0 unresolved (judged={judged})"]
+
+
+def check_conflicts():
+    """Fetch engram's REAL `conflicts stats` and hand it to the pure parser.
+
+    There is NO `Total:` line in `stats` - `conflicts list` prints Total,
+    `stats` does not (cmd/engram/conflicts.go:146 vs :259-291). Gating on a
+    fabricated `total` key fails open: it reports GO on a store full of
+    unresolved contradictions. Verified against the Go source.
+    """
+    text = strip_banner(run(["conflicts", "stats", "--project", PROJECT]))
+    if text.startswith("__ERR__"):
+        return "unknown", ["conflicts unreachable: " + text]
+    return verdict_from_conflicts_stats(text)
 
 
 def check_hook():
@@ -194,6 +231,11 @@ def main() -> int:
     if nogos:
         print("VERDICT: NO-GO - resolve the items above before proceeding")
         return 1
+    clarifies = [v for v in verdicts if v == "CLARIFY"]
+    if clarifies:
+        print("VERDICT: CLARIFY - unjudged conflict pair(s) outstanding; judge "
+              "them when convenient. Advisory, not a block (exit 0).")
+        return 0
     print("VERDICT: GO - proceed")
     return 0
 
