@@ -711,8 +711,16 @@ class ONNXConverter:
             )
 
         except Exception as e:
-            self.logger.error(f"Basic ONNX export failed: {e}")
-            return False, "", [str(e)]
+            # ACTIONABLE refusal (engram #511 / #712 Class A): name the model
+            # it could not export and what is missing. A bare `[str(e)]`
+            # returned "No module named 'onnxscript'" -- true, but a caller
+            # cannot tell WHICH model needed WHICH exporter.
+            reason = ("refused to fabricate a model: basic ONNX export of '%s' "
+                      "failed (%s); no ONNX exporter produced an artifact -- "
+                      "install a real exporter (optimum / onnx with onnxscript)."
+                      % (model_path, e))
+            self.logger.error("Basic ONNX export failed for %s: %s", model_path, e)
+            return False, "", [reason]
 
 
 class TensorFlowConverter:
