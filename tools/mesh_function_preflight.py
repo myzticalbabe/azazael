@@ -971,7 +971,12 @@ def wire_or_cut(funcs: list[Func], declared: dict | None = None) -> dict:
         for key in missing:
             old = prior.get(key)
             entry = dict(old) if isinstance(old, dict) else {}
-            entry["status"] = str(entry.get("status") or "pending")
+            old_status = str(entry.get("status") or "pending")
+            # A carried row has no PF16 finding on regenerate, which means it is
+            # now referenced (a caller was added). `pending`/`dispatched` entries
+            # therefore become `wired`; only `retired` survives unchanged, since
+            # genuine death exits only via an explicit disposition.
+            entry["status"] = "wired" if old_status in ("pending", "dispatched") else old_status
             entry["carried"] = True
             entry["carry_evidence"] = _carry_evidence(key, entry,
                                                      refs_by_file,
@@ -1142,6 +1147,11 @@ def triage(table: dict) -> dict:
     tally: Counter = Counter()
     for entry in entries.values():
         if str(entry.get("status")) != "pending":
+            # A class is not a disposition: triage labels only belong on pending
+            # entries. Strip any stale label carried over from a prior run so a
+            # non-pending row never carries triage state.
+            entry.pop("triage", None)
+            entry.pop("triage_evidence", None)
             continue
         qualname = str(entry.get("qualname") or "")
         hits = refs.get(qualname.rsplit(".", 1)[-1]) or refs.get(qualname) or []

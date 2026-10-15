@@ -312,7 +312,7 @@ class DatabaseMonitorWorm:
 
             # Integrity check (run silently, capture any issues)
             integrity = self.check_integrity()
-            integrity_ok = integrity.get("ok", True)
+            integrity_ok = integrity.get("ok", False)
 
             # Determine health
             healthy = True
