@@ -740,7 +740,7 @@ class MetaCluster:
                 results = agg.worm_results or {}
                 errs = [str((v or {}).get("error", ""))[:100]
                         for v in results.values()
-                        if isinstance(v, dict) and not v.get("success", True)
+                        if isinstance(v, dict) and not v.get("success")
                         and (v or {}).get("error")]
                 with _acc_lock:
                     nature_results[nature] = {
