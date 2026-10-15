@@ -858,7 +858,8 @@ def run_all_parallel_cycle() -> dict:
 
     t0 = time.time()
     run_id = _gen_run_id("allpar")
-    pipeline = NeuralPipeline(max_workers=3, llm_augmentation=False)
+    pipeline = NeuralPipeline(max_workers=3, llm_augmentation=False,
+                              use_cutting_edge=NeuralPipeline.opt_in_from_env())
     try:
         # source=None = all memories. Hardcoding "SystemZ" (as the NeuralPipeline
         # example does) matched zero rows here, so the track could never train.
