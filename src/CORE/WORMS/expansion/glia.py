@@ -84,9 +84,12 @@ class OligodendrocyteWorm:
     VERSION = "1.0.0"
 
     def recommend(self, mem_gb: float = 16.0, has_gpu: bool = False) -> dict[str, Any]:
+        # GPTQ-4bit and AWQ-4bit are GPU-only formats, so every branch that
+        # selects one must require `has_gpu`. Gating AWQ on memory alone handed
+        # a CPU-only host with 16-23 GB a format it cannot run.
         if has_gpu and mem_gb >= 24:
             fmt = "GPTQ-4bit"
-        elif mem_gb >= 16:
+        elif has_gpu and mem_gb >= 16:
             fmt = "AWQ-4bit"
         else:
             fmt = "GGUF-Q4_K_M"
