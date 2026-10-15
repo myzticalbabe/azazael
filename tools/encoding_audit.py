@@ -71,6 +71,57 @@ ENTRY_POINTS = ("run", "Popen", "check_output", "check_call", "call")
 #: outside text mode, so their presence implies it (handled in `_decoding`).
 TEXT_KWARGS = ("text", "universal_newlines")
 
+#: Mode characters that make an `open()` a WRITE (encode) of text. `b` is
+#: excluded below -- a binary write encodes nothing and cannot hit this defect.
+WRITE_MODE_CHARS = ("w", "a", "x", "+")
+
+
+# ---------- WRITE-side counterpart (the gap this tool shipped without) ---------
+# The READ-side scan below catches a subprocess capture that DECODES with the OS
+# codec. The mirror defect was left uncovered (engram #706/#707): `open(p, "w")`
+# or `Path(p).write_text(...)` with no `encoding=` ENCODES with the OS codec
+# (cp1252 on this host), so a non-ASCII string is written as mojibake or raises
+# mid-write. A detector whose whole purpose is "we do not lose text" cannot stop
+# at half the boundary.
+
+
+def _mode_writes(mode: str) -> bool:
+    """True when an `open()` mode writes text (not a read, not binary)."""
+    return any(c in mode for c in WRITE_MODE_CHARS) and "b" not in mode
+
+
+def write_findings(tree: ast.AST, lines: "list[str]") -> "list[dict]":
+    """Text writes (`open`/`write_text`) that omit an explicit `encoding=`."""
+    out: "list[dict]" = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = (func.attr if isinstance(func, ast.Attribute)
+                else func.id if isinstance(func, ast.Name) else "")
+        if name not in ("open", "write_text"):
+            continue
+        kw = {k.arg: k.value for k in node.keywords if k.arg}
+        if "encoding" in kw:
+            continue
+        if name == "open":
+            mode = None
+            if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant):
+                mode = node.args[1].value
+            mkw = kw.get("mode")
+            if isinstance(mkw, ast.Constant):
+                mode = mkw.value
+            mode = mode if isinstance(mode, str) else "r"
+            if not _mode_writes(mode):
+                continue
+            label = 'open(mode=%r)' % mode
+        else:
+            label = "Path.write_text()"
+        out.append({"line": node.lineno, "call": label,
+                    "source": (lines[node.lineno - 1].strip()[:120]
+                               if node.lineno <= len(lines) else "")})
+    return out
+
 
 def _iter_py_files(dirs: "list[str]") -> "list[Path]":
     """Every `.py` file under each `--dir` (a file argument is taken as-is)."""
@@ -168,7 +219,7 @@ def scan_file(path: Path) -> dict:
         tree = ast.parse(source)
     except SyntaxError as exc:
         return {"path": path, "scanned": False, "findings": [], "undetermined": [],
-                "skipped": "line %s: %s" % (exc.lineno, exc.msg)}
+                "writes": [], "skipped": "line %s: %s" % (exc.lineno, exc.msg)}
 
     aliases, from_names = _subprocess_names(tree)
     lines = source.splitlines()
@@ -192,7 +243,8 @@ def scan_file(path: Path) -> dict:
                            else "%s is not a literal" % ", ".join(info["symbolic"]))
             undetermined.append(row)
     return {"path": path, "scanned": True, "findings": findings,
-            "undetermined": undetermined, "skipped": None}
+            "undetermined": undetermined, "writes": write_findings(tree, lines),
+            "skipped": None}
 
 
 def _relative(path: Path) -> str:
@@ -211,6 +263,9 @@ def main() -> int:
                     help="exit 1 when any text-decoding call lacks encoding=")
     ap.add_argument("--json", action="store_true",
                     help="emit the same result as JSON")
+    ap.add_argument("--write-side", action="store_true",
+                    help="also report text WRITES (open/write_text) that omit "
+                         "encoding=; included in --check")
     args = ap.parse_args()
 
     dirs = args.dir or list(DEFAULT_DIRS)
@@ -218,6 +273,7 @@ def main() -> int:
 
     by_file: "dict[str, list[dict]]" = {}
     undetermined: "dict[str, list[dict]]" = {}
+    writes_by_file: "dict[str, list[dict]]" = {}
     skipped: "list[str]" = []
     for path in files:
         result = scan_file(path)
@@ -229,8 +285,11 @@ def main() -> int:
             by_file[rel] = result["findings"]
         if result["undetermined"]:
             undetermined[rel] = result["undetermined"]
+        if result["writes"]:
+            writes_by_file[rel] = result["writes"]
 
     total = sum(len(rows) for rows in by_file.values())
+    write_total = sum(len(rows) for rows in writes_by_file.values())
 
     if args.json:
         print(json.dumps({"scanned": len(files), "dirs": dirs, "total": total,
@@ -263,6 +322,15 @@ def main() -> int:
                 print("    %s:%s  %s  (%s)"
                       % (rel, row["line"], row["call"], row["note"]))
 
+    if args.write_side and writes_by_file:
+        print()
+        print("  MISSING encoding= on WRITES -- these ENCODE with the OS codec, so")
+        print("  non-ASCII text is written as mojibake (or raises mid-write):")
+        for rel, rows in sorted(writes_by_file.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+            print("    %5d  %s" % (len(rows), rel))
+            for row in rows:
+                print("          line %-6s %s" % (row["line"], row["call"]))
+
     if skipped:
         print()
         print("  SKIPPED -- could not be parsed, so nothing was checked in them:")
@@ -270,11 +338,16 @@ def main() -> int:
             print("    %s" % line)
 
     if args.check:
-        if total:
+        failed = bool(total) or (args.write_side and write_total)
+        if failed:
             print()
-            print("FAIL: %d site(s) in %d file(s) decode without an explicit "
-                  "encoding. Add encoding=\"utf-8\", errors=\"replace\"."
-                  % (total, len(by_file)))
+            if total:
+                print("FAIL: %d site(s) in %d file(s) decode without an explicit "
+                      "encoding. Add encoding=\"utf-8\", errors=\"replace\"."
+                      % (total, len(by_file)))
+            if args.write_side and write_total:
+                print("FAIL: %d text-write site(s) in %d file(s) omit encoding=."
+                      % (write_total, len(writes_by_file)))
             return 1
         print()
         print("OK: every text-decoding subprocess call names its encoding.")
