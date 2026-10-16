@@ -125,6 +125,16 @@ TRAINER_SOURCE = "technique-link"
 #: a failure, even when the row's payload lost its boolean alongside the way.
 NAT_NEGATIVE_SEVERITIES = ("warning", "error")
 
+#: F2 Likra near-miss (Engram #813, arXiv:2503.14391 reading): among the
+#: NAT negatives, the "warning" class is the NEAR-MISS segment — a
+#: plausible, adjacent-to-success failure — while "error" is outright
+#: breakage. Near-miss negatives carry a stronger learning signal than
+#: arbitrary incorrect ones, so they are marked and counted here (see the
+#: no-shaping boundary on the loop below: this module's own prior lesson
+#: keeps the EMPHASIS application out until per-worm hook identity
+#: exists); a consumer that wants the emphasis reads the mark.
+NEAR_MISS_SEVERITY = "warning"
+
 
 def _row_data(row: Any) -> Dict[str, Any]:
     """A row's payload as a dict. Never raises: a row may carry a JSON string.
@@ -193,7 +203,8 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     """
     out: Dict[str, Any] = {"records": [], "n": 0, "n_rows": 0,
                            "n_unmeasured": 0, "n_negative": 0,
-                           "n_nat_declared": 0, "ok_rate": None,
+                           "n_nat_declared": 0, "n_near_miss": 0,
+                           "ok_rate": None,
                            "source": TRAINER_SOURCE, "by_hook": {}}
     try:
         store = get_memory_store()
@@ -216,6 +227,7 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     unmeasured = 0
     negatives = 0
     nat_declared = 0
+    n_near_miss = 0
     for row in rows:
         data = _row_data(row)
         ok = data.get("ok")
@@ -240,6 +252,17 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
         negative = (not ok) or (severity != "info")
         if negative:
             negatives += 1
+        # F2 Likra (Engram #813): among the measured negatives, the
+        # "warning" segment is the near-miss one — plausible, adjacent to
+        # success — versus "error", outright breakage. MARKED and COUNTED,
+        # deliberately not re-weighted into any reward here: per-worm hook
+        # identity does not exist yet (this module's REJECTED-lesson
+        # boundary), so an emphasis applied in this adapter would be a
+        # shaping wrapper the store cannot attribute. The mark travels to
+        # the trainer; applying emphasis is the trainer-side next step.
+        near_miss = negative and severity == NEAR_MISS_SEVERITY
+        if near_miss:
+            n_near_miss += 1
         event_type = str((row or {}).get("event_type") or "")
         # `record_link()` carries the hook in `event_type` ("hook:<hook>") and
         # not always in the payload, so the fallback strips the prefix and the
@@ -260,7 +283,8 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
             "data": {"success": ok, "ok": ok, "hook": hook,
                      "subject": str(data.get("subject", "")),
                      "citation": str(data.get("citation", "")),
-                     "nat_negative": negative},
+                     "nat_negative": negative,
+                     "near_miss": near_miss},
             "timestamp": (row or {}).get("timestamp"),
             "session_id": (row or {}).get("session_id"),
         })
@@ -270,6 +294,7 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     out["n_unmeasured"] = unmeasured
     out["n_negative"] = negatives
     out["n_nat_declared"] = nat_declared
+    out["n_near_miss"] = n_near_miss
     out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
                       if records else None)
     out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}

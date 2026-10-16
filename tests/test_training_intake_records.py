@@ -202,6 +202,45 @@ def test_nat_positive_rows_were_not_rescued_in_the_measured_live_pool(monkeypatc
     assert all(r["data"]["nat_negative"] is False for r in built["records"])
 
 
+# -- F2 Likra near-miss (Engram #813, arXiv:2503.14391 reading) --------------
+
+def test_f2_near_miss_marks_the_warning_segment_of_the_negatives(monkeypatch):
+    """Near-miss = plausible, adjacent-to-success failures: the "warning"
+
+    class. An outright "error" breakage is a negative but NOT a near-miss,
+    and a positive is neither — the mark is exclusive, and the count names
+    its segment. No weighting changes here (this module's REJECTED-lesson
+    boundary stands until per-worm hook identity exists): the mark TRAVELS,
+    it does not yet APPLY.
+    """
+    built, _ = _built(monkeypatch, [
+        _row(False, severity="warning"),   # near-miss negative
+        _row(False, severity="error"),     # outright negative
+        _row(True),                         # positive
+        _row(None, severity="warning"),    # NAT-rescued negative: also near-miss
+    ])
+
+    assert built["n_negative"] == 3
+    assert built["n_nat_declared"] == 1
+    assert built["n_near_miss"] == 2
+    marks = [r["data"]["near_miss"] for r in built["records"]]
+    assert marks == [True, False, False, True]
+    # The mark does not disturb VERDICT fields already pinned above.
+    assert built["records"][0]["data"]["success"] is False
+    assert built["records"][2]["data"]["success"] is True
+
+
+def test_f2_zero_near_miss_when_pool_is_all_success(monkeypatch):
+    """Live-shape twin: the measured pool (500/500 info, ok 1.0) carries no
+
+    near-miss segment — count 0 is the honest live reading, not a bug.
+    """
+    built, _ = _built(monkeypatch, [_row(True), _row(True)])
+
+    assert built["n_near_miss"] == 0
+    assert all(r["data"]["near_miss"] is False for r in built["records"])
+
+
 def test_empty_stream_yields_no_records_and_no_verdict(monkeypatch):
     built, _ = _built(monkeypatch, [])
 
