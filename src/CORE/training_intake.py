@@ -34,6 +34,7 @@ import json
 from typing import Any, Dict, List
 
 from CORE.local_memory import get_memory_store
+from CORE.skill_library import family_index as _family_index
 
 try:
     from CORE.failure_ledger import note_failure
@@ -298,5 +299,24 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
                       if records else None)
     out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}
+    # E1 (Engram #855): family attach — EP455 input side wired to
+    # training. Each hook's producer namespace is its family; dotless
+    # hooks land in family_index's own "unassigned" bucket. Additive
+    # only: existing keys untouched, trainers can now slice by family.
+    try:
+        _fi = _family_index(
+            [{"name": _h, "family": _h.split(".")[0] if "." in _h else ""}
+             for _h in by_hook])
+        _fam_of = {}
+        for _fam, _names in (_fi.get("families") or {}).items():
+            for _nm in _names:
+                _fam_of[_nm] = _fam
+        for _rec in records:
+            _rec["data"]["family"] = _fam_of.get(
+                _rec["data"].get("hook", "?"), "unassigned")
+        out["families"] = _fi
+        out["n_families"] = int(_fi.get("n_families", 0))
+    except Exception as exc:
+        note_failure("training-intake:family-attach", exc)
     return out
 
