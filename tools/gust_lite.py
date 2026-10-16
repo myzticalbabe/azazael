@@ -51,7 +51,8 @@ def preflight(tools):
         try:
             r = subprocess.run(
                 [sys.executable, os.path.join(_ROOT, "tools", t)],
-                capture_output=True, text=True, timeout=PREFLIGHT_TIMEOUT,
+                capture_output=True, text=True, encoding="utf-8",
+                errors="replace", timeout=PREFLIGHT_TIMEOUT,
                 cwd=_ROOT,
             )
             if r.returncode == 0:
@@ -108,7 +109,8 @@ def run_chain(chain):
         try:
             r = subprocess.run(
                 [sys.executable, tool_path],
-                capture_output=True, text=True, timeout=RUN_TIMEOUT,
+                capture_output=True, text=True, encoding="utf-8",
+                errors="replace", timeout=RUN_TIMEOUT,
                 cwd=_ROOT,
             )
             results.append({
