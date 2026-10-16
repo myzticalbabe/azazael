@@ -372,13 +372,16 @@ def run_intake_cycle() -> dict:
 
     Closes item H-3 of `state/ACTION_REGISTRY_2026-10-10.md` and the gap in
     Engram #368/#770 ("harvested benefit unapplied: 1/33 in prod, zero trainer
-    intake"). The `technique-link` stream already existed -- every live hook
-    call writes one -- and no trainer could learn from it, because the row
-    carries its outcome in `data["ok"]` while the trainers' reward model reads
-    a TOP-LEVEL `severity` and `data["success"]`, so a failed hook and a
-    succeeded one arrive as the same record. `build_training_records()` is that
-    translation; this track is the production caller that turns it into an edge
-    instead of an exercise.
+    intake"). Two things were true of the `technique-link` stream, which already
+    existed because every live hook call writes one: no trainer filtered on that
+    source at all, and the row's verdict was only half-visible to the trainers'
+    reward model -- `record_link()` declares `severity` (info for a success,
+    warning for a failure) and puts the outcome in `data["ok"]`, while
+    `learning_rl._compute_reward` reads a top-level `severity` PLUS the
+    refinement `data["success"]`, which the row does not carry.
+    `build_training_records()` is that translation (it preserves the producer's
+    severity and adds only the missing field); this track is the production
+    caller that turns it into an edge instead of an exercise.
 
     The learner is RLTrainLoop -- one of the four trainers #770 names -- driven
     through its own `records=` path, so the run measures the real trainer and the

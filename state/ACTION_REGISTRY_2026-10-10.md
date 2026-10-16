@@ -27,9 +27,27 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
 - [ ] H-2 T-15 instrument swap: production-call-sites-per-technique; exercise-only = 0.
   Retire `exercise_technique_runtime.py` engaged=181 counter and `CAPABILITIES.md`-style
   registry self-reads. Why: current instrument measures the registry, not adoption.
-- [ ] H-3 P10 trajectory→training edge: write run/exercise trajectories as rows
+- [x] H-3 P10 trajectory→training edge: write run/exercise trajectories as rows
   `DataPipelineWorm` consumes (source/event_type trainers already read).
   Why: zero trainer←technique edge on any predicate today.
+  DONE 2026-10-15 (`07fcb0bd`, Engram #770). The rows existed and no trainer was
+  pointed at them; the row's verdict was also only HALF-visible, because
+  `record_link` declares `severity` = info|warning and puts the outcome in
+  `data["ok"]`, while `learning_rl._compute_reward` reads top-level `severity`
+  PLUS the refinement `data["success"]` the row does not carry -- so a
+  known-good outcome's log/ignore bonus never fired. Bridge = `CORE/training_intake.py:143
+  build_training_records()` (preserves the producer's severity, adds
+  `data["success"]`, skips+counts an unmeasured row, writes nothing) + the
+  `INTAKE` rotation track (`scripts/track_registry.py:65`, runner
+  `scripts/run_training_orchestrator.py:370 run_intake_cycle`) driving
+  `RLTrainLoop.train_from_memory(records=...)`. Measured on a copy of the live
+  store: 500 rows / 12 hooks consumed, q_table 74, exit 0; empty store exits 1
+  with no artifact. Per-EP verdicts in `state/TRAINING_INTAKE_AUDIT.md`
+  (1 APPLIED, 4 PARTIAL, 28 ACCEPT-GAP, preconditions in the JSON). 3 of the 4
+  trainers stay gaps by name: SB3Agent (`src/CORE/sb3_agent.py:635`) and
+  NeuralPipeline's QLEARN arm filter the live store and take no frozen-record
+  list; GRPOTrainer is REFUSED by design (obs #382 — per-worm shaping from
+  global link terms is substring-guessing).
 - [ ] H-4 Rows→live-config promotion: `ModelVersioner` rows → consumed weights/config;
   promote `evolved_rl_params` (only `.example.json` exists; `models/` dir absent).
   Why: training produces rows, nothing loadable.
