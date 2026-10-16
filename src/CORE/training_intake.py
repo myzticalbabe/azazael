@@ -119,6 +119,12 @@ def gather(limit: int = 200) -> Dict[str, Any]:
 #: accept input, so this is the H-3 "rows DataPipelineWorm consumes" channel.
 TRAINER_SOURCE = "technique-link"
 
+#: The producer's failure vocabulary (Engram #813 F1, NAT arXiv:2402.11651
+#: reading): `record_link()` writes severity "warning" for a failure and
+#: "error" for an error — a severity outside "info" IS the producer measuring
+#: a failure, even when the row's payload lost its boolean alongside the way.
+NAT_NEGATIVE_SEVERITIES = ("warning", "error")
+
 
 def _row_data(row: Any) -> Dict[str, Any]:
     """A row's payload as a dict. Never raises: a row may carry a JSON string.
@@ -168,8 +174,13 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     else. Also:
 
     * a row whose `ok` is absent or not a real bool is COUNTED and SKIPPED,
-      never labelled. An unmeasured row is not an outcome, and inventing one
-      would train the policy on a fact nobody measured;
+      never labelled — UNLESS the producer already measured the verdict
+      itself (F1 NAT, Engram #813): `record_link()` writes severity
+      "warning"/"error" for a failure, so such a row arrives as a marked
+      NEGATIVE (`data["nat_negative"]` is True, `success` False) and the
+      count `n_nat_declared` names how many were rescued this way. Inventing
+      an outcome is still forbidden — the rescue only ever uses the
+      producer's own vocabulary;
     * nothing is written: this is a read-side adapter, so an intake run cannot
       perturb the store it reads.
 
@@ -181,7 +192,8 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     empty pool must never be indistinguishable from "nothing was measured".
     """
     out: Dict[str, Any] = {"records": [], "n": 0, "n_rows": 0,
-                           "n_unmeasured": 0, "ok_rate": None,
+                           "n_unmeasured": 0, "n_negative": 0,
+                           "n_nat_declared": 0, "ok_rate": None,
                            "source": TRAINER_SOURCE, "by_hook": {}}
     try:
         store = get_memory_store()
@@ -202,12 +214,32 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     records: List[Dict[str, Any]] = []
     by_hook: Dict[str, List[int]] = {}
     unmeasured = 0
+    negatives = 0
+    nat_declared = 0
     for row in rows:
         data = _row_data(row)
         ok = data.get("ok")
+        severity = str((row or {}).get("severity") or "info")
         if not isinstance(ok, bool):
-            unmeasured += 1
-            continue
+            # F1 NAT (Engram #813): a producer-declared failure is MEASURED.
+            # The pool it fixes is 100% "info" today (measured: 500/500 rows,
+            # ok_rate 1.0), so this path rescues the rows a degraded payload
+            # would otherwise skip SILENTLY — the failure `record_link()`
+            # already measured in severity, now carried as a marked negative
+            # instead of vanishing between the store and the trainer. An
+            # "info" row without a boolean stays unmeasured: no verdict, no
+            # invention.
+            if severity in NAT_NEGATIVE_SEVERITIES:
+                ok = False
+                nat_declared += 1
+            else:
+                unmeasured += 1
+                continue
+        # NAT marking is explicit in BOTH directions, so a trainer can read
+        # the sign without re-deriving it from severity vocabulary.
+        negative = (not ok) or (severity != "info")
+        if negative:
+            negatives += 1
         event_type = str((row or {}).get("event_type") or "")
         # `record_link()` carries the hook in `event_type` ("hook:<hook>") and
         # not always in the payload, so the fallback strips the prefix and the
@@ -227,7 +259,8 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
             "severity": str((row or {}).get("severity") or "info"),
             "data": {"success": ok, "ok": ok, "hook": hook,
                      "subject": str(data.get("subject", "")),
-                     "citation": str(data.get("citation", ""))},
+                     "citation": str(data.get("citation", "")),
+                     "nat_negative": negative},
             "timestamp": (row or {}).get("timestamp"),
             "session_id": (row or {}).get("session_id"),
         })
@@ -235,6 +268,8 @@ def build_training_records(limit: int = 500) -> Dict[str, Any]:
     out["n"] = len(records)
     out["n_rows"] = len(rows)
     out["n_unmeasured"] = unmeasured
+    out["n_negative"] = negatives
+    out["n_nat_declared"] = nat_declared
     out["ok_rate"] = (round(sum(s[0] for s in by_hook.values()) / len(records), 4)
                       if records else None)
     out["by_hook"] = {h: [g, t] for h, (g, t) in by_hook.items()}
