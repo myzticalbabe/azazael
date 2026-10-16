@@ -1,9 +1,9 @@
 {
-  "recorded_at": "2026-10-15T19:17:03+00:00",
+  "recorded_at": "2026-10-16T01:59:23+00:00",
   "identity_scheme": "category-counts-v1",
   "scanner": "CORE.compliance.scanner",
   "target": "src",
-  "files_scanned": 708,
+  "files_scanned": 705,
   "category_counts": {
     "hardcoded_win_path": 14,
     "import_inside_function": 1061,
