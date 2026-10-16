@@ -9,6 +9,23 @@ file exists to end.
 Line numbers are omitted for `.githooks/pre-commit` because the search tool skips
 dotfile directories; the verbatim section header is the citation instead.
 
+> **Re-verified 2026-10-15 (Engram #793 doc-drift pass).** Every citation in §2–§6 was re-read
+> against the four files it names. The load-bearing ones were **already exact**: the
+> `len(body) != 1` precondition (`:487`), the `ast.Pass` branch (`:493-495`), the
+> `# scanner:ignore` marker (`:197`), the suppression set (`:516`), the 2026-10-03 rules note
+> (`:178`), the three remedies (`:92`-`:94`), `staged_scanner_gate.py:42`/`:58`/`:94`, and
+> `commit_gate.py:31`/`:32`/`:86`. Twelve secondary citations had drifted by 1–6 lines and are
+> corrected in place below: the severities pair (`:73`-`:75` → **`:72`-`:74`**, with the dict
+> opening at `:59`, not `:60`), the precondition rationale (`:482-486` → **`:481-485`**), the
+> statement-line comment (`:489-491` → **`:490-492`**), the constructed-failure comment
+> (`:497-499` → **`:498-500`**) and constant check (`:499-503` → **`:502-504`**), the
+> suppressed-line drop (`:520-521` → **`:522-523`**), the scanner's `severity_order` mirror
+> (`:1039` → **`:1034`**), the timeout check (`:443` → **`:442`**) and the two content skips
+> (`:445-447` → **`:444`/`:446`**), `_counts` (`staged_scanner_gate.py:69` → **`:67`**),
+> `IDENTITY_SCHEME` (`anti_pattern_gate.py:64` → **`:65`**), the create exemption
+> (`commit_gate.py:96-99` → **`:90-93`**, guard at **`:98`**), and `ALLOW_BULK_COMMIT`
+> (`:120` → **`:121`**). A drifted line number is worse than none: it reads as verified.
+
 ---
 
 ## 1. How a commit is judged
@@ -44,10 +61,11 @@ Two facts that matter and are easy to get wrong:
   in-file comment explaining why: piping into `tail` would make `$?` tail's status
   and "a gate that reads the wrong exit code is worse than none".
 
-A second copy of this hook exists at `scripts/hooks/pre-commit` (it contains the
-same `ALLOW_BULK_COMMIT=1` sentence, `scripts/hooks/pre-commit:24`). The installed
+A second copy of this hook exists at `scripts/hooks/pre-commit` — **existence verified
+2026-10-15** by listing `azazael/scripts/hooks/`; it contains the
+same `ALLOW_BULK_COMMIT=1` sentence (`scripts/hooks/pre-commit:24`). The installed
 one is `.githooks/` — the hook's own header says `# Installed by: python
-tools/install_git_hooks.py (sets core.hooksPath=.githooks)`. **Unverified:** whether
+tools/install_git_hooks.py (sets core.hooksPath=.githooks)`. **Still unverified (2026-10-15):** whether
 `scripts/hooks/pre-commit` is a stale duplicate or is used on another host; treat
 the `.githooks/` copy as authoritative and confirm before editing either.
 
@@ -66,21 +84,21 @@ if len(body) != 1:
 ```
 
 An `except` handler is examined **only when its body is exactly one statement**.
-The in-file rationale (`:482-486`): "A single-statement body of `pass` discards the
+The in-file rationale (`:481-485`): "A single-statement body of `pass` discards the
 error; a single `return` turns it into a success-shaped default. Both make a failure
 indistinguishable from success — the class that hid PMB's dead loop. Bodies with
 logging/raise are untouched (they act on the exception)."
 
-Given that precondition, `body[0]` is classified (`:493-503`):
+Given that precondition, `body[0]` is classified (`:493-504`):
 
 - `ast.Pass` → `silent_except_pass`, snippet `"except: pass"` (`:493-495`).
 - `ast.Return` → `except_return_default`, **but only if the returned value is
   `None` or an `ast.Constant`** — i.e. a bare `return`, or `return None/False/0/""`
-  (`:499-503`). The file is explicit (`:497-499`): "A constructed failure value
+  (`:502-504`). The file is explicit (`:498-500`): "A constructed failure value
   (e.g. `return Result(error=...)`) is a real error path, not a swallow, so it is
   not flagged."
 
-Severities (`src/CORE/compliance/scanner.py:60`, `:73`-`:75`):
+Severities (`src/CORE/compliance/scanner.py:59`, `:72`-`:74`):
 
 ```python
 "silent_except_pass": "warning",      # 842 -- the exact class behind the PMB dead loop
@@ -100,8 +118,8 @@ with in-file remedies (`:92`-`:94`):
 by default (`tools/staged_scanner_gate.py`, `add_argument("--severity", default="warning")`)
 and both the gate and the scanner order severities as
 `SEVERITY_ORDER = {"error": 0, "warning": 1, "info": 2}` (`tools/staged_scanner_gate.py:42`,
-mirrored in the scanner's own `severity_order` at `src/CORE/compliance/scanner.py:1039`).
-`_counts` (`tools/staged_scanner_gate.py:69`) counts a finding when its severity
+mirrored in the scanner's own `severity_order` at `src/CORE/compliance/scanner.py:1034`).
+`_counts` (`tools/staged_scanner_gate.py:67`) counts a finding when its severity
 ranks `<= floor`, so a `warning` floor admits `error` and `warning` and excludes `info`.
 
 Those trailing numbers (`842`, `692`, `244`) are the counts recorded in the scanner
@@ -115,8 +133,8 @@ against a baseline recorded `2026-10-10T22:17:28+00:00`.
 
 `subprocess_no_timeout` is a *line-based* rule, not an AST rule, and it is measured
 across a multi-line call: `src/CORE/compliance/scanner.py:439-448` searches each line,
-then skips the hit when `"timeout" in _call_text(lines, i - 1, m.start())` (`:443`),
-and also skips documentation spans and string bodies (`:445-447`) so that a
+then skips the hit when `"timeout" in _call_text(lines, i - 1, m.start())` (`:442`),
+and also skips documentation spans and string bodies (`:444`/`:446`) so that a
 detector's own fix template is not counted as a call. So the rule is satisfied by a
 `timeout=` **inside the call text**, wherever in the call it appears.
 
@@ -147,7 +165,7 @@ suppression pass is per-line and catches every rule above (`:516`):
 suppressed = {i for i, line in enumerate(lines, 1) if _SUPPRESSION_MARKER in line}
 ```
 
-and findings are dropped when their line is in that set (`:520-521`).
+and findings are dropped when their line is in that set (`:522-523`).
 
 The single most important consequence: **findings are reported at the STATEMENT's
 line, not at the `except` line.** The scanner says so itself (`:489-491`): "Report at
@@ -211,7 +229,7 @@ but cannot see the running total", and check 4 "compares the whole `src/` tree a
   `scripts/`. Its docstring: "this covers the staged set including `tests/`,
   `tools/`, `scripts/` — files the `src/`-scoped ratchet never sees."
 - **The ratchet's identity scheme is versioned.** `IDENTITY_SCHEME = "category-counts-v1"`
-  (`tools/anti_pattern_gate.py:64`), and a baseline recorded under a different scheme
+  (`tools/anti_pattern_gate.py:65`), and a baseline recorded under a different scheme
   is **refused with exit 2** rather than diffed across. The ratchet fails on a count
   increase *or a brand-new category*; it reports decreases without failing, and a
   missing/unreadable baseline exits 2 rather than passing.
@@ -223,10 +241,10 @@ but cannot see the running total", and check 4 "compares the whole `src/` tree a
 - **The bulk gate counts staged FILES > 8.** `scripts/commit_gate.py:32`
   `DEFAULT_MAX_FILES = 8`, `:31` `DEFAULT_MAX_LINES = 150`; `evaluate` (`:86`) blocks
   when `len(tracked) > max_files` and when a single file changes more than the line
-  cap. `:120` short-circuits the whole check when `ALLOW_BULK_COMMIT == "1"`
+  cap. `:121` short-circuits the whole check when `ALLOW_BULK_COMMIT == "1"`
   (printing `commit-gate: bulk declared via ALLOW_BULK_COMMIT=1, passing`).
   **Newly created files are exempt from the per-file LINE cap but still count toward
-  the file tally** (`:96-99`, "a create carries no hidden dirt … Creates still count
+  the file tally** (`:90-93`, "a create carries no hidden dirt … Creates still count
   toward the file tally"). A broken gate (`staged_numstat` raising) prints
   `passing loud` and returns 0.
   `ALLOW_BULK_COMMIT=1` is a **declaration to be justified in the commit message** —
