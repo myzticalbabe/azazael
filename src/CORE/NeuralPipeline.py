@@ -345,6 +345,7 @@ class NeuralPipeline:
                        agent_type: Optional[str] = None, limit: int = 500,
                        max_age_days: int = 30, use_data_split: bool = True,
                        register_model: bool = True, model_name: Optional[str] = None,
+                       records: list[dict] | None = None,  # frozen-record seam (from #850)
                        **train_kwargs) -> Dict[str, Any]:
         """Execute the full neural pipeline end-to-end.
 
@@ -382,8 +383,17 @@ class NeuralPipeline:
         start = time.perf_counter()
 
         try:
-            # -- Step 1: Extract ----------------------------------
-            if use_data_split:
+            # -- Step 1: Extract (or use frozen records from #850) ----------
+            if records is not None:
+                # Frozen-record seam: use the provided records and skip store extraction
+                # this is the explicit seam that lets technique-intake records reach
+                # the pipeline deterministically without touching the live store.
+                # Note: records= already leaks through **train_kwargs accidentally;
+                # this explicit path is the intended seam and kwargs behavior is unchanged.
+                train_records = records
+                test_records = []
+                metrics["data_split"] = {"total": len(train_records), "note": "frozen-seam"}
+            elif use_data_split:
                 split_data = self.data_pipe.split_memories(
                     source=source, event_type=event_type,
                     by_session=True, max_age_days=max_age_days,
@@ -528,7 +538,7 @@ class NeuralPipeline:
                 register_model=register_model, **train_kwargs
             )
         elif agent_type == "SB3":
-            return self._train_sb3(source, event_type, **train_kwargs)
+            return self._train_sb3(source, event_type, train_records=train_records, **train_kwargs)
         elif agent_type == "GRPO":
             return self._train_grpo(train_records)
         elif agent_type == "QLEARN":
@@ -542,12 +552,12 @@ class NeuralPipeline:
         else:
             return {"error": f"Unknown agent_type: {agent_type}"}
 
-    def _train_sb3(self, source: str, event_type: Optional[str],
-                   **train_kwargs) -> Dict[str, Any]:
+    def _train_sb3(self, source: str, event_type: Optional[str], train_records: Optional[List[Dict]] = None, **train_kwargs) -> Dict[str, Any]:
         """Train with SB3Agent (PPO/DQN/A2C)."""
         agent = SB3Agent(algo="PPO")
         result = agent.train(
             source=source, event_type=event_type,
+            records=train_records,  # Frozen-record seam from #850
             register_model=False,  # Pipeline handles registration
             **train_kwargs,
         )
@@ -871,7 +881,7 @@ class NeuralPipeline:
         """
         results: Dict[str, Any] = {}
         calls: List[tuple] = [
-            ("SB3", (self._train_sb3, source, event_type), dict(train_kwargs)),
+            ("SB3", (self._train_sb3, source, event_type), dict(train_kwargs, train_records=train_records)),
             ("GRPO", (self._train_grpo, train_records), {}),
             ("QLEARN", (self._train_qlearning, source, train_records, test_records),
              dict(train_kwargs)),
