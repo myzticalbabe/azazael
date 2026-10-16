@@ -1969,6 +1969,47 @@ POOL_SNAPSHOT_PATH = os.path.abspath(os.path.join(
 POOL_MAX_AGE_S = 1800  # 30 min: consecutive 5-min cycles share one pool
 
 
+def _blend_intake_pool(base_pool):
+    """INTAKE-wire (Engram #798): append technique-outcome records to the
+    info pool, fail-open.
+
+    The QD/GA loop scored genomes on DataPipelineWorm pools only, while the
+    technique-outcome intake (`build_training_records()`) fed a different
+    trainer run — same trainer class, disjoint record pools (probe
+    `tools/probe_intake_fitness_798.py`: pure-intake re-RANKS genomes vs
+    the current pool, max |delta| 5.24, so the pools genuinely disagree).
+
+    `INTAKE_POOL_BLEND` (default 0.5): intake rows appended ~= blend x
+    base size. 0 disables the wire without touching code; garbage falls
+    back to the default with a log line. ANY runtime failure (import,
+    build, shape) returns the base pool unchanged and logs — the loop
+    never breaks because the intake is unreachable. Composition is logged
+    so pool-era tagging keeps meaning the base era plus a stated mix.
+    """
+    base = list(base_pool or [])
+    try:
+        raw = os.environ.get("INTAKE_POOL_BLEND", "0.5")
+        blend = max(0.0, min(1.0, float(str(raw).strip() or "0.5")))
+    except (TypeError, ValueError):
+        log('intake blend: bad INTAKE_POOL_BLEND, using 0.5')
+        blend = 0.5
+    if not base or blend <= 0.0:
+        return base
+    try:
+        from CORE.training_intake import build_training_records
+        n_take = int(len(base) * blend)
+        built = build_training_records(limit=max(n_take, 1))
+        rows = built.get("records") or []
+        taken = rows[:n_take]
+        log('intake blend: info=%d (base=%d intake=%d blend=%.2f ok_rate=%s)'
+            % (len(base) + len(taken), len(base), len(taken), blend,
+               built.get("ok_rate")))
+        return base + taken
+    except Exception as e:
+        log('intake blend failed, base pool unchanged: %s' % str(e)[:120])
+        return base
+
+
 def _load_or_freeze_pools():
     """Shared frozen pools across consecutive runs (2026-09-09 hardening).
 
@@ -2004,7 +2045,8 @@ def _load_or_freeze_pools():
             # second source of per-genome variance.
             alert_out = prioritize_pool(
                 alert_pool, seed=int(float(snap.get('saved_at', 0))))
-            return info_pool, alert_out, True, int(age), int(float(snap.get('saved_at', 0)))
+            info_out = _blend_intake_pool(info_pool)
+            return info_out, alert_out, True, int(age), int(float(snap.get('saved_at', 0)))
         log('pool snapshot unusable (age %s), re-freezing' % (
             ('%ds' % age) if age >= 0 else 'missing'))
     except Exception as e:
@@ -2052,7 +2094,8 @@ def _load_or_freeze_pools():
             json.dump({'saved_at': now, 'info': info_pool,
                        'alert': alert_pool}, f, ensure_ascii=False, default=str)
         os.replace(tmp, POOL_SNAPSHOT_PATH)
-        return info_pool, alert_out, False, 0, int(now)
+        info_out = _blend_intake_pool(info_pool)
+        return info_out, alert_out, False, 0, int(now)
     except Exception as e:
         log('pool freeze failed, falling back to live evals: %s' % str(e)[:120])
         return None, None, False, 0, 0
