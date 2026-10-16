@@ -35,6 +35,7 @@ import os
 import random
 import sqlite3
 import sys
+import argparse
 # Repo-relative src (Oct 6, 2026 fix): the hardcoded
 # 'C:/Users/clint/azazael/src' pointed at a STALE checkout and poisoned
 # sys.path for any pytest process importing this module, so later CORE.*
@@ -2249,7 +2250,8 @@ def _acquire_cycle_lock():
         return None
 
 
-def main():
+def main(crossover_operator=None, mutation_operator=None,
+         mutation_rate=None, early_stop_patience=None):
     _lock = _acquire_cycle_lock()
     if _lock is None:
         log('another evolution cycle holds the lock, skipping this run')
@@ -2274,10 +2276,14 @@ def main():
 
     evo = EvolutionEngine(population_size=24, elitism_count=3,
                           crossover_rate=meta_params['crossover_rate'],
-                          mutation_rate=meta_params['mutation_rate'],
+                          mutation_rate=mutation_rate if mutation_rate is not None
+                          else meta_params['mutation_rate'],
                           tournament_size=meta_params['tournament_size'],
-                          early_stop_patience=meta_params['early_stop_patience'],
-                          early_stop_tolerance=meta_params['early_stop_tolerance'])
+                          early_stop_patience=early_stop_patience if early_stop_patience is not None
+                          else meta_params['early_stop_patience'],
+                          early_stop_tolerance=meta_params['early_stop_tolerance'],
+                          crossover_operator=crossover_operator or 'sbx',
+                          mutation_operator=mutation_operator or 'polynomial')
     seed_genes = last_best_genes()
 
     # Frozen eval pools (2026-09-08 fix, 2026-09-09 shared-snapshot
@@ -3190,7 +3196,21 @@ if __name__ == '__main__':
     # loop was dead (the NameError stall was caught only by log absence).
     # Fatals now land in the cycle log AND the exit code.
     try:
-        main()
+        _ap = argparse.ArgumentParser(
+            description='Run one QD evolution cycle with optional operator overrides.')
+        _ap.add_argument('--crossover-operator', choices=['sbx', 'uniform'],
+                         help='crossover operator override (default: sbx)')
+        _ap.add_argument('--mutation-operator', choices=['polynomial', 'gaussian', 'levy', 'uniform'],
+                         help='mutation operator override (default: polynomial)')
+        _ap.add_argument('--mutation-rate', type=float,
+                         help='mutation rate override (default: from evolved_meta_params)')
+        _ap.add_argument('--early-stop-patience', type=int,
+                         help='early stop patience override (default: from evolved_meta_params)')
+        _args = _ap.parse_args()
+        main(crossover_operator=_args.crossover_operator,
+             mutation_operator=_args.mutation_operator,
+             mutation_rate=_args.mutation_rate,
+             early_stop_patience=_args.early_stop_patience)
     except SystemExit:
         raise
     except BaseException:
