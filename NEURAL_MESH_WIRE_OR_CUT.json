@@ -1,14 +1,14 @@
 {
- "generated_at": "2026-10-15T22:05:09.648807",
+ "generated_at": "2026-10-15T23:47:10.286719",
  "probe": "PF16",
  "rule": "Every unreferenced mesh function must be declared wired, retired or pending. tests/test_mesh_wire_or_cut.py asserts that no finding is undeclared, that no declaration is stale, and that a `wired` declaration is actually wired.",
  "counts": {
-  "wired": 194,
+  "wired": 195,
   "retired": 57,
   "dispatched": 60,
   "pending": 57
  },
- "total": 368,
+ "total": 369,
  "declared": {
   "NeuralPipeline:NeuralPipeline.ablate_cutting_edge": {
    "module": "NeuralPipeline",
@@ -371,7 +371,7 @@
     "also defined by: HDC"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'encode' in 122 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'encode' in 123 file(s) [scripts/bitmap_font.py, scripts/close_audit_sessions.py, scripts/cosmos_singlefile.py, scripts/debate_patch.py, scripts/embedding_dashboard.py]; module-linked: no",
    "evidence": [
     "scripts/reencode_large_videos.py:202"
    ]
@@ -1575,7 +1575,7 @@
     "also defined by: Environment"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'mutate' in 4 file(s) [scripts/mesh_trusted_key.py, src/CORE/WORMS/expansion/arena.py, src/CORE/WORMS/expansion/diversity.py, src/CORE/technique_wiring/_b01_05.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'mutate' in 5 file(s) [scripts/mesh_trusted_key.py, src/CORE/WORMS/expansion/arena.py, src/CORE/WORMS/expansion/diversity.py, src/CORE/technique_wiring/_b01_05.py, tools/probe_intake_fitness_798.py]; module-linked: no",
    "evidence": [
     "scripts/budget_policy.py:59",
     "scripts/budget_policy.py:60",
@@ -1606,7 +1606,7 @@
    "qualname": "DatabaseMonitorWorm._policy_advice",
    "line": 436,
    "seg": "def _policy_advice(self, severity: str, source: str = \"db\") -> dict:\n        \"\"\"Attach learned-policy advice WITHOUT changing firing.\n\n        Pure query: delegates to RLTrainLoop.recommend (itself read-only\n        and never-raising) and returns its envelope. No alerts are\n        recorded, no cooldowns touched, no thresholds moved \u2014 a wrong\n        table therefore cannot trigger anything by itself. Works on a\n        partially constructed worm: any failure degrades to unknown.\n        \"\"\"\n        try:\n            loop = getattr(self, \"_rl_loop\", None)\n            if loop is None:\n                try:\n                    from CORE.WORMS.expansion.learning_rl import RLTrainLoop\n                    loop = RLTrainLoop()\n                except Exception as exc:\n                    note_failure(\"db_monitor:L435\", exc)\n                    loop = None\n            if loop is None:\n                raise RuntimeError(\"no policy loop available\")\n            out = loop.recommend(severity, source=source)\n            if out.get(\"action_name\") not in (\n                    \"ignore\", \"log\", \"alert\", \"remediate\", \"unknown\"):\n                out[\"action_name\"] = \"unknown\"\n            return out\n        except Exception as exc:\n            note_failure(\"db_monitor:L444\", exc)\n            return {\"action\": -1, \"action_name\": \"unknown\", \"known\": False,\n                    \"state_key\": \"%s:%s\" % (source, severity),\n                    \"source\": source}",
-   "status": "pending",
+   "status": "wired",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
    "triage": "test_reached_only",
    "triage_evidence": [
@@ -1616,7 +1616,9 @@
    "decider_evidence": [
     "named by state/wire_or_cut_slice_0_43.json:762",
     "named by state/wire_or_cut_slice_0_43.json:764"
-   ]
+   ],
+   "carried": true,
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token '_policy_advice' in 1 file(s) [src/CORE/WORMS/expansion/db_monitor.py]; module-linked: no"
   },
   "db_monitor:DatabaseMonitorWorm.create_backup": {
    "decider": "declared_in_data",
@@ -1624,7 +1626,7 @@
     "named by state/wire_or_cut_slice_0_43.json:785",
     "named by state/wire_or_cut_slice_0_43.json:787"
    ],
-   "line": 215,
+   "line": 216,
    "module": "db_monitor",
    "qualname": "DatabaseMonitorWorm.create_backup",
    "reason": "no production reference of any kind -- not as a Name, an attribute, or a string; wire it or delete it (PF16)",
@@ -3195,7 +3197,7 @@
     "tests/test_sb3_agent.py:289"
    ],
    "carried": true,
-   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'load_q_table_from_store' in 2 file(s) [scripts/run_training_orchestrator.py, src/CORE/WORMS/expansion/scheduling.py]; module-linked: no",
+   "carry_evidence": "no PF16 finding on regenerate; prior status 'wired' carried; bare token 'load_q_table_from_store' in 3 file(s) [scripts/run_training_orchestrator.py, src/CORE/WORMS/expansion/scheduling.py, tools/trace_intake_798.py]; module-linked: no",
    "evidence": [
     "src/CORE/WORMS/expansion/learning_rl.py:1032"
    ]
@@ -3891,6 +3893,14 @@
    "status": "pending",
    "triage": "no_reference_anywhere",
    "triage_evidence": []
+  },
+  "oracle:FitnessOracle.overlapping_holdout_uncertainty": {
+   "module": "oracle",
+   "qualname": "FitnessOracle.overlapping_holdout_uncertainty",
+   "line": 575,
+   "seg": "def overlapping_holdout_uncertainty(self, X: Sequence[Sequence[float]],\n                                        y: Sequence[float],\n                                        n_holds: int = 5, holdout_frac: float = 0.3,\n                                        seed: int = 0) -> dict:\n        \"\"\"Overlapping holdout uncertainty for tiny-pool designs.\n\n        Draws n_holds random holdout subsets (each holdout_frac of rows), fits\n        a fresh ensemble on the complement, predicts on the holdout, and returns\n        the variance of holdout predictions plus per-holdout errors. Overlap\n        between holdouts (controlled by seed + random draw) gives more stable\n        estimates than k-fold when the pool is tiny.\n        \"\"\"\n        n = len(X)\n        if n < 4 or n_holds < 2:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"pool too small\"}\n        rng = random.Random(seed)\n        hold_size = max(1, int(n * holdout_frac))\n        hold_size = min(hold_size, n - 1)\n        errors = []\n        for h in range(n_holds):\n            idx = list(range(n))\n            rng.shuffle(idx)\n            hold_idx = set(idx[:hold_size])\n            train_rows = [X[i] for i in range(n) if i not in hold_idx]\n            train_y = [float(y[i]) for i in range(n) if i not in hold_idx]\n            hold_rows = [X[i] for i in range(n) if i in hold_idx]\n            hold_y = [float(y[i]) for i in range(n) if i in hold_idx]\n            if not train_rows or not hold_rows:\n                continue\n            # Fit a fresh ensemble on the train complement\n            try:\n                oracle = FitnessOracle(self.n_gene, self.n_era, self.hidden,\n                                       self.n_models, self.seed + h)\n                oracle.fit(train_rows, train_y, epochs=max(50, 300 // n_holds),\n                           lr=5e-3, batch_size=max(4, len(train_rows) // 4))\n                mean, csd_sd, nuqls_sd = oracle.uncertainty_pure(hold_rows)\n                for j, hi in enumerate(sorted(hold_idx)):\n                    errors.append(abs(mean[j] - hold_y[j]))\n            except Exception:\n                continue\n        if not errors:\n            return {\"holds\": [], \"holdout_var\": 0.0, \"mean_abs_error\": 0.0,\n                    \"n_holds\": 0, \"note\": \"all holds failed\"}\n        m = sum(errors) / len(errors)\n        var = sum((e - m) ** 2 for e in errors) / max(1, len(errors) - 1)\n        return {\"holds\": errors, \"holdout_var\": round(var, 6),\n                \"mean_abs_error\": round(m, 6), \"n_holds\": len(errors),\n                \"note\": \"overlapping holdout protocol (U2)\"}",
+   "status": "pending",
+   "reason": ""
   },
   "oracle:build_dataset": {
    "module": "oracle",
@@ -5846,16 +5856,5 @@
    "seg": "def secrete(self, trace_id: str, summary: str) -> dict[str, Any]:\n        import os\n        g_ok = os.path.exists(r'G:\\source-of-truth') or os.path.exists('/mnt/g')\n        with self._lock:\n            self._traces.append({\"id\": trace_id, \"summary\": summary[:120],\n                                 \"g_archive\": g_ok,\n                                 \"at\": datetime.now().isoformat()})\n            return {\"success\": True, \"traces\": len(self._traces),\n                    \"g_archive\": g_ok, \"quarantined\": True}",
    "status": "retired"
   }
- },
- "triage_counts": {
-  "test_reached_only": 52,
-  "no_reference_anywhere": 5
- },
- "decider_counts": {
-  "protocol_or_override": 0,
-  "declared_in_data": 10,
-  "dynamic_call": 8,
-  "test_is_the_wire": 39,
-  "dead_candidate": 0
  }
 }
