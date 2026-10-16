@@ -1994,6 +1994,7 @@ def _blend_intake_pool(base_pool):
         log('intake blend: bad INTAKE_POOL_BLEND, using 0.5')
         blend = 0.5
     if not base or blend <= 0.0:
+        log('intake blend: off (blend=%.2f base=%d)' % (blend, len(base)))
         return base
     try:
         from CORE.training_intake import build_training_records
