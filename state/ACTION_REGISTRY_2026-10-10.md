@@ -38,7 +38,7 @@ Rule: no item closes on a doc sentence; every CLOSE cites code.
   known-good outcome's log/ignore bonus never fired. Bridge = `CORE/training_intake.py:143
   build_training_records()` (preserves the producer's severity, adds
   `data["success"]`, skips+counts an unmeasured row, writes nothing) + the
-  `INTAKE` rotation track (`scripts/track_registry.py:65`, runner
+  `INTAKE` rotation track (`scripts/track_registry.py:67`, runner
   `scripts/run_training_orchestrator.py:370 run_intake_cycle`) driving
   `RLTrainLoop.train_from_memory(records=...)`. Measured on a copy of the live
   store: 500 rows / 12 hooks consumed, q_table 74, exit 0; empty store exits 1
@@ -642,6 +642,16 @@ ignored. Consequence: **every future modification needs `git add -f`**, or HEAD 
 old gate — the same failure shape as section 11's `evolution_log.py`, one level down (a gate whose
 mechanism is invisible to the thing that ships it). Never chain independent `git add` calls with
 `&&`; a refusal in the first silently skips the rest.
+
+**Correction (2026-10-15, Engram #793 doc-drift pass).** The consequence above is superseded.
+`.gitignore` was changed on 2026-10-11 (the rule's own comment carries the date) so the rule is
+now `.githooks/*` — the directory's CONTENTS, not the directory — plus `!.githooks/pre-commit`
+(`azazael/.gitignore:82` and `:95`). A trailing-slash rule excludes the DIRECTORY, and git
+cannot re-include a file whose parent directory is excluded, which is why the earlier negation was
+inert; excluding the contents lets it land. So **a plain `git add .githooks/pre-commit` now
+succeeds and no `git add -f` is required** — the hook is no longer ignored-while-tracked, and the
+gate ships in a fresh clone. What survives from the paragraph above is the process lesson, which is
+never git-specific: never chain independent `git add` calls with `&&`.
 
 ## 13. WAVE 5 (2026-10-11) — S-8 CLOSED, the guard extended past `src/`, and Tier 4's premise was already satisfied
 

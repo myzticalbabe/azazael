@@ -42,7 +42,7 @@ Two honest caveats:
 
 | symbol | row | production caller? | caller, or NONE | who must wire it |
 |---|---|---|---|---|
-| `scheduling.next_interval_hours` | EP187 | **YES** | `ScheduledTrainingWorm._scheduler_loop` — `scheduling.py:921` | — (reader is live) |
+| `scheduling.next_interval_hours` | EP187 | **YES** | `ScheduledTrainingWorm._scheduler_loop` — `scheduling.py:941` | — (reader is live) |
 | `scheduling.record_contribution` | EP187 | NO | tests only — the field's *source* has no caller | the scheduler loop must record outcomes, else `contribution_weights` is always unwritten |
 | `allocation.apply_dense_reward` | EP351 | **YES** | `learning_grpo.py:284`, inside the live reward path | — (inert at default weight 0) |
 | `allocation.dense_implicit_reward` | EP351 | **YES** | called by `apply_dense_reward` — `learning_grpo.py:488` | — |
@@ -50,7 +50,7 @@ Two honest caveats:
 | `learning_grpo.replay_offline_step` | EP350 | NO | tests only | same as above |
 | `reflexion.locate_pivotal_turn` | EP345 | **YES** | `record_reflection` — `reflexion.py:190` | — |
 | `reflexion.pivotal_credit_weights` | EP345 | **YES** | `record_reflection` — `reflexion.py:195` | — |
-| `structured_action.drive_for_workflow_step` | EP44 | **YES** | imported and called by `workflow.py:73` (`_react_step_drive`, guarded) | — |
+| `structured_action.drive_for_workflow_step` | EP44 | **YES** | imported by `workflow.py:73` as `_react_step_drive` (guarded); `:73` is the import, the call site is not pinned on that line | — |
 | `structured_action.plan_mutations` | EP44 | internal only | `structured_action.py:298`; the `workflow.py:1018` hit is the *dataclass field*, not a call | `workflow.py` already consumes the mutations list — no action |
 | `workflow.submit_workflow` | EP209 | NO | tests only | whatever owns the run loop must hand the workflow to a pool as one unit |
 | `workflow.execute(cost_fn=…)` | EP248 | NO | tests only | the caller that knows step costs |
@@ -60,10 +60,10 @@ Two honest caveats:
 | `freethreading.wait_group` | EP130 | NO | tests only | same |
 | `freethreading.group_results` | EP130 | NO | tests only | same |
 | `allocation.joint_action_space` | EP223 | NO | tests only | the joint policy over the three routers |
-| `allocation.action_space` (allocator) | EP223 | internal only | called by `joint_action_space` (`allocation.py:301/376`), itself unwired | same |
-| `allocation.participation_prior` | EP253 | internal only | called by `action_space` (`allocation.py:301`) | `dispatch_plan.assign_roles` |
+| `allocation.action_space` (allocator) | EP223 | internal only | called by `joint_action_space` (`allocation.py:376`; the `:301` this row first cited is the `participation_prior()` call *inside* `action_space`, not a call to it) | same |
+| `allocation.participation_prior` | EP253 | internal only | called by `action_space` (`allocation.py:303`) | `dispatch_plan.assign_roles` |
 | `cluster_route.action_space` | EP223 | NO | tests only | same joint policy |
-| `dispatch_plan.plan_dag(ready_order, fissions)` | EP130, EP374 | **YES** (consumer) | `METACLUSTER.py:441` reads `plan["ready_order"]` | — for the key; the *fission* key has no reader |
+| `dispatch_plan.plan_dag(ready_order, fissions)` | EP130, EP374 | **YES** (consumer) | `METACLUSTER.py:455` reads `plan["ready_order"]` (the planner is called at `:411`) | — for the key; the *fission* key has no reader |
 | `dispatch_plan.assign_roles(participation=…)` | EP253 | NO | tests only | the allocator that holds the prior |
 | `METACLUSTER._plan_execution_order(granularity=, capability_split=, plan_out=)` | EP186, EP197, EP374 | NO | tests only supply the hooks; `orchestrate` forwards them only when given | the top-level invoker of `MetaCluster.orchestrate` |
 | `local_memory.record_event(admit=…)` | EP395 | NO | tests only | the write path's callers (every recorder site) |
@@ -129,18 +129,29 @@ nothing, which no test can distinguish from a pass:
 
 ## Counts
 
-Of **41 hook symbols** audited:
+Of **42 hook symbols** audited — **corrected 2026-10-15 (Engram #793 doc-drift pass)**: the
+original text said **41**, but the table above has 42 rows, and re-deriving the split from that
+table's own `production caller?` column gives the figures below. The original figures are named
+where they differ so the correction stays visible rather than being smoothed over.
 
 - with a production caller: **8** (`next_interval_hours`, `apply_dense_reward`,
   `dense_implicit_reward`, `locate_pivotal_turn`, `pivotal_credit_weights`,
-  `drive_for_workflow_step`, `dialectic`, `authorize`) — and of these, **3 are
-  inert at their defaults**;
+  `drive_for_workflow_step`, `dispatch_plan.plan_dag` — the consumer, and `authorize`) — and of
+  these, **3 are inert at their defaults**. The original list named `dialectic` (which appears in
+  no row of the table) and omitted `plan_dag`;
 - internal-only (called solely from within their own module, by something that is
-  itself unwired): **8**;
-- whose only external caller is a test file: **23**;
-- with no caller anywhere: **2** (`record_contribution`, `submit_workflow`).
+  itself unwired): **6** — `plan_mutations`, `allocation.action_space`,
+  `allocation.participation_prior`, `governance.quantify`, `dream_arena.predict_next`,
+  `codebase_graph.consult`/`MapBeforeAct` (the original text said 8);
+- whose only external caller is a test file: **27** (the original text said 23);
+- READ live but never SET in production: **1** (`LoopContext.mode_decider`) — a class the
+  original text gave no count of its own, so it was uncounted in the 41;
+- with no caller anywhere: **0 rows carry that label**; the original text named
+  `record_contribution` and `submit_workflow` here, but its own table labels both "NO -- tests
+  only", i.e. they were counted twice -- once in the 23 and once in the 2.
 
-So **31 of 41 hooks (76%) do not reach a live production call site** — which is
+So **34 of 42 hooks (81%) do not reach a live production call site** (33 of 42, or 79%, if the
+read-live/never-set row is set aside) — which is
 the single most important sentence in this audit: the wave added capable,
 tested, correctly-defaulted code that the running system does not invoke.
 
@@ -170,5 +181,8 @@ duplicate-surface question, not a reach question, and I did not open both to
 compare semantics — flagging it because a second graph API is exactly the
 "adjacency, not adoption" pattern the rescore warns about.
 
-This file is written into `state/`, which is git-ignored (`.gitignore:248 state/*`):
-the coordinator must `git add -f` it to version it.
+This file is written into `state/`, which is git-ignored (`.gitignore:257 state/*` — this note
+cited `:248` until 2026-10-15; the `.githooks/*` block that landed above it shifted the line, so
+`:248` now lands on a comment line). **Corrected:** this file is already versioned —
+`git ls-files state/` lists it among 22 tracked `state/` files — so no `git add -f` is needed to
+land it. Force-add is the rule only for the `state/` files that were never added.
