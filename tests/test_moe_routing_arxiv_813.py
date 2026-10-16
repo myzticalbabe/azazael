@@ -157,6 +157,72 @@ def test_unknown_mode_rejected_ctor_and_setter():
 
 
 # ---------------------------------------------------------------------------
+# Slice C -- R2 BIP quota assignment (arXiv:2502.15451)
+# ---------------------------------------------------------------------------
+
+def test_bip_even_assigns_quotas_where_top_k_pins():
+    """R2 acceptance, PER BATCH this time (assignment side-steps the pinning
+
+    argument): on the collinear fixture the shipped router reports 2/8
+    experts and entropy 1/3; the BIP assignment gives every expert exactly
+    its equal-share quota, so per-batch used is 8/8, entropy 1.0, Gini 0.0.
+    The token keeps top_k=2 experts, so the batch supplies the same number
+    of expert slots it always did -- only the solver spreads them.
+    """
+    moe = _build("bip")
+    _out, _aux, stats = moe.forward(COLLINEAR_BATCH)
+    assert stats["counts"] == [16] * 8          # exact quotas: 128 slots/8
+    assert stats["used_experts"] == 8
+    assert stats["gini"] == 0.0                 # measured perfectly even
+    assert stats["min_max_ratio"] == 1.0
+    assert math.isclose(
+        load_entropy_normalised(stats["counts"], N_EXPERTS), 1.0)
+    # Every token still carries exactly top_k slots.
+    assert sum(stats["counts"]) == TOP_K * 64
+
+    # Determinism: identical construction replays the identical batch.
+    replay = _build("bip")
+    assert replay.forward(COLLINEAR_BATCH)[2]["counts"] == stats["counts"]
+
+    # The shipped router is untouched by the solver's existence.
+    shipped = _build("switch")
+    assert shipped.forward(COLLINEAR_BATCH)[2]["counts"] == COLLINEAR_COUNTS
+
+
+def test_bip_handles_indivisible_remainder_and_varied_batches():
+    """No division luck required: remainder slots rotate deterministically.
+
+    33 tokens x top_k 2 = 66 slots over 8 experts: quotas 8 with TWO
+    remainder slots. The leftover goes to the lowest cumulative-count
+    experts first (ties by index), so a repeated batch rotates its
+    remainder instead of systematically favouring the row front.
+    """
+    rows33 = [[1.0 * j for j in range(D_MODEL)]] * 33
+    moe = _build("bip")
+    _o, _a, stats = moe.forward(rows33)
+    assert sum(stats["counts"]) == 2 * 33
+    assert stats["used_experts"] == 8
+    # Exactly two experts earned 9 slots, six earned 8, and the pair is
+    # the two lowest cumulative counts at assignment time (0,0 -> index 0,1).
+    tallies = sorted(stats["counts"], reverse=True)
+    assert tallies == [9, 9] + [8] * 6
+    forward_two = moe.forward(rows33)[2]["counts"]  # second batch: rotate
+    assert forward_two[0] < 9 or forward_two[1] < 9  # the remainder moved on
+
+    # A varied (non-collinear) batch keeps full assignment too.
+    varied = [[float((i * 7 + j) % 5) for j in range(D_MODEL)]
+              for i in range(64)]
+    v = _build("bip")
+    _o, _a, vstats = v.forward(varied)
+    assert sum(vstats["counts"]) == TOP_K * 64
+    assert vstats["used_experts"] == 8
+
+    # And output shape never changes with the solver.
+    out, _aux, _s = moe.forward(rows33)
+    assert len(out) == 33 and all(len(r) == D_MODEL for r in out)
+
+
+# ---------------------------------------------------------------------------
 # Slice B -- R1 Loss-Free bias routing (arXiv:2408.15664)
 # ---------------------------------------------------------------------------
 
