@@ -160,6 +160,21 @@ else
 fi
 echo ""
 
+# ─── Check 7 (advisory): testing-paradigm rule 1 (Engram #784) ───
+# A new src/ function needs a staged Hypothesis property test. Advisory by
+# default: a presence heuristic must not block commits until it is measured.
+# Set PARADIGM_GATE_STRICT=1 to make it blocking. Its exit code is printed,
+# not enforced, unless strict mode is on.
+if [ -f "$SCRIPT_DIR/tools/paradigm_gate.py" ]; then
+    PARADIGM_OUT=$(python "$SCRIPT_DIR/tools/paradigm_gate.py" --check 2>&1)
+    PARADIGM_EXIT=$?
+    echo "$PARADIGM_OUT"
+    if [ $PARADIGM_EXIT -ne 0 ]; then
+        echo "[Paradigm] BLOCKED (strict mode). Stage a Hypothesis property test."
+        exit 1
+    fi
+fi
+
 # ─── Check 6 (non-blocking): PMB outcome observer ───
 # A commit is an outcome-bearing turn. Recording it here feeds PMB's
 # Earned-Memory loop (`lesson_impact`) and its adherence pass, both of which
