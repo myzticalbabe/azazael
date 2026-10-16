@@ -57,11 +57,12 @@ try:
 except Exception:  # pragma: no cover - registry unavailable, keep running
     ROTATION = ["PPO", "DQN", "A2C", "SAC", "TD3", "DDPG", "QRDQN",
                 "TRPO", "TQC", "ARS", "MaskablePPO", "GRPO", "DPO", "OFFLINE",
-                "RL", "DREAMTUNE", "WORMGA", "ALLPAR"]
+                "RL", "DREAMTUNE", "WORMGA", "INTAKE", "ALLPAR"]
     _TRACK_EVENTS = {
         "GRPO": ("grpo_training_orchestrated", "eval_mean_reward", None),
         "DPO": ("dpo_training_orchestrated", "eval_mean_reward", None),
         "OFFLINE": ("offline_training_orchestrated", "eval_mean_reward", None),
+        "INTAKE": ("intake_training_orchestrated", "eval_mean_reward", None),
         "DREAMTUNE": ("dreamtune_training_orchestrated", "eval_mean_reward", None),
         "RL": ("training_run_complete", "avg_reward", "ScheduledTrainingWorm"),
         "WORMGA": ("wormga_training_orchestrated", "eval_mean_reward", None),
@@ -364,6 +365,110 @@ def run_offline_cycle() -> dict:
             "model_version": data["model_version"],
             "eval_mean_reward": data["eval_mean_reward"],
             "duration_ms": duration_ms}
+
+
+def run_intake_cycle() -> dict:
+    """One INTAKE track run: Q-learning over the MEASURED technique outcomes.
+
+    Closes item H-3 of `state/ACTION_REGISTRY_2026-10-10.md` and the gap in
+    Engram #368/#770 ("harvested benefit unapplied: 1/33 in prod, zero trainer
+    intake"). The `technique-link` stream already existed -- every live hook
+    call writes one -- and no trainer could learn from it, because the row
+    carries its outcome in `data["ok"]` while the trainers' reward model reads
+    a TOP-LEVEL `severity` and `data["success"]`, so a failed hook and a
+    succeeded one arrive as the same record. `build_training_records()` is that
+    translation; this track is the production caller that turns it into an edge
+    instead of an exercise.
+
+    The learner is RLTrainLoop -- one of the four trainers #770 names -- driven
+    through its own `records=` path, so the run measures the real trainer and the
+    pool is frozen for the whole run (every episode sees identical data).
+    `eval_mean_reward` is therefore POLICY AGREEMENT WITH MEASURED OUTCOMES: how
+    well the current Q-policy's chosen action fits a technique that actually
+    succeeded or failed. It is comparable across runs on the same pool, and it is
+    not an environment return -- which is why a thin or unmeasured stream must
+    not read as a score: a starved run reports success=False with
+    records_used=0 and writes no artifact (the rule the other cycles follow).
+
+    Persistence is left ON and the persisted Q-table is loaded first, so the arm
+    accumulates a policy across runs rather than reporting the same number
+    forever (a constant-valued arm is the dead-objective shape `learning_rl`
+    already carries a lesson for). Its own rows are `RLTrainLoop`/
+    `ModelVersioner` sourced, both already in EXCLUDED_TRAINING_SOURCES, so this
+    track cannot feed its own output back into other tracks' pools.
+    """
+    from CORE.training_intake import build_training_records
+    from CORE.WORMS.expansion.learning import RLTrainLoop
+    from CORE.local_memory import get_memory_store
+
+    run_id = _gen_run_id("intake")
+    t0 = time.time()
+    # 500 is the store's own per-query ceiling; asking for more only adds a
+    # clamp warning to the run log.
+    built = build_training_records(limit=500)
+    records = built.get("records") or []
+    if not records:
+        return {
+            "algo": "INTAKE", "success": False, "records_used": 0,
+            "model_version": None, "eval_mean_reward": None,
+            "duration_ms": round((time.time() - t0) * 1000, 2),
+            "note": ("skipped: no MEASURED technique outcomes (%d rows seen, "
+                     "%d unmeasured%s)"
+                     % (built.get("n_rows", 0), built.get("n_unmeasured", 0),
+                        ", error=%s" % (built.get("store_error")
+                                         or built.get("read_error"))
+                        if (built.get("store_error")
+                            or built.get("read_error")) else "")),
+        }
+
+    loop = RLTrainLoop()
+    # Best-effort warm start: the run continues the persisted policy instead of
+    # relearning the same pool from zero every slot. Returns False when there is
+    # no table yet, which is a fresh start, not a failure.
+    loaded = False
+    try:
+        loaded = bool(loop.load_q_table_from_store())
+    except Exception as exc:  # noqa: BLE001 - a missing table is not a failure
+        print(f"  [WARN] intake q-table load skipped: {exc}", flush=True)
+    result = loop.train_from_memory(
+        records=records, n_episodes=60,
+        max_steps=min(50, len(records)),
+        use_schema_features=False,
+    )
+    if "error" in result:
+        raise RuntimeError(result["error"])
+
+    duration_ms = round((time.time() - t0) * 1000, 2)
+    data = {
+        "run_id": run_id,
+        "algo": "INTAKE",
+        "total_timesteps": 0,
+        "records_used": len(records),
+        "regime": _regime(),
+        "data_source": f"memory:{built.get('source')}",
+        "model_version": _next_track_version("intake_training_orchestrated"),
+        "eval_mean_reward": round(float(result.get("avg_reward", 0.0)), 4),
+        "eval_std_reward": 0.0,
+        "q_table_size": int(result.get("q_table_size", 0)),
+        "intake_ok_rate": built.get("ok_rate"),
+        "intake_hooks": len(built.get("by_hook") or {}),
+        "intake_unmeasured": built.get("n_unmeasured"),
+        "warm_started": loaded,
+        "duration_ms": duration_ms,
+    }
+    store = get_memory_store()
+    store.record_event(
+        source="TrainingOrchestrator", event_type="intake_training_orchestrated",
+        data=data, severity="info", tags=["intake", "technique", "training",
+                                          "orchestrated"],
+    )
+    return {"algo": "INTAKE", "success": True, "records_used": len(records),
+            "model_version": data["model_version"],
+            "eval_mean_reward": data["eval_mean_reward"],
+            "duration_ms": duration_ms,
+            "note": ("%d technique hooks, ok_rate=%s, unmeasured=%s"
+                     % (data["intake_hooks"], data["intake_ok_rate"],
+                        data["intake_unmeasured"]))}
 
 
 def _thought_family(task, words: int = 3) -> str:
@@ -973,12 +1078,14 @@ def _run_impl():
         print(f"  [WARN] Registry warm failed: {e}", flush=True)
 
     # Non-SB3 tracks: GRPO worm-selection, DPO preference learning, OFFLINE
-    # holdout, RL scheduled pipeline, DREAMTUNE dream-GA, WORMGA per-worm
-    # execution-policy GA, and ALLPAR (the folded-in parallel ensemble).
+    # holdout, INTAKE technique-outcome intake, RL scheduled pipeline,
+    # DREAMTUNE dream-GA, WORMGA per-worm execution-policy GA, and ALLPAR
+    # (the folded-in parallel ensemble).
     cycle_fns = {
         "GRPO": run_grpo_cycle,
         "DPO": run_dpo_cycle,
         "OFFLINE": run_offline_cycle,
+        "INTAKE": run_intake_cycle,
         "RL": run_rl_cycle,
         "DREAMTUNE": run_dreamtune_cycle,
         "WORMGA": run_wormga_cycle,
