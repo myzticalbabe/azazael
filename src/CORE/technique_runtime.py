@@ -295,6 +295,8 @@ def verify_boundary(subject: str, **kwargs: Any) -> Dict[str, Any]:
         # for every gate in this tree) -- but RECORD it, so a gate that is
         # silently erroring is visible in failure_notes() rather than looking
         # exactly like a gate that passed.
+        record_link("technique_runtime.verify_boundary", subject, False,
+                    citation=str(exc) or "")
         note_failure("verify-boundary", exc)
         out = {"accepted": True, "reasons": [f"gate-error:{type(exc).__name__}"],
                "remediations": [], "citation": ""}
@@ -322,6 +324,8 @@ def reflect_on_failure(question: str, what_failed: str, what_next: str,
         if predicted is not None:
             _record_calibration(question, predicted, decision_id)
     except Exception as exc:
+        record_link("technique_runtime.reflect_on_failure", question, False,
+                    citation=str(exc) or "")
         note_failure("technique_runtime:L275", exc)
         written = False
     record_link("technique_runtime.reflect_on_failure", question, written,
@@ -364,6 +368,8 @@ def revise_until_confirmed(candidate: Any, subject: str, repair_fn: Callable,
                                    max_depth=max_depth)
         out = dict(out or {})
     except Exception as exc:
+        record_link("technique_runtime.revise_until_confirmed", subject, False,
+                    citation=str(exc) or "")
         note_failure("technique_runtime:revise-until-confirmed", exc)
         return {"final": candidate, "depths_used": 0, "confirmed": False,
                 "stopped_early": False, "reason": f"{type(exc).__name__}"}
