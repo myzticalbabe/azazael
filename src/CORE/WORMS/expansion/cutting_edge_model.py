@@ -638,6 +638,155 @@ class SparseMoE:
             weights.append([prob_rows[t][i] / mass for i in selected])
         return chosen, weights, prob_rows
 
+    def _assign_lpr(self, rows: Sequence[Sequence[float]]) \
+            -> Tuple[List[List[int]], List[List[float]], List[List[float]],
+                     List[List[Tuple[int, List[float]]]]]:
+        """R3 LPR assignment READING (arXiv:2506.21328) — prototype clusters.
+
+        Latent Prototype Routing re-derives token routing from a
+        CLUSTERING perspective: experts are latent prototypes and each
+        token belongs by cluster affinity, not by a winner-take-all score.
+        Our deterministic reading keeps the assignment solver (equal
+        quotas, greedy by affinity, rotating remainder — the same solver
+        ``_assign_bip`` uses) but swaps the affinity surface from the
+        affine gate row to the expert's latent prototype: a prototype is
+        the EMA of the rows the expert actually routed (warm-started from
+        its gate row on the first batch), alpha = DEFAULT_LPR_PROTO_ALPHA.
+        One variable relative to BIP = the affinity surface; one variable
+        relative to switch = prototype clustering + assignment.
+
+        Why it earns its place next to BIP: BIP quotas bind on ANY batch,
+        including the collinear one, but on a batch whose tokens DO have
+        distinct affinities the quota solver leaves a token with its
+        second-best even if prototypes say the token belongs with a
+        near-tie cluster — the LPR reading measures specialization
+        (prototype spread) instead of only load. The diversity stats that
+        ride the mode (``diversity_stats``) are the SimBal specialties
+        (arXiv:2506.14038 / arXiv:2505.22323): orthogonality across expert
+        prototypes and specialization variance.
+        """
+        if self._prototypes is None:
+            # Warm start: prototypes = the gate rows, so the first batch's
+            # LPR assignment is a pure gate reading, and the EMA has
+            # something real to drift FROM.
+            self._prototypes = [list(row) for row in self.gate]
+        scored: List[List[Tuple[float, int]]] = []
+        prob_rows: List[List[float]] = []
+        for token in rows:
+            # Affinity is PURE prototype: no gate_bias. Clusters read the
+            # expert's latent centre; the Switch remedy stays a remedy and
+            # the prototype space stays its own surface — that separation
+            # is what makes the LPR-vs-BIP reading ONE variable.
+            logits = [_dot(proto, token)
+                      for proto in self._prototypes]
+            probs = _softmax(logits)
+            prob_rows.append(probs)
+            scored.append(sorted((-probs[i], i)
+                                 for i in range(self.n_experts)))
+
+        total_slots = self.top_k * len(rows)
+        quotas = [total_slots // self.n_experts] * self.n_experts
+        remainder = total_slots % self.n_experts
+        if remainder:
+            order_of_need = sorted(range(self.n_experts),
+                                   key=lambda i: (self._cumulative[i], i))
+            for i in order_of_need[:remainder]:
+                quotas[i] += 1
+
+        left = list(quotas)
+        chosen: List[List[int]] = []
+        routed_rows: List[List[Tuple[int, List[float]]]] = []
+        for t in range(len(rows)):
+            picks: List[int] = []
+            for _neg_rank, i in scored[t]:
+                if left[i] > 0:
+                    picks.append(i)
+                    left[i] -= 1
+                    if len(picks) == self.top_k:
+                        break
+            while len(picks) < self.top_k:
+                fallback = max(range(self.n_experts),
+                               key=lambda i: (left[i], -i))
+                picks.append(fallback)
+                left[fallback] -= 1
+            chosen.append(picks)
+            routed_rows.append([(i, list(rows[t])) for i in picks])
+
+        weights: List[List[float]] = []
+        for t in range(len(rows)):
+            selected = chosen[t]
+            mass = sum(prob_rows[t][i] for i in selected) or 1.0
+            weights.append([prob_rows[t][i] / mass for i in selected])
+        return chosen, weights, prob_rows, routed_rows
+
+    def _update_prototypes(
+            self, routed_rows: List[List[Tuple[int, List[float]]]]) -> None:
+        """EMA-drift each expert's prototype toward its routed rows.
+
+        Runs AFTER the batch's routing (self-influence is excluded by
+        construction): a prototype that received rows moves toward their
+        mean by DEFAULT_LPR_PROTO_ALPHA, an expert with no routed rows
+        keeps its prototype untouched — no measurement, no movement, the
+        same honesty contract every other measured update in this file
+        follows.
+        """
+        if self._prototypes is None:
+            return
+        for i in range(self.n_experts):
+            pts = [row
+                   for token_routed in routed_rows
+                   for (expert_id, row) in token_routed
+                   if expert_id == i]
+            if not pts:
+                continue
+            mean = [sum(col) / len(pts) for col in zip(*pts)]
+            proto = self._prototypes[i]
+            self._prototypes[i] = [
+                (1.0 - DEFAULT_LPR_PROTO_ALPHA) * p
+                + DEFAULT_LPR_PROTO_ALPHA * m for p, m in zip(proto, mean)]
+
+    def diversity_stats(self) -> Dict[str, Any]:
+        """SimBal wording of "how different are the experts" (Engram #813).
+
+        orthogonality_loss: the MEAN off-diagonal cosine between expert
+        prototypes — 0.0 means every prototype is perpendicular (perfect
+        specialization, the SimBal target), 1.0 means they all point the
+        same way (a collapsed gate seen from the specialization side).
+        specialization_variance: the per-dimension variance of the
+        prototypes' means = are the prototypes spread apart at all.
+        Both are MEASUREMENTS (arXiv:2506.14038 / 2505.22323 as the wording
+        source); with our #813 reading they ride the LPR mode's prototype
+        space rather than a learned loss, because this model has no
+        gradient path for the gate.
+        """
+        if self._prototypes is None:
+            return {"orthogonality_loss": None, "specialization_variance": None,
+                    "reason": "no prototype measured yet",
+                    "n_pairs": 0}
+        protos = self._prototypes
+        squares = [sum(v * v for v in p) for p in protos]
+        n_pairs = 0
+        cosine_sum = 0.0
+        for i in range(self.n_experts):
+            for j in range(i + 1, self.n_experts):
+                if squares[i] <= 0.0 or squares[j] <= 0.0:
+                    continue
+                denom = math.sqrt(squares[i] * squares[j]) or 1.0
+                dot = _dot(protos[i], protos[j])
+                cosine_sum += dot / denom
+                n_pairs += 1
+        dim_means = [sum(col) / len(protos) for col in zip(*protos)]
+        spec_var = (sum(
+            sum((p[d] - dim_means[d]) ** 2 for d in range(len(dim_means)))
+            for p in protos) / max(1, len(protos) * len(dim_means)))
+        return {
+            "orthogonality_loss": round(cosine_sum / max(1, n_pairs), 6)
+            if n_pairs else None,
+            "specialization_variance": round(spec_var, 6),
+            "reason": None,
+            "n_pairs": n_pairs,
+        }
+
     def _selection_spread(self, tokens: Sequence[Sequence[float]]) -> float:
         """max-min of the base selection scores this batch's gate would give.
 
@@ -700,6 +849,9 @@ class SparseMoE:
         # away by the solver, so no mode smells the other's work.
         if self.route_mode == "bip":
             chosen, weights, prob_rows = self._assign_bip(self._coerce_rows(tokens))
+        elif self.route_mode == "lpr":
+            chosen, weights, prob_rows, routed_rows = self._assign_lpr(
+                self._coerce_rows(tokens))
         self.last_inputs = list(tokens)
         out = [[0.0] * self.d_model for _ in range(n_tokens)]
         counts = [0] * self.n_experts
@@ -726,9 +878,16 @@ class SparseMoE:
         # after EVERY batch -- the router option that moves without a caller
         # remembering remediation. Reported, never silent.
         lossfree: Dict[str, Any] = {"updated": False}
+        diversity: Dict[str, Any] = {"orthogonality_loss": None,
+                                     "specialization_variance": None}
         if self.route_mode == "bias":
             lossfree = self._update_lossfree_bias(
                 counts, clamp=self._selection_spread(tokens))
+        elif self.route_mode == "lpr":
+            # R3: prototypes drift AFTER this batch has routed (no
+            # self-influence), and the drift is a measured EMA, reported.
+            self._update_prototypes(routed_rows)
+            diversity = self.diversity_stats()
 
         self.last_stats = {
             "tokens": n_tokens,
@@ -742,6 +901,7 @@ class SparseMoE:
             "gini": gini_coefficient(counts),
             "min_max_ratio": (min(counts) / max(counts)) if max(counts) else 0.0,
             "lossfree": lossfree,
+            "diversity": diversity,
         }
         return out, aux, dict(self.last_stats)
 

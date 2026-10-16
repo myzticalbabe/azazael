@@ -223,6 +223,80 @@ def test_bip_handles_indivisible_remainder_and_varied_batches():
 
 
 # ---------------------------------------------------------------------------
+# Slice D -- R3 LPR prototype routing + SimBal diversity (arXiv:2506.21328,
+# 2506.14038, 2505.22323)
+# ---------------------------------------------------------------------------
+
+def test_lpr_assignment_binds_quotas_where_the_batch_cannot_compare():
+    """LPR acceptance per batch, on the family where clusters cannot split.
+
+    On collinear tokens every prototype reads the same affinity, so the
+    quota part of the LPR reading binds exactly like BIP's: 8/8 experts
+    used, entropy 1.0 sentinels — and the prototype surface must then
+    KEEP that spread as batches repeat (the EMA drifts, the quotas are
+    what keep the gate balanced, and the acceptance is measured both
+    after one batch and after several).
+    """
+    moe = _build("lpr")
+    _o, _a, stats = moe.forward(COLLINEAR_BATCH)
+    assert stats["counts"] == [16] * 8
+    assert stats["used_experts"] == 8
+    assert math.isclose(
+        load_entropy_normalised(stats["counts"], N_EXPERTS), 1.0)
+    # A separate instance carries the drift loop so the determinism replay
+    # compares EXACTLY equal batch counts (the first instance is one batch
+    # ahead by construction).
+    drifter = _build("lpr")
+    for _ in range(4):  # prototypes drift; utilisation stays bound
+        stats = drifter.forward(COLLINEAR_BATCH)[2]
+        assert stats["counts"] == [16] * 8
+
+    # Determinism replay (prototypes included: the drift is deterministic).
+    replay = _build("lpr")
+    for _ in range(4):
+        replay.forward(COLLINEAR_BATCH)
+    assert replay._prototypes == drifter._prototypes
+
+
+def test_diversity_stats_are_measurements_with_a_positive_control():
+    """SimBal wordings ride the LPR prototype space; None until measured.
+
+    A virgin gate has no prototype measurement and says so (never a fake
+    0.0); after routing, orthogonality_loss lands strictly inside (0, 1)
+    on the varied batch (prototypes are neither identical nor perfectly
+    perpendicular here — measured), and rotates meaning when the fixtures
+    rotate: the collinear fixture's prototypes all drift toward the SAME
+    mean row, which must read as HIGH orthogonality (alignment), strictly
+    above the varied batch's.
+    """
+    virgin = _build("lpr")
+    assert virgin.diversity_stats()["reason"] == "no prototype measured yet"
+    assert virgin.diversity_stats()["orthogonality_loss"] is None
+
+    varied_moe = _build("lpr")
+    varied = [[float((i * 7 + j) % 5) for j in range(D_MODEL)]
+              for i in range(64)]
+    for _ in range(3):
+        varied_moe.forward(varied)
+    d_varied = varied_moe.diversity_stats()
+    assert 0.0 < d_varied["orthogonality_loss"] < 1.0
+    assert d_varied["n_pairs"] == 28  # 8 choose 2
+    assert d_varied["specialization_variance"] > 0.0
+
+    collinear_moe = _build("lpr")
+    for _ in range(3):
+        collinear_moe.forward(COLLINEAR_BATCH)
+    d_col = collinear_moe.diversity_stats()
+    assert d_col["orthogonality_loss"] > d_varied["orthogonality_loss"]
+
+    # The switch twin reports the None sentinel too, and forward must not
+    # crash with it in stats.
+    shipped = _build("switch")
+    stats = shipped.forward(COLLINEAR_BATCH)[2]
+    assert stats["diversity"]["orthogonality_loss"] is None
+
+
+# ---------------------------------------------------------------------------
 # Slice B -- R1 Loss-Free bias routing (arXiv:2408.15664)
 # ---------------------------------------------------------------------------
 
